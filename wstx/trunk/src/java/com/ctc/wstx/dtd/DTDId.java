@@ -17,8 +17,6 @@ package com.ctc.wstx.dtd;
 
 import java.net.URL;
 
-import org.codehaus.stax2.ExternalId;
-
 /**
  * Simple key object class, used for accessing (external) DTDs when stored for
  * caching. Main idea is that the primary id of a DTD (public or system id)
@@ -32,8 +30,11 @@ import org.codehaus.stax2.ExternalId;
  * id has to be expressed as URL if so.
  */
 public final class DTDId
-    extends ExternalId
 {
+    final String mPublicId;
+
+    final URL mSystemId;
+
     final int mConfigFlags;
 
     int mHashCode = 0;
@@ -46,29 +47,50 @@ public final class DTDId
 
     private DTDId(String publicId, URL systemId, int configFlags)
     {
-        super(publicId, systemId);
-        mConfigFlags = configFlags;
-    }
-
-    private DTDId(ExternalId orig, int configFlags)
-    {
-        super(orig);
+        mPublicId = publicId;
+        mSystemId = systemId;
         mConfigFlags = configFlags;
     }
 
     public static DTDId constructFromPublicId(String publicId, int configFlags)
     {
+        if (publicId == null || publicId.length() == 0) {
+            throw new IllegalArgumentException("Empty/null public id.");
+        }
         return new DTDId(publicId, null, configFlags);
     }
 
     public static DTDId constructFromSystemId(URL systemId, int configFlags)
     {
+        if (systemId == null) {
+            throw new IllegalArgumentException("Null system id.");
+        }
         return new DTDId(null, systemId, configFlags);
     }
 
     public static DTDId construct(String publicId, URL systemId, int configFlags)
     {
-        return new DTDId(publicId, systemId, configFlags);
+        if (publicId != null && publicId.length() > 0) {
+            return new DTDId(publicId, null, configFlags);
+        }
+        if (systemId == null) {
+            throw new IllegalArgumentException("Illegal arguments; both public and system id null/empty.");
+        }
+        return new DTDId(null, systemId, configFlags);
+    }
+
+    /*
+    ///////////////////////////////////////////////
+    // Public API, accessors:
+    ///////////////////////////////////////////////
+     */
+
+    public String getPublicId() {
+        return mPublicId;
+    }
+
+    public URL getSystemId() {
+        return mSystemId;
     }
 
     /*
@@ -80,13 +102,23 @@ public final class DTDId
     public int hashCode() {
         int hash = mHashCode;
         if (hash == 0) {
-            hash = mConfigFlags ^ super.hashCode();
+            hash = mConfigFlags;
+            if (mPublicId != null) {
+                hash ^= mPublicId.hashCode();
+            } else {
+                hash ^= mSystemId.hashCode();
+            }
+            mHashCode = hash;
         }
         return hash;
     }
 
     public String toString() {
-        StringBuffer sb = new StringBuffer(super.toString());
+        StringBuffer sb = new StringBuffer(60);
+        sb.append("Public-id: ");
+        sb.append(mPublicId);
+        sb.append(", system-id: ");
+        sb.append(mSystemId);
         sb.append(" [config flags: 0x");
         sb.append(Integer.toHexString(mConfigFlags));
         sb.append(']');
@@ -94,13 +126,17 @@ public final class DTDId
     }
 
     public boolean equals(Object o) {
-        if (!super.equals(o)) {
-            return false;
-        }
         if (!(o instanceof DTDId)) {
             return false;
         }
         DTDId other = (DTDId) o;
-        return (other.mConfigFlags == mConfigFlags);
+        if (other.mConfigFlags != mConfigFlags) {
+            return false;
+        }
+        if (mPublicId != null) {
+            String op = other.mPublicId;
+            return (op != null) && op.equals(mPublicId);
+        }
+        return mSystemId.equals(other.mSystemId);
     }
 }
