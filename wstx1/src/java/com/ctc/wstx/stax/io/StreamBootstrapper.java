@@ -112,9 +112,9 @@ public final class StreamBootstrapper
 
         if (enc == null) { // not via xml declaration
             if (mBytesPerChar == 2) { // UTF-16, BE/LE
-                enc = mBigEndian ? "UTF-16-BE" : "UTF-16-LE";
+                enc = mBigEndian ? "UTF-16BE" : "UTF-16LE";
             } else if (mBytesPerChar == 4) { // UCS-4... ?
-                enc = mBigEndian ? "UTF-32-BE" : "UTF-32-LE";
+                enc = mBigEndian ? "UTF-32BE" : "UTF-32LE";
             } else {
                 // Ok, default has to be UTF-8, as per XML specs
                 enc = "UTF-8";
@@ -187,7 +187,7 @@ public final class StreamBootstrapper
 
         // However, for these first checks, we just need first 4 bytes:
         if (mInputLen >= 4) {
-            do { // BOM block
+            do { // BOM/auto-detection block
                 int quartet = (mByteBuffer[0] << 24)
                     | ((mByteBuffer[1] & 0xFF) << 16)
                     | ((mByteBuffer[2] & 0xFF) << 8)
@@ -234,7 +234,49 @@ public final class StreamBootstrapper
                     mBigEndian = true; // doesn't really matter
                     break;
                 }
-            } while (false); // BOM block
+
+		/* And if that wasn't succesful, how about auto-detection
+		 * for '<?xm' (or subset for multi-byte encodings) marker?
+		 */
+		// Note: none of these consume bytes... so ptr remains at 0
+                if (quartet == 0x0000003c) { // UCS-4, BE?
+                    mBigEndian = true;
+                    mBytesPerChar = 4;
+                    break;
+                }
+                if (quartet == 0x3c000000) { // UCS-4, LE?
+                    mBytesPerChar = 4;
+                    mBigEndian = false;
+                    break;
+                }
+                if (quartet == 0x00003c00) { // UCS-4, in-order...
+                    reportWeirdUCS4("2143");
+                }
+                if (quartet == 0x003c0000) { // UCS-4, in-order...
+                    reportWeirdUCS4("3412");
+                }
+
+                if (quartet == 0x003c003f) { // UTF-16, BE
+		    mBytesPerChar = 2;
+                    mBigEndian = true;
+                    break;
+                }
+                if (quartet == 0x3c003f00) { // UTF-16, LE
+                    mBytesPerChar = 2;
+                    mBigEndian = false;
+                    break;
+                }
+
+                if (quartet == 0x3c3f786d) { // UTF-8, Ascii, ISO-Latin
+                    mBytesPerChar = 1;
+                    mBigEndian = true; // doesn't really matter
+                    break;
+                }
+
+		/* Otherwise it's either single-byte doc without xml
+		 * declaration, or corrupt input...
+		 */
+            } while (false); // BOM/auto-detection block
 
             mHadBOM = (mBytesPerChar > 0);
 
@@ -314,14 +356,19 @@ public final class StreamBootstrapper
             } else if (s.startsWith("16")) {
                 if (s.length() == 2) {
                     // BOM is obligatory, to know the ordering
+		    /* 22-Mar-2005, TSa: Actually, since we don't have a
+		     *   custom decoder, so the underlying JDK Reader may
+		     *   have dealt with it transparently... so we can not
+		     *   really throw an exception here.
+		     */
                     if (!mHadBOM) {
-                        reportMissingBOM(enc);
+                        //reportMissingBOM(enc);
                     }
                     verifyEncoding(enc, 2);
                 } else if (s.equals("16BE")) {
                     verifyEncoding(enc, 2, true);
                 } else if (s.equals("16LE")) {
-                    verifyEncoding(enc, 2, true);
+                    verifyEncoding(enc, 2, false);
                 }
             }
         } else if (enc.startsWith("ISO")) {

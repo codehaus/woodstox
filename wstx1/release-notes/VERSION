@@ -1,6 +1,6 @@
 Version: 1.0.5
 
-Release date: xx-Mar-2005
+Release date: 23-Mar-2005
 
 Description:
   Fifth maintenance release for 1.0; fixes some more critical bugs.
@@ -10,6 +10,9 @@ Description:
   * XMLStreamWriter implementation had problems with writeEmptyElement()
     call followed by a writeEndElement() call (latter was ignored).
     (reported by Sven Köhler)
+  * Wasn't handling multi-byte encodings other than UTF-8 properly
+    (specifically, UTF-16 variants).
+    (reported by Marius Raschip)
 
 History:
 
