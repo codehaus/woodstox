@@ -18,6 +18,7 @@ package com.ctc.wstx.util;
 import java.util.*;
 
 import javax.xml.XMLConstants;
+import javax.xml.namespace.NamespaceContext;
 
 import com.ctc.wstx.util.DataUtil;
 
@@ -53,8 +54,6 @@ public final class BijectiveNsMap
     ///////////////////////////////////////////////
      */
 
-    final BijectiveNsMap mParent;
-
     final int mScopeStart;
 
     /**
@@ -71,10 +70,8 @@ public final class BijectiveNsMap
     ///////////////////////////////////////////////
      */
 
-    private BijectiveNsMap(BijectiveNsMap parent, int scopeStart,
-                           String[] strs)
+    private BijectiveNsMap(int scopeStart, String[] strs)
     {
-        mParent = parent;
         mScopeStart = mScopeEnd = scopeStart;
         mNsStrings = strs;
     }
@@ -91,12 +88,11 @@ public final class BijectiveNsMap
         /* Let's consider pre-defined ones to be 'out of scope', i.e.
          * conceptually be part of (missing) parent's mappings.
          */
-        return new BijectiveNsMap(null, 4, strs);
+        return new BijectiveNsMap(4, strs);
     }
 
-    public BijectiveNsMap createChild()
-    {
-        return new BijectiveNsMap(this, mScopeEnd, mNsStrings);
+    public BijectiveNsMap createChild() {
+        return new BijectiveNsMap(mScopeEnd, mNsStrings);
     }
 
     /*
@@ -105,7 +101,7 @@ public final class BijectiveNsMap
     ///////////////////////////////////////////////
      */
 
-    public String getUriByPrefix(String prefix)
+    public String findUriByPrefix(String prefix)
     {
         /* This is quite simple: just need to locate the last mapping
          * for the prefix, if any:
@@ -123,7 +119,7 @@ public final class BijectiveNsMap
         return null;
     }
 
-    public String getPrefixByUri(String uri)
+    public String findPrefixByUri(String uri)
     {
         /* Finding a valid binding for the given URI is trickier, since
          * mappings can be masked by others... so, we need to first find
@@ -163,10 +159,10 @@ public final class BijectiveNsMap
         return null;
     }
 
-    public List addPrefixesBoundToUri(String uri, List l)
+    public List getPrefixesBoundToUri(String uri, List l)
     {
         /* Same problems (masking) apply here, as well as with
-         * getPrefixByUri...
+         * findPrefixByUri...
          */
         String[] strs = mNsStrings;
         int uhash = uri.hashCode();
@@ -243,6 +239,60 @@ public final class BijectiveNsMap
             }
         }
         // no previous binding, let's just add it at the end
+        if (strs.length < mScopeEnd) {
+            // let's just double the array sizes...
+            strs = DataUtil.growArrayBy(strs, strs.length);
+            mNsStrings = strs;
+        }
+        strs[mScopeEnd++] = prefix;
+        strs[mScopeEnd++] = uri;
+
+        return null;
+    }
+
+    /**
+     * Method used to add a dynamic binding, and return the prefix
+     * used to bind the specified namespace URI.
+     */
+    public String addGeneratedMapping(String prefixBase, NamespaceContext ctxt,
+                                      String uri, int[] seqArr)
+    {
+        String[] strs = mNsStrings;
+        int seqNr = seqArr[0];
+        String prefix;
+
+        main_loop:
+        while (true) {
+            // We better intern the resulting prefix...
+            prefix = (prefixBase + seqNr).intern();
+            ++seqNr;
+
+            /* Ok, let's see if we have a mapping (masked or not) for
+             * the prefix. If we do, let's just not use it: we could
+             * of course mask it (unless it's in current scope), but
+             * it's easier to just get a "virgin" prefix...
+             */
+            int phash = prefix.hashCode();
+            
+            for (int ix = mScopeEnd - 2; ix >= 0; ix -= 2) {
+                String thisP = strs[ix];
+                if (thisP == prefix ||
+                    (thisP.hashCode() == phash && thisP.equals(prefix))) {
+                    continue main_loop;
+                }
+            }
+            /* So far so good... but do we have a root context that might
+             * have something too?
+             */
+
+            if (ctxt != null && ctxt.getNamespaceURI(prefix) != null) {
+                continue;
+            }
+            break;
+        }
+        seqArr[0] = seqNr;
+
+        // Ok, good; then let's just add it in...
         if (strs.length < mScopeEnd) {
             // let's just double the array sizes...
             strs = DataUtil.growArrayBy(strs, strs.length);

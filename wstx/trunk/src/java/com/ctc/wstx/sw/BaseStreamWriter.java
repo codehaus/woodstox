@@ -977,8 +977,6 @@ public abstract class BaseStreamWriter
         // Needs to throw appropriate IllegalArgumentException for invalid names
     }
 
-    public abstract String getTopElemName();
-
     /**
      * Implementation-dependant method called to fully copy START_ELEMENT
      * event that the passed-in stream reader points to

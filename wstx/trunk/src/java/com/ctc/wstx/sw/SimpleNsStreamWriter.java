@@ -81,7 +81,10 @@ public class SimpleNsStreamWriter
         if (!mStartElementOpen) {
             throw new IllegalStateException("Trying to write an attribute when there is no open start element.");
         }
-        String prefix = findPrefix(nsURI, false);
+        String prefix = mCurrElem.getExplicitPrefix(nsURI);
+        if (prefix == null) {
+            throw new XMLStreamException("Unbound namespace URI '"+nsURI+"'");
+        }
         doWriteAttr(localName, nsURI, prefix, value);
     }
 
@@ -95,7 +98,7 @@ public class SimpleNsStreamWriter
 
         // Want to verify namespace consistency?
         if (mCheckNS) {
-            checkNsDecl(prefix, nsURI);
+            // !!! TODO
         }
         doWriteAttr(localName, nsURI, prefix, value);
     }
@@ -114,7 +117,8 @@ public class SimpleNsStreamWriter
         }
 
         if (mCheckNS) { // Was it declared the same way?
-            mCurrElem.checkDefaultNsWrite(nsURI);
+            // !!! TODO
+            //mCurrElem.checkDefaultNsWrite(nsURI);
         }
 
         try {
@@ -152,7 +156,8 @@ public class SimpleNsStreamWriter
                 throwOutputError(ErrorConsts.ERR_NS_EMPTY);
             }
             // Was it declared the same way?
-            mCurrElem.checkNsWrite(mRootNsContext, prefix, nsURI);
+            // !!! TODO
+            //mCurrElem.checkNsWrite(mRootNsContext, prefix, nsURI);
         }
         
         doWriteNamespace(prefix, nsURI);
@@ -163,6 +168,18 @@ public class SimpleNsStreamWriter
     // Package methods:
     ////////////////////////////////////////////////////
      */
+
+    public void setDefaultNamespace(String uri)
+        throws XMLStreamException
+    {
+        mCurrElem.setDefaultNsUri(uri);
+    }
+
+    public void doSetPrefix(String prefix, String uri)
+        throws XMLStreamException
+    {
+        mCurrElem.addPrefix(prefix, uri);
+    }
 
     public void writeStartElement(StartElement elem)
         throws XMLStreamException
@@ -224,39 +241,29 @@ public class SimpleNsStreamWriter
 
     //public void writeEndElement(QName name) throws XMLStreamException
 
-    //public String getTopElemName()
-
     protected void writeStartOrEmpty(String localName, String nsURI)
         throws XMLStreamException
     {
         checkStartElement(localName);
-
-        mCurrElem = new OutputElement(mCurrElem, localName, mNsDecl, mCheckNS);
-
         // Need a prefix...
-        String prefix = findPrefix(nsURI, true);
-        mCurrElem.setPrefix(prefix);
-        doWriteStartElement(prefix, localName);
+        String prefix = mCurrElem.getPrefix(nsURI);
+        if (prefix == null) {
+            throw new XMLStreamException("Unbound namespace URI '"+nsURI+"'");
+        }
 
-        // Need to clear namespace declaration info now for next start elem:
-        mNsDecl = null;
+        mCurrElem = mCurrElem.createChild(prefix, localName);
+        doWriteStartElement(prefix, localName);
     }
 
     protected void writeStartOrEmpty(String prefix, String localName, String nsURI)
         throws XMLStreamException
     {
         checkStartElement(localName);
-        mCurrElem = new OutputElement(mCurrElem, localName, mNsDecl, mCheckNS);
-
-        // Need to clear ns declarations for next start/empty elems:
-        mNsDecl = null;
-
+        mCurrElem = mCurrElem.createChild(prefix, localName);
         // Ok, need to check validity of the prefix?
         if (mCheckNS) {
-            checkNsDecl(prefix, nsURI);
+            // !!! TODO
         }
-
-        mCurrElem.setPrefix(prefix);
         doWriteStartElement(prefix, localName);
     }
 
@@ -335,40 +342,4 @@ public class SimpleNsStreamWriter
     // Internal methods
     ////////////////////////////////////////////////////
      */
-
-    private final String findPrefix(String nsURI, boolean canUseDefault)
-        throws XMLStreamException
-    {
-        String prefix = mCurrElem.findPrefix(nsURI, canUseDefault);
-        if (prefix == null) {
-            /* 11-Nov-2004, TSa: May also be specified by the root namespace
-             *   context
-             */
-            if (mRootNsContext != null) {
-                prefix = mRootNsContext.getPrefix(nsURI);
-                /* If we got it, better call setPrefix() now...
-                 * (note: we do not use default namespace root may define;
-                 * it'd be hard to make that work ok)
-                 */
-                if (prefix != null && prefix.length() > 0) {
-                    mCurrElem.addPrefix(prefix, nsURI);
-                }
-            }
-            throw new XMLStreamException("Unbound namespace prefix '"+prefix+"'");
-        }
-        return prefix;
-    }
-
-    private final void checkNsDecl(String prefix, String nsURI)
-        throws XMLStreamException
-    {
-        int status = mCurrElem.isPrefixValid(prefix, nsURI, true, false);
-        if (status != OutputElement.PREFIX_OK) {
-            if (status == OutputElement.PREFIX_UNBOUND) {
-                throw new XMLStreamException("Unbound namespace prefix '"+prefix+"'");
-            }
-            String actURI = mCurrElem.getNamespaceURI(prefix);
-            throw new XMLStreamException("Misbound namespace prefix '"+prefix+"': was declared as '"+actURI+"', trying to use it as '"+nsURI+"'");
-        }
-    }
 }

@@ -306,10 +306,6 @@ public class NonNsStreamWriter
         }
     }
 
-    public String getTopElemName() {
-        return mElements.getLastString();
-    }
-
     /**
      * Element copier method implementation suitable to be used with
      * non-namespace-aware writers. The only special thing here is that

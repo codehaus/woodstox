@@ -27,7 +27,6 @@ import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
 
-import com.ctc.wstx.util.EmptyIterator;
 import com.ctc.wstx.util.StringVector;
 
 /**

@@ -87,20 +87,7 @@ public abstract class BaseNsStreamWriter
     ////////////////////////////////////////////////////
      */
 
-    final protected static OutputElement sSharedRootElem = OutputElement.getRootInstance();
-
-    /**
-     * Currently active output element; contains information necessary
-     * for handling attributes and namespaces
-     */
-    protected OutputElement mCurrElem = sSharedRootElem;
-
-    /**
-     * Container in which namespace declarations are stored, before the
-     * start element has been output. Will be used for passing namespace
-     * declaration information to the start element.
-     */
-    protected OutputElement.Declarations mNsDecl = null;
+    protected SimpleOutputElement mCurrElem = SimpleOutputElement.createRoot();
 
     /**
      * Optional "root" namespace context that application can set. If so,
@@ -128,47 +115,31 @@ public abstract class BaseNsStreamWriter
     ////////////////////////////////////////////////////
      */
 
-    public NamespaceContext getNamespaceContext()
-    {
-        /* We could always create the declarations Object; that would make
-         * NamespaceContext live (ie. reflect further bindings)... but
-         * there's probably no need for that?
-         */
-        if (mNsDecl == null) {
-            return mCurrElem;
-        }
-        return mNsDecl;
+    public NamespaceContext getNamespaceContext() {
+        return mCurrElem;
     }
 
     public String getPrefix(String uri) {
-        if (mNsDecl != null) {
-            return mNsDecl.getPrefix(uri);
-        }
         return mCurrElem.getPrefix(uri);
     }
 
-    public void setDefaultNamespace(String uri)
-        throws XMLStreamException
-    {
-        if (mNsDecl == null) {
-            mNsDecl = new OutputElement.Declarations(mCurrElem);
-        }
-        mNsDecl.setDefaultNsUri(uri);
-    }
+    public abstract void setDefaultNamespace(String uri)
+        throws XMLStreamException;
 
     /**
      *<p>
      * Note: Root namespace context works best if automatic prefix
      * creationg ("namespace/prefix repairing" in StAX lingo) is enabled.
      */
-    public void setNamespaceContext(NamespaceContext context)
+    public void setNamespaceContext(NamespaceContext ctxt)
     {
         // This is only allowed before root element output:
         if (mState != STATE_PROLOG) {
             throw new IllegalStateException("Called setNamespaceContext() after having already output root element.");
         }
 
-        mRootNsContext = context;
+        mRootNsContext = ctxt;
+        mCurrElem.setRootNsContext(ctxt);
     }
 
     public void setPrefix(String prefix, String uri)
@@ -217,10 +188,7 @@ public abstract class BaseNsStreamWriter
             }
         }
 
-        if (mNsDecl == null) {
-            mNsDecl = new OutputElement.Declarations(mCurrElem);
-        }
-        mNsDecl.addNamespace(prefix, uri);
+        doSetPrefix(prefix, uri);
     }
 
     /**
@@ -261,11 +229,8 @@ public abstract class BaseNsStreamWriter
         checkStartElement(localName);
 
         mEmptyElement = true;
-        mCurrElem = new OutputElement(mCurrElem, localName, mNsDecl, mCheckNS);
+        mCurrElem = mCurrElem.createChild("", localName);
         doWriteStartElement(null, localName);
-
-        // Need to clear namespace declaration info now for next start elem:
-        mNsDecl = null;
 
     }
 
@@ -299,12 +264,9 @@ public abstract class BaseNsStreamWriter
         checkStartElement(localName);
 
         mEmptyElement = false;
-        mCurrElem = new OutputElement(mCurrElem, localName, mNsDecl, mCheckNS);
+        mCurrElem = mCurrElem.createChild("", localName);
 
         doWriteStartElement(null, localName);
-
-        // Need to clear namespace declaration info now for next start elem:
-        mNsDecl = null;
     }
 
     public void writeStartElement(String nsURI, String localName)
@@ -343,10 +305,6 @@ public abstract class BaseNsStreamWriter
     /////////////////////////////////////////////////////////
      */
 
-    public String getTopElemName() {
-        return mCurrElem.getElementName();
-    }
-
     /**
      * Method called by {@link com.ctc.wstx.evt.WstxEventWriter} (instead of the version
      * that takes no argument), so that we can verify it does match the
@@ -371,10 +329,14 @@ public abstract class BaseNsStreamWriter
         throws XMLStreamException
     {
         mStartElementOpen = false;
+
         // Ok... time to verify namespaces were written ok?
+        // 31-Mar-2005, TSa: Not working, let's comment it out
+        /*
         if (mCheckNSWrite) {
             mCurrElem.checkAllNsWrittenOk();
         }
+        */
 
         try {
             if (emptyElem) {
@@ -423,7 +385,7 @@ public abstract class BaseNsStreamWriter
     }
 
     protected void doWriteAttr(String localName, String nsURI, String prefix,
-                             String value)
+                               String value)
         throws XMLStreamException
     {
         if (mCheckAttr) { // still need to ensure no duplicate attrs?
@@ -515,7 +477,8 @@ public abstract class BaseNsStreamWriter
              */
             mStartElementOpen = false;
             if (mCheckNSWrite) {
-                mCurrElem.checkAllNsWrittenOk();
+                // !!! TODO
+                //mCurrElem.checkAllNsWrittenOk();
             }
             
             try {
@@ -570,7 +533,8 @@ public abstract class BaseNsStreamWriter
              *    (whether they are automatic or not)
              */
             if (mAutomaticNS) {
-                mCurrElem.outputDeclaredNamespaces(mWriter);
+                // !!! TODO
+                //mCurrElem.outputDeclaredNamespaces(mWriter);
             }
         } catch (IOException ioe) {
             throw new XMLStreamException(ioe);
@@ -582,6 +546,9 @@ public abstract class BaseNsStreamWriter
     // More abstract methods for sub-classes to implement
     ////////////////////////////////////////////////////
      */
+
+    public abstract void doSetPrefix(String prefix, String uri)
+        throws XMLStreamException;
 
     public abstract void writeDefaultNamespace(String nsURI)
         throws XMLStreamException;
