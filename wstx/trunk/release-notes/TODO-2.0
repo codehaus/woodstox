@@ -44,6 +44,7 @@ Must-haves for 2.0
       [DONE] * Separate DTD info access behind a new interface (DTDInfo?)
       [Partial] * Streaming access: getText with Writer arg
       [DONE] * Misc: isEmptyElement, getDepth
+      * Full pass-through method (outputEvent(XMLStreamWriter2)?)
    * XMLStreamWriter2:
       [Partial] * pass-through write method for outputting raw (non-encoded) stuff
       [Partial?] * setFeature/getFeature (which property/ies?)

@@ -94,9 +94,28 @@ public interface XMLStreamReader2
     */
 
     /**
+     * Method similar to {@link #getText()}, except
+     * that it just uses provided Writer to write all textual content.
+     * For further optimization, it may also be allowed to do true
+     * pass-through, thus possibly avoiding one temporary copy of the
+     * data.
+     *<p>
+     * Method can only be called on states CDATA, CHARACTERS, COMMENT,
+     * DTD, ENTITY_REFERENCE; if called when reader is in another state,
+     * {@link IllegalStateException} will be thrown. Content written
+     * for elements is same as with {@link #getText()}.
+     *
+     * @param w Writer to use for writing textual contents
+     * @param preserveContents If true, reader has to preserve contents
+     *   so that further calls to <code>getText</code> will return
+     *   proper conntets. If false, reader is allowed to skip creation
+     *   of such copies: this can improve performance, but it also means
+     *   that further calls to <code>getText</code> is not guaranteed to
+     *   return meaningful data.
+     *
      * @return Number of characters written to the reader
      */
-    public int getText(Writer w)
+    public int getText(Writer w, boolean preserveContents)
         throws IOException, XMLStreamException;
 
     /*
