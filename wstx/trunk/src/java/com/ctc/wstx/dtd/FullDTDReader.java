@@ -25,15 +25,15 @@ import javax.xml.stream.Location;
 import javax.xml.stream.XMLReporter;
 import javax.xml.stream.XMLStreamException;
 
-import com.ctc.wstx.compat.JdkFeatures;
 import com.ctc.wstx.cfg.ErrorConsts;
+import com.ctc.wstx.cfg.ReaderConfig;
+import com.ctc.wstx.compat.JdkFeatures;
 import com.ctc.wstx.ent.*;
 import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.io.DefaultInputResolver;
 import com.ctc.wstx.io.InputSourceFactory;
 import com.ctc.wstx.io.WstxInputResolver;
 import com.ctc.wstx.io.WstxInputSource;
-import com.ctc.wstx.sr.ReaderConfig;
 import com.ctc.wstx.sr.StreamScanner;
 import com.ctc.wstx.util.InternCache;
 import com.ctc.wstx.util.StringVector;

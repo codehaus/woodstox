@@ -30,6 +30,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.stream.StreamSource;
 
+import com.ctc.wstx.cfg.ReaderConfig;
 import com.ctc.wstx.exc.WstxIOException;
 import com.ctc.wstx.io.BranchingReaderSource;
 import com.ctc.wstx.io.InputBootstrapper;
@@ -40,7 +41,6 @@ import com.ctc.wstx.dtd.DTDSubset;
 import com.ctc.wstx.dtd.FullDTDReaderProxy;
 import com.ctc.wstx.sr.FullStreamReader;
 import com.ctc.wstx.sr.ReaderCreator;
-import com.ctc.wstx.sr.ReaderConfig;
 import com.ctc.wstx.util.SimpleCache;
 
 /**
@@ -121,44 +121,8 @@ public final class ValidatingInputFactory
     /////////////////////////////////////////////////////
      */
 
-    public Object getProperty(String name)
-    {
-        // !!! TBI: Add support for validation etc
-        return super.getProperty(name);
-    }
+    // // Base class should be fine for the most part...
 
-    //public XMLEventAllocator getEventAllocator();
-    
-    //public XMLReporter getXMLReporter()
-    //public XMLResolver getXMLResolver()
-    
-    public boolean isPropertySupported(String name)
-    {
-        // !!! TBI: Add support for validation etc
-        return super.isPropertySupported(name);
-    }
-
-    //public void setEventAllocator(XMLEventAllocator allocator);
-
-    public void setProperty(String propName, Object value)
-    {
-        // !!! TBI: Add support for validation etc
-        super.setProperty(propName, value);
-    } 
-
-    public void doSupportDTDPP(boolean state) {
-        mConfig.doSupportDTDPP(state);
-    }
-
-    public boolean willSupportDTDPP() {
-        return mConfig.willSupportDTDPP();
-    }
-
-    /*
-    /////////////////////////////////////////
-    // Type-safe configuration access:
-    /////////////////////////////////////////
-     */
 
     /*
     /////////////////////////////////////////////////////

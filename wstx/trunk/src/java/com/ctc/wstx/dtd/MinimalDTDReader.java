@@ -17,9 +17,9 @@ package com.ctc.wstx.dtd;
 
 import java.io.IOException;
 
+import com.ctc.wstx.cfg.ReaderConfig;
 import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.io.WstxInputSource;
-import com.ctc.wstx.sr.ReaderConfig;
 import com.ctc.wstx.sr.StreamScanner;
 
 /**

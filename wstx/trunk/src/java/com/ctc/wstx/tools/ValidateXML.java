@@ -20,7 +20,7 @@ import java.net.URL;
 
 import javax.xml.stream.*;
 
-import com.ctc.wstx.api.WstxInputFactoryConfig;
+import com.ctc.wstx.cfg.ReaderConfig;
 import com.ctc.wstx.dtd.DTDSubset;
 import com.ctc.wstx.io.WstxInputSource;
 import com.ctc.wstx.sr.FullStreamReader;
@@ -99,11 +99,12 @@ public class ValidateXML
         }
 
         ValidatingInputFactory f = ValidatingInputFactory.newValidatingInstance();
+	ReaderConfig cfg = f.getConfig();
         
-        f.doSupportNamespaces(true);
-        f.doSupportDTDs(true);
-        f.doValidateWithDTD(true);
-        f.setXMLReporter(new Reporter());
+        cfg.doSupportNamespaces(true);
+        cfg.doSupportDTDs(true);
+        cfg.doValidateWithDTD(true);
+        cfg.setXMLReporter(new Reporter());
 
         // Ok, then, let's loop over docs
 

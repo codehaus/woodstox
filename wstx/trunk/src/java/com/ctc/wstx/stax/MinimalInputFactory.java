@@ -30,7 +30,7 @@ import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.stream.StreamSource;
 
 import com.ctc.wstx.cfg.InputConfigFlags;
-import com.ctc.wstx.sr.ReaderConfig;
+import com.ctc.wstx.cfg.ReaderConfig;
 import com.ctc.wstx.dtd.DTDId;
 import com.ctc.wstx.dtd.DTDReaderProxy;
 import com.ctc.wstx.dtd.DTDSubset;
@@ -44,7 +44,6 @@ import com.ctc.wstx.util.TextBuilder;
 import com.ctc.wstx.util.URLUtil;
 import com.ctc.wstx.sr.WstxStreamReader;
 import com.ctc.wstx.sr.ReaderCreator;
-import com.ctc.wstx.sr.ReaderConfig;
 
 /**
  * Minimalistic input factory, which implements just the basic XML
@@ -194,7 +193,8 @@ public class MinimalInputFactory
     public XMLStreamReader createXMLStreamReader(InputStream in)
         throws XMLStreamException
     {
-        return createSR(null, StreamBootstrapper.getInstance(in, null, null, getInputBufferLength()));
+        return createSR(null, StreamBootstrapper.getInstance(in, null, null,
+							     mConfig.getInputBufferLength()));
     }
 
     public XMLStreamReader createXMLStreamReader(InputStream in, String enc)
@@ -207,7 +207,7 @@ public class MinimalInputFactory
         try {
             return createSR(null, ReaderBootstrapper.getInstance
                             (new InputStreamReader(in, enc), null, null,
-                             getInputBufferLength(), enc));
+                             mConfig.getInputBufferLength(), enc));
         } catch (UnsupportedEncodingException ex) {
             throw new XMLStreamException(ex);
         }
@@ -228,14 +228,14 @@ public class MinimalInputFactory
     public XMLStreamReader createXMLStreamReader(String systemId, InputStream in)
         throws XMLStreamException
     {
-        return createSR(systemId, StreamBootstrapper.getInstance(in, null, systemId, getInputBufferLength()));
+        return createSR(systemId, StreamBootstrapper.getInstance(in, null, systemId, mConfig.getInputBufferLength()));
     }
 
     public XMLStreamReader createXMLStreamReader(String systemId, Reader r)
         throws XMLStreamException
     {
         return createSR(systemId,
-                        ReaderBootstrapper.getInstance(r, null, systemId, getInputBufferLength(), null));
+                        ReaderBootstrapper.getInstance(r, null, systemId, mConfig.getInputBufferLength(), null));
     }
 
     /*
@@ -268,7 +268,25 @@ public class MinimalInputFactory
         return mConfig.isPropertySupported(name);
     }
 
+    /* Neither minimal factory, nor validating factory implement
+     * the event interface...
+     */
+
     //public void setEventAllocator(XMLEventAllocator allocator);
+
+    public void setXMLReporter(XMLReporter r) {
+        mConfig.setXMLReporter(r);
+    }
+
+    /**
+     * Note: it's preferable to use Wstx-specific
+     * {@link ReaderConfig#setEntityResolver}
+     * instead, if possible, since this just wraps passed in resolver.
+     */
+    public void setXMLResolver(XMLResolver r)
+    {
+        mConfig.setXMLResolver(r);
+    }
 
     public void setProperty(String propName, Object value)
     {
@@ -284,262 +302,12 @@ public class MinimalInputFactory
 
     /*
     /////////////////////////////////////////
-    // Type-safe configuration access:
+    // Woodstox-specific configuration access
     /////////////////////////////////////////
      */
 
-    // // // Accessors:
-
-    // Standard properties
-    // (except ones for which StAX has specific getter)
-
-    public boolean willCoalesceText() {
-        return mConfig.willCoalesceText();
-    }
-
-    public boolean willSupportNamespaces() {
-        return mConfig.willSupportNamespaces();
-    }
-
-    public boolean willReplaceEntityRefs() {
-        return mConfig.willReplaceEntityRefs();
-    }
-
-    public boolean willSupportExternalEntities() {
-        return mConfig.willSupportExternalEntities();
-    }
-
-    public boolean willSupportDTDs() {
-        return mConfig.willSupportDTDs();
-    }
-
-    public boolean willValidateWithDTD() {
-        return mConfig.willValidateWithDTD();
-    }
-
-    // Wstx-properties:
-
-    public boolean willNormalizeLFs() {
-        return mConfig.willNormalizeLFs();
-    }
-
-    public boolean willNormalizeAttrValues() {
-        return mConfig.willNormalizeAttrValues();
-    }
-
-    public boolean willInternNsURIs() {
-        return mConfig.willInternNsURIs();
-    }
-
-    public boolean willReportAllTextAsCharacters() {
-        return mConfig.willReportAllTextAsCharacters();
-    }
-
-    public boolean willReportPrologWhitespace() {
-        return mConfig.willReportPrologWhitespace();
-    }
-
-    public boolean willCacheDTDs() {
-        return mConfig.willCacheDTDs();
-    }
-
-    public boolean willParseLazily() {
-        return mConfig.willParseLazily();
-    }
-
-    /* No point in implementing this method -- it only affects Event
-     * API, which is NOT implemented by this factory.
-     */
-    /*
-    public boolean willPreserveLocation() {
-        return mConfig.willPreserveLocation();
-    }
-    */
-
-    // Real DTD-handling not supported by this factory...
-    /*
-    public boolean willSupportDTDPP() {
-        return mConfig.willSupportDTDPP();
-    }
-    */
-
-    public int getInputBufferLength() {
-        return mConfig.getInputBufferLength();
-    }
-
-    public int getTextBufferLength() {
-        return mConfig.getTextBufferLength();
-    }
-
-    public int getShortestReportedTextSegment() {
-        return mConfig.getShortestReportedTextSegment();
-    }
-
-    public Map getCustomInternalEntities() {
-        return mConfig.getCustomInternalEntities();
-    }
-
-    public URL getBaseURL() {
-        return mConfig.getBaseURL();
-    }
-
-    public WstxInputResolver getDtdResolver() {
-        return null;
-    }
-
-    public WstxInputResolver getEntityResolver() {
-        return mConfig.getEntityResolver();
-    }
-
-    // // // Mutators:
-
-    public void doCoalesceText(boolean state) {
-        mConfig.doCoalesceText(state);
-    }
-
-    public void doSupportNamespaces(boolean state) {
-        mConfig.doSupportNamespaces(state);
-    }
-
-    public void doReplaceEntityRefs(boolean state) {
-        mConfig.doReplaceEntityRefs(state);
-    }
-
-    public void doSupportExternalEntities(boolean state) {
-        mConfig.doSupportExternalEntities(state);
-    }
-
-    public void doSupportDTDs(boolean state) {
-        if (state && mIsMinimal) {
-            throwUnsupported("doSupportDTDs(true)");
-        }
-        mConfig.doSupportDTDs(state);
-    }
-
-    public void doValidateWithDTD(boolean state) {
-        if (state && mIsMinimal) {
-            throwUnsupported("doValidateWithDTD(true)");
-        }
-        mConfig.doValidateWithDTD(state);
-    }
-
-    public void setXMLReporter(XMLReporter r) {
-        mConfig.setXMLReporter(r);
-    }
-
-    /**
-     * Note: it's preferable to use Wstx-specific {@link #setEntityResolver}
-     * instead, if possible, since this just wraps passed in resolver.
-     */
-    public void setXMLResolver(XMLResolver r)
-    {
-        mConfig.setXMLResolver(r);
-    }
-
-    // Wstx-properties:
-
-    public void doNormalizeLFs(boolean state) {
-        mConfig.doNormalizeLFs(state);
-    }
-
-    public void doNormalizeAttrValues(boolean state) {
-        mConfig.doNormalizeAttrValues(state);
-    }
-
-    public void doInternNsURIs(boolean state) {
-        mConfig.doInternNsURIs(state);
-    }
-
-    public void doReportPrologWhitespace(boolean state) {
-        mConfig.doReportPrologWhitespace(state);
-    }
-
-    public void doCacheDTDs(boolean state) {
-        mConfig.doCacheDTDs(state);
-    }
-
-    public void doParseLazily(boolean state) {
-        mConfig.doParseLazily(state);
-    }
-
-    /* No point in implementing this method -- it only affects Event
-     * API, which is NOT implemented by this factory.
-     */
-    /*
-    public void doPreserveLocation(boolean state) {
-        mConfig.doPreserveLocation(state);
-    }
-    */
-
-    // Real DTD-handling not supported by this factory...
-    /*
-    public void doSupportDTDPP(boolean state) {
-        mConfig.doSupportDTDPP(state);
-    }
-    */
-
-    public void doReportAllTextAsCharacters(boolean state) {
-        mConfig.doReportAllTextAsCharacters(state);
-    }
-
-    public void setInputBufferLength(int value)
-    {
-        mConfig.setInputBufferLength(value);
-    }
-
-    public void setTextBufferLength(int value) {
-        mConfig.setTextBufferLength(value);
-    }
-
-    public void setShortestReportedTextSegment(int value) {
-        mConfig.setShortestReportedTextSegment(value);
-    }
-
-    public void setBaseURL(URL baseURL) {
-        mConfig.setBaseURL(baseURL);
-    }
-
-    public void setCustomInternalEntities(Map in)
-    {
-        mConfig.setCustomInternalEntities(in);
-    }
-
-    public void setDtdResolver(WstxInputResolver r) {
-        if (r != null && mIsMinimal) {
-            throwUnsupported("setDtdResolver(...)");
-        }
-        mConfig.setDtdResolver(r);
-    }
-
-    public void setEntityResolver(WstxInputResolver r)
-    {
-        mConfig.setEntityResolver(r);
-    }
-
-    /*
-    /////////////////////////////////////////////////////
-    // "Profile" mutators
-    /////////////////////////////////////////////////////
-     */
-
-    public void configureForMaxConformance() {
-        mConfig.configureForMaxConformance();
-    }
-
-    public void configureForMaxConvenience() {
-        mConfig.configureForMaxConvenience();
-    }
-
-    public void configureForMaxSpeed() {
-        mConfig.configureForMaxSpeed();
-    }
-
-    public void configureForMinMemUsage() {
-        mConfig.configureForMinMemUsage();
-    }
-
-    public void configureForRoundTripping() {
-        mConfig.configureForRoundTripping();
+    public ReaderConfig getConfig() {
+	return mConfig;
     }
 
     /*
@@ -622,11 +390,11 @@ public class MinimalInputFactory
                 }
                 bs = StreamBootstrapper.getInstance
                     (in, ss.getPublicId(), ss.getSystemId(),
-                     getInputBufferLength());
+                     mConfig.getInputBufferLength());
             } else {
                 bs = ReaderBootstrapper.getInstance
                     (r, ss.getPublicId(), ss.getSystemId(),
-                     getInputBufferLength(), null);
+                     mConfig.getInputBufferLength(), null);
             }
             return createSR(src.getSystemId(), bs);
         }
