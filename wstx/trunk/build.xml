@@ -388,7 +388,7 @@
     </target>
 
     <target name="prepare-staxtest">
-        <mkdir dir="${BuildDir/staxtest-classes}" />
+        <mkdir dir="${BuildDir}/staxtest-classes}" />
         <!-- and unpack test classes... unfortunately needed so JUnit
              can find classes (maybe there's a way to refer to a jar too,
              have not found one so far)

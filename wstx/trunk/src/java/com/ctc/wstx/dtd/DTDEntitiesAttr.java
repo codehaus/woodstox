@@ -1,6 +1,7 @@
 package com.ctc.wstx.dtd;
 
 import java.util.Map;
+import java.util.StringTokenizer;
 
 import javax.xml.stream.Location;
 
@@ -160,7 +161,29 @@ public final class DTDEntitiesAttr
     public void validateDefault(InputProblemReporter rep, boolean normalize)
         throws WstxException
     {
-        mDefValue = validateDefaultNames(rep, normalize);
+        String normStr = validateDefaultNames(rep, true);
+        if (normalize) {
+            mDefValue = normStr;
+        }
+
+        // Ok, but were they declared?
+
+        /* Performance really shouldn't be critical here (only called when
+         * parsing DTDs, which get cached) -- let's just
+         * tokenize using standard StringTokenizer
+         */
+        StringTokenizer st = new StringTokenizer(normStr);
+        /* 03-Dec-2004, TSa: This is rather ugly -- need to know we
+         *   actually really get a DTD reader, and DTD reader needs
+         *   to expose a special method... but it gets things done.
+         */
+        MinimalDTDReader dtdr = (MinimalDTDReader) rep;
+        while (st.hasMoreTokens()) {
+            String str = st.nextToken();
+            EntityDecl ent = dtdr.findEntity(str);
+            // Needs to exists, and be an unparsed entity...
+            checkEntity(rep, normStr, ent);
+        }
     }
 
     /*

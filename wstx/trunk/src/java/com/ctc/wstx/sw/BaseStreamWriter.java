@@ -60,6 +60,7 @@ public abstract class BaseStreamWriter
     // // // Specialized configuration flags, extracted from config flags:
 
     protected final boolean mCfgOutputEmptyElems;
+    protected final boolean mCfgCDataAsText;
 
     protected final boolean mCheckStructure;
     protected final boolean mCheckContent;
@@ -120,6 +121,7 @@ public abstract class BaseStreamWriter
         mCheckAttr = (flags & CFG_VALIDATE_ATTR) != 0;
 
         mCfgOutputEmptyElems = (flags & CFG_OUTPUT_EMPTY_ELEMS) != 0;
+        mCfgCDataAsText = (flags & CFG_OUTPUT_CDATA_AS_TEXT) != 0;
     }
 
     /*
@@ -183,6 +185,15 @@ public abstract class BaseStreamWriter
     public void writeCData(String data)
         throws XMLStreamException
     {
+        /* 02-Dec-2004, TSa: Maybe the writer is to "re-direct" these
+         *   writes as normal text? (sometimes useful to deal with broken
+         *   XML parsers, for example)
+         */
+        if (mCfgCDataAsText) {
+            writeCharacters(data);
+            return;
+        }
+
         mAnyOutput = true;
         // Need to finish an open start element?
         if (mStartElementOpen) {
@@ -197,7 +208,7 @@ public abstract class BaseStreamWriter
         }
 
         if (mCheckContent) {
-            if (data != null && data.length() > 1) {
+            if (data != null && data.length() >= 3) {
                 int ix = data.indexOf(']');
                 if (ix >= 0) {
                     ix = data.indexOf("]]>", ix);

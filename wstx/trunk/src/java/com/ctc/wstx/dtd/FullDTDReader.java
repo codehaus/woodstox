@@ -310,7 +310,7 @@ public class FullDTDReader
         mCfgNormalizeLFs = (cfgFlags & CFG_NORMALIZE_LFS) != 0;
         mCfgNormAttrs = (cfgFlags & CFG_NORMALIZE_ATTR_VALUES) != 0;
         mCfgValidate = (cfgFlags & CFG_VALIDATE_AGAINST_DTD) != 0;
-	mCfgSupportDTDPP = (cfgFlags & CFG_SUPPORT_DTDPP) != 0;
+        mCfgSupportDTDPP = (cfgFlags & CFG_SUPPORT_DTDPP) != 0;
         mUsesPredefdEntities = false;
         mParamEntities = null;
         mRefdPEs = null;
@@ -447,6 +447,30 @@ public class FullDTDReader
         throws IOException
     {
         mFlattenWriter.flush(mInputBuffer, mInputPtr);
+    }
+
+    /*
+    //////////////////////////////////////////////////
+    // Internal API
+    //////////////////////////////////////////////////
+     */
+
+    /**
+     * Method that may need to be called by attribute default value
+     * validation code, during parsing....
+     *<p>
+     * Note: see base class for some additional remarks about this
+     * method.
+     */
+    public EntityDecl findEntity(String entName)
+    {
+        if (mPredefdGEs != null) {
+            EntityDecl decl = (EntityDecl) mPredefdGEs.get(entName);
+            if (decl != null) {
+                return decl;
+            }
+        }
+        return (EntityDecl) mGeneralEntities.get(entName);
     }
 
     /*

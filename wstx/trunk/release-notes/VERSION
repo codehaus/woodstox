@@ -5,6 +5,9 @@ Release date: -Dev-2004
 Description:
 
   New functionality:
+    * Added P_OUTPUT_CDATA_AS_TEXT for stream writers; it will force
+      writer to output 'normal' (quoted) text when asked to output
+      CDATA (may be useful when full control of output is needed).
     * Adding some preliminary support for DTD++ (although full support is
       not planned to be part of 2.0 at this point):
       * Can enable/disable support via normal property set mechanism
@@ -22,6 +25,9 @@ Description:
       this too.
     * Fixed a small problem with attribute parsing; space between attribute
       value and following name was optional.
+    * Finished full default value validation support (mostly relevant for
+      NOTATION, ENTITY and ENTITIES types).
+    * Improved event writer so that it preserves CDATA events.
 
   Refactoring:
     * Rewrote stream writer; now has 3 implementations (separated

@@ -117,7 +117,19 @@ public final class DTDEntityAttr
     public void validateDefault(InputProblemReporter rep, boolean normalize)
         throws WstxException
     {
-        mDefValue = validateDefaultName(rep, normalize);
+        String normStr = validateDefaultName(rep, normalize);
+        if (normalize) {
+            mDefValue = normStr;
+        }
+
+        // Ok, but was it declared?
+
+        /* 03-Dec-2004, TSa: This is rather ugly -- need to know we
+         *   actually really get a DTD reader, and DTD reader needs
+         *   to expose a special method... but it gets things done.
+         */
+        EntityDecl ent = ((MinimalDTDReader) rep).findEntity(normStr);
+        checkEntity(rep, normStr, ent);
     }
 
     /*

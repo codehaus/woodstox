@@ -18,6 +18,7 @@ package com.ctc.wstx.dtd;
 import java.io.IOException;
 
 import com.ctc.wstx.api.ReaderConfig;
+import com.ctc.wstx.ent.EntityDecl;
 import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.io.WstxInputSource;
 import com.ctc.wstx.sr.StreamScanner;
@@ -90,6 +91,24 @@ public class MinimalDTDReader
              */
             master.copyBufferStateFrom(r);
         }
+    }
+
+    /*
+    //////////////////////////////////////////////////
+    // Internal API
+    //////////////////////////////////////////////////
+     */
+
+    /**
+     * Method that may need to be called by attribute default value
+     * validation code, during parsing....
+     *<p>
+     * 03-Dec-2004, TSa: This is not particularly elegant: should be
+     * able to pass the information some other way. But for now it
+     * works and is necessary.
+     */
+    public EntityDecl findEntity(String entName) {
+        return null;
     }
 
     /*

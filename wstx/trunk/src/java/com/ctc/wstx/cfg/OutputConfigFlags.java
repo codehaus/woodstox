@@ -39,4 +39,10 @@ public interface OutputConfigFlags
      * to prevent accidental output of duplicate attributes.
      */
     final static int CFG_VALIDATE_ATTR =       0x0040;
+
+    /**
+     * Whether writer should just automatically convert all calls that
+     * would normally produce CDATA to produce (quoted) text.
+     */
+    final static int CFG_OUTPUT_CDATA_AS_TEXT = 0x0080;
 }

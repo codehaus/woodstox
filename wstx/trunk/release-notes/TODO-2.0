@@ -2,30 +2,21 @@
 Must-haves for 2.0
 ------------------------------------
 
-* Dual-licensing, changes to build.xml to produce ASL2.0 and LGPL
-  jars.
-
-* DTD-handling/parsing:
-   * Verify that an unparsed entity refers to a declared notation.
-
-* Attribute validation:
-   * Notation (enumerated) attrs:
-      * Declaration checks:
-          * All enumeration notations have to have been declared, prior
-            to entountering ATTLIST declaration (on either subset)
-
-* Stream writers:
-   * Validate names (local, full), when such validation enabled
-
 * Event API:
    * Implement CFG_PRESERVE_LOCATION (value false); need to have default
      event allocator that shares a single Location object (start of the
      file)
 
-* Low-level parsing:
-   * Change parseEntityName() to make sure that the whole entity name as well
-     as trailing semicolon are from the same input source, to prevent the
-     possibility of "split" entity names (which are not legal in XML).
+* Stream writers:
+   * Validate names (local, full), when such validation enabled
+[DONE] * Add CFG_CONVERT_CDATA_TO_TEXT to convert calls to output CDATA
+     to produce TEXT instead.
+
+[DONE] * Dual-licensing, changes to build.xml to produce ASL2.0 and LGPL jars.
+
+* DTD-handling/parsing:
+[DONE] * Verify that an unparsed entity refers to a declared notation.
+   * Make attribute type declarations accessible via API (event API)
 
 * Unit testing: Implement at least simple basic StAX-tests for:
    * Event reader
@@ -40,6 +31,7 @@ Must-haves for 2.0
    * XMLInputFactory2:
        * Create URI-based factory methods for readers
          (will create XMLStreamReader2 instances)
+   * XMLTextEncoder?
 
 
 ------------------------------------

@@ -141,7 +141,15 @@ public class WstxEventWriter
              */
             
         case CHARACTERS: // better pass to stream writer, for prolog/epilog validation
-            mWriter.writeCharacters(event.asCharacters());
+            {
+                Characters ch = event.asCharacters();
+                String text = ch.getData();
+                if (ch.isCData()) {
+                    mWriter.writeCData(text);
+                } else {
+                    mWriter.writeCharacters(text);
+                }
+            }
             break;
             
         case COMMENT:

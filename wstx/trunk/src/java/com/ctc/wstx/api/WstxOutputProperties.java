@@ -33,13 +33,12 @@ public final class WstxOutputProperties
      */
     public final static String P_OUTPUT_EMPTY_ELEMENTS = "com.ctc.wstx.outputEmptyElements";
 
-
-    // // // Output options, complex values:
-
     /**
-     * Prefix to use for automatically created namespace prefixes.
+     * Whether writer should just automatically convert all calls that
+     * would normally produce CDATA to produce (quoted) text.
      */
-    public final static String P_OUTPUT_AUTOMATIC_NS_PREFIX = "com.ctc.wstx.outputAutomaticNsPrefix";
+    public final static String P_OUTPUT_CDATA_AS_TEXT = "com.ctc.wstx.outputCDataAsText";
+
 
     // // // Validation options:
 
@@ -73,5 +72,13 @@ public final class WstxOutputProperties
      * to prevent accidental output of duplicate attributes.
      */
     public final static String P_OUTPUT_VALIDATE_ATTR = "com.ctc.wstx.outputValidateAttr";
+
+    // // // Output options, complex values:
+
+    /**
+     * Prefix to use for automatically created namespace prefixes.
+     */
+    public final static String P_OUTPUT_AUTOMATIC_NS_PREFIX = "com.ctc.wstx.outputAutomaticNsPrefix";
+
 }
 

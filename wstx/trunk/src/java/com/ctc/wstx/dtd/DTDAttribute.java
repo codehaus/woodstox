@@ -351,6 +351,22 @@ public class DTDAttribute
         return ent;
     }
 
+    /* Too bad this method can not be combined with previous segment --
+     * the reason is that ElementValidator does not implement
+     * InputProblemReporter...
+     */
+
+    protected void checkEntity(InputProblemReporter rep, String id, EntityDecl ent)
+        throws WstxException
+    {
+        if (ent == null) {
+            rep.throwParseError("Referenced entity '"+id+"' not defined");
+        }
+        if (ent.isParsed()) {
+            rep.throwParseError("Referenced entity '"+id+"' is not an unparsed entity");
+        }
+    }
+
     /*
     ///////////////////////////////////////////////////
     // Package methods, error reporting
