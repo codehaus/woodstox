@@ -426,7 +426,7 @@ final class NsAttributeCollector
         if (mDefaultNsDeclared) {
             return null;
         }
-        mDefaultNsDeclared = false;
+        mDefaultNsDeclared = true;
         mNsPrefixes.addString(null);
         return mNamespaceURIs;
     }

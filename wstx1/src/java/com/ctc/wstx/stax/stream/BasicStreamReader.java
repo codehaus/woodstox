@@ -2142,7 +2142,7 @@ public class BasicStreamReader
             } else if (localName == sPrefixXmlns && prefix == DEFAULT_NS_PREFIX) {
                 tb = ac.getDefaultNsBuilder();
                 // Can only have one default ns declaration...
-                if (tb.size() > 0) {
+                if (null == tb) {
                     throwParseError("Duplicate default namespace declaration.");
                 }
             } else {

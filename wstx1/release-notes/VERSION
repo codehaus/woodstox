@@ -1,9 +1,21 @@
-Version: 1.0.2
+Version: 1.0.3
 
-Release date: 14-Nov-2004
+Release date: 03-Mar-2005
 
 Description:
-  Second maintenance release for 1.0; fixes bugs found since 1.0.1.
+  Third maintenance release for 1.0; fixes critical bugs found since 1.0.2.
+
+  Problems fixed:
+
+  * Fixed a problem (ArrayIndexOutOfBounds exception) that sometimes occured
+    with large files, using gzip/net stream readers.
+  * Fixed a bogus exception being throw with certain combinations of namespace
+    declarations (default ns declaration following at least one non-default
+    declaration)
+
+History:
+
+1.0.2 [14-Nov-2004]:
 
   Problems fixed:
 
@@ -13,8 +25,6 @@ Description:
     an unnecessary StringBuffer object, in cases where text segment was
     completely inside shared input buffer. May have measurable effect
     when building (J)Dom trees (although not huge one).
-
-History:
 
 1.0.1 [23-Oct-2004]:
 
