@@ -263,7 +263,7 @@ public class SimpleNsStreamWriter
      */
     public final void copyStartElement(InputElementStack elemStack,
                                        AttributeCollector attrCollector)
-        throws XMLStreamException
+        throws IOException, XMLStreamException
     {
         // Any namespace declarations/bindings?
         int nsCount = elemStack.getCurrentNsCount();
@@ -310,9 +310,15 @@ public class SimpleNsStreamWriter
         int attrCount = ac.getSpecifiedCount();
         
         for (int i = 0; i < attrCount; ++i) {
-            writeAttribute(ac.getPrefix(i), ac.getNsURI(i),
-                           ac.getLocalName(i),
-                           ac.getValue(i));
+            /* There's nothing special about writeAttribute() (except for
+             * checks we should NOT need -- reader is assumed to have verified
+             * well-formedness of the input document)... it just calls
+             * doWriteAttr (of the base class)... so what we have here is
+             * just a raw output method:
+             */
+            mWriter.write(' ');
+            attrCollector.writeAttribute(i, DEFAULT_QUOTE_CHAR, mWriter,
+                                         mAttrValueWriter);
         }
     }
 

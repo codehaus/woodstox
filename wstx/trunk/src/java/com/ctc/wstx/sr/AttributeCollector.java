@@ -355,7 +355,7 @@ public abstract class AttributeCollector
 
     /*
     ///////////////////////////////////////////////
-    // Package methods:
+    // Package/core methods:
     ///////////////////////////////////////////////
      */
 
@@ -377,11 +377,23 @@ public abstract class AttributeCollector
      * save one String allocation, since no (temporary) Strings need
      * to be created.
      */
-    protected final void writeValue(int index, Writer w)
+    public final void writeValue(int index, Writer w)
         throws IOException
     {
         mValueBuffer.getEntry(index, w);
     }
+
+
+    /**
+     * Method that basically serializes the specified (read-in) attribute
+     * using Writers provided. Serialization is done by
+     * writing out (fully-qualified) name
+     * of the attribute, followed by the equals sign and quoted value.
+     */
+    public abstract void writeAttribute(int index, char quoteChar,
+                                        Writer mainWriter, Writer attrValueWriter)
+        throws IOException;
+
     /*
     ///////////////////////////////////////////////
     // Internal methods:

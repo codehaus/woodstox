@@ -264,7 +264,7 @@ public class RepairingNsStreamWriter
      */
     public final void copyStartElement(InputElementStack elemStack,
                                        AttributeCollector attrCollector)
-        throws XMLStreamException
+        throws IOException, XMLStreamException
     {
         /* In case of repairing stream writer, we can actually just
          * go ahead and first output the element: stream writer should
@@ -301,11 +301,42 @@ public class RepairingNsStreamWriter
         // !!! Should it be configurable?
         AttributeCollector ac = mAttrCollector;
         int attrCount = ac.getSpecifiedCount();
-        
+
+        /* Unlike in non-ns and simple-ns modes, we can not simply literally
+         * copy the attributes here. It is possible that some namespace
+         * prefixes have been remapped... so need to be bit more careful.
+         */
         for (int i = 0; i < attrCount; ++i) {
-            writeAttribute(ac.getPrefix(i), ac.getNsURI(i),
-                           ac.getLocalName(i),
-                           ac.getValue(i));
+            /* First; need to make sure that the prefix-to-ns mapping
+             * attribute has is valid... and can not output anything
+             * before that's done (since remapping will output a namespace
+             * declaration!)
+             */
+            String uri = attrCollector.getNsURI(i);
+            String prefix = attrCollector.getPrefix(i);
+
+            /* With attributes, missing/empty prefix always means 'no
+             * namespace', can take a shortcut:
+             */
+            if (prefix == null) {
+                ;
+            } else if (prefix.length() == 0) { // should never happen?
+                prefix = null;
+            } else {
+                // Does have a namespace, is it valid?
+                // (May need to re-map it; false -> can not use def ns)
+                prefix = validatePrefix(prefix, uri, false);
+            }
+            mWriter.write(' ');
+            if (prefix != null) {
+                mWriter.write(prefix);
+                mWriter.write(':');
+            }
+            mWriter.write(attrCollector.getLocalName(i));
+            mWriter.write('=');
+            mWriter.write(DEFAULT_QUOTE_CHAR);
+            attrCollector.writeValue(i, mAttrValueWriter);
+            mWriter.write(DEFAULT_QUOTE_CHAR);
         }
     }
 

@@ -1,5 +1,8 @@
 package com.ctc.wstx.sr;
 
+import java.io.IOException;
+import java.io.Writer;
+
 import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
 import javax.xml.stream.Location;
@@ -406,6 +409,22 @@ final class NonNsAttributeCollector
         }
 
         ++mAttrCount;
+    }
+
+    /**
+     * Method that basically serializes the specified (read-in) attribute
+     * using Writers provided
+     */
+    public void writeAttribute(int index, char quoteChar, Writer mainWriter,
+                               Writer attrValueWriter)
+        throws IOException
+    {
+        // Note: here we assume index checks have been done by caller
+        mainWriter.write(mAttrNames.getString(index));
+        mainWriter.write('=');
+        mainWriter.write(quoteChar);
+        writeValue(index, attrValueWriter);
+        mainWriter.write(quoteChar);
     }
 
     /*

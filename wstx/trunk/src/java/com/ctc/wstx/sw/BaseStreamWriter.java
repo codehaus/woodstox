@@ -50,6 +50,8 @@ public abstract class BaseStreamWriter
 
     protected final static char CHAR_SPACE = ' ';
 
+    protected final static char DEFAULT_QUOTE_CHAR = '"';
+
     /*
     ////////////////////////////////////////////////////
     // Output objects
@@ -980,7 +982,7 @@ public abstract class BaseStreamWriter
      */
     public abstract void copyStartElement(InputElementStack elemStack,
                                           AttributeCollector attrCollector)
-        throws XMLStreamException;
+        throws IOException, XMLStreamException;
 
     /*
     ////////////////////////////////////////////////////

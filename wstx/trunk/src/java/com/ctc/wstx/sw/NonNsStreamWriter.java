@@ -343,7 +343,7 @@ public class NonNsStreamWriter
      */
     public void copyStartElement(InputElementStack elemStack,
                                  AttributeCollector attrCollector)
-        throws XMLStreamException
+        throws IOException, XMLStreamException
     {
         String ln = elemStack.getLocalName();
         boolean nsAware = elemStack.isNamespaceAware();
@@ -384,16 +384,15 @@ public class NonNsStreamWriter
         int attrCount = attrCollector.getSpecifiedCount();
         
         for (int i = 0; i < attrCount; ++i) {
-            ln = attrCollector.getLocalName(i);
-            String value = attrCollector.getValue(i);
-            if (nsAware) {
-                String prefix = attrCollector.getPrefix(i);
-                // Need to 'convert' namespace-aware attr to non-ns-aware one?
-                if (prefix != null && prefix.length() > 0) {
-                    ln = prefix + ":" + ln;
-                }
-            }
-            writeAttribute(ln, value);
+            /* There's nothing special about writeAttribute() (except for
+             * checks we should NOT need -- reader is assumed to have verified
+             * well-formedness of the input document)... it just calls
+             * doWriteAttr (of the base class)... so what we have here is
+             * just a raw output method:
+             */
+            mWriter.write(' ');
+            attrCollector.writeAttribute(i, DEFAULT_QUOTE_CHAR, mWriter,
+                                         mAttrValueWriter);
         }
     }
 
