@@ -130,7 +130,7 @@ public class RepairingNsStreamWriter
             throw new IllegalStateException(ErrorConsts.WERR_ATTR_NO_ELEM);
         }
 
-        doWriteAttr(localName, nsURI, findOrCreateAttrPrefix(null, nsURI, mCurrElem),
+        doWriteAttr(localName, nsURI, findOrCreateAttrPrefix(prefix, nsURI, mCurrElem),
                     value);
     }
 

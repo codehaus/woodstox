@@ -24,6 +24,7 @@ public class TestNsStreamWriter2
     }
 
     private String namespace = "http://www.w3.org/2003/05/soap-envelope";
+    private String TS_NS = "http://tatu.org";
 
     protected void test()
         throws Exception
@@ -52,6 +53,15 @@ public class TestNsStreamWriter2
 
         sw.writeEmptyElement("xml", "stdTag", XMLConstants.XML_NS_URI);
         sw.writeAttribute("xml", XMLConstants.XML_NS_URI, "lang", "fi-FI");
+        sw.setDefaultNamespace(TS_NS);
+        sw.writeEmptyElement(TS_NS, "elem");
+        sw.writeAttribute(TS_NS, "attr", "value");
+        // Let's also ensure that we will reuse that ns...
+        sw.writeAttribute(TS_NS, "attr2", "value2");
+        // Should NOT use the suggested prefix (already taken)
+        sw.writeAttribute("wstxns1", "http://foo", "attr3", "value3");
+        sw.writeAttribute("env2", "http://foo2", "attr4", "value4");
+
         sw.writeCharacters("\n");
         sw.writeEndElement();
 
