@@ -1,9 +1,19 @@
-Version: 1.0.4
+Version: 1.0.5
 
-Release date: 10-Mar-2005
+Release date: xx-Mar-2005
 
 Description:
-  Fourth maintenance release for 1.0; fixes some more critical bugs.
+  Fifth maintenance release for 1.0; fixes some more critical bugs.
+
+  Problems fixed:
+
+  * XMLStreamWriter implementation had problems with writeEmptyElement()
+    call followed by a writeEndElement() call (latter was ignored).
+    (reported by Sven Köhler)
+
+History:
+
+1.0.4 [10-Mar-2005]
 
   Problems fixed:
 
@@ -12,8 +22,6 @@ Description:
   * Fixed a stream writer problem: was quoting comment contents
   * Fixed a problem with comment output via XMLStreamWriter: was
     erroneously escaping '<' and '&'.
-
-History:
 
 1.0.3 [02-Mar-2005]
 

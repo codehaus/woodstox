@@ -334,15 +334,7 @@ public class WstxNsStreamWriter
     public void writeEndElement()
         throws XMLStreamException
     {
-        // Better have something to close... (to figure out what to close)
-        if (mState != STATE_TREE) {
-            throw new XMLStreamException("No open start element, when calling writeEndElement.");
-        }
-
-        String prefix = mCurrElem.getPrefix();
-        String localName = mCurrElem.getLocalName();
-        mCurrElem = mCurrElem.getParent();
-        doWriteEndElement(prefix, localName);
+        doWriteEndElement(null, mCfgOutputEmptyElems);
     }
 
     public void writeNamespace(String prefix, String nsURI)
@@ -509,30 +501,8 @@ public class WstxNsStreamWriter
     public void writeEndElement(QName name)
         throws XMLStreamException
     {
-        /* Well, for one, we better have an open element in stack; otherwise
-         * there's no way to figure out which element name to use.
-         */
-        String prefix = mCurrElem.getPrefix();
-        String local = mCurrElem.getLocalName();
-        if (mCheckStructure) {
-            if (mState != STATE_TREE) {
-                throw new XMLStreamException("No open start element, when calling writeEndElement.");
-            }
-            String local2 = mCurrElem.getLocalName();
-            if (!local.equals(local2)) {
-                throw new IllegalArgumentException("Mismatching close element local name, '"+local+"'; expected '"+local2+"'.");
-            }
-            String prefix2 = mCurrElem.getPrefix();
-            if (!prefix2.equals(prefix)) {
-                throw new IllegalArgumentException("Mismatching close element prefix, '"+prefix+"'; expected '"+prefix2+"'.");
-            }
-        }
-        // Need to remove that thing from the stack...
-        if (mCurrElem != sSharedRootElem) {
-            // ... except if no checking is to be done, and we are at root already
-            mCurrElem = mCurrElem.getParent();
-        }
-        doWriteEndElement(prefix, local);
+        doWriteEndElement(mCheckStructure ? name : null,
+                          mCfgOutputEmptyElems);
     }
 
     /**
@@ -782,13 +752,46 @@ System.err.println("Wrong prefix '"+prefix+"' -> "+status);
     }
 
     /**
-     *<p>
-     * Note: Caller has to do actual removal of the element from element
-     * stack, before calling this method.
+     *
+     * @param expName Name that the closing element should have; null
+     *   if whatever is in stack should be used
+     * @param allowEmpty If true, is allowed to create the empty element
+     *   if the closing element was truly empty; if false, has to write
+     *   the full empty element no matter what
      */
-    private void doWriteEndElement(String prefix, String localName)
+    private void doWriteEndElement(QName expName, boolean allowEmpty)
         throws XMLStreamException
     {
+        /* First of all, do we need to close up an earlier empty element?
+         * (open start element that was not created via call to
+         * writeEmptyElement gets handled later on)
+         */
+        if (mStartElementOpen && mEmptyElement) {
+            mEmptyElement = false;
+            closeStartElement(true);
+        }
+
+        // Better have something to close... (to figure out what to close)
+        if (mState != STATE_TREE) {
+            throwOutputError("No open start element, when trying to write end element");
+        }
+
+        String prefix = mCurrElem.getPrefix();
+        String localName = mCurrElem.getLocalName();
+        // Ok, and then let's pop that element from the stack
+        mCurrElem = mCurrElem.getParent();
+
+        if (expName != null) {
+            /* Let's only check the local name, for now...
+             */
+            if (!localName.equals(expName.getLocalPart())) {
+                /* Only gets called when trying to output an XMLEvent... in
+                 * which case names can actually be compared
+                 */
+                throw new IllegalArgumentException("Mismatching close element local name, '"+localName+"'; expected '"+expName.getLocalPart()+"'.");
+            }
+        }
+
         if (mStartElementOpen) {
             /* Can't/shouldn't call closeStartElement, but need to do same
              * processing. Thus, this is almost identical to closeStartElement:
@@ -800,7 +803,7 @@ System.err.println("Wrong prefix '"+prefix+"' -> "+status);
             
             try {
                 // We could write an empty element, implicitly?
-                if (!mEmptyElement && mCfgOutputEmptyElems) {
+                if (allowEmpty) {
                     // Extra space for readability
                     mWriter.write(" />");
                     if (mCurrElem.isRoot()) {

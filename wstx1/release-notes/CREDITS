@@ -40,6 +40,9 @@ Sven Köhler:
     to read more from underlying input stream.
     Also provided the fix for 1.0.x series.
     [1.0.4]
+  * Reported a bug in stream writer; a call to writeEmptyElement() followed
+    by a call to writeEndElement() ignored latter call.
+    [1.0.5]
 
 Stefan Wachter:
   * Reported a problem with handling of large documents; was sometimes

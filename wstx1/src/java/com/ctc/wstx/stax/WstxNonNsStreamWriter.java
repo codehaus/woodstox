@@ -176,14 +176,7 @@ public class WstxNonNsStreamWriter
     public void writeEndElement()
         throws XMLStreamException
     {
-        /* Well, for one, we better have an open element in stack; otherwise
-         * there's no way to figure out which element name to use.
-         */
-        if (mElements.isEmpty()) {
-            throw new XMLStreamException("No open start element, when calling writeEndElement.");
-        }
-
-        doWriteEndElement(mElements.removeLast());
+        doWriteEndElement(null, mCfgOutputEmptyElems);
     }
 
     public void writeNamespace(String prefix, String nsURI)
@@ -238,26 +231,8 @@ public class WstxNonNsStreamWriter
     public void writeEndElement(QName name)
         throws XMLStreamException
     {
-        /* Well, for one, we better have an open element in stack; otherwise
-         * there's no way to figure out which element name to use.
-         */
-        String local;
-        if (mCheckStructure) {
-            if (mElements.isEmpty()) {
-                throw new XMLStreamException("No open start element, when calling writeEndElement.");
-            }
-            local = name.getLocalPart();
-            String local2 = mElements.removeLast();
-            if (!local.equals(local2)) {
-                throw new IllegalArgumentException("Mismatching close element name, '"+local+"'; expected '"+local2+"'.");
-            }
-        } else {
-            local = name.getLocalPart();
-            if (!mElements.isEmpty()) {
-                mElements.removeLast();
-            }
-        }
-        doWriteEndElement(local);
+        doWriteEndElement(mCheckStructure ? name.getLocalPart() : null,
+                          mCfgOutputEmptyElems);
     }
 
     /**
@@ -334,13 +309,44 @@ public class WstxNonNsStreamWriter
     }
 
     /**
-     *<p>
-     * Note: Caller has to do actual removal of the element from element
-     * stack, before calling this method.
+     * Method that handles details of writing an end element; called from
+     * multiple public methods.
+     *
+     * @param expName Name that the closing element should have; null
+     *   if whatever is in stack should be used
+     * @param allowEmpty If true, is allowed to create the empty element
+     *   if the closing element was truly empty; if false, has to write
+     *   the full empty element no matter what
      */
-    private void doWriteEndElement(String localName)
+    private void doWriteEndElement(String expName, boolean allowEmpty)
         throws XMLStreamException
     {
+        /* First of all, do we need to close up an earlier empty element?
+         * (open start element that was not created via call to
+         * writeEmptyElement gets handled later on)
+         */
+        if (mStartElementOpen && mEmptyElement) {
+            mEmptyElement = false;
+            closeStartElement(true);
+        }
+
+        /* Well, for one, we better have an open element in stack; otherwise
+         * there's no way to figure out which element name to use.
+         */
+        if (mElements.isEmpty()) {
+            throw new XMLStreamException("No open start element, when calling writeEndElement.");
+        }
+
+        /* Now, do we have an unfinished start element (created via
+         * writeStartElement() earlier)?
+         */
+        String localName = mElements.removeLast();
+        if (expName != null && !localName.equals(expName)) {
+            /* Only gets called when trying to output an XMLEvent... in
+             * which case names can actually be compared
+             */
+            throw new IllegalArgumentException("Mismatching close element name, '"+localName+"'; expected '"+expName+"'.");
+        }
         if (mStartElementOpen) {
             /* Can't/shouldn't call closeStartElement, but need to do same
              * processing. Thus, this is almost identical to closeStartElement:
@@ -348,7 +354,7 @@ public class WstxNonNsStreamWriter
             mStartElementOpen = false;
             try {
                 // We could write an empty element, implicitly?
-                if (!mEmptyElement && mCfgOutputEmptyElems) {
+                if (allowEmpty) {
                     // Extra space for readability
                     mWriter.write(" />");
                     if (mElements.isEmpty()) {
