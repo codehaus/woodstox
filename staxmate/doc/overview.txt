@@ -1,0 +1,147 @@
+== StaxMate Overview ==
+
+The main idea behind reader side of StaxMate is to allow for iterating
+over streaming events provided by a raw StAX XMLStreamReader in a nested
+fashion; basically similar to traversing a DOM tree in pre-order (parent
+element before children). This is implemented using concept of iterators
+(base class SMIterator); and the term used by StaxMate documentation
+is "scoped iterators" (since iterators can be nested or flat, but they
+are always scoped within context of a parent element (or in case of the
+root iterator, virtual document parent).
+Finally, the iterators created for a single document (XMLStreamReader)
+are always properly synchronized, independent of the order in which
+they are travesed: the only restriction being that traversal itself
+has to happen in document order (parent elements before children,
+and children in the document order). What this means is just that
+if the parent iterator is advanced, all child iterators get invalidated,
+since child elements have to be skipped to get to the siblings of the
+parent (see an example later on regarding such a scenario).
+
+In addition to nested iteration capabilities, StaxMate also provides for
+optional "element tracking", i.e. allows for keeping track of element
+structure traversed so far. This is similar to incrementally building
+a DOM (sub-)tree, but is more light-weight: exact amount of information
+stored is fully configurable.
+
+Finally, there are also some convenience methods built on top of basic
+functionality, to both create commonly needed types of iterators and
+element trackers, and to collect commonly needed information like "all
+text contained in an element" (including any text in child elements, if
+any).
+
+=== Scoped Iterators ===
+
+There are 2 ways to create a scoped iterator:
+
+* Create iterator as a child iterator of another iterator
+  (which has to point to a start element)
+* Create iterator given an XMLStreamReader (which is expected
+  to contain a start element, usually the document root element)
+
+In both cases the iterator will iterate over only child nodes
+of the context (in first case, nodes up to the end element that
+matches the start element parent iterator pointed to; and in the latter
+case, up to either the next end element, or end document event).
+
+There are three main aspects to all iterators:
+
+* Whether they are nested (single level) or flat (deep): that is,
+  will they only traverse immediate child nodes, or all descendants.
+  (see below for an example).
+* What kind of events should be visible to (reported by) the iterator:
+  for example, it is possible to have iterators that only return
+  element nodes (and ignore comments, processing instructions and text);
+  ones that only report elements and texts, and so on. There are
+  convenience constructors for most common types, as well as basic
+  filtering objects that can be used to create custom ones.
+* How much of information should be retained when traversing.
+  This is called "element tracking", and will be described later on
+  in this document.
+
+For example, given following document:
+
+<!-- comment -->
+<root>
+  <branch />
+</root>
+
+A nested element-only root element iterator would only see one event
+(START_ELEMENT); ie. its getNext() would first return START_ELEMENT, and then
+StaxMate.SM_NODE_NONE. A flat (non-nested) element-only root iterator, on
+the other hand would actually see 4 events, 2 START_ELEMENT events, followed
+by 2 END_ELEMENT events. Note that only flat iterators see END_ELEMENTS;
+reason being that they are useless for nested iterators, but necessary
+for flat ones (to reconstruct nesting, if necessary).
+
+Additionally, other types of iterators (with other filtering than
+"element-only") would also see different event types.
+
+=== Iterator synchronization ===
+
+Consider document:
+
+<root>
+  <branch>
+    <leaf1 />
+    <leaf2 />
+  </branch>
+  <branch2 />
+</root>
+
+Starting by creating a nested element-only root iterator, that iterator
+would see the START_ELEMENT matching <root>. Creating a nested child
+iterator at this point would see START_ELEMENT for branch, when advanced.
+At this point, one more element-only child iterator could be created; it
+would see START_ELEMENT for <leaf1 />.
+If, at this point, the intermediate iterator is advanced, all of its
+child iterators are invalidated. What this means is that instead of
+seeing START_ELEMENT for <leaf2 />, such an iterator would actually
+get SM_NODE_NONE, since it was advanced past rest of sibling (and child)
+elements as part of advancing its parent iterator.
+Or, if the root iterator was advanced, then all of its child iterators
+(meaning both 'branch' and 'leaf' iterators) would be similarly
+invalidated.
+Finally, note that invalidation simply means advancing of those child
+iterators all the way through; which means that they will not point to
+any node (not even the END_ELEMENT, independent of mode), but will
+track element data if tracking is enabled.
+
+=== Basic node information access ===
+
+All the information that StAX XMLStreamReader exposes can be queried
+using a valid (non-invalidated) iterator; as long as no valid child
+iterators exist for it. This is because access is done using the
+underlying XMLStreamReader, and it has to point to the exact event.
+Most of the properties can be accessed using convenience methods;
+but sometimes it may be necessary to access the underlying XMLStreamReader,
+which is accessible via iterators.
+
+In addition to general StAX-provided properties, SMIterators also keep
+track of basic indexes, such as number of parent elements; the node index of
+current node within its parent element; and the element index (number of
+preceding sibling elements) of the current node (which may or may not be
+an element). These are always kept track of, due to simplicity of such
+tracking.
+
+=== Element Tracking ===
+
+In addition to basic indexes and currently active data (information about
+the exact event underlying XMLStreamReader points to), StaxMate can 
+optionally keep track of the elements that would form the XPath to the
+current event, including previous sibling elements. This is roughly
+equivalent to building a partial element-only sub-tree; partial in that
+it neiter contains non-element nodes seen, nor childred of previous siblings:
+it only contains backward links to previous siblings and parents (including
+previous siblings of parents). Exact amount of element data can be customized
+by sub-classing (including exact elements to include). The default
+implementation allows for choosing which elements (only parents, parents
+and visible [non-filtered] siblings, parents and all siblings) to keep
+track of.
+
+Main benefit of keeping track of ancestor and previous sibling information
+is to allow doing some context-dependant processing, without keeping
+full XML tree resident in memory. The exact memory usage depends
+on the tree structure, as well as configuration. Specifically, keeping
+track of parent elements would usually only add nominal overhead related
+to maximum depth of documents, not to the document size.
+

@@ -14,7 +14,7 @@
     <property name="BuildClassesDir" location="${BuildDir}/classes" />
     <!-- Documentation -->
     <property name="DocDir" location="${basedir}/doc" />
-    <property name="JavaDocDir" location="${DocDir}/javadoc" />
+    <property name="JavaDocDir" location="${BuildDir}/javadoc" />
     <!-- Test suite -->
     <property name="TestDir" location="${basedir}/test" />
     <property name="TestBuildDir" location="${TestDir}/build" />
