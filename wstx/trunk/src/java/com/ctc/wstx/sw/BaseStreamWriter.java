@@ -426,8 +426,6 @@ public abstract class BaseStreamWriter
                 writeEndElement();
             }
         }
-
-        // Ok, fine, there's nothing specific to output...
     }
 
     public abstract void writeEndElement() throws XMLStreamException;

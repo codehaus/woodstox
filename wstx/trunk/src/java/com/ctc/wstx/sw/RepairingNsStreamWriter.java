@@ -283,7 +283,6 @@ public class RepairingNsStreamWriter
                 doWriteNamespace(actPrefix, nsURI);
             }
         }
-        doWriteStartElement(actPrefix, localName);
     }
 
     /**

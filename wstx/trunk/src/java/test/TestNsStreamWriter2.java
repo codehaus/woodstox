@@ -42,11 +42,12 @@ public class TestNsStreamWriter2
         sw.writeStartDocument();
         sw.setPrefix("env", namespace);
         //sw.setPrefix("test", "http://someTestUri");
-        sw.writeStartElement("env", "Envelope", namespace);
-        // or: 
-        //sw.writeStartElement(namespace "Envelope");
 
-        sw.writeNamespace("env", namespace);
+        //sw.writeStartElement("env", "Envelope", namespace);
+        // or: 
+        sw.writeStartElement(namespace, "Envelope");
+
+        //sw.writeNamespace("env", namespace);
         //sw.writeNamespace("test", "http://someTestUri");
 
         sw.writeEmptyElement("xml", "stdTag", XMLConstants.XML_NS_URI);
@@ -54,6 +55,12 @@ public class TestNsStreamWriter2
         sw.writeCharacters("\n");
         sw.writeEndElement();
 
+        /*
+        sw.writeComment("end");
+        */
+
+        // Let's add an LF; easier to display output to console
+        sw.writeCharacters("\n");
         sw.writeEndDocument();
 
         sw.flush();
