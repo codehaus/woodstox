@@ -390,7 +390,8 @@
     <target name="all-tests" depends="test,staxtest" />
 
     <!-- Running generic StAX tests -->
-    <target name="staxtest" if="junit.present"
+    <target name="staxtest"
+      if="junit.present"
       depends="junit, jar.wstx.asl, prepare-staxtest"
     >
        <!-- showoutput 'yes' to allow outputting debug msgs... -->
@@ -410,8 +411,9 @@
             <classpath>     
               <fileset dir="${BuildDir}">
                 <include name="wstx-*-asl.jar" />
-              </fileset>
-            </classpath>     
+              </fileset> 
+              <fileset dir="${LibDir}/junit" includes="junit*.jar" />
+           </classpath>  
         </junit>
 
         <junitreport todir="${TestResultsDir}">
