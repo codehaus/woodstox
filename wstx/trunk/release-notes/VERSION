@@ -1,13 +1,20 @@
 Version: 1.8
 
-Release date: -Dec-2004
+Release date: -Feb-2005
 
 Description:
   Another pre-2.0 release aimed at finishing up tasks required for 2.0.
 
   New functionality:
 
+    * Implemented "StAX 2" interface; extended versions of many of
+      StAX 1.0 interfaces and abstract classes. Specifically:
+       *
+
   Problems fixed:
+
+    * Stream reader now correctly accesses attribute type information,
+      when validating against DTD (passes matching staxtest test case).
 
 == History: ==
 

@@ -106,4 +106,13 @@ public class VNsInputElementStack
         }
         return mValidator.resolveElem(mReporter, elem, mNamespaces);
     }
+
+    /**
+     * Input element stack has to ask validator about this data; validator
+     * keeps track of attribute declarations for the current element
+     */
+    public String getAttributeType(int index)
+    {
+         return mValidator.getAttributeType(index);
+    }
 }

@@ -11,7 +11,9 @@ Must-haves for 2.0
 
 * DTD-handling/parsing:
 [DONE] * Verify that an unparsed entity refers to a declared notation.
-   * Make attribute type declarations accessible via API (event API)
+[DONE] * Make attribute type declarations accessible via stream API
+   * Make attribute type declarations accessible via event API
+   * Make 'is specified' property accessible via event API
 
 * Unit testing: Implement at least simple basic StAX-tests for:
    * Event reader
@@ -21,6 +23,13 @@ Must-haves for 2.0
 * StAX 2.0 features:
    * Package API classes to a separate jar (in addition to including them
      in woodstox jars)
+   * XMLEventReader2:
+   * XMLInputFactory2:
+       * Create URI-based factory methods for readers
+         (will create XMLStreamReader2 instances)
+   * XMLOutputFactory2:
+   * XMLStreamLocation2:
+       * Allow access to nested location information
    * XMLStreamReader2:
       * getText with Writer arg
       * getAttributeIndex
@@ -28,10 +37,10 @@ Must-haves for 2.0
       * Separate DTD info access behind a new interface (DTDInfo?)
    * XMLStreamWriter2:
       * pass-through write method
-   * XMLInputFactory2:
-       * Create URI-based factory methods for readers
-         (will create XMLStreamReader2 instances)
    * XMLTextEncoder?
+   * evt/DTD2:
+   * evt/StartElement2:
+   * evt/XMLEventFactory2:
 
 ------------------------------------
 Maybe for 2.0?
@@ -50,6 +59,8 @@ For 2.x series (not for 2.0)
 * Exception-handling:
    * Add a WstxOutputException?
    * Separate exception class for DTD-parsing problems?
+   * Perhaps add formal numeric (integer) error codes, to allow other code
+     to more reliably determine problem type?
 
 * DTD-handling/parsing:
    * Parse less information if no validation needed: partially done, does not

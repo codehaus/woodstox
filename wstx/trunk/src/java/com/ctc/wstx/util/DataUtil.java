@@ -37,15 +37,37 @@ public final class DataUtil
         return false;
     }
 
+    final static String NO_TYPE = "Illegal to pass null; can not determine component type";
+
     public static Object growArrayBy50Pct(Object arr)
     {
         if (arr == null) {
-            throw new Error("Illegal to pass null; can not determine component type");
+            throw new IllegalArgumentException(NO_TYPE);
         }
         Object old = arr;
         int len = Array.getLength(arr);
         arr = Array.newInstance(arr.getClass().getComponentType(), len + (len >> 1));
         System.arraycopy(old, 0, arr, 0, len);
+        return arr;
+    }
+
+    /**
+     * Method similar to {@link #growArrayBy50Pct}, but it also ensures that
+     * the new size is at least as big as the specified minimum size.
+     */
+    public static Object growArrayToAtLeast(Object arr, int minLen)
+    {
+        if (arr == null) {
+            throw new IllegalArgumentException(NO_TYPE);
+        }
+        Object old = arr;
+        int oldLen = Array.getLength(arr);
+        int newLen = oldLen + ((oldLen + 1) >> 1);
+        if (newLen < minLen) {
+            newLen = minLen;
+        }
+        arr = Array.newInstance(arr.getClass().getComponentType(), newLen);
+        System.arraycopy(old, 0, arr, 0, oldLen);
         return arr;
     }
 

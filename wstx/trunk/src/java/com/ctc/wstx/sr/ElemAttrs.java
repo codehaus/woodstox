@@ -12,7 +12,7 @@ import javax.xml.namespace.QName;
  * with refactoring is that it's 90% the same code, but not 100%.
  *<p>
  * Although instances of this class are constructed by stream readers,
- * it is actually used element event objects.
+ * it is actually used by element event objects.
  */
 public final class ElemAttrs
 {

@@ -45,7 +45,7 @@ public final class DTDNmTokensAttr
      */
 
     public int getValueType() {
-        return TYPE_NMTOKEN;
+        return TYPE_NMTOKENS;
     }
 
     /*

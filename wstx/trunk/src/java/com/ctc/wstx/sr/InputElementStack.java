@@ -192,8 +192,9 @@ public abstract class InputElementStack
 
     // // // DTD-derived attribute information:
 
-    /* !!! 22-Jan-2005, TSa: Just a stub, needs to be implemented later
-     *   on
+    /**
+     * Default implementation just returns the 'unknown' type; validating
+     * sub-classes need to override
      */
     public String getAttributeType(int index)
     {

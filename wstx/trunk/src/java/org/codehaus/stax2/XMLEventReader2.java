@@ -12,7 +12,7 @@ public interface XMLEventReader2
     extends XMLEventReader
 {
     /**
-     * Method that is similar to {@link hasNext}, except that it can
+     * Method that is similar to {@link #hasNext}, except that it can
      * throw a {@link XMLStreamException}. This is important distinction,
      * since the underlying stream reader is allowed to throw such an
      * exception when its

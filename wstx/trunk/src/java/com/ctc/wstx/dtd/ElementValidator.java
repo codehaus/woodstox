@@ -39,7 +39,16 @@ public class ElementValidator
     implements
     InputConfigFlags
 {
+    /**
+     * Estimated maximum depth of typical documents; used to allocate
+     * the array for element stack
+     */
     final static int DEFAULT_STACK_SIZE = 32;
+
+    /**
+     * Estimated maximum number of attributes for a single element
+     */
+    final static int EXP_MAX_ATTRS = 32;
 
     /**
      * Let's actually just reuse a local Map...
@@ -100,6 +109,14 @@ public class ElementValidator
      */
     protected StructValidator[] mValidators = null;
 
+    /**
+     * List of attribute declarations/specifications, one for each
+     * attribute of the current element, for which there is a matching
+     * value (either explicitly defined, or assigned via defaulting).
+     */
+
+    protected DTDAttribute[] mAttrSpecs = null;
+
     /*
     ///////////////////////////////////////
     // Collected other state information
@@ -145,6 +162,7 @@ public class ElementValidator
         mNormAttrs = normAttrs;
         mElemStack = new DTDElement[DEFAULT_STACK_SIZE];
         mValidators = new StructValidator[DEFAULT_STACK_SIZE];
+        mAttrSpecs = new DTDAttribute[EXP_MAX_ATTRS];
     }
 
     /*
@@ -232,6 +250,7 @@ public class ElementValidator
             attrMap = EMPTY_MAP;
         }
         
+        
         BitSet specBits;
         int specCount = elem.getSpecialCount();
         
@@ -246,11 +265,20 @@ public class ElementValidator
             }
         }
 
+        // Need to have enough room for attr specs too:
+        int attrLen = attrNames.size();
+        {
+            int maxAttrs = specCount + (mNsAware ? (attrLen >> 1) : (attrLen));
+            if (mAttrSpecs.length < maxAttrs) {
+                mAttrSpecs = (DTDAttribute[]) DataUtil.growArrayToAtLeast(mAttrSpecs, maxAttrs);
+            }
+        }
+
         NameKey tmpKey = mTmpKey;
         boolean validateAttrs = elem.attrsNeedValidation();
         boolean anyFixed = elem.hasFixedAttrs();
         
-        for (int i = 0, j = 0, len = attrNames.size(); i < len; ) {
+        for (int i = 0, j = 0; i < attrLen; ++j) {
             if (mNsAware) {
                 tmpKey.reset(attrNames.getString(i), attrNames.getString(i+1));
                 i += 2;
@@ -263,6 +291,7 @@ public class ElementValidator
                 rep.throwParseError(ErrorConsts.ERR_VLD_UNKNOWN_ATTR,
                                    elem.toString(), tmpKey.toString());
             }
+            mAttrSpecs[j] = attr;
             if (specBits != null) { // Need to mark that we got it
                 int specIndex = attr.getSpecialIndex();
                 if (specIndex >= 0) {
@@ -281,12 +310,12 @@ public class ElementValidator
                     rep.throwParseError("Value of attribute \""+attr+"\" (element <"+elem+">) not \""+exp+"\" as expected, but \""+act+"\"");
                 }
             }
-            ++j;
         }
         
         // Any special attributes missing?
         if (specBits != null) {
             int ix = specBits.nextClearBit(0);
+            int attrIndex = mNsAware ? (attrLen >> 1) : (attrLen);
             while (ix < specCount) { // something amiss!
                 List specAttrs = elem.getSpecialAttrs();
                 DTDAttribute attr = (DTDAttribute) specAttrs.get(ix);
@@ -302,6 +331,7 @@ public class ElementValidator
                 NameKey an = attr.getName();
                 mAttrCollector.addDefaultAttr(rep, ns, an.getPrefix(),
                                               an.getLocalName(), def);
+                mAttrSpecs[attrIndex++] = attr;
                 ix = specBits.nextClearBit(ix+1);
             }
         }
@@ -366,6 +396,11 @@ public class ElementValidator
     Map getEntityMap() {
         return mGeneralEntities;
     }
+
+    public String getAttributeType(int index)
+    {
+        return mAttrSpecs[index].getValueTypeString();
+    }    
 
     /*
     ///////////////////////////////////////

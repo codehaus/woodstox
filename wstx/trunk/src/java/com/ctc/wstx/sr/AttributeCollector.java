@@ -228,8 +228,8 @@ public abstract class AttributeCollector
     public abstract TextBuilder getAttrBuilder(String attrPrefix, String attrLocalName);
 
     /**
-     * Method needed by event creating code, to build a non-transient
-     * attribute container, to use for creating event objects.
+     * Method needed by event builder code; called to build a non-transient
+     * attribute container to use by a start element event.
      */
     public abstract ElemAttrs buildAttrOb();
 

@@ -61,6 +61,23 @@ public class DTDAttribute
     public final static int DEF_REQUIRED = 3;
     public final static int DEF_FIXED = 4;
 
+    /**
+     * Array that has String constants matching above mentioned
+     * value types
+     */
+    final static String[] sTypes = new String[] {
+        "CDATA",
+        "ENUMERATED", // !!! 23-Jan-2005, TSa: What's the official type? CDATA?
+        "ID",
+        "IDREF",
+        "IDREFS",
+        "ENTITY",
+        "ENTITIES",
+        "NOTATION",
+        "NMTOKEN",
+        "NMTOKENS",
+    };
+
     /*
     ///////////////////////////////////////////////////
     // Information about the attribute itself
@@ -162,6 +179,11 @@ public class DTDAttribute
      */
     public int getValueType() {
         return TYPE_CDATA;
+    }
+
+    public String getValueTypeString()
+    {
+        return sTypes[getValueType()];
     }
 
     /*
