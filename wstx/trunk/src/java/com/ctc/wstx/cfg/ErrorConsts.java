@@ -101,6 +101,10 @@ public class ErrorConsts
     public static String WERR_COMMENT_CONTENT = 
         "Illegal input: comment content has embedded '--' in it (index {0})";
 
+    public static String WERR_ATTR_NO_ELEM =
+        "Trying to write an attribute when there is no open start element.";
+
+
 
     /*
     ////////////////////////////////////////////////////

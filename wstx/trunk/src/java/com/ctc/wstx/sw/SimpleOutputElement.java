@@ -31,9 +31,9 @@ import com.ctc.wstx.util.EmptyIterator;
 /**
  * Class that encapsulates information about a specific element in virtual
  * output stack, for writers that do support namespaces, but do NOT
- * do "repairing", i.e. expect caller to provide full namespace
+ * do "repairing", that is, expect caller to provide full namespace
  * mapping and writing guidance. It does, however, provide rudimentary
- * URI->prefix mappins, for those StAX methods that only take local
+ * URI-to-prefix mappings, for those StAX methods that only take local
  * name and URI arguments.
  */
 public final class SimpleOutputElement
@@ -55,12 +55,14 @@ public final class SimpleOutputElement
     final SimpleOutputElement mParent;
 
     /**
-     * Prefix that is used for the element.
+     * Prefix that is used for the element. Can not be final, since sometimes
+     * it needs to be dynamically generated and bound after creating the
+     * element instance.
      */
-    final String mPrefix;
+    String mPrefix;
 
     /**
-     *
+     * Local name of the element
      */
     final String mLocalName;
 
@@ -161,21 +163,6 @@ public final class SimpleOutputElement
         }
     }
 
-    public void addPrefix(String prefix, String uri)
-    {
-        if (mNsMapping == null) {
-            // Didn't have a mapping yet? Need to create one...
-            mNsMapping = BijectiveNsMap.createEmpty();
-        } else if (mNsMapShared) {
-            /* Was shared with parent(s)? Need to create a derivative, to
-             * allow for nesting/scoping of new prefix
-             */
-            mNsMapping = mNsMapping.createChild();
-            mNsMapShared = false;
-        }
-        mNsMapping.addMapping(prefix, uri);
-    }
-
     /*
     ////////////////////////////////////////////
     // Public API, accessors
@@ -247,7 +234,7 @@ public final class SimpleOutputElement
      *    match a non-default URI (elements); false if not (attributes)
      */
     public int isPrefixValid(String prefix, String nsURI,
-                             boolean checkNS, boolean isElement)
+                             boolean isElement)
         throws XMLStreamException
     {
         // Hmmm.... caller shouldn't really pass null.
@@ -279,12 +266,11 @@ public final class SimpleOutputElement
          */
         if (prefix.equals(sXmlNsPrefix)) {
             // Should we thoroughly verify its namespace matches...?
-            if (checkNS) {
-                if (!nsURI.equals(sXmlNsURI)) {
-                    throwOutputError("Namespace prefix '"+sXmlNsPrefix
-                                     +"' can not be bound to non-default namespace ('"+nsURI+"'); has to be the default '"
-                                     +sXmlNsURI+"'");
-                }
+            // 01-Apr-2005, TSa: Yes, let's always check this
+            if (!nsURI.equals(sXmlNsURI)) {
+                throwOutputError("Namespace prefix '"+sXmlNsPrefix
+                                 +"' can not be bound to non-default namespace ('"+nsURI+"'); has to be the default '"
+                                 +sXmlNsURI+"'");
             }
             return PREFIX_OK;
         }
@@ -337,6 +323,10 @@ public final class SimpleOutputElement
         mDefaultNsSet = true;
     }
 
+    public void setPrefix(String prefix) {
+        mPrefix = prefix;
+    }
+
     public String generateMapping(String prefixBase, String uri, int[] seqArr)
     {
         // This is mostly cut'n pasted from addPrefix()...
@@ -352,6 +342,21 @@ public final class SimpleOutputElement
         }
         return mNsMapping.addGeneratedMapping(prefixBase, mRootNsContext,
                                               uri, seqArr);
+    }
+
+    public void addPrefix(String prefix, String uri)
+    {
+        if (mNsMapping == null) {
+            // Didn't have a mapping yet? Need to create one...
+            mNsMapping = BijectiveNsMap.createEmpty();
+        } else if (mNsMapShared) {
+            /* Was shared with parent(s)? Need to create a derivative, to
+             * allow for nesting/scoping of new prefix
+             */
+            mNsMapping = mNsMapping.createChild();
+            mNsMapShared = false;
+        }
+        mNsMapping.addMapping(prefix, uri);
     }
 
     /*

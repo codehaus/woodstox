@@ -32,6 +32,7 @@ import javax.xml.stream.events.StartElement;
 import org.codehaus.stax2.XMLStreamReader2;
 
 import com.ctc.wstx.api.WriterConfig;
+import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.sr.AttributeCollector;
 import com.ctc.wstx.sr.InputElementStack;
 import com.ctc.wstx.sr.StreamReaderImpl;
@@ -125,7 +126,7 @@ public class NonNsStreamWriter
     {
         // No need to set mAnyOutput, nor close the element
         if (!mStartElementOpen) {
-            throw new XMLStreamException("Trying to write an attribute when there is no open start element.");
+            throw new IllegalStateException(ErrorConsts.WERR_ATTR_NO_ELEM);
 
         }
 
@@ -348,11 +349,12 @@ public class NonNsStreamWriter
             }
         }
         
-        /* And then let's just output attributes, if any:
+        /* And then let's just output attributes, if any (whether to copy
+         * implicit, aka "default" attributes, is configurable)
          */
-        // Let's only output explicit attributes?
-        // !!! Should it be configurable?
-        int attrCount = attrCollector.getSpecifiedCount();
+        int attrCount = mCfgCopyDefaultAttrs ?
+            attrCollector.getCount() : 
+            attrCollector.getSpecifiedCount();
         
         for (int i = 0; i < attrCount; ++i) {
             /* There's nothing special about writeAttribute() (except for

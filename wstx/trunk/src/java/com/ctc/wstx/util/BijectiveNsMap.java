@@ -24,7 +24,7 @@ import com.ctc.wstx.util.DataUtil;
 
 /**
  * Helper class that implements "bijective map" (Map that allows use of values
- * as keys and vice versa, ie. bidirectional access), and is specifically
+ * as keys and vice versa, bidirectional access), and is specifically
  * used for storing namespace binding information.
  * One thing worth noting is that Strings stored are NOT assumed to have
  * been unified (interned) -- if they were, different implementation would
@@ -301,7 +301,7 @@ public final class BijectiveNsMap
         strs[mScopeEnd++] = prefix;
         strs[mScopeEnd++] = uri;
 
-        return null;
+        return prefix;
     }
 
     /*

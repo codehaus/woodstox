@@ -70,7 +70,6 @@ public class SimpleNsStreamWriter
     //public void setNamespaceContext(NamespaceContext context)
     //public String getPrefix(String uri)
     //public void setPrefix(String prefix, String uri)
-    //public void setDefaultNamespace(String uri)
 
     //public void writeAttribute(String localName, String value)
 
@@ -79,7 +78,7 @@ public class SimpleNsStreamWriter
     {
         // No need to set mAnyOutput, nor close the element
         if (!mStartElementOpen) {
-            throw new IllegalStateException("Trying to write an attribute when there is no open start element.");
+            throw new IllegalStateException(ErrorConsts.WERR_ATTR_NO_ELEM);
         }
         String prefix = mCurrElem.getExplicitPrefix(nsURI);
         if (prefix == null) {
@@ -93,13 +92,11 @@ public class SimpleNsStreamWriter
         throws XMLStreamException
     {
         if (!mStartElementOpen) {
-            throw new IllegalStateException("Trying to write an attribute when there is no open start element.");
+            throw new IllegalStateException(ErrorConsts.WERR_ATTR_NO_ELEM);
         }
 
-        // Want to verify namespace consistency?
-        if (mCheckNS) {
-            // !!! TODO
-        }
+        // 01-Apr-2005, TSa: Can we (and do we want to) verify NS consistency?
+
         doWriteAttr(localName, nsURI, prefix, value);
     }
 
@@ -116,20 +113,9 @@ public class SimpleNsStreamWriter
             throw new IllegalStateException(ERR_NSDECL_WRONG_STATE);
         }
 
-        if (mCheckNS) { // Was it declared the same way?
-            // !!! TODO
-            //mCurrElem.checkDefaultNsWrite(nsURI);
-        }
+        // 01-Apr-2005, TSa: Can we (and do we want to) verify NS consistency?
 
-        try {
-            mWriter.write(' ');
-            mWriter.write(XMLConstants.XMLNS_ATTRIBUTE);
-            mWriter.write("=\"");
-            mWriter.write(nsURI);
-            mWriter.write('"');
-        } catch (IOException ioe) {
-            throw new XMLStreamException(ioe);
-        }
+        doWriteNamespace(null, nsURI);
     }
 
     public void writeNamespace(String prefix, String nsURI)
@@ -146,18 +132,18 @@ public class SimpleNsStreamWriter
         if (!mStartElementOpen) {
             throw new IllegalStateException(ERR_NSDECL_WRONG_STATE);
         }
-        
-        if (mCheckNS) {
+        {
             /* 05-Feb-2005, TSa: Also, as per namespace specs; the 'empty'
              *   namespace URI can not be bound as a non-default namespace
              *   (ie. for any actual prefix)
              */
+            /* 01-Apr-2005, TSa: Let's not leave this optional... it's plain
+             *  wrong to try to do that
+             */
             if (nsURI.length() == 0) {
                 throwOutputError(ErrorConsts.ERR_NS_EMPTY);
             }
-            // Was it declared the same way?
-            // !!! TODO
-            //mCurrElem.checkNsWrite(mRootNsContext, prefix, nsURI);
+            // 01-Apr-2005, TSa: Can we (and do we want to) verify NS consistency?
         }
         
         doWriteNamespace(prefix, nsURI);
@@ -260,10 +246,8 @@ public class SimpleNsStreamWriter
     {
         checkStartElement(localName);
         mCurrElem = mCurrElem.createChild(prefix, localName);
-        // Ok, need to check validity of the prefix?
-        if (mCheckNS) {
-            // !!! TODO
-        }
+
+        // 01-Apr-2005, TSa: Can we (and do we want to) verify NS consistency?
         doWriteStartElement(prefix, localName);
     }
 
@@ -317,12 +301,12 @@ public class SimpleNsStreamWriter
             }
         }
         
-        /* And then let's just output attributes, if any:
+        /* And then let's just output attributes, if any (whether to copy
+         * implicit, aka "default" attributes, is configurable)
          */
-        // Let's only output explicit attributes?
-        // !!! Should it be configurable?
-        AttributeCollector ac = mAttrCollector;
-        int attrCount = ac.getSpecifiedCount();
+        int attrCount = mCfgCopyDefaultAttrs ?
+            attrCollector.getCount() : 
+            attrCollector.getSpecifiedCount();
         
         for (int i = 0; i < attrCount; ++i) {
             /* There's nothing special about writeAttribute() (except for

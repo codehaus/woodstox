@@ -67,14 +67,6 @@ public abstract class BaseNsStreamWriter
 
     // // // Additional specific config flags base class doesn't have
 
-    final protected boolean mCheckNS;
-
-    /**
-     * True, if writer should ensure that all declared namespaces have
-     * been properly output.
-     */
-    final protected boolean mCheckNSWrite;
-
     /**
      * True, if writer needs to automatically output namespace declarations
      * (we are in repairing mode)
@@ -104,8 +96,6 @@ public abstract class BaseNsStreamWriter
     public BaseNsStreamWriter(Writer w, WriterConfig cfg, boolean repairing)
     {
         super(w, cfg);
-        mCheckNS = cfg.willValidateNamespaces();
-        mCheckNSWrite = mCheckNS && !repairing;
         mAutomaticNS = repairing;
     }
 
@@ -161,7 +151,10 @@ public abstract class BaseNsStreamWriter
          *     (re-)defined to any other value, nor that value they 
          *     are bound to are bound to other prefixes.
          */
-        if (mCheckNS) {
+        /* 01-Apr-2005, TSa: And let's not leave it optional: such
+         *   bindings should never succeed.
+         */
+        {
             if (prefix.equals(sPrefixXml)) { // prefix "xml"
                 if (!uri.equals(XMLConstants.XML_NS_URI)) {
                     throwOutputError(ErrorConsts.ERR_NS_REDECL_XML, uri);
@@ -178,7 +171,7 @@ public abstract class BaseNsStreamWriter
                     throwOutputError(ErrorConsts.ERR_NS_REDECL_XMLNS_URI, prefix);
                 }
             }
-
+            
             /* 05-Feb-2005, TSa: Also, as per namespace specs; the 'empty'
              *   namespace URI can not be bound as a non-default namespace
              *   (ie. for any actual prefix)
@@ -330,13 +323,7 @@ public abstract class BaseNsStreamWriter
     {
         mStartElementOpen = false;
 
-        // Ok... time to verify namespaces were written ok?
-        // 31-Mar-2005, TSa: Not working, let's comment it out
-        /*
-        if (mCheckNSWrite) {
-            mCurrElem.checkAllNsWrittenOk();
-        }
-        */
+        // 01-Apr-2005, TSa: Can we check anything regarding NS output?
 
         try {
             if (emptyElem) {
@@ -364,6 +351,11 @@ public abstract class BaseNsStreamWriter
     ////////////////////////////////////////////////////
      */
 
+    /**
+     * Method that is called to ensure that we can start writing an
+     * element, both from structural point of view, and from syntactic
+     * (close previously open start element, if any).
+     */
     protected void checkStartElement(String localName)
         throws XMLStreamException
     {
@@ -413,7 +405,7 @@ public abstract class BaseNsStreamWriter
         try {
             mWriter.write(' ');
             mWriter.write(XMLConstants.XMLNS_ATTRIBUTE);
-            if (prefix != null) {
+            if (prefix != null && prefix.length() > 0) {
                 mWriter.write(':');
                 mWriter.write(prefix);
             }
@@ -476,11 +468,8 @@ public abstract class BaseNsStreamWriter
              * processing. Thus, this is almost identical to closeStartElement:
              */
             mStartElementOpen = false;
-            if (mCheckNSWrite) {
-                // !!! TODO
-                //mCurrElem.checkAllNsWrittenOk();
-            }
-            
+            // 01-Apr-2005, TSa: Can we check anything regarding NS?
+
             try {
                 // We could write an empty element, implicitly?
                 if (allowEmpty) {

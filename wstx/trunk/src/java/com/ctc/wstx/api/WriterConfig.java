@@ -33,8 +33,12 @@ public final class WriterConfig
     final static int PROP_OUTPUT_EMPTY_ELEMS = 4;
     final static int PROP_OUTPUT_CDATA_AS_TEXT = 5;
 
+    final static int PROP_COPY_DEFAULT_ATTRS = 6;
+
     // Validation flags:
-    final static int PROP_VALIDATE_NS = 6;
+
+    // Let's not use this any more... no point:
+    //final static int PROP_VALIDATE_NS ;
     final static int PROP_VALIDATE_STRUCTURE = 7;
     final static int PROP_VALIDATE_CONTENT = 8;
     final static int PROP_VALIDATE_ATTR = 9;
@@ -48,12 +52,14 @@ public final class WriterConfig
 
     final static boolean DEFAULT_ENABLE_NS = true;
     final static boolean DEFAULT_OUTPUT_EMPTY_ELEMS = false;
+    final static boolean DEFAULT_OUTPUT_CDATA_AS_TEXT = false;
+    final static boolean DEFAULT_COPY_DEFAULT_ATTRS = false;
 
     /* How about validation? Let's turn them mostly off by default, since
      * there are some performance hits when enabling them.
      */
 
-    final static boolean DEFAULT_VALIDATE_NS = false;
+    //final static boolean DEFAULT_VALIDATE_NS = false;
     // Structural checks are easy, cheap and useful...
     final static boolean DEFAULT_VALIDATE_STRUCTURE = true;
     final static boolean DEFAULT_VALIDATE_CONTENT = false;
@@ -67,8 +73,12 @@ public final class WriterConfig
     final static int DEFAULT_FLAGS_J2ME =
         0 // | CFG_AUTOMATIC_NS
         | (DEFAULT_ENABLE_NS ? CFG_ENABLE_NS : 0)
+
         | (DEFAULT_OUTPUT_EMPTY_ELEMS ? CFG_OUTPUT_EMPTY_ELEMS : 0)
-        | (DEFAULT_VALIDATE_NS ? CFG_VALIDATE_NS : 0)
+        | (DEFAULT_OUTPUT_CDATA_AS_TEXT ? CFG_OUTPUT_CDATA_AS_TEXT : 0)
+        | (DEFAULT_COPY_DEFAULT_ATTRS ? CFG_COPY_DEFAULT_ATTRS : 0)
+
+        //| (DEFAULT_VALIDATE_NS ? CFG_VALIDATE_NS : 0)
         | (DEFAULT_VALIDATE_STRUCTURE ? CFG_VALIDATE_STRUCTURE : 0)
         | (DEFAULT_VALIDATE_CONTENT ? CFG_VALIDATE_CONTENT : 0)
         | (DEFAULT_VALIDATE_ATTR ? CFG_VALIDATE_ATTR : 0)
@@ -105,10 +115,11 @@ public final class WriterConfig
                         new Integer(PROP_OUTPUT_EMPTY_ELEMS));
         sProperties.put(WstxOutputProperties.P_OUTPUT_CDATA_AS_TEXT,
                         new Integer(PROP_OUTPUT_CDATA_AS_TEXT));
+        sProperties.put(WstxOutputProperties.P_COPY_DEFAULT_ATTRS,
+                        new Integer(PROP_COPY_DEFAULT_ATTRS));
 
         // Validation settings:
-        sProperties.put(WstxOutputProperties.P_OUTPUT_VALIDATE_NS,
-                        new Integer(PROP_VALIDATE_NS));
+        //sProperties.put(WstxOutputProperties.P_OUTPUT_VALIDATE_NS, new Integer(PROP_VALIDATE_NS));
         sProperties.put(WstxOutputProperties.P_OUTPUT_VALIDATE_STRUCTURE,
                         new Integer(PROP_VALIDATE_STRUCTURE));
         sProperties.put(WstxOutputProperties.P_OUTPUT_VALIDATE_CONTENT,
@@ -215,9 +226,14 @@ public final class WriterConfig
             return willOutputEmptyElements() ? Boolean.TRUE : Boolean.FALSE;
         case PROP_OUTPUT_CDATA_AS_TEXT:
             return willOutputCDataAsText() ? Boolean.TRUE : Boolean.FALSE;
+        case PROP_COPY_DEFAULT_ATTRS:
+            return willCopyDefaultAttrs() ? Boolean.TRUE : Boolean.FALSE;
 
+            /*
         case PROP_VALIDATE_NS:
             return willValidateNamespaces() ? Boolean.TRUE : Boolean.FALSE;
+            */
+
         case PROP_VALIDATE_STRUCTURE:
             return willValidateStructure() ? Boolean.TRUE : Boolean.FALSE;
         case PROP_VALIDATE_CONTENT:
@@ -263,10 +279,15 @@ public final class WriterConfig
         case PROP_OUTPUT_CDATA_AS_TEXT:
             doOutputCDataAsText(ArgUtil.convertToBoolean(name, value));
             break;
+        case PROP_COPY_DEFAULT_ATTRS:
+            doCopyDefaultAttrs(ArgUtil.convertToBoolean(name, value));
+            break;
 
+            /*
         case PROP_VALIDATE_NS:
             doValidateNamespaces(ArgUtil.convertToBoolean(name, value));
             break;
+            */
 
         case PROP_VALIDATE_STRUCTURE:
             doValidateContent(ArgUtil.convertToBoolean(name, value));
@@ -334,9 +355,15 @@ public final class WriterConfig
         return hasConfigFlag(CFG_OUTPUT_CDATA_AS_TEXT);
     }
 
+    public boolean willCopyDefaultAttrs() {
+        return hasConfigFlag(CFG_COPY_DEFAULT_ATTRS);
+    }
+
+    /*
     public boolean willValidateNamespaces() {
         return hasConfigFlag(CFG_VALIDATE_NS);
     }
+    */
 
     public boolean willValidateStructure() {
         return hasConfigFlag(CFG_VALIDATE_STRUCTURE);
@@ -393,9 +420,15 @@ public final class WriterConfig
         setConfigFlag(CFG_OUTPUT_CDATA_AS_TEXT, state);
     }
 
+    public void doCopyDefaultAttrs(boolean state) {
+        setConfigFlag(CFG_COPY_DEFAULT_ATTRS, state);
+    }
+
+    /*
     public void doValidateNamespaces(boolean state) {
         setConfigFlag(CFG_VALIDATE_NS, state);
     }
+    */
 
     public void doValidateStructure(boolean state) {
         setConfigFlag(CFG_VALIDATE_STRUCTURE, state);
@@ -446,7 +479,7 @@ public final class WriterConfig
     {
         doValidateAttributes(true);
         doValidateContent(true);
-        doValidateNamespaces(true);
+        //doValidateNamespaces(true);
         doValidateStructure(true);
         doValidateNames(true);
     }
@@ -460,7 +493,7 @@ public final class WriterConfig
     {
         doValidateAttributes(false);
         doValidateContent(false);
-        doValidateNamespaces(false);
+        //doValidateNamespaces(false);
         doValidateStructure(false);
         doValidateNames(false);
     }

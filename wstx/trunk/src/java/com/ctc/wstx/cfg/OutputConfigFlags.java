@@ -18,11 +18,23 @@ public interface OutputConfigFlags
     /// Flag that indicates we can output 'automatic' empty elements.
     final static int CFG_OUTPUT_EMPTY_ELEMS =  0x0004;
 
+    /**
+     * Whether writer should just automatically convert all calls that
+     * would normally produce CDATA to produce (quoted) text.
+     */
+    final static int CFG_OUTPUT_CDATA_AS_TEXT = 0x0008;
+
+    /**
+     * Flag that indicates whether attributes expanded from default attribute
+     * values should be copied to output, when using copy methods.
+     */
+    final static int CFG_COPY_DEFAULT_ATTRS =  0x0010;
+
     /// Flag that indicates we should check validity of namespace/prefix mappings.
-    final static int CFG_VALIDATE_NS =         0x0008;
+    //final static int CFG_VALIDATE_NS = ;
 
     /// Flag that indicates we should check validity of output XML structure.
-    final static int CFG_VALIDATE_STRUCTURE =  0x0010;
+    final static int CFG_VALIDATE_STRUCTURE =  0x0020;
 
     /**
      * Flag that indicates we should check validity of textual content of
@@ -32,24 +44,18 @@ public interface OutputConfigFlags
      * have ']]>' and processing instruction can not have '?&lt;' character
      * combinations in content passed in.
      */
-    final static int CFG_VALIDATE_CONTENT =    0x0020;
+    final static int CFG_VALIDATE_CONTENT =    0x0040;
 
     /**
      * Flag that indicates we should check validity of names (element and
      * attribute names and prefixes; processing instruction names), that they
      * contain only legal identifier characters.
      */
-    final static int CFG_VALIDATE_NAMES =         0x0040;
+    final static int CFG_VALIDATE_NAMES = 0x0080;
 
     /**
      * Flag that indicates we should check uniqueness of attribute names,
      * to prevent accidental output of duplicate attributes.
      */
-    final static int CFG_VALIDATE_ATTR =       0x0080;
-
-    /**
-     * Whether writer should just automatically convert all calls that
-     * would normally produce CDATA to produce (quoted) text.
-     */
-    final static int CFG_OUTPUT_CDATA_AS_TEXT = 0x0100;
+    final static int CFG_VALIDATE_ATTR = 0x0100;
 }

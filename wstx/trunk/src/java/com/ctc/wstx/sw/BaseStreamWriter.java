@@ -92,6 +92,7 @@ public abstract class BaseStreamWriter
 
     protected final boolean mCfgOutputEmptyElems;
     protected final boolean mCfgCDataAsText;
+    protected final boolean mCfgCopyDefaultAttrs;
 
     protected final boolean mCheckStructure;
     protected final boolean mCheckContent;
@@ -179,6 +180,7 @@ public abstract class BaseStreamWriter
 
         mCfgOutputEmptyElems = (flags & CFG_OUTPUT_EMPTY_ELEMS) != 0;
         mCfgCDataAsText = (flags & CFG_OUTPUT_CDATA_AS_TEXT) != 0;
+        mCfgCopyDefaultAttrs = (flags & CFG_COPY_DEFAULT_ATTRS) != 0;
 
         // How should we escape textual content?
         EscapingWriterFactory f = cfg.getTextEscaperFactory();

@@ -39,6 +39,12 @@ public final class WstxOutputProperties
      */
     public final static String P_OUTPUT_CDATA_AS_TEXT = "com.ctc.wstx.outputCDataAsText";
 
+    /**
+     * Whether writer should copy attributes that were initially expanded
+     * using default settings ("implicit" attributes) or not.
+     */
+    public final static String P_COPY_DEFAULT_ATTRS = "com.ctc.wstx.copyDefaultAttrs";
+
 
     // // // Validation options:
 
@@ -48,7 +54,7 @@ public final class WstxOutputProperties
      * existing mapping. If false, will just happily output prefixes without
      * any checking.
      */
-    public final static String P_OUTPUT_VALIDATE_NS = "com.ctc.wstx.outputValidateNS";
+    //public final static String P_OUTPUT_VALIDATE_NS = "com.ctc.wstx.outputValidateNS";
 
     /**
      * Whether output classes should do basic verification that the output
@@ -91,4 +97,3 @@ public final class WstxOutputProperties
     public final static String P_OUTPUT_ATTR_VALUE_ESCAPER = "com.ctc.wstx.outputAttrValueEscaper";
 
 }
-
