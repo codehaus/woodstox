@@ -26,6 +26,7 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
 
+import org.codehaus.stax2.DTDInfo;
 import org.codehaus.stax2.XMLStreamReader2;
 
 import com.ctc.wstx.api.ReaderConfig;
@@ -64,7 +65,7 @@ import com.ctc.wstx.util.URLUtil;
  */
 public class WstxStreamReader
     extends StreamScanner
-    implements XMLStreamReader2
+    implements XMLStreamReader2, DTDInfo
 {
     /**
      * StAX API expects null to indicate "no prefix", not an empty String...
@@ -1052,49 +1053,6 @@ public class WstxStreamReader
          */
     }
 
-    // // // StAX 2, extended DTD access
-
-    /**
-     *<p>
-     * Note: DTD-handling sub-classes need to override this method.
-     */
-    public Object getProcessedDTD() {
-        return null;
-    }
-
-    public String getDTDRootName() {
-        if (mCurrToken == DTD) {
-            if (mRootPrefix == null) {
-                return mRootLName;
-            }
-            return mRootPrefix + ":" + mRootLName;
-        }
-        return null;
-    }
-
-    public String getDTDPublicId() {
-        return (mCurrToken == DTD) ? mDtdPublicId : null;
-    }
-
-    public String getDTDSystemId() {
-        return (mCurrToken == DTD) ? mDtdSystemId : null;
-    }
-
-    /**
-     * @return Internal subset portion of the DOCTYPE declaration, if any;
-     *   empty String if none
-     */
-    public String getDTDInternalSubset() {
-        if (mCurrToken != DTD) {
-            return null;
-        }
-        return mTextBuffer.contentsAsString();
-    }
-
-    private char[] getDTDInternalSubsetArray() {
-        return mTextBuffer.contentsAsArray();
-    }
-
     public int getAttributeIndex(String nsURI, String localName)
     {
         // !!! TBI
@@ -1159,6 +1117,27 @@ public class WstxStreamReader
 
     // // // StAX 2, Other accessors
 
+    /**
+     * Since this class implements {@link DTDInfo}, method can just
+     * return <code>this</code>.
+     */
+    public DTDInfo getDTDInfo() throws XMLStreamException
+    {
+        /* Let's not allow it to be accessed during other events -- that
+         * way callers won't count on it being available afterwards.
+         */
+        if (mCurrToken != DTD) {
+            return null;
+        }
+        if (mStTokenUnfinished) { // need to fully read it in now
+            try {
+                finishToken();
+            } catch (IOException ie) {
+                throwFromIOE(ie);
+            }
+        }
+        return this;
+    }
 
     /**
      * @return Number of open elements in the stack; 0 when parser is in
@@ -1176,6 +1155,57 @@ public class WstxStreamReader
     public boolean isEmptyElement() throws XMLStreamException
     {
         return mStEmptyElem;
+    }
+
+    /*
+    ////////////////////////////////////////////////////
+    // DTDInfo implementation (StAX 2)
+    ////////////////////////////////////////////////////
+     */
+
+    /**
+     *<p>
+     * Note: DTD-handling sub-classes need to override this method.
+     */
+    public Object getProcessedDTD() {
+        return null;
+    }
+
+    public String getDTDRootName() {
+        if (mRootPrefix == null) {
+            return mRootLName;
+        }
+        return mRootPrefix + ":" + mRootLName;
+    }
+
+    public String getDTDPublicId() {
+        return mDtdPublicId;
+    }
+
+    public String getDTDSystemId() {
+        return mDtdSystemId;
+    }
+
+    /**
+     * @return Internal subset portion of the DOCTYPE declaration, if any;
+     *   empty String if none
+     */
+    public String getDTDInternalSubset() {
+        if (mCurrToken != DTD) {
+            return null;
+        }
+        return mTextBuffer.contentsAsString();
+    }
+
+    /**
+     * Internal method used by implementation
+     */
+    private char[] getDTDInternalSubsetArray() {
+        /* Note: no checks for current state, but only because it's
+         * an internal method and callers are known to ensure it's ok
+         * to call this
+         */
+        return mTextBuffer.contentsAsArray();
     }
 
     /*

@@ -59,7 +59,7 @@ public final class ISOLatinReader
         // Need to load more data?
         int avail = mLength - mPtr;
         if (avail <= 0) {
-            // Let's always read full buffers, actually...
+            // Let's always (try to) read full buffers
             int count = mIn.read(mBuffer);
             if (count <= 0) {
                 if (count == 0) {
@@ -75,7 +75,9 @@ public final class ISOLatinReader
             mPtr = 0;
         }
 
-        // K, have at least one byte == char, good enough:
+        /* K, have at least one byte == char, good enough; requiring more
+         * could block the calling thread too early
+         */
 
         if (len > avail) {
             len = avail;

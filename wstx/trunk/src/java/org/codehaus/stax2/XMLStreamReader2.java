@@ -37,42 +37,19 @@ public interface XMLStreamReader2
     public void setFeature(String name, Object value);
 
     /*
-    ///////////////////////////
-    // DOCTYPE info accessors
-    ///////////////////////////
+    /////////////////////////////////
+    // Additional DTD access
+    /////////////////////////////////
     */
 
     /**
-     * @return If current event is DTD, DTD support is enabled,
-     *   and reader supports DTD processing, returns an internal
-     *   Object implementation uses for storing/processing DTD;
-     *   otherwise returns null.
+     * Method that can be called to get information about DOCTYPE declaration
+     * that the reader is currently pointing to, if the reader has parsed
+     * it. Implementations can also choose to return null to indicate they
+     * do not provide extra information; but they should not throw any
+     * exceptions beyond normal parsing exceptions.
      */
-    public Object getProcessedDTD();
-
-    /**
-     * @return If current event is DTD, returns the full root name
-     *   (including prefix, if any); otherwise returns null
-     */
-    public String getDTDRootName();
-
-    /**
-     * @return If current event is DTD, and has a system id, returns the
-     *   system id; otherwise returns null.
-     */
-    public String getDTDSystemId();
-
-    /**
-     * @return If current event is DTD, and has a public id, returns the
-     *   public id; otherwise returns null.
-     */
-    public String getDTDPublicId();
-
-    /**
-     * @return If current event is DTD, and has an internal subset,
-     *   returns the internal subset; otherwise returns null.
-     */
-    public String getDTDInternalSubset();
+    public DTDInfo getDTDInfo() throws XMLStreamException;
 
     /*
     /////////////////////////////////

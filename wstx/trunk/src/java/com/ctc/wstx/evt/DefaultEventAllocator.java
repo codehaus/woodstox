@@ -25,6 +25,7 @@ import javax.xml.stream.events.EntityDeclaration;
 import javax.xml.stream.util.XMLEventAllocator;
 import javax.xml.stream.util.XMLEventConsumer;
 
+import org.codehaus.stax2.DTDInfo;
 import org.codehaus.stax2.XMLStreamReader2;
 
 import com.ctc.wstx.cfg.ErrorConsts;
@@ -137,11 +138,12 @@ public class DefaultEventAllocator
             // Not sure if we really need this defensive coding but...
             if (r instanceof XMLStreamReader2) {
                 XMLStreamReader2 sr2 = (XMLStreamReader2) r;
+                DTDInfo dtd = sr2.getDTDInfo();
                 return new WDTD(loc,
-                                sr2.getDTDRootName(),
-                                sr2.getDTDSystemId(), sr2.getDTDPublicId(),
-                                sr2.getDTDInternalSubset(),
-                                (DTDSubset) sr2.getProcessedDTD());
+                                dtd.getDTDRootName(),
+                                dtd.getDTDSystemId(), dtd.getDTDPublicId(),
+                                dtd.getDTDInternalSubset(),
+                                (DTDSubset) dtd.getProcessedDTD());
             }
             /* No way to get all information... the real big problem is
              * that of how to access root name: it's obligatory for

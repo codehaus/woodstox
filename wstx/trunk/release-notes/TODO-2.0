@@ -34,8 +34,7 @@ Must-haves for 2.0
       * getAttributeIndex
       * getIdAttributeIndex
       [DONE] * Misc: isEmptyElement, getDepth
-      * Separate DTD info access behind a new interface (DTDInfo?)
-        Note: at this point, has separate new accessors; move these to DTDInfo?
+      [DONE] * Separate DTD info access behind a new interface (DTDInfo?)
       [Partial] * getText with Writer arg
    * XMLStreamWriter2:
       [Partial] * pass-through write method for outputting raw (non-encoded) stuff
