@@ -30,7 +30,8 @@ public class TestNsStreamWriter2
     {
         XMLOutputFactory f = getFactory();
         f.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES,
-                      Boolean.FALSE);
+                      //Boolean.FALSE);
+                      Boolean.TRUE);
         f.setProperty(WstxOutputProperties.P_OUTPUT_ENABLE_NS,
                       Boolean.TRUE);
         f.setProperty(WstxOutputProperties.P_OUTPUT_EMPTY_ELEMENTS,

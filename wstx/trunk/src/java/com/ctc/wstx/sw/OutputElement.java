@@ -96,8 +96,6 @@ public final class OutputElement
     ////////////////////////////////////////////
      */
 
-    final static String AUTOMATIC_NS_PREFIX = "wstxns";
-
     StringVector mNamespaces;
 
     /**
@@ -591,13 +589,13 @@ public final class OutputElement
         mDefaultNsUri = defNsUri;
     }
 
-    public String generatePrefix(NamespaceContext ctxt)
+    public String generatePrefix(NamespaceContext ctxt, String prefixBase)
     {
         String prefix;
         while (true) {
             int nr = mNextAutomaticNsId++;
             // We better intern the resulting prefix...
-            prefix = (AUTOMATIC_NS_PREFIX + nr).intern();
+            prefix = (prefixBase + nr).intern();
             if (mNamespaces.findLastNonInterned(prefix) != null) {
                 continue;
             }

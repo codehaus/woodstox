@@ -409,10 +409,10 @@ public class RepairingNsStreamWriter
              * namespace; it would be tricky to get to work right.
              */
             if (prefix == null || prefix.length() == 0) {
-                prefix = mCurrElem.generatePrefix(mRootNsContext);
+                prefix = mCurrElem.generatePrefix(mRootNsContext, mAutomaticNsPrefix);
             }
         } else {
-            prefix = mCurrElem.generatePrefix(mRootNsContext);
+            prefix = mCurrElem.generatePrefix(mRootNsContext, mAutomaticNsPrefix);
         }
 
         mCurrElem.addPrefix(prefix, nsURI);
@@ -464,7 +464,7 @@ public class RepairingNsStreamWriter
             // First, do we have a mapping for URI?
             prefix = getPrefix(nsURI);
             if (prefix == null) { // nope, need to generate
-                prefix = mCurrElem.generatePrefix(mRootNsContext);
+                prefix = mCurrElem.generatePrefix(mRootNsContext, mAutomaticNsPrefix);
                 mCurrElem.addPrefix(prefix, nsURI);
                 if (!isElement) {
                     doWriteNamespace(prefix, nsURI);

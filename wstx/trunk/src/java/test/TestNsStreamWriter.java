@@ -44,6 +44,7 @@ public class TestNsStreamWriter
         sw.writeAttribute("http://attr-prefix", "attr3", "value!");
         sw.writeAttribute("another", "this & that");
         //sw.writeAttribute("attr", "whatever"); // error!
+
         sw.setDefaultNamespace("http://default"); // error if not output
         sw.setPrefix("myprefix", "http://mydotcom"); // - "" -
         sw.writeStartElement(null, "elem");
@@ -58,6 +59,7 @@ public class TestNsStreamWriter
         sw.writeEndElement();
         sw.writeCharacters("Root text <> ]]>\n");
         sw.writeEndElement();
+
         //sw.writeEmptyElement("secondRoot"); // error!
         sw.writeCharacters("\n"); // white space in epilog
         sw.writeProcessingInstruction("target", "some data");

@@ -163,9 +163,9 @@ public final class WstxOutputFactory
      */
     private BaseStreamWriter createWstxStreamWriter(Writer w) {
         if (mConfig.willSupportNamespaces()) {
-	    if (mConfig.automaticNamespacesEnabled()) {
-		return new RepairingNsStreamWriter(w, mConfig);
-	    }
+            if (mConfig.automaticNamespacesEnabled()) {
+                return new RepairingNsStreamWriter(w, mConfig);
+            }
             return new SimpleNsStreamWriter(w, mConfig);
         }
         return new NonNsStreamWriter(w, mConfig);
