@@ -26,6 +26,8 @@ public class ExternalId
 
     protected final URL mSystemId;
 
+    protected int mHash = 0;
+
     /*
     ///////////////////////////////////////////////
     // Life-cycle:
@@ -91,17 +93,19 @@ public class ExternalId
     ///////////////////////////////////////////////
      */
 
-    /**
-     * Since we'll only use hash code of one of the Strings, and since
-     * String objects themselves cache hash code, let's not duplicate
-     * that value here.
-     */
-    public int hashCode() {
+    public int hashCode()
+    {
+        int hash = mHash;
 
-        if (mPublicId != null) {
-            return mPublicId.hashCode();
+        if (hash == 0) {
+            if (mPublicId != null) {
+                hash = mPublicId.hashCode();
+            } else {
+                hash = mSystemId.hashCode();
+            }
+            mHash = hash;
         }
-        return mSystemId.hashCode();
+        return hash;
     }
 
     public String toString() {
@@ -116,6 +120,9 @@ public class ExternalId
     public boolean equals(Object o) {
         if (!(o instanceof ExternalId)) {
             return false;
+        }
+        if (o == this) {
+            return true;
         }
         ExternalId other = (ExternalId) o;
         if (mPublicId != null) {
