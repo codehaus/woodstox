@@ -1,5 +1,9 @@
 package com.ctc.wstx.api.evt;
 
+import java.util.Iterator;
+
+import javax.xml.namespace.NamespaceContext;
+import javax.xml.namespace.QName;
 import javax.xml.stream.XMLEventFactory;
 import javax.xml.stream.events.*;
 
@@ -19,6 +23,11 @@ public abstract class XMLEventFactory2
                                    String intSubset);
 
     public abstract DTD2 createDTD(String rootName, String sysId, String pubId,
-                                   String intSubset, Object processedDTD);
+                                  String intSubset, Object processedDTD);
+
+    public abstract StartElement createStartElement(QName name,
+                                                    Iterator attrs, Iterator ns,
+                                                    NamespaceContext nsCtxt,
+                                                    boolean wasEmpty);
 }
 

@@ -8,6 +8,13 @@ Description:
     * Added P_OUTPUT_CDATA_AS_TEXT for stream writers; it will force
       writer to output 'normal' (quoted) text when asked to output
       CDATA (may be useful when full control of output is needed).
+    * Added P_PRESERVE_LOCATION flag for (event) reader: by default it
+      is true, and Event objects have fully accurate Location information.
+      Turning it off will make all Events use a shared location; this
+      can improve performance of straight event-based parsing by
+      up to 20-25%!
+    * Added simple QName caching/recycling in input element stack; improves
+      speed of event reader by ~5% for typical cases.
     * Adding some preliminary support for DTD++ (although full support is
       not planned to be part of 2.0 at this point):
       * Can enable/disable support via normal property set mechanism

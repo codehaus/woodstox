@@ -125,6 +125,13 @@ public final class WstxInputFactory
      */
     SymbolTable mSymbols = mRootSymbols;
 
+    /**
+     * Lazily constructed default allocator; is used when no explicit
+     * allocator is set by application and full location information
+     * is needed.
+     */
+    static DefaultEventAllocator sStdAllocator = null;
+
     /*
     /////////////////////////////////////////////////////
     // Life-cycle:
@@ -466,13 +473,20 @@ public final class WstxInputFactory
         throw new IllegalArgumentException("Can not instantiate StAX reader for XML source type "+src.getClass()+" (unknown type)");
     }
 
-
-    private XMLEventAllocator createEventAllocator() 
+    protected XMLEventAllocator createEventAllocator() 
     {
-        XMLEventAllocator ea = (mAllocator == null) ?
-            DefaultEventAllocator.rootInstance()
-            : mAllocator;
-        return ea.newInstance();
+        // Explicitly set allocate?
+        if (mAllocator != null) {
+            return mAllocator.newInstance();
+        }
+
+        /* Complete or fast one? Note: standard allocator is designed
+         * in such a way that newInstance() need not be called (calling
+         * it wouldn't do anything, anyway)
+         */
+        return mConfig.willPreserveLocation() ?
+            DefaultEventAllocator.getDefaultInstance()
+            : DefaultEventAllocator.getFastInstance();
     }
 
     /*

@@ -57,14 +57,14 @@ public class WstxEventWriter
     public WstxEventWriter(Writer w, WriterConfig cfg)
     {
         if (cfg.willSupportNamespaces()) {
-	    if (cfg.automaticNamespacesEnabled()) {
-		mWriter = new RepairingNsStreamWriter(w, cfg);
-	    } else {
-		mWriter = new SimpleNsStreamWriter(w, cfg);
-	    }
+            if (cfg.automaticNamespacesEnabled()) {
+                mWriter = new RepairingNsStreamWriter(w, cfg);
+            } else {
+                mWriter = new SimpleNsStreamWriter(w, cfg);
+            }
         } else {
-	    mWriter = new NonNsStreamWriter(w, cfg);
-	}
+            mWriter = new NonNsStreamWriter(w, cfg);
+        }
     }
 
     public WstxEventWriter(BaseStreamWriter sw, WriterConfig cfg)

@@ -22,19 +22,21 @@ public final class WriterConfig
 
     protected final static String DEFAULT_AUTOMATIC_NS_PREFIX = "wstxns";
 
-    // Simple flags:
-    final static int PROP_AUTOMATIC_NS = 1;
-
-    // // // Constants for additional properties:
-
+    // Namespace support, settings:
+    final static int PROP_AUTOMATIC_NS = 1; // standard property ("repairing")
     final static int PROP_ENABLE_NS = 2;
-    final static int PROP_OUTPUT_EMPTY_ELEMS = 3;
-    final static int PROP_AUTOMATIC_NS_PREFIX = 4;
-    final static int PROP_VALIDATE_NS = 5;
-    final static int PROP_VALIDATE_STRUCTURE = 6;
-    final static int PROP_VALIDATE_CONTENT = 7;
-    final static int PROP_VALIDATE_ATTR = 8;
+    final static int PROP_AUTOMATIC_NS_PREFIX = 3;
 
+    // Output settings:
+    final static int PROP_OUTPUT_EMPTY_ELEMS = 4;
+    final static int PROP_OUTPUT_CDATA_AS_TEXT = 5;
+
+    // Validation flags:
+    final static int PROP_VALIDATE_NS = 6;
+    final static int PROP_VALIDATE_STRUCTURE = 7;
+    final static int PROP_VALIDATE_CONTENT = 8;
+    final static int PROP_VALIDATE_ATTR = 9;
+    final static int PROP_VALIDATE_NAMES = 10;
 
     // // // Default settings for additional properties:
 
@@ -50,6 +52,7 @@ public final class WriterConfig
     final static boolean DEFAULT_VALIDATE_STRUCTURE = true;
     final static boolean DEFAULT_VALIDATE_CONTENT = false;
     final static boolean DEFAULT_VALIDATE_ATTR = false;
+    final static boolean DEFAULT_VALIDATE_NAMES = false;
 
     /**
      * Default config flags are converted from individual settings,
@@ -63,6 +66,7 @@ public final class WriterConfig
         | (DEFAULT_VALIDATE_STRUCTURE ? CFG_VALIDATE_STRUCTURE : 0)
         | (DEFAULT_VALIDATE_CONTENT ? CFG_VALIDATE_CONTENT : 0)
         | (DEFAULT_VALIDATE_ATTR ? CFG_VALIDATE_ATTR : 0)
+        | (DEFAULT_VALIDATE_NAMES ? CFG_VALIDATE_NAMES : 0)
         ;
 
     /**
@@ -82,11 +86,21 @@ public final class WriterConfig
         sProperties.put(XMLOutputFactory.IS_REPAIRING_NAMESPACES,
                         new Integer(PROP_AUTOMATIC_NS));
 
-        // Non-standard ones:
+        // // Non-standard ones:
+
+        // Namespace support
         sProperties.put(WstxOutputProperties.P_OUTPUT_ENABLE_NS,
                         new Integer(PROP_ENABLE_NS));
+        sProperties.put(WstxOutputProperties.P_OUTPUT_AUTOMATIC_NS_PREFIX,
+                        new Integer(PROP_AUTOMATIC_NS_PREFIX));
+
+        // Output conversions
         sProperties.put(WstxOutputProperties.P_OUTPUT_EMPTY_ELEMENTS,
                         new Integer(PROP_OUTPUT_EMPTY_ELEMS));
+        sProperties.put(WstxOutputProperties.P_OUTPUT_CDATA_AS_TEXT,
+                        new Integer(PROP_OUTPUT_CDATA_AS_TEXT));
+
+        // Validation settings:
         sProperties.put(WstxOutputProperties.P_OUTPUT_VALIDATE_NS,
                         new Integer(PROP_VALIDATE_NS));
         sProperties.put(WstxOutputProperties.P_OUTPUT_VALIDATE_STRUCTURE,
@@ -95,6 +109,8 @@ public final class WriterConfig
                         new Integer(PROP_VALIDATE_CONTENT));
         sProperties.put(WstxOutputProperties.P_OUTPUT_VALIDATE_ATTR,
                         new Integer(PROP_VALIDATE_ATTR));
+        sProperties.put(WstxOutputProperties.P_OUTPUT_VALIDATE_NAMES,
+                        new Integer(PROP_VALIDATE_NAMES));
     }
 
     /*
@@ -169,8 +185,12 @@ public final class WriterConfig
 
         case PROP_ENABLE_NS:
             return willSupportNamespaces() ? Boolean.TRUE : Boolean.FALSE;
+
         case PROP_OUTPUT_EMPTY_ELEMS:
             return willOutputEmptyElements() ? Boolean.TRUE : Boolean.FALSE;
+        case PROP_OUTPUT_CDATA_AS_TEXT:
+            return willOutputCDataAsText() ? Boolean.TRUE : Boolean.FALSE;
+
         case PROP_VALIDATE_NS:
             return willValidateNamespaces() ? Boolean.TRUE : Boolean.FALSE;
         case PROP_VALIDATE_STRUCTURE:
@@ -179,6 +199,8 @@ public final class WriterConfig
             return willValidateContent() ? Boolean.TRUE : Boolean.FALSE;
         case PROP_VALIDATE_ATTR:
             return willValidateAttributes() ? Boolean.TRUE : Boolean.FALSE;
+        case PROP_VALIDATE_NAMES:
+            return willValidateNames() ? Boolean.TRUE : Boolean.FALSE;
 
             // // // Object valued ones:
 
@@ -209,6 +231,9 @@ public final class WriterConfig
         case PROP_OUTPUT_EMPTY_ELEMS:
             doOutputEmptyElements(ArgUtil.convertToBoolean(name, value));
             break;
+        case PROP_OUTPUT_CDATA_AS_TEXT:
+            doOutputCDataAsText(ArgUtil.convertToBoolean(name, value));
+            break;
 
         case PROP_AUTOMATIC_NS_PREFIX:
             // value should be a String, but let's verify that:
@@ -229,6 +254,10 @@ public final class WriterConfig
 
         case PROP_VALIDATE_ATTR:
             doValidateAttributes(ArgUtil.convertToBoolean(name, value));
+            break;
+
+        case PROP_VALIDATE_NAMES:
+            doValidateNames(ArgUtil.convertToBoolean(name, value));
             break;
 
         default:
@@ -263,6 +292,10 @@ public final class WriterConfig
         return hasConfigFlag(CFG_OUTPUT_EMPTY_ELEMS);
     }
 
+    public boolean willOutputCDataAsText() {
+        return hasConfigFlag(CFG_OUTPUT_CDATA_AS_TEXT);
+    }
+
     /**
      * @return Prefix to use as the base for automatically generated
      *   namespace prefixes ("namespace prefix prefix", so to speak).
@@ -288,6 +321,10 @@ public final class WriterConfig
         return hasConfigFlag(CFG_VALIDATE_ATTR);
     }
 
+    public boolean willValidateNames() {
+        return hasConfigFlag(CFG_VALIDATE_NAMES);
+    }
+
     // // // Mutators:
 
     // Standard properies:
@@ -304,6 +341,10 @@ public final class WriterConfig
 
     public void doOutputEmptyElements(boolean state) {
         setConfigFlag(CFG_OUTPUT_EMPTY_ELEMS, state);
+    }
+
+    public void doOutputCDataAsText(boolean state) {
+        setConfigFlag(CFG_OUTPUT_CDATA_AS_TEXT, state);
     }
 
     /**
@@ -331,6 +372,10 @@ public final class WriterConfig
         setConfigFlag(CFG_VALIDATE_ATTR, state);
     }
 
+    public void doValidateNames(boolean state) {
+        setConfigFlag(CFG_VALIDATE_NAMES, state);
+    }
+
     /*
     //////////////////////////////////////////////////////////
     // Extended Woodstox API, profiles
@@ -349,6 +394,7 @@ public final class WriterConfig
         doValidateContent(true);
         doValidateNamespaces(true);
         doValidateStructure(true);
+        doValidateNames(true);
     }
 
     /**
@@ -362,6 +408,7 @@ public final class WriterConfig
         doValidateContent(false);
         doValidateNamespaces(false);
         doValidateStructure(false);
+        doValidateNames(false);
     }
 
     /*

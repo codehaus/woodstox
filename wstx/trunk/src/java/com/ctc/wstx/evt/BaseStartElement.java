@@ -28,6 +28,7 @@ import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.events.Attribute;
 import javax.xml.stream.events.StartElement;
 
+import com.ctc.wstx.api.evt.StartElement2;
 import com.ctc.wstx.util.BaseNsContext;
 import com.ctc.wstx.util.EmptyIterator;
 
@@ -36,11 +37,13 @@ import com.ctc.wstx.util.EmptyIterator;
  */
 abstract class BaseStartElement
     extends WEvent
-    implements StartElement
+    implements StartElement2
 {
     protected final QName mName;
 
     protected final BaseNsContext mNsCtxt;
+
+    protected final boolean mWasEmpty;
 
     /*
     /////////////////////////////////////////////
@@ -48,16 +51,18 @@ abstract class BaseStartElement
     /////////////////////////////////////////////
      */
 
-    protected BaseStartElement(Location loc, QName name, BaseNsContext nsCtxt)
+    protected BaseStartElement(Location loc, QName name, BaseNsContext nsCtxt,
+                               boolean wasEmpty)
     {
         super(loc);
         mName = name;
         mNsCtxt = nsCtxt;
+        mWasEmpty = wasEmpty;
     }
 
     /*
     /////////////////////////////////////////////
-    // Public API
+    // StartElement API
     /////////////////////////////////////////////
      */
 
@@ -88,6 +93,16 @@ abstract class BaseStartElement
 
     public String getNamespaceURI(String prefix)    {
         return (mNsCtxt == null) ? null : mNsCtxt.getNamespaceURI(prefix);
+    }
+
+    /*
+    /////////////////////////////////////////////
+    // StartElement2 implementation
+    /////////////////////////////////////////////
+     */
+
+    public boolean isEmptyElement() {
+        return mWasEmpty;
     }
 
     /*

@@ -2,11 +2,6 @@
 Must-haves for 2.0
 ------------------------------------
 
-* Event API:
-   * Implement CFG_PRESERVE_LOCATION (value false); need to have default
-     event allocator that shares a single Location object (start of the
-     file)
-
 * Stream writers:
    * Validate names (local, full), when such validation enabled
 [DONE] * Add CFG_CONVERT_CDATA_TO_TEXT to convert calls to output CDATA
@@ -32,7 +27,6 @@ Must-haves for 2.0
        * Create URI-based factory methods for readers
          (will create XMLStreamReader2 instances)
    * XMLTextEncoder?
-
 
 ------------------------------------
 Maybe for 2.0?

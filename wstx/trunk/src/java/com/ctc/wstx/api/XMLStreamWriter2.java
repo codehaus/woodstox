@@ -78,6 +78,13 @@ public interface XMLStreamWriter2
     public void writeRaw(char[] text, int offset, int length)
         throws XMLStreamException;
 
+    /**
+     * "Pass-through" write method; one that essentially copies
+     * event reader has just read. This can be more efficient
+     * than separately calling access methods of the reader, and
+     * write methods of the writer, since writer may know more
+     * about reader than application.
+     */
     public void writeFromReader(XMLStreamReader2 r)
         throws XMLStreamException;
 }

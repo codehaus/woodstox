@@ -13,5 +13,6 @@ import com.ctc.wstx.util.BaseNsContext;
 public abstract class ElemCallback
 {
     public abstract Object withStartElement(Location loc, QName name,
-                                            BaseNsContext nsCtxt, ElemAttrs attrs);
+                                            BaseNsContext nsCtxt, ElemAttrs attrs,
+                                            boolean wasEmpty);
 }

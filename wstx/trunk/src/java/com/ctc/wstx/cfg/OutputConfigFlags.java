@@ -35,14 +35,21 @@ public interface OutputConfigFlags
     final static int CFG_VALIDATE_CONTENT =    0x0020;
 
     /**
+     * Flag that indicates we should check validity of names (element and
+     * attribute names and prefixes; proc. instr. names), i.e. that they
+     * contain only legal identifier characters.
+     */
+    final static int CFG_VALIDATE_NAMES =         0x0040;
+
+    /**
      * Flag that indicates we should check uniqueness of attribute names,
      * to prevent accidental output of duplicate attributes.
      */
-    final static int CFG_VALIDATE_ATTR =       0x0040;
+    final static int CFG_VALIDATE_ATTR =       0x0080;
 
     /**
      * Whether writer should just automatically convert all calls that
      * would normally produce CDATA to produce (quoted) text.
      */
-    final static int CFG_OUTPUT_CDATA_AS_TEXT = 0x0080;
+    final static int CFG_OUTPUT_CDATA_AS_TEXT = 0x0100;
 }

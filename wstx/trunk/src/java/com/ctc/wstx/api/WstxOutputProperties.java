@@ -73,6 +73,12 @@ public final class WstxOutputProperties
      */
     public final static String P_OUTPUT_VALIDATE_ATTR = "com.ctc.wstx.outputValidateAttr";
 
+    /**
+     * Whether output classes should check validity of names, ie that they
+     * only contain legal XML identifier characters.
+     */
+    public final static String P_OUTPUT_VALIDATE_NAMES = "com.ctc.wstx.outputValidateNames";
+
     // // // Output options, complex values:
 
     /**

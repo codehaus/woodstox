@@ -57,6 +57,11 @@ public abstract class BaseStreamWriter
     ////////////////////////////////////////////////////
      */
 
+    // // // Operating mode: base class needs to know whether
+    // // // namespaces are support (for entity/PI target validation)
+
+    protected final boolean mNsAware;
+
     // // // Specialized configuration flags, extracted from config flags:
 
     protected final boolean mCfgOutputEmptyElems;
@@ -65,6 +70,7 @@ public abstract class BaseStreamWriter
     protected final boolean mCheckStructure;
     protected final boolean mCheckContent;
     protected final boolean mCheckAttr;
+    protected final boolean mCheckNames;
 
     /*
     ////////////////////////////////////////////////////
@@ -116,9 +122,12 @@ public abstract class BaseStreamWriter
         mWriter = w;
 
         int flags = cfg.getConfigFlags();
+        mNsAware = (flags & CFG_ENABLE_NS) != 0;
+
         mCheckStructure = (flags & CFG_VALIDATE_STRUCTURE) != 0;
         mCheckContent = (flags & CFG_VALIDATE_CONTENT) != 0;
         mCheckAttr = (flags & CFG_VALIDATE_ATTR) != 0;
+        mCheckNames = (flags & CFG_VALIDATE_NAMES) != 0;
 
         mCfgOutputEmptyElems = (flags & CFG_OUTPUT_EMPTY_ELEMS) != 0;
         mCfgCDataAsText = (flags & CFG_OUTPUT_CDATA_AS_TEXT) != 0;
@@ -380,8 +389,13 @@ public abstract class BaseStreamWriter
                 throw new IllegalStateException("Trying to output an entity reference outside main element tree (in prolog or epilog)");
             }
         }
-        if (mCheckContent) {
-            checkNameValidity(name, true);
+        if (mCheckNames) {
+            if (mNsAware) {
+                // As per namespace specs, can not have colon(s)
+                verifyLocalName(name);
+            } else {
+                checkNameValidity(name, true);
+            }
         }
         
         try {
@@ -412,8 +426,15 @@ public abstract class BaseStreamWriter
         }
 
         // Structurally, PIs are always ok. But content may need to be checked.
+        if (mCheckNames) {
+            if (mNsAware) {
+                // As per namespace specs, can not have colon(s)
+                verifyLocalName(target);
+            } else {
+                checkNameValidity(target, true);
+            }
+        }
         if (mCheckContent) {
-            checkNameValidity(target, true);
             if (data != null && data.length() > 1) {
                 int ix = data.indexOf('?');
                 if (ix >= 0) {
@@ -689,7 +710,7 @@ public abstract class BaseStreamWriter
 
     /**
      * Method that verifies that the name passed is a valid
-     * local name; name that does not have colon(s) in it.
+     * local name; name that can not have colon(s) in it.
      */
     protected void verifyLocalName(String name)
         throws XMLStreamException

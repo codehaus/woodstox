@@ -70,16 +70,16 @@ public class CompactStartElement
      */
 
     protected CompactStartElement(Location loc, QName name, BaseNsContext nsCtxt,
-                                  ElemAttrs attrs)
+                                  ElemAttrs attrs, boolean wasEmpty)
     {
-        super(loc, name, nsCtxt);
+        super(loc, name, nsCtxt, wasEmpty);
         mAttrs = attrs;
         mRawAttrs = (attrs == null) ? null : attrs.getRawAttrs();
     }
 
     /*
     /////////////////////////////////////////////
-    // Public API
+    // StartElement implementation
     /////////////////////////////////////////////
      */
 

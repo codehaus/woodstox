@@ -118,7 +118,7 @@ public final class WstxInputProperties
      * of location information for error reporting purposes; it's only
      * Event objects that are affected.
      */
-    public final static String P_PRESERVE_LOCATION = "com.ctc.wstx.lazyParsing";
+    public final static String P_PRESERVE_LOCATION = "com.ctc.wstx.preserveLocation";
 
     // // // Enabling/disabling support for dtd++
 

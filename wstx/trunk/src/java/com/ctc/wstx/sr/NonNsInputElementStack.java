@@ -49,6 +49,18 @@ public class NonNsInputElementStack
 
     /*
     //////////////////////////////////////////////////
+    // Simple 1-slot QName cache; used for improving
+    // efficiency of code that uses QNames extensively
+    // (like StAX Event API implementation)
+    //////////////////////////////////////////////////
+     */
+
+    protected String mLastLocalName = null;
+
+    protected QName mLastName = null;
+
+    /*
+    //////////////////////////////////////////////////
     // Life-cycle (create, update state)
     //////////////////////////////////////////////////
      */
@@ -198,7 +210,23 @@ public class NonNsInputElementStack
         if (mSize == 0) {
             throw new IllegalStateException("Illegal access, empty stack.");
         }
-        return new QName(mElements[mSize-1]);
+        /* 03-Dec-2004, TSa: Maybe we can just reuse the last QName
+         *    object created, if we have same data? (happens if
+         *    state hasn't changed, or we got end element for a leaf
+         *    element, or repeating leaf elements)
+         */
+        String ln = mElements[mSize-1];
+
+        /* Since local names are always interned, can just use cheap
+         * identity comparison here:
+         */
+        if (ln == mLastLocalName) {
+            return mLastName;
+        }
+        QName n = new QName(ln);
+        mLastLocalName = ln;
+        mLastName = n;
+        return n;
     }
 
     public final boolean matches(String prefix, String localName)

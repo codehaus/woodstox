@@ -1135,7 +1135,8 @@ public class WstxStreamReader
         }
         return cb.withStartElement(loc, getName(), 
                                    mElementStack.createNonTransientNsContext(loc),
-                                   mAttrCollector.buildAttrOb());
+                                   mAttrCollector.buildAttrOb(),
+                                   mStEmptyElem);
     }
 
     /*

@@ -90,6 +90,20 @@ public class NsInputElementStack
 
     /*
     //////////////////////////////////////////////////
+    // Simple 1-slot QName cache; used for improving
+    // efficiency of code that uses QNames extensively
+    // (like StAX Event API implementation)
+    //////////////////////////////////////////////////
+     */
+
+    protected String mLastLocalName = null;
+    protected String mLastPrefix = null;
+    protected String mLastNsURI = null;
+
+    protected QName mLastName = null;
+
+    /*
+    //////////////////////////////////////////////////
     // Life-cycle (create, update state)
     //////////////////////////////////////////////////
      */
@@ -443,10 +457,32 @@ public class NsInputElementStack
         if (prefix == null) {
             prefix = "";
         }
-        return new QName(mElements[mSize-(ENTRY_SIZE - IX_URI)],
-                         mElements[mSize-(ENTRY_SIZE - IX_LOCALNAME)],
-                         prefix
-                         );
+        /* 03-Dec-2004, TSa: Maybe we can just reuse the last QName
+         *    object created, if we have same data? (happens if
+         *    state hasn't changed, or we got end element for a leaf
+         *    element, or repeating leaf elements)
+         */
+        String nsURI = mElements[mSize-(ENTRY_SIZE - IX_URI)];
+        String ln = mElements[mSize-(ENTRY_SIZE - IX_LOCALNAME)];
+
+        /* Since we generally intern most Strings, can do identity
+         * comparisons here:
+         */
+        if (ln != mLastLocalName) {
+            mLastLocalName = ln;
+            mLastPrefix = prefix;
+            mLastNsURI = nsURI;
+        } else if (prefix != mLastPrefix) {
+            mLastPrefix = prefix;
+            mLastNsURI = nsURI;
+        } else if (nsURI != mLastNsURI) {
+            mLastNsURI = nsURI;
+        } else {
+            return mLastName;
+        }
+        QName n = new QName(nsURI, ln, prefix);
+        mLastName = n;
+        return n;
     }
 
     public final boolean matches(String prefix, String localName) {

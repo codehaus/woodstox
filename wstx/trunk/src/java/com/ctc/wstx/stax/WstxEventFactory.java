@@ -149,35 +149,29 @@ public final class WstxEventFactory
 
     public StartElement createStartElement(QName name, Iterator attr, Iterator ns)
     {
-        return createStartElement(name, attr, ns, null);
+        return createStartElement(name, attr, ns, null, false);
     }
 
     public StartElement createStartElement(String prefix, String nsURI, String localName)
     {
-        return createStartElement(new QName(nsURI, localName, prefix), null, null, null);
+        return createStartElement(new QName(nsURI, localName, prefix),
+                                  null, null, null, false);
     }
 
     public StartElement createStartElement(String prefix, String nsURI,
                                            String localName, Iterator attr,
                                            Iterator ns)
     {
-        return createStartElement(new QName(nsURI, localName, prefix), attr, ns, null);
+        return createStartElement(new QName(nsURI, localName, prefix), attr, ns,
+                                  null, false);
     }
 
     public StartElement createStartElement(String prefix, String nsURI,
                                            String localName, Iterator attr,
-                                           Iterator ns, NamespaceContext context)
+                                           Iterator ns, NamespaceContext nsCtxt)
     {
-        /* Note: we don't have any use for the namespace context... why does
-         * API want to pass it?
-         */
-        return createStartElement(new QName(nsURI, localName, prefix), attr, ns);
-    }
-
-    protected StartElement createStartElement(QName name, Iterator attr,
-                                           Iterator ns, NamespaceContext ctxt)
-    {
-        return SimpleStartElement.construct(mLocation, name, attr, ns, ctxt);
+        return createStartElement(new QName(nsURI, localName, prefix),
+                                  attr, ns, nsCtxt, false);
     }
 
     public void setLocation(Location loc) {
@@ -203,9 +197,16 @@ public final class WstxEventFactory
                         (DTDSubset) processedDTD);
     }
 
+    public StartElement createStartElement(QName name, Iterator attr,
+                                           Iterator ns, NamespaceContext ctxt,
+                                           boolean wasEmpty)
+    {
+        return SimpleStartElement.construct(mLocation, name, attr, ns, ctxt, wasEmpty);
+    }
+
     /*
     /////////////////////////////////////////////////////////////
-    // Private methods
+    // Internal methods
     /////////////////////////////////////////////////////////////
      */
 }

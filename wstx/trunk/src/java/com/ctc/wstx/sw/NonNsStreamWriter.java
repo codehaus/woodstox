@@ -126,6 +126,9 @@ public class NonNsStreamWriter
         }
 
         // May need to check uniqueness?
+        if (mCheckNames) {
+            checkNameValidity(localName, true);
+        }
         if (mCheckAttr) {
             if (mAttrNames == null) {
                 mAttrNames = new TreeMap();

@@ -44,17 +44,61 @@ import com.ctc.wstx.util.BaseNsContext;
  * the stream reader, with data we need for constructing even Object...
  * but without stream reader having any understanding of event Objects
  * per se.
+ *<p>
+ * 03-Dec-2004, TSa: One additional twist is that it's now possible to
+ *   create slightly faster event handling, by indicating that the
+ *   fully accurate Location information is not necessary. If so,
+ *   allocator will just use one shared Location object passed to
+ *   all event objects constructed.
  */
 public class DefaultEventAllocator
     extends ElemCallback
     implements XMLEventAllocator, XMLStreamConstants
 {
-    final static DefaultEventAllocator sRootInstance = new DefaultEventAllocator();
+    final static DefaultEventAllocator sStdInstance = new DefaultEventAllocator(true);
 
-    public DefaultEventAllocator() { }
+    /*
+    ////////////////////////////////////////
+    // Configuration
+    ////////////////////////////////////////
+    */
 
-    public static DefaultEventAllocator rootInstance() {
-        return sRootInstance;
+    protected final boolean mAccurateLocation;
+
+    /*
+    ////////////////////////////////////////
+    // Recycled objects
+    ////////////////////////////////////////
+    */
+
+    /**
+     * Last used location info; only relevant to non-accurate-location
+     * allocators.
+     */
+    protected Location mLastLocation = null;
+
+    /**
+     * @param accurateLocation If true, allocator will construct instances
+     *   that have accurate location information; if false, instances
+     *   will only have some generic shared Location info. Latter option
+     *   will reduce memory usage/thrashing a bit, and may improve speed.
+     */
+    protected DefaultEventAllocator(boolean accurateLocation) {
+        mAccurateLocation = accurateLocation;
+    }
+
+    public static DefaultEventAllocator getDefaultInstance() {
+        /* Default (accurate location) instance can be shared as it
+         * has no state
+         */
+        return sStdInstance;
+    }
+
+    public static DefaultEventAllocator getFastInstance() {
+        /* Can not share instances, due to QName caching, as well as because
+         * of Location object related state
+         */
+        return new DefaultEventAllocator(false);
     }
 
     /*
@@ -66,7 +110,20 @@ public class DefaultEventAllocator
     public XMLEvent allocate(XMLStreamReader r)
         throws XMLStreamException
     {
-        Location loc = r.getLocation();
+        Location loc;
+
+        // Need to keep track of accurate location info?
+        if (mAccurateLocation) {
+            loc = r.getLocation();
+        } else {
+            loc = mLastLocation;
+            /* And even if we can just share one instance, we need that
+             * first instance...
+             */
+            if (loc == null) {
+                loc = mLastLocation = r.getLocation();
+            }
+        }
 
         switch (r.getEventType()) {
         case CDATA:
@@ -158,11 +215,14 @@ public class DefaultEventAllocator
     }
 
     /**
-     * Default implementation just returns the shared default instance;
-     * sub-classes may wish to override this.
+     * Default implementation assumes that the caller knows how to
+     * share instances, and so need not create new copies.
+     *<p>
+     * Note: if this class is sub-classes, this method should be
+     * redefined if assumptions about shareability do not hold.
      */
     public XMLEventAllocator newInstance() {
-        return sRootInstance;
+        return this;
     }
     
     /*
@@ -172,9 +232,10 @@ public class DefaultEventAllocator
      */
 
     public Object withStartElement(Location loc, QName name,
-                                   BaseNsContext nsCtxt, ElemAttrs attrs)
+                                   BaseNsContext nsCtxt, ElemAttrs attrs,
+                                   boolean wasEmpty)
     {
-        return new CompactStartElement(loc, name, nsCtxt, attrs);
+        return new CompactStartElement(loc, name, nsCtxt, attrs, wasEmpty);
     }
 
     /*
