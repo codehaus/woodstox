@@ -1,4 +1,5 @@
 Here are people who have contributed to Woodstox development:
+(version numbers indicate release in which the problem was fixed)
 
 Tatu Saloranta, tatu.saloranta@iki.fi: Author
 
@@ -45,4 +46,19 @@ Casey Bowman:
     return values are ints, and may thus overflow for BIG documents.
     StAX2 extensions (XMLStreamLocation2) added to properly deal with
     the problem.
-    [1.8]
+    [1.8, ...]
+
+Stefan Wachter:
+  * Reported a problem with handling of large documents; was sometimes
+    throwing an ArrayIndexOutOfBounds exception (mostly when dealing
+    with gzipped streams).
+    [1.9]
+
+Eric Jain:
+  * Reported a bug in default namespace handling; was reporting a bogus
+    problem when declaring an explicit namespace before the default one
+    on a start element
+    [1.9]
+  * Re-reported the problem with UTF-8 streams and array bounds (originally
+    reported by Stefan Wachter), and provided unit test to reproduce it.
+    [1.9]

@@ -11,6 +11,10 @@ Description:
 
   Problems fixed:
 
+    * Fixed a bug (reported by Eric Jain) that occured when declaring
+      the default namespace in the same element as a non-default namespace
+      (but only when the default one wasn't the first one)
+
 1.8: [28-Feb-2005]
 
   New functionality:

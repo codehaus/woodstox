@@ -2376,14 +2376,14 @@ public class WstxStreamReader
             if (prefix == sPrefixXmlns) { // non-default namespace declaration
                 tb = ac.getNsBuilder(localName);
                 // returns null if it's a dupe:
-                if (tb == null) {
+                if (null == tb) {
                     throwParseError("Duplicate declaration for namespace prefix '"+localName+"'.");
                 }
                 startLen = tb.getCharSize();
             } else if (localName == sPrefixXmlns && prefix == DEFAULT_NS_PREFIX) {
                 tb = ac.getDefaultNsBuilder();
-                // Can only have one default ns declaration...
-                if (tb.size() > 0) {
+                // returns null if default ns was already declared
+                if (null == tb) {
                     throwParseError("Duplicate default namespace declaration.");
                 }
             } else {

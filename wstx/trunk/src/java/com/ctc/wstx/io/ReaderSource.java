@@ -122,8 +122,8 @@ public class ReaderSource
         reader.mInputPtr = 0;
         mInputLen = currAmount;
 
-        int amount = mBuffer.length - currAmount;
         while (minAmount > 0) {
+            int amount = mBuffer.length - currAmount;
             int actual = mReader.read(mBuffer, currAmount, amount);
             if (actual < 1) {
                 if (actual == 0) { // sanity check:
