@@ -36,7 +36,7 @@ public interface OutputConfigFlags
 
     /**
      * Flag that indicates we should check validity of names (element and
-     * attribute names and prefixes; proc. instr. names), i.e. that they
+     * attribute names and prefixes; processing instruction names), that they
      * contain only legal identifier characters.
      */
     final static int CFG_VALIDATE_NAMES =         0x0040;

@@ -121,6 +121,9 @@ public class TestStreamReader
 
         in = new FileInputStream(file);
 
+        // !!! TEST:
+        in = new TestStream(in);
+
         /*
         {
             byte[] data = readData(file);
@@ -260,10 +263,51 @@ public class TestStreamReader
             fin.close();
         }
     }
-
-    /*
-    /////////////////////////////////////////////////////
-    // Helper classes
-    /////////////////////////////////////////////////////
-     */
 }
+
+/**
+ * Test stream to check whether reader can do proper streaming...
+ */
+final class TestStream
+    extends FilterInputStream
+{
+    private final int sleep = 5000;
+    
+    public TestStream(InputStream is)
+    {
+        super(is);
+    }
+    
+    public int read() throws IOException
+    {
+        int r = super.read();
+        if (r<0) {
+            try {
+System.err.println("WAIT/single");
+                Thread.sleep(sleep);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+System.err.println("Returning "+r);
+        return r;
+    }
+    
+    public int read(byte[] b, int off, int len) throws IOException
+    {
+        int r = super.read(b, off, len);
+        if (r<0) {
+// Let's trigger test exception...            
+if (true) throw new Error("W00t?");
+            try {
+                System.err.println("WAIT/multiple");
+                Thread.sleep(sleep);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+System.err.println("Returning "+r);
+        return r;
+    }
+}
+
