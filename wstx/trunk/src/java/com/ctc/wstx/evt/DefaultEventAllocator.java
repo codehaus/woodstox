@@ -79,20 +79,18 @@ public class DefaultEventAllocator
             // Not sure if we really need this defensive coding but...
             if (r instanceof XMLStreamReader2) {
                 XMLStreamReader2 sr2 = (XMLStreamReader2) r;
-                // !!! TBI
-                /*
-                  return new WDTD(loc, sr2.getDTD(), sr2.get
-                  ss = (DTDSubset) wr.getDTD();
-                  fullText = wr.getDTDText();
-                */
-                return null;
-            } else {
-                /* 16-Aug-2004, TSa: There's really no good way to find
-                 *   the correct full replacement... so can either
-                 *   assign null, or just the internal subset?
-                 */
-                return new WDTD(loc, r.getText());
+                return new WDTD(loc,
+                                sr2.getDTDRootName(),
+                                sr2.getDTDSystemId(), sr2.getDTDPublicId(),
+                                sr2.getDTDInternalSubset(),
+                                (DTDSubset) sr2.getProcessedDTD());
             }
+            /* No way to get all information... the real big problem is
+             * that of how to access root name: it's obligatory for
+             * DOCTYPE construct. :-/
+             */
+            return new WDTD(loc, null, r.getText());
+
         case END_DOCUMENT:
             return new WEndDocument(loc);
 

@@ -1050,7 +1050,7 @@ public class WstxStreamReader
      *<p>
      * Note: DTD-handling sub-classes need to override this method.
      */
-    public Object getDTD() {
+    public Object getProcessedDTD() {
         return null;
     }
 

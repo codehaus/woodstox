@@ -148,7 +148,7 @@ public class FullStreamReader
     ////////////////////////////////////////////////////
      */
 
-    public Object getDTD() {
+    public Object getProcessedDTD() {
         return mDTD;
     }
 

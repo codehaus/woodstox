@@ -44,7 +44,7 @@ public interface XMLStreamReader2
      *   Object implementation uses for storing/processing DTD;
      *   otherwise returns null.
      */
-    public Object getDTD();
+    public Object getProcessedDTD();
 
     /**
      * @return If current event is DTD, returns the full root name

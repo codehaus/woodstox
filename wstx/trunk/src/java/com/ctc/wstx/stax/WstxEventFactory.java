@@ -22,6 +22,9 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.*;
 import javax.xml.stream.events.*;
 
+import com.ctc.wstx.api.evt.DTD2;
+import com.ctc.wstx.api.evt.XMLEventFactory2;
+import com.ctc.wstx.dtd.DTDSubset;
 import com.ctc.wstx.evt.*;
 
 /**
@@ -29,7 +32,7 @@ import com.ctc.wstx.evt.*;
  * Woodstox.
  */
 public final class WstxEventFactory
-    extends XMLEventFactory
+    extends XMLEventFactory2
 {
     /**
      * "Current" location of this factory; ie. location assigned for all
@@ -78,9 +81,6 @@ public final class WstxEventFactory
      * construction.
      */
     public DTD createDTD(String dtd) {
-        /* !!! 19-Nov-2004, TSa: Not (entirely) correct -- this method
-         *   excepts full 'unparsed' DTD -- but WDTD expects components!
-         */
         return new WDTD(mLocation, dtd);
     }
 
@@ -182,6 +182,25 @@ public final class WstxEventFactory
 
     public void setLocation(Location loc) {
         mLocation = loc;
+    }
+
+    /*
+    /////////////////////////////////////////////////////////////
+    // XMLEventFactory2 methods
+    /////////////////////////////////////////////////////////////
+     */
+
+    public DTD2 createDTD(String rootName, String sysId, String pubId,
+                          String intSubset)
+    {
+        return new WDTD(mLocation, rootName, sysId, pubId, intSubset);
+    }
+
+    public DTD2 createDTD(String rootName, String sysId, String pubId,
+                          String intSubset, Object processedDTD)
+    {
+        return new WDTD(mLocation, rootName, sysId, pubId, intSubset,
+                        (DTDSubset) processedDTD);
     }
 
     /*

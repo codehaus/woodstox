@@ -1,6 +1,7 @@
 package com.ctc.wstx.evt;
 
 import java.io.IOException;
+import java.io.StringWriter;
 import java.io.Writer;
 import java.util.Collections;
 import java.util.List;
@@ -9,6 +10,8 @@ import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.DTD;
 
+import com.ctc.wstx.api.evt.DTD2;
+import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.dtd.DTDSubset;
 
 /**
@@ -17,7 +20,7 @@ import com.ctc.wstx.dtd.DTDSubset;
  */
 public class WDTD
     extends WEvent
-    implements DTD
+    implements DTD2
 {
     final String mRootName;
 
@@ -33,20 +36,23 @@ public class WDTD
      */
     final DTDSubset mDTD;
 
+    /*
+    /////////////////////////////////////////////////////
+    // Lazily constructed objects
+    /////////////////////////////////////////////////////
+     */
+
     List mEntities = null;
 
     List mNotations = null;
 
-    /*
-    /////////////////////////////////////////////////////
-    // Temporary objects
-    /////////////////////////////////////////////////////
-     */
-
     /**
-     * String built from parts on (if) needed
+     * Full textual presentation of the DOCTYPE event; usually only
+     * constructed when needed, but sometimes (when using 'broken'
+     * older StAX interfaces), may be the only piece that's actually
+     * passed.
      */
-    transient String mFullText = null;
+    String mFullText = null;
 
     /*
     /////////////////////////////////////////////////////
@@ -54,8 +60,9 @@ public class WDTD
     /////////////////////////////////////////////////////
      */
 
-    public WDTD(Location loc, DTDSubset dtd, String rootName,
-                String sysId, String pubId, String intSubset)
+    public WDTD(Location loc, String rootName,
+                String sysId, String pubId, String intSubset,
+                DTDSubset dtd)
     {
         super(loc);
         mDTD = dtd;
@@ -63,14 +70,27 @@ public class WDTD
         mSystemId = sysId;
         mPublicId = pubId;
         mInternalSubset = intSubset;
+        mFullText = null;
+    }
+
+    public WDTD(Location loc, String rootName,
+                String sysId, String pubId, String intSubset)
+    {
+        this(loc, rootName, sysId, pubId, intSubset, null);
     }
 
     /**
      * Constructor used when only partial information is available...
      */
-    public WDTD(Location loc, String intSubset)
+    public WDTD(Location loc, String rootName, String intSubset)
     {
-        this(loc, null, null, null, null, intSubset);
+        this(loc, rootName, null, null, intSubset, null);
+    }
+
+    public WDTD(Location loc, String fullText)
+    {
+        this(loc, null, null, null, null, null);
+        mFullText = fullText;
     }
 
     /*
@@ -78,6 +98,7 @@ public class WDTD
     // Constuctors
     /////////////////////////////////////////////////////
      */
+
     public String getDocumentTypeDeclaration()
     {
         if (mFullText == null) {
@@ -85,30 +106,13 @@ public class WDTD
             if (mInternalSubset != null) {
                 len += mInternalSubset.length() + 4;
             }
-            StringBuffer sb = new StringBuffer(len);
-            sb.append("<!DOCTYPE");
-            if (mRootName != null) {
-                sb.append(' ');
-                sb.append(mRootName);
+            StringWriter sw = new StringWriter(len);
+            try {
+                writeAsEncodedUnicode(sw);
+            } catch (XMLStreamException sex) { // should never happen
+                throw new Error(ErrorConsts.ERR_INTERNAL + ": "+sex);
             }
-            if (mSystemId != null) {
-                if (mPublicId != null) {
-                    sb.append(" PUBLIC \"");
-                    sb.append(mPublicId);
-                    sb.append("\" ");
-                } else {
-                    sb.append(" SYSTEM \"");
-                }
-                sb.append(mSystemId);
-                sb.append('"');
-            }
-            if (mInternalSubset != null) {
-                sb.append(" [");
-                sb.append(mInternalSubset);
-                sb.append(']');
-            }
-            sb.append(">");
-            mFullText = sb.toString();
+            mFullText = sw.toString();
         }
         return mFullText;
     }
@@ -151,8 +155,33 @@ public class WDTD
         throws XMLStreamException
     {
         try {
-            // !!! TBI
-            w.write(' ');
+            w.write("<!DOCTYPE");
+            if (mRootName != null) {
+                /* Can only be null for plain XMLStreamReader interface...
+                 * which hopefully never happens (need to use Woodstox
+                 * Event implementation on top of non-Woodstox cursor
+                 * implementation)
+                 */
+                w.write(' ');
+                w.write(mRootName);
+            }
+            if (mSystemId != null) {
+                if (mPublicId != null) {
+                    w.write(" PUBLIC \"");
+                    w.write(mPublicId);
+                    w.write("\" ");
+                } else {
+                    w.write(" SYSTEM \"");
+                }
+                w.write(mSystemId);
+                w.write('"');
+            }
+            if (mInternalSubset != null) {
+                w.write(" [");
+                w.write(mInternalSubset);
+                w.write(']');
+            }
+            w.write(">");
         } catch (IOException ie) {
             throwFromIOE(ie);
         }
@@ -163,4 +192,20 @@ public class WDTD
     // Extended interface (DTD2)
     ///////////////////////////////////////////
      */
+
+    public String getRootName() {
+        return mRootName;
+    }
+
+    public String getSystemId() {
+        return mSystemId;
+    }
+
+    public String getPublicId() {
+        return mPublicId;
+    }
+
+    public String getInternalSubset() {
+        return mInternalSubset;
+    }
 }
