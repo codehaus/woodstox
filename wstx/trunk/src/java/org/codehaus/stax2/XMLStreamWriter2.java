@@ -53,6 +53,10 @@ public interface XMLStreamWriter2
      */
     public void writeFullEndElement() throws XMLStreamException;
 
+    public void writeStartDocument(String encoding, String version,
+                                   boolean standAlone)
+        throws XMLStreamException;
+    
     /*
     ///////////////////////////
     // Pass-through methdods

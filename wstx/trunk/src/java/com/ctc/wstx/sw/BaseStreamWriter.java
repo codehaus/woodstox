@@ -516,6 +516,13 @@ public abstract class BaseStreamWriter
     public void writeStartDocument(String encoding, String version)
         throws XMLStreamException
     {
+        doWriteStartDocument(encoding, version, null);
+    }
+
+    protected void doWriteStartDocument(String encoding, String version,
+                                        String standAlone)
+        throws XMLStreamException
+    {
         /* Not legal to output XML declaration if there has been ANY
          * output prior... that is, if we validate the structure.
          */
@@ -544,6 +551,11 @@ public abstract class BaseStreamWriter
             if (encoding != null && encoding.length() > 0) {
                 mWriter.write(" encoding=\"");
                 mWriter.write(encoding);
+                mWriter.write('"');
+            }
+            if (standAlone != null) {
+                mWriter.write(" standalone=\"");
+                mWriter.write(standAlone);
                 mWriter.write('"');
             }
             mWriter.write(" ?>");
@@ -614,6 +626,13 @@ public abstract class BaseStreamWriter
 
     public abstract void writeFullEndElement() throws XMLStreamException;
 
+    public void writeStartDocument(String encoding, String version,
+                                   boolean standAlone)
+        throws XMLStreamException
+    {
+        doWriteStartDocument(encoding, version, standAlone ? "yes" : "no");
+    }
+
     public void writeRaw(String text)
         throws XMLStreamException
     {
@@ -646,7 +665,7 @@ public abstract class BaseStreamWriter
      * Method that essentially copies event that the specified reader has
      * just read.
      *
-     * @param r Reader to use for accessing event to copy
+     * @param sr Stream reader to use for accessing event to copy
      * @param preserveEventData If true, writer is not allowed to change
      *   the state of the reader (so that all the data associated with the
      *   current event has to be preserved); if false, writer is allowed
@@ -654,16 +673,22 @@ public abstract class BaseStreamWriter
      *   this to false may improve the performance, since it may allow
      *   full no-copy streaming of data, especially textual contents.
      */
-    public void copyEventFromReader(XMLStreamReader2 r, boolean preserveEventData)
+    public void copyEventFromReader(XMLStreamReader2 sr, boolean preserveEventData)
         throws XMLStreamException
     {
         try {
-            switch (r.getEventType()) {
+            switch (sr.getEventType()) {
                 /* Document start/end events:
                  */
             case START_DOCUMENT:
-                // !!! TBI:
-                //writeStartDocument();
+                if (sr.standaloneSet()) {
+                    writeStartDocument(sr.getCharacterEncodingScheme(),
+                                       sr.getVersion(),
+                                       sr.isStandalone());
+                } else {
+                    writeStartDocument(sr.getCharacterEncodingScheme(),
+                                       sr.getVersion());
+                }
                 return;
                 
             case END_DOCUMENT:
@@ -674,9 +699,12 @@ public abstract class BaseStreamWriter
                  */
             case START_ELEMENT:
                 // !!! TBI
-                
+
+                return;
+
             case END_ELEMENT:
-                // !!! TBI
+                writeEndElement();
+                return;
                 
                 /* Textual events:
                  */
@@ -689,7 +717,7 @@ public abstract class BaseStreamWriter
                      */
                     // !!! TBI: Structural etc checks
                     mWriter.write("<![CDATA[");
-                    r.getText(mWriter, preserveEventData);
+                    sr.getText(mWriter, preserveEventData);
                     mWriter.write("]]>");
                     return;
                 }
@@ -701,18 +729,32 @@ public abstract class BaseStreamWriter
                  * properly; but no start/end markers are needed
                  */
                 // !!! TBI: Structural etc checks
-                r.getText(mTextWriter, preserveEventData);
+                sr.getText(mTextWriter, preserveEventData);
                 return;
                 
             case COMMENT:
-            case PROCESSING_INSTRUCTION:
                 // !!! TBI
+
+            case PROCESSING_INSTRUCTION:
+                {
+                    /* No streaming alternative for PI (yet)?
+                     */
+                    String target = sr.getPITarget();
+                    String data = sr.getPIData();
+                    if (data == null) {
+                        writeProcessingInstruction(target);
+                    } else {
+                        writeProcessingInstruction(target, data);
+                    }
+                }
+                return;
                 
             case DTD:
                 // !!! TBI
                 
             case ENTITY_REFERENCE:
-                // !!! TBI
+                writeEntityRef(sr.getLocalName());
+                return;
                 
                 /* Weird ones..
                  */
@@ -727,7 +769,7 @@ public abstract class BaseStreamWriter
         }
 
         throw new XMLStreamException("Unrecognized event type ("
-                                     +r.getEventType()+"); not sure how to copy");
+                                     +sr.getEventType()+"); not sure how to copy");
     }
 
     /*
