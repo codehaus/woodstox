@@ -373,7 +373,7 @@ public class RepairingNsStreamWriter
         /* 06-Feb-2005, TSa: Special care needs to be taken for the
          *   "empty" (or missing) namespace:
          */
-        if (nsURI.length() == 0) {
+        if (nsURI == null || nsURI.length() == 0) {
             if (isElement) {
                 /* Since only the default namespace can be mapped to
                  * the empty URI, the default namespace has to either

@@ -197,10 +197,7 @@ public class NonNsStreamWriter
     public void writeEndElement()
         throws XMLStreamException
     {
-        if (mState != STATE_TREE) {
-            throw new XMLStreamException("No open start element, when calling writeEndElement.");
-        }
-        doWriteEndElement(mElements.removeLast(), mCfgOutputEmptyElems);
+        doWriteEndElement(null, mCfgOutputEmptyElems);
     }
 
     public void writeNamespace(String prefix, String nsURI)
@@ -241,11 +238,7 @@ public class NonNsStreamWriter
     public void writeFullEndElement()
         throws XMLStreamException
     {
-        // Better have something to close... (to figure out what to close)
-        if (mState != STATE_TREE) {
-            throw new XMLStreamException("No open start element, when calling writeFullEndElement.");
-        }
-        doWriteEndElement(mElements.removeLast(), false);
+        doWriteEndElement(null, false);
     }
     
     /*
@@ -275,26 +268,8 @@ public class NonNsStreamWriter
     public void writeEndElement(QName name)
         throws XMLStreamException
     {
-        /* Well, for one, we better have an open element in stack; otherwise
-         * there's no way to figure out which element name to use.
-         */
-        String local;
-        if (mCheckStructure) {
-            if (mElements.isEmpty()) {
-                throw new XMLStreamException("No open start element, when calling writeEndElement.");
-            }
-            local = name.getLocalPart();
-            String local2 = mElements.removeLast();
-            if (!local.equals(local2)) {
-                throw new IllegalArgumentException("Mismatching close element name, '"+local+"'; expected '"+local2+"'.");
-            }
-        } else {
-            local = name.getLocalPart();
-            if (!mElements.isEmpty()) {
-                mElements.removeLast();
-            }
-        }
-        doWriteEndElement(local, mCfgOutputEmptyElems);
+        doWriteEndElement(mCheckStructure ? name.getLocalPart() : null,
+                          mCfgOutputEmptyElems);
     }
 
     /**
@@ -436,15 +411,39 @@ public class NonNsStreamWriter
      * Note: Caller has to do actual removal of the element from element
      * stack, before calling this method.
      *
-     * @param localName Name of the closing element; since this is a
-     *   non-namespace-aware writer, may also contain prefix
+     * @param expName Name that the closing element should have; null
+     *   if whatever is in stack should be used
      * @param allowEmpty If true, is allowed to create the empty element
      *   if the closing element was truly empty; if false, has to write
      *   the full empty element no matter what
      */
-    private void doWriteEndElement(String localName, boolean allowEmpty)
+    private void doWriteEndElement(String expName, boolean allowEmpty)
         throws XMLStreamException
     {
+        /* First of all, do we need to close up an earlier empty element?
+         * (open start element that was not created via call to
+         * writeEmptyElement gets handled later on)
+         */
+        if (mStartElementOpen && mEmptyElement) {
+            mEmptyElement = false;
+            closeStartElement(true);
+        }
+
+        // Better have something to close... (to figure out what to close)
+        if (mState != STATE_TREE) {
+            throwOutputError("No open start element, when trying to write end element");
+        }
+
+        /* Now, do we have an unfinished start element (created via
+         * writeStartElement() earlier)?
+         */
+        String localName = mElements.removeLast();
+        if (expName != null && !localName.equals(expName)) {
+            /* Only gets called when trying to output an XMLEvent... in
+             * which case names can actually be compared
+             */
+            throw new IllegalArgumentException("Mismatching close element name, '"+localName+"'; expected '"+expName+"'.");
+        }
         if (mStartElementOpen) {
             /* Can't/shouldn't call closeStartElement, but need to do same
              * processing. Thus, this is almost identical to closeStartElement:
