@@ -1,0 +1,34 @@
+Here are people who have contributed to Woodstox development:
+
+Tatu Saloranta, tatu.saloranta@iki.fi: Author
+
+Christian Niles <christian@unit12.net>:
+  * Pointed out the improvement to wstx.jar, that will set system properties
+    necessary to automatically make Woodstox the default StAX implementation
+    to use [v 0.8.3]
+
+James Fogarty:
+  * Found 3 bugs (getElementText() not working, incorrect index offset
+    for non-ns getAttributeLocalName(), index-out-of-bounds when there
+    were lots of attribute names whose hashes collide)
+    [1.0-RC1, 1.0-RC2]
+
+James Strachan:
+  * Found problems with stream writer; namespace repairing mode was not
+    working as expected
+    [1.0-RC5]
+
+Stepan Koltsov:
+  * Found problems with event reader: was setting peeked event to null, yet
+    trying to de-reference it
+    [1.0-RC7]
+
+Mat Gessel:
+  * Pointed out a problem with XMLStreamReader.nextTag() implementation;
+    was not skipping comments and PIs
+    [1.0-final]
+
+Dan Diephouse:
+  * Reported problems with QName construction (null prefix causes
+    exception on some QName implementations)
+    [1.0.1]

@@ -1,0 +1,64 @@
+== Woodstox XML-parser Frequently Asked/Anticipated Questions ==
+
+=== 1. General ===
+
+==== 1.1 What are the design goals of Woodstox? ====
+
+Main goals are, in approximate order:
+
+* Make parser as efficient as possible without completely sacrificing
+  its maintainability (code clarity, simplicity). Efficiency is meant
+  to encompass both time AND space constraints, ie. not only should it be
+  fast, but also try to use memory sparingly.
+* Implement XML pull-parser that implements STaX API.
+* Implement as much of XML (1.1) as possible; specifically make sure all
+  well-formed/valid documents are properly handled. Secondary goal is to
+  gracefully handle other documents (and to catch problems).
+* Make features that can have significant impact on performance
+  configurable; use reasonably defaults for settings. It should be easy
+  to just plug-in and use, but also allow "power coders" to configure it
+  optimally for use case.
+* Modularity; try to implement only features that can not be implement
+  efficiently or reliably on top of StAX interface: other features should be
+  implemented as separate add-on packages, to be usable with other StAX
+  implementations.
+* Good error reporting
+* Extensive validation functionality; not just for input but also output
+  side.
+
+
+==== 1.2 What's in the Name? ====
+
+Name Woodstox is just a silly combination of various motifs; mainly
+mutation of "STaX" part (from the Java API it implements), and then
+similarity to both a sidekick cartoon character and famous music festival
+location. There is no real reason for it -- it just sounded like a good
+idea at the time. :-)
+
+
+=== 2. StAX API features ===
+
+==== 2.1. Text handling: Why do I get these short partial segments? ====
+
+By default StAX readers are allowed to return text and CDATA segments in
+parts, ie. more than one event per physical segment. This is usually done
+so that readers need not allocate big consequtive memory buffers for
+long text segments. With default settings, it is possible to sometimes
+get as little as 64 characters per event, even if the text/CDATA segment
+itself was significantly longer.
+
+However, you can easily change this behaviour. There are two properties
+you can modify (check documentation for details):
+
+* IS_COALESCING is a standard StAX property; turning it to true will
+  force reader to coalesce ALL adjacent text/CDATA segments into just
+  one text event. This may make it easier to process document. Downside
+  is that it may slightly impact performance; the effect should not be
+  drastic in normal use cases, however.
+* P_MIN_TEXT_SEGMENT is a Woodstox-specific property that defines the
+  smallest text/CDATA fragment that reader is allowed to return. The
+  default value is 64 characters; setting it to Integer.MAX_VALUE
+  effectively forces reader to always return the full segment. However,
+  unlike IS_COALESCING, it does not make reader coalesce adjacent
+  segments. Because of this, the performance impact is smaller, and
+  changing this value is unlikely to have big performance impact.

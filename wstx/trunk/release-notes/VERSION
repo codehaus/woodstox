@@ -1,0 +1,330 @@
+Version: 1.6
+
+Release date: 31-Oct-2004
+
+Description:
+  First pre-2.0 version that has complete DTD validation (for input), as
+  well as fixes from 1.0.1 maintenance release.
+
+  New functionality:
+    * Completed DTD validation, including full handling of all
+      attribute value types (for default values too).
+
+  Problems fixed:
+    * Fixes from 1.0.1 incorporated.
+
+  Refactoring:
+
+== History: ==
+
+1.5: [13-Oct-2004]
+
+  New functionality:
+
+    * Partial DTD validation:
+       * Full structural validation (element structure)
+       * Full checks for definitions of attributes and elements
+       * Handles mixed/non-mixed content checks
+       * Partial attribute validation, including:
+          * Checks for #REQUIRED and #FIXED values
+          * Handles default values
+          * Checks for ID/IDREF validity
+          * Checks for enumerated and NOTATION validity
+          * Normalizes attribute white space
+        Still missing validation for some attribute types; also,
+        not all validation fully tested yet.
+
+  Problems fixed:
+
+    * Now checks "split" comments and PIs; comments/PIs that start in
+      entity expansion but do not finish. These aren't allowed by XML specs.
+
+  Refactoring:
+
+    * Created specific exception class (that extends RuntimeException)
+      for throwing "lazy" parsing errors; allows for catching such
+      exceptions reliably if necessary.
+    * Refactored class hierarchy; flattened it so that not most sub-packages
+      are no longer under com.ctc.wstx.stax, but directly under com.ctc.wstx.
+    * Only change to public API: event factory is now in package
+      com.ctc.wstx.stax.WstxEventFactory, instead of
+      com.ctc.wstx.stax.evt.WstxEventFactory. This shouldn't usually matter,
+      as deployment properties were updated.
+
+
+1.0.1: [23-Oct-2004]
+
+  Problems fixed:
+
+  * UTF-8 decoding failed for 3- (and 4-) byte characters (1 and 2 byte
+    decoding was working ok, ie. Ascii and ISO-Latin weren't affected)
+  * Stream reader had getEncoding() and getCharacterEncodingScheme()
+    mixed up.
+  * Stream reader's nextTag() was not properly skipping comments
+    and processing instructions.
+
+1.0-RCx - 1.0-final: [28-Aug-2004 - 11-Oct-2004]
+
+  Problems fixed:
+
+  * A problem with reading CDATA section that could lead to infinite loop
+    fixed.
+  * Changed default setting of CHECK_NS for output factory to false, to
+    be closer to what StAX API expects
+  * Pre-defined entities in general internal entities were not properly
+    handled; were expanded when reading the entity definition, which is
+    incorrect (this was a regression bug somewhere before 1.0-RC series)
+  * WstxEventFactory.createAttribute() didn't properly pass prefix.
+  * Fixed a problem in default entity value parsing (ClassCastException).
+  * Problem with stream writer (required WriteNamespace in namespace-repairing
+    mode), now fixed.
+  * XMLStreamReader.getElementText() didn't behave as specified by StAX
+    specs, for empty elements (was throwing an exception; should return
+    empty String).
+  * Fixed problem of default "xml" namespace prefix not being recognized
+    by the stream writer.
+  * NullPointerException in event reader: was clearing out peeked event,
+    but then trying to de-reference it (instead of temp variable that had
+    that value copied from peeked event).
+  * There was a bug in accessing local name of an attribute by index in
+    non-namespace mode.
+  * Another attribute name resolution bug; occured when there were lots of
+    spills in the internal attribute map structure, array index exception
+    was thrown (specific case with 11 attributes was found and reported by
+    a user)
+  * A subtle bug in entity handling; if an entity starts a segment,
+    but expanded to content not starting with text, a "ghost" text
+    segment with length 0 was returned.
+  * Problem with stream writer (required WriteNamespace in namespace-repairing
+    mode), now fixed.
+  * A problem with reading CDATA section that could lead to infinite loop
+    fixed.
+  * Changed default setting of CHECK_NS for output factory to false, to
+    be closer to what StAX API expects
+
+  Refactoring:
+
+  * Rewrote output factory code to use WriterConfig objects, just like
+    input factories have done.
+  * Made parsing somewhat "less lazy" in lazy mode; now reads in the
+    "cheap" parts right away, in the hopes this may read the whole (text)
+    segments, and also allows for slightly better error reporting.
+    This also simplified entity handling a bit, as text segments that
+    begin with an entity are now handled more reliably.
+
+0.9.1: [25-Aug-2004]
+
+  New functionality:
+
+  * PROP_BASE_URL now allows setting context for resolving references,
+    without having to implement full entity/DTD resolvers.
+  * PROP_LAZY_PARSING implemented; default value is 'true', to allow for
+    high performance; can be set to 'false' to get "just-in-time exceptions".
+  * Simple set of unit tests; first goal is to try to automatically test
+    all permutations of 'significant' configuration settings (coalescing,
+    namespace-support, entity expansion, buffer size settings, lazy
+    parsing), to try to find problematic boundary conditions.
+
+  Problems fixed:
+
+  * Minor DTD parsing problems:
+     * Minimal DOCTYPE declaration that had no whitespace between root element
+       name and closing '>' threw an exception.
+     * If DTD was skipped (getText() not called), didn't close branching
+       output source: result, garbage in next text event.
+  * WStartElement's getAttributeByName didn't work with default namespace
+    (since internally nulls were stored as NS URIs).
+  * Discrepancy between Stax specs and Woodstox in getText() for DTD event,
+    for stream reader: was returning the full text, should only return the
+    internal subset. Note, though, that the DTD _event_ should be capable
+    of returning the full thing. Oh joy... specs suck here.
+  * Changed behaviour of IS_REPLACING_ENTITY_REFERENCES=false, so that
+    now pre-defined entities (amp, apos, lt, gt) will be handled like
+    character references, ie. they are still automatically expanded.
+    Whether this is what StAX specs expect can be argued either way --
+    this is more intuitive for the applications and developers, however.
+    [and oh boy is this new way difficult to properly implement, to work
+     correctly with IS_COALESCING... don't try that at home folks]
+  * Fixed a problem with general internal parsed entities; only first
+    nested entity was handled, rest of value was ignored
+
+
+0.9.0: [13-Aug-2004]
+
+  Problems fixed:
+
+  * Attribute values could not contain quotes via entities; now can.
+
+  New functionality:
+
+  * Now handles encoding detection as suggested by the XML specs. That is,
+    if only passed an input stream, can usually figure out the appropriate
+    encoding even without seeing the xml declaration.
+
+  Refactoring:
+
+  * Further improved modularity so that minimal stream reader subset
+    can be done without including any of actual DTD parsing code (except
+    for dummy stubs used for interfacing).
+  * Completely rewrote input bootstrapping (xml declaration detection
+    and handling). Still not 100% happy, as it's bit messy, but works and
+    does its work.
+
+0.8.1 - 0.8.8: [26-Jun-2004 - 01-Aug-2004]
+  Problems fixed:
+
+  * DTD processing:
+     * Now catches recursive entity definitions (both PEs and GEs) upon
+       first use, and throws an Exception
+     * Properly 'scopes' (internal) entity value definitions, which allows
+       use of quotes in PEs used for defining PE/GE values, as well as
+       catches cases where closing quote is not in same input file (generally
+       a sign of unclosed entity values).
+     * Now allows nesting of <![IGNORE and <![INCLUDE sections; needed by
+       large modular DTDs such as DocBook and simplified DocBook.
+     * Fixed a problem with PUBLIC NOTATION declarations that lacked system
+       identifier (valid, but was throwing an exception).
+     * Fixed problems with DTD (internal subset) skipping, done when int.
+       subset exists, but SUPPORTS_DTD is false.
+     * Fixed a problem with internal entity value expansion; was failing in
+       some corner cases, on input buffer boundary.
+     * Now does better checking for things illegal in internal subset;
+       including allowing conditional blocks and PEs-in-entity-values in
+       external entities expanded from int. subset.
+     * Handling of entity references when not automatically expanding was
+       not working reliably.
+  * Stream reader:
+     * WstxStreamReader.getTextCharacters() wasn't actually working correctly;
+       was making unnecessary copies, when it could just use shared input
+       buffer. Also means that there was a real bug, as getTextStart() did
+       report offset in the shared buffer, if that could be used.
+     * Was not enforcing checks [XML namespaces 1.0 #6] to ensure that
+       proc. instr. targets and entity/notation names are not allowed to
+       have colons, when reader is in namespace aware mode: now does
+       check this.
+     * Was not preventing use of parsed external entities in attribute value
+       expansion (XML 1.0/1.1, #3.1, attribute value constraints).
+     * Now handles (ie. removes) optional "text declaration" (similar to
+       main document XML declaration, but not identical: See
+       xml 1.0/1.1 #4.3.1) from parsed external entities. Does not fully
+       validate the declaration, but should be good enough for normal use.
+     * CData parsing was broken with previous version...
+       (caught by Xmlpull unit tests!)
+     * Linefeed normalization had problems with \r chars... :-/
+       (caught by Xmlpull unit tests!)
+     * Now checks for "]]>" in textual content.
+  * Stream writer:
+     * SimpleStartElement was outputting namespace attributes incorrectly,
+       using URI instead of prefix.
+     * Wasn't automatically closing elements on 'writeEndDocument()' as
+       specs said it should. [caught by Xmlpull unit tests!]
+  * build.xml:
+     * Was not including build.xml itself, nor src/resources on source package.
+  * Resources:
+      * file (javax.xml.xtream.XMLEventFactory) had incorrect class
+        name: was missing last part of the package path.
+  * Event API:
+     * Event reader was omitting sending the leading START_DOCUMENT
+       event, since cursor API returns that as the default state. This
+       led to xml declarations getting stripped out when doing round-trip
+       handling. Further, START_DOCUMENT event now outputs proper declaration.
+     * Event writer was crashing on outputting START_DOCUMENT... but
+       since that class wasn't tested (unlike stream writer), wasn't caught
+       earlier. :-)
+     * Added automatic closing of open elements to writers.
+  * Namespace handling:
+     * Wasn't checking for duplicate namespace (default or other) declarations.
+     * Was not automatically recognizing 'xml' prefix
+      (for 'xml:lang' and other attributes; 
+     * Now checks that namespace prefixes 'xml' and 'xmlns' can not be
+       redefined from their pre-defined URIs.
+  * Default settings for stream/event writers:
+     * Turned off content and attribute validation by default; may need to
+       turn off others depending on interpretation of StAX specs.
+     * Was validating root element against what Doctype decl said, even when
+       validation not turned on; probably shouldn't.
+       (caught by Xmlpull unit tests!)
+  * Miscallenous
+     * JDK 1.4.2 bug workaround: added a workaround (to XMLQuoter.java) that
+       should prevent a rare but rather nasty ArrayIndexOutOfBoundsException
+       from occuring when outputting text events that have 1 character content.
+
+  New functionality:
+
+  * Now reports some parsing warnings via XMLReporter.
+  * Validates XML name chars and public/system identifiers using
+    XML 1.1 validity rules.
+  * Checks for null chars in content.
+  * XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES with false (in addition
+    to the default value true).
+  * Supports DTDFlatten (separate project) at DTD parsing level.
+  * Finished StartElement implementation created by XMLEventFactory.
+  * Allow defining (Wstx-specific) external generic and parameter entity
+    resolvers (PROP_ENTITY_RESOLVER, PROP_DTD_RESOLVER); also implements
+    more limited StAX propery XML_RESOLVER, which is similar to
+    PROP_ENTITY_RESOLVER.
+  * XMLInputFactory.SUPPORT_DTD with false (true was already working)
+
+
+0.8: [21-Jun-2004]
+  Problems fixed:
+
+  * Parsing of comments: character after '-' in comments was ignored in
+    cases where comment spanned across buffer boundary (or when normalizing
+    2-char linefeeds).
+  * Improved DOCTYPE event handling to try to retain original white spaces
+    as well as actual contents, to enable accurate round-tripping.
+  * Handling of decimal character entities was broken; was ignoring first
+    digit...
+
+  New functionality:
+
+  * Now does basic DTD handling, including:
+     * Parsing of entity and notation declarations from both internal and
+       external subsets; both accessible via StAX API (to the extent API
+       has methods to do meaningful access).
+     * Full internal and entity expansion (both general and parameter
+       entities).
+     * (Optional) Caching of external DTD subset; determines if and when
+       external DTD subset can be cached and reused, depending on presence
+       and composition of internal subset.
+  * Configuration improvements:
+     * Configuration 'profiles'; single method calls to set group of
+       related configuration settings
+     * Type-safe configuration set/get methods.
+
+0.7: [28-May-2004]
+  Problems fixed:
+
+  * Linefeed conversion didn't fully work with Mac files (still need to
+    test 2-char Windows linefeeds).
+  * Now properly gets full DOCTYPE declaration as part of the event, not
+    just the internal subset.
+  * Wasn't checking existence of custom entity mapping; got an NPE upon
+    unknown general entity.
+  * Entity expansion via fullResolveEntity was broken; was re-parsing
+    character entities.
+  * DTD and SPACE events had output problems.
+
+0.6: [26-May-2004]
+  Problems fixed:
+
+  * Had a bug with name parsing in non-namespace aware mode; character
+    immediately following element name was ignored, if it was white space.
+    Could cause problems if linewrap was right after open tag, or with
+    compact empty elements (<tag/>).
+  * EventFactory could not create start or end elements, or entity references.
+    Now entity refs and end elements work, and there's stub for start element.
+    Still need to properly handle namespace stack for start element, when
+    NOT directly created by stream reader (which does not call event factory)
+
+   Refactoring:
+
+  * Started creating new Wstx exception hierarchy, to extend default
+    XMLStreamException, to allow more specific exception handling when
+    using Woodstox.
+
+0.5: [19-May-2004]
+  First public release. Implements STaX 1.0 API, with all obligatory
+  features, as well as most optional features; basically just missing
+  DTD handling.

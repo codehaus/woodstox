@@ -1,0 +1,55 @@
+* Exception-handling:
+   * Add RuntimeException based type for lazy exception.
+
+* DTD-handling/parsing:
+   * Parse less information if no validation needed: partially done, does not
+     really create content specifications; could also ignore creation of
+     attribute lists?
+   * Verify that an unparsed entity refers to a declared notation.
+
+* Attribute validation:
+   * Notation (enumerated) attrs:
+      * Declaration checks:
+          * All enumeration notations have to have been declared, prior
+            to entountering ATTLIST declaration (on either subset)
+* Caching:
+   * Refactor caching out of input factory, to be shared between
+     factories and input/output modes (but have 2 actual Maps in
+     CacheManager, to prevent trashing by either side).
+
+* Writer class hierarchy:
+   * Refactor writers, to have 3 classes; non-ns, ns-non-fixing,
+     ns-fixing.
+
+------------------------------------
+FROM 1.0 Backlog
+------------------------------------
+
+Documentation:
+
+Low-level parsing:
+
+* Change parseEntityName() to make sure that the whole entity name as well
+  as trailing semicolon are from the same input source, to prevent the
+  possibility of "split" entity names (which are not legal in XML).
+
+Unit testing:
+
+* Implement at least simple basic StAX-tests for:
+   * Event reader
+   * Stream writer
+   * Event writer
+
+Namespace handling:
+
+* (optional) Check that URIs that match 'xml' and 'xmlns' are not redefined?
+  This is done by Xerces; not sure if namespace specs dictate this?
+  [implement for 1.x?]
+
+Refactoring:
+
+* Try to remove dependencies to event classes (WEntityDecl, WAttrList):
+  create WEntityDecl on demand?
+* Continue working on J2ME subset; partial implementations do exist for
+  both input and output factories, but should be able to squeeze out
+  some more classes from subsets.
