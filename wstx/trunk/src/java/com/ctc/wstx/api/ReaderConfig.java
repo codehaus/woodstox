@@ -10,13 +10,11 @@ import javax.xml.stream.*;
 import com.ctc.wstx.api.WstxInputProperties;
 import com.ctc.wstx.cfg.InputConfigFlags;
 import com.ctc.wstx.compat.JdkFeatures;
+import com.ctc.wstx.dtd.DTDReaderProxy;
 import com.ctc.wstx.ent.IntEntity;
 import com.ctc.wstx.util.ArgUtil;
 import com.ctc.wstx.util.EmptyIterator;
 import com.ctc.wstx.util.SymbolTable;
-import com.ctc.wstx.dtd.DTDReaderProxy;
-import com.ctc.wstx.io.WstxInputResolver;
-import com.ctc.wstx.io.XMLResolverWrapper;
 
 /**
  * Simple configuration container class; passed by reader factory to reader
@@ -256,10 +254,8 @@ public final class ReaderConfig
 
     XMLReporter mReporter;
 
-    XMLResolver mXmlResolver = null;
-    WstxInputResolver mDtdResolver = null;
-
-    WstxInputResolver mEntityResolver = null;
+    XMLResolver mDtdResolver = null;
+    XMLResolver mEntityResolver = null;
 
     /**
      * Base URL to use as the resolution context for relative entity
@@ -479,11 +475,11 @@ public final class ReaderConfig
 
     public XMLReporter getXMLReporter() { return mReporter; }
 
-    public XMLResolver getXMLResolver() { return mXmlResolver; }
+    public XMLResolver getXMLResolver() { return mEntityResolver; }
 
     public URL getBaseURL() { return mBaseURL; }
-    public WstxInputResolver getDtdResolver() { return mDtdResolver; }
-    public WstxInputResolver getEntityResolver() { return mEntityResolver; }
+    public XMLResolver getDtdResolver() { return mDtdResolver; }
+    public XMLResolver getEntityResolver() { return mEntityResolver; }
 
     /*
     //////////////////////////////////////////////////////////
@@ -624,37 +620,20 @@ public final class ReaderConfig
     }
 
     /**
-     * Note: it's preferable to use Wstx-specific {@link #setEntityResolver}
-     * instead, if possible, since this just wraps passed in resolver.
+     * Note: for better granularity, you should call {@link #setEntityResolver}
+     * and {@link #setDtdResolver} instead.
      */
     public void setXMLResolver(XMLResolver r) {
-        if (r == null) {
-            mXmlResolver = null;
-            mEntityResolver = null;
-        } else {
-            mXmlResolver = r;
-            mEntityResolver = new XMLResolverWrapper(r);
-        }
+        mEntityResolver = r;
+        mDtdResolver = r;
     }
 
-    public void setDtdResolver(Object r) {
-        if (r instanceof XMLResolver) {
-            mDtdResolver = new XMLResolverWrapper((XMLResolver) r);
-        } else if (r instanceof WstxInputResolver) {
-            mDtdResolver = (WstxInputResolver) r;
-        } else {
-            throw new IllegalArgumentException("Wrong type for dtd resolver: "+r.getClass());
-        }
+    public void setDtdResolver(XMLResolver r) {
+        mDtdResolver = r;
     }
 
-    public void setEntityResolver(Object r) {
-        if (r instanceof XMLResolver) {
-            mEntityResolver = new XMLResolverWrapper((XMLResolver) r);
-        } else if (r instanceof WstxInputResolver) {
-            mEntityResolver = (WstxInputResolver) r;
-        } else {
-            throw new IllegalArgumentException("Wrong type for entity resolver: "+r.getClass());
-        }
+    public void setEntityResolver(XMLResolver r) {
+        mEntityResolver = r;
     }
 
     public void setBaseURL(URL baseURL) { mBaseURL = baseURL; }
@@ -1085,11 +1064,11 @@ public final class ReaderConfig
             break;
 
         case PROP_DTD_RESOLVER:
-            setDtdResolver(value);
+            setDtdResolver((XMLResolver) value);
             break;
 
         case PROP_ENTITY_RESOLVER:
-            setEntityResolver(value);
+            setEntityResolver((XMLResolver) value);
             break;
 
         case PROP_BASE_URL:

@@ -397,18 +397,9 @@ public class FullStreamReader
         WstxInputSource src = null;
 
         try {
-            WstxInputResolver res = mConfig.getDtdResolver();
-            if (res != null) {
-                // null, since it's not an entity expansion
-                src = res.resolveReference
-                    (mInput, null, mDtdPublicId, mDtdSystemId, sysRef);
-            }
-            
-            if (src == null) {
-                // null, since it's not an entity expansion
-                src = DefaultInputResolver.getInstance().resolveReference
-                    (mInput, null, mDtdPublicId, mDtdSystemId, sysRef);
-            }
+            // null -> not an entity expansion, no name
+            src = DefaultInputResolver.resolveReference
+                (mInput, null, pubId, sysId, mConfig.getDtdResolver());
         } catch (FileNotFoundException fex) {
             /* Let's catch and rethrow this just so we get more meaningful
              * description (with input source position etc)
@@ -489,14 +480,15 @@ public class FullStreamReader
               */
              | CFG_SUPPORT_DTDPP
              );
+        URL sysRef = (sysId == null || pubId.length() == 0) ? null :
+            resolveExtSubsetPath(sysId);
         
         if (pubId != null && pubId.length() > 0) {
-            return DTDId.constructFromPublicId(pubId, significantFlags);
+            return DTDId.construct(pubId, sysRef, significantFlags);
         }
-        if (sysId == null || pubId.length() == 0) {
+        if (sysRef == null) {
             return null;
         }
-        URL sysRef = resolveExtSubsetPath(sysId);
         return DTDId.constructFromSystemId(sysRef, significantFlags);
     }
 

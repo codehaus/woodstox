@@ -32,7 +32,6 @@ import com.ctc.wstx.ent.*;
 import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.io.DefaultInputResolver;
 import com.ctc.wstx.io.InputSourceFactory;
-import com.ctc.wstx.io.WstxInputResolver;
 import com.ctc.wstx.io.WstxInputSource;
 import com.ctc.wstx.sr.StreamScanner;
 import com.ctc.wstx.util.InternCache;

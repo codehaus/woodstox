@@ -1,5 +1,6 @@
 package com.ctc.wstx.util;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.IOException;
@@ -13,11 +14,11 @@ public final class URLUtil
     private URLUtil() { }
 
     /**
-   * Method that tries to figure out how to create valid URL from a system
-   * id, without additional contextual information.
-   * If we could use URIs this might be easier to do, but they are part
-   * of JDK 1.4, and preferably code should only require 1.2 (or maybe 1.3)
-   */
+     * Method that tries to figure out how to create valid URL from a system
+     * id, without additional contextual information.
+     * If we could use URIs this might be easier to do, but they are part
+     * of JDK 1.4, and preferably code should only require 1.2 (or maybe 1.3)
+     */
     public static URL urlFromSystemId(String sysId)
         throws IOException
     {
@@ -55,6 +56,20 @@ public final class URLUtil
             throwIOException(e, sysId);
             return null; // never gets here
         }
+    }
+
+    /**
+     * Method that tries to create and return URL that denotes current
+     * working directory. Usually used to create a context, when one is
+     * not explicitly passed.
+     */
+    public static URL urlFromCurrentDir()
+        throws IOException
+    {
+        /* This seems to work; independent of whether there happens to
+         * be such/file dir or not.
+         */
+        return new File("a").getAbsoluteFile().getParentFile().toURL();
     }
 
     /**

@@ -20,11 +20,11 @@ import java.io.Writer;
 import java.net.URL;
 
 import javax.xml.stream.Location;
+import javax.xml.stream.XMLResolver;
 import javax.xml.stream.XMLStreamException;
 
 import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.io.WstxInputLocation;
-import com.ctc.wstx.io.WstxInputResolver;
 import com.ctc.wstx.io.WstxInputSource;
 
 /**
@@ -118,6 +118,6 @@ public abstract class EntityDecl
      * value of the entity can be read.
      */
     public abstract WstxInputSource createInputSource(WstxInputSource parent, 
-                                                      WstxInputResolver res)
+                                                      XMLResolver res)
         throws IOException, XMLStreamException;
 }

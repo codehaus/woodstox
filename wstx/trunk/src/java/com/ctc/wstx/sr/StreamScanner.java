@@ -25,6 +25,7 @@ import java.util.Map;
 import javax.xml.stream.Location;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLReporter;
+import javax.xml.stream.XMLResolver;
 import javax.xml.stream.XMLStreamException;
 
 import com.ctc.wstx.api.ReaderConfig;
@@ -213,7 +214,7 @@ public abstract class StreamScanner
      * Custom resolver used to handle external entities that are to be expanded
      * by this reader (external param/general entity expander)
      */
-    WstxInputResolver mEntityResolver = null;
+    XMLResolver mEntityResolver = null;
 
     /*
     ////////////////////////////////////////////////////
@@ -289,7 +290,7 @@ public abstract class StreamScanner
      * does not share its input buffers or state with another reader.
      */
     protected StreamScanner(WstxInputSource input, ReaderConfig cfg,
-                            WstxInputResolver res)
+                            XMLResolver res)
     {
         super();
         mInput = input;

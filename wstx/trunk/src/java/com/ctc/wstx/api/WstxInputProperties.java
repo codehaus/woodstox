@@ -194,14 +194,14 @@ public final class WstxInputProperties
     public final static String P_CUSTOM_INTERNAL_ENTITIES = "com.ctc.wstx.customInternalEntities";
 
     /**
-     * Property of type {@link com.ctc.wstx.io.WstxInputResolver}, that
+     * Property of type {@link XMLResolver}, that
      * will allow overriding of default DTD and external parameter entity
      * resolution.
      */
     public final static String P_DTD_RESOLVER = "com.ctc.wstx.dtdResolver";
 
     /**
-     * Property of type {@link com.ctc.wstx.io.WstxInputResolver}, that
+     * Property of type {@link XMLResolver}, that
      * will allow overriding of default external general entity
      * resolution. Note that using this property overrides settings done
      * using {@link javax.xml.stream.XMLInputFactory#RESOLVER} (and vice versa).

@@ -4,21 +4,17 @@ import java.net.URL;
 
 import javax.xml.stream.*;
 
-import com.ctc.wstx.io.WstxInputResolver;
-import com.ctc.wstx.io.WstxInputSource;
-
 /**
  * Simple debug 'resolver'...
  */
 public class TestResolver2
-    implements WstxInputResolver
+    implements XMLResolver
 {
-    public WstxInputSource resolveReference(WstxInputSource refCtxt, String entityId,
-                                            String publicId, String systemId,
-                                            URL assumedLoc)
+    public Object resolveEntity(String publicId, String systemId,
+                                String baseURL, String name)
     {
-        System.err.println("WstxInputResolver: '"+publicId+"'/'"+systemId
-                           +", assumed '"+assumedLoc+"', entity '"+entityId+"'.");
+        System.err.println("TestResolver: '"+publicId+"'/'"+systemId
+                           +", baseURL "+baseURL+", entity '"+name+"'.");
         return null;
     }
 }

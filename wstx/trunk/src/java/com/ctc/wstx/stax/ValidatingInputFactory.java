@@ -34,7 +34,6 @@ import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.exc.WstxIOException;
 import com.ctc.wstx.io.BranchingReaderSource;
 import com.ctc.wstx.io.InputBootstrapper;
-import com.ctc.wstx.io.WstxInputResolver;
 import com.ctc.wstx.io.WstxInputSource;
 import com.ctc.wstx.dtd.DTDId;
 import com.ctc.wstx.dtd.DTDSubset;
