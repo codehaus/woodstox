@@ -1,8 +1,8 @@
 <?xml version="1.0" standalone='yes'?>
 
     <project name="Woodstox XML processor" basedir="." default="readme">
-
     <property name="ProjectName" value="Woodstox XML processor" />
+
     <!-- Source directories -->
     <property name="SrcDir" location="${basedir}/src" />
     <property name="JavaSrcDir" location="${SrcDir}/java" />
@@ -33,37 +33,15 @@
     <property name="STAX_VERSION" value="1.0" />
     <property name="STAX_VENDOR" value="http://jcp.org/en/jsr/detail?id=173" />
     <property name="WSTX_TITLE" value="WoodSToX XML-processor" />
-    <property name="WSTX_VERSION" value="1.6" />
+    <property name="WSTX_VERSION" value="1.7" />
     <property name="WSTX_VENDOR" value="www.cowtowncoder.com" />
-
 
     <path id="classpath">
         <fileset dir="${LibDir}" includes="*.jar" />
     </path>
 
     <!-- And then something nifty, for creating minimal jars! -->
-    <classfileset id="dtdFlattenClasses" dir="${BuildClassesDir}">
-       <!-- main app class: -->
-       <root classname="com.ctc.wstx.tools.DTDFlatten" />
-       <!-- plus also need to include JDK-dependant helpers; they are
-          - dynamically loaded and this task can not get dependencies
-          - automatically
-         -->
-       <rootfileset dir="${BuildClassesDir}" includes="com/ctc/wstx/compat/Jdk*Impl.class" />
-    </classfileset>
-
-    <!-- Same for ValidateXML -->
-    <classfileset id="xmlValidatorClasses" dir="${BuildClassesDir}">
-       <!-- main app class: -->
-       <root classname="com.ctc.wstx.tools.ValidateXML" />
-       <root classname="com.ctc.wstx.stax.MinimalInputFactory" />
-       <!-- plus also need to include JDK-dependant helpers; they are
-          - dynamically loaded and this task can not get dependencies
-          - automatically
-         -->
-       <rootfileset dir="${BuildClassesDir}" includes="com/ctc/wstx/compat/Jdk*Impl.class" />
-    </classfileset>
-
+ 
     <classfileset id="j2meInputMinimal" dir="${BuildClassesDir}">
        <root classname="com.ctc.wstx.stax.MinimalInputFactory" />
        <rootfileset dir="${BuildClassesDir}" includes="com/ctc/wstx/compat/Jdk*Impl.class" />
@@ -95,9 +73,9 @@
         <echo message = "2)  clean - Remove any generated files/directories." />
         <echo message = "3)  compile - Compile all non-test ${ProjectName} code." />
         <echo message = "4)  jars - Compile and create all jars for non-test ${ProjectName} code (see below for specific ones)." />
-        <echo message = "4a)  jar.wstx - Compile and create jar for non-test ${ProjectName} code." />
+        <echo message = "4a)  jar.wstx.lgpl - Compile and create jar for non-test ${ProjectName} cod, under LGPL license." />
+        <echo message = "4b)  jar.wstx.asp - Compile and create jar for non-test ${ProjectName} cod, under Apache (2.0) license." />
         <echo message = "4b)  jar.j2me - Compile and create minimal non-test jar of ${ProjectName}, that implements J2ME subset of StAX." />
-        <echo message = "4c)  jar.dtd - Create a jar that contains a stand-alone utility for flattening DTDs." />
         <echo message = "5)  javadoc - Generate ${ProjectName} code documentation." />
         <echo message = "6)  test.compile - Compile ${ProjectName} code and test code" />
         <echo message = "       for JUnit tests." />
@@ -106,6 +84,10 @@
         <echo message = "8)  dist - Create distribution directory and copy necessary files there" />
         <echo message = "9) all - Run the clean, compile, javadoc," />
         <echo message = "         test and dist targets." />  
+        <echo message = "" />
+        <echo message = "Available command-line arguments:" />
+        <echo message = "---------------------------------" />
+        <echo message = "-Dlicense : allowed values 'asl', 'lgpl' (chooses license to use for jars)" />
     </target>
 
     <target name="prepare">
@@ -127,9 +109,37 @@
         <mkdir dir="${DistDir}" />
     </target>
 
-    <!--*********************************************************************-->
-    <!-- clean - Removes all generated files/directories.                    -->
-    <!--*********************************************************************-->
+    <!-- ***********************************************
+       - supporting dummy tasks
+       - ***********************************************-->
+
+    <!-- This task ensures that license is either set to a
+       - valid value, or can use the default (ASL)
+      -->
+    <target name="check_license">
+      <!-- Let's set license to default ("asl") if not
+           explicitly specified on command-line args
+        -->
+      <property name="license" value="asl" />
+      <!-- And then check that explicitly set one was valid
+         - (default one will always be....)
+        -->
+      <condition property="license_ok">
+        <or>
+          <equals arg1="${license}" arg2="asl" />
+          <equals arg1="${license}" arg2="lgpl" />
+        </or>
+      </condition>
+      <fail unless="license_ok"
+        message="Unrecognized license property value '${license}': excepted either 'asl' (for ASL2.0) or 'lgpl' (for LGPL2.1)"
+      />
+      <echo message="Ok, using license '${license}' for jar(s)." />
+    </target>
+
+    <!-- ***********************************************
+       - clean - Removes all generated files/directories
+       - ***********************************************-->
+
     <target name="clean">
         <delete dir="${BuildDir}"/>
         <delete dir="${DocDir}"/>
@@ -158,15 +168,15 @@
 
     <!-- Dummy target that just includes all individual jars... --> 
     <target name="jars"
-       depends="jar.wstx, jar.dtd, jar.validator, jars.j2me"
+       depends="jar.wstx.lgpl, jar.wstx.asl, jars.j2me"
     />
 
     <target name="jars.j2me"
        depends="jar.j2me_input_min, jar.j2me_input_val, jar.j2me_output, jar.j2me_both_min, jar.j2me_both_val"
     />
 
-    <target name="jar.wstx" depends="compile,copy-resources">
-        <jar jarfile="${BuildDir}/wstx.jar" filesonly="true" >
+    <target name="jar.wstx.lgpl" depends="compile,copy-resources">
+        <jar jarfile="${BuildDir}/wstx-${WSTX_VERSION}-lgpl.jar" filesonly="true" >
           <manifest>
             <attribute name="Built-By" value="${user.name}"/>
             <attribute name="Specification-Title"   value="${STAX_TITLE}"/>
@@ -179,58 +189,34 @@
           <fileset dir="${BuildClassesDir}">
              <include name="com/ctc/**/*.class" />
              <include name="META-INF/services/javax.xml.stream.*" />
-             <!-- No need to include embedded test classes -->
- <!--
-             <exclude name="com/ctc/wstx/test/*.class" />
-  -->
-             <!-- No need to include separate tools -->
-             <exclude name="com/ctc/wstx/tools/**/*.class" />
           </fileset>
-          <fileset dir="${RelNotesDir}">
+          <fileset dir="${RelNotesDir}/lgpl">
             <include name="LICENSE" />
             <include name="NOTICE" />
+            <include name="LGPL2.1" />
           </fileset>
         </jar>
     </target> 
 
-    <!-- DTDFlatten jar is included in this build.xml just so that 
-       - maintenance is easier...
-      -->
-    <target name="jar.dtd" depends="compile">
-        <jar jarfile="${BuildDir}/dtd-flatten.jar"
-            filesonly="true"
-        >
+    <target name="jar.wstx.asl" depends="compile,copy-resources">
+        <jar jarfile="${BuildDir}/wstx-${WSTX_VERSION}-asl.jar" filesonly="true" >
           <manifest>
-            <attribute name="Main-class" value="com.ctc.wstx.tools.DTDFlatten" />
+            <attribute name="Built-By" value="${user.name}"/>
+            <attribute name="Specification-Title"   value="${STAX_TITLE}"/>
+            <attribute name="Specification-Version" value="${STAX_VERSION}"/>
+            <attribute name="Specification-Vendor"  value="${STAX_VENDOR}"/>
+            <attribute name="Implementation-Title"   value="${WSTX_TITLE}"/>
+            <attribute name="Implementation-Version" value="${WSTX_VERSION}"/>
+            <attribute name="Implementation-Vendor"  value="${WSTX_VENDOR}"/>
           </manifest>
-          <fileset refid="dtdFlattenClasses" />
-          <!-- No need for overriding StAX classes via resource defs, as
-               we'll only use DTDReader for flattening, directly.
-            -->
-          <fileset dir="${RelNotesDir}/dtdflatten">
-            <include name="LICENSE" />
-            <include name="NOTICE" />
+          <fileset dir="${BuildClassesDir}">
+             <include name="com/ctc/**/*.class" />
+             <include name="META-INF/services/javax.xml.stream.*" />
           </fileset>
-        </jar>
-    </target> 
-
-    <!-- XMLValidator jar is included in this build.xml also just for
-       - convenience
-      -->
-    <target name="jar.validator" depends="compile">
-        <jar jarfile="${BuildDir}/validate-xml.jar"
-            filesonly="true"
-        >
-          <manifest>
-            <attribute name="Main-class" value="com.ctc.wstx.tools.ValidateXML" />
-          </manifest>
-          <fileset refid="xmlValidatorClasses" />
-          <!-- No need for overriding StAX classes via resource defs, as
-               the tool will directly set system properties
-            -->
-          <fileset dir="${RelNotesDir}/dtdflatten">
+          <fileset dir="${RelNotesDir}/asl">
             <include name="LICENSE" />
             <include name="NOTICE" />
+            <include name="ASL2.0" />
           </fileset>
         </jar>
     </target> 
@@ -243,52 +229,52 @@
            classes.
       -->
 
-    <target name="jar.j2me_input_min" depends="compile">
+    <target name="jar.j2me_input_min" depends="compile,check_license">
         <jar jarfile="${BuildDir}/wstx-j2me-min-input.jar" filesonly="true">
           <fileset refid="j2meInputMinimal" />
-          <fileset dir="${RelNotesDir}">
+          <fileset dir="${RelNotesDir}/lgpl">
             <include name="LICENSE" />
             <include name="NOTICE" />
           </fileset>
         </jar>
     </target> 
 
-    <target name="jar.j2me_input_val" depends="compile">
+    <target name="jar.j2me_input_val" depends="compile,check_license">
         <jar jarfile="${BuildDir}/wstx-j2me-val-input.jar" filesonly="true">
           <fileset refid="j2meInputValidating" />
-          <fileset dir="${RelNotesDir}">
+          <fileset dir="${RelNotesDir}/lgpl">
             <include name="LICENSE" />
             <include name="NOTICE" />
           </fileset>
         </jar>
     </target> 
 
-    <target name="jar.j2me_output" depends="compile">
+    <target name="jar.j2me_output" depends="compile,check_license">
         <jar jarfile="${BuildDir}/wstx-j2me-output.jar" filesonly="true">
           <fileset refid="j2meOutput" />
-          <fileset dir="${RelNotesDir}">
+          <fileset dir="${RelNotesDir}/lgpl">
             <include name="LICENSE" />
             <include name="NOTICE" />
           </fileset>
         </jar>
     </target> 
 
-    <target name="jar.j2me_both_min" depends="compile">
+    <target name="jar.j2me_both_min" depends="compile,check_license">
         <jar jarfile="${BuildDir}/wstx-j2me-min-both.jar" filesonly="true">
           <fileset refid="j2meInputMinimal" />
           <fileset refid="j2meOutput" />
-          <fileset dir="${RelNotesDir}">
+          <fileset dir="${RelNotesDir}/lgpl">
             <include name="LICENSE" />
             <include name="NOTICE" />
           </fileset>
         </jar>
     </target> 
 
-    <target name="jar.j2me_both_val" depends="compile">
+    <target name="jar.j2me_both_val" depends="compile,check_license">
         <jar jarfile="${BuildDir}/wstx-j2me-val-both.jar" filesonly="true">
           <fileset refid="j2meInputValidating" />
           <fileset refid="j2meOutput" />
-          <fileset dir="${RelNotesDir}">
+          <fileset dir="${RelNotesDir}/lgpl">
             <include name="LICENSE" />
             <include name="NOTICE" />
           </fileset>
@@ -308,6 +294,39 @@
         </javadoc>
     </target> 
  
+    <target name="dist" depends="compile,jars,javadoc"
+    >
+       <!-- First, let's copy the binary jars to dist -->
+       <copy todir="${DistDir}">
+          <fileset dir="${BuildDir}" includes="wstx*.jar" />
+       </copy>
+       <!-- Then let's create the source distribution package -->
+       <tar basedir="${basedir}" destfile="${DistDir}/wstx-src.tar"
+        includes="build.xml" >
+          <tarfileset dir="." includes="src/**/*.java" />
+          <tarfileset dir="." includes="src/java/**/*.html" />
+          <tarfileset dir="." includes="src/resources/*" />
+          <tarfileset dir="." includes="release-notes/*" />
+          <tarfileset dir="." includes="release-notes/asl/*" />
+          <tarfileset dir="." includes="release-notes/lgpl/*" />
+          <tarfileset dir="." includes="build.xml" />
+          <tarfileset dir="." includes="project.xml" />
+       </tar>
+       <gzip zipfile="${DistDir}/wstx-src.tar.gz" src="${DistDir}/wstx-src.tar" />
+       <delete file="${DistDir}/wstx-src.tar" />
+
+       <!-- Then copy javadocs -->
+       <copy todir="${DistDir}">
+         <fileset dir="${DocDir}" includes="javadoc/**/*" />
+       </copy>
+       <!-- Plus, let's also just copy README and compatibility files, in
+            addition to being included in source package
+         -->
+       <copy todir="${DistDir}" >
+            <fileset dir="." includes="release-notes/*" />
+       </copy>
+    </target>
+
     <target name="all" depends="clean,javadoc,test,dist">
         <!-- This target simply depends on others to do its job -->
     </target>
@@ -319,13 +338,13 @@
         <available property="junit.present" classname="junit.framework.TestCase" />
     </target>
 
-    <target name="test.compile" depends="junit, jar.wstx" if="junit.present">
+    <target name="test.compile" depends="junit, compile" if="junit.present">
         <javac SrcDir="${TestSrcDir}" destdir="${TestClassesDir}"
             debug="true"
         >
             <include name="**/*.java" />
             <classpath>
-                <pathelement location="${BuildDir}/wstx.jar"/>
+                <pathelement path="${BuildClassesDir}"/>
                 <pathelement location="${LibDir}/stax1.0.jar"/>
             </classpath>
         </javac>
@@ -344,7 +363,7 @@
             <formatter type="xml" />
             <classpath>
                 <pathelement location="${LibDir}/stax1.0.jar"/>
-                <pathelement location="${BuildDir}/wstx.jar"/>
+                <pathelement path="${BuildClassesDir}" />
                 <pathelement location="${TestClassesDir}" />
             </classpath>     
         </junit>
@@ -357,36 +376,4 @@
         </junitreport>
     </target>
 
-    <target name="dist" depends="compile,jars,javadoc"
-    >
-<!--depends="compile,javadoc"-->
-       <!-- First, let's copy the binary jars to dist -->
-       <copy todir="${DistDir}">
-          <fileset dir="${BuildDir}" includes="wstx*.jar" />
-       </copy>
-       <copy todir="${DistDir}" file="${BuildDir}/dtd-flatten.jar" />
-       <!-- Then let's create the source distribution package -->
-       <tar basedir="${basedir}" destfile="${DistDir}/wstx-src.tar"
-        includes="build.xml" >
-          <tarfileset dir="." includes="src/**/*.java" />
-          <tarfileset dir="." includes="src/java/**/*.html" />
-          <tarfileset dir="." includes="src/resources/*" />
-          <tarfileset dir="." includes="release-notes/*" />
-          <tarfileset dir="." includes="build.xml" />
-          <tarfileset dir="." includes="project.xml" />
-       </tar>
-       <gzip zipfile="${DistDir}/wstx-src.tar.gz" src="${DistDir}/wstx-src.tar" />
-       <delete file="${DistDir}/wstx-src.tar" />
-
-       <!-- Then copy javadocs -->
-       <copy todir="${DistDir}">
-         <fileset dir="${DocDir}" includes="javadoc/**/*" />
-       </copy>
-       <!-- Plus, let's also just copy README and compatibility files, in
-            addition to being included in source package
-         -->
-       <copy todir="${DistDir}" >
-            <fileset dir="." includes="release-notes/*" />
-       </copy>
-    </target>
 </project>

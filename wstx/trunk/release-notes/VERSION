@@ -1,11 +1,12 @@
-Version: 1.6.1
+Version: 1.7
 
-Release date: -Nov-2004
+Release date: -Dev-2004
 
 Description:
 
   New functionality:
-    * Adding basic support for DTD++:
+    * Adding some preliminary support for DTD++ (although full support is
+      not planned to be part of 2.0 at this point):
       * Can enable/disable support via normal property set mechanism
       * Implements TARGETNS that allows proper mapping of prefixes
         to namespace URIs in DTD.

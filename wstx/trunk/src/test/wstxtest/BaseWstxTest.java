@@ -61,6 +61,11 @@ public class BaseWstxTest
     protected WstxInputFactory getInputFactory()
     {
         if (mInputFactory == null) {
+            /* 29-Nov-2004, TSa: Better ensure we get the right
+             *   implementation...
+             */
+            System.setProperty("javax.xml.stream.XMLInputFactory",
+                               "com.ctc.wstx.stax.WstxInputFactory");
             mInputFactory = getNewInputFactory();
         }
         return mInputFactory;

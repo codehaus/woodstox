@@ -38,8 +38,8 @@
     <!-- Distribution Licenses -->
     <licenses>
         <license>
-            <name>GPL</name>
-            <url>http://opensource.org/licenses/gpl-license.php</url>
+            <name>LGPL</name>
+            <url>http://opensource.org/licenses/lgpl-license.php</url>
         </license>
     </licenses>
     
