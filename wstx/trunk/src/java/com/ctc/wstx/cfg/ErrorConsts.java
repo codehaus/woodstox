@@ -84,6 +84,11 @@ public class ErrorConsts
     public static String ERR_VLD_ANY = "Element <{0}> has ANY content specification; can not contain {1}";
     public static String ERR_VLD_UNKNOWN_ATTR = "Element <{0}> has no attribute \"{1}\"";
 
+    // // // Namespace problems:
+
+    public static String ERR_NS_EMPTY = 
+"Non-default namespace can not map to empty URI (as per Namespace 1.0 # 2)";
+
     // // // Output problems:
 
     public static String WERR_PROLOG_CDATA =

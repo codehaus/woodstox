@@ -143,7 +143,15 @@ public class SimpleNsStreamWriter
             throw new IllegalStateException(ERR_NSDECL_WRONG_STATE);
         }
         
-        if (mCheckNS) { // Was it declared the same way?
+        if (mCheckNS) {
+            /* 05-Feb-2005, TSa: Also, as per namespace specs; the 'empty'
+             *   namespace URI can not be bound as a non-default namespace
+             *   (ie. for any actual prefix)
+             */
+            if (nsURI.length() == 0) {
+                throwOutputError(ErrorConsts.ERR_NS_EMPTY);
+            }
+            // Was it declared the same way?
             mCurrElem.checkNsWrite(mRootNsContext, prefix, nsURI);
         }
         

@@ -188,24 +188,28 @@ public class RepairingNsStreamWriter
         if (nsURI == null) {
             writeStartElement(name.getLocalPart());
         } else {
-	    String prefix = name.getPrefix();
-	    if (prefix == null || prefix.length() == 0) {
-		writeStartElement(nsURI, name.getLocalPart());
-	    }
-	}
-    
+            String prefix = name.getPrefix();
+            if (prefix == null || prefix.length() == 0) {
+                writeStartElement(nsURI, name.getLocalPart());
+            }
+        }
+        
         // And now we need to output namespaces (including default), if any:
         it = elem.getNamespaces();
         while (it.hasNext()) {
             Namespace ns = (Namespace) it.next();
             String prefix = ns.getPrefix();
             if (prefix == null || prefix.length() == 0) {
-                writeDefaultNamespace(ns.getNamespaceURI());
+                /* 06-Jan-2005, TSa: Actually, better not try to force
+                 *   writing of the defualt namespace, since (a) it may
+                 *   already have been output, and (b) if it wasn't might
+                 *   make element output itself invalid.
+                 */
+                //doWriteDefaultNamespace(ns.getNamespaceURI());
             } else {
-                writeNamespace(prefix, ns.getNamespaceURI());
+                doWriteNamespace(prefix, ns.getNamespaceURI());
             }
         }
-    
 
         // And finally, need to output attributes as well:
         
@@ -229,7 +233,7 @@ public class RepairingNsStreamWriter
         mCurrElem = new OutputElement(mCurrElem, localName, mNsDecl, mCheckNS);
 
         // Need a prefix....
-        String prefix = findOrCreatePrefix(nsURI, false);
+        String prefix = findOrCreatePrefix(nsURI, true);
         mCurrElem.setPrefix(prefix);
         doWriteStartElement(prefix, localName);
 
@@ -284,6 +288,10 @@ public class RepairingNsStreamWriter
          * to suggest proper mapping now
          * (call has to be done _after_ outputting the element!)
          */
+        /* 06-Feb-2005, TSa: No, better just let actual attribute/element
+         *    writes bind and output namespace declarations.
+         */
+        /*
         if (nsCount > 0) {
             for (int i = 0; i < nsCount; ++i) {
                 validatePrefix(elemStack.getLocalNsPrefix(i),
@@ -291,6 +299,8 @@ public class RepairingNsStreamWriter
                                true);
             }
         }
+        */
+
         /* note: in repairing mode, it is NOT allowed to explicitly
          * (try to) write namespace declarations...
          */
@@ -351,13 +361,16 @@ public class RepairingNsStreamWriter
      * use an existing one, or generate a new one.
      *
      * @param nsURI URI of namespace for which we need a prefix
-     * @param defaultNsOk Whether default namespace prefix (empty String)
-     *   is acceptable (can not be used for attributes)
+     * @param isElement True, when the prefix is for an element, false if
+     *   for attribute. Elements can use the default namespace, and the
+     *   new namespace bindings need not be output right away; attributes
+     *   can not use default namespaces, and the explicit declarations
+     *   need to be output immediately.
      */
-    protected final String findOrCreatePrefix(String nsURI, boolean defaultNsOk)
+    protected final String findOrCreatePrefix(String nsURI, boolean isElement)
         throws XMLStreamException
     {
-        String prefix = mCurrElem.findPrefix(nsURI, defaultNsOk);
+        String prefix = mCurrElem.findPrefix(nsURI, isElement);
         if (prefix != null) {
             return prefix;
         }
@@ -378,7 +391,9 @@ public class RepairingNsStreamWriter
         }
 
         mCurrElem.addPrefix(prefix, nsURI);
-        doWriteNamespace(prefix, nsURI);
+        if (!isElement) {
+            doWriteNamespace(prefix, nsURI);
+        }
         return prefix;
     }
 
@@ -388,23 +403,52 @@ public class RepairingNsStreamWriter
      * binding and return its prefix
      */
     private final String validatePrefix(String prefix, String nsURI,
-                                        boolean canUseDefault)
+                                        boolean isElement)
         throws XMLStreamException
     {
-        int status = mCurrElem.isPrefixValid(prefix, nsURI, mCheckNS,
-                                             canUseDefault);
-        if (status != OutputElement.PREFIX_OK) {
-            // Not bound? Easy enough, can just add such mapping:
-            if (status == OutputElement.PREFIX_UNBOUND) {
-                mCurrElem.addPrefix(prefix, nsURI);
-                doWriteNamespace(prefix, nsURI);
+        /* 06-Feb-2005, TSa: Special care needs to be taken for the
+         *   "empty" (or missing) namespace:
+         */
+        if (nsURI.length() == 0) {
+            if (isElement) {
+                /* Since only the default namespace can be mapped to
+                 * the empty URI, the default namespace has to either
+                 * still point to the empty URI, or re-mapped to
+                 * point to it:
+                 */
+                // !!! TBI
             } else {
-                // mis-bound? Need to find better one
-                // First, do we have a mapping for URI?
-                prefix = getPrefix(nsURI);
-                if (prefix == null) { // nope, need to generate
-                    prefix = mCurrElem.generatePrefix(mRootNsContext);
-                    mCurrElem.addPrefix(prefix, nsURI);
+                /* Attributes never use the default namespace; missing
+                 * prefix always leads to the empty ns... so nothing
+                 * special is needed here.
+                 */
+                ;
+            }
+            // Either way, no prefix can be used:
+            return null;
+        }
+        
+        int status = mCurrElem.isPrefixValid(prefix, nsURI, mCheckNS,
+                                             isElement);
+        if (status == OutputElement.PREFIX_OK) {
+            return prefix;
+        }
+
+        
+        // Not bound? Easy enough, can just add such mapping:
+        if (status == OutputElement.PREFIX_UNBOUND) {
+            mCurrElem.addPrefix(prefix, nsURI);
+            if (!isElement) {
+                doWriteNamespace(prefix, nsURI);
+            }
+        } else {
+            // mis-bound? Need to find better one
+            // First, do we have a mapping for URI?
+            prefix = getPrefix(nsURI);
+            if (prefix == null) { // nope, need to generate
+                prefix = mCurrElem.generatePrefix(mRootNsContext);
+                mCurrElem.addPrefix(prefix, nsURI);
+                if (!isElement) {
                     doWriteNamespace(prefix, nsURI);
                 }
             }

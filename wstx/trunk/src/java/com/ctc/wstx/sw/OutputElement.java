@@ -488,10 +488,9 @@ public final class OutputElement
     public void checkAllNsWrittenOk()
         throws XMLStreamException
     {
-        /* We can also help GC a bit, by discarding any attribute values
-         * we may have collected so far... no new ones can be output for
-         * this element.
-         */
+        // We can also help GC a bit, by discarding any attribute values
+        // we may have collected so far... no new ones can be output for
+        // this element.
         mAttr = null;
 
         // Ok, first; has default namespace been written?
@@ -574,7 +573,8 @@ public final class OutputElement
         if (nsURI == null) {
             nsURI = "";
         }
-        /* 21-Sep-2004, TSa: If NS list was shared, need to first unshared...
+        /* 21-Sep-2004, TSa: If NS list was shared, need to first unshare
+         *   it..
          */
         if (mNsShared) {
             StringVector orig = mNamespaces;

@@ -2405,7 +2405,7 @@ public class WstxStreamReader
              * non-default NS declarations, see above...)
              */
             if (startLen >= 0 && tb.getCharSize() == startLen) { // is empty!
-                throwParseError("Non-default namespace can not map to empty URI (as per Namespace 1.0 # 2)");
+                throwParseError(ErrorConsts.ERR_NS_EMPTY);
             }
         }
 

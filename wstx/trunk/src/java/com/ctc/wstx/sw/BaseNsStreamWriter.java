@@ -174,6 +174,13 @@ public abstract class BaseNsStreamWriter
     public void setPrefix(String prefix, String uri)
         throws XMLStreamException
     {
+        if (uri == null) {
+            throw new NullPointerException("Can not pass null 'uri' value");
+        }
+        if (prefix == null) {
+            throw new NullPointerException("Can not pass null 'prefix' value");
+        }
+
         /* 25-Sep-2004, TSa: Let's check that "xml" and "xmlns" are not
          *     (re-)defined to any other value, nor that value they 
          *     are bound to are bound to other prefixes.
@@ -194,6 +201,14 @@ public abstract class BaseNsStreamWriter
                 } else if (uri.equals(XMLConstants.XMLNS_ATTRIBUTE_NS_URI)) {
                     throwOutputError(ErrorConsts.ERR_NS_REDECL_XMLNS_URI, prefix);
                 }
+            }
+
+            /* 05-Feb-2005, TSa: Also, as per namespace specs; the 'empty'
+             *   namespace URI can not be bound as a non-default namespace
+             *   (ie. for any actual prefix)
+             */
+            if (uri.length() == 0) {
+                throwOutputError(ErrorConsts.ERR_NS_EMPTY);
             }
         }
 
@@ -450,7 +465,7 @@ public abstract class BaseNsStreamWriter
 
         try {
             mWriter.write(' ');
-            if (prefix != null) {
+            if (prefix != null && prefix.length() > 0) {
                 mWriter.write(prefix);
                 mWriter.write(':');
             }

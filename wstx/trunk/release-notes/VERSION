@@ -11,12 +11,15 @@ Description:
 
   Problems fixed:
 
-    * Fixed a bug (reported by Eric Jain) that occured when declaring
-      the default namespace in the same element as a non-default namespace
-      (but only when the default one wasn't the first one)
-    * Fixed an ArrayIndexOutOfBoundsException (reported by Stefan Wachter
-      and Eric Jain) that sometimes occured with large documents, esp.
-      if read using a network or gzip stream readers.
+    * Fixed 3 bugs reported by Eric Jain:
+      * Bug that occured when declaring the default namespace in the same
+        element as a non-default namespace (but only when the default one
+        wasn't the first one)
+      * ArrayIndexOutOfBoundsException sometimes occured with large documents,
+        esp. if read using a network or gzip stream readers.
+      * Problem with repairing stream writer when generating the namespace
+        declaration for elements dynamically; was trying to output bindings
+        twice.
     * Fixed a minor incompatibility with the stax 1.0 specs:
       XMLStreamWriter.writeStartDocument() was not using default values
       defined by the specs.

@@ -55,6 +55,9 @@ Must-haves for 2.0
       [Partial] * Streaming access: getText with Writer arg
       [DONE] * Misc: isEmptyElement, getDepth
       [DONE] * Full pass-through method (copyEventFromReader())
+      * Extended location information access via LocationInfo;
+        methods for getting start and end locations of an event, as well
+        as the current location.
    * XMLStreamWriter2:
       [Partial] * pass-through write method for outputting raw (non-encoded) stuff
       [Partial?] * setFeature/getFeature (which property/ies?)
