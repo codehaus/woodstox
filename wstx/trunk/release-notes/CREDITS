@@ -39,3 +39,10 @@ Sven Köhler:
     of readers, in cases where event(s) could be returned before needing
     to read more from underlying input stream.
     [1.7]
+
+Casey Bowman:
+  * Pointed out the (potential) problem with javax.xml.stream.Location;
+    return values are ints, and may thus overflow for BIG documents.
+    StAX2 extensions (XMLStreamLocation2) added to properly deal with
+    the problem.
+    [1.8]

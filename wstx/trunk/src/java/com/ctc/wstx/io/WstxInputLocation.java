@@ -74,6 +74,16 @@ public class WstxInputLocation
     ////////////////////////////////////////////////////////
      */
 
+    public long getActualByteOffset() {
+        // !!! TBI
+        return -1;
+    }
+
+    public long getActualCharacterOffset() {
+        // !!! Need to upgrade actual offset variable to long
+        return mCharOffset;
+    }
+
     public XMLStreamLocation2 getContext() { return mContext; }
 
     /*

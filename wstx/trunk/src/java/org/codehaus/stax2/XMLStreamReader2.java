@@ -43,6 +43,14 @@ public interface XMLStreamReader2
     */
 
     /**
+     * Method that can be used to get per-reader values; both generic
+     * ones (names for which are defined as constants in this class),
+     * and implementation dependant ones.
+     *<p>
+     * Note: although some feature names are shared with
+     * {@link #setFeature}, not all are: some features are read-only,
+     * some write-only
+     *
      * @param name Name of the feature of which value to get
      *
      * @return Value of the feature (possibly null), if supported; null
@@ -51,6 +59,15 @@ public interface XMLStreamReader2
     public Object getFeature(String name);
 
     /**
+     * Method that can be used to set per-reader features such as configuration
+     * settings; both generic
+     * ones (names for which are defined as constants in this class),
+     * and implementation dependant ones.
+     *<p>
+     * Note: although some feature names are shared with
+     * {@link #getFeature}, not all are: some features are read-only,
+     * some write-only
+     *
      * @param name Name of the feature to set
      * @param value Value to set feature to.
      */
@@ -168,6 +185,5 @@ public interface XMLStreamReader2
      * @return Number of open elements currently in the reader's stack
      */
     public int getDepth();
-
 }
 

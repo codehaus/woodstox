@@ -6,6 +6,7 @@ import javax.xml.XMLConstants;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
 import javax.xml.stream.Location;
+import javax.xml.stream.XMLStreamException;
 
 import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.util.BaseNsContext;
@@ -261,6 +262,21 @@ public class NonNsInputElementStack
             throw new IllegalStateException("Illegal access, empty stack.");
         }
         return mElements[mSize-1];
+    }
+
+    /**
+     * Method called to get all the information about the current top
+     * element of the stack, via a callback.
+     */
+    public final void iterateElement(ElemIterCallback cb, boolean isEmpty)
+        throws XMLStreamException
+    {
+        /* Note: since this is an internal method, there's no need to
+         * verify input state -- caller should already have ensured stack
+         * is not empty.
+         */
+        cb.iterateElement(null, mElements[mSize-1], null, isEmpty);
+        // no namespace information to pass...
     }
 
     // // // Namespace information:

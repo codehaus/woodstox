@@ -1,8 +1,9 @@
 package com.ctc.wstx.sr;
 
 import javax.xml.XMLConstants;
-import javax.xml.stream.Location;
 import javax.xml.namespace.QName;
+import javax.xml.stream.Location;
+import javax.xml.stream.XMLStreamException;
 
 import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.util.DataUtil;
@@ -332,6 +333,12 @@ final class NsAttributeCollector
         }
 
         return null;
+    }
+
+    public void iterateAttributes(ElemIterCallback cb)
+        throws XMLStreamException
+    {
+        // !!! TBI
     }
 
     public int findIndex(String nsURI, String localName)

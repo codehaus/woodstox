@@ -7,6 +7,7 @@ import javax.xml.XMLConstants;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
 import javax.xml.stream.Location;
+import javax.xml.stream.XMLStreamException;
 
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.exc.WstxException;
@@ -525,6 +526,34 @@ public class NsInputElementStack
             return name;
         }
         return prefix + ":" + name;
+    }
+
+    /**
+     * Method called to get all the information about the current top
+     * element of the stack, via a callback.
+     */
+    public final void iterateElement(ElemIterCallback cb, boolean isEmpty)
+        throws XMLStreamException
+    {
+        /* Note: since this is an internal method, there's no need to
+         * verify input state -- caller should already have ensured stack
+         * is not empty.
+         */
+        // First, callback for the element itself:
+        cb.iterateElement(mElements[mSize-(ENTRY_SIZE - IX_PREFIX)],
+                          mElements[mSize-(ENTRY_SIZE - IX_LOCALNAME)],
+                          mElements[mSize-(ENTRY_SIZE - IX_URI)],
+                          isEmpty);
+        // And then one for each namespace declaration, if any:
+        int start = mNsCounts[(mSize-1) >> 2];
+        int end = mNamespaces.size();
+        if (start < end) { // not strictly necessary, but cheap check
+            String[] strs = mNamespaces.getInternalArray();
+            do {
+                cb.iterateNamespace(strs[start], strs[start+1]);
+                start += 2;
+            } while (start < end);
+        }
     }
 
     // // // Namespace information:

@@ -16,6 +16,7 @@ import javax.xml.stream.XMLStreamWriter;
 import javax.xml.stream.events.Characters;
 import javax.xml.stream.events.StartElement;
 
+import org.codehaus.stax2.DTDInfo;
 import org.codehaus.stax2.EscapingWriterFactory;
 import org.codehaus.stax2.XMLStreamReader2;
 import org.codehaus.stax2.XMLStreamWriter2;
@@ -26,6 +27,7 @@ import com.ctc.wstx.cfg.OutputConfigFlags;
 import com.ctc.wstx.exc.*;
 import com.ctc.wstx.io.AttrValueEscapingWriter;
 import com.ctc.wstx.io.TextEscapingWriter;
+import com.ctc.wstx.sr.ElemIterCallback;
 import com.ctc.wstx.util.StringUtil;
 
 /**
@@ -300,7 +302,7 @@ public abstract class BaseStreamWriter
         }
 
         try {
-            TextEscapingWriter.writeEscapedXMLText(mWriter, text, start, len);
+            mTextWriter.write(text, start, len);
         } catch (IOException ioe) {
             throw new WstxIOException(ioe);
         }
@@ -327,7 +329,7 @@ public abstract class BaseStreamWriter
 
         // Ok, let's just write it out:
         try {
-            TextEscapingWriter.writeEscapedXMLText(mWriter, text);
+            mTextWriter.write(text);
         } catch (IOException ioe) {
             throw new WstxIOException(ioe);
         }
@@ -591,6 +593,13 @@ public abstract class BaseStreamWriter
         // !!! TBI
     }
 
+    public void writeDTD(DTDInfo info)
+        throws XMLStreamException
+    {
+        writeDTD(info.getDTDRootName(), info.getDTDSystemId(),
+                 info.getDTDPublicId(), info.getDTDInternalSubset());
+    }
+
     public void writeDTD(String rootName, String systemId, String publicId,
                          String internalSubset)
         throws XMLStreamException
@@ -698,8 +707,7 @@ public abstract class BaseStreamWriter
                 /* Element start/end events:
                  */
             case START_ELEMENT:
-                // !!! TBI
-
+                copyStartElement(sr, preserveEventData);
                 return;
 
             case END_ELEMENT:
@@ -733,7 +741,11 @@ public abstract class BaseStreamWriter
                 return;
                 
             case COMMENT:
-                // !!! TBI
+                // !!! TBI: Structural etc checks
+                mWriter.write("<!--");
+                sr.getText(mWriter, preserveEventData);
+                mWriter.write("-->");
+                return;
 
             case PROCESSING_INSTRUCTION:
                 {
@@ -750,7 +762,26 @@ public abstract class BaseStreamWriter
                 return;
                 
             case DTD:
-                // !!! TBI
+                {
+                    DTDInfo info = sr.getDTDInfo();
+                    if (info == null) {
+                        /* Hmmmh. It is legal for this to happen, for
+                         * non-DTD-aware readers. But what is the right
+                         * thing to do here? DOCTYPE can not be output
+                         * without the root name, and if we can not access
+                         * it, there's no way to write a valid thing.
+                         * So, let's just throw an exception.
+                         */
+                        throw new IllegalArgumentException("Current state DOCTYPE, but not DTDInfo Object returned -- reader doesn't support DTDs?");
+                    }
+                    /* Could optimize this a bit (stream the int. subset
+                     * possible), but it's never going to occur more than
+                     * once per document, so it's probably not much of a
+                     * bottleneck, ever
+                     */
+                    writeDTD(info);
+                }
+                return;
                 
             case ENTITY_REFERENCE:
                 writeEntityRef(sr.getLocalName());
@@ -779,11 +810,22 @@ public abstract class BaseStreamWriter
      */
 
     /**
-     * Method needed by {@link com.ctc.wstx.evt.WstxEventWriter}, when it needs/wants to
+     * Method needed by {@link com.ctc.wstx.evt.WstxEventWriter}, when it
+     * needs/wants to
      * do direct output, without calling methods in this class (not often).
      */
     public Writer getWriter() {
         return mWriter;
+    }
+
+    /*
+    public abstract void copyStartElement(XMLStreamReader2 sr, boolean preserveEventData)
+        throws XMLStreamException;
+    */
+    public void copyStartElement(XMLStreamReader2 sr, boolean preserveEventData)
+        throws XMLStreamException
+    {
+        // !!! TBI
     }
 
     /**
@@ -926,5 +968,39 @@ public abstract class BaseStreamWriter
         throws XMLStreamException
     {
         throw new WstxIOException(ioe);
+    }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Helper classes:
+    ////////////////////////////////////////////////////
+     */
+
+    final static class ElementWriter
+        extends ElemIterCallback
+    {
+        final BaseStreamWriter mWriter;
+
+        public ElementWriter(BaseStreamWriter sw) {
+            mWriter = sw;
+        }
+
+        public void iterateElement(String prefix, String localName,
+                                   String nsURI, boolean isEmpty)
+            throws XMLStreamException
+        {
+        }
+        
+        public void iterateNamespace(String prefix, String nsURI)
+            throws XMLStreamException
+        {
+        }
+        
+        public void iterateAttribute(String prefix, String localName,
+                                     String nsURI, boolean isSpecified,
+                                     String value)
+            throws XMLStreamException
+        {
+        }
     }
 }

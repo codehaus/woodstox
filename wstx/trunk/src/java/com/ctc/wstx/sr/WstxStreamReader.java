@@ -63,6 +63,11 @@ import com.ctc.wstx.util.URLUtil;
  *    all Unicode chars except for markup (and null char) is passed through.
  *   </li>
  * </ul>
+ *<p>
+ * About interfaces implemented: {@link XMLStreamReader2} is part of StAX2,
+ * and implemented as the "main" interface. Implementing {@link DTDInfo} is
+ * just an implementation detail; it could be implemented as a separate
+ * Object if necessary.
  */
 public class WstxStreamReader
     extends StreamScanner
@@ -1235,21 +1240,17 @@ public class WstxStreamReader
         return mTextBuffer.contentsAsArray();
     }
 
+
     /*
-    ////////////////////////////////////////////////////
-    // Extended Woodstox-specific interface
-    ////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////
+    // Methods used by core Woodstox classes (only public
+    // since callers may be from other packages)
+    //////////////////////////////////////////////////////
      */
 
     public EntityDecl getCurrentEntityDecl() {
         return mCurrEntity;
     }
-
-    /*
-    ////////////////////////////////////////////////////
-    // Methods used by core Woodstox classes
-    ////////////////////////////////////////////////////
-     */
 
     /**
      * Method called by {@link com.ctc.wstx.evt.DefaultEventAllocator}
@@ -1268,6 +1269,28 @@ public class WstxStreamReader
                                    mElementStack.createNonTransientNsContext(loc),
                                    mAttrCollector.buildAttrOb(),
                                    mStEmptyElem);
+    }
+
+    /**
+     * Method that can be called to get set of callbacks for the current
+     * start element. Used internally by the stream writer implementation,
+     * to get somewhat more efficient access to all aspects of the current
+     * start element.
+     *<p>
+     * Note: caller is expected to ensure that the current event is indeed
+     * START_ELEMENT -- no effort is made to do sanity checks from this
+     * point on.
+     */
+    public void iterateStartElement(ElemIterCallback cb)
+        throws XMLStreamException
+    {
+        /* First, let's call the callback matching element info,
+         * and namespace declarations (if any)
+         */
+        mElementStack.iterateElement(cb, mStEmptyElem);
+
+        // And then, attribute info:
+        mAttrCollector.iterateAttributes(cb);
     }
 
     /*

@@ -17,6 +17,7 @@ package com.ctc.wstx.sr;
 
 import javax.xml.XMLConstants;
 import javax.xml.stream.Location;
+import javax.xml.stream.XMLStreamException;
 import javax.xml.namespace.QName;
 
 import com.ctc.wstx.exc.WstxException;
@@ -214,6 +215,15 @@ public abstract class AttributeCollector
     public boolean isSpecified(int index) {
         return (index < mNonDefCount);
     }
+
+    /**
+     * Method called by the stream reader (and/or other Woodstox classes)
+     * to get information about all the attributes of the current
+     * start element, via callback Object passed in as the argument.
+     * This is potentially more efficient than calling separate accessors.
+     */
+    public abstract void iterateAttributes(ElemIterCallback cb)
+        throws XMLStreamException;
 
     /*
     ///////////////////////////////////////////////

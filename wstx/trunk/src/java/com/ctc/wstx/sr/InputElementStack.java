@@ -203,6 +203,9 @@ public abstract class InputElementStack
 
     public abstract String getTopElementDesc();
 
+    public abstract void iterateElement(ElemIterCallback cb, boolean isEmpty)
+        throws XMLStreamException;
+
     // // // Namespace information:
 
     public abstract int getTotalNsCount();

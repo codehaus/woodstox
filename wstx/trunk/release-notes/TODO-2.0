@@ -39,7 +39,9 @@ Must-haves for 2.0
    * XMLInputFactory2:
       [DONE] * Create URL/file-based factory methods for readers
    * XMLOutputFactory2: need for any new methods?
-      [DONE] * XMLStreamLocation2: allow access to nested location information
+   * XMLStreamLocation2:
+      [DONE] * allow access to nested location information
+      * Long-valued accessors (and implementation)
    * XMLStreamReader2:
       [DONE] * getFeature/setFeature: allow overriding DTD to use?
       [DONE] * Traversal: skipElement()

@@ -222,6 +222,7 @@ public class TextEscapingWriter
         }
     }
 
+    /*
     public static void writeEscapedXMLText(Writer w, char[] ch, int offset, int len)
         throws IOException
     {
@@ -257,4 +258,5 @@ public class TextEscapingWriter
             }
         } while (++i < len);
     }
+    */
 }
