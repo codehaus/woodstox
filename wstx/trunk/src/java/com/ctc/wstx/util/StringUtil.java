@@ -141,23 +141,76 @@ public final class StringUtil
         return sb.toString();
     }
 
-    public static boolean isAllWhitespace(String str) {
+    public static boolean isAllWhitespace(String str)
+    {
         for (int i = 0, len = str.length(); i < len; ++i) {
-            if (str.charAt(i) > 0x0020) {
+            if (str.charAt(i) > CHAR_SPACE) {
                 return false;
             }
         }
         return true;
     }
 
-    public static boolean isAllWhitespace(char[] ch, int start, int len) {
+    public static boolean isAllWhitespace(char[] ch, int start, int len)
+    {
         len += start;
         for (; start < len; ++start) {
-            if (ch[start] > 0x0020) {
+            if (ch[start] > CHAR_SPACE) {
                 return false;
             }
         }
         return true;
+    }
+
+    /**
+     * Internal constant used to denote END-OF-STRING
+     */
+    private final static int EOS = 0x10000;
+
+    /**
+     * Method that implements a loose String compairon for encoding
+     * Strings. It will work like {@link String#equalsIgnoreCase},
+     * except that it will also ignore all hyphen, underscore and
+     * space characters.
+     */
+    public static boolean equalEncodings(String str1, String str2)
+    {
+        int len1 = str1.length();
+        int len2 = str2.length();
+
+        int i1 = 0, i2 = 0;
+
+        // Need to loop completely over both Strings
+        while (i1 < len1 || i2 < len2) {
+            int c1 = (i1 >= len1) ?  EOS : str1.charAt(i1++);
+            int c2 = (i2 >= len2) ?  EOS : str2.charAt(i2++);
+
+            // Can first do a quick comparison (usually they are equal)
+            if (c1 == c2) {
+                continue;
+            }
+
+            // if not equal, maybe there are WS/hyphen/underscores to skip
+            while (c1 <= CHAR_SPACE || c1 == '_' || c1 == '-') {
+                c1 = (i1 >= len1) ?  EOS : str1.charAt(i1++);
+            }
+            while (c2 <= CHAR_SPACE || c2 == '_' || c2 == '-') {
+                c2 = (i2 >= len2) ?  EOS : str2.charAt(i2++);
+            }
+            // Ok, how about case differences, then?
+            if (c1 != c2) {
+                // If one is EOF, can't match (one is substring of the other)
+                if (c1 == EOS || c2 == EOS) {
+                    return false;
+                }
+                if (Character.toLowerCase((char)c1) != Character.toLowerCase((char)c2)) {
+                    return false;
+                }
+            }
+        }
+
+        // If we got this far, we are ok as long as we got through it all
+        return true; 
     }
 
     public static void main(String[] args)

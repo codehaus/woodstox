@@ -39,7 +39,7 @@ Sven Köhler:
     the UTF8 decoder Woodstox uses: this could cause "too early" blocking
     of readers, in cases where event(s) could be returned before needing
     to read more from underlying input stream.
-    [1.7]
+    [1.0.4, 1.7]
 
 Casey Bowman:
   * Pointed out the (potential) problem with javax.xml.stream.Location;

@@ -170,9 +170,9 @@ public final class ReaderBootstrapper
         }
 
         // UTF-8 has alias UTF8
-        appEnc = appEnc.toUpperCase();
-        if (appEnc.equals("UTF8")) {
-            if (mFoundEncoding.equals("UTF-8")) {
+        //appEnc = appEnc.toUpperCase();
+        if (appEnc.equalsIgnoreCase("UTF8")) {
+            if (mFoundEncoding.equalsIgnoreCase("UTF-8")) {
                 return;
             }
         }
