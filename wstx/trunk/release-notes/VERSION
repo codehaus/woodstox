@@ -1,8 +1,17 @@
-Version: 1.7
+Version: 1.8
 
-Release date: -Dev-2004
+Release date: -Dec-2004
 
 Description:
+  Another pre-2.0 release aimed at finishing up tasks required for 2.0.
+
+  New functionality:
+
+  Problems fixed:
+
+== History: ==
+
+1.7: [12-Dec-2004]
 
   New functionality:
     * Added P_OUTPUT_CDATA_AS_TEXT for stream writers; it will force
@@ -39,12 +48,14 @@ Description:
       "too early", as decoder was trying to always read full buffers,
       instead of returning whatever could be decoded without further reads
       from the underlying input stream (reported by Sven Köhler).
+    * Changed XMLEventReader.nextTag() implementation to be consistent
+      with that of XMLStreamReader.nextTag(), even though stax (1.0) specs
+      are bit unclear on exact behaviour. I assume it's just an oversight
+      on specs' part, as XMLStreamReader's javadocs comments are clear.
 
   Refactoring:
     * Rewrote stream writer; now has 3 implementations (separated
       single namespace-aware writer into 2; repairing and non-repairing)
-
-== History: ==
 
 1.6: [31-Oct-2004]
 

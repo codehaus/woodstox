@@ -225,6 +225,12 @@ public class WstxEventReader
             case END_DOCUMENT:
                 return null;
             case SPACE:
+                /* !!! 07-Dec-2004, TSa: Specs are mum about Comments and PIs.
+                 *  But why would they not be skipped just like what
+                 *  the stream reader does?
+                 */
+            case COMMENT:
+            case PROCESSING_INSTRUCTION:
                 break;
             case CDATA:
             case CHARACTERS:
@@ -237,8 +243,7 @@ public class WstxEventReader
             case START_ELEMENT:
             case END_ELEMENT:
                 return evt;
-            case COMMENT:
-            case PROCESSING_INSTRUCTION:
+
             default:
                 throwParseError("Received event "+mPeekedEvent.getEventType()+", instead of START_ELEMENT or END_ELEMENT.");
             }
@@ -250,6 +255,12 @@ public class WstxEventReader
             case END_DOCUMENT:
                 return null;
             case SPACE:
+                /* !!! 07-Dec-2004, TSa: Specs are mum about Comments and PIs.
+                 *  But why would they not be skipped just like what
+                 *  the stream reader does?
+                 */
+            case COMMENT:
+            case PROCESSING_INSTRUCTION:
                 continue;
             case CDATA:
             case CHARACTERS:
@@ -260,8 +271,7 @@ public class WstxEventReader
             case START_ELEMENT:
             case END_ELEMENT:
                 return createNextEvent(false, next);
-            case COMMENT:
-            case PROCESSING_INSTRUCTION:
+
             default:
                 throwParseError("Received event "+next+", instead of START_ELEMENT or END_ELEMENT.");
             }

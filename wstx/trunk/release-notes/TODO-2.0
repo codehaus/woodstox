@@ -25,6 +25,7 @@ Must-haves for 2.0
       * getText with Writer arg
       * getAttributeIndex
       * getIdAttributeIndex
+      * Separate DTD info access behind a new interface (DTDInfo?)
    * XMLStreamWriter2:
       * pass-through write method
    * XMLInputFactory2:

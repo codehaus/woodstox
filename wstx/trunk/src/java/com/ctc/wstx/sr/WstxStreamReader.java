@@ -894,10 +894,11 @@ public class WstxStreamReader
         }
 
         if (localName != null) {
-            if (curr != START_ELEMENT && curr != END_ELEMENT) {
-                throwParseError("Expected non-null local name, but current token not a START_ELEMENT or END_ELEMENT (was "+tokenTypeDesc(mCurrToken)+")");
+            if (curr != START_ELEMENT && curr != END_ELEMENT
+                && curr != ENTITY_REFERENCE) {
+                throwParseError("Expected non-null local name, but current token not a START_ELEMENT, END_ELEMENT or ENTITY_REFERENCE (was "+tokenTypeDesc(mCurrToken)+")");
             }
-            String n = mElementStack.getLocalName();
+            String n = getLocalName();
             if (n != localName && !n.equals(localName)) {
                 throwParseError("Expected local name '"+localName+"'; current local name '"+n+"'.");
             }
