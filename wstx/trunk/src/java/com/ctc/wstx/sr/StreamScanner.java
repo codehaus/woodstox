@@ -494,8 +494,7 @@ public abstract class StreamScanner
     protected void throwFromIOE(IOException ioe)
         throws WstxException
     {
-        WstxIOException newEx = new WstxIOException(ioe);
-        throw newEx;
+        throw new WstxIOException(ioe);
     }
 
     protected void throwFromStrE(XMLStreamException strex)

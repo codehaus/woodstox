@@ -193,14 +193,10 @@ public class NonNsStreamWriter
     public void writeEndElement()
         throws XMLStreamException
     {
-        /* Well, for one, we better have an open element in stack; otherwise
-         * there's no way to figure out which element name to use.
-         */
-        if (mElements.isEmpty()) {
+        if (mState != STATE_TREE) {
             throw new XMLStreamException("No open start element, when calling writeEndElement.");
         }
-
-        doWriteEndElement(mElements.removeLast());
+        doWriteEndElement(mElements.removeLast(), mCfgOutputEmptyElems);
     }
 
     public void writeNamespace(String prefix, String nsURI)
@@ -226,6 +222,26 @@ public class NonNsStreamWriter
         throws XMLStreamException
     {
         writeStartElement(localName);
+    }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Remaining XMLStreamWriter2 methods (StAX2)
+    ////////////////////////////////////////////////////
+     */
+
+    /**
+     * Similar to {@link #writeEndElement}, but never allows implicit
+     * creation of empty elements.
+     */
+    public void writeFullEndElement()
+        throws XMLStreamException
+    {
+        // Better have something to close... (to figure out what to close)
+        if (mState != STATE_TREE) {
+            throw new XMLStreamException("No open start element, when calling writeFullEndElement.");
+        }
+        doWriteEndElement(mElements.removeLast(), false);
     }
     
     /*
@@ -274,7 +290,7 @@ public class NonNsStreamWriter
                 mElements.removeLast();
             }
         }
-        doWriteEndElement(local);
+        doWriteEndElement(local, mCfgOutputEmptyElems);
     }
 
     /**
@@ -354,8 +370,14 @@ public class NonNsStreamWriter
      *<p>
      * Note: Caller has to do actual removal of the element from element
      * stack, before calling this method.
+     *
+     * @param localName Name of the closing element; since this is a
+     *   non-namespace-aware writer, may also contain prefix
+     * @param allowEmpty If true, is allowed to create the empty element
+     *   if the closing element was truly empty; if false, has to write
+     *   the full empty element no matter what
      */
-    private void doWriteEndElement(String localName)
+    private void doWriteEndElement(String localName, boolean allowEmpty)
         throws XMLStreamException
     {
         if (mStartElementOpen) {
@@ -365,7 +387,7 @@ public class NonNsStreamWriter
             mStartElementOpen = false;
             try {
                 // We could write an empty element, implicitly?
-                if (!mEmptyElement && mCfgOutputEmptyElems) {
+                if (allowEmpty) {
                     // Extra space for readability
                     mWriter.write(" />");
                     if (mElements.isEmpty()) {

@@ -105,7 +105,9 @@ public abstract class BaseStreamWriter
     protected boolean mStartElementOpen = false;
 
     /**
-     * Flag that indicates that current element is an empty element.
+     * Flag that indicates that current element is an empty element (one
+     * that is explicitly defined as one, by calling a method -- NOT one
+     * that just happens to be empty).
      * This is needed to know what to do when next non-ns/attr node
      * is output; normally a new context is opened, but for empty
      * elements not.
@@ -528,7 +530,7 @@ public abstract class BaseStreamWriter
     
     /*
     ////////////////////////////////////////////////////
-    // XMLStreamWriter2 methods (StAX 2)
+    // XMLStreamWriter2 methods (StAX2)
     ////////////////////////////////////////////////////
      */
 
@@ -575,6 +577,8 @@ public abstract class BaseStreamWriter
             throw new XMLStreamException(ioe);
         }
     }
+
+    public abstract void writeFullEndElement() throws XMLStreamException;
 
     public void writeRaw(String text)
         throws XMLStreamException

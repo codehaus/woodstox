@@ -38,6 +38,22 @@ public interface XMLStreamReader2
 
     /*
     /////////////////////////////////
+    // Additional event traversing
+    /////////////////////////////////
+    */
+
+    /**
+     * Method that will skip all the contents of the element that the
+     * stream currently points to. Current event when calling the method
+     * has to be START_ELEMENT (or otherwise {@link IllegalStateException}
+     * is thrown); after the call the stream will point to the matching
+     * END_ELEMENT event, having skipped zero or more intervening events
+     * for the contents.
+     */
+    public void skipElement() throws XMLStreamException;
+
+    /*
+    /////////////////////////////////
     // Additional DTD access
     /////////////////////////////////
     */
@@ -48,6 +64,11 @@ public interface XMLStreamReader2
      * it. Implementations can also choose to return null to indicate they
      * do not provide extra information; but they should not throw any
      * exceptions beyond normal parsing exceptions.
+     *
+     * @return Information object for accessing further DOCTYPE information,
+     *   iff the reader currently points to DTD event, AND is operating
+     *   in mode that parses such information (DTD-aware at least, and
+     *   usually also validating)
      */
     public DTDInfo getDTDInfo() throws XMLStreamException;
 
@@ -58,24 +79,13 @@ public interface XMLStreamReader2
     */
 
     /**
-     * @return Index of the specified attribute, if the current element
-     *   has such an attribute (explicit, or one created via default
-     *   value expansion); -1 if not.
-     *
-     * @throws IllegalStateException
-     *   if current node is not a START_ELEMENT
+     * Method that can be called to get additional information about
+     * attributes related to the current start element, as well as
+     * related DTD-based information if available. Note that the
+     * reader has to currently point to START_ELEMENT; if not,
+     * a {@link IllegalStateException} will be thrown.
      */
-    public int getAttributeIndex(String nsURI, String localName);
-
-    /**
-     * @return Index of the specified ID attribute (attribute that has
-     *   DTD-defined type of ID), if the current element has such an
-     *   attribute defined; -1 if not.
-     *
-     * @throws IllegalStateException
-     *   if current node is not a START_ELEMENT
-     */
-    public int getIdAttributeIndex(String nsURI, String localName);
+    public AttributeInfo getAttributeInfo() throws XMLStreamException;
 
     /*
     ///////////////////////////////

@@ -26,6 +26,7 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
 
+import org.codehaus.stax2.AttributeInfo;
 import org.codehaus.stax2.DTDInfo;
 import org.codehaus.stax2.XMLStreamReader2;
 
@@ -1033,11 +1034,11 @@ public class WstxStreamReader
 
     /*
     ////////////////////////////////////////////////////
-    // XMLStreamReader2 implementation
+    // XMLStreamReader2 (StAX2) implementation
     ////////////////////////////////////////////////////
      */
 
-    // // // StAX 2, per-reader configuration
+    // // // StAX2, per-reader configuration
 
     public Object getFeature(String name)
     {
@@ -1051,6 +1052,41 @@ public class WstxStreamReader
          * 
          * - Per reader DTD override (by URL, or pre-parsed DTD)
          */
+    }
+
+    // // // StAX2, additional traversal methods
+
+    public void skipElement() throws XMLStreamException
+    {
+        if (mCurrToken != START_ELEMENT) {
+            throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
+        }
+        int nesting = 1; // need one more end elements than start elements
+
+        while (true) {
+            int type = next();
+            if (type == START_ELEMENT) {
+                ++nesting;
+            } else if (type == END_ELEMENT) {
+                if (--nesting == 0) {
+                    break;
+                }
+            }
+        }
+    }
+
+    // // // StAX2, additional attribute access
+
+    public AttributeInfo getAttributeInfo() throws XMLStreamException
+    {
+        if (mCurrToken != START_ELEMENT) {
+            throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
+        }
+        /* Although attribute collector knows about specific parsed
+         * information, the element stack has DTD-derived information (if
+         * any)... and knows how to call attribute collector when necessary.
+         */
+        return mElementStack;
     }
 
     public int getAttributeIndex(String nsURI, String localName)
@@ -1077,7 +1113,32 @@ public class WstxStreamReader
         return -1;
     }
 
-    // // // StAX 2, Pass-through text accessors
+    // // // StAX2, Additional DTD access
+
+    /**
+     * Since this class implements {@link DTDInfo}, method can just
+     * return <code>this</code>.
+     */
+    public DTDInfo getDTDInfo() throws XMLStreamException
+    {
+        /* Let's not allow it to be accessed during other events -- that
+         * way callers won't count on it being available afterwards.
+         */
+        if (mCurrToken != DTD) {
+            return null;
+        }
+        if (mStTokenUnfinished) { // need to fully read it in now
+            try {
+                finishToken();
+            } catch (IOException ie) {
+                throwFromIOE(ie);
+            }
+        }
+        return this;
+    }
+
+
+    // // // StAX2, Pass-through text accessors
 
 
     /**
@@ -1116,28 +1177,6 @@ public class WstxStreamReader
     }
 
     // // // StAX 2, Other accessors
-
-    /**
-     * Since this class implements {@link DTDInfo}, method can just
-     * return <code>this</code>.
-     */
-    public DTDInfo getDTDInfo() throws XMLStreamException
-    {
-        /* Let's not allow it to be accessed during other events -- that
-         * way callers won't count on it being available afterwards.
-         */
-        if (mCurrToken != DTD) {
-            return null;
-        }
-        if (mStTokenUnfinished) { // need to fully read it in now
-            try {
-                finishToken();
-            } catch (IOException ie) {
-                throwFromIOE(ie);
-            }
-        }
-        return this;
-    }
 
     /**
      * @return Number of open elements in the stack; 0 when parser is in

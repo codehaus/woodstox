@@ -271,7 +271,7 @@ public abstract class BaseNsStreamWriter
         String prefix = mCurrElem.getPrefix();
         String localName = mCurrElem.getLocalName();
         mCurrElem = mCurrElem.getParent();
-        doWriteEndElement(prefix, localName);
+        doWriteEndElement(prefix, localName, mCfgOutputEmptyElems);
     }
 
     /**
@@ -304,6 +304,30 @@ public abstract class BaseNsStreamWriter
     {
         writeStartOrEmpty(prefix, localName, nsURI);
         mEmptyElement = false;
+    }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Remaining XMLStreamWriter2 methods (StAX2)
+    ////////////////////////////////////////////////////
+     */
+
+    /**
+     * Similar to {@link #writeEndElement}, but never allows implicit
+     * creation of empty elements.
+     */
+    public void writeFullEndElement()
+        throws XMLStreamException
+    {
+        // Better have something to close... (to figure out what to close)
+        if (mState != STATE_TREE) {
+            throw new XMLStreamException("No open start element, when calling writeFullEndElement.");
+        }
+
+        String prefix = mCurrElem.getPrefix();
+        String localName = mCurrElem.getLocalName();
+        mCurrElem = mCurrElem.getParent();
+        doWriteEndElement(prefix, localName, false);
     }
 
     /*
@@ -347,7 +371,7 @@ public abstract class BaseNsStreamWriter
             // ... except if no checking is to be done, and we are at root already
             mCurrElem = mCurrElem.getParent();
         }
-        doWriteEndElement(prefix, local);
+        doWriteEndElement(prefix, local, mCfgOutputEmptyElems);
     }
 
     /**
@@ -460,8 +484,17 @@ public abstract class BaseNsStreamWriter
      *<p>
      * Note: Caller has to do actual removal of the element from element
      * stack, before calling this method.
+     *
+     * @param prefix String prefix that has to be used (to match start
+     *   element); null if none.
+     * @param localName Local name of the closing element (not including
+     *   the prefix, that is)
+     * @param allowEmpty If true, is allowed to create the empty element
+     *   if the closing element was truly empty; if false, has to write
+     *   the full empty element no matter what
      */
-    protected void doWriteEndElement(String prefix, String localName)
+    protected void doWriteEndElement(String prefix, String localName,
+                                     boolean allowEmpty)
         throws XMLStreamException
     {
         if (mStartElementOpen) {
@@ -475,7 +508,7 @@ public abstract class BaseNsStreamWriter
             
             try {
                 // We could write an empty element, implicitly?
-                if (!mEmptyElement && mCfgOutputEmptyElems) {
+                if (allowEmpty) {
                     // Extra space for readability
                     mWriter.write(" />");
                     if (mCurrElem.isRoot()) {

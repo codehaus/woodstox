@@ -44,6 +44,15 @@ public interface XMLStreamWriter2
                          String internalSubset)
         throws XMLStreamException;
 
+    /**
+     * Method similar to {@link #writeEndElement}, but that will always
+     * write the full end element, instead of empty element. This only
+     * matters for cases where the element itself has no content, and
+     * if writer is allowed to write empty elements when it encounters
+     * such start/end element write pairs.
+     */
+    public void writeFullEndElement() throws XMLStreamException;
+
     /*
     ///////////////////////////
     // Pass-through methdods

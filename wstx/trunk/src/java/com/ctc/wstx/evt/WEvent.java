@@ -22,7 +22,10 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.Location;
 import javax.xml.stream.XMLEventFactory;
 import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 import javax.xml.stream.events.*;
+
+import org.codehaus.stax2.evt.XMLEvent2;
 
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.compat.JdkFeatures;
@@ -30,7 +33,7 @@ import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.exc.WstxIOException;
 
 public abstract class WEvent
-    implements XMLEvent
+    implements XMLEvent2
 {
     /**
      * Location where token started; exact definition may depends
@@ -117,6 +120,17 @@ public abstract class WEvent
 
     public abstract void writeAsEncodedUnicode(Writer w)
         throws XMLStreamException;
+
+    /*
+    //////////////////////////////////////////////
+    // XMLEvent2 (StAX2)
+    //////////////////////////////////////////////
+     */
+
+    public void writeUsing(XMLStreamWriter w) throws XMLStreamException
+    {
+        // !!! TBI
+    }
 
     /*
     ///////////////////////////////////////////

@@ -84,14 +84,7 @@ public final class DefaultInputResolver
          * caching, halving the speed due to copy operations needed), so
          * let's avoid it.
          */
-        InputStream in;
-
-        if ("file".equals(resolvedURL.getProtocol())) {
-            in = new FileInputStream(resolvedURL.getPath());
-        } else {
-            in = resolvedURL.openStream();
-        }
-
+        InputStream in = URLUtil.optimizedStreamFromURL(resolvedURL);
         int bufLen = (refCtxt == null) ? DEFAULT_BUFFER_SIZE : refCtxt.getInputBufferLength();
         StreamBootstrapper bs = StreamBootstrapper.getInstance(in, publicId, systemId, bufLen);
         /* !!! TBI: Should try to figure out how to pass XMLReporter here,

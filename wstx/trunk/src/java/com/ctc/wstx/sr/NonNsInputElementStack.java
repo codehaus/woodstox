@@ -175,6 +175,17 @@ public class NonNsInputElementStack
 
     /*
     ///////////////////////////////////////////////////
+    // AttributeInfo methods (StAX2)
+    ///////////////////////////////////////////////////
+     */
+
+    public int getAttributeIndex(String nsURI, String localName)
+    {
+        return mAttrCollector.findIndex(nsURI, localName);
+    }
+
+    /*
+    ///////////////////////////////////////////////////
     // Accessors:
     ///////////////////////////////////////////////////
      */

@@ -24,6 +24,8 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
 
+import org.codehaus.stax2.AttributeInfo;
+
 import com.ctc.wstx.cfg.InputConfigFlags;
 import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.util.BaseNsContext;
@@ -46,7 +48,7 @@ import com.ctc.wstx.util.TextBuilder;
  * instance as necesary.
  */
 public abstract class InputElementStack
-    implements NamespaceContext,
+    implements AttributeInfo, NamespaceContext,
       InputConfigFlags
 {
     /**
@@ -127,9 +129,29 @@ public abstract class InputElementStack
 
     /*
     ///////////////////////////////////////////////////
-    // Public methods
+    // AttributeInfo methods (StAX2)
     ///////////////////////////////////////////////////
      */
+
+    public abstract int getAttributeIndex(String nsURI, String localName);
+
+    /**
+     * Default implementation just indicates it does not know of such
+     * attributes; this because that requires DTD information that only
+     * some implementations have.
+     */
+    public int getIdAttributeIndex() {
+        return -1;
+    }
+
+    /**
+     * Default implementation just indicates it does not know of such
+     * attributes; this because that requires DTD information that only
+     * some implementations have.
+     */
+    public int getNotationAttributeIndex() {
+        return -1;
+    }
 
     /*
     ///////////////////////////////////////////////////

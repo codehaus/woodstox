@@ -1,5 +1,7 @@
 package com.ctc.wstx.util;
 
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.net.MalformedURLException;
@@ -53,6 +55,20 @@ public final class URLUtil
             throwIOException(e, sysId);
             return null; // never gets here
         }
+    }
+
+    /**
+     * Method that tries to get optimal stream to read from the specified
+     * URL. Currently it just means creating a simple file stream if the
+     * URL points to a (local) file.
+     */
+    public static InputStream optimizedStreamFromURL(URL url)
+        throws IOException
+    {
+        if ("file".equals(url.getProtocol())) {
+            return new FileInputStream(url.getPath());
+        }
+        return url.openStream();
     }
 
     /*

@@ -15,11 +15,7 @@
 
 package com.ctc.wstx.stax;
 
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.IOException;
-import java.io.Reader;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.net.URL;
 import java.util.*;
 
@@ -30,7 +26,9 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.stream.StreamSource;
 
+import org.codehaus.stax2.XMLEventReader2;
 import org.codehaus.stax2.XMLInputFactory2;
+import org.codehaus.stax2.XMLStreamReader2;
 
 import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.api.WstxInputProperties;
@@ -374,13 +372,59 @@ public final class WstxInputFactory
     } 
 
     /*
+    /////////////////////////////////////////////////////
+    // StAX2 implementation
+    /////////////////////////////////////////////////////
+     */
+
+    // // // StAX2, additional factory methods:
+
+    public XMLEventReader2 createXMLEventReader(URL src)
+        throws XMLStreamException
+    {
+        return new WstxEventReader(createEventAllocator(),
+                                   createXMLStreamReader(src));
+    }
+
+    public XMLEventReader2 createXMLEventReader(File f)
+        throws XMLStreamException
+    {
+        return new WstxEventReader(createEventAllocator(),
+                                   createXMLStreamReader(f));
+    }
+
+    public XMLStreamReader2 createXMLStreamReader(URL src)
+        throws XMLStreamException
+    {
+        try {
+            return createSR(src, URLUtil.optimizedStreamFromURL(src));
+        } catch (IOException ie) {
+            throw new WstxIOException(ie);
+        }
+    }
+
+    /**
+     * Convenience factory method that allows for parsing a document
+     * stored in the specified file.
+     */
+    public XMLStreamReader2 createXMLStreamReader(File f)
+        throws XMLStreamException
+    {
+        try {
+            return createSR(f.toURL(), new FileInputStream(f));
+        } catch (IOException ie) {
+            throw new WstxIOException(ie);
+        }
+    }
+
+    /*
     /////////////////////////////////////////
     // Woodstox-specific configuration access
     /////////////////////////////////////////
      */
 
     public ReaderConfig getConfig() {
-	return mConfig;
+        return mConfig;
     }
 
     /*
@@ -407,7 +451,13 @@ public final class WstxInputFactory
                 throw new WstxIOException(ie);
             }
         }
+        return createSR(systemId, bs, src);
+    }
 
+    private FullStreamReader createSR(String systemId, InputBootstrapper bs, 
+                                      URL src)
+        throws XMLStreamException
+    {
         Reader r;
         try {
             r = bs.bootstrapInput(true, getXMLReporter());
@@ -433,6 +483,16 @@ public final class WstxInputFactory
         } catch (IOException ie) {
             throw new XMLStreamException(ie);
         }
+    }
+
+    private FullStreamReader createSR(URL src, InputStream in)
+        throws XMLStreamException
+    {
+        String sysId = src.toExternalForm();
+        return createSR(sysId,
+                        StreamBootstrapper.getInstance
+                        (in, null, sysId, mConfig.getInputBufferLength()),
+                        src);
     }
 
     private FullStreamReader createSR(Source src)

@@ -19,31 +19,39 @@ Must-haves for 2.0
    * Event reader
    * Stream writer
    * Event writer
+   * StAX2!
+
+* Documentation:
+   * Impl. details, like: always interns names, preserves attribute value
+     orders.
 
 * StAX 2.0 features:
    * Package API classes to a separate jar (in addition to including them
      in woodstox jars)
-[DONE] * XMLEventReader2: add exception-aware next method
+   * XMLEventReader2:
+       [DONE] * Add exception-aware next method
+   * XMLEvent2:
+       * Add writeUsing(XMLStreamWriter)
    * XMLInputFactory2:
-       * Create URI-based factory methods for readers
-         (will create XMLStreamReader2 instances)
+       [DONE] * Create URL/file-based factory methods for readers
    * XMLOutputFactory2: need for any new methods?
 [DONE] * XMLStreamLocation2: allow access to nested location information
    * XMLStreamReader2:
       [Partial] * getFeature/setFeature: allow overriding DTD to use?
-      * getAttributeIndex
-      * getIdAttributeIndex
-      [DONE] * Misc: isEmptyElement, getDepth
+      [DONE] * Traversal: skipElement()
+      * Extra attribute access via AttributeInfo; getAttributeIndex, getIdAttributeIndex
       [DONE] * Separate DTD info access behind a new interface (DTDInfo?)
-      [Partial] * getText with Writer arg
+      [Partial] * Streaming access: getText with Writer arg
+      [DONE] * Misc: isEmptyElement, getDepth
    * XMLStreamWriter2:
       [Partial] * pass-through write method for outputting raw (non-encoded) stuff
-      [Partial?] * setFeature/getFeature
+      [Partial?] * setFeature/getFeature (which property/ies?)
       [DONE] * writeDTD to support DTD2
-   * XMLTextEncoder?
+      [DONE] * writeFullEndElement (for ensuring explict end tag)
 [DONE] * evt/DTD2: allow access to root name, system id, public id, int. subset
 [DONE] * evt/StartElement2: isEmptyElement()
 [DONE] * evt/XMLEventFactory2: factory methods for creating DTD2, StartElement2 instances
+   * EncodingWriterFactory, to create encoding writers for XML encoding
 
 ------------------------------------
 Maybe for 2.0?

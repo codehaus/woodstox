@@ -247,6 +247,52 @@ final class NonNsAttributeCollector
         return null;
     }
 
+    public int findIndex(String nsURI, String localName)
+    {
+        /* Note: most of the code is from getValue().. could refactor
+         * code, performance is bit of concern (one more method call
+         * if index access was separate).
+         * See comments on that method, for logics.
+         */
+
+        if (nsURI != null && nsURI.length() > 0) {
+            return -1;
+        }
+
+        // Primary hit?
+        int hashSize = mAttrHashSize;
+        if (hashSize == 0) { // sanity check, for 'no attributes'
+            return -1;
+        }
+        int hash = localName.hashCode();
+        int ix = mAttrMap[hash & (hashSize-1)];
+        if (ix == 0) { // nothing in here; no spills either
+            return -1;
+        }
+        --ix;
+
+        // Is primary candidate match?
+        String thisName = mAttrNames.getString(ix);
+        if (thisName == localName || thisName.equals(localName)) {
+            return ix;
+        }
+
+        /* Nope, need to traverse spill list, which has 2 entries for
+         * each spilled attribute id; first for hash value, second index.
+         */
+        for (int i = hashSize, len = mAttrSpillEnd; i < len; i += 2) {
+            if (mAttrMap[i] != hash) {
+                continue;
+            }
+            ix = mAttrMap[i+1];
+            thisName = mAttrNames.getString(ix);
+            if (thisName == localName || thisName.equals(localName)) {
+                return ix;
+            }
+        }
+        return -1;
+    }
+
     public TextBuilder getDefaultNsBuilder()
     {
         throwInternal();
