@@ -78,7 +78,10 @@ public final class WstxEventFactory
      * construction.
      */
     public DTD createDTD(String dtd) {
-        return new WDTD(mLocation, dtd, null);
+        /* !!! 19-Nov-2004, TSa: Not (entirely) correct -- this method
+         *   excepts full 'unparsed' DTD -- but WDTD expects components!
+         */
+        return new WDTD(mLocation, dtd);
     }
 
     public EndDocument createEndDocument() {

@@ -23,9 +23,9 @@ import java.util.Map;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
 import javax.xml.stream.Location;
-import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamException;
 
+import com.ctc.wstx.api.XMLStreamReader2;
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.dtd.DTDSubset;
 import com.ctc.wstx.ent.EntityDecl;
@@ -38,14 +38,14 @@ import com.ctc.wstx.util.TextBuilder;
 import com.ctc.wstx.util.URLUtil;
 
 /**
- * Implementation of {@link XMLStreamReader} that implements non-DTD
+ * Implementation of {@link XMLStreamReader2} that implements non-DTD
  * aware parts of XML handling (plus some minimal support for parsing
  * DOCTYPE declaration and skipping internal DTD subset if necessary).
  * It can be used as is, and it is also the superclass of the DTD-aware
  * implementation(s).
  *<p>
  * This class is also the lowest common denominator for all actual
- * {@link XMLStreamReader} implementations Woodstox will ever create.
+ * {@link XMLStreamReader2} implementations Woodstox will ever create.
  *<p>
  * Some notes about non-conformancy with XML specs:
  * <ul>
@@ -61,7 +61,7 @@ import com.ctc.wstx.util.URLUtil;
  */
 public class WstxStreamReader
     extends StreamScanner
-    implements XMLStreamReader
+    implements XMLStreamReader2
 {
     /**
      * StAX API expects null to indicate "no prefix", not an empty String...
@@ -1031,26 +1031,45 @@ public class WstxStreamReader
 
     /*
     ////////////////////////////////////////////////////
-    // Extended (non-StAX) public API:
+    // XMLStreamReader2 implementation
     ////////////////////////////////////////////////////
      */
+
+    public Object getFeature(String name)
+    {
+        // !!! TBI
+        return null;
+    }
+
+    public void setFeature(String name, Object value)
+    {
+        // !!! TBI
+    }
 
     /**
      *<p>
      * Note: DTD-handling sub-classes need to override this method.
      */
-    public DTDSubset getDTD() {
+    public Object getDTD() {
         return null;
     }
 
-    /**
-     * @return Full text of the DOCTYPE declaration
-     */
-    public String getDTDText() {
-        if (mCurrToken != DTD) {
-            return null;
+    public String getDTDRootName() {
+        if (mCurrToken == DTD) {
+            if (mRootPrefix == null) {
+                return mRootLName;
+            }
+            return mRootPrefix + ":" + mRootLName;
         }
-        return mTextBuffer.contentsAsString();
+        return null;
+    }
+
+    public String getDTDPublicId() {
+        return (mCurrToken == DTD) ? mDtdPublicId : null;
+    }
+
+    public String getDTDSystemId() {
+        return (mCurrToken == DTD) ? mDtdSystemId : null;
     }
 
     /**
@@ -1072,24 +1091,6 @@ public class WstxStreamReader
             text.substring(ix+1) : text.substring(ix+1, last);
     }
 
-    public String getDTDPublicId() {
-        if (mCurrToken != DTD) {
-            throw new IllegalStateException("getPublicId() can only be called when stream is in DTD state.");
-        }
-        return mDtdPublicId;
-    }
-
-    public String getDTDSystemId() {
-        if (mCurrToken != DTD) {
-            throw new IllegalStateException("getPublicId() can only be called when stream is in DTD state.");
-        }
-        return mDtdSystemId;
-    }
-
-    public EntityDecl getCurrentEntityDecl() {
-        return mCurrEntity;
-    }
-
     /**
      * @return Number of open elements in the stack; 0 when parser is in
      *  prolog/epilog, 1 inside root element and so on.
@@ -1099,11 +1100,30 @@ public class WstxStreamReader
     }
 
     /**
-     * @return True, if cursor points to a start element that is 'empty'
-     *    element (ends with '/>'); false otherwise.
+     * @return True, if cursor points to a start or end element that is
+     *    constructed from 'empty' element (ends with '/>');
+     *    false otherwise.
      */
     public boolean isEmptyElement() {
         return mStEmptyElem;
+    }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Extended Woodstox-specific interface
+    ////////////////////////////////////////////////////
+     */
+
+    /**
+     * @return Full text of the DOCTYPE declaration
+     */
+    public String getDTDText() {
+        return (mCurrToken == DTD) ?
+            mTextBuffer.contentsAsString() : null;
+    }
+
+    public EntityDecl getCurrentEntityDecl() {
+        return mCurrEntity;
     }
 
     /*

@@ -144,13 +144,19 @@ public class FullStreamReader
 
     /*
     ////////////////////////////////////////////////////
-    // Extended (non-StAX) public API:
+    // XMLStreamReader2
     ////////////////////////////////////////////////////
      */
 
-    public DTDSubset getDTD() {
+    public Object getDTD() {
         return mDTD;
     }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Extended (non-StAX) public API:
+    ////////////////////////////////////////////////////
+     */
 
     public void setDTDOverride(String pubId, String sysId)
         throws IOException, XMLStreamException

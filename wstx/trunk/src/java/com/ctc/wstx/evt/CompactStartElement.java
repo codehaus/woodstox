@@ -14,7 +14,6 @@ import javax.xml.stream.events.Attribute;
 import javax.xml.stream.events.StartElement;
 
 import com.ctc.wstx.sr.ElemAttrs;
-import com.ctc.wstx.sr.WstxStreamReader;
 import com.ctc.wstx.util.BaseNsContext;
 import com.ctc.wstx.util.EmptyIterator;
 import com.ctc.wstx.util.SingletonIterator;
@@ -77,16 +76,6 @@ public class CompactStartElement
         mAttrs = attrs;
         mRawAttrs = (attrs == null) ? null : attrs.getRawAttrs();
     }
-
-    /*
-    public static CompactStartElement construct(Location loc, XMLStreamReader r)
-    {
-        WstxStreamReader wr = (WstxStreamReader) r;
-        return new CompactStartElement(loc, wr.getName(),
-                                       wr.constructNsContext(loc),
-                                       wr.buildAttrList(loc));
-    }
-    */
 
     /*
     /////////////////////////////////////////////

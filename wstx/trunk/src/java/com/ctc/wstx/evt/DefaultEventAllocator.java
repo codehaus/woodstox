@@ -25,6 +25,7 @@ import javax.xml.stream.events.EntityDeclaration;
 import javax.xml.stream.util.XMLEventAllocator;
 import javax.xml.stream.util.XMLEventConsumer;
 
+import com.ctc.wstx.api.XMLStreamReader2;
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.dtd.DTDSubset;
 import com.ctc.wstx.ent.EntityDecl;
@@ -75,25 +76,22 @@ public class DefaultEventAllocator
         case COMMENT:
             return new WComment(loc, r.getText());
         case DTD:
-            {
-                DTDSubset ss;
-                String fullText;
-
-                // Not sure if we really need this defensive coding but...
-                if (r instanceof WstxStreamReader) {
-                    WstxStreamReader wr = (WstxStreamReader) r;
-                    ss = wr.getDTD();
-                    fullText = wr.getDTDText();
-                } else {
-                    ss = null;
-                    /* 16-Aug-2004, TSa: There's really no good way to find
-                     *   the correct full replacement... so can either
-                     *   assign null, or just the internal subset?
-                     */
-                    // ... let's choose the internal subset, for now...
-                    fullText = r.getText();
-                }
-                return new WDTD(loc, fullText, ss);
+            // Not sure if we really need this defensive coding but...
+            if (r instanceof XMLStreamReader2) {
+                XMLStreamReader2 sr2 = (XMLStreamReader2) r;
+                // !!! TBI
+                /*
+                  return new WDTD(loc, sr2.getDTD(), sr2.get
+                  ss = (DTDSubset) wr.getDTD();
+                  fullText = wr.getDTDText();
+                */
+                return null;
+            } else {
+                /* 16-Aug-2004, TSa: There's really no good way to find
+                 *   the correct full replacement... so can either
+                 *   assign null, or just the internal subset?
+                 */
+                return new WDTD(loc, r.getText());
             }
         case END_DOCUMENT:
             return new WEndDocument(loc);

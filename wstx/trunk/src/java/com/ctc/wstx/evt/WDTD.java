@@ -9,7 +9,6 @@ import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.DTD;
 
-import com.ctc.wstx.util.DataUtil;
 import com.ctc.wstx.dtd.DTDSubset;
 
 /**
@@ -20,7 +19,13 @@ public class WDTD
     extends WEvent
     implements DTD
 {
-    final String mContent;
+    final String mRootName;
+
+    final String mSystemId;
+
+    final String mPublicId;
+
+    final String mInternalSubset;
 
     /**
      * Internal DTD Object that contains combined information from internal
@@ -32,15 +37,80 @@ public class WDTD
 
     List mNotations = null;
 
-    public WDTD(Location loc, String content, DTDSubset dtd)
+    /*
+    /////////////////////////////////////////////////////
+    // Temporary objects
+    /////////////////////////////////////////////////////
+     */
+
+    /**
+     * String built from parts on (if) needed
+     */
+    transient String mFullText = null;
+
+    /*
+    /////////////////////////////////////////////////////
+    // Constuctors
+    /////////////////////////////////////////////////////
+     */
+
+    public WDTD(Location loc, DTDSubset dtd, String rootName,
+                String sysId, String pubId, String intSubset)
     {
         super(loc);
-        mContent = content;
         mDTD = dtd;
+        mRootName = rootName;
+        mSystemId = sysId;
+        mPublicId = pubId;
+        mInternalSubset = intSubset;
     }
 
-    public String getDocumentTypeDeclaration() {
-        return mContent;
+    /**
+     * Constructor used when only partial information is available...
+     */
+    public WDTD(Location loc, String intSubset)
+    {
+        this(loc, null, null, null, null, intSubset);
+    }
+
+    /*
+    /////////////////////////////////////////////////////
+    // Constuctors
+    /////////////////////////////////////////////////////
+     */
+    public String getDocumentTypeDeclaration()
+    {
+        if (mFullText == null) {
+            int len = 60;
+            if (mInternalSubset != null) {
+                len += mInternalSubset.length() + 4;
+            }
+            StringBuffer sb = new StringBuffer(len);
+            sb.append("<!DOCTYPE");
+            if (mRootName != null) {
+                sb.append(' ');
+                sb.append(mRootName);
+            }
+            if (mSystemId != null) {
+                if (mPublicId != null) {
+                    sb.append(" PUBLIC \"");
+                    sb.append(mPublicId);
+                    sb.append("\" ");
+                } else {
+                    sb.append(" SYSTEM \"");
+                }
+                sb.append(mSystemId);
+                sb.append('"');
+            }
+            if (mInternalSubset != null) {
+                sb.append(" [");
+                sb.append(mInternalSubset);
+                sb.append(']');
+            }
+            sb.append(">");
+            mFullText = sb.toString();
+        }
+        return mFullText;
     }
 
     public List getEntities() {
@@ -81,9 +151,16 @@ public class WDTD
         throws XMLStreamException
     {
         try {
-            w.write(mContent);
+            // !!! TBI
+            w.write(' ');
         } catch (IOException ie) {
             throwFromIOE(ie);
         }
     }
+
+    /*
+    ///////////////////////////////////////////
+    // Extended interface (DTD2)
+    ///////////////////////////////////////////
+     */
 }
