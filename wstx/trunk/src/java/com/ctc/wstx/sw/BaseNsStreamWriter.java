@@ -174,11 +174,16 @@ public abstract class BaseNsStreamWriter
     public void setPrefix(String prefix, String uri)
         throws XMLStreamException
     {
-        if (uri == null) {
-            throw new NullPointerException("Can not pass null 'uri' value");
-        }
         if (prefix == null) {
             throw new NullPointerException("Can not pass null 'prefix' value");
+        }
+        // Are we actually trying to set the default namespace?
+        if (prefix.length() == 0) {
+            setDefaultNamespace(uri);
+            return;
+        }
+        if (uri == null) {
+            throw new NullPointerException("Can not pass null 'uri' value");
         }
 
         /* 25-Sep-2004, TSa: Let's check that "xml" and "xmlns" are not

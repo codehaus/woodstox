@@ -81,12 +81,12 @@ public final class OutputElement
      * URI of the default namespace for this element; either inherited
      * from parent, or locally declared
      */
-    final String mDefaultNsUri;
+    String mDefaultNsUri;
 
     /**
      * Whether there is a local default namespace declaration or not
      */
-    final boolean mDefaultNsDeclared;
+    boolean mDefaultNsDeclared;
 
     boolean mDefaultNsOutput;
 
@@ -259,6 +259,8 @@ public final class OutputElement
         }
         return mNamespaces.findLastNonInterned(prefix);
     }
+
+    public String getDefaultNsUri() { return mDefaultNsUri; }
 
     public String getPrefix(String nsURI) {
         if (mDefaultNsUri.equals(nsURI)) {
@@ -570,9 +572,6 @@ public final class OutputElement
     public void addPrefix(String prefix, String nsURI)
         throws XMLStreamException
     {
-        if (nsURI == null) {
-            nsURI = "";
-        }
         /* 21-Sep-2004, TSa: If NS list was shared, need to first unshare
          *   it..
          */
@@ -584,6 +583,12 @@ public final class OutputElement
         }
         mNamespaces.addStrings(prefix, nsURI);
         mLocalNsEnd = mNamespaces.size();
+    }
+
+    public void setDefaultNs(String defNsUri)
+    {
+        mDefaultNsDeclared = true;
+        mDefaultNsUri = defNsUri;
     }
 
     public String generatePrefix(NamespaceContext ctxt)
@@ -798,22 +803,23 @@ public final class OutputElement
              *   the default namespace? At least if it's to be bound with
              *   a different URI?
              */
-            /* 11-Nov-2004, TSa: Yup, I believe it is... so let's check that
+            /* 07-Mar-2005, TSa: Actually, no; let's not check that, since
+             *   there may be cases where it needs to be changed (esp.
+             *   for repairing writer, which may need override the suggested
+             *   mapping)
              */
+            /*
             if (mDefaultNsUri != null && !mDefaultNsUri.equals(uri)) {
                 throw new XMLStreamException("Trying to re-declare default namespace from '"+mDefaultNsUri+"' to '"+uri+"'");
             }
+            */
             mDefaultNsUri = uri;
         }
 
         public void addNamespace(String prefix, String uri)
             throws XMLStreamException
         {
-            if (uri == null) {
-                uri = "";
-            }
-
-            if (prefix == null || prefix.length() == 0) {
+            if (prefix.length() == 0) {
                 setDefaultNsUri(uri);
                 return;
             }

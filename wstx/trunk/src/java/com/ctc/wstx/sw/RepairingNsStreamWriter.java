@@ -370,6 +370,31 @@ public class RepairingNsStreamWriter
     protected final String findOrCreatePrefix(String nsURI, boolean isElement)
         throws XMLStreamException
     {
+        /* 06-Feb-2005, TSa: Special care needs to be taken for the
+         *   "empty" (or missing) namespace:
+         */
+        if (nsURI.length() == 0) {
+            if (isElement) {
+                /* Since only the default namespace can be mapped to
+                 * the empty URI, the default namespace has to either
+                 * still point to the empty URI, or re-mapped to
+                 * point to it:
+                 */
+                String currURL = mCurrElem.getDefaultNsUri();
+                if (currURL != null && currURL.length() > 0) {
+                    // Need to clear it out...
+                    mCurrElem.setDefaultNs(currURL);
+                } // otherwise it was already "empty" namespace
+            } else {
+                /* Attributes never use the default namespace; missing
+                 * prefix always leads to the empty ns... so nothing
+                 * special is needed here.
+                 */
+                ;
+            }
+            // Either way, no prefix can be used:
+            return null;
+        }
         String prefix = mCurrElem.findPrefix(nsURI, isElement);
         if (prefix != null) {
             return prefix;
@@ -408,22 +433,15 @@ public class RepairingNsStreamWriter
     {
         /* 06-Feb-2005, TSa: Special care needs to be taken for the
          *   "empty" (or missing) namespace:
+         *   (see comments from findOrCreatePrefix())
          */
         if (nsURI.length() == 0) {
             if (isElement) {
-                /* Since only the default namespace can be mapped to
-                 * the empty URI, the default namespace has to either
-                 * still point to the empty URI, or re-mapped to
-                 * point to it:
-                 */
-                // !!! TBI
-            } else {
-                /* Attributes never use the default namespace; missing
-                 * prefix always leads to the empty ns... so nothing
-                 * special is needed here.
-                 */
-                ;
-            }
+                String currURL = mCurrElem.getDefaultNsUri();
+                if (currURL != null && currURL.length() > 0) {
+                    mCurrElem.setDefaultNs(currURL);
+                }
+            } // attributes are fine as is
             // Either way, no prefix can be used:
             return null;
         }
