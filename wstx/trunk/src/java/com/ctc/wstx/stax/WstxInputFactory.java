@@ -413,6 +413,10 @@ public final class WstxInputFactory
         return mConfig.willParseLazily();
     }
 
+    public boolean willSupportDTDPP() {
+        return mConfig.willSupportDTDPP();
+    }
+
     public int getInputBufferLength() {
         return mConfig.getInputBufferLength();
     }
@@ -495,6 +499,10 @@ public final class WstxInputFactory
         mConfig.doInternNsURIs(state);
     }
 
+    public void doReportAllTextAsCharacters(boolean state) {
+        mConfig.doReportAllTextAsCharacters(state);
+    }
+
     public void doReportPrologWhitespace(boolean state) {
         mConfig.doReportPrologWhitespace(state);
     }
@@ -507,12 +515,11 @@ public final class WstxInputFactory
         mConfig.doParseLazily(state);
     }
 
-    public void doReportAllTextAsCharacters(boolean state) {
-        mConfig.doReportAllTextAsCharacters(state);
+    public void doSupportDTDPP(boolean state) {
+        mConfig.doSupportDTDPP(state);
     }
 
-    public void setInputBufferLength(int value)
-    {
+    public void setInputBufferLength(int value) {
         mConfig.setInputBufferLength(value);
     }
 

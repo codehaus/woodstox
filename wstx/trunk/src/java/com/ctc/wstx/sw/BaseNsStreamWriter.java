@@ -397,7 +397,7 @@ public abstract class BaseNsStreamWriter
      *   is acceptable (can not be used for attributes)
      */
     protected String findOrCreatePrefix(String oldPrefix, String nsURI,
-                                      boolean defaultNsOk)
+					boolean defaultNsOk)
         throws XMLStreamException
     {
         String prefix = mCurrElem.findPrefix(nsURI, defaultNsOk);

@@ -347,6 +347,10 @@ public class MinimalInputFactory
         return mConfig.willParseLazily();
     }
 
+    public boolean willSupportDTDPP() {
+        return mConfig.willSupportDTDPP();
+    }
+
     public int getInputBufferLength() {
         return mConfig.getInputBufferLength();
     }
@@ -444,6 +448,10 @@ public class MinimalInputFactory
 
     public void doParseLazily(boolean state) {
         mConfig.doParseLazily(state);
+    }
+
+    public void doSupportDTDPP(boolean state) {
+        mConfig.doSupportDTDPP(state);
     }
 
     public void doReportAllTextAsCharacters(boolean state) {

@@ -1860,7 +1860,7 @@ public abstract class StreamScanner
      * likely to be a bottleneck for parsing.
      */
     protected final String parseSystemId(char quoteChar, boolean convertLFs,
-                                           String errorMsg)
+					 String errorMsg)
         throws IOException, WstxException
     {
         char[] buf = getNameBuffer(-1);

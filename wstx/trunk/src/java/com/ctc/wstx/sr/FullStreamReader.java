@@ -370,6 +370,10 @@ public class FullStreamReader
               * is less if so (no need to store content specs for one)
               */
              | CFG_VALIDATE_AGAINST_DTD
+	     /* Also, whether we support dtd++ or not may change construction
+	      * of settings... (currently does not, but could)
+	      */
+             | CFG_SUPPORT_DTDPP
              );
         
         if (pubId != null) {

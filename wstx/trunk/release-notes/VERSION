@@ -1,21 +1,32 @@
-Version: 1.6
+Version: 1.6.1
 
-Release date: 31-Oct-2004
+Release date: -Nov-2004
 
 Description:
-  First pre-2.0 version that has complete DTD validation (for input), as
-  well as fixes from 1.0.1 maintenance release.
+
+  New functionality:
+    * Adding basic support for DTD++:
+      * Can enable/disable support via normal property set mechanism
+      * Implements TARGETNS that allows proper mapping of prefixes
+        to namespace URIs in DTD.
+
+  Problems fixed:
+
+  Refactoring:
+    * Rewrote stream writer; now has 3 implementations (separated
+      single namespace-aware writer into 2; repairing and non-repairing)
+
+== History: ==
+
+1.6: [31-Oct-2004]
 
   New functionality:
     * Completed DTD validation, including full handling of all
-      attribute value types (for default values too).
+      attribute value types (for default values too); also better tested
+      via StaxTest now.
 
   Problems fixed:
     * Fixes from 1.0.1 incorporated.
-
-  Refactoring:
-
-== History: ==
 
 1.5: [13-Oct-2004]
 

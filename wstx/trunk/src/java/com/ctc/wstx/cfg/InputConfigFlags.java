@@ -151,6 +151,15 @@ public interface InputConfigFlags
      */
     final static int CFG_LAZY_PARSING = 0x8000;
 
+    // // // DTD++ support
+
+    /**
+     * If true, DTD-parser will recognize DTD++ features, and the validator
+     * will also use any such information found from DTD when DTD validation
+     * is enabled.
+     */
+    final static int CFG_SUPPORT_DTDPP = 0x00010000;
+
     /*
     //////////////////////////////////////////////////////
     // Other constants

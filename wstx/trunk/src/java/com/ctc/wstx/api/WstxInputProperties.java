@@ -108,6 +108,10 @@ public final class WstxInputProperties
 
     public final static String P_LAZY_PARSING = "com.ctc.wstx.lazyParsing";
 
+    // // // Enabling/disabling support for dtd++
+
+    public final static String P_SUPPORT_DTDPP = "com.ctc.wstx.supportDTDPP";
+
 
     /*
     ///////////////////////////////////////////////////////

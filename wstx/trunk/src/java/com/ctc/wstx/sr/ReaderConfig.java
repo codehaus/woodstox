@@ -58,6 +58,7 @@ public final class ReaderConfig
     public final static int PROP_REPORT_PROLOG_WS = 24;
     public final static int PROP_CACHE_DTDS = 25;
     public final static int PROP_LAZY_PARSING = 26;
+    public final static int PROP_SUPPORT_DTDPP = 27;
 
     // Object type properties
 
@@ -142,6 +143,10 @@ public final class ReaderConfig
          * to improve performance
          */
         | CFG_LAZY_PARSING
+	/* Also, let's enable dtd++ support (shouldn't hurt with non-dtd++
+	 * dtds)
+	 */
+        | CFG_SUPPORT_DTDPP
         ;
 
     /**
@@ -196,6 +201,8 @@ public final class ReaderConfig
                         new Integer(PROP_CACHE_DTDS));
         sProperties.put(WstxInputProperties.P_LAZY_PARSING,
                         new Integer(PROP_LAZY_PARSING));
+        sProperties.put(WstxInputProperties.P_SUPPORT_DTDPP,
+                        new Integer(PROP_SUPPORT_DTDPP));
 
         // Non-standard ones, non-flags:
 
@@ -428,6 +435,10 @@ public final class ReaderConfig
         return hasConfigFlags(CFG_LAZY_PARSING);
     }
 
+    public boolean willSupportDTDPP() {
+        return hasConfigFlags(CFG_SUPPORT_DTDPP);
+    }
+
     public int getInputBufferLength() { return mInputBufferLen; }
     public int getTextBufferLength() { return mTextBufferLen; }
 
@@ -519,6 +530,10 @@ public final class ReaderConfig
         setConfigFlag(CFG_REPORT_PROLOG_WS, state);
     }
 
+    public void doReportAllTextAsCharacters(boolean state) {
+        setConfigFlag(CFG_REPORT_ALL_TEXT_AS_CHARACTERS, state);
+    }
+
     public void doCacheDTDs(boolean state) {
         setConfigFlag(CFG_CACHE_DTDS, state);
     }
@@ -527,8 +542,8 @@ public final class ReaderConfig
         setConfigFlag(CFG_LAZY_PARSING, state);
     }
 
-    public void doReportAllTextAsCharacters(boolean state) {
-        setConfigFlag(CFG_REPORT_ALL_TEXT_AS_CHARACTERS, state);
+    public void doSupportDTDPP(boolean state) {
+        setConfigFlag(CFG_SUPPORT_DTDPP, state);
     }
 
     public void setInputBufferLength(int value)

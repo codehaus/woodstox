@@ -91,6 +91,8 @@ public class FullDTDReader
 
     final boolean mCfgValidate;
 
+    final boolean mCfgSupportDTDPP;
+
     /*
     //////////////////////////////////////////////////
     // Entity handling, parameter entities (PEs)
@@ -236,6 +238,29 @@ public class FullDTDReader
 
     /*
     //////////////////////////////////////////////////
+    // DTD++ support information
+    //////////////////////////////////////////////////
+     */
+
+    /**
+     * Flag that indicates if any DTD++ features have been encountered
+     * (in DTD++-supporting mode).
+     */
+    boolean mAnyDTDppFeatures = false;
+
+    /**
+     * Currently active default namespace URI.
+     */
+    String mDefaultNsURI = "";
+
+    /**
+     * Prefix-to-NsURI mappings for this DTD, if any: lazily
+     * constructed when needed
+     */
+    HashMap mNamespaces = null;
+
+    /*
+    //////////////////////////////////////////////////
     // Additional support for creating expanded output
     // of processed DTD.
     //////////////////////////////////////////////////
@@ -284,6 +309,7 @@ public class FullDTDReader
         mCfgNormalizeLFs = (cfgFlags & CFG_NORMALIZE_LFS) != 0;
         mCfgNormAttrs = (cfgFlags & CFG_NORMALIZE_ATTR_VALUES) != 0;
         mCfgValidate = (cfgFlags & CFG_VALIDATE_AGAINST_DTD) != 0;
+	mCfgSupportDTDPP = (cfgFlags & CFG_SUPPORT_DTDPP) != 0;
         mUsesPredefdEntities = false;
         mParamEntities = null;
         mRefdPEs = null;
@@ -475,7 +501,7 @@ public class FullDTDReader
                         char c = getNextExpanded();
                         if (c != ']' 
                             || (c = getNextExpanded()) != '>') {
-                            throwUnexpectedChar(c, "; expected ']]>' to close conditional include section.");
+                            throwDTDUnexpectedChar(c, "; expected ']]>' to close conditional include section.");
                         }
                     } finally {
                         if (suppress) {
@@ -494,9 +520,9 @@ public class FullDTDReader
             }
 
             if (mIsExternal) {
-                throwUnexpectedChar(i, SUFFIX_IN_DTD_EXTERNAL+"; expected a '<' to start a directive.");
+                throwDTDUnexpectedChar(i, SUFFIX_IN_DTD_EXTERNAL+"; expected a '<' to start a directive.");
             }
-            throwUnexpectedChar(i, SUFFIX_IN_DTD_INTERNAL+"; expected a '<' to start a directive, or \"]>\" to end internal subset.");
+            throwDTDUnexpectedChar(i, SUFFIX_IN_DTD_INTERNAL+"; expected a '<' to start a directive, or \"]>\" to end internal subset.");
         }
 
         // Ok; time to construct and return DTD data object.
@@ -547,11 +573,11 @@ public class FullDTDReader
          */
         if (c == '?') { // xml decl?
             skipPI();
-            //throwUnexpectedChar(c, " expected '!' to start a directive.");
+            //throwDTDUnexpectedChar(c, " expected '!' to start a directive.");
             return;
         }
         if (c != '!') { // nothing valid
-            throwUnexpectedChar(c, getErrorMsg()+"; expected '!' to start a directive");
+            throwDTDUnexpectedChar(c, getErrorMsg()+"; expected '!' to start a directive");
         }
 
         // ignore/include, comment, or directive
@@ -560,7 +586,7 @@ public class FullDTDReader
         if (c == '-') { // plain comment
             c = getNextExpanded();
             if (c != '-') {
-                throwUnexpectedChar(c, getErrorMsg()+"; expected '-' for a comment.");
+                throwDTDUnexpectedChar(c, getErrorMsg()+"; expected '-' for a comment.");
             }
             skipComment();
         } else if (c == '[') {
@@ -568,7 +594,7 @@ public class FullDTDReader
         } else if (c >= 'A' && c <= 'Z') {
             handleDeclaration(c);
         } else {
-            throwUnexpectedChar(c, getErrorMsg()+ErrorConsts.ERR_DTD_MAINLEVEL_KEYWORD);
+            throwDTDUnexpectedChar(c, getErrorMsg()+ErrorConsts.ERR_DTD_MAINLEVEL_KEYWORD);
         }
     }
 
@@ -601,11 +627,11 @@ public class FullDTDReader
             mFlattenWriter.enableOutput(mInputPtr);
             mFlattenWriter.output("<?");
             skipPI();
-            //throwUnexpectedChar(c, " expected '!' to start a directive.");
+            //throwDTDUnexpectedChar(c, " expected '!' to start a directive.");
             return;
         }
         if (c != '!') { // nothing valid
-            throwUnexpectedChar(c, getErrorMsg()+ErrorConsts.ERR_DTD_MAINLEVEL_KEYWORD);
+            throwDTDUnexpectedChar(c, getErrorMsg()+ErrorConsts.ERR_DTD_MAINLEVEL_KEYWORD);
         }
 
         // ignore/include, comment, or directive
@@ -614,7 +640,7 @@ public class FullDTDReader
         if (c == '-') { // plain comment
             c = getNextExpanded();
             if (c != '-') {
-                throwUnexpectedChar(c, getErrorMsg()+"; expected '-' for a comment.");
+                throwDTDUnexpectedChar(c, getErrorMsg()+"; expected '-' for a comment.");
             }
             boolean comm = mFlattenWriter.includeComments();
             if (comm) {
@@ -656,7 +682,7 @@ public class FullDTDReader
                     mFlattenWriter.output(c);
                     handleDeclaration(c);
                 } else {
-                    throwUnexpectedChar(c, getErrorMsg()+ErrorConsts.ERR_DTD_MAINLEVEL_KEYWORD);
+                    throwDTDUnexpectedChar(c, getErrorMsg()+ErrorConsts.ERR_DTD_MAINLEVEL_KEYWORD);
                 }
             }
         }
@@ -904,7 +930,7 @@ public class FullDTDReader
         }
         
         if (count == 0) {
-            throwUnexpectedChar(c, getErrorMsg()+"; expected a separating white space.");
+            throwDTDUnexpectedChar(c, getErrorMsg()+"; expected a separating white space.");
         }
         
         return c;
@@ -943,7 +969,7 @@ public class FullDTDReader
         
         // Should now get semicolon...
         if (c != ';') {
-            throwUnexpectedChar(c, getErrorMsg()+"; expected ';' to end parameter entity name.");
+            throwDTDUnexpectedChar(c, getErrorMsg()+"; expected ';' to end parameter entity name.");
         }
 
         if (mIsExternal) {
@@ -1046,7 +1072,7 @@ public class FullDTDReader
             if (isNameStartChar(firstChar)) {
                 ; // Ok, fine, let's fall to code that gets the identifier
             } else {
-                throwUnexpectedChar(firstChar, getErrorMsg()+extraError);
+                throwDTDUnexpectedChar(firstChar, getErrorMsg()+extraError);
             }
         }
 
@@ -1151,7 +1177,7 @@ public class FullDTDReader
             errId = "S" + errId;
         } else {
             if (!isNameStartChar(c)) {
-                throwUnexpectedChar(c, "; expected 'PUBLIC' or 'SYSTEM' keyword.");
+                throwDTDUnexpectedChar(c, "; expected 'PUBLIC' or 'SYSTEM' keyword.");
             }
             --mInputPtr;
             errId = readDTDKeyword(null);
@@ -1172,9 +1198,21 @@ public class FullDTDReader
     {
         // Let's just check this before trying to parse the id...
         if (!isNameStartChar(c)) {
-            throwUnexpectedChar(c, getErrorMsg()+"; expected an identifier");
+            throwDTDUnexpectedChar(c, getErrorMsg()+"; expected an identifier");
         }
         return parseFullName(c);
+    }
+
+    private String readDTDLocalName(char c, boolean checkChar)
+        throws IOException, WstxException
+    {
+        /* Let's just check this first, to get better error msg
+	 * (parseLocalName() will double-check it too)
+	 */
+        if (checkChar && !isNameStartChar(c)) {
+            throwDTDUnexpectedChar(c, getErrorMsg()+"; expected an identifier");
+        }
+        return parseLocalName(c);
     }
 
     /**
@@ -1192,7 +1230,7 @@ public class FullDTDReader
             if (!isNameChar(c)) {
                 // Need to get at least one char
                 if (outPtr == 0) {
-                    throwUnexpectedChar(c, getErrorMsg()+"; expected a NMTOKEN character to start a NMTOKEN");
+                    throwDTDUnexpectedChar(c, getErrorMsg()+"; expected a NMTOKEN character to start a NMTOKEN");
                 }
                 --mInputPtr;
                 break;
@@ -1581,7 +1619,7 @@ public class FullDTDReader
     {
         char c = skipDtdWs(false);
         if (c != '[') {
-            throwUnexpectedChar(c, getErrorMsg()+"; expected '[' to follow 'INCLUDE' directive.");
+            throwDTDUnexpectedChar(c, getErrorMsg()+"; expected '[' to follow 'INCLUDE' directive.");
         }
         ++mIncludeCount;
     }
@@ -1593,7 +1631,7 @@ public class FullDTDReader
         int count = 1; // Nesting of IGNORE/INCLUDE sections we have to match
 
         if (c != '[') {
-            throwUnexpectedChar(c, "; expected '[' to follow 'IGNORE' directive.");
+            throwDTDUnexpectedChar(c, "; expected '[' to follow 'IGNORE' directive.");
         }
 
         /* Ok; now, let's just skip until we get the closing ']]>'
@@ -1635,7 +1673,11 @@ public class FullDTDReader
     private void reportBadDirective(String dir)
         throws WstxException
     {
-        throwParseError("Unrecognized DTD directive '<!"+dir+" >'; expected ATTLIST, ELEMENT, ENTITY or NOTATION");
+	String msg = "Unrecognized DTD directive '<!"+dir+" >'; expected ATTLIST, ELEMENT, ENTITY or NOTATION";
+	if (mCfgSupportDTDPP) {
+	    msg += " (or, for DTD++, TARGETNS)";
+	}
+        throwDTDError(msg);
     }
 
     private void throwDTDError(String msg)
@@ -1657,13 +1699,13 @@ public class FullDTDReader
         throwDTDError(attrDesc(elem, attrName) + ": " + msg);
     }
 
-    private void throwDTDUnexpectedChar(char c, String extraMsg)
+    private void throwDTDUnexpectedChar(int i, String extraMsg)
         throws WstxException
     {
         if (extraMsg == null) {
-            throwUnexpectedChar(c, getErrorMsg());
+            throwUnexpectedChar(i, getErrorMsg());
         }
-        throwUnexpectedChar(c, getErrorMsg()+extraMsg);
+        throwUnexpectedChar(i, getErrorMsg()+extraMsg);
     }
 
     private String elemDesc(Object elem) {
@@ -1718,6 +1760,13 @@ public class FullDTDReader
                 return;
             }
             keyw = "N" + keyw;
+        } else if (c == 'T' && mCfgSupportDTDPP) { // (dtd++ only) TARGETNS?
+            keyw = checkDTDKeyword("ARGETNS");
+            if (keyw == null) {
+                handleTargetNsDecl();
+                return;
+            }
+            keyw = "T" + keyw;
         } else {
             --mInputPtr;
             keyw = readDTDKeyword(null);
@@ -1878,13 +1927,13 @@ public class FullDTDReader
                                 +keyw+"'; expected ANY or EMPTY");
              } while (false);
         } else {
-            throwUnexpectedChar(c, getErrorMsg()+": excepted '(' to start content specification");
+            throwDTDUnexpectedChar(c, getErrorMsg()+": excepted '(' to start content specification");
         }
 
         // Ok, still need the trailing gt-char to close the declaration:
         c = skipDtdWs(true);
         if (c != '>') {
-            throwUnexpectedChar(c, getErrorMsg()+"; expected '>' to finish the ENTITY declaration");
+            throwDTDUnexpectedChar(c, getErrorMsg()+"; expected '>' to finish the ENTITY declaration");
         }
 
         HashMap m = getElementMap();
@@ -1958,7 +2007,7 @@ public class FullDTDReader
                                     contents.contentsAsArray(), contentLoc);
             } else {
                 if (!isNameStartChar(c)) {
-                    throwUnexpectedChar(c, getErrorMsg()+"; expected either quoted value, or keyword 'PUBLIC' or 'SYSTEM'.");
+                    throwDTDUnexpectedChar(c, getErrorMsg()+"; expected either quoted value, or keyword 'PUBLIC' or 'SYSTEM'.");
                 }
                 ent = handleExternalEntityDecl(isParam, id, c, evtLoc);
             }
@@ -2013,6 +2062,9 @@ public class FullDTDReader
         }
     }
 
+    /**
+     * Method called to handle <!NOTATION ... > declaration.
+     */
     private void handleNotationDecl()
         throws IOException, XMLStreamException
     {
@@ -2029,7 +2081,7 @@ public class FullDTDReader
         // Ok, now we can parse the reference; first public id if needed:
         if (isPublic) {
             if (c != '"' && c != '\'') {
-                throwUnexpectedChar(c, getErrorMsg()+"; expected a quote to start the public identifier.");
+                throwDTDUnexpectedChar(c, getErrorMsg()+"; expected a quote to start the public identifier.");
             }
             pubId = parsePublicId(c, mCfgNormalizeLFs, getErrorMsg());
             c = skipDtdWs(true);
@@ -2045,14 +2097,14 @@ public class FullDTDReader
             c = skipDtdWs(true);
         } else {
             if (!isPublic) {
-                throwUnexpectedChar(c, getErrorMsg()+"; expected a quote to start the system identifier.");
+                throwDTDUnexpectedChar(c, getErrorMsg()+"; expected a quote to start the system identifier.");
             }
             sysId = null;
         }
 
         // And then we should get the closing '>'
         if (c != '>') {
-            throwUnexpectedChar(c, "; expected closing '>' after NOTATION declaration.");
+            throwDTDUnexpectedChar(c, "; expected closing '>' after NOTATION declaration.");
         }
 
         /* Ok, event needs to know its exact starting point (opening '<'
@@ -2084,6 +2136,60 @@ public class FullDTDReader
             }
         }
         m.put(id, nd);
+    }
+
+    /**
+     * Method called to handle <!TARGETNS ... > declaration (the only
+     * new declaration type for DTD++)
+     */
+    private void handleTargetNsDecl()
+        throws IOException, XMLStreamException
+    {
+	mAnyDTDppFeatures = true;
+
+        char c = skipObligatoryDtdWs(true); // comments are ok
+	String name;
+
+	// Explicit namespace name?
+	if (isNameStartChar(c)) {
+	    name = readDTDLocalName(c, false);
+	    c = skipObligatoryDtdWs(true);
+	} else { // no, default namespace (or error)
+	    name = null;
+	}
+
+	// Either way, should now get a quote:
+        if (c != '"' && c != '\'') {
+	    if (c == '>') { // slightly more accurate error
+		throwDTDError("Missing namespace URI for TARGETNS directive");
+	    }
+            throwDTDUnexpectedChar(c, "; expected a single or double quote to enclose the namespace URI");
+        }
+
+	/* !!! 07-Nov-2004, TSa: what's the exact value we should get
+	 *   here? Ns declarations can have any attr value...
+	 */
+	String uri = parseSystemId(c, false, "in namespace URI");
+
+	// Do we need to normalize the URI?
+	if ((mConfigFlags & CFG_INTERN_NS_URIS) != 0) {
+	    uri = uri.intern();
+	}
+
+	// Ok, and then the closing '>':
+	c = skipDtdWs(true);
+	if (c != '>') {
+            throwDTDUnexpectedChar(c, "; expected '>' to end TARGETNS directive");
+	}
+
+	if (name == null) { // default NS URI
+	    mDefaultNsURI = uri;
+	} else {
+	    if (mNamespaces == null) {
+		mNamespaces = new HashMap();
+	    }
+	    mNamespaces.put(name, uri);
+	}
     }
 
     /*
@@ -2531,7 +2637,7 @@ public class FullDTDReader
         if (isPublic) {
             c = skipObligatoryDtdWs(true); // comments should be ok
             if (c != '"' && c != '\'') {
-                throwUnexpectedChar(c, getErrorMsg()+"; expected a quote to start the public identifier.");
+                throwDTDUnexpectedChar(c, getErrorMsg()+"; expected a quote to start the public identifier.");
             }
             pubId = parsePublicId(c, mCfgNormalizeLFs, getErrorMsg());
         }
@@ -2539,7 +2645,7 @@ public class FullDTDReader
         // And then we need the system id:
         c = skipObligatoryDtdWs(true); // comments should be ok
         if (c != '"' && c != '\'') {
-            throwUnexpectedChar(c, getErrorMsg()+"; expected a quote to start the system identifier.");
+            throwDTDUnexpectedChar(c, getErrorMsg()+"; expected a quote to start the system identifier.");
         }
         String sysId = parseSystemId(c, mCfgNormalizeLFs, getErrorMsg());
 
@@ -2556,7 +2662,7 @@ public class FullDTDReader
 
         // Ok, better have '>' now:
         if (c != '>') {
-            throwUnexpectedChar(c, getErrorMsg()+"; expected closing '>'.");
+            throwDTDUnexpectedChar(c, getErrorMsg()+"; expected closing '>'.");
         }
 
         if (notationId == null) { // parsed entity:
