@@ -1,3 +1,8 @@
+* Known bugs:
+   * No space is actually needed between end-quote of an attribute value
+     and start of next attribute name... should be fixed.
+   * Processing instruction data includes leading space: shouldn't.
+
 * Exception-handling:
    * Add RuntimeException based type for lazy exception.
 
@@ -20,6 +25,12 @@
 * Writer class hierarchy:
    * Refactor writers, to have 3 classes; non-ns, ns-non-fixing,
      ns-fixing.
+
+* Fragment parsing/writing:
+   * Allow for reading and writing of XML document fragments; essentially
+     suppressing checks for single-root, and assuming that the outermost
+     element(s) are not document root nodes (meaning also that DTD is not
+     allowed to be output)
 
 ------------------------------------
 FROM 1.0 Backlog

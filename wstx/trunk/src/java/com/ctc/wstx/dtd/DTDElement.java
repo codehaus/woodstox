@@ -107,24 +107,11 @@ public final class DTDElement
      */
 
     private DTDElement(Location loc, NameKey name,
-                       ContentSpec spec, int allowedContent)
+                       StructValidator val, int allowedContent)
     {
         mLocation = loc;
         mName = name;
-        /* Generally, we are only resolved if no content specification
-         * (or model) exists; happens if we have ANY or EMPTY content
-         * specification keyword.
-         */
-        if (spec == null) {
-            mValidator = null;
-        } else {
-            StructValidator val = spec.getValidator();
-            if (val == null) {
-                DFAState dfa = DFAState.constructDFA(spec);
-                val = new DFAValidator(dfa);
-            }
-            mValidator = val;
-        }
+        mValidator = val;
         mAllowedContent = allowedContent;
     }
 
@@ -133,12 +120,12 @@ public final class DTDElement
      * an ELEMENT directive in a DTD subset.
      */
     public static DTDElement createDefined(Location loc, NameKey name,
-                                           ContentSpec spec, int allowedContent)
+                                           StructValidator val, int allowedContent)
     {
         if (allowedContent == CONTENT_ALLOW_UNDEFINED) { // sanity check
             throw new Error("Internal error: trying to use CONTENT_ALLOW_UNDEFINED via createDefined()");
         }
-        return new DTDElement(loc, name, spec, allowedContent);
+        return new DTDElement(loc, name, val, allowedContent);
     }
 
     /**
@@ -155,7 +142,7 @@ public final class DTDElement
      * has all attribute definitions placeholder had (it'll always have at
      * least one -- otherwise no placeholder was needed).
      */
-    public DTDElement define(Location loc, ContentSpec spec,
+    public DTDElement define(Location loc, StructValidator val,
                              int allowedContent)
     {
         if (mAllowedContent != CONTENT_ALLOW_UNDEFINED) { // sanity check
@@ -165,7 +152,7 @@ public final class DTDElement
             throw new Error("Internal error: trying to use CONTENT_ALLOW_UNDEFINED via define()");
         }
 
-        DTDElement elem = new DTDElement(loc, mName, spec, allowedContent);
+        DTDElement elem = new DTDElement(loc, mName, val, allowedContent);
         elem.mAttrMap = mAttrMap;
         return elem;
     }

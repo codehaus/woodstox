@@ -1622,10 +1622,7 @@ public class WstxStreamReader
 
         if (c == '?') { // proc. inst
             mCurrToken = PROCESSING_INSTRUCTION;
-            mStTokenUnfinished = true;
-            // Let's do minimal processing, ie. parse target, right away...
-            mCurrName = parseFullName();
-            checkPITarget(mCurrName);
+            readPIPrimary();
         } else  if (c == '!') { // DOCTYPE or comment (or CDATA, but not legal here)
             // Need to figure out bit more first...
             nextFromPrologBang(isProlog);
@@ -1997,11 +1994,7 @@ public class WstxStreamReader
                 if (mVldContent == CONTENT_ALLOW_NONE) {
                     reportInvalidContent(PROCESSING_INSTRUCTION);
                 }
-
-                mStTokenUnfinished = true;
-                // Let's do minimal processing, ie. parse target, right away...
-                mCurrName = parseFullName();
-                checkPITarget(mCurrName);
+                readPIPrimary();
                 return PROCESSING_INSTRUCTION;
             }
             
@@ -2022,7 +2015,7 @@ public class WstxStreamReader
             if (c == ':' || isNameStartChar(c)) {
                 // 30-Aug-2004, TSa: Not legal for EMPTY elements
                 if (mVldContent == CONTENT_ALLOW_NONE) {
-                    reportInvalidContent(PROCESSING_INSTRUCTION);
+                    reportInvalidContent(START_ELEMENT);
                 }
                 handleStartElem(c);
                 return START_ELEMENT;
@@ -2188,6 +2181,9 @@ public class WstxStreamReader
              *     URI is NOT empty, as per XML namespace specs, #2,
              *    ("...In such declarations, the namespace name may not
              *      be empty.")
+             */
+            /* (note: startLen is only set to first char position for
+             * non-default NS declarations, see above...)
              */
             if (startLen >= 0 && tb.getCharSize() == startLen) { // is empty!
                 throwParseError("Non-default namespace can not map to empty URI (as per Namespace 1.0 # 2)");
@@ -2934,6 +2930,56 @@ public class WstxStreamReader
 
         // Ok, all done, then!
         mTextBuffer.setCurrentLength(outPtr);
+    }
+
+    /**
+     * Method that reads the primary part of a PI, ie. target, and also
+     * skips white space between target and data (if any data)
+     */
+    private void readPIPrimary()
+        throws IOException, XMLStreamException
+    {
+        // Ok, first we need the name:
+        String target = parseFullName();
+        mCurrName = target;
+
+        if (target.length() == 0) {
+            throwParseError("Missing processing instruction target.");
+        }
+
+        // As per XML specs, #17, case-insensitive 'xml' is illegal:
+        if (target.length() == 3) {
+            char c = target.charAt(0);
+            if (c == 'x' || c == 'X') {
+                c = target.charAt(1);
+                if (c == 'm' || c == 'M') {
+                    c = target.charAt(2);
+                    if (c == 'l' || c == 'L') {
+                        throwParseError("Illegal processing instruction target ('"
+                                        +target+"'); 'xml' (case insensitive) is reserved by the specs.");
+                    }
+                }
+            }
+        }
+
+        // And then either white space before data, or end marker:
+        char c = (mInputPtr < mInputLen) ?
+            mInputBuffer[mInputPtr++] : getNextCharFromCurrent(SUFFIX_IN_PROC_INSTR);
+        if (isSpaceChar(c)) { // Ok, space to skip
+            mStTokenUnfinished = true;
+            // Need to skip the WS...
+            skipWS();
+        } else { // Nope; apparently finishes right away...
+            mStTokenUnfinished = false;
+            mTextBuffer.resetWithEmpty();
+            if (c != '?') {
+                throwUnexpectedChar(c, "excepted either space or \"?>\" after PI target");
+            }
+            c = getNextCharFromCurrent(SUFFIX_IN_PROC_INSTR);
+            if (c != '>') {
+                throwUnexpectedChar(c, "excepted '>' (as part of \"?>\") after PI target");
+            }
+        }
     }
 
     /**
@@ -3804,33 +3850,6 @@ public class WstxStreamReader
                             +mElementStack.getTopElementDesc()
                             +"> does not allow mixed content");
         
-    }
-
-    /**
-     * Method called to make sure that the target for a PI is valid, ie.
-     * does not start with reserved 'xml' prefix (case insensitive).
-     */
-    private void checkPITarget(String target)
-        throws WstxException
-    {
-        if (target.length() == 0) {
-            throwParseError("Missing processing instruction target.");
-        }
-
-        // As per XML specs, #17, case-insensitive 'xml' is illegal:
-        if (target.length() == 3) {
-            char c = target.charAt(0);
-            if (c == 'x' || c == 'X') {
-                c = target.charAt(1);
-                if (c == 'm' || c == 'M') {
-                    c = target.charAt(2);
-                    if (c == 'l' || c == 'L') {
-                        throwParseError("Illegal processing instruction target ('"
-                                        +target+"'); 'xml' (case insensitive) is reserved by the specs.");
-                    }
-                }
-            }
-        }
     }
 
     /**

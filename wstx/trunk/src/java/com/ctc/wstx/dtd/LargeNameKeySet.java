@@ -89,6 +89,8 @@ public final class LargeNameKeySet
         mBuckets = buckets;
     }
 
+    public boolean hasMultiple() { return true; }
+
     /**
      * @return True if the set contains specified name; false if not.
      */

@@ -20,6 +20,12 @@ public abstract class NameKeySet
     protected NameKeySet() { }
 
     /**
+     * @return True if set contains more than one entry; false if not
+     *   (empty or has one)
+     */
+    public abstract boolean hasMultiple();
+
+    /**
      * @return True if the set contains specified name; false if not.
      */
     public abstract boolean contains(NameKey name);

@@ -2,6 +2,8 @@ package com.ctc.wstx.dtd;
 
 import java.util.*;
 
+import com.ctc.wstx.cfg.ErrorConsts;
+
 /**
  * Model class that encapsulates set of sub-models, of which one (and only
  * one) needs to be matched.
@@ -149,12 +151,31 @@ public class ChoiceModel
 
         public String tryToValidate(NameKey elemName)
         {
-            if (mNames == null || !mNames.contains(elemName)) {
-                return "Expected one of ("+mNames.toString(" | ")+")";
+            if (mNames == null) {
+                // should never happen?!?!
+                return ErrorConsts.ERR_INTERNAL;
             }
-            if (++mCount > 1 && (mArity == '?' || mArity == ' ')) {
-                return "More than one instance; expected at most one of ("
-                    +mNames.toString(" | ")+")";
+            if (!mNames.contains(elemName)) {
+                if (mNames.hasMultiple()) {
+                    return "Expected one of ("+mNames.toString(" | ")+")";
+                }
+                return "Expected <"+mNames.toString("")+">";
+            }
+            if (++mCount > 1) {
+                if (mArity == '?') {
+                    if (mNames.hasMultiple()) {
+                        return "More than one instance; expected at most one of ("
+                            +mNames.toString(" | ")+")";
+                    }
+                    return "More than one instance; expected at most one";
+                }
+                if (mArity == ' ') {
+                    if (mNames.hasMultiple()) {
+                        return "More than one instance; expected exactly one of ("
+                            +mNames.toString(" | ")+")";
+                    }
+                    return "More than one instance; expected exactly one";
+                }
             }
             return null;
         }

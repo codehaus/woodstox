@@ -51,6 +51,10 @@ public abstract class BaseNsStreamWriter
 
     final protected static String sPrefixXmlns = DefaultXmlSymbolTable.getXmlnsSymbol();
 
+    final protected static String ERR_NSDECL_WRONG_STATE =
+        "Trying to write a namespace declaration when there is no open start element.";
+
+
     /*
     ////////////////////////////////////////////////////
     // Configuration (options, features)
@@ -60,6 +64,18 @@ public abstract class BaseNsStreamWriter
     // // // Additional specific config flags base class doesn't have
 
     final protected boolean mCheckNS;
+
+    /**
+     * True, if writer should ensure that all declared namespaces have
+     * been properly output.
+     */
+    final protected boolean mCheckNSWrite;
+
+    /**
+     * True, if writer needs to automatically output namespace declarations
+     * (we are in repairing mode)
+     */
+    final protected boolean mAutomaticNS;
 
     /*
     ////////////////////////////////////////////////////
@@ -94,10 +110,12 @@ public abstract class BaseNsStreamWriter
     ////////////////////////////////////////////////////
      */
 
-    public BaseNsStreamWriter(Writer w, WriterConfig cfg)
+    public BaseNsStreamWriter(Writer w, WriterConfig cfg, boolean repairing)
     {
         super(w, cfg);
         mCheckNS = cfg.willValidateNamespaces();
+        mCheckNSWrite = mCheckNS && !repairing;
+        mAutomaticNS = repairing;
     }
 
     /*
@@ -182,9 +200,9 @@ public abstract class BaseNsStreamWriter
     }
 
     /**
-     *<p>
      * It's assumed calling this method implies caller just wants to add
-     * an attribute that does not belong to any namespace.
+     * an attribute that does not belong to any namespace; as such no
+     * namespace checking or prefix generation is needed.
      */
     public void writeAttribute(String localName, String value)
         throws XMLStreamException
@@ -201,40 +219,12 @@ public abstract class BaseNsStreamWriter
         doWriteAttr(localName, null, null, value);
     }
 
-    public void writeAttribute(String nsURI, String localName, String value)
-        throws XMLStreamException
-    {
-        // No need to set mAnyOutput, nor close the element
-        if (!mStartElementOpen) {
-            throw new IllegalStateException("Trying to write an attribute when there is no open start element.");
-        }
-        // Need a prefix...
-        String prefix = findOrCreatePrefix(null, nsURI, false);
-        doWriteAttr(localName, nsURI, prefix, value);
-    }
+    public abstract void writeAttribute(String nsURI, String localName, String value)
+        throws XMLStreamException;
 
-    public void writeAttribute(String prefix, String nsURI,
-                               String localName, String value)
-        throws XMLStreamException
-    {
-        // No need to set mAnyOutput, nor close the element
-        if (!mStartElementOpen) {
-            throw new IllegalStateException("Trying to write an attribute when there is no open start element.");
-        }
-
-        // May want to verify prefix validity:
-        if (mCheckNS) {
-            int status = mCurrElem.isPrefixValid(prefix, nsURI, mCheckNS, false);
-            if (status != OutputElement.PREFIX_OK) {
-                if (status == OutputElement.PREFIX_MISBOUND) {
-                    prefix = findOrCreatePrefix(prefix, nsURI, false);
-                }
-                mCurrElem.addPrefix(prefix, nsURI);
-                doWriteNamespace(prefix, nsURI);
-            }
-        }
-        doWriteAttr(localName, nsURI, prefix, value);
-    }
+    public abstract void writeAttribute(String prefix, String nsURI,
+                                        String localName, String value)
+        throws XMLStreamException;
 
     /**
      *<p>
@@ -258,31 +248,15 @@ public abstract class BaseNsStreamWriter
     public void writeEmptyElement(String nsURI, String localName)
         throws XMLStreamException
     {
-        checkStartElement(localName);
-
+        writeStartOrEmpty(localName, nsURI);
         mEmptyElement = true;
-        mCurrElem = new OutputElement(mCurrElem, localName, mNsDecl, mCheckNS);
-
-        // Need a prefix....
-        String prefix = mCurrElem.findPrefix(nsURI, true);
-        boolean nsOk = (prefix != null);
-
-        if (!nsOk) {
-            prefix = generatePrefix(null, nsURI);
-            mCurrElem.addPrefix(prefix, nsURI);
-        }
-        mCurrElem.setPrefix(prefix);
-        doWriteStartElement(prefix, localName);
-
-        // Need to clear namespace declaration info now for next start elem:
-        mNsDecl = null;
-
     }
 
     public void writeEmptyElement(String prefix, String localName, String nsURI)
         throws XMLStreamException
     {
-        writeStartOrEmpty(prefix, localName, nsURI, true);
+        writeStartOrEmpty(prefix, localName, nsURI);
+        mEmptyElement = true;
     }
 
     public void writeEndElement()
@@ -299,6 +273,10 @@ public abstract class BaseNsStreamWriter
         doWriteEndElement(prefix, localName);
     }
 
+    /**
+     * This method is assumed to just use default namespace (if any),
+     * and no further checks should be done.
+     */
     public void writeStartElement(String localName)
         throws XMLStreamException
     {
@@ -316,37 +294,26 @@ public abstract class BaseNsStreamWriter
     public void writeStartElement(String nsURI, String localName)
         throws XMLStreamException
     {
-        checkStartElement(localName);
-
+        writeStartOrEmpty(localName, nsURI);
         mEmptyElement = false;
-        mCurrElem = new OutputElement(mCurrElem, localName, mNsDecl, mCheckNS);
-
-        // Need a prefix?
-        String prefix = mCurrElem.findPrefix(nsURI, true);
-        boolean nsOk = (prefix != null);
-
-        if (!nsOk) {
-            prefix = generatePrefix(null, nsURI);
-            mCurrElem.addPrefix(prefix, nsURI);
-        }
-        mCurrElem.setPrefix(prefix);
-        doWriteStartElement(prefix, localName);
-
-        // Need to clear namespace declaration info now for next start elem:
-        mNsDecl = null;
     }
 
     public void writeStartElement(String prefix, String localName, String nsURI)
         throws XMLStreamException
     {
-        writeStartOrEmpty(prefix, localName, nsURI, true);
+        writeStartOrEmpty(prefix, localName, nsURI);
+        mEmptyElement = false;
     }
-    
+
     /*
-    ////////////////////////////////////////////////////
-    // Package methods implementations
-    ////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////
+    // Implementations for base-class defined abstract method
+    /////////////////////////////////////////////////////////
      */
+
+    public String getTopElemName() {
+        return mCurrElem.getElementName();
+    }
 
     /**
      * Method called by {@link com.ctc.wstx.evt.WstxEventWriter} (instead of the version
@@ -382,34 +349,48 @@ public abstract class BaseNsStreamWriter
         doWriteEndElement(prefix, local);
     }
 
-    public String getTopElemName() {
-        return mCurrElem.getElementName();
-    }
-
     /**
-     * Method called to somehow find a prefix for given namespace; either
-     * use an existing one, or generate a new one.
+     * Method called to close an open start element, when another
+     * main-level element (not namespace declaration or attribute)
+     * is being output; except for end element which is handled differently.
      *
-     * @param oldPrefix Prefix caller originally suggested that did not match
-     *    the namespace URI, if any; null if caller didn't suggest a prefix.
-     * @param nsURI URI of namespace for which we need a prefix
-     * @param defaultNsOk Whether default namespace prefix (empty String)
-     *   is acceptable (can not be used for attributes)
+     * @param emptyElem If true, the element being closed is an empty
+     *   element; if false, a separate stand-alone start element.
      */
-    protected String findOrCreatePrefix(String oldPrefix, String nsURI,
-					boolean defaultNsOk)
+    protected void closeStartElement(boolean emptyElem)
         throws XMLStreamException
     {
-        String prefix = mCurrElem.findPrefix(nsURI, defaultNsOk);
-        if (prefix != null) {
-            return prefix;
+        mStartElementOpen = false;
+        // Ok... time to verify namespaces were written ok?
+        if (mCheckNSWrite) {
+            mCurrElem.checkAllNsWrittenOk();
         }
 
-        prefix = generatePrefix(oldPrefix, nsURI);
-        mCurrElem.addPrefix(prefix, nsURI);
-        doWriteNamespace(prefix, nsURI);
-        return prefix;
+        try {
+            if (emptyElem) {
+                // Extra space for readability (plus, browsers like it if using XHTML)
+                mWriter.write(" />");
+            } else {
+                mWriter.write('>');
+            }
+        } catch (IOException ioe) {
+            throw new XMLStreamException(ioe);
+        }
+
+        // Need bit more special handling for empty elements...
+        if (emptyElem) {
+            mCurrElem = mCurrElem.getParent();
+            if (mCurrElem.isRoot()) {
+                mState = STATE_EPILOG;
+            }
+        }
     }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Package methods sub-classes may also need
+    ////////////////////////////////////////////////////
+     */
 
     protected void checkStartElement(String localName)
         throws XMLStreamException
@@ -428,6 +409,29 @@ public abstract class BaseNsStreamWriter
 
         if (mState == STATE_PROLOG) {
             mState = STATE_TREE;
+        }
+    }
+
+    protected void doWriteAttr(String localName, String nsURI, String prefix,
+                             String value)
+        throws XMLStreamException
+    {
+        if (mCheckAttr) { // still need to ensure no duplicate attrs?
+            mCurrElem.checkAttrWrite(nsURI, localName, value);
+        }
+
+        try {
+            mWriter.write(' ');
+            if (prefix != null) {
+                mWriter.write(prefix);
+                mWriter.write(':');
+            }
+            mWriter.write(localName);
+            mWriter.write("=\"");
+            XMLQuoter.outputDoubleQuotedAttr(mWriter, value);
+            mWriter.write('"');
+        } catch (IOException ioe) {
+            throw new XMLStreamException(ioe);
         }
     }
 
@@ -451,9 +455,86 @@ public abstract class BaseNsStreamWriter
         }
     }
 
+    /**
+     *<p>
+     * Note: Caller has to do actual removal of the element from element
+     * stack, before calling this method.
+     */
+    protected void doWriteEndElement(String prefix, String localName)
+        throws XMLStreamException
+    {
+        if (mStartElementOpen) {
+            /* Can't/shouldn't call closeStartElement, but need to do same
+             * processing. Thus, this is almost identical to closeStartElement:
+             */
+            mStartElementOpen = false;
+            if (mCheckNSWrite) {
+                mCurrElem.checkAllNsWrittenOk();
+            }
+            
+            try {
+                // We could write an empty element, implicitly?
+                if (!mEmptyElement && mCfgOutputEmptyElems) {
+                    // Extra space for readability
+                    mWriter.write(" />");
+                    if (mCurrElem.isRoot()) {
+                        mState = STATE_EPILOG;
+                    }
+                    return;
+                }
+                // Nah, need to close open elem, and then output close elem
+                mWriter.write('>');
+            } catch (IOException ioe) {
+                throw new XMLStreamException(ioe);
+            }
+        }
+
+        try {
+            mWriter.write("</");
+            if (prefix != null && prefix.length() > 0) {
+                mWriter.write(prefix);
+                mWriter.write(':');
+            }
+            mWriter.write(localName);
+            mWriter.write('>');
+        } catch (IOException ioe) {
+            throw new XMLStreamException(ioe);
+        }
+
+        if (mCurrElem.isRoot()) {
+            mState = STATE_EPILOG;
+        }
+    }
+
+    protected void doWriteStartElement(String prefix, String localName)
+        throws XMLStreamException
+    {
+        mAnyOutput = true;
+        mStartElementOpen = true;
+        try {
+            mWriter.write('<');
+            if (prefix != null && prefix.length() > 0) {
+                mWriter.write(prefix);
+                mWriter.write(':');
+            }
+            mWriter.write(localName);
+
+            /* 21-Sep-2004, TSa: In ns-repairing mode we can/need to
+             *    also automatically output all declared namespaces
+             *    (whether they are automatic or not)
+             */
+            if (mAutomaticNS) {
+                mCurrElem.outputDeclaredNamespaces(mWriter);
+            }
+        } catch (IOException ioe) {
+            throw new XMLStreamException(ioe);
+        }
+    }
+
+
     /*
     ////////////////////////////////////////////////////
-    // Package methods for sub-classes to implement
+    // More abstract methods for sub-classes to implement
     ////////////////////////////////////////////////////
      */
 
@@ -461,64 +542,20 @@ public abstract class BaseNsStreamWriter
         throws XMLStreamException;
     public abstract void writeNamespace(String prefix, String nsURI)
         throws XMLStreamException;
-    protected abstract String generatePrefix(String oldPrefix, String nsURI)
-        throws XMLStreamException;
 
     public abstract void writeStartElement(StartElement elem)
         throws XMLStreamException;
 
-    /**
-     * Method called to close an open start element, when another
-     * main-level element (not namespace declaration or attribute)
-     * is being output; except for end element which is handled differently.
-     *
-     * @param emptyElem If true, the element being closed is an empty
-     *   element; if false, a separate stand-alone start element.
-     */
-    public abstract void closeStartElement(boolean emptyElem)
+    protected abstract void writeStartOrEmpty(String localName, String nsURI)
         throws XMLStreamException;
 
-    protected abstract void writeStartOrEmpty(String prefix, String localName, String nsURI,
-					      boolean isEmpty)
-        throws XMLStreamException;
-
-    protected abstract void doWriteStartElement(String prefix, String localName)
-        throws XMLStreamException;
-
-    /**
-     *<p>
-     * Note: Caller has to do actual removal of the element from element
-     * stack, before calling this method.
-     */
-    protected abstract void doWriteEndElement(String prefix, String localName)
+    protected abstract void writeStartOrEmpty(String prefix, String localName, String nsURI)
         throws XMLStreamException;
 
     /*
     ////////////////////////////////////////////////////
-    // Internal methods
+    // Private methods
     ////////////////////////////////////////////////////
      */
 
-    private void doWriteAttr(String localName, String nsURI, String prefix,
-                             String value)
-        throws XMLStreamException
-    {
-        if (mCheckAttr) { // still need to ensure no duplicate attrs?
-            mCurrElem.checkAttrWrite(nsURI, localName, value);
-        }
-
-        try {
-            mWriter.write(' ');
-            if (prefix != null) {
-                mWriter.write(prefix);
-                mWriter.write(':');
-            }
-            mWriter.write(localName);
-            mWriter.write("=\"");
-            XMLQuoter.outputDoubleQuotedAttr(mWriter, value);
-            mWriter.write('"');
-        } catch (IOException ioe) {
-            throw new XMLStreamException(ioe);
-        }
-    }
 }

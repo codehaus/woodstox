@@ -39,5 +39,4 @@ public interface OutputConfigFlags
      * to prevent accidental output of duplicate attributes.
      */
     final static int CFG_VALIDATE_ATTR =       0x0040;
-
 }

@@ -1422,11 +1422,16 @@ public class FullDTDReader
      * possible to do forward references to GEs.
      */
     private String parseAttrDefaultValue(char quoteChar, NameKey attrName,
-                                         Location loc)
+                                         Location loc, boolean gotFixed)
         throws IOException, XMLStreamException
     {
         if (quoteChar != '"' && quoteChar != '\'') { // caller doesn't test it
-            throwDTDUnexpectedChar(quoteChar, "; expected a single or double quote to enclose the default value (for attribute '"+attrName+"')");
+            String msg = "; expected a single or double quote to enclose the default value";
+            if (!gotFixed) {
+                msg += ", or one of keywords (#REQUIRED, #IMPLIED, #FIXED)";
+            }
+            msg += " (for attribute '"+attrName+"')";
+            throwDTDUnexpectedChar(quoteChar, msg);
         }
 
         /* Let's mark the current input source as the scope, so we can both
@@ -1886,18 +1891,21 @@ public class FullDTDReader
         /* Then the content spec: either a special case (ANY, EMPTY), or
          * a parenthesis group for 'real' content spec
          */
-        ContentSpec spec = null;
+        StructValidator val = null;
         int vldContent = CONTENT_ALLOW_MIXED;
 
         if (c == '(') { // real content model
             c = skipDtdWs(true); // I guess we can allow comments...
             if (c == '#') {
-                // Note: spec may be null, for 'pure' PCDATA (no elements)
-                spec = readMixedSpec(elemName, mCfgValidate);
+                val = readMixedSpec(elemName, mCfgValidate);
                 vldContent = CONTENT_ALLOW_MIXED; // checked against DTD
             } else {
                 --mInputPtr; // let's push it back...
-                spec = readContentSpec(elemName, true, mCfgValidate);
+                ContentSpec spec = readContentSpec(elemName, true, mCfgValidate);
+                val = spec.getValidator();
+                if (val == null) {
+                    val = new DFAValidator(DFAState.constructDFA(spec));
+                }
                 vldContent = CONTENT_ALLOW_NON_MIXED; // checked against DTD
             }
         } else if (isNameStartChar(c)) {
@@ -1906,7 +1914,7 @@ public class FullDTDReader
                 if (c == 'A') {
                     keyw = checkDTDKeyword("NY");
                     if (keyw == null) {
-                        spec = null;
+                        val = null;
                         vldContent = CONTENT_ALLOW_DTD_ANY; // no DTD checks
                         break;
                     }
@@ -1914,7 +1922,7 @@ public class FullDTDReader
                 } else if (c == 'E') {
                     keyw = checkDTDKeyword("MPTY");
                     if (keyw == null) {
-                        spec = null;
+                        val = null; // could also use the empty validator
                         vldContent = CONTENT_ALLOW_NONE; // specific checks
                         break;
                     }
@@ -1948,10 +1956,10 @@ public class FullDTDReader
             /* 09-Sep-2004, TSa: Need to transfer existing attribute
              *   definitions, however...
              */
-            oldElem = oldElem.define(loc, spec, vldContent);
+            oldElem = oldElem.define(loc, val, vldContent);
         } else {
             // Sweet, let's then add the definition:
-            oldElem = DTDElement.createDefined(loc, elemName, spec, vldContent);
+            oldElem = DTDElement.createDefined(loc, elemName, val, vldContent);
         }
         m.put(elemName, oldElem);
     }
@@ -2297,14 +2305,14 @@ public class FullDTDReader
             } else if (defTypeStr == "FIXED") {
                 defType = DTDAttribute.DEF_FIXED;
                 c = skipObligatoryDtdWs(true);
-                defVal = parseAttrDefaultValue(c, attrName, loc);
+                defVal = parseAttrDefaultValue(c, attrName, loc, true);
             } else {
                 throwDTDAttrError("Unrecognized attribute default value directive #"+defTypeStr
                                    +ErrorConsts.ERR_DTD_DEFAULT_TYPE,
                                    elem, attrName);
             }
         } else {
-            defVal = parseAttrDefaultValue(c, attrName, loc);
+            defVal = parseAttrDefaultValue(c, attrName, loc, false);
         }
 
         /* There are some checks that can/need to be done now, such as:
@@ -2453,7 +2461,7 @@ public class FullDTDReader
     /**
      * Method called to parse what seems like a mixed content specification.
      */
-    private ContentSpec readMixedSpec(NameKey elemName, boolean construct)
+    private StructValidator readMixedSpec(NameKey elemName, boolean construct)
         throws IOException, XMLStreamException
     {
         String keyw = checkDTDKeyword("PCDATA");
@@ -2494,15 +2502,22 @@ public class FullDTDReader
             --mInputPtr; // need to push it back
         }
         if (!construct) { // no one cares?
-            return TokenContentSpec.getDummySpec();
+            return null;
         }
 
-        /* Without elements, it's considered "pure" PCDATA, which does not
-         * need a separate validator... and thus we can skip construction
-         * of both content spec and validator:
+        /* Without elements, it's considered "pure" PCDATA, which can use a
+         * specific 'empty' validator:
          */
-        return m.isEmpty() ? null :
-            ChoiceContentSpec.constructMixed(mCfgNsEnabled, m.values());
+        if (m.isEmpty()) {
+            return EmptyValidator.getInstance();
+        }
+        ContentSpec spec = ChoiceContentSpec.constructMixed(mCfgNsEnabled, m.values());
+        StructValidator val = spec.getValidator();
+        if (val == null) {
+            DFAState dfa = DFAState.constructDFA(spec);
+            val = new DFAValidator(dfa);
+        }
+        return val;
     }
 
     private int mTokenIndex = 1;

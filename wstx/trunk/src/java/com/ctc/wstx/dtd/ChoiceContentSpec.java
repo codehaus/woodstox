@@ -199,11 +199,18 @@ public class ChoiceContentSpec
         public String tryToValidate(NameKey elemName)
         {
             if (!mNames.contains(elemName)) {
-                return "Expected one of ("+mNames.toString(" | ")+")";
+                if (mNames.hasMultiple()) {
+                    return "Expected one of ("+mNames.toString(" | ")+")";
+                }
+                return "Expected <"+mNames.toString("")+">";
             }
             if (++mCount > 1 && (mArity == '?' || mArity == ' ')) {
-                return "Expected $END (already had one of ["
-                    +mNames.toString(" | ")+"]";
+                if (mNames.hasMultiple()) {
+                    return "Expected $END (already had one of ["
+                        +mNames.toString(" | ")+"]";
+                }
+                return "Expected $END (already had one <"
+                    +mNames.toString("")+">]";
             }
             return null;
         }

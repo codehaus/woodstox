@@ -35,6 +35,8 @@ public abstract class BaseStreamWriter
     protected final static int STATE_TREE = 2;
     protected final static int STATE_EPILOG = 3;
 
+    protected final static char CHAR_SPACE = ' ';
+
     /*
     ////////////////////////////////////////////////////
     // Output objects
@@ -403,7 +405,12 @@ public abstract class BaseStreamWriter
             mWriter.write("<?");
             mWriter.write(target);
             if (data != null && data.length() > 0) {
-                mWriter.write(' ');
+                /* 11-Nov-2004, TSa: Let's see if it starts with a space:
+                 *  if so, no need to add extra space(s).
+                 */
+                if (data.charAt(0) > CHAR_SPACE) {
+                    mWriter.write(' ');
+                }
                 mWriter.write(data);
             }
             mWriter.write("?>");
@@ -543,7 +550,7 @@ public abstract class BaseStreamWriter
      * main-level element (not namespace declaration or attribute)
      * is being output; except for end element which is handled differently.
      */
-    public abstract void closeStartElement(boolean emptyElem)
+    protected abstract void closeStartElement(boolean emptyElem)
         throws XMLStreamException;
 
     public boolean inPrologOrEpilog() {

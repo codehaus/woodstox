@@ -19,9 +19,10 @@ package com.ctc.wstx.dtd;
  * Simple key Object to be used for storing/accessing of potentially namespace
  * scoped element and attribute names.
  *<p>
- * One important note about usage is that the name components (prefix and
- * local name) HAVE to have been interned some way, as all comparisons
- * are done using identity comparison.
+ * One important note about usage is that two of the name components (prefix
+ * and local name) HAVE to have been interned some way, as all comparisons
+ * are done using identity comparison; whereas URI is NOT necessarily
+ * interned.
  *<p>
  * Note that the main reason this class is mutable -- unlike most key classes
  * -- is that this allows reusing key objects for access, as long as the code

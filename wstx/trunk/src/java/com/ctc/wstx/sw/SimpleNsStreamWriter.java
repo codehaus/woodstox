@@ -51,7 +51,7 @@ public class SimpleNsStreamWriter
 
     public SimpleNsStreamWriter(Writer w, WriterConfig cfg)
     {
-        super(w, cfg);
+        super(w, cfg, false);
     }
 
     /*
@@ -65,11 +65,34 @@ public class SimpleNsStreamWriter
     //public String getPrefix(String uri)
     //public void setPrefix(String prefix, String uri)
     //public void setDefaultNamespace(String uri)
-    //public void writeDefaultNamespace(String nsURI)
 
     //public void writeAttribute(String localName, String value)
-    //public void writeAttribute(String nsURI, String localName, String value)
-    //public void writeAttribute(String prefix, String nsURI, String localName, String value)
+
+    public void writeAttribute(String nsURI, String localName, String value)
+        throws XMLStreamException
+    {
+        // No need to set mAnyOutput, nor close the element
+        if (!mStartElementOpen) {
+            throw new IllegalStateException("Trying to write an attribute when there is no open start element.");
+        }
+        String prefix = findPrefix(nsURI, false);
+        doWriteAttr(localName, nsURI, prefix, value);
+    }
+
+    public void writeAttribute(String prefix, String nsURI,
+                               String localName, String value)
+        throws XMLStreamException
+    {
+        if (!mStartElementOpen) {
+            throw new IllegalStateException("Trying to write an attribute when there is no open start element.");
+        }
+
+        // Want to verify namespace consistency?
+        if (mCheckNS) {
+            checkNsDecl(prefix, nsURI);
+        }
+        doWriteAttr(localName, nsURI, prefix, value);
+    }
 
     //public void writeEmptyElement(String localName) throws XMLStreamException
     //public void writeEmptyElement(String nsURI, String localName) throws XMLStreamException
@@ -80,9 +103,8 @@ public class SimpleNsStreamWriter
     public void writeDefaultNamespace(String nsURI)
         throws XMLStreamException
     {
-        // No need to set mAnyOutput, nor close the element
         if (!mStartElementOpen) {
-            throw new IllegalStateException("Trying to write a namespace declaration when there is no open start element.");
+            throw new IllegalStateException(ERR_NSDECL_WRONG_STATE);
         }
 
         if (mCheckNS) { // Was it declared the same way?
@@ -112,11 +134,11 @@ public class SimpleNsStreamWriter
         // No need to set mAnyOutput, and shouldn't close the element.
         // But element needs to be open, obviously.
         if (!mStartElementOpen) {
-            throw new IllegalStateException("Trying to write a namespace declaration when there is no open start element.");
+            throw new IllegalStateException(ERR_NSDECL_WRONG_STATE);
         }
         
         if (mCheckNS) { // Was it declared the same way?
-            mCurrElem.checkNsWrite(prefix, nsURI);
+            mCurrElem.checkNsWrite(mRootNsContext, prefix, nsURI);
         }
         
         doWriteNamespace(prefix, nsURI);
@@ -159,10 +181,10 @@ public class SimpleNsStreamWriter
         if (nsURI == null) {
             writeStartElement(name.getLocalPart());
         } else {
-	    String prefix = name.getPrefix();
-	    writeStartElement(prefix, name.getLocalPart(), nsURI);
-	}
-    
+            String prefix = name.getPrefix();
+            writeStartElement(prefix, name.getLocalPart(), nsURI);
+        }
+
         // And now we need to output namespaces (including default), if any:
         it = elem.getNamespaces();
         while (it.hasNext()) {
@@ -188,86 +210,25 @@ public class SimpleNsStreamWriter
 
     //public void writeEndElement(QName name) throws XMLStreamException
 
-    /**
-     * Method called to close an open start element, when another
-     * main-level element (not namespace declaration or attribute)
-     * is being output; except for end element which is handled differently.
-     *
-     * @param emptyElem If true, the element being closed is an empty
-     *   element; if false, a separate stand-alone start element.
-     */
-    public void closeStartElement(boolean emptyElem)
-        throws XMLStreamException
-    {
-        mStartElementOpen = false;
-        // Ok... time to verify namespaces were written ok?
-        if (mCheckNS) {
-            mCurrElem.checkAllNsWrittenOk();
-        }
-
-        try {
-            if (emptyElem) {
-                // Extra space for readability (plus, browsers like it if using XHTML)
-                mWriter.write(" />");
-            } else {
-                mWriter.write('>');
-            }
-        } catch (IOException ioe) {
-            throw new XMLStreamException(ioe);
-        }
-
-        // Need bit more special handling for empty elements...
-        if (emptyElem) {
-            mCurrElem = mCurrElem.getParent();
-            if (mCurrElem.isRoot()) {
-                mState = STATE_EPILOG;
-            }
-        }
-    }
-
     //public String getTopElemName()
 
-    /*
-    ////////////////////////////////////////////////////
-    // Internal methods
-    ////////////////////////////////////////////////////
-     */
-
-    protected String generatePrefix(String oldPrefix, String nsURI)
+    protected void writeStartOrEmpty(String localName, String nsURI)
         throws XMLStreamException
     {
-        // If not, how about in root namespace context?
-        /* ??? 10-May-2004, TSa: Is it ok to make use of root context, even
-         *   if 'automatic namespace' feature is not set? But if not, what
-         *   good would root namespace be?
-         */
-        if (mRootNsContext != null) {
-            // If so, it has to be declared and output:
-            String prefix = mRootNsContext.getPrefix(nsURI);
-            /* Note: root namespace context can NOT define default
-             * namespace; it would be tricky to get to work right.
-             */
-            if (prefix != null && prefix.length() > 0) {
-                return prefix;
-            }
-        }
+        checkStartElement(localName);
 
-	if (oldPrefix != null) {
-	    throw new XMLStreamException("Prefix '"+oldPrefix+"' did not match (or wasn't declared for) namespace '"
-					 +nsURI+"', can not generate a new prefix since feature '"
-					 +XMLOutputFactory.IS_REPAIRING_NAMESPACES
-					 +"' not enabled.");
-	}
-	throw new XMLStreamException("Can not create automatic namespace for namespace URI '"
-				     +nsURI+"', feature '"
-				     +XMLOutputFactory.IS_REPAIRING_NAMESPACES
-				     +"' not enabled.");
+        mCurrElem = new OutputElement(mCurrElem, localName, mNsDecl, mCheckNS);
+
+        // Need a prefix...
+        String prefix = findPrefix(nsURI, true);
+        mCurrElem.setPrefix(prefix);
+        doWriteStartElement(prefix, localName);
+
+        // Need to clear namespace declaration info now for next start elem:
+        mNsDecl = null;
     }
 
-    //void checkStartElement(String localName)
-
-    protected void writeStartOrEmpty(String prefix, String localName, String nsURI,
-				     boolean isEmpty)
+    protected void writeStartOrEmpty(String prefix, String localName, String nsURI)
         throws XMLStreamException
     {
         checkStartElement(localName);
@@ -276,107 +237,54 @@ public class SimpleNsStreamWriter
         // Need to clear ns declarations for next start/empty elems:
         mNsDecl = null;
 
-        /* 21-Sep-2004, TSa: Shouldn't need this -- automatic namespace
-         *   repairing should take care of this, in doWriteStartElement.
-         */
         // Ok, need to check validity of the prefix?
-        //boolean outputNS = false;
-
         if (mCheckNS) {
-            int status = mCurrElem.isPrefixValid(prefix, nsURI, mCheckNS, true);
-            if (status != OutputElement.PREFIX_OK) {
-                /* Either wrong prefix (need to find the right one), or
-                 * non-existing one...
-                 */
-                if (status == OutputElement.PREFIX_MISBOUND) { // mismatch?
-                    prefix = mCurrElem.findPrefix(nsURI, true);
-                } else { // not declared
-		    throwOutputError("Undeclared prefix '"+prefix+"' for element <"+prefix+":"+localName+">");
-                }
-
-                // Either way, we may have to create a new prefix?
-                if (prefix == null) {
-                    prefix = generatePrefix(null, nsURI);
-                    mCurrElem.addPrefix(prefix, nsURI);
-                }
-            }
+            checkNsDecl(prefix, nsURI);
         }
 
         mCurrElem.setPrefix(prefix);
         doWriteStartElement(prefix, localName);
     }
 
-    protected void doWriteStartElement(String prefix, String localName)
+    /*
+    ////////////////////////////////////////////////////
+    // Internal methods
+    ////////////////////////////////////////////////////
+     */
+
+    private final String findPrefix(String nsURI, boolean canUseDefault)
         throws XMLStreamException
     {
-        mAnyOutput = true;
-        mStartElementOpen = true;
-        try {
-            mWriter.write('<');
-            if (prefix != null && prefix.length() > 0) {
-                mWriter.write(prefix);
-                mWriter.write(':');
+        String prefix = mCurrElem.findPrefix(nsURI, canUseDefault);
+        if (prefix == null) {
+            /* 11-Nov-2004, TSa: May also be specified by the root namespace
+             *   context
+             */
+            if (mRootNsContext != null) {
+                prefix = mRootNsContext.getPrefix(nsURI);
+                /* If we got it, better call setPrefix() now...
+                 * (note: we do not use default namespace root may define;
+                 * it'd be hard to make that work ok)
+                 */
+                if (prefix != null && prefix.length() > 0) {
+                    mCurrElem.addPrefix(prefix, nsURI);
+                }
             }
-            mWriter.write(localName);
-
-	    // No need to implicitly write namespace declarations...
-        } catch (IOException ioe) {
-            throw new XMLStreamException(ioe);
+            throw new XMLStreamException("Unbound namespace prefix '"+prefix+"'");
         }
+        return prefix;
     }
 
-    //private void doWriteNamespace(String prefix, String nsURI)
-
-    //private void doWriteAttr(String localName, String nsURI, String prefix, String value)
-
-    /**
-     *<p>
-     * Note: Caller has to do actual removal of the element from element
-     * stack, before calling this method.
-     */
-    protected void doWriteEndElement(String prefix, String localName)
+    private final void checkNsDecl(String prefix, String nsURI)
         throws XMLStreamException
     {
-        if (mStartElementOpen) {
-            /* Can't/shouldn't call closeStartElement, but need to do same
-             * processing. Thus, this is almost identical to closeStartElement:
-             */
-            mStartElementOpen = false;
-            if (mCheckNS) {
-                mCurrElem.checkAllNsWrittenOk();
+        int status = mCurrElem.isPrefixValid(prefix, nsURI, true, false);
+        if (status != OutputElement.PREFIX_OK) {
+            if (status == OutputElement.PREFIX_UNBOUND) {
+                throw new XMLStreamException("Unbound namespace prefix '"+prefix+"'");
             }
-            
-            try {
-                // We could write an empty element, implicitly?
-                if (!mEmptyElement && mCfgOutputEmptyElems) {
-                    // Extra space for readability
-                    mWriter.write(" />");
-                    if (mCurrElem.isRoot()) {
-                        mState = STATE_EPILOG;
-                    }
-                    return;
-                }
-                // Nah, need to close open elem, and then output close elem
-                mWriter.write('>');
-            } catch (IOException ioe) {
-                throw new XMLStreamException(ioe);
-            }
-        }
-
-        try {
-            mWriter.write("</");
-            if (prefix != null && prefix.length() > 0) {
-                mWriter.write(prefix);
-                mWriter.write(':');
-            }
-            mWriter.write(localName);
-            mWriter.write('>');
-        } catch (IOException ioe) {
-            throw new XMLStreamException(ioe);
-        }
-
-        if (mCurrElem.isRoot()) {
-            mState = STATE_EPILOG;
+            String actURI = mCurrElem.getNamespaceURI(prefix);
+            throw new XMLStreamException("Misbound namespace prefix '"+prefix+"': was declared as '"+actURI+"', trying to use it as '"+nsURI+"'");
         }
     }
 }

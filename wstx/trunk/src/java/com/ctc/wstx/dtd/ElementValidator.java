@@ -106,6 +106,10 @@ public class ElementValidator
     ///////////////////////////////////////
     */
 
+    /**
+     * Information about declared and referenced element ids (unique
+     * ids that attributes may defined, as defined by DTD)
+     */
     protected ElementIdMap mIdMap = null;
 
     /*

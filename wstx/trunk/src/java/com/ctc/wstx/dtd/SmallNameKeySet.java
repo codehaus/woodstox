@@ -46,6 +46,10 @@ public final class SmallNameKeySet
         }
     }
 
+    public boolean hasMultiple() {
+        return mStrings.length > 1;
+    }
+
     /**
      * @return True if the set contains specified name; false if not.
      */
