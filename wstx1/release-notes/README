@@ -1,0 +1,28 @@
+== Woodstox XML parser ==
+
+Woodstox is an XML-parser that allows parsing of XML documents in so-called
+pull mode. It specifically implements StAX 1.0 API:
+
+http://www.jcp.org/en/jsr/detail?id=173
+
+which defines what is closest to being the J2xE standard for XML pull parsers.
+
+Woodstox was written by Tatu Saloranta (<tatu.saloranta@iki.fi>,
+or <cowtowncoder@yahoo.com>)
+
+Woodstox is currently licensed under LGPL (Lesser Gnu Public License)
+See LICENSE for further details (or alternatively, go to
+<http://www.gnu.org/licenses/licenses.html#LGPL> for more
+information about LGPL).
+In future it is possible that some form of dual-licensing will be added,
+so that user can choose under which license (of which one will be LGPL)
+(s)he wants to use Woodstox.
+
+Alternative licensing can also be directly negotiated with the author.
+At practical level, licensing under other open source licenses (Apache, BSD?)
+can usually be granted on case-by-case basis, for example in exchange for
+allowing the author to use licensing party as a professional reference
+("happy customer").
+
+Contributions to the source code need to be made compliant to
+LGPL, to be added to the distribution.
