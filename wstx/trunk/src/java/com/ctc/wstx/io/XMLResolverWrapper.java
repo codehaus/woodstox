@@ -43,25 +43,35 @@ public final class XMLResolverWrapper
             src = mResolver.resolveEntity(publicId, systemId,
                                           assumedLoc.toString(), entityId);
 
-            if (src == null) {
+            if (src == null) { // null -> should use the default mechanism
                 return null;
             }
-            if (!(src instanceof InputStream)) {
+
+            int bufLen = (refCtxt == null) ? DEFAULT_BUFFER_SIZE : refCtxt.getInputBufferLength();
+            InputBootstrapper bs = null;
+
+            if (src instanceof InputStream) {
+                bs = StreamBootstrapper.getInstance
+                    ((InputStream) src, publicId, systemId, bufLen);
+            } else if (src instanceof Reader) {
+                /* 10-Feb-2005, TSa: Strictly speaking, StAX 1.0 API does not
+                 *   allow a Reader to be returned... but it really should,
+                 *   so let's just allow it here (it's easy to implement, too)
+                 */
+                bs = ReaderBootstrapper.getInstance
+                    ((Reader) src, publicId, systemId, bufLen, null);
+            } else {
                 throw new IOException("Unimplemented type of input source: "+src.getClass()+".");
             }
-            
-            int bufLen = (refCtxt == null) ? DEFAULT_BUFFER_SIZE : refCtxt.getInputBufferLength();
-            StreamBootstrapper bs = StreamBootstrapper.getInstance
-                ((InputStream) src, publicId, systemId, bufLen);
-            /* !!! TBI: Should try to figure out how to pass XMLReporter here,
-             *   so that warnings could be reported?
+
+            /* !!! TBI: Should try to figure out how to pass XMLReporter
+             *   here, so that warnings could be reported?
              */
             Reader r = bs.bootstrapInput(false, null);
-
+            
             // true -> close input source after finished reading
-            ReaderSource rsrc = InputSourceFactory.constructReaderSource
+            return InputSourceFactory.constructReaderSource
                 (refCtxt, entityId, bs, publicId, systemId, assumedLoc, r, true, bufLen);
-            return rsrc;
         } catch (XMLStreamException wex) {
             IOException ioe = new IOException(wex.toString());
             JdkFeatures.getInstance().setInitCause(ioe, wex);
