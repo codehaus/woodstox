@@ -595,12 +595,17 @@ public abstract class StreamScanner
     /**
      * Similar to {@link #getNext}, but does not advance pointer
      * in input buffer.
+     *<p>
+     * Note: this method only peeks within current input source;
+     * it does not close it and check nested input source (if any).
+     * This because that's never the desired behaviour (if such
+     * behaviour is needed, have to create a new method).
      */
     protected final int peekNext()
         throws IOException, WstxException
     {
         if (mInputPtr >= mInputLen) {
-            if (!loadMore()) {
+            if (!loadMoreFromCurrent()) {
                 return -1;
             }
         }
@@ -697,17 +702,41 @@ public abstract class StreamScanner
         }
         return c;
     }
+
+    protected final char getNextInCurrAfterWS(String errorMsg)
+        throws IOException, WstxException
+    {
+	while (true) {
+	    if (mInputPtr >= mInputLen) {
+		loadMoreFromCurrent(errorMsg);
+	    }
+
+	    char c = mInputBuffer[mInputPtr++];
+	    while (c > CHAR_SPACE) {
+		return c;
+	    }
+            // Linefeed?
+            if (c == '\n' || c == '\r') {
+                skipCRLF(c);
+            } else if (c == CHAR_NULL) {
+                throwNullChar();
+            }
+        }
+    }
     
     /**
-     * Method that will skip any white space potentially coming from input,
-     * without returning next character.
+     * Method that will skip any white space potentially coming from the
+     * current input source, without returning next character. Note that
+     * it does NOT continue to the next input source, in case of a
+     * nested input source (like entity expansion).
      */
     protected final void skipWS() 
         throws IOException, WstxException
     {
         while (true) {
             if (mInputPtr >= mInputLen) {
-                if (!loadMore()) {
+		// Let's see if current source has more
+                if (!loadMoreFromCurrent()) {
                     return;
                 }
             }
@@ -728,7 +757,9 @@ public abstract class StreamScanner
 
     /**
      * Method called when a CR has been spotted in input; checks if next
-     * char is LF, and if so, skips it.
+     * char is LF, and if so, skips it. Note that next character has to
+     * come from the current input source, to qualify; it can never come
+     * from another (nested) input source.
      *
      * @return True, if passed in char is '\r' and next one is '\n'.
      */

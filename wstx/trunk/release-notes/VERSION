@@ -13,12 +13,14 @@ Description:
   Problems fixed:
     * Fixed a validation problem (pure text [#PCDATA] content didn't
       report validation problem when elements included)
-    * Was adding an extra space between PI target and data, in cases
-      where data already had space (such as when gettig PI data from
-      stream reader).
+    * Stream writer was adding an extra space between PI target and data, in
+      cases where data already had space (such as when getting PI data
+      from [broken] stream reader).
     * As pointed out by Glenn Marcy, processing instruction target should
       not contain leading space: Woodstox fixed, StAX specs need to clarify
       this too.
+    * Fixed a small problem with attribute parsing; space between attribute
+      value and following name was optional.
 
   Refactoring:
     * Rewrote stream writer; now has 3 implementations (separated

@@ -1737,8 +1737,8 @@ public class WstxStreamReader
          *</code>. And we have already read the DOCTYPE token.
          */
 
+	char c = getNextInCurrAfterWS(SUFFIX_IN_DTD);
         if (mCfgNsEnabled) {
-            char c = getNextCharAfterWS(SUFFIX_IN_DTD);
             String str = parseLocalName(c);
             c = getNextChar(SUFFIX_IN_DTD);
             if (c == ':') { // Ok, got namespace and local name
@@ -1753,13 +1753,12 @@ public class WstxStreamReader
                 throwUnexpectedChar(c, " in DOCTYPE declaration; expected '[' or white space.");
             }
         } else {
-            char c = getNextCharAfterWS(SUFFIX_IN_DTD);
             mRootLName = parseFullName(c);
             mRootPrefix = null;
         }
 
         // Ok, fine, what next?
-        char c = getNextCharAfterWS(SUFFIX_IN_DTD);
+        c = getNextCharAfterWS(SUFFIX_IN_DTD);
         if (c != '[' && c != '>') {
             String keyw = null;
             
@@ -2102,7 +2101,13 @@ public class WstxStreamReader
         boolean gotDefaultNS = false;
 
         while (true) {
-            char c = getNextCharAfterWS(SUFFIX_IN_ELEMENT);
+            char c = getNextCharFromCurrent(SUFFIX_IN_ELEMENT);
+	    if (c <= CHAR_SPACE) {
+		c = getNextInCurrAfterWS(SUFFIX_IN_ELEMENT);
+	    } else if (c != '/' && c != '>') {
+		throwUnexpectedChar(c, " excepted space, or '>' or \"/>\"");
+	    }
+
             if (c == '/') {
                 c = getNextCharFromCurrent(SUFFIX_IN_ELEMENT);
                 if (c != '>') {
@@ -2207,7 +2212,12 @@ public class WstxStreamReader
         boolean isEmpty = false;
 
         while (true) {
-            char c = getNextCharAfterWS(SUFFIX_IN_ELEMENT);
+            char c = getNextCharFromCurrent(SUFFIX_IN_ELEMENT);
+	    if (c <= CHAR_SPACE) {
+		c = getNextInCurrAfterWS(SUFFIX_IN_ELEMENT);
+	    } else if (c != '/' && c != '>') {
+		throwUnexpectedChar(c, " excepted space, or '>' or \"/>\"");
+	    }
             if (c == '/') {
                 c = getNextCharFromCurrent(SUFFIX_IN_ELEMENT);
                 if (c != '>') {
@@ -2989,34 +2999,7 @@ public class WstxStreamReader
     private void readPI()
         throws IOException, XMLStreamException
     {
-        char c = (mInputPtr < mInputLen) ?
-            mInputBuffer[mInputPtr++] : getNextCharFromCurrent(SUFFIX_IN_PROC_INSTR);
-
-        /* First, need to check that we get either white space, or immediate
-         * '?>' end mark; otherwise that's an error... (usually, invalid
-         * target name)
-         */
-        if (c <= CHAR_SPACE) {
-            if (c == CHAR_NULL) {
-                throwNullChar();
-            }
-            // fine! (linefeeds are handled later on)
-        } else {
-            if (c != '?') {
-                throwUnexpectedChar(c, "; expected \"?>\" as proc. instr. end marker.");
-            }
-            c = getNextCharFromCurrent(SUFFIX_IN_PROC_INSTR);
-            if (c != '>') {
-                throwUnexpectedChar(c, "; expected '>' (as part of \"?>\") as proc. instr. end marker.");
-            }
-            mTextBuffer.resetWithEmpty();
-            return;
-        }
-        /* Let's actually push back the space char, to be included as full PI
-         * data... also ensures round-trip works ok (plus, if it's an lf,
-         * gets handled properly)
-         */
-        int ptr = --mInputPtr;
+        int ptr = mInputPtr;
         int start = ptr;
         char[] inputBuf = mInputBuffer;
         int inputLen = mInputLen;
@@ -3029,7 +3012,7 @@ public class WstxStreamReader
 
         outer_loop:
         while (ptr < inputLen) {
-            c = inputBuf[ptr++];
+            char c = inputBuf[ptr++];
             if (c <= CHAR_CR_LF_OR_NULL) {
                 if (c == '\n') {
                     markLF(ptr);

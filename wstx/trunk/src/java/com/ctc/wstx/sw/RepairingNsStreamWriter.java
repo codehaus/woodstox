@@ -99,13 +99,8 @@ public class RepairingNsStreamWriter
             throw new IllegalStateException("Trying to write an attribute when there is no open start element.");
         }
 
-        // May want to verify prefix validity:
-        if (mCheckNS) {
-            int status = mCurrElem.isPrefixValid(prefix, nsURI, mCheckNS, false);
-            if (status != OutputElement.PREFIX_OK) {
-                prefix = findOrCreatePrefix(nsURI, false);
-            }
-        }
+	// In repairing mode, better ensure validity:
+	prefix = validatePrefix(prefix, nsURI, false);
         doWriteAttr(localName, nsURI, prefix, value);
     }
 
@@ -246,12 +241,8 @@ public class RepairingNsStreamWriter
         // Need to clear ns declarations for next start/empty elems:
         mNsDecl = null;
 
-        // Always have to check, in repairing mode:
-        int status = mCurrElem.isPrefixValid(prefix, nsURI, mCheckNS, true);
-        if (status != OutputElement.PREFIX_OK) {
-            prefix = findOrCreatePrefix(nsURI, true);
-        }
-
+	// In repairing mode, better ensure validity:
+	prefix = validatePrefix(prefix, nsURI, true);
         mCurrElem.setPrefix(prefix);
         doWriteStartElement(prefix, localName);
     }
@@ -270,7 +261,7 @@ public class RepairingNsStreamWriter
      * @param defaultNsOk Whether default namespace prefix (empty String)
      *   is acceptable (can not be used for attributes)
      */
-    protected String findOrCreatePrefix(String nsURI, boolean defaultNsOk)
+    protected final String findOrCreatePrefix(String nsURI, boolean defaultNsOk)
         throws XMLStreamException
     {
         String prefix = mCurrElem.findPrefix(nsURI, defaultNsOk);
@@ -298,5 +289,33 @@ public class RepairingNsStreamWriter
         return prefix;
     }
 
-    //void checkStartElement(String localName)
+    /**
+     * Method called to make sure that passed prefix/URI combination
+     * is valid for current element; and if not, to create alternate
+     * binding and return its prefix
+     */
+    private final String validatePrefix(String prefix, String nsURI,
+					boolean canUseDefault)
+	throws XMLStreamException
+    {
+	int status = mCurrElem.isPrefixValid(prefix, nsURI, mCheckNS,
+					     canUseDefault);
+	if (status != OutputElement.PREFIX_OK) {
+	    // Not bound? Easy enough, can just add such mapping:
+	    if (status == OutputElement.PREFIX_UNBOUND) {
+		mCurrElem.addPrefix(prefix, nsURI);
+		doWriteNamespace(prefix, nsURI);
+	    } else {
+		// mis-bound? Need to find better one
+		// First, do we have a mapping for URI?
+		prefix = getPrefix(nsURI);
+		if (prefix == null) { // nope, need to generate
+		    prefix = mCurrElem.generatePrefix(mRootNsContext);
+		    mCurrElem.addPrefix(prefix, nsURI);
+		    doWriteNamespace(prefix, nsURI);
+		}
+	    }
+	}
+	return prefix;
+    }
 }
