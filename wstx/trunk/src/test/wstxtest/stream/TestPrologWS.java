@@ -5,6 +5,8 @@ import java.util.Random;
 
 import javax.xml.stream.*;
 
+import com.ctc.wstx.stax.WstxInputFactory;
+
 import wstxtest.cfg.*;
 
 /**
@@ -12,7 +14,6 @@ import wstxtest.cfg.*;
  * prolog and/or epilog.
  */
 import com.ctc.wstx.api.ReaderConfig;
-import com.ctc.wstx.stax.WstxInputFactory;
 
 public class TestPrologWS
     extends BaseStreamTest
@@ -85,7 +86,7 @@ public class TestPrologWS
      * Method called via input config iterator, with all possible
      * configurations
      */
-    public void runTest(WstxInputFactory f, InputConfigIterator it)
+    public void runTest(XMLInputFactory f, InputConfigIterator it)
         throws Exception
     {
         String XML = "<root>"
@@ -110,8 +111,8 @@ public class TestPrologWS
                                       boolean lazyParsing)
         throws XMLStreamException
     {
-        WstxInputFactory f = getInputFactory();
-	ReaderConfig cfg = f.getConfig();
+        WstxInputFactory f = (WstxInputFactory) getInputFactory();
+        ReaderConfig cfg = f.getConfig();
         cfg.doReportPrologWhitespace(prologWS);
         cfg.doParseLazily(lazyParsing);
         return constructStreamReader(f, contents);

@@ -374,18 +374,6 @@
         <available property="junit.present" classname="junit.framework.TestCase" />
     </target>
 
-    <target name="test.compile" depends="junit, compile" if="junit.present">
-        <javac SrcDir="${TestSrcDir}" destdir="${TestClassesDir}"
-            debug="true"
-        >
-            <include name="**/*.java" />
-            <classpath refid="compile-classpath" />
-            <classpath>
-                <pathelement path="${BuildClassesDir}"/>
-            </classpath>
-        </javac>
-    </target>
-
     <target name="all-tests" depends="test,staxtest" />
 
     <!-- Running generic StAX tests -->
@@ -434,7 +422,23 @@
         </unzip>
     </target>
 
-    <!-- Running Woodstox-specific tests -->
+    <!-- Compiling and running Woodstox-specific tests
+       - (including, for now, StAX2 tests)
+      -->
+
+    <target name="test.compile" depends="junit, compile" if="junit.present">
+        <javac SrcDir="${TestSrcDir}" destdir="${TestClassesDir}"
+            debug="true"
+        >
+            <include name="**/*.java" />
+            <classpath refid="compile-classpath" />
+            <classpath>
+                <pathelement path="${BuildClassesDir}"/>
+            </classpath>
+        </javac>
+    </target>
+
+
     <target name="test" depends="test.compile" if="junit.present">
        <!-- showoutput 'yes' to allow outputting debug msgs... -->
         <junit fork="no" printsummary="yes" haltonfailure="no"

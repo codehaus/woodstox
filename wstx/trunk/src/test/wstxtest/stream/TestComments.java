@@ -7,8 +7,6 @@ import javax.xml.stream.*;
 
 import wstxtest.cfg.*;
 
-import com.ctc.wstx.stax.WstxInputFactory;
-
 public class TestComments
     extends BaseStreamTest
     implements InputTestMethod
@@ -37,7 +35,7 @@ public class TestComments
      * Method called via input config iterator, with all possible
      * configurations
      */
-    public void runTest(WstxInputFactory f, InputConfigIterator it)
+    public void runTest(XMLInputFactory f, InputConfigIterator it)
         throws Exception
     {
         String XML = "<root>"

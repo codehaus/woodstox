@@ -1180,7 +1180,8 @@ public class WstxStreamReader
      */
     public boolean isEmptyElement() throws XMLStreamException
     {
-        return mStEmptyElem;
+        return (mCurrToken == START_ELEMENT) ?
+            mStEmptyElem : false;
     }
 
     /*

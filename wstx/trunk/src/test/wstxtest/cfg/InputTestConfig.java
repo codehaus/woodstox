@@ -1,16 +1,16 @@
 package wstxtest.cfg;
 
-import com.ctc.wstx.stax.WstxInputFactory;
+import javax.xml.stream.XMLInputFactory;
 
 public interface InputTestConfig
 {
-    public boolean nextConfig(WstxInputFactory f);
+    public boolean nextConfig(XMLInputFactory f);
 
     /**
      * Method that will reset iteration state to the initial, ie. state
      * before any iteration
      */
-    public void firstConfig(WstxInputFactory f);
+    public void firstConfig(XMLInputFactory f);
 
     /**
      * @return String that describes current settings this configuration

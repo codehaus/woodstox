@@ -81,8 +81,8 @@ public class TestRandom
         String baseArgStr = "ns: "+ns+", coalesce: "+coalescing+", entityExp: "+autoEntity;
         long seed = baseArgStr.hashCode();
 
-        WstxInputFactory f = getInputFactory();
-	ReaderConfig cfg = f.getConfig();
+        WstxInputFactory f = (WstxInputFactory) getInputFactory();
+        ReaderConfig cfg = f.getConfig();
 
         // Settings we always need:
         cfg.doSupportDTDs(true);
@@ -114,7 +114,7 @@ public class TestRandom
      * Method called via input config iterator, with all possible
      * configurations
      */
-    public void runTest(WstxInputFactory f, InputConfigIterator it)
+    public void runTest(XMLInputFactory f, InputConfigIterator it)
         throws Exception
     {
         // First, let's skip through it all

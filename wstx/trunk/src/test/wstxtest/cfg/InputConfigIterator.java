@@ -2,9 +2,9 @@ package wstxtest.cfg;
 
 import java.util.*;
 
-import wstxtest.cfg.InputTestConfig;
+import javax.xml.stream.XMLInputFactory;
 
-import com.ctc.wstx.stax.WstxInputFactory;
+import wstxtest.cfg.InputTestConfig;
 
 /**
  * Class that implements iteration over set of input configuration
@@ -41,7 +41,7 @@ public class InputConfigIterator
     /////////////////////////////////////////////////
      */
 
-    public void iterate(WstxInputFactory f, InputTestMethod callback)
+    public void iterate(XMLInputFactory f, InputTestMethod callback)
         throws Exception
     {
         mIndex = 0;

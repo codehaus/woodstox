@@ -1,9 +1,9 @@
 package wstxtest.cfg;
 
-import com.ctc.wstx.stax.WstxInputFactory;
+import javax.xml.stream.XMLInputFactory;
 
 public interface InputTestMethod
 {
-    public void runTest(WstxInputFactory f, InputConfigIterator it)
+    public void runTest(XMLInputFactory f, InputConfigIterator it)
         throws Exception;
 }

@@ -12,5 +12,12 @@ public class BaseStax2Test
     protected BaseStax2Test(String name) {
         super(name);
     }
+
+    /*
+    //////////////////////////////////////////////////
+    // Factory methods
+    //////////////////////////////////////////////////
+     */
+
 }
 

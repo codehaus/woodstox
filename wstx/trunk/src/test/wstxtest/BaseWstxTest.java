@@ -7,7 +7,9 @@ import junit.framework.TestCase;
 
 import javax.xml.stream.*;
 
-import com.ctc.wstx.stax.*;
+import org.codehaus.stax2.*;
+
+import com.ctc.wstx.stax.WstxInputFactory;
 
 public class BaseWstxTest
     extends TestCase
@@ -40,7 +42,7 @@ public class BaseWstxTest
     ///////////////////////////////////////////////////
      */
 
-    WstxInputFactory mInputFactory = null;
+    XMLInputFactory2 mInputFactory = null;
 
     /*
     ///////////////////////////////////////////////////
@@ -58,7 +60,7 @@ public class BaseWstxTest
     //////////////////////////////////////////////////
      */
     
-    protected WstxInputFactory getInputFactory()
+    protected XMLInputFactory2 getInputFactory()
     {
         if (mInputFactory == null) {
             /* 29-Nov-2004, TSa: Better ensure we get the right
@@ -71,25 +73,29 @@ public class BaseWstxTest
         return mInputFactory;
     }
 
-    protected static WstxInputFactory getNewInputFactory()
-    {
-        return (WstxInputFactory) XMLInputFactory.newInstance();
+    protected WstxInputFactory getWstxInputFactory() {
+        return (WstxInputFactory) getInputFactory();
     }
 
-    protected static XMLStreamReader constructStreamReader(XMLInputFactory f, String content)
+    protected static XMLInputFactory2 getNewInputFactory()
+    {
+        return (XMLInputFactory2) XMLInputFactory.newInstance();
+    }
+
+    protected static XMLStreamReader2 constructStreamReader(XMLInputFactory f, String content)
         throws XMLStreamException
     {
-        return f.createXMLStreamReader(new StringReader(content));
+        return (XMLStreamReader2) f.createXMLStreamReader(new StringReader(content));
     }
 
-    protected static XMLStreamReader constructStreamReaderForFile(XMLInputFactory f, String filename)
+    protected static XMLStreamReader2 constructStreamReaderForFile(XMLInputFactory f, String filename)
         throws IOException, XMLStreamException
     {
         File inf = new File(filename);
         XMLStreamReader sr = f.createXMLStreamReader(inf.toURL().toString(),
                                                      new FileReader(inf));
         assertEquals(sr.getEventType(), START_DOCUMENT);
-        return sr;
+        return (XMLStreamReader2) sr;
     }
 
     /*
@@ -97,6 +103,31 @@ public class BaseWstxTest
     // Configuring input factory
     //////////////////////////////////////////////////
      */
+
+    protected static void setNamespaceAware(XMLInputFactory f, boolean state)
+        throws XMLStreamException
+    {
+        // will always succeed for woodstox factories...
+        f.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.valueOf(state));
+    }
+
+    protected static void setCoalescing(XMLInputFactory f, boolean state)
+        throws XMLStreamException
+    {
+        f.setProperty(XMLInputFactory.IS_COALESCING, Boolean.valueOf(state));
+    }
+
+    protected static void setValidating(XMLInputFactory f, boolean state)
+        throws XMLStreamException
+    {
+        f.setProperty(XMLInputFactory.IS_VALIDATING, Boolean.valueOf(state));
+    }
+
+    protected static void setSupportDTD(XMLInputFactory f, boolean state)
+        throws XMLStreamException
+    {
+        f.setProperty(XMLInputFactory.SUPPORT_DTD, Boolean.valueOf(state));
+    }
 
     /*
     //////////////////////////////////////////////////
@@ -125,6 +156,38 @@ public class BaseWstxTest
         // !!! TODO: Indicate position where Strings differ
         fail(msg+": expected "+quotedPrintable(exp)+", got "
              +quotedPrintable(act));
+    }
+
+    /**
+     * Method that not only gets currently available text from the 
+     * reader, but also checks that its consistenly accessible using
+     * different (basic) StAX methods.
+     */
+    protected static String getAndVerifyText(XMLStreamReader sr)
+        throws XMLStreamException
+    {
+        int expLen = sr.getTextLength();
+        /* Hmmh. It's only ok to return empty text for DTD event... well,
+         * maybe also for CDATA, since empty CDATA blocks are legal?
+         */
+        /* !!! 01-Sep-2004, TSa:
+         *  note: theoretically, in coalescing mode, it could be possible
+         *  to have empty CDATA section(s) get converted to CHARACTERS,
+         *  which would be empty... may need to enhance this to check that
+         *  mode is not coalescing? Or something
+         */
+        if (sr.getEventType() == CHARACTERS) {
+            assertTrue("Stream reader should never return empty Strings.",  (expLen > 0));
+        }
+        String text = sr.getText();
+        assertNotNull("getText() should never return null.", text);
+        assertEquals("Expected text length of "+expLen+", got "+text.length(),
+		     expLen, text.length());
+        char[] textChars = sr.getTextCharacters();
+        int start = sr.getTextStart();
+        String text2 = new String(textChars, start, expLen);
+        assertEquals(text, text2);
+        return text;
     }
 
     /*

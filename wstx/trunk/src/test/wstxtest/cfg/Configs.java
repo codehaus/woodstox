@@ -1,7 +1,10 @@
 package wstxtest.cfg;
 
-import com.ctc.wstx.api.ReaderConfig;
+import javax.xml.stream.XMLInputFactory;
+
 import com.ctc.wstx.stax.WstxInputFactory;
+
+import com.ctc.wstx.api.ReaderConfig;
 
 public class Configs
 {
@@ -72,7 +75,7 @@ public class Configs
             mPos = -1;
         }
 
-        public boolean nextConfig(WstxInputFactory f) {
+        public boolean nextConfig(XMLInputFactory f) {
             if (++mPos >= mTotalCount) {
                 return false;
             }
@@ -80,7 +83,7 @@ public class Configs
             return true;
         }
 
-        public void firstConfig(WstxInputFactory f) {
+        public void firstConfig(XMLInputFactory f) {
             mPos = 0;
             config(f, 0);
         }
@@ -99,7 +102,7 @@ public class Configs
 
         public abstract String getDesc(int index);
 
-        public abstract void config(WstxInputFactory f, int index);
+        public abstract void config(XMLInputFactory f, int index);
     }
 
     /*
@@ -119,8 +122,8 @@ public class Configs
             return "namespaces: "+booleanFromInt(index);
         }
 
-        public void config(WstxInputFactory f, int index) {
-            f.getConfig().doSupportNamespaces(booleanFromInt(index));
+        public void config(XMLInputFactory f, int index) {
+            ((WstxInputFactory) f).getConfig().doSupportNamespaces(booleanFromInt(index));
         }
     }
 
@@ -135,8 +138,8 @@ public class Configs
             return "coalescing: "+booleanFromInt(index);
         }
 
-        public void config(WstxInputFactory f, int index) {
-            f.getConfig().doCoalesceText(booleanFromInt(index));
+        public void config(XMLInputFactory f, int index) {
+            ((WstxInputFactory) f).getConfig().doCoalesceText(booleanFromInt(index));
         }
     }
 
@@ -151,8 +154,8 @@ public class Configs
             return "expand-entities: "+booleanFromInt(index);
         }
 
-        public void config(WstxInputFactory f, int index) {
-            f.getConfig().doReplaceEntityRefs(booleanFromInt(index));
+        public void config(XMLInputFactory f, int index) {
+            ((WstxInputFactory) f).getConfig().doReplaceEntityRefs(booleanFromInt(index));
         }
     }
 
@@ -173,8 +176,8 @@ public class Configs
             return "lazy-parsing: "+booleanFromInt(index);
         }
 
-        public void config(WstxInputFactory f, int index) {
-            f.getConfig().doParseLazily(booleanFromInt(index));
+        public void config(XMLInputFactory f, int index) {
+            ((WstxInputFactory) f).getConfig().doParseLazily(booleanFromInt(index));
         }
     }
 
@@ -189,8 +192,8 @@ public class Configs
             return "normalize-lfs: "+booleanFromInt(index);
         }
 
-        public void config(WstxInputFactory f, int index) {
-            f.getConfig().doNormalizeLFs(booleanFromInt(index));
+        public void config(XMLInputFactory f, int index) {
+            ((WstxInputFactory) f).getConfig().doNormalizeLFs(booleanFromInt(index));
         }
     }
 
@@ -209,8 +212,8 @@ public class Configs
             return "input-buffer: "+mSizes[index];
         }
 
-        public void config(WstxInputFactory f, int index) {
-            f.getConfig().setInputBufferLength(mSizes[index]);
+        public void config(XMLInputFactory f, int index) {
+            ((WstxInputFactory) f).getConfig().setInputBufferLength(mSizes[index]);
         }
     }
 
@@ -229,8 +232,8 @@ public class Configs
             return "input-buffer: "+mSizes[index];
         }
 
-        public void config(WstxInputFactory f, int index) {
-            f.getConfig().setInputBufferLength(mSizes[index]);
+        public void config(XMLInputFactory f, int index) {
+            ((WstxInputFactory ) f).getConfig().setInputBufferLength(mSizes[index]);
         }
     }
 }

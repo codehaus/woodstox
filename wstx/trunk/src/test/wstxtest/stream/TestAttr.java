@@ -5,9 +5,9 @@ import java.util.Random;
 
 import javax.xml.stream.*;
 
-import wstxtest.cfg.*;
-
 import com.ctc.wstx.stax.WstxInputFactory;
+
+import wstxtest.cfg.*;
 
 public class TestAttr
     extends BaseStreamTest
@@ -46,7 +46,7 @@ public class TestAttr
     private XMLStreamReader getReader(String contents, boolean nsAware)
         throws XMLStreamException
     {
-        WstxInputFactory f = getInputFactory();
+        WstxInputFactory f = getWstxInputFactory();
         f.getConfig().doSupportNamespaces(nsAware);
         return constructStreamReader(f, contents);
     }

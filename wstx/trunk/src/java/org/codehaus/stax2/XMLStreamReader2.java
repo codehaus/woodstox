@@ -13,7 +13,7 @@ import javax.xml.stream.XMLStreamReader;
  * efficient pass-through processing (such as one needed when routing
  * SOAP-messages).
  *<p>
- * The feature supported via {@link #setFeature} are:
+ * The features supported via {@link #setFeature} are:
  *<dt>
  * <dt>FEATURE_DTD_OVERRIDE: (write-only)</dt>
  * <dd>Feature used to specify the source for DTD external subset to use
@@ -145,19 +145,27 @@ public interface XMLStreamReader2
     */
 
     /**
+     * Method that can be used to check whether current START_ELEMENT
+     * event was created for an empty element (xml short-hand notation
+     * where one tag implies start and end, ending with "/>"), or not.
      *<p>
      * Note: method may need to read more data to know if the element
-     * is an empty one, and as such may throw an i/o or parsing exception.
+     * is an empty one, and as such may throw an i/o or parsing exception
+     * (as {@link XMLStreamException}); however, it won't throw exceptions
+     * for non-START_ELEMENT event types.
      *
      * @return True, if current event is START_ELEMENT
-     *   and is based on a parsed empty element.
+     *   and is based on a parsed empty element; otherwise false
      */
     public boolean isEmptyElement() throws XMLStreamException;
 
     /**
-     * @return Number of open elements in the stack; 0 when parser is in
-     *  prolog/epilog, 1 inside root element and so on. Depth is same
-     *  for matching start/end elements.
+     * Method that returns the number of open elements in the stack; 0 when
+     * the reader is in prolog/epilog, 1 inside root element and so on.
+     * Depth is same for matching start/end elements, as well as for the
+     * immediate non-element children of the element.
+     *
+     * @return Number of open elements currently in the reader's stack
      */
     public int getDepth();
 

@@ -1,5 +1,7 @@
 package com.ctc.wstx.api;
 
+import javax.xml.stream.XMLResolver;
+
 /**
  * Class that contains constant for property names used to configure
  * cursor and event readers produced by Wstx implementation of

@@ -3,13 +3,10 @@ package wstxtest.stream;
 import java.io.*;
 import java.util.HashMap;
 
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.*;
 
 import wstxtest.BaseWstxTest;
 import wstxtest.cfg.*;
-
-import com.ctc.wstx.stax.WstxInputFactory;
 
 public class BaseStreamTest
     extends BaseWstxTest
@@ -85,7 +82,7 @@ public class BaseStreamTest
         return result;
     }
 
-    protected int streamAndCheck(WstxInputFactory f, InputConfigIterator it,
+    protected int streamAndCheck(XMLInputFactory f, InputConfigIterator it,
                                  String input, String expOutput)
         throws XMLStreamException, UnsupportedEncodingException
     {
@@ -128,7 +125,7 @@ public class BaseStreamTest
         return count;
     }
 
-    protected int streamAndSkip(WstxInputFactory f, InputConfigIterator it,
+    protected int streamAndSkip(XMLInputFactory f, InputConfigIterator it,
                                 String input)
         throws XMLStreamException, UnsupportedEncodingException
     {
