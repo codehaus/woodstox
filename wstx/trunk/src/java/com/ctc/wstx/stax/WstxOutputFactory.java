@@ -32,9 +32,10 @@ import com.ctc.wstx.api.WstxOutputFactoryConfig;
 import com.ctc.wstx.cfg.OutputConfigFlags;
 import com.ctc.wstx.evt.WstxEventWriter;
 import com.ctc.wstx.sw.WriterConfig;
-import com.ctc.wstx.sw.WstxStreamWriter;
-import com.ctc.wstx.sw.WstxNonNsStreamWriter;
-import com.ctc.wstx.sw.WstxNsStreamWriter;
+import com.ctc.wstx.sw.BaseStreamWriter;
+import com.ctc.wstx.sw.NonNsStreamWriter;
+import com.ctc.wstx.sw.RepairingNsStreamWriter;
+import com.ctc.wstx.sw.SimpleNsStreamWriter;
 import com.ctc.wstx.util.ArgUtil;
 
 /**
@@ -265,14 +266,17 @@ public final class WstxOutputFactory
      * Factory method used internally; needs to take care of passing
      * proper settings to stream writer.
      */
-    private WstxStreamWriter createWstxStreamWriter(Writer w) {
+    private BaseStreamWriter createWstxStreamWriter(Writer w) {
         if (mConfig.willSupportNamespaces()) {
-            return new WstxNsStreamWriter(w, mConfig);
+	    if (mConfig.automaticNamespacesEnabled()) {
+		return new RepairingNsStreamWriter(w, mConfig);
+	    }
+            return new SimpleNsStreamWriter(w, mConfig);
         }
-        return new WstxNonNsStreamWriter(w, mConfig);
+        return new NonNsStreamWriter(w, mConfig);
     }
 
-    private WstxStreamWriter createWstxStreamWriter(Result res)
+    private BaseStreamWriter createWstxStreamWriter(Result res)
         throws XMLStreamException
     {
         if (res instanceof StreamResult) {

@@ -27,7 +27,7 @@ import com.ctc.wstx.util.XMLQuoter;
  * abstract base class is to allow other parts of Woodstox core to refer
  * to any of stream writer implementations in general way.
  */
-public abstract class WstxStreamWriter
+public abstract class BaseStreamWriter
     implements XMLStreamWriter,
                OutputConfigFlags
 {
@@ -97,7 +97,7 @@ public abstract class WstxStreamWriter
     ////////////////////////////////////////////////////
      */
 
-    protected WstxStreamWriter(Writer w, WriterConfig cfg)
+    protected BaseStreamWriter(Writer w, WriterConfig cfg)
     {
         mWriter = w;
 

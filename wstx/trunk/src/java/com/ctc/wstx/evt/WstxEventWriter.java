@@ -30,14 +30,15 @@ import javax.xml.stream.events.*;
 
 import com.ctc.wstx.cfg.OutputConfigFlags;
 import com.ctc.wstx.sw.WriterConfig;
-import com.ctc.wstx.sw.WstxStreamWriter;
-import com.ctc.wstx.sw.WstxNonNsStreamWriter;
-import com.ctc.wstx.sw.WstxNsStreamWriter;
+import com.ctc.wstx.sw.BaseStreamWriter;
+import com.ctc.wstx.sw.NonNsStreamWriter;
+import com.ctc.wstx.sw.RepairingNsStreamWriter;
+import com.ctc.wstx.sw.SimpleNsStreamWriter;
 
 /**
  * Simple implementation of {@link XMLEventWriter}. The only 'special' thing
  * is that since this writer can make full use of the matching
- * {@link WstxStreamWriter}, it tries to call methods that
+ * {@link BaseStreamWriter}, it tries to call methods that
  * allow full validation of output (if enabled by output settings).
  */
 public class WstxEventWriter
@@ -45,13 +46,7 @@ public class WstxEventWriter
                XMLStreamConstants,
                OutputConfigFlags
 {
-    final WstxStreamWriter mWriter;
-
-    // // // Specific config flags we are interested in often:
-
-    final boolean mEnableNS;
-
-    final boolean mAutomaticNS;
+    final BaseStreamWriter mWriter;
 
     /*
     ////////////////////////////////////////////////////
@@ -61,22 +56,20 @@ public class WstxEventWriter
 
     public WstxEventWriter(Writer w, WriterConfig cfg)
     {
-        int flags = cfg.getConfigFlags();
-        mEnableNS = (flags & CFG_ENABLE_NS) != 0;
-        if (mEnableNS) {
-            mWriter = new WstxNsStreamWriter(w, cfg);
+        if (cfg.willSupportNamespaces()) {
+	    if (cfg.automaticNamespacesEnabled()) {
+		mWriter = new RepairingNsStreamWriter(w, cfg);
+	    } else {
+		mWriter = new SimpleNsStreamWriter(w, cfg);
+	    }
         } else {
-            mWriter = new WstxNonNsStreamWriter(w, cfg);
-        }
-        mAutomaticNS = (flags & CFG_AUTOMATIC_NS) != 0;
+	    mWriter = new NonNsStreamWriter(w, cfg);
+	}
     }
 
-    public WstxEventWriter(WstxStreamWriter sw, WriterConfig cfg)
+    public WstxEventWriter(BaseStreamWriter sw, WriterConfig cfg)
     {
-        int flags = cfg.getConfigFlags();
-        mEnableNS = (flags & CFG_ENABLE_NS) != 0;
         mWriter = sw;
-        mAutomaticNS = (flags & CFG_AUTOMATIC_NS) != 0;
     }
 
     /*

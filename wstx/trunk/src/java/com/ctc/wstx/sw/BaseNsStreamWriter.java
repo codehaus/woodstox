@@ -35,12 +35,11 @@ import com.ctc.wstx.util.DefaultXmlSymbolTable;
 import com.ctc.wstx.util.XMLQuoter;
 
 /**
- * Implementation of {@link XMLStreamWriter}, that is otherwise fairly
- * basic, with optional namespace/prefix allocation, but can also optionally
- * do reasonable validation of well-formedness of output.
+ * Mid-level base class of namespace-aware stream writers. Contains
+ * shared functionality between repairing and non-repairing implementations.
  */
-public class WstxNsStreamWriter
-    extends WstxStreamWriter
+public abstract class BaseNsStreamWriter
+    extends BaseStreamWriter
 {
     /*
     ////////////////////////////////////////////////////
@@ -60,10 +59,10 @@ public class WstxNsStreamWriter
 
     // // // Additional specific config flags base class doesn't have
 
-    final boolean mAutomaticNS;
-    final boolean mCheckNS;
+    final protected boolean mCheckNS;
 
-    final String mAutomaticNsPrefix;
+    // !!! REMOVE:
+    protected boolean mAutomaticNS = false;
 
     /*
     ////////////////////////////////////////////////////
@@ -71,26 +70,26 @@ public class WstxNsStreamWriter
     ////////////////////////////////////////////////////
      */
 
-    final static OutputElement sSharedRootElem = OutputElement.getRootInstance();
+    final protected static OutputElement sSharedRootElem = OutputElement.getRootInstance();
 
     /**
      * Currently active output element; contains information necessary
      * for handling attributes and namespaces
      */
-    OutputElement mCurrElem = sSharedRootElem;
+    protected OutputElement mCurrElem = sSharedRootElem;
 
     /**
      * Container in which namespace declarations are stored, before the
      * start element has been output. Will be used for passing namespace
      * declaration information to the start element.
      */
-    OutputElement.Declarations mNsDecl = null;
+    protected OutputElement.Declarations mNsDecl = null;
 
     /**
      * Optional "root" namespace context that application can set. If so,
      * it can be used to lookup namespace/prefix mappings
      */
-    NamespaceContext mRootNsContext = null;
+    protected NamespaceContext mRootNsContext = null;
 
     /*
     ////////////////////////////////////////////////////
@@ -98,13 +97,10 @@ public class WstxNsStreamWriter
     ////////////////////////////////////////////////////
      */
 
-    public WstxNsStreamWriter(Writer w, WriterConfig cfg)
+    public BaseNsStreamWriter(Writer w, WriterConfig cfg)
     {
         super(w, cfg);
-        int flags = cfg.getConfigFlags();
-        mAutomaticNS = (flags & CFG_AUTOMATIC_NS) != 0;
-        mCheckNS = (flags & CFG_VALIDATE_NS) != 0;
-        mAutomaticNsPrefix = cfg.getAutomaticNsPrefix();
+        mCheckNS = cfg.willValidateNamespaces();
     }
 
     /*
@@ -243,36 +239,8 @@ public class WstxNsStreamWriter
         doWriteAttr(localName, nsURI, prefix, value);
     }
 
-    public void writeDefaultNamespace(String nsURI)
-        throws XMLStreamException
-    {
-        /* 21-Sep-2004, TSa: Shouldn't get called in namespace-repairing
-         *    mode; see discussion in 'writeNamespace()' for details.
-         */
-        if (mAutomaticNS) {
-            return;
-            //throwOutputError("Should not call writeNamespace() for namespace-repairing writers");
-        }
-
-        // No need to set mAnyOutput, nor close the element
-        if (!mStartElementOpen) {
-            throw new IllegalStateException("Trying to write a namespace declaration when there is no open start element.");
-        }
-
-        if (mCheckNS) { // Was it declared the same way?
-            mCurrElem.checkDefaultNsWrite(nsURI);
-        }
-
-        try {
-            mWriter.write(' ');
-            mWriter.write(XMLConstants.XMLNS_ATTRIBUTE);
-            mWriter.write("=\"");
-            mWriter.write(nsURI);
-            mWriter.write('"');
-        } catch (IOException ioe) {
-            throw new XMLStreamException(ioe);
-        }
-    }
+    public abstract void writeDefaultNamespace(String nsURI)
+        throws XMLStreamException;
 
     /**
      *<p>
@@ -311,12 +279,6 @@ public class WstxNsStreamWriter
         }
         mCurrElem.setPrefix(prefix);
         doWriteStartElement(prefix, localName);
-        // 21-Sep-2004, TSa: Shouldn't be needed any more...
-        /*
-        if (!nsOk) {
-            doWriteNamespace(prefix, nsURI);
-        }
-        */
 
         // Need to clear namespace declaration info now for next start elem:
         mNsDecl = null;
@@ -343,42 +305,8 @@ public class WstxNsStreamWriter
         doWriteEndElement(prefix, localName);
     }
 
-    public void writeNamespace(String prefix, String nsURI)
-        throws XMLStreamException
-    {
-        /* 21-Sep-2004, TSa: Should not call this in "namespace repairing"
-         *    mode. However, if it is called, what should be done? There
-         *    are multiple possibilities; like:
-         *   (a) Throw an exception
-         *   (b) Ignore the call
-         *   (c) Check potential validity; ignore if it matched a declaration,
-         *     throw an exception if it didn't.
-         *
-         *  For now, let's do (b), since event writer will call this method...
-         */
-        if (mAutomaticNS) {
-            return;
-            //throwOutputError("Should not call writeNamespace() for namespace-repairing writers");
-        }
-
-        if (prefix == null || prefix.length() == 0
-            || prefix.equals(XMLConstants.XMLNS_ATTRIBUTE)) {
-            writeDefaultNamespace(nsURI);
-            return;
-        }
-
-        // No need to set mAnyOutput, and shouldn't close the element.
-        // But element needs to be open, obviously.
-        if (!mStartElementOpen) {
-            throw new IllegalStateException("Trying to write a namespace declaration when there is no open start element.");
-        }
-        
-        if (mCheckNS) { // Was it declared the same way?
-            mCurrElem.checkNsWrite(prefix, nsURI);
-        }
-        
-        doWriteNamespace(prefix, nsURI);
-    }
+    public abstract void writeNamespace(String prefix, String nsURI)
+        throws XMLStreamException;
 
     public void writeStartElement(String localName)
         throws XMLStreamException
@@ -412,12 +340,6 @@ public class WstxNsStreamWriter
         }
         mCurrElem.setPrefix(prefix);
         doWriteStartElement(prefix, localName);
-        // 21-Sep-2004, TSa: Shouldn't be needed any more...
-        /*
-        if (!nsOk) {
-            doWriteNamespace(prefix, nsURI);
-        }
-        */
 
         // Need to clear namespace declaration info now for next start elem:
         mNsDecl = null;
@@ -640,7 +562,7 @@ public class WstxNsStreamWriter
         return mCurrElem.generatePrefix(mRootNsContext);
     }
 
-    private void checkStartElement(String localName)
+    protected void checkStartElement(String localName)
         throws XMLStreamException
     {
         // Need to finish an open start element?
@@ -704,11 +626,6 @@ System.err.println("Wrong prefix '"+prefix+"' -> "+status);
 
         mCurrElem.setPrefix(prefix);
         doWriteStartElement(prefix, localName);
-        /*
-        if (outputNS) {
-            doWriteNamespace(prefix, nsURI);
-        }
-        */
     }
 
     private void doWriteStartElement(String prefix, String localName)
@@ -736,7 +653,7 @@ System.err.println("Wrong prefix '"+prefix+"' -> "+status);
         }
     }
 
-    private void doWriteNamespace(String prefix, String nsURI)
+    protected void doWriteNamespace(String prefix, String nsURI)
         throws XMLStreamException
     {
         try {
