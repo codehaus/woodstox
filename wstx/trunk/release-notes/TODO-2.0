@@ -12,8 +12,8 @@ Must-haves for 2.0
    * Make 'is specified' property accessible via event API
 
 * Unit testing: Implement at least simple basic StAX-tests for:
-   * Event reader
-   * Stream writer
+   * Event reader [partial]
+   * Stream writer [partial]
    * Event writer
    * StAX2:
       * XMLStreamReader2:
@@ -25,7 +25,7 @@ Must-haves for 2.0
      orders.
    * Requirements for compiling, running:
       * Ant 1.5? (rootfileset)
-      * Jars: junit, for 1.3/1.2 SAX and DOM API jars?
+      * Jars: for 1.3/1.2 SAX and DOM API jars?
       * How to build for 1.2, 1.3?
 
 * Compatibility:
@@ -56,13 +56,14 @@ Must-haves for 2.0
         getIdAttributeIndex, getNotationAttributeIndex
       [DONE] * Separate DTD info access behind a new interface (DTDInfo?)
       [Partial] * Streaming access: getText with Writer arg
+       * Streaming access: getTextReader
       [DONE] * Misc: isEmptyElement, getDepth
       [DONE] * Full pass-through method (copyEventFromReader())
       * Extended location information access via LocationInfo;
         methods for getting start and end locations of an event, as well
         as the current location.
    * XMLStreamWriter2:
-      [Partial] * pass-through write method for outputting raw (non-encoded) stuff
+      [DONE] * pass-through write method for outputting raw (non-encoded) stuff
       [Partial?] * setFeature/getFeature (which property/ies?)
       [DONE] * writeDTD to support DTD2
       [DONE] * writeFullEndElement (for ensuring explict end tag)

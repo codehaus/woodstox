@@ -9,6 +9,10 @@ Description:
 
   Problems fixed:
 
+   * XMLStreamWriter:
+      * Repairing mode was not properly handling namespace bindings, esp.
+        WRT default namespace.
+
 == History: ==
 
 

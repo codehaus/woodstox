@@ -9,14 +9,14 @@ from bugs to new features.
   can not be specified via StAX API.
   Currently testing is really limited to just trying out different
   combinations of performance settings, and it'd be good to thoroughly
-  test actual functionality that is not enabled by default.
+  test actual functionality that is not enabled by default:
+    * Should test preferred prefix mapping for writer ns prefixes
 
 
 == XML specs conformance ==
 
 * Full text character validation (XML 1.1)?
    * For textual content (and comments, PIs)
-     [targeted for version 1.0?]
 * Support for XML 1.1 white space validation/normalization?
 * Consider adding support for xml:base attribute?
 * Should there be special handling for xml:space attribute?

@@ -74,6 +74,8 @@ public class RepairingNsStreamWriter
      */
     int[] mAutoNsSeq = null;
 
+    String mSuggestedDefNs = null;
+
     /**
      * Map that contains URI-to-prefix entries that point out suggested
      * prefixes for URIs. These are populated by calls to
@@ -186,7 +188,7 @@ public class RepairingNsStreamWriter
     public void setDefaultNamespace(String uri)
         throws XMLStreamException
     {
-        doSetPrefix("", uri);
+	mSuggestedDefNs = (uri == null || uri.length() == 0) ? null : uri;
     }
 
     public void doSetPrefix(String prefix, String uri)
@@ -409,15 +411,20 @@ public class RepairingNsStreamWriter
          * ALWAYS be used, since it can mask preceding bindings:
          */
         if (suggPrefix == null || suggPrefix.length() == 0) {
-            suggPrefix = (mSuggestedPrefixes == null) ? null:
-                (String) mSuggestedPrefixes.get(nsURI);
-            if (suggPrefix == null) {
-                if (mAutoNsSeq == null) {
-                    mAutoNsSeq = new int[1];
-                    mAutoNsSeq[0] = 1;
-                }
-                suggPrefix = elem.generateMapping(mAutomaticNsPrefix, nsURI,
-                                                  mAutoNsSeq);
+	    // caller wants this URI to map as the default namespace?
+	    if (mSuggestedDefNs != null && mSuggestedDefNs.equals(nsURI)) {
+		suggPrefix = "";
+	    } else {
+		suggPrefix = (mSuggestedPrefixes == null) ? null:
+		    (String) mSuggestedPrefixes.get(nsURI);
+		if (suggPrefix == null) {
+		    if (mAutoNsSeq == null) {
+			mAutoNsSeq = new int[1];
+			mAutoNsSeq[0] = 1;
+		    }
+		    suggPrefix = elem.generateMapping(mAutomaticNsPrefix, nsURI,
+						      mAutoNsSeq);
+		}
             }
         }
 
@@ -471,6 +478,7 @@ public class RepairingNsStreamWriter
             prefix = suggPrefix;
         } else if (mSuggestedPrefixes != null) {
             prefix = (String) mSuggestedPrefixes.get(nsURI);
+	    // note: def ns is never added to suggested prefix map
         }
 
         if (prefix != null) {

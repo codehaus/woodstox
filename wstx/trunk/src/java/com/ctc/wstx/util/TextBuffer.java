@@ -1,7 +1,6 @@
 package com.ctc.wstx.util;
 
-import java.io.IOException;
-import java.io.Writer;
+import java.io.*;
 import java.util.ArrayList;
 
 /**
@@ -396,6 +395,28 @@ public final class TextBuffer
         return rlen;
     }
 
+    public Reader rawContentsViaReader()
+        throws IOException
+    {
+        // Let's first see if we have created helper objects:
+        if (mResultArray != null) {
+	    return new CharArrayReader(mResultArray);
+        }
+        if (mResultString != null) {
+            return new StringReader(mResultString);
+        }
+
+        // Do we use shared array?
+        if (mInputStart >= 0) {
+            if (mInputLen > 0) {
+                return new CharArrayReader(mInputBuffer, mInputStart, mInputLen);
+            }
+            return new StringReader("");
+        }
+        // Nope, need to do full segmented output
+	return new BufferReader(mSegments, mCurrentSegment, mCurrentSize);
+    }
+
     public boolean isAllWhitespace()
     {
         if (mInputStart >= 0) { // using single shared buffer?
@@ -718,5 +739,63 @@ public final class TextBuffer
             System.arraycopy(mCurrentSegment, 0, result, offset, mCurrentSize);
         }
         return result;
+    }
+
+    private final static class BufferReader
+	extends Reader
+    {
+	ArrayList mSegments;
+	char[] mCurrentSegment;
+	final int mCurrentSize;
+
+	int mSegmentIndex;
+	int mSegmentOffset;
+	int mCurrentOffset;
+
+	public BufferReader(ArrayList segs, char[] currSeg, int currSegLen)
+	{
+	    mSegments = segs;
+	    mCurrentSegment = currSeg;
+	    mCurrentSize = currSegLen;
+
+	    mSegmentIndex = 0;
+	    mSegmentOffset = mCurrentOffset = 0;
+	}
+
+	public void close() {
+	    mSegments = null;
+	    mCurrentSegment = null;
+	}
+
+	public void mark(int x)
+	    throws IOException
+	{      
+	    throw new IOException("mark() not supported");
+	}
+
+	public boolean markSupported() {
+	    return false;
+	}
+
+	public int read(char[] cbuf, int offset, int len)
+	{
+	    // !!! TBI
+	    return -1;
+	}
+
+	public boolean ready() {
+	    return true;
+	}
+
+	public void reset()
+	    throws IOException
+	{	
+	    throw new IOException("reset() not supported");
+	}
+
+	public long skip(long amount) {
+	    // !!! TBI
+	    return -1L;
+	}
     }
 }

@@ -5,7 +5,13 @@ import java.util.*;
 
 public final class DataUtil
 {
+    final static char[] EMPTY_CHAR_ARRAY = new char[0];
+
     private DataUtil() { }
+
+    public static char[] getEmptyCharArray() {
+	return EMPTY_CHAR_ARRAY;
+    }
 
     /*
     ////////////////////////////////////////////////////////////

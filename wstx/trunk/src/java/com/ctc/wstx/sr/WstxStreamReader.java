@@ -15,9 +15,7 @@
 
 package com.ctc.wstx.sr;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
+import java.io.*;
 import java.net.URL;
 import java.util.Map;
 
@@ -1167,6 +1165,57 @@ public class WstxStreamReader
         }
         return mTextBuffer.rawContentsTo(w);
     }
+
+    /** 
+     * Method similar to {@link #getText()}, except
+     * that onlt a {@link Reader} is returned, which may then be used
+     * by the caller to read all the text.
+     * For further optimization, it may also be allowed to do true
+     * pass-through, thus possibly avoiding one temporary copy of the
+     * data (without allowing that to be done, stream reader still needs
+     * to create a copy of data read, thus negating benefits of using
+     * a simple Reader).
+     *<p>
+     * TODO: try to optimize to allow completely streaming pass-through:
+     * currently will still read all data in memory buffers before
+     * outputting
+     * 
+     * @param preserveContents If true, reader has to preserve contents
+     *   so that further calls to <code>getText</code> will return
+     *   proper conntets. If false, reader is allowed to skip creation
+     *   of such copies: this can improve performance, but it also means
+     *   that further calls to <code>getText</code> is not guaranteed to
+     *   return meaningful data.
+     *
+     * @return
+     */
+    public Reader getTextReader(boolean preserveContents)
+        throws IOException, XMLStreamException
+    {
+        if (((1 << mCurrToken) & MASK_GET_TEXT) == 0) {
+            throwNotTextual(mCurrToken);
+        }
+        if (mStTokenUnfinished) {
+            try {
+                finishToken();
+            } catch (Exception ie) {
+                throwLazyError(ie);
+            }
+        }
+        if (mCurrToken == ENTITY_REFERENCE) {
+	    String text = mCurrEntity.getReplacementText();
+	    return new StringReader(text);
+        }
+        if (mCurrToken == DTD) {
+            char[] ch = getDTDInternalSubsetArray();
+            if (ch != null) {
+		return new CharArrayReader(ch);
+            }
+            return new StringReader("");
+        }
+        return mTextBuffer.rawContentsViaReader();
+    }
+
 
     // // // StAX 2, Other accessors
 
