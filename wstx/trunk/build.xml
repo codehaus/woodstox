@@ -23,6 +23,7 @@
     <property name="TestClassesDir" location="${TestDir}/classes" />
     <property name="TestResultsDir" location="${TestDir}/results" />
     <property name="TestXmlResultsDir" location="${TestResultsDir}/xml" />
+    <property name="StaxTestClassesDir" location="${TestDir}/staxtest-classes" />
     <!-- Distribution -->
     <property name="DistDir" location="${basedir}/dist" />
 
@@ -36,8 +37,9 @@
     <property name="WSTX_VERSION" value="1.7" />
     <property name="WSTX_VENDOR" value="www.cowtowncoder.com" />
 
-    <path id="classpath">
-        <fileset dir="${LibDir}" includes="*.jar" />
+    <!-- jars needed for compilation -->
+    <path id="compile-classpath">
+        <fileset dir="${LibDir}" includes="stax-api*.jar" />
     </path>
 
     <!-- And then something nifty, for creating minimal jars! -->
@@ -79,8 +81,8 @@
         <echo message = "5)  javadoc - Generate ${ProjectName} code documentation." />
         <echo message = "6)  test.compile - Compile ${ProjectName} code and test code" />
         <echo message = "       for JUnit tests." />
-        <echo message = "7)  test - Run JUnit tests." />
-        <echo message = "       Reports results and generates html output." />
+        <echo message = "7a)  test - Run Woodstox-specific JUnit tests." />
+        <echo message = "7b)  staxtest - Run generic StAX JUnit tests." />
         <echo message = "8)  dist - Create distribution directory and copy necessary files there" />
         <echo message = "9) all - Run the clean, compile, javadoc," />
         <echo message = "         test and dist targets." />  
@@ -153,7 +155,7 @@
         >
             <include name="com/ctc/**/*.java" />
             <include name="test/**/*.java" />
-            <classpath refid="classpath" />
+            <classpath refid="compile-classpath" />
         </javac>
     </target>
 
@@ -290,7 +292,7 @@
             <packageset dir="${JavaSrcDir}" defaultexcludes="yes">
                 <include name="com/ctc/**" />
             </packageset>
-            <classpath refid="classpath" />
+            <classpath refid="compile-classpath" />
         </javadoc>
     </target> 
  
@@ -343,26 +345,74 @@
             debug="true"
         >
             <include name="**/*.java" />
+            <classpath refid="compile-classpath" />
             <classpath>
                 <pathelement path="${BuildClassesDir}"/>
-                <pathelement location="${LibDir}/stax1.0.jar"/>
             </classpath>
         </javac>
     </target>
 
+    <target name="all-tests" depends="test,staxtest" />
+
+    <!-- Running generic StAX tests -->
+    <target name="staxtest" if="junit.present"
+      depends="junit, jar.wstx.asl, prepare-staxtest"
+    >
+       <!-- showoutput 'yes' to allow outputting debug msgs... -->
+        <junit fork="no" printsummary="yes" haltonfailure="no"
+         showoutput="yes">
+            <batchtest fork="no" todir="${TestXmlResultsDir}">
+                <fileset dir="${StaxTestClassesDir}">
+                    <include name="org/codehaus/**/Test*.class"/>
+                </fileset>
+            </batchtest>
+            <formatter type="xml" />
+            <classpath refid="compile-classpath" />
+            <classpath path="${StaxTestClassesDir}" />
+           <!-- Note: need to use Wstx jar, since it has properties to point
+            - StAX to use correct implementation classes!
+            -->
+            <classpath>     
+              <fileset dir="${BuildDir}">
+                <include name="wstx-*-asl.jar" />
+              </fileset>
+            </classpath>     
+        </junit>
+
+        <junitreport todir="${TestResultsDir}">
+            <fileset dir="${TestXmlResultsDir}">
+                <include name="TEST-*.xml" />
+            </fileset>
+            <report todir="${TestResultsDir}" />
+        </junitreport>
+    </target>
+
+    <target name="prepare-staxtest">
+        <mkdir dir="${BuildDir/staxtest-classes}" />
+        <!-- and unpack test classes... unfortunately needed so JUnit
+             can find classes (maybe there's a way to refer to a jar too,
+             have not found one so far)
+          -->
+        <unzip dest="${StaxTestClassesDir}" overwrite="false">
+           <fileset dir="${LibDir}">
+              <include name="staxtest_*.jar" />
+           </fileset>
+        </unzip>
+    </target>
+
+    <!-- Running Woodstox-specific tests -->
     <target name="test" depends="test.compile" if="junit.present">
        <!-- showoutput 'yes' to allow outputting debug msgs... -->
         <junit fork="no" printsummary="yes" haltonfailure="no"
-         showoutput="yes"
-        >
+         showoutput="yes">
             <batchtest fork="no" todir="${TestXmlResultsDir}">
                 <fileset dir="${TestClassesDir}">
                     <include name="**/Test*.class"/>
                 </fileset>
             </batchtest>
             <formatter type="xml" />
+            <classpath refid="compile-classpath" />
             <classpath>
-                <pathelement location="${LibDir}/stax1.0.jar"/>
                 <pathelement path="${BuildClassesDir}" />
                 <pathelement location="${TestClassesDir}" />
             </classpath>     
