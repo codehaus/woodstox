@@ -21,6 +21,17 @@ public final class ExceptionUtil
         throw rex;
     }
 
+    public static void throwAsIllegalArgument(Throwable t)
+    {
+        // Unchecked? Can re-throw as is
+        throwIfUnchecked(t);
+        // Otherwise, let's just change its type:
+        IllegalArgumentException rex = new IllegalArgumentException("[was "+t.getClass()+"] "+t.getMessage());
+        // And if possible, indicate the root cause (1.4+ only)
+        JdkFeatures.getInstance().setInitCause(rex, t);
+        throw rex;
+    }
+
     public static void throwIfUnchecked(Throwable t)
     {
         // If it's not checked, let's throw it as is

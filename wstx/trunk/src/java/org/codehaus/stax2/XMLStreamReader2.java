@@ -12,10 +12,30 @@ import javax.xml.stream.XMLStreamReader;
  * It also adds limited number of methods that are important for
  * efficient pass-through processing (such as one needed when routing
  * SOAP-messages).
+ *<p>
+ * The feature supported via {@link #setFeature} are:
+ *<dt>
+ * <dt>FEATURE_DTD_OVERRIDE: (write-only)</dt>
+ * <dd>Feature used to specify the source for DTD external subset to use
+ *    instead of DTD specified by the XML document itself (if any).
+ *    Setting the feature for a reader that supports DTD validation
+ *    essentially allows for injecting an alternate DOCTYPE declaration.
+ *    Note that setting this value to null is both legal, and sometimes
+ *    useful: it is equivalent of removing the DOCTYPE declaration.
+ *   <br />Feature is write-only, since storing it after loading the DTD
+ *    in question does not have much use.
+ *  </dt>
+ *</dt>
  */
 public interface XMLStreamReader2
     extends XMLStreamReader
 {
+    /**
+     * Feature used to specify the source for DTD external subset to use
+     * instead of DTD specified by the XML document itself (if any).
+     */
+    public final static String FEATURE_DTD_OVERRIDE = "org.codehaus.stax2.propDtdOverride";
+
     /*
     ///////////////////////////
     // Configuration

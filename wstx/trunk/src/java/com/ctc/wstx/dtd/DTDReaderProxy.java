@@ -46,7 +46,7 @@ public abstract class DTDReaderProxy
         (StreamScanner master, WstxInputSource src, ReaderConfig cfg,
          DTDSubset intSubset)
         throws IOException, XMLStreamException;
-    
+
     /**
      * Method similar to {@link #readInternalSubset}, in that it skims
      * through structure of internal subset, but without doing any sort

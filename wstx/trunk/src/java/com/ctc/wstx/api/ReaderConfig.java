@@ -637,8 +637,25 @@ public final class ReaderConfig
         }
     }
 
-    public void setDtdResolver(WstxInputResolver r) { mDtdResolver = r; }
-    public void setEntityResolver(WstxInputResolver r) { mEntityResolver = r; }
+    public void setDtdResolver(Object r) {
+        if (r instanceof XMLResolver) {
+            mDtdResolver = new XMLResolverWrapper((XMLResolver) r);
+        } else if (r instanceof WstxInputResolver) {
+            mDtdResolver = (WstxInputResolver) r;
+        } else {
+            throw new IllegalArgumentException("Wrong type for dtd resolver: "+r.getClass());
+        }
+    }
+
+    public void setEntityResolver(Object r) {
+        if (r instanceof XMLResolver) {
+            mEntityResolver = new XMLResolverWrapper((XMLResolver) r);
+        } else if (r instanceof WstxInputResolver) {
+            mEntityResolver = (WstxInputResolver) r;
+        } else {
+            throw new IllegalArgumentException("Wrong type for entity resolver: "+r.getClass());
+        }
+    }
 
     public void setBaseURL(URL baseURL) { mBaseURL = baseURL; }
 
@@ -1068,11 +1085,11 @@ public final class ReaderConfig
             break;
 
         case PROP_DTD_RESOLVER:
-            setDtdResolver((WstxInputResolver) value);
+            setDtdResolver(value);
             break;
 
         case PROP_ENTITY_RESOLVER:
-            setEntityResolver((WstxInputResolver) value);
+            setEntityResolver(value);
             break;
 
         case PROP_BASE_URL:

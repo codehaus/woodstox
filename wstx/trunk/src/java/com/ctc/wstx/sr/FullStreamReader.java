@@ -24,6 +24,7 @@ import java.util.Map;
 import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamException;
+import javax.xml.transform.stream.StreamSource;
 
 import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.cfg.ErrorConsts;
@@ -31,6 +32,7 @@ import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.io.*;
 import com.ctc.wstx.dtd.DTDId;
 import com.ctc.wstx.dtd.DTDSubset;
+import com.ctc.wstx.util.ExceptionUtil;
 import com.ctc.wstx.util.URLUtil;
 
 /**
@@ -65,6 +67,14 @@ public class FullStreamReader
      * entities (which may have been set via override DTD functionality).
      */
     DTDSubset mDTD = null;
+
+    /**
+     * Flag to indicate that the DOCTYPE declaration is to be
+     * overridden by value of {@link #mDTD}. Mostly needed to signal
+     * "significant null" value, which means "just discard DOCTYPE if one
+     * gotten from the document".
+     */
+    boolean mDTDOverridden = false;
 
     /*
     ////////////////////////////////////////////////////
@@ -145,7 +155,72 @@ public class FullStreamReader
 
     /*
     ////////////////////////////////////////////////////
-    // XMLStreamReader2
+    // XMLStreamReader2 (StAX2) implementation
+    ////////////////////////////////////////////////////
+     */
+
+    // // // StAX2, per-reader configuration
+
+    // no additional readable features
+    //public Object getFeature(String name)
+
+    public void setFeature(String name, Object value)
+    {
+        // Referring to DTD-related features?
+        if (name.equals(FEATURE_DTD_OVERRIDE)) {
+            IllegalArgumentException iae;
+            try {
+                mDTD = setFeatureDTDOverride(value);
+                mDTDOverridden = true;
+            } catch (Throwable t) { // io/wstx exceptions
+                ExceptionUtil.throwAsIllegalArgument(t);
+            }
+        } else {
+            super.setFeature(name, value);
+        }
+    }
+
+    /**
+     * Actual method for setting override for DOCTYPE declaration override.
+     */
+    protected final DTDSubset setFeatureDTDOverride(Object value)
+        throws IOException, XMLStreamException
+    {
+        // First, null indicates "ignore possible DOCTYPE declaration"
+        if (value == null) {
+            return null;
+        }
+        
+        boolean cache = hasConfigFlags(CFG_CACHE_DTDS);
+        DTDId id = null;
+        
+        /* Then did we get a StreamSource or URL? These types can
+         * be used with cachable DTDs...
+         */
+        if (cache) {
+            if (value instanceof StreamSource) {
+                StreamSource ss = (StreamSource) value;
+                id = constructDtdId(ss.getPublicId(), ss.getSystemId());
+            } else if (value instanceof URL) {
+                id = constructDtdId((URL) value);
+            }
+            // If there's a suitable id, we may be able to find it from cache...
+            if (id != null) {
+                DTDSubset ss = findCachedSubset(id, null);
+                if (ss != null) {
+                    return ss;
+                }
+            }
+        }
+
+        // Ok, no usable cached subset found, need to (try to) read it:
+        WstxInputSource src = DefaultInputResolver.sourceFrom(mInput, null, value);
+        return mConfig.getDtdReader().readExternalSubset(this, src, mConfig, null);
+    }
+
+    /*
+    ////////////////////////////////////////////////////
+    // DTDInfo implementation (StAX 2)
     ////////////////////////////////////////////////////
      */
 
@@ -159,17 +234,21 @@ public class FullStreamReader
     ////////////////////////////////////////////////////
      */
 
+    /*
     public void setDTDOverride(String pubId, String sysId)
         throws IOException, XMLStreamException
     {
         mDTD = findDtdExtSubset(pubId, sysId, null);
     }
+    */
 
+    /*
     public void setDTDOverride(String pubId, URL source)
         throws IOException, XMLStreamException
     {
         setDTDOverride(pubId, source.toExternalForm());
     }
+    */
 
     /*
     ////////////////////////////////////////////////////
@@ -242,7 +321,7 @@ public class FullStreamReader
         /* 19-Sep-2004, TSa: That does not need to be done, however, if
          *    there's a DTD override set.
          */
-        if (mDTD != null) {
+        if (mDTDOverridden) {
             // We have earlier override that's already parsed
             combo = mDTD;
         } else {
@@ -261,12 +340,22 @@ public class FullStreamReader
             mDTD = combo;
         }
 
-        mGeneralEntities = (combo == null) ? null : combo.getGeneralEntityMap();
-        if (hasConfigFlags(CFG_VALIDATE_AGAINST_DTD)) {
-            mElementStack.setElementSpecs(combo.getElementMap(), mSymbols,
-                                          mCfgNormalizeAttrs, mGeneralEntities);
+        if (combo == null) { // only if specifically overridden not to have any
+            mGeneralEntities = null;
+        } else {
+            mGeneralEntities = combo.getGeneralEntityMap();
+            if (hasConfigFlags(CFG_VALIDATE_AGAINST_DTD)) {
+                mElementStack.setElementSpecs(combo.getElementMap(), mSymbols,
+                                              mCfgNormalizeAttrs, mGeneralEntities);
+            }
         }
     }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Private methods, external subset access
+    ////////////////////////////////////////////////////
+     */
 
     /**
      * Method called by <code>finishDTD</code>, to locate the specified
@@ -279,24 +368,16 @@ public class FullStreamReader
         throws IOException, XMLStreamException
     {
         boolean cache = hasConfigFlags(CFG_CACHE_DTDS);
-        URL sysRef = null;
-        DTDId dtdId = null;
-        DTDSubset extSubset = null;
+        DTDId dtdId = constructDtdId(pubId, sysId);
 
         if (cache) {
-            dtdId = constructDtdId(pubId, sysId);
-            sysRef = dtdId.getSystemId();
-            extSubset = mOwner.findCachedDTD(dtdId);
-            /* Ok, now; can use the cached copy iff it does not refer to
-             * any parameter entities internal subset (if one exists)
-             * defines:
-             */
+            DTDSubset extSubset = findCachedSubset(dtdId, intSubset);
             if (extSubset != null) {
-                if (intSubset == null || extSubset.isReusableWith(intSubset)) {
-                    return extSubset;
-                }
+                return extSubset;
             }
         }
+
+        URL sysRef = dtdId.getSystemId();
 
         // No useful cached copy? Need to read it then:
             
@@ -335,7 +416,7 @@ public class FullStreamReader
             throwParseError("(was "+fex.getClass().getName()+") "+fex.getMessage());
         }
 
-        extSubset = mConfig.getDtdReader().readExternalSubset(this, src, mConfig, intSubset);
+        DTDSubset extSubset = mConfig.getDtdReader().readExternalSubset(this, src, mConfig, intSubset);
         
         if (cache) {
             /* Ok; can be cached, but only if it does NOT refer to
@@ -349,6 +430,22 @@ public class FullStreamReader
         }
 
         return extSubset;
+    }
+
+    private DTDSubset findCachedSubset(DTDId id, DTDSubset intSubset)
+        throws XMLStreamException
+    {
+        DTDSubset extSubset = mOwner.findCachedDTD(id);
+        /* Ok, now; can use the cached copy iff it does not refer to
+         * any parameter entities internal subset (if one exists)
+         * defines:
+         */
+        if (extSubset != null) {
+            if (intSubset == null || extSubset.isReusableWith(intSubset)) {
+                return extSubset;
+            }
+        }
+        return null;
     }
 
     /**
@@ -387,17 +484,38 @@ public class FullStreamReader
               * is less if so (no need to store content specs for one)
               */
              | CFG_VALIDATE_AGAINST_DTD
-	     /* Also, whether we support dtd++ or not may change construction
-	      * of settings... (currently does not, but could)
-	      */
+             /* Also, whether we support dtd++ or not may change construction
+              * of settings... (currently does not, but could)
+              */
              | CFG_SUPPORT_DTDPP
              );
         
-        if (pubId != null) {
+        if (pubId != null && pubId.length() > 0) {
             return DTDId.constructFromPublicId(pubId, significantFlags);
+        }
+        if (sysId == null || pubId.length() == 0) {
+            return null;
         }
         URL sysRef = resolveExtSubsetPath(sysId);
         return DTDId.constructFromSystemId(sysRef, significantFlags);
+    }
+
+    protected DTDId constructDtdId(URL sysId)
+        throws IOException
+    {
+        int significantFlags = mConfigFlags &
+            (CFG_NAMESPACE_AWARE
+             | CFG_NORMALIZE_LFS | CFG_NORMALIZE_ATTR_VALUES
+             /* Let's optimize non-validating case; DTD info we need
+              * is less if so (no need to store content specs for one)
+              */
+             | CFG_VALIDATE_AGAINST_DTD
+             /* Also, whether we support dtd++ or not may change construction
+              * of settings... (currently does not, but could)
+              */
+             | CFG_SUPPORT_DTDPP
+             );
+        return DTDId.constructFromSystemId(sysId, significantFlags);
     }
 
     /*

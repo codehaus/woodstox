@@ -1042,16 +1042,14 @@ public class WstxStreamReader
 
     public Object getFeature(String name)
     {
-        // !!! TBI
-        return null;
+        // No readable features defined yet...
+        throw new IllegalArgumentException("Unrecognized feature '"+name+"'");
     }
 
     public void setFeature(String name, Object value)
     {
-        /* !!! TBI:
-         * 
-         * - Per reader DTD override (by URL, or pre-parsed DTD)
-         */
+        // Base-class has no settable features at this point.
+        throw new IllegalArgumentException("Unrecognized feature '"+name+"'");
     }
 
     // // // StAX2, additional traversal methods
@@ -1087,30 +1085,6 @@ public class WstxStreamReader
          * any)... and knows how to call attribute collector when necessary.
          */
         return mElementStack;
-    }
-
-    public int getAttributeIndex(String nsURI, String localName)
-    {
-        // !!! TBI
-        /*
-        if (mCurrToken != START_ELEMENT) {
-            throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
-        }
-        return mAttrCollector.getIndex(nsURI, localName);
-        */
-        return -1;
-    }
-
-    public int getIdAttributeIndex(String nsURI, String localName)
-    {
-        // !!! TBI
-        /*
-        if (mCurrToken != START_ELEMENT) {
-            throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
-        }
-        return mAttrCollector.getIdIndex(nsURI, localName);
-        */
-        return -1;
     }
 
     // // // StAX2, Additional DTD access
@@ -1162,7 +1136,7 @@ public class WstxStreamReader
      *
      * @return Number of characters written to the reader
      */
-    public int getText(Writer w, boolean preserverContents)
+    public int getText(Writer w, boolean preserveContents)
         throws IOException, XMLStreamException
     {
         if (((1 << mCurrToken) & MASK_GET_TEXT) == 0) {
