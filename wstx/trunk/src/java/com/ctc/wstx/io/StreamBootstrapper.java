@@ -643,11 +643,11 @@ public final class StreamBootstrapper
             byte b = (mInputPtr < mInputLen) ?
                 mByteBuffer[mInputPtr++] : nextByte();
             
-            if ((b & 0xFF) != expected.charAt(ptr)) {
-                return (b & 0xFF);
-            }
             if (b == BYTE_NULL) {
                 reportNull();
+            }
+            if ((b & 0xFF) != expected.charAt(ptr)) {
+                return (b & 0xFF);
             }
         }
 
@@ -743,14 +743,12 @@ public final class StreamBootstrapper
         int len = expected.length();
         
         for (int ptr = 1; ptr < len; ++ptr) {
-            byte b = (mInputPtr < mInputLen) ?
-                mByteBuffer[mInputPtr++] : nextByte();
-            
-            if ((b & 0xFF) != expected.charAt(ptr)) {
-              return (char) (b & 0xFF);
-            }
-            if (b == BYTE_NULL) {
+	    int c = nextMultiByte();
+            if (c == BYTE_NULL) {
                 reportNull();
+            }
+            if (c != expected.charAt(ptr)) {
+              return c;
             }
         }
 
