@@ -343,8 +343,6 @@ public abstract class BaseNsStreamWriter
         return mCurrElem.getElementName();
     }
 
-    abstract ElementCopier createElementCopier(XMLStreamReader2 sr);
-
     /**
      * Method called by {@link com.ctc.wstx.evt.WstxEventWriter} (instead of the version
      * that takes no argument), so that we can verify it does match the

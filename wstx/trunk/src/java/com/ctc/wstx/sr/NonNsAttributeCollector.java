@@ -248,20 +248,6 @@ final class NonNsAttributeCollector
         return null;
     }
 
-    public void iterateAttributes(ElemIterCallback cb)
-        throws XMLStreamException
-    {
-        /* Note: no checks are done to ensure we have active attributes.
-         * Caller is assumed to have checked for that, as this method
-         * is only part of the internal API
-         */
-        int nonDefs = mNonDefCount;
-        for (int i = 0, len = mAttrCount; i < len; ++i) {
-            cb.iterateAttribute(null, mAttrNames.getString(i), null,
-                                (i < mNonDefCount), getValue(i));
-        }
-    }
-
     public int findIndex(String localName)
     {
         /* Note: most of the code is from getValue().. could refactor

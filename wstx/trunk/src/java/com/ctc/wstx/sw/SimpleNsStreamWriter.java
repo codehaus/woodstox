@@ -34,6 +34,8 @@ import org.codehaus.stax2.XMLStreamReader2;
 
 import com.ctc.wstx.api.WriterConfig;
 import com.ctc.wstx.cfg.ErrorConsts;
+import com.ctc.wstx.sr.AttributeCollector;
+import com.ctc.wstx.sr.InputElementStack;
 import com.ctc.wstx.sr.StreamReaderImpl;
 import com.ctc.wstx.util.DefaultXmlSymbolTable;
 import com.ctc.wstx.util.XMLQuoter;
@@ -154,18 +156,6 @@ public class SimpleNsStreamWriter
     ////////////////////////////////////////////////////
      */
 
-    ElementCopier createElementCopier(XMLStreamReader2 sr)
-    {
-        /* !!! 21-Feb-2005, TSa: Should probably also work with non-Woodstox
-         *  stream readers? If so, should first test if the interface is
-         *  implemented, and if not, use a fallback method of using
-         *  accessors...
-         *
-         * For now, we'll only be able to use Woodstox stream readers.
-         */
-        return new CopierImpl((StreamReaderImpl) sr, this);
-    }
-
     public void writeStartElement(StartElement elem)
         throws XMLStreamException
     {
@@ -262,6 +252,70 @@ public class SimpleNsStreamWriter
         doWriteStartElement(prefix, localName);
     }
 
+    /**
+     * Element copier method implementation suitable to be used with
+     * namespace-aware writers in non-repairing (explicit namespaces) mode.
+     * The trickiest thing is having to properly
+     * order calls to <code>setPrefix</code>, <code>writeNamespace</code>
+     * and <code>writeStartElement</code>; the order writers expect is
+     * bit different from the order in which element information is
+     * passed in.
+     */
+    public final void copyStartElement(InputElementStack elemStack,
+                                       AttributeCollector attrCollector)
+        throws XMLStreamException
+    {
+        // Any namespace declarations/bindings?
+        int nsCount = elemStack.getCurrentNsCount();
+        
+        if (nsCount > 0) { // yup, got some...
+            /* First, need to (or at least, should?) add prefix bindings:
+             * (may not be 100% required, but probably good thing to do,
+             * just so that app code has access to prefixes then)
+             */
+            for (int i = 0; i < nsCount; ++i) {
+                String prefix = elemStack.getLocalNsPrefix(i);
+                String uri = elemStack.getLocalNsURI(i);
+                if (prefix == null || prefix.length() == 0) { // default NS
+                    setDefaultNamespace(uri);
+                } else {
+                    setPrefix(prefix, uri);
+                }
+            }
+        }
+        
+        writeStartElement(elemStack.getPrefix(),
+                          elemStack.getLocalName(),
+                          elemStack.getNsURI());
+        
+        if (nsCount > 0) {
+            // And then output actual namespace declarations:
+            for (int i = 0; i < nsCount; ++i) {
+                String prefix = elemStack.getLocalNsPrefix(i);
+                String uri = elemStack.getLocalNsURI(i);
+                
+                if (prefix == null || prefix.length() == 0) { // default NS
+                    writeDefaultNamespace(uri);
+                } else {
+                    writeNamespace(prefix, uri);
+                }
+            }
+        }
+        
+        /* And then let's just output attributes, if any:
+         */
+        // Let's only output explicit attributes?
+        // !!! Should it be configurable?
+        AttributeCollector ac = mAttrCollector;
+        int attrCount = ac.getSpecifiedCount();
+        
+        for (int i = 0; i < attrCount; ++i) {
+            writeAttribute(ac.getPrefix(i), ac.getNsURI(i),
+                           ac.getLocalName(i),
+                           ac.getValue(i));
+        }
+    }
+
     /*
     ////////////////////////////////////////////////////
     // Internal methods
@@ -301,85 +355,6 @@ public class SimpleNsStreamWriter
             }
             String actURI = mCurrElem.getNamespaceURI(prefix);
             throw new XMLStreamException("Misbound namespace prefix '"+prefix+"': was declared as '"+actURI+"', trying to use it as '"+nsURI+"'");
-        }
-    }
-
-    /*
-    ////////////////////////////////////////////////////
-    // Helper classes:
-    ////////////////////////////////////////////////////
-     */
-
-    /**
-     * Element copier implementation suitable to be used with
-     * namespace-aware writers in non-repairing (explicit namespaces) mode.
-     * The trickiest thing is having to properly
-     * order calls to <code>setPrefix</code>, <code>writeNamespace</code>
-     * and <code>writeStartElement</code>; the order writers expect is
-     * bit different from the order in which element information is
-     * passed in.
-     */
-    final static class CopierImpl
-        extends ElementCopier
-    {
-        protected final StreamReaderImpl mReader;
-        protected final SimpleNsStreamWriter mWriter;
-
-        protected boolean mElementOutput;
-
-        CopierImpl(StreamReaderImpl sr, SimpleNsStreamWriter sw)
-        {
-            super();
-            mReader = sr;
-            mWriter = sw;
-        }
-
-        public final void copyElement()
-            throws XMLStreamException
-        {
-            mElementOutput = false;
-            // true -> call namespace callbacks twice
-            mReader.iterateStartElement(this, true);
-        }
-
-        public void iterateElement(String prefix, String localName,
-                                   String nsURI, boolean isEmpty)
-            throws XMLStreamException
-        {
-            mElementOutput = true;
-            // Should have gotten namespace bindings earlier...
-            mWriter.writeStartElement(prefix, localName, nsURI);
-        }
-        
-        public void iterateNamespace(String prefix, String nsURI)
-            throws XMLStreamException
-        {
-            // Ok; before or after element callback?
-            if (mElementOutput) { // after -> output declaration
-                if (prefix == null || prefix.length() == 0) { // default NS
-                    mWriter.writeDefaultNamespace(nsURI);
-                } else {
-                    mWriter.writeNamespace(prefix, nsURI);
-                }
-            } else { // before -> bind prefix
-                if (prefix == null || prefix.length() == 0) { // default NS
-                    mWriter.setDefaultNamespace(nsURI);
-                } else {
-                    mWriter.setPrefix(prefix, nsURI);
-                }
-            }
-        }
-        
-        public void iterateAttribute(String prefix, String localName,
-                                     String nsURI, boolean isSpecified,
-                                     String value)
-            throws XMLStreamException
-        {
-            // Let's only output explicit attributes?
-            // !!! Should it be configurable?
-            if (isSpecified) {
-                mWriter.writeAttribute(prefix, nsURI, localName, value);
-            }
         }
     }
 }

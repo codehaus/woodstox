@@ -15,6 +15,9 @@
 
 package com.ctc.wstx.sr;
 
+import java.io.IOException;
+import java.io.Writer;
+
 import javax.xml.XMLConstants;
 import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
@@ -167,7 +170,7 @@ public abstract class AttributeCollector
      */
 
     /**
-     * @return Number of namespace declarations collected, not including
+     * @return Number of namespace declarations collected, including
      *   possible default namespace declaration
      */
     public abstract int getNsCount();
@@ -180,6 +183,15 @@ public abstract class AttributeCollector
 
     public final int getCount() {
         return mAttrCount;
+    }
+
+    /**
+     * @return Number of attributes that were explicitly specified; may
+     *  be less than the total count due to attributes created using
+     *  attribute default values
+     */
+    public int getSpecifiedCount() {
+        return mNonDefCount;
     }
 
     public abstract String getPrefix(int index);
@@ -223,15 +235,6 @@ public abstract class AttributeCollector
     public boolean isSpecified(int index) {
         return (index < mNonDefCount);
     }
-
-    /**
-     * Method called by the stream reader (and/or other Woodstox classes)
-     * to get information about all the attributes of the current
-     * start element, via callback Object passed in as the argument.
-     * This is potentially more efficient than calling separate accessors.
-     */
-    public abstract void iterateAttributes(ElemIterCallback cb)
-        throws XMLStreamException;
 
     /*
     ///////////////////////////////////////////////
@@ -368,6 +371,17 @@ public abstract class AttributeCollector
         return mAttrNames;
     }
 
+    /**
+     * Method that can be used to get the specified attribute value,
+     * by getting it written using Writer passed in. Can potentially
+     * save one String allocation, since no (temporary) Strings need
+     * to be created.
+     */
+    protected final void writeValue(int index, Writer w)
+        throws IOException
+    {
+        mValueBuffer.getEntry(index, w);
+    }
     /*
     ///////////////////////////////////////////////
     // Internal methods:

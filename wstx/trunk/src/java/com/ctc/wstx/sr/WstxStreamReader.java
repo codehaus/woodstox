@@ -1269,30 +1269,26 @@ public class WstxStreamReader
                                    mStEmptyElem);
     }
 
-    /**
-     * Method that can be called to get set of callbacks for the current
-     * start element. Used internally by the stream writer implementation,
-     * to get somewhat more efficient access to all aspects of the current
-     * start element.
-     *<p>
-     * Note: caller is expected to ensure that the current event is indeed
-     * START_ELEMENT -- no effort is made to do sanity checks from this
-     * point on.
-     *
-     * @param iterateNsTwice If true, will call ns callbacks twice (once
-     *   before and once after element itself): if false, will only call
-     *   them once, after the element callback.
-     */
-    public void iterateStartElement(ElemIterCallback cb, boolean iterateNsTwice)
-        throws XMLStreamException
-    {
-        /* First, let's call the callback matching element info,
-         * and namespace declarations (if any)
-         */
-        mElementStack.iterateElement(cb, mStEmptyElem, iterateNsTwice);
+    public boolean isNamespaceAware() {
+        return mCfgNsEnabled;
+    }
 
-        // And then, attribute info:
-        mAttrCollector.iterateAttributes(cb);
+    /**
+     * Method needed by classes (like stream writer implementations)
+     * that want to have efficient direct access to element stack
+     * implementation
+     */
+    public InputElementStack getInputElementStack() {
+        return mElementStack;
+    }
+
+    /**
+     * Method needed by classes (like stream writer implementations)
+     * that want to have efficient direct access to attribute collector
+     * Object, for optimal attribute name and value access.
+     */
+    public AttributeCollector getAttributeCollector() {
+        return mAttrCollector;
     }
 
     /*

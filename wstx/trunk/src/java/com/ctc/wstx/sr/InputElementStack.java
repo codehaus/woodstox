@@ -176,6 +176,10 @@ public abstract class InputElementStack
     ///////////////////////////////////////////////////
      */
 
+    // // // Generic properties:
+
+    public abstract boolean isNamespaceAware();
+
     // // // Generic stack information:
 
 
@@ -202,10 +206,6 @@ public abstract class InputElementStack
     public abstract boolean matches(String prefix, String localName);
 
     public abstract String getTopElementDesc();
-
-    public abstract void iterateElement(ElemIterCallback cb, boolean isEmpty,
-                                        boolean iterateNsTwice)
-        throws XMLStreamException;
 
     // // // Namespace information:
 

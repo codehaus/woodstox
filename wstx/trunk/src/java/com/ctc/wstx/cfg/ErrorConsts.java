@@ -1,5 +1,7 @@
 package com.ctc.wstx.cfg;
 
+import java.text.MessageFormat;
+
 import javax.xml.XMLConstants;
 import javax.xml.stream.XMLStreamConstants;
 
@@ -82,13 +84,27 @@ public class ErrorConsts
     public static String ERR_VLD_ANY = "Element <{0}> has ANY content specification; can not contain {1}";
     public static String ERR_VLD_UNKNOWN_ATTR = "Element <{0}> has no attribute \"{1}\"";
 
+    // // // Output problems:
+
+    public static String WERR_PROLOG_CDATA =
+        "Trying to output a CDATA block outside main element tree (in prolog or epilog)";
+    public static String WERR_PROLOG_NONWS_TEXT =
+        "Trying to output non-whitespace characters outside main element tree (in prolog or epilog)";
+
+    public static String WERR_CDATA_CONTENT =
+        "Illegal input: CDATA block has embedded ']]>' in it (index {0})";
+    public static String WERR_COMMENT_CONTENT = 
+        "Illegal input: comment content has embedded '--' in it (index {0})";
+
+
     /*
     ////////////////////////////////////////////////////
     // Utility methods
     ////////////////////////////////////////////////////
      */
 
-    public static String tokenTypeDesc(int type) {
+    public static String tokenTypeDesc(int type)
+    {
         switch (type) {
         case START_ELEMENT:
             return "START_ELEMENT";
@@ -116,5 +132,15 @@ public class ErrorConsts
             return "ENTITY_REFERENCE";
         }
         return "["+type+"]";
+    }
+
+    public static String formatMessage(String format, Object arg)
+    {
+        return MessageFormat.format(format, new Object[] { arg });
+    }
+
+    public static String formatMessage(String format, Object arg1, Object arg2)
+    {
+        return MessageFormat.format(format, new Object[] { arg1, arg2 });
     }
 }

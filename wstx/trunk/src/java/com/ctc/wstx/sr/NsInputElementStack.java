@@ -272,6 +272,10 @@ public class NsInputElementStack
     ///////////////////////////////////////////////////
      */
 
+    public final boolean isNamespaceAware() {
+        return true;
+    }
+
     /**
      * @return Number of open elements in the stack; 0 when parser is in
      *  prolog/epilog, 1 inside root element and so on.
@@ -526,50 +530,6 @@ public class NsInputElementStack
             return name;
         }
         return prefix + ":" + name;
-    }
-
-    /**
-     * Method called to get all the information about the current top
-     * element of the stack, via a callback.
-     *
-     * @param iterateNsTwice If true, will call ns callbacks twice (once
-     *   before and once after element itself): if false, will only call
-     *   them once, after the element callback.
-     */
-    public final void iterateElement(ElemIterCallback cb, boolean isEmpty,
-                                     boolean iterateNsTwice)
-        throws XMLStreamException
-    {
-        /* Note: since this is an internal method, there's no need to
-         * verify input state -- caller should already have ensured stack
-         * is not empty.
-         */
-        int start = mNsCounts[(mSize-1) >> 2];
-        int end = mNamespaces.size();
-
-        /* First iteration over namespace declarations is generally to allow
-         * prefixes to be bound before start element call...
-         */
-        if (iterateNsTwice && start < end) {
-            String[] strs = mNamespaces.getInternalArray();
-            for (int i = start; i < end; i += 2) {
-                cb.iterateNamespace(strs[i], strs[i+1]);
-            }
-        }
-
-        // Then the start element callback
-        cb.iterateElement(mElements[mSize-(ENTRY_SIZE - IX_PREFIX)],
-                          mElements[mSize-(ENTRY_SIZE - IX_LOCALNAME)],
-                          mElements[mSize-(ENTRY_SIZE - IX_URI)],
-                          isEmpty);
-
-        // And then one for each namespace declaration, if any:
-        if (start < end) { // not strictly necessary, but cheap check
-            String[] strs = mNamespaces.getInternalArray();
-            for (int i = start; i < end; i += 2) {
-                cb.iterateNamespace(strs[i], strs[i+1]);
-            }
-        }
     }
 
     // // // Namespace information:

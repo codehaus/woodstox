@@ -1,5 +1,8 @@
 package com.ctc.wstx.util;
 
+import java.io.IOException;
+import java.io.Writer;
+
 /**
  * Class similar to {@link StringBuffer}, except that it can be used to
  * construct multiple Strings, that will share same underlying character
@@ -64,7 +67,8 @@ public final class TextBuilder
         return mEntryCount;
     }
 
-    public String getEntry(int index) {
+    public String getEntry(int index)
+    {
         int len = mEntryCount;
         if (index < 0 || index >= len) {
             throw new IllegalArgumentException("Invalid index, "+index+"; current size: "+len+".");
@@ -81,6 +85,23 @@ public final class TextBuilder
         }
         return mResultString.substring(mBufferOffsets[index],
                                        mBufferOffsets[index+1]);
+    }
+
+    public void getEntry(int index, Writer w)
+        throws IOException
+    {
+        // Note: caller is assumed to have verified the index
+        int offset = mBufferOffsets[index];
+        int offset2;
+        if (index == (mEntryCount-1)) {
+            offset2 = mBufferLen;
+        } else {
+            offset2 = mBufferOffsets[index+1];
+        }
+        offset2 -= offset;
+        if (offset2 > 0) {
+            w.write(mBuffer, offset, offset2);
+        }
     }
 
     public int getOffset(int index) {

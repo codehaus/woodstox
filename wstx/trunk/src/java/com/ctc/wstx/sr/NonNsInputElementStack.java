@@ -135,6 +135,10 @@ public class NonNsInputElementStack
     ///////////////////////////////////////////////////
      */
 
+    public final boolean isNamespaceAware() {
+        return false;
+    }
+
     /**
      * @return Number of open elements in the stack; 0 when parser is in
      *  prolog/epilog, 1 inside root element and so on.
@@ -262,22 +266,6 @@ public class NonNsInputElementStack
             throw new IllegalStateException("Illegal access, empty stack.");
         }
         return mElements[mSize-1];
-    }
-
-    /**
-     * Method called to get all the information about the current top
-     * element of the stack, via a callback.
-     */
-    public final void iterateElement(ElemIterCallback cb, boolean isEmpty,
-                                     boolean iterateNsTwice)
-        throws XMLStreamException
-    {
-        /* Note: since this is an internal method, there's no need to
-         * verify input state -- caller should already have ensured stack
-         * is not empty.
-         */
-        cb.iterateElement(null, mElements[mSize-1], null, isEmpty);
-        // no namespace information to pass...
     }
 
     // // // Namespace information:

@@ -23,12 +23,14 @@ import org.codehaus.stax2.XMLStreamWriter2;
 
 import com.ctc.wstx.api.WriterConfig;
 import com.ctc.wstx.api.WstxOutputProperties;
+import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.cfg.OutputConfigFlags;
 import com.ctc.wstx.exc.*;
 import com.ctc.wstx.io.AttrValueEscapingWriter;
 import com.ctc.wstx.io.TextEscapingWriter;
-import com.ctc.wstx.sr.ElemIterCallback;
 import com.ctc.wstx.sr.StreamReaderImpl;
+import com.ctc.wstx.sr.AttributeCollector;
+import com.ctc.wstx.sr.InputElementStack;
 import com.ctc.wstx.util.StringUtil;
 
 /**
@@ -137,21 +139,23 @@ public abstract class BaseStreamWriter
 
     /*
     ////////////////////////////////////////////////////
-    // Local caching/recycling:
+    // State needed for efficient copy-through output
+    // (copyEventFromReader)
     ////////////////////////////////////////////////////
      */
 
     /**
-     * Last created <code>ElementCopier</code> instance (if any used
-     * so far); reused for multiple copy-through operations.
-     */
-    protected ElementCopier mLastElemCopier = null;
-
-    /**
      * Reader that was last used for copy-through operation;
-     * used in conjunction with {@link #mLastElemCopier}.
+     * used in conjunction with the other copy-through state
+     * variables.
      */
     protected XMLStreamReader2 mLastReader = null;
+
+    protected StreamReaderImpl mLastReaderImpl = null;
+
+    protected AttributeCollector mAttrCollector = null;
+
+    protected InputElementStack mInputElemStack = null;
 
     /*
     ////////////////////////////////////////////////////
@@ -270,20 +274,12 @@ public abstract class BaseStreamWriter
         // Not legal outside main element tree:
         if (mCheckStructure) {
             if (inPrologOrEpilog()) {
-                throw new IllegalStateException("Trying to output a CDATA block outside main element tree (in prolog or epilog)");
+                throw new IllegalStateException(ErrorConsts.WERR_PROLOG_CDATA);
             }
         }
 
         if (mCheckContent) {
-            if (data != null && data.length() >= 3) {
-                int ix = data.indexOf(']');
-                if (ix >= 0) {
-                    ix = data.indexOf("]]>", ix);
-                    if (ix >= 0) {
-                        throw new XMLStreamException("Illegal input: CDATA block has embedded ']]>' in it (index "+ix+")");
-                    }
-                }
-            }
+            verifyCDataContent(data);
         }
  
         try {
@@ -309,7 +305,7 @@ public abstract class BaseStreamWriter
         if (mCheckStructure) {
             if (inPrologOrEpilog()) {
                 if (!StringUtil.isAllWhitespace(text, start, len)) {
-                    throw new IllegalStateException("Trying to output non-whitespace characters outside main element tree (in prolog or epilog)");
+                    throw new IllegalStateException(ErrorConsts.WERR_PROLOG_NONWS_TEXT);
                 }
             }
         }
@@ -335,7 +331,7 @@ public abstract class BaseStreamWriter
             // Not valid in prolog/epilog, except if it's all white space:
             if (inPrologOrEpilog()) {
                 if (!StringUtil.isAllWhitespace(text)) {
-                    throw new IllegalStateException("Trying to output non-whitespace characters outside main element tree (in prolog or epilog)");
+                    throw new IllegalStateException(ErrorConsts.WERR_PROLOG_NONWS_TEXT);
                 }
             }
         }
@@ -372,7 +368,7 @@ public abstract class BaseStreamWriter
             if (ix >= 0) {
                 ix = data.indexOf("--", ix);
                 if (ix >= 0) {
-                    throw new XMLStreamException("Illegal input: comment content has embedded '--' in it (index "+ix+")");
+                    throw new XMLStreamException(ErrorConsts.formatMessage(ErrorConsts.WERR_COMMENT_CONTENT, new Integer(ix)));
                 }
             }
         }
@@ -712,13 +708,24 @@ public abstract class BaseStreamWriter
                 /* Document start/end events:
                  */
             case START_DOCUMENT:
-                if (sr.standaloneSet()) {
-                    writeStartDocument(sr.getCharacterEncodingScheme(),
-                                       sr.getVersion(),
-                                       sr.isStandalone());
-                } else {
-                    writeStartDocument(sr.getCharacterEncodingScheme(),
-                                       sr.getVersion());
+                {
+                    String version = sr.getVersion();
+                    /* No real declaration? If so, we don't want to output
+                     * anything, to replicate as closely as possible the
+                     * source document
+                     */
+                    if (version == null || version.length() == 0) {
+                        ; // no output if no real input
+                    } else {
+                        if (sr.standaloneSet()) {
+                            writeStartDocument(sr.getCharacterEncodingScheme(),
+                                               sr.getVersion(),
+                                               sr.isStandalone());
+                        } else {
+                            writeStartDocument(sr.getCharacterEncodingScheme(),
+                                               sr.getVersion());
+                        }
+                    }
                 }
                 return;
                 
@@ -730,12 +737,19 @@ public abstract class BaseStreamWriter
                  */
             case START_ELEMENT:
                 {
-                    ElementCopier ec = mLastElemCopier;
-                    if (ec == null || sr != mLastReader) {
-                        mLastElemCopier = ec = createElementCopier(sr);
+                    if (sr != mLastReader) {
                         mLastReader = sr;
+                        /* !!! Should probably work with non-Woodstox stream
+                         * readers too... but that's not implemented yet
+                         */
+                        if (!(sr instanceof StreamReaderImpl)) {
+                            throw new XMLStreamException("Can not yet copy START_ELEMENT events from non-Woodstox stream readers (class "+sr.getClass()+")");
+                        }
+                        mLastReaderImpl = (StreamReaderImpl) sr;
+                        mAttrCollector = mLastReaderImpl.getAttributeCollector();
+                        mInputElemStack = mLastReaderImpl.getInputElementStack();
                     }
-                    ec.copyElement();
+                    copyStartElement(mInputElemStack, mAttrCollector);
                 }
                 return;
 
@@ -749,10 +763,25 @@ public abstract class BaseStreamWriter
             case CDATA:
                 // First; is this to be changed to 'normal' text output?
                 if (!mCfgCDataAsText) {
+                    mAnyOutput = true;
+                    // Need to finish an open start element?
+                    if (mStartElementOpen) {
+                        closeStartElement(mEmptyElement);
+                    }
+
+                    // Not legal outside main element tree:
+                    if (mCheckStructure) {
+                        if (inPrologOrEpilog()) {
+                            throw new IllegalStateException(ErrorConsts.WERR_PROLOG_CDATA);
+                        }
+                    }
+                    /* Note: no need to check content, since reader is assumed
+                     * to have verified it to be valid XML.
+                     */
+
                     /* No encoding necessary for CDATA... but we do need start
                      * and end markers
                      */
-                    // !!! TBI: Structural etc checks
                     mWriter.write("<![CDATA[");
                     sr.getText(mWriter, preserveEventData);
                     mWriter.write("]]>");
@@ -762,24 +791,43 @@ public abstract class BaseStreamWriter
                 
             case SPACE:
             case CHARACTERS:
-                /* Need to pass mTextWriter, to make sure encoding is done
-                 * properly; but no start/end markers are needed
-                 */
-                // !!! TBI: Structural etc checks
-                sr.getText(mTextWriter, preserveEventData);
+                {
+                    /* Let's just assume content is fine... not 100% reliably
+                     * true, but usually is (not true if input had a root
+                     * element surrounding text, but omitted for output)
+                     */
+                    mAnyOutput = true;
+                    // Need to finish an open start element?
+                    if (mStartElementOpen) {
+                        closeStartElement(mEmptyElement);
+                    }
+
+                    /* Need to pass mTextWriter, to make sure encoding is done
+                     * properly; but no start/end markers are needed
+                     */
+                    sr.getText(mTextWriter, preserveEventData);
+                }
                 return;
                 
             case COMMENT:
-                // !!! TBI: Structural etc checks
-                mWriter.write("<!--");
-                sr.getText(mWriter, preserveEventData);
-                mWriter.write("-->");
+                {
+                    mAnyOutput = true;
+                    if (mStartElementOpen) {
+                        closeStartElement(mEmptyElement);
+                    }
+                    /* No need to check for content (embedded '--'); reader
+                     * is assumed to have verified it's ok (otherwise should
+                     * have thrown an exception for non-well-formed XML)
+                     */
+                    mWriter.write("<!--");
+                    sr.getText(mWriter, preserveEventData);
+                    mWriter.write("-->");
+                }
                 return;
 
             case PROCESSING_INSTRUCTION:
                 {
-                    /* No streaming alternative for PI (yet)?
-                     */
+                    // No streaming alternative for PI (yet)?
                     String target = sr.getPITarget();
                     String data = sr.getPIData();
                     if (data == null) {
@@ -848,12 +896,6 @@ public abstract class BaseStreamWriter
     }
 
     /**
-     * Factory method for creating the <code>ElementCopier</code> to
-     * be used by this writer to from specified stream reader.
-     */
-    abstract ElementCopier createElementCopier(XMLStreamReader2 sr);
-
-    /**
      * Convenience method needed by {@link com.ctc.wstx.evt.WstxEventWriter}, to use when
      * writing a start element, and possibly its attributes and namespace
      * declarations.
@@ -886,7 +928,7 @@ public abstract class BaseStreamWriter
         if (mCheckStructure) {
             if (inPrologOrEpilog()) {
                 if (!ch.isIgnorableWhiteSpace() && !ch.isWhiteSpace()) {
-                    throw new IllegalStateException("Trying to output non-whitespace characters outside main element tree (in prolog or epilog)");
+                    throw new IllegalStateException(ErrorConsts.WERR_PROLOG_NONWS_TEXT);
                 }
             }
         }
@@ -932,6 +974,14 @@ public abstract class BaseStreamWriter
 
     public abstract String getTopElemName();
 
+    /**
+     * Implementation-dependant method called to fully copy START_ELEMENT
+     * event that the passed-in stream reader points to
+     */
+    public abstract void copyStartElement(InputElementStack elemStack,
+                                          AttributeCollector attrCollector)
+        throws XMLStreamException;
+
     /*
     ////////////////////////////////////////////////////
     // Package methods, validation
@@ -962,10 +1012,24 @@ public abstract class BaseStreamWriter
     protected void verifyWriteDTD()
         throws XMLStreamException
     {
-        // 20-Nov-2004, TSa: can check that we are in epilog
+        // 20-Nov-2004, TSa: can check that we are in prolog
         if (mCheckStructure) {
             if (mState != STATE_PROLOG) {
                 throw new XMLStreamException("Can not write DOCTYPE declaration (DTD) when not in prolog any more (state "+mState+"; start element(s) written)");
+            }
+        }
+    }
+
+    protected void verifyCDataContent(String content)
+        throws XMLStreamException
+    {
+        if (content != null && content.length() >= 3) {
+            int ix = content.indexOf(']');
+            if (ix >= 0) {
+                ix = content.indexOf("]]>", ix);
+                if (ix >= 0) {
+                    throw new XMLStreamException(ErrorConsts.formatMessage(ErrorConsts.WERR_CDATA_CONTENT, new Integer(ix)));
+                }
             }
         }
     }
@@ -993,55 +1057,5 @@ public abstract class BaseStreamWriter
         throws XMLStreamException
     {
         throw new WstxIOException(ioe);
-    }
-
-    /*
-    ////////////////////////////////////////////////////
-    // Helper classes:
-    ////////////////////////////////////////////////////
-     */
-
-    /**
-     * Abstract base class that defines how element copiers work; sub-classes
-     * (one for namespace-aware, one for non-namespace-aware writers)
-     * will implement functionality.
-     */
-    protected static abstract class ElementCopier
-        extends ElemIterCallback
-    {
-        /*
-        /////////////////////////////////////////////
-        // Life-cycle
-        /////////////////////////////////////////////
-         */
-
-        protected ElementCopier() { }
-
-        /*
-        /////////////////////////////////////////////
-        // Methods stream writer calls
-        /////////////////////////////////////////////
-         */
-
-        public abstract void copyElement()
-            throws XMLStreamException;
-
-        /*
-        /////////////////////////////////////////////
-        // ElemIterCallback methods
-        /////////////////////////////////////////////
-         */
-
-        public abstract void iterateElement(String prefix, String localName,
-                                            String nsURI, boolean isEmpty)
-            throws XMLStreamException;
-        
-        public abstract void iterateNamespace(String prefix, String nsURI)
-            throws XMLStreamException;
-        
-        public abstract void iterateAttribute(String prefix, String localName,
-                                              String nsURI, boolean isSpecified,
-                                              String value)
-            throws XMLStreamException;
     }
 }

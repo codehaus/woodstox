@@ -20,11 +20,9 @@ public interface StreamReaderImpl
 
     public Object withStartElement(ElemCallback cb, Location loc);
 
-    /**
-     * @param iterateNsTwice If true, will call ns callbacks twice (once
-     *   before and once after element itself): if false, will only call
-     *   them once, after the element callback.
-     */
-    public void iterateStartElement(ElemIterCallback cb, boolean iterateNsTwice)
-        throws XMLStreamException;
+    public boolean isNamespaceAware();
+
+    public AttributeCollector getAttributeCollector();
+
+    public InputElementStack getInputElementStack();
 }
