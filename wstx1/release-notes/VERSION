@@ -1,18 +1,18 @@
 Version: 1.0.2
 
-Release date: xx-Nov-2004
+Release date: 14-Nov-2004
 
 Description:
   Second maintenance release for 1.0; fixes bugs found since 1.0.1.
 
   Problems fixed:
 
+  * Fixed a couple of places where QName constructor threw exceptions
+    when passed a null prefix.
   * Performance improvement for XMLStreamReader.getText(); was creating
     an unnecessary StringBuffer object, in cases where text segment was
     completely inside shared input buffer. May have measurable effect
     when building (J)Dom trees (although not huge one).
-  * Fixed couple of places where QName constructor threw exceptions
-    when passed a null prefix.
 
 History:
 
