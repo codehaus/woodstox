@@ -1,23 +1,46 @@
-Version: 1.8
+== History: ==
 
-Release date: -Feb-2005
+Version: 1.9
+
+Release date: -Mar-2005
 
 Description:
   Another pre-2.0 release aimed at finishing up tasks required for 2.0.
 
   New functionality:
 
+  Problems fixed:
+
+1.8: [28-Feb-2005]
+
+  New functionality:
+
     * Implemented "StAX 2" interface; extended versions of many of
-      StAX 1.0 interfaces and abstract classes. Specifically:
-       *
+      StAX 1.0 interfaces and abstract classes. Improvements are
+      in following areas:
+       * Access to formerly missing information (DTDInfo, AttributeInfo,
+         XMLStreamLocation2, new methods to XMLStreamReader)
+       * Efficient (fully streaming) access to textual event content:
+         XMLStreamReader2.getText() passing a writer, pass-through
+         XMLStreamWriter2.copyEventFromReader() for copying events
+         as read (more efficient than explicit piece-by-piece copying),
+         XMLStreamReader2.skipElement() for skipping whole sub-trees.
+       * Configurable output using XMLStreamWriter2: all XMLEvents can
+         be output using specified XMLStreamWriter2 instance; can
+         define custom text content and attribute value quoters
+         (to quote/encode additional characters in output);
+         raw output methods for by-passing all quoting and structural
+         checks.
+       * Basic support for per-instance (XMLStreamReader2, XMLStreamWriter2)
+         configuration (only few features defined so far).
 
   Problems fixed:
 
     * Stream reader now correctly accesses attribute type information,
       when validating against DTD (passes matching staxtest test case).
     * Source package now contains jars absolutely needed for compilation.
-
-== History: ==
+    * Fixed a problem with UTF-8 reader; occasionally tried to read 0
+      bytes from the underlying stream, and threw an exception.
 
 1.7: [12-Dec-2004]
 

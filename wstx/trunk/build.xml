@@ -34,7 +34,7 @@
     <property name="STAX_VERSION" value="1.0" />
     <property name="STAX_VENDOR" value="http://jcp.org/en/jsr/detail?id=173" />
     <property name="WSTX_TITLE" value="WoodSToX XML-processor" />
-    <property name="WSTX_VERSION" value="1.8" />
+    <property name="WSTX_VERSION" value="1.9" />
     <property name="WSTX_VENDOR" value="www.cowtowncoder.com" />
 
     <!-- Extended API, working title "StAX2" (not version 2.0, but 2/squared)

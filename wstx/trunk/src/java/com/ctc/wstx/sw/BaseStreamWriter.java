@@ -632,7 +632,7 @@ public abstract class BaseStreamWriter
                 if (publicId != null) {
                     mWriter.write(" PUBLIC \"");
                     mWriter.write(publicId);
-                    mWriter.write("\" ");
+                    mWriter.write("\" \"");
                 } else {
                     mWriter.write(" SYSTEM \"");
                 }

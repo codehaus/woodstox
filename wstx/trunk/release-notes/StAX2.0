@@ -1,8 +1,0 @@
-== Ideas for StAX v2.0 ==
-
-* New accessors for XMLStreamReader:
-   * Access DTD properties; root element, system id, public id
-   * Is current (start/end) element an empty element?
-* Per-instance configuration for readers and writers (setProperty?
-  setFeature?)
-* Pass-through writer, that outputs current event passed-in Reader has.
