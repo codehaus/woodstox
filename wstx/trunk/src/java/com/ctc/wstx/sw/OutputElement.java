@@ -591,9 +591,7 @@ public final class OutputElement
         String prefix;
         while (true) {
             int nr = mNextAutomaticNsId++;
-            /* We should get unique, reusable String right away, so let's
-             * just intern() it right away:
-             */
+            // We better intern the resulting prefix...
             prefix = (AUTOMATIC_NS_PREFIX + nr).intern();
             if (mNamespaces.findLastNonInterned(prefix) != null) {
                 continue;

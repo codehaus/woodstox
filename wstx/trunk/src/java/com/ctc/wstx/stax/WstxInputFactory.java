@@ -32,6 +32,7 @@ import javax.xml.transform.stream.StreamSource;
 
 import com.ctc.wstx.api.WstxInputFactoryConfig;
 import com.ctc.wstx.api.WstxInputProperties;
+import com.ctc.wstx.api.XMLInputFactory2;
 import com.ctc.wstx.cfg.InputConfigFlags;
 import com.ctc.wstx.dtd.DTDId;
 import com.ctc.wstx.dtd.DTDSubset;
@@ -75,7 +76,7 @@ import com.ctc.wstx.util.URLUtil;
  *</ul>
  */
 public final class WstxInputFactory
-    extends XMLInputFactory
+    extends XMLInputFactory2
     implements WstxInputFactoryConfig, ReaderCreator,
                InputConfigFlags
 {

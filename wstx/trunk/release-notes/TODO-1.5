@@ -1,10 +1,5 @@
-* Known bugs:
-   * No space is actually needed between end-quote of an attribute value
-     and start of next attribute name... should be fixed.
-   * Processing instruction data includes leading space: shouldn't.
-
 * Exception-handling:
-   * Add RuntimeException based type for lazy exception.
+   * Add a WstxOutputException?
 
 * DTD-handling/parsing:
    * Parse less information if no validation needed: partially done, does not
@@ -22,15 +17,14 @@
      factories and input/output modes (but have 2 actual Maps in
      CacheManager, to prevent trashing by either side).
 
-* Writer class hierarchy:
-   * Refactor writers, to have 3 classes; non-ns, ns-non-fixing,
-     ns-fixing.
-
 * Fragment parsing/writing:
    * Allow for reading and writing of XML document fragments; essentially
      suppressing checks for single-root, and assuming that the outermost
      element(s) are not document root nodes (meaning also that DTD is not
      allowed to be output)
+
+* Input factories:
+   * Create URI-based factory methods for readers (XMLStreamReader2)
 
 ------------------------------------
 FROM 1.0 Backlog
@@ -59,8 +53,6 @@ Namespace handling:
 
 Refactoring:
 
-* Try to remove dependencies to event classes (WEntityDecl, WAttrList):
-  create WEntityDecl on demand?
 * Continue working on J2ME subset; partial implementations do exist for
   both input and output factories, but should be able to squeeze out
   some more classes from subsets.

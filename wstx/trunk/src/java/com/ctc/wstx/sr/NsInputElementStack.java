@@ -10,11 +10,7 @@ import javax.xml.stream.Location;
 
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.exc.WstxException;
-import com.ctc.wstx.util.BaseNsContext;
-import com.ctc.wstx.util.EmptyIterator;
-import com.ctc.wstx.util.SingletonIterator;
-import com.ctc.wstx.util.StringVector;
-import com.ctc.wstx.util.TextBuilder;
+import com.ctc.wstx.util.*;
 
 /**
  * Sub-class of {@link InputElementStack} used when operating in
@@ -48,6 +44,8 @@ public class NsInputElementStack
      * prefix won't be redefined from its default URI.
      */
     protected final String mPrefixXmlns;
+
+    final static InternCache sInternCache = InternCache.getInstance();
 
     /*
     //////////////////////////////////////////////////
@@ -201,7 +199,7 @@ public class NsInputElementStack
                 for (int i = 0; i < nsCount; ++i) {
                     String nsUri = nsURIs.getEntry(i);
                     if (internNsURIs && nsUri.length() > 0) {
-                        nsUri = nsUri.intern();
+                        nsUri = sInternCache.intern(nsUri);
                     }
                     /* 28-Jul-2004, TSa: Now we will have default namespaces
                      *   in there too; they have empty String as prefix

@@ -11,6 +11,10 @@ import javax.xml.stream.events.*;
 public abstract class XMLEventFactory2
     extends XMLEventFactory
 {
+    protected XMLEventFactory2() {
+        super();
+    }
+
     public abstract DTD2 createDTD(String rootName, String sysId, String pubId,
                                    String intSubset);
 

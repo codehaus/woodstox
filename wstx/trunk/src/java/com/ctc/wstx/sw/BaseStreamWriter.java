@@ -16,6 +16,8 @@ import javax.xml.stream.events.Characters;
 import javax.xml.stream.events.StartElement;
 
 import com.ctc.wstx.api.WstxOutputProperties;
+import com.ctc.wstx.api.XMLStreamReader2;
+import com.ctc.wstx.api.XMLStreamWriter2;
 import com.ctc.wstx.cfg.OutputConfigFlags;
 import com.ctc.wstx.exc.*;
 import com.ctc.wstx.util.XMLQuoter;
@@ -28,7 +30,7 @@ import com.ctc.wstx.util.XMLQuoter;
  * to any of stream writer implementations in general way.
  */
 public abstract class BaseStreamWriter
-    implements XMLStreamWriter,
+    implements XMLStreamWriter2,
                OutputConfigFlags
 {
     protected final static int STATE_PROLOG = 1;
@@ -50,7 +52,7 @@ public abstract class BaseStreamWriter
     
     /*
     ////////////////////////////////////////////////////
-    // Configuration (options, features)
+    // Per-factory configuration (options, features)
     ////////////////////////////////////////////////////
      */
 
@@ -61,6 +63,14 @@ public abstract class BaseStreamWriter
     protected final boolean mCheckStructure;
     protected final boolean mCheckContent;
     protected final boolean mCheckAttr;
+
+    /*
+    ////////////////////////////////////////////////////
+    // Per-writer configuration
+    ////////////////////////////////////////////////////
+     */
+
+    // !!! TBI
 
     /*
     ////////////////////////////////////////////////////
@@ -482,6 +492,61 @@ public abstract class BaseStreamWriter
     
     /*
     ////////////////////////////////////////////////////
+    // XMLStreamWriter2 methods
+    ////////////////////////////////////////////////////
+     */
+
+    public Object getFeature(String name)
+    {
+        // !!! TBI
+        return null;
+    }
+
+    public void setFeature(String name, Object value)
+    {
+        // !!! TBI
+    }
+
+    public void writeDTD(String rootName, String systemId, String publicId,
+                         String internalSubset)
+        throws XMLStreamException
+    {
+        try {
+            mWriter.write("<!DOCTYPE ");
+            if (mCheckContent) {
+                verifyFullName(rootName);
+            }
+            mWriter.write(rootName);
+            if (systemId != null) {
+                if (publicId != null) {
+                    mWriter.write(" PUBLIC \"");
+                    mWriter.write(publicId);
+                    mWriter.write("\" ");
+                } else {
+                    mWriter.write(" SYSTEM \"");
+                }
+                mWriter.write(systemId);
+                mWriter.write('"');
+            }
+            if (internalSubset != null) {
+                mWriter.write(" [");
+                mWriter.write(internalSubset);
+                mWriter.write(']');
+            }
+            mWriter.write('>');
+        } catch (IOException ioe) {
+            throw new XMLStreamException(ioe);
+        }
+    }
+
+    public void writeFromReader(XMLStreamReader2 r)
+        throws XMLStreamException
+    {
+        // !!! TBI
+    }
+
+    /*
+    ////////////////////////////////////////////////////
     // Package methods (ie not part of public API)
     ////////////////////////////////////////////////////
      */
@@ -572,6 +637,33 @@ public abstract class BaseStreamWriter
     }
 
     public abstract String getTopElemName();
+
+    /*
+    ////////////////////////////////////////////////////
+    // Package methods, validation
+    ////////////////////////////////////////////////////
+     */
+
+    /**
+     * Method that verifies that the name passed is a valid
+     * local name; name that does not have colon(s) in it.
+     */
+    protected void verifyLocalName(String name)
+        throws XMLStreamException
+    {
+        // !!! TBI
+    }
+
+    /**
+     * Method that verifies that the name passed is a valid
+     * 'full' name; name that may contain all local name characters,
+     * as well as one or more colons.
+     */
+    protected void verifyFullName(String name)
+        throws XMLStreamException
+    {
+        // !!! TBI
+    }
 
     /*
     ////////////////////////////////////////////////////

@@ -3,6 +3,7 @@ package com.ctc.wstx.evt;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -13,6 +14,8 @@ import javax.xml.stream.events.DTD;
 import com.ctc.wstx.api.evt.DTD2;
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.dtd.DTDSubset;
+import com.ctc.wstx.ent.EntityDecl;
+import com.ctc.wstx.ent.NotationDecl;
 
 /**
  * Event that contains all StAX accessible information read from internal
@@ -117,22 +120,29 @@ public class WDTD
         return mFullText;
     }
 
-    public List getEntities() {
-        /* !!! 28-Sep-2004, TSa: Need to rewrite to convert Object
-         *   types contained from EntityDecl to WEntityDeclaration
-         */
+    public List getEntities()
+    {
         if (mEntities == null && (mDTD != null)) {
-            mEntities = mDTD.getGeneralEntityList();
+            List in = mDTD.getGeneralEntityList();
+            int len = in.size();
+            ArrayList out = new ArrayList(len);
+            for (int i = 0; i < len; ++i) {
+                out.add(new WEntityDeclaration((EntityDecl) in.get(i)));
+            }
+            mEntities = out;
         }
         return mEntities;
     }
 
     public List getNotations() {
-        /* !!! 28-Sep-2004, TSa: Need to rewrite to convert Object
-         *   types contained from NotationDecl to WNotationDeclaration
-         */
         if (mNotations == null && (mDTD != null)) {
-            mNotations = mDTD.getNotationList();
+            List in = mDTD.getNotationList();
+            int len = in.size();
+            ArrayList out = new ArrayList(len);
+            for (int i = 0; i < len; ++i) {
+                out.add(new WNotationDeclaration((NotationDecl) in.get(i)));
+            }
+            mNotations = out;
         }
         return mNotations;
     }

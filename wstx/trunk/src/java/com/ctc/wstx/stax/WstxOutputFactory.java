@@ -29,6 +29,7 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.stream.*;
 
 import com.ctc.wstx.api.WstxOutputFactoryConfig;
+import com.ctc.wstx.api.XMLOutputFactory2;
 import com.ctc.wstx.cfg.OutputConfigFlags;
 import com.ctc.wstx.evt.WstxEventWriter;
 import com.ctc.wstx.sw.WriterConfig;
@@ -50,7 +51,7 @@ import com.ctc.wstx.util.ArgUtil;
  *</ul>
  */
 public final class WstxOutputFactory
-    extends XMLOutputFactory
+    extends XMLOutputFactory2
     implements WstxOutputFactoryConfig,
                OutputConfigFlags
 {

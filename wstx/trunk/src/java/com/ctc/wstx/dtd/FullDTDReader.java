@@ -35,6 +35,7 @@ import com.ctc.wstx.io.WstxInputResolver;
 import com.ctc.wstx.io.WstxInputSource;
 import com.ctc.wstx.sr.ReaderConfig;
 import com.ctc.wstx.sr.StreamScanner;
+import com.ctc.wstx.util.InternCache;
 import com.ctc.wstx.util.StringVector;
 import com.ctc.wstx.util.SymbolTable;
 import com.ctc.wstx.util.TextBuffer;
@@ -2153,51 +2154,51 @@ public class FullDTDReader
     private void handleTargetNsDecl()
         throws IOException, XMLStreamException
     {
-	mAnyDTDppFeatures = true;
-
+        mAnyDTDppFeatures = true;
+        
         char c = skipObligatoryDtdWs(true); // comments are ok
-	String name;
-
-	// Explicit namespace name?
-	if (isNameStartChar(c)) {
-	    name = readDTDLocalName(c, false);
-	    c = skipObligatoryDtdWs(true);
-	} else { // no, default namespace (or error)
-	    name = null;
-	}
-
-	// Either way, should now get a quote:
+        String name;
+        
+        // Explicit namespace name?
+        if (isNameStartChar(c)) {
+            name = readDTDLocalName(c, false);
+            c = skipObligatoryDtdWs(true);
+        } else { // no, default namespace (or error)
+            name = null;
+        }
+        
+        // Either way, should now get a quote:
         if (c != '"' && c != '\'') {
-	    if (c == '>') { // slightly more accurate error
-		throwDTDError("Missing namespace URI for TARGETNS directive");
-	    }
+            if (c == '>') { // slightly more accurate error
+                throwDTDError("Missing namespace URI for TARGETNS directive");
+            }
             throwDTDUnexpectedChar(c, "; expected a single or double quote to enclose the namespace URI");
         }
-
-	/* !!! 07-Nov-2004, TSa: what's the exact value we should get
-	 *   here? Ns declarations can have any attr value...
-	 */
-	String uri = parseSystemId(c, false, "in namespace URI");
-
-	// Do we need to normalize the URI?
-	if ((mConfigFlags & CFG_INTERN_NS_URIS) != 0) {
-	    uri = uri.intern();
-	}
-
-	// Ok, and then the closing '>':
-	c = skipDtdWs(true);
-	if (c != '>') {
+        
+        /* !!! 07-Nov-2004, TSa: what's the exact value we should get
+         *   here? Ns declarations can have any attr value...
+         */
+        String uri = parseSystemId(c, false, "in namespace URI");
+        
+        // Do we need to normalize the URI?
+        if ((mConfigFlags & CFG_INTERN_NS_URIS) != 0) {
+            uri = InternCache.getInstance().intern(uri);
+        }
+        
+        // Ok, and then the closing '>':
+        c = skipDtdWs(true);
+        if (c != '>') {
             throwDTDUnexpectedChar(c, "; expected '>' to end TARGETNS directive");
-	}
-
-	if (name == null) { // default NS URI
-	    mDefaultNsURI = uri;
-	} else {
-	    if (mNamespaces == null) {
-		mNamespaces = new HashMap();
-	    }
-	    mNamespaces.put(name, uri);
-	}
+        }
+        
+        if (name == null) { // default NS URI
+            mDefaultNsURI = uri;
+        } else {
+            if (mNamespaces == null) {
+                mNamespaces = new HashMap();
+            }
+            mNamespaces.put(name, uri);
+        }
     }
 
     /*
@@ -2450,6 +2451,10 @@ public class FullDTDReader
         if (sid == null) {
             sid = id;
             if (INTERN_SHARED_NAMES) {
+                /* 19-Nov-2004, TSa: Let's not use intern cache here...
+                 *   shouldn't be performance critical (DTDs themselves
+                 *   cached), and would add more entries to cache.
+                 */
                 sid = sid.intern();
             }
             sharedEnums.put(sid, sid);
