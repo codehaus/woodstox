@@ -71,7 +71,7 @@ import com.ctc.wstx.util.URLUtil;
  */
 public class WstxStreamReader
     extends StreamScanner
-    implements XMLStreamReader2, DTDInfo
+    implements StreamReaderImpl, DTDInfo
 {
     /**
      * StAX API expects null to indicate "no prefix", not an empty String...
@@ -1240,11 +1240,9 @@ public class WstxStreamReader
         return mTextBuffer.contentsAsArray();
     }
 
-
     /*
     //////////////////////////////////////////////////////
-    // Methods used by core Woodstox classes (only public
-    // since callers may be from other packages)
+    // StreamReaderImpl implementation
     //////////////////////////////////////////////////////
      */
 

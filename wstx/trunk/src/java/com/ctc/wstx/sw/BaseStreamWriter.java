@@ -28,6 +28,7 @@ import com.ctc.wstx.exc.*;
 import com.ctc.wstx.io.AttrValueEscapingWriter;
 import com.ctc.wstx.io.TextEscapingWriter;
 import com.ctc.wstx.sr.ElemIterCallback;
+import com.ctc.wstx.sr.StreamReaderImpl;
 import com.ctc.wstx.util.StringUtil;
 
 /**
@@ -133,6 +134,24 @@ public abstract class BaseStreamWriter
      * elements not.
      */
     protected boolean mEmptyElement = false;
+
+    /*
+    ////////////////////////////////////////////////////
+    // Local caching/recycling:
+    ////////////////////////////////////////////////////
+     */
+
+    /**
+     * Last created <code>ElementWriter</code> instance (if any used
+     * so far); reused for multiple copy-through operations.
+     */
+    protected ElementWriter mLastElemWriter = null;
+
+    /**
+     * Reader that was last used for copy-through operation;
+     * used in conjunction with {@link #mLastElemWriter}.
+     */
+    protected XMLStreamReader2 mLastReader = null;
 
     /*
     ////////////////////////////////////////////////////
@@ -707,7 +726,14 @@ public abstract class BaseStreamWriter
                 /* Element start/end events:
                  */
             case START_ELEMENT:
-                copyStartElement(sr, preserveEventData);
+                {
+                    ElementWriter ew = mLastElemWriter;
+                    if (ew == null || sr != mLastReader) {
+                        mLastElemWriter = ew = ElementWriter.createWriter(sr, this);
+                        mLastReader = sr;
+                    }
+                    ew.copyElement();
+                }
                 return;
 
             case END_ELEMENT:
@@ -816,16 +842,6 @@ public abstract class BaseStreamWriter
      */
     public Writer getWriter() {
         return mWriter;
-    }
-
-    /*
-    public abstract void copyStartElement(XMLStreamReader2 sr, boolean preserveEventData)
-        throws XMLStreamException;
-    */
-    public void copyStartElement(XMLStreamReader2 sr, boolean preserveEventData)
-        throws XMLStreamException
-    {
-        // !!! TBI
     }
 
     /**
@@ -979,11 +995,51 @@ public abstract class BaseStreamWriter
     final static class ElementWriter
         extends ElemIterCallback
     {
+        final StreamReaderImpl mReader;
         final BaseStreamWriter mWriter;
 
-        public ElementWriter(BaseStreamWriter sw) {
+        /*
+        /////////////////////////////////////////////
+        // Life-cycle
+        /////////////////////////////////////////////
+         */
+
+        private ElementWriter(StreamReaderImpl sr, BaseStreamWriter sw)
+        {
+            mReader = sr;
             mWriter = sw;
         }
+
+        public static ElementWriter createWriter(XMLStreamReader2 sr,
+                                                 BaseStreamWriter sw)
+        {
+            /* !!! 21-Feb-2005, TSa: Should probably also work with non-Woodstox
+             *  stream readers? If so, should first test if the interface is
+             *  implemented, and if not, use a fallback method of using
+             *  accessors...
+             *
+             * For now, we'll only be able to use Woodstox stream readers.
+             */
+            return new ElementWriter((StreamReaderImpl) sr, sw);
+        }
+
+        /*
+        /////////////////////////////////////////////
+        // Methods stream writer calls
+        /////////////////////////////////////////////
+         */
+
+        public void copyElement()
+            throws XMLStreamException
+        {
+            mReader.iterateStartElement(this);
+        }
+
+        /*
+        /////////////////////////////////////////////
+        // ElemIterCallback implementation
+        /////////////////////////////////////////////
+         */
 
         public void iterateElement(String prefix, String localName,
                                    String nsURI, boolean isEmpty)

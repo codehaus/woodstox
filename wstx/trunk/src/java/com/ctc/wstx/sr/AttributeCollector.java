@@ -90,7 +90,7 @@ public abstract class AttributeCollector
      * Vector in which attribute names are added; exact number of elements
      * per attribute depends on whether namespace support is enabled or
      * not (non-namespace mode only needs one entry; namespace mode two,
-     * one for prefix, one for local name). Contains
+     * one for prefix, one for local name).
      */
     protected final StringVector mAttrNames = new StringVector(EXP_ATTR_COUNT);
 
@@ -190,6 +190,14 @@ public abstract class AttributeCollector
 
     public abstract QName getQName(int index);
 
+    /**
+     *<p>
+     * Note: the main reason this method is defined at this level, and
+     * made final, is performance. JIT may be able to fully inline this
+     * method, even when reference is via this base class. This is important
+     * since this is likely to be the most often called method of the
+     * collector instances.
+     */
     public final String getValue(int index)
     {
         if (index < 0 || index >= mAttrCount) {

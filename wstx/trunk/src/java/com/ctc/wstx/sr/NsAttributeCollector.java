@@ -338,7 +338,18 @@ final class NsAttributeCollector
     public void iterateAttributes(ElemIterCallback cb)
         throws XMLStreamException
     {
-        // !!! TBI
+        /* Note: no checks are done to ensure we have active attributes.
+         * Caller is assumed to have checked for that, as this method
+         * is only part of the internal API
+         */
+        int nonDefs = mNonDefCount;
+        for (int i = 0, len = mAttrCount; i < len; ++i) {
+            int nameIndex = i + i;
+            cb.iterateAttribute(mAttrNames.getString(nameIndex),
+                                mAttrNames.getString(nameIndex+1),
+                                mAttrURIs[i],
+                                (i < mNonDefCount), getValue(i));
+        }
     }
 
     public int findIndex(String nsURI, String localName)

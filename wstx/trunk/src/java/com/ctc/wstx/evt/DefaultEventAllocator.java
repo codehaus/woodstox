@@ -34,7 +34,7 @@ import com.ctc.wstx.ent.EntityDecl;
 import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.sr.ElemAttrs;
 import com.ctc.wstx.sr.ElemCallback;
-import com.ctc.wstx.sr.WstxStreamReader;
+import com.ctc.wstx.sr.StreamReaderImpl;
 import com.ctc.wstx.util.BaseNsContext;
 
 /**
@@ -175,7 +175,7 @@ public class DefaultEventAllocator
                  * To do this, we do double-indirection, which means that
                  * this object actually gets a callback:
                  */
-                WstxStreamReader sr = (WstxStreamReader) r;
+                StreamReaderImpl sr = (StreamReaderImpl) r;
                 BaseStartElement be = (BaseStartElement) sr.withStartElement(this, loc);
                 if (be == null) { // incorrect state
                     throw new WstxException("Trying to create START_ELEMENT when current event is "
@@ -187,7 +187,7 @@ public class DefaultEventAllocator
 
         case ENTITY_REFERENCE:
             {
-                EntityDecl ed = ((WstxStreamReader) r).getCurrentEntityDecl();
+                EntityDecl ed = ((StreamReaderImpl) r).getCurrentEntityDecl();
                 return new WEntityReference(loc, ed);
             }
 
