@@ -706,22 +706,28 @@ public abstract class StreamScanner
     protected final char getNextInCurrAfterWS(String errorMsg)
         throws IOException, WstxException
     {
-	while (true) {
-	    if (mInputPtr >= mInputLen) {
-		loadMoreFromCurrent(errorMsg);
-	    }
+        return getNextInCurrAfterWS(errorMsg, getNextCharFromCurrent(errorMsg));
+    }
 
-	    char c = mInputBuffer[mInputPtr++];
-	    while (c > CHAR_SPACE) {
-		return c;
-	    }
+    protected final char getNextInCurrAfterWS(String errorMsg, char c)
+        throws IOException, WstxException
+    {
+        do {
             // Linefeed?
             if (c == '\n' || c == '\r') {
                 skipCRLF(c);
             } else if (c == CHAR_NULL) {
                 throwNullChar();
             }
-        }
+
+            // Still a white space?
+            if (mInputPtr >= mInputLen) {
+                loadMoreFromCurrent(errorMsg);
+            }
+            c = mInputBuffer[mInputPtr++];
+        } while (c <= CHAR_SPACE);
+
+        return c;
     }
     
     /**
@@ -735,7 +741,7 @@ public abstract class StreamScanner
     {
         while (true) {
             if (mInputPtr >= mInputLen) {
-		// Let's see if current source has more
+                // Let's see if current source has more
                 if (!loadMoreFromCurrent()) {
                     return;
                 }

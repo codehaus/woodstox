@@ -1080,15 +1080,7 @@ public class WstxStreamReader
         if (mCurrToken != DTD) {
             return null;
         }
-        String text = mTextBuffer.contentsAsString();
-        // Not really clean way of doing it but...
-        int ix = text.indexOf('[');
-        if (ix < 0) { // no internal subset?
-            return "";
-        }
-        int last = text.lastIndexOf(']');
-        return (last < 0) ? // should never be true
-            text.substring(ix+1) : text.substring(ix+1, last);
+        return mTextBuffer.contentsAsString();
     }
 
     /**
@@ -1113,14 +1105,6 @@ public class WstxStreamReader
     // Extended Woodstox-specific interface
     ////////////////////////////////////////////////////
      */
-
-    /**
-     * @return Full text of the DOCTYPE declaration
-     */
-    public String getDTDText() {
-        return (mCurrToken == DTD) ?
-            mTextBuffer.contentsAsString() : null;
-    }
 
     public EntityDecl getCurrentEntityDecl() {
         return mCurrEntity;
@@ -1743,21 +1727,18 @@ public class WstxStreamReader
     private void startDTD()
         throws IOException, XMLStreamException
     {
-        /* 01-Jun-2004, TSa: Let's collect contents of DOCTYPE declaration
-         *   using branching feature of input sources. At this point we don't
-         *   really know if we need it, but since there's at most one such
-         *   declaration, it's not a big deal either way.
+        /* 21-Nov-2004, TSa: Let's make sure that the buffer gets cleared
+         *   at this point. Need not start branching yet, however, since
+         *   DTD event is often skipped.
          */
         mTextBuffer.resetInitialized();
-        mTextBuffer.append("<!DOCTYPE");
-        ((BranchingReaderSource) mInput).startBranch(mTextBuffer, mInputPtr, mCfgNormalizeLFs);
 
         /* So, what we need is:<code>
          *  <!DOCTYPE' S Name (S ExternalID)? S? ('[' intSubset ']' S?)? '>
          *</code>. And we have already read the DOCTYPE token.
          */
 
-	char c = getNextInCurrAfterWS(SUFFIX_IN_DTD);
+        char c = getNextInCurrAfterWS(SUFFIX_IN_DTD);
         if (mCfgNsEnabled) {
             String str = parseLocalName(c);
             c = getNextChar(SUFFIX_IN_DTD);
@@ -1853,6 +1834,57 @@ public class WstxStreamReader
          */
         --mInputPtr; // pushback
         mStTokenUnfinished = true;
+    }
+
+    /**
+     * This method gets called to handle remainder of DOCTYPE declaration,
+     * essentially the optional internal subset. This class implements the
+     * basic "ignore it" functionality, but can optionally still store copy
+     * of the contents to the read buffer.
+     *<p>
+     * NOTE: Since this default implementation will be overridden by
+     * some sub-classes, make sure you do NOT change the method signature.
+     *
+     * @param copyContents If true, will copy contents of the internal
+     *   subset of DOCTYPE declaration
+     *   in the text buffer; if false, will just completely ignore the
+     *   subset (if one found).
+     */
+    protected void finishDTD(boolean copyContents)
+        throws IOException, XMLStreamException
+    {
+        /* We know there are no spaces, as this char was read and pushed
+         * back earlier...
+         */
+        char c = getNextChar(SUFFIX_IN_DTD);
+        if (c == '[') {
+            // Do we need to get contents as text too?
+            if (copyContents) {
+                ((BranchingReaderSource) mInput).startBranch(mTextBuffer, mInputPtr, mCfgNormalizeLFs);
+            }
+
+            try {
+                mConfig.getDtdReader().skipInternalSubset(this, mInput, mConfig);
+            } finally {
+                /* Let's close branching in any and every case (may allow
+                 * graceful recovery in error cases in future
+                 */
+                if (copyContents) {
+                    /* Need to "push back" ']' got in the succesful case
+                     * (that's -1 part below);
+                     * in error case it'll just be whatever last char was.
+                     */
+                    ((BranchingReaderSource) mInput).endBranch(mInputPtr-1);
+                }
+            }
+
+            // And then we need closing '>'
+            c = getNextCharAfterWS(SUFFIX_IN_DTD_INTERNAL);
+        }
+
+        if (c != '>') {
+            throwUnexpectedChar(c, "; expected '>' to finish DOCTYPE declaration.");
+        }
     }
 
     /*
@@ -2122,11 +2154,11 @@ public class WstxStreamReader
 
         while (true) {
             char c = getNextCharFromCurrent(SUFFIX_IN_ELEMENT);
-	    if (c <= CHAR_SPACE) {
-		c = getNextInCurrAfterWS(SUFFIX_IN_ELEMENT);
-	    } else if (c != '/' && c != '>') {
-		throwUnexpectedChar(c, " excepted space, or '>' or \"/>\"");
-	    }
+            if (c <= CHAR_SPACE) {
+                c = getNextInCurrAfterWS(SUFFIX_IN_ELEMENT, c);
+            } else if (c != '/' && c != '>') {
+                throwUnexpectedChar(c, " excepted space, or '>' or \"/>\"");
+            }
 
             if (c == '/') {
                 c = getNextCharFromCurrent(SUFFIX_IN_ELEMENT);
@@ -2233,11 +2265,11 @@ public class WstxStreamReader
 
         while (true) {
             char c = getNextCharFromCurrent(SUFFIX_IN_ELEMENT);
-	    if (c <= CHAR_SPACE) {
-		c = getNextInCurrAfterWS(SUFFIX_IN_ELEMENT);
-	    } else if (c != '/' && c != '>') {
-		throwUnexpectedChar(c, " excepted space, or '>' or \"/>\"");
-	    }
+            if (c <= CHAR_SPACE) {
+                c = getNextInCurrAfterWS(SUFFIX_IN_ELEMENT, c);
+            } else if (c != '/' && c != '>') {
+                throwUnexpectedChar(c, " excepted space, or '>' or \"/>\"");
+            }
             if (c == '/') {
                 c = getNextCharFromCurrent(SUFFIX_IN_ELEMENT);
                 if (c != '>') {
@@ -2791,47 +2823,6 @@ public class WstxStreamReader
         }
 
         throw new IllegalStateException("Internal error: unexpected token "+tokenTypeDesc(mCurrToken));
-    }
-
-    /**
-     * This method gets called to handle remainder of DOCTYPE declaration,
-     * essentially the optional internal subset. This class implements the
-     * basic "ignore it" functionality, but can optionally still store copy
-     * of the contents to the read buffer.
-     *<p>
-     * NOTE: Since this default implementation will be overridden by
-     * some sub-classes, make sure you do NOT change the method signature.
-     *
-     * @param copyContents If true, will copy contents of DOCTYPE declaration
-     *   in the text buffer; if false, will just completely ignore the
-     *   subset (if one found).
-     */
-    protected void finishDTD(boolean copyContents)
-        throws IOException, XMLStreamException
-    {
-        // No need to read contents if no one cares:
-        if (!copyContents) {
-            ((BranchingReaderSource) mInput).endBranch(mInputPtr);
-        }
-
-        /* We know there are no spaces, as this char was read and pushed
-         * back earlier...
-         */
-        char c = getNextChar(SUFFIX_IN_DTD);
-        if (c == '[') {
-            mConfig.getDtdReader().skipInternalSubset(this, mInput, mConfig);
-            // And then we need closing '>'
-            c = getNextCharAfterWS(SUFFIX_IN_DTD_INTERNAL);
-        }
-
-        if (c != '>') {
-            throwUnexpectedChar(c, "; expected '>' to finish DOCTYPE declaration.");
-        }
-
-        // Got it all, even if we had to copy it:
-        if (copyContents) {
-            ((BranchingReaderSource) mInput).endBranch(mInputPtr);
-        }
     }
 
     private void readComment()

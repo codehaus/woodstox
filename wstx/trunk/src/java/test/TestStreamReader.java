@@ -180,9 +180,9 @@ public class TestStreamReader
                     List notations = (List) sr.getProperty("javax.xml.stream.notations");
                     int entCount = (entities == null) ? -1 : entities.size();
                     int notCount = (notations == null) ? -1 : notations.size();
-                    System.out.println(" DTD ("+entCount+" entities, "+notCount
-                                       +" notations), declaration = <<\n");
-                    System.out.println(text);
+                    System.out.print(" DTD ("+entCount+" entities, "+notCount
+                                       +" notations), declaration = <<");
+                    System.out.print(text);
                     System.out.println(">>");
                 } else if (type == ENTITY_REFERENCE) {
                     // entity ref

@@ -50,6 +50,34 @@ public interface XMLStreamWriter2
     ///////////////////////////
     */
 
+    /**
+     * Method that writes specified content as is, without encoding or
+     * deciphering it in any way. It will not update state of the writer
+     * (except by possibly flushing output of previous writes, like
+     * finishing a start element),
+     * nor be validated in any way. As such, care must be taken, if this
+     * method is used.
+     *<p>
+     * Method is usually used when encapsulating output from another writer
+     * as a sub-tree, or when passing through XML fragments.
+     */
+    public void writeRaw(String text)
+        throws XMLStreamException;
+
+    /**
+     * Method that writes specified content as is, without encoding or
+     * deciphering it in any way. It will not update state of the writer
+     * (except by possibly flushing output of previous writes, like
+     * finishing a start element),
+     * nor be validated in any way. As such, care must be taken, if this
+     * method is used.
+     *<p>
+     * Method is usually used when encapsulating output from another writer
+     * as a sub-tree, or when passing through XML fragments.
+     */
+    public void writeRaw(char[] text, int offset, int length)
+        throws XMLStreamException;
+
     public void writeFromReader(XMLStreamReader2 r)
         throws XMLStreamException;
 }

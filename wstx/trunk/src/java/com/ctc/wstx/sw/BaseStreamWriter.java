@@ -210,6 +210,9 @@ public abstract class BaseStreamWriter
         try {
             mWriter.write("<![CDATA[");
             if (data != null) {
+                /* 20-Nov-2004, TSa: Should we try to validate content,
+                 *   and/or handle embedded end marker?
+                 */
                 mWriter.write(data);
             }
             mWriter.write("]]>");
@@ -310,8 +313,7 @@ public abstract class BaseStreamWriter
     public void writeDTD(String dtd)
         throws XMLStreamException
     {
-        // Are there any validations that could be done here?
-
+        verifyWriteDTD();
         try {
             mWriter.write(dtd);
         } catch (IOException ioe) {
@@ -511,6 +513,7 @@ public abstract class BaseStreamWriter
                          String internalSubset)
         throws XMLStreamException
     {
+        verifyWriteDTD();
         try {
             mWriter.write("<!DOCTYPE ");
             if (mCheckContent) {
@@ -534,6 +537,34 @@ public abstract class BaseStreamWriter
                 mWriter.write(']');
             }
             mWriter.write('>');
+        } catch (IOException ioe) {
+            throw new XMLStreamException(ioe);
+        }
+    }
+
+    public void writeRaw(String text)
+        throws XMLStreamException
+    {
+        mAnyOutput = true;
+        if (mStartElementOpen) {
+            closeStartElement(mEmptyElement);
+        }
+        try {
+            mWriter.write(text);
+        } catch (IOException ioe) {
+            throw new XMLStreamException(ioe);
+        }
+    }
+
+    public void writeRaw(char[] text, int offset, int length)
+        throws XMLStreamException
+    {
+        mAnyOutput = true;
+        if (mStartElementOpen) {
+            closeStartElement(mEmptyElement);
+        }
+        try {
+            mWriter.write(text, offset, length);
         } catch (IOException ioe) {
             throw new XMLStreamException(ioe);
         }
@@ -663,6 +694,17 @@ public abstract class BaseStreamWriter
         throws XMLStreamException
     {
         // !!! TBI
+    }
+
+    protected void verifyWriteDTD()
+        throws XMLStreamException
+    {
+        // 20-Nov-2004, TSa: can check that we are in epilog
+        if (mCheckStructure) {
+            if (mState != STATE_EPILOG) {
+                throw new XMLStreamException("Can not write DOCTYPE declaration (DTD) when not in epilog any more (start element(s) written)");
+            }
+        }
     }
 
     /*

@@ -185,7 +185,8 @@ public class FullStreamReader
      * NOTE: Since this method overrides the default implementation, make
      * sure you do NOT change the method signature.
      *
-     * @param copyContents If true, will copy contents of DOCTYPE declaration
+     * @param copyContents If true, will copy contents of the internal
+     *   subset of DOCTYPE declaration
      *   in the text buffer (in addition to parsing it for actual use); if
      *   false, will only do parsing.
      */
@@ -197,11 +198,6 @@ public class FullStreamReader
             return;
         }
 
-        // Does anyone care about stuff in DTD?
-        if (!copyContents) {
-            ((BranchingReaderSource) mInput).endBranch(mInputPtr);
-        }
-
         char c = getNextChar(SUFFIX_IN_DTD);
         DTDSubset intSubset = null;
 
@@ -209,18 +205,32 @@ public class FullStreamReader
          * that it has to be either '[' or closing '>'.
          */
         if (c == '[') {
-            intSubset = mConfig.getDtdReader().readInternalSubset(this, mInput, mConfig);
+            // Do we need to copy the contents of int. subset in the buffer?
+            if (copyContents) {
+                ((BranchingReaderSource) mInput).startBranch(mTextBuffer, mInputPtr, mCfgNormalizeLFs);
+            }
+
+            try {
+                intSubset = mConfig.getDtdReader().readInternalSubset(this, mInput, mConfig);
+            } finally {
+                /* Let's close branching in any and every case (may allow
+                 * graceful recovery in error cases in future
+                 */
+                if (copyContents) {
+                    /* Need to "push back" ']' got in the succesful case
+                     * (that's -1 part below);
+                     * in error case it'll just be whatever last char was.
+                     */
+                    ((BranchingReaderSource) mInput).endBranch(mInputPtr-1);
+                }
+            }
+
             // And then we need closing '>'
             c = getNextCharAfterWS(SUFFIX_IN_DTD_INTERNAL);
         }
 
         if (c != '>') {
             throwUnexpectedChar(c, "; expected '>' to finish DOCTYPE declaration.");
-        }
-
-        // Enough about DOCTYPE decl itself:
-        if (copyContents) {
-            ((BranchingReaderSource) mInput).endBranch(mInputPtr);
         }
 
         /* But, then, we also may need to read the external subset, if
