@@ -325,8 +325,7 @@ public class SimpleNsStreamWriter
         protected final StreamReaderImpl mReader;
         protected final SimpleNsStreamWriter mWriter;
 
-        protected String mPrefix, mLocalName;
-        protected String mNsURI;
+        protected boolean mElementOutput;
 
         CopierImpl(StreamReaderImpl sr, SimpleNsStreamWriter sw)
         {
@@ -338,29 +337,37 @@ public class SimpleNsStreamWriter
         public final void copyElement()
             throws XMLStreamException
         {
-            mReader.iterateStartElement(this);
+            mElementOutput = false;
+            // true -> call namespace callbacks twice
+            mReader.iterateStartElement(this, true);
         }
 
         public void iterateElement(String prefix, String localName,
                                    String nsURI, boolean isEmpty)
             throws XMLStreamException
         {
-            /* Alas, can not output it quite yet: may need to bind
-             * namespaces first...
-             */
-            mPrefix = prefix;
-            mLocalName = localName;
-            mNsURI = nsURI;
+            mElementOutput = true;
+            // Should have gotten namespace bindings earlier...
+            mWriter.writeStartElement(prefix, localName, nsURI);
         }
         
         public void iterateNamespace(String prefix, String nsURI)
             throws XMLStreamException
         {
-            /* Tricky thing here is that the prefix mapping has to be done
-             * BEFORE element output, and namespace writing AFTER element
-             * output...
-             */
-            // !!! TBI
+            // Ok; before or after element callback?
+            if (mElementOutput) { // after -> output declaration
+                if (prefix == null || prefix.length() == 0) { // default NS
+                    mWriter.writeDefaultNamespace(nsURI);
+                } else {
+                    mWriter.writeNamespace(prefix, nsURI);
+                }
+            } else { // before -> bind prefix
+                if (prefix == null || prefix.length() == 0) { // default NS
+                    mWriter.setDefaultNamespace(nsURI);
+                } else {
+                    mWriter.setPrefix(prefix, nsURI);
+                }
+            }
         }
         
         public void iterateAttribute(String prefix, String localName,

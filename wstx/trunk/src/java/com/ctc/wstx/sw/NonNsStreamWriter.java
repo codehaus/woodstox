@@ -457,7 +457,7 @@ public class NonNsStreamWriter
         public final void copyElement()
             throws XMLStreamException
         {
-            mReader.iterateStartElement(this);
+            mReader.iterateStartElement(this, false);
         }
 
         public void iterateElement(String prefix, String localName,

@@ -261,10 +261,8 @@ public final class UTF8Reader
     /**
      * @param available Number of "unused" bytes in the input buffer
      *
-     * @return Character we read, if any; or -1 to signal an EOF encountered
-     *   that prevented us reading one more full char (not including cases
-     *   where such EOF signals a broken char, which are signaled by
-     *   proper IOException)
+     * @return True, if enough bytes were read to allow decoding of at least
+     *   one full character; false if EOF was encountered instead.
      */
     private boolean loadMore(int available)
         throws IOException
@@ -278,8 +276,8 @@ public final class UTF8Reader
                     mBuffer[i] = mBuffer[mPtr+i];
                 }
                 mPtr = 0;
-                mLength = available;
             }
+            mLength = available;
         } else {
             /* Ok; here we can actually reasonably expect an EOF,
              * so let's do a separate read right away:
@@ -302,7 +300,7 @@ public final class UTF8Reader
          * calculate exactly how many bytes we need!
          */
         int c = (int) mBuffer[0];
-        if (c >= 0) { // single byte... cool, can return
+        if (c >= 0) { // single byte (ascii) char... cool, can return
             return true;
         }
 
@@ -317,7 +315,7 @@ public final class UTF8Reader
             needed = 4;
         } else {
             reportInvalidInitial(c & 0xFF, 0);
-            // never gets here...
+            // never gets here... but compiler whines without this:
             needed = 1;
         }
 
@@ -325,7 +323,7 @@ public final class UTF8Reader
          * if an EOF is hit, that'll be an error. But we need not do
          * actual decoding here, just load enough bytes.
          */
-        do {
+        while (mLength < needed) {
             int count = mIn.read(mBuffer, mLength, mBuffer.length - mLength);
             if (count < 1) {
                 if (count < 0) { // -1, EOF... no good!
@@ -336,7 +334,7 @@ public final class UTF8Reader
                 reportStrangeStream();
             }
             mLength += count;
-        } while (mLength < needed);
+        }
         return true;
     }
 

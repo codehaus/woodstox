@@ -366,7 +366,8 @@ public class RepairingNsStreamWriter
         public final void copyElement()
             throws XMLStreamException
         {
-            mReader.iterateStartElement(this);
+            // false -> no duplication of ns declarations
+            mReader.iterateStartElement(this, false);
         }
 
         public void iterateElement(String prefix, String localName,

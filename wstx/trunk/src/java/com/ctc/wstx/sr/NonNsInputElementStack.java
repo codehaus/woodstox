@@ -268,7 +268,8 @@ public class NonNsInputElementStack
      * Method called to get all the information about the current top
      * element of the stack, via a callback.
      */
-    public final void iterateElement(ElemIterCallback cb, boolean isEmpty)
+    public final void iterateElement(ElemIterCallback cb, boolean isEmpty,
+                                     boolean iterateNsTwice)
         throws XMLStreamException
     {
         /* Note: since this is an internal method, there's no need to

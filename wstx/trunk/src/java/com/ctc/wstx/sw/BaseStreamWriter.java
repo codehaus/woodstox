@@ -641,7 +641,8 @@ public abstract class BaseStreamWriter
                 mWriter.write(systemId);
                 mWriter.write('"');
             }
-            if (internalSubset != null) {
+            // Hmmh. Should we out empty internal subset?
+            if (internalSubset != null && internalSubset.length() > 0) {
                 mWriter.write(" [");
                 mWriter.write(internalSubset);
                 mWriter.write(']');
@@ -705,6 +706,8 @@ public abstract class BaseStreamWriter
         throws XMLStreamException
     {
         try {
+// Uncomment for debugging:
+//System.err.println("EVENT -> "+sr.getEventType());
             switch (sr.getEventType()) {
                 /* Document start/end events:
                  */
@@ -961,8 +964,8 @@ public abstract class BaseStreamWriter
     {
         // 20-Nov-2004, TSa: can check that we are in epilog
         if (mCheckStructure) {
-            if (mState != STATE_EPILOG) {
-                throw new XMLStreamException("Can not write DOCTYPE declaration (DTD) when not in epilog any more (start element(s) written)");
+            if (mState != STATE_PROLOG) {
+                throw new XMLStreamException("Can not write DOCTYPE declaration (DTD) when not in prolog any more (state "+mState+"; start element(s) written)");
             }
         }
     }

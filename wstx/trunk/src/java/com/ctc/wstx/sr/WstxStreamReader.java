@@ -1278,14 +1278,18 @@ public class WstxStreamReader
      * Note: caller is expected to ensure that the current event is indeed
      * START_ELEMENT -- no effort is made to do sanity checks from this
      * point on.
+     *
+     * @param iterateNsTwice If true, will call ns callbacks twice (once
+     *   before and once after element itself): if false, will only call
+     *   them once, after the element callback.
      */
-    public void iterateStartElement(ElemIterCallback cb)
+    public void iterateStartElement(ElemIterCallback cb, boolean iterateNsTwice)
         throws XMLStreamException
     {
         /* First, let's call the callback matching element info,
          * and namespace declarations (if any)
          */
-        mElementStack.iterateElement(cb, mStEmptyElem);
+        mElementStack.iterateElement(cb, mStEmptyElem, iterateNsTwice);
 
         // And then, attribute info:
         mAttrCollector.iterateAttributes(cb);
