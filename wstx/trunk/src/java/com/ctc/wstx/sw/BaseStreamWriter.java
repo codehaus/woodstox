@@ -142,14 +142,14 @@ public abstract class BaseStreamWriter
      */
 
     /**
-     * Last created <code>ElementWriter</code> instance (if any used
+     * Last created <code>ElementCopier</code> instance (if any used
      * so far); reused for multiple copy-through operations.
      */
-    protected ElementWriter mLastElemWriter = null;
+    protected ElementCopier mLastElemCopier = null;
 
     /**
      * Reader that was last used for copy-through operation;
-     * used in conjunction with {@link #mLastElemWriter}.
+     * used in conjunction with {@link #mLastElemCopier}.
      */
     protected XMLStreamReader2 mLastReader = null;
 
@@ -727,12 +727,12 @@ public abstract class BaseStreamWriter
                  */
             case START_ELEMENT:
                 {
-                    ElementWriter ew = mLastElemWriter;
-                    if (ew == null || sr != mLastReader) {
-                        mLastElemWriter = ew = ElementWriter.createWriter(sr, this);
+                    ElementCopier ec = mLastElemCopier;
+                    if (ec == null || sr != mLastReader) {
+                        mLastElemCopier = ec = createElementCopier(sr);
                         mLastReader = sr;
                     }
-                    ew.copyElement();
+                    ec.copyElement();
                 }
                 return;
 
@@ -843,6 +843,12 @@ public abstract class BaseStreamWriter
     public Writer getWriter() {
         return mWriter;
     }
+
+    /**
+     * Factory method for creating the <code>ElementCopier</code> to
+     * be used by this writer to from specified stream reader.
+     */
+    abstract ElementCopier createElementCopier(XMLStreamReader2 sr);
 
     /**
      * Convenience method needed by {@link com.ctc.wstx.evt.WstxEventWriter}, to use when
@@ -992,36 +998,21 @@ public abstract class BaseStreamWriter
     ////////////////////////////////////////////////////
      */
 
-    final static class ElementWriter
+    /**
+     * Abstract base class that defines how element copiers work; sub-classes
+     * (one for namespace-aware, one for non-namespace-aware writers)
+     * will implement functionality.
+     */
+    protected static abstract class ElementCopier
         extends ElemIterCallback
     {
-        final StreamReaderImpl mReader;
-        final BaseStreamWriter mWriter;
-
         /*
         /////////////////////////////////////////////
         // Life-cycle
         /////////////////////////////////////////////
          */
 
-        private ElementWriter(StreamReaderImpl sr, BaseStreamWriter sw)
-        {
-            mReader = sr;
-            mWriter = sw;
-        }
-
-        public static ElementWriter createWriter(XMLStreamReader2 sr,
-                                                 BaseStreamWriter sw)
-        {
-            /* !!! 21-Feb-2005, TSa: Should probably also work with non-Woodstox
-             *  stream readers? If so, should first test if the interface is
-             *  implemented, and if not, use a fallback method of using
-             *  accessors...
-             *
-             * For now, we'll only be able to use Woodstox stream readers.
-             */
-            return new ElementWriter((StreamReaderImpl) sr, sw);
-        }
+        protected ElementCopier() { }
 
         /*
         /////////////////////////////////////////////
@@ -1029,34 +1020,25 @@ public abstract class BaseStreamWriter
         /////////////////////////////////////////////
          */
 
-        public void copyElement()
-            throws XMLStreamException
-        {
-            mReader.iterateStartElement(this);
-        }
+        public abstract void copyElement()
+            throws XMLStreamException;
 
         /*
         /////////////////////////////////////////////
-        // ElemIterCallback implementation
+        // ElemIterCallback methods
         /////////////////////////////////////////////
          */
 
-        public void iterateElement(String prefix, String localName,
-                                   String nsURI, boolean isEmpty)
-            throws XMLStreamException
-        {
-        }
+        public abstract void iterateElement(String prefix, String localName,
+                                            String nsURI, boolean isEmpty)
+            throws XMLStreamException;
         
-        public void iterateNamespace(String prefix, String nsURI)
-            throws XMLStreamException
-        {
-        }
+        public abstract void iterateNamespace(String prefix, String nsURI)
+            throws XMLStreamException;
         
-        public void iterateAttribute(String prefix, String localName,
-                                     String nsURI, boolean isSpecified,
-                                     String value)
-            throws XMLStreamException
-        {
-        }
+        public abstract void iterateAttribute(String prefix, String localName,
+                                              String nsURI, boolean isSpecified,
+                                              String value)
+            throws XMLStreamException;
     }
 }

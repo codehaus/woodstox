@@ -30,8 +30,11 @@ import javax.xml.stream.events.Attribute;
 import javax.xml.stream.events.Namespace;
 import javax.xml.stream.events.StartElement;
 
+import org.codehaus.stax2.XMLStreamReader2;
+
 import com.ctc.wstx.api.WriterConfig;
 import com.ctc.wstx.cfg.ErrorConsts;
+import com.ctc.wstx.sr.StreamReaderImpl;
 import com.ctc.wstx.util.DefaultXmlSymbolTable;
 import com.ctc.wstx.util.XMLQuoter;
 
@@ -150,6 +153,18 @@ public class SimpleNsStreamWriter
     // Package methods:
     ////////////////////////////////////////////////////
      */
+
+    ElementCopier createElementCopier(XMLStreamReader2 sr)
+    {
+        /* !!! 21-Feb-2005, TSa: Should probably also work with non-Woodstox
+         *  stream readers? If so, should first test if the interface is
+         *  implemented, and if not, use a fallback method of using
+         *  accessors...
+         *
+         * For now, we'll only be able to use Woodstox stream readers.
+         */
+        return new CopierImpl((StreamReaderImpl) sr, this);
+    }
 
     public void writeStartElement(StartElement elem)
         throws XMLStreamException
@@ -286,6 +301,78 @@ public class SimpleNsStreamWriter
             }
             String actURI = mCurrElem.getNamespaceURI(prefix);
             throw new XMLStreamException("Misbound namespace prefix '"+prefix+"': was declared as '"+actURI+"', trying to use it as '"+nsURI+"'");
+        }
+    }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Helper classes:
+    ////////////////////////////////////////////////////
+     */
+
+    /**
+     * Element copier implementation suitable to be used with
+     * namespace-aware writers in non-repairing (explicit namespaces) mode.
+     * The trickiest thing is having to properly
+     * order calls to <code>setPrefix</code>, <code>writeNamespace</code>
+     * and <code>writeStartElement</code>; the order writers expect is
+     * bit different from the order in which element information is
+     * passed in.
+     */
+    final static class CopierImpl
+        extends ElementCopier
+    {
+        protected final StreamReaderImpl mReader;
+        protected final SimpleNsStreamWriter mWriter;
+
+        protected String mPrefix, mLocalName;
+        protected String mNsURI;
+
+        CopierImpl(StreamReaderImpl sr, SimpleNsStreamWriter sw)
+        {
+            super();
+            mReader = sr;
+            mWriter = sw;
+        }
+
+        public final void copyElement()
+            throws XMLStreamException
+        {
+            mReader.iterateStartElement(this);
+        }
+
+        public void iterateElement(String prefix, String localName,
+                                   String nsURI, boolean isEmpty)
+            throws XMLStreamException
+        {
+            /* Alas, can not output it quite yet: may need to bind
+             * namespaces first...
+             */
+            mPrefix = prefix;
+            mLocalName = localName;
+            mNsURI = nsURI;
+        }
+        
+        public void iterateNamespace(String prefix, String nsURI)
+            throws XMLStreamException
+        {
+            /* Tricky thing here is that the prefix mapping has to be done
+             * BEFORE element output, and namespace writing AFTER element
+             * output...
+             */
+            // !!! TBI
+        }
+        
+        public void iterateAttribute(String prefix, String localName,
+                                     String nsURI, boolean isSpecified,
+                                     String value)
+            throws XMLStreamException
+        {
+            // Let's only output explicit attributes?
+            // !!! Should it be configurable?
+            if (isSpecified) {
+                mWriter.writeAttribute(prefix, nsURI, localName, value);
+            }
         }
     }
 }

@@ -29,7 +29,10 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.Attribute;
 import javax.xml.stream.events.StartElement;
 
+import org.codehaus.stax2.XMLStreamReader2;
+
 import com.ctc.wstx.api.WriterConfig;
+import com.ctc.wstx.sr.StreamReaderImpl;
 import com.ctc.wstx.util.EmptyNamespaceContext;
 import com.ctc.wstx.util.StringVector;
 
@@ -249,6 +252,18 @@ public class NonNsStreamWriter
     ////////////////////////////////////////////////////
      */
 
+    ElementCopier createElementCopier(XMLStreamReader2 sr)
+    {
+        /* !!! 21-Feb-2005, TSa: Should probably also work with non-Woodstox
+         *  stream readers? If so, should first test if the interface is
+         *  implemented, and if not, use a fallback method of using
+         *  accessors...
+         *
+         * For now, we'll only be able to use Woodstox stream readers.
+         */
+        return new CopierImpl((StreamReaderImpl) sr, this);
+    }
+
     public void writeStartElement(StartElement elem)
         throws XMLStreamException
     {
@@ -411,6 +426,77 @@ public class NonNsStreamWriter
 
         if (mElements.isEmpty()) {
             mState = STATE_EPILOG;
+        }
+    }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Helper classes:
+    ////////////////////////////////////////////////////
+     */
+
+    /**
+     * Element copier implementation suitable to be used with
+     * non-namespace-aware writers. The only special thing here is that
+     * the copier can convert namespace declarations to equivalent
+     * attribute writes.
+     */
+    final static class CopierImpl
+        extends ElementCopier
+    {
+        protected final StreamReaderImpl mReader;
+        protected final BaseStreamWriter mWriter;
+
+        CopierImpl(StreamReaderImpl sr, BaseStreamWriter sw)
+        {
+            super();
+            mReader = sr;
+            mWriter = sw;
+        }
+
+        public final void copyElement()
+            throws XMLStreamException
+        {
+            mReader.iterateStartElement(this);
+        }
+
+        public void iterateElement(String prefix, String localName,
+                                   String nsURI, boolean isEmpty)
+            throws XMLStreamException
+        {
+            // Need to 'convert' namespace-aware element to non-ns-aware one?
+            if (prefix != null && prefix.length() > 0) {
+                localName = prefix + ":" + localName;
+            }
+            mWriter.writeStartElement(prefix);
+        }
+        
+        public void iterateNamespace(String prefix, String nsURI)
+            throws XMLStreamException
+        {
+            // Ok, need to output it as regular attribute...
+            if (prefix == null || prefix.length() == 0) { // default NS decl
+                prefix = XMLConstants.XML_NS_PREFIX;
+            } else {
+                prefix = "xmlns:"+prefix;
+            }
+            mWriter.writeAttribute(prefix, nsURI);
+        }
+        
+        public void iterateAttribute(String prefix, String localName,
+                                     String nsURI, boolean isSpecified,
+                                     String value)
+            throws XMLStreamException
+        {
+            // Let's only output explicit attributes?
+            // !!! Should it be configurable?
+            if (isSpecified) {
+                // Need to 'convert' namespace-aware attr to non-ns-aware one?
+                if (prefix != null && prefix.length() > 0) {
+                    localName = prefix + ":" + localName;
+                }
+                mWriter.writeAttribute(localName, value);
+            }
         }
     }
 }

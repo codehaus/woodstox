@@ -30,6 +30,8 @@ import javax.xml.stream.events.Attribute;
 import javax.xml.stream.events.Namespace;
 import javax.xml.stream.events.StartElement;
 
+import org.codehaus.stax2.XMLStreamReader2;
+
 import com.ctc.wstx.api.WriterConfig;
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.io.AttrValueEscapingWriter;
@@ -341,6 +343,8 @@ public abstract class BaseNsStreamWriter
         return mCurrElem.getElementName();
     }
 
+    abstract ElementCopier createElementCopier(XMLStreamReader2 sr);
+
     /**
      * Method called by {@link com.ctc.wstx.evt.WstxEventWriter} (instead of the version
      * that takes no argument), so that we can verify it does match the
@@ -566,7 +570,6 @@ public abstract class BaseNsStreamWriter
         }
     }
 
-
     /*
     ////////////////////////////////////////////////////
     // More abstract methods for sub-classes to implement
@@ -586,11 +589,4 @@ public abstract class BaseNsStreamWriter
 
     protected abstract void writeStartOrEmpty(String prefix, String localName, String nsURI)
         throws XMLStreamException;
-
-    /*
-    ////////////////////////////////////////////////////
-    // Private methods
-    ////////////////////////////////////////////////////
-     */
-
 }

@@ -30,8 +30,11 @@ import javax.xml.stream.events.Attribute;
 import javax.xml.stream.events.Namespace;
 import javax.xml.stream.events.StartElement;
 
+import org.codehaus.stax2.XMLStreamReader2;
+
 import com.ctc.wstx.api.WriterConfig;
 import com.ctc.wstx.cfg.ErrorConsts;
+import com.ctc.wstx.sr.StreamReaderImpl;
 import com.ctc.wstx.util.DefaultXmlSymbolTable;
 import com.ctc.wstx.util.XMLQuoter;
 
@@ -100,8 +103,8 @@ public class RepairingNsStreamWriter
             throw new IllegalStateException("Trying to write an attribute when there is no open start element.");
         }
 
-	// In repairing mode, better ensure validity:
-	prefix = validatePrefix(prefix, nsURI, false);
+        // In repairing mode, better ensure validity:
+        prefix = validatePrefix(prefix, nsURI, false);
         doWriteAttr(localName, nsURI, prefix, value);
     }
 
@@ -151,6 +154,18 @@ public class RepairingNsStreamWriter
     // Package methods:
     ////////////////////////////////////////////////////
      */
+
+    ElementCopier createElementCopier(XMLStreamReader2 sr)
+    {
+        /* !!! 21-Feb-2005, TSa: Should probably also work with non-Woodstox
+         *  stream readers? If so, should first test if the interface is
+         *  implemented, and if not, use a fallback method of using
+         *  accessors...
+         *
+         * For now, we'll only be able to use Woodstox stream readers.
+         */
+        return new CopierImpl((StreamReaderImpl) sr, this);
+    }
 
     public void writeStartElement(StartElement elem)
         throws XMLStreamException
@@ -242,8 +257,8 @@ public class RepairingNsStreamWriter
         // Need to clear ns declarations for next start/empty elems:
         mNsDecl = null;
 
-	// In repairing mode, better ensure validity:
-	prefix = validatePrefix(prefix, nsURI, true);
+        // In repairing mode, better ensure validity:
+        prefix = validatePrefix(prefix, nsURI, true);
         mCurrElem.setPrefix(prefix);
         doWriteStartElement(prefix, localName);
     }
@@ -296,27 +311,97 @@ public class RepairingNsStreamWriter
      * binding and return its prefix
      */
     private final String validatePrefix(String prefix, String nsURI,
-					boolean canUseDefault)
-	throws XMLStreamException
+                                        boolean canUseDefault)
+        throws XMLStreamException
     {
-	int status = mCurrElem.isPrefixValid(prefix, nsURI, mCheckNS,
-					     canUseDefault);
-	if (status != OutputElement.PREFIX_OK) {
-	    // Not bound? Easy enough, can just add such mapping:
-	    if (status == OutputElement.PREFIX_UNBOUND) {
-		mCurrElem.addPrefix(prefix, nsURI);
-		doWriteNamespace(prefix, nsURI);
-	    } else {
-		// mis-bound? Need to find better one
-		// First, do we have a mapping for URI?
-		prefix = getPrefix(nsURI);
-		if (prefix == null) { // nope, need to generate
-		    prefix = mCurrElem.generatePrefix(mRootNsContext);
-		    mCurrElem.addPrefix(prefix, nsURI);
-		    doWriteNamespace(prefix, nsURI);
-		}
-	    }
-	}
-	return prefix;
+        int status = mCurrElem.isPrefixValid(prefix, nsURI, mCheckNS,
+                                             canUseDefault);
+        if (status != OutputElement.PREFIX_OK) {
+            // Not bound? Easy enough, can just add such mapping:
+            if (status == OutputElement.PREFIX_UNBOUND) {
+                mCurrElem.addPrefix(prefix, nsURI);
+                doWriteNamespace(prefix, nsURI);
+            } else {
+                // mis-bound? Need to find better one
+                // First, do we have a mapping for URI?
+                prefix = getPrefix(nsURI);
+                if (prefix == null) { // nope, need to generate
+                    prefix = mCurrElem.generatePrefix(mRootNsContext);
+                    mCurrElem.addPrefix(prefix, nsURI);
+                    doWriteNamespace(prefix, nsURI);
+                }
+            }
+        }
+        return prefix;
+    }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Helper classes:
+    ////////////////////////////////////////////////////
+     */
+
+    /**
+     * Element copier implementation suitable for use with
+     * namespace-aware writers in repairing mode.
+     * The trickiest thing is having to properly
+     * order calls to <code>setPrefix</code>, <code>writeNamespace</code>
+     * and <code>writeStartElement</code>; the order writers expect is
+     * bit different from the order in which element information is
+     * passed in.
+     */
+    final static class CopierImpl
+        extends ElementCopier
+    {
+        protected final StreamReaderImpl mReader;
+        protected final RepairingNsStreamWriter mWriter;
+
+        CopierImpl(StreamReaderImpl sr, RepairingNsStreamWriter sw)
+        {
+            super();
+            mReader = sr;
+            mWriter = sw;
+        }
+
+        public final void copyElement()
+            throws XMLStreamException
+        {
+            mReader.iterateStartElement(this);
+        }
+
+        public void iterateElement(String prefix, String localName,
+                                   String nsURI, boolean isEmpty)
+            throws XMLStreamException
+        {
+            /* In case of repairing stream writer, we can actually just
+             * go ahead and output the element: stream writer should
+             * be able to resolve namespace mapping for the element
+             * automatically, as necessary.
+             */
+            mWriter.writeStartElement(prefix, localName, nsURI);
+        }
+        
+        public void iterateNamespace(String prefix, String nsURI)
+            throws XMLStreamException
+        {
+            /* Since repairing writer will deal with namespace bindings
+             * and declarations automatically, we wouldn't necessarily
+             * have to do anything here... but it's probably a good idea
+             * to suggest proper mapping now:
+             */
+            mWriter.validatePrefix(prefix, nsURI, true);
+        }
+        
+        public void iterateAttribute(String prefix, String localName,
+                                     String nsURI, boolean isSpecified,
+                                     String value)
+            throws XMLStreamException
+        {
+            // Let's only output explicit attributes?
+            // !!! Should it be configurable?
+            if (isSpecified) {
+                mWriter.writeAttribute(prefix, nsURI, localName, value);
+            }
+        }
     }
 }

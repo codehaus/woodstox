@@ -158,6 +158,10 @@ public class WstxInputLocation
         sb.append(mRow);
         sb.append(',');
         sb.append(mCol);
+
+        // Uncomment for testing, to see the char offset:
+        //sb.append(" #").append(mCharOffset);
+
         if (srcId != null) {
             sb.append(',');
             sb.append('"');

@@ -485,7 +485,7 @@ public class FullStreamReader
               */
              | CFG_SUPPORT_DTDPP
              );
-        URL sysRef = (sysId == null || pubId.length() == 0) ? null :
+        URL sysRef = (sysId == null || sysId.length() == 0) ? null :
             resolveExtSubsetPath(sysId);
         
         if (pubId != null && pubId.length() > 0) {

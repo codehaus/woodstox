@@ -267,6 +267,7 @@ public class TestStreamReader
 
 /**
  * Test stream to check whether reader can do proper streaming...
+ * Need to throw an exception to ensure _succesful_ functioning?
  */
 final class TestStream
     extends FilterInputStream
@@ -298,7 +299,7 @@ System.err.println("Returning "+r);
         int r = super.read(b, off, len);
         if (r<0) {
 // Let's trigger test exception...            
-if (true) throw new Error("W00t?");
+//if (true) throw new Error("W00t?");
             try {
                 System.err.println("WAIT/multiple");
                 Thread.sleep(sleep);
