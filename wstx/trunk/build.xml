@@ -153,6 +153,7 @@
         <javac SrcDir="${JavaSrcDir}" destdir="${BuildClassesDir}"
             debug="true"
         >
+            <include name="org/codehaus/stax2/**/*.java" />
             <include name="com/ctc/**/*.java" />
             <include name="test/**/*.java" />
             <classpath refid="compile-classpath" />
@@ -189,6 +190,7 @@
             <attribute name="Implementation-Vendor"  value="${WSTX_VENDOR}"/>
           </manifest>
           <fileset dir="${BuildClassesDir}">
+             <include name="org/codehaus/stax2/**/*.class" />
              <include name="com/ctc/**/*.class" />
              <include name="META-INF/services/javax.xml.stream.*" />
           </fileset>
@@ -212,6 +214,7 @@
             <attribute name="Implementation-Vendor"  value="${WSTX_VENDOR}"/>
           </manifest>
           <fileset dir="${BuildClassesDir}">
+             <include name="org/codehaus/stax2/**/*.class" />
              <include name="com/ctc/**/*.class" />
              <include name="META-INF/services/javax.xml.stream.*" />
           </fileset>
@@ -290,6 +293,7 @@
             author="true" 
             version="true">
             <packageset dir="${JavaSrcDir}" defaultexcludes="yes">
+                <include name="org/codehaus/stax2/**" />
                 <include name="com/ctc/**" />
             </packageset>
             <classpath refid="compile-classpath" />

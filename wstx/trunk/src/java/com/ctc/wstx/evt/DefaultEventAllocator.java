@@ -25,7 +25,8 @@ import javax.xml.stream.events.EntityDeclaration;
 import javax.xml.stream.util.XMLEventAllocator;
 import javax.xml.stream.util.XMLEventConsumer;
 
-import com.ctc.wstx.api.XMLStreamReader2;
+import org.codehaus.stax2.XMLStreamReader2;
+
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.dtd.DTDSubset;
 import com.ctc.wstx.ent.EntityDecl;

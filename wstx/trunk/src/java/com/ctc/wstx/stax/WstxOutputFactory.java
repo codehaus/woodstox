@@ -28,8 +28,9 @@ import javax.xml.transform.stream.StreamResult;
 
 import javax.xml.stream.*;
 
+import org.codehaus.stax2.XMLOutputFactory2;
+
 import com.ctc.wstx.api.WriterConfig;
-import com.ctc.wstx.api.XMLOutputFactory2;
 import com.ctc.wstx.cfg.OutputConfigFlags;
 import com.ctc.wstx.evt.WstxEventWriter;
 import com.ctc.wstx.sw.BaseStreamWriter;

@@ -19,6 +19,8 @@ Must-haves for 2.0
    * Event writer
 
 * StAX 2.0 features:
+   * Package API classes to a separate jar (in addition to including them
+     in woodstox jars)
    * XMLStreamReader2:
       * getText with Writer arg
    * XMLStreamWriter2:

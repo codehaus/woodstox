@@ -1,4 +1,4 @@
-package com.ctc.wstx.api;
+package org.codehaus.stax2;
 
 import javax.xml.stream.XMLStreamReader;
 

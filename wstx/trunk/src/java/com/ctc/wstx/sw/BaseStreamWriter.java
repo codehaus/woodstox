@@ -15,10 +15,11 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.Characters;
 import javax.xml.stream.events.StartElement;
 
+import org.codehaus.stax2.XMLStreamReader2;
+import org.codehaus.stax2.XMLStreamWriter2;
+
 import com.ctc.wstx.api.WriterConfig;
 import com.ctc.wstx.api.WstxOutputProperties;
-import com.ctc.wstx.api.XMLStreamReader2;
-import com.ctc.wstx.api.XMLStreamWriter2;
 import com.ctc.wstx.cfg.OutputConfigFlags;
 import com.ctc.wstx.exc.*;
 import com.ctc.wstx.util.XMLQuoter;
