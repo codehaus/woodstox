@@ -88,14 +88,23 @@ public interface XMLStreamWriter2
         throws XMLStreamException;
 
     /**
-     * "Pass-through" write method; one that essentially copies
-     * event reader has just read. This can be both more convenient
+     * Method that essentially copies
+     * event that the specified reader has just read.
+     * This can be both more convenient
      * (no need to worry about details) and more efficient
      * than separately calling access methods of the reader and
      * write methods of the writer, since writer may know more
      * about reader than the application (and may be able to use
      * non-public methods)
+     *
+     * @param r Reader to use for accessing event to copy
+     * @param preserveEventData If true, writer is not allowed to change
+     *   the state of the reader (so that all the data associated with the
+     *   current event has to be preserved); if false, writer is allowed
+     *   to use methods that may cause some data to be discarded. Setting
+     *   this to false may improve the performance, since it may allow
+     *   full no-copy streaming of data, especially textual contents.
      */
-    public void writeFromReader(XMLStreamReader2 r)
+    public void copyEventFromReader(XMLStreamReader2 r, boolean preserveEventData)
         throws XMLStreamException;
 }

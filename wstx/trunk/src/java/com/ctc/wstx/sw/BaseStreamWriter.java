@@ -8,8 +8,9 @@ import javax.xml.XMLConstants;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
 import javax.xml.stream.Location;
-import javax.xml.stream.XMLStreamWriter;
+import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 
 // unfortunate dependencies to StAX events:
 import javax.xml.stream.events.Characters;
@@ -36,7 +37,7 @@ import com.ctc.wstx.util.StringUtil;
  */
 public abstract class BaseStreamWriter
     implements XMLStreamWriter2,
-               OutputConfigFlags
+               XMLStreamConstants, OutputConfigFlags
 {
     protected final static int STATE_PROLOG = 1;
     protected final static int STATE_TREE = 2;
@@ -195,7 +196,7 @@ public abstract class BaseStreamWriter
         try {
             mWriter.flush();
         } catch (IOException ioe) {
-            throw new XMLStreamException(ioe);
+            throw new WstxIOException(ioe);
         }
     }
 
@@ -274,7 +275,7 @@ public abstract class BaseStreamWriter
             }
             mWriter.write("]]>");
         } catch (IOException ioe) {
-            throw new XMLStreamException(ioe);
+            throw new WstxIOException(ioe);
         }
     }
 
@@ -301,7 +302,7 @@ public abstract class BaseStreamWriter
         try {
             TextEscapingWriter.writeEscapedXMLText(mWriter, text, start, len);
         } catch (IOException ioe) {
-            throw new XMLStreamException(ioe);
+            throw new WstxIOException(ioe);
         }
     }
 
@@ -328,7 +329,7 @@ public abstract class BaseStreamWriter
         try {
             TextEscapingWriter.writeEscapedXMLText(mWriter, text);
         } catch (IOException ioe) {
-            throw new XMLStreamException(ioe);
+            throw new WstxIOException(ioe);
         }
     }
 
@@ -360,7 +361,7 @@ public abstract class BaseStreamWriter
             mWriter.write(data);
             mWriter.write("-->");
         } catch (IOException ioe) {
-            throw new XMLStreamException(ioe);
+            throw new WstxIOException(ioe);
         }
     }
 
@@ -374,7 +375,7 @@ public abstract class BaseStreamWriter
         try {
             mWriter.write(dtd);
         } catch (IOException ioe) {
-            throw new XMLStreamException(ioe);
+            throw new WstxIOException(ioe);
         }
     }
 
@@ -439,7 +440,7 @@ public abstract class BaseStreamWriter
             mWriter.write(name);
             mWriter.write(';');
         } catch (IOException ioe) {
-            throw new XMLStreamException(ioe);
+            throw new WstxIOException(ioe);
         }
     }
 
@@ -496,7 +497,7 @@ public abstract class BaseStreamWriter
             }
             mWriter.write("?>");
         } catch (IOException ioe) {
-            throw new XMLStreamException(ioe);
+            throw new WstxIOException(ioe);
         }
     }
 
@@ -547,7 +548,7 @@ public abstract class BaseStreamWriter
             }
             mWriter.write(" ?>");
         } catch (IOException ioe) {
-            throw new XMLStreamException(ioe);
+            throw new WstxIOException(ioe);
         }
     }
 
@@ -607,7 +608,7 @@ public abstract class BaseStreamWriter
             }
             mWriter.write('>');
         } catch (IOException ioe) {
-            throw new XMLStreamException(ioe);
+            throw new WstxIOException(ioe);
         }
     }
 
@@ -623,7 +624,7 @@ public abstract class BaseStreamWriter
         try {
             mWriter.write(text);
         } catch (IOException ioe) {
-            throw new XMLStreamException(ioe);
+            throw new WstxIOException(ioe);
         }
     }
 
@@ -637,14 +638,96 @@ public abstract class BaseStreamWriter
         try {
             mWriter.write(text, offset, length);
         } catch (IOException ioe) {
-            throw new XMLStreamException(ioe);
+            throw new WstxIOException(ioe);
         }
     }
 
-    public void writeFromReader(XMLStreamReader2 r)
+    /**
+     * Method that essentially copies event that the specified reader has
+     * just read.
+     *
+     * @param r Reader to use for accessing event to copy
+     * @param preserveEventData If true, writer is not allowed to change
+     *   the state of the reader (so that all the data associated with the
+     *   current event has to be preserved); if false, writer is allowed
+     *   to use methods that may cause some data to be discarded. Setting
+     *   this to false may improve the performance, since it may allow
+     *   full no-copy streaming of data, especially textual contents.
+     */
+    public void copyEventFromReader(XMLStreamReader2 r, boolean preserveEventData)
         throws XMLStreamException
     {
-        // !!! TBI
+        try {
+            switch (r.getEventType()) {
+                /* Document start/end events:
+                 */
+            case START_DOCUMENT:
+                // !!! TBI:
+                //writeStartDocument();
+                return;
+                
+            case END_DOCUMENT:
+                writeEndDocument();
+                return;
+                
+                /* Element start/end events:
+                 */
+            case START_ELEMENT:
+                // !!! TBI
+                
+            case END_ELEMENT:
+                // !!! TBI
+                
+                /* Textual events:
+                 */
+                
+            case CDATA:
+                // First; is this to be changed to 'normal' text output?
+                if (!mCfgCDataAsText) {
+                    /* No encoding necessary for CDATA... but we do need start
+                     * and end markers
+                     */
+                    // !!! TBI: Structural etc checks
+                    mWriter.write("<![CDATA[");
+                    r.getText(mWriter, preserveEventData);
+                    mWriter.write("]]>");
+                    return;
+                }
+                // fall down if it is to be converted...
+                
+            case SPACE:
+            case CHARACTERS:
+                /* Need to pass mTextWriter, to make sure encoding is done
+                 * properly; but no start/end markers are needed
+                 */
+                // !!! TBI: Structural etc checks
+                r.getText(mTextWriter, preserveEventData);
+                return;
+                
+            case COMMENT:
+            case PROCESSING_INSTRUCTION:
+                // !!! TBI
+                
+            case DTD:
+                // !!! TBI
+                
+            case ENTITY_REFERENCE:
+                // !!! TBI
+                
+                /* Weird ones..
+                 */
+            case ATTRIBUTE:
+            case NAMESPACE:
+            case ENTITY_DECLARATION:
+            case NOTATION_DECLARATION:
+                // Let's just fall back to throw the exception
+            }
+        } catch (IOException ioe) {
+            throw new WstxIOException(ioe);
+        }
+
+        throw new XMLStreamException("Unrecognized event type ("
+                                     +r.getEventType()+"); not sure how to copy");
     }
 
     /*
@@ -708,7 +791,7 @@ public abstract class BaseStreamWriter
         try {
             mTextWriter.write(ch.getData());
         } catch (IOException ioe) {
-            throw new XMLStreamException(ioe);
+            throw new WstxIOException(ioe);
         }
     }
 
