@@ -28,7 +28,8 @@ import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.events.Attribute;
 import javax.xml.stream.events.StartElement;
 
-import com.ctc.wstx.api.evt.StartElement2;
+import org.codehaus.stax2.evt.StartElement2;
+
 import com.ctc.wstx.util.BaseNsContext;
 import com.ctc.wstx.util.EmptyIterator;
 

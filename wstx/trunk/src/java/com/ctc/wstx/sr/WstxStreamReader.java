@@ -71,12 +71,6 @@ public class WstxStreamReader
     //protected final static String DEFAULT_NS_PREFIX = SymbolTable.EMPTY_STRING;
     protected final static String DEFAULT_NS_PREFIX = null;
 
-    /**
-     * Constants used when no DTD handling is done, and we do not know the
-     * 'real' type of an attribute. Seems like CDATA is the safe choice.
-     */
-    protected final static String UNKNOWN_ATTR_TYPE = "CDATA";
-
     // // // Standalone values:
 
     final static int DOC_STANDALONE_UNKNOWN = 0;
@@ -181,12 +175,10 @@ public class WstxStreamReader
      */
     final protected InputElementStack mElementStack;
 
-    final protected AttributeCollector mAttrCollector;
-
     /**
-     * Temporary working buffer for some parsing
+     * Object that stores information about currently accessible attributes.
      */
-    char[] mAttrBuffer = null;
+    final protected AttributeCollector mAttrCollector;
 
     /*
     ////////////////////////////////////////////////////
@@ -483,8 +475,12 @@ public class WstxStreamReader
         if (mCurrToken != START_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
         }
-        // ??? 22-Mar-2003, TSa: What should we return? ""? null? "CDATA"?
-        return UNKNOWN_ATTR_TYPE;
+        /* Although the method conceptually should be part of the attribute
+         * collector, modularity constraints (attr. collector shouldn't need
+         * to know anything about DTDs) mandate it to reside in (or beyond)
+         * the input element stack...
+         */
+        return mElementStack.getAttributeType(index);
     }
 
     public String getAttributeValue(int index) {
@@ -1293,6 +1289,11 @@ public class WstxStreamReader
      */
 
     // 13-Aug-2004, TSa: Not used any more... but may be in future?
+    /**
+     * Temporary working buffer for some parsing
+     */
+    //char[] mAttrBuffer = null;
+
     /*
     protected String parseSharedAttrValue(char openingQuote, boolean normalize)
         throws IOException, XMLStreamException

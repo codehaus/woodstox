@@ -198,9 +198,10 @@ public class ElementValidator
     }
 
     /**
-     * Method called to update information about top of the stack, with
-     * attribute information passed in. Will resolve namespace references,
-     * and update namespace stack with information.
+     * Method called to update information about the newly encountered (start)
+     * element. At this point namespace information has been resolved, but
+     * no DTD validation has been done. Validator is to do these validations,
+     * including checking for attribute value (and existence) compatibility.
      *
      * @param rep Reporter instance that can be used to report back problems
      *   (via exceptions)

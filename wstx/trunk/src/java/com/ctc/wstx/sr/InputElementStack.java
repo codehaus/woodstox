@@ -49,6 +49,12 @@ public abstract class InputElementStack
     implements NamespaceContext,
       InputConfigFlags
 {
+    /**
+     * Constants used when no DTD handling is done, and we do not know the
+     * 'real' type of an attribute. Seems like CDATA is the safe choice.
+     */
+    protected final static String UNKNOWN_ATTR_TYPE = "CDATA";
+
     protected InputProblemReporter mReporter = null;
 
     /*
@@ -183,5 +189,15 @@ public abstract class InputElementStack
     public abstract String getLocalNsPrefix(int index);
 
     public abstract String getLocalNsURI(int index);
+
+    // // // DTD-derived attribute information:
+
+    /* !!! 22-Jan-2005, TSa: Just a stub, needs to be implemented later
+     *   on
+     */
+    public String getAttributeType(int index)
+    {
+         return UNKNOWN_ATTR_TYPE;
+    }
 }
 

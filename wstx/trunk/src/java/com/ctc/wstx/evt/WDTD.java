@@ -11,7 +11,8 @@ import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.DTD;
 
-import com.ctc.wstx.api.evt.DTD2;
+import org.codehaus.stax2.evt.DTD2;
+
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.dtd.DTDSubset;
 import com.ctc.wstx.ent.EntityDecl;

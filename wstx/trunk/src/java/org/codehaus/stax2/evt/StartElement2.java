@@ -1,4 +1,4 @@
-package com.ctc.wstx.api.evt;
+package org.codehaus.stax2.evt;
 
 import javax.xml.stream.events.StartElement;
 

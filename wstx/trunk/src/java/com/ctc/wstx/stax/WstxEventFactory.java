@@ -22,8 +22,9 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.*;
 import javax.xml.stream.events.*;
 
-import com.ctc.wstx.api.evt.DTD2;
-import com.ctc.wstx.api.evt.XMLEventFactory2;
+import org.codehaus.stax2.evt.XMLEventFactory2;
+import org.codehaus.stax2.evt.DTD2;
+
 import com.ctc.wstx.dtd.DTDSubset;
 import com.ctc.wstx.evt.*;
 
