@@ -413,9 +413,9 @@ public class NsInputElementStack
     ///////////////////////////////////////////////////
      */
 
-    public int getAttributeIndex(String nsURI, String localName) {
-        // !!! TBI
-        return -1;
+    public int findAttributeIndex(String nsURI, String localName)
+    {
+        return mAttrCollector.findIndex(nsURI, localName);
     }
 
     /*

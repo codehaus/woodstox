@@ -6,6 +6,7 @@ import java.io.Writer;
 import javax.xml.namespace.QName;
 import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 import javax.xml.stream.events.Attribute;
 
 import com.ctc.wstx.util.XMLQuoter;
@@ -75,6 +76,13 @@ public class WAttribute
         } catch (IOException ie) {
             throwFromIOE(ie);
         }
+    }
+
+    public void writeUsing(XMLStreamWriter w) throws XMLStreamException
+    {
+        QName n = mName;
+        w.writeAttribute(n.getPrefix(), n.getLocalPart(),
+                         n.getNamespaceURI(), mValue);
     }
 
     /*

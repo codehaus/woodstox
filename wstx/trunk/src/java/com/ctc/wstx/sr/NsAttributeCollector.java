@@ -334,6 +334,62 @@ final class NsAttributeCollector
         return null;
     }
 
+    public int findIndex(String nsURI, String localName)
+    {
+        /* Note: most of the code is from getValue().. could refactor
+         * code, performance is bit of concern (one more method call
+         * if index access was separate).
+         * See comments on that method, for logics.
+         */
+
+        // Primary hit?
+        int hashSize = mAttrHashSize;
+        if (hashSize == 0) { // sanity check, for 'no attributes'
+            return -1;
+        }
+        int hash = localName.hashCode();
+        if (nsURI == null) {
+            nsURI = DEFAULT_NS_URI;
+        } else if (nsURI.length() > 0) {
+            hash ^= nsURI.hashCode();
+        }
+        int ix = mAttrMap[hash & (hashSize-1)];
+        if (ix == 0) { // nothing in here; no spills either
+            return -1;
+        }
+        --ix;
+
+        // Is primary candidate match?
+        String thisName = mAttrNames.getString(ix+ix+1);
+        if (thisName == localName || thisName.equals(localName)) {
+            String thisURI = mAttrURIs[ix];
+            if (thisURI == nsURI || thisURI.equals(nsURI)) {
+                return ix;
+            }
+        }
+
+        /* Nope, need to traverse spill list, which has 2 entries for
+         * each spilled attribute id; first for hash value, second index.
+         */
+        for (int i = hashSize, len = mAttrSpillEnd; i < len; i += 2) {
+            if (mAttrMap[i] != hash) {
+                continue;
+            }
+            /* Note: spill indexes are not off-by-one, since there's no need
+             * to mask 0
+             */
+            ix = mAttrMap[i+1];
+            thisName = mAttrNames.getString(ix+ix+1);
+            if (thisName == localName || thisName.equals(localName)) {
+                String thisURI = mAttrURIs[ix];
+                if (thisURI == nsURI || thisURI.equals(nsURI)) {
+                    return ix;
+                }
+            }
+        }
+        return -1; // no such attribute
+    }
+
     /**
      * @return null if the default namespace URI has been already declared
      *   for the current element; TextBuilder to add URI to if not.
@@ -449,8 +505,7 @@ final class NsAttributeCollector
         int attrIndex = mAttrCount;
 
         // First, the name
-        mAttrNames.addString(prefix);
-        mAttrNames.addString(localName);
+        mAttrNames.addStrings(prefix, localName);
         if (mAttrCount >= mAttrURIs.length) {
             mAttrURIs = DataUtil.growArrayBy(mAttrURIs, 8);
         }

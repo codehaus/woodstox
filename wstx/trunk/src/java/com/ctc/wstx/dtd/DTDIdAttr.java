@@ -48,6 +48,10 @@ public final class DTDIdAttr
         return TYPE_ID;
     }
 
+    public boolean typeIsId() {
+        return true;
+    }
+
     /*
     ///////////////////////////////////////////////////
     // Public API, validation

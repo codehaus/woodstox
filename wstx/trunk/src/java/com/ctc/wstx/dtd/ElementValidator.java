@@ -114,8 +114,21 @@ public class ElementValidator
      * attribute of the current element, for which there is a matching
      * value (either explicitly defined, or assigned via defaulting).
      */
-
     protected DTDAttribute[] mAttrSpecs = null;
+
+    /**
+     * Number of attribute specification Objects in
+     * {@link #mAttrSpecs}.
+     */
+    protected int mAttrCount = 1;
+
+    /**
+     * Index of the attribute of type ID, within current element's
+     * attribute list. Track of this is kept separate from other
+     * attribute since id attributes often need to be used for resolving
+     * cross-references.
+     */
+    protected int mIdAttrIndex = -1;
 
     /*
     ///////////////////////////////////////
@@ -277,8 +290,12 @@ public class ElementValidator
         NameKey tmpKey = mTmpKey;
         boolean validateAttrs = elem.attrsNeedValidation();
         boolean anyFixed = elem.hasFixedAttrs();
-        
-        for (int i = 0, j = 0; i < attrLen; ++j) {
+
+        int j = 0;
+        DTDAttribute idAttr = elem.getIdAttribute();
+        mIdAttrIndex = -1;
+
+        for (int i = 0; i < attrLen; ++j) {
             if (mNsAware) {
                 tmpKey.reset(attrNames.getString(i), attrNames.getString(i+1));
                 i += 2;
@@ -292,6 +309,9 @@ public class ElementValidator
                                    elem.toString(), tmpKey.toString());
             }
             mAttrSpecs[j] = attr;
+            if (attr == idAttr) {
+                mIdAttrIndex = j;
+            }
             if (specBits != null) { // Need to mark that we got it
                 int specIndex = attr.getSpecialIndex();
                 if (specIndex >= 0) {
@@ -311,11 +331,11 @@ public class ElementValidator
                 }
             }
         }
+        mAttrCount = j;
         
         // Any special attributes missing?
         if (specBits != null) {
             int ix = specBits.nextClearBit(0);
-            int attrIndex = mNsAware ? (attrLen >> 1) : (attrLen);
             while (ix < specCount) { // something amiss!
                 List specAttrs = elem.getSpecialAttrs();
                 DTDAttribute attr = (DTDAttribute) specAttrs.get(ix);
@@ -331,7 +351,7 @@ public class ElementValidator
                 NameKey an = attr.getName();
                 mAttrCollector.addDefaultAttr(rep, ns, an.getPrefix(),
                                               an.getLocalName(), def);
-                mAttrSpecs[attrIndex++] = attr;
+                mAttrSpecs[mAttrCount++] = attr;
                 ix = specBits.nextClearBit(ix+1);
             }
         }
@@ -401,6 +421,43 @@ public class ElementValidator
     {
         return mAttrSpecs[index].getValueTypeString();
     }    
+
+    /**
+     * Method for finding out the index of the attribute (collected using
+     * the attribute collector; having DTD-derived info in same order)
+     * that is of type ID. DTD explicitly specifies that at most one
+     * attribute can have this type for any element.
+     * 
+     * @return Index of the attribute with type ID, in the current
+     *    element, if one exists: -1 otherwise
+     */
+    public int getIdAttrIndex()
+    {
+        return mIdAttrIndex;
+    }
+
+    /**
+     * Method for finding out the index of the attribute (collected using
+     * the attribute collector; having DTD-derived info in same order)
+     * that is of type NOTATION. DTD explicitly specifies that at most one
+     * attribute can have this type for any element.
+     * 
+     * @return Index of the attribute with type NOTATION, in the current
+     *    element, if one exists: -1 otherwise
+     */
+    public int getNotationAttrIndex()
+    {
+        /* If necessary, we could find this index when resolving the
+         * element, could avoid linear search. But who knows how often
+         * it's really needed...
+         */
+        for (int i = 0, len = mAttrCount; i < len; ++i) {
+            if (mAttrSpecs[i].typeIsNotation()) {
+                return i;
+            }
+        }
+        return -1;
+    }
 
     /*
     ///////////////////////////////////////

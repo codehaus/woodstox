@@ -5,6 +5,7 @@ import java.io.Writer;
 
 import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 import javax.xml.stream.events.EndDocument;
 
 public class WEndDocument
@@ -34,5 +35,9 @@ public class WEndDocument
         throws XMLStreamException
     {
         // Nothing to output
+    }
+
+    public void writeUsing(XMLStreamWriter w) throws XMLStreamException {
+        w.writeEndDocument();
     }
 }

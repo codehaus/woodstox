@@ -36,11 +36,6 @@ import com.ctc.wstx.util.WordResolver;
 public final class DTDElement
     implements InputConfigFlags
 {
-    /*
-    ///////////////////////////////////////////////////
-    // Type constants
-    ///////////////////////////////////////////////////
-     */
 
     /*
     ///////////////////////////////////////////////////
@@ -48,13 +43,13 @@ public final class DTDElement
     ///////////////////////////////////////////////////
      */
 
-    NameKey mName;
+    final NameKey mName;
 
     /**
      * Location of the (real) definition of the element; may be null for
      * placeholder elements created to hold ATTLIST definitions
      */
-    Location mLocation;
+    final Location mLocation;
 
     /**
      * Base validator object for validating content model of this element;
@@ -100,6 +95,9 @@ public final class DTDElement
      */
     DTDAttribute mNotationAttr;
 
+    // // // !! If you add new attributes, make sure they get copied
+    // // // in #define() method !!
+
     /*
     ///////////////////////////////////////////////////
     // Life-cycle
@@ -109,8 +107,8 @@ public final class DTDElement
     private DTDElement(Location loc, NameKey name,
                        StructValidator val, int allowedContent)
     {
-        mLocation = loc;
         mName = name;
+        mLocation = loc;
         mValidator = val;
         mAllowedContent = allowedContent;
     }
@@ -153,7 +151,15 @@ public final class DTDElement
         }
 
         DTDElement elem = new DTDElement(loc, mName, val, allowedContent);
+
+        // Ok, need to copy state collected so far:
         elem.mAttrMap = mAttrMap;
+        elem.mSpecAttrList = mSpecAttrList;
+        elem.mAnyFixed = mAnyFixed;
+        elem.mValidateAttrs = mValidateAttrs;
+        elem.mIdAttr = mIdAttr;
+        elem.mNotationAttr = mNotationAttr;
+
         return elem;
     }
 
@@ -360,6 +366,14 @@ public final class DTDElement
 
     public boolean hasFixedAttrs() {
         return mAnyFixed;
+    }
+
+    public DTDAttribute getIdAttribute() {
+        return mIdAttr;
+    }
+
+    public DTDAttribute getNotationAttribute() {
+        return mNotationAttr;
     }
 
     /*

@@ -22,7 +22,7 @@ public interface AttributeInfo
      *   has such an attribute (explicit, or one created via default
      *   value expansion); -1 if not.
      */
-    public int getAttributeIndex(String nsURI, String localName);
+    public int findAttributeIndex(String nsURI, String localName);
 
     /**
      * Returns the index of the id attribute (attribute with any name,

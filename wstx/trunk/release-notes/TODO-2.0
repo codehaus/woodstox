@@ -29,17 +29,18 @@ Must-haves for 2.0
    * Package API classes to a separate jar (in addition to including them
      in woodstox jars)
    * XMLEventReader2:
-       [DONE] * Add exception-aware next method
+      [DONE] * Add exception-aware next method
    * XMLEvent2:
-       * Add writeUsing(XMLStreamWriter)
+      [DONE] * Add writeUsing(XMLStreamWriter)
    * XMLInputFactory2:
-       [DONE] * Create URL/file-based factory methods for readers
+      [DONE] * Create URL/file-based factory methods for readers
    * XMLOutputFactory2: need for any new methods?
-[DONE] * XMLStreamLocation2: allow access to nested location information
+      [DONE] * XMLStreamLocation2: allow access to nested location information
    * XMLStreamReader2:
       [Partial] * getFeature/setFeature: allow overriding DTD to use?
       [DONE] * Traversal: skipElement()
-      * Extra attribute access via AttributeInfo; getAttributeIndex, getIdAttributeIndex
+      [DONE] * Extra attribute access via AttributeInfo; findAttributeIndex,
+        getIdAttributeIndex, getNotationAttributeIndex
       [DONE] * Separate DTD info access behind a new interface (DTDInfo?)
       [Partial] * Streaming access: getText with Writer arg
       [DONE] * Misc: isEmptyElement, getDepth

@@ -9,8 +9,10 @@ import java.util.List;
 
 import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 import javax.xml.stream.events.DTD;
 
+import org.codehaus.stax2.XMLStreamWriter2;
 import org.codehaus.stax2.evt.DTD2;
 
 import com.ctc.wstx.cfg.ErrorConsts;
@@ -99,7 +101,7 @@ public class WDTD
 
     /*
     /////////////////////////////////////////////////////
-    // Constuctors
+    // Accessors
     /////////////////////////////////////////////////////
      */
 
@@ -196,6 +198,26 @@ public class WDTD
         } catch (IOException ie) {
             throwFromIOE(ie);
         }
+    }
+
+    public void writeUsing(XMLStreamWriter w) throws XMLStreamException
+    {
+        /* 07-Feb-2005, TSa: We need to make use of StAX2 extensions,
+         *   if possible...
+         */
+        if (w instanceof XMLStreamWriter2) {
+            /* Information might not have come from an advanced implementation
+             * however?
+             */
+            if (mRootName != null) {
+                XMLStreamWriter2 sw2 = (XMLStreamWriter2) w;
+                sw2.writeDTD(mRootName, mSystemId, mPublicId, mInternalSubset);
+                return;
+            }
+        }
+
+        // Nah, just need to do a "dumb" write...
+        w.writeDTD(getDocumentTypeDeclaration());
     }
 
     /*

@@ -44,6 +44,10 @@ public final class DTDNotationAttr
         return TYPE_NOTATION;
     }
 
+    public boolean typeIsNotation() {
+        return true;
+    }
+
     /*
     ///////////////////////////////////////////////////
     // Public API, validation

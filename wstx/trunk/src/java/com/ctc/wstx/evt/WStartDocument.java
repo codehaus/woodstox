@@ -6,6 +6,7 @@ import java.io.Writer;
 import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
 import javax.xml.stream.events.StartDocument;
 
 import com.ctc.wstx.api.WstxOutputProperties;
@@ -129,5 +130,9 @@ public class WStartDocument
         } catch (IOException ie) {
             throwFromIOE(ie);
         }
+    }
+
+    public void writeUsing(XMLStreamWriter w) throws XMLStreamException {
+        w.writeStartDocument();
     }
 }

@@ -179,9 +179,13 @@ public class NonNsInputElementStack
     ///////////////////////////////////////////////////
      */
 
-    public int getAttributeIndex(String nsURI, String localName)
+    public int findAttributeIndex(String nsURI, String localName)
     {
-        return mAttrCollector.findIndex(nsURI, localName);
+        // Should never pass a NS URI...
+        if (nsURI != null && nsURI.length() > 0) {
+            return -1;
+        }
+        return mAttrCollector.findIndex(localName);
     }
 
     /*

@@ -186,6 +186,14 @@ public class DTDAttribute
         return sTypes[getValueType()];
     }
 
+    public boolean typeIsId() {
+        return false;
+    }
+
+    public boolean typeIsNotation() {
+        return false;
+    }
+
     /*
     ///////////////////////////////////////////////////
     // Public API, validation

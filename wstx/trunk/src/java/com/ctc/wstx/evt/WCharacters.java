@@ -5,6 +5,7 @@ import java.io.Writer;
 
 import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 import javax.xml.stream.events.Characters;
 
 import com.ctc.wstx.util.XMLQuoter;
@@ -85,6 +86,15 @@ public class WCharacters
             }
         } catch (IOException ie) {
             throwFromIOE(ie);
+        }
+    }
+
+    public void writeUsing(XMLStreamWriter w) throws XMLStreamException
+    {
+        if (mIsCData) {
+            w.writeCData(mContent);
+        } else {
+            w.writeCharacters(mContent);
         }
     }
 

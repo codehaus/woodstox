@@ -127,10 +127,7 @@ public abstract class WEvent
     //////////////////////////////////////////////
      */
 
-    public void writeUsing(XMLStreamWriter w) throws XMLStreamException
-    {
-        // !!! TBI
-    }
+    public abstract void writeUsing(XMLStreamWriter w) throws XMLStreamException;
 
     /*
     ///////////////////////////////////////////

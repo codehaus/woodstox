@@ -247,17 +247,13 @@ final class NonNsAttributeCollector
         return null;
     }
 
-    public int findIndex(String nsURI, String localName)
+    public int findIndex(String localName)
     {
         /* Note: most of the code is from getValue().. could refactor
          * code, performance is bit of concern (one more method call
          * if index access was separate).
          * See comments on that method, for logics.
          */
-
-        if (nsURI != null && nsURI.length() > 0) {
-            return -1;
-        }
 
         // Primary hit?
         int hashSize = mAttrHashSize;

@@ -25,6 +25,7 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
 import javax.xml.stream.events.Attribute;
 import javax.xml.stream.events.StartElement;
 
@@ -143,6 +144,13 @@ abstract class BaseStartElement
         } catch (IOException ie) {
             throw new XMLStreamException(ie);
         }
+    }
+
+    public void writeUsing(XMLStreamWriter w) throws XMLStreamException
+    {
+        QName n = mName;
+        w.writeStartElement(n.getPrefix(), n.getLocalPart(),
+                            n.getNamespaceURI());
     }
 
     protected abstract void outputNsAndAttr(Writer w) throws IOException;

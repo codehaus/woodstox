@@ -133,7 +133,12 @@ public abstract class InputElementStack
     ///////////////////////////////////////////////////
      */
 
-    public abstract int getAttributeIndex(String nsURI, String localName);
+    /**
+     * @return Index of the specified attribute, if the current element
+     *   has such an attribute (explicit, or one created via default
+     *   value expansion); -1 if not.
+     */
+    public abstract int findAttributeIndex(String nsURI, String localName);
 
     /**
      * Default implementation just indicates it does not know of such

@@ -5,6 +5,7 @@ import java.io.Writer;
 
 import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 import javax.xml.stream.events.Comment;
 
 public class WComment
@@ -43,5 +44,10 @@ public class WComment
         } catch (IOException ie) {
             throwFromIOE(ie);
         }
+    }
+
+    public void writeUsing(XMLStreamWriter w) throws XMLStreamException
+    {
+        w.writeComment(mContent);
     }
 }

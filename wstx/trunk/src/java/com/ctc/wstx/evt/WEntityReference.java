@@ -5,6 +5,7 @@ import java.io.Writer;
 
 import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 import javax.xml.stream.events.EntityReference;
 import javax.xml.stream.events.EntityDeclaration;
 
@@ -67,5 +68,10 @@ public class WEntityReference
         } catch (IOException ie) {
             throwFromIOE(ie);
         }
+    }
+
+    public void writeUsing(XMLStreamWriter w) throws XMLStreamException
+    {
+        w.writeEntityRef(getName());
     }
 }

@@ -104,6 +104,12 @@ public final class VNonNsInputElementStack
         return mValidator.resolveElem(mReporter, elem, null);
     }
 
+    /*
+    //////////////////////////////////////////////////
+    // Overridden public methods
+    //////////////////////////////////////////////////
+     */
+
     /**
      * Input element stack has to ask validator about this data; validator
      * keeps track of attribute declarations for the current element
@@ -111,5 +117,13 @@ public final class VNonNsInputElementStack
     public String getAttributeType(int index)
     {
          return mValidator.getAttributeType(index);
+    }
+
+    public int getIdAttributeIndex() {
+        return mValidator.getIdAttrIndex();
+    }
+
+    public int getNotationAttributeIndex() {
+        return mValidator.getNotationAttrIndex();
     }
 }

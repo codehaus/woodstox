@@ -5,6 +5,7 @@ import java.io.Writer;
 
 import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 import javax.xml.stream.events.ProcessingInstruction;
 
 public class WProcInstr
@@ -55,6 +56,15 @@ public class WProcInstr
             w.write("?>");
         } catch (IOException ie) {
             throwFromIOE(ie);
+        }
+    }
+
+    public void writeUsing(XMLStreamWriter w) throws XMLStreamException
+    {
+        if (mData != null && mData.length() > 0) {
+            w.writeProcessingInstruction(mTarget, mData);
+        } else {
+            w.writeProcessingInstruction(mTarget);
         }
     }
 }
