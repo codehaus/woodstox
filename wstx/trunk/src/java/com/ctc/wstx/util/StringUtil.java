@@ -141,6 +141,25 @@ public final class StringUtil
         return sb.toString();
     }
 
+    public static boolean isAllWhitespace(String str) {
+        for (int i = 0, len = str.length(); i < len; ++i) {
+            if (str.charAt(i) > 0x0020) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static boolean isAllWhitespace(char[] ch, int start, int len) {
+        len += start;
+        for (; start < len; ++start) {
+            if (ch[start] > 0x0020) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public static void main(String[] args)
     {
         if (args.length < 1) {

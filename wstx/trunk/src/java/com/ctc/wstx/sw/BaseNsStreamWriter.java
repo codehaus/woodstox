@@ -32,8 +32,9 @@ import javax.xml.stream.events.StartElement;
 
 import com.ctc.wstx.api.WriterConfig;
 import com.ctc.wstx.cfg.ErrorConsts;
+import com.ctc.wstx.io.AttrValueEscapingWriter;
+import com.ctc.wstx.io.TextEscapingWriter;
 import com.ctc.wstx.util.DefaultXmlSymbolTable;
-import com.ctc.wstx.util.XMLQuoter;
 
 /**
  * Mid-level base class of namespace-aware stream writers. Contains
@@ -453,7 +454,7 @@ public abstract class BaseNsStreamWriter
             }
             mWriter.write(localName);
             mWriter.write("=\"");
-            XMLQuoter.outputDoubleQuotedAttr(mWriter, value);
+            mAttrValueWriter.write(value);
             mWriter.write('"');
         } catch (IOException ioe) {
             throw new XMLStreamException(ioe);

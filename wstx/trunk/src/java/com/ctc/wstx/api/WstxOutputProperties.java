@@ -86,5 +86,9 @@ public final class WstxOutputProperties
      */
     public final static String P_OUTPUT_AUTOMATIC_NS_PREFIX = "com.ctc.wstx.outputAutomaticNsPrefix";
 
+    public final static String P_OUTPUT_TEXT_ESCAPER = "com.ctc.wstx.outputTextEscaper";
+
+    public final static String P_OUTPUT_ATTR_VALUE_ESCAPER = "com.ctc.wstx.outputAttrValueEscaper";
+
 }
 

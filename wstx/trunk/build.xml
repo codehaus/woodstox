@@ -37,6 +37,12 @@
     <property name="WSTX_VERSION" value="1.8" />
     <property name="WSTX_VENDOR" value="www.cowtowncoder.com" />
 
+    <!-- Extended API, working title "StAX2" (not version 2.0, but 2/squared)
+      -->
+    <property name="STAX2_TITLE" value="StAX2 API" />
+    <property name="STAX2_VERSION" value="1.0" />
+    <property name="STAX2_VENDOR" value="http://www.cowtowncoder.com" />
+
     <!-- jars needed for compilation -->
     <path id="compile-classpath">
         <fileset dir="${LibDir}" includes="stax-api*.jar" />
@@ -171,7 +177,7 @@
 
     <!-- Dummy target that just includes all individual jars... --> 
     <target name="jars"
-       depends="jar.wstx.lgpl, jar.wstx.asl, jars.j2me"
+       depends="jar.stax2, jar.wstx.lgpl, jar.wstx.asl, jars.j2me"
     />
 
     <target name="jars.j2me"
@@ -222,6 +228,23 @@
             <include name="LICENSE" />
             <include name="NOTICE" />
             <include name="ASL2.0" />
+          </fileset>
+        </jar>
+    </target> 
+
+    <target name="jar.stax2" depends="compile">
+        <jar jarfile="${BuildDir}/stax2.jar" filesonly="true" >
+          <manifest>
+            <attribute name="Built-By" value="${user.name}"/>
+            <attribute name="Specification-Title"   value="${STAX2_TITLE}"/>
+            <attribute name="Specification-Version" value="${STAX2_VERSION}"/>
+            <attribute name="Specification-Vendor"  value="${STAX2_VENDOR}"/>
+            <attribute name="Implementation-Title"   value="${STAX2_TITLE}"/>
+            <attribute name="Implementation-Version" value="${STAX2_VERSION}"/>
+            <attribute name="Implementation-Vendor"  value="${STAX2_VENDOR}"/>
+          </manifest>
+          <fileset dir="${BuildClassesDir}">
+             <include name="org/codehaus/stax2/**/*.class" />
           </fileset>
         </jar>
     </target> 
@@ -305,6 +328,7 @@
        <!-- First, let's copy the binary jars to dist -->
        <copy todir="${DistDir}">
           <fileset dir="${BuildDir}" includes="wstx*.jar" />
+          <fileset dir="${BuildDir}" includes="stax2*.jar" />
        </copy>
        <!-- Then let's create the source distribution package -->
        <tar basedir="${basedir}" destfile="${DistDir}/wstx-src.tar"

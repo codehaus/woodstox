@@ -32,7 +32,6 @@ import javax.xml.stream.events.StartElement;
 import com.ctc.wstx.api.WriterConfig;
 import com.ctc.wstx.util.EmptyNamespaceContext;
 import com.ctc.wstx.util.StringVector;
-import com.ctc.wstx.util.XMLQuoter;
 
 /**
  * Implementation of {@link XMLStreamWriter} used when namespace support
@@ -145,7 +144,7 @@ public class NonNsStreamWriter
             mWriter.write(' ');
             mWriter.write(localName);
             mWriter.write("=\"");
-            XMLQuoter.outputDoubleQuotedAttr(mWriter, value);
+            mAttrValueWriter.write(value);
             mWriter.write('"');
         } catch (IOException ioe) {
             throw new XMLStreamException(ioe);

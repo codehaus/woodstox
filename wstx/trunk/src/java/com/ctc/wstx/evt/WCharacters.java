@@ -8,7 +8,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import javax.xml.stream.events.Characters;
 
-import com.ctc.wstx.util.XMLQuoter;
+import com.ctc.wstx.io.TextEscapingWriter;
 
 public class WCharacters
     extends WEvent
@@ -82,7 +82,7 @@ public class WCharacters
                 w.write(mContent);
                 w.write("]]>");
             } else {
-                XMLQuoter.outputXMLText(w, mContent);
+                TextEscapingWriter.writeEscapedXMLText(w, mContent);
             }
         } catch (IOException ie) {
             throwFromIOE(ie);

@@ -7,6 +7,8 @@ import java.util.Map;
 
 import javax.xml.stream.*;
 
+import org.codehaus.stax2.EscapingWriterFactory;
+
 import com.ctc.wstx.api.WstxOutputProperties;
 import com.ctc.wstx.cfg.OutputConfigFlags;
 import com.ctc.wstx.util.ArgUtil;
@@ -37,6 +39,10 @@ public final class WriterConfig
     final static int PROP_VALIDATE_CONTENT = 8;
     final static int PROP_VALIDATE_ATTR = 9;
     final static int PROP_VALIDATE_NAMES = 10;
+
+    // Escaping text content/attr values:
+    final static int PROP_TEXT_ESCAPER = 11;
+    final static int PROP_ATTR_VALUE_ESCAPER = 12;
 
     // // // Default settings for additional properties:
 
@@ -111,6 +117,13 @@ public final class WriterConfig
                         new Integer(PROP_VALIDATE_ATTR));
         sProperties.put(WstxOutputProperties.P_OUTPUT_VALIDATE_NAMES,
                         new Integer(PROP_VALIDATE_NAMES));
+
+        // Text/attr value escaping (customized escapers)
+
+        sProperties.put(WstxOutputProperties.P_OUTPUT_TEXT_ESCAPER,
+                        new Integer(PROP_TEXT_ESCAPER));
+        sProperties.put(WstxOutputProperties.P_OUTPUT_ATTR_VALUE_ESCAPER,
+                        new Integer(PROP_ATTR_VALUE_ESCAPER));
     }
 
     /*
@@ -125,37 +138,49 @@ public final class WriterConfig
 
     protected String mAutoNsPrefix;
 
+    protected EscapingWriterFactory mTextEscaperFactory = null;
+
+    protected EscapingWriterFactory mAttrValueEscaperFactory = null;
+
     /*
     //////////////////////////////////////////////////////////
     // Life-cycle:
     //////////////////////////////////////////////////////////
      */
 
-    private WriterConfig(boolean j2meSubset, int flags, String autoNsPrefix)
+    private WriterConfig(boolean j2meSubset, int flags, String autoNsPrefix,
+                         EscapingWriterFactory textEscaperF,
+                         EscapingWriterFactory attrValueEscaperF)
     {
         mIsJ2MESubset = j2meSubset;
         mConfigFlags = flags;
         mAutoNsPrefix = autoNsPrefix;
+        mTextEscaperFactory = textEscaperF;
+        mAttrValueEscaperFactory = attrValueEscaperF;
     }
 
     public static WriterConfig createJ2MEDefaults()
     {
         WriterConfig rc = new WriterConfig
-            (true, DEFAULT_FLAGS_J2ME, DEFAULT_AUTOMATIC_NS_PREFIX);
+            (true, DEFAULT_FLAGS_J2ME, DEFAULT_AUTOMATIC_NS_PREFIX,
+             null, null);
         return rc;
     }
 
     public static WriterConfig createFullDefaults()
     {
         WriterConfig rc = new WriterConfig
-            (true, DEFAULT_FLAGS_FULL, DEFAULT_AUTOMATIC_NS_PREFIX);
+            (true, DEFAULT_FLAGS_FULL, DEFAULT_AUTOMATIC_NS_PREFIX,
+             null, null);
         return rc;
     }
 
     public WriterConfig createNonShared()
     {
         WriterConfig rc = new WriterConfig(mIsJ2MESubset,
-                                           mConfigFlags, mAutoNsPrefix);
+                                           mConfigFlags, mAutoNsPrefix,
+                                           mTextEscaperFactory,
+                                           mAttrValueEscaperFactory);
         return rc;
     }
 
@@ -206,6 +231,10 @@ public final class WriterConfig
 
         case PROP_AUTOMATIC_NS_PREFIX:
             return getAutomaticNsPrefix();
+        case PROP_TEXT_ESCAPER:
+            return getTextEscaperFactory();
+        case PROP_ATTR_VALUE_ESCAPER:
+            return getAttrValueEscaperFactory();
         }
 
         throw new Error("Internal error: no handler for property with internal id "+id+".");
@@ -235,11 +264,6 @@ public final class WriterConfig
             doOutputCDataAsText(ArgUtil.convertToBoolean(name, value));
             break;
 
-        case PROP_AUTOMATIC_NS_PREFIX:
-            // value should be a String, but let's verify that:
-            setAutomaticNsPrefix(value.toString());
-            break;
-
         case PROP_VALIDATE_NS:
             doValidateNamespaces(ArgUtil.convertToBoolean(name, value));
             break;
@@ -258,6 +282,20 @@ public final class WriterConfig
 
         case PROP_VALIDATE_NAMES:
             doValidateNames(ArgUtil.convertToBoolean(name, value));
+            break;
+
+
+        case PROP_AUTOMATIC_NS_PREFIX:
+            // value should be a String, but let's verify that:
+            setAutomaticNsPrefix(value.toString());
+            break;
+
+        case PROP_TEXT_ESCAPER:
+            setTextEscaperFactory((EscapingWriterFactory) value);
+            break;
+
+        case PROP_ATTR_VALUE_ESCAPER:
+            setAttrValueEscaperFactory((EscapingWriterFactory) value);
             break;
 
         default:
@@ -296,15 +334,6 @@ public final class WriterConfig
         return hasConfigFlag(CFG_OUTPUT_CDATA_AS_TEXT);
     }
 
-    /**
-     * @return Prefix to use as the base for automatically generated
-     *   namespace prefixes ("namespace prefix prefix", so to speak).
-     *   Defaults to "wstxns".
-     */
-    public String getAutomaticNsPrefix() {
-        return mAutoNsPrefix;
-    }
-
     public boolean willValidateNamespaces() {
         return hasConfigFlag(CFG_VALIDATE_NS);
     }
@@ -323,6 +352,23 @@ public final class WriterConfig
 
     public boolean willValidateNames() {
         return hasConfigFlag(CFG_VALIDATE_NAMES);
+    }
+
+    /**
+     * @return Prefix to use as the base for automatically generated
+     *   namespace prefixes ("namespace prefix prefix", so to speak).
+     *   Defaults to "wstxns".
+     */
+    public String getAutomaticNsPrefix() {
+        return mAutoNsPrefix;
+    }
+
+    public EscapingWriterFactory getTextEscaperFactory() {
+        return mTextEscaperFactory;
+    }
+
+    public EscapingWriterFactory getAttrValueEscaperFactory() {
+        return mAttrValueEscaperFactory;
     }
 
     // // // Mutators:
@@ -347,15 +393,6 @@ public final class WriterConfig
         setConfigFlag(CFG_OUTPUT_CDATA_AS_TEXT, state);
     }
 
-    /**
-     * @return Prefix to use as the base for automatically generated
-     *   namespace prefixes ("namespace prefix prefix", so to speak).
-     *   Defaults to "wstxns".
-     */
-    public void setAutomaticNsPrefix(String prefix) {
-        mAutoNsPrefix = prefix;
-    }
-
     public void doValidateNamespaces(boolean state) {
         setConfigFlag(CFG_VALIDATE_NS, state);
     }
@@ -374,6 +411,23 @@ public final class WriterConfig
 
     public void doValidateNames(boolean state) {
         setConfigFlag(CFG_VALIDATE_NAMES, state);
+    }
+
+    /**
+     * @return Prefix to use as the base for automatically generated
+     *   namespace prefixes ("namespace prefix prefix", so to speak).
+     *   Defaults to "wstxns".
+     */
+    public void setAutomaticNsPrefix(String prefix) {
+        mAutoNsPrefix = prefix;
+    }
+
+    public void setTextEscaperFactory(EscapingWriterFactory f) {
+        mTextEscaperFactory = f;
+    }
+
+    public void setAttrValueEscaperFactory(EscapingWriterFactory f) {
+        mAttrValueEscaperFactory = f;
     }
 
     /*

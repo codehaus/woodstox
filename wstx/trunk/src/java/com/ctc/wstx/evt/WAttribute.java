@@ -9,7 +9,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import javax.xml.stream.events.Attribute;
 
-import com.ctc.wstx.util.XMLQuoter;
+import com.ctc.wstx.io.AttrValueEscapingWriter;
 
 public class WAttribute
     extends WEvent
@@ -71,7 +71,7 @@ public class WAttribute
             w.write(mName.getLocalPart());
             w.write('=');
             w.write('"');
-            XMLQuoter.outputDoubleQuotedAttr(w, mValue);
+            AttrValueEscapingWriter.writeEscapedAttrValue(w, mValue);
             w.write('"');
         } catch (IOException ie) {
             throwFromIOE(ie);

@@ -16,9 +16,9 @@ import javax.xml.stream.events.Namespace;
 import javax.xml.stream.events.StartElement;
 
 import com.ctc.wstx.compat.JdkFeatures;
+import com.ctc.wstx.io.AttrValueEscapingWriter;
 import com.ctc.wstx.util.BaseNsContext;
 import com.ctc.wstx.util.EmptyIterator;
-import com.ctc.wstx.util.XMLQuoter;
 
 /**
  * Wstx {@link StartElement} implementation used when event is constructed
@@ -130,7 +130,7 @@ public class SimpleStartElement
                 w.write("=\"");
                 String val =  attr.getValue();
                 if (val != null && val.length() > 0) {
-                    XMLQuoter.outputDoubleQuotedAttr(w, val);
+                    AttrValueEscapingWriter.writeEscapedAttrValue(w, val);
                 }
                 w.write('"');
             }

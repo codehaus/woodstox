@@ -15,6 +15,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.Characters;
 import javax.xml.stream.events.StartElement;
 
+import org.codehaus.stax2.EscapingWriterFactory;
 import org.codehaus.stax2.XMLStreamReader2;
 import org.codehaus.stax2.XMLStreamWriter2;
 
@@ -22,7 +23,9 @@ import com.ctc.wstx.api.WriterConfig;
 import com.ctc.wstx.api.WstxOutputProperties;
 import com.ctc.wstx.cfg.OutputConfigFlags;
 import com.ctc.wstx.exc.*;
-import com.ctc.wstx.util.XMLQuoter;
+import com.ctc.wstx.io.AttrValueEscapingWriter;
+import com.ctc.wstx.io.TextEscapingWriter;
+import com.ctc.wstx.util.StringUtil;
 
 /**
  * Base class for {@link XMLStreamWriter} implementations Woodstox has.
@@ -51,6 +54,20 @@ public abstract class BaseStreamWriter
      * Actual physical writer to output serialized XML content to
      */
     protected final Writer mWriter;
+
+    /**
+     * Writer that will properly escape characters of text content
+     * that need escaping ('&lt;', '&amp;' etc); chained to use
+     * {@link #mWriter} for actual outputting.
+     */
+    protected final Writer mTextWriter;
+
+    /**
+     * Writer that will properly escape characters of attribute values
+     * that need escaping ('&lt;', '&amp;', '&quot;'); chained to use
+     * {@link #mWriter} for actual outputting.
+     */
+    protected final Writer mAttrValueWriter;
     
     /*
     ////////////////////////////////////////////////////
@@ -134,6 +151,22 @@ public abstract class BaseStreamWriter
 
         mCfgOutputEmptyElems = (flags & CFG_OUTPUT_EMPTY_ELEMS) != 0;
         mCfgCDataAsText = (flags & CFG_OUTPUT_CDATA_AS_TEXT) != 0;
+
+        // How should we escape textual content?
+        EscapingWriterFactory f = cfg.getTextEscaperFactory();
+        if (f == null) {
+            mTextWriter = new TextEscapingWriter(w);
+        } else {
+            mTextWriter = f.createEscapingWriterFor(w);
+        }
+
+        // And how about attribute values?
+        f = cfg.getAttrValueEscaperFactory();
+        if (f == null) {
+            mAttrValueWriter = new AttrValueEscapingWriter(w, '"', "&quot;");
+        } else {
+            mAttrValueWriter = f.createEscapingWriterFor(w);
+        }
     }
 
     /*
@@ -253,7 +286,7 @@ public abstract class BaseStreamWriter
          */
         if (mCheckStructure) {
             if (inPrologOrEpilog()) {
-                if (!XMLQuoter.isAllWhitespace(text, start, len)) {
+                if (!StringUtil.isAllWhitespace(text, start, len)) {
                     throw new IllegalStateException("Trying to output non-whitespace characters outside main element tree (in prolog or epilog)");
                 }
             }
@@ -266,7 +299,7 @@ public abstract class BaseStreamWriter
         }
 
         try {
-            XMLQuoter.outputXMLText(mWriter, text, start, len);
+            TextEscapingWriter.writeEscapedXMLText(mWriter, text, start, len);
         } catch (IOException ioe) {
             throw new XMLStreamException(ioe);
         }
@@ -279,7 +312,7 @@ public abstract class BaseStreamWriter
         if (mCheckStructure) {
             // Not valid in prolog/epilog, except if it's all white space:
             if (inPrologOrEpilog()) {
-                if (!XMLQuoter.isAllWhitespace(text)) {
+                if (!StringUtil.isAllWhitespace(text)) {
                     throw new IllegalStateException("Trying to output non-whitespace characters outside main element tree (in prolog or epilog)");
                 }
             }
@@ -293,7 +326,7 @@ public abstract class BaseStreamWriter
 
         // Ok, let's just write it out:
         try {
-            XMLQuoter.outputXMLText(mWriter, text);
+            TextEscapingWriter.writeEscapedXMLText(mWriter, text);
         } catch (IOException ioe) {
             throw new XMLStreamException(ioe);
         }
@@ -324,7 +357,7 @@ public abstract class BaseStreamWriter
 
         try {
             mWriter.write("<!--");
-            XMLQuoter.outputXMLText(mWriter, data);
+            mWriter.write(data);
             mWriter.write("-->");
         } catch (IOException ioe) {
             throw new XMLStreamException(ioe);
@@ -673,7 +706,7 @@ public abstract class BaseStreamWriter
 
         // Ok, let's just write it out:
         try {
-            XMLQuoter.outputXMLText(mWriter, ch.getData());
+            mTextWriter.write(ch.getData());
         } catch (IOException ioe) {
             throw new XMLStreamException(ioe);
         }

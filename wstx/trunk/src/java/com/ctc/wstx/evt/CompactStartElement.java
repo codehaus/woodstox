@@ -13,11 +13,11 @@ import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.events.Attribute;
 import javax.xml.stream.events.StartElement;
 
+import com.ctc.wstx.io.AttrValueEscapingWriter;
 import com.ctc.wstx.sr.ElemAttrs;
 import com.ctc.wstx.util.BaseNsContext;
 import com.ctc.wstx.util.EmptyIterator;
 import com.ctc.wstx.util.SingletonIterator;
-import com.ctc.wstx.util.XMLQuoter;
 
 /**
  * Wstx {@link StartElement} implementation used when directly creating
@@ -134,7 +134,7 @@ public class CompactStartElement
                 }
                 w.write(raw[i]); // local name
                 w.write("=\"");
-                XMLQuoter.outputDoubleQuotedAttr(w, raw[i + OFFSET_VALUE]);
+                AttrValueEscapingWriter.writeEscapedAttrValue(w, raw[i + OFFSET_VALUE]);
                 w.write('"');
             }
         }

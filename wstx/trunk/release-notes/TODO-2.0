@@ -26,8 +26,8 @@ Must-haves for 2.0
       * How to build for 1.2, 1.3?
 
 * StAX 2.0 features:
-   * Package API classes to a separate jar (in addition to including them
-     in woodstox jars)
+   [DONE] * Package API classes to a separate jar (in addition to including
+     them in woodstox jars)
    * XMLEventReader2:
       [DONE] * Add exception-aware next method
    * XMLEvent2:
@@ -52,7 +52,8 @@ Must-haves for 2.0
 [DONE] * evt/DTD2: allow access to root name, system id, public id, int. subset
 [DONE] * evt/StartElement2: isEmptyElement()
 [DONE] * evt/XMLEventFactory2: factory methods for creating DTD2, StartElement2 instances
-   * EncodingWriterFactory, to create encoding writers for XML encoding
+[DONE] * EncodingWriterFactory, to create encoding writers for XML encoding,
+         and matching implementations.
 
 ------------------------------------
 Maybe for 2.0?
