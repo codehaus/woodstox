@@ -45,6 +45,7 @@ Must-haves for 2.0
    * XMLStreamLocation2:
       [DONE] * allow access to nested location information
       * Long-valued accessors (and implementation)
+      * w/ XMLStreamReader2; getStartLocation, getEndLocation
    * XMLStreamReader2:
       [DONE] * getFeature/setFeature: allow overriding DTD to use?
       [DONE] * Traversal: skipElement()
@@ -59,6 +60,8 @@ Must-haves for 2.0
       [Partial?] * setFeature/getFeature (which property/ies?)
       [DONE] * writeDTD to support DTD2
       [DONE] * writeFullEndElement (for ensuring explict end tag)
+      * Allow configuration of extra white space after empty element
+        (like '<tag />')
 [DONE] * evt/DTD2: allow access to root name, system id, public id, int. subset
 [DONE] * evt/StartElement2: isEmptyElement()
 [DONE] * evt/XMLEventFactory2: factory methods for creating DTD2, StartElement2 instances

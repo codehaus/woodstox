@@ -1,6 +1,8 @@
 package test;
 
 import java.io.*;
+import java.net.URL;
+import java.util.zip.GZIPInputStream;
 
 import javax.xml.stream.*;
 
@@ -71,14 +73,38 @@ public class TestStreamCopier
         XMLInputFactory2 ifact = getFactory();
         XMLOutputFactory2 of = getOutputFactory();
 
-        XMLStreamReader2 sr = ifact.createXMLStreamReader(new File(input));
+        /* Let's have special handling for gzipped stuff...
+         */
+        XMLStreamReader2 sr;
+        /*
+        if (input.endsWith(".gz")) {
+            InputStream in = new GZIPInputStream(new FileInputStream(new File(input)));
+            sr = (XMLStreamReader2)ifact.createXMLStreamReader(in);
+        } else {
+            sr = (XMLStreamReader2)ifact.createXMLStreamReader(new File(input));
+        }
+        */
+        URL url = new URL("http://www.isb-sib.ch/~ejain/uniprot-rdf/data/taxonomy.rdf.gz");
+		InputStream in = new GZIPInputStream(new BufferedInputStream(url.openStream()));
+    sr = (XMLStreamReader2)ifact.createXMLStreamReader(in);
+	
         XMLStreamWriter2 sw = (XMLStreamWriter2) of.createXMLStreamWriter(out);
 //System.err.println("[XMLStreamWriter: "+sw.getClass()+"]");
 
+        int count = 0;
+		while (sr.next() != XMLStreamConstants.END_DOCUMENT) {
+            if (++count % 1000 == 100) {
+                System.err.println("#"+count);
+            }
+        }
+
+        /*
         do {
             sw.copyEventFromReader(sr, false);
             sr.next();
         } while (sr.hasNext());
+        */
+
         sr.close();
         sw.close();
     }

@@ -2,6 +2,7 @@ package test;
 
 import java.io.*;
 import java.util.List;
+import java.util.zip.GZIPInputStream;
 
 import javax.xml.stream.*;
 
@@ -27,8 +28,8 @@ public class TestStreamReader
 
         f.setProperty(XMLInputFactory.IS_COALESCING, Boolean.FALSE);
         //f.setProperty(XMLInputFactory.IS_COALESCING, Boolean.TRUE);
-        //f.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.TRUE);
-        f.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.FALSE);
+        f.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.TRUE);
+        //f.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.FALSE);
         f.setProperty(XMLInputFactory.IS_REPLACING_ENTITY_REFERENCES,
                       //Boolean.FALSE
                       Boolean.TRUE
@@ -121,8 +122,14 @@ public class TestStreamReader
 
         in = new FileInputStream(file);
 
+        // Let's deal with gzipped files too?
+        if (file.getName().endsWith(".gz")) {
+            System.out.println("[gzipped input file!]");
+            in = new GZIPInputStream(in);
+        }
+
         // !!! TEST:
-        in = new TestStream(in);
+        //in = new TestStream(in);
 
         /*
         {
