@@ -71,6 +71,32 @@ public interface XMLStreamReader2
     public String getDTDInternalSubset();
 
     /*
+    /////////////////////////////////
+    // Additional attribute accessors
+    /////////////////////////////////
+    */
+
+    /**
+     * @return Index of the specified attribute, if the current element
+     *   has such an attribute (explicit, or one created via default
+     *   value expansion); -1 if not.
+     *
+     * @throws IllegalStateException
+     *   if current node is not a START_ELEMENT
+     */
+    public int getAttributeIndex(String nsURI, String localName);
+
+    /**
+     * @return Index of the specified ID attribute (attribute that has
+     *   DTD-defined type of ID), if the current element has such an
+     *   attribute defined; -1 if not.
+     *
+     * @throws IllegalStateException
+     *   if current node is not a START_ELEMENT
+     */
+    public int getIdAttributeIndex(String nsURI, String localName);
+
+    /*
     ///////////////////////////
     // Other accessors
     ///////////////////////////

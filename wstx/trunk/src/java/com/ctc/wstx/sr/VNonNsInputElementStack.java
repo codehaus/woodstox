@@ -24,9 +24,14 @@ public final class VNonNsInputElementStack
      */
     protected Map mElemSpecs;
 
-    final transient NameKey mTmpKey = new NameKey(null, null);
-
     ElementValidator mValidator = null;
+
+    /**
+     * DTD definition for the current element
+     */
+    DTDElement mCurrElem;
+
+    private final transient NameKey mTmpKey = new NameKey(null, null);
 
     /*
     //////////////////////////////////////////////////
@@ -77,25 +82,24 @@ public final class VNonNsInputElementStack
         throws WstxException
     {
         super.resolveElem(internNsURIs);
-
-        DTDElement elem;
-        NameKey tmpKey = mTmpKey;
         
         /* Ok, need to find the element definition; if not found (or
          * only implicitly defined), need to throw the exception.
          */
-        tmpKey.reset(null, mElements[mSize-1]);
+        mTmpKey.reset(null, mElements[mSize-1]);
 
         /* It's ok not to have elements... but not when trying to validate;
          * and we are always validating if we end up here.
          */
+        DTDElement elem;
         if (mElemSpecs == null) {
             elem = null; // will trigger an error later on
         } else {
-            elem = (DTDElement) mElemSpecs.get(tmpKey);
+            elem = (DTDElement) mElemSpecs.get(mTmpKey);
         }
+        mCurrElem = elem;
         if (elem == null || !elem.isDefined()) {
-            mReporter.throwParseError(ErrorConsts.ERR_VLD_UNKNOWN_ELEM, tmpKey);
+            mReporter.throwParseError(ErrorConsts.ERR_VLD_UNKNOWN_ELEM, mTmpKey);
         }
         return mValidator.resolveElem(mReporter, elem, null);
     }

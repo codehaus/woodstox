@@ -1088,6 +1088,30 @@ public class WstxStreamReader
         return mTextBuffer.contentsAsString();
     }
 
+    public int getAttributeIndex(String nsURI, String localName)
+    {
+        // !!! TBI
+        /*
+        if (mCurrToken != START_ELEMENT) {
+            throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
+        }
+        return mAttrCollector.getIndex(nsURI, localName);
+        */
+        return -1;
+    }
+
+    public int getIdAttributeIndex(String nsURI, String localName)
+    {
+        // !!! TBI
+        /*
+        if (mCurrToken != START_ELEMENT) {
+            throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
+        }
+        return mAttrCollector.getIdIndex(nsURI, localName);
+        */
+        return -1;
+    }
+
     /**
      * @return Number of open elements in the stack; 0 when parser is in
      *  prolog/epilog, 1 inside root element and so on.

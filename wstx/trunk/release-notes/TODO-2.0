@@ -23,6 +23,8 @@ Must-haves for 2.0
      in woodstox jars)
    * XMLStreamReader2:
       * getText with Writer arg
+      * getAttributeIndex
+      * getIdAttributeIndex
    * XMLStreamWriter2:
       * pass-through write method
    * XMLInputFactory2:
