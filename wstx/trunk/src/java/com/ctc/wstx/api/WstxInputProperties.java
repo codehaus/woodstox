@@ -104,12 +104,28 @@ public final class WstxInputProperties
     public final static String P_CACHE_DTDS = "com.ctc.wstx.cacheDTDs";
 
 
-    // // // Enabling/disabling lazy parsing
+    // // // Enabling/disabling lazy/incomplete parsing
 
     public final static String P_LAZY_PARSING = "com.ctc.wstx.lazyParsing";
 
+    /**
+     * Property that determines whether Event objects created will
+     * contain (accurate) {@link javax.xml.stream.Location} information or not.
+     * If not, Location may be null or a fixed location (beginning of main
+     * XML file).
+     *<p>
+     * Note, however, that the underlying parser will still keep track
+     * of location information for error reporting purposes; it's only
+     * Event objects that are affected.
+     */
+    public final static String P_PRESERVE_LOCATION = "com.ctc.wstx.lazyParsing";
+
     // // // Enabling/disabling support for dtd++
 
+    /**
+     * Whether the Reader will recognized DTD++ extensions when parsing
+     * DTD subsets.
+     */
     public final static String P_SUPPORT_DTDPP = "com.ctc.wstx.supportDTDPP";
 
 

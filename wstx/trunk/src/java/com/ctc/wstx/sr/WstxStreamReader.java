@@ -1043,7 +1043,10 @@ public class WstxStreamReader
 
     public void setFeature(String name, Object value)
     {
-        // !!! TBI
+        /* !!! TBI:
+         * 
+         * - Per reader DTD override (by URL, or pre-parsed DTD)
+         */
     }
 
     /**

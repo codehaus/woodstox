@@ -347,9 +347,21 @@ public class MinimalInputFactory
         return mConfig.willParseLazily();
     }
 
+    /* No point in implementing this method -- it only affects Event
+     * API, which is NOT implemented by this factory.
+     */
+    /*
+    public boolean willPreserveLocation() {
+        return mConfig.willPreserveLocation();
+    }
+    */
+
+    // Real DTD-handling not supported by this factory...
+    /*
     public boolean willSupportDTDPP() {
         return mConfig.willSupportDTDPP();
     }
+    */
 
     public int getInputBufferLength() {
         return mConfig.getInputBufferLength();
@@ -450,9 +462,21 @@ public class MinimalInputFactory
         mConfig.doParseLazily(state);
     }
 
+    /* No point in implementing this method -- it only affects Event
+     * API, which is NOT implemented by this factory.
+     */
+    /*
+    public void doPreserveLocation(boolean state) {
+        mConfig.doPreserveLocation(state);
+    }
+    */
+
+    // Real DTD-handling not supported by this factory...
+    /*
     public void doSupportDTDPP(boolean state) {
         mConfig.doSupportDTDPP(state);
     }
+    */
 
     public void doReportAllTextAsCharacters(boolean state) {
         mConfig.doReportAllTextAsCharacters(state);

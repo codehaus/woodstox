@@ -137,7 +137,7 @@ public interface InputConfigFlags
      */
     final static int CFG_CACHE_DTDS = 0x4000;
 
-    // // // Lazy parsing
+    // // // Lazy/incomplete parsing
 
     /**
      * If true, input factory can defer parsing of nodes until data is
@@ -151,6 +151,18 @@ public interface InputConfigFlags
      */
     final static int CFG_LAZY_PARSING = 0x8000;
 
+    /**
+     * Property that determines whether Event objects created will
+     * contain (accurate) {@link javax.xml.stream.Location} information or not. If not,
+     * Location may be null or a fixed location (beginning of main
+     * XML file).
+     *<p>
+     * Note, however, that the underlying parser will still keep track
+     * of location information for error reporting purposes; it's only
+     * Event objects that are affected.
+     */
+    final static int CFG_PRESERVE_LOCATION = 0x10000;
+
     // // // DTD++ support
 
     /**
@@ -158,7 +170,7 @@ public interface InputConfigFlags
      * will also use any such information found from DTD when DTD validation
      * is enabled.
      */
-    final static int CFG_SUPPORT_DTDPP = 0x00010000;
+    final static int CFG_SUPPORT_DTDPP = 0x00020000;
 
     /*
     //////////////////////////////////////////////////////

@@ -414,6 +414,10 @@ public final class WstxInputFactory
         return mConfig.willParseLazily();
     }
 
+    public boolean willPreserveLocation() {
+        return mConfig.willPreserveLocation();
+    }
+
     public boolean willSupportDTDPP() {
         return mConfig.willSupportDTDPP();
     }
@@ -514,6 +518,10 @@ public final class WstxInputFactory
 
     public void doParseLazily(boolean state) {
         mConfig.doParseLazily(state);
+    }
+
+    public void doPreserveLocation(boolean state) {
+        mConfig.doPreserveLocation(state);
     }
 
     public void doSupportDTDPP(boolean state) {

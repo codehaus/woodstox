@@ -1,11 +1,15 @@
 * Exception-handling:
    * Add a WstxOutputException?
+   * Separate exception class for DTD-parsing problems?
 
 * DTD-handling/parsing:
    * Parse less information if no validation needed: partially done, does not
      really create content specifications; could also ignore creation of
      attribute lists?
    * Verify that an unparsed entity refers to a declared notation.
+   * Make public API that allows parsing of DTDs; main use will be
+     to feed such DTD objects back as either override-DTDs (input),
+     or actual DTDs (output+indenting, output+validation)
 
 * Attribute validation:
    * Notation (enumerated) attrs:
@@ -25,6 +29,14 @@
 
 * Input factories:
    * Create URI-based factory methods for readers (XMLStreamReader2)
+
+* Stream writers:
+   * Validate names (local, full), when such validation enabled
+
+* Event API:
+   * Implement CFG_PRESERVE_LOCATION (value false); need to have default
+     event allocator that shares a single Location object (start of the
+     file)
 
 ------------------------------------
 FROM 1.0 Backlog

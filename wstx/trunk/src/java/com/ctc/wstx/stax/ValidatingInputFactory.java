@@ -146,6 +146,14 @@ public final class ValidatingInputFactory
         super.setProperty(propName, value);
     } 
 
+    public void doSupportDTDPP(boolean state) {
+        mConfig.doSupportDTDPP(state);
+    }
+
+    public boolean willSupportDTDPP() {
+        return mConfig.willSupportDTDPP();
+    }
+
     /*
     /////////////////////////////////////////
     // Type-safe configuration access:

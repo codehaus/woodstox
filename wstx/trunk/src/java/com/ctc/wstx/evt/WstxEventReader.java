@@ -25,6 +25,8 @@ import javax.xml.stream.*;
 import javax.xml.stream.events.*;
 import javax.xml.stream.util.XMLEventAllocator;
 
+import com.ctc.wstx.cfg.ErrorConsts;
+import com.ctc.wstx.exc.WstxParsingException;
 import com.ctc.wstx.util.ExceptionUtil;
 
 /**
@@ -75,6 +77,14 @@ public class WstxEventReader
      */
     protected int mState = STATE_INITIAL;
 
+    /**
+     * This variable keeps track of the type of the 'previous' event
+     * when peeking for the next Event. It is needed for some functionality,
+     * to remember state even when underlying parser has to move to peek
+     * the next event.
+     */
+    protected int mPrePeekEvent = START_DOCUMENT;
+
     public WstxEventReader(XMLEventAllocator a, XMLStreamReader r)
     {
         mAllocator = a;
@@ -95,26 +105,63 @@ public class WstxEventReader
     public String getElementText()
         throws XMLStreamException
     {
-        if (mPeekedEvent != null) {
-            XMLEvent evt = mPeekedEvent;
-            mPeekedEvent = null;
-            if (evt.isCharacters()) {
-                String str = evt.asCharacters().getData();
-                /* !!! TBI: doesn't yet guarantee we'll point to END_ELEMENT;
-                 *   should peek until it does, and coalesce if we happen
-                 *   to have multiple text segments...
-                 */
-                return str;
-            }
-            throw new XMLStreamException("Expected a text token, got "
-                                         +evt.getEventType()+".");
+        /* Simple, if no peeking occured -- can just forward this to the
+         * underlying parser
+         */
+        if (mPeekedEvent == null) {
+            return mReader.getElementText();
         }
-        return mReader.getElementText();
+
+        XMLEvent evt = mPeekedEvent;
+        mPeekedEvent = null;
+
+        /* Otherwise need to verify that we are currently over START_ELEMENT.
+         * Problem is we have already went past it...
+         */
+        if (mPrePeekEvent != START_ELEMENT) {
+            throw new WstxParsingException
+                (ErrorConsts.ERR_STATE_NOT_STELEM, evt.getLocation());
+        }
+
+        String str = null;
+        StringBuffer sb = null;
+
+        /* Ok, fine, then just need to loop through and get all the
+         * text...
+         */
+        for (; true; evt = nextEvent()) {
+            if (evt.isEndElement()) {
+                break;
+            }
+            int type = evt.getEventType();
+            if (type == COMMENT || type == PROCESSING_INSTRUCTION) {
+                
+            }
+            if (!evt.isCharacters()) {
+                throw new WstxParsingException("Expected a text token, got "
+                                               +ErrorConsts.tokenTypeDesc(type),
+                                               evt.getLocation());
+            }
+            String curr = evt.asCharacters().getData();
+            if (str == null) {
+                str = curr;
+            } else {
+                if (sb == null) {
+                    sb = new StringBuffer(str.length() + curr);
+                    sb.append(str);
+                }
+                sb.append(curr);
+            }
+        }
+        
+        if (sb != null) {
+            return sb.toString();
+        }
+        return (str == null) ? "" : str;
     }
 
     public Object getProperty(String name) {
-        // !!! TBI
-        return null;
+        return mReader.getProperty(name);
     }
 
     public boolean hasNext() {
@@ -212,9 +259,12 @@ public class WstxEventReader
                 throwEOD();
             }
             if (mState == STATE_INITIAL) {
+                // Not sure what it should be... but this should do:
+                mPrePeekEvent = START_DOCUMENT;
                 mPeekedEvent = createStartEvent();
                 mState = STATE_CONTENT;
             } else {
+                mPrePeekEvent = mReader.getEventType();
                 mPeekedEvent = createNextEvent(false, mReader.next());
             }
         }
@@ -271,7 +321,13 @@ public class WstxEventReader
     protected void throwParseError(String msg)
         throws XMLStreamException
     {
-        throw new XMLStreamException(msg, mReader.getLocation());
+        throwParseError(msg, mReader.getLocation());
+    }
+
+    protected void throwParseError(String msg, Location loc)
+        throws XMLStreamException
+    {
+        throw new WstxParsingException(msg, loc);
     }
 }
 

@@ -540,10 +540,6 @@ public class FullDTDReader
              * We need not worry about notations referred, since they are
              * not allowed to be re-defined.
              */
-            /* !!! 05-Oct-2004, TSa: Should probably also pass referenced
-             *   GEs (ones expanded in default attribute value), similar
-             *   to PEs, as GEs can be re-defined?
-             */
             boolean cachable = !mUsesPredefdEntities && !mUsesPredefdNotations;
             ss = DTDSubsetImpl.constructInstance(cachable,
                                                  mGeneralEntities, mRefdGEs,
@@ -1689,7 +1685,7 @@ public class FullDTDReader
     private void throwDTDError(String msg)
         throws WstxException
     {
-        // !!! TBI: separate type for these?
+        // !!! TBI: separate type for these exceptions?
         throwParseError(msg);
     }
 
@@ -2150,6 +2146,9 @@ public class FullDTDReader
     /**
      * Method called to handle <!TARGETNS ... > declaration (the only
      * new declaration type for DTD++)
+     *<p>
+     * Note: only valid for DTD++, in 'plain DTD' mode shouldn't get
+     * called.
      */
     private void handleTargetNsDecl()
         throws IOException, XMLStreamException

@@ -58,7 +58,8 @@ public final class ReaderConfig
     public final static int PROP_REPORT_PROLOG_WS = 24;
     public final static int PROP_CACHE_DTDS = 25;
     public final static int PROP_LAZY_PARSING = 26;
-    public final static int PROP_SUPPORT_DTDPP = 27;
+    public final static int PROP_PRESERVE_LOCATION = 27;
+    public final static int PROP_SUPPORT_DTDPP = 28;
 
     // Object type properties
 
@@ -143,9 +144,14 @@ public final class ReaderConfig
          * to improve performance
          */
         | CFG_LAZY_PARSING
-	/* Also, let's enable dtd++ support (shouldn't hurt with non-dtd++
-	 * dtds)
-	 */
+
+        /* and also make Event objects preserve location info...
+         * can be turned off for maximum performance
+         */
+        | CFG_PRESERVE_LOCATION
+        /* Also, let's enable dtd++ support (shouldn't hurt with non-dtd++
+         * dtds)
+         */
         | CFG_SUPPORT_DTDPP
         ;
 
@@ -201,6 +207,8 @@ public final class ReaderConfig
                         new Integer(PROP_CACHE_DTDS));
         sProperties.put(WstxInputProperties.P_LAZY_PARSING,
                         new Integer(PROP_LAZY_PARSING));
+        sProperties.put(WstxInputProperties.P_PRESERVE_LOCATION,
+                        new Integer(PROP_PRESERVE_LOCATION));
         sProperties.put(WstxInputProperties.P_SUPPORT_DTDPP,
                         new Integer(PROP_SUPPORT_DTDPP));
 
@@ -435,6 +443,10 @@ public final class ReaderConfig
         return hasConfigFlags(CFG_LAZY_PARSING);
     }
 
+    public boolean willPreserveLocation() {
+        return hasConfigFlags(CFG_PRESERVE_LOCATION);
+    }
+
     public boolean willSupportDTDPP() {
         return hasConfigFlags(CFG_SUPPORT_DTDPP);
     }
@@ -540,6 +552,10 @@ public final class ReaderConfig
 
     public void doParseLazily(boolean state) {
         setConfigFlag(CFG_LAZY_PARSING, state);
+    }
+
+    public void doPreserveLocation(boolean state) {
+        setConfigFlag(CFG_PRESERVE_LOCATION, state);
     }
 
     public void doSupportDTDPP(boolean state) {
@@ -756,6 +772,8 @@ public final class ReaderConfig
             return willCacheDTDs() ? Boolean.TRUE : Boolean.FALSE;
         case PROP_LAZY_PARSING:
             return willParseLazily() ? Boolean.TRUE : Boolean.FALSE;
+        case PROP_PRESERVE_LOCATION:
+            return willPreserveLocation() ? Boolean.TRUE : Boolean.FALSE;
 
 
             // // // Custom ones; Object properties:
@@ -847,6 +865,10 @@ public final class ReaderConfig
 
         case PROP_LAZY_PARSING:
             doParseLazily(ArgUtil.convertToBoolean(propName, value));
+            break;
+
+        case PROP_PRESERVE_LOCATION:
+            doPreserveLocation(ArgUtil.convertToBoolean(propName, value));
             break;
 
         case PROP_REPORT_ALL_TEXT_AS_CHARACTERS:
