@@ -523,7 +523,10 @@ public abstract class BaseStreamWriter
     public void writeStartDocument()
         throws XMLStreamException
     {
-        writeStartDocument(null, null);
+        /* 03-Feb-2005, TSa: As per StAX 1.0 specs, version should
+         *   be "1.0", and encoding "utf-8" (yes, lower case)
+         */
+        writeStartDocument("utf-8", "1.0");
     }
 
     public void writeStartDocument(String version)
