@@ -1,6 +1,6 @@
-Version: 1.8.2
+Version: 1.9
 
-Release date: 23-Mar-2005
+Release date: xx-Apr-2005
 
 Description:
   Another pre-2.0 release aimed at finishing up tasks required for 2.0.
@@ -9,14 +9,18 @@ Description:
 
   Problems fixed:
 
+== History: ==
+
+
+1.8.2: [23-Mar-2005]
+
+  Problems fixed:
+
     * XMLStreamWriter:
       * Had problems with writeEmptyElement() call followed by a 
         writeEndElement() call; fixed now.
     * Problems with charset decoding:
       * Failed with UTF-16 encodings (reported by Mariun Raschip); now fixed.
-
-== History: ==
-
 
 1.8.1: [10-Mar-2005]
 

@@ -293,7 +293,7 @@ public final class StreamBootstrapper
 		/* Otherwise it's either single-byte doc without xml
 		 * declaration, or corrupt input...
 		 */
-            } while (false); // BOM block
+            } while (false); // BOM/auto-detection block
 
             mHadBOM = (mBytesPerChar > 0);
 

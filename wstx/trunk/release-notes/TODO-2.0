@@ -33,6 +33,9 @@ Must-haves for 2.0
      are only in JDK 1.4. But they are (alas!) used by DTD processing.
 
 * StAX 2.0 features:
+   * Configuration/introspection:
+      * Interning status (INTERN_NAMES [== local name, prefix], INTERN_URIS)?
+
    [DONE] * Package API classes to a separate jar (in addition to including
      them in woodstox jars)
    * XMLEventReader2:

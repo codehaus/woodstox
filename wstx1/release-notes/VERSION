@@ -1,9 +1,15 @@
-Version: 1.0.5
+Version: 1.0.6
 
-Release date: 23-Mar-2005
+Release date: xx-Apr-2005
 
 Description:
-  Fifth maintenance release for 1.0; fixes some more critical bugs.
+  Sixth maintenance release for 1.0; fixes some more critical bugs.
+
+  Problems fixed:
+
+History:
+
+1.0.5 [23-Mar-2005]
 
   Problems fixed:
 
@@ -13,8 +19,6 @@ Description:
   * Wasn't handling multi-byte encodings other than UTF-8 properly
     (specifically, UTF-16 variants).
     (reported by Marius Raschip)
-
-History:
 
 1.0.4 [10-Mar-2005]
 
