@@ -5,12 +5,12 @@ import java.io.Writer;
 import java.net.URL;
 
 import javax.xml.stream.Location;
+import javax.xml.stream.XMLReporter;
 import javax.xml.stream.XMLResolver;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.EntityReference;
 import javax.xml.stream.events.EntityDeclaration;
 
-import com.ctc.wstx.io.InputSourceFactory;
 import com.ctc.wstx.io.WstxInputSource;
 
 public abstract class ExtEntity
@@ -73,7 +73,7 @@ public abstract class ExtEntity
     
     public abstract boolean isParsed();
     
-    public abstract WstxInputSource createInputSource(WstxInputSource parent,
-                                                      XMLResolver res)
+    public abstract WstxInputSource expand(WstxInputSource parent,
+                                           XMLResolver res, XMLReporter rep)
         throws IOException, XMLStreamException;
 }

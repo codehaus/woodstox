@@ -11,6 +11,13 @@ import java.net.URL;
 public final class CharArraySource
     extends BaseInputSource
 {
+    /**
+     * Default buffer size should never really be needed, when input
+     * sources are properly chained, but let's have some sane default
+     * for weird cases. 1000k chars means 2Kbyte buffer.
+     */
+    final static int DEFAULT_BUFFER_SIZE = 1000;
+
     int mOffset;
 
     // // // Context info we may have to save
@@ -33,7 +40,7 @@ public final class CharArraySource
     }
 
     public int getInputBufferLength() {
-        return (mParent == null) ? DefaultInputResolver.DEFAULT_BUFFER_SIZE
+        return (mParent == null) ? DEFAULT_BUFFER_SIZE
             : mParent.getInputBufferLength();
     }
 

@@ -34,11 +34,13 @@ public final class BranchingReaderSource
      */
     boolean mGotCR = false;
 
-    public BranchingReaderSource(WstxInputSource parent, String entityId,
-                                 String pubId, String sysId, URL src,
+    public BranchingReaderSource(String pubId, String sysId, URL src,
                                  Reader r, boolean realClose, int bufSize)
     {
-        super(parent, entityId, pubId, sysId, src, r, realClose, bufSize);
+        /* null -> no parent,
+         * null -> not from explicit entity (no id/name)
+         */
+        super(null, null, pubId, sysId, src, r, realClose, bufSize);
     }
 
     public int readInto(WstxInputData reader)

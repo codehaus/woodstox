@@ -89,10 +89,12 @@ public interface XMLStreamWriter2
 
     /**
      * "Pass-through" write method; one that essentially copies
-     * event reader has just read. This can be more efficient
-     * than separately calling access methods of the reader, and
+     * event reader has just read. This can be both more convenient
+     * (no need to worry about details) and more efficient
+     * than separately calling access methods of the reader and
      * write methods of the writer, since writer may know more
-     * about reader than application.
+     * about reader than the application (and may be able to use
+     * non-public methods)
      */
     public void writeFromReader(XMLStreamReader2 r)
         throws XMLStreamException;

@@ -214,7 +214,7 @@ public class FullStreamReader
         }
 
         // Ok, no usable cached subset found, need to (try to) read it:
-        WstxInputSource src = DefaultInputResolver.sourceFrom(mInput, null, value);
+        WstxInputSource src = DefaultInputResolver.sourceFrom(mInput, null, value, mReporter);
         return mConfig.getDtdReader().readExternalSubset(this, src, mConfig, null);
     }
 
@@ -397,9 +397,14 @@ public class FullStreamReader
         WstxInputSource src = null;
 
         try {
-            // null -> not an entity expansion, no name
-            src = DefaultInputResolver.resolveReference
-                (mInput, null, pubId, sysId, mConfig.getDtdResolver());
+            /* null -> not an entity expansion, no name.
+             * Note, too, that we can NOT just pass mEntityResolver, since
+             * that's the one used for general entities, whereas ext subset
+             * should be resolved by the param entity resolver.
+             */
+            src = DefaultInputResolver.resolveEntity
+                (mInput, null, pubId, sysId, mConfig.getDtdResolver(),
+                 mReporter);
         } catch (FileNotFoundException fex) {
             /* Let's catch and rethrow this just so we get more meaningful
              * description (with input source position etc)

@@ -37,15 +37,6 @@ public abstract class WstxInputSource
     protected final WstxInputSource mParent;
 
     /**
-     * Nesting level of this input source; 0 is the parent level, increases
-     * by one with each expansion.
-     *<p>
-     * Mostly used to help to catch cyclic references, but also potentially
-     * to limit amount of recursion if necessary.
-     */
-    //final int mLevel;
-
-    /**
      * Name/id of the entity that was expanded to produce this input source;
      * null if not entity-originated. Used for catching recursive expansions
      * of entities.
@@ -56,7 +47,6 @@ public abstract class WstxInputSource
     {
         mParent = parent;
         mFromEntity = fromEntity;
-        //mLevel = (parent == null) ? 0 : (parent.getLevel() + 1);
     }
     
     /*
@@ -64,12 +54,6 @@ public abstract class WstxInputSource
     // Basic accessors:
     //////////////////////////////////////////////////////////
      */
-
-    /*
-    public final int getLevel() {
-        return mLevel;
-    }
-    */
 
     /**
      * @return Length of suggested input buffer (if source needs one); used

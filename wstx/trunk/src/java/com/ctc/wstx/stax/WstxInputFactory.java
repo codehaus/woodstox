@@ -290,10 +290,51 @@ public final class WstxInputFactory
         return createXMLStreamReader(null, r);
     }
 
-    public XMLStreamReader createXMLStreamReader(javax.xml.transform.Source source)
+    public XMLStreamReader createXMLStreamReader(javax.xml.transform.Source src)
         throws XMLStreamException
     {
-        return createSR(source);
+        if (src instanceof StreamSource) {
+            StreamSource ss = (StreamSource) src;
+            InputBootstrapper bs;
+            Reader r = ss.getReader();
+            String sysId = ss.getSystemId();
+
+            if (r == null) {
+                InputStream in = ss.getInputStream();
+                if (in == null) { // can try just resolving the system id then
+                    if (sysId == null) {
+                        throw new XMLStreamException("Can not create StAX reader for a StreamSource -- neither reader, input stream nor system id was set.");
+                    }
+                    try {
+                        return createXMLStreamReader(URLUtil.urlFromSystemId(sysId));
+                    } catch (IOException ioe) {
+                        throw new WstxIOException(ioe);
+                    }
+                }
+                bs = StreamBootstrapper.getInstance
+                    (in, ss.getPublicId(), sysId,
+                     mConfig.getInputBufferLength());
+            } else {
+                bs = ReaderBootstrapper.getInstance
+                    (r, ss.getPublicId(), sysId,
+                     mConfig.getInputBufferLength(), null);
+            }
+            return createSR(sysId, bs);
+        }
+
+        if (src instanceof SAXSource) {
+            // !!! TBI
+            //SAXSource sr = (SAXSource) src;
+            throw new XMLStreamException("Can not create a STaX reader for a SAXSource -- not (yet) implemented.");
+        }
+
+        if (src instanceof DOMSource) {
+            // !!! TBI
+            //DOMSource sr = (DOMSource) src;
+            throw new XMLStreamException("Can not create a STaX reader for a DOMSource -- not (yet) implemented.");
+        }
+
+        throw new IllegalArgumentException("Can not instantiate StAX reader for XML source type "+src.getClass()+" (unknown type)");
     }
 
     public XMLStreamReader createXMLStreamReader(String systemId, InputStream in)
@@ -465,15 +506,12 @@ public final class WstxInputFactory
             throw new WstxIOException(ie);
         }
 
-        /* null -> no parent
-         * null -> not expanded from an entity
-         * null -> no public id available
+        /* null -> no public id available
          * false -> don't close the reader when scope is closed.
          */
         ReaderConfig cfg = mConfig.createNonShared(mSymbols.makeChild());
-        BranchingReaderSource input = InputSourceFactory.constructBranchingSource
-            (null, null, bs,
-             null, systemId, src, r, false, cfg.getInputBufferLength());
+        BranchingReaderSource input = InputSourceFactory.constructDocumentSource
+            (bs, null, systemId, src, r, false, cfg.getInputBufferLength());
 
       
         try {
@@ -493,45 +531,6 @@ public final class WstxInputFactory
                         StreamBootstrapper.getInstance
                         (in, null, sysId, mConfig.getInputBufferLength()),
                         src);
-    }
-
-    private FullStreamReader createSR(Source src)
-        throws XMLStreamException
-    {
-        if (src instanceof StreamSource) {
-            StreamSource ss = (StreamSource) src;
-            InputBootstrapper bs;
-
-            Reader r = ss.getReader();
-            if (r == null) {
-                InputStream in = ss.getInputStream();
-                if (in == null) {
-                    throw new XMLStreamException("Can not create StAX reader for a StreamSource -- neither reader nor input stream was set.");
-                }
-                bs = StreamBootstrapper.getInstance
-                    (in, ss.getPublicId(), ss.getSystemId(),
-                     mConfig.getInputBufferLength());
-            } else {
-                bs = ReaderBootstrapper.getInstance
-                    (r, ss.getPublicId(), ss.getSystemId(),
-                     mConfig.getInputBufferLength(), null);
-            }
-            return createSR(src.getSystemId(), bs);
-        }
-
-        if (src instanceof SAXSource) {
-            SAXSource sr = (SAXSource) src;
-            // !!! TBI
-            throw new XMLStreamException("Can not create a STaX reader for a SAXSource -- not (yet) implemented.");
-        }
-
-        if (src instanceof DOMSource) {
-            DOMSource sr = (DOMSource) src;
-            // !!! TBI
-            throw new XMLStreamException("Can not create a STaX reader for a DOMSource -- not (yet) implemented.");
-        }
-
-        throw new IllegalArgumentException("Can not instantiate StAX reader for XML source type "+src.getClass()+" (unknown type)");
     }
 
     protected XMLEventAllocator createEventAllocator() 

@@ -14,13 +14,21 @@ import com.ctc.wstx.util.TextBuffer;
  */
 public final class InputSourceFactory
 {
-    public static ReaderSource constructReaderSource
-        (WstxInputSource parent, String fromEntity, InputBootstrapper bs,
-         String pubId, String sysId, URL src,
-         Reader r, boolean realClose, int bufSize) 
+    /**
+     * @param parent
+     * @param entityName Name of the entity expanded to create this input
+     *    source: null when source created for the (main level) external
+     *    DTD subset entity.
+     */
+    public static ReaderSource constructEntitySource
+        (WstxInputSource parent, String entityName, InputBootstrapper bs,
+         String pubId, String sysId, URL src, Reader r)
     {
+        /* true -> do close the underlying Reader at EOF
+         */
         ReaderSource rs = new ReaderSource
-            (parent, fromEntity, pubId, sysId, src, r, realClose, bufSize);
+            (parent, entityName, pubId, sysId, src, r, true,
+             parent.getInputBufferLength());
         if (bs != null) {
             rs.setInputOffsets(bs.getInputTotal(), bs.getInputRow(),
                                -bs.getInputColumn());
@@ -28,13 +36,16 @@ public final class InputSourceFactory
         return rs;
     }
 
-    public static BranchingReaderSource constructBranchingSource
-        (WstxInputSource parent, String fromEntity, InputBootstrapper bs,
-         String pubId, String sysId, URL src,
+    /**
+     * Factory method used for creating the main-level document reader
+     * source.
+     */
+    public static BranchingReaderSource constructDocumentSource
+        (InputBootstrapper bs, String pubId, String sysId, URL src,
          Reader r, boolean realClose, int bufSize) 
     {
         BranchingReaderSource rs = new BranchingReaderSource
-            (parent, fromEntity, pubId, sysId, src, r, realClose, bufSize);
+            (pubId, sysId, src, r, realClose, bufSize);
         if (bs != null) {
             rs.setInputOffsets(bs.getInputTotal(), bs.getInputRow(),
                                -bs.getInputColumn());

@@ -5,6 +5,7 @@ import java.io.Writer;
 import java.net.URL;
 
 import javax.xml.stream.Location;
+import javax.xml.stream.XMLReporter;
 import javax.xml.stream.XMLResolver;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.EntityReference;
@@ -120,8 +121,8 @@ public class IntEntity
     
     public boolean isParsed() { return true; }
     
-    public WstxInputSource createInputSource(WstxInputSource parent,
-                                             XMLResolver res)
+    public WstxInputSource expand(WstxInputSource parent,
+                                  XMLResolver res, XMLReporter rep)
     {
         return InputSourceFactory.constructCharArraySource
             (parent, mName, mRepl, 0, mRepl.length, mContentLocation, getSource());

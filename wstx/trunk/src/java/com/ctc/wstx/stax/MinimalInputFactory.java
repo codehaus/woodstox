@@ -352,14 +352,12 @@ public class MinimalInputFactory
             throw new WstxIOException(ie);
         }
 
-        /* null -> no parent
-         * null -> not expanded from an entity
-         * null -> no public id available
+        /* null -> no public id available
          * false -> don't close the reader when scope is closed.
          */
         ReaderConfig cfg = mConfig.createNonShared(mSymbols.makeChild());
-        BranchingReaderSource input = InputSourceFactory.constructBranchingSource
-            (null, null, bs, // no parent, not from entity
+        BranchingReaderSource input = InputSourceFactory.constructDocumentSource
+            (bs, // no parent, not from entity
              null, systemId, src, r, false, cfg.getInputBufferLength());
 
       

@@ -1423,7 +1423,7 @@ public abstract class StreamScanner
          */
         WstxInputSource newInput = null;
         try {
-            newInput = ed.createInputSource(mInput, mEntityResolver);
+            newInput = ed.expand(mInput, mEntityResolver, mReporter);
         } catch (FileNotFoundException fex) {
             /* Let's catch and rethrow this just so we get more meaningful
              * description (with input source position etc)

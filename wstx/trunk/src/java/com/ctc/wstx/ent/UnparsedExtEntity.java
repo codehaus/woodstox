@@ -5,13 +5,12 @@ import java.io.Writer;
 import java.net.URL;
 
 import javax.xml.stream.Location;
+import javax.xml.stream.XMLReporter;
 import javax.xml.stream.XMLResolver;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.EntityReference;
 import javax.xml.stream.events.EntityDeclaration;
 
-import com.ctc.wstx.io.DefaultInputResolver;
-import com.ctc.wstx.io.InputSourceFactory;
 import com.ctc.wstx.io.WstxInputSource;
 import com.ctc.wstx.util.URLUtil;
 
@@ -67,8 +66,8 @@ public class UnparsedExtEntity
     
     public boolean isParsed() { return false; }
     
-    public WstxInputSource createInputSource(WstxInputSource parent,
-                                             XMLResolver res)
+    public WstxInputSource expand(WstxInputSource parent,
+                                  XMLResolver res, XMLReporter rep)
     {
         // Should never get called, actually...
         throw new Error("Internal error: createInputSource() called for unparsed (external) entity.");

@@ -20,6 +20,7 @@ import java.io.Writer;
 import java.net.URL;
 
 import javax.xml.stream.Location;
+import javax.xml.stream.XMLReporter;
 import javax.xml.stream.XMLResolver;
 import javax.xml.stream.XMLStreamException;
 
@@ -117,7 +118,7 @@ public abstract class EntityDecl
      * Method called to create the new input source through which expansion
      * value of the entity can be read.
      */
-    public abstract WstxInputSource createInputSource(WstxInputSource parent, 
-                                                      XMLResolver res)
+    public abstract WstxInputSource expand(WstxInputSource parent, 
+                                           XMLResolver res, XMLReporter rep)
         throws IOException, XMLStreamException;
 }
