@@ -34,7 +34,7 @@
     <property name="STAX_VERSION" value="1.0" />
     <property name="STAX_VENDOR" value="http://jcp.org/en/jsr/detail?id=173" />
     <property name="WSTX_TITLE" value="WoodSToX XML-processor" />
-    <property name="WSTX_VERSION" value="1.0.4" />
+    <property name="WSTX_VERSION" value="1.0.5" />
     <property name="WSTX_VENDOR" value="www.cowtowncoder.com" />
 
     <path id="classpath">

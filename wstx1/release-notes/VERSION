@@ -1,6 +1,6 @@
 Version: 1.0.4
 
-Release date: 03-Mar-2005
+Release date: 10-Mar-2005
 
 Description:
   Fourth maintenance release for 1.0; fixes some more critical bugs.
@@ -10,6 +10,8 @@ Description:
   * Fixed the remaining blocking problem with UTF-8 reader
     (reported by Sven Köhler)
   * Fixed a stream writer problem: was quoting comment contents
+  * Fixed a problem with comment output via XMLStreamWriter: was
+    erroneously escaping '<' and '&'.
 
 History:
 
