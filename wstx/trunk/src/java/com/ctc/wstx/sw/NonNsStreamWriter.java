@@ -39,8 +39,8 @@ import com.ctc.wstx.util.XMLQuoter;
  * and attributes; and if rudimentary namespace declarations need to be
  * output, they are output using attribute writing methods.
  */
-public class WstxNonNsStreamWriter
-    extends WstxStreamWriter
+public class NonNsStreamWriter
+    extends BaseStreamWriter
 {
     /*
     ////////////////////////////////////////////////////
@@ -78,7 +78,7 @@ public class WstxNonNsStreamWriter
     ////////////////////////////////////////////////////
      */
 
-    public WstxNonNsStreamWriter(Writer w, WriterConfig cfg)
+    public NonNsStreamWriter(Writer w, WriterConfig cfg)
     {
         super(w, cfg);
         mElements = new StringVector(32);
