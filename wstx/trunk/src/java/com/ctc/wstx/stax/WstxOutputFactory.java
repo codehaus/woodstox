@@ -28,11 +28,10 @@ import javax.xml.transform.stream.StreamResult;
 
 import javax.xml.stream.*;
 
-import com.ctc.wstx.api.WstxOutputFactoryConfig;
+import com.ctc.wstx.api.WriterConfig;
 import com.ctc.wstx.api.XMLOutputFactory2;
 import com.ctc.wstx.cfg.OutputConfigFlags;
 import com.ctc.wstx.evt.WstxEventWriter;
-import com.ctc.wstx.sw.WriterConfig;
 import com.ctc.wstx.sw.BaseStreamWriter;
 import com.ctc.wstx.sw.NonNsStreamWriter;
 import com.ctc.wstx.sw.RepairingNsStreamWriter;
@@ -52,8 +51,7 @@ import com.ctc.wstx.util.ArgUtil;
  */
 public final class WstxOutputFactory
     extends XMLOutputFactory2
-    implements WstxOutputFactoryConfig,
-               OutputConfigFlags
+    implements OutputConfigFlags
 {
     /*
     /////////////////////////////////////////////////////
@@ -144,117 +142,12 @@ public final class WstxOutputFactory
 
     /*
     /////////////////////////////////////////
-    // Type-safe configuration access:
+    // Woodstox-specific configuration access
     /////////////////////////////////////////
      */
 
-    // // // Accessors:
-
-    // Standard properies:
-
-    public boolean automaticNamespacesEnabled() {
-        return mConfig.automaticNamespacesEnabled();
-    }
-
-    // Wstx properies:
-
-    public boolean willSupportNamespaces() {
-        return mConfig.willSupportNamespaces();
-    }
-
-    public boolean willOutputEmptyElements() {
-        return mConfig.willOutputEmptyElements();
-    }
-
-    /**
-     * @return Prefix to use as the base for automatically generated
-     *   namespace prefixes ("namespace prefix prefix", so to speak).
-     *   Defaults to "wstxns".
-     */
-    public String getAutomaticNsPrefix() {
-        return mConfig.getAutomaticNsPrefix();
-    }
-
-    public boolean willValidateNamespaces() {
-        return mConfig.willValidateNamespaces();
-    }
-
-    public boolean willValidateStructure() {
-        return mConfig.willValidateStructure();
-    }
-
-    public boolean willValidateContent() {
-        return mConfig.willValidateContent();
-    }
-
-    public boolean willValidateAttributes() {
-        return mConfig.willValidateAttributes();
-    }
-
-    // // // Mutators:
-
-    // Standard properies:
-
-    public void enableAutomaticNamespaces(boolean state) {
-        mConfig.enableAutomaticNamespaces(state);
-    }
-
-    // Wstx properies:
-
-    public void doSupportNamespaces(boolean state) {
-        mConfig.doSupportNamespaces(state);
-    }
-
-    public void doOutputEmptyElements(boolean state) {
-        mConfig.doOutputEmptyElements(state);
-    }
-
-    /**
-     * @return Prefix to use as the base for automatically generated
-     *   namespace prefixes ("namespace prefix prefix", so to speak).
-     *   Defaults to "wstxns".
-     */
-    public void setAutomaticNsPrefix(String prefix) {
-        mConfig.setAutomaticNsPrefix(prefix);
-    }
-
-    public void doValidateNamespaces(boolean state) {
-        mConfig.doValidateNamespaces(state);
-    }
-
-    public void doValidateStructure(boolean state) {
-        mConfig.doValidateStructure(state);
-    }
-
-    public void doValidateContent(boolean state) {
-        mConfig.doValidateContent(state);
-    }
-
-    public void doValidateAttributes(boolean state) {
-        mConfig.doValidateAttributes(state);
-    }
-
-    // // // Convenience mutators for config info:
-
-    /**
-     * Method call to make writer be as strict (anal) with output as possible,
-     * ie maximize validation it does to try to catch any well-formedness
-     * or validity problems. In a way, reverse of calling
-     * {@link #configureForMinValidation}.
-     */
-    public void configureForMaxValidation()
-    {
-        mConfig.configureForMaxValidation();
-    }
-
-    /**
-     * Method call to make writer be as lenient with output as possible,
-     * ie minimize validation it does. In a way, reverse of calling
-     * {@link #configureForMaxValidation}.
-     */
-    public void configureForMinValidation()
-    {
-        mConfig.configureForMinValidation();
+    public WriterConfig getConfig() {
+        return mConfig;
     }
 
     /*

@@ -671,7 +671,7 @@ public final class ReaderConfig
      *  <li>entity handling
      * </li>
      *  <li>'performance' settings (buffer sizes, DTD caching, coalescing,
-     *    interning).
+     *    interning, accurate location info).
      * </li>
      *</ul>
      */
@@ -726,6 +726,9 @@ public final class ReaderConfig
          * (once again, at potential expense of performance)
          */
         doParseLazily(false);
+        /* Ditto for event API...
+         */
+        doPreserveLocation(true);
     }
 
     /**
@@ -780,6 +783,7 @@ public final class ReaderConfig
         doInternNsURIs(true);
         doCacheDTDs(true);
         doParseLazily(true);
+        doPreserveLocation(false);
     }
 
     /**
@@ -821,8 +825,9 @@ public final class ReaderConfig
         setTextBufferLength(512); // 1k, to match input buffer size
         doCacheDTDs(false);
 
-        // This can reduce temporary memory usage:
+        // These can reduce temporary memory usage:
         doParseLazily(true);
+        doPreserveLocation(false);
     }
     
     /**
@@ -858,6 +863,9 @@ public final class ReaderConfig
      *  <li>namespace settings (enable/disable)
      * </li>
      *  <li>Some perfomance settings: interning settings, DTD caching
+     * </li>
+     *  <li>Whether to preserve additional information not relevant
+     *    to outputting (like CFG_PRESERVE_LOCATION).
      * </li>
      *</ul>
      */

@@ -128,6 +128,25 @@ public final class WstxInputProperties
      */
     public final static String P_SUPPORT_DTDPP = "com.ctc.wstx.supportDTDPP";
 
+    // // // Enabling alternate mode for parsing XML fragments instead
+    // // // of full documents
+
+    // !!! Note: following is not yet implemented in parsers !!!
+    /**
+     * If true, will parse XML content in looser "fragment" mode; if false
+     * will expect regular fully well-formed document.
+     *<p>
+     * In fragment more it is not
+     * necessary to have just one root element; input can have multiple
+     * ones (or none). Elements will still need to be balanced properly.
+     * A single xml declaration is still allowed, but only
+     * in the beginning of the stream (just as in regular mode), and
+     * DTD declarations are allowed at the main level (outside of elements).
+     * If multiple DTDs are found, they will be used for validation (if
+     * enabled) as expected, ie. affecting following main-level "root"
+     * elements and their descendants.
+     */
+    public final static String P_FRAGMENT_MODE = "com.ctc.wstx.fragmentMode";
 
     /*
     ///////////////////////////////////////////////////////

@@ -29,6 +29,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.Attribute;
 import javax.xml.stream.events.StartElement;
 
+import com.ctc.wstx.api.WriterConfig;
 import com.ctc.wstx.util.EmptyNamespaceContext;
 import com.ctc.wstx.util.StringVector;
 import com.ctc.wstx.util.XMLQuoter;

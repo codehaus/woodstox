@@ -1,4 +1,4 @@
-package com.ctc.wstx.sw;
+package com.ctc.wstx.api;
 
 import java.net.URL;
 import java.util.HashMap;
@@ -7,7 +7,6 @@ import java.util.Map;
 
 import javax.xml.stream.*;
 
-import com.ctc.wstx.api.WstxOutputFactoryConfig;
 import com.ctc.wstx.api.WstxOutputProperties;
 import com.ctc.wstx.cfg.OutputConfigFlags;
 import com.ctc.wstx.util.ArgUtil;
@@ -17,8 +16,7 @@ import com.ctc.wstx.util.ArgUtil;
  * instance created.
  */
 public final class WriterConfig
-    implements WstxOutputFactoryConfig,
-               OutputConfigFlags
+    implements OutputConfigFlags
 {
     // // // Constants for standard StAX properties:
 
@@ -339,6 +337,12 @@ public final class WriterConfig
     //////////////////////////////////////////////////////////
      */
 
+    /**
+     * Method call to make writer be as strict (anal) with output as possible,
+     * ie maximize validation it does to try to catch any well-formedness
+     * or validity problems. In a way, reverse of calling
+     * {@link #configureForMinValidation}.
+     */
     public void configureForMaxValidation()
     {
         doValidateAttributes(true);
@@ -347,6 +351,11 @@ public final class WriterConfig
         doValidateStructure(true);
     }
 
+    /**
+     * Method call to make writer be as lenient with output as possible,
+     * ie minimize validation it does. In a way, reverse of calling
+     * {@link #configureForMaxValidation}.
+     */
     public void configureForMinValidation()
     {
         doValidateAttributes(false);

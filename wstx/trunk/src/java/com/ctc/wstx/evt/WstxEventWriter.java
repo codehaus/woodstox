@@ -28,8 +28,8 @@ import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.*;
 
+import com.ctc.wstx.api.WriterConfig;
 import com.ctc.wstx.cfg.OutputConfigFlags;
-import com.ctc.wstx.sw.WriterConfig;
 import com.ctc.wstx.sw.BaseStreamWriter;
 import com.ctc.wstx.sw.NonNsStreamWriter;
 import com.ctc.wstx.sw.RepairingNsStreamWriter;

@@ -15,6 +15,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.Characters;
 import javax.xml.stream.events.StartElement;
 
+import com.ctc.wstx.api.WriterConfig;
 import com.ctc.wstx.api.WstxOutputProperties;
 import com.ctc.wstx.api.XMLStreamReader2;
 import com.ctc.wstx.api.XMLStreamWriter2;

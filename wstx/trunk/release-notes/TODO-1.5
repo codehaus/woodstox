@@ -1,34 +1,18 @@
-* Exception-handling:
-   * Add a WstxOutputException?
-   * Separate exception class for DTD-parsing problems?
+------------------------------------
+Must-haves for 2.0
+------------------------------------
+
+* Dual-licensing, changes to build.xml to produce ASL2.0 and LGPL
+  jars.
 
 * DTD-handling/parsing:
-   * Parse less information if no validation needed: partially done, does not
-     really create content specifications; could also ignore creation of
-     attribute lists?
    * Verify that an unparsed entity refers to a declared notation.
-   * Make public API that allows parsing of DTDs; main use will be
-     to feed such DTD objects back as either override-DTDs (input),
-     or actual DTDs (output+indenting, output+validation)
 
 * Attribute validation:
    * Notation (enumerated) attrs:
       * Declaration checks:
           * All enumeration notations have to have been declared, prior
             to entountering ATTLIST declaration (on either subset)
-* Caching:
-   * Refactor caching out of input factory, to be shared between
-     factories and input/output modes (but have 2 actual Maps in
-     CacheManager, to prevent trashing by either side).
-
-* Fragment parsing/writing:
-   * Allow for reading and writing of XML document fragments; essentially
-     suppressing checks for single-root, and assuming that the outermost
-     element(s) are not document root nodes (meaning also that DTD is not
-     allowed to be output)
-
-* Input factories:
-   * Create URI-based factory methods for readers (XMLStreamReader2)
 
 * Stream writers:
    * Validate names (local, full), when such validation enabled
@@ -38,24 +22,62 @@
      event allocator that shares a single Location object (start of the
      file)
 
+* Low-level parsing:
+   * Change parseEntityName() to make sure that the whole entity name as well
+     as trailing semicolon are from the same input source, to prevent the
+     possibility of "split" entity names (which are not legal in XML).
+
+* Unit testing: Implement at least simple basic StAX-tests for:
+   * Event reader
+   * Stream writer
+   * Event writer
+
+* StAX 2.0 features:
+   * XMLStreamReader2:
+      * getText with Writer arg
+   * XMLStreamWriter2:
+      * pass-through write method
+   * XMLInputFactory2:
+       * Create URI-based factory methods for readers
+         (will create XMLStreamReader2 instances)
+
+
+------------------------------------
+Maybe for 2.0?
+------------------------------------
+
+* Fragment parsing/writing:
+   * Allow for reading and writing of XML document fragments; essentially
+     suppressing checks for single-root, and assuming that the outermost
+     element(s) are not document root nodes (meaning also that DTD is not
+     allowed to be output)
+
+------------------------------------
+For 2.x series (not for 2.0)
+------------------------------------
+
+* Exception-handling:
+   * Add a WstxOutputException?
+   * Separate exception class for DTD-parsing problems?
+
+* DTD-handling/parsing:
+   * Parse less information if no validation needed: partially done, does not
+     really create content specifications; could also ignore creation of
+     attribute lists?
+   * Make public API that allows parsing of DTDs; main use will be
+     to feed such DTD objects back as either override-DTDs (input),
+     or actual DTDs (output+indenting, output+validation)
+
+* Caching:
+   * Refactor caching out of input factory, to be shared between
+     factories and input/output modes (but have 2 actual Maps in
+     CacheManager, to prevent trashing by either side).
+
 ------------------------------------
 FROM 1.0 Backlog
 ------------------------------------
 
 Documentation:
-
-Low-level parsing:
-
-* Change parseEntityName() to make sure that the whole entity name as well
-  as trailing semicolon are from the same input source, to prevent the
-  possibility of "split" entity names (which are not legal in XML).
-
-Unit testing:
-
-* Implement at least simple basic StAX-tests for:
-   * Event reader
-   * Stream writer
-   * Event writer
 
 Namespace handling:
 

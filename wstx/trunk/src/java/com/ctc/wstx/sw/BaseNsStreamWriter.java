@@ -30,6 +30,7 @@ import javax.xml.stream.events.Attribute;
 import javax.xml.stream.events.Namespace;
 import javax.xml.stream.events.StartElement;
 
+import com.ctc.wstx.api.WriterConfig;
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.util.DefaultXmlSymbolTable;
 import com.ctc.wstx.util.XMLQuoter;
