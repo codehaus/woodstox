@@ -71,6 +71,9 @@ public abstract class EntityDecl
 
     public abstract String getReplacementText();
 
+    public abstract int getReplacementText(Writer w)
+        throws IOException;
+
     public abstract String getSystemId();
 
     /*

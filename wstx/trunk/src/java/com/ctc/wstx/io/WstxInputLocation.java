@@ -17,13 +17,15 @@ package com.ctc.wstx.io;
 
 import javax.xml.stream.Location;
 
+import org.codehaus.stax2.XMLStreamLocation2;
+
 import com.ctc.wstx.util.StringUtil;
 
 /**
  * Basic implementation of {@link Location}, used by Wstx readers.
  */
 public class WstxInputLocation
-    implements Location
+    implements XMLStreamLocation2
 {
     private final static WstxInputLocation sEmptyLocation
         = new WstxInputLocation(null, "", "", -1, -1, -1);
@@ -66,7 +68,19 @@ public class WstxInputLocation
     public String getPublicId() { return mPublicId; }
     public String getSystemId() { return mSystemId; }
 
-    public WstxInputLocation getContext() { return mContext; }
+    /*
+    ////////////////////////////////////////////////////////
+    // StAX 2 API:
+    ////////////////////////////////////////////////////////
+     */
+
+    public XMLStreamLocation2 getContext() { return mContext; }
+
+    /*
+    ////////////////////////////////////////////////////////
+    // Overridden standard methods
+    ////////////////////////////////////////////////////////
+     */
     
     public String toString()
     {

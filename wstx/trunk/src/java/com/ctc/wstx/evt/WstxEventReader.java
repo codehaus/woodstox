@@ -314,8 +314,9 @@ public class WstxEventReader
     /**
      *<p>
      * Note: although the interface allows implementations to
-     * throw an {@link XMLStreamException}, Woodstox doesn't need
-     * to. Because of that, it's not declared in signature.
+     * throw an {@link XMLStreamException}, Woodstox doesn't currently need
+     * to. It's still declared, in case in future there is need to throw
+     * such an exception.
      */
     public boolean hasNextEvent()
         throws XMLStreamException

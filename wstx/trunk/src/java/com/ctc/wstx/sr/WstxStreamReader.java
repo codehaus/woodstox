@@ -17,6 +17,7 @@ package com.ctc.wstx.sr;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.io.Writer;
 import java.net.URL;
 import java.util.Map;
 
@@ -710,12 +711,10 @@ public class WstxStreamReader
             return mCurrEntity.getReplacementChars();
         }
         if (mCurrToken == DTD) {
-            String str = getDTDInternalSubset();
-            return (str == null) ? null : str.toCharArray();
+            return getDTDInternalSubsetArray();
         }
-        /* Note: may return our (shared) input buffer, or a newly created
-         * combined buffer if input spanned buffer segment boundary or had
-         * entities.
+        /* Note: will be a newly allocated array, since contents would seldom
+         * if ever align completely within (and filling) the input buffer...
          */
         return mTextBuffer.getTextBuffer();
     }
@@ -748,6 +747,9 @@ public class WstxStreamReader
             return len;
         }
         if (mCurrToken == DTD) {
+            /* !!! Note: not really optimal; could get the char array instead
+             *   of the String
+             */
             String str = getDTDInternalSubset();
             if (str == null) {
                 return 0;
@@ -778,8 +780,8 @@ public class WstxStreamReader
             return mCurrEntity.getReplacementTextLength();
         }
         if (mCurrToken == DTD) {
-            String str = getDTDInternalSubset();
-            return (str == null) ? 0 : str.length();
+            char[] ch = getDTDInternalSubsetArray();
+            return (ch == null) ? 0 : ch.length;
         }
         return mTextBuffer.size();
     }
@@ -1034,6 +1036,8 @@ public class WstxStreamReader
     ////////////////////////////////////////////////////
      */
 
+    // // // StAX 2, per-reader configuration
+
     public Object getFeature(String name)
     {
         // !!! TBI
@@ -1047,6 +1051,8 @@ public class WstxStreamReader
          * - Per reader DTD override (by URL, or pre-parsed DTD)
          */
     }
+
+    // // // StAX 2, extended DTD access
 
     /**
      *<p>
@@ -1085,6 +1091,10 @@ public class WstxStreamReader
         return mTextBuffer.contentsAsString();
     }
 
+    private char[] getDTDInternalSubsetArray() {
+        return mTextBuffer.contentsAsArray();
+    }
+
     public int getAttributeIndex(String nsURI, String localName)
     {
         // !!! TBI
@@ -1109,6 +1119,47 @@ public class WstxStreamReader
         return -1;
     }
 
+    // // // StAX 2, Pass-through text accessors
+
+
+    /**
+     *<p>
+     * TODO: try to optimize to allow completely streaming pass-through:
+     * currently will still read all data in memory buffers before
+     * outputting
+     * 
+     * @return Number of characters written to the reader
+     */
+    public int getText(Writer w)
+        throws IOException, XMLStreamException
+    {
+        if (((1 << mCurrToken) & MASK_GET_TEXT) == 0) {
+            throwNotTextual(mCurrToken);
+        }
+        if (mStTokenUnfinished) {
+            try {
+                finishToken();
+            } catch (Exception ie) {
+                throwLazyError(ie);
+            }
+        }
+        if (mCurrToken == ENTITY_REFERENCE) {
+            return mCurrEntity.getReplacementText(w);
+        }
+        if (mCurrToken == DTD) {
+            char[] ch = getDTDInternalSubsetArray();
+            if (ch != null) {
+                w.write(ch);
+                return ch.length;
+            }
+            return 0;
+        }
+        return mTextBuffer.rawContentsTo(w);
+    }
+
+    // // // StAX 2, Other accessors
+
+
     /**
      * @return Number of open elements in the stack; 0 when parser is in
      *  prolog/epilog, 1 inside root element and so on.
@@ -1122,7 +1173,8 @@ public class WstxStreamReader
      *    constructed from 'empty' element (ends with '/>');
      *    false otherwise.
      */
-    public boolean isEmptyElement() {
+    public boolean isEmptyElement() throws XMLStreamException
+    {
         return mStEmptyElem;
     }
 

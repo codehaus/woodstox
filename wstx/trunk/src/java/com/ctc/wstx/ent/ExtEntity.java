@@ -37,6 +37,12 @@ public abstract class ExtEntity
         return null;
     }
 
+    public int getReplacementText(Writer w)
+        //throws IOException
+    {
+        return 0;
+    }
+
     public String getSystemId() {
         return mSystemId;
     }

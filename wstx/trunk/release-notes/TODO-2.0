@@ -23,24 +23,28 @@ Must-haves for 2.0
 * StAX 2.0 features:
    * Package API classes to a separate jar (in addition to including them
      in woodstox jars)
-   * XMLEventReader2:
+[DONE] * XMLEventReader2: add exception-aware next method
    * XMLInputFactory2:
        * Create URI-based factory methods for readers
          (will create XMLStreamReader2 instances)
-   * XMLOutputFactory2:
-   * XMLStreamLocation2:
-       * Allow access to nested location information
+   * XMLOutputFactory2: need for any new methods?
+[DONE] * XMLStreamLocation2: allow access to nested location information
    * XMLStreamReader2:
-      * getText with Writer arg
+      [Partial] * getFeature/setFeature: allow overriding DTD to use?
       * getAttributeIndex
       * getIdAttributeIndex
+      [DONE] * Misc: isEmptyElement, getDepth
       * Separate DTD info access behind a new interface (DTDInfo?)
+        Note: at this point, has separate new accessors; move these to DTDInfo?
+      [Partial] * getText with Writer arg
    * XMLStreamWriter2:
-      * pass-through write method
+      [Partial] * pass-through write method for outputting raw (non-encoded) stuff
+      [Partial?] * setFeature/getFeature
+      [DONE] * writeDTD to support DTD2
    * XMLTextEncoder?
-   * evt/DTD2:
-   * evt/StartElement2:
-   * evt/XMLEventFactory2:
+[DONE] * evt/DTD2: allow access to root name, system id, public id, int. subset
+[DONE] * evt/StartElement2: isEmptyElement()
+[DONE] * evt/XMLEventFactory2: factory methods for creating DTD2, StartElement2 instances
 
 ------------------------------------
 Maybe for 2.0?

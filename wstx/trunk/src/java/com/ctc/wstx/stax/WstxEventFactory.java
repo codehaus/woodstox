@@ -22,6 +22,7 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.*;
 import javax.xml.stream.events.*;
 
+import org.codehaus.stax2.evt.StartElement2;
 import org.codehaus.stax2.evt.XMLEventFactory2;
 import org.codehaus.stax2.evt.DTD2;
 
@@ -198,7 +199,7 @@ public final class WstxEventFactory
                         (DTDSubset) processedDTD);
     }
 
-    public StartElement createStartElement(QName name, Iterator attr,
+    public StartElement2 createStartElement(QName name, Iterator attr,
                                            Iterator ns, NamespaceContext ctxt,
                                            boolean wasEmpty)
     {

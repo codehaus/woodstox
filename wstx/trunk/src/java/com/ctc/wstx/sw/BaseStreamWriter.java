@@ -528,7 +528,7 @@ public abstract class BaseStreamWriter
     
     /*
     ////////////////////////////////////////////////////
-    // XMLStreamWriter2 methods
+    // XMLStreamWriter2 methods (StAX 2)
     ////////////////////////////////////////////////////
      */
 

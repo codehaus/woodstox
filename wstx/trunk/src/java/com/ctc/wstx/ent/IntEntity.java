@@ -69,6 +69,13 @@ public class IntEntity
         return mReplText;
     }
 
+    public int getReplacementText(Writer w)
+        throws IOException
+    {
+        w.write(mRepl);
+        return mRepl.length;
+    }
+
     public String getSystemId() {
         return null;
     }

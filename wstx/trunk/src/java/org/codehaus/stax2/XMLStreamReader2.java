@@ -1,5 +1,9 @@
 package org.codehaus.stax2;
 
+import java.io.IOException;
+import java.io.Writer;
+
+import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
 /**
@@ -97,16 +101,32 @@ public interface XMLStreamReader2
     public int getIdAttributeIndex(String nsURI, String localName);
 
     /*
+    ///////////////////////////////
+    // Pass-through text accessors
+    ///////////////////////////////
+    */
+
+    /**
+     * @return Number of characters written to the reader
+     */
+    public int getText(Writer w)
+        throws IOException, XMLStreamException;
+
+    /*
     ///////////////////////////
     // Other accessors
     ///////////////////////////
     */
 
     /**
+     *<p>
+     * Note: method may need to read more data to know if the element
+     * is an empty one, and as such may throw an i/o or parsing exception.
+     *
      * @return True, if current event is START_ELEMENT
      *   and is based on a parsed empty element.
      */
-    public boolean isEmptyElement();
+    public boolean isEmptyElement() throws XMLStreamException;
 
     /**
      * @return Number of open elements in the stack; 0 when parser is in

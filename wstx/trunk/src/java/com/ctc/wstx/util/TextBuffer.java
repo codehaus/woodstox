@@ -356,17 +356,21 @@ public final class TextBuffer
         return totalAmount;
     }
 
-    public void rawContentsTo(Writer w)
+    /**
+     * Method that will stream contents of this buffer into specified
+     * Writer.
+     */
+    public int rawContentsTo(Writer w)
         throws IOException
     {
         // Let's first see if we have created helper objects:
         if (mResultArray != null) {
             w.write(mResultArray);
-            return;
+            return mResultArray.length;
         }
         if (mResultString != null) {
             w.write(mResultString);
-            return;
+            return mResultString.length();
         }
 
         // Do we use shared array?
@@ -374,17 +378,22 @@ public final class TextBuffer
             if (mInputLen > 0) {
                 w.write(mInputBuffer, mInputStart, mInputLen);
             }
-            return;
+            return mInputLen;
         }
         // Nope, need to do full segmented output
+        int rlen = 0;
         if (mSegments != null) {
             for (int i = 0, len = mSegments.size(); i < len; ++i) {
-                w.write((char[]) mSegments.get(i));
+                char[] ch = (char[]) mSegments.get(i);
+                w.write(ch);
+                rlen += ch.length;
             }
         }
         if (mCurrentSize > 0) {
             w.write(mCurrentSegment, 0, mCurrentSize);
+            rlen += mCurrentSize;
         }
+        return rlen;
     }
 
     public boolean isAllWhitespace()
