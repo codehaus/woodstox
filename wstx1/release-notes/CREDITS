@@ -33,6 +33,13 @@ Dan Diephouse:
     exception on some QName implementations)
     [1.0.1]
 
+Sven Köhler:
+  * Reported the problem with blocking input streams, and behaviour of
+    the UTF8 decoder Woodstox uses: this could cause "too early" blocking
+    of readers, in cases where event(s) could be returned before needing
+    to read more from underlying input stream.
+    [1.0.4]
+
 Stefan Wachter:
   * Reported a problem with handling of large documents; was sometimes
     throwing an ArrayIndexOutOfBounds exception (mostly when dealing

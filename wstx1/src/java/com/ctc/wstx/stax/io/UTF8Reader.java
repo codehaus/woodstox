@@ -67,14 +67,14 @@ public final class UTF8Reader
             mSurrogate = NULL_CHAR;
         }
 
-        main_loop:
-        while (outPtr < len) {
-            if (mPtr >= mLength) {
-                if (!loadMore()) { // EOF is ok here
-                    break main_loop;
-                }
+        if (mPtr >= mLength) {
+            if (!loadMore()) { // EOF is forwarded
+                return -1;
             }
+        }
 
+        main_loop:
+        while (true) {
             byte b = mBuffer[mPtr++];
 
             /* Let's first do the quickie loop for common case; 7-bit
@@ -82,17 +82,14 @@ public final class UTF8Reader
              */
             //while (b >= NULL_BYTE) { // still 7-bit?
             while (b >= 0) { // still 7-bit?
-                cbuf[outPtr] = (char) b; // ok since MSB is never on
-                if (++outPtr >= len) {
+                cbuf[outPtr++] = (char) b; // ok since MSB is never on
+                if (outPtr >= len || mPtr >= mLength) {
                     break main_loop;
-                }
-                if (mPtr >= mLength) {
-                    continue main_loop;
                 }
                 b = mBuffer[mPtr++];
             }
 
-            int c = (int) b; // it's ok to get sign extension
+			int c = (int) b; // it's ok to get sign extension
             int needed;
 
             // Ok; if we end here, we got multi-byte combination
@@ -162,6 +159,10 @@ public final class UTF8Reader
             }
 
             cbuf[outPtr++] = (char) c;
+
+            if (outPtr >= len || mPtr >= mLength) {
+                break main_loop;
+            }
         }
 
         len = outPtr - start;

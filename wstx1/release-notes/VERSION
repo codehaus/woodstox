@@ -1,9 +1,18 @@
-Version: 1.0.3
+Version: 1.0.4
 
 Release date: 03-Mar-2005
 
 Description:
-  Third maintenance release for 1.0; fixes critical bugs found since 1.0.2.
+  Fourth maintenance release for 1.0; fixes some more critical bugs.
+
+  Problems fixed:
+
+  * Fixed the remaining blocking problem with UTF-8 reader
+    (reported by Sven Köhler)
+
+History:
+
+1.0.3 [02-Mar-2005]
 
   Problems fixed:
 
@@ -12,8 +21,6 @@ Description:
   * Fixed a bogus exception being throw with certain combinations of namespace
     declarations (default ns declaration following at least one non-default
     declaration)
-
-History:
 
 1.0.2 [14-Nov-2004]:
 
