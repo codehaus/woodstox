@@ -7,6 +7,7 @@ import javax.xml.stream.*;
 
 import wstxtest.cfg.*;
 
+import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.stax.WstxInputFactory;
 
 /**
@@ -81,15 +82,16 @@ public class TestRandom
         long seed = baseArgStr.hashCode();
 
         WstxInputFactory f = getInputFactory();
+	ReaderConfig cfg = f.getConfig();
 
         // Settings we always need:
-        f.doSupportDTDs(true);
-        f.doValidateWithDTD(false);
+        cfg.doSupportDTDs(true);
+        cfg.doValidateWithDTD(false);
 
         // Then variable ones we got settings for:
-        f.doSupportNamespaces(ns);
-        f.doCoalesceText(coalescing);
-        f.doReplaceEntityRefs(autoEntity);
+        cfg.doSupportNamespaces(ns);
+        cfg.doCoalesceText(coalescing);
+        cfg.doReplaceEntityRefs(autoEntity);
 
         /* How many random permutations do we want to try?
          */

@@ -11,6 +11,7 @@ import wstxtest.cfg.*;
  * Set of unit tests that check how Woodstox handles white space in
  * prolog and/or epilog.
  */
+import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.stax.WstxInputFactory;
 
 public class TestPrologWS
@@ -110,8 +111,9 @@ public class TestPrologWS
         throws XMLStreamException
     {
         WstxInputFactory f = getInputFactory();
-        f.doReportPrologWhitespace(prologWS);
-        f.doParseLazily(lazyParsing);
+	ReaderConfig cfg = f.getConfig();
+        cfg.doReportPrologWhitespace(prologWS);
+        cfg.doParseLazily(lazyParsing);
         return constructStreamReader(f, contents);
     }
 }

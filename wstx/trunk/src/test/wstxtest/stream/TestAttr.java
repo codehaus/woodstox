@@ -47,7 +47,7 @@ public class TestAttr
         throws XMLStreamException
     {
         WstxInputFactory f = getInputFactory();
-        f.doSupportNamespaces(nsAware);
+        f.getConfig().doSupportNamespaces(nsAware);
         return constructStreamReader(f, contents);
     }
 }

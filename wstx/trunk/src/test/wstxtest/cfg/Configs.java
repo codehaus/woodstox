@@ -1,5 +1,6 @@
 package wstxtest.cfg;
 
+import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.stax.WstxInputFactory;
 
 public class Configs
@@ -119,7 +120,7 @@ public class Configs
         }
 
         public void config(WstxInputFactory f, int index) {
-            f.doSupportNamespaces(booleanFromInt(index));
+            f.getConfig().doSupportNamespaces(booleanFromInt(index));
         }
     }
 
@@ -135,7 +136,7 @@ public class Configs
         }
 
         public void config(WstxInputFactory f, int index) {
-            f.doCoalesceText(booleanFromInt(index));
+            f.getConfig().doCoalesceText(booleanFromInt(index));
         }
     }
 
@@ -151,7 +152,7 @@ public class Configs
         }
 
         public void config(WstxInputFactory f, int index) {
-            f.doReplaceEntityRefs(booleanFromInt(index));
+            f.getConfig().doReplaceEntityRefs(booleanFromInt(index));
         }
     }
 
@@ -173,7 +174,7 @@ public class Configs
         }
 
         public void config(WstxInputFactory f, int index) {
-            f.doParseLazily(booleanFromInt(index));
+            f.getConfig().doParseLazily(booleanFromInt(index));
         }
     }
 
@@ -189,7 +190,7 @@ public class Configs
         }
 
         public void config(WstxInputFactory f, int index) {
-            f.doNormalizeLFs(booleanFromInt(index));
+            f.getConfig().doNormalizeLFs(booleanFromInt(index));
         }
     }
 
@@ -209,7 +210,7 @@ public class Configs
         }
 
         public void config(WstxInputFactory f, int index) {
-            f.setInputBufferLength(mSizes[index]);
+            f.getConfig().setInputBufferLength(mSizes[index]);
         }
     }
 
@@ -229,7 +230,7 @@ public class Configs
         }
 
         public void config(WstxInputFactory f, int index) {
-            f.setInputBufferLength(mSizes[index]);
+            f.getConfig().setInputBufferLength(mSizes[index]);
         }
     }
 }
