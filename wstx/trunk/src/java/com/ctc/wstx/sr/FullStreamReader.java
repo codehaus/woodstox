@@ -25,8 +25,8 @@ import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamException;
 
+import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.cfg.ErrorConsts;
-import com.ctc.wstx.cfg.ReaderConfig;
 import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.io.*;
 import com.ctc.wstx.dtd.DTDId;

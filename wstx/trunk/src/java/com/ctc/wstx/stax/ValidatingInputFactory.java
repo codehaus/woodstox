@@ -30,7 +30,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.stream.StreamSource;
 
-import com.ctc.wstx.cfg.ReaderConfig;
+import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.exc.WstxIOException;
 import com.ctc.wstx.io.BranchingReaderSource;
 import com.ctc.wstx.io.InputBootstrapper;

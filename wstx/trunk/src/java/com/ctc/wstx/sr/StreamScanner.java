@@ -27,10 +27,10 @@ import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLReporter;
 import javax.xml.stream.XMLStreamException;
 
+import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.cfg.InputConfigFlags;
 import com.ctc.wstx.cfg.ParsingErrorMsgs;
-import com.ctc.wstx.cfg.ReaderConfig;
 import com.ctc.wstx.compat.JdkFeatures;
 import com.ctc.wstx.ent.EntityDecl;
 import com.ctc.wstx.exc.*;

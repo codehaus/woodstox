@@ -20,7 +20,7 @@ import java.net.URL;
 
 import javax.xml.stream.*;
 
-import com.ctc.wstx.cfg.ReaderConfig;
+import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.dtd.DTDSubset;
 import com.ctc.wstx.io.WstxInputSource;
 import com.ctc.wstx.sr.FullStreamReader;

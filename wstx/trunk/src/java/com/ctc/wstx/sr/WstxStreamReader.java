@@ -25,9 +25,9 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
 
+import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.api.XMLStreamReader2;
 import com.ctc.wstx.cfg.ErrorConsts;
-import com.ctc.wstx.cfg.ReaderConfig;
 import com.ctc.wstx.dtd.DTDSubset;
 import com.ctc.wstx.ent.EntityDecl;
 import com.ctc.wstx.exc.WstxException;

@@ -5,7 +5,7 @@ import java.io.IOException;
 
 import javax.xml.stream.XMLStreamException;
 
-import com.ctc.wstx.cfg.ReaderConfig;
+import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.dtd.DTDReaderProxy;
 import com.ctc.wstx.dtd.DTDSubset;
 import com.ctc.wstx.exc.WstxException;

@@ -20,7 +20,7 @@ import java.io.IOException;
 
 import javax.xml.stream.XMLStreamException;
 
-import com.ctc.wstx.cfg.ReaderConfig;
+import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.io.WstxInputSource;
 import com.ctc.wstx.sr.StreamScanner;
 

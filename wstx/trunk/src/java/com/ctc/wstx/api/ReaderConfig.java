@@ -1,4 +1,4 @@
-package com.ctc.wstx.cfg;
+package com.ctc.wstx.api;
 
 import java.net.URL;
 import java.util.HashMap;
