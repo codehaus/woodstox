@@ -1,4 +1,4 @@
-Version: 1.9
+Version: 1.8.2
 
 Release date: -Mar-2005
 
@@ -12,7 +12,8 @@ Description:
     * XMLStreamWriter:
       * Had problems with writeEmptyElement() call followed by a 
         writeEndElement() call; fixed now.
-
+    * Problems with charset decoding:
+      * Failed with UTF-16 encodings (reported by Mariun Raschip); now fixed.
 
 == History: ==
 

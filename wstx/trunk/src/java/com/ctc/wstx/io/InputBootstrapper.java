@@ -280,7 +280,13 @@ public abstract class InputBootstrapper
         c = handleEq(KW_ENC);
 
         // Let's request 'normalization', upper-casing and some substitutions
-        int len = readQuotedValue(mKeyword, c, true);
+	/* 22-Mar-2005, TSa: No, better not do modifications, since we do
+	 *   need to be able to return the original String via API. We
+	 *   can do loose comparison/substitutions when checking their
+	 *   validity.
+	 */
+        //int len = readQuotedValue(mKeyword, c, true);
+        int len = readQuotedValue(mKeyword, c, false);
 
         /* Hmmh. How about "too long" encodings? Maybe just truncate them,
          * for now?

@@ -65,3 +65,8 @@ Eric Jain:
   * Re-reported the problem with UTF-8 streams and array bounds (originally
     reported by Stefan Wachter), and provided unit test to reproduce it.
     [1.0.3/1.8.1]
+
+Marius Raschip:
+  * Reported a problem with handling of UTF-16 (and in general all non-UTF-8
+    multi-byte encodings): wasn't handling xml declaration correctly.
+    [1.0.4/1.8.2]

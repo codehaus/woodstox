@@ -8,6 +8,7 @@ import javax.xml.stream.XMLStreamException;
 
 import com.ctc.wstx.cfg.ParsingErrorMsgs;
 import com.ctc.wstx.exc.*;
+import com.ctc.wstx.util.StringUtil;
 
 /**
  * Input bootstrap class used with streams, when encoding is not known
@@ -112,9 +113,14 @@ public final class StreamBootstrapper
 
         if (enc == null) { // not via xml declaration
             if (mBytesPerChar == 2) { // UTF-16, BE/LE
-                enc = mBigEndian ? "UTF-16-BE" : "UTF-16-LE";
+                enc = mBigEndian ? "UTF-16BE" : "UTF-16LE";
             } else if (mBytesPerChar == 4) { // UCS-4... ?
-                enc = mBigEndian ? "UTF-32-BE" : "UTF-32-LE";
+		/* 22-Mar-2005, TSa: JDK apparently has no way of dealing
+		 *   with these encodings... not sure if and how it should
+		 *   be dealt with, really. Name could be UCS-4xx... or
+		 *   perhaps UTF-32xx
+		 */
+                enc = mBigEndian ? "UTF-32BE" : "UTF-32LE";
             } else {
                 // Ok, default has to be UTF-8, as per XML specs
                 enc = "UTF-8";
@@ -126,14 +132,28 @@ public final class StreamBootstrapper
          */
         Reader r = null;
 
-        if (enc.equals("US-ASCII")) {
-            r = new AsciiReader(mIn, mByteBuffer, mInputPtr, mInputLen);
-        } else if (enc.equals("ISO-8859-1")) {
-            // Should we try to create generic mappers for other encodings?
-            r = new ISOLatinReader(mIn, mByteBuffer, mInputPtr, mInputLen);
-        } else if (enc.equals("UTF-8")) {
-            r = new UTF8Reader(mIn, mByteBuffer, mInputPtr, mInputLen);
-        } else {
+	char c = (enc.length() > 0) ? enc.charAt(0) : ' ';
+
+	if (c == 'u' || c == 'U') {
+	    if (StringUtil.equalEncodings(enc, "UTF-8")) {
+		r = new UTF8Reader(mIn, mByteBuffer, mInputPtr, mInputLen);
+	    } else if (StringUtil.equalEncodings(enc, "US-ASCII")) {
+		r = new AsciiReader(mIn, mByteBuffer, mInputPtr, mInputLen);
+	    } else if (StringUtil.equalEncodings(enc, "UTF-16BE")) {
+		// let's just make sure they're using canonical name...
+		enc = "UTF-16BE";
+	    } else if (StringUtil.equalEncodings(enc, "UTF-16LE")) {
+		enc = "UTF-16LE";
+	    } else if (StringUtil.equalEncodings(enc, "UTF")) {
+		enc = "UTF";
+	    }
+	} else if (c == 'i' || c== 'I') {
+	    if (StringUtil.equalEncodings(enc, "ISO-8859-1")) {
+		r = new ISOLatinReader(mIn, mByteBuffer, mInputPtr, mInputLen);
+	    }
+	}
+
+	if (r == null) {
             // Nah, JDK needs to try it
             // Ok; first, do we need to merge stuff back?
             InputStream in = mIn;
@@ -187,7 +207,7 @@ public final class StreamBootstrapper
 
         // However, for these first checks, we just need first 4 bytes:
         if (mInputLen >= 4) {
-            do { // BOM block
+            do { // BOM/auto-detection block
                 int quartet = (mByteBuffer[0] << 24)
                     | ((mByteBuffer[1] & 0xFF) << 16)
                     | ((mByteBuffer[2] & 0xFF) << 8)
@@ -198,8 +218,7 @@ public final class StreamBootstrapper
                  */
                 if (quartet == 0x0000FEFF) { // UCS-4, BE?
                     mBigEndian = true;
-                    mBytesPerChar = 4;
-                    mInputPtr = 4;
+                    mInputPtr = mBytesPerChar = 4;
                     break;
                 }
                 if (quartet == 0xFFFE0000) { // UCS-4, LE?
@@ -208,7 +227,6 @@ public final class StreamBootstrapper
                     break;
                 }
                 if (quartet == 0x0000FFFE) { // UCS-4, in-order...
-                    // weird mixed-endian (2143), let's bail out
                     reportWeirdUCS4("2143");
                 }
                 if (quartet == 0x0FEFF0000) { // UCS-4, in-order...
@@ -216,7 +234,6 @@ public final class StreamBootstrapper
                 }
 
                 int msw = quartet >>> 16;
-
                 if (msw == 0xFEFF) { // UTF-16, BE
                     mInputPtr = mBytesPerChar = 2;
                     mBigEndian = true;
@@ -234,6 +251,48 @@ public final class StreamBootstrapper
                     mBigEndian = true; // doesn't really matter
                     break;
                 }
+
+		/* And if that wasn't succesful, how about auto-detection
+		 * for '<?xm' (or subset for multi-byte encodings) marker?
+		 */
+		// Note: none of these consume bytes... so ptr remains at 0
+                if (quartet == 0x0000003c) { // UCS-4, BE?
+                    mBigEndian = true;
+                    mBytesPerChar = 4;
+                    break;
+                }
+                if (quartet == 0x3c000000) { // UCS-4, LE?
+                    mBytesPerChar = 4;
+                    mBigEndian = false;
+                    break;
+                }
+                if (quartet == 0x00003c00) { // UCS-4, in-order...
+                    reportWeirdUCS4("2143");
+                }
+                if (quartet == 0x003c0000) { // UCS-4, in-order...
+                    reportWeirdUCS4("3412");
+                }
+
+                if (quartet == 0x003c003f) { // UTF-16, BE
+		    mBytesPerChar = 2;
+                    mBigEndian = true;
+                    break;
+                }
+                if (quartet == 0x3c003f00) { // UTF-16, LE
+                    mBytesPerChar = 2;
+                    mBigEndian = false;
+                    break;
+                }
+
+                if (quartet == 0x3c3f786d) { // UTF-8, Ascii, ISO-Latin
+                    mBytesPerChar = 1;
+                    mBigEndian = true; // doesn't really matter
+                    break;
+                }
+
+		/* Otherwise it's either single-byte doc without xml
+		 * declaration, or corrupt input...
+		 */
             } while (false); // BOM block
 
             mHadBOM = (mBytesPerChar > 0);
@@ -304,24 +363,31 @@ public final class StreamBootstrapper
         throws WstxException
     {
         // Let's actually verify we got matching information:
-
         if (enc.startsWith("UTF")) {
             String s = (enc.charAt(3) == '-') ?
                 enc.substring(4) : enc.substring(3);
             if (s.equals("8")) {
-                enc = "UTF-8";
                 verifyEncoding(enc, 1);
+                enc = "UTF-8";
             } else if (s.startsWith("16")) {
                 if (s.length() == 2) {
                     // BOM is obligatory, to know the ordering
+		    /* 22-Mar-2005, TSa: Actually, since we don't have a
+		     *   custom decoder, so the underlying JDK Reader may
+		     *   have dealt with it transparently... so we can not
+		     *   really throw an exception here.
+		     */
                     if (!mHadBOM) {
-                        reportMissingBOM(enc);
+                        //reportMissingBOM(enc);
                     }
                     verifyEncoding(enc, 2);
+		    enc = "UTF-16";
                 } else if (s.equals("16BE")) {
                     verifyEncoding(enc, 2, true);
+		    enc = "UTF-16BE";
                 } else if (s.equals("16LE")) {
-                    verifyEncoding(enc, 2, true);
+                    verifyEncoding(enc, 2, false);
+		    enc = "UTF-16LE";
                 }
             }
         } else if (enc.startsWith("ISO")) {
@@ -329,6 +395,7 @@ public final class StreamBootstrapper
                 enc.substring(4) : enc.substring(3);
             if (s.startsWith("8859")) { // various code pages, incl. ISO-Latin
                 verifyEncoding(enc, 1);
+		// enc should be good as is...
             } else if (s.startsWith("10646")) { // alias(es) for UTF...?
                 if (s.equals("10646-UCS-2")) {
                     /* JDK doesn't seem to have direct match, but shouldn't
@@ -358,7 +425,6 @@ public final class StreamBootstrapper
             enc = "US-ASCII";
             verifyEncoding(enc, 1);
         }
-
         return enc;
     }
 
@@ -542,7 +608,6 @@ public final class StreamBootstrapper
 
             if (last <= mInputLen) { // yup
                 int start = mInputPtr; // if we have to 'unread' chars
-
                 if (nextMultiByte() == '<'
                     && nextMultiByte() == '?'
                     && nextMultiByte() == 'x'
