@@ -151,22 +151,18 @@ public class RepairingNsStreamWriter
         String nsURI = name.getNamespaceURI();
         if (nsURI == null) {
             writeStartElement(name.getLocalPart());
-        }
-        
-        String prefix = name.getPrefix();
-        if (mAutomaticNS && 
-            (prefix == null || prefix.length() == 0)) {
-            writeStartElement(nsURI, name.getLocalPart());
-                
         } else {
-            writeStartElement(prefix, name.getLocalPart(), nsURI);
-        }
+	    String prefix = name.getPrefix();
+	    if (prefix == null || prefix.length() == 0) {
+		writeStartElement(nsURI, name.getLocalPart());
+	    }
+	}
     
         // And now we need to output namespaces (including default), if any:
         it = elem.getNamespaces();
         while (it.hasNext()) {
             Namespace ns = (Namespace) it.next();
-            prefix = ns.getPrefix();
+            String prefix = ns.getPrefix();
             if (prefix == null || prefix.length() == 0) {
                 writeDefaultNamespace(ns.getNamespaceURI());
             } else {
@@ -199,10 +195,8 @@ public class RepairingNsStreamWriter
         throws XMLStreamException
     {
         mStartElementOpen = false;
-        // Ok... time to verify namespaces were written ok?
-        if (mCheckNS && !mAutomaticNS) {
-            mCurrElem.checkAllNsWrittenOk();
-        }
+
+	// No need to check that all was output, in repairing mode
 
         try {
             if (emptyElem) {
@@ -232,35 +226,9 @@ public class RepairingNsStreamWriter
     ////////////////////////////////////////////////////
      */
 
-    /**
-     * Method called to somehow find a prefix for given namespace; either
-     * use an existing one, or generate a new one.
-     *
-     * @param oldPrefix Prefix caller originally suggested that did not match
-     *    the namespace URI, if any; null if caller didn't suggest a prefix.
-     * @param nsURI URI of namespace for which we need a prefix
-     * @param defaultNsOk Whether default namespace prefix (empty String)
-     *   is acceptable (can not be used for attributes)
-     */
-    private String findOrCreatePrefix(String oldPrefix, String nsURI,
-                                      boolean defaultNsOk)
+    protected String generatePrefix(String oldPrefix, String nsURI)
         throws XMLStreamException
     {
-        String prefix = mCurrElem.findPrefix(nsURI, defaultNsOk);
-        if (prefix != null) {
-            return prefix;
-        }
-
-        prefix = generatePrefix(oldPrefix, nsURI);
-        mCurrElem.addPrefix(prefix, nsURI);
-        doWriteNamespace(prefix, nsURI);
-        return prefix;
-    }
-
-    private String generatePrefix(String oldPrefix, String nsURI)
-        throws XMLStreamException
-    {
-        // If not, how about in root namespace context?
         /* ??? 10-May-2004, TSa: Is it ok to make use of root context, even
          *   if 'automatic namespace' feature is not set? But if not, what
          *   good would root namespace be?
@@ -276,25 +244,12 @@ public class RepairingNsStreamWriter
             }
         }
 
-        // Can we generate it?
-        if (!mAutomaticNS) {
-            if (oldPrefix != null) {
-                throw new XMLStreamException("Prefix '"+oldPrefix+"' did not match (or wasn't declared for) namespace '"
-                                             +nsURI+"', can not generate a new prefix since feature '"
-                                             +XMLOutputFactory.IS_REPAIRING_NAMESPACES
-                                             +"' not enabled.");
-            }
-            throw new XMLStreamException("Can not create automatic namespace for namespace URI '"
-                                         +nsURI+"', feature '"
-                                         +XMLOutputFactory.IS_REPAIRING_NAMESPACES
-                                         +"' not enabled.");
-        }
         return mCurrElem.generatePrefix(mRootNsContext);
     }
 
-    //private void checkStartElement(String localName)
+    //void checkStartElement(String localName)
 
-    private void writeStartOrEmpty(String prefix, String localName, String nsURI,
+    protected void writeStartOrEmpty(String prefix, String localName, String nsURI,
                                    boolean isEmpty)
         throws XMLStreamException
     {
@@ -304,43 +259,30 @@ public class RepairingNsStreamWriter
         // Need to clear ns declarations for next start/empty elems:
         mNsDecl = null;
 
-        /* 21-Sep-2004, TSa: Shouldn't need this -- automatic namespace
-         *   repairing should take care of this, in doWriteStartElement.
-         */
-        // Ok, need to check validity of the prefix?
-        //boolean outputNS = false;
-
-        if (mCheckNS) {
-            int status = mCurrElem.isPrefixValid(prefix, nsURI, mCheckNS, true);
-            if (status != OutputElement.PREFIX_OK) {
-System.err.println("Wrong prefix '"+prefix+"' -> "+status);
-                /* Either wrong prefix (need to find the right one), or
-                 * non-existing one...
-                 */
-                if (status == OutputElement.PREFIX_MISBOUND) { // mismatch?
-                    prefix = mCurrElem.findPrefix(nsURI, true);
-                } else { // just not declared
-                    if (mAutomaticNS) { // Let's just add it automatically
-                        mCurrElem.addPrefix(prefix, nsURI);
-                    } else { // error
-                        throwOutputError("Undeclared prefix '"+prefix+"' for element <"+prefix+":"+localName+">");
-                    }
-                }
-
-                // Either way, we may have to create a new prefix?
-                if (prefix == null) {
-                    //outputNS = true;
-                    prefix = generatePrefix(null, nsURI);
-                    mCurrElem.addPrefix(prefix, nsURI);
-                }
-            }
-        }
+	// Always have to check, in repairing mode:
+	int status = mCurrElem.isPrefixValid(prefix, nsURI, mCheckNS, true);
+	if (status != OutputElement.PREFIX_OK) {
+	    /* Either wrong prefix (need to find the right one), or
+	     * non-existing one...
+	     */
+	    if (status == OutputElement.PREFIX_MISBOUND) { // mismatch?
+		prefix = mCurrElem.findPrefix(nsURI, true);
+	    } else { // just not declared
+		mCurrElem.addPrefix(prefix, nsURI);
+	    }
+	    
+	    // Either way, we may have to create a new prefix?
+	    if (prefix == null) {
+		prefix = generatePrefix(null, nsURI);
+		mCurrElem.addPrefix(prefix, nsURI);
+	    }
+	}
 
         mCurrElem.setPrefix(prefix);
         doWriteStartElement(prefix, localName);
     }
 
-    private void doWriteStartElement(String prefix, String localName)
+    protected void doWriteStartElement(String prefix, String localName)
         throws XMLStreamException
     {
         mAnyOutput = true;
@@ -357,9 +299,7 @@ System.err.println("Wrong prefix '"+prefix+"' -> "+status);
              *    also automatically output all declared namespaces
              *    (whether they are automatic or not)
              */
-            if (mAutomaticNS) {
-                mCurrElem.outputDeclaredNamespaces(mWriter);
-            }
+	    mCurrElem.outputDeclaredNamespaces(mWriter);
         } catch (IOException ioe) {
             throw new XMLStreamException(ioe);
         }
@@ -374,7 +314,7 @@ System.err.println("Wrong prefix '"+prefix+"' -> "+status);
      * Note: Caller has to do actual removal of the element from element
      * stack, before calling this method.
      */
-    private void doWriteEndElement(String prefix, String localName)
+    protected void doWriteEndElement(String prefix, String localName)
         throws XMLStreamException
     {
         if (mStartElementOpen) {
@@ -382,9 +322,6 @@ System.err.println("Wrong prefix '"+prefix+"' -> "+status);
              * processing. Thus, this is almost identical to closeStartElement:
              */
             mStartElementOpen = false;
-            if (mCheckNS && !mAutomaticNS) {
-                mCurrElem.checkAllNsWrittenOk();
-            }
             
             try {
                 // We could write an empty element, implicitly?

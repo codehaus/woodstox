@@ -158,22 +158,16 @@ public class SimpleNsStreamWriter
         String nsURI = name.getNamespaceURI();
         if (nsURI == null) {
             writeStartElement(name.getLocalPart());
-        }
-        
-        String prefix = name.getPrefix();
-        if (mAutomaticNS && 
-            (prefix == null || prefix.length() == 0)) {
-            writeStartElement(nsURI, name.getLocalPart());
-                
         } else {
-            writeStartElement(prefix, name.getLocalPart(), nsURI);
-        }
+	    String prefix = name.getPrefix();
+	    writeStartElement(prefix, name.getLocalPart(), nsURI);
+	}
     
         // And now we need to output namespaces (including default), if any:
         it = elem.getNamespaces();
         while (it.hasNext()) {
             Namespace ns = (Namespace) it.next();
-            prefix = ns.getPrefix();
+            String prefix = ns.getPrefix();
             if (prefix == null || prefix.length() == 0) {
                 writeDefaultNamespace(ns.getNamespaceURI());
             } else {
@@ -207,7 +201,7 @@ public class SimpleNsStreamWriter
     {
         mStartElementOpen = false;
         // Ok... time to verify namespaces were written ok?
-        if (mCheckNS && !mAutomaticNS) {
+        if (mCheckNS) {
             mCurrElem.checkAllNsWrittenOk();
         }
 
@@ -239,32 +233,7 @@ public class SimpleNsStreamWriter
     ////////////////////////////////////////////////////
      */
 
-    /**
-     * Method called to somehow find a prefix for given namespace; either
-     * use an existing one, or generate a new one.
-     *
-     * @param oldPrefix Prefix caller originally suggested that did not match
-     *    the namespace URI, if any; null if caller didn't suggest a prefix.
-     * @param nsURI URI of namespace for which we need a prefix
-     * @param defaultNsOk Whether default namespace prefix (empty String)
-     *   is acceptable (can not be used for attributes)
-     */
-    private String findOrCreatePrefix(String oldPrefix, String nsURI,
-                                      boolean defaultNsOk)
-        throws XMLStreamException
-    {
-        String prefix = mCurrElem.findPrefix(nsURI, defaultNsOk);
-        if (prefix != null) {
-            return prefix;
-        }
-
-        prefix = generatePrefix(oldPrefix, nsURI);
-        mCurrElem.addPrefix(prefix, nsURI);
-        doWriteNamespace(prefix, nsURI);
-        return prefix;
-    }
-
-    private String generatePrefix(String oldPrefix, String nsURI)
+    protected String generatePrefix(String oldPrefix, String nsURI)
         throws XMLStreamException
     {
         // If not, how about in root namespace context?
@@ -283,26 +252,22 @@ public class SimpleNsStreamWriter
             }
         }
 
-        // Can we generate it?
-        if (!mAutomaticNS) {
-            if (oldPrefix != null) {
-                throw new XMLStreamException("Prefix '"+oldPrefix+"' did not match (or wasn't declared for) namespace '"
-                                             +nsURI+"', can not generate a new prefix since feature '"
-                                             +XMLOutputFactory.IS_REPAIRING_NAMESPACES
-                                             +"' not enabled.");
-            }
-            throw new XMLStreamException("Can not create automatic namespace for namespace URI '"
-                                         +nsURI+"', feature '"
-                                         +XMLOutputFactory.IS_REPAIRING_NAMESPACES
-                                         +"' not enabled.");
-        }
-        return mCurrElem.generatePrefix(mRootNsContext);
+	if (oldPrefix != null) {
+	    throw new XMLStreamException("Prefix '"+oldPrefix+"' did not match (or wasn't declared for) namespace '"
+					 +nsURI+"', can not generate a new prefix since feature '"
+					 +XMLOutputFactory.IS_REPAIRING_NAMESPACES
+					 +"' not enabled.");
+	}
+	throw new XMLStreamException("Can not create automatic namespace for namespace URI '"
+				     +nsURI+"', feature '"
+				     +XMLOutputFactory.IS_REPAIRING_NAMESPACES
+				     +"' not enabled.");
     }
 
-    //private void checkStartElement(String localName)
+    //void checkStartElement(String localName)
 
-    private void writeStartOrEmpty(String prefix, String localName, String nsURI,
-                                   boolean isEmpty)
+    protected void writeStartOrEmpty(String prefix, String localName, String nsURI,
+				     boolean isEmpty)
         throws XMLStreamException
     {
         checkStartElement(localName);
@@ -320,23 +285,17 @@ public class SimpleNsStreamWriter
         if (mCheckNS) {
             int status = mCurrElem.isPrefixValid(prefix, nsURI, mCheckNS, true);
             if (status != OutputElement.PREFIX_OK) {
-System.err.println("Wrong prefix '"+prefix+"' -> "+status);
                 /* Either wrong prefix (need to find the right one), or
                  * non-existing one...
                  */
                 if (status == OutputElement.PREFIX_MISBOUND) { // mismatch?
                     prefix = mCurrElem.findPrefix(nsURI, true);
-                } else { // just not declared
-                    if (mAutomaticNS) { // Let's just add it automatically
-                        mCurrElem.addPrefix(prefix, nsURI);
-                    } else { // error
-                        throwOutputError("Undeclared prefix '"+prefix+"' for element <"+prefix+":"+localName+">");
-                    }
+                } else { // not declared
+		    throwOutputError("Undeclared prefix '"+prefix+"' for element <"+prefix+":"+localName+">");
                 }
 
                 // Either way, we may have to create a new prefix?
                 if (prefix == null) {
-                    //outputNS = true;
                     prefix = generatePrefix(null, nsURI);
                     mCurrElem.addPrefix(prefix, nsURI);
                 }
@@ -347,7 +306,7 @@ System.err.println("Wrong prefix '"+prefix+"' -> "+status);
         doWriteStartElement(prefix, localName);
     }
 
-    private void doWriteStartElement(String prefix, String localName)
+    protected void doWriteStartElement(String prefix, String localName)
         throws XMLStreamException
     {
         mAnyOutput = true;
@@ -360,13 +319,7 @@ System.err.println("Wrong prefix '"+prefix+"' -> "+status);
             }
             mWriter.write(localName);
 
-            /* 21-Sep-2004, TSa: In ns-repairing mode we can/need to
-             *    also automatically output all declared namespaces
-             *    (whether they are automatic or not)
-             */
-            if (mAutomaticNS) {
-                mCurrElem.outputDeclaredNamespaces(mWriter);
-            }
+	    // No need to implicitly write namespace declarations...
         } catch (IOException ioe) {
             throw new XMLStreamException(ioe);
         }
@@ -381,7 +334,7 @@ System.err.println("Wrong prefix '"+prefix+"' -> "+status);
      * Note: Caller has to do actual removal of the element from element
      * stack, before calling this method.
      */
-    private void doWriteEndElement(String prefix, String localName)
+    protected void doWriteEndElement(String prefix, String localName)
         throws XMLStreamException
     {
         if (mStartElementOpen) {
@@ -389,7 +342,7 @@ System.err.println("Wrong prefix '"+prefix+"' -> "+status);
              * processing. Thus, this is almost identical to closeStartElement:
              */
             mStartElementOpen = false;
-            if (mCheckNS && !mAutomaticNS) {
+            if (mCheckNS) {
                 mCurrElem.checkAllNsWrittenOk();
             }
             
