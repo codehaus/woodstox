@@ -35,6 +35,10 @@ Description:
     * Finished full default value validation support (mostly relevant for
       NOTATION, ENTITY and ENTITIES types).
     * Improved event writer so that it preserves CDATA events.
+    * Fixed a problem with UTF-8 decoder that could cause readers to block
+      "too early", as decoder was trying to always read full buffers,
+      instead of returning whatever could be decoded without further reads
+      from the underlying input stream (reported by Sven Köhler).
 
   Refactoring:
     * Rewrote stream writer; now has 3 implementations (separated

@@ -25,6 +25,8 @@ import javax.xml.stream.*;
 import javax.xml.stream.events.*;
 import javax.xml.stream.util.XMLEventAllocator;
 
+import org.codehaus.stax2.XMLEventReader2;
+
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.exc.WstxParsingException;
 import com.ctc.wstx.util.ExceptionUtil;
@@ -48,7 +50,7 @@ import com.ctc.wstx.util.ExceptionUtil;
  * </ul>
  */
 public class WstxEventReader
-    implements XMLEventReader,
+    implements XMLEventReader2,
                XMLStreamConstants
 {
     protected final int STATE_INITIAL = 1;
@@ -91,15 +93,30 @@ public class WstxEventReader
         mReader = r;
     }
 
-    public void close() {
+    /*
+    //////////////////////////////////////////////////////
+    // XMLEventReader API
+    //////////////////////////////////////////////////////
+     */
+
+    public void close()
+        throws XMLStreamException
+    {
         /* Nothing much we can do -- sure, could make factory and reader
          * non-final, clear them up, but what's the point?
          */
+        /*
         try { // Stupid StAX 1.0 incompatibilities
             mReader.close();
         } catch (XMLStreamException sex) {
             throwFromSex(sex); 
         }
+        */
+
+        /* 05-Dec-2004, TSa: Actually, looks like we can just throw
+         *   the XMLStreamReader ok?
+         */
+        mReader.close();
     }
 
     public String getElementText()
@@ -276,6 +293,24 @@ public class WstxEventReader
      */
     public void remove() {
         throw new UnsupportedOperationException("Can not remove events from XMLEventReader.");
+    }
+
+    /*
+    //////////////////////////////////////////////////////
+    // XMLEventReader2 API
+    //////////////////////////////////////////////////////
+     */
+
+    /**
+     *<p>
+     * Note: although the interface allows implementations to
+     * throw an {@link XMLStreamException}, Woodstox doesn't need
+     * to. Because of that, it's not declared in signature.
+     */
+    public boolean hasNextEvent()
+        throws XMLStreamException
+    {
+        return (mState != STATE_EOD);
     }
 
     /*
