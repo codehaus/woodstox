@@ -4,7 +4,7 @@ package org.codehaus.stax2;
  * Interface that specifies additional access methods for accessing
  * combined attribute information reader has, after parsing individual
  * and combining that with DTD information (if any available; depends on
- * parser's mode etc. etc.).
+ * parser's mode).
  *<p>
  * Note: instances of AttributeInfo are only guaranteed to persist as long
  * as the (stream) reader points to the START_ELEMENT event, during

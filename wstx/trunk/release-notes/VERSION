@@ -15,6 +15,7 @@ Description:
 
     * Stream reader now correctly accesses attribute type information,
       when validating against DTD (passes matching staxtest test case).
+    * Source package now contains jars absolutely needed for compilation.
 
 == History: ==
 
@@ -63,6 +64,9 @@ Description:
   Refactoring:
     * Rewrote stream writer; now has 3 implementations (separated
       single namespace-aware writer into 2; repairing and non-repairing)
+
+  Other:
+    * Now dual-licensed under LGPL and ASL (formerly LGPL-only)
 
 1.6: [31-Oct-2004]
 

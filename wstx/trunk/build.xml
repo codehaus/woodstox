@@ -317,6 +317,10 @@
           <tarfileset dir="." includes="release-notes/lgpl/*" />
           <tarfileset dir="." includes="build.xml" />
           <tarfileset dir="." includes="project.xml" />
+          <!-- need jars too; at least the api jar, but let's copy
+               all for now
+            -->
+          <tarfileset dir="." includes="lib/*.jar" />
        </tar>
        <gzip zipfile="${DistDir}/wstx-src.tar.gz" src="${DistDir}/wstx-src.tar" />
        <delete file="${DistDir}/wstx-src.tar" />
