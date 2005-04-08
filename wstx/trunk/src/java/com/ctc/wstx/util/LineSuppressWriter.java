@@ -133,7 +133,7 @@ public class LineSuppressWriter
         // Split line break from last output?
         if (mCurrPtr > 0 && mCurrLine[mCurrPtr-1] == '\r') {
             if (str.charAt(i) == '\n') {
-                append('\n');
+                appendChar('\n');
                 ++i;
             }
             flushLine();
@@ -166,7 +166,7 @@ public class LineSuppressWriter
                         }
                         if (str.charAt(i) == '\n') {
                             ++i;
-                            append('\n');
+                            appendChar('\n');
                         }
                     } else {
                         continue;
@@ -192,7 +192,7 @@ public class LineSuppressWriter
                     }
                     if (str.charAt(i) == '\n') {
                         ++i;
-                        append('\n');
+                        appendChar('\n');
                     }
                 } else {
                     continue;
@@ -211,7 +211,7 @@ public class LineSuppressWriter
         // Split line break from last output?
         if (mCurrPtr > 0 && mCurrLine[mCurrPtr-1] == '\r') {
             if (cbuf[i] == '\n') {
-                append('\n');
+                appendChar('\n');
                 ++i;
             }
             flushLine();
@@ -244,7 +244,7 @@ public class LineSuppressWriter
                         }
                         if (cbuf[i] == '\n') {
                             ++i;
-                            append('\n');
+                            appendChar('\n');
                         }
                     } else {
                         continue;
@@ -270,7 +270,7 @@ public class LineSuppressWriter
                     }
                     if (cbuf[i] == '\n') {
                         ++i;
-                        append('\n');
+                        appendChar('\n');
                     }
                 } else {
                     continue;
@@ -299,7 +299,13 @@ public class LineSuppressWriter
         return newBuf;
     }
 
-    private void append(char c) {
+    /**
+     *<p>
+     * Note: this method was renamed from 'append()' due to collision
+     * with JDK 1.5 added method of same name (as reported by
+     * Olivier Potonniee)
+     */
+    private void appendChar(char c) {
         if (mCurrPtr >= mCurrLine.length) {
             resize();
         }

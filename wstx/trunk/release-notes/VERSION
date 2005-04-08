@@ -11,7 +11,10 @@ Description:
 
    * XMLStreamWriter:
       * Repairing mode was not properly handling namespace bindings, esp.
-        WRT default namespace.
+        WRT default namespace. Now the implementation is believed to
+        (finally!) work exactly as expected.
+   * A compilation problem (on JDK 1.5) reported by Olivier Potonniee (a
+     method name conflict in LineSuppressWriter)
 
 == History: ==
 

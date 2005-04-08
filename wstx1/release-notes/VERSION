@@ -7,6 +7,10 @@ Description:
 
   Problems fixed:
 
+  * Fixed incorrect package name for class FilteredEventReader,
+    and a conflicting method name (with JDK1.5) for LineSuppressWriter
+    (reported by Olivier.Potonniee)
+
 History:
 
 1.0.5 [23-Mar-2005]

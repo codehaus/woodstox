@@ -34,6 +34,7 @@ import com.ctc.wstx.stax.cfg.ReaderConfig;
 import com.ctc.wstx.stax.dtd.DTDId;
 import com.ctc.wstx.stax.dtd.DTDSubset;
 import com.ctc.wstx.stax.dtd.FullDTDReaderProxy;
+import com.ctc.wstx.stax.evt.FilteredEventReader;
 import com.ctc.wstx.stax.exc.WstxIOException;
 import com.ctc.wstx.stax.io.*;
 import com.ctc.wstx.stax.stream.FilteredStreamReader;

@@ -6,6 +6,9 @@ import java.util.zip.GZIPInputStream;
 
 import javax.xml.stream.*;
 
+import org.codehaus.stax2.LocationInfo;
+import org.codehaus.stax2.XMLStreamReader2;
+
 import com.ctc.wstx.api.WstxInputProperties;
 
 /**
@@ -118,7 +121,7 @@ public class TestStreamReader
 
         int total = 0;
         InputStream in;
-        XMLStreamReader sr;
+        XMLStreamReader2 sr;
 
         in = new FileInputStream(file);
 
@@ -140,7 +143,7 @@ public class TestStreamReader
         }
         */
 
-        sr = f.createXMLStreamReader(file.toURL().toString(), in);
+        sr = (XMLStreamReader2) f.createXMLStreamReader(file.toURL().toString(), in);
         //sr = f.createXMLStreamReader(in);
 
         /* 
@@ -159,6 +162,12 @@ public class TestStreamReader
             boolean hasName = sr.hasName();
 
             System.out.print("["+type+"]");
+
+            // Uncomment for location info debugging:
+            LocationInfo li = sr.getLocationInfo();
+            System.out.println(" BEGIN: "+li.getStartLocation());
+            System.out.println(" CURR:  "+li.getCurrentLocation());
+            System.out.println(" END:   "+li.getEndLocation());
 
             if (sr.hasText()) {
                 String text = sr.getText();

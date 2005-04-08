@@ -63,3 +63,8 @@ Marius Raschip:
   * Reported a problem with handling of UTF-16 (and in general all non-UTF-8
     multi-byte encodings): wasn't handling xml declaration correctly.
     [1.0.5]
+
+Olivier.Potonniee:
+  * Reported compilation problems (incorrect package name for one class,
+    conflicting method name for LineSuppressWriter)
+    [1.0.6]

@@ -28,6 +28,8 @@ import javax.xml.stream.XMLReporter;
 import javax.xml.stream.XMLResolver;
 import javax.xml.stream.XMLStreamException;
 
+import org.codehaus.stax2.XMLStreamLocation2;
+
 import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.cfg.InputConfigFlags;
@@ -310,7 +312,7 @@ public abstract class StreamScanner
 
     /*
     ////////////////////////////////////////////////////
-    // Public API
+    // Package API
     ////////////////////////////////////////////////////
      */
 
@@ -318,7 +320,7 @@ public abstract class StreamScanner
      * Method that returns location of the last character returned by this
      * reader.
      */
-    public WstxInputLocation getLastCharLocation()
+    protected WstxInputLocation getLastCharLocation()
     {
         // Sanity check:
         if (mInput == null) { // shouldn't happen...
@@ -330,12 +332,53 @@ public abstract class StreamScanner
                                   mCurrInputRow, mInputPtr - mCurrInputRowStart);
     }
 
-    public URL getSource() {
+    protected URL getSource() {
         return mInput.getSource();
     }
 
-    public String getSystemId() {
+    protected String getSystemId() {
         return mInput.getSystemId();
+    }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Partial LocationInfo implementation
+    ////////////////////////////////////////////////////
+     */
+
+    /**
+     * Returns location of last properly parsed token; generally matching
+     * start of current event, depending on sub-class that updates location
+     * information
+     */
+    public Location getLocation()
+    {
+        /* !!! 07-Apr-2004, TSa: This is actually wrong (as in different from
+         *   what StAX specs say), but makes more sense (I think).
+         */
+        return getStartLocation();
+    }
+
+    public XMLStreamLocation2 getStartLocation()
+    {
+        // Sanity check:
+        if (mInput == null) { // shouldn't happen...
+            return new WstxInputLocation(null, "", "", mTokenInputTotal,
+                                         mTokenInputCol, mTokenInputRow);
+        }
+        return mInput.getLocation(mTokenInputTotal, mTokenInputRow, mTokenInputCol);
+    }
+
+    public XMLStreamLocation2 getCurrentLocation()
+    {
+        // Sanity check:
+        if (mInput == null) { // shouldn't happen...
+            return new WstxInputLocation(null, "", "",
+                                         mCurrInputProcessed + mInputPtr,
+                                         mCurrInputRow, mInputPtr - mCurrInputRowStart + 1);
+        }
+        return mInput.getLocation(mCurrInputProcessed + mInputPtr,
+                                  mCurrInputRow, mInputPtr - mCurrInputRowStart + 1);
     }
 
     /*
@@ -431,21 +474,6 @@ public abstract class StreamScanner
         } catch (XMLStreamException e) {
             System.err.println("Problem reporting a problem: "+e);
         }
-    }
-
-    /**
-     * Returns location of last properly parsed token; generally matching
-     * start of current event, depending on sub-class that updates location
-     * information
-     */
-    public Location getLocation()
-    {
-        // Sanity check:
-        if (mInput == null) { // shouldn't happen...
-            return new WstxInputLocation(null, "", "", mTokenInputTotal,
-                                         mTokenInputCol, mTokenInputRow);
-        }
-        return mInput.getLocation(mTokenInputTotal, mTokenInputRow, mTokenInputCol);
     }
 
     /*

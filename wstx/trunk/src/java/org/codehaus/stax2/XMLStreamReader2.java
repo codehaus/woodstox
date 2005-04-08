@@ -126,6 +126,14 @@ public interface XMLStreamReader2
     public AttributeInfo getAttributeInfo() throws XMLStreamException;
 
     /*
+    /////////////////////////////////////////
+    // Additional location information access
+    /////////////////////////////////////////
+    */
+
+    public LocationInfo getLocationInfo();
+
+    /*
     ///////////////////////////////
     // Pass-through text accessors
     ///////////////////////////////

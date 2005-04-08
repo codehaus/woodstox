@@ -26,6 +26,8 @@ import javax.xml.stream.XMLStreamException;
 
 import org.codehaus.stax2.AttributeInfo;
 import org.codehaus.stax2.DTDInfo;
+import org.codehaus.stax2.LocationInfo;
+import org.codehaus.stax2.XMLStreamLocation2;
 import org.codehaus.stax2.XMLStreamReader2;
 
 import com.ctc.wstx.api.ReaderConfig;
@@ -69,7 +71,7 @@ import com.ctc.wstx.util.URLUtil;
  */
 public class WstxStreamReader
     extends StreamScanner
-    implements StreamReaderImpl, DTDInfo
+    implements StreamReaderImpl, DTDInfo, LocationInfo
 {
     /**
      * StAX API expects null to indicate "no prefix", not an empty String...
@@ -1112,6 +1114,34 @@ public class WstxStreamReader
             }
         }
         return this;
+    }
+
+    // // // StAX2, Additional location information
+
+    /**
+     * Location information is always accessible, for this reader.
+     */
+    public LocationInfo getLocationInfo() {
+        return this;
+    }
+
+    // public Location getLocation() // from base class
+    // public XMLStreamLocation2 getStartLocation() // from base class
+    // public XMLStreamLocation2 getCurrentLocation() // - "" -
+
+    public XMLStreamLocation2 getEndLocation()
+        throws XMLStreamException
+    {
+        // Need to get to the end of the token, if not there yet
+        if (mStTokenUnfinished) {
+            try {
+                finishToken();
+            } catch (IOException ie) {
+                throwFromIOE(ie);
+            }
+        }
+        // And then we just need the current location!
+        return getCurrentLocation();
     }
 
 

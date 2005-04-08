@@ -1,4 +1,4 @@
-package com.ctc.wstx.stax;
+package com.ctc.wstx.stax.evt;
 
 import java.io.IOException;
 
