@@ -937,14 +937,9 @@ public class WstxStreamReader
     public int next()
         throws XMLStreamException
     {
-        /* First we need to store current input location information, so
-         * that exact location at/before current token can be reliably
-         * retrieved.
+        /* Note: can not yet accurately record the location, since the
+         * previous event might not yet be completely finished...
          */
-        mTokenInputTotal = mCurrInputProcessed + mInputPtr;
-        mTokenInputRow = mCurrInputRow;
-        mTokenInputCol = mInputPtr - mCurrInputRowStart;
-
         try {
             if (mParseState == STATE_TREE) {
                 int type = nextFromTree();
@@ -1817,7 +1812,12 @@ public class WstxStreamReader
         if (mStTokenUnfinished) {
             mStTokenUnfinished = false;
             i = skipToken();
+            // note: skipToken() updates the start location
         } else {
+            // Need to update the start location...
+            mTokenInputTotal = mCurrInputProcessed + mInputPtr;
+            mTokenInputRow = mCurrInputRow;
+            mTokenInputCol = mInputPtr - mCurrInputRowStart;
             i = getNext();
         }
 
@@ -1841,6 +1841,15 @@ public class WstxStreamReader
             }
             // If not, can skip it right away
             i = getNextAfterWS((char)i);
+            // ... after which location has to be reset properly:
+            /* 11-Apr-2005, TSa: But note that we need to "move back"
+             *   column and total offset values by one, to compensate
+             *   for the char that was read (row can not have changed,
+             *   since it's non-WS, and thus non-lf/cr char)
+             */
+            mTokenInputTotal = mCurrInputProcessed + mInputPtr - 1;
+            mTokenInputRow = mCurrInputRow;
+            mTokenInputCol = mInputPtr - mCurrInputRowStart - 1;
         }
 
         // Did we hit EOF?
@@ -2143,6 +2152,7 @@ public class WstxStreamReader
         if (mStTokenUnfinished) {
             mStTokenUnfinished = false;
             i = skipToken();
+            // note: skipToken() updates the start location
         } else {
             /* Start/end elements are never unfinished (ie. are always
              * completely read in)
@@ -2152,6 +2162,7 @@ public class WstxStreamReader
                 if (mStEmptyElem) {
                     // and if so, we'll then get 'virtual' close tag:
                     mStEmptyElem = false;
+                    // ... and location info is correct already
                     return END_ELEMENT;
                 }
             } else if (mCurrToken == END_ELEMENT) {
@@ -2161,6 +2172,7 @@ public class WstxStreamReader
                 if (mElementStack.isEmpty()) {
                     // if so, we'll get to epilog
                     mParseState = STATE_EPILOG;
+                    // this call will update the location too...
                     nextFromProlog(false);
                     return mCurrToken;
                 }
@@ -2169,6 +2181,11 @@ public class WstxStreamReader
                  * one character... but let's just read it like a new
                  * CData section first:
                  */
+
+                // First, need to update the start location...
+                mTokenInputTotal = mCurrInputProcessed + mInputPtr;
+                mTokenInputRow = mCurrInputRow;
+                mTokenInputCol = mInputPtr - mCurrInputRowStart;
                 char c = (mInputPtr < mInputLen) ? mInputBuffer[mInputPtr++]
                     : getNextChar(SUFFIX_IN_CDATA);
                 if (readCDataPrimary(c)) { // got it all!
@@ -2201,6 +2218,11 @@ public class WstxStreamReader
                  * any more text inside CDATA, so let's just continue
                  */
             }
+
+            // Once again, need to update the start location info:
+            mTokenInputTotal = mCurrInputProcessed + mInputPtr;
+            mTokenInputRow = mCurrInputRow;
+            mTokenInputCol = mInputPtr - mCurrInputRowStart;
             i = getNext();
         }
 
@@ -2738,6 +2760,10 @@ public class WstxStreamReader
      * Method called to skip last part of current token, when full token
      * has not been parsed. Generally happens when caller is not interested
      * in current token and just calls next() to iterate to next token.
+     *<p>
+     * Note: this method is to accurately update the location information
+     * to reflect where the next event will start (or, in case of EOF, where
+     * EOF was encountered, ie. where event would start, if there was one).
      *
      * @return Next character after node has been skipped, or -1 if EOF
      *    follows
@@ -2745,6 +2771,9 @@ public class WstxStreamReader
     private int skipToken()
         throws IOException, XMLStreamException
     {
+        int result;
+
+        main_switch:
         switch (mCurrToken) {
         case CDATA:
             {
@@ -2758,76 +2787,75 @@ public class WstxStreamReader
                     skipCommentOrCData(SUFFIX_IN_CDATA, ']', false);
                     mStPartialCData = false;
                 }
-                // Can't get EOF, as CDATA only legal in content tree
-                char c = getNextChar(SUFFIX_IN_DOC);
+                result = getNext();
                 // ... except if coalescing, may need to skip more:
                 if (mCfgCoalesceText) {
-                    return skipCoalescedText(c);
+                    result = skipCoalescedText(result);
                 }
-                return (int) c;
             }
+            break;
                 
         case COMMENT:
             skipCommentOrCData(SUFFIX_IN_COMMENT, '-', true);
-            return getNextChar(SUFFIX_IN_DOC);
+            result = 0;
+            break;
 
         case CHARACTERS:
             {
-                char c = skipTokenText(getNextChar(SUFFIX_IN_DOC));
+                result = skipTokenText(getNext());
                 // ... except if coalescing, need to skip more:
                 if (mCfgCoalesceText) {
-                    return skipCoalescedText(c);
+                    result = skipCoalescedText(result);
                 }
-                return c;
             }
+            break;
 
         case DTD:
-
             finishDTD(false);
-            return getNextChar(SUFFIX_IN_PROLOG);
+            result = 0;
+            break;
 
         case PROCESSING_INSTRUCTION:
-            {
-                while (true) {
-                    char c = (mInputPtr < mInputLen)
-                        ? mInputBuffer[mInputPtr++] : getNextCharFromCurrent(SUFFIX_IN_PROC_INSTR);
-                    if (c == '?') {
-                        do {
-                            c = (mInputPtr < mInputLen)
-                                ? mInputBuffer[mInputPtr++] : getNextCharFromCurrent(SUFFIX_IN_PROC_INSTR);
-                        } while (c == '?');
-                        if (c == '>') {
-                            return getNext();
-                        }
+            while (true) {
+                char c = (mInputPtr < mInputLen)
+                    ? mInputBuffer[mInputPtr++] : getNextCharFromCurrent(SUFFIX_IN_PROC_INSTR);
+                if (c == '?') {
+                    do {
+                        c = (mInputPtr < mInputLen)
+                            ? mInputBuffer[mInputPtr++] : getNextCharFromCurrent(SUFFIX_IN_PROC_INSTR);
+                    } while (c == '?');
+                    if (c == '>') {
+                        result = 0;
+                        break main_switch;
                     }
-                    if (c <= CHAR_CR_LF_OR_NULL) {
-                        if (c == '\n' || c == '\r') {
-                            skipCRLF(c);
-                        } else if (c == CHAR_NULL) {
-                            throwNullChar();
-                        }
+                }
+                if (c <= CHAR_CR_LF_OR_NULL) {
+                    if (c == '\n' || c == '\r') {
+                        skipCRLF(c);
+                    } else if (c == CHAR_NULL) {
+                        throwNullChar();
                     }
                 }
             }
-            // can never get here
+            // never gets in here
 
         case SPACE:
+
             while (true) {
                 // Fairly easy to skip through white space...
                 while (mInputPtr < mInputLen) {
                     char c = mInputBuffer[mInputPtr++];
-                    if (c > CHAR_SPACE) {
-                        return c;
+                    if (c > CHAR_SPACE) { // non-EOF non-WS?
+                        result = c;
+                        break main_switch;
                     }
                     if (c == CHAR_NULL) {
                         throwNullChar();
                     }
                 }
-                int ci = getNext();
-                if (ci < 0 || ci > CHAR_SPACE) {
-                    return ci;
-                } else if (ci == 0) {
-                    throwNullChar();
+                if (!loadMore()) {
+                    result = -1;
+                    break main_switch;
                 }
             }
             // never gets in here
@@ -2853,7 +2881,29 @@ public class WstxStreamReader
             throw new IllegalStateException("Internal error: unexpected token "+tokenTypeDesc(mCurrToken));
 
         }
-        // never gets this far
+
+        /* Ok; now we have 3 possibilities; result is:
+         *
+         * + 0 -> could reliably read the prev event, now need the
+         *   following char/EOF
+         * + -1 -> hit EOF; can return it
+         * + something else -> this is the next c har, return it.
+         *
+         * In first 2 cases, next event start offset is the current location;
+         * in third case, it needs to be backtracked by one char
+         */
+        if (result < 1) {
+            mTokenInputRow = mCurrInputRow;
+            mTokenInputTotal = mCurrInputProcessed + mInputPtr;
+            mTokenInputCol = mInputPtr - mCurrInputRowStart;
+            return (result < 0) ? result : getNext();
+        }
+
+        // Ok, need to offset location, and return whatever we got:
+        mTokenInputRow = mCurrInputRow;
+        mTokenInputTotal = mCurrInputProcessed + mInputPtr - 1;
+        mTokenInputCol = mInputPtr - mCurrInputRowStart - 1;
+        return result;
     }
 
     private void skipCommentOrCData(String errorMsg, char endChar, boolean preventDoubles)
@@ -2910,53 +2960,65 @@ public class WstxStreamReader
         }
     }
 
-    private int skipCoalescedText(char c)
+    /**
+     * Method called to skip past all following text and CDATA segments,
+     * until encountering something else (including a general entity,
+     * which may in turn expand to text).
+     *
+     * @return Character following all the skipped text and CDATA segments,
+     *   if any; or -1 to denote EOF
+     */
+    private int skipCoalescedText(int i)
         throws IOException, XMLStreamException
     {
         while (true) {
             // Ok, plain text or markup?
-            if (c == '<') { // markup, maybe CDATA?
+            if (i == '<') { // markup, maybe CDATA?
                 // Need to distinguish "<![" from other tags/directives
                 if (!ensureInput(3)) {
                     /* Most likely an error condition, but let's leave
                      * it up for other parts of code to complain.
                      */
-                    return c;
+                    return i;
                 }
                 if (mInputBuffer[mInputPtr] != '!'
                     || mInputBuffer[mInputPtr+1] != '[') {
                     // Nah, some other tag or directive
-                    return c;
+                    return i;
                 }
                 // Let's skip beginning parts, then:
                 mInputPtr += 2;
                 // And verify we get proper CDATA directive
                 checkCData();
                 skipCommentOrCData(SUFFIX_IN_CDATA, ']', false);
-                c = getNextChar(SUFFIX_IN_DOC);
+                i = getNext();
+            } else if (i < 0) { // eof
+                return i;
             } else { // nah, normal text, gotta skip
-                c = skipTokenText(c);
+                i = skipTokenText(i);
                 /* Did we hit an unexpandable entity? If so, need to
                  * return ampersand to the caller...
+                 * (and same for EOF too)
                  */
-                if (c == '&') {
-                    return c;
+                if (i == '&' || i < 0) {
+                    return i;
                 }
             }
         }
     }
 
-    private char skipTokenText(char c)
+    private int skipTokenText(int i)
         throws IOException, XMLStreamException
     {
         /* Fairly easy; except for potential to have entities
          * expand to some crap?
          */
+        main_loop:
         while (true) {
-            if (c == '<') {
-                return c;
+            if (i == '<') {
+                return i;
             }
-            if (c == '&') {
+            if (i == '&') {
                 // Can entities be resolved automatically?
                 if (mCfgReplaceEntities) {
                     // Let's first try quick resolution:
@@ -2964,7 +3026,7 @@ public class WstxStreamReader
                         && resolveSimpleEntity(true) != CHAR_NULL) {
                         ;
                     } else {
-                        c = fullyResolveEntity(mCustomEntities, mGeneralEntities, true);
+                        i = fullyResolveEntity(mCustomEntities, mGeneralEntities, true);
                         /* Either way, it's just fine; we don't care about
                          * returned single-char value.
                          */
@@ -2977,19 +3039,31 @@ public class WstxStreamReader
                         /* Now points to the char after ampersand, and we need
                          * to return the ampersand itself
                          */
-                        return c;
+                        return i;
                     }
                 }
-            } else if (c <= CHAR_CR_LF_OR_NULL) {
-                if (c == '\r' || c == '\n') {
-                    skipCRLF(c);
-                } else if (c == CHAR_NULL) {
+            } else if (i <= INT_CR_LF_OR_NULL) {
+                if (i == '\r' || i == '\n') {
+                    skipCRLF((char) i);
+                } else if (i == INT_NULL) {
                     throwNullChar();
+                } else if (i < 0) { // EOF
+                    return i;
                 }
             }
-            c = (mInputPtr < mInputLen)
-                ? mInputBuffer[mInputPtr++] : getNextChar(SUFFIX_IN_TEXT);
+
+            // Hmmh... let's do quick looping here:
+            while (mInputPtr < mInputLen) {
+                char c = mInputBuffer[mInputPtr++];
+                if (c < CHAR_FIRST_PURE_TEXT) { // need to check it
+                    i = c;
+                    continue main_loop;
+                }
+            }
+
+            i = getNext();
         }
+        // never gets here...
     }
 
     /*

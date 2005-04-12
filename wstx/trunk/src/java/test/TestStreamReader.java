@@ -79,11 +79,12 @@ public class TestStreamReader
          * use some fairly small (but not tiny) number...
          */
 
-        /*
         if (f.isPropertySupported(WstxInputProperties.P_INPUT_BUFFER_LENGTH)) {
             f.setProperty(WstxInputProperties.P_INPUT_BUFFER_LENGTH,
-                          new Integer(29));
+                          new Integer(13));
         }
+
+        /*
         if (f.isPropertySupported(WstxInputProperties.P_TEXT_BUFFER_LENGTH)) {
             f.setProperty(WstxInputProperties.P_TEXT_BUFFER_LENGTH,
                           new Integer(20));

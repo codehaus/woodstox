@@ -37,8 +37,10 @@ public class WstxInputData
      * it is not a legal character in an XML document.
      */
     public final static char CHAR_NULL = '\u0000';
+    public final static char INT_NULL = 0;
 
     public final static char CHAR_SPACE = (char) 0x0020;
+    public final static char INT_SPACE = 0x0020;
 
     /*
     ////////////////////////////////////////////////////

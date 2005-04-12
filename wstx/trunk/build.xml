@@ -468,7 +468,7 @@
             <classpath>
                 <pathelement path="${BuildClassesDir}" />
                 <pathelement location="${TestClassesDir}" /> 
-                <path refid="junit_libraries"/>
+                <path refid="junit-libs"/>
             </classpath>     
         </junit>
 

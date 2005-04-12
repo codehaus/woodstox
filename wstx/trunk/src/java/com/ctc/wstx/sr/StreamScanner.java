@@ -59,11 +59,13 @@ public abstract class StreamScanner
      */
     public final static char CHAR_CR_LF_OR_NULL = (char) 13;
 
+    public final static int INT_CR_LF_OR_NULL = 13;
+
     /**
      * Character that allows quick check of whether a char can potentially
-     * be some kind of markup, or needs to be replaced (lt, linefeed,
-     * ampersand); has to contain linefeeds, &, < and > (">" only as part
-     * of "]]>")
+     * be some kind of markup, WRT input stream processing;
+     * has to contain linefeeds, &, < and > (">" only matters when
+     * quoting text, as part of "]]>")
      */
     protected final static char CHAR_FIRST_PURE_TEXT = (char) ('>' + 1);
 
@@ -354,7 +356,7 @@ public abstract class StreamScanner
     public Location getLocation()
     {
         /* !!! 07-Apr-2004, TSa: This is actually wrong (as in different from
-         *   what StAX specs say), but makes more sense (I think).
+         *   what StAX specs say), but makes more sense (I think)?
          */
         return getStartLocation();
     }
@@ -375,10 +377,10 @@ public abstract class StreamScanner
         if (mInput == null) { // shouldn't happen...
             return new WstxInputLocation(null, "", "",
                                          mCurrInputProcessed + mInputPtr,
-                                         mCurrInputRow, mInputPtr - mCurrInputRowStart + 1);
+                                         mCurrInputRow, mInputPtr - mCurrInputRowStart);
         }
         return mInput.getLocation(mCurrInputProcessed + mInputPtr,
-                                  mCurrInputRow, mInputPtr - mCurrInputRowStart + 1);
+                                  mCurrInputRow, mInputPtr - mCurrInputRowStart);
     }
 
     /*
