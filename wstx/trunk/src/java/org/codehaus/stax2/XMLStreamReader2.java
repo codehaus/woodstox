@@ -186,7 +186,8 @@ public interface XMLStreamReader2
      *   that further calls to <code>getText</code> is not guaranteed to
      *   return meaningful data.
      *
-     * @return
+     * @return Reader through which textual contents of the current event
+     *    can be read.
      */
     public Reader getTextReader(boolean preserveContents)
         throws IOException, XMLStreamException;

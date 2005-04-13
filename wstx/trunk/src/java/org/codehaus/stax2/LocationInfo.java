@@ -18,6 +18,98 @@ import javax.xml.stream.XMLStreamException;
  */
 public interface LocationInfo
 {
+    /*
+    /////////////////////////////////////////////////////
+    // Low-level "raw" location access methods
+    /////////////////////////////////////////////////////
+     */
+
+    /**
+     * Method that can be used to get exact byte offset (number of bytes
+     * read from the stream right before getting to this location) in the
+     * stream that is pointed to by this reader, right before the start
+     * of the current event.
+     *<p>
+     * Note: this value MAY be the same as the one returned by
+     * {@link #getStartingCharOffset}, but usually only for single-byte
+     * character streams (Ascii, ISO-Latin).
+     *
+     * @return Byte offset (== number of bytes reader so far) within the
+     *   underlying stream, if the stream and stream reader are able to
+     *   provide this (separate from the character offset, for variable-byte
+     *   encodings); -1 if not.
+     */
+    public long getStartingByteOffset();
+
+    /**
+     * Method that can be used to get exact character offset (number of chars
+     * read from the stream right before getting to this location) in the
+     * stream that is pointed to by this reader, right before the start
+     * of the current event.
+     *<p>
+     * Note: this value MAY be the same as the one returned by
+     * {@link #getStartingByteOffset}; this is the case for single-byte
+     * character streams (Ascii, ISO-Latin), as well as for streams for
+     * which byte offset information is not available (Readers, Strings).
+     *
+     * @return Character offset (== number of bytes reader so far) within the
+     *   underlying stream, if the stream and stream reader are able to
+     *   provide this (separate from byte offset, for variable-byte
+     *   encodings); -1 if not.
+     */
+    public long getStartingCharOffset();
+
+    /**
+     * Method that can be used to get exact byte offset (number of bytes
+     * read from the stream right before getting to this location) in the
+     * stream that is pointed to by this reader, right after the end
+     * of the current event.
+     *<p>
+     * Note: this value MAY be the same as the one returned by
+     * {@link #getEndingCharOffset}, but usually only for single-byte
+     * character streams (Ascii, ISO-Latin).
+     *<p>
+     * Note: for lazy-loading implementations, calling this method may
+     * require the underlying stream to be advanced and contents parsed;
+     * this is why it is possible that an exception be thrown.
+     *
+     * @return Byte offset (== number of bytes reader so far) within the
+     *   underlying stream, if the stream and stream reader are able to
+     *   provide this (separate from the character offset, for variable-byte
+     *   encodings); -1 if not.
+     */
+    public long getEndingByteOffset()
+        throws XMLStreamException;
+
+    /**
+     * Method that can be used to get exact character offset (number of chars
+     * read from the stream right before getting to this location) in the
+     * stream that is pointed to by this reader, right after the end
+     * of the current event.
+     *<p>
+     * Note: this value MAY be the same as the one returned by
+     * {@link #getEndingByteOffset}; this is the case for single-byte
+     * character streams (Ascii, ISO-Latin), as well as for streams for
+     * which byte offset information is not available (Readers, Strings).
+     *<p>
+     * Note: for lazy-loading implementations, calling this method may
+     * require the underlying stream to be advanced and contents parsed;
+     * this is why it is possible that an exception be thrown.
+     *
+     * @return Character offset (== number of bytes reader so far) within the
+     *   underlying stream, if the stream and stream reader are able to
+     *   provide this (separate from byte offset, for variable-byte
+     *   encodings); -1 if not.
+     */
+    public long getEndingCharOffset()
+        throws XMLStreamException;
+
+    /*
+    /////////////////////////////////////////////////////
+    // Object-oriented location access methods
+    /////////////////////////////////////////////////////
+     */
+
     // // // Existing method from XMLStreamReader:
 
     public Location getLocation();
@@ -44,6 +136,21 @@ public interface LocationInfo
     public XMLStreamLocation2 getStartLocation();
 
     /**
+     * A method that returns the current location of the stream reader
+     * at the input source. This is somewhere between the start
+     * and end locations (inclusive), depending on how parser does it
+     * parsing (for non-lazy implementations it's always the end location;
+     * for others something else).
+     *<p>
+     * Since this location information should always be accessible, no
+     * further parsing is to be done, and no exceptions can be thrown.
+     *
+     * @return Location of the next character reader will parse in the
+     *   input source.
+     */
+    public XMLStreamLocation2 getCurrentLocation();
+
+    /**
      * An optional method that either returns the location object that points the
      * ending position of the current event, or null if implementation
      * does not keep track of it (some may return only start location; and
@@ -64,19 +171,4 @@ public interface LocationInfo
      */
     public XMLStreamLocation2 getEndLocation()
         throws XMLStreamException;
-
-    /**
-     * A method that returns the current location of the stream reader
-     * at the input source. This is somewhere between the start
-     * and end locations (inclusive), depending on how parser does it
-     * parsing (for non-lazy implementations it's always the end location;
-     * for others something else).
-     *<p>
-     * Since this location information should always be accessible, no
-     * further parsing is to be done, and no exceptions can be thrown.
-     *
-     * @return Location of the next character reader will parse in the
-     *   input source.
-     */
-    public XMLStreamLocation2 getCurrentLocation();
 }

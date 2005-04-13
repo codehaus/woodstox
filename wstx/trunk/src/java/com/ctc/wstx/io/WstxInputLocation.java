@@ -74,16 +74,6 @@ public class WstxInputLocation
     ////////////////////////////////////////////////////////
      */
 
-    public long getActualByteOffset() {
-        // !!! TBI
-        return -1;
-    }
-
-    public long getActualCharacterOffset() {
-        // !!! Need to upgrade actual offset variable to long
-        return mCharOffset;
-    }
-
     public XMLStreamLocation2 getContext() { return mContext; }
 
     /*
@@ -160,7 +150,7 @@ public class WstxInputLocation
         sb.append(mCol);
 
         // Uncomment for testing, to see the char offset:
-        //sb.append(" #").append(mCharOffset);
+        sb.append(" #").append(mCharOffset);
 
         if (srcId != null) {
             sb.append(',');

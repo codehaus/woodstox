@@ -1852,7 +1852,7 @@ public class FullDTDReader
          * char), let's get that info now (note: data has been preserved
          * earlier)
          */
-        Location loc = getLocation();
+        Location loc = getStartLocation();
 
         // Ok, where's our element?
         HashMap m = getElementMap();
@@ -1901,7 +1901,7 @@ public class FullDTDReader
          * char), let's get that info now (note: data has been preserved
          * earlier)
          */
-        Location loc = getLocation();
+        Location loc = getStartLocation();
 
         // Ok; name got, need some white space next
         c = skipObligatoryDtdWs(true);
@@ -2015,7 +2015,7 @@ public class FullDTDReader
          * char), let's get that info now (note: data has been preserved
          * earlier)
          */
-        Location evtLoc = getLocation();
+        Location evtLoc = getStartLocation();
         EntityDecl ent;
 
         try {
@@ -2137,7 +2137,7 @@ public class FullDTDReader
          * char), let's get that info now (note: data has been preserved
          * earlier)
          */
-        Location evtLoc = getLocation();
+        Location evtLoc = getStartLocation();
         NotationDecl nd = new NotationDecl(evtLoc, id, pubId, sysId);
 
         // Any definitions from the internal subset?

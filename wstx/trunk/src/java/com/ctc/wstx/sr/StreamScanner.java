@@ -320,18 +320,23 @@ public abstract class StreamScanner
 
     /**
      * Method that returns location of the last character returned by this
-     * reader.
+     * reader; that is, location "one less" than the currently pointed to
+     * location.
      */
     protected WstxInputLocation getLastCharLocation()
     {
         // Sanity check:
+        /*
         if (mInput == null) { // shouldn't happen...
             return new WstxInputLocation(null, "", "",
                                          mCurrInputProcessed + mInputPtr - 1,
-                                         mCurrInputRow, mInputPtr - mCurrInputRowStart);
+                                         mCurrInputRow,
+                                         mInputPtr - mCurrInputRowStart);
         }
+        */
         return mInput.getLocation(mCurrInputProcessed + mInputPtr - 1,
-                                  mCurrInputRow, mInputPtr - mCurrInputRowStart);
+                                  mCurrInputRow,
+                                  mInputPtr - mCurrInputRowStart);
     }
 
     protected URL getSource() {
@@ -343,44 +348,31 @@ public abstract class StreamScanner
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Partial LocationInfo implementation
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////
+    // Partial LocationInfo implementation (not implemented
+    // by this base class, but is by some sub-classes)
+    ///////////////////////////////////////////////////////
      */
 
     /**
-     * Returns location of last properly parsed token; generally matching
-     * start of current event, depending on sub-class that updates location
-     * information
+     * Returns location of last properly parsed token; as per StAX specs,
+     * apparently needs to be the end of current event, which is the same
+     * as the start of the following event (or EOF if that's next).
      */
-    public Location getLocation()
-    {
-        /* !!! 07-Apr-2004, TSa: This is actually wrong (as in different from
-         *   what StAX specs say), but makes more sense (I think)?
-         */
-        return getStartLocation();
-    }
+    public abstract Location getLocation();
 
     public XMLStreamLocation2 getStartLocation()
     {
-        // Sanity check:
-        if (mInput == null) { // shouldn't happen...
-            return new WstxInputLocation(null, "", "", mTokenInputTotal,
-                                         mTokenInputCol, mTokenInputRow);
-        }
-        return mInput.getLocation(mTokenInputTotal, mTokenInputRow, mTokenInputCol);
+        // note: +1 is used as columns are 1-based...
+        return mInput.getLocation(mTokenInputTotal, mTokenInputRow,
+                                  mTokenInputCol + 1);
     }
 
     public XMLStreamLocation2 getCurrentLocation()
     {
-        // Sanity check:
-        if (mInput == null) { // shouldn't happen...
-            return new WstxInputLocation(null, "", "",
-                                         mCurrInputProcessed + mInputPtr,
-                                         mCurrInputRow, mInputPtr - mCurrInputRowStart);
-        }
         return mInput.getLocation(mCurrInputProcessed + mInputPtr,
-                                  mCurrInputRow, mInputPtr - mCurrInputRowStart);
+                                  mCurrInputRow,
+                                  mInputPtr - mCurrInputRowStart + 1);
     }
 
     /*

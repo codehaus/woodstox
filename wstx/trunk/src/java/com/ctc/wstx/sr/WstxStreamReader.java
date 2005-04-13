@@ -1116,29 +1116,9 @@ public class WstxStreamReader
     /**
      * Location information is always accessible, for this reader.
      */
-    public LocationInfo getLocationInfo() {
+    public final LocationInfo getLocationInfo() {
         return this;
     }
-
-    // public Location getLocation() // from base class
-    // public XMLStreamLocation2 getStartLocation() // from base class
-    // public XMLStreamLocation2 getCurrentLocation() // - "" -
-
-    public XMLStreamLocation2 getEndLocation()
-        throws XMLStreamException
-    {
-        // Need to get to the end of the token, if not there yet
-        if (mStTokenUnfinished) {
-            try {
-                finishToken();
-            } catch (IOException ie) {
-                throwFromIOE(ie);
-            }
-        }
-        // And then we just need the current location!
-        return getCurrentLocation();
-    }
-
 
     // // // StAX2, Pass-through text accessors
 
@@ -1212,7 +1192,8 @@ public class WstxStreamReader
      *   that further calls to <code>getText</code> is not guaranteed to
      *   return meaningful data.
      *
-     * @return
+     * @return Reader through which textual contents of the current event
+     *    can be read.
      */
     public Reader getTextReader(boolean preserveContents)
         throws IOException, XMLStreamException
@@ -1312,6 +1293,62 @@ public class WstxStreamReader
          * to call this
          */
         return mTextBuffer.contentsAsArray();
+    }
+
+    /*
+    ////////////////////////////////////////////////////
+    // LocationInfo implementation (StAX 2)
+    ////////////////////////////////////////////////////
+     */
+
+    // // // First, the "raw" offset accessors:
+
+    public long getStartingByteOffset() {
+        // !!! TBI (if and when underlying input source can do it)
+        return -1L;
+    }
+
+    public long getStartingCharOffset() {
+        // !!! TBI
+        return -1L;
+    }
+
+    public long getEndingByteOffset() throws XMLStreamException {
+        // !!! TBI (if and when underlying input source can do it)
+        return -1;
+    }
+
+    public long getEndingCharOffset() throws XMLStreamException {
+        // Need to get to the end of the token, if not there yet
+        if (mStTokenUnfinished) {
+            try { finishToken(); } catch (IOException ie) {
+                throwFromIOE(ie);
+            }
+        }
+        // !!! TBI
+        return -1L;
+    }
+
+    // // // and then the object-based access methods:
+
+    public final Location getLocation() {
+        return getStartLocation();
+    }
+
+    // public XMLStreamLocation2 getStartLocation() // from base class
+    // public XMLStreamLocation2 getCurrentLocation() // - "" -
+
+    public final XMLStreamLocation2 getEndLocation()
+        throws XMLStreamException
+    {
+        // Need to get to the end of the token, if not there yet
+        if (mStTokenUnfinished) {
+            try { finishToken(); } catch (IOException ie) {
+                throwFromIOE(ie);
+            }
+        }
+        // And then we just need the current location!
+        return getCurrentLocation();
     }
 
     /*

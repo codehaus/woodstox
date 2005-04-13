@@ -17,6 +17,8 @@ package com.ctc.wstx.dtd;
 
 import java.io.IOException;
 
+import javax.xml.stream.Location;
+
 import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.ent.EntityDecl;
 import com.ctc.wstx.exc.WstxException;
@@ -98,6 +100,16 @@ public class MinimalDTDReader
     // Abstract methods from StreamScanner
     //////////////////////////////////////////////////
      */
+
+    /**
+     * What DTD reader returns doesn't really matter, so let's just return
+     * perceived start location (different from what stream readers actually
+     * do)
+     */
+    public final Location getLocation()
+    {
+        return getStartLocation();
+    }
 
     /*
     //////////////////////////////////////////////////
