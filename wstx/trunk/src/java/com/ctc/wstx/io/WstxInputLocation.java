@@ -150,7 +150,8 @@ public class WstxInputLocation
         sb.append(mCol);
 
         // Uncomment for testing, to see the char offset:
-        sb.append(" #").append(mCharOffset);
+        //sb.append(" #").append(mCharOffset);
+        //sb.append("{").append(System.identityHashCode(this)).append("}");
 
         if (srcId != null) {
             sb.append(',');

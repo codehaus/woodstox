@@ -167,7 +167,7 @@ public class TestStreamReader
             // Uncomment for location info debugging:
             LocationInfo li = sr.getLocationInfo();
             System.out.println(" BEGIN: "+li.getStartLocation());
-            System.out.println(" CURR:  "+li.getCurrentLocation());
+            //System.out.println(" CURR:  "+li.getCurrentLocation());
             System.out.println(" END:   "+li.getEndLocation());
 
             if (sr.hasText()) {

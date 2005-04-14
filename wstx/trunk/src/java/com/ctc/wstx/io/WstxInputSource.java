@@ -104,7 +104,7 @@ public abstract class WstxInputSource
      * source. Works since at this point context (line, row, chars) information
      * has already been saved to this object.
      */
-    public abstract WstxInputLocation getLocation();
+    protected abstract WstxInputLocation getLocation();
 
     public abstract WstxInputLocation getLocation(int total, int row, int col);
 

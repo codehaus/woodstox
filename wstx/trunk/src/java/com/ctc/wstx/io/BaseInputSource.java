@@ -46,6 +46,19 @@ public abstract class BaseInputSource
 
     int mSavedInputPtr = 0;
 
+    /*
+    ////////////////////////////////////////////////////////////////
+    // Some simple lazy-loading/reusing support...
+    ////////////////////////////////////////////////////////////////
+    */
+
+    transient WstxInputLocation mParentLocation = null;
+
+    /*
+    ////////////////////////////////////////////////////////////////
+    // Life-cycle
+    ////////////////////////////////////////////////////////////////
+    */
     protected BaseInputSource(WstxInputSource parent, String fromEntity,
                               String publicId, String systemId, URL src)
     {
@@ -116,15 +129,34 @@ public abstract class BaseInputSource
     //////////////////////////////////////////////////////////
      */
 
-    public final WstxInputLocation getLocation()
+    /**
+     * This method only gets called by the 'child' input source (for example,
+     * contents of an expanded entity), to get the enclosing context location.
+     */
+    protected final WstxInputLocation getLocation()
     {
+        // Note: columns are 1-based, need to add 1.
         return getLocation(mSavedInputProcessed + mSavedInputPtr - 1,
-                           mSavedInputRow, mSavedInputPtr - mSavedInputRowStart);
+                           mSavedInputRow,
+                           mSavedInputPtr - mSavedInputRowStart + 1);
     }
 
     public final WstxInputLocation getLocation(int total, int row, int col)
     {
-        WstxInputLocation pl = (mParent == null) ? null : mParent.getLocation();
+        WstxInputLocation pl;
+
+        if (mParent == null) {
+            pl = null;
+        } else {
+            /* 13-Apr-2005, TSa: We can actually reuse parent location, since
+             *   it can not change during lifetime of this child context...
+             */
+            pl = mParentLocation;
+            if (pl == null) {
+                mParentLocation = pl = mParent.getLocation();
+            }
+            pl = mParent.getLocation();
+        }
         return new WstxInputLocation(pl, getPublicId(), getSystemId(),
                                      total, row, col);
     }

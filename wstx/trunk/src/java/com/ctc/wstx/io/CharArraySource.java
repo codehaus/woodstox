@@ -52,7 +52,11 @@ public final class CharArraySource
     {
         reader.mCurrInputProcessed = mContentStart.getCharacterOffset();
         reader.mCurrInputRow = mContentStart.getLineNumber();
-        reader.mCurrInputRowStart = -mContentStart.getColumnNumber();
+        /* 13-Apr-2005, TSa: Since column offsets reported by Location
+         *   objects are 1-based, but internally we use 0-based counts,
+         *   need to offset this start by 1 to begin with.
+         */
+        reader.mCurrInputRowStart = -mContentStart.getColumnNumber() + 1;
     }
 
     public int readInto(WstxInputData reader)
