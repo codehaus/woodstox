@@ -38,7 +38,8 @@ public class WstxInputLocation
 
     final String mPublicId, mSystemId;
     
-    final int mCharOffset, mCol, mRow;
+    final int mCharOffset;
+    final int mCol, mRow;
 
     transient String mDesc = null;
 
@@ -52,7 +53,10 @@ public class WstxInputLocation
         mContext = ctxt;
         mPublicId = pubId;
         mSystemId = sysId;
-        mCharOffset = charOffset;
+        /* Overflow? Can obviously only handle limited range of overflows,
+         * but let's do that at least?
+         */
+        mCharOffset = (charOffset < 0) ? Integer.MAX_VALUE : charOffset;
         mCol = col;
         mRow = row;
     }

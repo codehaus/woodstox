@@ -75,7 +75,7 @@ public class WstxInputData
      * Current number of characters that were processed in previous blocks,
      * before contents of current input buffer.
      */
-    protected int mCurrInputProcessed = 0;
+    protected long mCurrInputProcessed = 0L;
 
     /**
      * Current row location of current point in input buffer, starting

@@ -20,7 +20,7 @@ public interface LocationInfo
 {
     /*
     /////////////////////////////////////////////////////
-    // Low-level "raw" location access methods
+    // Low-level extended "raw" location access methods
     /////////////////////////////////////////////////////
      */
 

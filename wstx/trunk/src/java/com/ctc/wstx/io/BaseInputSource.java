@@ -30,6 +30,9 @@ public abstract class BaseInputSource
      */
     protected char[] mBuffer;
 
+    /**
+     * Length of the buffer, if buffer used
+     */
     protected int mInputLen;
 
     /*
@@ -39,8 +42,13 @@ public abstract class BaseInputSource
     // to a nested input source.
     ////////////////////////////////////////////////////////////////
     */
-    
-    int mSavedInputProcessed = 0;
+
+    /**
+     * Number of characters read from the current input source prior to
+     * the current buffer
+     */
+    long mSavedInputProcessed = 0;
+
     int mSavedInputRow = 1;
     int mSavedInputRowStart = 0;
 
@@ -136,12 +144,12 @@ public abstract class BaseInputSource
     protected final WstxInputLocation getLocation()
     {
         // Note: columns are 1-based, need to add 1.
-        return getLocation(mSavedInputProcessed + mSavedInputPtr - 1,
+        return getLocation(mSavedInputProcessed + mSavedInputPtr - 1L,
                            mSavedInputRow,
                            mSavedInputPtr - mSavedInputRowStart + 1);
     }
 
-    public final WstxInputLocation getLocation(int total, int row, int col)
+    public final WstxInputLocation getLocation(long total, int row, int col)
     {
         WstxInputLocation pl;
 
@@ -157,7 +165,11 @@ public abstract class BaseInputSource
             }
             pl = mParent.getLocation();
         }
+        /* !!! 15-Apr-2005, TSa: This will cause overflow for total count,
+         *   but since StAX 1.0 API doesn't have any way to deal with that,
+         *   let's just let that be...
+         */
         return new WstxInputLocation(pl, getPublicId(), getSystemId(),
-                                     total, row, col);
+                                     (int) total, row, col);
     }
 }

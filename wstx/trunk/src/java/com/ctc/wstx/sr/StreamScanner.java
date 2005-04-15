@@ -270,8 +270,10 @@ public abstract class StreamScanner
 
     /**
      * Total number of characters read before start of current token.
+     * For big (gigabyte-sized) sizes are possible, needs to be long,
+     * unlike pointers and sizes related to in-memory buffers.
      */
-    protected int mTokenInputTotal = 0; 
+    protected long mTokenInputTotal = 0; 
 
     /**
      * Input row on which current token starts
@@ -325,15 +327,6 @@ public abstract class StreamScanner
      */
     protected WstxInputLocation getLastCharLocation()
     {
-        // Sanity check:
-        /*
-        if (mInput == null) { // shouldn't happen...
-            return new WstxInputLocation(null, "", "",
-                                         mCurrInputProcessed + mInputPtr - 1,
-                                         mCurrInputRow,
-                                         mInputPtr - mCurrInputRowStart);
-        }
-        */
         return mInput.getLocation(mCurrInputProcessed + mInputPtr - 1,
                                   mCurrInputRow,
                                   mInputPtr - mCurrInputRowStart);

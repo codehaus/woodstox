@@ -83,6 +83,8 @@ public abstract class BaseStreamWriter
     ////////////////////////////////////////////////////
      */
 
+    protected final WriterConfig mConfig;
+
     // // // Operating mode: base class needs to know whether
     // // // namespaces are support (for entity/PI target validation)
 
@@ -169,6 +171,7 @@ public abstract class BaseStreamWriter
     protected BaseStreamWriter(Writer w, WriterConfig cfg)
     {
         mWriter = w;
+        mConfig = cfg;
 
         int flags = cfg.getConfigFlags();
         mNsAware = (flags & CFG_ENABLE_NS) != 0;
@@ -234,8 +237,7 @@ public abstract class BaseStreamWriter
     public abstract String getPrefix(String uri);
 
     public Object getProperty(String name) {
-        // No properties yet?
-        return null;
+        return mConfig.getProperty(name);
     }
 
     public abstract void setDefaultNamespace(String uri)

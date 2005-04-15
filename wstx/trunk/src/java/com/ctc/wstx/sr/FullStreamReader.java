@@ -133,23 +133,17 @@ public class FullStreamReader
 
     public Object getProperty(String name)
     {
-        // Need to have full info...
-        if (mStTokenUnfinished) {
-            try { finishToken(); } catch (Exception ie) {
-                throwLazyError(ie);
-            }
-        }
-
         // DTD-specific properties...
-        if (mCurrToken == DTD && mDTD != null) {
-            if (name.equals(STAX_PROP_ENTITIES)) {
-                return mDTD.getGeneralEntityList();
-            }
-            if (name.equals(STAX_PROP_NOTATIONS)) {
-                return mDTD.getNotationList();
-            }
+        if (name.equals(STAX_PROP_ENTITIES)) {
+            safeEnsureFinishToken();
+            return (mCurrToken == DTD && mDTD != null) ? 
+                mDTD.getGeneralEntityList() : null;
         }
-
+        if (name.equals(STAX_PROP_NOTATIONS)) {
+            safeEnsureFinishToken();
+            return (mCurrToken == DTD && mDTD != null) ? 
+                mDTD.getNotationList() : null;
+        }
         return super.getProperty(name);
     }
 

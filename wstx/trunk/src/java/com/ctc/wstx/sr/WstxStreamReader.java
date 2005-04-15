@@ -419,21 +419,9 @@ public class WstxStreamReader
     ////////////////////////////////////////////////////
      */
 
-    /**
-     * Base class doesn't have much to implement, since all currently
-     * available properties are DTD related.
-     */
     public Object getProperty(String name)
     {
-        // Need to have full info... (uncomment if adding functionality)
-        /*
-        if (mStTokenUnfinished) {
-            try { finishToken(); } catch (Exception ie) {
-                throwLazyError(ie);
-            }
-        }
-        */
-        return null;
+        return mConfig.getProperty(name);
     }
 
     /*
@@ -656,9 +644,7 @@ public class WstxStreamReader
             return null;
         }
         if (mStTokenUnfinished) {
-            try { finishToken(); } catch (Exception ie) {
-                throwLazyError(ie);
-            }
+            safeFinishToken();
         }
         return mTextBuffer.contentsAsString();
     }
@@ -683,11 +669,7 @@ public class WstxStreamReader
             throwNotTextual(mCurrToken);
         }
         if (mStTokenUnfinished) {
-            try {
-                finishToken();
-            } catch (Exception ie) {
-                throwLazyError(ie);
-            }
+            safeFinishToken();
         }
         if (mCurrToken == ENTITY_REFERENCE) {
             return mCurrEntity.getReplacementText();
@@ -708,11 +690,7 @@ public class WstxStreamReader
             throwNotTextual(mCurrToken);
         }
         if (mStTokenUnfinished) {
-            try {
-                finishToken();
-            } catch (Exception ie) {
-                throwLazyError(ie);
-            }
+            safeFinishToken();
         }
         if (mCurrToken == ENTITY_REFERENCE) {
             return mCurrEntity.getReplacementChars();
@@ -732,11 +710,7 @@ public class WstxStreamReader
             throwNotTextual(mCurrToken);
         }
         if (mStTokenUnfinished) {
-            try {
-                finishToken();
-            } catch (Exception ie) {
-                throwLazyError(ie);
-            }
+            safeFinishToken();
         }
         if (mCurrToken == ENTITY_REFERENCE) {
             char[] c = mCurrEntity.getReplacementChars();
@@ -777,11 +751,7 @@ public class WstxStreamReader
             throwNotTextual(mCurrToken);
         }
         if (mStTokenUnfinished) {
-            try {
-                finishToken();
-            } catch (Exception ie) {
-                throwLazyError(ie);
-            }
+            safeFinishToken();
         }
         if (mCurrToken == ENTITY_REFERENCE) {
             return mCurrEntity.getReplacementTextLength();
@@ -799,11 +769,7 @@ public class WstxStreamReader
             throwNotTextual(mCurrToken);
         }
         if (mStTokenUnfinished) {
-            try {
-                finishToken();
-            } catch (Exception ie) {
-                throwLazyError(ie);
-            }
+            safeFinishToken();
         }
         if (mCurrToken == ENTITY_REFERENCE || mCurrToken == DTD) {
             return 0;
@@ -856,11 +822,7 @@ public class WstxStreamReader
     {
         if (mCurrToken == CHARACTERS || mCurrToken == CDATA) {
             if (mStTokenUnfinished) {
-                try {
-                    finishToken();
-                } catch (Exception ie) {
-                    throwLazyError(ie);
-                }
+                safeFinishToken();
             }
             if (mWsStatus == ALL_WS_UNKNOWN) {
                 mWsStatus = mTextBuffer.isAllWhitespace() ?
@@ -1102,11 +1064,7 @@ public class WstxStreamReader
             return null;
         }
         if (mStTokenUnfinished) { // need to fully read it in now
-            try {
-                finishToken();
-            } catch (IOException ie) {
-                throwFromIOE(ie);
-            }
+            wrappedFinishToken();
         }
         return this;
     }
@@ -1151,11 +1109,7 @@ public class WstxStreamReader
             throwNotTextual(mCurrToken);
         }
         if (mStTokenUnfinished) {
-            try {
-                finishToken();
-            } catch (Exception ie) {
-                throwLazyError(ie);
-            }
+            finishToken();
         }
         if (mCurrToken == ENTITY_REFERENCE) {
             return mCurrEntity.getReplacementText(w);
@@ -1202,11 +1156,7 @@ public class WstxStreamReader
             throwNotTextual(mCurrToken);
         }
         if (mStTokenUnfinished) {
-            try {
-                finishToken();
-            } catch (Exception ie) {
-                throwLazyError(ie);
-            }
+            finishToken();
         }
         if (mCurrToken == ENTITY_REFERENCE) {
 	    String text = mCurrEntity.getReplacementText();
@@ -1304,29 +1254,33 @@ public class WstxStreamReader
     // // // First, the "raw" offset accessors:
 
     public long getStartingByteOffset() {
-        // !!! TBI (if and when underlying input source can do it)
+        /* 15-Apr-2005, TSa: No way to reliably keep track of byte offsets,
+         *   at least for variable-length encodings... so let's just
+         *   return -1 for now
+         */
         return -1L;
     }
 
     public long getStartingCharOffset() {
-        // !!! TBI
-        return -1L;
+        return mTokenInputTotal;
     }
 
-    public long getEndingByteOffset() throws XMLStreamException {
-        // !!! TBI (if and when underlying input source can do it)
+    public long getEndingByteOffset() throws XMLStreamException
+    {
+        /* 15-Apr-2005, TSa: No way to reliably keep track of byte offsets,
+         *   at least for variable-length encodings... so let's just
+         *   return -1 for now
+         */
         return -1;
     }
 
-    public long getEndingCharOffset() throws XMLStreamException {
+    public long getEndingCharOffset() throws XMLStreamException
+    {
         // Need to get to the end of the token, if not there yet
         if (mStTokenUnfinished) {
-            try { finishToken(); } catch (IOException ie) {
-                throwFromIOE(ie);
-            }
+            wrappedFinishToken();
         }
-        // !!! TBI
-        return -1L;
+        return mCurrInputProcessed + mInputPtr;
     }
 
     // // // and then the object-based access methods:
@@ -1343,9 +1297,7 @@ public class WstxStreamReader
     {
         // Need to get to the end of the token, if not there yet
         if (mStTokenUnfinished) {
-            try { finishToken(); } catch (IOException ie) {
-                throwFromIOE(ie);
-            }
+            wrappedFinishToken();
         }
         // And then we just need the current location!
         return getCurrentLocation();
@@ -1404,7 +1356,7 @@ public class WstxStreamReader
 
     /*
     ////////////////////////////////////////////////////
-    // Internal methods, configuration access:
+    // Internal methods, config access
     ////////////////////////////////////////////////////
      */
 
@@ -3108,6 +3060,40 @@ public class WstxStreamReader
     // Internal methods, parsing
     ////////////////////////////////////////////////////
      */
+
+    protected void ensureFinishToken()
+        throws XMLStreamException
+    {
+        if (mStTokenUnfinished) {
+            wrappedFinishToken();
+        }
+    }
+
+    protected void safeEnsureFinishToken()
+    {
+        if (mStTokenUnfinished) {
+            safeFinishToken();
+        }
+    }
+
+    protected void wrappedFinishToken()
+        throws XMLStreamException
+    {
+        try {
+            finishToken();
+        } catch (IOException ie) {
+            throwFromIOE(ie);
+        }
+    }
+
+    protected void safeFinishToken()
+    {
+        try {
+            finishToken();
+        } catch (Exception e) {
+            throwLazyError(e);
+        }
+    }
 
     /**
      * Method called to read in contents of the token completely, if not
