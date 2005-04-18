@@ -279,7 +279,7 @@ public class WstxStreamReader
     ////////////////////////////////////////////////////
      */
 
-    protected final ReaderConfig mConfig;
+    // note: mConfig defined in base class
 
     /**
      * Various flags about tokenization state (TF_xxx)
@@ -334,7 +334,6 @@ public class WstxStreamReader
         mOwner = owner;
 
         mTextBuffer = new TextBuffer(cfg.getTextBufferLength());
-        mConfig = cfg;
         mConfigFlags = cfg.getConfigFlags();
 
         mCfgReplaceEntities = (mConfigFlags & CFG_REPLACE_ENTITY_REFS) != 0;

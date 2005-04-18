@@ -17,14 +17,6 @@ public final class WstxOutputProperties
     // // // Output options, simple on/off settings:
 
     /**
-     * Whether output classes should output (and optionally verify) namespace
-     * information or not. If false, will only make use of local part (which
-     * may contain colons); otherwise will consider prefix and namespace URI
-     * too.
-     */
-    public final static String P_OUTPUT_ENABLE_NS = "com.ctc.wstx.outputEnableNS";
-
-    /**
      * Whether output classes should output empty elements, when a start
      * element is immediately followed by matching end element, or not.
      * If true, will output empty elements; if false, will always create
@@ -84,16 +76,4 @@ public final class WstxOutputProperties
      * only contain legal XML identifier characters.
      */
     public final static String P_OUTPUT_VALIDATE_NAMES = "com.ctc.wstx.outputValidateNames";
-
-    // // // Output options, complex values:
-
-    /**
-     * Prefix to use for automatically created namespace prefixes.
-     */
-    public final static String P_OUTPUT_AUTOMATIC_NS_PREFIX = "com.ctc.wstx.outputAutomaticNsPrefix";
-
-    public final static String P_OUTPUT_TEXT_ESCAPER = "com.ctc.wstx.outputTextEscaper";
-
-    public final static String P_OUTPUT_ATTR_VALUE_ESCAPER = "com.ctc.wstx.outputAttrValueEscaper";
-
 }

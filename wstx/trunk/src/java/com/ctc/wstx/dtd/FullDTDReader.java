@@ -79,8 +79,6 @@ public class FullDTDReader
 
     final int mConfigFlags;
 
-    final XMLReporter mReporter;
-
     // Extracted wstx-specific settings:
 
     final boolean mCfgNormalizeLFs;
@@ -301,7 +299,6 @@ public class FullDTDReader
                           DTDSubset intSubset)
     {
         super(input, cfg, master, isExt);
-        mReporter = cfg.getXMLReporter();
         int cfgFlags = cfg.getConfigFlags();
         mConfigFlags = cfgFlags;
         mCfgNormalizeLFs = (cfgFlags & CFG_NORMALIZE_LFS) != 0;

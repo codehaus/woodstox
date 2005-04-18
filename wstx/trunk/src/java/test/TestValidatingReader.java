@@ -5,6 +5,8 @@ import java.util.List;
 
 import javax.xml.stream.*;
 
+import org.codehaus.stax2.XMLInputFactory2;
+
 import com.ctc.wstx.api.WstxInputProperties;
 
 /**
@@ -39,8 +41,8 @@ public class TestValidatingReader
 
         f.setProperty(XMLInputFactory.RESOLVER, new TestResolver1());
 
-        if (f.isPropertySupported(WstxInputProperties.P_REPORT_PROLOG_WHITESPACE)) {
-            f.setProperty(WstxInputProperties.P_REPORT_PROLOG_WHITESPACE, Boolean.FALSE);
+        if (f.isPropertySupported(XMLInputFactory2.P_REPORT_PROLOG_WHITESPACE)) {
+            f.setProperty(XMLInputFactory2.P_REPORT_PROLOG_WHITESPACE, Boolean.FALSE);
         }
         if (f.isPropertySupported(XMLInputFactory.IS_REPLACING_ENTITY_REFERENCES)) {
             f.setProperty(XMLInputFactory.IS_REPLACING_ENTITY_REFERENCES,

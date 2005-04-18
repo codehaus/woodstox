@@ -43,43 +43,6 @@ public final class WstxInputProperties
     public final static String P_NORMALIZE_ATTR_VALUES = "com.ctc.wstx.normalizeAttrValues";
 
 
-    // // // Event type conversions/suppression
-
-    /**
-     * Whether reader will generate 'ignorable white space' events during
-     * prolog and epilog; if true, will generate those events; if false,
-     * will just ignore white space in these parts of the parsed document.
-     *<p>
-     * Turning this feature off may give slight performance improvement,
-     * although usually effect should be negligible. This option is usually
-     * only turned on when round-trip output should be as similar to input
-     * as possible.
-     */
-    public final static String P_REPORT_PROLOG_WHITESPACE = "com.ctc.wstx.reportPrologWhitespace";
-
-    /**
-     * Whether cursor-based reader will ever generate CDATA events; if true,
-     * CDATA events may be generated for non-coalesced CDATA sections. If
-     * false, all CDATA sections are reported as CHARACTERS types. It may
-     * still be possible for event methods to distinguish between underlying
-     * type, but event type code will be reported as CHARACTERS.
-     *<p>
-     * State of property does not have any effect on performance.
-     */
-    public final static String P_REPORT_ALL_TEXT_AS_CHARACTERS = "com.ctc.wstx.reportAllTextAsCharacters";
-
-
-    // // // Interning settings:
-
-    /**
-     * Whether namespace URIs parsed should be interned or not.
-     * Interning can
-     * make access by fully-qualified name faster, but it adds some overhead
-     * when encountering symbol for the first time.
-     */
-    public final static String P_INTERN_NS_URIS = "com.ctc.wstx.internURIs";
-
-
     // // // XML character validation:
 
     // // !!! TBI (feature)
@@ -110,17 +73,6 @@ public final class WstxInputProperties
 
     public final static String P_LAZY_PARSING = "com.ctc.wstx.lazyParsing";
 
-    /**
-     * Property that determines whether Event objects created will
-     * contain (accurate) {@link javax.xml.stream.Location} information or not.
-     * If not, Location may be null or a fixed location (beginning of main
-     * XML file).
-     *<p>
-     * Note, however, that the underlying parser will still keep track
-     * of location information for error reporting purposes; it's only
-     * Event objects that are affected.
-     */
-    public final static String P_PRESERVE_LOCATION = "com.ctc.wstx.preserveLocation";
 
     // // // Enabling/disabling support for dtd++
 

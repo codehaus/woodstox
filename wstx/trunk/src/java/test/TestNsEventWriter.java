@@ -6,6 +6,8 @@ import java.util.*;
 import javax.xml.namespace.QName;
 import javax.xml.stream.*;
 
+import org.codehaus.stax2.XMLOutputFactory2;
+
 import com.ctc.wstx.api.WstxOutputProperties;
 import com.ctc.wstx.stax.WstxEventFactory;
 
@@ -31,7 +33,7 @@ public class TestNsEventWriter
         XMLOutputFactory f = getFactory();
         f.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES,
                       Boolean.TRUE);
-        f.setProperty(WstxOutputProperties.P_OUTPUT_ENABLE_NS,
+        f.setProperty(XMLOutputFactory2.P_NAMESPACE_AWARE,
                       Boolean.TRUE);
         f.setProperty(WstxOutputProperties.P_OUTPUT_EMPTY_ELEMENTS,
                       Boolean.TRUE);

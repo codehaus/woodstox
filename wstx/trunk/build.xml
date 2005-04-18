@@ -1,7 +1,14 @@
 <?xml version="1.0" standalone='yes'?>
 
     <project name="Woodstox XML processor" basedir="." default="readme">
+
     <property name="ProjectName" value="Woodstox XML processor" />
+
+    <!-- Hmmh... Jikes is better at finding semantic problems
+      than basic javac. But is this a personal preference?
+      Also, don't want to have a dependency to Jikes...
+    <property name="build.compiler" value="jikes" />
+    -->
 
     <!-- Source directories -->
     <property name="SrcDir" location="${basedir}/src" />

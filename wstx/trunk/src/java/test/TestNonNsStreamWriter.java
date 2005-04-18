@@ -4,6 +4,8 @@ import java.io.*;
 
 import javax.xml.stream.*;
 
+import org.codehaus.stax2.XMLOutputFactory2;
+
 import com.ctc.wstx.api.WstxOutputProperties;
 
 /**
@@ -26,7 +28,7 @@ public class TestNonNsStreamWriter
         throws Exception
     {
         XMLOutputFactory f = getFactory();
-        f.setProperty(WstxOutputProperties.P_OUTPUT_ENABLE_NS,
+        f.setProperty(XMLOutputFactory2.P_NAMESPACE_AWARE,
                       Boolean.FALSE);
         f.setProperty(WstxOutputProperties.P_OUTPUT_EMPTY_ELEMENTS,
                       Boolean.TRUE);

@@ -34,7 +34,7 @@ public class TestStreamCopier
         f.setProperty(XMLInputFactory.SUPPORT_DTD, Boolean.TRUE);
         f.setProperty(XMLInputFactory.IS_VALIDATING, Boolean.FALSE);
 
-        f.setProperty(WstxInputProperties.P_REPORT_PROLOG_WHITESPACE,
+        f.setProperty(XMLInputFactory2.P_REPORT_PROLOG_WHITESPACE,
                       Boolean.TRUE);
 
         //f.setProperty(WstxInputProperties.P_MIN_TEXT_SEGMENT, new Integer(9));

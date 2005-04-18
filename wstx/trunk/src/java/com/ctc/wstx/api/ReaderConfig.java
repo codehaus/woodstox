@@ -7,6 +7,8 @@ import java.util.Map;
 
 import javax.xml.stream.*;
 
+import org.codehaus.stax2.XMLInputFactory2; // for property consts
+
 import com.ctc.wstx.api.WstxInputProperties;
 import com.ctc.wstx.cfg.InputConfigFlags;
 import com.ctc.wstx.compat.JdkFeatures;
@@ -50,29 +52,34 @@ public final class ReaderConfig
     public final static int PROP_WARNING_REPORTER = 8;
     public final static int PROP_XML_RESOLVER = 9;
 
+    // // Then StAX2 standard properties:
+
+    // Simple flags:
+    public final static int PROP_INTERN_NS_URIS = 20;
+    public final static int PROP_INTERN_NAMES = 21;
+    public final static int PROP_REPORT_ALL_TEXT_AS_CHARACTERS = 22;
+    public final static int PROP_REPORT_PROLOG_WS = 23;
+    public final static int PROP_PRESERVE_LOCATION = 24;
+
     // // // Constants for additional Wstx properties:
 
     // Simple flags:
 
-    public final static int PROP_NORMALIZE_LFS = 20;
-    public final static int PROP_NORMALIZE_ATTR_VALUES = 21;
-    public final static int PROP_INTERN_NS_URIS = 22;
-    public final static int PROP_REPORT_ALL_TEXT_AS_CHARACTERS = 23;
-    public final static int PROP_REPORT_PROLOG_WS = 24;
-    public final static int PROP_CACHE_DTDS = 25;
-    public final static int PROP_LAZY_PARSING = 26;
-    public final static int PROP_PRESERVE_LOCATION = 27;
-    public final static int PROP_SUPPORT_DTDPP = 28;
+    public final static int PROP_NORMALIZE_LFS = 40;
+    public final static int PROP_NORMALIZE_ATTR_VALUES = 41;
+    public final static int PROP_CACHE_DTDS = 42;
+    public final static int PROP_LAZY_PARSING = 43;
+    public final static int PROP_SUPPORT_DTDPP = 44;
 
-    // Object type properties
+    // Object type properties:
 
-    public final static int PROP_INPUT_BUFFER_LENGTH = 40;
-    public final static int PROP_TEXT_BUFFER_LENGTH = 41;
-    public final static int PROP_MIN_TEXT_SEGMENT = 42;
-    public final static int PROP_CUSTOM_INTERNAL_ENTITIES = 43;
-    public final static int PROP_DTD_RESOLVER = 44;
-    public final static int PROP_ENTITY_RESOLVER = 45;
-    public final static int PROP_BASE_URL = 46;
+    public final static int PROP_INPUT_BUFFER_LENGTH = 50;
+    public final static int PROP_TEXT_BUFFER_LENGTH = 51;
+    public final static int PROP_MIN_TEXT_SEGMENT = 52;
+    public final static int PROP_CUSTOM_INTERNAL_ENTITIES = 53;
+    public final static int PROP_DTD_RESOLVER = 54;
+    public final static int PROP_ENTITY_RESOLVER = 55;
+    public final static int PROP_BASE_URL = 56;
 
     /*
     ////////////////////////////////////////////////
@@ -194,24 +201,28 @@ public final class ReaderConfig
         sProperties.put(XMLInputFactory.RESOLVER,
                         new Integer(PROP_XML_RESOLVER));
 
+	// StAX2-introduced flags:
+        sProperties.put(XMLInputFactory2.P_INTERN_NAMES,
+                        new Integer(PROP_INTERN_NAMES));
+        sProperties.put(XMLInputFactory2.P_INTERN_NS_URIS,
+                        new Integer(PROP_INTERN_NS_URIS));
+        sProperties.put(XMLInputFactory2.P_REPORT_ALL_TEXT_AS_CHARACTERS,
+                        new Integer(PROP_REPORT_ALL_TEXT_AS_CHARACTERS));
+        sProperties.put(XMLInputFactory2.P_REPORT_PROLOG_WHITESPACE,
+                        new Integer(PROP_REPORT_PROLOG_WS));
+        sProperties.put(XMLInputFactory2.P_PRESERVE_LOCATION,
+                        new Integer(PROP_PRESERVE_LOCATION));
+
         // Non-standard ones, flags:
 
         sProperties.put(WstxInputProperties.P_NORMALIZE_LFS,
                         new Integer(PROP_NORMALIZE_LFS));
         sProperties.put(WstxInputProperties.P_NORMALIZE_ATTR_VALUES,
-                        new Integer(PROP_NORMALIZE_ATTR_VALUES));
-        sProperties.put(WstxInputProperties.P_INTERN_NS_URIS,
-                        new Integer(PROP_INTERN_NS_URIS));
-        sProperties.put(WstxInputProperties.P_REPORT_ALL_TEXT_AS_CHARACTERS,
-                        new Integer(PROP_REPORT_ALL_TEXT_AS_CHARACTERS));
-        sProperties.put(WstxInputProperties.P_REPORT_PROLOG_WHITESPACE,
-                        new Integer(PROP_REPORT_PROLOG_WS));
+                        new Integer(PROP_NORMALIZE_ATTR_VALUES)); 
         sProperties.put(WstxInputProperties.P_CACHE_DTDS,
                         new Integer(PROP_CACHE_DTDS));
         sProperties.put(WstxInputProperties.P_LAZY_PARSING,
                         new Integer(PROP_LAZY_PARSING));
-        sProperties.put(WstxInputProperties.P_PRESERVE_LOCATION,
-                        new Integer(PROP_PRESERVE_LOCATION));
         sProperties.put(WstxInputProperties.P_SUPPORT_DTDPP,
                         new Integer(PROP_SUPPORT_DTDPP));
 
@@ -424,6 +435,11 @@ public final class ReaderConfig
         return hasConfigFlags(CFG_NORMALIZE_ATTR_VALUES);
     }
 
+    public boolean willInternNames() {
+	// 17-Apr-2005, TSa: NOP, we'll always intern them...
+        return true;
+    }
+
     public boolean willInternNsURIs() {
         return hasConfigFlags(CFG_INTERN_NS_URIS);
     }
@@ -533,6 +549,11 @@ public final class ReaderConfig
 
     public void doNormalizeAttrValues(boolean state) {
         setConfigFlag(CFG_NORMALIZE_ATTR_VALUES, state);
+    }
+
+    public void doInternNames(boolean state) {
+	// 17-Apr-2005, TSa: NOP, we'll always intern them...
+	;
     }
 
     public void doInternNsURIs(boolean state) {
@@ -932,6 +953,8 @@ public final class ReaderConfig
             return willNormalizeLFs() ? Boolean.TRUE : Boolean.FALSE;
         case PROP_NORMALIZE_ATTR_VALUES:
             return willNormalizeAttrValues() ? Boolean.TRUE : Boolean.FALSE;
+        case PROP_INTERN_NAMES:
+            return willInternNames() ? Boolean.TRUE : Boolean.FALSE;
         case PROP_INTERN_NS_URIS:
             return willInternNsURIs() ? Boolean.TRUE : Boolean.FALSE;
         case PROP_REPORT_ALL_TEXT_AS_CHARACTERS:
@@ -1019,6 +1042,10 @@ public final class ReaderConfig
 
         case PROP_NORMALIZE_ATTR_VALUES:
             doNormalizeAttrValues(ArgUtil.convertToBoolean(propName, value));
+            break;
+
+        case PROP_INTERN_NAMES:
+            doInternNames(ArgUtil.convertToBoolean(propName, value));
             break;
 
         case PROP_INTERN_NS_URIS:

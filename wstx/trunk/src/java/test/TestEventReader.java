@@ -6,6 +6,8 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.*;
 import javax.xml.stream.events.XMLEvent;
 
+import org.codehaus.stax2.XMLInputFactory2;
+
 import com.ctc.wstx.api.WstxInputProperties;
 
 public class TestEventReader
@@ -28,8 +30,8 @@ public class TestEventReader
                                  new Integer(16));
         }
         // And let's try to preserve structure as much as possible:
-        if (f.isPropertySupported(WstxInputProperties.P_REPORT_PROLOG_WHITESPACE)) {
-            f.setProperty(WstxInputProperties.P_REPORT_PROLOG_WHITESPACE, Boolean.TRUE);
+        if (f.isPropertySupported(XMLInputFactory2.P_REPORT_PROLOG_WHITESPACE)) {
+            f.setProperty(XMLInputFactory2.P_REPORT_PROLOG_WHITESPACE, Boolean.TRUE);
         }
 
         System.out.println("Factory instance: "+f.getClass());

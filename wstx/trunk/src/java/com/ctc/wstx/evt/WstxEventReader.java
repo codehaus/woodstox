@@ -53,9 +53,9 @@ public class WstxEventReader
     implements XMLEventReader2,
                XMLStreamConstants
 {
-    protected final int STATE_INITIAL = 1;
-    protected final int STATE_EOD = 2;
-    protected final int STATE_CONTENT = 3;
+    protected final static int STATE_INITIAL = 1;
+    protected final static int STATE_EOD = 2;
+    protected final static int STATE_CONTENT = 3;
 
     private final XMLEventAllocator mAllocator;
 
@@ -268,6 +268,8 @@ public class WstxEventReader
                     continue;
                 }
                 throwParseError("Received non-all-whitespace CHARACTERS or CDATA event in nextTag().");
+		break; // just to keep Jikes happy...
+
             case START_ELEMENT:
             case END_ELEMENT:
                 return createNextEvent(false, next);

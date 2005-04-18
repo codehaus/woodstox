@@ -47,8 +47,6 @@ Must-haves for 2.0
    * XMLOutputFactory2: need for any new methods?
    * XMLStreamLocation2:
       [DONE] * allow access to nested location information
-      * Long-valued accessors (and implementation)
-      * w/ XMLStreamReader2; getStartLocation, getEndLocation
    * XMLStreamReader2:
       [DONE] * getFeature/setFeature: allow overriding DTD to use?
       [DONE] * Traversal: skipElement()
@@ -59,9 +57,9 @@ Must-haves for 2.0
        * Streaming access: getTextReader
       [DONE] * Misc: isEmptyElement, getDepth
       [DONE] * Full pass-through method (copyEventFromReader())
-      * Extended location information access via LocationInfo;
-        methods for getting start and end locations of an event, as well
-        as the current location.
+      [DONE] * Extended location information access via LocationInfo;
+        methods for getting start and end locations of an event, long-valued
+        byte/char offsets.
    * XMLStreamWriter2:
       [DONE] * pass-through write method for outputting raw (non-encoded) stuff
       [Partial?] * setFeature/getFeature (which property/ies?)

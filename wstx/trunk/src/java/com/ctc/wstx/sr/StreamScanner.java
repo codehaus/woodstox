@@ -176,8 +176,16 @@ public abstract class StreamScanner
     ////////////////////////////////////////////////////
      */
 
+    /**
+     * Copy of the configuration object passed by the factory.
+     * Contains immutable settings for this reader (or in case
+     * of DTD parsers, reader that uses it)
+     */
     protected final ReaderConfig mConfig;
 
+    /**
+     * Object through which non-fatal problems should be reported.
+     */
     protected final XMLReporter mReporter;
 
     /**

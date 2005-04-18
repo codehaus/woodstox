@@ -8,6 +8,7 @@ import java.util.Map;
 import javax.xml.stream.*;
 
 import org.codehaus.stax2.EscapingWriterFactory;
+import org.codehaus.stax2.XMLOutputFactory2; // for property consts
 
 import com.ctc.wstx.api.WstxOutputProperties;
 import com.ctc.wstx.cfg.OutputConfigFlags;
@@ -24,29 +25,38 @@ public final class WriterConfig
 
     protected final static String DEFAULT_AUTOMATIC_NS_PREFIX = "wstxns";
 
-    // Namespace support, settings:
+    // // // First, standard StAX writer properties
+
     final static int PROP_AUTOMATIC_NS = 1; // standard property ("repairing")
+
+    // // // And then additional StAX2 properties:
+
+    // Namespace settings:
     final static int PROP_ENABLE_NS = 2;
     final static int PROP_AUTOMATIC_NS_PREFIX = 3;
+    // Escaping text content/attr values:
+    final static int PROP_TEXT_ESCAPER = 4;
+    final static int PROP_ATTR_VALUE_ESCAPER = 5;
+
+
+    // // // And then custom Wstx properties:
+
+    // Namespace support, settings:
 
     // Output settings:
-    final static int PROP_OUTPUT_EMPTY_ELEMS = 4;
-    final static int PROP_OUTPUT_CDATA_AS_TEXT = 5;
+    final static int PROP_OUTPUT_EMPTY_ELEMS = 10;
+    final static int PROP_OUTPUT_CDATA_AS_TEXT = 11;
 
-    final static int PROP_COPY_DEFAULT_ATTRS = 6;
+    final static int PROP_COPY_DEFAULT_ATTRS = 12;
 
     // Validation flags:
 
     // Let's not use this any more... no point:
     //final static int PROP_VALIDATE_NS ;
-    final static int PROP_VALIDATE_STRUCTURE = 7;
-    final static int PROP_VALIDATE_CONTENT = 8;
-    final static int PROP_VALIDATE_ATTR = 9;
-    final static int PROP_VALIDATE_NAMES = 10;
-
-    // Escaping text content/attr values:
-    final static int PROP_TEXT_ESCAPER = 11;
-    final static int PROP_ATTR_VALUE_ESCAPER = 12;
+    final static int PROP_VALIDATE_STRUCTURE = 15;
+    final static int PROP_VALIDATE_CONTENT = 16;
+    final static int PROP_VALIDATE_ATTR = 17;
+    final static int PROP_VALIDATE_NAMES = 18;
 
     // // // Default settings for additional properties:
 
@@ -102,13 +112,20 @@ public final class WriterConfig
         sProperties.put(XMLOutputFactory.IS_REPAIRING_NAMESPACES,
                         new Integer(PROP_AUTOMATIC_NS));
 
-        // // Non-standard ones:
+        // StAX standard ones:
 
         // Namespace support
-        sProperties.put(WstxOutputProperties.P_OUTPUT_ENABLE_NS,
+        sProperties.put(XMLOutputFactory2.P_NAMESPACE_AWARE,
                         new Integer(PROP_ENABLE_NS));
-        sProperties.put(WstxOutputProperties.P_OUTPUT_AUTOMATIC_NS_PREFIX,
+        sProperties.put(XMLOutputFactory2.P_AUTOMATIC_NS_PREFIX,
                         new Integer(PROP_AUTOMATIC_NS_PREFIX));
+        // Text/attr value escaping (customized escapers)
+        sProperties.put(XMLOutputFactory2.P_TEXT_ESCAPER,
+                        new Integer(PROP_TEXT_ESCAPER));
+        sProperties.put(XMLOutputFactory2.P_ATTR_VALUE_ESCAPER,
+                        new Integer(PROP_ATTR_VALUE_ESCAPER));
+
+        // // Non-standard ones:
 
         // Output conversions
         sProperties.put(WstxOutputProperties.P_OUTPUT_EMPTY_ELEMENTS,
@@ -128,13 +145,6 @@ public final class WriterConfig
                         new Integer(PROP_VALIDATE_ATTR));
         sProperties.put(WstxOutputProperties.P_OUTPUT_VALIDATE_NAMES,
                         new Integer(PROP_VALIDATE_NAMES));
-
-        // Text/attr value escaping (customized escapers)
-
-        sProperties.put(WstxOutputProperties.P_OUTPUT_TEXT_ESCAPER,
-                        new Integer(PROP_TEXT_ESCAPER));
-        sProperties.put(WstxOutputProperties.P_OUTPUT_ATTR_VALUE_ESCAPER,
-                        new Integer(PROP_ATTR_VALUE_ESCAPER));
     }
 
     /*

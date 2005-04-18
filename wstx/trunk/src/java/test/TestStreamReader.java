@@ -7,6 +7,7 @@ import java.util.zip.GZIPInputStream;
 import javax.xml.stream.*;
 
 import org.codehaus.stax2.LocationInfo;
+import org.codehaus.stax2.XMLInputFactory2;
 import org.codehaus.stax2.XMLStreamReader2;
 
 import com.ctc.wstx.api.WstxInputProperties;
@@ -45,8 +46,8 @@ public class TestStreamReader
 
         f.setProperty(XMLInputFactory.RESOLVER, new TestResolver1());
 
-        if (f.isPropertySupported(WstxInputProperties.P_REPORT_PROLOG_WHITESPACE)) {
-            f.setProperty(WstxInputProperties.P_REPORT_PROLOG_WHITESPACE,
+        if (f.isPropertySupported(XMLInputFactory2.P_REPORT_PROLOG_WHITESPACE)) {
+            f.setProperty(XMLInputFactory2.P_REPORT_PROLOG_WHITESPACE,
                           Boolean.FALSE
                           //Boolean.TRUE
             );
@@ -289,7 +290,7 @@ public class TestStreamReader
 final class TestStream
     extends FilterInputStream
 {
-    private final int sleep = 5000;
+    private final static int sleep = 5000;
     
     public TestStream(InputStream is)
     {
