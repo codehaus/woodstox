@@ -13,7 +13,7 @@ import com.ctc.wstx.util.SymbolTable;
 import com.ctc.wstx.util.TextBuilder;
 import com.ctc.wstx.util.WordResolver;
 
-import com.ctc.wstx.sr.StreamScanner;
+import com.ctc.wstx.io.WstxInputData;
 
 /**
  * Specific attribute class for attributes that contain (unique)
@@ -74,7 +74,7 @@ public final class DTDEntityAttr
         int start = tb.getOffset(index);
         int last = tb.getOffset(index+1) - 1;
 
-        while (start <= last && StreamScanner.isSpaceChar(ch[start])) {
+        while (start <= last && WstxInputData.isSpaceChar(ch[start])) {
             ++start;
         }
 
@@ -82,20 +82,20 @@ public final class DTDEntityAttr
         if (start > last) {
             reportParseError(v, "Empty ENTITY value");
         }
-        while (last > start && StreamScanner.isSpaceChar(ch[last])) {
+        while (last > start && WstxInputData.isSpaceChar(ch[last])) {
             --last;
         }
 
         // Ok, need to check char validity, and also calc hash code:
         char c = ch[start];
-        if (!StreamScanner.isNameStartChar(c) && c != ':') {
+        if (!WstxInputData.is11NameStartChar(c) && c != ':') {
             reportInvalidChar(v, c, "not valid as the first ID character");
         }
         int hash = (int) c;
 
         for (int i = start+1; i <= last; ++i) {
             c = ch[i];
-            if (!StreamScanner.isNameChar(c)) {
+            if (!WstxInputData.is11NameChar(c)) {
                 reportInvalidChar(v, c, "not valid as an ID character");
             }
             hash = (hash * 31) + (int) c;

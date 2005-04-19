@@ -19,9 +19,9 @@ import java.util.Map;
 
 import com.ctc.wstx.ent.EntityDecl;
 import com.ctc.wstx.exc.WstxException;
+import com.ctc.wstx.io.WstxInputData;
 import com.ctc.wstx.sr.AttributeCollector;
 import com.ctc.wstx.sr.InputProblemReporter;
-import com.ctc.wstx.sr.StreamScanner;
 import com.ctc.wstx.util.SymbolTable;
 
 /**
@@ -243,16 +243,16 @@ public class DTDAttribute
 
         // Ok, needs to be a valid XML name:
         char c = defValue.charAt(0);
-        if (!StreamScanner.isNameChar(c) && c != ':') {
+        if (!WstxInputData.is11NameChar(c) && c != ':') {
             reportParseError(rep, "Invalid default value '"+defValue+"'; character "
-                                +StreamScanner.getCharDesc(c)
+                                +WstxInputData.getCharDesc(c)
                                 +") not valid first character of a name");
         }
 
         for (int i = 1, len = defValue.length(); i < len; ++i) {
-            if (!StreamScanner.isNameChar(defValue.charAt(i))) {
+            if (!WstxInputData.is11NameChar(defValue.charAt(i))) {
                 reportParseError(rep, "Invalid default value '"+defValue+"'; character #"+i+" ("
-                                    +StreamScanner.getCharDesc(defValue.charAt(i))
+                                    +WstxInputData.getCharDesc(defValue.charAt(i))
                                    +") not valid name character");
             }
         }
@@ -278,7 +278,7 @@ public class DTDAttribute
 
             // Ok, any white space to skip?
             while (true) {
-                if (!StreamScanner.isSpaceChar(c)) {
+                if (!WstxInputData.isSpaceChar(c)) {
                     break;
                 }
                 if (++start >= len) {
@@ -287,22 +287,22 @@ public class DTDAttribute
                 c = defValue.charAt(start);
             }
 
-            if (!StreamScanner.isNameStartChar(c) && c != ':') {
+            if (!WstxInputData.is11NameStartChar(c) && c != ':') {
                 reportParseError(rep, "Invalid default value '"+defValue
                                  +"'; character "
-                                 +StreamScanner.getCharDesc(c)
+                                 +WstxInputData.getCharDesc(c)
                                  +") not valid first character of a name token");
             }
             int i = start+1;
             for (; i < len; ++i) {
                 c = defValue.charAt(i);
-                if (StreamScanner.isSpaceChar(c)) {
+                if (WstxInputData.isSpaceChar(c)) {
                     break;
                 }
-                if (!StreamScanner.isNameChar(c)) {
+                if (!WstxInputData.is11NameChar(c)) {
                     reportParseError(rep, "Invalid default value '"+defValue
                                      +"'; character "
-                                     +StreamScanner.getCharDesc(c)
+                                     +WstxInputData.getCharDesc(c)
                                      +") not a valid name character");
                 }
             }
@@ -339,10 +339,10 @@ public class DTDAttribute
 
         // Ok, needs to be a valid NMTOKEN:
         for (int i = 0, len = defValue.length(); i < len; ++i) {
-            if (!StreamScanner.isNameChar(defValue.charAt(i))) {
+            if (!WstxInputData.is11NameChar(defValue.charAt(i))) {
                 reportParseError(rep, "Invalid default value '"+defValue
                                     +"'; character #"+i+" ("
-                                   +StreamScanner.getCharDesc(defValue.charAt(i))
+                                   +WstxInputData.getCharDesc(defValue.charAt(i))
                                    +") not valid NMTOKEN character");
             }
         }
@@ -406,7 +406,7 @@ public class DTDAttribute
     protected void reportInvalidChar(ElementValidator v, char c, String msg)
         throws WstxException
     {
-        reportParseError(v, "Invalid character "+StreamScanner.getCharDesc(c)+": "+msg);
+        reportParseError(v, "Invalid character "+WstxInputData.getCharDesc(c)+": "+msg);
     }
 
     protected void reportParseError(ElementValidator v, String msg)

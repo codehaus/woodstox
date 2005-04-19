@@ -4,12 +4,11 @@ import javax.xml.stream.Location;
 
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.exc.WstxException;
+import com.ctc.wstx.io.WstxInputData;
 import com.ctc.wstx.sr.AttributeCollector;
 import com.ctc.wstx.sr.InputProblemReporter;
 import com.ctc.wstx.util.TextBuilder;
 import com.ctc.wstx.util.WordResolver;
-
-import com.ctc.wstx.sr.StreamScanner;
 
 /**
  * Specific attribute class for attributes that contain (unique)
@@ -72,7 +71,7 @@ public final class DTDNmTokensAttr
         /* First things first; let's ensure value is not empty (all
          * white space)...
          */
-        while (start <= last && StreamScanner.isSpaceChar(ch[start])) {
+        while (start <= last && WstxInputData.isSpaceChar(ch[start])) {
             ++start;
         }
         // Empty value?
@@ -86,8 +85,8 @@ public final class DTDNmTokensAttr
         if (!normalize) {
             for (; start <= last; ++start) {
                 char c = ch[start];
-                if (!StreamScanner.isSpaceChar(c) 
-                    && !StreamScanner.isNameChar(c)) {
+                if (!WstxInputData.isSpaceChar(c) 
+                    && !WstxInputData.is11NameChar(c)) {
                     reportInvalidChar(v, c, "not valid as NMTOKENS character");
                 }
             }
@@ -98,7 +97,7 @@ public final class DTDNmTokensAttr
         origStart = start;
 
         // Wouldn't absolutely have to trim trailing... but is easy to do
-        while (last > start && StreamScanner.isSpaceChar(ch[last])) {
+        while (last > start && WstxInputData.isSpaceChar(ch[last])) {
             --last;
             trimmed = true;
         }
@@ -112,10 +111,10 @@ public final class DTDNmTokensAttr
             int i = start;
             for (; i <= last; ++i) {
                 char c = ch[i];
-                if (StreamScanner.isSpaceChar(c)) {
+                if (WstxInputData.isSpaceChar(c)) {
                     break;
                 }
-                if (!StreamScanner.isNameChar(c)) {
+                if (!WstxInputData.is11NameChar(c)) {
                     reportInvalidChar(v, c, "not valid as an NMTOKENS character");
                 }
             }
@@ -129,7 +128,7 @@ public final class DTDNmTokensAttr
 
             start = i + 1;
             // Ok, any white space to skip?
-            while (start <= last && StreamScanner.isSpaceChar(ch[start])) {
+            while (start <= last && WstxInputData.isSpaceChar(ch[start])) {
                 ++start;
             }
         }
@@ -159,7 +158,7 @@ public final class DTDNmTokensAttr
 
             // Ok, any white space to skip?
             while (true) {
-                if (!StreamScanner.isSpaceChar(c)) {
+                if (!WstxInputData.isSpaceChar(c)) {
                     break;
                 }
                 if (++start >= len) {
@@ -171,17 +170,17 @@ public final class DTDNmTokensAttr
             int i = start+1;
 
             do {
-                if (!StreamScanner.isNameChar(c)) {
+                if (!WstxInputData.is11NameChar(c)) {
                     reportParseError(rep, "Invalid default value '"+defValue
                                      +"'; character #"+i+" ("
-                                     +StreamScanner.getCharDesc(c)
+                                     +WstxInputData.getCharDesc(c)
                                      +") not a valid NMTOKENS character");
                 }
                 if (++i >= len) {
                     break;
                 }
                 c = defValue.charAt(i);
-            } while (!StreamScanner.isSpaceChar(c));
+            } while (!WstxInputData.isSpaceChar(c));
             ++count;
 
             if (normalize) {

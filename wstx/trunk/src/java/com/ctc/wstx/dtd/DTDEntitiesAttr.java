@@ -8,13 +8,12 @@ import javax.xml.stream.Location;
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.ent.EntityDecl;
 import com.ctc.wstx.exc.WstxException;
+import com.ctc.wstx.io.WstxInputData;
 import com.ctc.wstx.sr.AttributeCollector;
 import com.ctc.wstx.sr.InputProblemReporter;
 import com.ctc.wstx.util.SymbolTable;
 import com.ctc.wstx.util.TextBuilder;
 import com.ctc.wstx.util.WordResolver;
-
-import com.ctc.wstx.sr.StreamScanner;
 
 /**
  * Specific attribute class for attributes that contain (unique)
@@ -80,7 +79,7 @@ public final class DTDEntitiesAttr
          * round-trip handling (no changes for physical value caller
          * gets), but still allows succesful validation.
          */
-        while (start <= last && StreamScanner.isSpaceChar(ch[start])) {
+        while (start <= last && WstxInputData.isSpaceChar(ch[start])) {
             ++start;
         }
 
@@ -88,7 +87,7 @@ public final class DTDEntitiesAttr
         if (last < start) {
             reportParseError(v, "Empty ENTITIES value");
         }
-        while (last > start && StreamScanner.isSpaceChar(ch[last])) {
+        while (last > start && WstxInputData.isSpaceChar(ch[last])) {
             --last;
         }
 
@@ -101,17 +100,17 @@ public final class DTDEntitiesAttr
         while (start <= last) {
             // Ok, need to check char validity, and also calc hash code:
             char c = ch[start];
-            if (!StreamScanner.isNameStartChar(c) && c != ':') {
+            if (!WstxInputData.is11NameStartChar(c) && c != ':') {
                 reportInvalidChar(v, c, "not valid as the first ENTITIES character");
             }
             int hash = (int) c;
             int i = start+1;
             for (; i <= last; ++i) {
                 c = ch[i];
-                if (StreamScanner.isSpaceChar(c)) {
+                if (WstxInputData.isSpaceChar(c)) {
                     break;
                 }
-                if (!StreamScanner.isNameChar(c)) {
+                if (!WstxInputData.is11NameChar(c)) {
                     reportInvalidChar(v, c, "not valid as an ENTITIES character");
                 }
                 hash = (hash * 31) + (int) c;
@@ -140,7 +139,7 @@ public final class DTDEntitiesAttr
             }
 
             // Ok, any white space to skip?
-            while (start <= last && StreamScanner.isSpaceChar(ch[start])) {
+            while (start <= last && WstxInputData.isSpaceChar(ch[start])) {
                 ++start;
             }
         }

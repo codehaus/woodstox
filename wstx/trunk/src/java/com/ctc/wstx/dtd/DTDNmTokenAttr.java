@@ -4,12 +4,11 @@ import javax.xml.stream.Location;
 
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.exc.WstxException;
+import com.ctc.wstx.io.WstxInputData;
 import com.ctc.wstx.sr.AttributeCollector;
 import com.ctc.wstx.sr.InputProblemReporter;
 import com.ctc.wstx.util.TextBuilder;
 import com.ctc.wstx.util.WordResolver;
-
-import com.ctc.wstx.sr.StreamScanner;
 
 /**
  * Specific attribute class for attributes that contain (unique)
@@ -70,7 +69,7 @@ public final class DTDNmTokenAttr
         int origCount = last - start;
 
         // Let's trim leading white space first...
-        while (start <= last && StreamScanner.isSpaceChar(ch[start])) {
+        while (start <= last && WstxInputData.isSpaceChar(ch[start])) {
             ++start;
         }
 
@@ -79,14 +78,14 @@ public final class DTDNmTokenAttr
             reportParseError(v, "Empty NMTOKEN value");
         }
 
-        while (last > start && StreamScanner.isSpaceChar(ch[last])) {
+        while (last > start && WstxInputData.isSpaceChar(ch[last])) {
             --last;
         }
 
         // Ok, need to check char validity
         for (int i = start+1; i <= last; ++i) {
             char c = ch[i];
-            if (!StreamScanner.isNameChar(c)) {
+            if (!WstxInputData.is11NameChar(c)) {
                 reportInvalidChar(v, c, "not valid NMTOKEN character");
             }
         }

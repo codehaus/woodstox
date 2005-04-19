@@ -328,8 +328,10 @@ public final class StreamBootstrapper
                     break;
                 case 0x00003C00: // UCS, mixed
                     reportWeirdUCS4("2143");
+		    break; // to keep jikes happy
                 case 0x003C0000: // UCS, mixed
                     reportWeirdUCS4("3412");
+		    break; // to keep jikes happy
                 case 0x003C003F: // UTF-16 BE etc
                     mBytesPerChar = 2;
                     mBigEndian = false;

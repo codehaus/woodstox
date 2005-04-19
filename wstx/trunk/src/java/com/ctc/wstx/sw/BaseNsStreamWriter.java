@@ -193,7 +193,7 @@ public abstract class BaseNsStreamWriter
         throws XMLStreamException
     {
         if (mCheckContent) {
-            checkNameValidity(localName, false);
+            verifyNameValidity(localName, mNsAware);
         }
 
         // No need to set mAnyOutput, nor close the element
@@ -368,7 +368,7 @@ public abstract class BaseNsStreamWriter
         }
 
         if (mCheckContent) {
-            checkNameValidity(localName, false);
+            verifyNameValidity(localName, mNsAware);
         }
 
         if (mState == STATE_PROLOG) {

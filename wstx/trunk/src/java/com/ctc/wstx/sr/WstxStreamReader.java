@@ -962,6 +962,7 @@ public class WstxStreamReader
                     continue;
                 }
                 throwParseError("Received non-all-whitespace CHARACTERS or CDATA event in nextTag().");
+		break; // never gets here, but jikes complains without
             case START_ELEMENT:
             case END_ELEMENT:
                 return next;
@@ -1394,7 +1395,7 @@ public class WstxStreamReader
       if (ptr == len) {
           // Probable match... but let's make sure keyword is finished:
           int i = peekNext();
-          if (i < 0 || (!isNameChar((char) i) && i != ':')) {
+          if (i < 0 || (!is11NameChar((char) i) && i != ':')) {
               return null;
           }
           // Nope, continues, need to find the rest:
@@ -1414,7 +1415,7 @@ public class WstxStreamReader
               }
               c = (char) ci;
           }
-          if (!isNameChar(c)) {
+          if (!is11NameChar(c)) {
               // Let's push it back then
               --mInputPtr;
               break;
@@ -1873,7 +1874,7 @@ public class WstxStreamReader
                 throwParseError("Unexpected character combination '</' in prolog.");
             }
             throwParseError("Unexpected character combination '</' in epilog (extra close tag?).");
-        } else if (c == ':' || isNameStartChar(c)) {
+        } else if (c == ':' || is11NameStartChar(c)) {
             // Root element, only allowed after prolog
             if (!isProlog) {
                 throwParseError("Illegal to have multiple roots (start tag in epilog?).");
@@ -2042,7 +2043,7 @@ public class WstxStreamReader
                     }
                 }
             } else {
-                if (!isNameStartChar(c)) {
+                if (!is11NameStartChar(c)) {
                     throwUnexpectedChar(c, SUFFIX_IN_DTD+"; expected keywords 'PUBLIC' or 'SYSTEM'.");
                 } else {
                     --mInputPtr;
@@ -2314,7 +2315,7 @@ public class WstxStreamReader
                 return END_ELEMENT;
             }
 
-            if (c == ':' || isNameStartChar(c)) {
+            if (c == ':' || is11NameStartChar(c)) {
                 // 30-Aug-2004, TSa: Not legal for EMPTY elements
                 if (mVldContent == CONTENT_ALLOW_NONE) {
                     reportInvalidContent(START_ELEMENT);
@@ -2585,7 +2586,7 @@ public class WstxStreamReader
         char c = (mInputPtr < mInputLen) ? mInputBuffer[mInputPtr++]
             : getNextCharFromCurrent(SUFFIX_IN_CLOSE_ELEMENT);
         // Quick check first; missing name?
-        if  (!isNameStartChar(c) && c != ':') {
+        if  (!is11NameStartChar(c) && c != ':') {
             if (c <= CHAR_SPACE) { // space
                 throwUnexpectedChar(c, "; missing element name?");
             }
@@ -2658,7 +2659,7 @@ public class WstxStreamReader
             c = getNextCharAfterWS(c, SUFFIX_IN_CLOSE_ELEMENT);
         } else if (c == '>') {
             ;
-        } else if (c == ':' || isNameChar(c)) {
+        } else if (c == ':' || is11NameChar(c)) {
             reportWrongEndElem(expPrefix, expLocalName, len);
         }
 

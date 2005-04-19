@@ -132,7 +132,7 @@ public class NonNsStreamWriter
 
         // May need to check uniqueness?
         if (mCheckNames) {
-            checkNameValidity(localName, true);
+            verifyNameValidity(localName, mNsAware);
         }
         if (mCheckAttr) {
             if (mAttrNames == null) {
@@ -384,7 +384,7 @@ public class NonNsStreamWriter
             closeStartElement(mEmptyElement);
         }
         if (mCheckContent) {
-            checkNameValidity(localName, true);
+            verifyNameValidity(localName, mNsAware);
         }
 
         if (mState == STATE_PROLOG) {

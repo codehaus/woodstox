@@ -4,12 +4,11 @@ import javax.xml.stream.Location;
 
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.exc.WstxException;
+import com.ctc.wstx.io.WstxInputData;
 import com.ctc.wstx.sr.AttributeCollector;
 import com.ctc.wstx.sr.InputProblemReporter;
 import com.ctc.wstx.util.TextBuilder;
 import com.ctc.wstx.util.WordResolver;
-
-import com.ctc.wstx.sr.StreamScanner;
 
 /**
  * Attribute class for attributes that contain references
@@ -73,7 +72,7 @@ public final class DTDIdRefAttr
          * to normalize visible attribute value. This allows for better
          * round-trip handling, but still allow validation.
          */
-        while (start <= last && StreamScanner.isSpaceChar(ch[start])) {
+        while (start <= last && WstxInputData.isSpaceChar(ch[start])) {
             ++start;
         }
 
@@ -81,19 +80,19 @@ public final class DTDIdRefAttr
             reportParseError(v, "Empty IDREF value");
         }
 
-        while (last > start && StreamScanner.isSpaceChar(ch[last])) {
+        while (last > start && WstxInputData.isSpaceChar(ch[last])) {
             --last;
         }
 
         // Ok, need to check char validity, and also calc hash code:
         char c = ch[start];
-        if (!StreamScanner.isNameStartChar(c) && c != ':') {
+        if (!WstxInputData.is11NameStartChar(c) && c != ':') {
             reportInvalidChar(v, c, "not valid as the first IDREF character");
         }
         int hash = (int) c;
         for (int i = start+1; i <= last; ++i) {
             c = ch[i];
-            if (!StreamScanner.isNameChar(c)) {
+            if (!WstxInputData.is11NameChar(c)) {
                 reportInvalidChar(v, c, "not valid as an IDREF character");
             }
             hash = (hash * 31) + (int) c;

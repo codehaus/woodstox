@@ -28,6 +28,7 @@ import com.ctc.wstx.cfg.OutputConfigFlags;
 import com.ctc.wstx.exc.*;
 import com.ctc.wstx.io.AttrValueEscapingWriter;
 import com.ctc.wstx.io.TextEscapingWriter;
+import com.ctc.wstx.io.WstxInputData;
 import com.ctc.wstx.sr.StreamReaderImpl;
 import com.ctc.wstx.sr.AttributeCollector;
 import com.ctc.wstx.sr.InputElementStack;
@@ -448,14 +449,9 @@ public abstract class BaseStreamWriter
             }
         }
         if (mCheckNames) {
-            if (mNsAware) {
-                // As per namespace specs, can not have colon(s)
-                verifyLocalName(name);
-            } else {
-                checkNameValidity(name, true);
-            }
+	    verifyNameValidity(name, mNsAware);
         }
-        
+
         try {
             mWriter.write('&');
             mWriter.write(name);
@@ -485,12 +481,8 @@ public abstract class BaseStreamWriter
 
         // Structurally, PIs are always ok. But content may need to be checked.
         if (mCheckNames) {
-            if (mNsAware) {
-                // As per namespace specs, can not have colon(s)
-                verifyLocalName(target);
-            } else {
-                checkNameValidity(target, true);
-            }
+	    // As per namespace specs, can not have colon(s)
+	    verifyNameValidity(target, mNsAware);
         }
         if (mCheckContent) {
             if (data != null && data.length() > 1) {
@@ -630,7 +622,7 @@ public abstract class BaseStreamWriter
         try {
             mWriter.write("<!DOCTYPE ");
             if (mCheckContent) {
-                verifyFullName(rootName);
+                verifyNameValidity(rootName, false);
             }
             mWriter.write(rootName);
             if (systemId != null) {
@@ -966,20 +958,6 @@ public abstract class BaseStreamWriter
     }
 
     /**
-     * Method called to verify that the name is a legal XML name.
-     */
-    public void checkNameValidity(String name, boolean allowColons)
-    {
-        // !!! TBI
-
-        if (!allowColons && name.indexOf(':') >= 0) {
-            throw new IllegalArgumentException("Illegal name token '"+name+"'; colons not allowed inside names, only a single colon allowed to indicate fully-qualified name.");
-        }
-
-        // Needs to throw appropriate IllegalArgumentException for invalid names
-    }
-
-    /**
      * Implementation-dependant method called to fully copy START_ELEMENT
      * event that the passed-in stream reader points to
      */
@@ -994,24 +972,33 @@ public abstract class BaseStreamWriter
      */
 
     /**
-     * Method that verifies that the name passed is a valid
-     * local name; name that can not have colon(s) in it.
+     * Method called to verify that the name is a legal XML name.
      */
-    protected void verifyLocalName(String name)
-        throws XMLStreamException
+    public static void verifyNameValidity(String name, boolean nsAware)
     {
-        // !!! TBI
-    }
+	/* No empty names... caller must have dealt with optional arguments
+	 * prior to calling this method
+	 */
+	if (name == null || name.length() == 0) {
+	    throwIllegalArg(ErrorConsts.WERR_NAME_EMPTY);
+	}
+	char c = name.charAt(0);
 
-    /**
-     * Method that verifies that the name passed is a valid
-     * 'full' name; name that may contain all local name characters,
-     * as well as one or more colons.
-     */
-    protected void verifyFullName(String name)
-        throws XMLStreamException
-    {
-        // !!! TBI
+	if (c == ':' && !nsAware) { // ok, but only in non-ns mode
+	    ;
+	} else {
+	    if (!WstxInputData.is11NameStartChar(c)) {		
+		throwIllegalArg(ErrorConsts.WERR_NAME_ILLEGAL_FIRST_CHAR,
+				WstxInputData.getCharDesc(c));
+	    }
+	}
+
+	for (int i = 1, len = name.length(); i < len; ++i) {
+	    if (!WstxInputData.is11NameStartChar(name.charAt(i))) {
+		throwIllegalArg(ErrorConsts.WERR_NAME_ILLEGAL_CHAR,
+				WstxInputData.getCharDesc(c));
+	    }
+	}
     }
 
     protected void verifyWriteDTD()
@@ -1033,7 +1020,7 @@ public abstract class BaseStreamWriter
             if (ix >= 0) {
                 ix = content.indexOf("]]>", ix);
                 if (ix >= 0) {
-                    throw new XMLStreamException(ErrorConsts.formatMessage(ErrorConsts.WERR_CDATA_CONTENT, new Integer(ix)));
+                    throwOutputError(ErrorConsts.WERR_CDATA_CONTENT, new Integer(ix));
                 }
             }
         }
@@ -1045,22 +1032,35 @@ public abstract class BaseStreamWriter
     ////////////////////////////////////////////////////
      */
 
-    protected void throwOutputError(String msg)
+    protected static void throwOutputError(String msg)
         throws XMLStreamException
     {
         throw new XMLStreamException(msg);
     }
 
-    protected void throwOutputError(String format, Object arg)
+    protected static void throwOutputError(String format, Object arg)
         throws XMLStreamException
     {
         String msg = MessageFormat.format(format, new Object[] { arg });
         throw new XMLStreamException(msg);
     }
 
-    protected void throwFromIOE(IOException ioe)
+    protected static void throwFromIOE(IOException ioe)
         throws XMLStreamException
     {
         throw new WstxIOException(ioe);
+    }
+
+    protected static void throwIllegalArg(String msg)
+        throws IllegalArgumentException
+    {
+        throw new IllegalArgumentException(msg);
+    }
+
+    protected static void throwIllegalArg(String format, Object arg)
+        throws IllegalArgumentException
+    {
+        String msg = MessageFormat.format(format, new Object[] { arg });
+        throw new IllegalArgumentException(msg);
     }
 }

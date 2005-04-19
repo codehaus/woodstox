@@ -104,7 +104,10 @@ public class ErrorConsts
     public static String WERR_ATTR_NO_ELEM =
         "Trying to write an attribute when there is no open start element.";
 
+    public static String WERR_NAME_EMPTY = "Illegal to pass empty name";
 
+    public static String WERR_NAME_ILLEGAL_FIRST_CHAR = "Illegal first name character {1}";
+    public static String WERR_NAME_ILLEGAL_CHAR = "Illegal name character {1}";
 
     /*
     ////////////////////////////////////////////////////

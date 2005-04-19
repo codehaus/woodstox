@@ -1,9 +1,10 @@
 package org.codehaus.stax2;
 
 import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamWriter; // only for javadoc
 
 /**
- * Extension of {@link XMLInputFactory} to add missing functionality
+ * Extension of {@link javax.xml.stream.XMLInputFactory} to add missing functionality
  * (which currently means 'nothing'...)
  *<p>
  * Also contains extended standard properties that conforming stream

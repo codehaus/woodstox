@@ -549,16 +549,6 @@ public abstract class StreamScanner
         return ErrorConsts.tokenTypeDesc(type);
     }
 
-    public static String getCharDesc(char c)
-    {
-        // WTF? JDK thinks null char is just fine as?!
-        int i = (int) c;
-        if (Character.isISOControl(c)) {
-            return "(CTRL-CHAR, code "+i+")";
-        }
-        return "'"+c+"' (code "+i+")";
-    }
-
     /*
     ////////////////////////////////////////////////////
     // Input buffer handling
@@ -1467,130 +1457,6 @@ public abstract class StreamScanner
     ////////////////////////////////////////////////////
      */
 
-    /**
-     * Method that can be used to check whether specified character
-     * is a valid first character of an XML 1.1 name; except that
-     * colon (:) is not recognized as a start char here: caller has
-     * to verify it separately (since it generally affects namespace
-     * mapping of a qualified name).
-     */
-    public final static boolean isNameStartChar(char c)
-    {
-        // ISO-Latin can be checked via type array:
-        if (c < VALID_CHAR_COUNT) {
-            if (c <= CHAR_SPACE) {
-                return false;
-            }
-            return (sCharValidity[c] == NAME_CHAR_ALL_VALID_B);
-        }
-
-        // Others are checked block-by-block:
-        if (c <= 0x2FEF) {
-            if (c < 0x300 || c >= 0x2C00) {
-                // 0x100 - 0x2FF, 0x2C00 - 0x2FEF are ok
-                return true;
-            }
-            if (c < 0x370 || c > 0x218F) {
-                // 0x300 - 0x36F, 0x2190 - 0x2BFF invalid
-                return false;
-            }
-            if (c < 0x2000) {
-                // 0x370 - 0x37D, 0x37F - 0x1FFF are ok
-                return (c != 0x37E);
-            }
-            if (c >= 0x2070) {
-                // 0x2070 - 0x218F are ok
-                return (c <= 0x218F);
-            }
-            // And finally, 0x200C - 0x200D
-            return (c == 0x200C || c == 0x200D);
-        }
-
-        // 0x3000 and above:
-        if (c >= 0x3001) {
-            /* Hmmh, let's allow high surrogates here, without checking
-             * that they are properly followed... crude basic support,
-             * I know, but allow valid combinations, just doesn't catch
-             * invalid ones
-             */
-            if (c <= 0xDBFF) { // 0x3001 - 0xD7FF (chars),
-                // 0xD800 - 0xDBFF (high surrogate) are ok:
-                return true;
-            }
-            if (c >= 0xF900 && c <= 0xFFFD) {
-                /* Check above removes low surrogate (since one can not
-                 * START an identifier), and byte-order markers..
-                 */
-                return (c <= 0xFDCF || c >= 0xFDF0);
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Method that can be used to check whether specified character
-     * is a valid character of an XML 1.1 name as any other char than
-     * the first one; except that colon (:) is not recognized as valid here:
-     * caller has to verify it separately (since it generally affects namespace
-     * mapping of a qualified name).
-     */
-    public final static boolean isNameChar(char c)
-    {
-        // ISO-Latin can be checked via type array:
-        if (c < VALID_CHAR_COUNT) {
-            if (c <= CHAR_SPACE) {
-                return false;
-            }
-            return (sCharValidity[c] != NAME_CHAR_INVALID_B);
-        }
-
-        // Others are checked block-by-block:
-        if (c <= 0x2FEF) {
-            if (c < 0x2000 || c >= 0x2C00) {
-                // 0x100 - 0x1FFF, 0x2C00 - 0x2FEF are ok
-                return true;
-            }
-            if (c < 0x200C || c > 0x218F) {
-                // 0x2000 - 0x200B, 0x2190 - 0x2BFF invalid
-                return false;
-            }
-            if (c >= 0x2070) {
-                // 0x2070 - 0x218F are ok
-                return true;
-            }
-            // And finally, 0x200C - 0x200D, 0x203F - 0x2040 are ok
-            return (c == 0x200C || c == 0x200D
-                || c == 0x203F || c == 0x2040);
-        }
-
-        // 0x3000 and above:
-        if (c >= 0x3001) {
-            /* Hmmh, let's allow surrogate heres, without checking that
-             * they have proper ordering. For non-first name chars, both are
-             * ok, for valid names. Crude basic support,
-             * I know, but allows valid combinations, just doesn't catch
-             * invalid ones
-             */
-            if (c <= 0xDFFF) { // 0x3001 - 0xD7FF (chars),
-                // 0xD800 - 0xDFFF (high, low surrogate) are ok:
-                return true;
-            }
-            if (c >= 0xF900 && c <= 0xFFFD) {
-                /* Check above removes other invalid chars (below valid
-                 * range), and byte-order markers (0xFFFE, 0xFFFF).
-                 */
-                return (c <= 0xFDCF || c >= 0xFDF0);
-            }
-        }
-
-        return false;
-    }
-
-    public final static boolean isSpaceChar(char c)
-    {
-        return (c <= CHAR_SPACE);
-    }
 
     /**
      * Method that will parse name token (roughly equivalent to XML specs;
@@ -1619,7 +1485,7 @@ public abstract class StreamScanner
          * is taken as namespace separator; no use trying to optimize
          * heavily as it's 98% likely it is a valid char...
          */
-        if (!isNameStartChar(c)) {
+        if (!is11NameStartChar(c)) {
             if (c == ':') {
                 throwUnexpectedChar(c, " (missing namespace prefix?)");
             }
@@ -1638,7 +1504,7 @@ public abstract class StreamScanner
         while (ptr < inputLen) {
             //c = inputBuf[ptr];
             c = mInputBuffer[ptr];
-            if ((c < CHAR_LOWEST_LEGAL_LOCALNAME_CHAR) || !isNameChar(c)) {
+            if ((c < CHAR_LOWEST_LEGAL_LOCALNAME_CHAR) || !is11NameChar(c)) {
                 mInputPtr = ptr;
                 return mSymbols.findSymbol(mInputBuffer, startPtr, ptr - startPtr, hash);
             }
@@ -1678,7 +1544,7 @@ public abstract class StreamScanner
         while (true) {
             char c = (mInputPtr < mInputLen) ? mInputBuffer[mInputPtr++]
                 : getNextChar(SUFFIX_IN_NAME);
-            if ((c < CHAR_LOWEST_LEGAL_LOCALNAME_CHAR) || !isNameChar(c)) {
+            if ((c < CHAR_LOWEST_LEGAL_LOCALNAME_CHAR) || !is11NameChar(c)) {
                 --mInputPtr; // pusback
                 break;
             }
@@ -1725,7 +1591,7 @@ public abstract class StreamScanner
         throws IOException, WstxException
     {
         // First char has special handling:
-        if (!isNameStartChar(c)) {
+        if (!is11NameStartChar(c)) {
             if (c == ':') { // no name.... generally an error:
                 if (mCfgNsEnabled) {
                     throwNsColonException(parseFNameForError());
@@ -1763,7 +1629,7 @@ public abstract class StreamScanner
                     mInputPtr = ptr;
                     throwNsColonException(new String(inputBuf, startPtr, ptr - startPtr) + parseFNameForError());
                 }
-            } else if (!isNameChar(c)) {
+            } else if (!is11NameChar(c)) {
                 break;
             }
             hash = (hash * 31) + (int) c;
@@ -1809,7 +1675,7 @@ public abstract class StreamScanner
                 if (mCfgNsEnabled) {
                     throwNsColonException(new String(outBuf, 0, ptr) + c + parseFNameForError());
                 }
-            } else if (isNameChar(c)) {
+            } else if (is11NameChar(c)) {
                 ++mInputPtr;
             } else {
                 break;
@@ -1850,7 +1716,7 @@ public abstract class StreamScanner
                 }
                 c = (char) i;
             }
-            if (c != ':' && !isNameChar(c)) {
+            if (c != ':' && !is11NameChar(c)) {
                 --mInputPtr;
                 break;
             }
@@ -1888,7 +1754,7 @@ public abstract class StreamScanner
     protected int skipFullName(char c)
         throws IOException, WstxException
     {
-        if (!isNameStartChar(c)) {
+        if (!is11NameStartChar(c)) {
             --mInputPtr;
             return 0;
         }
@@ -1900,7 +1766,7 @@ public abstract class StreamScanner
         while (true) {
             c = (mInputPtr < mInputLen) ?
                 mInputBuffer[mInputPtr++] : getNextChar(SUFFIX_EOF_EXP_NAME);
-            if (c != ':' && !isNameChar(c)) {
+            if (c != ':' && !is11NameChar(c)) {
                 break;
             }
             ++count;

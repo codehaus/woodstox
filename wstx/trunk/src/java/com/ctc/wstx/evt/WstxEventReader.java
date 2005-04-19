@@ -240,6 +240,7 @@ public class WstxEventReader
                     }
                 }
                 throwParseError("Received non-all-whitespace CHARACTERS or CDATA event in nextTag().");
+		break; // never gets here, but some compilers whine without...
             case START_ELEMENT:
             case END_ELEMENT:
                 return evt;

@@ -1053,7 +1053,7 @@ public class FullDTDReader
              */
             c = getNextExpanded();
             --mInputPtr; // ie. we just peek it...
-            if (!isNameChar(c)) {
+            if (!is11NameChar(c)) {
                 // Yup, that's fine!
                 return null;
             }
@@ -1065,7 +1065,7 @@ public class FullDTDReader
         sb.append(c);
         while (true) {
             c = getNextExpanded();
-            if (!isNameChar(c) && c != ':') {
+            if (!is11NameChar(c) && c != ':') {
                 --mInputPtr;
                 break;
             }
@@ -1084,7 +1084,7 @@ public class FullDTDReader
     {
         // First thing, is the first char ok?
         if (firstChar != exp.charAt(0)) {
-            if (isNameStartChar(firstChar)) {
+            if (is11NameStartChar(firstChar)) {
                 ; // Ok, fine, let's fall to code that gets the identifier
             } else {
                 throwDTDUnexpectedChar(firstChar, getErrorMsg()+extraError);
@@ -1113,7 +1113,7 @@ public class FullDTDReader
             // Got a match? Cool... except if identifier still continues...
             char c = getNextExpanded();
             --mInputPtr; // ie. we just peek it...
-            if (!isNameChar(c)) {
+            if (!is11NameChar(c)) {
                 // Yup, that's fine!
                 return;
             }
@@ -1124,7 +1124,7 @@ public class FullDTDReader
         StringBuffer sb = new StringBuffer(exp.substring(0, i));
         while (true) {
             char c = getNextExpanded();
-            if (!isNameChar(c) && c != ':') {
+            if (!is11NameChar(c) && c != ':') {
                 --mInputPtr;
                 break;
             }
@@ -1151,7 +1151,7 @@ public class FullDTDReader
 
         if (!gotPrefix) {
             char c = getNextExpanded();
-            if (!isNameStartChar(c)) { // should never happen...
+            if (!is11NameStartChar(c)) { // should never happen...
                 --mInputPtr;
                 return "";
             }
@@ -1160,7 +1160,7 @@ public class FullDTDReader
 
         while (true) {
             char c = getNextExpanded();
-            if (!isNameChar(c) && c != ':') {
+            if (!is11NameChar(c) && c != ':') {
                 --mInputPtr;
                 break;
             }
@@ -1191,7 +1191,7 @@ public class FullDTDReader
             }
             errId = "S" + errId;
         } else {
-            if (!isNameStartChar(c)) {
+            if (!is11NameStartChar(c)) {
                 throwDTDUnexpectedChar(c, "; expected 'PUBLIC' or 'SYSTEM' keyword.");
             }
             --mInputPtr;
@@ -1212,7 +1212,7 @@ public class FullDTDReader
         throws IOException, WstxException
     {
         // Let's just check this before trying to parse the id...
-        if (!isNameStartChar(c)) {
+        if (!is11NameStartChar(c)) {
             throwDTDUnexpectedChar(c, getErrorMsg()+"; expected an identifier");
         }
         return parseFullName(c);
@@ -1224,7 +1224,7 @@ public class FullDTDReader
         /* Let's just check this first, to get better error msg
 	 * (parseLocalName() will double-check it too)
 	 */
-        if (checkChar && !isNameStartChar(c)) {
+        if (checkChar && !is11NameStartChar(c)) {
             throwDTDUnexpectedChar(c, getErrorMsg()+"; expected an identifier");
         }
         return parseLocalName(c);
@@ -1242,7 +1242,7 @@ public class FullDTDReader
         int outPtr = 0;
 
         while (true) {
-            if (!isNameChar(c)) {
+            if (!is11NameChar(c)) {
                 // Need to get at least one char
                 if (outPtr == 0) {
                     throwDTDUnexpectedChar(c, getErrorMsg()+"; expected a NMTOKEN character to start a NMTOKEN");
@@ -1923,7 +1923,7 @@ public class FullDTDReader
                 }
                 vldContent = CONTENT_ALLOW_NON_MIXED; // checked against DTD
             }
-        } else if (isNameStartChar(c)) {
+        } else if (is11NameStartChar(c)) {
             do { // dummy loop to allow break:
                 String keyw = null;
                 if (c == 'A') {
@@ -2029,7 +2029,7 @@ public class FullDTDReader
                 ent = new IntEntity(evtLoc, id, getSource(),
                                     contents.contentsAsArray(), contentLoc);
             } else {
-                if (!isNameStartChar(c)) {
+                if (!is11NameStartChar(c)) {
                     throwDTDUnexpectedChar(c, getErrorMsg()+"; expected either quoted value, or keyword 'PUBLIC' or 'SYSTEM'.");
                 }
                 ent = handleExternalEntityDecl(isParam, id, c, evtLoc);
@@ -2177,7 +2177,7 @@ public class FullDTDReader
         String name;
         
         // Explicit namespace name?
-        if (isNameStartChar(c)) {
+        if (is11NameStartChar(c)) {
             name = readDTDLocalName(c, false);
             c = skipObligatoryDtdWs(true);
         } else { // no, default namespace (or error)
