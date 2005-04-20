@@ -22,7 +22,6 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.*;
 import javax.xml.stream.events.*;
 
-import org.codehaus.stax2.evt.StartElement2;
 import org.codehaus.stax2.evt.XMLEventFactory2;
 import org.codehaus.stax2.evt.DTD2;
 
@@ -151,13 +150,13 @@ public final class WstxEventFactory
 
     public StartElement createStartElement(QName name, Iterator attr, Iterator ns)
     {
-        return createStartElement(name, attr, ns, null, false);
+        return createStartElement(name, attr, ns, null);
     }
 
     public StartElement createStartElement(String prefix, String nsURI, String localName)
     {
         return createStartElement(new QName(nsURI, localName, prefix),
-                                  null, null, null, false);
+                                  null, null, null);
     }
 
     public StartElement createStartElement(String prefix, String nsURI,
@@ -165,7 +164,7 @@ public final class WstxEventFactory
                                            Iterator ns)
     {
         return createStartElement(new QName(nsURI, localName, prefix), attr, ns,
-                                  null, false);
+                                  null);
     }
 
     public StartElement createStartElement(String prefix, String nsURI,
@@ -173,7 +172,7 @@ public final class WstxEventFactory
                                            Iterator ns, NamespaceContext nsCtxt)
     {
         return createStartElement(new QName(nsURI, localName, prefix),
-                                  attr, ns, nsCtxt, false);
+                                  attr, ns, nsCtxt);
     }
 
     public void setLocation(Location loc) {
@@ -199,16 +198,15 @@ public final class WstxEventFactory
                         (DTDSubset) processedDTD);
     }
 
-    public StartElement2 createStartElement(QName name, Iterator attr,
-                                           Iterator ns, NamespaceContext ctxt,
-                                           boolean wasEmpty)
-    {
-        return SimpleStartElement.construct(mLocation, name, attr, ns, ctxt, wasEmpty);
-    }
-
     /*
     /////////////////////////////////////////////////////////////
     // Internal methods
     /////////////////////////////////////////////////////////////
      */
+
+    private StartElement createStartElement(QName name, Iterator attr,
+					    Iterator ns, NamespaceContext ctxt)
+    {
+        return SimpleStartElement.construct(mLocation, name, attr, ns, ctxt);
+    }
 }

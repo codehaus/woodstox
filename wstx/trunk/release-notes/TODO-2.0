@@ -37,7 +37,7 @@ Must-haves for 2.0
 
 * StAX 2.0 features:
    * Configuration/introspection:
-      * Interning status (INTERN_NAMES [== local name, prefix], INTERN_URIS)?
+   [DONE]* Interning status (INTERN_NAMES [== localname,prefix], INTERN_URIS)?
 
    [DONE] * Package API classes to a separate jar (in addition to including
      them in woodstox jars)

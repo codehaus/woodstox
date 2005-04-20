@@ -37,16 +37,15 @@ public class SimpleStartElement
      */
 
     protected SimpleStartElement(Location loc, QName name, BaseNsContext nsCtxt,
-                                 Map attr, boolean wasEmpty)
+                                 Map attr)
     {
-        super(loc, name, nsCtxt, wasEmpty);
+        super(loc, name, nsCtxt);
         mAttrs = attr;
     }
 
     public static SimpleStartElement construct(Location loc, QName name,
                                                Iterator attrs, Iterator ns,
-                                               NamespaceContext nsCtxt,
-                                               boolean wasEmpty)
+                                               NamespaceContext nsCtxt)
     {
         Map attrMap;
         if (attrs == null || !attrs.hasNext()) {
@@ -78,7 +77,7 @@ public class SimpleStartElement
                 myCtxt = MergedNsContext.construct(nsCtxt, null);
             }
         }
-        return new SimpleStartElement(loc, name, myCtxt, attrMap, wasEmpty);
+        return new SimpleStartElement(loc, name, myCtxt, attrMap);
     }
 
     /*

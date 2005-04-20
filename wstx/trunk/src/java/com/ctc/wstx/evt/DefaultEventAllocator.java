@@ -238,7 +238,7 @@ public class DefaultEventAllocator
                                    BaseNsContext nsCtxt, ElemAttrs attrs,
                                    boolean wasEmpty)
     {
-        return new CompactStartElement(loc, name, nsCtxt, attrs, wasEmpty);
+        return new CompactStartElement(loc, name, nsCtxt, attrs);
     }
 
     /*

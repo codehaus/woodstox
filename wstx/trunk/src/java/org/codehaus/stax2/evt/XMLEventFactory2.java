@@ -24,10 +24,5 @@ public abstract class XMLEventFactory2
 
     public abstract DTD2 createDTD(String rootName, String sysId, String pubId,
                                   String intSubset, Object processedDTD);
-
-    public abstract StartElement2 createStartElement(QName name,
-                                                     Iterator attrs, Iterator ns,
-                                                     NamespaceContext nsCtxt,
-                                                     boolean wasEmpty);
 }
 

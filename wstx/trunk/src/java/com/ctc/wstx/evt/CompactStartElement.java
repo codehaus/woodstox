@@ -70,9 +70,9 @@ public class CompactStartElement
      */
 
     protected CompactStartElement(Location loc, QName name, BaseNsContext nsCtxt,
-                                  ElemAttrs attrs, boolean wasEmpty)
+                                  ElemAttrs attrs)
     {
-        super(loc, name, nsCtxt, wasEmpty);
+        super(loc, name, nsCtxt);
         mAttrs = attrs;
         mRawAttrs = (attrs == null) ? null : attrs.getRawAttrs();
     }
