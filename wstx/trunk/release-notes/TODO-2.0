@@ -2,9 +2,6 @@
 Must-haves for 2.0
 ------------------------------------
 
-* Direct access to reader/writer props like isNamespaceAware() and
-  isRepairing()?
-
 * Stream writers:
 [Partial] * Validate names (local, full), when such validation enabled
  (still need the matching unit tests!)
@@ -59,7 +56,7 @@ Must-haves for 2.0
       * Unit tests for attribute access?
       [DONE] * Separate DTD info access behind a new interface (DTDInfo?)
       [Partial] * Streaming access: getText with Writer arg
-       * Streaming access: getTextReader
+      [Defer/ignore] * Streaming access: getTextReader
       [DONE] * Misc: isEmptyElement, getDepth
       [DONE] * Full pass-through method (copyEventFromReader())
       [DONE] * Extended location information access via LocationInfo;
@@ -72,8 +69,10 @@ Must-haves for 2.0
       [DONE] * writeFullEndElement (for ensuring explict end tag)
       * Allow configuration of extra white space after empty element
         (like '<tag />')?
+      * A new property P_OUTPUT_FIX_CONTENT; if content verification enabled,
+        will quietly try to fix content problems first (comments, CDATA;
+        not sure about PIs?)
 [DONE] * evt/DTD2: allow access to root name, system id, public id, int. subset
-[Remove! (undo)] * evt/StartElement2: isEmptyElement()
 [DONE] * evt/XMLEventFactory2: factory methods for creating DTD2, StartElement2 instances
 [DONE] * EncodingWriterFactory, to create encoding writers for XML encoding,
          and matching implementations.

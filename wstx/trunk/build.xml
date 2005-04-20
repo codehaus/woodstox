@@ -8,8 +8,8 @@
       than basic javac (not to mention faster). But is this a personal
       preference?
       Also, don't want to have a dependency to Jikes...
-    -->
     <property name="build.compiler" value="jikes" />
+    -->
 
     <!-- Source directories -->
     <property name="SrcDir" location="${basedir}/src" />

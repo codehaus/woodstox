@@ -413,6 +413,10 @@ public final class TextBuffer
             }
             return new StringReader("");
         }
+	// or maybe it's all in the current segment
+	if (mSegments == null || mSegments.size() == 0) {
+	    return new CharArrayReader(mCurrentSegment, 0, mCurrentSize);
+	}
         // Nope, need to do full segmented output
 	return new BufferReader(mSegments, mCurrentSegment, mCurrentSize);
     }
@@ -746,7 +750,7 @@ public final class TextBuffer
     {
 	ArrayList mSegments;
 	char[] mCurrentSegment;
-	final int mCurrentSize;
+	final int mCurrentLength;
 
 	int mSegmentIndex;
 	int mSegmentOffset;
@@ -756,7 +760,7 @@ public final class TextBuffer
 	{
 	    mSegments = segs;
 	    mCurrentSegment = currSeg;
-	    mCurrentSize = currSegLen;
+	    mCurrentLength = currSegLen;
 
 	    mSegmentIndex = 0;
 	    mSegmentOffset = mCurrentOffset = 0;
@@ -779,8 +783,50 @@ public final class TextBuffer
 
 	public int read(char[] cbuf, int offset, int len)
 	{
-	    // !!! TBI
-	    return -1;
+	    if (len < 1) {
+		return 0;
+	    }
+
+	    int origOffset = offset;
+	    // First need to copy stuff from previous segments
+	    while (mSegments != null) {
+		char[] curr = (char[]) mSegments.get(mSegmentIndex);
+		int max = curr.length - mSegmentOffset;
+		if (len <= max) { // this is enough
+		    System.arraycopy(curr, mSegmentOffset, cbuf, offset, len);
+		    mSegmentOffset += len;
+		    offset += len;
+		    return (offset - origOffset);
+		}
+		// Not enough, but helps...
+		if (max > 0) {
+		    System.arraycopy(curr, mSegmentOffset, cbuf, offset, max);
+		    offset += max;
+		}
+		if (++mSegmentIndex >= mSegments.size()) { // last one
+		    mSegments = null;
+		} else {
+		    mSegmentOffset = 0;
+		}
+	    }
+
+	    // ok, anything to copy from the active segment?
+	    if (len > 0 && mCurrentSegment != null) {
+		int max = mCurrentLength - mCurrentOffset;
+		if (len >= max) { // reading it all
+		    len = max;
+		    System.arraycopy(mCurrentSegment, mCurrentOffset,
+				     cbuf, offset, len);
+		    mCurrentSegment = null;
+		} else {
+		    System.arraycopy(mCurrentSegment, mCurrentOffset,
+				     cbuf, offset, len);
+		    mCurrentOffset += len;
+		}
+		offset += len;
+	    }
+
+	    return (origOffset == offset) ? -1 : (offset - origOffset);
 	}
 
 	public boolean ready() {
@@ -793,9 +839,46 @@ public final class TextBuffer
 	    throw new IOException("reset() not supported");
 	}
 
-	public long skip(long amount) {
-	    // !!! TBI
-	    return -1L;
+	public long skip(long amount)
+	{
+	    /* Note: implementation is almost identical to that of read();
+	     * difference being that no data is copied.
+	     */
+	    if (amount < 0) {
+		return 0L;
+	    }
+
+	    long origAmount= amount;
+
+	    while (mSegments != null) {
+		char[] curr = (char[]) mSegments.get(mSegmentIndex);
+		int max = curr.length - mSegmentOffset;
+		if (max >= amount) { // this is enough
+		    mSegmentOffset += (int) amount;
+		    return origAmount;
+		}
+		// Not enough, but helps...
+		amount -= max;
+		if (++mSegmentIndex >= mSegments.size()) { // last one
+		    mSegments = null;
+		} else {
+		    mSegmentOffset = 0;
+		}
+	    }
+
+	    // ok, anything left in the active segment?
+	    if (amount > 0 && mCurrentSegment != null) {
+		int max = mCurrentLength - mCurrentOffset;
+		if (amount >= max) { // reading it all
+		    amount -= max;
+		    mCurrentSegment = null;
+		} else {
+		    amount = 0L;
+		    mCurrentOffset += (int) amount;
+		}
+	    }
+
+	    return (amount == origAmount) ? -1L : (origAmount - amount);
 	}
     }
 }

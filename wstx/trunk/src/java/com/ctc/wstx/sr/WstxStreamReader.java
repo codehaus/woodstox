@@ -1149,6 +1149,8 @@ public class WstxStreamReader
      * @return Reader through which textual contents of the current event
      *    can be read.
      */
+    /*
+      // 19-Apr-2005, TSa: This method was left out of StAX2 v1.0...
     public Reader getTextReader(boolean preserveContents)
         throws IOException, XMLStreamException
     {
@@ -1171,7 +1173,7 @@ public class WstxStreamReader
         }
         return mTextBuffer.rawContentsViaReader();
     }
-
+    */
 
     // // // StAX 2, Other accessors
 

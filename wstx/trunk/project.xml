@@ -14,7 +14,7 @@
     
     <!-- Project Info -->
     <name>Woodstox</name>
-    <currentVersion>0.8.2</currentVersion>
+    <currentVersion>1.9</currentVersion>
     
     <shortDescription>
          Woodstox is an Open Source XML-processor written in Java, that implements StAX API (version 1.0).
@@ -41,6 +41,10 @@
             <name>LGPL</name>
             <url>http://opensource.org/licenses/lgpl-license.php</url>
         </license>
+        <license>
+            <name>ASL</name>
+            <url>http://opensource.org/licenses/apache2.0.php</url>
+        </license>
     </licenses>
     
     <!-- basic dependencies -->
@@ -58,16 +62,15 @@
     
     <!-- Build Settings -->
     <build>
-    
         <sourceDirectory>${basedir}/src/java</sourceDirectory>
         <resources>
-			<resource>
-				<directory>${basedir}/src/resources</directory>
-				<targetPath>META-INF/services</targetPath>
-				<includes>
-					<include>javax.xml.stream.*</include>
-				</includes>
-		    </resource>
+            <resource>
+		<directory>${basedir}/src/resources</directory>
+		<targetPath>META-INF/services</targetPath>
+		<includes>
+		  <include>javax.xml.stream.*</include>
+		</includes>
+            </resource>
         </resources>
     
     </build>
