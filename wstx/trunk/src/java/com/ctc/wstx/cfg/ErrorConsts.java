@@ -106,8 +106,8 @@ public class ErrorConsts
 
     public static String WERR_NAME_EMPTY = "Illegal to pass empty name";
 
-    public static String WERR_NAME_ILLEGAL_FIRST_CHAR = "Illegal first name character {1}";
-    public static String WERR_NAME_ILLEGAL_CHAR = "Illegal name character {1}";
+    public static String WERR_NAME_ILLEGAL_FIRST_CHAR = "Illegal first name character {0}";
+    public static String WERR_NAME_ILLEGAL_CHAR = "Illegal name character {0}";
 
     /*
     ////////////////////////////////////////////////////

@@ -621,7 +621,12 @@ public abstract class BaseStreamWriter
         verifyWriteDTD();
         try {
             mWriter.write("<!DOCTYPE ");
-            if (mCheckContent) {
+            if (mCheckNames) {
+                /* 20-Apr-2005, TSa: Can only really verify that it has at most
+                 *    one colon in ns-aware mode (and not even that in non-ns
+                 *    mode)... so let's just ignore colon count, and check
+                 *    that other chars are valid at least
+                 */
                 verifyNameValidity(rootName, false);
             }
             mWriter.write(rootName);
@@ -994,7 +999,10 @@ public abstract class BaseStreamWriter
 	}
 
 	for (int i = 1, len = name.length(); i < len; ++i) {
-	    if (!WstxInputData.is11NameStartChar(name.charAt(i))) {
+            c = name.charAt(i);
+            if (c == ':' && !nsAware) {
+                ; // is ok, but has to be explicitly checked...
+            } else if (!WstxInputData.is11NameChar(c)) {
 		throwIllegalArg(ErrorConsts.WERR_NAME_ILLEGAL_CHAR,
 				WstxInputData.getCharDesc(c));
 	    }

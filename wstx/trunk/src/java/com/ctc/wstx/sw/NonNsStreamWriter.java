@@ -129,10 +129,9 @@ public class NonNsStreamWriter
             throw new IllegalStateException(ErrorConsts.WERR_ATTR_NO_ELEM);
 
         }
-
         // May need to check uniqueness?
         if (mCheckNames) {
-            verifyNameValidity(localName, mNsAware);
+            verifyNameValidity(localName, false);
         }
         if (mCheckAttr) {
             if (mAttrNames == null) {
@@ -383,8 +382,8 @@ public class NonNsStreamWriter
         if (mStartElementOpen) {
             closeStartElement(mEmptyElement);
         }
-        if (mCheckContent) {
-            verifyNameValidity(localName, mNsAware);
+        if (mCheckNames) {
+            verifyNameValidity(localName, false);
         }
 
         if (mState == STATE_PROLOG) {

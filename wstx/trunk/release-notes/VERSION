@@ -13,6 +13,11 @@ Description:
       * Repairing mode was not properly handling namespace bindings, esp.
         WRT default namespace. Now the implementation is believed to
         (finally!) work exactly as expected.
+      * Full read-only access to configuration settings via getProperty()
+   * XMLStreamWriter:
+      * Fixed various Location reporting problems (OBOs, Location not
+        properly updated in lazy-parsing mode)
+      * Full read-only access to configuration settings via getProperty()
    * A compilation problem (on JDK 1.5) reported by Olivier Potonniee (a
      method name conflict in LineSuppressWriter)
 

@@ -457,9 +457,8 @@ public final class WriterConfig
     }
 
     /**
-     * @return Prefix to use as the base for automatically generated
+     * @param prefix Prefix to use as the base for automatically generated
      *   namespace prefixes ("namespace prefix prefix", so to speak).
-     *   Defaults to "wstxns".
      */
     public void setAutomaticNsPrefix(String prefix) {
         mAutoNsPrefix = prefix;

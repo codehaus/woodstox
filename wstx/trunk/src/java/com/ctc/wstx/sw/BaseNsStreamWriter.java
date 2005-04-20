@@ -192,15 +192,10 @@ public abstract class BaseNsStreamWriter
     public void writeAttribute(String localName, String value)
         throws XMLStreamException
     {
-        if (mCheckContent) {
-            verifyNameValidity(localName, mNsAware);
-        }
-
         // No need to set mAnyOutput, nor close the element
         if (!mStartElementOpen) {
-            throw new IllegalStateException("Trying to write an attribute when there is no open start element.");
+            throw new IllegalStateException(ErrorConsts.WERR_ATTR_NO_ELEM);
         }
-
         doWriteAttr(localName, null, null, value);
     }
 
@@ -380,6 +375,9 @@ public abstract class BaseNsStreamWriter
                                String value)
         throws XMLStreamException
     {
+        if (mCheckNames) {
+            verifyNameValidity(localName, true);
+        }
         if (mCheckAttr) { // still need to ensure no duplicate attrs?
             mCurrElem.checkAttrWrite(nsURI, localName, value);
         }
@@ -509,6 +507,14 @@ public abstract class BaseNsStreamWriter
     {
         mAnyOutput = true;
         mStartElementOpen = true;
+
+        if (mCheckNames) {
+            if (prefix != null && prefix.length() > 0) {
+                verifyNameValidity(prefix, true);
+            }
+            verifyNameValidity(localName, true);
+        }
+
         try {
             mWriter.write('<');
             if (prefix != null && prefix.length() > 0) {
@@ -516,15 +522,6 @@ public abstract class BaseNsStreamWriter
                 mWriter.write(':');
             }
             mWriter.write(localName);
-
-            /* 21-Sep-2004, TSa: In ns-repairing mode we can/need to
-             *    also automatically output all declared namespaces
-             *    (whether they are automatic or not)
-             */
-            if (mAutomaticNS) {
-                // !!! TODO
-                //mCurrElem.outputDeclaredNamespaces(mWriter);
-            }
         } catch (IOException ioe) {
             throw new XMLStreamException(ioe);
         }

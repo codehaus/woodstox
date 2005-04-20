@@ -9,7 +9,9 @@ import javax.xml.stream.*;
 
 import org.codehaus.stax2.*;
 
+import com.ctc.wstx.api.WstxOutputProperties;
 import com.ctc.wstx.stax.WstxInputFactory;
+import com.ctc.wstx.stax.WstxOutputFactory;
 
 public class BaseWstxTest
     extends TestCase
@@ -43,6 +45,8 @@ public class BaseWstxTest
      */
 
     XMLInputFactory2 mInputFactory = null;
+
+    XMLOutputFactory2 mOutputFactory = null;
 
     /*
     ///////////////////////////////////////////////////
@@ -80,6 +84,25 @@ public class BaseWstxTest
     protected static XMLInputFactory2 getNewInputFactory()
     {
         return (XMLInputFactory2) XMLInputFactory.newInstance();
+    }
+
+    protected XMLOutputFactory2 getOutputFactory()
+    {
+        if (mOutputFactory == null) {
+            System.setProperty("javax.xml.stream.XMLOutputFactory",
+                               "com.ctc.wstx.stax.WstxOutputFactory");
+            mOutputFactory = getNewOutputFactory();
+        }
+        return mOutputFactory;
+    }
+
+    protected WstxOutputFactory getWstxOutputFactory() {
+        return (WstxOutputFactory) getOutputFactory();
+    }
+
+    protected static XMLOutputFactory2 getNewOutputFactory()
+    {
+        return (XMLOutputFactory2) XMLOutputFactory.newInstance();
     }
 
     protected static XMLStreamReader2 constructStreamReader(XMLInputFactory f, String content)
@@ -127,6 +150,35 @@ public class BaseWstxTest
         throws XMLStreamException
     {
         f.setProperty(XMLInputFactory.SUPPORT_DTD, Boolean.valueOf(state));
+    }
+
+    /*
+    //////////////////////////////////////////////////
+    // Configuring input factory
+    //////////////////////////////////////////////////
+     */
+
+    protected static void setRepairing(XMLOutputFactory f, boolean state)
+    {
+        f.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES,
+                      Boolean.valueOf(state));
+    }
+
+    protected static void setNamespaceAware(XMLOutputFactory f, boolean state)
+    {
+        f.setProperty(XMLOutputFactory2.P_NAMESPACE_AWARE, Boolean.valueOf(state));
+    }
+
+    protected static void setValidateContent(XMLOutputFactory f, boolean state)
+    {
+        f.setProperty(WstxOutputProperties.P_OUTPUT_VALIDATE_CONTENT,
+                      Boolean.valueOf(state));
+    }
+
+    protected static void setValidateNames(XMLOutputFactory f, boolean state)
+    {
+        f.setProperty(WstxOutputProperties.P_OUTPUT_VALIDATE_NAMES,
+                      Boolean.valueOf(state));
     }
 
     /*

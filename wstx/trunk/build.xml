@@ -197,7 +197,7 @@
         <delete dir="${DistDir}"/>
     </target>
 
-    <target name="compile" depends="prepare">
+    <target name="compile" depends="prepare,copy-resources">
         <javac SrcDir="${JavaSrcDir}" destdir="${BuildClassesDir}"
             debug="true"
         >
@@ -410,7 +410,7 @@
 
     <!-- Running generic StAX tests -->
     <target name="staxtest"
-      depends="jar.wstx.asl, prepare-staxtest"
+      depends="prepare-staxtest,jar.wstx.asl"
     >
        <!-- showoutput 'yes' to allow outputting debug msgs... -->
         <junit fork="no" printsummary="yes" haltonfailure="no"
@@ -428,7 +428,7 @@
             -->
             <classpath>     
               <fileset dir="${BuildDir}">
-                <include name="wstx-*-asl.jar" />
+                <include name="wstx-asl-*.jar" />
               </fileset> 
               <path refid="junit-libs"/>
            </classpath>  
@@ -443,7 +443,7 @@
     </target>
 
     <target name="prepare-staxtest">
-        <mkdir dir="${BuildDir}/staxtest-classes" />
+        <mkdir dir="${StaxTestClassesDir}" />
         <!-- and unpack test classes... unfortunately needed so JUnit
              can find classes (maybe there's a way to refer to a jar too,
              have not found one so far)

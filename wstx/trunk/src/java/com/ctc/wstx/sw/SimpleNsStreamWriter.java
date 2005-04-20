@@ -94,9 +94,6 @@ public class SimpleNsStreamWriter
         if (!mStartElementOpen) {
             throw new IllegalStateException(ErrorConsts.WERR_ATTR_NO_ELEM);
         }
-
-        // 01-Apr-2005, TSa: Can we (and do we want to) verify NS consistency?
-
         doWriteAttr(localName, nsURI, prefix, value);
     }
 

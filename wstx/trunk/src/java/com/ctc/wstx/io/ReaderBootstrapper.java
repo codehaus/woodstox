@@ -182,7 +182,7 @@ public final class ReaderBootstrapper
         Location loc = getLocation();
         try {
             rep.report(MessageFormat.format(ErrorConsts.W_MIXED_ENCODINGS,
-                                            new String[] { mFoundEncoding,
+                                            new Object[] { mFoundEncoding,
                                                            mAppEncoding }),
                        ErrorConsts.WT_XML_DECL,
                        this, loc);
