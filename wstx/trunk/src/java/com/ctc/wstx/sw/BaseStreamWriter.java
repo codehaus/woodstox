@@ -101,6 +101,7 @@ public abstract class BaseStreamWriter
     protected final boolean mCheckContent;
     protected final boolean mCheckAttr;
     protected final boolean mCheckNames;
+    protected final boolean mFixContent;
 
     /*
     ////////////////////////////////////////////////////
@@ -181,6 +182,7 @@ public abstract class BaseStreamWriter
         mCheckContent = (flags & CFG_VALIDATE_CONTENT) != 0;
         mCheckAttr = (flags & CFG_VALIDATE_ATTR) != 0;
         mCheckNames = (flags & CFG_VALIDATE_NAMES) != 0;
+        mFixContent = (flags & CFG_FIX_CONTENT) != 0;
 
         mCfgOutputEmptyElems = (flags & CFG_OUTPUT_EMPTY_ELEMS) != 0;
         mCfgCDataAsText = (flags & CFG_OUTPUT_CDATA_AS_TEXT) != 0;
@@ -285,11 +287,19 @@ public abstract class BaseStreamWriter
             }
         }
 
-        if (mCheckContent) {
-            verifyCDataContent(data);
-        }
- 
         try {
+	    if (mCheckContent) {
+		int ix = verifyCDataContent(data);
+		if (ix >= 0) {
+		    // Can we fix it?
+		    if (mFixContent) { // Yes we can! (...Bob the Builder...)
+			writeSegmentedCData(data, ix);
+			return;
+		    }
+		    // nope, let's err out
+		    throwOutputError(ErrorConsts.WERR_CDATA_CONTENT, new Integer(ix));
+		}
+	    }
             mWriter.write("<![CDATA[");
             if (data != null) {
                 /* 20-Nov-2004, TSa: Should we try to validate content,
@@ -366,21 +376,23 @@ public abstract class BaseStreamWriter
             closeStartElement(mEmptyElement);
         }
 
-        /* No structural validation needed per se, for comments; they are
-         * allowed anywhere in XML content. However, content may need to
-         * be checked, to see it has no embedded '--'s.
-         */
-        if (mCheckContent) {
-            int ix = data.indexOf('-');
-            if (ix >= 0) {
-                ix = data.indexOf("--", ix);
-                if (ix >= 0) {
-                    throw new XMLStreamException(ErrorConsts.formatMessage(ErrorConsts.WERR_COMMENT_CONTENT, new Integer(ix)));
-                }
-            }
-        }
-
         try {
+	    /* No structural validation needed per se, for comments; they are
+	     * allowed anywhere in XML content. However, content may need to
+	     * be checked, to see it has no embedded '--'s.
+	     */
+	    if (mCheckContent) {
+		int ix = verifyCommentContent(data);
+		if (ix >= 0) {
+		    // Can we fix it?
+		    if (mFixContent) { // Yes we can! (...Bob the Builder...)
+			writeSegmentedComment(data, ix);
+			return;
+		    }
+		    // nope, let's err out
+		    throw new XMLStreamException(ErrorConsts.formatMessage(ErrorConsts.WERR_COMMENT_CONTENT, new Integer(ix)));
+		}
+	    }
             mWriter.write("<!--");
             mWriter.write(data);
             mWriter.write("-->");
@@ -1020,18 +1032,98 @@ public abstract class BaseStreamWriter
         }
     }
 
-    protected void verifyCDataContent(String content)
+    /**
+     * @return Index at which a problem was found, if any; -1 if there's
+     *   no problem.
+     */
+    protected int verifyCDataContent(String content)
         throws XMLStreamException
     {
         if (content != null && content.length() >= 3) {
             int ix = content.indexOf(']');
             if (ix >= 0) {
-                ix = content.indexOf("]]>", ix);
-                if (ix >= 0) {
-                    throwOutputError(ErrorConsts.WERR_CDATA_CONTENT, new Integer(ix));
-                }
+                return content.indexOf("]]>", ix);
             }
         }
+	return -1;
+    }
+
+    protected int verifyCommentContent(String content)
+        throws XMLStreamException
+    {
+	int ix = content.indexOf('-');
+	if (ix >= 0) {
+	    /* actually, it's illegal to just end with '-' too, since 
+	     * that would cause invalid end marker '--->'
+	     */
+	    if (ix < (content.length() - 1)) {
+		ix = content.indexOf("--", ix);
+	    }
+	}
+	return ix;
+    }
+
+    protected void writeSegmentedCData(String content, int index)
+	throws IOException
+    {
+	/* It's actually fairly easy, just split "]]>" into 2 pieces;
+	 * for each ']]>'; first one containing "]]", second one ">"
+	 * (as long as necessary)
+	 */
+	int start = 0;
+	while (index >= 0) {
+            mWriter.write("<![CDATA[");
+	    mWriter.write(content, start, (index+2) - start);
+            mWriter.write("]]>");
+	    start = index+2;
+	    index = content.indexOf("]]>", start);
+	}
+	// Ok, then the last segment
+	mWriter.write("<![CDATA[");
+	mWriter.write(content, start, content.length()-start);
+	mWriter.write("]]>");
+    }
+
+    protected void writeSegmentedComment(String content, int index)
+	throws IOException
+    {
+	int len = content.length();
+	// First the special case (last char is hyphen):
+	if (index == (len-1)) {
+	    mWriter.write("<!--");
+	    mWriter.write(content);
+	    // we just need to inject one space in there
+	    mWriter.write(" -->");
+	    return;
+	}
+
+	/* Fixing comments is more difficult than that of CDATA segments';
+	 * this because CDATA can still contain embedded ']]'s, but
+	 * comment neither allows '--' nor ending with '-->'; which means
+	 * that it's impossible to just split segments. Instead we'll do
+	 * something more intrusive, and embed single spaces between all
+	 * '--' character pairs... it's intrusive, but comments are not
+	 * supposed to contain any data, so that should be fine (plus
+	 * at least result is valid, unlike contents as is)
+	 */
+	int start = 0;
+	while (index >= 0) {
+            mWriter.write("<!--");
+	    // first, content prior to '--' and the first hyphen
+	    mWriter.write(content, start, (index+1) - start);
+	    // and an obligatory trailing space to split double-hyphen
+            mWriter.write(' ');
+	    // still need to handle rest of consequtive double'-'s if any
+	    start = index+1;
+	    index = content.indexOf("--", start);
+	}
+	// Ok, then the last segment
+	mWriter.write(content, start, len-start);
+	// ends with a hyphen? that needs to be fixed, too
+	if (content.charAt(len-1) == '-') {
+	    mWriter.write(' ');
+	}
+	mWriter.write("]]>");
     }
 
     /*

@@ -58,4 +58,14 @@ public interface OutputConfigFlags
      * to prevent accidental output of duplicate attributes.
      */
     final static int CFG_VALIDATE_ATTR = 0x0100;
+
+    /**
+     * Flag that will enable writer that checks for validity of content
+     * to try to fix the problem, by splitting output segments as
+     * necessary. If disabled, validation will throw an exception; and
+     * without validation no problem is noticed by writer (but instead
+     * invalid output is created).
+     */
+    final static int CFG_FIX_CONTENT =   0x0200;
+
 }

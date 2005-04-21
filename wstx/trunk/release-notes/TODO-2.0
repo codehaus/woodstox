@@ -3,22 +3,25 @@ Must-haves for 2.0
 ------------------------------------
 
 * Stream writers:
-[Partial] * Validate names (local, full), when such validation enabled
+[DONE] * Validate names (local, full), when such validation enabled
  (still need the matching unit tests!)
 
 * DTD-handling/parsing:
 [DONE] * Verify that an unparsed entity refers to a declared notation.
 [DONE] * Make attribute type declarations accessible via stream API
-   * Make attribute type declarations accessible via event API?
+[wont-implement] * Make attribute type declarations accessible via event API?
 
 * Unit testing: Implement at least simple basic StAX-tests for:
-   * Event reader [partial]
-   * Stream writer [partial]
+   * Stream reader
+      * Unit tests for attribute access?
+      * Location info tests
+      [DONE] * Test misc. properties (isEmpty, depth)
+      [DONE] * Test skipElement
+      * Test streaming access
+   * Event reader: what?
+   * Stream writer
+      [DONE] * Name validation
    * Event writer
-   * StAX2:
-      * XMLStreamReader2:
-         [DONE] * Test misc. properties (isEmpty, depth)
-         [DONE] * Test skipElement
 
 * Documentation:
    * Impl. details, like: always interns names, preserves attribute value
@@ -34,8 +37,7 @@ Must-haves for 2.0
 
 * StAX 2.0 features:
    * Configuration/introspection:
-   [DONE]* Interning status (INTERN_NAMES [== localname,prefix], INTERN_URIS)?
-
+      [DONE] * Interning status (INTERN_NAMES [== localname,prefix], INTERN_URIS)?
    [DONE] * Package API classes to a separate jar (in addition to including
      them in woodstox jars)
    * XMLEventReader2:
@@ -53,7 +55,6 @@ Must-haves for 2.0
       [DONE] * Traversal: skipElement()
       [DONE] * Extra attribute access via AttributeInfo; findAttributeIndex,
         getIdAttributeIndex, getNotationAttributeIndex
-      * Unit tests for attribute access?
       [DONE] * Separate DTD info access behind a new interface (DTDInfo?)
       [Partial] * Streaming access: getText with Writer arg
       [Defer/ignore] * Streaming access: getTextReader
@@ -67,11 +68,11 @@ Must-haves for 2.0
       [Partial?] * setFeature/getFeature (which property/ies?)
       [DONE] * writeDTD to support DTD2
       [DONE] * writeFullEndElement (for ensuring explict end tag)
-      * Allow configuration of extra white space after empty element
+      [maybe?] * Allow configuration of extra white space after empty element
         (like '<tag />')?
-      * A new property P_OUTPUT_FIX_CONTENT; if content verification enabled,
-        will quietly try to fix content problems first (comments, CDATA;
-        not sure about PIs?)
+      [DONE] * A new property P_OUTPUT_FIX_CONTENT; if content verification
+        enabled, will quietly try to fix content problems first (comments,
+        CDATA; not sure about PIs?)
 [DONE] * evt/DTD2: allow access to root name, system id, public id, int. subset
 [DONE] * evt/XMLEventFactory2: factory methods for creating DTD2, StartElement2 instances
 [DONE] * EncodingWriterFactory, to create encoding writers for XML encoding,

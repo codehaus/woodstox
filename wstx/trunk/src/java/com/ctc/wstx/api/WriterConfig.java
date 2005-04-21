@@ -53,10 +53,11 @@ public final class WriterConfig
 
     // Let's not use this any more... no point:
     //final static int PROP_VALIDATE_NS ;
-    final static int PROP_VALIDATE_STRUCTURE = 15;
+    final static int PROP_VALIDATE_STRUCTURE = 15; 
     final static int PROP_VALIDATE_CONTENT = 16;
     final static int PROP_VALIDATE_ATTR = 17;
     final static int PROP_VALIDATE_NAMES = 18;
+    final static int PROP_FIX_CONTENT = 19;
 
     // // // Default settings for additional properties:
 
@@ -75,6 +76,10 @@ public final class WriterConfig
     final static boolean DEFAULT_VALIDATE_CONTENT = false;
     final static boolean DEFAULT_VALIDATE_ATTR = false;
     final static boolean DEFAULT_VALIDATE_NAMES = false;
+    /* In a way it doesn't matter; if validation is not enabled, neither
+     * is fixing...
+     */
+    final static boolean DEFAULT_FIX_CONTENT = true;
 
     /**
      * Default config flags are converted from individual settings,
@@ -93,6 +98,7 @@ public final class WriterConfig
         | (DEFAULT_VALIDATE_CONTENT ? CFG_VALIDATE_CONTENT : 0)
         | (DEFAULT_VALIDATE_ATTR ? CFG_VALIDATE_ATTR : 0)
         | (DEFAULT_VALIDATE_NAMES ? CFG_VALIDATE_NAMES : 0)
+        | (DEFAULT_FIX_CONTENT ? CFG_FIX_CONTENT : 0)
         ;
 
     /**
@@ -391,6 +397,10 @@ public final class WriterConfig
         return hasConfigFlag(CFG_VALIDATE_NAMES);
     }
 
+    public boolean willFixContent() {
+        return hasConfigFlag(CFG_FIX_CONTENT);
+    }
+
     /**
      * @return Prefix to use as the base for automatically generated
      *   namespace prefixes ("namespace prefix prefix", so to speak).
@@ -454,6 +464,10 @@ public final class WriterConfig
 
     public void doValidateNames(boolean state) {
         setConfigFlag(CFG_VALIDATE_NAMES, state);
+    }
+
+    public void doFixContent(boolean state) {
+        setConfigFlag(CFG_FIX_CONTENT, state);
     }
 
     /**

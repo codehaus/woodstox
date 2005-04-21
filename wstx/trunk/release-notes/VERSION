@@ -1,27 +1,41 @@
-Version: 1.9
+Version: 2.0rc1
 
-Release date: xx-Apr-2005
+Release date: xx-May-2005
 
 Description:
-  Another pre-2.0 release aimed at finishing up tasks required for 2.0.
+  First release candidate for the eventual 2.0 release
 
   New functionality:
 
   Problems fixed:
 
+== History: ==
+
+
+1.9.0: [20-Apr-2005]
+
+  New functionality:
+   * XMLStreamReader:
+      * Full read-only access to configuration settings via getProperty()
+      * StAX2 addition, LocationInfo, implemented to allow for extended
+        access to location information: both start, end and current locations
+        available, and "raw" access to start/end byte and char offsets (with
+        appropriate long return values). Off latter, only char offsets
+        actually implemented, due to problems with byte offset tracking
+        with current i/o architecture.
+   * XMLStreamWriter:
+      * Full read-only access to configuration settings via getProperty()
+
+  Problems fixed:
+   * XMLStreamReader: 
+      * Fixed various Location reporting problems (OBOs, Location not
+        properly updated in lazy-parsing mode)
    * XMLStreamWriter:
       * Repairing mode was not properly handling namespace bindings, esp.
         WRT default namespace. Now the implementation is believed to
         (finally!) work exactly as expected.
-      * Full read-only access to configuration settings via getProperty()
-   * XMLStreamWriter:
-      * Fixed various Location reporting problems (OBOs, Location not
-        properly updated in lazy-parsing mode)
-      * Full read-only access to configuration settings via getProperty()
    * A compilation problem (on JDK 1.5) reported by Olivier Potonniee (a
      method name conflict in LineSuppressWriter)
-
-== History: ==
 
 
 1.8.2: [23-Mar-2005]
