@@ -62,3 +62,22 @@ you can modify (check documentation for details):
   unlike IS_COALESCING, it does not make reader coalesce adjacent
   segments. Because of this, the performance impact is smaller, and
   changing this value is unlikely to have big performance impact.
+
+=== 3. Implementation details ===
+
+=== 3.1 String interning ===
+
+Which Strings and when does Woodstox intern?
+
+* Names (prefixes and local names of elements and attributes, names
+  of processing instruction targets and entities) are always intern()ed
+  (and this is also visible using
+   streamReader.getProperty(XMLInputFactory2.P_INTERN_NAMES))
+* Namespace URIs MAY be interned, depending on setting of
+  XMLInputFactory2.P_INTERN_URIS (accessible via
+   streamReader.getProperty(XMLInputFactory2.P_INTERN_URIS)).
+  By default this interning is NOT done. However, URI Strings for a single
+  document are still shared, so that within a single document, namespace
+  URIs CAN always be compared for String identity (nsUri1 == nsUri2 is true
+  if and only if they contain same String).
+

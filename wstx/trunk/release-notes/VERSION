@@ -9,6 +9,13 @@ Description:
 
   Problems fixed:
 
+  * Not necessarily a problem, but I change the way XML declaration is output
+    so that it's identical to format used by Stax RI (using single quotes,
+    no trailing extra space). Makes life easier for some general stax testing
+    (particularly ActiveSOAP), without affecting applications.
+  * Fixed "]]>"-detection; was erroneously matching some escaped variations
+    where they shouldn't have matched.
+
 == History: ==
 
 

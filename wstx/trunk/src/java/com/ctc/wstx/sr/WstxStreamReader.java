@@ -1109,6 +1109,27 @@ public class WstxStreamReader
             throwNotTextual(mCurrToken);
         }
         if (mStTokenUnfinished) {
+            /* 21-Apr-2005, TSa: The only special case is the one
+             *   where the current event is CDATA or CHARACTERS,
+             *   AND the contents need not be preserved. If so,
+             *   a short-cut can be taken.
+             */
+            if (!preserveContents) {
+                if (mCurrToken == CHARACTERS || mCurrToken == SPACE) {
+                    int count = readAndWriteText(w, 0);
+                    if (mCfgCoalesceText) {
+                        count += readAndWriteCoalesced(w, count, false);
+                    }
+                    return count;
+                } else if (mCurrToken == CDATA) {
+                    int count = readAndWriteCData(w, 0);
+                    if (mCfgCoalesceText) {
+                        count += readAndWriteCoalesced(w, count, true);
+                    }
+                    return count;
+                }
+            }
+            // Otherwise, let's just finish the token
             finishToken();
         }
         if (mCurrToken == ENTITY_REFERENCE) {
@@ -3995,16 +4016,23 @@ public class WstxStreamReader
                     }
                 } else if (c == '>') {
                     // Let's see if we got ']]>'?
-                    if (outPtr >= 2) { // can we do it here?
-                        if (outBuf[outPtr-2] == ']' && outBuf[outPtr-1] == ']') {
+                    /* 21-Apr-2005, TSa: But we can NOT check the output buffer
+                     *  as it contains _expanded_ stuff... only input side.
+                     *  For now, 98% accuracy has to do, as we may not be able
+                     *  to access previous buffer's contents. But at least we
+                     *  won't produce false positives from entity expansion
+                     */
+                    if (mInputPtr >= 2) { // can we do it here?
+                        if (mInputBuffer[mInputPtr-2] == ']'
+                            && mInputBuffer[mInputPtr-1] == ']') {
                             throwParseError(ErrorConsts.ERR_BRACKET_IN_TEXT);
                         }
-                    } else { // nope, have to ask buffer, due to boundary
-                        TextBuffer tb = mTextBuffer;
-                        tb.setCurrentLength(outPtr);
-                        if (tb.endsWith("]]")) {
-                            throwParseError(ErrorConsts.ERR_BRACKET_IN_TEXT);
-                        }
+                    } else {
+                        /* !!! 21-Apr-2005, TSa: No good way to verify this,
+                         *   at this point. Should come back and think of how
+                         *   to properly handle this possibility.
+                         */
+                        ;
                     }
                 } else if (c == CHAR_NULL) {
                     throwNullChar();
@@ -4163,6 +4191,358 @@ public class WstxStreamReader
             }
         }
         mTextBuffer.setCurrentLength(outPtr);
+    }
+
+    /**
+     * Method called to read the contents of the current CHARACTERS
+     * event, and write all contents using the specified Writer. After
+     * doing this, it should clear out the text buffer.
+     *<p>
+     * Method may also need to read the following CDATA and CHARACTERS
+     * events, if in coalescing mode.
+     *
+     * @param w Writer to use for writing out textual content parsed
+     * @param count Number of characters already written; 0 when
+     *   first called.
+     *
+     * @return Total number of characters written using the writer,
+     *   count passed in plus any additional output
+     */
+    private int readAndWriteText(Writer w, int count)
+        throws IOException, XMLStreamException
+    {
+        if (count < 1) {
+            count = mTextBuffer.rawContentsTo(w);
+            mTextBuffer.resetWithEmpty();
+        }
+
+        /* We should be able to mostly just use the input buffer at this
+         * point; exceptions being two-char linefeeds (when converting
+         * to single ones) and entities (which likewise can expand or
+         * shrink), both of which require flushing and/or single byte
+         * output.
+         */
+        char[] outBuf = mTextBuffer.getCurrentSegment();
+        int outPtr = 0;
+        int start = mInputPtr;
+
+        main_loop:
+        while (true) {
+            char c = (mInputPtr < mInputLen) ?
+                mInputBuffer[mInputPtr++] : getNextChar(SUFFIX_IN_TEXT);
+            // Most common case is we don't have special char, thus:
+            if (c < CHAR_FIRST_PURE_TEXT) {
+                if (c == '\n') {
+                    markLF();
+                } else if (c == '<') { // end is nigh!
+                    break main_loop;
+                } else if (c == '\r') {
+                    char d;
+                    if (mInputPtr >= mInputLen) {
+                        /* If we can't peek easily, let's flush past stuff
+                         * and load more... (have to flush, since new read
+                         * will overwrite inbut buffers)
+                         */
+                        int len = mInputPtr - start;
+                        if (len > 0) {
+                            w.write(mInputBuffer, start, len);
+                            count += len;
+                        }
+                        d = getNextChar(SUFFIX_IN_TEXT);
+                        start = mInputPtr; // to mark 'no past content'
+                    } else {
+                        d = mInputBuffer[mInputPtr++];
+                    }
+                    if (d == '\n') {
+                        if (mCfgNormalizeLFs) {
+                            /* Let's flush content prior to 2-char LF, and
+                             * start the new segment on the second char...
+                             * this way, no mods are needed for the buffer,
+                             * AND it'll also  work on split 2-char lf!
+                             */
+                            int len = mInputPtr - 2 - start;
+                            if (len > 0) {
+                                w.write(mInputBuffer, start, len);
+                                count += len;
+                            }
+                            start = mInputPtr-1; // so '\n' is the first char
+                        } else {
+                            ; // otherwise it's good as is
+                        }
+                    } else { // not 2-char... need to replace?
+                        --mInputPtr;
+                        if (mCfgNormalizeLFs) {
+                            mInputBuffer[mInputPtr-1] = '\n';
+                        }
+                    }
+                    markLF();
+                } else if (c == '&') {
+                    /* Have to flush all stuff, since entities pretty much
+                     * force it; input buffer won't be contiguous
+                     */
+                    int len = mInputPtr - 1 - start; // -1 to remove ampersand
+                    if (len > 0) {
+                        w.write(mInputBuffer, start, len);
+                        count += len;
+                    }
+                    if (mCfgReplaceEntities) { // can we expand all entities?
+                        if ((mInputLen - mInputPtr) < 3
+                            || (c = resolveSimpleEntity(true)) == CHAR_NULL) {
+                            c = fullyResolveEntity(mCustomEntities, mGeneralEntities, true);
+                        }
+                    } else {
+                        c = resolveCharOnlyEntity(true);
+                        if (c == CHAR_NULL) { // some other entity...
+                            // can't expand, so, let's just bail out...
+                            break main_loop;
+                        }
+                    }
+                    if (c != CHAR_NULL) {
+                        w.write(c);
+                    }
+                    start = mInputPtr;
+                } else if (c == '>') { // did we get ']]>'?
+                    /* 21-Apr-2005, TSa: But we can NOT check the output buffer
+                     *  (see comments in readTextSecondary() for details)
+                     */
+                    if (mInputPtr >= 2) { // can we do it here?
+                        if (mInputBuffer[mInputPtr-2] == ']'
+                            && mInputBuffer[mInputPtr-1] == ']') {
+                            throwParseError(ErrorConsts.ERR_BRACKET_IN_TEXT);
+                        }
+                    } else {
+                        ; // !!! TBI: how to check past boundary?
+                    }
+                } else if (c == CHAR_NULL) {
+                    throwNullChar();
+                }
+            }
+
+            // Reached the end of buffer? Need to flush, then
+            if (mInputPtr >= mInputLen) {
+                int len = mInputPtr - start;
+                if (len > 0) {
+                    w.write(mInputBuffer, start, len);
+                    count += len;
+                }
+                start = 0;
+                c = getNextChar(SUFFIX_IN_TEXT);
+            } else {
+                c = mInputBuffer[mInputPtr++];
+            }
+        } // while (true)
+
+        /* Need to push back '<' or '&', whichever caused us to
+         * get out...
+         */
+        --mInputPtr;
+
+        // Anything left to flush?
+        int len = mInputPtr - start;
+        if (len > 0) {
+            w.write(mInputBuffer, start, len);
+            count += len;
+        }
+        return count;
+    }
+
+    /**
+     * Method called to read the contents of the current CHARACTERS
+     * event, and write all contents using the specified Writer. After
+     * doing this, it should clear out the text buffer.
+     *<p>
+     * Method may also need to read the following CDATA and CHARACTERS
+     * events, if in coalescing mode.
+     *
+     * @param w Writer to use for writing out textual content parsed
+     * @param count Number of characters already written; 0 when
+     *   first called.
+     *
+     * @return Total number of characters written using the writer,
+     *   count passed in plus any additional output
+     */
+    private int readAndWriteCData(Writer w, int count)
+        throws IOException, XMLStreamException
+    {
+        mStPartialCData = false; // let's clear this just to be safe
+
+        if (count < 1) {
+            count = mTextBuffer.rawContentsTo(w);
+            mTextBuffer.resetWithEmpty();
+        }
+
+        /* Ok; here we can basically have 2 modes; first the big loop to
+         * gather all data up until a ']'; and then another loop to see
+         * if ']' is part of ']]>', and after this if no end marker found,
+         * go back to the first part.
+         */
+        char c = (mInputPtr < mInputLen) ?
+            mInputBuffer[mInputPtr++] : getNextChar(SUFFIX_IN_CDATA);
+
+        main_loop:
+        while (true) {
+            int start = mInputPtr-1;
+
+            quick_loop:
+            while (true) {
+                if (c > CHAR_CR_LF_OR_NULL) {
+                    if (c == ']') {
+                        break quick_loop;
+                    }
+                } else {
+                    if (c == '\n') {
+                        markLF();
+                    } else if (c == '\r') {
+                        char d;
+                        if (mInputPtr >= mInputLen) {
+                            /* If we can't peek easily, let's flush past stuff
+                             * and load more... (have to flush, since new read
+                             * will overwrite inbut buffers)
+                             */
+                            int len = mInputPtr - start;
+                            if (len > 0) {
+                                w.write(mInputBuffer, start, len);
+                                count += len;
+                            }
+                            d = getNextChar(SUFFIX_IN_CDATA);
+                            start = mInputPtr; // to mark 'no past content'
+                        } else {
+                            d = mInputBuffer[mInputPtr++];
+                        }
+                        if (d == '\n') {
+                            if (mCfgNormalizeLFs) {
+                                /* Let's flush content prior to 2-char LF, and
+                                 * start the new segment on the second char...
+                                 * this way, no mods are needed for the buffer,
+                                 * AND it'll also  work on split 2-char lf!
+                                 */
+                                int len = mInputPtr - 2 - start;
+                                if (len > 0) {
+                                    w.write(mInputBuffer, start, len);
+                                    count += len;
+                                }
+                                start = mInputPtr-1; // so '\n' is the first char
+                            } else {
+                                // otherwise it's good as is
+                            }
+                        } else { // not 2-char... need to replace?
+                            --mInputPtr;
+                            if (mCfgNormalizeLFs) {
+                                mInputBuffer[mInputPtr-1] = '\n';
+                            }
+                        }
+                        markLF();
+                    } else if (c == CHAR_NULL) {
+                        throwNullChar();
+                    }
+                }
+                // Reached the end of buffer? Need to flush, then
+                if (mInputPtr >= mInputLen) {
+                    int len = mInputPtr - start;
+                    if (len > 0) {
+                        w.write(mInputBuffer, start, len);
+                        count += len;
+                    }
+                    start = 0;
+                    c = getNextChar(SUFFIX_IN_CDATA);
+                } else {
+                    c = mInputBuffer[mInputPtr++];
+                }
+            } // while (true)
+
+            // Anything to flush once we hit ']'?
+            {
+                /* -1 since the last char in there (a '[') is NOT to be
+                 * output at this point
+                 */
+                int len = mInputPtr - start - 1;
+                if (len > 0) {
+                    w.write(mInputBuffer, start, len);
+                    count += len;
+                }
+            }
+
+            /* Ok; we only get this far when we hit a ']'. We got one,
+             * so let's see if we can find at least one more bracket,
+             * immediately followed by '>'...
+             */
+            int bracketCount = 0;
+            do {
+                ++bracketCount;
+                c = (mInputPtr < mInputLen) ? mInputBuffer[mInputPtr++]
+                    : getNextCharFromCurrent(SUFFIX_IN_CDATA);
+            } while (c == ']');
+
+            boolean match = (bracketCount >= 2 && c == '>');
+            if (match) {
+                bracketCount -= 2;
+            }
+            while (bracketCount > 0) {
+                --bracketCount;
+                w.write(']');
+            }
+            if (match) {
+                break main_loop;
+            }
+            /* Otherwise we'll just loop; now c is properly set to be
+             * the next char as well.
+             */
+        } // while (true)
+
+        return count;
+    }
+
+    private int readAndWriteCoalesced(Writer w, int count, boolean wasCData)
+        throws IOException, XMLStreamException
+    {
+        /* Ok, so what do we have next? CDATA, CHARACTERS, or something
+         * else?
+         */
+        main_loop:
+        while (true) {
+            if (mInputPtr >= mInputLen) {
+                if (!loadMore()) {
+                    /* Shouldn't normally happen, but let's just let
+                     * caller deal with it...
+                     */
+                    break main_loop;
+                }
+            }
+            // Let's peek, ie. not advance it yet
+            char c = mInputBuffer[mInputPtr];
+            if (c == '<') { // CDATA, maybe?
+                // Need to distinguish "<![" from other tags/directives
+                if ((mInputLen - mInputPtr) < 3) {
+                    if (!ensureInput(3)) { // likewise, probably an error...
+                        break main_loop;
+                    }
+                }
+                if (mInputBuffer[mInputPtr+1] != '!'
+                    || mInputBuffer[mInputPtr+2] != '[') {
+                    // Nah, some other tag or directive
+                    break main_loop;
+                }
+                // Let's skip beginning parts, then:
+                mInputPtr += 3;
+                // And verify we get proper CDATA directive
+                checkCData();
+                // cool, let's just handle it then
+                count = readAndWriteCData(w, count);
+                wasCData = true;
+            } else { // text
+                /* Did we hit an 'unexpandable' entity? If so, need to
+                 * just bail out (only happens when Coalescing AND not
+                 * expanding -- a rather unlikely combination)
+                 */
+                if (c == '&' && !wasCData) {
+                    break;
+                }
+                count = readAndWriteText(w, count);
+                wasCData = false;
+            }
+        }
+
+        return count;
     }
 
     /*

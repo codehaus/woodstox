@@ -2,9 +2,11 @@
 Must-haves for 2.0
 ------------------------------------
 
+* BUGS:
+   * Should not fail on quoted ]]>...
+
 * Stream writers:
 [DONE] * Validate names (local, full), when such validation enabled
- (still need the matching unit tests!)
 
 * DTD-handling/parsing:
 [DONE] * Verify that an unparsed entity refers to a declared notation.
@@ -46,8 +48,8 @@ Must-haves for 2.0
       [DONE] * Add writeUsing(XMLStreamWriter)
    * XMLInputFactory2:
       [DONE] * Create URL/file-based factory methods for readers
-   * XMLOutputFactory2: need for any new methods?
-      [DONE] * Additional std properties
+   * XMLOutputFactory2:
+      [DONE] * Additional new StAX2 std properties
    * XMLStreamLocation2:
       [DONE] * allow access to nested location information
    * XMLStreamReader2:
@@ -63,6 +65,7 @@ Must-haves for 2.0
       [DONE] * Extended location information access via LocationInfo;
         methods for getting start and end locations of an event, long-valued
         byte/char offsets.
+      * "Bulk" attribute access
    * XMLStreamWriter2:
       [DONE] * pass-through write method for outputting raw (non-encoded) stuff
       [Partial?] * setFeature/getFeature (which property/ies?)
@@ -73,6 +76,7 @@ Must-haves for 2.0
       [DONE] * A new property P_OUTPUT_FIX_CONTENT; if content verification
         enabled, will quietly try to fix content problems first (comments,
         CDATA; not sure about PIs?)
+      * "Bulk" attribute writes (to match bulk read access)
 [DONE] * evt/DTD2: allow access to root name, system id, public id, int. subset
 [DONE] * evt/XMLEventFactory2: factory methods for creating DTD2, StartElement2 instances
 [DONE] * EncodingWriterFactory, to create encoding writers for XML encoding,
@@ -92,6 +96,10 @@ Maybe for 2.0?
 For 2.x series (not for 2.0)
 ------------------------------------
 
+* Direct SAX-wrapping?
+
+* Handling of "]]>" in text:
+   * Check for problem even when skipping
 * Exception-handling:
    * Add a WstxOutputException?
    * Separate exception class for DTD-parsing problems?
@@ -110,6 +118,12 @@ For 2.x series (not for 2.0)
    * Refactor caching out of input factory, to be shared between
      factories and input/output modes (but have 2 actual Maps in
      CacheManager, to prevent trashing by either side).
+
+* Writer, pretty printing:
+   * Heuristics
+   * DTD-based
+
+* Writer, DTD validation
 
 ------------------------------------
 FROM 1.0 Backlog

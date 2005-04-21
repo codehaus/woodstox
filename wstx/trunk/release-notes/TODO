@@ -4,19 +4,15 @@ from bugs to new features.
 
 == Unit Testing ==
 
-* There is now basic Woodstox-specific test suite (under src/test).
-  Its main purpose is to complement StaxTest by testing things that
-  can not be specified via StAX API.
-  Currently testing is really limited to just trying out different
-  combinations of performance settings, and it'd be good to thoroughly
-  test actual functionality that is not enabled by default:
-    * Should test preferred prefix mapping for writer ns prefixes
-
 
 == XML specs conformance ==
 
 * Full text character validation (XML 1.1)?
-   * For textual content (and comments, PIs)
+   * Reader side:
+      * For textual content (and comments, PIs)
+   * Writer side:
+      [DONE] * Names
+      * Text/comment/PI content
 * Support for XML 1.1 white space validation/normalization?
 * Consider adding support for xml:base attribute?
 * Should there be special handling for xml:space attribute?
@@ -34,17 +30,7 @@ from bugs to new features.
 
 == Missing/unused StAX features ==
 
-* (More) properties (read-only) for stream/event readers/writers; currently
-  the only use is for accessing entities/notations stream reader has
-  read from DTD subsets.
-    * Specifically, allow checking if an element is empty element?
-
-
 == Stream writer issues ==
-
-* Refactor so that there are 3 concrete implementations (instead of just
-  2); basically separate out namespace repairing and non-repairing 
-  handling to separate classes.
 
 == Optimizing ==
 

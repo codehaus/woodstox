@@ -571,22 +571,22 @@ public abstract class BaseStreamWriter
         }
 
         try {
-            mWriter.write("<?xml version=\"");
+            mWriter.write("<?xml version='");
             mWriter.write((version == null || version.length() == 0)
                           ? WstxOutputProperties.DEFAULT_XML_VERSION : version);
-            mWriter.write('"');
+            mWriter.write('\'');
 
             if (encoding != null && encoding.length() > 0) {
-                mWriter.write(" encoding=\"");
+                mWriter.write(" encoding='");
                 mWriter.write(encoding);
-                mWriter.write('"');
+                mWriter.write('\'');
             }
             if (standAlone != null) {
-                mWriter.write(" standalone=\"");
+                mWriter.write(" standalone='");
                 mWriter.write(standAlone);
-                mWriter.write('"');
+                mWriter.write('\'');
             }
-            mWriter.write(" ?>");
+            mWriter.write("?>");
         } catch (IOException ioe) {
             throw new WstxIOException(ioe);
         }

@@ -10,7 +10,7 @@ public final class WstxOutputProperties
 {
     /**
      * Default xml version number output, if none was specified by
-     * application. 1.0 is used (even though 1.1 is clearly better as
+     * application. Version 1.0 is used (even though 1.1 is clearly better as
      * a standard) to try to maximize compatibility (some older parsers
      * may barf on 1.1 and later...)
      */
@@ -80,12 +80,15 @@ public final class WstxOutputProperties
     public final static String P_OUTPUT_VALIDATE_NAMES = "com.ctc.wstx.outputValidateNames";
 
     /**
-     * Property that further modifies handling of invalid content (comment
-     * content with "--", CDATA with "]]>", proc. instr data with "?>"), so
+     * Property that further modifies handling of invalid content so
      * that if {@link #P_OUTPUT_VALIDATE_CONTENT} is enabled, instead of
-     * reporting an error, writer will try to fix the problem. This can
-     * be done for some (comment, CDATA), by splitting content into separate
-     * segments; but can not for others (proc. instr, since that might
+     * reporting an error, writer will try to fix the problem.
+     * Invalid content in this context refers  to comment
+     * content with "--", CDATA with "]]>" and proc. instr data with "?>".
+     * This can
+     * be done for some content (CDATA, possibly comment), by splitting
+     * content into separate
+     * segments; but not for others (proc. instr, since that might
      * change the semantics in unintended ways).
      */
     public final static String P_OUTPUT_FIX_CONTENT = "com.ctc.wstx.outputFixContent";
