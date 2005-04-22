@@ -7,6 +7,10 @@ Description:
 
   New functionality:
 
+  * XMLStreamReader2.getText(Writer) now implemented in fully streaming manner
+    for CHARACTERS and CDATA events! (also tested succesfully using unit
+    tests, so it does really work).
+ 
   Problems fixed:
 
   * Not necessarily a problem, but I change the way XML declaration is output

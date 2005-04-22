@@ -47,6 +47,14 @@ public class BaseStreamTest
         return text;
     }
 
+    protected static String getStreamingText(XMLStreamReader sr)
+        throws IOException, XMLStreamException
+    {
+        StringWriter sw = new StringWriter();
+        ((XMLStreamReader2) sr).getText(sw, false);
+        return sw.toString();
+    }
+
     /*
     //////////////////////////////////////////////////
     // Higher-level test methods
@@ -166,14 +174,39 @@ public class BaseStreamTest
 		if (reallyStreaming) {
 		    StringWriter sw = new StringWriter();
 		    // important: false to indicate 'don't preserve contents'
-		    ((XMLStreamReader2)sr).getText(sw, false);
-		    act.append(sw.toString());
+		    int gotLen = ((XMLStreamReader2)sr).getText(sw, false);
+                    String text = sw.toString();
+                    int textLen = text.length();
+                    if (textLen != gotLen) {
+                        if (text.length() > 60) {
+                            text = text.substring(0, 30) + "<...>" + text.substring(textLen-30);
+                        }
+                        assertEquals("Incorrect return value from streaming getText() for "+
+                                     tokenTypeDesc(type)+" [string '"+text+"']", textLen, gotLen);
+                    }
+		    act.append(text);
 		} else {
 		    act.append(sr.getText());
 		}
             } else if (type == COMMENT) {
                 act.append("<!--");
-                act.append(sr.getText());
+		if (reallyStreaming) {
+		    StringWriter sw = new StringWriter();
+		    // important: false to indicate 'don't preserve contents'
+		    int gotLen = ((XMLStreamReader2)sr).getText(sw, false);
+                    String text = sw.toString();
+                    int textLen = text.length();
+                    if (textLen != gotLen) {
+                        if (text.length() > 60) {
+                            text = text.substring(0, 30) + "<...>" + text.substring(textLen-30);
+                        }
+                        assertEquals("Incorrect return value from streaming getText() for "+
+                                     tokenTypeDesc(type)+" [string '"+text+"']", textLen, gotLen);
+                    }
+		    act.append(text);
+		} else {
+		    act.append(sr.getText());
+		}
                 act.append("-->");
             } else if (type == PROCESSING_INSTRUCTION) {
                 act.append("<!?");
@@ -189,7 +222,7 @@ public class BaseStreamTest
                 fail("Unexpected event type "+tokenTypeDesc(type));
             }
         } while ((type = sr.next()) != END_DOCUMENT);
-        
+
         String result = act.toString();
         if (!result.equals(expOutput)) {
             String desc = it.toString();
@@ -280,10 +313,11 @@ public class BaseStreamTest
             "<root>"
 
             // Short one for trouble shooting:
+            /*
             +" * Text ****<empty></empty>\n</root>"
+            */
 
             // Real one for regression testing:
-            /*
             +" * Text ****<empty></empty>\n"
             +"<empty>*</empty>*  * xx<empty></empty>\n"
             +"<tag>Text ******</tag>\n"
@@ -293,7 +327,6 @@ public class BaseStreamTest
             +"<c><d><e>*</e>*</d>*</c>"
             +"a*b*c*d*e*f*g*h*i*j*k"
             +"</root>"
-            */
             ;
 
         input.append(TEMPLATE);
@@ -317,7 +350,7 @@ public class BaseStreamTest
     {
         String in, out;
         
-        switch (Math.abs(r.nextInt()) % 5) {
+        switch (Math.abs(r.nextInt()) % 6) {
         case 0: // Let's use one of pre-def'd entities:
             switch (Math.abs(r.nextInt()) % 5) {
             case 0:
@@ -344,7 +377,7 @@ public class BaseStreamTest
             }
             break;
         case 1: // How about some CDATA?
-            switch (Math.abs(r.nextInt()) % 4) {
+            switch (Math.abs(r.nextInt()) % 5) {
             case 0:
                 in = "<![CDATA[]] >]]>";
                 out = "]] >";
@@ -354,17 +387,44 @@ public class BaseStreamTest
                 out = "xyz&abc";
                 break;
             case 2:
+                in = "<![CDATA[ ]]>";
+                out = " ";
+                break;
+            case 3:
+                in = "<![CDATA[]]>";
+                out = "";
+                break;
+            case 4:
+                in = "<![CDATA[   \nxyz]]>";
+                out = "   \nxyz";
+                break;
+            default: throw new Error("Internal error!");
+            }
+
+        case 2: // and COMMENTS
+            switch (Math.abs(r.nextInt()) % 5) {
+            case 0:
                 in = "<!--comment-->";
                 out = "<!--comment-->";
                 break;
+            case 1:
+                in = out = "<!---->";
+                break;
+            case 2:
+                in = out = "<!--   \n-->";
+                break;
             case 3:
-                in = "<![CDATA[ ]]>";
-                out = " ";
+                in = "<!--a\nb-->";
+                out = "<!--a\nb-->";
+                //in = out = "<!--ab-->";
+                break;
+            case 4:
+                in = out = "<!-- a<>B -->";
                 break;
             default: throw new Error("Internal error!");
             }
             break;
-        case 2: // Char entities?
+        case 3: // Char entities?
             switch (Math.abs(r.nextInt()) % 4) {
             case 0:
                 in = "&#35;";
@@ -385,7 +445,7 @@ public class BaseStreamTest
             default: throw new Error("Internal error!");
             }
             break;
-        case 3: // Full entities
+        case 4: // Full entities
             switch (Math.abs(r.nextInt()) % 3) {
             case 0:
                 in = "&ent1;";
@@ -403,7 +463,7 @@ public class BaseStreamTest
             }
             break;
 
-        case 4: // Plain text, ISO-Latin chars:
+        case 5: // Plain text, ISO-Latin chars:
             in = out = "(\u00A9)"; // copyright symbol
             break;
 

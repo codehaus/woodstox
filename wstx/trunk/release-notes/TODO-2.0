@@ -3,7 +3,11 @@ Must-haves for 2.0
 ------------------------------------
 
 * BUGS:
-   * Should not fail on quoted ]]>...
+[Partial] * Should not fail on quoted ]]>... Does not, any more, but now
+  catching ]]>s in textual content is only 98% reliable (won't match
+  ones that are split by input buffer boundary).
+  * Is linefeed normalization/not-normalization properly tested, esp.
+    WRT fully streaming accessors?
 
 * Stream writers:
 [DONE] * Validate names (local, full), when such validation enabled
@@ -15,6 +19,7 @@ Must-haves for 2.0
 
 * Unit testing: Implement at least simple basic StAX-tests for:
    * Stream reader
+      * Unit tests for attribute access?
       * Unit tests for attribute access?
       * Location info tests
       [DONE] * Test misc. properties (isEmpty, depth)

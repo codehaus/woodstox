@@ -383,11 +383,11 @@ public final class ReaderBootstrapper
         File f = new File(args[0]);
         java.net.URL url = f.toURL();
 
-        System.err.println("URL = '"+url+"'");
+        //System.err.println("URL = '"+url+"'");
 
         InputStream in = url.openStream();
 
-        System.err.println("Stream = "+in+", class: "+in.getClass());   
+        //System.err.println("Stream = "+in+", class: "+in.getClass());   
         }
     */
 }

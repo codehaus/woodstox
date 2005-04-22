@@ -36,6 +36,11 @@ public class TestRandomStream
 	mReallyStreaming = false;
         doTest(false, true, true); // non-ns
         doTest(true, true, true); // ns-aware
+    }
+
+    public void testCoalescingAutoEntityStreaming()
+        throws Exception
+    {
 	mReallyStreaming = true;
         doTest(true, true, true); // ns-aware
     }
@@ -46,6 +51,11 @@ public class TestRandomStream
 	mReallyStreaming = false;
         doTest(false, false, true); // non-ns
         doTest(true, false, true); // ns-aware
+    }
+
+    public void testNonCoalescingAutoEntityStreaming()
+        throws Exception
+    {
 	mReallyStreaming = true;
         doTest(true, false, true); // ns-aware
     }
@@ -56,6 +66,11 @@ public class TestRandomStream
 	mReallyStreaming = false;
         doTest(false, true, false); // non-ns
         doTest(true, true, false); // ns-aware
+    }
+
+    public void testCoalescingNonAutoEntityStreaming()
+        throws Exception
+    {
 	mReallyStreaming = true;
         doTest(true, true, false); // ns-aware
     }
@@ -66,6 +81,11 @@ public class TestRandomStream
 	mReallyStreaming = false;
         doTest(false, false, false); // non-ns
         doTest(true, false, false); // ns-aware
+    }
+
+    public void testNonCoalescingNonAutoEntityStreaming()
+        throws Exception
+    {
 	mReallyStreaming = true;
         doTest(true, false, false); // ns-aware
     }

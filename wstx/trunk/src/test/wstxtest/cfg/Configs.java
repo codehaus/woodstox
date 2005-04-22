@@ -229,11 +229,11 @@ public class Configs
         }
 
         public String getDesc(int index) {
-            return "input-buffer: "+mSizes[index];
+            return "min-text-segment: "+mSizes[index];
         }
 
         public void config(XMLInputFactory f, int index) {
-            ((WstxInputFactory ) f).getConfig().setInputBufferLength(mSizes[index]);
+            ((WstxInputFactory ) f).getConfig().setShortestReportedTextSegment(mSizes[index]);
         }
     }
 }

@@ -1115,20 +1115,37 @@ public class WstxStreamReader
              *   a short-cut can be taken.
              */
             if (!preserveContents) {
-                if (mCurrToken == CHARACTERS || mCurrToken == SPACE) {
+                /* !!! 22-Apr-2005, TSa: For now, let's not use same
+                 *  handling for SPACE, since its validity constraints
+                 *  are different (as well as ending conditions).
+                 * Should probably write a separate handler for that
+                 * type.
+                 */
+                if (mCurrToken == CHARACTERS) {
 		    mStTokenUnfinished = false;
-                    int count = readAndWriteText(w, 0);
+                    int count = mTextBuffer.rawContentsTo(w);
+                    count += readAndWriteText(w);
+                    mTextBuffer.resetWithEmpty();
                     if (mCfgCoalesceText) {
-                        count += readAndWriteCoalesced(w, count, false);
+                        count += readAndWriteCoalesced(w, false);
                     }
                     return count;
                 } else if (mCurrToken == CDATA) {
 		    mStTokenUnfinished = false;
-                    int count = readAndWriteCData(w, 0);
-                    if (mCfgCoalesceText) {
-                        count += readAndWriteCoalesced(w, count, true);
+                    /* We may have actually really finished it, but just left
+                     * the 'unfinished' flag due to need to coalesce...
+                     */
+                    // Let's start by getting whatever we have already parsed
+                    int count = mTextBuffer.rawContentsTo(w);
+                    mTextBuffer.resetWithEmpty();
+                    if (mStPartialCData) {
+                        mStPartialCData = false;
+                        count += readAndWriteCData(w);
                     }
-                    return count;
+                    if (mCfgCoalesceText) {
+                        count += readAndWriteCoalesced(w, true);
+                    }
+                   return count;
                 }
             }
             // Otherwise, let's just finish the token
@@ -4197,36 +4214,23 @@ public class WstxStreamReader
 
     /**
      * Method called to read the contents of the current CHARACTERS
-     * event, and write all contents using the specified Writer. After
-     * doing this, it should clear out the text buffer.
-     *<p>
-     * Method may also need to read the following CDATA and CHARACTERS
-     * events, if in coalescing mode.
+     * event, and write all contents using the specified Writer.
      *
      * @param w Writer to use for writing out textual content parsed
-     * @param count Number of characters already written; 0 when
-     *   first called.
      *
-     * @return Total number of characters written using the writer,
-     *   count passed in plus any additional output
+     * @return Total number of characters written using the writer
      */
-    private int readAndWriteText(Writer w, int count)
+    private int readAndWriteText(Writer w)
         throws IOException, XMLStreamException
     {
-        if (count < 1) {
-            count = mTextBuffer.rawContentsTo(w);
-            mTextBuffer.resetWithEmpty();
-        }
-
         /* We should be able to mostly just use the input buffer at this
          * point; exceptions being two-char linefeeds (when converting
          * to single ones) and entities (which likewise can expand or
          * shrink), both of which require flushing and/or single byte
          * output.
          */
-        char[] outBuf = mTextBuffer.getCurrentSegment();
-        int outPtr = 0;
         int start = mInputPtr;
+        int count = 0;
 
         main_loop:
         while (true) {
@@ -4238,8 +4242,8 @@ public class WstxStreamReader
                     w.write(mInputBuffer, start, len);
                     count += len;
                 }
-                start = 0;
                 c = getNextChar(SUFFIX_IN_TEXT);
+                start = mInputPtr-1; // needs to be prior to char we got
             } else {
                 c = mInputBuffer[mInputPtr++];
             }
@@ -4306,12 +4310,18 @@ public class WstxStreamReader
                     } else {
                         c = resolveCharOnlyEntity(true);
                         if (c == CHAR_NULL) { // some other entity...
-                            // can't expand, so, let's just bail out...
+                            /* can't expand, so, let's just bail out... but
+                             * let's also ensure no text is added twice, as
+                             * all prev text was just flushed, but resolve
+                             * may have moved input buffer around.
+                             */
+                            start = mInputPtr;
                             break main_loop;
                         }
                     }
                     if (c != CHAR_NULL) {
                         w.write(c);
+                        ++count;
                     }
                     start = mInputPtr;
                 } else if (c == '>') { // did we get ']]>'?
@@ -4347,30 +4357,18 @@ public class WstxStreamReader
     }
 
     /**
-     * Method called to read the contents of the current CHARACTERS
-     * event, and write all contents using the specified Writer. After
-     * doing this, it should clear out the text buffer.
-     *<p>
-     * Method may also need to read the following CDATA and CHARACTERS
-     * events, if in coalescing mode.
+     * Method called to read the contents of the current (possibly partially
+     * read) CDATA
+     * event, and write all contents using the specified Writer.
      *
      * @param w Writer to use for writing out textual content parsed
-     * @param count Number of characters already written; 0 when
-     *   first called.
      *
-     * @return Total number of characters written using the writer,
-     *   count passed in plus any additional output
+     * @return Total number of characters written using the writer for
+     *   the current CDATA event
      */
-    private int readAndWriteCData(Writer w, int count)
+    private int readAndWriteCData(Writer w)
         throws IOException, XMLStreamException
     {
-        mStPartialCData = false; // let's clear this just to be safe
-
-        if (count < 1) {
-            count = mTextBuffer.rawContentsTo(w);
-            mTextBuffer.resetWithEmpty();
-        }
-
         /* Ok; here we can basically have 2 modes; first the big loop to
          * gather all data up until a ']'; and then another loop to see
          * if ']' is part of ']]>', and after this if no end marker found,
@@ -4378,6 +4376,7 @@ public class WstxStreamReader
          */
         char c = (mInputPtr < mInputLen) ?
             mInputBuffer[mInputPtr++] : getNextChar(SUFFIX_IN_CDATA);
+        int count = 0;
 
         main_loop:
         while (true) {
@@ -4480,6 +4479,7 @@ public class WstxStreamReader
             while (bracketCount > 0) {
                 --bracketCount;
                 w.write(']');
+                ++count;
             }
             if (match) {
                 break main_loop;
@@ -4492,9 +4492,14 @@ public class WstxStreamReader
         return count;
     }
 
-    private int readAndWriteCoalesced(Writer w, int count, boolean wasCData)
+    /**
+     * @return Number of characters written to Writer during the call
+     */
+    private int readAndWriteCoalesced(Writer w, boolean wasCData)
         throws IOException, XMLStreamException
     {
+        int count = 0;
+
         /* Ok, so what do we have next? CDATA, CHARACTERS, or something
          * else?
          */
@@ -4527,7 +4532,7 @@ public class WstxStreamReader
                 // And verify we get proper CDATA directive
                 checkCData();
                 // cool, let's just handle it then
-                count = readAndWriteCData(w, count);
+                count += readAndWriteCData(w);
                 wasCData = true;
             } else { // text
                 /* Did we hit an 'unexpandable' entity? If so, need to
@@ -4537,7 +4542,7 @@ public class WstxStreamReader
                 if (c == '&' && !wasCData) {
                     break;
                 }
-                count = readAndWriteText(w, count);
+                count += readAndWriteText(w);
                 wasCData = false;
             }
         }

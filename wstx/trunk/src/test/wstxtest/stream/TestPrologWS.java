@@ -5,6 +5,8 @@ import java.util.Random;
 
 import javax.xml.stream.*;
 
+import org.codehaus.stax2.XMLStreamReader2;
+
 import com.ctc.wstx.stax.WstxInputFactory;
 
 import wstxtest.cfg.*;
@@ -26,21 +28,23 @@ public class TestPrologWS
     }
 
     public void testReportPrologWS()
-        throws XMLStreamException
+        throws IOException, XMLStreamException
     {
-        for (int i = 0; i < 4; ++i) {
+        for (int i = 0; i < 8; ++i) {
             boolean lazy = (i & 1) == 0;
             boolean firstDoc = (i & 2) == 0;
             String content = firstDoc ? XML1 : XML2;
+            boolean streaming = (i & 4) != 0;
             XMLStreamReader sr = getReader(content, true, (i == 1));
 
             assertTokenType(START_DOCUMENT, sr.getEventType());
 
             assertTokenType(SPACE, sr.next());
+            String text = streaming ? getStreamingText(sr):getAndVerifyText(sr);
             if (firstDoc) {
-                assertEquals("   ", getAndVerifyText(sr));
+                assertEquals("   ", text);
             } else {
-                assertEquals("\n \n", getAndVerifyText(sr));
+                assertEquals("\n \n", text);
             }
 
             assertTokenType(START_ELEMENT, sr.next());
@@ -48,10 +52,11 @@ public class TestPrologWS
 
             assertTokenType(SPACE, sr.next());
 
+            text = streaming ? getStreamingText(sr):getAndVerifyText(sr);
             if (firstDoc) {
-                assertEquals("\n", getAndVerifyText(sr));
+                assertEquals("\n", text);
             } else {
-                assertEquals("   ", getAndVerifyText(sr));
+                assertEquals("   ", text);
             }
 
             assertTokenType(END_DOCUMENT, sr.next());

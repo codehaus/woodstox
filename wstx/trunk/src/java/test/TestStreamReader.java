@@ -11,7 +11,6 @@ import org.codehaus.stax2.XMLInputFactory2;
 import org.codehaus.stax2.XMLStreamReader2;
 
 import com.ctc.wstx.api.WstxInputProperties;
-
 /**
  * Simple non-automated unit test for outputting namespace-aware XML
  * documents.
@@ -30,8 +29,8 @@ public class TestStreamReader
         XMLInputFactory f =  XMLInputFactory.newInstance();
         System.out.println("Factory instance: "+f.getClass());
 
-        f.setProperty(XMLInputFactory.IS_COALESCING, Boolean.FALSE);
-        //f.setProperty(XMLInputFactory.IS_COALESCING, Boolean.TRUE);
+        //f.setProperty(XMLInputFactory.IS_COALESCING, Boolean.FALSE);
+        f.setProperty(XMLInputFactory.IS_COALESCING, Boolean.TRUE);
         f.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.TRUE);
         //f.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.FALSE);
         f.setProperty(XMLInputFactory.IS_REPLACING_ENTITY_REFERENCES,
@@ -55,7 +54,7 @@ public class TestStreamReader
 
         if (f.isPropertySupported(WstxInputProperties.P_MIN_TEXT_SEGMENT)) {
             f.setProperty(WstxInputProperties.P_MIN_TEXT_SEGMENT,
-                          new Integer(9));
+                          new Integer(23));
         }
 
         /*
@@ -82,23 +81,19 @@ public class TestStreamReader
 
         if (f.isPropertySupported(WstxInputProperties.P_INPUT_BUFFER_LENGTH)) {
             f.setProperty(WstxInputProperties.P_INPUT_BUFFER_LENGTH,
-                          new Integer(13));
+                          new Integer(17));
         }
 
         /*
         if (f.isPropertySupported(WstxInputProperties.P_TEXT_BUFFER_LENGTH)) {
             f.setProperty(WstxInputProperties.P_TEXT_BUFFER_LENGTH,
-                          new Integer(20));
+                          new Integer(17));
         }
         */
 
         // To test windows linefeeds:
         /*
-        if (f.isPropertySupported(WstxInputProperties.P_NORMALIZE_LFS)) {
             f.setProperty(WstxInputProperties.P_NORMALIZE_LFS, Boolean.TRUE);
-        } else {
-            System.out.println("No property "+WstxInputProperties.P_NORMALIZE_LFS+", skipping.");
-        }
         */
 
         return f;
@@ -174,10 +169,19 @@ public class TestStreamReader
 	    */
 
             if (sr.hasText()) {
-                //String text = sr.getText();
-		StringWriter swr = new StringWriter();
-		sr.getText(swr, false);
-		String text = swr.toString();
+                String text;
+
+                // Choose normal or streaming
+                if (false) {
+                    text = sr.getText();
+                } else {
+                    StringWriter swr = new StringWriter();
+                    int gotLen = sr.getText(swr, false);
+                    text = swr.toString();
+                    if (gotLen != text.length()) {
+                        throw new Error("Error: lengths didn't match: getText() returned "+gotLen+", but String has "+text.length()+" chars.");
+                    }
+                }
 
 		/*
                 int textLen = sr.getTextLength();
@@ -310,13 +314,11 @@ final class TestStream
         int r = super.read();
         if (r<0) {
             try {
-System.err.println("WAIT/single");
                 Thread.sleep(sleep);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
-System.err.println("Returning "+r);
         return r;
     }
     
@@ -327,13 +329,11 @@ System.err.println("Returning "+r);
 // Let's trigger test exception...            
 //if (true) throw new Error("W00t?");
             try {
-                System.err.println("WAIT/multiple");
                 Thread.sleep(sleep);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
-System.err.println("Returning "+r);
         return r;
     }
 }
