@@ -1116,12 +1116,14 @@ public class WstxStreamReader
              */
             if (!preserveContents) {
                 if (mCurrToken == CHARACTERS || mCurrToken == SPACE) {
+		    mStTokenUnfinished = false;
                     int count = readAndWriteText(w, 0);
                     if (mCfgCoalesceText) {
                         count += readAndWriteCoalesced(w, count, false);
                     }
                     return count;
                 } else if (mCurrToken == CDATA) {
+		    mStTokenUnfinished = false;
                     int count = readAndWriteCData(w, 0);
                     if (mCfgCoalesceText) {
                         count += readAndWriteCoalesced(w, count, true);
@@ -4228,9 +4230,20 @@ public class WstxStreamReader
 
         main_loop:
         while (true) {
-            char c = (mInputPtr < mInputLen) ?
-                mInputBuffer[mInputPtr++] : getNextChar(SUFFIX_IN_TEXT);
-            // Most common case is we don't have special char, thus:
+	    char c;
+            // Reached the end of buffer? Need to flush, then
+            if (mInputPtr >= mInputLen) {
+                int len = mInputPtr - start;
+                if (len > 0) {
+                    w.write(mInputBuffer, start, len);
+                    count += len;
+                }
+                start = 0;
+                c = getNextChar(SUFFIX_IN_TEXT);
+            } else {
+                c = mInputBuffer[mInputPtr++];
+            }
+            // Most common case is we don't have a special char, thus:
             if (c < CHAR_FIRST_PURE_TEXT) {
                 if (c == '\n') {
                     markLF();
@@ -4316,19 +4329,6 @@ public class WstxStreamReader
                 } else if (c == CHAR_NULL) {
                     throwNullChar();
                 }
-            }
-
-            // Reached the end of buffer? Need to flush, then
-            if (mInputPtr >= mInputLen) {
-                int len = mInputPtr - start;
-                if (len > 0) {
-                    w.write(mInputBuffer, start, len);
-                    count += len;
-                }
-                start = 0;
-                c = getNextChar(SUFFIX_IN_TEXT);
-            } else {
-                c = mInputBuffer[mInputPtr++];
             }
         } // while (true)
 

@@ -2,8 +2,11 @@ package wstxtest.stream;
 
 import java.io.*;
 import java.util.HashMap;
+import java.util.Random;
 
 import javax.xml.stream.*;
+
+import org.codehaus.stax2.XMLStreamReader2;
 
 import wstxtest.BaseWstxTest;
 import wstxtest.cfg.*;
@@ -83,8 +86,9 @@ public class BaseStreamTest
     }
 
     protected int streamAndCheck(XMLInputFactory f, InputConfigIterator it,
-                                 String input, String expOutput)
-        throws XMLStreamException, UnsupportedEncodingException
+                                 String input, String expOutput,
+				 boolean reallyStreaming)
+        throws IOException, XMLStreamException, UnsupportedEncodingException
     {
         int count = 0;
 
@@ -120,8 +124,92 @@ public class BaseStreamTest
             default: throw new Error("Internal error");
             }
 
-            count += streamAndCheck(sr, it, input, expOutput);
+            count += streamAndCheck(sr, it, input, expOutput,
+				    reallyStreaming);
         }
+        return count;
+    }
+
+    protected int streamAndCheck(XMLStreamReader sr, InputConfigIterator it,
+				 String input, String expOutput,
+				 boolean reallyStreaming)
+        throws IOException, XMLStreamException
+    {
+        int type;
+
+        /* Let's ignore leading white space and DTD; and stop on encountering
+         * something else
+         */
+        do {
+            type = sr.next();
+        } while ((type == SPACE) || (type == DTD));
+        
+        StringBuffer act = new StringBuffer(1000);
+        int count = 0;
+
+        do {
+            count += type;
+            if (type == START_ELEMENT || type == END_ELEMENT) {
+                act.append('<');
+                if (type == END_ELEMENT) {
+                    act.append('/');
+                }
+                String prefix = sr.getPrefix();
+                if (prefix != null && prefix.length() > 0) {
+                    act.append(prefix);
+                    act.append(':');
+                }
+                act.append(sr.getLocalName());
+                act.append('>');
+            } else if (type == CHARACTERS || type == SPACE || type == CDATA) {
+                // No quoting, doesn't have to result in legal XML
+		if (reallyStreaming) {
+		    StringWriter sw = new StringWriter();
+		    // important: false to indicate 'don't preserve contents'
+		    ((XMLStreamReader2)sr).getText(sw, false);
+		    act.append(sw.toString());
+		} else {
+		    act.append(sr.getText());
+		}
+            } else if (type == COMMENT) {
+                act.append("<!--");
+                act.append(sr.getText());
+                act.append("-->");
+            } else if (type == PROCESSING_INSTRUCTION) {
+                act.append("<!?");
+                act.append(sr.getPITarget());
+                String data = sr.getPIData();
+                if (data != null) {
+                    act.append(data.trim());
+                }
+                act.append("?>");
+            } else if (type == ENTITY_REFERENCE) {
+                act.append(sr.getText());
+            } else {
+                fail("Unexpected event type "+tokenTypeDesc(type));
+            }
+        } while ((type = sr.next()) != END_DOCUMENT);
+        
+        String result = act.toString();
+        if (!result.equals(expOutput)) {
+            String desc = it.toString();
+            int round = it.getIndex();
+
+        // uncomment for debugging:
+
+            /*
+        System.err.println("FAIL: round "+round+" ["+desc+"]");
+        System.err.println("Input:  '"+input.toString()+"'");
+        System.err.println("Exp:    '"+expOutput.toString()+"'");
+        System.err.println("Actual: '"+act.toString()+"'");
+            */
+
+            fail("Failure with '"+desc+"' (round #"+round+"):\n<br />"
+                 +"Input : {"+input+"}\n<br />"
+                 +"Output: {"+result+"}\n<br />"
+                 +"Exp.  : {"+expOutput+"}\n<br />");
+        }
+
         return count;
     }
 
@@ -162,81 +250,6 @@ public class BaseStreamTest
         return count;
     }
 
-    protected int streamAndCheck(XMLStreamReader sr, InputConfigIterator it,
-                                  String input, String expOutput)
-        throws XMLStreamException
-    {
-        int type;
-
-        /* Let's ignore leading white space and DTD; and stop on encountering
-         * something else
-         */
-        do {
-            type = sr.next();
-        } while ((type == SPACE) || (type == DTD));
-        
-        StringBuffer act = new StringBuffer(1000);
-        int count = 0;
-
-        do {
-            count += type;
-            if (type == START_ELEMENT || type == END_ELEMENT) {
-                act.append('<');
-                if (type == END_ELEMENT) {
-                    act.append('/');
-                }
-                String prefix = sr.getPrefix();
-                if (prefix != null && prefix.length() > 0) {
-                    act.append(prefix);
-                    act.append(':');
-                }
-                act.append(sr.getLocalName());
-                act.append('>');
-            } else if (type == CHARACTERS || type == SPACE || type == CDATA) {
-                // No quoting, doesn't have to result in legal XML
-                act.append(sr.getText());
-            } else if (type == COMMENT) {
-                act.append("<!--");
-                act.append(sr.getText());
-                act.append("-->");
-            } else if (type == PROCESSING_INSTRUCTION) {
-                act.append("<!?");
-                act.append(sr.getPITarget());
-                String data = sr.getPIData();
-                if (data != null) {
-                    act.append(data.trim());
-                }
-                act.append("?>");
-            } else if (type == ENTITY_REFERENCE) {
-                act.append(sr.getText());
-            } else {
-                fail("Unexpected event type "+type);
-            }
-        } while ((type = sr.next()) != END_DOCUMENT);
-        
-        String result = act.toString();
-        if (!result.equals(expOutput)) {
-            String desc = it.toString();
-            int round = it.getIndex();
-
-        // uncomment for debugging:
-
-            /*
-        System.err.println("FAIL: round "+round+" ["+desc+"]");
-        System.err.println("Input:  '"+input.toString()+"'");
-        System.err.println("Exp:    '"+expOutput.toString()+"'");
-        System.err.println("Actual: '"+act.toString()+"'");
-            */
-
-            fail("Failure with '"+desc+"' (round #"+round+"):\n<br />"
-                 +"Input : {"+input+"}\n<br />"
-                 +"Output: {"+result+"}\n<br />"
-                 +"Exp.  : {"+expOutput+"}\n<br />");
-        }
-
-        return count;
-    }
-
     protected int streamAndSkip(XMLStreamReader sr, InputConfigIterator it,
                                 String input)
         throws XMLStreamException
@@ -247,5 +260,157 @@ public class BaseStreamTest
             count += sr.next();
         }
         return count;
+    }
+
+    protected void generateData(Random r, StringBuffer input,
+				StringBuffer output, boolean autoEnt)
+    {
+        final String PREAMBLE =
+            "<?xml version='1.0' encoding='UTF-8'?>"
+            +"<!DOCTYPE root [\n"
+            +" <!ENTITY ent1 'ent1Value'>\n"
+            +" <!ENTITY x 'Y'>\n"
+            +" <!ENTITY both '&ent1;&x;'>\n"
+            +"]>";
+
+        /* Ok; template will use '*' chars as placeholders, to be replaced
+         * by pseudo-randomly selected choices.
+         */
+        final String TEMPLATE =
+            "<root>"
+
+            // Short one for trouble shooting:
+            +" * Text ****<empty></empty>\n</root>"
+
+            // Real one for regression testing:
+            /*
+            +" * Text ****<empty></empty>\n"
+            +"<empty>*</empty>*  * xx<empty></empty>\n"
+            +"<tag>Text ******</tag>\n"
+            +"<a>*...</a><b>...*</b><c>*</c>"
+            +"<c>*</c><c>*</c><c>*</c><c>*</c><c>*</c><c>*</c>"
+            +"<c>*<d>*<e>*</e></d></c>"
+            +"<c><d><e>*</e>*</d>*</c>"
+            +"a*b*c*d*e*f*g*h*i*j*k"
+            +"</root>"
+            */
+            ;
+
+        input.append(TEMPLATE);
+        output.append(TEMPLATE);
+
+        for (int i = TEMPLATE.length(); --i >= 0; ) {
+            char c = TEMPLATE.charAt(i);
+
+            if (c == '*') {
+                replaceEntity(input, output, autoEnt, r, i);
+            }
+        }
+
+        // Let's also insert preamble into input now
+        input.insert(0, PREAMBLE);
+    }
+
+    protected void replaceEntity(StringBuffer input, StringBuffer output,
+				 boolean autoEnt,
+				 Random r, int index)
+    {
+        String in, out;
+        
+        switch (Math.abs(r.nextInt()) % 5) {
+        case 0: // Let's use one of pre-def'd entities:
+            switch (Math.abs(r.nextInt()) % 5) {
+            case 0:
+                in = "&amp;";
+                out = "&";
+                break;
+            case 1:
+                in = "&apos;";
+                out = "'";
+                break;
+            case 2:
+                in = "&lt;";
+                out = "<";
+                break;
+            case 3:
+                in = "&gt;";
+                out = ">";
+                break;
+            case 4:
+                in = "&quot;";
+                out = "\"";
+                break;
+            default: throw new Error("Internal error!");
+            }
+            break;
+        case 1: // How about some CDATA?
+            switch (Math.abs(r.nextInt()) % 4) {
+            case 0:
+                in = "<![CDATA[]] >]]>";
+                out = "]] >";
+                break;
+            case 1:
+                in = "<![CDATA[xyz&abc]]>";
+                out = "xyz&abc";
+                break;
+            case 2:
+                in = "<!--comment-->";
+                out = "<!--comment-->";
+                break;
+            case 3:
+                in = "<![CDATA[ ]]>";
+                out = " ";
+                break;
+            default: throw new Error("Internal error!");
+            }
+            break;
+        case 2: // Char entities?
+            switch (Math.abs(r.nextInt()) % 4) {
+            case 0:
+                in = "&#35;";
+                out = "#";
+                break;
+            case 1:
+                in = "&#x24;";
+                out = "$";
+                break;
+            case 2:
+                in = "&#169;"; // above US-Ascii, copyright symbol
+                out = "\u00A9";
+                break;
+            case 3:
+                in = "&#xc4;"; // Upper-case a with umlauts
+                out = "\u00C4";
+                break;
+            default: throw new Error("Internal error!");
+            }
+            break;
+        case 3: // Full entities
+            switch (Math.abs(r.nextInt()) % 3) {
+            case 0:
+                in = "&ent1;";
+                out = "ent1Value";
+                break;
+            case 1:
+                in = "&x;";
+                out = "Y";
+                break;
+            case 2:
+                in = "&both;";
+                out = autoEnt ? "ent1ValueY" : "&ent1;&x;";
+                break;
+            default: throw new Error("Internal error!");
+            }
+            break;
+
+        case 4: // Plain text, ISO-Latin chars:
+            in = out = "(\u00A9)"; // copyright symbol
+            break;
+
+        default:
+            throw new Error("Internal error!");
+        }
+        input.replace(index, index+1, in);
+        output.replace(index, index+1, out);
     }
 }

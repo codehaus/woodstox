@@ -187,11 +187,17 @@ public class BaseWstxTest
     //////////////////////////////////////////////////
      */
 
+    protected static String tokenTypeDesc(int tt)
+    {
+	String desc = (String) mTokenTypes.get(new Integer(tt));
+	return (desc == null) ? ("["+tt+"]") : desc;
+    }
+
     protected static void assertTokenType(int expType, int actType)
     {
         if (expType != actType) {
-            String expStr = (String) mTokenTypes.get(new Integer(expType));
-            String actStr = (String) mTokenTypes.get(new Integer(actType));
+            String expStr = tokenTypeDesc(expType);
+            String actStr = tokenTypeDesc(actType);
 
             if (expStr == null) {
                 expStr = ""+expType;

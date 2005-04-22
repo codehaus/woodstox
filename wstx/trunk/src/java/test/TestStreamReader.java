@@ -166,13 +166,20 @@ public class TestStreamReader
             System.out.print("["+type+"]");
 
             // Uncomment for location info debugging:
+	    /*
             LocationInfo li = sr.getLocationInfo();
             System.out.println(" BEGIN: "+li.getStartLocation());
             //System.out.println(" CURR:  "+li.getCurrentLocation());
             System.out.println(" END:   "+li.getEndLocation());
+	    */
 
             if (sr.hasText()) {
-                String text = sr.getText();
+                //String text = sr.getText();
+		StringWriter swr = new StringWriter();
+		sr.getText(swr, false);
+		String text = swr.toString();
+
+		/*
                 int textLen = sr.getTextLength();
                 //total += textLen;
                 // Sanity check (note: RI tends to return nulls?)
@@ -184,11 +191,12 @@ public class TestStreamReader
                         throw new Error("Text access via 'getText()' different from accessing via buffer: text='"+text+"', array='"+text2+"'");
                     }
                 }
+		*/
 
                 if (text != null) { // Ref. impl. returns nulls sometimes
                     total += text.length(); // to prevent dead code elimination
                 }
-                if (type == CHARACTERS || type == CDATA) {
+                if (type == CHARACTERS || type == CDATA || type == COMMENT) {
                     System.out.println(" Text = '"+text+"'.");
                 } else if (type == SPACE) {
                     System.out.print(" Ws = '"+text+"'.");
@@ -209,7 +217,7 @@ public class TestStreamReader
                     // entity ref
                     System.out.println(" Entity ref: &"+sr.getLocalName()+" -> '"+sr.getText()+"'.");
                     hasName = false; // to suppress further output
-                } else { // comment, PI?
+                } else { // PI?
                     ;
                 }
             }

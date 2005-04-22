@@ -98,7 +98,9 @@ public class TestPrologWS
             +"</root>";
         XMLStreamReader sr = constructStreamReader(f, XML);
 
-        streamAndCheck(sr, it, XML, XML);
+        streamAndCheck(sr, it, XML, XML, false);
+	// Let's also try 'real' streaming...
+        streamAndCheck(sr, it, XML, XML, true);
     }
 
     /*
