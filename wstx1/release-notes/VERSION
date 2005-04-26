@@ -1,9 +1,15 @@
-Version: 1.0.6
+Version: 1.0.7
 
-Release date: 26-Apr-2005
+Release date: xx-May-2005
 
 Description:
   Sixth maintenance release for 1.0; fixes some more critical bugs.
+
+  Problems fixed:
+
+History:
+
+1.0.6 [26-Apr-2005]
 
   Problems fixed:
 
@@ -13,8 +19,6 @@ Description:
   * Fixed a problem with SymbolTable sharing; wasn't properly creating
     copies, not updating shared instance.
     (reported by Ron Yang)
-
-History:
 
 1.0.5 [23-Mar-2005]
 
