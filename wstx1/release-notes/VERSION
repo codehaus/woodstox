@@ -1,6 +1,6 @@
 Version: 1.0.6
 
-Release date: xx-Apr-2005
+Release date: 26-Apr-2005
 
 Description:
   Sixth maintenance release for 1.0; fixes some more critical bugs.
@@ -10,6 +10,9 @@ Description:
   * Fixed incorrect package name for class FilteredEventReader,
     and a conflicting method name (with JDK1.5) for LineSuppressWriter
     (reported by Olivier.Potonniee)
+  * Fixed a problem with SymbolTable sharing; wasn't properly creating
+    copies, not updating shared instance.
+    (reported by Ron Yang)
 
 History:
 

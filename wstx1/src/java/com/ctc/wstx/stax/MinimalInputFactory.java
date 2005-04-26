@@ -86,20 +86,28 @@ public class MinimalInputFactory
      */
 
     /**
-     * 'Root' symbol table, passed to instances. Will be updated by
-     * instances when they are done with using the table (after parsing
-     * the document)
+     * 'Root' symbol table, used for creating actual symbol table instances,
+     * but never as is.
      */
-    static SymbolTable mRootSymbols = DefaultXmlSymbolTable.getInstance();
+    final static SymbolTable mRootSymbols = DefaultXmlSymbolTable.getInstance();
     static {
         /* By default, let's enable intern()ing of names (element, attribute,
          * prefixes) added to symbol table. This is likely to make some
          * access (attr by QName) and comparison of element/attr names
-         * more efficient. However, it will add some overhead on adding
-         * new symbols to symbol table.
+         * more efficient. Although it will add some overhead on adding
+         * new symbols to symbol table that should be rather negligible.
+         *
+         * Also note that always doing intern()ing allows for more efficient
+         * access during DTD validation.
          */
         mRootSymbols.setInternStrings(true);
     }
+
+    /**
+     * Actual current 'parent' symbol table; concrete instances will be
+     * created from this instance using <code>makeChild</code> method
+     */
+    SymbolTable mSymbols = mRootSymbols;
 
     /*
     /////////////////////////////////////////////////////
@@ -112,8 +120,7 @@ public class MinimalInputFactory
     }
 
     protected MinimalInputFactory(DTDReaderProxy dtdReader, boolean minimal) {
-        mConfig = ReaderConfig.createJ2MEDefaults(mRootSymbols.makeChild(),
-                                                  dtdReader);
+        mConfig = ReaderConfig.createJ2MEDefaults(mSymbols, dtdReader);
         mIsMinimal = minimal;
     }
 
@@ -156,13 +163,13 @@ public class MinimalInputFactory
      */
     public synchronized void updateSymbolTable(SymbolTable t)
     {
-        SymbolTable curr = mRootSymbols;
+        SymbolTable curr = mSymbols;
         /* Let's only add if table was direct descendant; this prevents
          * siblings from keeping overwriting settings (multiple direct
          * children have additional symbols added)
          */
         if (t.isDirectChildOf(curr)) {
-            mRootSymbols = t;
+            mSymbols = t;
         }
     }
 
@@ -526,12 +533,12 @@ public class MinimalInputFactory
             throw new WstxIOException(ie);
         }
 
+        ReaderConfig cfg = mConfig.createNonShared(mSymbols.makeChild());
         /* null -> no parent
          * null -> not expanded from an entity
          * null -> no public id available
          * false -> don't close the reader when scope is closed.
          */
-        ReaderConfig cfg = mConfig.createNonShared();
         BranchingReaderSource input = InputSourceFactory.constructBranchingSource
             (null, null, bs, // no parent, not from entity
              null, systemId, src, r, false, cfg.getInputBufferLength());

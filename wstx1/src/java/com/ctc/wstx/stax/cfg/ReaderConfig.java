@@ -307,10 +307,10 @@ public final class ReaderConfig
         return rc;
     }
 
-    public ReaderConfig createNonShared()
+    public ReaderConfig createNonShared(SymbolTable sym)
     {
         ReaderConfig rc = new ReaderConfig(mIsJ2MESubset,
-                                           mSymbols, mDtdReader,
+                                           sym, mDtdReader,
                                            mConfigFlags,
                                            mInputBufferLen, mTextBufferLen,
                                            mMinTextSegmentLen);

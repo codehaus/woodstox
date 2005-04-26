@@ -91,11 +91,10 @@ public final class WstxInputFactory
      */
 
     /**
-     * 'Root' symbol table, passed to instances. Will be updated by
-     * instances when they are done with using the table (after parsing
-     * the document)
+     * 'Root' symbol table, used for creating actual symbol table instances,
+     * but never as is.
      */
-    static SymbolTable mRootSymbols = DefaultXmlSymbolTable.getInstance();
+    final static SymbolTable mRootSymbols = DefaultXmlSymbolTable.getInstance();
     static {
         /* By default, let's enable intern()ing of names (element, attribute,
          * prefixes) added to symbol table. This is likely to make some
@@ -109,6 +108,12 @@ public final class WstxInputFactory
         mRootSymbols.setInternStrings(true);
     }
 
+    /**
+     * Actual current 'parent' symbol table; concrete instances will be
+     * created from this instance using <code>makeChild</code> method
+     */
+    SymbolTable mSymbols = mRootSymbols;
+
     /*
     /////////////////////////////////////////////////////
     // Life-cycle:
@@ -116,7 +121,7 @@ public final class WstxInputFactory
      */
 
     public WstxInputFactory() {
-        mConfig = ReaderConfig.createFullDefaults(mRootSymbols.makeChild(),
+        mConfig = ReaderConfig.createFullDefaults(mSymbols,
                                                   FullDTDReaderProxy.getInstance());
     }
 
@@ -152,13 +157,13 @@ public final class WstxInputFactory
      */
     public synchronized void updateSymbolTable(SymbolTable t)
     {
-        SymbolTable curr = mRootSymbols;
+        SymbolTable curr = mSymbols;
         /* Let's only add if table was direct descendant; this prevents
          * siblings from keeping overwriting settings (multiple direct
          * children have additional symbols added)
          */
         if (t.isDirectChildOf(curr)) {
-            mRootSymbols = t;
+            mSymbols = t;
         }
     }
 
@@ -746,12 +751,12 @@ public final class WstxInputFactory
             throw new WstxIOException(ie);
         }
 
+        ReaderConfig cfg = mConfig.createNonShared(mSymbols.makeChild());
         /* null -> no parent
          * null -> not expanded from an entity
          * null -> no public id available
          * false -> don't close the reader when scope is closed.
          */
-        ReaderConfig cfg = mConfig.createNonShared();
         BranchingReaderSource input = InputSourceFactory.constructBranchingSource
             (null, null, bs,
              null, systemId, src, r, false, cfg.getInputBufferLength());
