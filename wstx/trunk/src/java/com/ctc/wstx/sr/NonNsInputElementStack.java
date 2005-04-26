@@ -18,7 +18,7 @@ import com.ctc.wstx.util.TextBuilder;
 
 /**
  * Sub-class of {@link InputElementStack} used when operating in
- * non-namespace-aware, non valiadting mode.
+ * non-namespace-aware, non validating mode.
  */
 public class NonNsInputElementStack
     extends InputElementStack
@@ -184,7 +184,12 @@ public class NonNsInputElementStack
     ///////////////////////////////////////////////////
      */
 
-    public int findAttributeIndex(String nsURI, String localName)
+    public final int getAttributeCount()
+    {
+        return mAttrCollector.getCount();
+    }
+
+    public final int findAttributeIndex(String nsURI, String localName)
     {
         // Should never pass a NS URI...
         if (nsURI != null && nsURI.length() > 0) {

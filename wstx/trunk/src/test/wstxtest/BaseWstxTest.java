@@ -281,6 +281,30 @@ public class BaseWstxTest
         return null;
     }
 
+    protected static String printableWithSpaces(char ch)
+    {
+        if (ch == '\n') {
+            return "\\n";
+        }
+        if (ch == '\r') {
+            return "\\r";
+        }
+        if (ch == '\t') {
+            return "\\t";
+        }
+        if (ch > 127 || ch < 32) {
+            StringBuffer sb = new StringBuffer(6);
+            sb.append("\\u");
+            String hex = Integer.toHexString((int)ch);
+            for (int i = 0, len = 4 - hex.length(); i < len; i++) {
+                sb.append('0');
+            }
+            sb.append(hex);
+            return sb.toString();
+        }
+        return null;
+    }
+
     protected static String printable(String str)
     {
         if (str == null || str.length() == 0) {
@@ -292,6 +316,26 @@ public class BaseWstxTest
         for (int i = 0; i < len; ++i) {
             char c = str.charAt(i);
             String res = printable(c);
+            if (res == null) {
+                sb.append(c);
+            } else {
+                sb.append(res);
+            }
+        }
+        return sb.toString();
+    }
+
+    protected static String printableWithSpaces(String str)
+    {
+        if (str == null || str.length() == 0) {
+            return str;
+        }
+
+        int len = str.length();
+        StringBuffer sb = new StringBuffer(len + 64);
+        for (int i = 0; i < len; ++i) {
+            char c = str.charAt(i);
+            String res = printableWithSpaces(c);
             if (res == null) {
                 sb.append(c);
             } else {

@@ -213,6 +213,7 @@ public class BaseStreamTest
                 act.append(sr.getPITarget());
                 String data = sr.getPIData();
                 if (data != null) {
+                    act.append(' ');
                     act.append(data.trim());
                 }
                 act.append("?>");
@@ -238,9 +239,9 @@ public class BaseStreamTest
             */
 
             fail("Failure with '"+desc+"' (round #"+round+"):\n<br />"
-                 +"Input : {"+input+"}\n<br />"
-                 +"Output: {"+result+"}\n<br />"
-                 +"Exp.  : {"+expOutput+"}\n<br />");
+                 +"Input : {"+printableWithSpaces(input)+"}\n<br />"
+                 +"Output: {"+printableWithSpaces(result)+"}\n<br />"
+                 +"Exp.  : {"+printableWithSpaces(expOutput)+"}\n<br />");
         }
 
         return count;
@@ -323,8 +324,8 @@ public class BaseStreamTest
             +"<tag>Text ******</tag>\n"
             +"<a>*...</a><b>...*</b><c>*</c>"
             +"<c>*</c><c>*</c><c>*</c><c>*</c><c>*</c><c>*</c>"
-            +"<c>*<d>*<e>*</e></d></c>"
-            +"<c><d><e>*</e>*</d>*</c>"
+            +"<c>*<d>** *<e>*</e>**</d></c>"
+            +"<c><d><e>*</e> **</d>*</c>"
             +"a*b*c*d*e*f*g*h*i*j*k"
             +"</root>"
             ;
@@ -354,24 +355,19 @@ public class BaseStreamTest
         case 0: // Let's use one of pre-def'd entities:
             switch (Math.abs(r.nextInt()) % 5) {
             case 0:
-                in = "&amp;";
-                out = "&";
+                in = "&amp;"; out = "&";
                 break;
             case 1:
-                in = "&apos;";
-                out = "'";
+                in = "&apos;"; out = "'";
                 break;
             case 2:
-                in = "&lt;";
-                out = "<";
+                in = "&lt;"; out = "<";
                 break;
             case 3:
-                in = "&gt;";
-                out = ">";
+                in = "&gt;"; out = ">";
                 break;
             case 4:
-                in = "&quot;";
-                out = "\"";
+                in = "&quot;"; out = "\"";
                 break;
             default: throw new Error("Internal error!");
             }
@@ -414,9 +410,8 @@ public class BaseStreamTest
                 in = out = "<!--   \n-->";
                 break;
             case 3:
-                in = "<!--a\nb-->";
-                out = "<!--a\nb-->";
-                //in = out = "<!--ab-->";
+                //in = out = "<!--a\nb  \r\n   \rhah\r \n-->";
+                in = out = "<!-- \r -->";
                 break;
             case 4:
                 in = out = "<!-- a<>B -->";
@@ -467,10 +462,49 @@ public class BaseStreamTest
             in = out = "(\u00A9)"; // copyright symbol
             break;
 
+        case 6: // Proc. instr?
+            switch (Math.abs(r.nextInt()) % 5) {
+            case 0:
+                in = out = "<?myTarget?>";
+                break;
+            case 1:
+                in = out = "<?my data?>";
+                break;
+            case 2:
+                in = out = "<?a -ha!?>";
+                break;
+            case 3:
+                in = out = "<?xy_z ? ? <>? ?>";
+                break;
+            case 4:
+                in = out = "<?proc instr\nwith a\r\nlinefeed or <b>two</b> \r\r\r";
+                break;
+            default: throw new Error("Internal error!");
+            }
+
         default:
             throw new Error("Internal error!");
         }
         input.replace(index, index+1, in);
         output.replace(index, index+1, out);
+    }
+
+    /**
+     * Method that will normalize all unnormalized LFs (\r, \r\n) into
+     * normalized one (\n).
+     */
+    protected void normalizeLFs(StringBuffer input)
+    {
+        int len = input.length();
+        for (int i = len; --i >= 0; ) {
+            char c = input.charAt(i);
+            if (c == '\r') {
+                if (i < (len-1) && input.charAt(i+1) == '\n') {
+                    input.deleteCharAt(i);
+                } else {
+                    input.setCharAt(i, '\n');
+                }
+            }
+        }
     }
 }

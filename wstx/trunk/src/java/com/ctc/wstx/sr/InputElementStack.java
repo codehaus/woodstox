@@ -133,6 +133,8 @@ public abstract class InputElementStack
     ///////////////////////////////////////////////////
      */
 
+    public abstract int getAttributeCount();
+
     /**
      * @return Index of the specified attribute, if the current element
      *   has such an attribute (explicit, or one created via default

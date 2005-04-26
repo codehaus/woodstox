@@ -15,6 +15,14 @@ package org.codehaus.stax2;
  */
 public interface AttributeInfo
 {
+    // // // Generic methods; some duplication from main stream reader
+
+    /**
+     * @return Number of all attributes accessible (including ones created
+     *   from the default values, if any) using this Object.
+     */
+    public int getAttributeCount();
+
     // // // Methods for finding index of specific attributes
 
     /**

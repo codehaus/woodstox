@@ -418,7 +418,12 @@ public class NsInputElementStack
     ///////////////////////////////////////////////////
      */
 
-    public int findAttributeIndex(String nsURI, String localName)
+    public final int getAttributeCount()
+    {
+        return mAttrCollector.getCount();
+    }
+
+    public final int findAttributeIndex(String nsURI, String localName)
     {
         return mAttrCollector.findIndex(nsURI, localName);
     }

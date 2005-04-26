@@ -6,11 +6,11 @@ Must-haves for 2.0
 [Partial] * Should not fail on quoted ]]>... Does not, any more, but now
   catching ]]>s in textual content is only 98% reliable (won't match
   ones that are split by input buffer boundary).
-  * Is linefeed normalization/not-normalization properly tested, esp.
-    WRT fully streaming accessors?
+  * Concurrent modification exception with SymbolTable? Can it be tested?
 
 * Stream writers:
 [DONE] * Validate names (local, full), when such validation enabled
+  * Validate content to write?
 
 * DTD-handling/parsing:
 [DONE] * Verify that an unparsed entity refers to a declared notation.
@@ -19,16 +19,15 @@ Must-haves for 2.0
 
 * Unit testing: Implement at least simple basic StAX-tests for:
    * Stream reader
-      * Unit tests for attribute access?
-      * Unit tests for attribute access?
-      * Location info tests
+      [DONE] * Unit tests for attribute access?
       [DONE] * Test misc. properties (isEmpty, depth)
       [DONE] * Test skipElement
-      * Test streaming access
-   * Event reader: what?
+      [DONE] * Test streaming access
+      * Location info tests
+   * Event reader: what to test?
    * Stream writer
       [DONE] * Name validation
-   * Event writer
+   * Event writer: what to test?
 
 * Documentation:
    * Impl. details, like: always interns names, preserves attribute value

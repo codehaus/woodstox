@@ -96,9 +96,12 @@ public class TestRandomStream
     ////////////////////////////////////////
      */
 
-    String mInput, mExpOutput;
+    String mInput;
+    String mExpOutputNorm;
+    String mExpOutputNotNorm;
 
     boolean mReallyStreaming = false;
+    boolean mNormalizeLFs = true;
 
     /**
      * Main branching point has settings for standard features; it
@@ -138,7 +141,9 @@ public class TestRandomStream
             generateData(r, inputBuf, expOutputBuf, autoEntity);
 
             mInput = inputBuf.toString();
-            mExpOutput = expOutputBuf.toString();
+            mExpOutputNotNorm = expOutputBuf.toString();
+            normalizeLFs(expOutputBuf);
+            mExpOutputNorm = expOutputBuf.toString();
             mConfigs.iterate(f, this);
         }
     }
@@ -150,11 +155,19 @@ public class TestRandomStream
     public void runTest(XMLInputFactory f, InputConfigIterator it)
         throws Exception
     {
+        String exp;
+
+        if (((WstxInputFactory) f).getConfig().willNormalizeLFs()) {
+            exp = mExpOutputNorm;
+        } else {
+            exp = mExpOutputNotNorm;
+        }
+
         // First, let's skip through it all
         streamAndSkip(f, it, mInput);
 
         // and then the 'real' test:
-        streamAndCheck(f, it, mInput, mExpOutput, mReallyStreaming);
+        streamAndCheck(f, it, mInput, exp, mReallyStreaming);
     }
 
     /*
