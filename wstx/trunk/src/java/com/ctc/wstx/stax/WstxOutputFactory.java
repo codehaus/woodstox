@@ -95,11 +95,11 @@ public final class WstxOutputFactory
     public XMLEventWriter createXMLEventWriter(javax.xml.transform.Result result)
          throws XMLStreamException
     {
-        return new WstxEventWriter(createWstxStreamWriter(result), mConfig);
+        return new WstxEventWriter(createSW(result));
     }
 
     public XMLEventWriter createXMLEventWriter(Writer w) {
-        return new WstxEventWriter(w, mConfig);
+        return new WstxEventWriter(createSW(w));
     }
 
     public XMLStreamWriter createXMLStreamWriter(OutputStream out)
@@ -120,11 +120,11 @@ public final class WstxOutputFactory
     public XMLStreamWriter createXMLStreamWriter(javax.xml.transform.Result result)
         throws XMLStreamException
     {
-        return createWstxStreamWriter(result);
+        return createSW(result);
     }
 
     public XMLStreamWriter createXMLStreamWriter(Writer w) {
-        return createWstxStreamWriter(w);    
+        return createSW(w);    
     }
     
     public Object getProperty(String name)
@@ -158,20 +158,26 @@ public final class WstxOutputFactory
      */
 
     /**
-     * Factory method used internally; needs to take care of passing
+     * Bottleneck factory method used internally; needs to take care of passing
      * proper settings to stream writer.
      */
-    private BaseStreamWriter createWstxStreamWriter(Writer w) {
-        if (mConfig.willSupportNamespaces()) {
-            if (mConfig.automaticNamespacesEnabled()) {
-                return new RepairingNsStreamWriter(w, mConfig);
+    private BaseStreamWriter createSW(Writer w)
+    {
+        /* Need to ensure that the configuration object is not shared
+         * any more; otherwise later changes via factory could be
+         * visible half-way through output...
+         */
+        WriterConfig cfg = mConfig.createNonShared();
+        if (cfg.willSupportNamespaces()) {
+            if (cfg.automaticNamespacesEnabled()) {
+                return new RepairingNsStreamWriter(w, cfg);
             }
-            return new SimpleNsStreamWriter(w, mConfig);
+            return new SimpleNsStreamWriter(w, cfg);
         }
-        return new NonNsStreamWriter(w, mConfig);
+        return new NonNsStreamWriter(w, cfg);
     }
 
-    private BaseStreamWriter createWstxStreamWriter(Result res)
+    private BaseStreamWriter createSW(Result res)
         throws XMLStreamException
     {
         if (res instanceof StreamResult) {
@@ -185,7 +191,7 @@ public final class WstxOutputFactory
                 // ... any way to define encoding?
                 w = new OutputStreamWriter(out);
             }
-            return createWstxStreamWriter(w);
+            return createSW(w);
         }
 
         if (res instanceof SAXResult) {

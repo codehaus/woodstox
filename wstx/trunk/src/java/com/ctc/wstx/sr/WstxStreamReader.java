@@ -1885,6 +1885,11 @@ public class WstxStreamReader
 
         // Did we hit EOF?
         if (i < 0) {
+            /* Let's give the factory a chance to update basic symbol table
+             * information now (if we got any new symbols) -- chances are,
+             * most documents have same names, and having them pre-allocated
+             * is more efficient than re-creating over and over again.
+             */
             if (mSymbols.isDirty()) {
                 mOwner.updateSymbolTable(mSymbols);
             }

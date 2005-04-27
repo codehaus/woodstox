@@ -71,7 +71,13 @@ Marius Raschip:
     multi-byte encodings): wasn't handling xml declaration correctly.
     [1.0.5/1.8.2]
 
-Olivier.Potonniee:
+Olivier Potonniee:
   * Reported compilation problems (incorrect package name for one class,
     conflicting method name for LineSuppressWriter)
     [1.0.6/1.9]
+
+Ron Yang:
+  * Reported an intermittent problem caused by broken handling of SymbolTable
+    sharing, and also pointed out a potential solution (had been fixed for
+    2.0 branch earlier, but not for 1.0.x).
+    [1.0.7]

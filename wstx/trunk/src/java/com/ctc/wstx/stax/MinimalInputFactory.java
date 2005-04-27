@@ -124,7 +124,7 @@ public class MinimalInputFactory
     }
 
     protected MinimalInputFactory(DTDReaderProxy dtdReader, boolean minimal) {
-        mConfig = ReaderConfig.createJ2MEDefaults(null, dtdReader);
+        mConfig = ReaderConfig.createJ2MEDefaults(dtdReader);
         mIsMinimal = minimal;
     }
 

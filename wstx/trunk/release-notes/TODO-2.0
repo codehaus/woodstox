@@ -6,11 +6,13 @@ Must-haves for 2.0
 [Partial] * Should not fail on quoted ]]>... Does not, any more, but now
   catching ]]>s in textual content is only 98% reliable (won't match
   ones that are split by input buffer boundary).
-  * Concurrent modification exception with SymbolTable? Can it be tested?
+[todo] * Streaming getText() should NEVER 'return' partial event; needs
+  to ensure that minSegmentSize is ignored
 
 * Stream writers:
 [DONE] * Validate names (local, full), when such validation enabled
-  * Validate content to write?
+  [todo] * Validate content to write? Not much to check (for 1.1 at least)?
+    For 1.1, quoting can overcome most 'tricky' chars, except for null.
 
 * DTD-handling/parsing:
 [DONE] * Verify that an unparsed entity refers to a declared notation.
@@ -23,7 +25,10 @@ Must-haves for 2.0
       [DONE] * Test misc. properties (isEmpty, depth)
       [DONE] * Test skipElement
       [DONE] * Test streaming access
-      * Location info tests
+      [todo] * Location info tests
+      [todo] * Test attribute order; woodstox guarantees order preservation
+        (and that the default attrs come after non-default ones)
+      [todo] * Test block attribute accessors (once implemented)
    * Event reader: what to test?
    * Stream writer
       [DONE] * Name validation
@@ -38,7 +43,7 @@ Must-haves for 2.0
       * How to build for 1.2, 1.3?
 
 * Compatibility:
-   * Remove dependency to BitSet.nextSetBit and nextClearBit; these methods
+   [todo] * Remove dependency to BitSet.nextSetBit and nextClearBit; these methods
      are only in JDK 1.4. But they are (alas!) used by DTD processing.
 
 * StAX 2.0 features:
@@ -62,14 +67,14 @@ Must-haves for 2.0
       [DONE] * Extra attribute access via AttributeInfo; findAttributeIndex,
         getIdAttributeIndex, getNotationAttributeIndex
       [DONE] * Separate DTD info access behind a new interface (DTDInfo?)
-      [Partial] * Streaming access: getText with Writer arg
+      [DONE]  * Streaming access: getText with Writer arg
       [Defer/ignore] * Streaming access: getTextReader
       [DONE] * Misc: isEmptyElement, getDepth
       [DONE] * Full pass-through method (copyEventFromReader())
       [DONE] * Extended location information access via LocationInfo;
         methods for getting start and end locations of an event, long-valued
         byte/char offsets.
-      * "Bulk" attribute access
+      [todo] * "Bulk" attribute access
    * XMLStreamWriter2:
       [DONE] * pass-through write method for outputting raw (non-encoded) stuff
       [Partial?] * setFeature/getFeature (which property/ies?)
@@ -80,7 +85,9 @@ Must-haves for 2.0
       [DONE] * A new property P_OUTPUT_FIX_CONTENT; if content verification
         enabled, will quietly try to fix content problems first (comments,
         CDATA; not sure about PIs?)
-      * "Bulk" attribute writes (to match bulk read access)
+      [todo] * "Bulk" attribute writes (to match bulk read access)
+      [todo] * Explicit content "flushing", to ensure current event is
+        physically written to stream, and that stream is flushed.
 [DONE] * evt/DTD2: allow access to root name, system id, public id, int. subset
 [DONE] * evt/XMLEventFactory2: factory methods for creating DTD2, StartElement2 instances
 [DONE] * EncodingWriterFactory, to create encoding writers for XML encoding,

@@ -138,8 +138,7 @@ public final class WstxInputFactory
      */
 
     public WstxInputFactory() {
-        mConfig = ReaderConfig.createFullDefaults(null,
-                                                  FullDTDReaderProxy.getInstance());
+        mConfig = ReaderConfig.createFullDefaults(FullDTDReaderProxy.getInstance());
     }
 
     /*
@@ -495,6 +494,9 @@ public final class WstxInputFactory
         return createSR(systemId, bs, src);
     }
 
+    /**
+     * Bottleneck method used for creating ALL full stream reader instances.
+     */
     private FullStreamReader createSR(String systemId, InputBootstrapper bs, 
                                       URL src)
         throws XMLStreamException

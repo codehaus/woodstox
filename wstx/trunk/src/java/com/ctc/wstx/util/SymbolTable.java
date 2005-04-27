@@ -15,6 +15,8 @@
 
 package com.ctc.wstx.util;
 
+import java.io.*; // just for test driver
+
 /**
  * This class is a kind of specialized type-safe Map, from char array to
  * String value. Specialization means that in addition to type-safety
@@ -317,6 +319,11 @@ public class SymbolTable {
          * use sequence number, or identityHash to really prove it), but
          * it's good enough if relationship is known to exist.
          */
+        /* (for real check, one would need to child/descendant stuff; or
+         * at least an identity hash... or maybe even just a _static_ global
+         * counter for instances... maybe that would actually be worth
+         * doing?)
+         */
         if (mThisVersion == (t.mThisVersion + 1)) {
             return true;
         }
@@ -570,10 +577,8 @@ public class SymbolTable {
      * is really redistributing old entries into new String/Bucket
      * entries.
      */
-    private void rehash() {
-        // Uncomment for debugging...
-        // verifySize(); // sanity check
-
+    private void rehash()
+    {
         int size = mSymbols.length;
         int newSize = size + size;
         String[] oldSyms = mSymbols;
@@ -724,15 +729,62 @@ public class SymbolTable {
     //////////////////////////////////////////////////////////
      */
 
-    public static void main(String[] args) {
-        for (int i = 0; i < args.length; ++i) {
-            String str = args[i];
-            char[] c = str.toCharArray();
-            System.out.println("#"+(i+1)+": "+Integer.toHexString
-                               (calcHash(c, 0, str.length()))
-                               );
-            System.out.println(" #"+(i+1)+": "+Integer.toHexString
-                               (calcHash(str)));
+    /**
+     * Let's just try and see if indexing all the words on an input
+     * file works ok, when there are 2 sort of concurrent readers, and
+     * starting with a small initial size which should trigger
+     * enough rehash()ings.
+     */
+    public static void main(String[] args)
+        throws Exception
+    {
+        if (args.length < 1) {
+            System.err.println("Usage: java "+SymbolTable.class+" <file(s)>");
+            System.exit(1);
         }
+
+        SymbolTable root = new SymbolTable(true, 4);
+        for (int i = 0; i < args.length; ++i) {
+            FileReader fr = new FileReader(args[i]);
+            StreamTokenizer st = new StreamTokenizer(fr);
+            SymbolTable table1 = root.makeChild();
+            SymbolTable table2 = root.makeChild();
+
+            System.err.println("START: file '"+args[i]+"'");
+            System.err.println("t1: "+table1.size()+" words, t2: "+table2.size()+" words; root: "+root.size()+" words.");
+            //System.err.println("t1Ver: "+table1.version()+", t2Ver: "+table2.version()+" words; root: "+root.version()+".");
+
+            int tt;
+            int count = 0;
+            while ((tt = st.nextToken()) != StreamTokenizer.TT_EOF) {
+                if (tt == StreamTokenizer.TT_WORD) {
+                    String word = st.sval;
+                    int hash = calcHash(word);
+                    char[] ch = word.toCharArray();
+                    
+                    SymbolTable table = ((++count & 1) == 0) ? table2 : table1;
+                    
+                    String old = table.findSymbolIfExists(ch, 0, ch.length, hash);
+                    if (old == null) {
+                        System.out.println("Adding '"+word+"'.");
+                        table.findSymbol(ch, 0, ch.length, hash); // will add it
+                    }
+                }
+            }
+
+            System.err.println("OK; t1: "+table1.size()+" words, t2: "+table2.size()+" words.");
+            if (!table1.isDirectChildOf(root)) { // sanity check
+                throw new Error("Table1 not a direct child!");
+            }
+            if (!table2.isDirectChildOf(root)) { // sanity check
+                throw new Error("Table2 not a direct child!");
+            }
+            if ((++count & 1) == 0) {
+                root = table1;
+            } else {
+                root = table2;
+            }
+        }
+        System.out.println("DONE!");
     }
 }

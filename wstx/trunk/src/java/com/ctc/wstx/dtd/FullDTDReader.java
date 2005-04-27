@@ -401,7 +401,10 @@ public class FullDTDReader
         /* null -> DTDReaderProxy to use -- since we are not using stream
          *    reader,  need not pass valid value.
          */
-        ReaderConfig cfg = ReaderConfig.createFullDefaults(new SymbolTable(), null);
+        ReaderConfig cfg = ReaderConfig.createFullDefaults(null);
+        // Need to create a non-shared copy to populate symbol table field
+        cfg = cfg.createNonShared(new SymbolTable());
+
         /* Let's actually not normalize LFs; it's likely caller wouldn't
          * really want any such changes....
          */

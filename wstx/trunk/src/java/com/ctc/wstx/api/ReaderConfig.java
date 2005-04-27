@@ -298,13 +298,13 @@ public final class ReaderConfig
         mMinTextSegmentLen = minTextSegmentLen;
     }
 
-    public static ReaderConfig createJ2MEDefaults(SymbolTable sym, DTDReaderProxy dtdReader)
+    public static ReaderConfig createJ2MEDefaults(DTDReaderProxy dtdReader)
     {
         /* For J2ME we'll use slightly smaller buffer sizes by
          * default, on assumption lower memory usage is desireable:
          */
         ReaderConfig rc = new ReaderConfig
-            (true, sym, dtdReader, DEFAULT_FLAGS_J2ME,
+            (true, null, dtdReader, DEFAULT_FLAGS_J2ME,
              // 4k input buffer (2000 chars):
              2000,
              /* 2k initial temp buffer for storing text; defines the
@@ -315,13 +315,13 @@ public final class ReaderConfig
         return rc;
     }
 
-    public static ReaderConfig createFullDefaults(SymbolTable sym, DTDReaderProxy dtdReader)
+    public static ReaderConfig createFullDefaults(DTDReaderProxy dtdReader)
     {
         /* For full version, can use bit larger buffers to achieve better
          * overall performance.
          */
         ReaderConfig rc = new ReaderConfig
-            (false, sym, dtdReader, DEFAULT_FLAGS_FULL,
+            (false, null, dtdReader, DEFAULT_FLAGS_FULL,
              // 8k input buffer (4000 chars):
              4000,
              /* 4k initial temp buffer for storing text; defines the
@@ -334,8 +334,7 @@ public final class ReaderConfig
 
     public ReaderConfig createNonShared(SymbolTable sym)
     {
-        ReaderConfig rc = new ReaderConfig(mIsJ2MESubset,
-                                           (sym == null) ? mSymbols : sym,
+        ReaderConfig rc = new ReaderConfig(mIsJ2MESubset, sym,
                                            mDtdReader,
                                            mConfigFlags,
                                            mInputBufferLen, mTextBufferLen,
