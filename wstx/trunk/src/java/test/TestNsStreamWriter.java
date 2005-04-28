@@ -32,8 +32,9 @@ public class TestNsStreamWriter
                       Boolean.TRUE);
         f.setProperty(XMLOutputFactory2.P_NAMESPACE_AWARE,
                       Boolean.TRUE);
-        f.setProperty(WstxOutputProperties.P_OUTPUT_EMPTY_ELEMENTS,
-                      Boolean.TRUE);
+        f.setProperty(XMLOutputFactory2.P_AUTOMATIC_EMPTY_ELEMENTS,
+                      //Boolean.TRUE);
+                      Boolean.FALSE);
         Writer w = new PrintWriter(System.out);
         XMLStreamWriter sw = f.createXMLStreamWriter(w);
 
@@ -53,7 +54,16 @@ public class TestNsStreamWriter
         //sw.writeNamespace("myprefix", "http://mydotcom");
         //sw.writeDefaultNamespace("http://default");
         sw.writeCharacters("Sub-text\n");
-        sw.writeEmptyElement("http://mydotcom", "ns-elem");
+
+        sw.writeStartElement("http://mydotcom", "ns-elem");
+        //sw.writeCharacters("");
+        sw.writeEndElement();
+
+        //sw.writeCharacters("");
+        w.flush();
+        //sw.flush();
+        try { Thread.sleep(60000L); } catch (Exception e) { }
+
         sw.writeEndElement();
         sw.writeCharacters("\n");
         //sw.writeStartElement("elem3:foo"); // error, colon inside local name

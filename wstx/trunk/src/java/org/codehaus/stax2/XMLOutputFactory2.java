@@ -24,6 +24,24 @@ public abstract class XMLOutputFactory2
     ////////////////////////////////////////////////////
      */
 
+    // // General output options:
+
+    /**
+     * Whether stream writers are allowed to automatically output empty
+     * elements, when a start element is immediately followed by matching
+     * end element.
+     * If true, will output empty elements; if false, will always create
+     * separate end element (unless a specific method that produces empty
+     * elements is called).
+     *<p>
+     * Default value for implementations should be 'true'; both values should
+     * be recognized, and 'false' must be honored. However, 'true' value
+     * is only a suggestion, and need not be implemented (since there is
+     * the explicit 'writeEmptyElement()' method).
+     */
+    public final static String P_AUTOMATIC_EMPTY_ELEMENTS = "org.codehaus.stax2.automaticEmptyElements";
+
+
     // // Namespace options:
 
     /**
@@ -42,6 +60,9 @@ public abstract class XMLOutputFactory2
      *<p>
      * Turning this option off may improve performance if no namespace
      * handling is needed.
+     *<p>
+     * Default value for implementations should be 'true'; implementations
+     * are not required to implement 'false'.
      */
     public final static String P_NAMESPACE_AWARE = "org.codehaus.stax2.namespaceAware";
 

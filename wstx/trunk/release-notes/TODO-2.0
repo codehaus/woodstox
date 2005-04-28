@@ -10,9 +10,11 @@ Must-haves for 2.0
   to ensure that minSegmentSize is ignored
 
 * Stream writers:
-[DONE] * Validate names (local, full), when such validation enabled
-  [todo] * Validate content to write? Not much to check (for 1.1 at least)?
-    For 1.1, quoting can overcome most 'tricky' chars, except for null.
+  [wont-implement] * Validate content to write? (chars in text content)... in
+    a way, doable, but... is it worth it?
+  [todo] * Consider auto-quoting of characters that either can't be represented
+     in encoding (Ascii, ISO-Latin1), or are always supposed to be quoted
+    (ctrl chars)
 
 * DTD-handling/parsing:
 [DONE] * Verify that an unparsed entity refers to a declared notation.
@@ -25,10 +27,9 @@ Must-haves for 2.0
       [DONE] * Test misc. properties (isEmpty, depth)
       [DONE] * Test skipElement
       [DONE] * Test streaming access
-      [todo] * Location info tests
-      [todo] * Test attribute order; woodstox guarantees order preservation
+      [partial] * Location info tests
+      [DONE] * Test attribute order; woodstox guarantees order preservation
         (and that the default attrs come after non-default ones)
-      [todo] * Test block attribute accessors (once implemented)
    * Event reader: what to test?
    * Stream writer
       [DONE] * Name validation
@@ -41,10 +42,12 @@ Must-haves for 2.0
       * Ant 1.5? (rootfileset)
       * Jars: for 1.3/1.2 SAX and DOM API jars?
       * How to build for 1.2, 1.3?
+   * FAQ:
+      * Output streaming; use of 'writeCharacters("");', flush()
 
 * Compatibility:
-   [todo] * Remove dependency to BitSet.nextSetBit and nextClearBit; these methods
-     are only in JDK 1.4. But they are (alas!) used by DTD processing.
+   [todo] * Remove dependency to BitSet.nextSetBit and nextClearBit; these
+     methods are only in JDK 1.4. But they are (alas!) used by DTD processing.
 
 * StAX 2.0 features:
    * Configuration/introspection:
@@ -58,7 +61,9 @@ Must-haves for 2.0
    * XMLInputFactory2:
       [DONE] * Create URL/file-based factory methods for readers
    * XMLOutputFactory2:
-      [DONE] * Additional new StAX2 std properties
+      [DONE] * Additional new StAX2 std properties; encoding writers,
+      enable empty element output, define ns prefix-prefix for auto-generated
+      ns prefixes.
    * XMLStreamLocation2:
       [DONE] * allow access to nested location information
    * XMLStreamReader2:
@@ -74,7 +79,6 @@ Must-haves for 2.0
       [DONE] * Extended location information access via LocationInfo;
         methods for getting start and end locations of an event, long-valued
         byte/char offsets.
-      [todo] * "Bulk" attribute access
    * XMLStreamWriter2:
       [DONE] * pass-through write method for outputting raw (non-encoded) stuff
       [Partial?] * setFeature/getFeature (which property/ies?)
@@ -85,8 +89,7 @@ Must-haves for 2.0
       [DONE] * A new property P_OUTPUT_FIX_CONTENT; if content verification
         enabled, will quietly try to fix content problems first (comments,
         CDATA; not sure about PIs?)
-      [todo] * "Bulk" attribute writes (to match bulk read access)
-      [todo] * Explicit content "flushing", to ensure current event is
+      [DONE] * Explicit content "flushing", to ensure current event is
         physically written to stream, and that stream is flushed.
 [DONE] * evt/DTD2: allow access to root name, system id, public id, int. subset
 [DONE] * evt/XMLEventFactory2: factory methods for creating DTD2, StartElement2 instances

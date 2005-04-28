@@ -31,12 +31,14 @@ public final class WriterConfig
 
     // // // And then additional StAX2 properties:
 
+    // General output settings
+    final static int PROP_AUTOMATIC_EMPTY_ELEMS = 2;
     // Namespace settings:
-    final static int PROP_ENABLE_NS = 2;
-    final static int PROP_AUTOMATIC_NS_PREFIX = 3;
+    final static int PROP_ENABLE_NS = 3;
+    final static int PROP_AUTOMATIC_NS_PREFIX = 4;
     // Escaping text content/attr values:
-    final static int PROP_TEXT_ESCAPER = 4;
-    final static int PROP_ATTR_VALUE_ESCAPER = 5;
+    final static int PROP_TEXT_ESCAPER = 5;
+    final static int PROP_ATTR_VALUE_ESCAPER = 6;
 
 
     // // // And then custom Wstx properties:
@@ -44,7 +46,6 @@ public final class WriterConfig
     // Namespace support, settings:
 
     // Output settings:
-    final static int PROP_OUTPUT_EMPTY_ELEMS = 10;
     final static int PROP_OUTPUT_CDATA_AS_TEXT = 11;
 
     final static int PROP_COPY_DEFAULT_ATTRS = 12;
@@ -62,7 +63,12 @@ public final class WriterConfig
     // // // Default settings for additional properties:
 
     final static boolean DEFAULT_ENABLE_NS = true;
-    final static boolean DEFAULT_OUTPUT_EMPTY_ELEMS = false;
+
+    /* 27-Apr-2005, TSa: Changed the default to 'true' for 2.0rc1,
+     *   since usually it is beneficial to still allow for empty
+     *   elements...
+     */
+    final static boolean DEFAULT_AUTOMATIC_EMPTY_ELEMS = true;
     final static boolean DEFAULT_OUTPUT_CDATA_AS_TEXT = false;
     final static boolean DEFAULT_COPY_DEFAULT_ATTRS = false;
 
@@ -89,7 +95,7 @@ public final class WriterConfig
         0 // | CFG_AUTOMATIC_NS
         | (DEFAULT_ENABLE_NS ? CFG_ENABLE_NS : 0)
 
-        | (DEFAULT_OUTPUT_EMPTY_ELEMS ? CFG_OUTPUT_EMPTY_ELEMS : 0)
+        | (DEFAULT_AUTOMATIC_EMPTY_ELEMS ? CFG_AUTOMATIC_EMPTY_ELEMS : 0)
         | (DEFAULT_OUTPUT_CDATA_AS_TEXT ? CFG_OUTPUT_CDATA_AS_TEXT : 0)
         | (DEFAULT_COPY_DEFAULT_ATTRS ? CFG_COPY_DEFAULT_ATTRS : 0)
 
@@ -118,11 +124,18 @@ public final class WriterConfig
         sProperties.put(XMLOutputFactory.IS_REPAIRING_NAMESPACES,
                         new Integer(PROP_AUTOMATIC_NS));
 
-        // StAX standard ones:
+        // // StAX (1.0) standard ones:
 
         // Namespace support
         sProperties.put(XMLOutputFactory2.P_NAMESPACE_AWARE,
                         new Integer(PROP_ENABLE_NS));
+
+        // // StAX2 standard ones:
+
+        // Generic output
+        sProperties.put(XMLOutputFactory2.P_AUTOMATIC_EMPTY_ELEMENTS,
+                        new Integer(PROP_AUTOMATIC_EMPTY_ELEMS));
+        // Namespace support
         sProperties.put(XMLOutputFactory2.P_AUTOMATIC_NS_PREFIX,
                         new Integer(PROP_AUTOMATIC_NS_PREFIX));
         // Text/attr value escaping (customized escapers)
@@ -131,11 +144,9 @@ public final class WriterConfig
         sProperties.put(XMLOutputFactory2.P_ATTR_VALUE_ESCAPER,
                         new Integer(PROP_ATTR_VALUE_ESCAPER));
 
-        // // Non-standard ones:
+        // // Woodstox-specifics:
 
         // Output conversions
-        sProperties.put(WstxOutputProperties.P_OUTPUT_EMPTY_ELEMENTS,
-                        new Integer(PROP_OUTPUT_EMPTY_ELEMS));
         sProperties.put(WstxOutputProperties.P_OUTPUT_CDATA_AS_TEXT,
                         new Integer(PROP_OUTPUT_CDATA_AS_TEXT));
         sProperties.put(WstxOutputProperties.P_COPY_DEFAULT_ATTRS,
@@ -238,8 +249,8 @@ public final class WriterConfig
         case PROP_ENABLE_NS:
             return willSupportNamespaces() ? Boolean.TRUE : Boolean.FALSE;
 
-        case PROP_OUTPUT_EMPTY_ELEMS:
-            return willOutputEmptyElements() ? Boolean.TRUE : Boolean.FALSE;
+        case PROP_AUTOMATIC_EMPTY_ELEMS:
+            return automaticEmptyElementsEnabled() ? Boolean.TRUE : Boolean.FALSE;
         case PROP_OUTPUT_CDATA_AS_TEXT:
             return willOutputCDataAsText() ? Boolean.TRUE : Boolean.FALSE;
         case PROP_COPY_DEFAULT_ATTRS:
@@ -289,8 +300,8 @@ public final class WriterConfig
             doSupportNamespaces(ArgUtil.convertToBoolean(name, value));
             break;
 
-        case PROP_OUTPUT_EMPTY_ELEMS:
-            doOutputEmptyElements(ArgUtil.convertToBoolean(name, value));
+        case PROP_AUTOMATIC_EMPTY_ELEMS:
+            enableAutomaticEmptyElements(ArgUtil.convertToBoolean(name, value));
             break;
         case PROP_OUTPUT_CDATA_AS_TEXT:
             doOutputCDataAsText(ArgUtil.convertToBoolean(name, value));
@@ -359,12 +370,12 @@ public final class WriterConfig
 
     // // // Accessors, Woodstox properties:
 
-    public boolean willSupportNamespaces() {
-        return hasConfigFlag(CFG_ENABLE_NS);
+    public boolean automaticEmptyElementsEnabled() {
+        return hasConfigFlag(CFG_AUTOMATIC_EMPTY_ELEMS);
     }
 
-    public boolean willOutputEmptyElements() {
-        return hasConfigFlag(CFG_OUTPUT_EMPTY_ELEMS);
+    public boolean willSupportNamespaces() {
+        return hasConfigFlag(CFG_ENABLE_NS);
     }
 
     public boolean willOutputCDataAsText() {
@@ -428,12 +439,12 @@ public final class WriterConfig
 
     // Wstx properies:
 
-    public void doSupportNamespaces(boolean state) {
-        setConfigFlag(CFG_ENABLE_NS, state);
+    public void enableAutomaticEmptyElements(boolean state) {
+        setConfigFlag(CFG_AUTOMATIC_EMPTY_ELEMS, state);
     }
 
-    public void doOutputEmptyElements(boolean state) {
-        setConfigFlag(CFG_OUTPUT_EMPTY_ELEMS, state);
+    public void doSupportNamespaces(boolean state) {
+        setConfigFlag(CFG_ENABLE_NS, state);
     }
 
     public void doOutputCDataAsText(boolean state) {

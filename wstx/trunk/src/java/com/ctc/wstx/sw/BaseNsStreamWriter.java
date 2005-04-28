@@ -239,7 +239,7 @@ public abstract class BaseNsStreamWriter
     public void writeEndElement()
         throws XMLStreamException
     {
-        doWriteEndElement(null, mCfgOutputEmptyElems);
+        doWriteEndElement(null, mCfgAutomaticEmptyElems);
     }
 
     /**
@@ -302,7 +302,7 @@ public abstract class BaseNsStreamWriter
         throws XMLStreamException
     {
         doWriteEndElement(mCheckStructure ? name : null,
-                          mCfgOutputEmptyElems);
+                          mCfgAutomaticEmptyElems);
     }
 
     /**
@@ -466,7 +466,6 @@ public abstract class BaseNsStreamWriter
              * processing. Thus, this is almost identical to closeStartElement:
              */
             mStartElementOpen = false;
-            // 01-Apr-2005, TSa: Can we check anything regarding NS?
 
             try {
                 // We could write an empty element, implicitly?

@@ -16,7 +16,7 @@ public interface OutputConfigFlags
     final static int CFG_AUTOMATIC_NS =        0x0002;
 
     /// Flag that indicates we can output 'automatic' empty elements.
-    final static int CFG_OUTPUT_EMPTY_ELEMS =  0x0004;
+    final static int CFG_AUTOMATIC_EMPTY_ELEMS =  0x0004;
 
     /**
      * Whether writer should just automatically convert all calls that

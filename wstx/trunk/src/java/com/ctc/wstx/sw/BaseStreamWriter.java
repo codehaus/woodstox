@@ -93,7 +93,7 @@ public abstract class BaseStreamWriter
 
     // // // Specialized configuration flags, extracted from config flags:
 
-    protected final boolean mCfgOutputEmptyElems;
+    protected final boolean mCfgAutomaticEmptyElems;
     protected final boolean mCfgCDataAsText;
     protected final boolean mCfgCopyDefaultAttrs;
 
@@ -184,7 +184,7 @@ public abstract class BaseStreamWriter
         mCheckNames = (flags & CFG_VALIDATE_NAMES) != 0;
         mFixContent = (flags & CFG_FIX_CONTENT) != 0;
 
-        mCfgOutputEmptyElems = (flags & CFG_OUTPUT_EMPTY_ELEMS) != 0;
+        mCfgAutomaticEmptyElems = (flags & CFG_AUTOMATIC_EMPTY_ELEMS) != 0;
         mCfgCDataAsText = (flags & CFG_OUTPUT_CDATA_AS_TEXT) != 0;
         mCfgCopyDefaultAttrs = (flags & CFG_COPY_DEFAULT_ATTRS) != 0;
 
@@ -222,17 +222,22 @@ public abstract class BaseStreamWriter
         if (mState != STATE_EPILOG) {
             writeEndDocument();
         }
-        flush();
+        safeFlushStream();
     }
 
     public void flush()
         throws XMLStreamException
     {
-        try {
-            mWriter.flush();
-        } catch (IOException ioe) {
-            throw new WstxIOException(ioe);
+        /* 27-Apr-2005, TSa: As per discussions on stax-dev list, flush()
+         *    is to not only flush the underlying stream, but also to
+         *    'close' events like START_ELEMENT (empty or not). This is
+         *   a state change, meaning no 'writeAttribute' calls can be
+         *   made for the element.
+         */
+        if (mStartElementOpen) {
+            closeStartElement(mEmptyElement);
         }
+        safeFlushStream();
     }
 
     public abstract NamespaceContext getNamespaceContext();
@@ -333,10 +338,12 @@ public abstract class BaseStreamWriter
             closeStartElement(mEmptyElement);
         }
 
-        try {
-            mTextWriter.write(text, start, len);
-        } catch (IOException ioe) {
-            throw new WstxIOException(ioe);
+        if (len > 0) { // minor optimization
+            try {
+                mTextWriter.write(text, start, len);
+            } catch (IOException ioe) {
+                throw new WstxIOException(ioe);
+            }
         }
     }
 
@@ -359,7 +366,7 @@ public abstract class BaseStreamWriter
             closeStartElement(mEmptyElement);
         }
 
-        // Ok, let's just write it out:
+        // Ok, let's just write it out (if there's any text)
         try {
             mTextWriter.write(text);
         } catch (IOException ioe) {
@@ -981,6 +988,22 @@ public abstract class BaseStreamWriter
     public abstract void copyStartElement(InputElementStack elemStack,
                                           AttributeCollector attrCollector)
         throws IOException, XMLStreamException;
+
+    public void flushStream()
+        throws IOException
+    {
+        mWriter.flush();
+    }
+
+    public void safeFlushStream()
+        throws XMLStreamException
+    {
+        try {
+            flushStream();
+        } catch (IOException ie) {
+            throw new WstxIOException(ie);
+        }
+    }
 
     /*
     ////////////////////////////////////////////////////

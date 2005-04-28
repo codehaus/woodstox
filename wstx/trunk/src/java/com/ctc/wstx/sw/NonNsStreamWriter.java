@@ -197,7 +197,7 @@ public class NonNsStreamWriter
     public void writeEndElement()
         throws XMLStreamException
     {
-        doWriteEndElement(null, mCfgOutputEmptyElems);
+        doWriteEndElement(null, mCfgAutomaticEmptyElems);
     }
 
     public void writeNamespace(String prefix, String nsURI)
@@ -269,7 +269,7 @@ public class NonNsStreamWriter
         throws XMLStreamException
     {
         doWriteEndElement(mCheckStructure ? name.getLocalPart() : null,
-                          mCfgOutputEmptyElems);
+                          mCfgAutomaticEmptyElems);
     }
 
     /**

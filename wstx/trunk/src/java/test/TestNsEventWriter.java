@@ -35,7 +35,7 @@ public class TestNsEventWriter
                       Boolean.TRUE);
         f.setProperty(XMLOutputFactory2.P_NAMESPACE_AWARE,
                       Boolean.TRUE);
-        f.setProperty(WstxOutputProperties.P_OUTPUT_EMPTY_ELEMENTS,
+        f.setProperty(XMLOutputFactory2.P_AUTOMATIC_EMPTY_ELEMENTS,
                       Boolean.TRUE);
         Writer w = new PrintWriter(System.out);
         XMLEventWriter ew = f.createXMLEventWriter(w);

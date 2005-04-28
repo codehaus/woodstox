@@ -107,16 +107,6 @@ public class TestAttrInfo
         finishAttrReader(sr);
     }
 
-    public void testIdAttrFind()
-        throws XMLStreamException
-    {
-    }
-
-    public void testNotationAttrFind()
-        throws XMLStreamException
-    {
-    }
-
     /*
     ////////////////////////////////////////
     // Private methods

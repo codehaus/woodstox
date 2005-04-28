@@ -13,12 +13,26 @@ Description:
  
   Problems fixed:
 
-  * Not necessarily a problem, but I change the way XML declaration is output
-    so that it's identical to format used by Stax RI (using single quotes,
-    no trailing extra space). Makes life easier for some general stax testing
-    (particularly ActiveSOAP), without affecting applications.
-  * Fixed "]]>"-detection; was erroneously matching some escaped variations
-    where they shouldn't have matched.
+  * XMLStreamReader:
+    * Fixed "]]>"-detection; was erroneously matching some escaped variations
+      where they shouldn't have matched.
+  * XMLStreamWriter:
+    * Not necessarily a problem, but I change the way XML declaration is output
+      so that it's identical to format used by Stax RI (using single quotes,
+      no trailing extra space). Makes life easier for some general stax testing
+      (particularly ActiveSOAP), without affecting applications.
+    * Changed the way flush() works, so that it can now "finish" start
+      elements (both normal and closed ones) and force such start elements
+      to be written out, even in the absence of following events. This is
+      sometimes necessary for networked streaming applications.
+   * StAX2:
+      * XMLOutputFactory2:
+         * Added P_AUTOMATIC_EMPTY_ELEMENTS property, enabled by default,
+           which signals that the writer is allowed to output empty elements
+           whenever writeStartElement() is immediately followed by a
+           writeEndElement() (except there can be intervening 
+           writeAttribute() calls). If disabled, only explicit calls to
+           writeEmptyElement() can produce empty elements.
 
 == History: ==
 

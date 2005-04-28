@@ -284,14 +284,15 @@ public abstract class StreamScanner
     protected long mTokenInputTotal = 0; 
 
     /**
-     * Input row on which current token starts
+     * Input row on which current token starts, 1-based
      */
     protected int mTokenInputRow = 1;
 
     /**
-     * Column on input row that current token starts
+     * Column on input row that current token starts; 0-based (although
+     * in the end it'll be converted to 1-based)
      */
-    protected int mTokenInputCol = 1;
+    protected int mTokenInputCol = 0;
 
     /*
     ////////////////////////////////////////////////////

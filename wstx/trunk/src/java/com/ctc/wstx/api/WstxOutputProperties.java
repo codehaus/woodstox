@@ -19,15 +19,6 @@ public final class WstxOutputProperties
     // // // Output options, simple on/off settings:
 
     /**
-     * Whether output classes should output empty elements, when a start
-     * element is immediately followed by matching end element, or not.
-     * If true, will output empty elements; if false, will always create
-     * separate end element (unless a specific method that produces empty
-     * elements is called).
-     */
-    public final static String P_OUTPUT_EMPTY_ELEMENTS = "com.ctc.wstx.outputEmptyElements";
-
-    /**
      * Whether writer should just automatically convert all calls that
      * would normally produce CDATA to produce (quoted) text.
      */
