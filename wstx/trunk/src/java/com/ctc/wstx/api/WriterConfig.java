@@ -504,30 +504,25 @@ public final class WriterConfig
      */
 
     /**
-     * Method call to make writer be as strict (anal) with output as possible,
-     * ie maximize validation it does to try to catch any well-formedness
-     * or validity problems. In a way, reverse of calling
-     * {@link #configureForMinValidation}.
+     * For Woodstox, this profile enables all basic well-formedness checks,
+     * including checking for name validity.
      */
-    public void configureForMaxValidation()
+    public void configureForValidity()
     {
         doValidateAttributes(true);
         doValidateContent(true);
-        //doValidateNamespaces(true);
         doValidateStructure(true);
         doValidateNames(true);
     }
 
     /**
-     * Method call to make writer be as lenient with output as possible,
-     * ie minimize validation it does. In a way, reverse of calling
-     * {@link #configureForMaxValidation}.
+     * For Woodstox, setting this profile disables most checks for validity;
+     * specifically anything that can be measurable performance impact.
      */
-    public void configureForMinValidation()
+    public void configureForSpeed()
     {
         doValidateAttributes(false);
         doValidateContent(false);
-        //doValidateNamespaces(false);
         doValidateStructure(false);
         doValidateNames(false);
     }

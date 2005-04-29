@@ -691,7 +691,7 @@ public final class ReaderConfig
      * </li>
      *</ul>
      */
-    public void configureForMaxConformance()
+    public void configureForXmlConformance()
     {
         doNormalizeLFs(true);
         doNormalizeAttrValues(true);
@@ -731,18 +731,19 @@ public final class ReaderConfig
      * </li>
      *</ul>
      */
-    public void configureForMaxConvenience()
+    public void configureForConvenience()
     {
         doCoalesceText(true);
-        doReportAllTextAsCharacters(true);
         doReplaceEntityRefs(true);
         doReportPrologWhitespace(false);
-
         /* Also, we can make errors to be reporting in timely manner:
          * (once again, at potential expense of performance)
          */
         doParseLazily(false);
-        /* Ditto for event API...
+
+        doReportAllTextAsCharacters(true);
+        /* Also, knowing exact locations is nice esp. for error
+	 * reporting purposes
          */
         doPreserveLocation(true);
     }
@@ -781,14 +782,17 @@ public final class ReaderConfig
      * </li>
      *</ul>
      */
-    public void configureForMaxSpeed() {
+    public void configureForSpeed()
+    {
         doCoalesceText(false);
+        doParseLazily(true);
+
         /* If we let Reader decide sizes of text segments, it should be
          * able to optimize it better, thus low min value. This value
          * is only used in cases where text is at buffer boundary, or
          * where entity prevents using consequtive chars from input buffer:
          */
-        setShortestReportedTextSegment(8);
+        setShortestReportedTextSegment(16);
         setInputBufferLength(8000); // 16k input buffer
         // Text buffer need not be huge, as we do not coalesce
         setTextBufferLength(4000); // 8K
@@ -798,7 +802,6 @@ public final class ReaderConfig
         // these can also improve speed:
         doInternNsURIs(true);
         doCacheDTDs(true);
-        doParseLazily(true);
         doPreserveLocation(false);
     }
 
@@ -832,17 +835,18 @@ public final class ReaderConfig
      * </li>
      *</ul>
      */
-    public void configureForMinMemUsage()
+    public void configureForLowMemUsage()
     {
         doCoalesceText(false);
+        doParseLazily(true); // can preserve temporary mem usage
+
         setShortestReportedTextSegment(ReaderConfig.DEFAULT_SHORTEST_TEXT_SEGMENT);
         setInputBufferLength(512); // 1k input buffer
         // Text buffer need not be huge, as we do not coalesce
         setTextBufferLength(512); // 1k, to match input buffer size
         doCacheDTDs(false);
 
-        // These can reduce temporary memory usage:
-        doParseLazily(true);
+        // This can reduce temporary memory usage:
         doPreserveLocation(false);
     }
     
@@ -887,13 +891,16 @@ public final class ReaderConfig
      */
     public void configureForRoundTripping()
     {
+	// Standard settings
+        doCoalesceText(false);
+        doReplaceEntityRefs(false);
         doReportPrologWhitespace(true);
+
+	// Woodstox specific settings
         doNormalizeLFs(false);
         doNormalizeAttrValues(false);
-        doCoalesceText(false);
         // effectively prevents from reporting partial segments:
         setShortestReportedTextSegment(Integer.MAX_VALUE);
-        doReplaceEntityRefs(false);
         doReportAllTextAsCharacters(false);
     }
 

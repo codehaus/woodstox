@@ -114,7 +114,25 @@ public abstract class XMLOutputFactory2
 
     /*
     ////////////////////////////////////////////////////
-    // New StAX2 API
+    // Configuring using profiles
     ////////////////////////////////////////////////////
      */
+
+    /**
+     * Method call to make writer be as strict with output as possible,
+     * ie maximize validation it does to try to catch any well-formedness
+     * or validity problems.
+     */
+    //public abstract void configureForValidity();
+
+    /**
+     * Method call to make writer optimize its operation for speed. This
+     * generally disably additional checks (if any) writer does, and is
+     * likely to disable many things that {@link #configureForValidity}
+     * enables.
+     *<p>
+     * None of currently defined standard properties should be affected.
+     */
+    //public abstract void configureForSpeed();
 }
+
