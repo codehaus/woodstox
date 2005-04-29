@@ -144,7 +144,12 @@ public interface XMLStreamReader2
      * that it just uses provided Writer to write all textual content.
      * For further optimization, it may also be allowed to do true
      * pass-through, thus possibly avoiding one temporary copy of the
-     * data.
+     * data. Finally, note that this method is also guaranteed NOT
+     * to return fragments, even when coalescing is not enabled and
+     * a parser is otherwised allowed to return partial segments: this
+     * requirement is due to there being little benefit in returning
+     * such short chunks when streaming. Coalescing property is still
+     * honored normally.
      *<p>
      * Method can only be called on states CDATA, CHARACTERS, COMMENT,
      * DTD, ENTITY_REFERENCE; if called when reader is in another state,

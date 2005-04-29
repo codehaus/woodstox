@@ -92,6 +92,32 @@ public class WstxStreamReader
     final static int STATE_EPILOG = 2; // After root element has been closed
     final static int STATE_CLOSED = 3; // After root element has been closed
 
+    // // // Tokenization state consts:
+
+    // no idea as to what comes next (unknown type):
+    final static int TOKEN_NOT_STARTED = 0;
+
+    // token type figured out, but not long enough:
+    final static int TOKEN_STARTED = 1;
+
+    /* minimum token length returnable achieved; only used for CDATA and
+     * CHARACTERS events which allow fragments to be returned
+     */
+    final static int TOKEN_PARTIAL_SINGLE = 2;
+
+    /* a single physical event has been succesfully tokenized; as with
+     * partial, only used with CDATA and CHARACTERS (meaningless for others,
+     * which should only use TOKEN_FULL_COALESCED, TOKEN_NOT_STARTED or
+     * TOKEN_STARTED.
+     */
+    final static int TOKEN_FULL_SINGLE = 3;
+
+    /* all adjacent (text) events have been tokenized and coalesced (for
+     * CDATA and CHARACTERS), or that the full event has been parsed (for
+     * others)
+     */
+    final static int TOKEN_FULL_COALESCED = 4;
+
     // // // Bit masks used for quick type comparisons
 
     final private static int MASK_GET_TEXT = 
@@ -196,19 +222,26 @@ public class WstxStreamReader
 
     /// Flag set when DOCTYPE declaration has been parsed
     protected boolean mStDoctypeFound = false;
-    
-    /// Flag set to mark that token is partially parsed
-    protected boolean mStTokenUnfinished = false;
-    
-    /// Flag that indicates current start element is an empty element
-    protected boolean mStEmptyElem = false;
 
     /**
-     * Flag that indicates that a partial CDATA segment contents were
-     * returned, but that section itself still continues (may not have
-     * anything more than end marker, however).
+     * State of the current token; one of M_ - constants from above.
+     *<p>
+     * Initially set to fully tokenized, since it's the virtual
+     * START_DOCUMENT event that we fully know by now (parsed by
+     * bootstrapper)
      */
-    protected boolean mStPartialCData = false;
+    protected int mTokenState = TOKEN_FULL_COALESCED;
+
+    /**
+     * Threshold value that defines tokenization state that needs to be
+     * achieved to "finish" current <b>logical</b> text segment (which
+     * may consist of adjacent CDATA and text segments; or be a complete
+     * physical segment; or just even a fragment of such a segment)
+     */
+    protected final int mStTextThreshold;
+
+    /// Flag that indicates current start element is an empty element
+    protected boolean mStEmptyElem = false;
 
     /**
      * Main parsing/tokenization state (STATE_xxx)
@@ -344,7 +377,16 @@ public class WstxStreamReader
         mCfgReportTextAsChars = (mConfigFlags & CFG_REPORT_ALL_TEXT_AS_CHARACTERS) != 0;
         mCfgLazyParsing = (mConfigFlags & CFG_LAZY_PARSING) != 0;
 
-        mShortestTextSegment = cfg.getShortestReportedTextSegment();
+        /* There are a few derived settings used during tokenization that
+         * need to be initialized now...
+         */
+        if (mCfgCoalesceText) {
+            mStTextThreshold =  TOKEN_FULL_COALESCED;
+            mShortestTextSegment = Integer.MAX_VALUE;
+        } else {
+            mStTextThreshold =  TOKEN_PARTIAL_SINGLE;
+            mShortestTextSegment = cfg.getShortestReportedTextSegment();
+        }
 
         mCustomEntities = cfg.getCustomInternalEntities();
         mElementStack = elemStack;
@@ -642,7 +684,7 @@ public class WstxStreamReader
         if (mCurrToken != PROCESSING_INSTRUCTION) {
             return null;
         }
-        if (mStTokenUnfinished) {
+        if (mTokenState <= TOKEN_STARTED) {
             safeFinishToken();
         }
         return mTextBuffer.contentsAsString();
@@ -652,6 +694,7 @@ public class WstxStreamReader
         if (mCurrToken != PROCESSING_INSTRUCTION) {
             return null;
         }
+        // Target is always parsed automatically, not lazily...
         return mCurrName;
     }
 
@@ -667,7 +710,7 @@ public class WstxStreamReader
         if (((1 << mCurrToken) & MASK_GET_TEXT) == 0) {
             throwNotTextual(mCurrToken);
         }
-        if (mStTokenUnfinished) {
+        if (mTokenState < mStTextThreshold) {
             safeFinishToken();
         }
         if (mCurrToken == ENTITY_REFERENCE) {
@@ -688,7 +731,7 @@ public class WstxStreamReader
         if (((1 << mCurrToken) & MASK_GET_TEXT) == 0) {
             throwNotTextual(mCurrToken);
         }
-        if (mStTokenUnfinished) {
+        if (mTokenState < mStTextThreshold) {
             safeFinishToken();
         }
         if (mCurrToken == ENTITY_REFERENCE) {
@@ -708,7 +751,7 @@ public class WstxStreamReader
         if (((1 << mCurrToken) & MASK_GET_TEXT) == 0) {
             throwNotTextual(mCurrToken);
         }
-        if (mStTokenUnfinished) {
+        if (mTokenState < mStTextThreshold) {
             safeFinishToken();
         }
         if (mCurrToken == ENTITY_REFERENCE) {
@@ -749,7 +792,7 @@ public class WstxStreamReader
         if (((1 << mCurrToken) & MASK_GET_TEXT) == 0) {
             throwNotTextual(mCurrToken);
         }
-        if (mStTokenUnfinished) {
+        if (mTokenState < mStTextThreshold) {
             safeFinishToken();
         }
         if (mCurrToken == ENTITY_REFERENCE) {
@@ -767,7 +810,7 @@ public class WstxStreamReader
         if (((1 << mCurrToken) & MASK_GET_TEXT) == 0) {
             throwNotTextual(mCurrToken);
         }
-        if (mStTokenUnfinished) {
+        if (mTokenState < mStTextThreshold) {
             safeFinishToken();
         }
         if (mCurrToken == ENTITY_REFERENCE || mCurrToken == DTD) {
@@ -820,7 +863,7 @@ public class WstxStreamReader
     public boolean isWhiteSpace()
     {
         if (mCurrToken == CHARACTERS || mCurrToken == CDATA) {
-            if (mStTokenUnfinished) {
+            if (mTokenState < mStTextThreshold) {
                 safeFinishToken();
             }
             if (mWsStatus == ALL_WS_UNKNOWN) {
@@ -906,7 +949,7 @@ public class WstxStreamReader
                 int type = nextFromTree();
                 mCurrToken =  type;
                 // Lazy-parsing disabled?
-                if (!mCfgLazyParsing && mStTokenUnfinished) {
+                if (!mCfgLazyParsing && (mTokenState < mStTextThreshold)) {
                     finishToken();
                 }
                 /* Special case -- when coalescing text, CDATA is
@@ -1063,7 +1106,7 @@ public class WstxStreamReader
         if (mCurrToken != DTD) {
             return null;
         }
-        if (mStTokenUnfinished) { // need to fully read it in now
+        if (mTokenState < TOKEN_FULL_SINGLE) { // need to fully read it in now
             wrappedFinishToken();
         }
         return this;
@@ -1108,47 +1151,49 @@ public class WstxStreamReader
         if (((1 << mCurrToken) & MASK_GET_TEXT) == 0) {
             throwNotTextual(mCurrToken);
         }
-        if (mStTokenUnfinished) {
-            /* 21-Apr-2005, TSa: The only special case is the one
-             *   where the current event is CDATA or CHARACTERS,
-             *   AND the contents need not be preserved. If so,
-             *   a short-cut can be taken.
-             */
-            if (!preserveContents) {
-                /* !!! 22-Apr-2005, TSa: For now, let's not use same
-                 *  handling for SPACE, since its validity constraints
-                 *  are different (as well as ending conditions).
-                 * Should probably write a separate handler for that
-                 * type.
+        /* May need to be able to do fully streaming... but only for
+         * text events that have not yet been fully read; for other
+         * types there's less benefit, and for fully read ones, we
+         * already have everything ready.
+         */
+        if (!preserveContents) {
+            if (mCurrToken == CHARACTERS) {
+                int count = mTextBuffer.rawContentsTo(w);
+                /* Let's also clear whatever was collected (as allowed by
+                 * method contract) previously, to both save memory, and
+                 * to ensure caller doesn't accidentally try to access it
+                 * (and get otherwise 'random' results).
                  */
-                if (mCurrToken == CHARACTERS) {
-		    mStTokenUnfinished = false;
-                    int count = mTextBuffer.rawContentsTo(w);
+                mTextBuffer.resetWithEmpty();
+                if (mTokenState < TOKEN_FULL_SINGLE) {
                     count += readAndWriteText(w);
-                    mTextBuffer.resetWithEmpty();
+                }
+                if (mCfgCoalesceText &&
+                    (mTokenState < TOKEN_FULL_COALESCED)) {
                     if (mCfgCoalesceText) {
                         count += readAndWriteCoalesced(w, false);
                     }
-                    return count;
-                } else if (mCurrToken == CDATA) {
-		    mStTokenUnfinished = false;
-                    /* We may have actually really finished it, but just left
-                     * the 'unfinished' flag due to need to coalesce...
-                     */
-                    // Let's start by getting whatever we have already parsed
-                    int count = mTextBuffer.rawContentsTo(w);
-                    mTextBuffer.resetWithEmpty();
-                    if (mStPartialCData) {
-                        mStPartialCData = false;
-                        count += readAndWriteCData(w);
-                    }
+                }
+                return count;
+            } else if (mCurrToken == CDATA) {
+                int count = mTextBuffer.rawContentsTo(w);
+                mTextBuffer.resetWithEmpty(); // same as with CHARACTERS
+                if (mTokenState < TOKEN_FULL_SINGLE) {
+                    count += readAndWriteCData(w);
+                }
+                if (mCfgCoalesceText &&
+                    (mTokenState < TOKEN_FULL_COALESCED)) {
                     if (mCfgCoalesceText) {
                         count += readAndWriteCoalesced(w, true);
                     }
-                   return count;
                 }
+                return count;
             }
-            // Otherwise, let's just finish the token
+        }
+        if (mTokenState < mStTextThreshold) {
+            /* Otherwise, let's just finish the token; and due to guarantee
+             * by streaming method, let's try ensure we get it all.
+             */
             finishToken();
         }
         if (mCurrToken == ENTITY_REFERENCE) {
@@ -1197,7 +1242,7 @@ public class WstxStreamReader
         if (((1 << mCurrToken) & MASK_GET_TEXT) == 0) {
             throwNotTextual(mCurrToken);
         }
-        if (mStTokenUnfinished) {
+        if (mTokenState < mStTextThreshold) {
             finishToken();
         }
         if (mCurrToken == ENTITY_REFERENCE) {
@@ -1319,7 +1364,7 @@ public class WstxStreamReader
     public long getEndingCharOffset() throws XMLStreamException
     {
         // Need to get to the end of the token, if not there yet
-        if (mStTokenUnfinished) {
+        if (mTokenState < mStTextThreshold) {
             wrappedFinishToken();
         }
         return mCurrInputProcessed + mInputPtr;
@@ -1338,7 +1383,7 @@ public class WstxStreamReader
         throws XMLStreamException
     {
         // Need to get to the end of the token, if not there yet
-        if (mStTokenUnfinished) {
+        if (mTokenState < mStTextThreshold) {
             wrappedFinishToken();
         }
         // And then we just need the current location!
@@ -1840,8 +1885,8 @@ public class WstxStreamReader
         int i;
 
         // First, do we need to finish currently open token?
-        if (mStTokenUnfinished) {
-            mStTokenUnfinished = false;
+        if (mTokenState < mStTextThreshold) {
+            mTokenState = TOKEN_FULL_COALESCED;
             i = skipToken();
             // note: skipToken() updates the start location
         } else {
@@ -1858,14 +1903,20 @@ public class WstxStreamReader
             if (hasConfigFlags(CFG_REPORT_PROLOG_WS)) {
                 mCurrToken = SPACE;
                 if (readSpacePrimary((char) i, true)) {
-                    // no need to worry about coalescing
-                    mStTokenUnfinished = false;
+                    /* no need to worry about coalescing, since CDATA is not
+                     * allowed at this level...
+                     */
+                    mTokenState = TOKEN_FULL_COALESCED;
                 } else {
                     if (mCfgLazyParsing) {
-                        mStTokenUnfinished = true;
+                        /* Let's not even bother checking if it's
+                         * "long enough"; shouldn't usually matter, but few
+                         * apps care to get multiple adjacent SPACE events...
+                         */
+                        mTokenState = TOKEN_STARTED;
                     } else {
-                        mStTokenUnfinished = false;
                         readSpaceSecondary(true);
+                        mTokenState = TOKEN_FULL_COALESCED;
                     }
                 }
                 return;
@@ -1951,7 +2002,7 @@ public class WstxStreamReader
         }
 
         // Ok; final twist, maybe we do NOT want lazy parsing?
-        if (!mCfgLazyParsing && mStTokenUnfinished) {
+        if (!mCfgLazyParsing && mTokenState < mStTextThreshold) {
             finishToken();
         }
     }
@@ -1992,7 +2043,7 @@ public class WstxStreamReader
                 throwUnexpectedChar(i, " (malformed comment?)");
             }
             // Likewise, let's delay actual parsing/skipping.
-            mStTokenUnfinished = true;
+            mTokenState = TOKEN_STARTED;
             mCurrToken = COMMENT;
             return;
         } else if (i == '[') { // erroneous CDATA?
@@ -2119,7 +2170,7 @@ public class WstxStreamReader
          * if/as necessary, even if there's no internal subset.
          */
         --mInputPtr; // pushback
-        mStTokenUnfinished = true;
+        mTokenState = TOKEN_STARTED;
     }
 
     /**
@@ -2185,8 +2236,8 @@ public class WstxStreamReader
         int i;
 
         // First, do we need to finish currently open token?
-        if (mStTokenUnfinished) {
-            mStTokenUnfinished = false;
+        if (mTokenState < mStTextThreshold) {
+            // No need to update state... will get taken care of
             i = skipToken();
             // note: skipToken() updates the start location
         } else {
@@ -2212,12 +2263,16 @@ public class WstxStreamReader
                     nextFromProlog(false);
                     return mCurrToken;
                 }
-            } else if (mStPartialCData) {
-                /* The tricky part here is just to ensure there's at least
-                 * one character... but let's just read it like a new
+            } else if (mCurrToken == CDATA && mTokenState <= TOKEN_PARTIAL_SINGLE) {
+                /* Just returned a partial CDATA... that's ok, just need to
+                 * know we won't get opening marker etc.
+                 * The tricky part here is just to ensure there's at least
+                 * one character; if not, need to just discard the empty
+                 * 'event' (note that it is possible to have an initial
+                 * empty CDATA event for truly empty CDATA block; but not
+                 * partial ones!). Let's just read it like a new
                  * CData section first:
                  */
-
                 // First, need to update the start location...
                 mTokenInputTotal = mCurrInputProcessed + mInputPtr;
                 mTokenInputRow = mCurrInputRow;
@@ -2229,25 +2284,30 @@ public class WstxStreamReader
                      * as we can never have partial cdata without unfinished
                      * token
                      */
-                    return CDATA;
-                }
-                /* Hmmh. Have to verify we get at least one char from
-                 * CData section...
-                 */
-                if (mTextBuffer.size() == 0
-                    && readCDataSecondary(mCfgLazyParsing
-                                          ? 1 : mShortestTextSegment)) {
-                    // Ok, all of it read
+                    // ... still need to have gotten at least 1 char though:
                     if (mTextBuffer.size() > 0) {
-                        // And had some contents
                         return CDATA;
                     }
-                    // if nothing read, we'll just fall back (see below)
+                    // otherwise need to continue and parse the next event
                 } else {
-                    // Partial read, with at least one char, good enough
-                    // ... and may actually be all we need, too?
-                    mStTokenUnfinished = mTextBuffer.size() < mShortestTextSegment;
-                    return CDATA;
+                    /* Hmmh. Have to verify we get at least one char from
+                     * CData section; if so, we are good to go for now;
+                     * if not, need to get that damn char first:
+                     */
+                    if (mTextBuffer.size() == 0
+                        && readCDataSecondary(mCfgLazyParsing
+                                              ? 1 : mShortestTextSegment)) {
+                        // Ok, all of it read
+                        if (mTextBuffer.size() > 0) {
+                            // And had some contents
+                            mTokenState = TOKEN_FULL_SINGLE;
+                            return CDATA;
+                        }
+                        // if nothing read, we'll just fall back (see below)
+                    } else { // good enough!
+                        mTokenState = TOKEN_PARTIAL_SINGLE;
+                        return CDATA;
+                    }
                 }
                 
                 /* If we get here, it was the end of the section, without
@@ -2310,7 +2370,7 @@ public class WstxStreamReader
                 TextBuffer tb = mTextBuffer;
                 tb.resetInitialized();
                 tb.append(c);
-                mStTokenUnfinished = true;
+                mTokenState = TOKEN_STARTED;
                 return CHARACTERS;
             }
 
@@ -2320,6 +2380,7 @@ public class WstxStreamReader
             if (!mCfgReplaceEntities) {
                 EntityDecl ed = resolveNonCharEntity
                     (mCustomEntities, mGeneralEntities);
+                mTokenState = TOKEN_FULL_COALESCED;
                 if (ed == null) {
                     throwParseError("Internal error: Entity neither char nor general entity; yet no exception thrown so far");
                 }
@@ -2391,17 +2452,22 @@ public class WstxStreamReader
             /* Note: need not worry about coalescing, since non-whitespace
              * text is illegal (ie. can not have CDATA)
              */
-            mStTokenUnfinished = !readSpacePrimary((char) i, false);
+            mTokenState = (readSpacePrimary((char) i, false)) ?
+                TOKEN_FULL_COALESCED : TOKEN_STARTED;
             return SPACE;
         }
 
         // Further, when coalescing, can not be sure if we REALLY got it all
         if (readTextPrimary((char) i)) { // reached following markup
-            mStTokenUnfinished = mCfgCoalesceText;
+            mTokenState = TOKEN_FULL_SINGLE;
         } else {
             // If not coalescing, this may be enough for current event
-            mStTokenUnfinished = mCfgCoalesceText
-                || mTextBuffer.size() < mShortestTextSegment;
+            if (!mCfgCoalesceText
+                && mTextBuffer.size() >= mShortestTextSegment) {
+                mTokenState = TOKEN_PARTIAL_SINGLE;
+            } else {
+                mTokenState = TOKEN_STARTED;
+            }
         }
         return CHARACTERS;
     }
@@ -2417,6 +2483,7 @@ public class WstxStreamReader
         // First, name of element:
         String prefix, localName;
 
+        mTokenState = TOKEN_FULL_COALESCED;
         if (mCfgNsEnabled) {
             String str = parseLocalName(c);
             c = (mInputPtr < mInputLen) ?
@@ -2624,6 +2691,7 @@ public class WstxStreamReader
     private void readEndElem()
         throws IOException, XMLStreamException
     {
+        mTokenState = TOKEN_FULL_COALESCED; // will be read completely
         if (mElementStack.isEmpty()) { // no start element?
             // Let's just offline this for clarity
             reportExtraEndElem();
@@ -2769,21 +2837,15 @@ public class WstxStreamReader
              */
             c = (mInputPtr < mInputLen) ? mInputBuffer[mInputPtr++]
                 : getNextCharFromCurrent(SUFFIX_IN_CDATA);
-            if (readCDataPrimary(c)) { // got it all
-                mStTokenUnfinished = mCfgCoalesceText;
-            } else { // partial
-                // If not coalescing, this may be enough for current event
-                mStTokenUnfinished = mCfgCoalesceText
-                    || (mTextBuffer.size() < mShortestTextSegment);
-            }
+            readCDataPrimary(c); // sets token state appropriately...
             return CDATA;
         }
         if (c == '-' && getNextCharFromCurrent(SUFFIX_IN_DOC) == '-') {
-            mStTokenUnfinished = true;
+            mTokenState = TOKEN_STARTED;
             return COMMENT;
         }
         throwParseError("Unrecognized XML directive; expected CDATA or comment ('<![CDATA[' or '<!--').");
-        return 0; // never gets here
+        return 0; // never gets here, but compilers don't know it...
     }
 
     /*
@@ -2818,10 +2880,9 @@ public class WstxStreamReader
                  *    coalescing... if so, need to skip first part of
                  *    skipping
                  */
-                if (mStPartialCData) {
+                if (mTokenState <= TOKEN_PARTIAL_SINGLE) {
                     // Skipping CDATA is easy; just need to spot closing ]]&gt;
                     skipCommentOrCData(SUFFIX_IN_CDATA, ']', false);
-                    mStPartialCData = false;
                 }
                 result = getNext();
                 // ... except if coalescing, may need to skip more:
@@ -3111,14 +3172,14 @@ public class WstxStreamReader
     protected void ensureFinishToken()
         throws XMLStreamException
     {
-        if (mStTokenUnfinished) {
+        if (mTokenState < mStTextThreshold) {
             wrappedFinishToken();
         }
     }
 
     protected void safeEnsureFinishToken()
     {
-        if (mStTokenUnfinished) {
+        if (mTokenState < mStTextThreshold) {
             safeFinishToken();
         }
     }
@@ -3151,13 +3212,16 @@ public class WstxStreamReader
     protected void finishToken()
         throws IOException, XMLStreamException
     {
-        mStTokenUnfinished = false;
         switch (mCurrToken) {
         case CDATA:
             if (mCfgCoalesceText) {
                 readCoalescedText(mCurrToken);
             } else {
-                readCDataSecondary(mShortestTextSegment);
+                if (readCDataSecondary(mShortestTextSegment)) {
+                    mTokenState = TOKEN_FULL_SINGLE;
+                } else {
+                    mTokenState = TOKEN_PARTIAL_SINGLE;
+                }
             }
             return;
 
@@ -3165,7 +3229,11 @@ public class WstxStreamReader
             if (mCfgCoalesceText) {
                 readCoalescedText(mCurrToken);
             } else {
-                readTextSecondary(mShortestTextSegment);
+                if (readTextSecondary(mShortestTextSegment)) {
+                    mTokenState = TOKEN_FULL_SINGLE;
+                } else {
+                    mTokenState = TOKEN_PARTIAL_SINGLE;
+                }
             }
             return;
 
@@ -3177,19 +3245,23 @@ public class WstxStreamReader
                  */
                 boolean prolog = (mParseState != STATE_TREE);
                 readSpaceSecondary(prolog);
+                mTokenState = TOKEN_FULL_COALESCED;
             }
             return;
 
         case COMMENT:
             readComment();
+            mTokenState = TOKEN_FULL_COALESCED;
             return;
 
         case DTD:
             finishDTD(true);
+            mTokenState = TOKEN_FULL_COALESCED;
             return;
 
         case PROCESSING_INSTRUCTION:
             readPI();
+            mTokenState = TOKEN_FULL_COALESCED;
             return;
 
         case START_ELEMENT:
@@ -3372,11 +3444,11 @@ public class WstxStreamReader
         char c = (mInputPtr < mInputLen) ?
             mInputBuffer[mInputPtr++] : getNextCharFromCurrent(SUFFIX_IN_PROC_INSTR);
         if (isSpaceChar(c)) { // Ok, space to skip
-            mStTokenUnfinished = true;
+            mTokenState = TOKEN_STARTED;
             // Need to skip the WS...
             skipWS();
         } else { // Nope; apparently finishes right away...
-            mStTokenUnfinished = false;
+            mTokenState = TOKEN_FULL_COALESCED;
             mTextBuffer.resetWithEmpty();
             if (c != '?') {
                 throwUnexpectedChar(c, "excepted either space or \"?>\" after PI target");
@@ -3574,7 +3646,7 @@ public class WstxStreamReader
             /* We may have actually really finished it, but just left
              * the 'unfinished' flag due to need to coalesce...
              */
-            if (mStPartialCData) {
+            if (mTokenState <= TOKEN_PARTIAL_SINGLE) {
                 readCDataSecondary(Integer.MAX_VALUE);
             }
             wasCData = true;
@@ -3628,6 +3700,8 @@ public class WstxStreamReader
                 wasCData = false;
             }
         }
+
+        mTokenState = TOKEN_FULL_COALESCED;
     }
 
     /**
@@ -3706,7 +3780,7 @@ public class WstxStreamReader
                             mInputPtr = ptr;
                             ptr -= (start+3);
                             mTextBuffer.resetWithShared(inputBuf, start, ptr);
-                            mStPartialCData = false;
+                            mTokenState = TOKEN_FULL_SINGLE;
                             return true;
                         }
                         if (c != ']') {
@@ -3733,8 +3807,14 @@ public class WstxStreamReader
          * make a copy since caller may not even be interested in the
          * stuff.
          */
-        mTextBuffer.resetWithShared(inputBuf, start, ptr - start);
-        mStPartialCData = true;
+        int len = ptr - start;
+        mTextBuffer.resetWithShared(inputBuf, start, len);
+        if (mCfgCoalesceText ||
+            (mTextBuffer.size() < mShortestTextSegment)) {
+            mTokenState = TOKEN_STARTED;
+        } else {
+            mTokenState = TOKEN_PARTIAL_SINGLE;
+        }
         return false;
     }
 
@@ -3797,7 +3877,6 @@ public class WstxStreamReader
                 // Ok; need to get ']>'
                 mInputPtr = inputPtr;
                 if (checkCDataEnd(outBuf, outPtr)) {
-                    mStPartialCData = false;
                     return true;
                 }
                 inputPtr = mInputPtr;
@@ -3820,7 +3899,6 @@ public class WstxStreamReader
                     tb.setCurrentLength(outBuf.length);
                     if (tb.size() >= mShortestTextSegment) {
                         mInputPtr = inputPtr;
-                        mStPartialCData = true;
                         return false;
                     }
                 }
@@ -4228,6 +4306,8 @@ public class WstxStreamReader
     private int readAndWriteText(Writer w)
         throws IOException, XMLStreamException
     {
+        mTokenState = TOKEN_FULL_SINGLE; // we'll read it all
+
         /* We should be able to mostly just use the input buffer at this
          * point; exceptions being two-char linefeeds (when converting
          * to single ones) and entities (which likewise can expand or
@@ -4374,6 +4454,8 @@ public class WstxStreamReader
     private int readAndWriteCData(Writer w)
         throws IOException, XMLStreamException
     {
+        mTokenState = TOKEN_FULL_SINGLE; // we'll read it all
+
         /* Ok; here we can basically have 2 modes; first the big loop to
          * gather all data up until a ']'; and then another loop to see
          * if ']' is part of ']]>', and after this if no end marker found,
@@ -4503,6 +4585,7 @@ public class WstxStreamReader
     private int readAndWriteCoalesced(Writer w, boolean wasCData)
         throws IOException, XMLStreamException
     {
+        mTokenState = TOKEN_FULL_COALESCED;
         int count = 0;
 
         /* Ok, so what do we have next? CDATA, CHARACTERS, or something

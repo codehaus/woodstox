@@ -6,8 +6,6 @@ Must-haves for 2.0
 [Partial] * Should not fail on quoted ]]>... Does not, any more, but now
   catching ]]>s in textual content is only 98% reliable (won't match
   ones that are split by input buffer boundary).
-[todo] * Streaming getText() should NEVER 'return' partial event; needs
-  to ensure that minSegmentSize is ignored
 
 * Stream writers:
   [wont-implement] * Validate content to write? (chars in text content)... in
@@ -81,7 +79,7 @@ Must-haves for 2.0
         byte/char offsets.
    * XMLStreamWriter2:
       [DONE] * pass-through write method for outputting raw (non-encoded) stuff
-      [Partial?] * setFeature/getFeature (which property/ies?)
+      [DONE] * setFeature/getFeature (note: no properties defined yet...)
       [DONE] * writeDTD to support DTD2
       [DONE] * writeFullEndElement (for ensuring explict end tag)
       [maybe?] * Allow configuration of extra white space after empty element
