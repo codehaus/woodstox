@@ -19,7 +19,7 @@ public class TextEscapingWriter
 {
     private boolean mJustWroteBracket = false;
 
-    public TextEscapingWriter(Writer out) {
+    public TextEscapingWriter(Writer out, String enc) {
         super(out);
     }
 
@@ -221,42 +221,4 @@ public class TextEscapingWriter
             ++i;
         }
     }
-
-    /*
-    public static void writeEscapedXMLText(Writer w, char[] ch, int offset, int len)
-        throws IOException
-    {
-        int i = offset;
-        len += offset;
-        do {
-            int start = i;
-            char c = '\u0000';
-
-            for (; i < len; ++i) {
-                c = ch[i];
-                if (c == '<' || c == '&') {
-                    break;
-                }
-                if (c == '>' && (i >= (offset+2))) {
-                    if (ch[i-1] == ']' && ch[i-2] == ']') {
-                        break;
-                    }
-                }
-            }
-            int outLen = i - start;
-            if (outLen > 0) {
-                w.write(ch, start, outLen);
-            }
-            if (i < len) {
-                if (c == '<') {
-                    w.write("&lt;");
-                } else if (c == '&') {
-                    w.write("&amp;");
-                } else if (c == '>') {
-                    w.write("&gt;");
-                }
-            }
-        } while (++i < len);
-    }
-    */
 }

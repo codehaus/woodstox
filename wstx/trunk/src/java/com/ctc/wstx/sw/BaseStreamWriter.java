@@ -191,17 +191,17 @@ public abstract class BaseStreamWriter
         // How should we escape textual content?
         EscapingWriterFactory f = cfg.getTextEscaperFactory();
         if (f == null) {
-            mTextWriter = new TextEscapingWriter(w);
+            mTextWriter = new TextEscapingWriter(w, null);
         } else {
-            mTextWriter = f.createEscapingWriterFor(w);
+            mTextWriter = f.createEscapingWriterFor(w, null);
         }
 
         // And how about attribute values?
         f = cfg.getAttrValueEscaperFactory();
         if (f == null) {
-            mAttrValueWriter = new AttrValueEscapingWriter(w, '"', "&quot;");
+            mAttrValueWriter = new AttrValueEscapingWriter(w, null, '"', "&quot;");
         } else {
-            mAttrValueWriter = f.createEscapingWriterFor(w);
+            mAttrValueWriter = f.createEscapingWriterFor(w, null);
         }
     }
 

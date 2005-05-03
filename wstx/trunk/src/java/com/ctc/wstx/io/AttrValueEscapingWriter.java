@@ -19,7 +19,9 @@ public class AttrValueEscapingWriter
      */
     final String mQuoteEntity;
 
-    public AttrValueEscapingWriter(Writer out, char qchar, String qent) {
+    public AttrValueEscapingWriter(Writer out, String enc,
+				   char qchar, String qent)
+    {
         super(out);
         mQuoteChar = qchar;
         mQuoteEntity = qent;
