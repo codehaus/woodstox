@@ -12,9 +12,9 @@ import javax.xml.stream.events.EntityReference;
 import javax.xml.stream.events.EntityDeclaration;
 
 import com.ctc.wstx.io.InputSourceFactory;
+import com.ctc.wstx.io.TextEscaper;
 import com.ctc.wstx.io.WstxInputLocation;
 import com.ctc.wstx.io.WstxInputSource;
-import com.ctc.wstx.util.XMLQuoter;
 
 public class IntEntity
     extends EntityDecl
@@ -92,7 +92,7 @@ public class IntEntity
         w.write("<!ENTITY ");
         w.write(mName);
         w.write(" \"");
-        XMLQuoter.outputDTDText(w, mRepl, 0, mRepl.length);
+        TextEscaper.outputDTDText(w, mRepl, 0, mRepl.length);
         w.write("\">");
     }
 

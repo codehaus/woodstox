@@ -10,6 +10,9 @@ Description:
   * XMLStreamReader2.getText(Writer) now implemented in fully streaming manner
     for CHARACTERS and CDATA events! (also tested succesfully using unit
     tests, so it does really work).
+  * Improved text/attribute value writer system so that they now use
+    character entities for characters outside of encoding range (for ascii
+    and ISO-Latin, for example)
  
   Problems fixed:
 

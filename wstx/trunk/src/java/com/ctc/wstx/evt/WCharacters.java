@@ -8,7 +8,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import javax.xml.stream.events.Characters;
 
-import com.ctc.wstx.io.TextEscapingWriter;
+import com.ctc.wstx.io.TextEscaper;
 
 public class WCharacters
     extends WEvent
@@ -82,7 +82,7 @@ public class WCharacters
                 w.write(mContent);
                 w.write("]]>");
             } else {
-                TextEscapingWriter.writeEscapedXMLText(w, mContent);
+                TextEscaper.writeEscapedXMLText(w, mContent);
             }
         } catch (IOException ie) {
             throwFromIOE(ie);
@@ -143,4 +143,11 @@ public class WCharacters
         mWhitespaceChecked = true;
         mIsWhitespace = status;
     }
+
+    /*
+    ///////////////////////////////////////////
+    // Internal methods
+    ///////////////////////////////////////////
+     */
+
 }

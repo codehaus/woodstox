@@ -29,6 +29,7 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.stream.*;
 
 import org.codehaus.stax2.XMLOutputFactory2;
+import org.codehaus.stax2.XMLStreamWriter2;
 
 import com.ctc.wstx.api.WriterConfig;
 import com.ctc.wstx.cfg.OutputConfigFlags;
@@ -78,18 +79,16 @@ public final class WstxOutputFactory
     /////////////////////////////////////////////////////
      */
 
-    public XMLEventWriter createXMLEventWriter(OutputStream out) {
-        return createXMLEventWriter(new OutputStreamWriter(out));
+    public XMLEventWriter createXMLEventWriter(OutputStream out)
+        throws XMLStreamException
+    {
+        return createXMLEventWriter(out, null);
     }
 
     public XMLEventWriter createXMLEventWriter(OutputStream out, String enc)
          throws XMLStreamException
    {
-        try {
-            return createXMLEventWriter(new OutputStreamWriter(out, enc));
-        } catch (UnsupportedEncodingException ex) {
-            throw new XMLStreamException(ex);
-        }
+       return new WstxEventWriter(createSW(out, null, enc));
     }
 
     public XMLEventWriter createXMLEventWriter(javax.xml.transform.Result result)
@@ -98,23 +97,22 @@ public final class WstxOutputFactory
         return new WstxEventWriter(createSW(result));
     }
 
-    public XMLEventWriter createXMLEventWriter(Writer w) {
-        return new WstxEventWriter(createSW(w));
+    public XMLEventWriter createXMLEventWriter(Writer w)
+        throws XMLStreamException
+    {
+        return new WstxEventWriter(createSW(null, w, null));
     }
 
     public XMLStreamWriter createXMLStreamWriter(OutputStream out)
+        throws XMLStreamException
     {
-        return createXMLStreamWriter(new OutputStreamWriter(out));
+        return createSW(out, null, null);
     }
 
     public XMLStreamWriter createXMLStreamWriter(OutputStream out, String enc)
         throws XMLStreamException
     {
-        try {
-            return createXMLStreamWriter(new OutputStreamWriter(out, enc));
-        } catch (UnsupportedEncodingException ex) {
-            throw new XMLStreamException(ex);
-        }
+        return createSW(out, null, enc);
     }
 
     public XMLStreamWriter createXMLStreamWriter(javax.xml.transform.Result result)
@@ -123,8 +121,10 @@ public final class WstxOutputFactory
         return createSW(result);
     }
 
-    public XMLStreamWriter createXMLStreamWriter(Writer w) {
-        return createSW(w);    
+    public XMLStreamWriter createXMLStreamWriter(Writer w)
+        throws XMLStreamException
+    {
+        return createSW(null, w, null);
     }
     
     public Object getProperty(String name)
@@ -139,6 +139,24 @@ public final class WstxOutputFactory
     public void setProperty(String name, Object value)
     {
         mConfig.setProperty(name, value);
+    }
+
+    /*
+    /////////////////////////////////////////
+    // StAX2 extensions
+    /////////////////////////////////////////
+     */
+
+    public XMLEventWriter createXMLEventWriter(Writer w, String enc)
+        throws XMLStreamException
+    {
+        return new WstxEventWriter(createSW(null, w, enc));
+    }
+
+    public XMLStreamWriter2 createXMLStreamWriter(Writer w, String enc)
+        throws XMLStreamException
+    {
+        return createSW(null, w, enc);
     }
 
     /*
@@ -161,8 +179,26 @@ public final class WstxOutputFactory
      * Bottleneck factory method used internally; needs to take care of passing
      * proper settings to stream writer.
      */
-    private BaseStreamWriter createSW(Writer w)
+    private BaseStreamWriter createSW(OutputStream out, Writer w, String enc)
+        throws XMLStreamException
     {
+        /* 03-May-2005, TSa: For now, let's just use JDK-provided encoders...
+         *   for 3.x, maybe we can try to provide optimized ones -- these
+         *   would mostly help with quoted content (can do quoting along
+         *   with encoding).
+         */
+        if (w == null) {
+            try {
+                if (enc == null) {
+                    w = new OutputStreamWriter(out);
+                } else {
+                    w = new OutputStreamWriter(out, enc);
+                }
+            } catch (UnsupportedEncodingException ex) {
+                throw new XMLStreamException(ex);
+            }
+        }
+
         /* Need to ensure that the configuration object is not shared
          * any more; otherwise later changes via factory could be
          * visible half-way through output...
@@ -170,11 +206,11 @@ public final class WstxOutputFactory
         WriterConfig cfg = mConfig.createNonShared();
         if (cfg.willSupportNamespaces()) {
             if (cfg.automaticNamespacesEnabled()) {
-                return new RepairingNsStreamWriter(w, cfg);
+                return new RepairingNsStreamWriter(w, enc, cfg);
             }
-            return new SimpleNsStreamWriter(w, cfg);
+            return new SimpleNsStreamWriter(w, enc, cfg);
         }
-        return new NonNsStreamWriter(w, cfg);
+        return new NonNsStreamWriter(w, enc, cfg);
     }
 
     private BaseStreamWriter createSW(Result res)
@@ -189,9 +225,9 @@ public final class WstxOutputFactory
                     throw new XMLStreamException("Can not create StAX writer for a StreamResult -- neither writer nor output stream was set.");
                 }
                 // ... any way to define encoding?
-                w = new OutputStreamWriter(out);
+                return createSW(out, null, null);
             }
-            return createSW(w);
+            return createSW(null, w, null);
         }
 
         if (res instanceof SAXResult) {

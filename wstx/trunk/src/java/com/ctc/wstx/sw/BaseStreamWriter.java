@@ -1,6 +1,7 @@
 package com.ctc.wstx.sw;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.text.MessageFormat;
 
@@ -26,8 +27,7 @@ import com.ctc.wstx.api.WstxOutputProperties;
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.cfg.OutputConfigFlags;
 import com.ctc.wstx.exc.*;
-import com.ctc.wstx.io.AttrValueEscapingWriter;
-import com.ctc.wstx.io.TextEscapingWriter;
+import com.ctc.wstx.io.TextEscaper;
 import com.ctc.wstx.io.WstxInputData;
 import com.ctc.wstx.sr.StreamReaderImpl;
 import com.ctc.wstx.sr.AttributeCollector;
@@ -53,6 +53,11 @@ public abstract class BaseStreamWriter
 
     protected final static char DEFAULT_QUOTE_CHAR = '"';
 
+    /**
+     * Default encoding we assume, if nothing is passed explicitly.
+     */
+    protected final static String DEFAULT_ENCODING = "UTF-8";
+
     /*
     ////////////////////////////////////////////////////
     // Output objects
@@ -65,18 +70,23 @@ public abstract class BaseStreamWriter
     protected final Writer mWriter;
 
     /**
-     * Writer that will properly escape characters of text content
-     * that need escaping ('&lt;', '&amp;' etc); chained to use
+     * Lazy-constructed writer that will properly escape characters of text
+     * content that need escaping ('&lt;', '&amp;' etc).
+     * It will be created
+     * when needed for the first time. Instances are usually chained to use
      * {@link #mWriter} for actual outputting.
      */
-    protected final Writer mTextWriter;
+    protected Writer mTextWriter;
 
     /**
-     * Writer that will properly escape characters of attribute values
-     * that need escaping ('&lt;', '&amp;', '&quot;'); chained to use
+     * Lazy-constructed writer that will properly escape characters of
+     * attribute values
+     * that need escaping ('&lt;', '&amp;', '&quot;').
+     * It will be created
+     * when needed for the first time. Instances are usually chained to use
      * {@link #mWriter} for actual outputting.
      */
-    protected final Writer mAttrValueWriter;
+    protected Writer mAttrValueWriter;
     
     /*
     ////////////////////////////////////////////////////
@@ -109,7 +119,16 @@ public abstract class BaseStreamWriter
     ////////////////////////////////////////////////////
      */
 
-    // !!! TBI
+    /**
+     * Encoding to use; may be passed from the factory (when
+     * a method that defines encoding is used), updated by
+     * a call to {@link #writeStartDocument}, or null if
+     * neither. Is passed to the escaping writer factory to
+     * allow escaping writers to do additional escaping if
+     * necessary (like encapsulating non-ascii chars in a doc
+     * encoded usig ascii).
+     */
+    protected String mEncoding;
 
     /*
     ////////////////////////////////////////////////////
@@ -170,9 +189,10 @@ public abstract class BaseStreamWriter
     ////////////////////////////////////////////////////
      */
 
-    protected BaseStreamWriter(Writer w, WriterConfig cfg)
+    protected BaseStreamWriter(Writer w, String enc, WriterConfig cfg)
     {
         mWriter = w;
+        mEncoding = enc;
         mConfig = cfg;
 
         int flags = cfg.getConfigFlags();
@@ -187,22 +207,28 @@ public abstract class BaseStreamWriter
         mCfgAutomaticEmptyElems = (flags & CFG_AUTOMATIC_EMPTY_ELEMS) != 0;
         mCfgCDataAsText = (flags & CFG_OUTPUT_CDATA_AS_TEXT) != 0;
         mCfgCopyDefaultAttrs = (flags & CFG_COPY_DEFAULT_ATTRS) != 0;
+    }
 
-        // How should we escape textual content?
-        EscapingWriterFactory f = cfg.getTextEscaperFactory();
+    protected Writer constructAttributeValueWriter()
+        throws UnsupportedEncodingException
+    {
+        EscapingWriterFactory f = mConfig.getAttrValueEscaperFactory();
+        String enc = (mEncoding == null) ? DEFAULT_ENCODING : mEncoding;
         if (f == null) {
-            mTextWriter = new TextEscapingWriter(w, null);
-        } else {
-            mTextWriter = f.createEscapingWriterFor(w, null);
+            return TextEscaper.constructAttrValueWriter(mWriter, enc, '"');
         }
+        return f.createEscapingWriterFor(mWriter, enc);
+    }
 
-        // And how about attribute values?
-        f = cfg.getAttrValueEscaperFactory();
+    protected Writer constructTextWriter()
+        throws UnsupportedEncodingException
+    {
+        EscapingWriterFactory f = mConfig.getTextEscaperFactory();
+        String enc = (mEncoding == null) ? DEFAULT_ENCODING : mEncoding;
         if (f == null) {
-            mAttrValueWriter = new AttrValueEscapingWriter(w, null, '"', "&quot;");
-        } else {
-            mAttrValueWriter = f.createEscapingWriterFor(w, null);
+            return TextEscaper.constructTextWriter(mWriter, enc);
         }
+        return f.createEscapingWriterFor(mWriter, enc);
     }
 
     /*
@@ -340,6 +366,9 @@ public abstract class BaseStreamWriter
 
         if (len > 0) { // minor optimization
             try {
+                if (mTextWriter == null) {
+                    mTextWriter = constructTextWriter();
+                }
                 mTextWriter.write(text, start, len);
             } catch (IOException ioe) {
                 throw new WstxIOException(ioe);
@@ -368,6 +397,9 @@ public abstract class BaseStreamWriter
 
         // Ok, let's just write it out (if there's any text)
         try {
+            if (mTextWriter == null) {
+                mTextWriter = constructTextWriter();
+            }
             mTextWriter.write(text);
         } catch (IOException ioe) {
             throw new WstxIOException(ioe);
@@ -537,7 +569,8 @@ public abstract class BaseStreamWriter
         throws XMLStreamException
     {
         /* 03-Feb-2005, TSa: As per StAX 1.0 specs, version should
-         *   be "1.0", and encoding "utf-8" (yes, lower case)
+         *   be "1.0", and encoding "utf-8" (yes, lower case... it's
+         *   wrong, but specs mandate it)
          */
         writeStartDocument("utf-8", "1.0");
     }
@@ -574,6 +607,15 @@ public abstract class BaseStreamWriter
             if (encoding != null) {
             }
             if (version != null) {
+            }
+        }
+
+        if (encoding != null && encoding.length() > 0) {
+            /* 03-May-2005, TSa: But what about conflicting encoding? Let's
+             *   just update encoding, if it wasn't set.
+             */
+            if (mEncoding == null || mEncoding.length() == 0) {
+                mEncoding = encoding;
             }
         }
 
@@ -813,6 +855,17 @@ public abstract class BaseStreamWriter
                 // fall down if it is to be converted...
                 
             case SPACE:
+                {
+                    mAnyOutput = true;
+                    // Need to finish an open start element?
+                    if (mStartElementOpen) {
+                        closeStartElement(mEmptyElement);
+                    }
+                    // No need to use mTextWriter, should be pure space
+                    sr.getText(mWriter, preserveEventData);
+                }
+                return;
+
             case CHARACTERS:
                 {
                     /* Let's just assume content is fine... not 100% reliably
@@ -828,6 +881,9 @@ public abstract class BaseStreamWriter
                     /* Need to pass mTextWriter, to make sure encoding is done
                      * properly; but no start/end markers are needed
                      */
+                    if (mTextWriter == null) {
+                        mTextWriter = constructTextWriter();
+                    }
                     sr.getText(mTextWriter, preserveEventData);
                 }
                 return;
@@ -935,7 +991,8 @@ public abstract class BaseStreamWriter
         throws XMLStreamException;
 
     /**
-     * Method called by {@link com.ctc.wstx.evt.WstxEventWriter} (instead of more generic
+     * Method called by {@link com.ctc.wstx.evt.WstxEventWriter} (instead of
+     * more generic
      * text output methods), so that we can verify (if necessary) that
      * this character output type is legal in this context. Specifically,
      * it's not acceptable to add non-whitespace content outside root
@@ -963,6 +1020,9 @@ public abstract class BaseStreamWriter
 
         // Ok, let's just write it out:
         try {
+            if (mTextWriter == null) {
+                mTextWriter = constructTextWriter();
+            }
             mTextWriter.write(ch.getData());
         } catch (IOException ioe) {
             throw new WstxIOException(ioe);

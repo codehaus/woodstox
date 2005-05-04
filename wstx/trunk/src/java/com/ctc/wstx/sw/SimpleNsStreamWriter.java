@@ -38,7 +38,6 @@ import com.ctc.wstx.sr.AttributeCollector;
 import com.ctc.wstx.sr.InputElementStack;
 import com.ctc.wstx.sr.StreamReaderImpl;
 import com.ctc.wstx.util.DefaultXmlSymbolTable;
-import com.ctc.wstx.util.XMLQuoter;
 
 /**
  * Namespace-aware implementation of {@link XMLStreamWriter}, that does
@@ -55,9 +54,9 @@ public class SimpleNsStreamWriter
     ////////////////////////////////////////////////////
      */
 
-    public SimpleNsStreamWriter(Writer w, WriterConfig cfg)
+    public SimpleNsStreamWriter(Writer w, String enc, WriterConfig cfg)
     {
-        super(w, cfg, false);
+        super(w, enc, cfg, false);
     }
 
     /*
@@ -304,17 +303,22 @@ public class SimpleNsStreamWriter
         int attrCount = mCfgCopyDefaultAttrs ?
             attrCollector.getCount() : 
             attrCollector.getSpecifiedCount();
-        
-        for (int i = 0; i < attrCount; ++i) {
-            /* There's nothing special about writeAttribute() (except for
-             * checks we should NOT need -- reader is assumed to have verified
-             * well-formedness of the input document)... it just calls
-             * doWriteAttr (of the base class)... so what we have here is
-             * just a raw output method:
-             */
-            mWriter.write(' ');
-            attrCollector.writeAttribute(i, DEFAULT_QUOTE_CHAR, mWriter,
-                                         mAttrValueWriter);
+
+        if (attrCount > 0) {
+            Writer aw = mAttrValueWriter;
+            if (aw == null) {
+                mAttrValueWriter = aw = constructAttributeValueWriter();
+            }
+            for (int i = 0; i < attrCount; ++i) {
+                /* There's nothing special about writeAttribute() (except for
+                 * checks we should NOT need -- reader is assumed to have verified
+                 * well-formedness of the input document)... it just calls
+                 * doWriteAttr (of the base class)... so what we have here is
+                 * just a raw output method:
+                 */
+                mWriter.write(' ');
+                attrCollector.writeAttribute(i, DEFAULT_QUOTE_CHAR, mWriter, aw);
+            }
         }
     }
 

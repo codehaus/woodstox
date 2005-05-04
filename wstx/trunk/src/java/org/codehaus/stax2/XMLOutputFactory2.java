@@ -1,6 +1,10 @@
 package org.codehaus.stax2;
 
+import java.io.Writer;
+
+import javax.xml.stream.XMLEventWriter;
 import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter; // only for javadoc
 
 /**
@@ -111,6 +115,13 @@ public abstract class XMLOutputFactory2
     protected XMLOutputFactory2() {
         super();
     }
+
+
+    public abstract XMLEventWriter createXMLEventWriter(Writer w, String encoding)
+        throws XMLStreamException;
+
+    public abstract XMLStreamWriter2 createXMLStreamWriter(Writer w, String encoding)
+        throws XMLStreamException;
 
     /*
     ////////////////////////////////////////////////////

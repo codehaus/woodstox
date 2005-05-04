@@ -34,8 +34,6 @@ import org.codehaus.stax2.XMLStreamReader2;
 
 import com.ctc.wstx.api.WriterConfig;
 import com.ctc.wstx.cfg.ErrorConsts;
-import com.ctc.wstx.io.AttrValueEscapingWriter;
-import com.ctc.wstx.io.TextEscapingWriter;
 import com.ctc.wstx.util.DefaultXmlSymbolTable;
 
 /**
@@ -93,9 +91,10 @@ public abstract class BaseNsStreamWriter
     ////////////////////////////////////////////////////
      */
 
-    public BaseNsStreamWriter(Writer w, WriterConfig cfg, boolean repairing)
+    public BaseNsStreamWriter(Writer w, String enc, WriterConfig cfg,
+                              boolean repairing)
     {
-        super(w, cfg);
+        super(w, enc, cfg);
         mAutomaticNS = repairing;
     }
 
@@ -383,6 +382,9 @@ public abstract class BaseNsStreamWriter
         }
 
         try {
+            if (mAttrValueWriter == null) {
+                mAttrValueWriter = constructAttributeValueWriter();
+            }
             mWriter.write(' ');
             if (prefix != null && prefix.length() > 0) {
                 mWriter.write(prefix);

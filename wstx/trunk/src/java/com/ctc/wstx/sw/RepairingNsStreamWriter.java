@@ -40,7 +40,6 @@ import com.ctc.wstx.sr.AttributeCollector;
 import com.ctc.wstx.sr.InputElementStack;
 import com.ctc.wstx.sr.StreamReaderImpl;
 import com.ctc.wstx.util.DefaultXmlSymbolTable;
-import com.ctc.wstx.util.XMLQuoter;
 
 /**
  * Namespace-aware implementation of {@link XMLStreamWriter}, that does
@@ -91,9 +90,9 @@ public class RepairingNsStreamWriter
     ////////////////////////////////////////////////////
      */
 
-    public RepairingNsStreamWriter(Writer w, WriterConfig cfg)
+    public RepairingNsStreamWriter(Writer w, String enc, WriterConfig cfg)
     {
-        super(w, cfg, true);
+        super(w, enc, cfg, true);
         mAutomaticNsPrefix = cfg.getAutomaticNsPrefix();
     }
 
@@ -329,33 +328,39 @@ public class RepairingNsStreamWriter
          * copy the attributes here. It is possible that some namespace
          * prefixes have been remapped... so need to be bit more careful.
          */
-        for (int i = 0; i < attrCount; ++i) {
-            /* First; need to make sure that the prefix-to-ns mapping
-             * attribute has is valid... and can not output anything
-             * before that's done (since remapping will output a namespace
-             * declaration!)
-             */
-            String uri = attrCollector.getNsURI(i);
-            String prefix = attrCollector.getPrefix(i);
-
-            mWriter.write(' ');
-            /* With attributes, missing/empty prefix always means 'no
-             * namespace', can take a shortcut:
-             */
-            if (prefix == null || prefix.length() == 0) {
-                ;
-            } else {
-                /* and otherwise we'll always have a prefix as attributes
-                 * can not make use of the def. namespace...
-                 */
-                mWriter.write(findOrCreateAttrPrefix(prefix, uri, mCurrElem));
-                mWriter.write(':');
+        if (attrCount > 0) {
+            Writer aw = mAttrValueWriter;
+            if (aw == null) {
+                mAttrValueWriter = aw = constructAttributeValueWriter();
             }
-            mWriter.write(attrCollector.getLocalName(i));
-            mWriter.write('=');
-            mWriter.write(DEFAULT_QUOTE_CHAR);
-            attrCollector.writeValue(i, mAttrValueWriter);
-            mWriter.write(DEFAULT_QUOTE_CHAR);
+            for (int i = 0; i < attrCount; ++i) {
+                /* First; need to make sure that the prefix-to-ns mapping
+                 * attribute has is valid... and can not output anything
+                 * before that's done (since remapping will output a namespace
+                 * declaration!)
+                 */
+                String uri = attrCollector.getNsURI(i);
+                String prefix = attrCollector.getPrefix(i);
+                
+                mWriter.write(' ');
+                /* With attributes, missing/empty prefix always means 'no
+                 * namespace', can take a shortcut:
+                 */
+                if (prefix == null || prefix.length() == 0) {
+                    ;
+                } else {
+                    /* and otherwise we'll always have a prefix as attributes
+                     * can not make use of the def. namespace...
+                     */
+                    mWriter.write(findOrCreateAttrPrefix(prefix, uri, mCurrElem));
+                    mWriter.write(':');
+                }
+                mWriter.write(attrCollector.getLocalName(i));
+                mWriter.write('=');
+                mWriter.write(DEFAULT_QUOTE_CHAR);
+                attrCollector.writeValue(i, aw);
+                mWriter.write(DEFAULT_QUOTE_CHAR);
+            }
         }
     }
 

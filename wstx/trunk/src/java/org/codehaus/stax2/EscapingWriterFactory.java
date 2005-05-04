@@ -39,7 +39,7 @@ public interface EscapingWriterFactory
      *    (based on information application has passed)
      */
     public Writer createEscapingWriterFor(Writer w, String enc)
-	//throws UnsupportedEncodingException
+	throws UnsupportedEncodingException
 	;
 
     /**
@@ -55,6 +55,6 @@ public interface EscapingWriterFactory
      *    (based on information application has passed)
      */
     public Writer createEscapingWriterFor(OutputStream out, String enc)
-	//throws UnsupportedEncodingException
+	throws UnsupportedEncodingException
 ;
 }

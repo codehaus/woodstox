@@ -13,7 +13,7 @@ import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.events.Attribute;
 import javax.xml.stream.events.StartElement;
 
-import com.ctc.wstx.io.AttrValueEscapingWriter;
+import com.ctc.wstx.io.TextEscaper;
 import com.ctc.wstx.sr.ElemAttrs;
 import com.ctc.wstx.util.BaseNsContext;
 import com.ctc.wstx.util.EmptyIterator;
@@ -134,7 +134,7 @@ public class CompactStartElement
                 }
                 w.write(raw[i]); // local name
                 w.write("=\"");
-                AttrValueEscapingWriter.writeEscapedAttrValue(w, raw[i + OFFSET_VALUE]);
+                TextEscaper.writeEscapedAttrValue(w, raw[i + OFFSET_VALUE]);
                 w.write('"');
             }
         }

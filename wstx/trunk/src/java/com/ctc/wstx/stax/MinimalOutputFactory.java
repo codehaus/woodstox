@@ -94,28 +94,33 @@ public final class MinimalOutputFactory
     //public XMLEventWriter createXMLEventWriter(OutputStream out);
 
     public XMLStreamWriter createXMLStreamWriter(OutputStream out)
+        throws XMLStreamException
     {
-        return createXMLStreamWriter(new OutputStreamWriter(out));
+        return createSW(out, null, null);
     }
 
     public XMLStreamWriter createXMLStreamWriter(OutputStream out, String enc)
         throws XMLStreamException
     {
-        try {
-            return createXMLStreamWriter(new OutputStreamWriter(out, enc));
-        } catch (UnsupportedEncodingException ex) {
-            throw new XMLStreamException(ex);
-        }
+        return createSW(out, null, enc);
     }
 
     public XMLStreamWriter createXMLStreamWriter(javax.xml.transform.Result result)
         throws XMLStreamException
     {
-        return createWstxStreamWriter(result);
+        return createSW(result);
     }
 
-    public XMLStreamWriter createXMLStreamWriter(Writer w) {
-        return createWstxStreamWriter(w);    
+    public XMLStreamWriter createXMLStreamWriter(Writer w)
+        throws XMLStreamException
+    {
+        return createSW(null, w, null);    
+    }
+
+    public XMLStreamWriter createXMLStreamWriter(Writer w, String enc)
+        throws XMLStreamException
+    {
+        return createSW(null, w, enc);
     }
     
     public Object getProperty(String name)
@@ -152,17 +157,36 @@ public final class MinimalOutputFactory
      * Factory method used internally; needs to take care of passing
      * proper settings to stream writer.
      */
-    private BaseStreamWriter createWstxStreamWriter(Writer w) {
+    private BaseStreamWriter createSW(OutputStream out, Writer w, String enc)
+        throws XMLStreamException
+    {
+        /* 03-May-2005, TSa: For now, let's just use JDK-provided encoders...
+         *   for 3.x, maybe we can try to provide optimized ones -- these
+         *   would mostly help with quoted content (can do quoting along
+         *   with encoding).
+         */
+        if (w == null) {
+            try {
+                if (enc == null) {
+                    w = new OutputStreamWriter(out);
+                } else {
+                    w = new OutputStreamWriter(out, enc);
+                }
+            } catch (UnsupportedEncodingException ex) {
+                throw new XMLStreamException(ex);
+            }
+        }
+
         if (mConfig.willSupportNamespaces()) {
 	    if (mConfig.automaticNamespacesEnabled()) {
-		return new RepairingNsStreamWriter(w, mConfig);
+		return new RepairingNsStreamWriter(w, enc, mConfig);
 	    }
-            return new SimpleNsStreamWriter(w, mConfig);
+            return new SimpleNsStreamWriter(w, enc, mConfig);
         }
-        return new NonNsStreamWriter(w, mConfig);
+        return new NonNsStreamWriter(w, enc, mConfig);
     }
 
-    private BaseStreamWriter createWstxStreamWriter(Result res)
+    private BaseStreamWriter createSW(Result res)
         throws XMLStreamException
     {
         if (res instanceof StreamResult) {
@@ -174,9 +198,9 @@ public final class MinimalOutputFactory
                     throw new XMLStreamException("Can not create StAX writer for a StreamResult -- neither writer nor output stream was set.");
                 }
                 // ... any way to define encoding?
-                w = new OutputStreamWriter(out);
+                return createSW(out, null, null);
             }
-            return createWstxStreamWriter(w);
+            return createSW(null, w, null);
         }
 
         if (res instanceof SAXResult) {

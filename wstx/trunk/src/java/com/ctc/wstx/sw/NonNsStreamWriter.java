@@ -84,9 +84,9 @@ public class NonNsStreamWriter
     ////////////////////////////////////////////////////
      */
 
-    public NonNsStreamWriter(Writer w, WriterConfig cfg)
+    public NonNsStreamWriter(Writer w, String enc, WriterConfig cfg)
     {
-        super(w, cfg);
+        super(w, enc, cfg);
         mElements = new StringVector(32);
     }
 
@@ -146,6 +146,9 @@ public class NonNsStreamWriter
         }
         
         try {
+            if (mAttrValueWriter == null) {
+                mAttrValueWriter = constructAttributeValueWriter();
+            }
             mWriter.write(' ');
             mWriter.write(localName);
             mWriter.write("=\"");
@@ -354,17 +357,22 @@ public class NonNsStreamWriter
         int attrCount = mCfgCopyDefaultAttrs ?
             attrCollector.getCount() : 
             attrCollector.getSpecifiedCount();
-        
-        for (int i = 0; i < attrCount; ++i) {
-            /* There's nothing special about writeAttribute() (except for
-             * checks we should NOT need -- reader is assumed to have verified
-             * well-formedness of the input document)... it just calls
-             * doWriteAttr (of the base class)... so what we have here is
-             * just a raw output method:
-             */
-            mWriter.write(' ');
-            attrCollector.writeAttribute(i, DEFAULT_QUOTE_CHAR, mWriter,
-                                         mAttrValueWriter);
+
+        if (attrCount > 0) {
+            Writer aw = mAttrValueWriter;
+            if (aw == null) {
+                mAttrValueWriter = aw = constructAttributeValueWriter();
+            }
+            for (int i = 0; i < attrCount; ++i) {
+                /* There's nothing special about writeAttribute() (except for
+                 * checks we should NOT need -- reader is assumed to have verified
+                 * well-formedness of the input document)... it just calls
+                 * doWriteAttr (of the base class)... so what we have here is
+                 * just a raw output method:
+                 */
+                mWriter.write(' ');
+                attrCollector.writeAttribute(i, DEFAULT_QUOTE_CHAR, mWriter, aw);
+            }
         }
     }
 

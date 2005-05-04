@@ -213,6 +213,48 @@ public final class StringUtil
         return true; 
     }
 
+    public static boolean encodingStartsWith(String enc, String prefix)
+    {
+        int len1 = enc.length();
+        int len2 = prefix.length();
+
+        int i1 = 0, i2 = 0;
+
+        // Need to loop completely over both Strings
+        while (i1 < len1 || i2 < len2) {
+            int c1 = (i1 >= len1) ?  EOS : enc.charAt(i1++);
+            int c2 = (i2 >= len2) ?  EOS : prefix.charAt(i2++);
+
+            // Can first do a quick comparison (usually they are equal)
+            if (c1 == c2) {
+                continue;
+            }
+
+            // if not equal, maybe there are WS/hyphen/underscores to skip
+            while (c1 <= CHAR_SPACE || c1 == '_' || c1 == '-') {
+                c1 = (i1 >= len1) ?  EOS : enc.charAt(i1++);
+            }
+            while (c2 <= CHAR_SPACE || c2 == '_' || c2 == '-') {
+                c2 = (i2 >= len2) ?  EOS : prefix.charAt(i2++);
+            }
+            // Ok, how about case differences, then?
+            if (c1 != c2) {
+		if (c2 == EOS) { // Prefix done, good!
+		    return true;
+		}
+                if (c1 == EOS) { // Encoding done, not good
+                    return false;
+                }
+                if (Character.toLowerCase((char)c1) != Character.toLowerCase((char)c2)) {
+                    return false;
+                }
+            }
+        }
+
+	// Ok, prefix was exactly the same as encoding... that's fine
+        return true; 
+    }
+
     public static void main(String[] args)
     {
         if (args.length < 1) {
