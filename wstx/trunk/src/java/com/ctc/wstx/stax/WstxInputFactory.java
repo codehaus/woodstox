@@ -457,6 +457,33 @@ public final class WstxInputFactory
         }
     }
 
+    // // // StAX2 "Profile" mutators
+
+    public void configureForXmlConformance()
+    {
+        mConfig.configureForXmlConformance();
+    }
+
+    public void configureForConvenience()
+    {
+        mConfig.configureForConvenience();
+    }
+
+    public void configureForSpeed()
+    {
+        mConfig.configureForSpeed();
+    }
+
+    public void configureForLowMemUsage()
+    {
+        mConfig.configureForLowMemUsage();
+    }
+
+    public void configureForRoundTripping()
+    {
+        mConfig.configureForRoundTripping();
+    }
+
     /*
     /////////////////////////////////////////
     // Woodstox-specific configuration access

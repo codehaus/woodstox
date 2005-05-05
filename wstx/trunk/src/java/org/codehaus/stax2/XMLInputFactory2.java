@@ -149,174 +149,146 @@ public abstract class XMLInputFactory2
     /**
      * Method to call to make Reader created conform as closely to XML
      * standard as possible, doing all checks and transformations mandated
-     * (linefeed conversions, attr value normalizations). Note that this
-     * does NOT include enabling DTD validation.
+     * by the XML specification (linefeed conversions, attr value
+     * normalizations).
      *<p>
-     * Currently does following changes to settings:
+     * Regarding the default StAX property settings,
+     * implementations are suggested to do following:
      *<ul>
-     * <li>Enables all XML mandated transformations: will convert linefeeds
-     *   to canonical LF, will convert white space in attributes as per
-     *   specs
-     *  <li>
+     * <li>Enable <code>SUPPORT_DTD</code> property.
+     *  </li>
+     * <li>Enable <code>IS_NAMESPACE_AWARE</code>
+     *  </li>
+     * <li>Enable <code>IS_REPLACING_ENTITY_REFERENCES</code>
+     *  </li>
+     * <li>Enable <code>IS_SUPPORTING_EXTERNAL_ENTITIES</code>
+     *  </li>
      *</ul>
+     * All the other standard settings should be left as is.
      *<p>
-     * Notes: Does NOT change
-     *<ul>
-     *  <li>DTD-settings (validation, enabling)
-     * </li>
-     *  <li>namespace settings
-     * </li>
-     *  <li>entity handling
-     * </li>
-     *  <li>'performance' settings (buffer sizes, DTD caching, coalescing,
-     *    interning, accurate location info).
-     * </li>
-     *</ul>
+     * In addition, implementations should set implementation-dependant
+     * settings appropriately, to be as strict as possible with regards
+     * to XML specification mandated checks and transformations.
      */
-    //public abstract void configureForXmlConformance();
+    public abstract void configureForXmlConformance();
 
     /**
      * Method to call to make Reader created be as "convenient" to use
      * as possible; ie try to avoid having to deal with some of things
-     * like segmented text chunks. This may incure some slight performance
-     * penalties, but shouldn't affect conformance.
+     * like segmented text chunks. This may incur some slight performance
+     * penalties, but should not affect XML conformance.
      *<p>
-     * Currently does following changes to settings:
+     * Regarding the default StAX property settings,
+     * implementations are suggested to do following:
      *<ul>
-     * <li>Enables text coalescing.
-     *  <li>
-     * <li>Forces all non-ignorable text events (Text, CDATA) to be reported
-     *    as CHARACTERS event.
-     *  <li>
-     * <li>Enables automatic entity reference replacement.
-     *  <li>
-     * <li>Disables reporting of ignorable whitespace in prolog and epilog
-     *   (outside element tree)
-     *  <li>
+     * <li>Enable <code>IS_COALESCING</code> (text coalescing)
+     *  </li>
+     * <li>Enable <code>IS_REPLACING_ENTITY_REFERENCES</code>
+     *  </li>
+     * <li>Disable <code>P_REPORT_PROLOG_WHITESPACE</code> (StAX2); so
+     *   that the application need not skip possible <code>SPACE</code>
+     *   (and <code>COMMENT</code>, <code>PROCESSING_INSTRUCTION</code>)
+     *   events.
+     *  </li>
+     * <li>Enable <code>P_REPORT_ALL_TEXT_AS_CHARACTERS</code> (StAX2)
+     *  </li>
+     * <li>Enable <code>P_PRESERVE_LOCATION</code> (StAX2)
+     *  </li>
      *</ul>
+     * All the other standard settings should be left as is.
      *<p>
-     * Notes: Does NOT change
-     *<ul>
-     *  <li>Text normalization (whether it's more convenient that linefeeds
-     *    are converted or not is an open question).
-     *   </li>
-     *  <li>DTD-settings (validation, enabling)
-     * </li>
-     *  <li>Namespace settings
-     * </li>
-     *  <li>other 'performance' settings (buffer sizes, interning, DTD caching)
-     *    than coalescing
-     * </li>
-     *</ul>
+     * In addition, implementations should set implementation-dependant
+     * settings appropriately as well.
      */
-    //public abstract void configureForConvenience();
+    public abstract void configureForConvenience();
 
     /**
-     * Method to call to make Reader created be as fast as possible reading
+     * Method to call to make the Reader created be as fast as possible reading
      * documents, especially for long-running processes where caching is
-     * likely to help. 
-     * Potential trade-offs are somewhat increased memory usage
-     * (full-sized input buffers), and reduced XML conformance (will not
+     * likely to help. This means reducing amount of information collected
+     * (ignorable white space in prolog/epilog, accurate Location information
+     * for Event API), and possibly even including simplifying handling
+     * of XML-specified transformations (skip attribute value and text
+     * linefeed normalization).
+     * Potential downsides are somewhat increased memory usage
+     * (for full-sized input buffers), and reduced XML conformance (will not
      * do some of transformations).
      *<p>
-     * Currently does following changes to settings:
+     * Regarding the default StAX property settings,
+     * implementations are suggested to do following:
      *<ul>
-     * <li>Disables text coalescing, sets lowish value for min. reported
-     *    text segment length.
+     * <li>Disable <code>IS_COALESCING</code> (text coalescing)
      *  </li>
-     * <li>Increases input buffer length a bit from default.
+     * <li>Disable <code>P_PRESERVE_LOCATION</code> (StAX2)
      *  </li>
-     * <li>Disables text normalization (linefeeds, attribute values)
+     * <li>Disable <code>P_REPORT_PROLOG_WHITESPACE</code> (StAX2)
      *  </li>
-     * <li>Enables all interning (ns URIs)
+     * <li>Enable <code>P_INTERN_NAMES</code> (StAX2)
      *  </li>
-     * <li>Enables DTD caching
+     * <li>Enable <code>P_INTERN_NS_URIS</code> (StAX2)
      *  </li>
      *</ul>
-     *
+     * All the other standard settings should be left as is.
      *<p>
-     * Notes: Does NOT change
-     *<ul>
-     *  <li>DTD-settings (validation, enabling)
-     * </li>
-     *  <li>Namespace settings
-     * </li>
-     *  <li>Entity replacement settings (automatic, support external)
-     * </li>
-     *</ul>
+     * In addition, implementations should set implementation-dependant
+     * settings appropriately as well.
      */
-    //public abstract void configureForSpeed();
+    public abstract void configureForSpeed();
 
     /**
-     * Method to call to make Reader created minimize its memory usage.
+     * Method to call to minimize the memory usage of the stream/event reader;
+     * both regarding Objects created, and the temporary memory usage during
+     * parsing.
      * This generally incurs some performance penalties, due to using
      * smaller input buffers.
      *<p>
-     * Currently does following changes to settings:
+     * Regarding the default StAX property settings,
+     * implementations are suggested to do following:
      *<ul>
-     * <li>Turns off coalescing, to prevent having to store long text
-     *   segments in consequtive buffer; resets min. reported text segment
-     *   to the default value.
-     *  <li>
-     * <li>Reduces buffer sizes from default
-     *  <li>
-     * <li>Turns off DTD-caching
-     *  <li>
+     * <li>Disable <code>IS_COALECING</code> (text coalescing, can force
+     *   longer internal result buffers to be used)
+     *  </li>
+     * <li>Disable <code>P_PRESERVE_LOCATION</code> (StAX) to reduce
+     *   temporary memory usage.
+     *  </li>
      *</ul>
-     * Notes: Does NOT change
-     *<ul>
-     *  <li>Normalization (linefeed, attribute value)
-     * </li>
-     *  <li>DTD-settings (validation, enabling)
-     * </li>
-     *  <li>namespace settings
-     * </li>
-     *  <li>entity handling
-     * </li>
-     *  <li>Interning settings (may or may not affect mem usage)
-     * </li>
-     *</ul>
+     * All the other standard settings should be left as is.
+     *<p>
+     * In addition, implementations should set implementation-dependant
+     * settings appropriately so that the memory usage is minimized.
      */
-    //public abstract void configureForLowMemUsage();
+    public abstract void configureForLowMemUsage();
     
     /**
      * Method to call to make Reader try to preserve as much of input
      * formatting as possible, so that round-tripping would be as lossless
-     * as possible, ie that matching writer could produce output as closely
-     * matching input format as possible.
+     * as possible. This means that the matching writer should be able to
+     * reproduce output as closely matching input format as possible
+     * (most implementations won't be able to provide 100% vis-a-vis; 
+     * white space between attributes is generally lost, as well as use
+     * of character entities).
      *<p>
-     * Currently does following changes to settings:
+     * Regarding the default StAX property settings,
+     * implementations are suggested to do following:
      *<ul>
-     * <li>Enables reporting of ignorable whitespace in prolog and epilog
-     *   (outside element tree)
+     * <li>Disable <code>IS_COALESCING</code> (to prevent CDATA and Text
+     *   segments from getting combined)
      *  <li>
-     * <li>Disables XML mandated transformations (linefeed, attribute values),
-     *   to preserve most of original formatting.
+     * <li>Disable <code>IS_REPLACING_ENTITY_REFERENCES</code> to allow for
+     *    preserving explicitly declared general entity references (that is,
+     *    there is no way to preserve character entities, or pre-defined
+     *    entities like 'gt', 'lt', 'amp', 'apos' and 'quot').
      *  <li>
-     * <li>Disables coalescing, to prevent CDATA and Text segments from getting
-     *   combined.
+     * <li>Disable <code>P_REPORT_ALL_TEXT_AS_CHARACTERS</code> (StAX2)
+     *   (so that CDATA sections are not reported as 'normal' text)
      *  <li>
-     * <li>Increases minimum report text segment length so that all original
-     *    text segment chunks are reported fully
-     *  <li>
-     * <li>Disables automatic entity replacement, to allow for preserving
-     *    such references.
-     *  <li>
-     * <li>Disables automatic conversion of CDATA to Text events.
-     *  <li>
+     * <li>Enable <code>P_REPORT_PROLOG_WHITESPACE</code> (StAX2)
+     *  </li>
      *</ul>
-     * Notes: Does NOT change
-     *<ul>
-     *  <li>DTD-settings (validation, enabling)
-     * </li>
-     *  <li>namespace settings (enable/disable)
-     * </li>
-     *  <li>Some perfomance settings: interning settings, DTD caching
-     * </li>
-     *  <li>Whether to preserve additional information not relevant
-     *    to outputting (like CFG_PRESERVE_LOCATION).
-     * </li>
-     *</ul>
+     * All the other standard settings should be left as is.
+     *<p>
+     * In addition, implementations should set implementation-dependant
+     * settings appropriately as well.
      */
-    //public abstract void configureForRoundTripping();
+    public abstract void configureForRoundTripping();
 }

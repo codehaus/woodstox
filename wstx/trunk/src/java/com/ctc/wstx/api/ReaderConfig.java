@@ -660,39 +660,44 @@ public final class ReaderConfig
 
     /*
     /////////////////////////////////////////////////////
-    // "Profile" mutators
+    // Profile mutators:
     /////////////////////////////////////////////////////
      */
 
     /**
      * Method to call to make Reader created conform as closely to XML
      * standard as possible, doing all checks and transformations mandated
-     * (linefeed conversions, attr value normalizations). Note that this
-     * does NOT include enabling DTD validation.
+     * (linefeed conversions, attr value normalizations).
+     * See {@link XMLInputFactory2#configureForXmlConformance} for
+     * required settings for standard StAX/StAX properties.
      *<p>
-     * Currently does following changes to settings:
+     * In addition to the standard settings, following Woodstox-specific
+     * settings are also done:
      *<ul>
-     * <li>Enables all XML mandated transformations: will convert linefeeds
-     *   to canonical LF, will convert white space in attributes as per
-     *   specs
+     * <li>Enable <code>P_NORMALIZE_LFS</code> (will convert all legal
+     *   linefeeds in textual content [including PIs and COMMENTs] into
+     *   canonical "\n" linefeed before application gets
+     *   the text
+     *  <li>
+     * <li>Enable <code>P_NORMALIZE_ATTR_VALUES</code> (will normalize all
+     *    white space in the attribute values so that multiple adjacent white
+     *    space values are represented by a single space; also, leading and
+     *    trailing white space is removed).
      *  <li>
      *</ul>
      *<p>
-     * Notes: Does NOT change
-     *<ul>
-     *  <li>DTD-settings (validation, enabling)
-     * </li>
-     *  <li>namespace settings
-     * </li>
-     *  <li>entity handling
-     * </li>
-     *  <li>'performance' settings (buffer sizes, DTD caching, coalescing,
-     *    interning, accurate location info).
-     * </li>
-     *</ul>
+     * Notes: Does NOT change 'performance' settings (buffer sizes,
+     * DTD caching, coalescing, interning, accurate location info).
      */
     public void configureForXmlConformance()
     {
+        // StAX 1.0 settings
+        doSupportNamespaces(true);
+        doSupportDTDs(true);
+        doSupportExternalEntities(true);
+        doReplaceEntityRefs(true);
+
+        // Woodstox-specific ones:
         doNormalizeLFs(true);
         doNormalizeAttrValues(true);
     }
@@ -700,91 +705,90 @@ public final class ReaderConfig
     /**
      * Method to call to make Reader created be as "convenient" to use
      * as possible; ie try to avoid having to deal with some of things
-     * like segmented text chunks. This may incure some slight performance
-     * penalties, but shouldn't affect conformance.
+     * like segmented text chunks. This may incur some slight performance
+     * penalties, but should not affect XML conformance.
+     * See {@link XMLInputFactory2#configureForConvenience} for
+     * required settings for standard StAX/StAX properties.
      *<p>
-     * Currently does following changes to settings:
+     * In addition to the standard settings, following Woodstox-specific
+     * settings are also done:
      *<ul>
-     * <li>Enables text coalescing.
-     *  <li>
-     * <li>Forces all non-ignorable text events (Text, CDATA) to be reported
-     *    as CHARACTERS event.
-     *  <li>
-     * <li>Enables automatic entity reference replacement.
-     *  <li>
-     * <li>Disables reporting of ignorable whitespace in prolog and epilog
-     *   (outside element tree)
-     *  <li>
-     *</ul>
-     *<p>
-     * Notes: Does NOT change
-     *<ul>
-     *  <li>Text normalization (whether it's more convenient that linefeeds
-     *    are converted or not is an open question).
-     *   </li>
-     *  <li>DTD-settings (validation, enabling)
-     * </li>
-     *  <li>Namespace settings
-     * </li>
-     *  <li>other 'performance' settings (buffer sizes, interning, DTD caching)
-     *    than coalescing
+     *  <li>Disable <code>P_LAZY_PARSING</code> (to allow for synchronous
+     *    error notification by forcing full XML events to be completely
+     *    parsed when reader's <code>next() is called)
      * </li>
      *</ul>
      */
     public void configureForConvenience()
     {
+        // StAX (1.0) settings:
         doCoalesceText(true);
         doReplaceEntityRefs(true);
-        doReportPrologWhitespace(false);
-        /* Also, we can make errors to be reporting in timely manner:
-         * (once again, at potential expense of performance)
-         */
-        doParseLazily(false);
 
+        // StAX2: 
         doReportAllTextAsCharacters(true);
+        doReportPrologWhitespace(false);
         /* Also, knowing exact locations is nice esp. for error
 	 * reporting purposes
          */
         doPreserveLocation(true);
+
+        // Woodstox-specific:
+
+        /* Also, we can force errors to be reported in timely manner:
+         * (once again, at potential expense of performance)
+         */
+        doParseLazily(false);
     }
 
     /**
-     * Method to call to make Reader created be as fast as possible reading
+     * Method to call to make the Reader created be as fast as possible reading
      * documents, especially for long-running processes where caching is
-     * likely to help. 
-     * Potential trade-offs are somewhat increased memory usage
-     * (full-sized input buffers), and reduced XML conformance (will not
-     * do some of transformations).
-     *<p>
-     * Currently does following changes to settings:
-     *<ul>
-     * <li>Disables text coalescing, sets lowish value for min. reported
-     *    text segment length.
-     *  </li>
-     * <li>Increases input buffer length a bit from default.
-     *  </li>
-     * <li>Disables text normalization (linefeeds, attribute values)
-     *  </li>
-     * <li>Enables all interning (ns URIs)
-     *  </li>
-     * <li>Enables DTD caching
-     *  </li>
-     *</ul>
+     * likely to help.
      *
+     * See {@link XMLInputFactory2#configureForSpeed} for
+     * required settings for standard StAX/StAX properties.
      *<p>
-     * Notes: Does NOT change
+     * In addition to the standard settings, following Woodstox-specific
+     * settings are also done:
      *<ul>
-     *  <li>DTD-settings (validation, enabling)
-     * </li>
-     *  <li>Namespace settings
-     * </li>
-     *  <li>Entity replacement settings (automatic, support external)
-     * </li>
+     * <li>Disable <code>P_NORMALIZE_LFS</code>
+     *  </li>
+     * <li>Disable <code>P_NORMALIZE_ATTR_VALUES</code>
+     *  </li>
+     * <li>Enable <code>P_CACHE_DTDS</code>.
+     *  </li>
+     * <li>Enable <code>P_LAZY_PARSING</code> (can improve performance
+     *   especially when skipping text segments)
+     *  </li>
+     * <li>Set lowish value for <code>P_MIN_TEXT_SEGMENT</code>, to allow
+     *   reader to optimize segment length it uses (and possibly avoids
+     *   one copy operation in the process)
+     *  </li>
+     * <li>Increase <code>P_INPUT_BUFFER_LENGTH</code> a bit from default,
+     *   to allow for longer consequtive read operations; also reduces cases
+     *   where partial text segments are on input buffer boundaries.
+     *  </li>
+     * <li>Increase <code>P_TEXT_BUFFER_LENGTH</code> a bit from default;
+     *    will reduce the likelihood of having to expand it during parsing.
+     *  </li>
      *</ul>
      */
     public void configureForSpeed()
     {
+        // StAX (1.0):
         doCoalesceText(false);
+
+        // StAX2:
+        doPreserveLocation(false);
+        doReportPrologWhitespace(false);
+        //doInternNames(true); // this is a NOP
+        doInternNsURIs(true);
+
+        // Woodstox-specific:
+        doNormalizeLFs(false);
+        doNormalizeAttrValues(false);
+        doCacheDTDs(true);
         doParseLazily(true);
 
         /* If we let Reader decide sizes of text segments, it should be
@@ -796,104 +800,81 @@ public final class ReaderConfig
         setInputBufferLength(8000); // 16k input buffer
         // Text buffer need not be huge, as we do not coalesce
         setTextBufferLength(4000); // 8K
-        doNormalizeLFs(false);
-        doNormalizeAttrValues(false);
-
-        // these can also improve speed:
-        doInternNsURIs(true);
-        doCacheDTDs(true);
-        doPreserveLocation(false);
     }
 
     /**
-     * Method to call to make Reader created minimize its memory usage.
+     * Method to call to minimize the memory usage of the stream/event reader;
+     * both regarding Objects created, and the temporary memory usage during
+     * parsing.
      * This generally incurs some performance penalties, due to using
      * smaller input buffers.
      *<p>
-     * Currently does following changes to settings:
+     * See {@link XMLInputFactory2#configureForLowMemUsage} for
+     * required settings for standard StAX/StAX properties.
+     *<p>
+     * In addition to the standard settings, following Woodstox-specific
+     * settings are also done:
      *<ul>
-     * <li>Turns off coalescing, to prevent having to store long text
-     *   segments in consequtive buffer; resets min. reported text segment
-     *   to the default value.
+     * <li>Disable <code>P_CACHE_DTDS</code>
+     *  </li>
+     * <li>Enable <code>P_PARSE_LAZILY</code>
+     *  </li>
+     * <li>Resets <code>P_MIN_TEXT_SEGMENT</code> to the (somewhat low)
+     *   default value.
      *  <li>
-     * <li>Reduces buffer sizes from default
+     * <li>Reduces <code>P_INPUT_BUFFER_LENGTH</code> a bit from the default
      *  <li>
-     * <li>Turns off DTD-caching
+     * <li>Reduces <code>P_TEXT_BUFFER_LENGTH</code> a bit from the default
      *  <li>
-     *</ul>
-     * Notes: Does NOT change
-     *<ul>
-     *  <li>Normalization (linefeed, attribute value)
-     * </li>
-     *  <li>DTD-settings (validation, enabling)
-     * </li>
-     *  <li>namespace settings
-     * </li>
-     *  <li>entity handling
-     * </li>
-     *  <li>Interning settings (may or may not affect mem usage)
-     * </li>
      *</ul>
      */
     public void configureForLowMemUsage()
     {
+        // StAX (1.0)
         doCoalesceText(false);
-        doParseLazily(true); // can preserve temporary mem usage
 
+        // StAX2:
+
+        doPreserveLocation(false); // can reduce temporary mem usage
+
+        // Woodstox-specific:
+        doCacheDTDs(false);
+        doParseLazily(true); // can reduce temporary mem usage
         setShortestReportedTextSegment(ReaderConfig.DEFAULT_SHORTEST_TEXT_SEGMENT);
         setInputBufferLength(512); // 1k input buffer
         // Text buffer need not be huge, as we do not coalesce
         setTextBufferLength(512); // 1k, to match input buffer size
-        doCacheDTDs(false);
-
-        // This can reduce temporary memory usage:
-        doPreserveLocation(false);
     }
     
     /**
      * Method to call to make Reader try to preserve as much of input
      * formatting as possible, so that round-tripping would be as lossless
-     * as possible, ie that matching writer could produce output as closely
-     * matching input format as possible.
+     * as possible.
      *<p>
-     * Currently does following changes to settings:
+     * See {@link XMLInputFactory2#configureForLowMemUsage} for
+     * required settings for standard StAX/StAX properties.
+     *<p>
+     * In addition to the standard settings, following Woodstox-specific
+     * settings are also done:
      *<ul>
-     * <li>Enables reporting of ignorable whitespace in prolog and epilog
-     *   (outside element tree)
+     * <li>Disable <code>P_NORMALIZE_LFS</code>
+     *  </li>
+     * <li>Disable <code>P_NORMALIZE_ATTR_VALUES</code>
+     *  </li>
+     * <li>Increases <code>P_MIN_TEXT_SEGMENT</code> to the maximum value so
+     *    that all original text segment chunks are reported without
+     *    segmentation (but without coalescing with adjacent CDATA segments)
      *  <li>
-     * <li>Disables XML mandated transformations (linefeed, attribute values),
-     *   to preserve most of original formatting.
-     *  <li>
-     * <li>Disables coalescing, to prevent CDATA and Text segments from getting
-     *   combined.
-     *  <li>
-     * <li>Increases minimum report text segment length so that all original
-     *    text segment chunks are reported fully
-     *  <li>
-     * <li>Disables automatic entity replacement, to allow for preserving
-     *    such references.
-     *  <li>
-     * <li>Disables automatic conversion of CDATA to Text events.
-     *  <li>
-     *</ul>
-     * Notes: Does NOT change
-     *<ul>
-     *  <li>DTD-settings (validation, enabling)
-     * </li>
-     *  <li>namespace settings (enable/disable)
-     * </li>
-     *  <li>Some perfomance settings: interning settings, DTD caching
-     * </li>
-     *  <li>Whether to preserve additional information not relevant
-     *    to outputting (like CFG_PRESERVE_LOCATION).
-     * </li>
      *</ul>
      */
     public void configureForRoundTripping()
     {
-	// Standard settings
+	// StAX (1.0)
         doCoalesceText(false);
         doReplaceEntityRefs(false);
+
+        // StAX2:
+        doReportAllTextAsCharacters(false);
         doReportPrologWhitespace(true);
 
 	// Woodstox specific settings
@@ -901,7 +882,6 @@ public final class ReaderConfig
         doNormalizeAttrValues(false);
         // effectively prevents from reporting partial segments:
         setShortestReportedTextSegment(Integer.MAX_VALUE);
-        doReportAllTextAsCharacters(false);
     }
 
     /*
