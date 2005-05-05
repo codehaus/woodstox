@@ -20,47 +20,31 @@ public final class TextEscaper
 						  char qchar)
 	throws UnsupportedEncodingException
     {
-	char c = (enc.length() > 0) ? enc.charAt(0) : ' ';
+        int bitSize = guessEncodingBitSize(enc);
 
-	/* Let's just check first if it's a Unicode encoding... they
-	 * start with "UTF" and "UCS" (UTF-8, UCS-xxx). Otherwise,
-	 * let's just play safe and assume it's a single-byte encoding
-	 */
-	if (c == 'u' || c == 'U') {
-	    if (StringUtil.encodingStartsWith(enc, "UTF")
-		|| StringUtil.encodingStartsWith(enc, "UCS")) {
-		return new UTFAttrValueWriter(w, enc, qchar);
-	    }
-	} else if (c == 'i' || c == 'I') {
-	    if (StringUtil.encodingStartsWith(enc, "ISO-10646")) {
-		return new UTFAttrValueWriter(w, enc, qchar);
-	    }
-	}
-	// Most likely "ISO-8859-x" or "US-ASCII"...
-	return new SingleByteAttrValueWriter(w, enc, qchar);
+        /* Anything less than full 16-bits (Unicode) needs to use a
+         * Writer that can do escaping... simplistic, but should cover
+         * usual cases (7-bit [ascii], 8-bit [ISO-Latin]).
+         */
+        if (bitSize < 16) {
+            return new SingleByteAttrValueWriter(w, enc, qchar, (1 << bitSize));
+        }
+        return new UTFAttrValueWriter(w, enc, qchar);
     }
 
     public static Writer constructTextWriter(Writer w, String enc)
 	throws UnsupportedEncodingException
     {
-	char c = (enc.length() > 0) ? enc.charAt(0) : ' ';
+        int bitSize = guessEncodingBitSize(enc);
 
-	/* Let's just check first if it's a Unicode encoding... they
-	 * start with "UTF" and "UCS" (UTF-8, UCS-xxx). Otherwise,
-	 * let's just play safe and assume it's a single-byte encoding
-	 */
-	if (c == 'u' || c == 'U') {
-	    if (StringUtil.encodingStartsWith(enc, "UTF")
-		|| StringUtil.encodingStartsWith(enc, "UCS")) {
-		return new UTFTextWriter(w, enc);
-	    }
-	} else if (c == 'i' || c == 'I') {
-	    if (StringUtil.encodingStartsWith(enc, "ISO-10646")) {
-		return new UTFTextWriter(w, enc);
-	    }
-	}
-	// Most likely "ISO-8859-x" or "US-ASCII"...
-	return new SingleByteTextWriter(w, enc);
+        /* Anything less than full 16-bits (Unicode) needs to use a
+         * Writer that can do escaping... simplistic, but should cover
+         * usual cases (7-bit [ascii], 8-bit [ISO-Latin]).
+         */
+        if (bitSize < 16) {
+            return new SingleByteTextWriter(w, enc, (1 << bitSize));
+        }
+        return new UTFTextWriter(w, enc);
     }
 
     /*
@@ -200,6 +184,78 @@ public final class TextEscaper
                 }
             }
         } while (++i < len);
+    }
+
+    /**
+     * Method used to figure out which part of the Unicode char set the
+     * encoding can natively support. Values returned are 7, 8 and 16,
+     * to indicate (respectively) "ascii", "ISO-Latin" and "native Unicode".
+     * These just best guesses, but should work ok for the most common
+     * encodings.
+     */
+    public static int guessEncodingBitSize(String enc)
+    {
+        if (enc.length() < 1) { // let's assume default is UTF-8...
+            return 16;
+        }
+	char c = enc.charAt(0);
+
+        /* Hmmh. Now this is bit tricky... whether to do "anything other
+         * than Ascii is 8-bit clean" or "anything other than ISO-Latin
+         * _may_ only support 7-bit ones" (obviously there are even more
+         * strict cases but these are main alternatives).
+         * It's also possible that some schemes (Shift-JIS?) would support
+         * much bigger subset of Unicode... but let's cross that bridge
+         * if and when we get there.
+         */
+        /* For now, let's just do former, so that in general first 256
+         * chars get output as is, while others get escaped.
+         */
+
+	/* Let's check first if it's a Unicode encoding... they
+	 * start with "UTF" and "UCS" (UTF-8, UCS-xxx). Otherwise,
+	 * let's just play safe and assume it's a single-byte encoding
+	 */
+	if (c == 'u' || c == 'U') {
+	    if (StringUtil.encodingStartsWith(enc, "UTF")
+		|| StringUtil.encodingStartsWith(enc, "UCS")) {
+                return 16;
+	    }
+	    if (StringUtil.equalEncodings(enc, "US-ASCII")) {
+                return 7;
+            }
+	    if (StringUtil.encodingStartsWith(enc, "UNICODE")) {
+                // Not too standard... but is listed in IANA charset list
+                return 16;
+            }
+	} else if (c == 'i' || c == 'I') {
+	    if (StringUtil.encodingStartsWith(enc, "ISO-10646")) {
+                /* Hmmh. There are boatloads of alternatives here, it
+                 * seems (see http://www.iana.org/assignments/character-sets
+                 * for details)
+                 */
+                int ix = enc.indexOf("10646");
+                String suffix = enc.substring(ix+5);
+
+                if (StringUtil.encodingStartsWith(enc, "UTF")
+                    || StringUtil.encodingStartsWith(enc, "UCS")) {
+                    return 16; // full unicode
+                } else if (StringUtil.equalEncodings(enc, "US-ASCII")) {
+                    return 7;
+                }
+            } else if (StringUtil.encodingStartsWith(enc, "ISO-646")) {
+                return 7; // another name for Ascii...
+            } else if (StringUtil.encodingStartsWith(enc, "ISO-Latin")) {
+                return 8;
+            }
+	} else if (c == 'a' || c == 'A') {
+	    if (StringUtil.equalEncodings(enc, "ASCII")) {
+                return 7;
+            }
+	}
+        
+        // Ok, let's just assume it's 8-bit clean, but no more...
+        return 8;
     }
 }
 

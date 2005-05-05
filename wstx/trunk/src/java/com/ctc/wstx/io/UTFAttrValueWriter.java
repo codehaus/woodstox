@@ -91,7 +91,6 @@ public class UTFAttrValueWriter
             } 
 	    if (ent != null) {
 		out.write(ent);
-		ent = null;
 	    }
         } while (++off < len);
     }
@@ -134,7 +133,6 @@ public class UTFAttrValueWriter
             }
 	    if (ent != null) {
 		out.write(ent);
-		ent = null;
 	    }
         } while (++off < len);
     }

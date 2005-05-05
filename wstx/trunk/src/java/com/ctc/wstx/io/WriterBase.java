@@ -12,6 +12,8 @@ import java.io.Writer;
 class WriterBase
     extends FilterWriter
 {
+    // // // Constants:
+
     /**
      * Highest valued character that may need to be encoded (minus charset
      * encoding requirements) when writing attribute values.
@@ -28,6 +30,14 @@ class WriterBase
 
     protected final static char CHAR_SPACE = ' ';
 
+    // // // Working space:
+
+    /**
+     * Temporary char buffer used to assemble character entities. Big
+     * enough to contain full hex-encoded 16-bit char entities (like
+     * '&amp;#x1234;')
+     */
+    protected char[] mEntityBuffer = null;
 
     protected WriterBase(Writer out) {
         super(out);
@@ -59,28 +69,24 @@ class WriterBase
 	throw new IOException("Null character in text to write");
     }
 
-    /**
-     * @return True, if the space is a 'RestrictedChar' (as per XML 1.1)
-     *   and should be quoted when output as text. Note that this does NOT
-     *   apply to space in attribute values, mostly due to it usually getting
-     *   normalized no matter what.
-     */
-    protected final static boolean spaceNeedsEscaping(char c)
+    protected final void writeAsEntity(int c)
         throws IOException
     {
-        if (c != '\r' && c != '\n' && c != '\t') {
-            ;
+        char[] cbuf = mEntityBuffer;
+        if (cbuf == null) {
+            mEntityBuffer = new char[8];
+            cbuf[0] = '&';
+            cbuf[1] = '#';
+            cbuf[2] = 'x';
+            cbuf[7] = ';';
         }
-        return true;
-    }
-
-    protected final static void writeSpace(Writer w, char c)
-        throws IOException
-    {
-        if (c != '\r' && c != '\n' && c != '\t') {
-            if (c == CHAR_NULL) {
-            }
-            w.write(c);
+        for (int ix = 6; ix > 2; --ix) {
+            int digit = (c & 0xF);
+            c >>= 4;
+            cbuf[ix] = (char) ((digit < 10) ?
+                               ('0' + digit) :
+                               (('a' - 10) + digit));
         }
+        out.write(cbuf, 0, 8);
     }
 }
