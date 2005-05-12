@@ -26,7 +26,7 @@ public abstract class SMElementInfo
 
     /**
      * Optional operation that will return information about the parent
-     * element of this element, if one exists; null if not (ie. for the
+     * element of this element, if one exists; null if not (case for the
      * root element).
      * If not implemented, needs to return null
      */

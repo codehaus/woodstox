@@ -2,6 +2,13 @@
 
     <project name="StaxMate" basedir="." default="readme">
 
+    <!-- Version information -->
+
+    <!-- Woodstox version -->
+    <property name="STAXMATE_TITLE" value="StaxMate" />
+    <property name="STAXMATE_VERSION" value="0.6" />
+    <property name="STAXMATE_VENDOR" value="http://woodstox.codehaus.org" />
+
     <property name="ProjectName" value="StaxMate library" />
     <!-- Source directories -->
     <property name="SrcDir" location="${basedir}/src" />
@@ -87,8 +94,14 @@
     </target>
 
     <target name="jar" depends="compile">
-        <jar jarfile="${BuildDir}/staxmate.jar"
+        <jar jarfile="${BuildDir}/staxmate-${STAXMATE_VERSION}.jar"
             filesonly="true" >
+          <manifest>
+            <attribute name="Built-By" value="${user.name}"/>
+            <attribute name="Implementation-Title"   value="${STAXMATE_TITLE}"/>
+            <attribute name="Implementation-Version" value="${STAXMATE_VERSION}"/>
+            <attribute name="Implementation-Vendor"  value="${STAXMATE_VENDOR}"/>
+          </manifest>
           <fileset dir="${BuildClassesDir}">
              <include name="com/ctc/**/*.class" />
           </fileset>

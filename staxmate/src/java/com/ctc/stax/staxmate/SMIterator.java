@@ -44,7 +44,7 @@ public abstract class SMIterator
      * This means that {@link #getTrackedElement} will return non-null
      * values, as soon as this iterator has been advanced over its first
      * element node. However, element will return null from its
-     * {@link SMElement#getPreviousSibling} since sibling information
+     * {@link SMElementInfo#getPreviousSibling} since sibling information
      * is not tracked.
      */
     public final static int TRACK_ELEM_PARENTS = 1;
@@ -56,7 +56,7 @@ public abstract class SMIterator
      * This means that {@link #getTrackedElement} will return non-null
      * values, as soon as this iterator has been advanced over its first
      * element node, and that element will return non-null from its
-     * {@link SMElement#getPreviousSibling} unless it's the first element
+     * {@link SMElementInfo#getPreviousSibling} unless it's the first element
      * iterated by this iterator.
      */
     public final static int TRACK_ELEM_VISIBLE_SIBLINGS = 2;
@@ -68,7 +68,7 @@ public abstract class SMIterator
      * This means that {@link #getTrackedElement} will return non-null
      * values, as soon as this iterator has been advanced over its first
      * element node, and that element will return non-null from its
-     * {@link SMElement#getPreviousSibling} unless it's the first element
+     * {@link SMElementInfo#getPreviousSibling} unless it's the first element
      * iterated by this iterator.
      */
     public final static int TRACK_ELEM_ALL_SIBLINGS = 3;
@@ -471,13 +471,13 @@ public abstract class SMIterator
      * concept of child iterators, it will throw
      * {@link UnsupportedOperationException}
      *
-     * @param filter Filter child iterator is to use for filtering out
+     * @param f Filter child iterator is to use for filtering out
      *    'unwanted' nodes; may be null for no filtering
      *
      * @throws IllegalStateException If iterator can not be created due
      *   to the state iterator is in.
-     * @throws UnsupportedOperationException If iterator does not allow creation
-     *   of child iterators.
+     * @throws UnsupportedOperationException If iterator does not allow
+     *   creation of child iterators.
      */
     public SMIterator childIterator(SMFilter f)
         throws XMLStreamException
