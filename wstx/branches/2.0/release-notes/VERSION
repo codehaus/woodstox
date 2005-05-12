@@ -1,9 +1,17 @@
-Version: 2.0rc1
+Version: 2.5
 
-Release date: 10-May-2005
+Release date: xx-May-2005
 
 Description:
-  First release candidate for the eventual 2.0 release
+  First release in pre-3.0 development branch.
+
+  New functionality:
+
+  Problems fixed:
+
+== History: ==
+
+2.0rc1: [11-Apr-2005]
 
   New functionality:
 
@@ -37,9 +45,6 @@ Description:
            writeEndElement() (except there can be intervening 
            writeAttribute() calls). If disabled, only explicit calls to
            writeEmptyElement() can produce empty elements.
-
-== History: ==
-
 
 1.9.0: [20-Apr-2005]
 
@@ -221,63 +226,7 @@ Description:
       com.ctc.wstx.stax.evt.WstxEventFactory. This shouldn't usually matter,
       as deployment properties were updated.
 
+-----
 
-1.0.1: [23-Oct-2004]
-
-  Problems fixed:
-
-  * UTF-8 decoding failed for 3- (and 4-) byte characters (1 and 2 byte
-    decoding was working ok, ie. Ascii and ISO-Latin weren't affected)
-  * Stream reader had getEncoding() and getCharacterEncodingScheme()
-    mixed up.
-  * Stream reader's nextTag() was not properly skipping comments
-    and processing instructions.
-
-1.0-RCx - 1.0-final: [28-Aug-2004 - 11-Oct-2004]
-
-  Problems fixed:
-
-  * A problem with reading CDATA section that could lead to infinite loop
-    fixed.
-  * Changed default setting of CHECK_NS for output factory to false, to
-    be closer to what StAX API expects
-  * Pre-defined entities in general internal entities were not properly
-    handled; were expanded when reading the entity definition, which is
-    incorrect (this was a regression bug somewhere before 1.0-RC series)
-  * WstxEventFactory.createAttribute() didn't properly pass prefix.
-  * Fixed a problem in default entity value parsing (ClassCastException).
-  * Problem with stream writer (required WriteNamespace in namespace-repairing
-    mode), now fixed.
-  * XMLStreamReader.getElementText() didn't behave as specified by StAX
-    specs, for empty elements (was throwing an exception; should return
-    empty String).
-  * Fixed problem of default "xml" namespace prefix not being recognized
-    by the stream writer.
-  * NullPointerException in event reader: was clearing out peeked event,
-    but then trying to de-reference it (instead of temp variable that had
-    that value copied from peeked event).
-  * There was a bug in accessing local name of an attribute by index in
-    non-namespace mode.
-  * Another attribute name resolution bug; occured when there were lots of
-    spills in the internal attribute map structure, array index exception
-    was thrown (specific case with 11 attributes was found and reported by
-    a user)
-  * A subtle bug in entity handling; if an entity starts a segment,
-    but expanded to content not starting with text, a "ghost" text
-    segment with length 0 was returned.
-  * Problem with stream writer (required WriteNamespace in namespace-repairing
-    mode), now fixed.
-  * A problem with reading CDATA section that could lead to infinite loop
-    fixed.
-  * Changed default setting of CHECK_NS for output factory to false, to
-    be closer to what StAX API expects
-
-  Refactoring:
-
-  * Rewrote output factory code to use WriterConfig objects, just like
-    input factories have done.
-  * Made parsing somewhat "less lazy" in lazy mode; now reads in the
-    "cheap" parts right away, in the hopes this may read the whole (text)
-    segments, and also allows for slightly better error reporting.
-    This also simplified entity handling a bit, as text segments that
-    begin with an entity are now handled more reliably.
+[comments for versions 0.5 to 1.0.6 removed -- check out older versions if
+ you are interested in historic details]

@@ -1,9 +1,15 @@
-Version: 2.0rc1
+Version: 2.0rc2
 
-Release date: 10-May-2005
+Release date: xx-May-2005
 
 Description:
-  First release candidate for the eventual 2.0 release
+  Second release candidate for the eventual 2.0 release
+
+  Problems fixed:
+
+== History: ==
+
+2.0rc1: [11-Apr-2005]
 
   New functionality:
 
@@ -37,9 +43,6 @@ Description:
            writeEndElement() (except there can be intervening 
            writeAttribute() calls). If disabled, only explicit calls to
            writeEmptyElement() can produce empty elements.
-
-== History: ==
-
 
 1.9.0: [20-Apr-2005]
 
