@@ -1,0 +1,283 @@
+Version: 2.0rc1
+
+Release date: 10-May-2005
+
+Description:
+  First release candidate for the eventual 2.0 release
+
+  New functionality:
+
+  * XMLStreamReader2.getText(Writer) now implemented in fully streaming manner
+    for CHARACTERS and CDATA events! (also tested succesfully using unit
+    tests, so it does really work).
+  * Improved text/attribute value writer system so that they now use
+    character entities for characters outside of encoding range (for ascii
+    and ISO-Latin, for example)
+  * Moved profile configuration methods from woodstox API to StAX2 API.
+ 
+  Problems fixed:
+
+  * XMLStreamReader:
+    * Fixed "]]>"-detection; was erroneously matching some escaped variations
+      where they shouldn't have matched.
+  * XMLStreamWriter:
+    * Not necessarily a problem, but I change the way XML declaration is output
+      so that it's identical to format used by Stax RI (using single quotes,
+      no trailing extra space). Makes life easier for some general stax testing
+      (particularly ActiveSOAP), without affecting applications.
+    * Changed the way flush() works, so that it can now "finish" start
+      elements (both normal and closed ones) and force such start elements
+      to be written out, even in the absence of following events. This is
+      sometimes necessary for networked streaming applications.
+   * StAX2:
+      * XMLOutputFactory2:
+         * Added P_AUTOMATIC_EMPTY_ELEMENTS property, enabled by default,
+           which signals that the writer is allowed to output empty elements
+           whenever writeStartElement() is immediately followed by a
+           writeEndElement() (except there can be intervening 
+           writeAttribute() calls). If disabled, only explicit calls to
+           writeEmptyElement() can produce empty elements.
+
+== History: ==
+
+
+1.9.0: [20-Apr-2005]
+
+  New functionality:
+   * XMLStreamReader:
+      * Full read-only access to configuration settings via getProperty()
+      * StAX2 addition, LocationInfo, implemented to allow for extended
+        access to location information: both start, end and current locations
+        available, and "raw" access to start/end byte and char offsets (with
+        appropriate long return values). Off latter, only char offsets
+        actually implemented, due to problems with byte offset tracking
+        with current i/o architecture.
+   * XMLStreamWriter:
+      * Full read-only access to configuration settings via getProperty()
+
+  Problems fixed:
+   * XMLStreamReader: 
+      * Fixed various Location reporting problems (OBOs, Location not
+        properly updated in lazy-parsing mode)
+   * XMLStreamWriter:
+      * Repairing mode was not properly handling namespace bindings, esp.
+        WRT default namespace. Now the implementation is believed to
+        (finally!) work exactly as expected.
+   * A compilation problem (on JDK 1.5) reported by Olivier Potonniee (a
+     method name conflict in LineSuppressWriter)
+
+
+1.8.2: [23-Mar-2005]
+
+  Problems fixed:
+
+    * XMLStreamWriter:
+      * Had problems with writeEmptyElement() call followed by a 
+        writeEndElement() call; fixed now.
+    * Problems with charset decoding:
+      * Failed with UTF-16 encodings (reported by Mariun Raschip); now fixed.
+
+1.8.1: [10-Mar-2005]
+
+  Problems fixed:
+
+    * Fixed 3 bugs reported by Eric Jain:
+      * Bug that occured when declaring the default namespace in the same
+        element as a non-default namespace (but only when the default one
+        wasn't the first one)
+      * ArrayIndexOutOfBoundsException sometimes occured with large documents,
+        esp. if read using a network or gzip stream readers.
+      * Problem with the repairing stream writer when generating the namespace
+        declaration for elements dynamically; was trying to output bindings
+        twice.
+    * Fixes for XMLStreamWriter:
+       * a minor incompatibility with the stax 1.0 specs:
+         XMLStreamWriter.writeStartDocument() was not using default values
+         defined by the specs.
+       * writeComment() was quoting content ('<' and '&' specifically);
+         shouldn't.
+
+1.8: [28-Feb-2005]
+
+  New functionality:
+
+    * Implemented "StAX 2" interface; extended versions of many of
+      StAX 1.0 interfaces and abstract classes. Improvements are
+      in following areas:
+       * Access to formerly missing information (DTDInfo, AttributeInfo,
+         XMLStreamLocation2, new methods to XMLStreamReader)
+       * Efficient (fully streaming) access to textual event content:
+         XMLStreamReader2.getText() passing a writer, pass-through
+         XMLStreamWriter2.copyEventFromReader() for copying events
+         as read (more efficient than explicit piece-by-piece copying),
+         XMLStreamReader2.skipElement() for skipping whole sub-trees.
+       * Configurable output using XMLStreamWriter2: all XMLEvents can
+         be output using specified XMLStreamWriter2 instance; can
+         define custom text content and attribute value quoters
+         (to quote/encode additional characters in output);
+         raw output methods for by-passing all quoting and structural
+         checks.
+       * Basic support for per-instance (XMLStreamReader2, XMLStreamWriter2)
+         configuration (only few features defined so far).
+
+  Problems fixed:
+
+    * Stream reader now correctly accesses attribute type information,
+      when validating against DTD (passes matching staxtest test case).
+    * Source package now contains jars absolutely needed for compilation.
+    * Fixed a problem with UTF-8 reader; occasionally tried to read 0
+      bytes from the underlying stream, and threw an exception.
+
+1.7: [12-Dec-2004]
+
+  New functionality:
+    * Added P_OUTPUT_CDATA_AS_TEXT for stream writers; it will force
+      writer to output 'normal' (quoted) text when asked to output
+      CDATA (may be useful when full control of output is needed).
+    * Added P_PRESERVE_LOCATION flag for (event) reader: by default it
+      is true, and Event objects have fully accurate Location information.
+      Turning it off will make all Events use a shared location; this
+      can improve performance of straight event-based parsing by
+      up to 20-25%!
+    * Added simple QName caching/recycling in input element stack; improves
+      speed of event reader by ~5% for typical cases.
+    * Adding some preliminary support for DTD++ (although full support is
+      not planned to be part of 2.0 at this point):
+      * Can enable/disable support via normal property set mechanism
+      * Implements TARGETNS that allows proper mapping of prefixes
+        to namespace URIs in DTD.
+
+  Problems fixed:
+    * Fixed a validation problem (pure text [#PCDATA] content didn't
+      report validation problem when elements included)
+    * Stream writer was adding an extra space between PI target and data, in
+      cases where data already had space (such as when getting PI data
+      from [broken] stream reader).
+    * As pointed out by Glenn Marcy, processing instruction target should
+      not contain leading space: Woodstox fixed, StAX specs need to clarify
+      this too.
+    * Fixed a small problem with attribute parsing; space between attribute
+      value and following name was optional.
+    * Finished full default value validation support (mostly relevant for
+      NOTATION, ENTITY and ENTITIES types).
+    * Improved event writer so that it preserves CDATA events.
+    * Fixed a problem with UTF-8 decoder that could cause readers to block
+      "too early", as decoder was trying to always read full buffers,
+      instead of returning whatever could be decoded without further reads
+      from the underlying input stream (reported by Sven Köhler).
+    * Changed XMLEventReader.nextTag() implementation to be consistent
+      with that of XMLStreamReader.nextTag(), even though stax (1.0) specs
+      are bit unclear on exact behaviour. I assume it's just an oversight
+      on specs' part, as XMLStreamReader's javadocs comments are clear.
+
+  Refactoring:
+    * Rewrote stream writer; now has 3 implementations (separated
+      single namespace-aware writer into 2; repairing and non-repairing)
+
+  Other:
+    * Now dual-licensed under LGPL and ASL (formerly LGPL-only)
+
+1.6: [31-Oct-2004]
+
+  New functionality:
+    * Completed DTD validation, including full handling of all
+      attribute value types (for default values too); also better tested
+      via StaxTest now.
+
+  Problems fixed:
+    * Fixes from 1.0.1 incorporated.
+
+1.5: [13-Oct-2004]
+
+  New functionality:
+
+    * Partial DTD validation:
+       * Full structural validation (element structure)
+       * Full checks for definitions of attributes and elements
+       * Handles mixed/non-mixed content checks
+       * Partial attribute validation, including:
+          * Checks for #REQUIRED and #FIXED values
+          * Handles default values
+          * Checks for ID/IDREF validity
+          * Checks for enumerated and NOTATION validity
+          * Normalizes attribute white space
+        Still missing validation for some attribute types; also,
+        not all validation fully tested yet.
+
+  Problems fixed:
+
+    * Now checks "split" comments and PIs; comments/PIs that start in
+      entity expansion but do not finish. These aren't allowed by XML specs.
+
+  Refactoring:
+
+    * Created specific exception class (that extends RuntimeException)
+      for throwing "lazy" parsing errors; allows for catching such
+      exceptions reliably if necessary.
+    * Refactored class hierarchy; flattened it so that not most sub-packages
+      are no longer under com.ctc.wstx.stax, but directly under com.ctc.wstx.
+    * Only change to public API: event factory is now in package
+      com.ctc.wstx.stax.WstxEventFactory, instead of
+      com.ctc.wstx.stax.evt.WstxEventFactory. This shouldn't usually matter,
+      as deployment properties were updated.
+
+
+1.0.1: [23-Oct-2004]
+
+  Problems fixed:
+
+  * UTF-8 decoding failed for 3- (and 4-) byte characters (1 and 2 byte
+    decoding was working ok, ie. Ascii and ISO-Latin weren't affected)
+  * Stream reader had getEncoding() and getCharacterEncodingScheme()
+    mixed up.
+  * Stream reader's nextTag() was not properly skipping comments
+    and processing instructions.
+
+1.0-RCx - 1.0-final: [28-Aug-2004 - 11-Oct-2004]
+
+  Problems fixed:
+
+  * A problem with reading CDATA section that could lead to infinite loop
+    fixed.
+  * Changed default setting of CHECK_NS for output factory to false, to
+    be closer to what StAX API expects
+  * Pre-defined entities in general internal entities were not properly
+    handled; were expanded when reading the entity definition, which is
+    incorrect (this was a regression bug somewhere before 1.0-RC series)
+  * WstxEventFactory.createAttribute() didn't properly pass prefix.
+  * Fixed a problem in default entity value parsing (ClassCastException).
+  * Problem with stream writer (required WriteNamespace in namespace-repairing
+    mode), now fixed.
+  * XMLStreamReader.getElementText() didn't behave as specified by StAX
+    specs, for empty elements (was throwing an exception; should return
+    empty String).
+  * Fixed problem of default "xml" namespace prefix not being recognized
+    by the stream writer.
+  * NullPointerException in event reader: was clearing out peeked event,
+    but then trying to de-reference it (instead of temp variable that had
+    that value copied from peeked event).
+  * There was a bug in accessing local name of an attribute by index in
+    non-namespace mode.
+  * Another attribute name resolution bug; occured when there were lots of
+    spills in the internal attribute map structure, array index exception
+    was thrown (specific case with 11 attributes was found and reported by
+    a user)
+  * A subtle bug in entity handling; if an entity starts a segment,
+    but expanded to content not starting with text, a "ghost" text
+    segment with length 0 was returned.
+  * Problem with stream writer (required WriteNamespace in namespace-repairing
+    mode), now fixed.
+  * A problem with reading CDATA section that could lead to infinite loop
+    fixed.
+  * Changed default setting of CHECK_NS for output factory to false, to
+    be closer to what StAX API expects
+
+  Refactoring:
+
+  * Rewrote output factory code to use WriterConfig objects, just like
+    input factories have done.
+  * Made parsing somewhat "less lazy" in lazy mode; now reads in the
+    "cheap" parts right away, in the hopes this may read the whole (text)
+    segments, and also allows for slightly better error reporting.
+    This also simplified entity handling a bit, as text segments that
+    begin with an entity are now handled more reliably.

@@ -1,0 +1,86 @@
+== Using Woodstox XML parser via StAX ==
+
+Woodstox is designed to be used as pluggable StAX implementation (see
+<http://www.jcp.org/en/jsr/detail?id=173> for explanation about
+StAX specification). As such, reader and writer instances are usually
+created using STaX factory methods; this is the recommended method.
+
+StAX specification defines couple of methods for specifying which StAX
+implementation to use (properties file, service entries in jar file,
+System properties); in each case you have to basically define 3 classes:
+one that implements XMLInputFactory, one that implements XMLOutputFactory,
+and third one that implements XMLEventFactory (to potentially be used by
+XMLInputFactory implementation).
+[sidenote: current version of Woodstox really only needs first two for
+ correct operation; internally it does not make use of the event factory].
+
+For Woodstox classes are, respectively:
+
+com.ctc.wstx.stax.WstxInputFactory
+com.ctc.wstx.stax.WstxOutputFactory
+com.ctc.wstx.stax.WstxEventFactory
+
+Starting with version 0.8.3, jar files will automatically include service
+entries that will specify these System property settings. This is usually
+enough, if you only include one StAX implementation, such as Woodstox.
+
+However, if you have multiple StAX implementations, you may have to
+specifically set/override system properties to point to the implementation
+you want: from Java code it can be done by calling:
+
+System.setProperty("javax.xml.stream.XMLInputFactory",
+  "com.ctc.wstx.stax.WstxInputFactory");
+System.setProperty("javax.xml.stream.XMLOutputFactory",
+  "com.ctc.wstx.stax.WstxOutputFactory");
+System.setProperty("javax.xml.stream.XMLEventFactory",
+  "com.ctc.wstx.stax.WstxEventFactory");
+
+when your application starts (or the class that access factories is
+initialised). Alternatively, you can also set system properties via command
+line switches when starting your application
+(-Djavax.xml.stream.XMLInputFactory=javax.xml.stream.XMLInputFactory
+ and so on).
+
+== Using Woodstox XML parser without StAX ==
+
+It is also possible to directly instantiate objects, but the API (class
+names, constructors, factory methods) is not guaranteed to remain
+static between releases. It is possible that in future some public
+factory methods will be added, to allow creating more specialized
+instances, to overcome some of StAX API limitations.
+
+It is NOT possible to use Woodstox, as is, without having StAX classes
+available, since many Woodstox classes implement StAX interfaces.
+
+
+== Dependencies ==
+
+Due to implementing StAX API, Woodstox has dependency to StAX API JAR
+file. For up to JDK 1.5.0, StAX is not (yet?) part of J2SE or J2EE, so you
+have to download StAX jar separately.
+
+Woodstox can be run on JDKs 1.2 and up. Some of features of later JDKs
+are optionally used if available; these generally are "nice-to-have"
+features, such as chained Exceptions (1.4+), order-retaining definitions
+for entities and notations (1.4+) and so on.
+The only caveat is that compiling Woodstox has to be done using javac
+with 1.4 libs, or alternatively, by modifying Ant build.xml to ignore
+the few class files that refer to 1.3/1.4 features (found in
+com.ctc.wstx.compat package).
+
+
+== Performance ==
+
+Full discussion on best practices for good performance needs to be done
+outside scope of a simple document, but the main thing about performance
+is that all caching is currently done on per-input factory basis: symbol
+tables are factory-specific, as is DTD cache. Thus, for optimal performance,
+parsing of related XML documents (same DTD/schema) should always done using
+Readers created using same factory. Factory Objects are thread-safe after
+being initialized and configured, so there is no risk sharing them (but
+only after proper initialization!).
+
+It is also worth noting that input factory configuration settings do have
+effect on performance. For obtaining highest performance, there is a specific
+profile that can be set, when 100% XML specs compatibility is not needed.
+

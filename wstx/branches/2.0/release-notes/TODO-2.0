@@ -1,0 +1,153 @@
+------------------------------------
+Must-haves for 2.0
+------------------------------------
+
+* BUGS:
+[Partial] * Should not fail on quoted ]]>... Does not, any more, but now
+  catching ]]>s in textual content is only 98% reliable (won't match
+  ones that are split by input buffer boundary).
+
+* Stream writers:
+  [wont-implement] * Validate content to write? (chars in text content)... in
+    a way, doable, but... is it worth it?
+  [DONE] * Consider auto-quoting of characters that either can't be represented
+     in encoding (Ascii, ISO-Latin1).
+
+* DTD-handling/parsing:
+[DONE] * Verify that an unparsed entity refers to a declared notation.
+[DONE] * Make attribute type declarations accessible via stream API
+[wont-implement] * Make attribute type declarations accessible via event API?
+
+* Unit testing: Implement at least simple basic StAX-tests for:
+   * Stream reader
+      [DONE] * Unit tests for attribute access?
+      [DONE] * Test misc. properties (isEmpty, depth)
+      [DONE] * Test skipElement
+      [DONE] * Test streaming access
+      [partial] * Location info tests
+      [DONE] * Test attribute order; woodstox guarantees order preservation
+        (and that the default attrs come after non-default ones)
+   * Event reader: what to test?
+   * Stream writer
+      [DONE] * Name validation
+   * Event writer: what to test?
+
+* Documentation:
+   * Impl. details, like: always interns names, preserves attribute value
+     orders.
+   * Requirements for compiling, running:
+      * Ant 1.5? (rootfileset)
+      * Jars: for 1.3/1.2 SAX and DOM API jars?
+      * How to build for 1.2, 1.3?
+   * FAQ:
+      * Output streaming; use of 'writeCharacters("");', flush()
+
+* Compatibility:
+   [todo] * Remove dependency to BitSet.nextSetBit and nextClearBit; these
+     methods are only in JDK 1.4. But they are (alas!) used by DTD processing.
+
+* StAX 2.0 features:
+   * Configuration/introspection:
+      [DONE] * Interning status (INTERN_NAMES [== localname,prefix], INTERN_URIS)?
+   [DONE] * Package API classes to a separate jar (in addition to including
+     them in woodstox jars)
+   * XMLEventReader2:
+      [DONE] * Add exception-aware next method
+   * XMLEvent2:
+      [DONE] * Add writeUsing(XMLStreamWriter)
+   * XMLInputFactory2:
+      [DONE] * Create URL/file-based factory methods for readers
+   * XMLOutputFactory2:
+      [DONE] * Additional new StAX2 std properties; encoding writers,
+      enable empty element output, define ns prefix-prefix for auto-generated
+      ns prefixes.
+   * XMLStreamLocation2:
+      [DONE] * allow access to nested location information
+   * XMLStreamReader2:
+      [DONE] * getFeature/setFeature: allow overriding DTD to use?
+      [DONE] * Traversal: skipElement()
+      [DONE] * Extra attribute access via AttributeInfo; findAttributeIndex,
+        getIdAttributeIndex, getNotationAttributeIndex
+      [DONE] * Separate DTD info access behind a new interface (DTDInfo?)
+      [DONE]  * Streaming access: getText with Writer arg
+      [Defer/ignore] * Streaming access: getTextReader
+      [DONE] * Misc: isEmptyElement, getDepth
+      [DONE] * Full pass-through method (copyEventFromReader())
+      [DONE] * Extended location information access via LocationInfo;
+        methods for getting start and end locations of an event, long-valued
+        byte/char offsets.
+   * XMLStreamWriter2:
+      [DONE] * pass-through write method for outputting raw (non-encoded) stuff
+      [DONE] * setFeature/getFeature (note: no properties defined yet...)
+      [DONE] * writeDTD to support DTD2
+      [DONE] * writeFullEndElement (for ensuring explict end tag)
+      [DONE] * A new property P_OUTPUT_FIX_CONTENT; if content verification
+        enabled, will quietly try to fix content problems first (comments,
+        CDATA; not sure about PIs?)
+      [DONE] * Explicit content "flushing", to ensure current event is
+        physically written to stream, and that stream is flushed.
+[DONE] * evt/DTD2: allow access to root name, system id, public id, int. subset
+[DONE] * evt/XMLEventFactory2: factory methods for creating DTD2, StartElement2 instances
+[DONE] * EncodingWriterFactory, to create encoding writers for XML encoding,
+         and matching implementations.
+
+------------------------------------
+Maybe for 2.0?
+------------------------------------
+
+* Fragment parsing/writing:
+   * Allow for reading and writing of XML document fragments; essentially
+     suppressing checks for single-root, and assuming that the outermost
+     element(s) are not document root nodes (meaning also that DTD is not
+     allowed to be output)
+
+------------------------------------
+For 2.x series (not for 2.0)
+------------------------------------
+
+* Direct SAX-wrapping?
+
+* Handling of "]]>" in text:
+   * Check for problem even when skipping
+* Exception-handling:
+   * Add a WstxOutputException?
+   * Separate exception class for DTD-parsing problems?
+   * Perhaps add formal numeric (integer) error codes, to allow other code
+     to more reliably determine problem type?
+
+* DTD-handling/parsing:
+   * Parse less information if no validation needed: partially done, does not
+     really create content specifications; could also ignore creation of
+     attribute lists?
+   * Make public API that allows parsing of DTDs; main use will be
+     to feed such DTD objects back as either override-DTDs (input),
+     or actual DTDs (output+indenting, output+validation)
+
+* Caching:
+   * Refactor caching out of input factory, to be shared between
+     factories and input/output modes (but have 2 actual Maps in
+     CacheManager, to prevent trashing by either side).
+
+* Writer, pretty printing:
+   * Heuristics
+   * DTD-based
+
+* Writer, DTD validation
+
+------------------------------------
+FROM 1.0 Backlog
+------------------------------------
+
+Documentation:
+
+Namespace handling:
+
+* (optional) Check that URIs that match 'xml' and 'xmlns' are not redefined?
+  This is done by Xerces; not sure if namespace specs dictate this?
+  [implement for 1.x?]
+
+Refactoring:
+
+* Continue working on J2ME subset; partial implementations do exist for
+  both input and output factories, but should be able to squeeze out
+  some more classes from subsets.

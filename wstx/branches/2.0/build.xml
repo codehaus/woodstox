@@ -1,0 +1,502 @@
+<?xml version="1.0" standalone='yes'?>
+
+    <project name="Woodstox XML processor" basedir="." default="readme">
+
+    <property name="ProjectName" value="Woodstox XML processor" />
+
+    <!-- Hmmh... Jikes is better at finding semantic problems
+      than basic javac (not to mention faster). But is this a personal
+      preference?
+      Also, don't want to have a dependency to Jikes...
+    <property name="build.compiler" value="jikes" />
+    -->
+
+    <!-- Source directories -->
+    <property name="SrcDir" location="${basedir}/src" />
+    <property name="JavaSrcDir" location="${SrcDir}/java" />
+    <property name="TestSrcDir" location="${SrcDir}/test" />
+    <property name="ResourcesDir" location="${SrcDir}/resources" />
+    <property name="RelNotesDir" location="${basedir}/release-notes" />
+
+    <!-- Libs -->
+    <property name="LibDir" location="${basedir}/lib" />
+    <!-- Build-related -->
+    <property name="BuildDir" location="${basedir}/build" />
+    <property name="BuildClassesDir" location="${BuildDir}/classes" />
+    <!-- Documentation -->
+    <property name="DocDir" location="${basedir}/doc" />
+    <property name="JavaDocDir" location="${BuildDir}/javadoc" />
+    <!-- Test suite -->
+    <property name="TestDir" location="${basedir}/test" />
+    <property name="TestClassesDir" location="${TestDir}/classes" />
+    <property name="TestResultsDir" location="${TestDir}/results" />
+    <property name="TestXmlResultsDir" location="${TestResultsDir}/xml" />
+    <property name="StaxTestClassesDir" location="${TestDir}/staxtest-classes" />
+    <!-- Distribution -->
+    <property name="DistDir" location="${basedir}/dist" />
+
+    <!-- Version information -->
+
+    <!-- Woodstox version -->
+    <property name="STAX_TITLE" value="StAX 1.0 API" />
+    <property name="STAX_VERSION" value="1.0" />
+    <property name="STAX_VENDOR" value="http://jcp.org/en/jsr/detail?id=173" />
+    <property name="WSTX_TITLE" value="WoodSToX XML-processor" />
+    <property name="WSTX_VERSION" value="2.0rc1" />
+    <property name="WSTX_VENDOR" value="woodstox.codehaus.org" />
+
+    <!-- Extended API, working title "StAX2" (not version 2.0, but 2/squared)
+      -->
+    <property name="STAX2_TITLE" value="StAX2 API" />
+    <property name="STAX2_VERSION" value="1.0" />
+    <property name="STAX2_VENDOR" value="http://www.cowtowncoder.com" />
+
+    <!-- jars needed for compilation -->
+    <path id="compile-classpath">
+        <fileset dir="${LibDir}" includes="stax-api*.jar" />
+    </path>
+    <path id="junit-libs">
+       <fileset dir="${LibDir}">
+            <include name="junit/junit*.jar" />
+       </fileset>
+    </path>
+
+    <!-- Source files to include in source packages (tar, zip) -->
+    <patternset id="wstx-dist-src-files">
+          <include name="src/**/*.java" />
+          <include name="src/java/**/*.html" />
+          <include name="src/resources/*" />
+          <include name="release-notes/*" />
+          <include name="release-notes/asl/*" />
+          <include name="release-notes/lgpl/*" />
+          <include name="build.xml" />
+          <include name="project.xml" />
+          <!-- need jars too; at least the api jar, but let's copy
+               all for now... it's nice to have the unit tests in there
+               too. This way src packages are proper subsets of binary ones
+            -->
+          <include name="lib/*.jar" />
+    </patternset>
+
+    <!-- Core Woodstox class files common to all license flavours: -->
+    <patternset id="wstx-dist-class-files">
+        <include name="com/ctc/**/*.class" />
+        <include name="META-INF/services/javax.xml.stream.*" />
+    </patternset>
+
+    <!-- StAX2 class files common to all license flavours: -->
+    <patternset id="stax2-dist-class-files">
+        <include name="org/codehaus/stax2/**/*.class" />
+    </patternset>
+
+
+    <!-- And then something nifty, for creating minimal jars! -->
+ 
+    <classfileset id="j2meInputMinimal" dir="${BuildClassesDir}">
+       <root classname="com.ctc.wstx.stax.MinimalInputFactory" />
+       <rootfileset dir="${BuildClassesDir}" includes="com/ctc/wstx/compat/Jdk*Impl.class" />
+    </classfileset>
+
+    <classfileset id="j2meInputValidating" dir="${BuildClassesDir}">
+       <root classname="com.ctc.wstx.stax.ValidatingInputFactory" />
+       <rootfileset dir="${BuildClassesDir}" includes="com/ctc/wstx/compat/Jdk*Impl.class" />
+    </classfileset>
+
+    <classfileset id="j2eeInput" dir="${BuildClassesDir}">
+       <root classname="com.ctc.wstx.stax.WstxInputFactory" />
+       <rootfileset dir="${BuildClassesDir}" includes="com/ctc/wstx/compat/Jdk*Impl.class" />
+    </classfileset>
+
+    <classfileset id="j2meOutput" dir="${BuildClassesDir}">
+       <root classname="com.ctc.wstx.stax.MinimalOutputFactory" />
+       <rootfileset dir="${BuildClassesDir}" includes="com/ctc/wstx/compat/Jdk*Impl.class" />
+    </classfileset>
+
+    <!--*********************************************************************-->
+    <!-- The readme target shows a brief description of all targets          -->
+    <!-- supported by this ant build file                                    -->
+    <!--*********************************************************************-->
+    <target name="readme">
+        <echo message = "${ProjectName}'s Available Targets" />
+        <echo message = "---------------------------------------------------" />
+        <echo message = "1)  readme - Displays this information (default target)." />
+        <echo message = "2)  clean - Remove any generated files/directories." />
+        <echo message = "3)  compile - Compile all non-test ${ProjectName} code." />
+        <echo message = "4)  jars - Compile and create all jars for non-test ${ProjectName} code (see below for specific ones)." />
+        <echo message = "4a)  jar.wstx.lgpl - Compile and create jar for non-test ${ProjectName} cod, under LGPL license." />
+        <echo message = "4b)  jar.wstx.asp - Compile and create jar for non-test ${ProjectName} cod, under Apache (2.0) license." />
+        <echo message = "4b)  jar.j2me - Compile and create minimal non-test jar of ${ProjectName}, that implements J2ME subset of StAX." />
+        <echo message = "5)  javadoc - Generate ${ProjectName} code documentation." />
+        <echo message = "6)  test.compile - Compile ${ProjectName} code and test code" />
+        <echo message = "       for JUnit tests." />
+        <echo message = "7a)  test - Run Woodstox-specific JUnit tests." />
+        <echo message = "7b)  staxtest - Run generic StAX JUnit tests." />
+        <echo message = "8)  dist - Create distribution directory and copy necessary files there" />
+        <echo message = "9) all - Run the clean, compile, javadoc," />
+        <echo message = "         test and dist targets." />  
+        <echo message = "" />
+        <echo message = "Available command-line arguments:" />
+        <echo message = "---------------------------------" />
+        <echo message = "-Dlicense : allowed values 'asl', 'lgpl' (chooses license to use for jars)" />
+    </target>
+
+    <target name="prepare">
+        <!-- make build directories -->
+        <mkdir dir="${BuildDir}" />
+        <mkdir dir="${BuildClassesDir}" />
+
+        <!-- make docs directories -->
+        <mkdir dir="${DocDir}" />
+        <mkdir dir="${JavaDocDir}" />
+
+        <!-- make test output directories -->
+        <mkdir dir="${TestDir}" />
+        <mkdir dir="${TestClassesDir}" />
+        <mkdir dir="${TestResultsDir}" />
+        <mkdir dir="${TestXmlResultsDir}" />
+
+        <!-- and finally distribution dir -->
+        <mkdir dir="${DistDir}" />
+    </target>
+
+    <!-- ***********************************************
+       - supporting dummy tasks
+       - ***********************************************-->
+
+    <!-- This task ensures that license is either set to a
+       - valid value, or can use the default (ASL)
+      -->
+    <target name="check_license">
+      <!-- Let's set license to default ("asl") if not
+           explicitly specified on command-line args
+        -->
+      <property name="license" value="asl" />
+      <!-- And then check that explicitly set one was valid
+         - (default one will always be....)
+        -->
+      <condition property="license_ok">
+        <or>
+          <equals arg1="${license}" arg2="asl" />
+          <equals arg1="${license}" arg2="lgpl" />
+        </or>
+      </condition>
+      <fail unless="license_ok"
+        message="Unrecognized license property value '${license}': excepted either 'asl' (for ASL2.0) or 'lgpl' (for LGPL2.1)"
+      />
+      <echo message="Ok, using license '${license}' for jar(s)." />
+    </target>
+
+    <!-- ***********************************************
+       - clean - Removes all generated files/directories
+       - ***********************************************-->
+
+    <target name="clean">
+        <delete dir="${BuildDir}"/>
+        <delete dir="${DocDir}"/>
+        <delete dir="${TestDir}"/>
+        <delete dir="${DistDir}"/>
+    </target>
+
+    <target name="compile" depends="prepare,copy-resources">
+        <javac SrcDir="${JavaSrcDir}" destdir="${BuildClassesDir}"
+            debug="true"
+        >
+            <include name="org/codehaus/stax2/**/*.java" />
+            <include name="com/ctc/**/*.java" />
+            <include name="test/**/*.java" />
+            <classpath refid="compile-classpath" />
+        </javac>
+    </target>
+
+    <target name="copy-resources" depends="prepare">
+        <mkdir dir="${BuildClassesDir}/META-INF/services" />
+        <copy toDir="${BuildClassesDir}/META-INF/services">    		
+            <fileset dir="${ResourcesDir}">
+                <include name="javax.xml.stream.XML*" />
+            </fileset>           	
+        </copy>
+    </target>
+
+    <!-- Dummy target that just includes all individual jars... --> 
+    <target name="jars"
+       depends="jar.stax2, jar.wstx.lgpl, jar.wstx.asl, jars.j2me"
+    />
+
+    <target name="jars.j2me"
+       depends="jar.j2me_input_min, jar.j2me_input_val, jar.j2me_output, jar.j2me_both_min, jar.j2me_both_val"
+    />
+
+    <target name="jar.wstx.lgpl" depends="compile,copy-resources">
+        <jar jarfile="${BuildDir}/wstx-lgpl-${WSTX_VERSION}.jar" filesonly="true" >
+          <manifest>
+            <attribute name="Built-By" value="${user.name}"/>
+            <attribute name="Specification-Title"   value="${STAX_TITLE}"/>
+            <attribute name="Specification-Version" value="${STAX_VERSION}"/>
+            <attribute name="Specification-Vendor"  value="${STAX_VENDOR}"/>
+            <attribute name="Implementation-Title"   value="${WSTX_TITLE}"/>
+            <attribute name="Implementation-Version" value="${WSTX_VERSION}"/>
+            <attribute name="Implementation-Vendor"  value="${WSTX_VENDOR}"/>
+          </manifest>
+          <fileset dir="${BuildClassesDir}">
+              <patternset refid="wstx-dist-class-files" />
+              <patternset refid="stax2-dist-class-files" />
+          </fileset>
+          <fileset dir="${RelNotesDir}/lgpl">
+            <include name="LICENSE" />
+            <include name="NOTICE" />
+            <include name="LGPL2.1" />
+          </fileset>
+        </jar>
+    </target> 
+
+    <target name="jar.wstx.asl" depends="compile,copy-resources">
+        <jar jarfile="${BuildDir}/wstx-asl-${WSTX_VERSION}.jar"
+         filesonly="true" >
+          <manifest>
+            <attribute name="Built-By" value="${user.name}"/>
+            <attribute name="Specification-Title"   value="${STAX_TITLE}"/>
+            <attribute name="Specification-Version" value="${STAX_VERSION}"/>
+            <attribute name="Specification-Vendor"  value="${STAX_VENDOR}"/>
+            <attribute name="Implementation-Title"   value="${WSTX_TITLE}"/>
+            <attribute name="Implementation-Version" value="${WSTX_VERSION}"/>
+            <attribute name="Implementation-Vendor"  value="${WSTX_VENDOR}"/>
+          </manifest>
+          <fileset dir="${BuildClassesDir}">
+              <patternset refid="wstx-dist-class-files" />
+              <patternset refid="stax2-dist-class-files" />
+          </fileset>
+          <fileset dir="${RelNotesDir}/asl">
+            <include name="LICENSE" />
+            <include name="NOTICE" />
+            <include name="ASL2.0" />
+          </fileset>
+        </jar>
+    </target> 
+
+    <target name="jar.stax2" depends="compile">
+        <jar jarfile="${BuildDir}/stax2.jar" filesonly="true" >
+          <manifest>
+            <attribute name="Built-By" value="${user.name}"/>
+            <attribute name="Specification-Title"   value="${STAX2_TITLE}"/>
+            <attribute name="Specification-Version" value="${STAX2_VERSION}"/>
+            <attribute name="Specification-Vendor"  value="${STAX2_VENDOR}"/>
+            <attribute name="Implementation-Title"   value="${STAX2_TITLE}"/>
+            <attribute name="Implementation-Version" value="${STAX2_VERSION}"/>
+            <attribute name="Implementation-Vendor"  value="${STAX2_VENDOR}"/>
+          </manifest>
+          <fileset dir="${BuildClassesDir}">
+             <include name="org/codehaus/stax2/**/*.class" />
+          </fileset>
+        </jar>
+    </target> 
+
+    <!-- J2ME subset basically only includes stream reader/writers,
+       - not event based reader/writers.
+      --> 
+    <!-- !!! 11-Jul-2004: Start using nifty class dependency task Ant
+           has, once dependencies are properly minimized to non-essential
+           classes.
+      -->
+
+    <target name="jar.j2me_input_min" depends="compile,check_license">
+        <jar jarfile="${BuildDir}/wstx-j2me-min-input.jar" filesonly="true">
+          <fileset refid="j2meInputMinimal" />
+          <fileset dir="${RelNotesDir}/lgpl">
+            <include name="LICENSE" />
+            <include name="NOTICE" />
+          </fileset>
+        </jar>
+    </target> 
+
+    <target name="jar.j2me_input_val" depends="compile,check_license">
+        <jar jarfile="${BuildDir}/wstx-j2me-val-input.jar" filesonly="true">
+          <fileset refid="j2meInputValidating" />
+          <fileset dir="${RelNotesDir}/lgpl">
+            <include name="LICENSE" />
+            <include name="NOTICE" />
+          </fileset>
+        </jar>
+    </target> 
+
+    <target name="jar.j2me_output" depends="compile,check_license">
+        <jar jarfile="${BuildDir}/wstx-j2me-output.jar" filesonly="true">
+          <fileset refid="j2meOutput" />
+          <fileset dir="${RelNotesDir}/lgpl">
+            <include name="LICENSE" />
+            <include name="NOTICE" />
+          </fileset>
+        </jar>
+    </target> 
+
+    <target name="jar.j2me_both_min" depends="compile,check_license">
+        <jar jarfile="${BuildDir}/wstx-j2me-min-both.jar" filesonly="true">
+          <fileset refid="j2meInputMinimal" />
+          <fileset refid="j2meOutput" />
+          <fileset dir="${RelNotesDir}/lgpl">
+            <include name="LICENSE" />
+            <include name="NOTICE" />
+          </fileset>
+        </jar>
+    </target> 
+
+    <target name="jar.j2me_both_val" depends="compile,check_license">
+        <jar jarfile="${BuildDir}/wstx-j2me-val-both.jar" filesonly="true">
+          <fileset refid="j2meInputValidating" />
+          <fileset refid="j2meOutput" />
+          <fileset dir="${RelNotesDir}/lgpl">
+            <include name="LICENSE" />
+            <include name="NOTICE" />
+          </fileset>
+        </jar>
+    </target> 
+
+    <target name="javadoc" depends="prepare">
+        <!-- Build a dirpath that contains just the "source" tree -->
+        <javadoc windowtitle="${ProjectName}"
+            destdir="${JavaDocDir}" 
+            author="true" 
+            version="true">
+            <packageset dir="${JavaSrcDir}" defaultexcludes="yes">
+                <include name="org/codehaus/stax2/**" />
+                <include name="com/ctc/**" />
+            </packageset>
+            <classpath refid="compile-classpath" />
+        </javadoc>
+    </target> 
+ 
+    <target name="dist" depends="compile,jars,javadoc"
+    >
+       <!-- First, let's copy the binary jars to dist -->
+       <copy todir="${DistDir}">
+          <fileset dir="${BuildDir}" includes="wstx*.jar" />
+          <fileset dir="${BuildDir}" includes="stax2*.jar" />
+       </copy>
+       <!-- Then let's create the source distribution tar package
+          -->
+       <tar basedir="${basedir}" destfile="${DistDir}/wstx-src.tar">
+          <patternset refid="wstx-dist-src-files" />
+       </tar>
+       <gzip zipfile="${DistDir}/wstx-src.tar.gz" src="${DistDir}/wstx-src.tar" />
+       <delete file="${DistDir}/wstx-src.tar" />
+
+       <!-- as well as zip
+          -->
+       <zip basedir="${basedir}" destfile="${DistDir}/wstx-src.zip">
+          <patternset refid="wstx-dist-src-files" />
+       </zip>
+
+       <!-- Then copy javadocs -->
+       <copy todir="${DistDir}">
+         <fileset dir="${JavaDocDir}/.." includes="javadoc/**/*" />
+       </copy>
+       <!-- Plus, let's also just copy README and compatibility files, in
+            addition to being included in source package
+         -->
+       <copy todir="${DistDir}" >
+            <fileset dir="." includes="release-notes/*" />
+            <fileset dir="." includes="release-notes/asl/*" />
+            <fileset dir="." includes="release-notes/lgpl/*" />
+       </copy>
+    </target>
+
+    <target name="all" depends="clean,javadoc,test,dist">
+        <!-- This target simply depends on others to do its job -->
+    </target>
+
+    <!--*********************************************************************-->
+    <!-- Tasks from here down are in support of junit tests.                 -->
+    <!--*********************************************************************-->
+    <target name="all-tests" depends="test,staxtest" />
+
+    <!-- Running generic StAX tests -->
+    <target name="staxtest"
+      depends="prepare-staxtest,jar.wstx.asl"
+    >
+       <!-- showoutput 'yes' to allow outputting debug msgs... -->
+        <junit fork="no" printsummary="yes" haltonfailure="no"
+         showoutput="yes">
+            <batchtest fork="no" todir="${TestXmlResultsDir}">
+                <fileset dir="${StaxTestClassesDir}">
+                    <include name="org/codehaus/**/Test*.class"/>
+                </fileset>
+            </batchtest>
+            <formatter type="xml" />
+            <classpath refid="compile-classpath" />
+           <classpath path="${StaxTestClassesDir}" />
+           <!-- Note: need to use Wstx jar, since it has properties to point
+            - StAX to use correct implementation classes!
+            -->
+            <classpath>     
+              <fileset dir="${BuildDir}">
+                <include name="wstx-asl-*.jar" />
+              </fileset> 
+              <path refid="junit-libs"/>
+           </classpath>  
+        </junit>
+
+        <junitreport todir="${TestResultsDir}">
+            <fileset dir="${TestXmlResultsDir}">
+                <include name="TEST-*.xml" />
+            </fileset>
+            <report todir="${TestResultsDir}" />
+        </junitreport>
+    </target>
+
+    <target name="prepare-staxtest">
+        <mkdir dir="${StaxTestClassesDir}" />
+        <!-- and unpack test classes... unfortunately needed so JUnit
+             can find classes (maybe there's a way to refer to a jar too,
+             have not found one so far)
+          -->
+        <unzip dest="${StaxTestClassesDir}" overwrite="false">
+           <fileset dir="${LibDir}">
+              <include name="staxtest_*.jar" />
+           </fileset>
+        </unzip>
+    </target>
+
+    <!-- Compiling and running Woodstox-specific tests
+       - (including, for now, StAX2 tests)
+      -->
+
+    <target name="test.compile" depends="compile">
+        <javac SrcDir="${TestSrcDir}" destdir="${TestClassesDir}"
+            debug="true"
+        >
+            <include name="**/*.java" />
+            <classpath refid="compile-classpath" />
+            <classpath>
+                <pathelement path="${BuildClassesDir}"/>  
+                <path refid="junit-libs"/>
+            </classpath>
+        </javac>
+    </target>
+
+
+    <target name="test" depends="test.compile">
+       <!-- showoutput 'yes' to allow outputting debug msgs... -->
+        <junit fork="no" printsummary="yes" haltonfailure="no"
+         showoutput="yes">
+            <batchtest fork="no" todir="${TestXmlResultsDir}">
+                <fileset dir="${TestClassesDir}">
+                    <include name="**/Test*.class"/>
+                </fileset>
+            </batchtest>
+            <formatter type="xml" />
+            <classpath refid="compile-classpath" />
+            <classpath>
+                <pathelement path="${BuildClassesDir}" />
+                <pathelement location="${TestClassesDir}" /> 
+                <path refid="junit-libs"/>
+            </classpath>     
+        </junit>
+
+        <junitreport todir="${TestResultsDir}">
+            <fileset dir="${TestXmlResultsDir}">
+                <include name="TEST-*.xml" />
+            </fileset>
+            <report todir="${TestResultsDir}" />
+        </junitreport>
+    </target>
+
+</project>
