@@ -507,7 +507,7 @@ public final class WriterConfig
      * For Woodstox, this profile enables all basic well-formedness checks,
      * including checking for name validity.
      */
-    public void configureForValidity()
+    public void configureForXmlConformance()
     {
         doValidateAttributes(true);
         doValidateContent(true);
@@ -516,15 +516,37 @@ public final class WriterConfig
     }
 
     /**
+     * For Woodstox, this profile enables all basic well-formedness checks,
+     * including checking for name validity, and also enables all matching
+     * "fix-me" properties (currently only content-fixing property exists).
+     */
+    public void configureForRobustness()
+    {
+        doValidateAttributes(true);
+        doValidateStructure(true);
+        doValidateNames(true);
+
+        /* This the actual "meat": we do want to not only check if the
+         * content is ok, but also "fix" it if not, and if there's a way
+         * to fix it:
+         */
+        doValidateContent(true);
+        doFixContent(true);
+    }
+
+    /**
      * For Woodstox, setting this profile disables most checks for validity;
-     * specifically anything that can be measurable performance impact.
+     * specifically anything that can have measurable performance impact.
+     * 
      */
     public void configureForSpeed()
     {
         doValidateAttributes(false);
         doValidateContent(false);
-        doValidateStructure(false);
         doValidateNames(false);
+
+        // Structural validation is cheap: can be left enabled (if already so)
+        //doValidateStructure(false);
     }
 
     /*

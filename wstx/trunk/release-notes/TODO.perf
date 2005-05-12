@@ -9,6 +9,7 @@ and low-level XML scanning, so that effectively we would have
 somewhat XML-token-aware Reader. This could speed up parsing a bit,
 maybe by 10% or so. Downside is that Reader would be clunkier, and
 each decoder would be bigger than they are now.
+An additional benefit would be 100% accurate byte offsets for the reader.
 
 === 2. DTD handling ===
 

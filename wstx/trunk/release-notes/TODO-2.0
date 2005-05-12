@@ -10,9 +10,8 @@ Must-haves for 2.0
 * Stream writers:
   [wont-implement] * Validate content to write? (chars in text content)... in
     a way, doable, but... is it worth it?
-  [todo] * Consider auto-quoting of characters that either can't be represented
-     in encoding (Ascii, ISO-Latin1), or are always supposed to be quoted
-    (ctrl chars)
+  [DONE] * Consider auto-quoting of characters that either can't be represented
+     in encoding (Ascii, ISO-Latin1).
 
 * DTD-handling/parsing:
 [DONE] * Verify that an unparsed entity refers to a declared notation.
@@ -82,8 +81,6 @@ Must-haves for 2.0
       [DONE] * setFeature/getFeature (note: no properties defined yet...)
       [DONE] * writeDTD to support DTD2
       [DONE] * writeFullEndElement (for ensuring explict end tag)
-      [maybe?] * Allow configuration of extra white space after empty element
-        (like '<tag />')?
       [DONE] * A new property P_OUTPUT_FIX_CONTENT; if content verification
         enabled, will quietly try to fix content problems first (comments,
         CDATA; not sure about PIs?)

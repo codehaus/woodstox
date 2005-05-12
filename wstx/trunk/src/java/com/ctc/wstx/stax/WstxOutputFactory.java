@@ -147,6 +147,8 @@ public final class WstxOutputFactory
     /////////////////////////////////////////
      */
 
+    // // // StAX2 additional (encoding-aware) factory methods
+
     public XMLEventWriter createXMLEventWriter(Writer w, String enc)
         throws XMLStreamException
     {
@@ -157,6 +159,23 @@ public final class WstxOutputFactory
         throws XMLStreamException
     {
         return createSW(null, w, enc);
+    }
+
+    // // // StAX2 "Profile" mutators
+
+    public void configureForXmlConformance()
+    {
+        mConfig.configureForXmlConformance();
+    }
+
+    public void configureForRobustness()
+    {
+        mConfig.configureForRobustness();
+    }
+
+    public void configureForSpeed()
+    {
+        mConfig.configureForSpeed();
     }
 
     /*

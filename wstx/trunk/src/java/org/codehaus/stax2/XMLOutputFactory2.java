@@ -133,17 +133,37 @@ public abstract class XMLOutputFactory2
      * Method call to make writer be as strict with output as possible,
      * ie maximize validation it does to try to catch any well-formedness
      * or validity problems.
+     *<p>
+     * This configuration does add some overhead to output process, since
+     * it enables content checks that are overhead.
+     *<p>
+     * None of currently defined standard properties should be affected,
+     * but implementations are likely to enable/disable custom
+     * properties related to validation.
      */
-    //public abstract void configureForValidity();
+    public abstract void configureForXmlConformance();
+
+    /**
+     * Method call to make writer be as robust as possible, that is, to
+     * make it both check AND fix problems if it can.
+     *<p>
+     * Like {@link #configureForXmlConformance}, this configuration adds
+     * some overhead to output process.
+     *<p>
+     * None of currently defined standard properties should be affected,
+     * but implementations are likely to enable/disable custom
+     * properties related to validation.
+     */
+    public abstract void configureForRobustness();
 
     /**
      * Method call to make writer optimize its operation for speed. This
      * generally disably additional checks (if any) writer does, and is
-     * likely to disable many things that {@link #configureForValidity}
-     * enables.
+     * likely to disable many things that {@link #configureForXmlConformance}
+     * (and {@link #configureForRobustness}) enables.
      *<p>
      * None of currently defined standard properties should be affected.
      */
-    //public abstract void configureForSpeed();
+    public abstract void configureForSpeed();
 }
 
