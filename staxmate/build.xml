@@ -34,6 +34,23 @@
         <fileset dir="${LibDir}" includes="*.jar" />
     </path>
 
+    <!-- Source files to include in source packages (tar, zip) -->
+    <patternset id="dist-src-files">
+          <include name="src/**/*.java" />
+          <include name="src/java/**/*.html" />
+          <include name="release-notes/*" />
+          <include name="release-notes/asl/*" />
+          <include name="release-notes/lgpl/*" />
+          <include name="build.xml" />
+          <include name="project.xml" />
+          <!-- need jars too; at least the api jar, but let's copy
+               all for now... it's nice to have the unit tests in there
+               too. This way src packages are proper supersets of binary ones
+            -->
+          <include name="lib/*.jar" />
+    </patternset>
+
+
     <!--*********************************************************************-->
     <!-- The readme target shows a brief description of all targets          -->
     <!-- supported by this ant build file                                    -->
@@ -88,7 +105,7 @@
         <javac SrcDir="${JavaSrcDir}" destdir="${BuildClassesDir}"
             debug="true"
         >
-            <include name="com/ctc/**/*.java" />
+            <include name="org/codehaus/staxmate/**/*.java" />
             <classpath refid="classpath" />
         </javac>
     </target>
@@ -103,7 +120,8 @@
             <attribute name="Implementation-Vendor"  value="${STAXMATE_VENDOR}"/>
           </manifest>
           <fileset dir="${BuildClassesDir}">
-             <include name="com/ctc/**/*.class" />
+             <include name="org/codehaus/staxmate/**/*.class" />
+             <exclude name="org/codehaus/staxmate/samples/*.class" />
           </fileset>
         </jar>
     </target> 
@@ -115,7 +133,8 @@
             author="true" 
             version="true">
             <packageset dir="${JavaSrcDir}" defaultexcludes="yes">
-                <include name="com/ctc/**" />
+                <include name="org/codehaus/staxmate/**" />
+                <exclude name="org/codehaus/staxmate/samples/**" />
             </packageset>
             <classpath refid="classpath" />
         </javadoc>
@@ -141,14 +160,22 @@
     <target name="dist" depends="compile,jar,javadoc"
     >
        <!-- First, let's copy the binary jars to dist -->
-       <copy todir="${DistDir}" file="${BuildDir}/staxmate.jar" />
+       <copy todir="${DistDir}">
+           <fileset dir="${BuildDir}">
+             <include name="staxmate-*.jar" />
+           </fileset>
+       </copy>
+
        <!-- Then let's create the source distribution package -->
-       <tar basedir="${basedir}" destfile="${DistDir}/staxmate-src.tar"
-        includes="build.xml" >
-          <tarfileset dir="." includes="src/**/*.java" />
-          <tarfileset dir="." includes="release-notes/*" />
+       <tar basedir="${basedir}" destfile="${DistDir}/staxmate-src.tar">
+         <patternset refid="dist-src-files" />
        </tar>
        <gzip zipfile="${DistDir}/staxmate-src.tar.gz" src="${DistDir}/staxmate-src.tar" />
+       <delete file="${DistDir}/staxmate-src.tar" />
+       <zip basedir="${basedir}" destfile="${DistDir}/staxmate-src.zip">
+         <patternset refid="dist-src-files" />
+       </zip>
+
        <!-- Then copy javadocs -->
        <copy todir="${DistDir}">
          <fileset dir="${DocDir}" includes="javadoc/**/*" />
