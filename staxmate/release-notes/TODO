@@ -1,0 +1,2 @@
+* Check and see why StAX2 uses "wrong" argument ordering for
+  writeDTD(); fix either StAX2 or StaxMate.

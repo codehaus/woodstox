@@ -14,13 +14,14 @@ import org.codehaus.staxmate.sr.SMNestedIterator;
 
 
 /**
- * Main utility class of the package, that is usually used to create the
- * main-level (usually root) iterator.
+ * Factory class used to create {@link SMIterator} instances.
  *
  * @author Tatu Saloranta
  */
 public final class SMIteratorFactory
 {
+    private SMIteratorFactory() { }
+
     /*
     /////////////////////////////////////////////////
     // Iterator construction
