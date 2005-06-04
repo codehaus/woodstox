@@ -4,7 +4,8 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
 /**
- * Intermediate base class common to all root-level StaxMate outputters.
+ * Intermediate base class common to all StaxMate root-level container
+ * outputters.
  * Root-level simply means the outermost write context for StaxMate;
  * it may or may not be the actual XML document root level; it may also be
  * a child context of a stream writer
@@ -16,10 +17,16 @@ import javax.xml.stream.XMLStreamWriter;
 public abstract class SMRootOutput
     extends SMOutputContainer
 {
+    /**
+     * Simple state flag; children can only be added when root container
+     * is still active.
+     */
+    protected boolean mActive;
+
     public SMRootOutput(SMOutputContext ctxt)
-	throws XMLStreamException
+        throws XMLStreamException
     {
-	super(ctxt, null);
+        super(ctxt, null);
     }
 
     /*
@@ -34,7 +41,7 @@ public abstract class SMRootOutput
      * well as force output to be flushed using the underlying writer.
      */
     public abstract void closeRoot()
-	throws XMLStreamException;
+        throws XMLStreamException;
 
     /*
     ///////////////////////////////////////////////////////////
@@ -42,39 +49,4 @@ public abstract class SMRootOutput
     ///////////////////////////////////////////////////////////
      */
 
-    protected boolean doOutput(boolean canClose)
-	throws XMLStreamException
-    {
-	if (canClose) {
-	    return closeAndOutputChildren();
-	}
-	return closeAllButLastChild();
-    }
-
-    protected void forceOutput()
-	throws XMLStreamException
-    {
-	forceChildOutput();
-    }
-
-    protected void childReleased(SMLinkedOutput child)
-	throws XMLStreamException
-    {
-	/* The only child that can block output is the first one... 
-	 * If that was released, may be able to output more as well.
-	 * Note that since there's never parent (this is the root fragment),
-	 * there's no need to try to inform anyone else.
-	 */
-	if (child == mFirstChild) {
-	    closeAllButLastChild();
-	}
-
-	// Either way, we are now done
-    }
-
-    public boolean canOutputNewChild()
-	throws XMLStreamException
-    {
-	return closeAndOutputChildren();
-    }
 }

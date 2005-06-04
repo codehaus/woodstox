@@ -8,14 +8,22 @@ import javax.xml.stream.XMLStreamWriter;
  * level output container. Root-level does not necessarily have to mean
  * XML root level; it may also be a child context of a stream writer
  * in which StaxMate is only used to output specific sub-trees.
+ * This class is also used as the base for the outputter that models
+ * a complete document.
  */
 public class SMRootFragment
-    extends SMRootOutput
+    extends SMOutputContainer
 {
+    /**
+     * Simple state flag; children can only be added when root container
+     * is still active.
+     */
+    protected boolean mActive;
+
     public SMRootFragment(SMOutputContext ctxt)
-	throws XMLStreamException
+        throws XMLStreamException
     {
-	super(ctxt);
+        super(ctxt, null);
     }
 
     /*
@@ -31,18 +39,67 @@ public class SMRootFragment
      * the closure.
      */
     public void closeRoot()
-	throws XMLStreamException
+        throws XMLStreamException
     {
-	// Let's first try to close them nicely:
-	if (!doOutput(true)) {
-	    /* but if that doesn't work, should just unbuffer all children...
-	     */
-	    // !!! TBI: need to recursively unbuffer
-	}
+        // Hmmh. Should we complain about duplicate closes?
+        if (!mActive) {
+            return;
+        }
+        // Let's first try to close them nicely:
+        if (!doOutput(true)) {
+            // but if that doesn't work, should just unbuffer all children...
+            forceOutput();
+        }
+        // Either way, we are now closed:
+        mActive = false;
+        // And this may also be a good idea:
+        getWriter().flush();
+    }
 
-	XMLStreamWriter writer = getWriter();
-	// And this may also be a good idea:
-	writer.flush();
+    protected boolean doOutput(boolean canClose)
+        throws XMLStreamException
+    {
+        if (!mActive) {
+            throwIfClosed();
+        }
+        if (canClose) {
+            return closeAndOutputChildren();
+        }
+        return closeAllButLastChild();
+    }
+
+    protected void forceOutput()
+        throws XMLStreamException
+    {
+        if (!mActive) {
+            throwIfClosed();
+        }
+        forceChildOutput();
+    }
+    
+    protected void childReleased(SMLinkedOutput child)
+        throws XMLStreamException
+    {
+        /* The only child that can block output is the first one... 
+         * If that was released, may be able to output more as well.
+         * Note that since there's never parent (this is the root fragment),
+         * there's no need to try to inform anyone else.
+         */
+        if (child == mFirstChild) {
+            closeAllButLastChild();
+        }
+
+        // Either way, we are now done
+    }
+
+    public boolean canOutputNewChild()
+        throws XMLStreamException
+    {
+        // First, let's check that we are not closed:
+        if (!mActive) {
+            throwIfClosed();
+        }
+        return closeAndOutputChildren();
     }
 
     /*
@@ -50,4 +107,8 @@ public class SMRootFragment
     // Internal methods
     ///////////////////////////////////////////////////////////
      */
+
+    private final void throwIfClosed() {
+        throw new IllegalStateException("Can not modify root-level container once it has been closed");
+    }
 }

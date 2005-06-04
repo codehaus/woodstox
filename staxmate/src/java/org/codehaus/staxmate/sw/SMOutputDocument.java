@@ -9,49 +9,45 @@ import org.codehaus.stax2.XMLStreamWriter2;
  * Output class that models a full XML document, with xml declaration.
  */
 public class SMOutputDocument
-    extends SMRootOutput
+    extends SMRootFragment
 {
-    final XMLStreamWriter mWriter;
-
     protected SMOutputDocument(SMOutputContext ctxt)
-	throws XMLStreamException
+        throws XMLStreamException
     {
-	super(ctxt);
-	mWriter = getWriter();
-	mWriter.writeStartDocument();
+        super(ctxt);
+        getWriter().writeStartDocument();
+    }
+    
+    protected SMOutputDocument(SMOutputContext ctxt,
+                               String version, String encoding)
+        throws XMLStreamException
+    {
+        super(ctxt);
+        // note: Stax 1.0 has weird ordering for the args...
+        getWriter().writeStartDocument(encoding, version);
     }
 
     protected SMOutputDocument(SMOutputContext ctxt,
-			       String version, String encoding)
-	throws XMLStreamException
+                               String version, String encoding, boolean standalone)
+        throws XMLStreamException
     {
-	super(ctxt);
-	mWriter = getWriter();
-	// note: Stax 1.0 has weird ordering for the args...
-	mWriter.writeStartDocument(encoding, version);
-    }
+        super(ctxt);
+        XMLStreamWriter w = ctxt.getWriter();
 
-    protected SMOutputDocument(SMOutputContext ctxt,
-			       String version, String encoding, boolean standalone)
-	throws XMLStreamException
-    {
-	super(ctxt);
-	mWriter = ctxt.getWriter();
-
-	// Can we use StAX2?
-	if (mWriter instanceof XMLStreamWriter2) {
-	    ((XMLStreamWriter2) mWriter).writeStartDocument(version, encoding, standalone);
-	} else {
-	    // note: Stax 1.0 has weird ordering for the args...
-	    mWriter.writeStartDocument(encoding, version);
-	}
+        // Can we use StAX2?
+        if (w instanceof XMLStreamWriter2) {
+            ((XMLStreamWriter2) w).writeStartDocument(version, encoding, standalone);
+        } else {
+            // note: Stax 1.0 has weird ordering for the args...
+            w.writeStartDocument(encoding, version);
+        }
     }
 
     /*
     ///////////////////////////////////////////////////////////
     // Overridden output methods
     ///////////////////////////////////////////////////////////
-     */
+    */
 
     /*
     ///////////////////////////////////////////////////////////
@@ -60,49 +56,50 @@ public class SMOutputDocument
     // note: no validation is done WRT ordering since underlying
     // stream writer is likely to catch them.
     ///////////////////////////////////////////////////////////
-     */
+    */
 
     public void addDoctypeDeclaration(String rootName,
-				      String systemId, String publicId)
-	throws XMLStreamException
+                                      String systemId, String publicId)
+        throws XMLStreamException
     {
-	addDoctypeDeclaration(rootName, systemId, publicId, null);
+        addDoctypeDeclaration(rootName, systemId, publicId, null);
     }
 
     public void addDoctypeDeclaration(String rootName,
-				      String systemId, String publicId,
-				      String intSubset)
-	throws XMLStreamException
+                                      String systemId, String publicId,
+                                      String intSubset)
+        throws XMLStreamException
     {
-	if (mWriter instanceof XMLStreamWriter2) {
-	    ((XMLStreamWriter2) mWriter).writeDTD
-		(rootName, systemId, publicId, intSubset);
-	} else {
-	    // Damn this is ugly, with stax1.0...
-	    String dtd = "<!DOCTYPE "+rootName;
-	    if (publicId == null) {
-		if (systemId != null) {
-		    dtd += " SYSTEM";
-		}
-	    } else {
-		dtd += " PUBLIC '"+publicId+"'";
-	    }
-	    if (systemId != null) {
-		dtd += " '"+systemId+"'";
-	    }
-	    if (intSubset != null) {
-		dtd += " ["+intSubset+"]";
-	    }
-	    dtd += ">";
-	    mWriter.writeDTD(dtd);
-	}
+        XMLStreamWriter w = getWriter();
+        if (w instanceof XMLStreamWriter2) {
+            ((XMLStreamWriter2) w).writeDTD
+                (rootName, systemId, publicId, intSubset);
+        } else {
+            // Damn this is ugly, with stax1.0...
+            String dtd = "<!DOCTYPE "+rootName;
+            if (publicId == null) {
+                if (systemId != null) {
+                    dtd += " SYSTEM";
+                }
+            } else {
+                dtd += " PUBLIC '"+publicId+"'";
+            }
+            if (systemId != null) {
+                dtd += " '"+systemId+"'";
+            }
+            if (intSubset != null) {
+                dtd += " ["+intSubset+"]";
+            }
+            dtd += ">";
+            w.writeDTD(dtd);
+        }
     }
 
     /*
     ///////////////////////////////////////////////////////////
     // Abstract method implementations
     ///////////////////////////////////////////////////////////
-     */
+    */
 
     /**
      * Method that HAS to be called when all additions have been done
@@ -111,17 +108,19 @@ public class SMOutputDocument
      * the closure.
      */
     public void closeRoot()
-	throws XMLStreamException
+        throws XMLStreamException
     {
-	// Let's do this first, just in case (not strictly necessary)
-	mWriter.flush();
-	// And then this should take care of all open elements, if any:
-	mWriter.writeEndDocument();
+        super.closeRoot();
+
+        // And finally, let's indicate stream writer about closure too...
+        XMLStreamWriter w = getWriter();
+        w.writeEndDocument();
+        w.close();
     }
 
     /*
     ///////////////////////////////////////////////////////////
     // Internal methods
     ///////////////////////////////////////////////////////////
-     */
+    */
 }

@@ -40,8 +40,8 @@ public abstract class SMOutputContainer
 
     protected SMOutputContainer(SMOutputContext ctxt, SMOutputContainer parent)
     {
-	super(ctxt);
-	mParent = parent;
+        super(ctxt);
+        mParent = parent;
     }
 
     /*
@@ -51,7 +51,7 @@ public abstract class SMOutputContainer
      */
 
     protected SMOutputContainer getParent() {
-	return mParent;
+        return mParent;
     }
 
     /**
@@ -64,7 +64,7 @@ public abstract class SMOutputContainer
      * instance.
      */
     public final SMNamespace getNamespace(String uri) {
-	return mContext.getNamespace(uri);
+        return mContext.getNamespace(uri);
     }
 
     /*
