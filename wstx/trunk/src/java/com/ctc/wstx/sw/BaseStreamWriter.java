@@ -319,23 +319,23 @@ public abstract class BaseStreamWriter
         }
 
         try {
-	    if (mCheckContent) {
-		int ix = verifyCDataContent(data);
-		if (ix >= 0) {
-		    // Can we fix it?
-		    if (mFixContent) { // Yes we can! (...Bob the Builder...)
-			writeSegmentedCData(data, ix);
-			return;
-		    }
-		    // nope, let's err out
-		    throwOutputError(ErrorConsts.WERR_CDATA_CONTENT, new Integer(ix));
-		}
-	    }
+            if (mCheckContent) {
+                int ix = verifyCDataContent(data);
+                if (ix >= 0) {
+                    // Can we fix it?
+                    if (mFixContent) { // Yes we can! (...Bob the Builder...)
+                        writeSegmentedCData(data, ix);
+                        return;
+                    }
+                    // nope, let's err out
+                    throwOutputError(ErrorConsts.WERR_CDATA_CONTENT, new Integer(ix));
+                }
+            }
             mWriter.write("<![CDATA[");
             if (data != null) {
                 /* 20-Nov-2004, TSa: Should we try to validate content,
                  *   and/or handle embedded end marker?
-                 */
+             */
                 mWriter.write(data);
             }
             mWriter.write("]]>");
@@ -587,7 +587,7 @@ public abstract class BaseStreamWriter
         doWriteStartDocument(encoding, version, null);
     }
 
-    protected void doWriteStartDocument(String encoding, String version,
+    protected void doWriteStartDocument(String version, String encoding,
                                         String standAlone)
         throws XMLStreamException
     {
@@ -666,6 +666,52 @@ public abstract class BaseStreamWriter
     public void setFeature(String name, Object value)
     {
         // !!! TBI
+    }
+
+    public void writeCData(char[] c, int start, int len)
+        throws XMLStreamException
+    {
+        /* 02-Dec-2004, TSa: Maybe the writer is to "re-direct" these
+         *   writes as normal text? (sometimes useful to deal with broken
+         *   XML parsers, for example)
+         */
+        if (mCfgCDataAsText) {
+            writeCharacters(c, start, len);
+            return;
+        }
+
+        mAnyOutput = true;
+        if (mStartElementOpen) { // need to close start element?
+            closeStartElement(mEmptyElement);
+        }
+
+        // Not legal outside main element tree:
+        if (mCheckStructure) {
+            if (inPrologOrEpilog()) {
+                throw new IllegalStateException(ErrorConsts.WERR_PROLOG_CDATA);
+            }
+        }
+
+        try {
+            if (mCheckContent && c != null) {
+                int ix = verifyCDataContent(c, start, len);
+                if (ix >= 0) { // problem?
+                    if (mFixContent) { // can we fix it?
+                        writeSegmentedCData(c, start, len, ix);
+                        return;
+                    }
+                    // nope, let's err out
+                    throwOutputError(ErrorConsts.WERR_CDATA_CONTENT, new Integer(ix));
+                }
+            }
+            mWriter.write("<![CDATA[");
+            if (c != null) {
+                mWriter.write(c, start, len);
+            }
+            mWriter.write("]]>");
+        } catch (IOException ioe) {
+            throw new WstxIOException(ioe);
+        }
     }
 
     public void writeDTD(DTDInfo info)
@@ -1120,7 +1166,6 @@ public abstract class BaseStreamWriter
      *   no problem.
      */
     protected int verifyCDataContent(String content)
-        throws XMLStreamException
     {
         if (content != null && content.length() >= 3) {
             int ix = content.indexOf(']');
@@ -1128,85 +1173,126 @@ public abstract class BaseStreamWriter
                 return content.indexOf("]]>", ix);
             }
         }
-	return -1;
+        return -1;
     }
 
-    protected int verifyCommentContent(String content)
-        throws XMLStreamException
+    protected int verifyCDataContent(char[] c, int start, int end)
     {
-	int ix = content.indexOf('-');
-	if (ix >= 0) {
-	    /* actually, it's illegal to just end with '-' too, since 
-	     * that would cause invalid end marker '--->'
-	     */
-	    if (ix < (content.length() - 1)) {
-		ix = content.indexOf("--", ix);
-	    }
-	}
-	return ix;
+        if (c != null) {
+            start += 2;
+            /* Let's do simple optimization for search...
+             * (bayer-moore search algorithm)
+             */
+            while (start < end) {
+                char ch = c[start];
+                if (ch == ']') {
+                    ++start; // let's just move by one in this case
+                    continue;
+                }
+                if (ch == '>') { // match?
+                    if (c[start-1] == ']' 
+                        && c[start-2] == ']') {
+                        return start-2;
+                    }
+                }
+                start += 2;
+            }
+        }
+        return -1;
+    }
+    
+    protected int verifyCommentContent(String content)
+    {
+        int ix = content.indexOf('-');
+        if (ix >= 0) {
+            /* actually, it's illegal to just end with '-' too, since 
+             * that would cause invalid end marker '--->'
+             */
+            if (ix < (content.length() - 1)) {
+                ix = content.indexOf("--", ix);
+            }
+        }
+        return ix;
     }
 
     protected void writeSegmentedCData(String content, int index)
-	throws IOException
+        throws IOException
     {
-	/* It's actually fairly easy, just split "]]>" into 2 pieces;
-	 * for each ']]>'; first one containing "]]", second one ">"
-	 * (as long as necessary)
-	 */
-	int start = 0;
-	while (index >= 0) {
+        /* It's actually fairly easy, just split "]]>" into 2 pieces;
+         * for each ']]>'; first one containing "]]", second one ">"
+         * (as long as necessary)
+         */
+        int start = 0;
+        while (index >= 0) {
             mWriter.write("<![CDATA[");
-	    mWriter.write(content, start, (index+2) - start);
+            mWriter.write(content, start, (index+2) - start);
             mWriter.write("]]>");
-	    start = index+2;
-	    index = content.indexOf("]]>", start);
-	}
-	// Ok, then the last segment
-	mWriter.write("<![CDATA[");
-	mWriter.write(content, start, content.length()-start);
-	mWriter.write("]]>");
+            start = index+2;
+            index = content.indexOf("]]>", start);
+        }
+        // Ok, then the last segment
+        mWriter.write("<![CDATA[");
+        mWriter.write(content, start, content.length()-start);
+        mWriter.write("]]>");
+    }
+
+    protected void writeSegmentedCData(char[] c, int start, int len, int index)
+        throws IOException
+    {
+        int end = start + len;
+        while (index >= 0) {
+            mWriter.write("<![CDATA[");
+            mWriter.write(c, start, (index+2) - start);
+            mWriter.write("]]>");
+            start = index+2;
+            index = verifyCDataContent(c, start, end);
+        }
+        // Ok, then the last segment
+        mWriter.write("<![CDATA[");
+        mWriter.write(c, start, end-start);
+        mWriter.write("]]>");
     }
 
     protected void writeSegmentedComment(String content, int index)
-	throws IOException
+        throws IOException
     {
-	int len = content.length();
-	// First the special case (last char is hyphen):
-	if (index == (len-1)) {
-	    mWriter.write("<!--");
-	    mWriter.write(content);
-	    // we just need to inject one space in there
-	    mWriter.write(" -->");
-	    return;
-	}
-
-	/* Fixing comments is more difficult than that of CDATA segments';
-	 * this because CDATA can still contain embedded ']]'s, but
-	 * comment neither allows '--' nor ending with '-->'; which means
-	 * that it's impossible to just split segments. Instead we'll do
-	 * something more intrusive, and embed single spaces between all
-	 * '--' character pairs... it's intrusive, but comments are not
-	 * supposed to contain any data, so that should be fine (plus
-	 * at least result is valid, unlike contents as is)
-	 */
-	int start = 0;
-	while (index >= 0) {
+        int len = content.length();
+        // First the special case (last char is hyphen):
+        if (index == (len-1)) {
             mWriter.write("<!--");
-	    // first, content prior to '--' and the first hyphen
-	    mWriter.write(content, start, (index+1) - start);
-	    // and an obligatory trailing space to split double-hyphen
+            mWriter.write(content);
+            // we just need to inject one space in there
+            mWriter.write(" -->");
+            return;
+        }
+        
+        /* Fixing comments is more difficult than that of CDATA segments';
+         * this because CDATA can still contain embedded ']]'s, but
+         * comment neither allows '--' nor ending with '-->'; which means
+         * that it's impossible to just split segments. Instead we'll do
+         * something more intrusive, and embed single spaces between all
+         * '--' character pairs... it's intrusive, but comments are not
+         * supposed to contain any data, so that should be fine (plus
+         * at least result is valid, unlike contents as is)
+         */
+        int start = 0;
+        while (index >= 0) {
+            mWriter.write("<!--");
+            // first, content prior to '--' and the first hyphen
+            mWriter.write(content, start, (index+1) - start);
+            // and an obligatory trailing space to split double-hyphen
             mWriter.write(' ');
-	    // still need to handle rest of consequtive double'-'s if any
-	    start = index+1;
-	    index = content.indexOf("--", start);
-	}
-	// Ok, then the last segment
-	mWriter.write(content, start, len-start);
-	// ends with a hyphen? that needs to be fixed, too
-	if (content.charAt(len-1) == '-') {
-	    mWriter.write(' ');
-	}
-	mWriter.write("]]>");
+            // still need to handle rest of consequtive double'-'s if any
+            start = index+1;
+            index = content.indexOf("--", start);
+        }
+        // Ok, then the last segment
+        mWriter.write(content, start, len-start);
+        // ends with a hyphen? that needs to be fixed, too
+        if (content.charAt(len-1) == '-') {
+            mWriter.write(' ');
+        }
+        mWriter.write("]]>");
     }
 
     /*

@@ -40,6 +40,9 @@ public interface XMLStreamWriter2
     //////////////////////////////////////////
     */
 
+    public void writeCData(char[] text, int start, int len)
+        throws XMLStreamException;
+
     public void writeDTD(String rootName, String systemId, String publicId,
                          String internalSubset)
         throws XMLStreamException;
@@ -53,7 +56,7 @@ public interface XMLStreamWriter2
      */
     public void writeFullEndElement() throws XMLStreamException;
 
-    public void writeStartDocument(String encoding, String version,
+    public void writeStartDocument(String version, String encoding,
                                    boolean standAlone)
         throws XMLStreamException;
     
