@@ -1,0 +1,60 @@
+== Missing features ==
+
+(1) No way to define 'manual' entities:
+
+  * TestEntityReplacement
+
+(2) No 'isEmptyElement':
+
+  * TestSetInput: (2 failures)
+  * TestSimple:   (1 failure)
+  * TestSimpleToken: (1 failure)
+  * TestSimpleWithNs: (1 failure)
+
+== Different behaviours ==
+
+(1) Counting default namespace as namespace declaration:
+
+  * TestEvent: (2 failures)
+  * TestSerializeWithNs: (4 failures)
+
+(2) Xmlpull coalescing more aggressively than StAX:
+
+  * TestMisc (3 failures)
+  * TestToken:
+      * #testTokenEventEquivalency: not combining beyond comment
+      * #testTokenTypes, #testTokensInPrologAndEpilog:
+         does not return ENTITY_REF
+  * TestSimpleProcessDocDecl failure: test case only calls next(), but
+    does not trigger actual reading of textual content, which would
+    hit the problem...
+
+(3) Woodstox using lazy reporting of Proc. instr parsing problems
+
+  * TestMisc.testPI
+
+(4) Woodstox output problem?
+
+  * TestSerialize.testSimpleSerWithAttribute
+
+!!! (5) Assuming that REPORT NAMESPACE ATTRIBUTES is on by default?
+
+  * Doesn't seem to be a problem, if option not available?
+
+(6) Woodstox not verifying ]]> is not in content
+
+   * TestMisc.testCharactersLegacy
+
+== Others ==
+
+!!! (1) Class problems?
+
+  TestSetInput$InputStreamWrapper: JUnit problem?
+  TestSetInput$ReaderWrapper: JUnit problem?
+
+(2) Others:
+
+   TestAttribute: ???
+   TestProcessDocdecl:
+     * testSimpleEntity ??? (character encoding problem?)
+     * testEntityWithMarkup ???
