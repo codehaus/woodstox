@@ -59,6 +59,7 @@ public class SMRootFragment
     protected boolean doOutput(boolean canClose)
         throws XMLStreamException
     {
+        // Should never get called if not active...
         if (!mActive) {
             throwIfClosed();
         }
@@ -71,6 +72,7 @@ public class SMRootFragment
     protected void forceOutput()
         throws XMLStreamException
     {
+        // Should never get called if not active...
         if (!mActive) {
             throwIfClosed();
         }
@@ -80,6 +82,11 @@ public class SMRootFragment
     protected void childReleased(SMLinkedOutput child)
         throws XMLStreamException
     {
+        // Should never get called if not active...
+        if (!mActive) {
+            throwIfClosed();
+        }
+
         /* The only child that can block output is the first one... 
          * If that was released, may be able to output more as well.
          * Note that since there's never parent (this is the root fragment),
@@ -95,7 +102,7 @@ public class SMRootFragment
     public boolean canOutputNewChild()
         throws XMLStreamException
     {
-        // First, let's check that we are not closed:
+        // Should never get called if not active...
         if (!mActive) {
             throwIfClosed();
         }

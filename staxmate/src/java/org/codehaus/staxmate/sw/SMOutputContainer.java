@@ -45,10 +45,10 @@ public abstract class SMOutputContainer
     }
 
     /*
-    ///////////////////////////////////////////////////////////
-    // Simple accessors/mutators
-    ///////////////////////////////////////////////////////////
-     */
+///////////////////////////////////////////////////////////
+// Simple accessors/mutators
+///////////////////////////////////////////////////////////
+*/
 
     protected SMOutputContainer getParent() {
         return mParent;
@@ -68,176 +68,176 @@ public abstract class SMOutputContainer
     }
 
     /*
-    ///////////////////////////////////////////////////////////
-    // Output methods for simple nodes (no elements, attributes
-    // or buffering)
-    ///////////////////////////////////////////////////////////
-     */
+///////////////////////////////////////////////////////////
+// Output methods for simple nodes (no elements, attributes
+// or buffering)
+///////////////////////////////////////////////////////////
+*/
 
     public void addCharacters(String text)
-	throws XMLStreamException
+        throws XMLStreamException
     {
-	if (canOutputNewChild()) {
-	    mContext.writeCharacters(text);
-	} else {
-	    linkNewChild(mContext.createCharacters(text));
-	}
+        if (canOutputNewChild()) {
+            mContext.writeCharacters(text);
+        } else {
+            linkNewChild(mContext.createCharacters(text));
+        }
     }
 
     public void addCharacters(char[] buf, int offset, int len)
-	throws XMLStreamException
+        throws XMLStreamException
     {
-	if (canOutputNewChild()) {
-	    mContext.writeCharacters(buf, offset, len);
-	} else {
-	    linkNewChild(mContext.createCharacters(buf, offset, len));
-	}
+        if (canOutputNewChild()) {
+            mContext.writeCharacters(buf, offset, len);
+        } else {
+            linkNewChild(mContext.createCharacters(buf, offset, len));
+        }
     }
 
     public void addCData(String text)
-	throws XMLStreamException
+        throws XMLStreamException
     {
-	if (canOutputNewChild()) {
-	    mContext.writeCData(text);
-	} else {
-	    linkNewChild(mContext.createCData(text));
-	}
+        if (canOutputNewChild()) {
+            mContext.writeCData(text);
+        } else {
+            linkNewChild(mContext.createCData(text));
+        }
     }
 
     public void addCData(char[] buf, int offset, int len)
-	throws XMLStreamException
+        throws XMLStreamException
     {
-	if (canOutputNewChild()) {
-	    mContext.writeCData(buf, offset, len);
-	} else {
-	    linkNewChild(mContext.createCData(buf, offset, len));
-	}
+        if (canOutputNewChild()) {
+            mContext.writeCData(buf, offset, len);
+        } else {
+            linkNewChild(mContext.createCData(buf, offset, len));
+        }
     }
 
     public void addComment(String text)
-	throws XMLStreamException
+        throws XMLStreamException
     {
-	if (canOutputNewChild()) {
-	    mContext.writeComment(text);
-	} else {
-	    linkNewChild(mContext.createComment(text));
-	}
+        if (canOutputNewChild()) {
+            mContext.writeComment(text);
+        } else {
+            linkNewChild(mContext.createComment(text));
+        }
     }
 
     public void addEntityRef(String name)
-	throws XMLStreamException
+        throws XMLStreamException
     {
-	if (canOutputNewChild()) {
-	    mContext.writeEntityRef(name);
-	} else {
-	    linkNewChild(mContext.createEntityRef(name));
-	}
+        if (canOutputNewChild()) {
+            mContext.writeEntityRef(name);
+        } else {
+            linkNewChild(mContext.createEntityRef(name));
+        }
     }
 
     public void addProcessingInstruction(String target, String data)
-	throws XMLStreamException
+        throws XMLStreamException
     {
-	if (canOutputNewChild()) {
-	    mContext.writeProcessingInstruction(target, data);
-	} else {
-	    linkNewChild(mContext.createProcessingInstruction(target, data));
-	}
+        if (canOutputNewChild()) {
+            mContext.writeProcessingInstruction(target, data);
+        } else {
+            linkNewChild(mContext.createProcessingInstruction(target, data));
+        }
     }
 
     /*
-    ////////////////////////////////////////////////////////
-    // Output methods for Elements, attributes, buffered
-    // fragments
-    ////////////////////////////////////////////////////////
-     */
+////////////////////////////////////////////////////////
+// Output methods for Elements, attributes, buffered
+// fragments
+////////////////////////////////////////////////////////
+*/
 
     public SMOutputElement addElement(String localName, SMNamespace ns)
-	throws XMLStreamException
+        throws XMLStreamException
     {
-	final SMOutputContext ctxt = mContext;
+        final SMOutputContext ctxt = mContext;
 
-	if (ns == null) {
-	    ns = ctxt.getEmptyNamespace();
-	/* Hmmh. Callers should know better than to share namespace
-	 * instances... but then again, we can easily fix the problem
-	 * even if they are shared:
-	 */
-	} else if (!ns.isValidIn(ctxt)) {
-	    /* Let's find instance from our current context, instead of the
-	     * one from some other context
-	     */
-	    ns = getNamespace(ns.getURI());
-	}
+        if (ns == null) {
+            ns = ctxt.getEmptyNamespace();
+            /* Hmmh. Callers should know better than to share namespace
+             * instances... but then again, we can easily fix the problem
+             * even if they are shared:
+             */
+        } else if (!ns.isValidIn(ctxt)) {
+            /* Let's find instance from our current context, instead of the
+             * one from some other context
+             */
+            ns = getNamespace(ns.getURI());
+        }
 
-	SMOutputElement newElem = new SMOutputElement(ctxt, this, localName, ns);
+        SMOutputElement newElem = new SMOutputElement(ctxt, this, localName, ns);
 
-	// !!! TBI: Can we output the element?
+        // !!! TBI: Can we output the element?
 
-	return newElem;
+        return newElem;
     }
     
     public SMBufferable addBuffered(SMBufferable buffered)
-	throws XMLStreamException
+        throws XMLStreamException
     {
-	buffered.linkParent(this);
-	/* Let's do a cast here, and just require bufferables to also
-	 * be SMLinkedOutput (but since it's not an interface, can't
-	 * make SMBufferable extend it or vice versa)
-	 */
-	SMLinkedOutput n = (SMLinkedOutput) buffered;
-	linkNewChild(n);
-	return buffered;
+        buffered.linkParent(this);
+        /* Let's do a cast here, and just require bufferables to also
+         * be SMLinkedOutput (but since it's not an interface, can't
+         * make SMBufferable extend it or vice versa)
+         */
+        SMLinkedOutput n = (SMLinkedOutput) buffered;
+        linkNewChild(n);
+        return buffered;
     }
 
     public SMBufferable addAndReleaseBuffered(SMBufferable buffered)
-	throws XMLStreamException
+        throws XMLStreamException
     {
-	addBuffered(buffered);
-	buffered.release();
-	return buffered;
+        addBuffered(buffered);
+        buffered.release();
+        return buffered;
     }
 
     /*
-    ////////////////////////////////////////////////////////
-    // Buffered fragment/element construction
-    //
-    // note: these methods add tight coupling to sub-classes...
-    // while not really good, architecturally, these are
-    // strongly dependant classes in any case, so let's not
+////////////////////////////////////////////////////////
+// Buffered fragment/element construction
+//
+// note: these methods add tight coupling to sub-classes...
+// while not really good, architecturally, these are
+// strongly dependant classes in any case, so let's not
     // get ulcer over such cyclic dependencies (just duly note
     // they are there)
     ////////////////////////////////////////////////////////
-     */
+    */
 
     public SMBufferedFragment createBufferedFragment()
-	throws XMLStreamException
+        throws XMLStreamException
     {
-	return new SMBufferedFragment(getContext());
+        return new SMBufferedFragment(getContext());
     }
 
     public SMBufferedElement createBufferedElement(String localName, SMNamespace ns)
-	throws XMLStreamException
+        throws XMLStreamException
     {
-	return new SMBufferedElement(getContext(), localName, ns);
+        return new SMBufferedElement(getContext(), localName, ns);
     }
 
     /*
-    ////////////////////////////////////////////////////////
-    // Abstract methods from base classes
-    ////////////////////////////////////////////////////////
-     */
+////////////////////////////////////////////////////////
+// Abstract methods from base classes
+////////////////////////////////////////////////////////
+*/
 
     protected abstract boolean doOutput(boolean canClose)
-	throws XMLStreamException;
+        throws XMLStreamException;
 
     protected abstract void forceOutput()
-	throws XMLStreamException;
+        throws XMLStreamException;
 
     /*
-    ////////////////////////////////////////////////////////
-    // New abstract methods
-    ////////////////////////////////////////////////////////
-     */
+////////////////////////////////////////////////////////
+// New abstract methods
+////////////////////////////////////////////////////////
+*/
 
     /**
      * Method called by a child, when it is released and neither is or
@@ -252,7 +252,7 @@ public abstract class SMOutputContainer
      *    nodes.
      */
     protected abstract void childReleased(SMLinkedOutput child)
-	throws XMLStreamException;
+        throws XMLStreamException;
    
     /**
      * Method called to figure out if we can just output a newly added
@@ -264,24 +264,24 @@ public abstract class SMOutputContainer
      *   if there was at least one buffered child that couldn't be output.
      */
     public abstract boolean canOutputNewChild()
-	throws XMLStreamException;
+        throws XMLStreamException;
 
     /*
-    ////////////////////////////////////////////////////////
-    // Internal/package methods
-    ////////////////////////////////////////////////////////
-     */
+////////////////////////////////////////////////////////
+// Internal/package methods
+////////////////////////////////////////////////////////
+*/
 
     protected void linkNewChild(SMLinkedOutput n)
     {
-	SMLinkedOutput last = mLastChild;
-	if (last == null) {
-	    mLastChild = n;
-	    mFirstChild = n;
-	} else {
-	    last.linkNext(n);
-	    mLastChild = n;
-	}
+        SMLinkedOutput last = mLastChild;
+        if (last == null) {
+            mLastChild = n;
+            mFirstChild = n;
+        } else {
+            last.linkNext(n);
+            mLastChild = n;
+        }
     }
 
     /**
@@ -293,17 +293,17 @@ public abstract class SMOutputContainer
      *   succesfully output, possibly closing them first if necessary
      */
     protected final boolean closeAndOutputChildren()
-	throws XMLStreamException
+        throws XMLStreamException
     {
-	while (mFirstChild != null) {
-	    if (!doOutput(true)) {
-		// Nope, node was buffered or had buffered child(ren)
-		return false;
-	    }
-	    mFirstChild = mFirstChild.mNext;
-	}
-	mLastChild = null;
-	return true;
+        while (mFirstChild != null) {
+            if (!doOutput(true)) {
+                // Nope, node was buffered or had buffered child(ren)
+                return false;
+            }
+            mFirstChild = mFirstChild.mNext;
+        }
+        mLastChild = null;
+        return true;
     }
 
     /**
@@ -312,33 +312,33 @@ public abstract class SMOutputContainer
      * not be closed (true for non-element/simple children).
      */
     protected final boolean closeAllButLastChild()
-	throws XMLStreamException
+        throws XMLStreamException
     {
-	SMLinkedOutput child = mFirstChild;
-	while (child != null) {
-	    SMLinkedOutput next = child.mNext;
-	    /* Need/can not force closing of the last child, but all
-	     * previous can and should be closed:
-	     */
-	    boolean notLast = (next != null);
-	    if (!mFirstChild.doOutput(notLast)) {
-		// Nope, node was buffered or had buffered child(ren)
-		return false;
-	    }
-	    mFirstChild = child = next;
-	}
-	mLastChild = null;
-	return true;
+        SMLinkedOutput child = mFirstChild;
+        while (child != null) {
+            SMLinkedOutput next = child.mNext;
+            /* Need/can not force closing of the last child, but all
+             * previous can and should be closed:
+             */
+            boolean notLast = (next != null);
+            if (!mFirstChild.doOutput(notLast)) {
+                // Nope, node was buffered or had buffered child(ren)
+                return false;
+            }
+            mFirstChild = child = next;
+        }
+        mLastChild = null;
+        return true;
     }
 
     protected final void forceChildOutput()
-	throws XMLStreamException
+        throws XMLStreamException
     {
-	SMLinkedOutput child = mFirstChild;
-	mFirstChild = null;
-	mLastChild = null;
-	for (; child != null; child = child.mNext) {
-	    child.forceOutput();
-	}
+        SMLinkedOutput child = mFirstChild;
+        mFirstChild = null;
+        mLastChild = null;
+        for (; child != null; child = child.mNext) {
+            child.forceOutput();
+        }
     }
 }
