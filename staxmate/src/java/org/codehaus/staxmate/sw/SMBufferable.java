@@ -23,7 +23,14 @@ public interface SMBufferable
 
     /**
      * Method called by a container when bufferable item is linked as its
-     * child.
+     * child. It should not only add parent linkage, but also do any
+     * output necessary, if this item is not buffered or blocked.
+     *
+     * @param parent Container to attach bufferable instance under
+     * @param blocked If true, parent output is blocked (and as the result
+     *   so is bufferable's); if false, parent is (and will remain)
+     *   unblocked.
      */
-    public void linkParent(SMOutputContainer parent);
+    public void linkParent(SMOutputContainer parent, boolean blocked)
+        throws XMLStreamException;
 }

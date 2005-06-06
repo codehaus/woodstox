@@ -32,30 +32,6 @@ public class SMRootFragment
     ///////////////////////////////////////////////////////////
      */
 
-    /**
-     * Method that HAS to be called when all additions have been done
-     * via StaxMate API. Since it is possible that the underlying stream
-     * writer may be buffering some parts, it needs to be informed of
-     * the closure.
-     */
-    public void closeRoot()
-        throws XMLStreamException
-    {
-        // Hmmh. Should we complain about duplicate closes?
-        if (!mActive) {
-            return;
-        }
-        // Let's first try to close them nicely:
-        if (!doOutput(true)) {
-            // but if that doesn't work, should just unbuffer all children...
-            forceOutput();
-        }
-        // Either way, we are now closed:
-        mActive = false;
-        // And this may also be a good idea:
-        getWriter().flush();
-    }
-
     protected boolean doOutput(boolean canClose)
         throws XMLStreamException
     {
@@ -106,7 +82,31 @@ public class SMRootFragment
         if (!mActive) {
             throwIfClosed();
         }
-        return closeAndOutputChildren();
+        return (mFirstChild == null) || closeAndOutputChildren();
+    }
+
+    /**
+     * Method that HAS to be called when all additions have been done
+     * via StaxMate API. Since it is possible that the underlying stream
+     * writer may be buffering some parts, it needs to be informed of
+     * the closure.
+     */
+    public void closeRoot()
+        throws XMLStreamException
+    {
+        // Hmmh. Should we complain about duplicate closes?
+        if (!mActive) {
+            return;
+        }
+        // Let's first try to close them nicely:
+        if (!doOutput(true)) {
+            // but if that doesn't work, should just unbuffer all children...
+            forceOutput();
+        }
+        // Either way, we are now closed:
+        mActive = false;
+        // And this may also be a good idea:
+        getWriter().flush();
     }
 
     /*

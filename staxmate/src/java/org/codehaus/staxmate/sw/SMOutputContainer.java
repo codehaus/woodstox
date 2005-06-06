@@ -45,10 +45,10 @@ public abstract class SMOutputContainer
     }
 
     /*
-///////////////////////////////////////////////////////////
-// Simple accessors/mutators
-///////////////////////////////////////////////////////////
-*/
+    ///////////////////////////////////////////////////////////
+    // Simple accessors/mutators
+    ///////////////////////////////////////////////////////////
+    */
 
     protected SMOutputContainer getParent() {
         return mParent;
@@ -68,11 +68,11 @@ public abstract class SMOutputContainer
     }
 
     /*
-///////////////////////////////////////////////////////////
-// Output methods for simple nodes (no elements, attributes
-// or buffering)
-///////////////////////////////////////////////////////////
-*/
+    ///////////////////////////////////////////////////////////
+    // Output methods for simple nodes (no elements, attributes
+    // or buffering)
+    ///////////////////////////////////////////////////////////
+    */
 
     public void addCharacters(String text)
         throws XMLStreamException
@@ -145,17 +145,20 @@ public abstract class SMOutputContainer
     }
 
     /*
-////////////////////////////////////////////////////////
-// Output methods for Elements, attributes, buffered
-// fragments
-////////////////////////////////////////////////////////
-*/
+    ////////////////////////////////////////////////////////
+    // Output methods for Elements, attributes, buffered
+    // fragments
+    ////////////////////////////////////////////////////////
+    */
 
     public SMOutputElement addElement(String localName, SMNamespace ns)
         throws XMLStreamException
     {
         final SMOutputContext ctxt = mContext;
 
+        /* First, need to make sure namespace declaration is appropriate
+         * for this context
+         */
         if (ns == null) {
             ns = ctxt.getEmptyNamespace();
             /* Hmmh. Callers should know better than to share namespace
@@ -169,9 +172,10 @@ public abstract class SMOutputContainer
             ns = getNamespace(ns.getURI());
         }
 
-        SMOutputElement newElem = new SMOutputElement(ctxt, this, localName, ns);
-
-        // !!! TBI: Can we output the element?
+        // Ok, let's see if we are blocked already
+        boolean blocked = !canOutputNewChild();
+        SMOutputElement newElem = new SMOutputElement(ctxt, this, localName, ns, blocked);
+        linkNewChild(newElem);
 
         return newElem;
     }
@@ -179,13 +183,10 @@ public abstract class SMOutputContainer
     public SMBufferable addBuffered(SMBufferable buffered)
         throws XMLStreamException
     {
-        buffered.linkParent(this);
-        /* Let's do a cast here, and just require bufferables to also
-         * be SMLinkedOutput (but since it's not an interface, can't
-         * make SMBufferable extend it or vice versa)
-         */
-        SMLinkedOutput n = (SMLinkedOutput) buffered;
-        linkNewChild(n);
+        // Ok; first, let's see if we are blocked already
+        boolean blocked = !canOutputNewChild();
+        linkNewChild((SMLinkedOutput) buffered);
+        buffered.linkParent(this, blocked);
         return buffered;
     }
 
@@ -198,12 +199,12 @@ public abstract class SMOutputContainer
     }
 
     /*
-////////////////////////////////////////////////////////
-// Buffered fragment/element construction
-//
-// note: these methods add tight coupling to sub-classes...
-// while not really good, architecturally, these are
-// strongly dependant classes in any case, so let's not
+    ////////////////////////////////////////////////////////
+    // Buffered fragment/element construction
+    //
+    // note: these methods add tight coupling to sub-classes...
+    // while not really good, architecturally, these are
+    // strongly dependant classes in any case, so let's not
     // get ulcer over such cyclic dependencies (just duly note
     // they are there)
     ////////////////////////////////////////////////////////
@@ -222,10 +223,10 @@ public abstract class SMOutputContainer
     }
 
     /*
-////////////////////////////////////////////////////////
-// Abstract methods from base classes
-////////////////////////////////////////////////////////
-*/
+    ////////////////////////////////////////////////////////
+    // Abstract methods from base classes
+    ////////////////////////////////////////////////////////
+    */
 
     protected abstract boolean doOutput(boolean canClose)
         throws XMLStreamException;
@@ -234,10 +235,10 @@ public abstract class SMOutputContainer
         throws XMLStreamException;
 
     /*
-////////////////////////////////////////////////////////
-// New abstract methods
-////////////////////////////////////////////////////////
-*/
+    ////////////////////////////////////////////////////////
+    // New abstract methods
+    ////////////////////////////////////////////////////////
+    */
 
     /**
      * Method called by a child, when it is released and neither is or
@@ -267,10 +268,10 @@ public abstract class SMOutputContainer
         throws XMLStreamException;
 
     /*
-////////////////////////////////////////////////////////
-// Internal/package methods
-////////////////////////////////////////////////////////
-*/
+    ////////////////////////////////////////////////////////
+    // Internal/package methods
+    ////////////////////////////////////////////////////////
+    */
 
     protected void linkNewChild(SMLinkedOutput n)
     {
@@ -340,5 +341,10 @@ public abstract class SMOutputContainer
         for (; child != null; child = child.mNext) {
             child.forceOutput();
         }
+    }
+
+    protected void throwClosed() {
+        throw new IllegalStateException("Illegal call when container (of type "
+                                        +getClass()+") was closed");
     }
 }

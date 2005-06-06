@@ -18,9 +18,9 @@ public final class SMBufferedElement
     protected boolean mIsBuffered = true;
 
     protected SMBufferedElement(SMOutputContext ctxt,
-				String localName, SMNamespace ns)
+                                String localName, SMNamespace ns)
     {
-	super(ctxt, null, localName, ns);
+        super(ctxt, null, localName, ns, true);
     }
 
     /*
@@ -30,23 +30,24 @@ public final class SMBufferedElement
      */
 
     public boolean isBuffered() {
-	return mIsBuffered;
+        return mIsBuffered;
     }
 
-    public void linkParent(SMOutputContainer parent) {
-	if (mParent != null) {
-	    throw new IllegalStateException("Can not re-set parent once it has been set once");
-	}
-	mParent = parent;
+    public void linkParent(SMOutputContainer parent, boolean blocked)
+    {
+        if (mParent != null) {
+            throw new IllegalStateException("Can not re-set parent once it has been set once");
+        }
+        mParent = parent;
     }
 
     public void release()
-	throws XMLStreamException
+        throws XMLStreamException
     {
-	mIsBuffered = false;
-	if (mParent != null) {
-	    mParent.childReleased(this);
-	}
+        mIsBuffered = false;
+        if (mParent != null) {
+            mParent.childReleased(this);
+        }
     }
 
     /*

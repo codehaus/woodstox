@@ -12,19 +12,20 @@ public class SMOutputElement
     final SMNamespace mNs;
 
     protected SMOutputElement(SMOutputContext ctxt, SMOutputContainer parent,
-			      String localName, SMNamespace ns)
+                              String localName, SMNamespace ns,
+                              boolean parentBlocked)
     {
-	super(ctxt, parent);
-	mLocalName = localName;
-	mNs = ns;
+        super(ctxt, parent);
+        mLocalName = localName;
+        mNs = ns;
     }
-
+    
     public String getLocalName() {
-	return mLocalName;
+        return mLocalName;
     }
-
+    
     public SMNamespace getNamespace() {
-	return mNs;
+        return mNs;
     }
 
     /*

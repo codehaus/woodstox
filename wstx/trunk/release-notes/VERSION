@@ -1,15 +1,15 @@
-Version: 2.0rc2
+Version: 2.5
 
-Release date: xx-May-2005
+Release date: DD-mm-2005
 
 Description:
-  Second release candidate for the eventual 2.0 release
+  First release in 2.x branch (which will lead to 3.0 release)
 
   Problems fixed:
 
 == History: ==
 
-2.0rc1: [11-Apr-2005]
+2.0rc1-rc2: [11-Apr-2005]
 
   New functionality:
 
@@ -43,6 +43,12 @@ Description:
            writeEndElement() (except there can be intervening 
            writeAttribute() calls). If disabled, only explicit calls to
            writeEmptyElement() can produce empty elements.
+     * XMLStreamWriter2 had wrong ordering for arguments for
+       the new writeStartDocument(). Stax 1.0 is inconsistent, but the
+       ordering as fixed makes more sense since they are in document
+       order now.
+     * XMLStreamWriter.writeCData(char[], int, int) was missing; added
+       to make it consistent with writeCharacters(char[], int, int).
 
 1.9.0: [20-Apr-2005]
 

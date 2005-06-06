@@ -78,15 +78,17 @@ public abstract class SMLinkedOutput
      * children can only be partially output.
      *
      * @param canClose If true, indicates that the node can (and should)
-     *   be fully closed if possible. Usually done when a new sibling
+     *   be fully closed if possible. This (passing true) is usually done
+     *    when a new sibling
      *   is added after a node (element/fragment); if so, current one
-     *   should be recursively closed
+     *   should be recursively closed. If false, should only try to output
+     *   as much as can be done without forcing closures.
      *
      * @return True if the whole node could be output, ie. neither it nor
      *   its children are buffered.
      */
     protected abstract boolean doOutput(boolean canClose)
-	throws XMLStreamException;
+        throws XMLStreamException;
 
     /**
      * Method similar to {@link #doOutput}, except that this method will
@@ -94,5 +96,5 @@ public abstract class SMLinkedOutput
      * buffered nodes to be unbuffered, and then output.
      */
     protected abstract void forceOutput()
-	throws XMLStreamException;    
+        throws XMLStreamException;
 }
