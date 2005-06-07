@@ -231,7 +231,8 @@ public class TestStreamReader
                 System.out.println(" PI data = '"+sr.getPIData()+"'.");
             } else if (type == START_ELEMENT) {
                 int count = sr.getAttributeCount();
-                System.out.println(" ["+count+" attrs]");
+                int nsCount = sr.getNamespaceCount();
+                System.out.println(" ["+count+" attrs, "+nsCount+" ns]");
                 // debugging:
                 for (int i = 0; i < count; ++i) {
                     System.out.print(" attr#"+i+": "+sr.getAttributePrefix(i)

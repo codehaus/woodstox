@@ -1,11 +1,24 @@
-Version: 2.0rc2
+Version: 2.0rc3
 
-Release date: 06-Jun-2005
+Release date: xx-Jun-2005
 
 Description:
   Second release candidate for the eventual 2.0 release
 
   New functionality:
+
+  Problems fixed:
+
+  * StartElement:
+     * Namespace handling was broken: default namespace was included
+       twice in some cases (including reporting a dummy empty default
+       namespace declaration)
+  * XMLStreamWriter:
+     * writeStartDocument was broken in 2.0rc2 (after working in 2.0rc1)
+
+== History: ==
+
+2.0rc2: [05-Jun-2005]
 
   Problems fixed:
 
@@ -16,8 +29,6 @@ Description:
        order now.
      * XMLStreamWriter.writeCData(char[], int, int) was missing; added
        to make it consistent with writeCharacters(char[], int, int).
-
-== History: ==
 
 2.0rc1: [11-Apr-2005]
 

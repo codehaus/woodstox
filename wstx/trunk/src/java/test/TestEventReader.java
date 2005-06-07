@@ -1,10 +1,12 @@
 package test;
 
 import java.io.*;
+import java.util.Iterator;
 
 import javax.xml.namespace.QName;
 import javax.xml.stream.*;
 import javax.xml.stream.events.XMLEvent;
+import javax.xml.stream.events.StartElement;
 
 import org.codehaus.stax2.XMLInputFactory2;
 
@@ -56,8 +58,18 @@ public class TestEventReader
         //out.write("[START]\n");
         while (er.hasNext()) {
             XMLEvent evt = er.nextEvent();
-// Uncomment for debugging:            
+// Uncomment for debugging:
 //System.err.println("["+evt.getEventType()+"]: '");
+            if (evt.isStartElement()) {
+                StartElement elem = (StartElement) evt;
+                Iterator it = elem.getNamespaces();
+                int count = 0;
+                while (it.hasNext()) {
+                    it.next();
+                    ++count;
+                }
+//System.err.println("[Ns count: "+count+"]");
+            }
             evt.writeAsEncodedUnicode(out);
             //out.write("'\n");
             out.flush();

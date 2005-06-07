@@ -584,7 +584,7 @@ public abstract class BaseStreamWriter
     public void writeStartDocument(String encoding, String version)
         throws XMLStreamException
     {
-        doWriteStartDocument(encoding, version, null);
+        doWriteStartDocument(version, encoding, null);
     }
 
     protected void doWriteStartDocument(String version, String encoding,
@@ -762,11 +762,11 @@ public abstract class BaseStreamWriter
 
     public abstract void writeFullEndElement() throws XMLStreamException;
 
-    public void writeStartDocument(String encoding, String version,
+    public void writeStartDocument(String version, String encoding,
                                    boolean standAlone)
         throws XMLStreamException
     {
-        doWriteStartDocument(encoding, version, standAlone ? "yes" : "no");
+        doWriteStartDocument(version, encoding, standAlone ? "yes" : "no");
     }
 
     public void writeRaw(String text)
@@ -829,8 +829,8 @@ public abstract class BaseStreamWriter
                         ; // no output if no real input
                     } else {
                         if (sr.standaloneSet()) {
-                            writeStartDocument(sr.getCharacterEncodingScheme(),
-                                               sr.getVersion(),
+                            writeStartDocument(sr.getVersion(),
+                                               sr.getCharacterEncodingScheme(),
                                                sr.isStandalone());
                         } else {
                             writeStartDocument(sr.getCharacterEncodingScheme(),

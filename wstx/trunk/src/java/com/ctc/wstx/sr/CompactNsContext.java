@@ -24,8 +24,6 @@ public final class CompactNsContext
 {
     final Location mLocation;
 
-    final String mDefaultNsURI;
-
     /**
      * Array that contains 2 Strings for each declared default namespace
      * (including default namespace declarations); first is the prefix,
@@ -49,25 +47,29 @@ public final class CompactNsContext
                             int firstLocal)
     {
         mLocation = loc;
-        mDefaultNsURI = (defaultNsURI == null) ? UNDECLARED_NS_URI : defaultNsURI;
         mNamespaces = namespaces;
         mFirstLocalNs = firstLocal;
     }
 
     public String doGetNamespaceURI(String prefix)
     {
-        // Note: base class checks for 'known' problems and prefixes:
-        if (prefix.length() == 0) {
-            return mDefaultNsURI;
-        }
-
         /* Let's search from beginning towards end; this way we'll first
          * find the innermost (or, in case of same-level declaration, last)
          * declaration for prefix.
          */
-        for (int i = mNamespaces.length-2; i >= 0; i -= 2) {
-            if (prefix.equals(mNamespaces[i])) {
-                return mNamespaces[i+1];
+        // (note: default namespace will be there too...)
+        String[] ns = mNamespaces;
+        if (prefix == null || prefix.length() == 0) {
+            for (int i = ns.length-2; i >= 0; i -= 2) {
+                if (ns[i].length() == 0) {
+                    return ns[i+1];
+                }
+            }
+            return "";
+        }
+        for (int i = ns.length-2; i >= 0; i -= 2) {
+            if (prefix.equals(ns[i])) {
+                return ns[i+1];
             }
         }
         return null;
@@ -155,34 +157,27 @@ public final class CompactNsContext
         if (mNsList == null) {
             int firstLocal = mFirstLocalNs;
             int len = mNamespaces.length - firstLocal;
-            String defNS = mDefaultNsURI;
-            if (len == 0) {
-                if (defNS == null) {
-                    return EmptyIterator.getInstance();
-                }
-                return new SingletonIterator(new WNamespace(mLocation, defNS));
+            if (len == 0) { // can this happen?
+                return EmptyIterator.getInstance();
             }
-            if (len == 2 && defNS == null) { // only one NS, no default
+            if (len == 2) { // only one NS
                 return new SingletonIterator(new WNamespace
                                              (mLocation,
                                               mNamespaces[firstLocal],
                                               mNamespaces[firstLocal+1]));
             }
-            ArrayList l = new ArrayList((len >> 1) + 1);
-            if (defNS != null) {
-                l.add(new WNamespace(mLocation, defNS));
-                String[] ns = mNamespaces;
-                for (len = mNamespaces.length; firstLocal < len;
-                     firstLocal += 2) {
-                    l.add(new WNamespace(mLocation, ns[firstLocal],
-                                         ns[firstLocal+1]));
-                }
+            ArrayList l = new ArrayList(len >> 1);
+            String[] ns = mNamespaces;
+            for (len = mNamespaces.length; firstLocal < len;
+                 firstLocal += 2) {
+                l.add(new WNamespace(mLocation, ns[firstLocal],
+                                     ns[firstLocal+1]));
             }
             mNsList = l;
         }
         return mNsList.iterator();
     }
-
+    
     /**
      * Method called by {@link com.ctc.wstx.evt.CompactStartElement}
      * to output all 'local' namespace declarations active in current
@@ -191,20 +186,15 @@ public final class CompactNsContext
      */
     public void outputNamespaceDeclarations(Writer w) throws IOException
     {
-        // First, do we have a default namespace declaration?
-        if (mDefaultNsURI != null) {
-            w.write(' ');
-            w.write(XMLConstants.XMLNS_ATTRIBUTE);
-            w.write("=\"");
-            w.write(mDefaultNsURI);
-            w.write('"');
-        }
         String[] ns = mNamespaces;
         for (int i = mFirstLocalNs, len = ns.length; i < len; i += 2) {
             w.write(' ');
             w.write(XMLConstants.XMLNS_ATTRIBUTE);
-            w.write(':');
-            w.write(ns[i]);
+            String prefix = ns[i];
+            if (prefix.length() > 0) {
+                w.write(':');
+                w.write(prefix);
+            }
             w.write("=\"");
             w.write(ns[i+1]);
             w.write('"');
