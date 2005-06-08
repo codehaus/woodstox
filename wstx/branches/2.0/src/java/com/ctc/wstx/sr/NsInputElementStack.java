@@ -64,8 +64,8 @@ public class NsInputElementStack
 
     /**
      * Vector that contains all currently active namespaces; one String for
-     * prefix, another for matching URI. Does NOT contain default name
-     * spaces.
+     * prefix, another for matching URI. Does also include default name
+     * spaces (at most one per level).
      */
     protected final StringVector mNamespaces = new StringVector(64);
 
@@ -293,8 +293,12 @@ public class NsInputElementStack
      * generally needed when creating events to return from event-based
      * iterators.
      */
-    public final BaseNsContext createNonTransientNsContext(Location loc) {
+    public final BaseNsContext createNonTransientNsContext(Location loc)
+    {
         int localCount = getCurrentNsCount() << 1;
+        if (localCount == 0) { // no new NS declarations, can return shared inst
+            return EmptyNamespaceContext.getInstance();
+        }
         return new CompactNsContext(loc, getDefaultNsURI(), mNamespaces.asArray(),
                               mNamespaces.size() - localCount);
                               

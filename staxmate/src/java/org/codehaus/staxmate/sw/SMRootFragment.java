@@ -21,7 +21,6 @@ public class SMRootFragment
     protected boolean mActive;
 
     public SMRootFragment(SMOutputContext ctxt)
-        throws XMLStreamException
     {
         super(ctxt, null);
     }

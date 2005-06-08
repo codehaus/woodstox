@@ -49,6 +49,17 @@ public final class CompactNsContext
         mLocation = loc;
         mNamespaces = namespaces;
         mFirstLocalNs = firstLocal;
+
+        /* // for debugging
+        System.err.print("[NS("+namespaces.length+")->");
+        for (int i = 0; i < namespaces.length; ++i) {
+            if (i > 0) {
+                System.err.print(",");
+            }
+            System.err.print(namespaces[i]);
+        }
+        System.err.print("]");
+        */
     }
 
     public String doGetNamespaceURI(String prefix)

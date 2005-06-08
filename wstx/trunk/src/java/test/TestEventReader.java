@@ -16,7 +16,8 @@ public class TestEventReader
 {
     final XMLInputFactory mFactory;
 
-    public TestEventReader() {
+    public TestEventReader()
+    {
         super();
         System.setProperty("javax.xml.stream.XMLInputFactory",
                            "com.ctc.wstx.stax.WstxInputFactory");

@@ -17,8 +17,15 @@ public final class SMBufferedElement
      */
     protected boolean mIsBuffered = true;
 
+    /**
+     *<p>
+     * Note: although signature indicates we could throw an exception,
+     * this sub-class never does. But since super-class in itself could,
+     * we have to declare it as potentially being thrown.
+     */
     protected SMBufferedElement(SMOutputContext ctxt,
                                 String localName, SMNamespace ns)
+	throws XMLStreamException
     {
         super(ctxt, null, localName, ns, true);
     }
