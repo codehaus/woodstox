@@ -38,10 +38,9 @@ public abstract class SMOutputContainer
      */
     SMLinkedOutput mLastChild = null;
 
-    protected SMOutputContainer(SMOutputContext ctxt, SMOutputContainer parent)
+    protected SMOutputContainer(SMOutputContext ctxt)
     {
         super(ctxt);
-        mParent = parent;
     }
 
     /*
@@ -174,8 +173,9 @@ public abstract class SMOutputContainer
 
         // Ok, let's see if we are blocked already
         boolean blocked = !canOutputNewChild();
-        SMOutputElement newElem = new SMOutputElement(ctxt, this, localName, ns, blocked);
+        SMOutputElement newElem = new SMOutputElement(ctxt, localName, ns);
         linkNewChild(newElem);
+        newElem.linkParent(this, blocked);
 
         return newElem;
     }
@@ -211,13 +211,11 @@ public abstract class SMOutputContainer
     */
 
     public SMBufferedFragment createBufferedFragment()
-        throws XMLStreamException
     {
         return new SMBufferedFragment(getContext());
     }
 
     public SMBufferedElement createBufferedElement(String localName, SMNamespace ns)
-        throws XMLStreamException
     {
         return new SMBufferedElement(getContext(), localName, ns);
     }
@@ -346,5 +344,14 @@ public abstract class SMOutputContainer
     protected void throwClosed() {
         throw new IllegalStateException("Illegal call when container (of type "
                                         +getClass()+") was closed");
+    }
+
+    protected void throwRelinking() {
+            throw new IllegalStateException("Can not re-set parent (for instance of "+getClass()+") once it has been set once");
+    }
+
+    protected void throwBuffered() {
+        throw new IllegalStateException("Illegal call when container (of type "
+                                        +getClass()+") is still buffered");
     }
 }

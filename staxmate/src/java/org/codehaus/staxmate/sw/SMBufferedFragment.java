@@ -41,7 +41,7 @@ public final class SMBufferedFragment
 
     protected SMBufferedFragment(SMOutputContext ctxt)
     {
-        super(ctxt, null);
+        super(ctxt);
         
     }
 
@@ -59,7 +59,7 @@ public final class SMBufferedFragment
         throws XMLStreamException
     {
         if (mParent != null) {
-            throw new IllegalStateException("Can not re-set parent once it has been set once");
+            throwRelinking();
         }
         mParent = parent;
 

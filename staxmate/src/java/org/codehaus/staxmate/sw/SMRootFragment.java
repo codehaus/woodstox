@@ -22,7 +22,7 @@ public class SMRootFragment
 
     public SMRootFragment(SMOutputContext ctxt)
     {
-        super(ctxt, null);
+        super(ctxt);
     }
 
     /*
