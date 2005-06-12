@@ -14,7 +14,7 @@ public interface SMBufferable
      * (if not required to do so by parent/children restrictions)
      */
     public void release()
-	throws XMLStreamException;
+        throws XMLStreamException;
 
     /**
      * @return True if this object is still buffered; false if not

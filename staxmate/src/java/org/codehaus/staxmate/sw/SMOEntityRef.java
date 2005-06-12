@@ -7,15 +7,15 @@ public class SMOEntityRef
 {
     final String mName;
 
-    public SMOEntityRef(SMOutputContext ctxt, String name) {
-	super(ctxt);
-	mName = name;
+    public SMOEntityRef(String name) {
+        super();
+        mName = name;
     }
 
-    protected boolean doOutput(boolean canClose)
-	throws XMLStreamException
+    protected boolean doOutput(SMOutputContext ctxt, boolean canClose)
+        throws XMLStreamException
     {
-	mContext.writeEntityRef(mName);
-	return true;
+        ctxt.writeEntityRef(mName);
+        return true;
     }
 }

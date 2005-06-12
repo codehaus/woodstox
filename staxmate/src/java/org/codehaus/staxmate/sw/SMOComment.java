@@ -7,15 +7,15 @@ public class SMOComment
 {
     final String mText;
 
-    public SMOComment(SMOutputContext ctxt, String text) {
-	super(ctxt);
-	mText = text;
+    public SMOComment(String text) {
+        super();
+        mText = text;
     }
 
-    protected boolean doOutput(boolean canClose)
-	throws XMLStreamException
+    protected boolean doOutput(SMOutputContext ctxt, boolean canClose)
+        throws XMLStreamException
     {
-	mContext.writeComment(mText);
-	return true;
+        ctxt.writeComment(mText);
+        return true;
     }
 }

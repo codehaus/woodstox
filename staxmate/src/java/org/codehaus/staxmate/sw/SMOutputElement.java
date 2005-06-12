@@ -76,7 +76,7 @@ public class SMOutputElement
         
         // Let's make sure NS declaration is good, first:
         if (ns == null) {
-            ns = ctxt.getEmptyNamespace();
+            ns = SMOutputContext.getEmptyNamespace();
         } else if (!ns.isValidIn(ctxt)) { // shouldn't happen, but...
             /* Let's find instance from our current context, instead of the
              * one from some other context
@@ -132,7 +132,7 @@ public class SMOutputElement
         }
     }
     
-    protected boolean doOutput(boolean canClose)
+    protected boolean doOutput(SMOutputContext ctxt, boolean canClose)
         throws XMLStreamException
     {
         switch (mOutputState) {
@@ -166,11 +166,11 @@ public class SMOutputElement
         return true;
     }
     
-    protected void forceOutput()
+    protected void forceOutput(SMOutputContext ctxt)
         throws XMLStreamException
     {
         // Let's first ask nicely:
-        if (!doOutput(true)) {
+        if (!doOutput(mContext, true)) {
             // ... and if that doesn't work, let's negotiate bit more:
             forceChildOutput();
         }

@@ -5,8 +5,7 @@ import javax.xml.stream.XMLStreamException;
 public abstract class SMOCharacters
     extends SMSimpleOutput
 {
-    private SMOCharacters(SMOutputContext ctxt) {
-	super(ctxt);
+    private SMOCharacters() {
     }
 
     /*
@@ -15,91 +14,88 @@ public abstract class SMOCharacters
     ////////////////////////////////////////////////////////////////
      */
 
-    public static SMLinkedOutput create(SMOutputContext ctxt, String text) {
-	return new StringBased(ctxt, text);
+    public static SMLinkedOutput create(String text) {
+        return new StringBased(text);
     }
-
-    public static SMLinkedOutput createShared(SMOutputContext ctxt,
-					      char[] buf, int offset, int len) {
-	if (len < 1) {
-	    return create(ctxt, "");
+    
+    public static SMLinkedOutput createShared(char[] buf, int offset, int len) {
+    	if (len < 1) {
+    		return create("");
+    	}
+    	char[] arr = new char[len];
+    	System.arraycopy(buf, offset, arr, 0, len);
+    	return new ArrayBased(arr);
+    }
+    
+    public static SMLinkedOutput createNonShared(char[] buf, int offset, int len) {
+        if (offset == 0 && len == buf.length) {
+            return new ArrayBased(buf);
 	}
-	char[] arr = new char[len];
-	System.arraycopy(buf, offset, arr, 0, len);
-	return new ArrayBased(ctxt, arr);
+        return new ArrayBased3(buf, offset, len);
     }
-
-    public static SMLinkedOutput createNonShared(SMOutputContext ctxt, 
-						 char[] buf, int offset, int len) {
-	if (offset == 0 && len == buf.length) {
-	    return new ArrayBased(ctxt, buf);
-	}
-	return new ArrayBased3(ctxt, buf, offset, len);
-    }
-
-    protected abstract boolean doOutput(boolean canClose)
-	throws XMLStreamException;
-
+    
+    protected abstract boolean doOutput(SMOutputContext ctxt, boolean canClose)
+        throws XMLStreamException;
+    
     /*
     ////////////////////////////////////////////////////////////////
     // Sub-classes
     ////////////////////////////////////////////////////////////////
-     */
-
+    */
+    
     private final static class StringBased
-	extends SMOCharacters
+        extends SMOCharacters
     {
-	final String mText;
-
-	StringBased(SMOutputContext ctxt, String text) {
-	    super(ctxt);
-	    mText = text;
-	}
-
-	protected boolean doOutput(boolean canClose)
-	    throws XMLStreamException
-	{
-	    mContext.writeCharacters(mText);
-	    return true;
-	}
+        final String mText;
+        
+        StringBased(String text) {
+            mText = text;
+        }
+        
+        protected boolean doOutput(SMOutputContext ctxt, boolean canClose)
+            throws XMLStreamException
+        {
+            ctxt.writeCharacters(mText);
+            return true;
+        }
     }
 
     private final static class ArrayBased
-	extends SMOCharacters
+        extends SMOCharacters
     {
-	final char[] mBuf;
+        final char[] mBuf;
+        
+        ArrayBased(char[] buf) {
+            super();
+            mBuf = buf;
+        }
 
-	ArrayBased(SMOutputContext ctxt, char[] buf) {
-	    super(ctxt);
-	    mBuf = buf;
-	}
-
-	protected boolean doOutput(boolean canClose)
-	    throws XMLStreamException
-	{
-	    mContext.writeCharacters(mBuf, 0, mBuf.length);
-	    return true;
-	}
+        protected boolean doOutput(SMOutputContext ctxt, boolean canClose)
+            throws XMLStreamException
+        {
+            ctxt.writeCharacters(mBuf, 0, mBuf.length);
+            return true;
+        }
     }
 
     private final static class ArrayBased3
-	extends SMOCharacters
+        extends SMOCharacters
     {
-	final char[] mBuf;
-	final int mOffset, mLen;
-
-	ArrayBased3(SMOutputContext ctxt, char[] buf, int offset, int len) {
-	    super(ctxt);
-	    mBuf = buf;
-	    mOffset = offset;
-	    mLen = len;
-	}
-
-	protected boolean doOutput(boolean canClose)
-	    throws XMLStreamException
-	{
-	    mContext.writeCharacters(mBuf, mOffset, mLen);
-	    return true;
-	}
+        final char[] mBuf;
+        final int mOffset, mLen;
+        
+        ArrayBased3(char[] buf, int offset, int len) {
+            super();
+            mBuf = buf;
+            mOffset = offset;
+            mLen = len;
+        }
+        
+        protected boolean doOutput(SMOutputContext ctxt, boolean canClose)
+            throws XMLStreamException
+        {
+            ctxt.writeCharacters(mBuf, mOffset, mLen);
+            return true;
+        }
     }
 }

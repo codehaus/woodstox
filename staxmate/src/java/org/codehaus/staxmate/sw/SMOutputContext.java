@@ -5,6 +5,8 @@ import java.util.*;
 import javax.xml.XMLConstants;
 import javax.xml.stream.*;
 
+import org.codehaus.stax2.XMLStreamWriter2;
+
 /**
  * Class that encapsulates details about context in which StaxMate output
  * is done. The most important of the details is the stream writer to use
@@ -41,9 +43,9 @@ public final class SMOutputContext
 
     final static HashMap sGlobalNsMap = new HashMap();
     static {
-	sGlobalNsMap.put(sNsEmpty.getURI(), sNsEmpty);
-	sGlobalNsMap.put(sNsXml.getURI(), sNsXml);
-	sGlobalNsMap.put(sNsXmlns.getURI(), sNsXmlns);
+        sGlobalNsMap.put(sNsEmpty.getURI(), sNsEmpty);
+        sGlobalNsMap.put(sNsXml.getURI(), sNsXml);
+        sGlobalNsMap.put(sNsXmlns.getURI(), sNsXmlns);
     }
 
     /*
@@ -71,9 +73,9 @@ public final class SMOutputContext
 
     protected SMOutputContext(XMLStreamWriter sw)
     {
-	mStreamWriter = sw;
-	Object o = sw.getProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES);
-	mRepairing = (o instanceof Boolean) && ((Boolean) o).booleanValue();
+        mStreamWriter = sw;
+        Object o = sw.getProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES);
+        mRepairing = (o instanceof Boolean) && ((Boolean) o).booleanValue();
     }
     
     /*
@@ -83,9 +85,9 @@ public final class SMOutputContext
     */
 
     public static SMOutputContext createInstance(XMLStreamWriter sw)
-	throws XMLStreamException
+        throws XMLStreamException
     {
-	return new SMOutputContext(sw);
+        return new SMOutputContext(sw);
     }
 
     /*
@@ -107,9 +109,9 @@ public final class SMOutputContext
      * in the stream writer.
      */
     public SMOutputDocument createDocument()
-	throws XMLStreamException
+        throws XMLStreamException
     {
-	return new SMOutputDocument(this);
+        return new SMOutputDocument(this);
     }
 
     /**
@@ -122,18 +124,18 @@ public final class SMOutputContext
      * which takes full xml declaration information.
      */
     public SMOutputDocument createDocument(String version, String encoding)
-	throws XMLStreamException
+        throws XMLStreamException
     {
-	return new SMOutputDocument(this, version, encoding);
+        return new SMOutputDocument(this, version, encoding);
     }
 
     public SMOutputDocument createDocument(String version, String encoding,
-					   boolean standalone)
-	throws XMLStreamException
+                                           boolean standalone)
+        throws XMLStreamException
     {
-	return new SMOutputDocument(this, version, encoding, standalone);
+        return new SMOutputDocument(this, version, encoding, standalone);
     }
-
+    
     /*
     //////////////////////////////////////////////////////
     // Factory methods, fragment creation
@@ -153,7 +155,7 @@ public final class SMOutputContext
      * streamed (except for buffering caused by adding buffered children)
      */
     public SMRootFragment createRootFragment()
-	throws XMLStreamException
+        throws XMLStreamException
     {
 	return new SMRootFragment(this);
     }
@@ -171,11 +173,11 @@ public final class SMOutputContext
     */
 
     public SMLinkedOutput createCharacters(String text) {
-	return SMOCharacters.create(this, text);
+        return SMOCharacters.create(text);
     }
 
     public SMLinkedOutput createCharacters(char[] buf, int offset, int len) {
-	return SMOCharacters.createShared(this, buf, offset, len);
+        return SMOCharacters.createShared(buf, offset, len);
     }
 
     /**
@@ -185,15 +187,15 @@ public final class SMOutputContext
      * the passed in reference knowing it will not be messed by other threads.
      */
     public SMLinkedOutput createNonSharedCharacters(char[] buf, int offset, int len) {
-	return SMOCharacters.createNonShared(this, buf, offset, len);
+        return SMOCharacters.createNonShared(buf, offset, len);
     }
 
     public SMLinkedOutput createCData(String text) {
-	return SMOCData.create(this, text);
+        return SMOCData.create(text);
     }
 
     public SMLinkedOutput createCData(char[] buf, int offset, int len) {
-	return SMOCData.createShared(this, buf, offset, len);
+        return SMOCData.createShared(buf, offset, len);
     }
 
     /**
@@ -203,19 +205,19 @@ public final class SMOutputContext
      * the passed in reference knowing it will not be messed by other threads.
      */
     public SMLinkedOutput createNonSharedCData(char[] buf, int offset, int len) {
-	return SMOCData.createNonShared(this, buf, offset, len);
+        return SMOCData.createNonShared(buf, offset, len);
     }
 
     public SMLinkedOutput createComment(String text) {
-	return new SMOComment(this, text);
+        return new SMOComment(text);
     }
 
     public SMLinkedOutput createEntityRef(String name) {
-	return new SMOEntityRef(this, name);
+        return new SMOEntityRef(name);
     }
 
     public SMLinkedOutput createProcessingInstruction(String target, String data) {
-	return new SMOProcInstr(this, target, data);
+        return new SMOProcInstr(target, data);
     }
 
     /*
@@ -226,46 +228,46 @@ public final class SMOutputContext
 
     public final SMNamespace getNamespace(String uri)
     {
-	if (uri == null || uri.length() == 0) {
-	    return sNsEmpty;
-	}
-	if (mLocalNsMap != null) {
-	    SMNamespace ns = (SMNamespace) mLocalNsMap.get(uri);
-	    if (ns != null) {
-		return ns;
-	    }
-	}
-	SMNamespace ns = (SMNamespace) sGlobalNsMap.get(uri);
-	if (ns == null) {
-	    ns = new SMLocalNamespace(this, uri, null);
-	    if (mLocalNsMap == null) {
-		mLocalNsMap = new HashMap();
-	    }
-	    mLocalNsMap.put(uri, ns);
-	}
-	return ns;
+        if (uri == null || uri.length() == 0) {
+            return sNsEmpty;
+        }
+        if (mLocalNsMap != null) {
+            SMNamespace ns = (SMNamespace) mLocalNsMap.get(uri);
+            if (ns != null) {
+                return ns;
+            }
+        }
+        SMNamespace ns = (SMNamespace) sGlobalNsMap.get(uri);
+        if (ns == null) {
+            ns = new SMLocalNamespace(this, uri, null);
+            if (mLocalNsMap == null) {
+                mLocalNsMap = new HashMap();
+            }
+            mLocalNsMap.put(uri, ns);
+        }
+        return ns;
     }
 
     public final SMNamespace getNamespace(String uri, String prefPrefix)
     {
-	if (uri == null || uri.length() == 0) {
-	    return sNsEmpty;
-	}
-	if (mLocalNsMap != null) {
-	    SMNamespace ns = (SMNamespace) mLocalNsMap.get(uri);
-	    if (ns != null) {
-		return ns;
-	    }
-	}
-	SMNamespace ns = (SMNamespace) sGlobalNsMap.get(uri);
-	if (ns == null) {
-	    ns = new SMLocalNamespace(this, uri, prefPrefix);
-	    if (mLocalNsMap == null) {
-		mLocalNsMap = new HashMap();
-	    }
-	    mLocalNsMap.put(uri, ns);
-	}
-	return ns;
+        if (uri == null || uri.length() == 0) {
+            return sNsEmpty;
+        }
+        if (mLocalNsMap != null) {
+            SMNamespace ns = (SMNamespace) mLocalNsMap.get(uri);
+            if (ns != null) {
+                return ns;
+            }
+        }
+        SMNamespace ns = (SMNamespace) sGlobalNsMap.get(uri);
+        if (ns == null) {
+            ns = new SMLocalNamespace(this, uri, prefPrefix);
+            if (mLocalNsMap == null) {
+                mLocalNsMap = new HashMap();
+            }
+            mLocalNsMap.put(uri, ns);
+        }
+        return ns;
     }
 
     public final static SMNamespace getEmptyNamespace()
@@ -280,11 +282,11 @@ public final class SMOutputContext
     */
 
     public final XMLStreamWriter getWriter() {
-	return mStreamWriter;
+        return mStreamWriter;
     }
-
+    
     public final boolean isWriterRepairing() {
-	return mRepairing;
+        return mRepairing;
     }
 
     /*
@@ -295,76 +297,78 @@ public final class SMOutputContext
     */
 
     public void writeCharacters(String text)
-	throws XMLStreamException
+        throws XMLStreamException
     {
-	mStreamWriter.writeCharacters(text);
+        mStreamWriter.writeCharacters(text);
     }
-
+    
     public void writeCharacters(char[] buf, int offset, int len)
-	throws XMLStreamException
+        throws XMLStreamException
     {
-	mStreamWriter.writeCharacters(buf, offset, len);
+        mStreamWriter.writeCharacters(buf, offset, len);
     }
-
+    
     public void writeCData(String text)
-	throws XMLStreamException
+        throws XMLStreamException
     {
-	mStreamWriter.writeCData(text);
+        mStreamWriter.writeCData(text);
     }
-
+    
     public void writeCData(char[] buf, int offset, int len)
-	throws XMLStreamException
+        throws XMLStreamException
     {
-	/* !!! 02-Jun-2005, TSa: Need to add method to StAX2
-	 */
-	//mStreamWriter.writeCData(buf, offset, len);
-	mStreamWriter.writeCData(new String(buf, offset, len));
+        // Can we use StAX2?
+        if (mStreamWriter instanceof XMLStreamWriter2) {
+            ((XMLStreamWriter2) mStreamWriter).writeCData(buf, offset, len);
+        } else {
+            mStreamWriter.writeCData(new String(buf, offset, len));
+        }
     }
-
+    
     public void writeComment(String text)
-	throws XMLStreamException
+        throws XMLStreamException
     {
-	mStreamWriter.writeComment(text);
+        mStreamWriter.writeComment(text);
     }
-
+    
     public void writeEntityRef(String name)
-	throws XMLStreamException
+        throws XMLStreamException
     {
-	mStreamWriter.writeEntityRef(name);
+        mStreamWriter.writeEntityRef(name);
     }
-
+    
     public void writeProcessingInstruction(String target, String data)
-	throws XMLStreamException
+        throws XMLStreamException
     {
-	if (data == null) {
-	    mStreamWriter.writeProcessingInstruction(target);
-	} else {
-	    mStreamWriter.writeProcessingInstruction(target, data);
-	}
+        if (data == null) {
+            mStreamWriter.writeProcessingInstruction(target);
+        } else {
+            mStreamWriter.writeProcessingInstruction(target, data);
+        }
     }
 
     public void writeAttribute(String localName, SMNamespace ns,
 			       String value)
 	throws XMLStreamException
     {
-	// !!! TBI: Need to bind the namespace?
-
-	// !!! TBI: actual outputting
+        // !!! TBI: Need to bind the namespace?
+        
+        // !!! TBI: actual outputting
     }
 
     public void writeStartElement(String localName, SMNamespace ns)
-	throws XMLStreamException
+        throws XMLStreamException
     {
-	// !!! TBI: Need to bind the namespace?
-
-	// !!! TBI: actual outputting
+        // !!! TBI: Need to bind the namespace?
+        
+        // !!! TBI: actual outputting
     }
-
+    
     public void writeEndElement(String localName, SMNamespace ns)
-	throws XMLStreamException
+        throws XMLStreamException
     {
-	// !!! TBI: actual outputting
-
-	// !!! TBI: Need to unbind the namespaces?
+        // !!! TBI: actual outputting
+        
+        // !!! TBI: Need to unbind the namespaces?
     }
 }

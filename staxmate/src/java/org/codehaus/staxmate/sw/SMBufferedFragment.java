@@ -76,7 +76,7 @@ public final class SMBufferedFragment
                  * still be blocked by a child). However, we are not to be
                  * closed as of yet.
                  */
-                doOutput(false);
+                doOutput(mContext, false);
             }
         }
     }
@@ -126,7 +126,7 @@ public final class SMBufferedFragment
         }
     }
 
-    protected boolean doOutput(boolean canClose)
+    protected boolean doOutput(SMOutputContext ctxt, boolean canClose)
         throws XMLStreamException
     {
         // No outputting if still buffered...
@@ -148,7 +148,7 @@ public final class SMBufferedFragment
         return closeAllButLastChild();
     }
 
-    protected void forceOutput()
+    protected void forceOutput(SMOutputContext ctxt)
         throws XMLStreamException
     {
         mState = STATE_OPEN; // just in case we get a callback from children

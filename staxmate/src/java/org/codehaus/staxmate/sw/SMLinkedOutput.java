@@ -1,7 +1,6 @@
 package org.codehaus.staxmate.sw;
 
 import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
 
 /**
  * Basic building block for all outputtable nodes within StaxMate.
@@ -17,17 +16,9 @@ import javax.xml.stream.XMLStreamWriter;
  */
 public abstract class SMLinkedOutput
 {
-    /**
-     * Context of this node; defines things like the underlying stream
-     * writer and known namespaces.
-     */
-    final SMOutputContext mContext;
-
     protected SMLinkedOutput mNext = null;
 
-    protected SMLinkedOutput(SMOutputContext ctxt)
-    {
-	mContext = ctxt;
+    protected SMLinkedOutput() {
     }
 
     /*
@@ -37,31 +28,14 @@ public abstract class SMLinkedOutput
      */
 
     protected SMLinkedOutput getNext() {
-	return mNext;
+        return mNext;
     }
 
     protected void linkNext(SMLinkedOutput next) {
-	if (mNext != null) {
-	    throw new IllegalStateException("Can not re-set next once it has been set once");
-	}
-	mNext = next;
-    }
-
-    /*
-    /////////////////////////////////////////////////////
-    // Properties/state
-    /////////////////////////////////////////////////////
-     */
-
-    public final SMOutputContext getContext() {
-	return mContext;
-    }
-
-    public final XMLStreamWriter getWriter() {
-	/* ... could use accessor, but let's just make this easy for
-	 * JIT/HotSpot (we can use package access from the same package)
-	 */
-	return mContext.mStreamWriter;
+        if (mNext != null) {
+            throw new IllegalStateException("Can not re-set next once it has been set once");
+        }
+        mNext = next;
     }
 
     /*
@@ -77,6 +51,8 @@ public abstract class SMLinkedOutput
      * buffered nodes will not be output at all, and nodes with buffered
      * children can only be partially output.
      *
+     * @param ctxt Output context to use for outputting this node (and
+     *   its contents)
      * @param canClose If true, indicates that the node can (and should)
      *   be fully closed if possible. This (passing true) is usually done
      *    when a new sibling
@@ -87,7 +63,7 @@ public abstract class SMLinkedOutput
      * @return True if the whole node could be output, ie. neither it nor
      *   its children are buffered.
      */
-    protected abstract boolean doOutput(boolean canClose)
+    protected abstract boolean doOutput(SMOutputContext ctxt, boolean canClose)
         throws XMLStreamException;
 
     /**
@@ -95,6 +71,6 @@ public abstract class SMLinkedOutput
      * always succeed in doing the output. Specifically, it will force all
      * buffered nodes to be unbuffered, and then output.
      */
-    protected abstract void forceOutput()
+    protected abstract void forceOutput(SMOutputContext ctxt)
         throws XMLStreamException;
 }

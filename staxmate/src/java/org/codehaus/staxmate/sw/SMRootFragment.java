@@ -1,7 +1,6 @@
 package org.codehaus.staxmate.sw;
 
 import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
 
 /**
  * Concrete non-buffered fragment (== container) class used as the root
@@ -31,7 +30,7 @@ public class SMRootFragment
     ///////////////////////////////////////////////////////////
      */
 
-    protected boolean doOutput(boolean canClose)
+    protected boolean doOutput(SMOutputContext ctxt, boolean canClose)
         throws XMLStreamException
     {
         // Should never get called if not active...
@@ -44,7 +43,7 @@ public class SMRootFragment
         return closeAllButLastChild();
     }
 
-    protected void forceOutput()
+    protected void forceOutput(SMOutputContext ctxt)
         throws XMLStreamException
     {
         // Should never get called if not active...
@@ -98,9 +97,9 @@ public class SMRootFragment
             return;
         }
         // Let's first try to close them nicely:
-        if (!doOutput(true)) {
+        if (!doOutput(mContext, true)) {
             // but if that doesn't work, should just unbuffer all children...
-            forceOutput();
+            forceOutput(mContext);
         }
         // Either way, we are now closed:
         mActive = false;

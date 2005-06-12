@@ -1,6 +1,7 @@
 package org.codehaus.staxmate.sw;
 
 import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 
 /**
  * Intermediate abstract output class for StaxMate, which is used as the base
@@ -18,6 +19,12 @@ import javax.xml.stream.XMLStreamException;
 public abstract class SMOutputContainer
     extends SMLinkedOutput
 {
+    /**
+     * Context of this node; defines things like the underlying stream
+     * writer and known namespaces.
+     */
+    final SMOutputContext mContext;
+
     /**
      * Parent of this container; null for root-level entities, as well
      * as not-yet-linked buffered containers.
@@ -40,7 +47,8 @@ public abstract class SMOutputContainer
 
     protected SMOutputContainer(SMOutputContext ctxt)
     {
-        super(ctxt);
+        super();
+        mContext = ctxt;
     }
 
     /*
@@ -49,8 +57,26 @@ public abstract class SMOutputContainer
     ///////////////////////////////////////////////////////////
     */
 
-    protected SMOutputContainer getParent() {
+    public final SMOutputContainer getParent() {
         return mParent;
+    }
+
+
+    public final SMOutputContext getContext() {
+        return mContext;
+    }
+
+    /*
+    /////////////////////////////////////////////////////
+    // Properties/state
+    /////////////////////////////////////////////////////
+     */
+
+    public final XMLStreamWriter getWriter() {
+        /* ... could use accessor, but let's just make this easy for
+         * JIT/HotSpot (we can use package access from the same package)
+         */
+        return mContext.mStreamWriter;
     }
 
     /**
@@ -159,7 +185,7 @@ public abstract class SMOutputContainer
          * for this context
          */
         if (ns == null) {
-            ns = ctxt.getEmptyNamespace();
+            ns = SMOutputContext.getEmptyNamespace();
             /* Hmmh. Callers should know better than to share namespace
              * instances... but then again, we can easily fix the problem
              * even if they are shared:
@@ -226,10 +252,10 @@ public abstract class SMOutputContainer
     ////////////////////////////////////////////////////////
     */
 
-    protected abstract boolean doOutput(boolean canClose)
+    protected abstract boolean doOutput(SMOutputContext ctxt, boolean canClose)
         throws XMLStreamException;
 
-    protected abstract void forceOutput()
+    protected abstract void forceOutput(SMOutputContext ctxt)
         throws XMLStreamException;
 
     /*
@@ -295,7 +321,7 @@ public abstract class SMOutputContainer
         throws XMLStreamException
     {
         while (mFirstChild != null) {
-            if (!doOutput(true)) {
+            if (!doOutput(mContext, true)) {
                 // Nope, node was buffered or had buffered child(ren)
                 return false;
             }
@@ -320,7 +346,7 @@ public abstract class SMOutputContainer
              * previous can and should be closed:
              */
             boolean notLast = (next != null);
-            if (!mFirstChild.doOutput(notLast)) {
+            if (!mFirstChild.doOutput(mContext, notLast)) {
                 // Nope, node was buffered or had buffered child(ren)
                 return false;
             }
@@ -337,7 +363,7 @@ public abstract class SMOutputContainer
         mFirstChild = null;
         mLastChild = null;
         for (; child != null; child = child.mNext) {
-            child.forceOutput();
+            child.forceOutput(mContext);
         }
     }
 

@@ -8,16 +8,16 @@ public class SMOProcInstr
     final String mTarget;
     final String mData;
 
-    public SMOProcInstr(SMOutputContext ctxt, String target, String data) {
-	super(ctxt);
-	mTarget = target;
-	mData = data;
+    public SMOProcInstr(String target, String data) {
+        super();
+        mTarget = target;
+        mData = data;
     }
-
-    protected boolean doOutput(boolean canClose)
-	throws XMLStreamException
+    
+    protected boolean doOutput(SMOutputContext ctxt, boolean canClose)
+        throws XMLStreamException
     {
-	mContext.writeProcessingInstruction(mTarget, mData);
-	return true;
+        ctxt.writeProcessingInstruction(mTarget, mData);
+        return true;
     }
 }

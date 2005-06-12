@@ -11,9 +11,8 @@ import javax.xml.stream.XMLStreamException;
 abstract class SMSimpleOutput
     extends SMLinkedOutput
 {
-    protected SMSimpleOutput(SMOutputContext ctxt)
-    {
-	super(ctxt);
+    protected SMSimpleOutput() {
+        super();
     }
 
     /*
@@ -28,15 +27,15 @@ abstract class SMSimpleOutput
      * output differs, and there isn't much point in factoring out
      * 'return true;' part... so let's leave this abstract
      */
-    protected abstract boolean doOutput(boolean canClose)
-	throws XMLStreamException;
+    protected abstract boolean doOutput(SMOutputContext ctxt, boolean canClose)
+        throws XMLStreamException;
 
-    protected void forceOutput()
-	throws XMLStreamException
+    protected void forceOutput(SMOutputContext ctxt)
+        throws XMLStreamException
     {
-	/* For simple output nodes this is simple; can just call
-	 * normal output methods as these are never buffered
-	 */
-	doOutput(true);
+        /* For simple output nodes this is simple; can just call
+         * normal output methods as these are never buffered
+         */
+        doOutput(ctxt, true);
     }
 }

@@ -66,11 +66,12 @@ public final class SMBufferedElement
     /* Base implementation is mostly fine, but let's add some sanity
      * checking
      */
-    protected boolean doOutput(boolean canClose) throws XMLStreamException
+    protected boolean doOutput(SMOutputContext ctxt, boolean canClose)
+        throws XMLStreamException
     {
         if (mIsBuffered) {
             throwBuffered();
         }
-        return super.doOutput(canClose);
+        return super.doOutput(ctxt, canClose);
     }
 }
