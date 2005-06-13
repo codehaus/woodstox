@@ -12,7 +12,7 @@ public abstract class SMNamespace
 
     protected SMNamespace(String uri)
     {
-	mURI = uri;
+        mURI = uri;
     }
 
     /*
@@ -22,7 +22,7 @@ public abstract class SMNamespace
      */
 
     public final String getURI() {
-	return mURI;
+        return mURI;
     }
 
     /**
@@ -31,6 +31,14 @@ public abstract class SMNamespace
      *  use it as the prefix to bind if there are no
      */
     public abstract String getPreferredPrefix();
+
+    public abstract String getBoundPrefix();
+
+    public abstract String getLastBoundPrefix();
+
+    public abstract boolean prefersDefaultNs();
+
+    public abstract void prefersDefaultNs(boolean state);
 
     /*
     ///////////////////////////////////
@@ -45,10 +53,18 @@ public abstract class SMNamespace
     protected abstract boolean isValidIn(SMOutputContext ctxt);
 
     /**
-     * Method called to update (explicit) prefix used with this
-     * namespace in the current output location within the owning
-     * output context.
+     * Method called to indicate that the namespace is now bound to a
+     * specific prefix within current output context. Note that this
+     * will not be called when the namespace is defined as the default
+     * namespace, but only when it is also bound to a prefix.
      */
     protected abstract void bindAs(String prefix);
 
+    /**
+     * Method called to indicate that the namespace is no longer bound
+     * to its current prefix within the current output context.
+     * Since default namespace declarations do not cause binding, this
+     * method will not be called for default namespaces either.
+     */
+    protected abstract void unbind();
 }

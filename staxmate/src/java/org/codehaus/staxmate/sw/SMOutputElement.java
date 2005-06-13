@@ -23,16 +23,50 @@ public class SMOutputElement
     /////////////////////////////////////////////
     */
 
-    final String mLocalName;
-    final SMNamespace mNs;
+    /**
+     * Local name of the element, name without preceding prefix or colon
+     * (in namespace mode). In non-namespace mode fully-qualified name.
+     */
+    protected final String mLocalName;
+
+    /**
+     * Namespace of this element.
+     *<p>
+     * Note: can never be null -- event the default (empty) namespace
+     * is presented by a global shared namespace instance.
+     */
+    protected final SMNamespace mNs;
 
     /*
     /////////////////////////////////////////////
-    // Output state
+    // Output state information
     /////////////////////////////////////////////
     */
 
     protected int mOutputState = OUTPUT_NONE;
+
+    /**
+     * Namespace that was bound as the default namespace in the context
+     * where this element gets output. This is generally just stored here
+     * since it's {@link SMOutputContext} that handles actual namespace
+     * binding for output.
+     * This is either the default declared
+     * namespace of an ancestor element, or if none exists, the default
+     * namespace of the root (either the empty namespace, or one found
+     * via {@link javax.xml.namespace.NamespaceContext}.
+     *<p>
+     * Note: can never be null -- event the default (empty) namespace
+     * is presented by a global shared namespace instance.
+     */
+    protected SMNamespace mParentDefaultNs;
+
+    /**
+     * Number of explicitly bound namespaces parent element has (or
+     * for root elements 0). Stored for {@link SMOutputContext} during
+     * time element is open; needed for closing namespace scopes
+     * appropriately.
+     */
+    protected int mParentNsCount;
 
     protected SMOutputElement(SMOutputContext ctxt,
                               String localName, SMNamespace ns)
@@ -90,7 +124,6 @@ public class SMOutputElement
             // !!! TBI: buffer attribute to this element
             break;
         case OUTPUT_ATTRS: // perfect
-            // !!! TBI: make sure namespace is bound etc
             ctxt.writeAttribute(localName, ns, value);
             break;
         default:
@@ -161,8 +194,7 @@ public class SMOutputElement
         }
 
         // Ok, can and should close for good:
-        mOutputState = OUTPUT_CLOSED;
-        getWriter().writeEndElement();
+        doWriteEndElement();
         return true;
     }
     
@@ -175,8 +207,7 @@ public class SMOutputElement
             forceChildOutput();
         }
         // In any case, can then just close it:
-        mOutputState = OUTPUT_CLOSED;
-        getWriter().writeEndElement();
+        doWriteEndElement();
     }
     
     public boolean canOutputNewChild()
@@ -212,9 +243,17 @@ public class SMOutputElement
     protected void doWriteStartElement()
         throws XMLStreamException
     {
-        // !!! TBI: Namespace binding etc
-        getWriter().writeStartElement(mNs.getURI(), mLocalName);
         mOutputState = OUTPUT_ATTRS;
+        SMOutputContext ctxt = mContext;
+        mParentNsCount = ctxt.getNamespaceCount();
+        mParentDefaultNs = ctxt.writeStartElement(mNs, mLocalName);
+    }
+
+    protected void doWriteEndElement()
+        throws XMLStreamException
+    {
+        mOutputState = OUTPUT_CLOSED;
+        mContext.writeEndElement(mParentNsCount, mParentDefaultNs);
     }
 
     protected void throwClosedForAttrs()

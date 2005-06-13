@@ -32,15 +32,19 @@ public final class SMOutputContext
     //////////////////////////////////////////////////////
     */
 
-    protected final static SMNamespace sNsEmpty =
-	new SMGlobalNamespace("", XMLConstants.DEFAULT_NS_PREFIX);
-    protected final static SMNamespace sNsXml =
-	new SMGlobalNamespace(XMLConstants.XML_NS_PREFIX,
-			      XMLConstants.XML_NS_URI);
-    protected final static SMNamespace sNsXmlns =
-	new SMGlobalNamespace(XMLConstants.XMLNS_ATTRIBUTE,
-			      XMLConstants.XMLNS_ATTRIBUTE_NS_URI);
+    /* Any documents really use more than 16 explicit namespaces?
+     */
+    final static int DEF_NS_STACK_SIZE = 16;
 
+    protected final static SMNamespace sNsEmpty =
+        new SMGlobalNamespace("", XMLConstants.DEFAULT_NS_PREFIX);
+    protected final static SMNamespace sNsXml =
+        new SMGlobalNamespace(XMLConstants.XML_NS_PREFIX,
+                              XMLConstants.XML_NS_URI);
+    protected final static SMNamespace sNsXmlns =
+        new SMGlobalNamespace(XMLConstants.XMLNS_ATTRIBUTE,
+                              XMLConstants.XMLNS_ATTRIBUTE_NS_URI);
+    
     final static HashMap sGlobalNsMap = new HashMap();
     static {
         sGlobalNsMap.put(sNsEmpty.getURI(), sNsEmpty);
@@ -50,12 +54,30 @@ public final class SMOutputContext
 
     /*
     //////////////////////////////////////////////////////
-    // Configuration
+    // Configuration settings
     //////////////////////////////////////////////////////
     */
 
     final XMLStreamWriter mStreamWriter;
     final boolean mRepairing;
+
+    /**
+     * Prefix to use for creating automatic namespace prefixes. For example,
+     * setting this to "ns" would result in automatic prefixes of form
+     * "ns1", "ns2" and so on.
+     */
+    String mNsPrefixPrefix = "ns";
+
+    int mNsPrefixSeqNr = 1;
+
+    /**
+     * Configuration flag that specifies whether by default namespaces
+     * should bind as the default namespaces for elements or not. If true,
+     * all unbound namespaces are always bound as the default namespace,
+     * when elements are output: if false, more complicated logics is used
+     * (which considers preferred prefixes, past bindings etc).
+     */
+    boolean mPreferDefaultNs = false;
 
     /*
     //////////////////////////////////////////////////////
@@ -63,8 +85,30 @@ public final class SMOutputContext
     //////////////////////////////////////////////////////
     */
 
+    /**
+     * Map that contains all local namespaces, that is, namespaces
+     * that have been created for use with documents output using
+     * this context.
+     */
     HashMap mLocalNsMap = null;
+    
+    /**
+     * Currently active default namespace; one that is in effect within
+     * current scope (inside currently open element, if any; if none,
+     * within root level).
+     */
+    SMNamespace mDefaultNs = null;
 
+    /**
+     * Stack of bound non-default namespaces.
+     */
+    SMNamespace[] mNsStack = null;
+
+    /**
+     * Number of bound namespaces in {@link mNsStack}
+     */
+    int mBoundNsCount = 0;
+    
     /*
     //////////////////////////////////////////////////////
     // Life-cycle
@@ -157,13 +201,13 @@ public final class SMOutputContext
     public SMRootFragment createRootFragment()
         throws XMLStreamException
     {
-	return new SMRootFragment(this);
+        return new SMRootFragment(this);
     }
 
     public SMBufferedFragment createBufferedFragment()
-	throws XMLStreamException
+        throws XMLStreamException
     {
-	return new SMBufferedFragment(this);
+        return new SMBufferedFragment(this);
     }
 
     /*
@@ -239,7 +283,7 @@ public final class SMOutputContext
         }
         SMNamespace ns = (SMNamespace) sGlobalNsMap.get(uri);
         if (ns == null) {
-            ns = new SMLocalNamespace(this, uri, null);
+            ns = new SMLocalNamespace(this, uri, mPreferDefaultNs, null);
             if (mLocalNsMap == null) {
                 mLocalNsMap = new HashMap();
             }
@@ -261,7 +305,7 @@ public final class SMOutputContext
         }
         SMNamespace ns = (SMNamespace) sGlobalNsMap.get(uri);
         if (ns == null) {
-            ns = new SMLocalNamespace(this, uri, prefPrefix);
+            ns = new SMLocalNamespace(this, uri, mPreferDefaultNs, prefPrefix);
             if (mLocalNsMap == null) {
                 mLocalNsMap = new HashMap();
             }
@@ -272,7 +316,7 @@ public final class SMOutputContext
 
     public final static SMNamespace getEmptyNamespace()
     {
-	return sNsEmpty;
+        return sNsEmpty;
     }
 
     /*
@@ -295,6 +339,12 @@ public final class SMOutputContext
     // so that overriding is possible
     //////////////////////////////////////////////////////
     */
+
+    public void flushWriter()
+        throws XMLStreamException
+    {
+        mStreamWriter.flush();
+    }
 
     public void writeCharacters(String text)
         throws XMLStreamException
@@ -348,27 +398,266 @@ public final class SMOutputContext
     }
 
     public void writeAttribute(String localName, SMNamespace ns,
-			       String value)
-	throws XMLStreamException
+                               String value)
+        throws XMLStreamException
     {
-        // !!! TBI: Need to bind the namespace?
-        
-        // !!! TBI: actual outputting
+        /* First things first: in repairing mode this is specifically
+         * easy...
+         */
+        if (mRepairing) {
+            // If no prefix preference, let's not pass one:
+            String prefix = ns.getPreferredPrefix();
+            if (prefix == null) {
+                mStreamWriter.writeAttribute(ns.getURI(), localName, value);
+            } else {
+                mStreamWriter.writeAttribute(prefix,
+                                             ns.getURI(), localName, value);
+            }
+            return;
+        }
+
+        // If not repairing, we need to handle bindings:
+
+        /* No/empty namespace is simple for attributes, though; the
+         * default namespace is never used...
+         */
+        if (ns == sNsEmpty) {
+            mStreamWriter.writeAttribute(localName, value);
+            return;
+        }
+
+        String prefix = ns.getBoundPrefix();
+        if (prefix == null || prefix.length() == 0) {
+            // Ok. So which prefix should we bind (can't use def ns)?
+            prefix = ns.getLastBoundPrefix();
+            if (prefix == null) {
+                prefix = ns.getPreferredPrefix();
+            }
+            if (prefix == null || isPrefixBound(prefix)) {
+                prefix = generateUnboundPrefix();
+            }
+            // Ok, can bind now...
+            ns.bindAs(prefix);
+        }
+
+        mStreamWriter.writeAttribute(prefix, ns.getURI(), localName, value);
     }
 
-    public void writeStartElement(String localName, SMNamespace ns)
+    /**
+     * Method called by the element object when it is about to get written
+     * out. In this case, element will keep track of part of namespace
+     * context information for this context object (to save allocation
+     * of separate namespace context object).
+     *
+     * @return Namespace that was the active namespace in parent scope
+     *   of this element. Will be different from the default namespace
+     *   if a new default namespace was declared to be used by this
+     *   element.
+     */
+    public SMNamespace writeStartElement(SMNamespace ns, String localName)
         throws XMLStreamException
     {
-        // !!! TBI: Need to bind the namespace?
+        /* In repairing mode we won't do binding,
+         * nor keep track of them
+         */
+        if (!mRepairing) {
+            String prefix = ns.getPreferredPrefix();
+            // If no prefix preference, let's not pass one:
+            if (prefix == null) {
+                mStreamWriter.writeStartElement(ns.getURI(), localName);
+            } else {
+                mStreamWriter.writeStartElement(prefix, localName, ns.getURI());
+            }
+            return mDefaultNs;
+        }
+
+        SMNamespace oldDefaultNs = mDefaultNs;
+        String prefix;
+
+        // Namespace we need is either already the default namespace?
+        if (ns == oldDefaultNs) { // ok, simple; already the default NS:
+            prefix = "";
+        } else {
+            /* Perhaps it's already bound to a specific prefix though?
+             */
+            prefix = ns.getBoundPrefix();
+            if (prefix == null) { // no such luck... need to bind
+                // Bind as the default namespace?
+                if (ns.prefersDefaultNs()) { // yes, please
+                    mDefaultNs = ns;
+                } else { // well, let's see if we have used a prefix earlier
+                    String newPrefix = ns.getLastBoundPrefix();
+                    if (newPrefix != null && !isPrefixBound(newPrefix)) {
+                        ns.bindAs(newPrefix);
+                    } else { // nope... but perhaps we have a preference?
+                        newPrefix = ns.getPreferredPrefix();
+                        if (newPrefix != null && !isPrefixBound(newPrefix)) {
+                            // Ok, cool let's just bind it then:
+                            ns.bindAs(newPrefix);
+                        } else {
+                            // Nah, let's just bind as the default, then
+                            mDefaultNs = ns;
+                        }
+                    }
+                }
+            }
+        }
         
-        // !!! TBI: actual outputting
+        mStreamWriter.writeStartElement(prefix, localName, ns.getURI());
+        return oldDefaultNs;
     }
     
-    public void writeEndElement(String localName, SMNamespace ns)
+    public void writeEndElement(int parentNsCount, SMNamespace parentDefNs)
         throws XMLStreamException
     {
-        // !!! TBI: actual outputting
-        
-        // !!! TBI: Need to unbind the namespaces?
+        mStreamWriter.writeEndElement();
+
+        /* Ok, if we are not in repairing mode, may need to unbind namespace
+         * bindings for namespaces bound with matching start element
+         */
+        if (!mRepairing) {
+            if (mBoundNsCount > parentNsCount) {
+                int i = mBoundNsCount;
+                mBoundNsCount = parentNsCount;
+                while (i-- > parentNsCount) {
+                    SMNamespace ns = mNsStack[i];
+                    mNsStack[i] = null;
+                    ns.unbind();
+                }
+            }
+        }
+
+        mDefaultNs = parentDefNs;
+    }
+
+    public void writeStartDocument()
+        throws XMLStreamException
+    {
+        mStreamWriter.writeStartDocument();
+    }
+
+    public void writeStartDocument(String version, String encoding)
+        throws XMLStreamException
+    {
+        // note: Stax 1.0 has weird ordering for the args...
+        mStreamWriter.writeStartDocument(encoding, version);
+    }
+
+    public void writeStartDocument(String version, String encoding,
+                                   boolean standalone)
+        throws XMLStreamException
+    {
+        XMLStreamWriter w = mStreamWriter;
+
+        // Can we use StAX2?
+        if (w instanceof XMLStreamWriter2) {
+            ((XMLStreamWriter2) w).writeStartDocument(version, encoding, standalone);
+        } else {
+            // note: Stax 1.0 has weird ordering for the args...
+            w.writeStartDocument(encoding, version);
+        }
+    }
+
+    public void writeEndDocument()
+        throws XMLStreamException
+    {
+        mStreamWriter.writeEndDocument();
+        // And finally, let's indicate stream writer about closure too...
+        mStreamWriter.close();
+    }
+
+    public void writeDoctypeDeclaration(String rootName,
+                                        String systemId, String publicId,
+                                        String intSubset)
+        throws XMLStreamException
+    {
+        XMLStreamWriter w = mStreamWriter;
+        if (w instanceof XMLStreamWriter2) {
+            ((XMLStreamWriter2) w).writeDTD
+                (rootName, systemId, publicId, intSubset);
+        } else {
+            // Damn this is ugly, with stax1.0...
+            String dtd = "<!DOCTYPE "+rootName;
+            if (publicId == null) {
+                if (systemId != null) {
+                    dtd += " SYSTEM";
+                }
+            } else {
+                dtd += " PUBLIC '"+publicId+"'";
+            }
+            if (systemId != null) {
+                dtd += " '"+systemId+"'";
+            }
+            if (intSubset != null) {
+                dtd += " ["+intSubset+"]";
+            }
+            dtd += ">";
+            w.writeDTD(dtd);
+        }
+    }
+
+    /*
+    //////////////////////////////////////////////////////
+    // Other public utility methods
+    //////////////////////////////////////////////////////
+    */
+
+    public String generateUnboundPrefix() {
+        while (true) {
+            String prefix = mNsPrefixPrefix + (mNsPrefixSeqNr++);
+            if (!isPrefixBound(prefix)) {
+                return prefix;
+            }
+        }
+    }
+
+    public boolean isPrefixBound(String prefix)
+    {
+        for (int i = mBoundNsCount; i >= 0; --i) {
+            SMNamespace ns = mNsStack[i];
+            if (prefix.equals(ns.getBoundPrefix())) {
+                /* Note: StaxMate never creates masking bindings, so we
+                 * know it's still active
+                 */
+                return true;
+            }
+        }
+        /* So far so good. But perhaps it's bound in the root NamespaceContext?
+         */
+        // !!! TBI
+        return false;
+    }
+
+    /*
+    //////////////////////////////////////////////////////
+    // Package methods
+    //////////////////////////////////////////////////////
+    */
+
+    /**
+     * @return Number of bound non-default namespaces (ones with explicit
+     *   prefix) currently
+     */
+    int getNamespaceCount() {
+        return mBoundNsCount;
+    }
+
+    /*
+    //////////////////////////////////////////////////////
+    // Internal methods
+    //////////////////////////////////////////////////////
+    */
+
+    private void bindNs(SMNamespace ns)
+    {
+        SMNamespace[] stack = mNsStack;
+        if (stack == null) {
+            mNsStack = stack = new SMNamespace[DEF_NS_STACK_SIZE];
+        } else if (mBoundNsCount >= stack.length) {
+            mNsStack = new SMNamespace[stack.length * 2];
+            System.arraycopy(stack, 0, mNsStack, 0, stack.length);
+            stack = mNsStack;
+        }
+        stack[mBoundNsCount++] = ns;
     }
 }

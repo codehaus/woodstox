@@ -17,32 +17,53 @@ public final class SMGlobalNamespace
 
     protected SMGlobalNamespace(String uri, String prefix)
     {
-	super(uri);
-	mPrefix = prefix;
+        super(uri);
+        mPrefix = prefix;
     }
     
     /*
     ///////////////////////////////////
     // Abstract method implementations
     ///////////////////////////////////
-     */
-
+    */
+    
     public String getPreferredPrefix() {
-	return mPrefix;
+        return mPrefix;
+    }
+
+    public String getBoundPrefix() {
+        return mPrefix;
+    }
+
+    public String getLastBoundPrefix() {
+        return mPrefix;
+    }
+
+    public boolean prefersDefaultNs() {
+        return false; // doesn't matter
+    }
+
+    public void prefersDefaultNs(boolean state) {
+        ; // NOP
     }
 
     protected boolean isValidIn(SMOutputContext ctxt) {
-	// global namespaces are always valid for all contexts
-	return true;
+        // global namespaces are always valid for all contexts
+        return true;
     }
-
+    
     /**
      * Global namespaces should never be bound/unbound, so if this
      * gets called, an exception will be thrown (but note that this
      * being an 'internal' method, this is more like an assertion).
      */
     protected void bindAs(String prefix) {
-	throw new IllegalArgumentException("Global namespace (prefix '"
-					   +mPrefix+"') can not be bound or unbound");
+        throw new IllegalArgumentException("Global namespace (prefix '"
+                                           +mPrefix+"') can not be bound to a different prefix");
+    }
+
+    protected void unbind() {
+        throw new IllegalArgumentException("Global namespace (prefix '"
+                                           +mPrefix+"') can not be unbound");
     }
 }

@@ -3,8 +3,6 @@ package org.codehaus.staxmate.sw;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
-import org.codehaus.stax2.XMLStreamWriter2;
-
 /**
  * Output class that models a full XML document, with xml declaration.
  */
@@ -15,7 +13,7 @@ public class SMOutputDocument
         throws XMLStreamException
     {
         super(ctxt);
-        getWriter().writeStartDocument();
+        ctxt.writeStartDocument();
     }
     
     protected SMOutputDocument(SMOutputContext ctxt,
@@ -23,8 +21,7 @@ public class SMOutputDocument
         throws XMLStreamException
     {
         super(ctxt);
-        // note: Stax 1.0 has weird ordering for the args...
-        getWriter().writeStartDocument(encoding, version);
+        ctxt.writeStartDocument(version, encoding);
     }
 
     protected SMOutputDocument(SMOutputContext ctxt,
@@ -32,15 +29,7 @@ public class SMOutputDocument
         throws XMLStreamException
     {
         super(ctxt);
-        XMLStreamWriter w = ctxt.getWriter();
-
-        // Can we use StAX2?
-        if (w instanceof XMLStreamWriter2) {
-            ((XMLStreamWriter2) w).writeStartDocument(version, encoding, standalone);
-        } else {
-            // note: Stax 1.0 has weird ordering for the args...
-            w.writeStartDocument(encoding, version);
-        }
+        ctxt.writeStartDocument(version, encoding, standalone);
     }
 
     /*
@@ -70,29 +59,8 @@ public class SMOutputDocument
                                       String intSubset)
         throws XMLStreamException
     {
-        XMLStreamWriter w = getWriter();
-        if (w instanceof XMLStreamWriter2) {
-            ((XMLStreamWriter2) w).writeDTD
-                (rootName, systemId, publicId, intSubset);
-        } else {
-            // Damn this is ugly, with stax1.0...
-            String dtd = "<!DOCTYPE "+rootName;
-            if (publicId == null) {
-                if (systemId != null) {
-                    dtd += " SYSTEM";
-                }
-            } else {
-                dtd += " PUBLIC '"+publicId+"'";
-            }
-            if (systemId != null) {
-                dtd += " '"+systemId+"'";
-            }
-            if (intSubset != null) {
-                dtd += " ["+intSubset+"]";
-            }
-            dtd += ">";
-            w.writeDTD(dtd);
-        }
+        getContext().writeDoctypeDeclaration(rootName, systemId, publicId,
+                                             intSubset);
     }
 
     /*
@@ -111,11 +79,7 @@ public class SMOutputDocument
         throws XMLStreamException
     {
         super.closeRoot();
-
-        // And finally, let's indicate stream writer about closure too...
-        XMLStreamWriter w = getWriter();
-        w.writeEndDocument();
-        w.close();
+        getContext().writeEndDocument();
     }
 
     /*

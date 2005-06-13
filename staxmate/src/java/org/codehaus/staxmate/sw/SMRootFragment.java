@@ -104,7 +104,7 @@ public class SMRootFragment
         // Either way, we are now closed:
         mActive = false;
         // And this may also be a good idea:
-        getWriter().flush();
+        getContext().flushWriter();
     }
 
     /*

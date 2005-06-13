@@ -72,13 +72,6 @@ public abstract class SMOutputContainer
     /////////////////////////////////////////////////////
      */
 
-    public final XMLStreamWriter getWriter() {
-        /* ... could use accessor, but let's just make this easy for
-         * JIT/HotSpot (we can use package access from the same package)
-         */
-        return mContext.mStreamWriter;
-    }
-
     /**
      * Convenience method for getting namespace instance that
      * uniquely represents the specified URI (uniquely meaning
