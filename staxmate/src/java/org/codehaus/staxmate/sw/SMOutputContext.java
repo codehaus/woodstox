@@ -3,6 +3,7 @@ package org.codehaus.staxmate.sw;
 import java.util.*;
 
 import javax.xml.XMLConstants;
+import javax.xml.namespace.NamespaceContext;
 import javax.xml.stream.*;
 
 import org.codehaus.stax2.XMLStreamWriter2;
@@ -59,6 +60,7 @@ public final class SMOutputContext
     */
 
     final XMLStreamWriter mStreamWriter;
+    final NamespaceContext mRootNsContext;
     final boolean mRepairing;
 
     /**
@@ -115,9 +117,10 @@ public final class SMOutputContext
     //////////////////////////////////////////////////////
     */
 
-    protected SMOutputContext(XMLStreamWriter sw)
+    protected SMOutputContext(XMLStreamWriter sw, NamespaceContext rootNsCtxt)
     {
         mStreamWriter = sw;
+        mRootNsContext = rootNsCtxt;
         Object o = sw.getProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES);
         mRepairing = (o instanceof Boolean) && ((Boolean) o).booleanValue();
     }
@@ -128,10 +131,16 @@ public final class SMOutputContext
     //////////////////////////////////////////////////////
     */
 
+    public static SMOutputContext createInstance(XMLStreamWriter sw, NamespaceContext rootNsCtxt)
+        throws XMLStreamException
+    {
+        return new SMOutputContext(sw, rootNsCtxt);
+    }
+
     public static SMOutputContext createInstance(XMLStreamWriter sw)
         throws XMLStreamException
     {
-        return new SMOutputContext(sw);
+        return createInstance(sw, sw.getNamespaceContext());
     }
 
     /*
@@ -428,16 +437,23 @@ public final class SMOutputContext
 
         String prefix = ns.getBoundPrefix();
         if (prefix == null || prefix.length() == 0) {
-            // Ok. So which prefix should we bind (can't use def ns)?
-            prefix = ns.getLastBoundPrefix();
-            if (prefix == null) {
-                prefix = ns.getPreferredPrefix();
+            // First check: maybe it is still bound in the root context?
+            prefix = findRootPrefix(ns);
+            if (prefix != null) {
+                // Yup. Need to mark it as permanently bound, then
+                ns.bindPermanentlyAs(prefix);
+            } else {
+                // Ok. So which prefix should we bind (can't use def ns)?
+                prefix = ns.getLastBoundPrefix();
+                if (prefix == null) {
+                    prefix = ns.getPreferredPrefix();
+                }
+                if (prefix == null || isPrefixBound(prefix)) {
+                    prefix = generateUnboundPrefix();
+                }
+                // Ok, can bind now...
+                ns.bindAs(prefix);
             }
-            if (prefix == null || isPrefixBound(prefix)) {
-                prefix = generateUnboundPrefix();
-            }
-            // Ok, can bind now...
-            ns.bindAs(prefix);
         }
 
         mStreamWriter.writeAttribute(prefix, ns.getURI(), localName, value);
@@ -478,25 +494,31 @@ public final class SMOutputContext
         if (ns == oldDefaultNs) { // ok, simple; already the default NS:
             prefix = "";
         } else {
-            /* Perhaps it's already bound to a specific prefix though?
-             */
+            // Perhaps it's already bound to a specific prefix though?
             prefix = ns.getBoundPrefix();
             if (prefix == null) { // no such luck... need to bind
-                // Bind as the default namespace?
-                if (ns.prefersDefaultNs()) { // yes, please
-                    mDefaultNs = ns;
-                } else { // well, let's see if we have used a prefix earlier
-                    String newPrefix = ns.getLastBoundPrefix();
-                    if (newPrefix != null && !isPrefixBound(newPrefix)) {
-                        ns.bindAs(newPrefix);
-                    } else { // nope... but perhaps we have a preference?
-                        newPrefix = ns.getPreferredPrefix();
+                // Ok, how about the root namespace context?
+                prefix = findRootPrefix(ns);
+                if (prefix != null) {
+                    // Yup. Need to mark it as permanently bound, then
+                    ns.bindPermanentlyAs(prefix);
+                } else {
+                    // Bind as the default namespace?
+                    if (ns.prefersDefaultNs()) { // yes, please
+                        mDefaultNs = ns;
+                    } else { // well, let's see if we have used a prefix earlier
+                        String newPrefix = ns.getLastBoundPrefix();
                         if (newPrefix != null && !isPrefixBound(newPrefix)) {
-                            // Ok, cool let's just bind it then:
                             ns.bindAs(newPrefix);
-                        } else {
-                            // Nah, let's just bind as the default, then
-                            mDefaultNs = ns;
+                        } else { // nope... but perhaps we have a preference?
+                            newPrefix = ns.getPreferredPrefix();
+                            if (newPrefix != null && !isPrefixBound(newPrefix)) {
+                                // Ok, cool let's just bind it then:
+                                ns.bindAs(newPrefix);
+                            } else {
+                                // Nah, let's just bind as the default, then
+                                mDefaultNs = ns;
+                            }
                         }
                     }
                 }
@@ -624,8 +646,28 @@ public final class SMOutputContext
         }
         /* So far so good. But perhaps it's bound in the root NamespaceContext?
          */
-        // !!! TBI
+        if (mRootNsContext != null) {
+            String uri = mRootNsContext.getNamespaceURI(prefix);
+            if (uri != null && uri.length() > 0) {
+                return true;
+            }
+        }
         return false;
+    }
+
+    public String findRootPrefix(SMNamespace ns)
+    {
+        if (mRootNsContext != null) {
+            String uri = ns.getURI();
+            String prefix = mRootNsContext.getPrefix(uri);
+            /* Should seldom if ever get a match for the default NS; but
+             * if we do, let's not take it.
+             */
+            if (prefix != null && prefix.length() > 0) {
+                return prefix;
+            }
+        }
+        return null;
     }
 
     /*

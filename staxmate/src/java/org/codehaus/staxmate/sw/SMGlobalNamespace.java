@@ -62,6 +62,10 @@ public final class SMGlobalNamespace
                                            +mPrefix+"') can not be bound to a different prefix");
     }
 
+    protected void bindPermanentlyAs(String prefix) {
+        bindAs(prefix); // to throw the error
+    }
+
     protected void unbind() {
         throw new IllegalArgumentException("Global namespace (prefix '"
                                            +mPrefix+"') can not be unbound");

@@ -43,6 +43,8 @@ public final class SMLocalNamespace
      */
     protected boolean mPreferDefaultNs;
 
+    protected boolean mIsPermanent;
+
     /**
      * @param ctxt Output context that "owns" this namespace (within which
      *    namespace will be bound when output)
@@ -112,11 +114,24 @@ public final class SMLocalNamespace
         mCurrPrefix = mPrevPrefix = prefix;
     }
 
+    protected void bindPermanentlyAs(String prefix)
+    {
+        // First, let's do the binding
+        bindAs(prefix);
+        // and then let's mark it as a permanent one...
+        if (mIsPermanent) {
+            throw new IllegalStateException("Trying to call permanentlyBindAs() twice (for URI '"+mURI+"', prefix '"+prefix+"')");
+        }
+        mIsPermanent = true;
+    }
+
     protected void unbind() {
         // Sanity check:
         if (mCurrPrefix == null) {
             throw new IllegalStateException("Trying to unbind an unbound namespace (URI '"+mURI+"')");
         }
-        mCurrPrefix = null;
+        if (!mIsPermanent) { // permanent ones just won't unbind... 
+            mCurrPrefix = null;
+        }
     }
 }

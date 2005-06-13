@@ -26,20 +26,20 @@ public final class SMOutputFactory
      */
 
     public static SMOutputDocument createOutputDocument(XMLStreamWriter sw)
-	throws XMLStreamException
+        throws XMLStreamException
     {
-	SMOutputContext ctxt = SMOutputContext.createInstance(sw);
-	return ctxt.createDocument();
+        SMOutputContext ctxt = SMOutputContext.createInstance(sw);
+        return ctxt.createDocument();
     }
 
     public static SMOutputDocument createOutputDocument(XMLStreamWriter sw,
 							String version,
 							String encoding,
 							boolean standAlone)
-	throws XMLStreamException
+        throws XMLStreamException
     {
-	SMOutputContext ctxt = SMOutputContext.createInstance(sw);
-	return ctxt.createDocument(version, encoding, standAlone);
+        SMOutputContext ctxt = SMOutputContext.createInstance(sw);
+        return ctxt.createDocument(version, encoding, standAlone);
     }
 
     /*
@@ -52,9 +52,9 @@ public final class SMOutputFactory
      */
 
     public static SMRootFragment createOutputFragment(XMLStreamWriter sw)
-	throws XMLStreamException
+        throws XMLStreamException
     {
-	SMOutputContext ctxt = SMOutputContext.createInstance(sw);
-	return ctxt.createRootFragment();
+        SMOutputContext ctxt = SMOutputContext.createInstance(sw);
+        return ctxt.createRootFragment();
     }
 }

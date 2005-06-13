@@ -61,6 +61,15 @@ public abstract class SMNamespace
     protected abstract void bindAs(String prefix);
 
     /**
+     * Method used to permanently bind this (local) namespace to a prefix.
+     * Generally called if a new "global" binding is found at point where
+     * a global instance can not be created. Calling this method will
+     * essentially mark a local instace as behaving similar to a global
+     * one.
+     */
+    protected abstract void bindPermanentlyAs(String prefix);
+
+    /**
      * Method called to indicate that the namespace is no longer bound
      * to its current prefix within the current output context.
      * Since default namespace declarations do not cause binding, this
