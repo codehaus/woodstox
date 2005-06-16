@@ -476,7 +476,7 @@ public final class SMOutputContext
         /* In repairing mode we won't do binding,
          * nor keep track of them
          */
-        if (!mRepairing) {
+        if (mRepairing) {
             String prefix = ns.getPreferredPrefix();
             // If no prefix preference, let's not pass one:
             if (prefix == null) {
@@ -537,7 +537,7 @@ public final class SMOutputContext
         /* Ok, if we are not in repairing mode, may need to unbind namespace
          * bindings for namespaces bound with matching start element
          */
-        if (!mRepairing) {
+        if (mRepairing) {
             if (mBoundNsCount > parentNsCount) {
                 int i = mBoundNsCount;
                 mBoundNsCount = parentNsCount;

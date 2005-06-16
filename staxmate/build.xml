@@ -24,14 +24,21 @@
     <property name="JavaDocDir" location="${BuildDir}/javadoc" />
     <!-- Test suite -->
     <property name="TestDir" location="${basedir}/test" />
-    <property name="TestBuildDir" location="${TestDir}/build" />
+    <property name="TestClassesDir" location="${TestDir}/classes" />
     <property name="TestResultsDir" location="${TestDir}/results" />
     <property name="TestXmlResultsDir" location="${TestResultsDir}/xml" />
     <!-- Distribution -->
     <property name="DistDir" location="${basedir}/dist" />
 
-    <path id="classpath">
+    <!-- jars needed for compilation -->
+    <path id="compile-classpath">
         <fileset dir="${LibDir}" includes="*.jar" />
+    </path>
+
+    <path id="junit-libs">
+       <fileset dir="${LibDir}">
+            <include name="junit/junit*.jar" />
+       </fileset>
     </path>
 
     <!-- Source files to include in source packages (tar, zip) -->
@@ -83,7 +90,7 @@
 
         <!-- make test output directories -->
         <mkdir dir="${TestDir}" />
-        <mkdir dir="${TestBuildDir}" />
+        <mkdir dir="${TestClassesDir}" />
         <mkdir dir="${TestResultsDir}" />
         <mkdir dir="${TestXmlResultsDir}" />
 
@@ -106,7 +113,7 @@
             debug="true"
         >
             <include name="org/codehaus/staxmate/**/*.java" />
-            <classpath refid="classpath" />
+            <classpath refid="compile-classpath" />
         </javac>
     </target>
 
@@ -136,7 +143,7 @@
                 <include name="org/codehaus/staxmate/**" />
                 <exclude name="org/codehaus/staxmate/samples/**" />
             </packageset>
-            <classpath refid="classpath" />
+            <classpath refid="compile-classpath" />
         </javadoc>
     </target> 
  
@@ -152,10 +159,43 @@
     </target>
 
     <target name="test.compile" depends="junit, jar" if="junit.present">
+        <javac SrcDir="${TestSrcDir}" destdir="${TestClassesDir}"
+            debug="true"
+        >
+            <include name="**/*.java" />
+            <classpath refid="compile-classpath" />
+            <classpath>
+                <pathelement path="${BuildClassesDir}"/>  
+                <path refid="junit-libs"/>
+            </classpath>
+        </javac>
     </target>
 
-    <target name="test" depends="test.compile" if="junit.present">
-    </target>
+    <target name="test" depends="test.compile">
+        <!-- showoutput 'yes' to allow outputting debug msgs... -->
+        <junit fork="no" printsummary="yes" haltonfailure="no"
+         showoutput="yes">
+            <batchtest fork="no" todir="${TestXmlResultsDir}">
+                <fileset dir="${TestClassesDir}">
+                    <include name="**/Test*.class"/>
+                </fileset>
+            </batchtest>
+            <formatter type="xml" />
+            <classpath refid="compile-classpath" />
+            <classpath>
+                <pathelement path="${BuildClassesDir}" />
+                <pathelement location="${TestClassesDir}" /> 
+                <path refid="junit-libs"/>
+            </classpath>     
+        </junit>
+
+        <junitreport todir="${TestResultsDir}">
+            <fileset dir="${TestXmlResultsDir}">
+                <include name="TEST-*.xml" />
+            </fileset>
+            <report todir="${TestResultsDir}" />
+        </junitreport>
+   </target>
 
     <target name="dist" depends="compile,jar,javadoc"
     >

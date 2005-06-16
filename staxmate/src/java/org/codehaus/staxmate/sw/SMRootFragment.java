@@ -17,7 +17,7 @@ public class SMRootFragment
      * Simple state flag; children can only be added when root container
      * is still active.
      */
-    protected boolean mActive;
+    protected boolean mActive = true;
 
     public SMRootFragment(SMOutputContext ctxt)
     {
