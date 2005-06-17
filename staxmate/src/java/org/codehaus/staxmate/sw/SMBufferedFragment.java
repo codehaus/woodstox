@@ -163,6 +163,12 @@ public final class SMBufferedFragment
         if (mState <= LAST_BLOCKED) {
             return false;
         }
+        /* Plus, if we are fully closed, we are not to allow even trying to
+         * add anything:
+         */
+        if (mState == STATE_CLOSED) {
+            throwClosed();
+        }
         return closeAndOutputChildren();
     }
 }

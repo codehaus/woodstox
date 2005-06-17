@@ -91,6 +91,7 @@ public class SMOutputElement
         if (mParent != null) {
             throwRelinking();
         }
+        mParent = parent;
         if (!blocked) { // can output start element right away?
             doWriteStartElement();
         }
@@ -202,12 +203,13 @@ public class SMOutputElement
         throws XMLStreamException
     {
         // Let's first ask nicely:
-        if (!doOutput(mContext, true)) {
-            // ... and if that doesn't work, let's negotiate bit more:
+        if (doOutput(mContext, true)) {
+            ; // all done (including outputting end element)
+        } else {
+            // ... but if that doesn't work, let's negotiate bit more:
             forceChildOutput();
+            doWriteEndElement();
         }
-        // In any case, can then just close it:
-        doWriteEndElement();
     }
     
     public boolean canOutputNewChild()

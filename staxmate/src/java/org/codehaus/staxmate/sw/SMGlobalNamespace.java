@@ -47,6 +47,10 @@ public final class SMGlobalNamespace
         ; // NOP
     }
 
+    public void setPreferredPrefix(String prefPrefix) {
+        ; // NOP
+    }
+
     protected boolean isValidIn(SMOutputContext ctxt) {
         // global namespaces are always valid for all contexts
         return true;

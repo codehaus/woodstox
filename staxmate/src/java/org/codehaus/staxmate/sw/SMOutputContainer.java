@@ -85,6 +85,10 @@ public abstract class SMOutputContainer
         return mContext.getNamespace(uri);
     }
 
+    public final SMNamespace getNamespace(String uri, String prefPrefix) {
+        return mContext.getNamespace(uri, prefPrefix);
+    }
+
     /*
     ///////////////////////////////////////////////////////////
     // Output methods for simple nodes (no elements, attributes
@@ -314,7 +318,7 @@ public abstract class SMOutputContainer
         throws XMLStreamException
     {
         while (mFirstChild != null) {
-            if (!doOutput(mContext, true)) {
+            if (!mFirstChild.doOutput(mContext, true)) {
                 // Nope, node was buffered or had buffered child(ren)
                 return false;
             }

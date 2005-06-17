@@ -38,7 +38,20 @@ public abstract class SMNamespace
 
     public abstract boolean prefersDefaultNs();
 
+    /*
+    ///////////////////////////////////
+    // Mutators
+    ///////////////////////////////////
+     */
+
     public abstract void prefersDefaultNs(boolean state);
+
+    /**
+     * Method that can be called to associate a "preferred" prefix; prefix
+     * that this namespace should be bound to instead of some automatically
+     * generated one (unless that prefix is already bound to another URI).
+     */
+    public abstract void setPreferredPrefix(String prefPrefix);
 
     /*
     ///////////////////////////////////

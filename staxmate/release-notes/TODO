@@ -1,2 +1,8 @@
-* Check and see why StAX2 uses "wrong" argument ordering for
-  writeDTD(); fix either StAX2 or StaxMate.
+* Writer side:
+   * Buffer attributes properly; allow for resetting for buffered instances
+   * Verify that buffered instances with "wrong" contexts are not added.
+   * Add pass-through method to copy events from a XMLStreamReader or
+     SMIterator?
+
+* Reader side:
+   * Methods for accessing attributes need to be added

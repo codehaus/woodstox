@@ -23,7 +23,7 @@ public final class SMLocalNamespace
      * and there is also a way to explicitly set it. Finally, it will
      * also be set if a dynamic prefix is created for the namespace
      */
-    protected final String mPrefPrefix;
+    protected String mPrefPrefix;
 
     /**
      * Prefix this namespace is currently bound to, if any.
@@ -89,6 +89,10 @@ public final class SMLocalNamespace
 
     public void prefersDefaultNs(boolean state) {
         mPreferDefaultNs = state;
+    }
+
+    public void setPreferredPrefix(String prefPrefix) {
+        mPrefPrefix = prefPrefix;
     }
 
     protected boolean isValidIn(SMOutputContext ctxt) {

@@ -3,6 +3,7 @@ Version: 0.6
 Release date: xx-May-2005
 
 Description:
+  First complete release; now includes both reader and writer side helpers.
 
   Problems fixed:
 
@@ -10,3 +11,6 @@ Description:
 
 == History: ==
 
+0.5: [mid-2004]:
+
+  First version, proof-of-concept, only reader side functionality.

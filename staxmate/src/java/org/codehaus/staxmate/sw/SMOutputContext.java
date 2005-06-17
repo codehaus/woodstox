@@ -453,6 +453,7 @@ public final class SMOutputContext
                 }
                 // Ok, can bind now...
                 ns.bindAs(prefix);
+                mStreamWriter.writeNamespace(prefix, ns.getURI());
             }
         }
 
@@ -489,6 +490,7 @@ public final class SMOutputContext
 
         SMNamespace oldDefaultNs = mDefaultNs;
         String prefix;
+        boolean needToBind = false;
 
         // Namespace we need is either already the default namespace?
         if (ns == oldDefaultNs) { // ok, simple; already the default NS:
@@ -496,28 +498,42 @@ public final class SMOutputContext
         } else {
             // Perhaps it's already bound to a specific prefix though?
             prefix = ns.getBoundPrefix();
-            if (prefix == null) { // no such luck... need to bind
-                // Ok, how about the root namespace context?
+            if (prefix != null) { // yes, should be ok then
+                /* ... except for one possible caveat: the "empty" namespace
+                 * may have been masked (StaxMate never masks any explicitly
+                 * bound namespace declarations)
+                 */
+                if (ns == sNsEmpty) {
+                    /* Only ends up here if the default ns is not the empty
+                     * one any more... If so, need to re-bind it.
+                     */
+                    needToBind = true;
+                }
+            } else { // no such luck... need to bind
+                /* Ok, how about the root namespace context? We may have
+                 * "inherited" bindings; if so, they are accessible via
+                 * namespace context.
+                 */
                 prefix = findRootPrefix(ns);
                 if (prefix != null) {
                     // Yup. Need to mark it as permanently bound, then
                     ns.bindPermanentlyAs(prefix);
                 } else {
+                    needToBind = true; // yes, need to bind it
                     // Bind as the default namespace?
                     if (ns.prefersDefaultNs()) { // yes, please
-                        mDefaultNs = ns;
+                        prefix = "";
                     } else { // well, let's see if we have used a prefix earlier
-                        String newPrefix = ns.getLastBoundPrefix();
-                        if (newPrefix != null && !isPrefixBound(newPrefix)) {
-                            ns.bindAs(newPrefix);
+                        prefix = ns.getLastBoundPrefix();
+                        if (prefix != null && !isPrefixBound(prefix)) {
+                            ; // can and should use last bound one, if possible
                         } else { // nope... but perhaps we have a preference?
-                            newPrefix = ns.getPreferredPrefix();
-                            if (newPrefix != null && !isPrefixBound(newPrefix)) {
+                            prefix = ns.getPreferredPrefix();
+                            if (prefix != null && !isPrefixBound(prefix)) {
                                 // Ok, cool let's just bind it then:
-                                ns.bindAs(newPrefix);
                             } else {
                                 // Nah, let's just bind as the default, then
-                                mDefaultNs = ns;
+                                prefix = "";
                             }
                         }
                     }
@@ -526,6 +542,15 @@ public final class SMOutputContext
         }
         
         mStreamWriter.writeStartElement(prefix, localName, ns.getURI());
+        if (needToBind) {
+            if (prefix.length() == 0) {
+                mDefaultNs = ns;
+                mStreamWriter.writeDefaultNamespace(ns.getURI());
+            } else {
+                ns.bindAs(prefix);
+                mStreamWriter.writeNamespace(prefix, ns.getURI());
+            }
+        }
         return oldDefaultNs;
     }
     
@@ -635,7 +660,7 @@ public final class SMOutputContext
 
     public boolean isPrefixBound(String prefix)
     {
-        for (int i = mBoundNsCount; i >= 0; --i) {
+        for (int i = mBoundNsCount; --i >= 0; ) {
             SMNamespace ns = mNsStack[i];
             if (prefix.equals(ns.getBoundPrefix())) {
                 /* Note: StaxMate never creates masking bindings, so we
