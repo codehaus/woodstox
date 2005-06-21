@@ -9,7 +9,7 @@ Description:
 
 == History: ==
 
-2.0rc1-rc2: [11-Apr-2005]
+2.0rc1-rc3: [11-Apr-2005 - 20-Jun-2005]
 
   New functionality:
 
@@ -49,6 +49,10 @@ Description:
        order now.
      * XMLStreamWriter.writeCData(char[], int, int) was missing; added
        to make it consistent with writeCharacters(char[], int, int).
+   * XMLEventReader:
+     * StartElement: namespace information had extraneous default namespace
+        declarations. Also a small problem with StartElement.getPrefix() fixed:
+        checks for masked namespaces wasn't properly working. Also, 
 
 1.9.0: [20-Apr-2005]
 

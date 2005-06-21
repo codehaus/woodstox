@@ -1,0 +1,198 @@
+<?xml version="1.0" standalone='yes'?>
+
+    <project name="Woodstox-based tools" basedir="." default="readme">
+<!--
+    <property name="ProjectName" value="Woodstox XML processor" />
+-->
+
+    <!-- Source directories -->
+    <property name="SrcDir" location="${basedir}/src" />
+    <property name="JavaSrcDir" location="${SrcDir}/java" />
+    <property name="RelNotesDir" location="${basedir}/release-notes" />
+
+    <!-- Libs -->
+    <property name="LibDir" location="${basedir}/lib" />
+    <!-- Build-related -->
+    <property name="BuildDir" location="${basedir}/build" />
+    <property name="BuildClassesDir" location="${BuildDir}/classes" />
+
+    <!-- Distribution -->
+    <property name="DistDir" location="${basedir}/dist" />
+
+    <!-- Version information -->
+
+    <property name="DTDFLATTEN_TITLE" value="DTDFlatten" />
+    <property name="DTDFLATTEN_VERSION" value="1.0rc2" />
+    <property name="DTDFLATTEN_VENDOR" value="www.cowtowncoder.com" />
+
+    <property name="VALIDATEXML_TITLE" value="ValidateXML" />
+    <property name="VALIDATEXML_VERSION" value="0.6" />
+    <property name="VALIDATEXML_VENDOR" value="www.cowtowncoder.com" />
+
+    <path id="classpath">
+        <fileset dir="${LibDir}" includes="*.jar" />
+    </path>
+
+    <!--*********************************************************************-->
+    <!-- The readme target shows a brief description of all targets          -->
+    <!-- supported by this ant build file                                    -->
+    <!--*********************************************************************-->
+    <target name="readme">
+        <echo message = "${ProjectName}'s Available Targets" />
+        <echo message = "---------------------------------------------------" />
+        <echo message = "1)  readme - Displays this information (default target)." />
+        <echo message = "2)  clean - Remove any generated files/directories." />
+        <echo message = "3)  compile - Compile all ${ProjectName} code." />
+        <echo message = "4)  jars - Compile and create all tool jars." />
+        <echo message = "5)  dist - Create distribution directory and copy necessary files there" />
+        <echo message = "6) all - Run the clean, compile and dist targets." />
+    </target>
+
+    <target name="prepare">
+        <!-- make build directories -->
+        <mkdir dir="${BuildDir}" />
+        <mkdir dir="${BuildClassesDir}" />
+
+        <!-- and finally distribution dir -->
+        <mkdir dir="${DistDir}" />
+    </target>
+
+    <target name="prepare-libs">
+        <!-- plus, need to unpack lib classes, to be able to
+           - derive class dependencies
+          -->
+        <echo message="Unzipping the StAX API and Woodstox classes..." />
+        <unzip dest="${BuildClassesDir}">
+          <fileset dir="${LibDir}" >
+            <include name="*.jar" />
+          </fileset>
+        </unzip>
+    </target>
+
+    <target name="calc-class-deps" depends="prepare-libs">
+      <!-- And then something nifty for creating minimal jars! -->
+
+     <!-- DTDFlatten classes needed -->
+     <classfileset id="dtdFlattenClasses" dir="${BuildClassesDir}" >
+       <!-- main app class: -->
+       <root classname="com.ctc.wstx.tools.DTDFlatten" />
+       <!-- plus also need to include JDK-dependant helpers; they are
+          - dynamically loaded and this task can not get dependencies
+          - automatically
+         -->
+       <rootfileset dir="${BuildClassesDir}" includes="com/ctc/wstx/compat/Jdk*Impl.class" />
+     </classfileset>
+
+     <!-- Same for ValidateXML -->
+     <classfileset id="xmlValidatorClasses" dir="${BuildClassesDir}">
+       <!-- main app class: -->
+       <root classname="com.ctc.wstx.tools.ValidateXML" />
+       <root classname="com.ctc.wstx.stax.MinimalInputFactory" />
+       <!-- plus also need to include JDK-dependant helpers; they are
+          - dynamically loaded and this task can not get dependencies
+          - automatically
+         -->
+       <rootfileset dir="${BuildClassesDir}" includes="com/ctc/wstx/compat/Jdk*Impl.class" />
+     </classfileset>
+    </target>
+
+
+    <!-- ***********************************************
+       - clean - Removes all generated files/directories
+       - ***********************************************-->
+
+    <target name="clean">
+        <delete dir="${BuildDir}"/>
+        <delete dir="${DistDir}"/>
+    </target>
+
+    <target name="compile" depends="prepare">
+        <javac SrcDir="${JavaSrcDir}" destdir="${BuildClassesDir}"
+            debug="true"
+        >
+            <include name="com/ctc/wstx/tools/*.java" />
+            <classpath refid="classpath" />
+        </javac>
+    </target>
+
+    <!-- Dummy target that just includes all individual jars... --> 
+    <target name="jars"
+       depends="jar.dtd, jar.validator"
+    />
+
+    <!-- DTDFlatten -->
+    <target name="jar.dtd" depends="calc-class-deps,compile">
+        <jar jarfile="${BuildDir}/dtd-flatten.jar"
+            filesonly="true"
+        >
+          <manifest>
+            <attribute name="Main-class" value="com.ctc.wstx.tools.DTDFlatten" />
+            <attribute name="Built-By" value="${user.name}"/>
+            <attribute name="Implementation-Title" value="${DTDFLATTEN_TITLE}"/>
+            <attribute name="Implementation-Version" value="${DTDFLATTEN_VERSION}"/>
+            <attribute name="Implementation-Vendor"  value="${DTDFLATTEN_VENDOR}"/>
+          </manifest>
+          <fileset refid="dtdFlattenClasses" />
+          <fileset dir="${RelNotesDir}">
+            <include name="GPL2.0" />
+          </fileset>
+          <fileset dir="${RelNotesDir}/dtdflatten">
+            <include name="LICENSE" />
+          </fileset>
+        </jar>
+    </target> 
+
+    <!-- XMLValidator jar is included in this build.xml also just for
+       - convenience
+      -->
+    <target name="jar.validator" depends="calc-class-deps,compile">
+        <jar jarfile="${BuildDir}/validate-xml.jar"
+            filesonly="true"
+        >
+          <manifest>
+            <attribute name="Main-class" value="com.ctc.wstx.tools.ValidateXML" />
+
+            <attribute name="Built-By" value="${user.name}"/>
+            <attribute name="Implementation-Title" value="${VALIDATEXML_TITLE}"/>
+            <attribute name="Implementation-Version" value="${VALIDATEXML_VERSION}"/>
+            <attribute name="Implementation-Vendor"  value="${VALIDATEXML_VENDOR}"/>
+          </manifest>
+          <fileset refid="xmlValidatorClasses" />
+          <fileset dir="${RelNotesDir}">
+            <include name="GPL2.0" />
+          </fileset>
+          <fileset dir="${RelNotesDir}/validatexml">
+            <include name="LICENSE" />
+          </fileset>
+        </jar>
+    </target> 
+ 
+    <target name="all" depends="clean,dist">
+        <!-- This target simply depends on others to do its job -->
+    </target>
+
+    <target name="dist" depends="compile,jars"
+    >
+       <!-- First, let's copy the binary jars to dist -->
+       <copy todir="${DistDir}">
+          <fileset dir="${BuildDir}" includes="*.jar" />
+       </copy>
+       <!-- Then let's create the source distribution package -->
+       <tar basedir="${basedir}" destfile="${DistDir}/wstx-tools-src.tar"
+        includes="build.xml" >
+          <tarfileset dir="." includes="src/java/*.java" />
+          <tarfileset dir="." includes="src/java/**/*.html" />
+          <tarfileset dir="." includes="release-notes/*" />
+       </tar>
+       <gzip zipfile="${DistDir}/wstx-tools-src.tar.gz"
+          src="${DistDir}/wstx-tools-src.tar" />
+       <delete file="${DistDir}/wstx-tools-src.tar" />
+
+       <!-- Plus, let's also just copy README and compatibility files, in
+            addition to being included in source package
+         -->
+       <copy todir="${DistDir}" >
+            <fileset dir="." includes="release-notes/*" />
+       </copy>
+    </target>
+</project>

@@ -49,17 +49,6 @@ public final class CompactNsContext
         mLocation = loc;
         mNamespaces = namespaces;
         mFirstLocalNs = firstLocal;
-
-        /* // for debugging
-        System.err.print("[NS("+namespaces.length+")->");
-        for (int i = 0; i < namespaces.length; ++i) {
-            if (i > 0) {
-                System.err.print(",");
-            }
-            System.err.print(namespaces[i]);
-        }
-        System.err.print("]");
-        */
     }
 
     public String doGetNamespaceURI(String prefix)
@@ -105,7 +94,7 @@ public final class CompactNsContext
                 for (int j = i+1; j < len; j += 2) {
                     // Prefixes are interned, can do straight equality check
                     if (ns[j] == prefix) {
-                        continue; // was masked!
+                        continue main_loop; // was masked!
                     }
                 }
                 return mNamespaces[i-1];

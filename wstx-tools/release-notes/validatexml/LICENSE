@@ -1,0 +1,12 @@
+ValidateXML utility is licensed under the General Public License
+GPL), version 2.0 ("the License")
+
+You may obtain a copy of the License at
+
+http://www.gnu.org/licenses/licenses.html
+
+and a courtesy copy is also included in the source and binary code
+packages (filename "GPL2.0").
+
+Note that the code of the underlying XML processor, Woodstox,
+is licensed under LGPL.
