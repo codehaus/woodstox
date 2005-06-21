@@ -21,6 +21,8 @@ import com.ctc.wstx.util.URLUtil;
  */
 public final class DefaultInputResolver
 {
+    private final static int DEFAULT_BUFFER_LENGTH = 4000;
+
     /*
     ////////////////////////////
     // Life-cycle
@@ -154,10 +156,10 @@ public final class DefaultInputResolver
                 in = URLUtil.optimizedStreamFromURL(url);
             }
             bs = StreamBootstrapper.getInstance
-                (in, pubId, sysId, parent.getInputBufferLength());
+                (in, pubId, sysId, getInputBufferLength(parent));
         } else {
             bs = ReaderBootstrapper.getInstance
-                (r, pubId, sysId, parent.getInputBufferLength(), null);
+                (r, pubId, sysId, getInputBufferLength(parent), null);
         }
         
         Reader r2 = bs.bootstrapInput(false, reporter);
@@ -182,7 +184,7 @@ public final class DefaultInputResolver
             sysId = url.toExternalForm();
         }
         StreamBootstrapper bs = StreamBootstrapper.getInstance(in, pubId, sysId,
-                                                               parent.getInputBufferLength());
+                                                               getInputBufferLength(parent));
         /* !!! TBI: Should try to figure out how to pass XMLReporter here,
          *   so that warnings could be reported?
          */
@@ -200,7 +202,7 @@ public final class DefaultInputResolver
 
         InputStream in = URLUtil.optimizedStreamFromURL(url);
         StreamBootstrapper bs = StreamBootstrapper.getInstance(in, null, sysId,
-                                                               parent.getInputBufferLength());
+                                                               getInputBufferLength(parent));
         Reader r = bs.bootstrapInput(false, null);
         return InputSourceFactory.constructEntitySource
             (parent, refName, bs, null, sysId, url, r);
@@ -212,7 +214,7 @@ public final class DefaultInputResolver
         throws IOException, WstxException
     {
         StreamBootstrapper bs = StreamBootstrapper.getInstance
-            (is, pubId, sysId, parent.getInputBufferLength());
+            (is, pubId, sysId, getInputBufferLength(parent));
         Reader r = bs.bootstrapInput(false, null);
         URL ctxt = parent.getSource();
 
@@ -233,7 +235,7 @@ public final class DefaultInputResolver
          * main-level handling)
          */
         ReaderBootstrapper rbs = ReaderBootstrapper.getInstance
-            (r, pubId, sysId, parent.getInputBufferLength(), null);
+            (r, pubId, sysId, getInputBufferLength(parent), null);
         // null -> no xml reporter... should have one?
         r = rbs.bootstrapInput(false, null);
         URL ctxt = parent.getSource();
@@ -242,5 +244,11 @@ public final class DefaultInputResolver
         }
         return InputSourceFactory.constructEntitySource
             (parent, refName, rbs, pubId, sysId, ctxt, r);
+    }
+
+    private static int getInputBufferLength(WstxInputSource parent)
+    {
+        return (parent == null) ?
+            DEFAULT_BUFFER_LENGTH : parent.getInputBufferLength();
     }
 }

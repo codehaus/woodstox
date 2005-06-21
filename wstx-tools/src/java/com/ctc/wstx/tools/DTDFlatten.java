@@ -20,7 +20,7 @@ import java.net.URL;
 
 import com.ctc.wstx.dtd.DTDSubset;
 import com.ctc.wstx.dtd.FullDTDReader;
-import com.ctc.wstx.io.InputSourceFactory;
+import com.ctc.wstx.io.DefaultInputResolver;
 import com.ctc.wstx.io.WstxInputSource;
 import com.ctc.wstx.util.LineSuppressWriter;
 import com.ctc.wstx.util.URLUtil;
@@ -143,10 +143,9 @@ public class DTDFlatten
          * xml declaration will also be included (as long as 'xml' in
          * what looks like a proc. instr. won't cause trouble)
          */
-        WstxInputSource input = InputSourceFactory.constructReaderSource
-            (null, null, null, // no parent, not from entity, no bootstrapper
-             null, sysId, url, fr, true,
-             4000);
+        WstxInputSource input = DefaultInputResolver.resolveEntity
+            (null, null, // no parent, not from entity,
+             null, url.toExternalForm(), null, null);
         DTDSubset ss = FullDTDReader.flattenExternalSubset
             (input, out,
              inclComments, inclConditional, inclParamEntities);

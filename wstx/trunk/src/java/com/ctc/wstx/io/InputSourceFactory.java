@@ -14,6 +14,8 @@ import com.ctc.wstx.util.TextBuffer;
  */
 public final class InputSourceFactory
 {
+    final static int DEFAULT_BUFFER_LENGTH = 4000;
+
     /**
      * @param parent
      * @param entityName Name of the entity expanded to create this input
@@ -26,9 +28,9 @@ public final class InputSourceFactory
     {
         /* true -> do close the underlying Reader at EOF
          */
+        int bufLen = (parent == null) ? DEFAULT_BUFFER_LENGTH : parent.getInputBufferLength();
         ReaderSource rs = new ReaderSource
-            (parent, entityName, pubId, sysId, src, r, true,
-             parent.getInputBufferLength());
+            (parent, entityName, pubId, sysId, src, r, true, bufLen);
         if (bs != null) {
             rs.setInputOffsets(bs.getInputTotal(), bs.getInputRow(),
                                -bs.getInputColumn());
