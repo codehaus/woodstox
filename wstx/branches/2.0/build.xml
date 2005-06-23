@@ -479,6 +479,7 @@
          showoutput="yes">
             <batchtest fork="no" todir="${TestXmlResultsDir}">
                 <fileset dir="${TestClassesDir}">
+                    <exclude name="**/Test*$*.class"/>
                     <include name="**/Test*.class"/>
                 </fileset>
             </batchtest>

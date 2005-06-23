@@ -1,10 +1,15 @@
-Version: 1.0.7
+Version: 1.0.8
 
 Release date: xx-Jul-2005
 
 Description:
-  Seventh maintenance release for 1.0; fixes some more bugs (one critical,
-  couple less critical but easy to fix)
+  Eighth maintenance release for 1.0.
+
+  Problems fixed:
+
+History:
+
+1.0.7 [22-Jun-2005]
 
   Problems fixed:
 
@@ -14,8 +19,6 @@ Description:
     was not always outputting encoding.
   * XMLInputFactory: entity/dtd resolvers were not properly passed to
      instances.
-
-History:
 
 1.0.6 [26-Apr-2005]
 

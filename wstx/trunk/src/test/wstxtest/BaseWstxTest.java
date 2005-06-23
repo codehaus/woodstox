@@ -54,6 +54,8 @@ public class BaseWstxTest
     ///////////////////////////////////////////////////
      */
 
+    protected BaseWstxTest() { super(); }
+
     protected BaseWstxTest(String name) {
         super(name);
     }
