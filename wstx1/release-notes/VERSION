@@ -1,11 +1,19 @@
 Version: 1.0.7
 
-Release date: xx-May-2005
+Release date: xx-Jul-2005
 
 Description:
-  Sixth maintenance release for 1.0; fixes some more critical bugs.
+  Seventh maintenance release for 1.0; fixes some more bugs (one critical,
+  couple less critical but easy to fix)
 
   Problems fixed:
+
+  * XMLInputFactory implementation: an intermittent problem caused by
+    broken handling of SymbolTable sharing fixed now.
+  * A problem with XMLEventWriter's handling of START_DOCUMENT fixed;
+    was not always outputting encoding.
+  * XMLInputFactory: entity/dtd resolvers were not properly passed to
+     instances.
 
 History:
 

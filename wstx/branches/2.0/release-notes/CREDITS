@@ -3,7 +3,7 @@ Here are people who have contributed to Woodstox development:
 
 Tatu Saloranta, tatu.saloranta@iki.fi: Author
 
-Christian Niles <christian@unit12.net>:
+Christian Niles:
   * Pointed out the improvement to wstx.jar, that will set system properties
     necessary to automatically make Woodstox the default StAX implementation
     to use [v 0.8.3]
@@ -81,3 +81,11 @@ Ron Yang:
     sharing, and also pointed out a potential solution (had been fixed for
     2.0 branch earlier, but not for 1.0.x).
     [1.0.7]
+
+Ulrich Callmeier:
+  * Reported a bug with START_DOCUMENT handling of XMLStreamWriter
+    implementation
+    [1.0.7, 2.0]
+  * Reported a bug with the input factory: entity and dtd resolvers were
+    not being properly passed to instances
+    [1.0.7, 2.0rc4]

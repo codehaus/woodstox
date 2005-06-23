@@ -342,6 +342,8 @@ public final class ReaderConfig
         rc.mCustomEntities = mCustomEntities;
         rc.mReporter = mReporter;
         rc.mBaseURL = mBaseURL;
+        rc.mDtdResolver = mDtdResolver;
+        rc.mEntityResolver = mEntityResolver;
 
         return rc;
     }

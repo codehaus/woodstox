@@ -11,6 +11,10 @@ Description:
 
   * A small problem with StartElement.getPrefix() fixed: checks for
     masked namespaces wasn't properly working.
+  * XMLEventWriter: START_DOCUMENT outputting fixed;  was not always
+    outputting encoding.
+  * XMLInputFactory: entity/dtd resolvers were not properly passed to
+    instances.
 
 == History: ==
 

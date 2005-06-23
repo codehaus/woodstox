@@ -122,7 +122,7 @@ public class WstxEventWriter
         case START_DOCUMENT:
             {
                 StartDocument sd = (StartDocument) event;
-                if (sd.encodingSet()) { // encoding defined?
+                if (!sd.encodingSet()) { // encoding defined?
                     mWriter.writeStartDocument(sd.getVersion());
                 } else {
                     mWriter.writeStartDocument(sd.getCharacterEncodingScheme(),

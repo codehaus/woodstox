@@ -238,7 +238,6 @@ public final class ReaderConfig
 
     XMLResolver mXmlResolver = null;
     WstxInputResolver mDtdResolver = null;
-
     WstxInputResolver mEntityResolver = null;
 
     /**
@@ -317,6 +316,10 @@ public final class ReaderConfig
         rc.mCustomEntities = mCustomEntities;
         rc.mReporter = mReporter;
         rc.mBaseURL = mBaseURL;
+
+        rc.mXmlResolver = mXmlResolver;
+        rc.mDtdResolver = mDtdResolver;
+        rc.mEntityResolver = mEntityResolver;
 
         return rc;
     }
