@@ -1,0 +1,71 @@
+------------------------------------
+Planned stuff for 3.0
+------------------------------------
+
+* Bugs / incomplete handling:
+  * Input reader creation: 
+  * Should not fail on quoted ]]>... Does not, any more, but now
+    catching ]]>s in textual content is only 98% reliable (won't match
+    ones that are split by input buffer boundary).
+  * Namespace handling:
+    * (Check that URIs that match 'xml' and 'xmlns' are not redefined?
+      This is done by Xerces; not sure if namespace specs dictate this?
+
+* Functionality that didn't quite make it to 2.0:
+   * Fragment parsing/writing:
+      * Allow for reading and writing of XML document fragments; essentially
+       suppressing checks for single-root, and assuming that the outermost
+       element(s) are not document root nodes (meaning also that DTD is not
+       allowed to be output)
+
+* Refactoring:
+   * Clean up DTD abstraction, make it public (at least partially);
+     makes it easier to add/expose other functionality.
+   * Make public API that allows parsing of DTDs; main use will be
+     to feed such DTD objects back as either override-DTDs (input),
+     or actual DTDs (output+indenting, output+validation)
+  * Continue working on J2ME subset; partial implementations do exist for
+    both input and output factories, but should be able to squeeze out
+    some more classes from subsets.
+
+* Compatibility:
+   * JDK 1.2/1.3: Remove dependency to BitSet.nextSetBit and nextClearBit;
+     these methods are only in JDK 1.4. But they are (alas!) used by
+     DTD processing.
+   * Native SAX(2?) wrappers?
+
+* DTD-validation, handling:
+   * Allow validating output!
+   * (pretty-printing using DTD, see below)
+
+* Other validation (RelaxNG, W3C Schema):
+   * Connect Multi-Schema Validator using its native interface?
+   * Would it make sense to use JARV instead of/in addition to?
+   * How about DTD++? Data types should be reasonably easy...?
+     Would also allow partial W3C Schema and RelaxNG implementations
+     natively?
+
+* Pretty-printing?
+   * Using DTD
+   * Heuristically
+
+* Documentation:
+   * Impl. details, like: always interns names, preserves attribute value
+     orders.
+   * Requirements for compiling, running:
+      * Ant 1.5? (rootfileset)
+      * Jars: for 1.3/1.2 SAX and DOM API jars?
+      * How to build for 1.2, 1.3?
+   * FAQ:
+      * Output streaming; use of 'writeCharacters("");', flush()
+
+* Exception-handling:
+   * Add a WstxOutputException?
+   * Separate exception class for DTD-parsing problems?
+   * Perhaps add formal numeric (integer) error codes, to allow other code
+     to more reliably determine problem type?
+
+* Caching:
+   * Refactor caching out of input factory, to be shared between
+     factories and input/output modes (but have 2 actual Maps in
+     CacheManager, to prevent trashing by either side).

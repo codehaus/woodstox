@@ -11,8 +11,9 @@ import org.codehaus.stax2.XMLInputFactory2;
 import org.codehaus.stax2.XMLStreamReader2;
 
 import com.ctc.wstx.api.WstxInputProperties;
+
 /**
- * Simple non-automated unit test for outputting namespace-aware XML
+ * Simple helper test class for checking how stream reader handles xml
  * documents.
  */
 public class TestStreamReader
@@ -128,29 +129,7 @@ public class TestStreamReader
             in = new GZIPInputStream(in);
         }
 
-        // !!! TEST:
-        //in = new TestStream(in);
-
-        /*
-        {
-            byte[] data = readData(file);
-            in = new ByteArrayInputStream(data);
-            String str = new String(data, "UTF-8");
-            sr = f.createXMLStreamReader(new StringReader(str));
-        }
-        */
-
         sr = (XMLStreamReader2) f.createXMLStreamReader(file.toURL().toString(), in);
-        //sr = f.createXMLStreamReader(in);
-
-        /* 
-        sr = f.createXMLStreamReader(new StringReader(
-"<!DOCTYPE root [ <!ELEMENT root ANY> <!ENTITY pi '<?target data'> ]>\n"
-+"<root>&pi;   and rest of data?></root>"));
-        */
-
-        //Reader r = new FileReader(file);
-        //sr = f.createXMLStreamReader(file.toURL().toString(), r);
 
         while (sr.hasNext()) {
             int type = sr.next();
@@ -270,72 +249,4 @@ public class TestStreamReader
           t.printStackTrace();
         }
     }
-
-    public static byte[] readData(String filename)
-        throws IOException
-    {
-        return readData(new File(filename));
-    }   
-
-    public static byte[] readData(File f)
-        throws IOException
-    {
-        FileInputStream fin = new FileInputStream(f);
-        try {
-            byte[] buf = new byte[16000];
-            ByteArrayOutputStream bos = new ByteArrayOutputStream((int) f.length() + 16);
-            int count;
-
-            while ((count = fin.read(buf)) > 0) {
-                bos.write(buf, 0, count);
-            }
-            return bos.toByteArray();
-        } finally {
-            fin.close();
-        }
-    }
 }
-
-/**
- * Test stream to check whether reader can do proper streaming...
- * Need to throw an exception to ensure _succesful_ functioning?
- */
-final class TestStream
-    extends FilterInputStream
-{
-    private final static int sleep = 5000;
-    
-    public TestStream(InputStream is)
-    {
-        super(is);
-    }
-    
-    public int read() throws IOException
-    {
-        int r = super.read();
-        if (r<0) {
-            try {
-                Thread.sleep(sleep);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-        return r;
-    }
-    
-    public int read(byte[] b, int off, int len) throws IOException
-    {
-        int r = super.read(b, off, len);
-        if (r<0) {
-// Let's trigger test exception...            
-//if (true) throw new Error("W00t?");
-            try {
-                Thread.sleep(sleep);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-        return r;
-    }
-}
-

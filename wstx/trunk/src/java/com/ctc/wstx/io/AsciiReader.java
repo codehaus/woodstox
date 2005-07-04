@@ -40,7 +40,7 @@ public final class AsciiReader
     ////////////////////////////////////////
     */
 
-    AsciiReader(InputStream in, byte[] buf, int ptr, int len)
+    public AsciiReader(InputStream in, byte[] buf, int ptr, int len)
     {
         super(in, buf, ptr, len);
     }

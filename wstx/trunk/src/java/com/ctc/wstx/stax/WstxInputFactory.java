@@ -45,6 +45,7 @@ import com.ctc.wstx.sr.FullStreamReader;
 import com.ctc.wstx.sr.ReaderCreator;
 import com.ctc.wstx.util.DefaultXmlSymbolTable;
 import com.ctc.wstx.util.SimpleCache;
+import com.ctc.wstx.util.StringUtil;
 import com.ctc.wstx.util.SymbolTable;
 import com.ctc.wstx.util.TextBuilder;
 import com.ctc.wstx.util.URLUtil;
@@ -274,13 +275,35 @@ public final class WstxInputFactory
             return createXMLStreamReader(in);
         }
 
-        try {
-            return createSR(null, ReaderBootstrapper.getInstance
-                            (new InputStreamReader(in, enc), null, null,
-			     mConfig.getInputBufferLength(), enc));
-        } catch (UnsupportedEncodingException ex) {
-            throw new XMLStreamException(ex);
+        /* 03-Jul-2005, TSa: Since Woodstox' implementations of specialized
+         *   readers are faster than default JDK ones (at least for 1.4, UTF-8
+         *   reader is especially fast...), let's use them if possible
+         */
+        Reader r = null;
+        int inputBufLen = mConfig.getInputBufferLength();
+
+        char c = enc.charAt(0);
+        if (c == 'u' || c == 'U') {
+            if (StringUtil.equalEncodings(enc, "UTF-8")) {
+                r = new UTF8Reader(in, new byte[inputBufLen], 0, 0);
+            } else if (StringUtil.equalEncodings(enc, "US-ASCII")) {
+                r = new AsciiReader(in, new byte[inputBufLen], 0, 0);
+            }
+        } else if (c == 'i' || c== 'I') {
+            if (StringUtil.equalEncodings(enc, "ISO-8859-1")) {
+                r = new ISOLatinReader(in, new byte[inputBufLen], 0, 0);
+            }
         }
+
+        if (r == null) {
+            try {
+                r = new InputStreamReader(in, enc);
+            } catch (UnsupportedEncodingException ex) {
+                throw new XMLStreamException(ex);
+            }
+        }
+        return createSR(null, ReaderBootstrapper.getInstance
+                        (r, null, null, inputBufLen, enc));
     }
 
     public XMLStreamReader createXMLStreamReader(Reader r)

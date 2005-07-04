@@ -1,0 +1,146 @@
+<?xml version="1.0" standalone='yes'?>
+
+    <project name="StAX performance test suite" basedir="." default="readme">
+
+    <property name="ProjectName" value="StAX performance test suite"
+    />
+    <!-- Source directories -->
+    <property name="SrcDir" location="${basedir}/src" />
+    <property name="JavaSrcDir" location="${SrcDir}/java" />
+    <!-- Libs -->
+    <property name="LibDir" location="${basedir}/lib" />
+    <!-- Build-related -->
+    <property name="BuildDir" location="${basedir}/build" />
+    <property name="BuildClassesDir" location="${BuildDir}/classes" />
+    <!-- Documentation -->
+    <property name="DocDir" location="${basedir}/doc" />
+    <property name="JavaDocDir" location="${DocDir}/javadoc" />
+    <!-- Test suite -->
+    <property name="TestDir" location="${basedir}/test" />
+    <property name="TestResultsDir" location="${TestDir}/results" />
+    <property name="TestXmlResultsDir" location="${TestResultsDir}/xml" />
+    <!-- Distribution -->
+    <property name="DistDir" location="${basedir}/dist" />
+
+    <path id="classpath">
+        <fileset dir="${LibDir}" includes="*.jar" />
+    </path>
+
+    <!--*********************************************************************-->
+    <!-- The readme target shows a brief description of all targets          -->
+    <!-- supported by this ant build file                                    -->
+    <!--*********************************************************************-->
+    <target name="readme">
+        <echo message = "${ProjectName}'s Available Targets" />
+        <echo message = "---------------------------------------------------" />
+        <echo message = "1)  readme - Displays this information (default target)." />
+        <echo message = "2)  clean - Remove any generated files/directories." />
+        <echo message = "3)  compile - Compile the test code." />
+        <echo message = "4)  javadoc - Generate ${ProjectName} code documentation." />
+        <echo message = "5)  dist - Create distribution directory and copy necessary files there" />
+        <echo message = "6) all - Run the clean, compile, javadoc," />
+        <echo message = "         test and dist targets." />  
+        <echo message = "7) perftest - Run actual (long!) performance test" />
+    </target>
+
+    <target name="prepare">
+        <!-- make build directories -->
+        <mkdir dir="${BuildDir}" />
+        <mkdir dir="${BuildClassesDir}" />
+
+        <!-- make docs directories -->
+        <mkdir dir="${DocDir}" />
+        <mkdir dir="${JavaDocDir}" />
+
+        <!-- and finally distribution dir -->
+        <mkdir dir="${DistDir}" />
+    </target>
+
+    <!--*********************************************************************-->
+    <!-- clean - Removes all generated files/directories.                    -->
+    <!--*********************************************************************-->
+    <target name="clean">
+        <delete dir="${BuildDir}"/>
+        <delete dir="${DocDir}"/>
+        <delete dir="${DistDir}"/>
+    </target>
+
+    <target name="compile" depends="prepare">
+        <javac SrcDir="${JavaSrcDir}" destdir="${BuildClassesDir}"
+            debug="true"
+        >
+            <include name="**/*.java" />
+            <classpath refid="classpath" />
+        </javac>
+    </target>
+
+    <target name="javadoc" depends="prepare">
+        <!-- Build a dirpath that contains just the "source" tree -->
+        <javadoc windowtitle="${ProjectName}"
+            destdir="${JavaDocDir}" 
+            author="true" 
+            version="true">
+            <packageset dir="${JavaSrcDir}" defaultexcludes="yes">
+                <include name="**/*" />
+            </packageset>
+            <classpath refid="classpath" />
+        </javadoc>
+    </target> 
+ 
+    <target name="all" depends="clean,compile,javadoc,dist">
+        <!-- This target simply depends on others to do its job -->
+    </target>
+
+    <target name="dist" depends="compile,javadoc">
+       <!-- Then let's create the source distribution package -->
+       <tar basedir="${basedir}" destfile="${DistDir}/staxperf-src.tar"
+        includes="build.xml" >
+          <tarfileset dir="." includes="src/**/*.java" />
+          <tarfileset dir="." includes="src/java/**/*.html" />
+          <tarfileset dir="." includes="build.xml" />
+       </tar>
+       <gzip zipfile="${DistDir}/staxperf-src.tar.gz" src="${DistDir}/staxperf-src.tar" />
+       <!-- Then copy javadocs -->
+       <copy todir="${DistDir}">
+         <fileset dir="${DocDir}" includes="javadoc/**/*" />
+       </copy>
+       <!-- Plus, let's also just copy README and compatibility files, in
+            addition to being included in source package
+         -->
+       <copy todir="${DistDir}" >
+            <fileset dir="." includes="release-notes/*" />
+       </copy>
+    </target>
+
+    <target name="perftest-ns" depends="prepare">
+       <java classname="staxperf.PerfTest">
+          <classpath refid="classpath" />
+          <classpath path="${BuildDir}/classes" />
+          <arg value="xmldocs/stax_ns.xml" />
+       </java>
+    </target>
+
+    <target name="perftest-elem" depends="prepare">
+       <java classname="staxperf.PerfTest">
+          <classpath refid="classpath" />
+          <classpath path="${BuildDir}/classes" />
+          <arg value="xmldocs/stax_elem.xml" />
+       </java>
+    </target>
+
+    <target name="perftest-soap" depends="prepare">
+       <java classname="staxperf.PerfTest">
+          <classpath refid="classpath" />
+          <classpath path="${BuildDir}/classes" />
+          <arg value="xmldocs/xmlbench/soap1.xml" />
+       </java>
+    </target>
+
+    <target name="perftest-text" depends="prepare">
+       <java classname="staxperf.PerfTest">
+          <classpath refid="classpath" />
+          <classpath path="${BuildDir}/classes" />
+          <arg value="xmldocs/stax_text.xml" />
+       </java>
+    </target>
+</project>

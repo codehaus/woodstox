@@ -7,6 +7,10 @@ Description:
 
   Problems fixed:
 
+  * Now input stream factory tries to use Woodstox-specific (fast) readers
+    even when specific encoding is passed. This should improve UTF-8 document
+    handling when encoding is explicitly passed along with input stream.
+
 == History: ==
 
 2.0rc1-rc3: [11-Apr-2005 - 20-Jun-2005]

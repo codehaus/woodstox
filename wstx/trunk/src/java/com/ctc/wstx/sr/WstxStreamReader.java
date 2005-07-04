@@ -332,6 +332,7 @@ public class WstxStreamReader
     protected final boolean mCfgCoalesceText;
     protected final boolean mCfgReportTextAsChars;
     protected final boolean mCfgLazyParsing;
+    protected final boolean mCfgInternNsURIs;
 
     /**
      * Minimum number of characters parser can return as partial text
@@ -376,6 +377,7 @@ public class WstxStreamReader
         mCfgCoalesceText = (mConfigFlags & CFG_COALESCE_TEXT) != 0;
         mCfgReportTextAsChars = (mConfigFlags & CFG_REPORT_ALL_TEXT_AS_CHARACTERS) != 0;
         mCfgLazyParsing = (mConfigFlags & CFG_LAZY_PARSING) != 0;
+        mCfgInternNsURIs = (mConfigFlags & CFG_INTERN_NS_URIS) != 0;
 
         /* There are a few derived settings used during tokenization that
          * need to be initialized now...
@@ -2480,46 +2482,50 @@ public class WstxStreamReader
     private void handleStartElem(char c)
         throws IOException, XMLStreamException
     {
-        // First, name of element:
-        String prefix, localName;
-
         mTokenState = TOKEN_FULL_COALESCED;
         if (mCfgNsEnabled) {
             String str = parseLocalName(c);
             c = (mInputPtr < mInputLen) ?
                 mInputBuffer[mInputPtr++] : getNextCharFromCurrent(SUFFIX_EOF_EXP_NAME);
             if (c == ':') { // Ok, got namespace and local name
-                prefix = str;
                 c = (mInputPtr < mInputLen) ?
                     mInputBuffer[mInputPtr++] : getNextCharFromCurrent(SUFFIX_EOF_EXP_NAME);
-                localName = parseLocalName(c);
+                mElementStack.push(str, parseLocalName(c));
+                c = (mInputPtr < mInputLen) ?
+                    mInputBuffer[mInputPtr++] : getNextCharFromCurrent(SUFFIX_IN_ELEMENT);
             } else {
-                --mInputPtr; // pushback
-                prefix = DEFAULT_NS_PREFIX;
-                localName = str;
+                mElementStack.push(DEFAULT_NS_PREFIX, str);
+                // c is fine as
             }
-            mElementStack.push(prefix, localName);
             /* Enough about element name itself; let's then parse attributes
              * and namespace declarations. Split into another method for clarity,
              * and so that maybe JIT has easier time to optimize it separately.
-             * And who knows, maybe someone wants to override it as well?
              */
-            handleNsAttrs();
+             /* 04-Jul=2005, TSa: But hold up: we can easily check for a fairly
+              *   common case of no attributes showing up, and us getting the
+              *   closing '>' right away. Let's do that, since it can save
+              *   a call to a rather long method.
+              */
+            mStEmptyElem = (c == '>') ? false : handleNsAttrs(c);
         } else { // Namespace handling not enabled:
             mElementStack.push(parseFullName(c));
-            handleNonNsAttrs();
+            c = (mInputPtr < mInputLen) ?
+                mInputBuffer[mInputPtr++] : getNextCharFromCurrent(SUFFIX_IN_ELEMENT);
+            mStEmptyElem = (c == '>') ? false : handleNonNsAttrs(c);
         }
+        mVldContent = mElementStack.resolveElem(mCfgInternNsURIs);
     }
 
-    private void handleNsAttrs()
+    /**
+     * @return True if this is an empty element; false if not
+     */
+    private boolean handleNsAttrs(char c)
         throws IOException, XMLStreamException
     {
         AttributeCollector ac = mAttrCollector;
-        boolean isEmpty = false;
         boolean gotDefaultNS = false;
 
         while (true) {
-            char c = getNextCharFromCurrent(SUFFIX_IN_ELEMENT);
             if (c <= CHAR_SPACE) {
                 c = getNextInCurrAfterWS(SUFFIX_IN_ELEMENT, c);
             } else if (c != '/' && c != '>') {
@@ -2531,10 +2537,9 @@ public class WstxStreamReader
                 if (c != '>') {
                     throwUnexpectedChar(c, " expected '>'");
                 }
-                isEmpty = true;
-                break;
+                return true;
             } else if (c == '>') {
-                break;
+                return false;
             } else if (c == '<') {
                 throwParseError("Unexpected '<' character in element (missing closing '>'?)");
             }
@@ -2611,26 +2616,23 @@ public class WstxStreamReader
             if (startLen >= 0 && tb.getCharSize() == startLen) { // is empty!
                 throwParseError(ErrorConsts.ERR_NS_EMPTY);
             }
-        }
 
-        /* Need to update namespace stack; it would be possible to avoid
-         * that for empty tags when skipping, but that would hide some
-         * errors.
-         * Can't yet pop the stack for empty elements; that's done when
-         * accessing the dummy close element later on.
-         */
-        mVldContent = mElementStack.resolveElem(hasConfigFlags(CFG_INTERN_NS_URIS));
-        mStEmptyElem = isEmpty;
+            // and then we need to iterate some more
+            c = (mInputPtr < mInputLen) ?
+                mInputBuffer[mInputPtr++] : getNextCharFromCurrent(SUFFIX_IN_ELEMENT);
+        }
+        // never gets here
     }
 
-    private void handleNonNsAttrs()
+    /**
+     * @return True if this is an empty element; false if not
+     */
+    private boolean handleNonNsAttrs(char c)
         throws IOException, XMLStreamException
     {
         AttributeCollector ac = mAttrCollector;
-        boolean isEmpty = false;
 
         while (true) {
-            char c = getNextCharFromCurrent(SUFFIX_IN_ELEMENT);
             if (c <= CHAR_SPACE) {
                 c = getNextInCurrAfterWS(SUFFIX_IN_ELEMENT, c);
             } else if (c != '/' && c != '>') {
@@ -2641,10 +2643,9 @@ public class WstxStreamReader
                 if (c != '>') {
                     throwUnexpectedChar(c, " expected '>'");
                 }
-                isEmpty = true;
-                break;
+                return true;
             } else if (c == '>') {
-                break;
+                return false;
             } else if (c == '<') {
                 throwParseError("Unexpected '<' character in element (missing closing '>'?)");
             }
@@ -2678,10 +2679,11 @@ public class WstxStreamReader
             } else {
                 parseNonNormalizedAttrValue(c, tb);
             }
+            // and then we need to iterate some more
+            c = (mInputPtr < mInputLen) ?
+                mInputBuffer[mInputPtr++] : getNextCharFromCurrent(SUFFIX_IN_ELEMENT);
         }
-
-        mVldContent = mElementStack.resolveElem(false);
-        mStEmptyElem = isEmpty;
+        // never gets here
     }
 
     /**
