@@ -1,13 +1,13 @@
-Version: 2.0rc4
+Version: 2.0
 
-Release date: Xx-Jul-2005
+Release date: 10-Jul-2005
 
 Description:
-  Second release candidate for the eventual 2.0 release
+  The official 2.0 release!
 
   New functionality:
 
-  Problems fixed:
+  Problems fixed (since rc3):
 
   * A small problem with StartElement.getPrefix() fixed: checks for
     masked namespaces wasn't properly working.

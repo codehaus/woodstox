@@ -1,5 +1,5 @@
 ------------------------------------
-Planned stuff for 3.0
+Planned stuff for 3.0 (or later)
 ------------------------------------
 
 * Bugs / incomplete handling:
@@ -32,6 +32,10 @@ Planned stuff for 3.0
    * JDK 1.2/1.3: Remove dependency to BitSet.nextSetBit and nextClearBit;
      these methods are only in JDK 1.4. But they are (alas!) used by
      DTD processing.
+   * Implement missing JAXP Sources (SAXSource, DOMSource); now only uses
+    StreamSources?
+   * Implement missing JAXP Targets (SAXTarget, DOMTarget); now only uses
+     StreamSources?
    * Native SAX(2?) wrappers?
 
 * DTD-validation, handling:

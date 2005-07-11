@@ -6,7 +6,7 @@ Tatu Saloranta, tatu.saloranta@iki.fi: Author
 Christian Niles:
   * Pointed out the improvement to wstx.jar, that will set system properties
     necessary to automatically make Woodstox the default StAX implementation
-    to use [v 0.8.3]
+    to use [0.8.3]
 
 James Fogarty:
   * Found 3 bugs (getElementText() not working, incorrect index offset
@@ -39,17 +39,17 @@ Sven Köhler:
     the UTF8 decoder Woodstox uses: this could cause "too early" blocking
     of readers, in cases where event(s) could be returned before needing
     to read more from underlying input stream.
-    [1.0.4, 1.7]
+    [1.0.4/1.7]
   * Reported a bug in stream writer; a call to writeEmptyElement() followed
     by a call to writeEndElement() ignored latter call.
-    [1.0.5, 1.8.2]
+    [1.0.5/1.8.2]
 
 Casey Bowman:
   * Pointed out the (potential) problem with javax.xml.stream.Location;
     return values are ints, and may thus overflow for BIG documents.
     StAX2 extensions (XMLStreamLocation2) added to properly deal with
     the problem.
-    [1.8, ...]
+    [1.8]
 
 Stefan Wachter:
   * Reported a problem with handling of large documents; was sometimes
@@ -85,7 +85,7 @@ Ron Yang:
 Ulrich Callmeier:
   * Reported a bug with START_DOCUMENT handling of XMLStreamWriter
     implementation
-    [1.0.7, 2.0rc4]
+    [1.0.7/2.0-final]
   * Reported a bug with the input factory: entity and dtd resolvers were
     not being properly passed to instances
-    [1.0.7, 2.0rc4]
+    [1.0.7/2.0-final]

@@ -8,11 +8,12 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
 /**
- * Extension of {@link XMLInputFactory} to add missing functionality.
- *<p>
- * Also contains extended standard properties that conforming stream
- * reader factory and instance implementations should at least
- * recognize, and preferably support.
+ * Extension of {@link XMLInputFactory} that adds some convenience factory
+ * methods as new standard properties that conforming stream
+ * reader factory and instance implementations need to
+ * recognize, and preferably support. There are also some profile-based
+ * configuration methods which allow implementations to set proper goal-based
+ * values for custom properties.
  *<br />
  * NOTE: although actual values for the property names are
  * visible, implementations should try to use the symbolic constants
@@ -39,6 +40,8 @@ public abstract class XMLInputFactory2
      * although usually effect should be negligible. This option is usually
      * only turned on when round-trip output should be as similar to input
      * as possible.
+     *<p>
+     * Default value for this setting is implementation dependant.
      */
     public final static String P_REPORT_PROLOG_WHITESPACE = "org.codehaus.stax2.reportPrologWhitespace";
 
@@ -50,8 +53,11 @@ public abstract class XMLInputFactory2
      * type, but event type code will be reported as CHARACTERS.
      *<p>
      * State of property does not have any effect on performance.
+     *<p>
+     * Default value for this setting is implementation dependant.
      */
     public final static String P_REPORT_ALL_TEXT_AS_CHARACTERS = "org.codehaus.stax2.reportAllTextAsCharacters";
+
 
     // // // Optimization settings
  
@@ -61,7 +67,7 @@ public abstract class XMLInputFactory2
      * querying an instance, whether the instance will guarantee that
      * the names will be intern()ed).
      * Interning generally makes access faster (both internal and externally),
-     * and saves memory, but may add some overhead.
+     * and saves memory, but may add some overhead for processing.
      */
     public final static String P_INTERN_NAMES = "org.codehaus.stax2.internNames";
 
@@ -73,6 +79,8 @@ public abstract class XMLInputFactory2
      * as save memory, but it can also add
      * some overhead when encountering a namespace URI for the first
      * time.
+     *<p>
+     * Default value for this setting is implementation dependant.
      */
     public final static String P_INTERN_NS_URIS = "org.codehaus.stax2.internNsUris";
 
@@ -89,9 +97,12 @@ public abstract class XMLInputFactory2
      *<p>
      * When turned off, implementations are allowed to optimize things,
      * and only keep/pass partial Location information, or even none at
-     * all. Implementations are encouraged to keep some location information
-     * for error reporting purposes, even if they do not accurately maintain
+     * all. Implementations are still encouraged to keep some location
+     * information for error reporting purposes, even if they do not
+     * maintain accurate
      * <code>XMLEvent</code> locations, or exact byte/character offsets.
+     *<p>
+     * Default value for this setting is true.
      */
     public final static String P_PRESERVE_LOCATION = "org.codehaus.stax2.preserveLocation";
  
