@@ -74,7 +74,8 @@ class WriterBase
     {
         char[] cbuf = mEntityBuffer;
         if (cbuf == null) {
-            mEntityBuffer = new char[8];
+	    cbuf = new char[8];
+            mEntityBuffer = cbuf;
             cbuf[0] = '&';
             cbuf[1] = '#';
             cbuf[2] = 'x';

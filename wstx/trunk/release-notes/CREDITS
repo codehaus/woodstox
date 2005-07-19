@@ -89,3 +89,10 @@ Ulrich Callmeier:
   * Reported a bug with the input factory: entity and dtd resolvers were
     not being properly passed to instances
     [1.0.7/2.0-final]
+  * Report a bug with WriterBase, base class for all encoding writers
+    (attribute, element text): an NPE was thrown when trying to output
+    encoded characters.
+    [2.0.1/2.5]
+
+Peter Tauter:
+  * Report a bug with WriterBase; see the entry next to Ulrich for details.

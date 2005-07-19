@@ -114,6 +114,13 @@ public class TestStreamSpeed
             long now = System.currentTimeMillis();
             total += (test3(data) & 0xFF);
             System.out.println("Took: "+(System.currentTimeMillis() - now)+" msecs.");
+
+
+            // Let's allow some time for other tasks too:
+            try {
+                System.gc();
+                Thread.sleep(50L); // 50 msecs... is it enough?
+            } catch (InterruptedException ioe) { }
         }
 
         System.out.println();
