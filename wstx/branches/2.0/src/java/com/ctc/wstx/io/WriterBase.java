@@ -8,8 +8,10 @@ import java.io.Writer;
  * Common base class for escaping Writer implementations; contains
  * commonly used constants, as well as some convenience utility
  * methods
+ *<p>
+ * Note: the class is only public for testing purposes.
  */
-class WriterBase
+public class WriterBase
     extends FilterWriter
 {
     // // // Constants:
@@ -64,9 +66,9 @@ class WriterBase
     }
 
     protected void throwNullChar()
-	throws IOException
+        throws IOException
     {
-	throw new IOException("Null character in text to write");
+        throw new IOException("Null character in text to write");
     }
 
     protected final void writeAsEntity(int c)
@@ -74,7 +76,7 @@ class WriterBase
     {
         char[] cbuf = mEntityBuffer;
         if (cbuf == null) {
-	    cbuf = new char[8];
+            cbuf = new char[8];
             mEntityBuffer = cbuf;
             cbuf[0] = '&';
             cbuf[1] = '#';

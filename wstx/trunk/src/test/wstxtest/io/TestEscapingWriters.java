@@ -1,7 +1,6 @@
 package wstxtest.io;
 
-import java.io.IOException;
-import java.io.StringWriter;
+import java.io.*;
 import java.util.*;
 
 import junit.framework.TestCase;
@@ -15,44 +14,117 @@ import com.ctc.wstx.io.*;
 public class TestEscapingWriters
     extends TestCase
 {
+    /**
+     * Need to create a dummy class to test WriterBase's functionality
+     */
+    private final class TestableWriter
+        extends WriterBase
+    {
+        TestableWriter(Writer out) {
+            super(out);
+        }
+
+        // Ugh, need this method to call the protected method...
+        public void doWriteAsEntity(int c)
+            throws IOException
+        {
+            writeAsEntity(c);
+        }
+    }
+
     public TestEscapingWriters(String name) {
         super(name);
     }
 
-    public void testOutputXMLText()
+    /**
+     * This unit test was added to catch a regression bug in
+     * {@link WriterBase#writeAsEntity}.
+     */
+    public void testWriteAsEntity()
         throws IOException // never gets thrown, actually
     {
-        /*
-        StringWriter sw = new StringWriter();
-        XMLQuoter.outputXMLText(sw, "<>");
-        assertEquals("&lt;>", sw.toString());
-        sw = new StringWriter();
-        XMLQuoter.outputXMLText(sw, "<>".toCharArray(), 0, 2);
-        assertEquals("&lt;>", sw.toString());
+        int[] in_c = new int[] {
+            13, 127, 0x00a0, 0x00ff, 4097
+        };
+        String[] out_str = new String[] {
+            "&#x000d;",
+            "&#x007f;",
+            "&#x00a0;",
+            "&#x00ff;",
+            "&#x1001;",
+        };
 
-        sw = new StringWriter();
-        XMLQuoter.outputXMLText(sw, "<!CDATA[]]>");
-        assertEquals("&lt;!CDATA[]]&gt;", sw.toString());
-
-        sw = new StringWriter();
-        XMLQuoter.outputXMLText(sw, "&");
-        assertEquals("&amp;", sw.toString());
-        sw = new StringWriter();
-        XMLQuoter.outputXMLText(sw, ">xx");
-        assertEquals(">xx", sw.toString());
-
-        sw = new StringWriter();
-        XMLQuoter.outputXMLText(sw, "rock & roll>");
-        assertEquals("rock &amp; roll>", sw.toString());
-
-        sw = new StringWriter();
-        XMLQuoter.outputXMLText(sw, "ab&cd".toCharArray(), 1, 3);
-        assertEquals("b&amp;c", sw.toString());
-        */
+        for (int i = 0; i < in_c.length; ++i) {
+            StringWriter sw = new StringWriter();
+            TestableWriter wb = new TestableWriter(sw);
+            wb.doWriteAsEntity((char) in_c[i]);
+            sw.close();
+            assertEquals(out_str[i], sw.toString());
+        }
     }
 
-    public void testOutputDoubleQuotedAttr()
+    public void testOutputXMLTextSingleByte()
+        throws IOException // never gets thrown, actually
     {
-        // !!! TBI
+        // First, generic
+        doTestSBText(true, true, "<>", "&lt;>");
+        doTestSBText(true, true, "<!CDATA[]]>", "&lt;!CDATA[]]&gt;");
+        doTestSBText(true, true, ">xx", ">xx");
+        doTestSBText(true, true, "rock & roll>", "rock &amp; roll>");
+        doTestSBText(true, true, "ab&cd", "b&amp;c");
+
+        // then ascii:
+        doTestSBText(true, false, "הצו", "");
+
+        // and iso-latin:
+        doTestSBText(true, false, "הצו", "הצצ");
+    }
+
+    private void doTestSBText(boolean doAscii, boolean doISOLatin,
+                              String input, String output)
+        throws IOException
+    {
+        for (int i = 0; i < 2; ++i) {
+            for (int type = 0; type < 4; ++type) {
+                boolean ascii = (i == 0);
+                StringWriter sw = new StringWriter();
+                Writer w;
+                
+                if (ascii) {
+                    if (!doAscii) {
+                        continue;
+                    }
+                    w = new SingleByteTextWriter(sw, "US-ASCII", 128);
+                } else {
+                    if (!doISOLatin) {
+                        continue;
+                    }
+                    w = new SingleByteTextWriter(sw, "ISO-9959-1", 256);
+                }
+
+                switch (type) {
+                case 0: // String output
+                    w.write(input);
+                    break;
+                case 1: // char array, 0 off
+                    w.write(input.toCharArray());
+                    break;
+                case 2: // char array, non-0 off
+                    {
+                        char[] buf = new char[input.length() + 8];
+                        input.getChars(0, input.length(), buf, 4);
+                        w.write(buf, 4, input.length());
+                    }
+                    break;
+                default: // char by char
+                    for (int x = 0; x < input.length(); ++x) {
+                        w.write(input.charAt(x));
+                    }
+                }
+
+                w.close();
+                assertEquals(output, sw.toString());
+            }
+        }
     }
 }
