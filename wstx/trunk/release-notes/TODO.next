@@ -1,0 +1,21 @@
+== Immediate plans ==
+
+1. Add more unit tests for encoding writers:
+
+ Needed for regression testing, to ensure ones added work ok (should have
+ added for 2.0...)
+
+2. Add property DOCUMENT_MODE; DM_SINGLE_DOCUMENT (default),
+  DM_DOCUMENT_FRAGMENT, DM_MULTIPLE_DOCUMENTS
+
+3. Implement native SAX interface(s).
+
+4. Implement UNDECLARED_ENTITY_RESOLVER, to be used for resolving undeclared
+  entity references.
+
+5. Optimized reader for UTF-8, which will initially assume US-Ascii contents;
+  thus allowing for tighter initial decode loop (will then transfer to
+  full version upon encountering first non-ascii char)
+
+6. Connect Multi-Schema Validator using its native API.
+
