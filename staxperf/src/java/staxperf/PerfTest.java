@@ -44,11 +44,9 @@ public class PerfTest
             //new StaxModule("com.ctc.wstx.stax.WstxInputFactory", true),
 
             // Then, StAX in event reading mode:
-            /*
             new StaxEventModule("com.ctc.wstx.stax.WstxInputFactory", false),
             new StaxEventModule("com.bea.xml.stream.MXParserFactory", false),
             //new StaxEventModule("com.ctc.wstx.stax.WstxInputFactory", true),
-            */
 
             // Then SAX
             new SaxModule("com.bluecast.xml.JAXPSAXParserFactory", false),
@@ -64,7 +62,7 @@ public class PerfTest
             new DomModule("org.apache.crimson.jaxp.DocumentBuilderFactoryImpl"),
             // and JDOM
             new JDomModule("JDom/Wstx", "com.ctc.wstx.stax.WstxInputFactory", false),
-            new JDomModule("JDom/Stax-RI", "com.bea.xml.stream.MXParserFactory", false),
+            //new JDomModule("JDom/Stax-RI", "com.bea.xml.stream.MXParserFactory", false),
             new JDomSaxModule("JDom/Sax/Xerces", "org.apache.xerces.parsers.SAXParser", false),
 
         };
