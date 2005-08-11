@@ -1,19 +1,31 @@
-Version: 2.0.1
+Version: 2.0.2
 
-Release date: 19-Jul-2005
+Release date: xx-xx-2005
 
 Description:
-  The first update to the "final" 2.0 release...
+  The second maintenance release for 2.0.
 
-  New functionality:
-
-  Problems fixed (since rc3):
+  Problems fixed:
 
   * A nasty encoding bug in (configurable) attribute writers: trying
     to write entities failed with a NullPointerException...
     [reported by Ulrich C and Peter T]
+  * Fixed a problem with DTDs that had enumerated value "-" (or "--"), was
+    throwing an exception
+    [reported by Ulrich C]
 
 == History: ==
+
+2.0.1: [10-Aug-2005]
+
+  Problems fixed:
+
+  * A nasty encoding bug in (configurable) attribute writers: trying
+    to write entities failed with a NullPointerException...
+    [reported by Ulrich C and Peter T]
+  * Fixed a problem with DTDs that had enumerated value "-" (or "--"), was
+    throwing an exception
+    [reported by Ulrich C]
 
 2.0-final: [10-Jul-2005]
 

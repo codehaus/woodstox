@@ -854,39 +854,7 @@ public class FullDTDReader
         }
     }
 
-    /**
-     * Similar to {@link #getNextExpanded}, but additionally allows for inlined
-     * '--' comments inside declaration (entity, attlist, notation), as per
-     * SGML (which _maybe_ is also legal in DTDs?)
-     */
-    private char getNextExpandedInDecl()
-        throws IOException, XMLStreamException
-    {
-        main_loop:
-        while (true) {
-            char c = (mInputPtr < mInputLen) ?
-                mInputBuffer[mInputPtr++] : getNextChar(getErrorMsg());
-            if (c == '-') {
-              char d = (mInputPtr < mInputLen) ?
-                mInputBuffer[mInputPtr++] : getNextChar(getErrorMsg());
-              // Inline comment?
-              if (d == '-') {
-                skipCommentContent();
-                continue main_loop;
-              }
-                // Nah, let's push second one back, and return hyphen:
-                --mInputPtr; // pushback
-                return c;
-              }
-
-            if (c != '%') {
-                return c;
-            }
-            expandPE();
-        }
-    }
-
-    private char skipDtdWs(boolean allowComments)
+    private char skipDtdWs()
         throws IOException, XMLStreamException
     {
         while (true) {
@@ -897,17 +865,7 @@ public class FullDTDReader
                 continue;
             }
             if (c > CHAR_SPACE) {
-              if (c == '-' && allowComments) {
-                c = (mInputPtr < mInputLen)
-                  ? mInputBuffer[mInputPtr++] : getNextChar(getErrorMsg());
-                if (c == '-') {
-                  skipCommentContent();
-                  continue;
-                }
-                // Nah, need to return the hyphen, let's fall through:
-                --mInputPtr;
-              }
-              return c;
+                return c;
             }
             if (c == '\n' || c == '\r') {
                 skipCRLF(c);
@@ -915,7 +873,7 @@ public class FullDTDReader
         }
     }
 
-    private char skipObligatoryDtdWs(boolean allowComments)
+    private char skipObligatoryDtdWs()
         throws IOException, XMLStreamException
     {
         char c = CHAR_NULL;
@@ -929,16 +887,6 @@ public class FullDTDReader
                 continue;
             }
             if (c > CHAR_SPACE) {
-                if (c == '-' && allowComments) {
-                    c = (mInputPtr < mInputLen)
-                        ? mInputBuffer[mInputPtr++] : getNextChar(getErrorMsg());
-                    if (c == '-') {
-                        skipCommentContent();
-                        continue;
-                    }
-                    // Nah, need to return the hyphen, let's fall through:
-                    --mInputPtr;
-                }
                 break;
             }
             ++count;
@@ -1424,7 +1372,7 @@ public class FullDTDReader
         tb.setCurrentLength(outPtr);
 
         // Ok, now need the closing '>':
-        char c = skipDtdWs(true);
+        char c = skipDtdWs();
         if (c != '>') {
             throwDTDUnexpectedChar(c, "; expected closing '>' after ENTITY declaration.");
         }
@@ -1608,7 +1556,7 @@ public class FullDTDReader
             }
         }
 
-        if (skipDtdWs(false) != 'I') {
+        if (skipDtdWs() != 'I') {
             // let's obtain the keyword for error reporting purposes:
             keyword = readDTDKeyword("I");
         } else {
@@ -1640,7 +1588,7 @@ public class FullDTDReader
     private void handleIncluded()
         throws IOException, XMLStreamException
     {
-        char c = skipDtdWs(false);
+        char c = skipDtdWs();
         if (c != '[') {
             throwDTDUnexpectedChar(c, getErrorMsg()+"; expected '[' to follow 'INCLUDE' directive.");
         }
@@ -1650,7 +1598,7 @@ public class FullDTDReader
     private void handleIgnored()
         throws IOException, XMLStreamException
     {
-        char c = skipDtdWs(false);
+        char c = skipDtdWs();
         int count = 1; // Nesting of IGNORE/INCLUDE sections we have to match
 
         if (c != '[') {
@@ -1845,7 +1793,7 @@ public class FullDTDReader
          * name. Since it's illegal to have partials, we can then proceed
          * to just use normal parsing...
          */
-        char c = skipObligatoryDtdWs(true);
+        char c = skipObligatoryDtdWs();
         final NameKey elemName = readDTDQName(c);
 
         /* Ok, event needs to know its exact starting point (opening '<'
@@ -1875,7 +1823,7 @@ public class FullDTDReader
             if (isSpaceChar(c)) {
                 // Let's push it back in case it's LF, to be handled properly
                 --mInputPtr;
-                c = skipDtdWs(true);
+                c = skipDtdWs();
             } else if (c != '>') {
                 throwDTDUnexpectedChar(c, "; excepted either '>' closing ATTLIST declaration, or a white space character separating individual attribute declarations");
             }
@@ -1894,7 +1842,7 @@ public class FullDTDReader
          * name. Since it's illegal to have partials, we can then proceed
          * to just use normal parsing...
          */
-        char c = skipObligatoryDtdWs(true);
+        char c = skipObligatoryDtdWs();
         final NameKey elemName = readDTDQName(c);
 
         /* Ok, event needs to know its exact starting point (opening '<'
@@ -1904,7 +1852,7 @@ public class FullDTDReader
         Location loc = getStartLocation();
 
         // Ok; name got, need some white space next
-        c = skipObligatoryDtdWs(true);
+        c = skipObligatoryDtdWs();
 
         /* Then the content spec: either a special case (ANY, EMPTY), or
          * a parenthesis group for 'real' content spec
@@ -1913,7 +1861,7 @@ public class FullDTDReader
         int vldContent = CONTENT_ALLOW_MIXED;
 
         if (c == '(') { // real content model
-            c = skipDtdWs(true); // I guess we can allow comments...
+            c = skipDtdWs();
             if (c == '#') {
                 val = readMixedSpec(elemName, mCfgValidate);
                 vldContent = CONTENT_ALLOW_MIXED; // checked against DTD
@@ -1957,7 +1905,7 @@ public class FullDTDReader
         }
 
         // Ok, still need the trailing gt-char to close the declaration:
-        c = skipDtdWs(true);
+        c = skipDtdWs();
         if (c != '>') {
             throwDTDUnexpectedChar(c, getErrorMsg()+"; expected '>' to finish the ENTITY declaration");
         }
@@ -1991,8 +1939,7 @@ public class FullDTDReader
     {
         String emsg = getErrorMsg();
         /* Hmmh. We won't allow parameter entities at this point, so let's
-         * not use 'skipDtdWs'. We won't allow comments then, either; could
-         * be improved if that seems necessary?
+         * not use 'skipDtdWs'.
          */
         char c = getNextCharAfterWS(emsg);
         boolean isParam = (c == '%');
@@ -2006,7 +1953,7 @@ public class FullDTDReader
         }
 
         if (isParam) {
-            c = skipObligatoryDtdWs(true);
+            c = skipObligatoryDtdWs();
         }
 
         String id = readDTDName(c);
@@ -2019,7 +1966,7 @@ public class FullDTDReader
         EntityDecl ent;
 
         try {
-            c = skipDtdWs(true);
+            c = skipDtdWs();
             if (c == '\'' || c == '"') { // internal entity
                 /* Let's get the exact location of actual content, not the
                  * opening quote. To do that, need to 'peek' next char, then
@@ -2094,15 +2041,15 @@ public class FullDTDReader
     private void handleNotationDecl()
         throws IOException, XMLStreamException
     {
-        char c = skipObligatoryDtdWs(true); // comments are ok
+        char c = skipObligatoryDtdWs();
         String id = readDTDName(c);
 
-        c = skipObligatoryDtdWs(true); // comments are ok
+        c = skipObligatoryDtdWs();
         boolean isPublic = checkPublicSystemKeyword(c);
 
         String pubId, sysId;
 
-        c = skipObligatoryDtdWs(true); // comments should be ok
+        c = skipObligatoryDtdWs();
 
         // Ok, now we can parse the reference; first public id if needed:
         if (isPublic) {
@@ -2110,7 +2057,7 @@ public class FullDTDReader
                 throwDTDUnexpectedChar(c, getErrorMsg()+"; expected a quote to start the public identifier.");
             }
             pubId = parsePublicId(c, mCfgNormalizeLFs, getErrorMsg());
-            c = skipDtdWs(true);
+            c = skipDtdWs();
         } else {
             pubId = null;
         }
@@ -2120,7 +2067,7 @@ public class FullDTDReader
          */
         if (c == '"' || c == '\'') {
             sysId = parseSystemId(c, mCfgNormalizeLFs, getErrorMsg());
-            c = skipDtdWs(true);
+            c = skipDtdWs();
         } else {
             if (!isPublic) {
                 throwDTDUnexpectedChar(c, getErrorMsg()+"; expected a quote to start the system identifier.");
@@ -2176,13 +2123,13 @@ public class FullDTDReader
     {
         mAnyDTDppFeatures = true;
         
-        char c = skipObligatoryDtdWs(true); // comments are ok
+        char c = skipObligatoryDtdWs();
         String name;
         
         // Explicit namespace name?
         if (is11NameStartChar(c)) {
             name = readDTDLocalName(c, false);
-            c = skipObligatoryDtdWs(true);
+            c = skipObligatoryDtdWs();
         } else { // no, default namespace (or error)
             name = null;
         }
@@ -2206,7 +2153,7 @@ public class FullDTDReader
         }
         
         // Ok, and then the closing '>':
-        c = skipDtdWs(true);
+        c = skipDtdWs();
         if (c != '>') {
             throwDTDUnexpectedChar(c, "; expected '>' to end TARGETNS directive");
         }
@@ -2242,7 +2189,7 @@ public class FullDTDReader
         NameKey attrName = readDTDQName(c);
         
         // then type:
-        c = skipObligatoryDtdWs(true);
+        c = skipObligatoryDtdWs();
 
         int type = 0;
         WordResolver enumValues = null;
@@ -2289,7 +2236,7 @@ public class FullDTDReader
                         /* Special case; is followed by a list of
                          * enumerated ids...
                          */
-                        c = skipObligatoryDtdWs(true);
+                        c = skipObligatoryDtdWs();
                         if (c != '(') {
                             throwDTDUnexpectedChar(c, "Excepted '(' to start the list of NOTATION ids");
                         }
@@ -2316,7 +2263,7 @@ public class FullDTDReader
         String defVal = null;
 
         // Ok, and how about the default declaration?
-        c = skipDtdWs(true);
+        c = skipDtdWs();
         if (c == '#') {
             String defTypeStr = readDTDName();
             if (defTypeStr == "REQUIRED") {
@@ -2325,7 +2272,7 @@ public class FullDTDReader
                 defType = DTDAttribute.DEF_IMPLIED;
             } else if (defTypeStr == "FIXED") {
                 defType = DTDAttribute.DEF_FIXED;
-                c = skipObligatoryDtdWs(true);
+                c = skipObligatoryDtdWs();
                 defVal = parseAttrDefaultValue(c, attrName, loc, true);
             } else {
                 throwDTDAttrError("Unrecognized attribute default value directive #"+defTypeStr
@@ -2381,7 +2328,7 @@ public class FullDTDReader
          */
         TreeSet set = new TreeSet();
 
-        char c = skipDtdWs(true);
+        char c = skipDtdWs();
         if (c == ')') { // just to give more meaningful error msgs
             throwDTDUnexpectedChar(c, " (empty list; missing identifier(s))?");
         }
@@ -2402,14 +2349,14 @@ public class FullDTDReader
         set.add(id);
         
         while (true) {
-            c = skipDtdWs(true);
+            c = skipDtdWs();
             if (c == ')') {
                 break;
             }
             if (c != '|') {
                 throwDTDUnexpectedChar(c, "; missing '|' separator?");
             }
-            c = skipDtdWs(true);
+            c = skipDtdWs();
             id = isNotation ? readNotationEntry(c, attrName)
                 : readEnumEntry(c, sharedEnums);
             if (!set.add(id)) {
@@ -2496,12 +2443,12 @@ public class FullDTDReader
 
         HashMap m = JdkFeatures.getInstance().getInsertOrderedMap();
         while (true) {
-            char c = skipDtdWs(true);
+            char c = skipDtdWs();
             if (c == ')') {
                 break;
             }
             if (c == '|') {
-                c = skipDtdWs(true);
+                c = skipDtdWs();
             } else if (c == ',') {
                 throwDTDUnexpectedChar(c, " (sequences not allowed within mixed content)");
             } else if (c == '(') {
@@ -2560,7 +2507,7 @@ public class FullDTDReader
         boolean choiceSet = false;
 
         while (true) {
-            char c = skipDtdWs(true);
+            char c = skipDtdWs();
             if (c == ')') {
                 // Need to have had at least one entry...
                 if (subSpecs.isEmpty()) {
@@ -2578,7 +2525,7 @@ public class FullDTDReader
                         throwParseError("Can not mix content spec separators ('|' and ','); need to use parenthesis groups");
                     }
                 }
-                c = skipDtdWs(true);
+                c = skipDtdWs();
             } else {
                 // Need separator between subspecs...
                 if (!subSpecs.isEmpty()) {
@@ -2675,7 +2622,7 @@ public class FullDTDReader
 
         // Ok, now we can parse the reference; first public id if needed:
         if (isPublic) {
-            c = skipObligatoryDtdWs(true); // comments should be ok
+            c = skipObligatoryDtdWs();
             if (c != '"' && c != '\'') {
                 throwDTDUnexpectedChar(c, getErrorMsg()+"; expected a quote to start the public identifier.");
             }
@@ -2683,7 +2630,7 @@ public class FullDTDReader
         }
 
         // And then we need the system id:
-        c = skipObligatoryDtdWs(true); // comments should be ok
+        c = skipObligatoryDtdWs();
         if (c != '"' && c != '\'') {
             throwDTDUnexpectedChar(c, getErrorMsg()+"; expected a quote to start the system identifier.");
         }
@@ -2692,12 +2639,12 @@ public class FullDTDReader
         // Ok; how about notation?
         String notationId = null;
 
-        c = skipDtdWs(true);
+        c = skipDtdWs();
         if (c != '>') {
             checkDTDKeyword("NDATA", c, "; expected either NDATA keyword, or closing '>'.");
-            c = skipObligatoryDtdWs(true); // comments should be ok
+            c = skipObligatoryDtdWs();
             notationId = readNotationEntry(c, null);
-            c = skipDtdWs(true);
+            c = skipDtdWs();
         }
 
         // Ok, better have '>' now:

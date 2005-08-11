@@ -1,23 +1,29 @@
 Version: 2.5
 
-Release date: 19-Jul-2005
+Release date: xx-Sep-2005
 
 Description:
-  First release in 2.x branch (which will lead to 3.0 release)
+
+== History: ==
+
+2.5 [19-Jul-2005]
+
+  First release in 2.x branch.
 
   Problems fixed:
 
   * Fixed a nasty encoding bug in (configurable) attribute writers: trying
     to write entities failed with a NullPointerException
     [reported by Ulrich C and Peter T]
+  * Fixed a problem with DTDs that had enumerated value "-" (or "--"), was
+    throwing an exception
+    [reported by Ulrich C]
 
   Improvements:
 
   * Now input stream factory tries to use Woodstox-specific (fast) readers
     even when specific encoding is passed. This should improve UTF-8 document
     handling when encoding is explicitly passed along with input stream.
-
-== History: ==
 
 2.0rc1-rc3,2.0-final: [11-Apr-2005 - 20-Jun-2005]
 

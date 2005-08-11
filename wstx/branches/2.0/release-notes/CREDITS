@@ -93,6 +93,9 @@ Ulrich Callmeier:
     (attribute, element text): an NPE was thrown when trying to output
     encoded characters.
     [2.0.1]
+  * Reported a bug in DTD-handling; DTDs that had enumerated value "-"
+    (or "--"), were throwing an exception.
+    [2.0.1]
 
 Peter Tauter:
   * Report a bug with WriterBase; see the entry next to Ulrich for details.
