@@ -163,6 +163,13 @@ public final class WstxInputProperties
     public final static String P_ENTITY_RESOLVER = "com.ctc.wstx.entityResolver";
     
     /**
+     * Property of type {@link XMLResolver}, that
+     * will allow graceful handling of references to undeclared (general)
+     * entities.
+     */
+    public final static String P_UNDECLARED_ENTITY_RESOLVER = "com.ctc.wstx.undeclaredEntityResolver";
+
+    /**
      * Property of type {@link java.net.URL}, that will allow specifying
      * context URL to use when resolving relative references, for the
      * main-level entities (external DTD subset, references from the internal

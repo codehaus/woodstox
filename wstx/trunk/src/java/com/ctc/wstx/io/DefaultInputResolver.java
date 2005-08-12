@@ -4,6 +4,7 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.Reader;
+import java.io.StringReader;
 import java.net.URL;
 
 import javax.xml.stream.XMLReporter;
@@ -86,7 +87,7 @@ public final class DefaultInputResolver
                                          +publicId+"')");
         }
         URL url = URLUtil.urlFromSystemId(systemId, ctxt);
-        return sourceFromURL(refCtxt, entityName, url, publicId, systemId);
+        return sourceFromURL(refCtxt, rep, entityName, url, publicId, systemId);
     }
 
     /**
@@ -113,16 +114,16 @@ public final class DefaultInputResolver
             throw new IllegalArgumentException("Can not use other Source objects than StreamSource: got "+o.getClass());
         }
         if (o instanceof URL) {
-            return sourceFromURL(parent, refName, (URL) o, null, null);
+            return sourceFromURL(parent, rep, refName, (URL) o, null, null);
         }
         if (o instanceof InputStream) {
-            return sourceFromIS(parent, refName, (InputStream) o, null, null);
+            return sourceFromIS(parent, rep, refName, (InputStream) o, null, null);
         }
         if (o instanceof Reader) {
-            return sourceFromR(parent, refName, (Reader) o, null, null);
+            return sourceFromR(parent, rep, refName, (Reader) o, null, null);
         }
         if (o instanceof String) {
-            return sourceFromString(parent, refName, (String) o);
+            return sourceFromString(parent, rep, refName, (String) o);
         }
 
         throw new IllegalArgumentException("Unrecognized input argument type for sourceFrom(): "+o.getClass());
@@ -134,7 +135,7 @@ public final class DefaultInputResolver
     ////////////////////////////
     */
 
-    private static WstxInputSource sourceFromSS(WstxInputSource parent, XMLReporter reporter,
+    private static WstxInputSource sourceFromSS(WstxInputSource parent, XMLReporter rep,
                                                String refName,
                                                StreamSource ssrc)
         throws IOException, WstxException
@@ -162,15 +163,15 @@ public final class DefaultInputResolver
                 (r, pubId, sysId, getInputBufferLength(parent), null);
         }
         
-        Reader r2 = bs.bootstrapInput(false, reporter);
+        Reader r2 = bs.bootstrapInput(false, rep);
         return InputSourceFactory.constructEntitySource
             (parent, refName, bs, pubId, sysId, ((url == null) ? ctxt : url),
              r2);
     }
 
-    private static WstxInputSource sourceFromURL(WstxInputSource parent, String refName,
-                                                URL url,
-                                                String pubId, String sysId)
+    private static WstxInputSource sourceFromURL(WstxInputSource parent, XMLReporter rep,
+                                                 String refName, URL url,
+                                                 String pubId, String sysId)
         throws IOException, WstxException
     {
         /* And then create the input source. Note that by default URL's
@@ -185,37 +186,56 @@ public final class DefaultInputResolver
         }
         StreamBootstrapper bs = StreamBootstrapper.getInstance(in, pubId, sysId,
                                                                getInputBufferLength(parent));
-        /* !!! TBI: Should try to figure out how to pass XMLReporter here,
-         *   so that warnings could be reported?
-         */
-        Reader r = bs.bootstrapInput(false, null);
+        Reader r = bs.bootstrapInput(false, rep);
         return InputSourceFactory.constructEntitySource
             (parent, refName, bs, pubId, sysId, url, r);
     }
 
-    private static WstxInputSource sourceFromString(WstxInputSource parent, String refName,
-                                                   String sysId)
+    /**
+     * We have multiple ways to look at what would it mean to get a String
+     * as the resolved result. The most straight-forward is to consider
+     * it literal replacement (with possible embedded entities), so let's
+     * use that (alternative would be to consider it to be a reference
+     * like URL -- those need to be returned as appropriate objects
+     * instead).
+     */
+    private static WstxInputSource sourceFromString(WstxInputSource parent, XMLReporter rep, 
+                                                    String refName, String refContent)
         throws IOException, WstxException
     {
-        URL url = (parent == null) ? null : parent.getSource();
-        url = URLUtil.urlFromSystemId(sysId, url);
+        /* Last null -> no app-provided encoding (doesn't matter for non-
+         * main-level handling)
+         */
+        return sourceFromR(parent, rep, refName,
+                           new StringReader(refContent),
+                           null, refName);
 
-        InputStream in = URLUtil.optimizedStreamFromURL(url);
-        StreamBootstrapper bs = StreamBootstrapper.getInstance(in, null, sysId,
-                                                               getInputBufferLength(parent));
-        Reader r = bs.bootstrapInput(false, null);
-        return InputSourceFactory.constructEntitySource
+        /* 11-Aug-2005, TSa: Used to use this code, which assumes it is
+         *    actually a reference...
+         */
+        /*
+         URL url = (parent == null) ? null : parent.getSource();
+         url = URLUtil.urlFromSystemId(sysId, url);
+
+         InputStream in = URLUtil.optimizedStreamFromURL(url);
+         StreamBootstrapper bs = StreamBootstrapper.getInstance(in, null, sysId,
+                                                                getInputBufferLength(parent));
+         Reader r = bs.bootstrapInput(false, rep);
+         return InputSourceFactory.constructEntitySource
             (parent, refName, bs, null, sysId, url, r);
+        */
     }
 
-    private static WstxInputSource sourceFromIS(WstxInputSource parent, String refName,
-                                               InputStream is,
-                                               String pubId, String sysId)
+    private static WstxInputSource sourceFromIS(WstxInputSource parent,
+                                                XMLReporter rep,
+                                                String refName,
+                                                InputStream is,
+                                                String pubId, String sysId)
         throws IOException, WstxException
     {
         StreamBootstrapper bs = StreamBootstrapper.getInstance
             (is, pubId, sysId, getInputBufferLength(parent));
-        Reader r = bs.bootstrapInput(false, null);
+        Reader r = bs.bootstrapInput(false, rep);
         URL ctxt = parent.getSource();
 
         // If we got a real sys id, we do know the source...
@@ -226,9 +246,9 @@ public final class DefaultInputResolver
             (parent, refName, bs, pubId, sysId, ctxt, r);
     }
 
-    private static WstxInputSource sourceFromR(WstxInputSource parent, String refName,
-                                              Reader r,
-                                              String pubId, String sysId)
+    private static WstxInputSource sourceFromR(WstxInputSource parent, XMLReporter rep,
+                                               String refName, Reader r,
+                                               String pubId, String sysId)
         throws IOException, WstxException
     {
         /* Last null -> no app-provided encoding (doesn't matter for non-
@@ -237,7 +257,7 @@ public final class DefaultInputResolver
         ReaderBootstrapper rbs = ReaderBootstrapper.getInstance
             (r, pubId, sysId, getInputBufferLength(parent), null);
         // null -> no xml reporter... should have one?
-        r = rbs.bootstrapInput(false, null);
+        r = rbs.bootstrapInput(false, rep);
         URL ctxt = parent.getSource();
         if (sysId != null && sysId.length() > 0) {
             ctxt = URLUtil.urlFromSystemId(sysId, ctxt);

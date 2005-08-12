@@ -79,7 +79,8 @@ public final class ReaderConfig
     public final static int PROP_CUSTOM_INTERNAL_ENTITIES = 53;
     public final static int PROP_DTD_RESOLVER = 54;
     public final static int PROP_ENTITY_RESOLVER = 55;
-    public final static int PROP_BASE_URL = 56;
+    public final static int PROP_UNDECLARED_ENTITY_RESOLVER = 56;
+    public final static int PROP_BASE_URL = 57;
 
     /*
     ////////////////////////////////////////////////
@@ -240,6 +241,8 @@ public final class ReaderConfig
                         new Integer(PROP_DTD_RESOLVER));
         sProperties.put(WstxInputProperties.P_ENTITY_RESOLVER,
                         new Integer(PROP_ENTITY_RESOLVER));
+        sProperties.put(WstxInputProperties.P_UNDECLARED_ENTITY_RESOLVER,
+                        new Integer(PROP_UNDECLARED_ENTITY_RESOLVER));
         sProperties.put(WstxInputProperties.P_BASE_URL,
                         new Integer(PROP_BASE_URL));
     }
@@ -267,6 +270,7 @@ public final class ReaderConfig
 
     XMLResolver mDtdResolver = null;
     XMLResolver mEntityResolver = null;
+    XMLResolver mUndeclaredEntityResolver = null;
 
     /**
      * Base URL to use as the resolution context for relative entity
@@ -344,6 +348,7 @@ public final class ReaderConfig
         rc.mBaseURL = mBaseURL;
         rc.mDtdResolver = mDtdResolver;
         rc.mEntityResolver = mEntityResolver;
+        rc.mUndeclaredEntityResolver = mUndeclaredEntityResolver;
 
         return rc;
     }
@@ -497,6 +502,7 @@ public final class ReaderConfig
     public URL getBaseURL() { return mBaseURL; }
     public XMLResolver getDtdResolver() { return mDtdResolver; }
     public XMLResolver getEntityResolver() { return mEntityResolver; }
+    public XMLResolver getUndeclaredEntityResolver() { return mUndeclaredEntityResolver; }
 
     /*
     //////////////////////////////////////////////////////////
@@ -656,6 +662,10 @@ public final class ReaderConfig
 
     public void setEntityResolver(XMLResolver r) {
         mEntityResolver = r;
+    }
+
+    public void setUndeclaredEntityResolver(XMLResolver r) {
+        mUndeclaredEntityResolver = r;
     }
 
     public void setBaseURL(URL baseURL) { mBaseURL = baseURL; }
@@ -971,6 +981,8 @@ public final class ReaderConfig
             return getDtdResolver();
         case PROP_ENTITY_RESOLVER:
             return getEntityResolver();
+        case PROP_UNDECLARED_ENTITY_RESOLVER:
+            return getUndeclaredEntityResolver();
         case PROP_BASE_URL:
             return getBaseURL();
 
@@ -1084,6 +1096,10 @@ public final class ReaderConfig
 
         case PROP_ENTITY_RESOLVER:
             setEntityResolver((XMLResolver) value);
+            break;
+
+        case PROP_UNDECLARED_ENTITY_RESOLVER:
+            setUndeclaredEntityResolver((XMLResolver) value);
             break;
 
         case PROP_BASE_URL:

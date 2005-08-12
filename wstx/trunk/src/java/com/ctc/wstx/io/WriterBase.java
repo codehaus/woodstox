@@ -7,7 +7,7 @@ import java.io.Writer;
 /**
  * Common base class for escaping Writer implementations; contains
  * commonly used constants, as well as some convenience utility
- * methods
+ * methods.
  *<p>
  * Note: the class is only public for testing purposes.
  */
