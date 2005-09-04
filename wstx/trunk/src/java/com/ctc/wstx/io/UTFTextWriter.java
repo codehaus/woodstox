@@ -26,24 +26,24 @@ public class UTFTextWriter
 
     public void write(int c) throws IOException
     {
-	if (c <= HIGHEST_ENCODABLE_TEXT_CHAR) {
-	    if (c == '<') {
-		out.write("&lt;");
-	    } else if (c == '&') {
-		out.write("&amp;");
-	    } else if (c == '>') {
-		if (mJustWroteBracket) {
-		    out.write("&gt;");
-		} else {
-		    out.write(c);
-		}
+        if (c <= HIGHEST_ENCODABLE_TEXT_CHAR) {
+            if (c == '<') {
+                out.write("&lt;");
+            } else if (c == '&') {
+                out.write("&amp;");
+            } else if (c == '>') {
+                if (mJustWroteBracket) {
+                    out.write("&gt;");
+                } else {
+                    out.write(c);
+                }
             } else {
-		out.write(c);
-	    } 
-	    mJustWroteBracket = false;
-	} else {
+                out.write(c);
+            } 
+            mJustWroteBracket = false;
+        } else {
             out.write(c);
-	    mJustWroteBracket = (c == ']');
+            mJustWroteBracket = (c == ']');
         }
     }
 
@@ -57,46 +57,46 @@ public class UTFTextWriter
             return;
         }
 
-	char c = CHAR_NULL;
+        char c = CHAR_NULL;
         len += offset; // to get the index past last char to output
         // Need special handing for leftover ']' to cause quoting of '>'
-	if (mJustWroteBracket) {
-	    c = cbuf[offset];
-	    if (c == '>') {
+        if (mJustWroteBracket) {
+            c = cbuf[offset];
+            if (c == '>') {
                 out.write("&gt;");
                 ++offset;
             }
-	}
+        }
 
         do {
             int start = offset;
-	    String ent = null;
+            String ent = null;
 
             for (; offset < len; ++offset) {
                 c = cbuf[offset]; 
-		if (c > HIGHEST_ENCODABLE_TEXT_CHAR) {
-		    continue;
-		}
+                if (c > HIGHEST_ENCODABLE_TEXT_CHAR) {
+                    continue;
+                }
                 if (c == '<') {
-		    ent = "&lt;";
-		} else if (c == '&') {
-		    ent = "&amp;";
+                    ent = "&lt;";
+                } else if (c == '&') {
+                    ent = "&amp;";
                 } else if (c == '>' && (offset > start)
-			   && cbuf[offset-1] == ']') {
-		    ent = "&gt;";
+                           && cbuf[offset-1] == ']') {
+                    ent = "&gt;";
                 } else {
-		    continue;
-		}
-		break;
-	    }
+                    continue;
+                }
+                break;
+            }
             int outLen = offset - start;
 
             if (outLen > 0) {
                 out.write(cbuf, start, outLen);
             }
             if (ent != null) {
-		out.write(ent);
-		ent = null;
+                out.write(ent);
+                ent = null;
             }
         } while (++offset < len);
 
@@ -113,7 +113,7 @@ public class UTFTextWriter
             return;
         }
 
-	char c = CHAR_NULL;
+        char c = CHAR_NULL;
         len += offset; // to get the index past last char to output
         // Ok, leftover ']' to cause quoting of '>'?
         if (mJustWroteBracket) {
@@ -126,33 +126,33 @@ public class UTFTextWriter
 
         do {
             int start = offset;
-	    String ent = null;
+            String ent = null;
 
             for (; offset < len; ++offset) {
                 c = str.charAt(offset); 
-		if (c > HIGHEST_ENCODABLE_TEXT_CHAR) {
-		    continue;
-		}
-               if (c == '<') {
-		    ent = "&lt;";
-		} else if (c == '&') {
-		    ent = "&amp;";
+                if (c > HIGHEST_ENCODABLE_TEXT_CHAR) {
+                    continue;
+                }
+                if (c == '<') {
+                    ent = "&lt;";
+                } else if (c == '&') {
+                    ent = "&amp;";
                 } else if (c == '>' && (offset > start)
-			   && str.charAt(offset-1) == ']') {
-		    ent = "&gt;";
+                           && str.charAt(offset-1) == ']') {
+                    ent = "&gt;";
                 } else {
-		    continue;
-		}
-		break;
+                    continue;
+                }
+                break;
             }
             int outLen = offset - start;
             if (outLen > 0) {
                 out.write(str, start, outLen);
             } 
-	    if (ent != null) {
-		out.write(ent);
-		ent = null;
-	    }
+            if (ent != null) {
+                out.write(ent);
+                ent = null;
+            }
         } while (++offset < len);
 
         // Ok, did we end up with a bracket?

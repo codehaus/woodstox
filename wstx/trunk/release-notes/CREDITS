@@ -98,4 +98,9 @@ Ulrich Callmeier:
     [2.0.1/2.5]
 
 Peter Tauter:
-  * Report a bug with WriterBase; see the entry next to Ulrich for details.
+  * Reported a bug with WriterBase; see the entry next to Ulrich for details.
+
+Linus Ericson:
+  * Reported a bug in WDTD.java, was missing one double quote from output
+    [2.0.2/2.6] (Jira/WSTX-3)
+

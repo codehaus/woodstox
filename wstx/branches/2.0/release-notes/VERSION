@@ -1,6 +1,6 @@
 Version: 2.0.2
 
-Release date: xx-xx-2005
+Release date: 04-Sep-2005
 
 Description:
   The second maintenance release for 2.0.
@@ -13,6 +13,10 @@ Description:
   * Fixed a problem with DTDs that had enumerated value "-" (or "--"), was
     throwing an exception
     [reported by Ulrich C]
+  * Fixed [WSTX-3]; output of DTD event was missing a double quote.
+    [reported by Linus E]
+  * Fixed a problem with single-byte (ascii, ISO-Latin1) encoding writer;
+    char-array methods could omit characters after encoded entities.
 
 == History: ==
 

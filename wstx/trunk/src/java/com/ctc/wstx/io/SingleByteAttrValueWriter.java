@@ -56,12 +56,12 @@ public class SingleByteAttrValueWriter
                 out.write("&amp;");
                 return;
             }
-	    // Do we want to encode "restricted" spaces as char entities?
+            // Do we want to encode "restricted" spaces as char entities?
             //if (c < CHAR_SPACE) { }
-	    if (c == 0) {
-		throwNullChar();
-	    }
-	} else if (c >= mLowestEntity) {
+            if (c == 0) {
+                throwNullChar();
+            }
+        } else if (c >= mLowestEntity) {
             writeAsEntity(c);
         } else {
             out.write(c);
@@ -75,13 +75,13 @@ public class SingleByteAttrValueWriter
         do {
             int start = offset;
             char c = CHAR_NULL;
-	    String ent = null;
+            String ent = null;
 
             for (; offset < len; ++offset) {
                 c = cbuf[offset]; 
-		if (c > HIGHEST_ENCODABLE_ATTR_CHAR) {
-		    continue;
-		}
+                if (c > HIGHEST_ENCODABLE_ATTR_CHAR) {
+                    continue;
+                }
                 if (c < mLowestEntity) {
                     if (c == qchar) {
                         ent = mQuoteEntity;
@@ -101,11 +101,11 @@ public class SingleByteAttrValueWriter
             if (outLen > 0) {
                 out.write(cbuf, start, outLen);
             } 
-	    if (ent != null) {
-		out.write(ent);
+            if (ent != null) {
+                out.write(ent);
             } else if (offset < len) {
                 writeAsEntity(c);
-	    }
+            }
         } while (++offset < len);
     }
 
@@ -116,13 +116,13 @@ public class SingleByteAttrValueWriter
         do {
             int start = offset;
             char c = '\u0000';
-	    String ent = null;
+            String ent = null;
 
             for (; offset < len; ++offset) {
                 c = str.charAt(offset);
-		if (c > HIGHEST_ENCODABLE_ATTR_CHAR) {
-		    continue;
-		}
+                if (c > HIGHEST_ENCODABLE_ATTR_CHAR) {
+                    continue;
+                }
                 if (c < mLowestEntity) {
                     if (c == qchar) {
                         ent = mQuoteEntity;
@@ -142,12 +142,11 @@ public class SingleByteAttrValueWriter
             if (outLen > 0) {
                 out.write(str, start, outLen);
             }
-	    if (ent != null) {
-		out.write(ent);
+            if (ent != null) {
+                out.write(ent);
             } else if (offset < len) {
                 writeAsEntity(c);
-	    }
+            }
         } while (++offset < len);
     }
 }
-

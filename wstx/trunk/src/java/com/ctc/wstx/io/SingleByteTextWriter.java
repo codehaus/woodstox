@@ -114,13 +114,14 @@ public class SingleByteTextWriter
             if (outLen > 0) {
                 out.write(cbuf, start, outLen);
             }
-            ++offset;
             if (ent != null) {
                 out.write(ent);
             } else if (offset < len) {
                 writeAsEntity(c);
             }
         } while (++offset < len);
+
+        // Any leftovers?
         
         // Ok, did we end up with a bracket?
         mJustWroteBracket = (c == ']');
@@ -148,13 +149,13 @@ public class SingleByteTextWriter
 
         do {
             int start = offset;
-	    String ent = null;
+            String ent = null;
 
             for (; offset < len; ++offset) {
                 c = str.charAt(offset); 
-		if (c > HIGHEST_ENCODABLE_TEXT_CHAR) {
-		    continue;
-		}
+                if (c > HIGHEST_ENCODABLE_TEXT_CHAR) {
+                    continue;
+                }
                 if (c < mLowestEntity) {
                     if (c == '<') {
                         ent = "&lt;";
@@ -167,17 +168,17 @@ public class SingleByteTextWriter
                         continue;
                     }
                 } // else 'ent' remains null
-		break;
+                break;
             }
             int outLen = offset - start;
             if (outLen > 0) {
                 out.write(str, start, outLen);
             } 
-	    if (ent != null) {
-		out.write(ent);
+            if (ent != null) {
+                out.write(ent);
             } else if (offset < len) {
                 writeAsEntity(c);
-	    }
+            }
         } while (++offset < len);
 
         // Ok, did we end up with a bracket?

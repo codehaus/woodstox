@@ -52,14 +52,24 @@ public class TestConfig
                    entityR == gotEntityR);
     }
 
+    /**
+     * Unit test that ensures that DTD resolver gets properly called
+     * when configured
+     */
     public void testUsingDTDResolver()
         throws XMLStreamException
     {
+        // !!! TBI
     }
 
+    /**
+     * Unit test that ensures that entity resolver gets properly called
+     * when configured
+     */
     public void testUsingEntityResolver()
         throws XMLStreamException
     {
+        // !!! TBI
     }
 
     /*

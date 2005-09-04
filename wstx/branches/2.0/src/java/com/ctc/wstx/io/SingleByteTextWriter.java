@@ -40,29 +40,29 @@ public class SingleByteTextWriter
 
     public void write(int c) throws IOException
     {
-	if (c <= HIGHEST_ENCODABLE_TEXT_CHAR) {
-	    if (c == '<') {
-		out.write("&lt;");
-	    } else if (c == '&') {
-		out.write("&amp;");
-	    } else if (c == '>') {
-		if (mJustWroteBracket) {
-		    out.write("&gt;");
-		} else {
-		    out.write(c);
-		}
+        if (c <= HIGHEST_ENCODABLE_TEXT_CHAR) {
+            if (c == '<') {
+                out.write("&lt;");
+            } else if (c == '&') {
+                out.write("&amp;");
+            } else if (c == '>') {
+                if (mJustWroteBracket) {
+                    out.write("&gt;");
+                } else {
+                    out.write(c);
+                }
             } else {
-		out.write(c);
-	    } 
-	    mJustWroteBracket = false;
-	} else if (c >= mLowestEntity) {
+                out.write(c);
+            } 
+            mJustWroteBracket = false;
+        } else if (c >= mLowestEntity) {
             writeAsEntity(c);
         } else {
             out.write(c);
-	    mJustWroteBracket = (c == ']');
+            mJustWroteBracket = (c == ']');
         }
     }
-
+    
     public void write(char cbuf[], int offset, int len) throws IOException
     {
         // Let's simplify code a bit and offload the trivial case...
@@ -72,26 +72,26 @@ public class SingleByteTextWriter
             }
             return;
         }
-
-	char c = CHAR_NULL;
+        
+        char c = CHAR_NULL;
         len += offset; // to get the index past last char to output
         // Need special handing for leftover ']' to cause quoting of '>'
-	if (mJustWroteBracket) {
-	    c = cbuf[offset];
-	    if (c == '>') {
+        if (mJustWroteBracket) {
+            c = cbuf[offset];
+            if (c == '>') {
                 out.write("&gt;");
                 ++offset;
             }
-	}
-
+        }
+        
         do {
             int start = offset;
-	    String ent = null;
-
+            String ent = null;
+            
             for (; offset < len; ++offset) {
                 c = cbuf[offset]; 
-		if (c > HIGHEST_ENCODABLE_TEXT_CHAR) {
-		    continue;
+                if (c > HIGHEST_ENCODABLE_TEXT_CHAR) {
+                    continue;
                 }
                 if (c < mLowestEntity) {
                     if (c == '<') {
@@ -107,8 +107,8 @@ public class SingleByteTextWriter
                         continue;
                     }
                 } // else 'ent' remains null
-		break;
-	    }
+                break;
+            }
             int outLen = offset - start;
 
             if (outLen > 0) {
@@ -116,12 +116,14 @@ public class SingleByteTextWriter
             }
             ++offset;
             if (ent != null) {
-		out.write(ent);
+                out.write(ent);
             } else if (offset < len) {
                 writeAsEntity(c);
             }
-        } while (++offset < len);
+        } while (offset < len);
 
+        // Any leftovers?
+        
         // Ok, did we end up with a bracket?
         mJustWroteBracket = (c == ']');
     }
@@ -135,7 +137,7 @@ public class SingleByteTextWriter
             return;
         }
 
-	char c = CHAR_NULL;
+        char c = CHAR_NULL;
         len += offset; // to get the index past last char to output
         // Ok, leftover ']' to cause quoting of '>'?
         if (mJustWroteBracket) {
@@ -148,13 +150,13 @@ public class SingleByteTextWriter
 
         do {
             int start = offset;
-	    String ent = null;
+            String ent = null;
 
             for (; offset < len; ++offset) {
                 c = str.charAt(offset); 
-		if (c > HIGHEST_ENCODABLE_TEXT_CHAR) {
-		    continue;
-		}
+                if (c > HIGHEST_ENCODABLE_TEXT_CHAR) {
+                    continue;
+                }
                 if (c < mLowestEntity) {
                     if (c == '<') {
                         ent = "&lt;";
@@ -167,18 +169,19 @@ public class SingleByteTextWriter
                         continue;
                     }
                 } // else 'ent' remains null
-		break;
+                break;
             }
             int outLen = offset - start;
             if (outLen > 0) {
                 out.write(str, start, outLen);
             } 
-	    if (ent != null) {
-		out.write(ent);
+            ++offset;
+            if (ent != null) {
+                out.write(ent);
             } else if (offset < len) {
                 writeAsEntity(c);
-	    }
-        } while (++offset < len);
+            }
+        } while (offset < len);
 
         // Ok, did we end up with a bracket?
         mJustWroteBracket = (c == ']');

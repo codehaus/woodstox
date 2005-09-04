@@ -168,6 +168,14 @@ public class WDTD
         throws XMLStreamException
     {
         try {
+            /* 04-Sep-2005, TSa: If we get 'raw' (unparsed) DOCTYPE contents,
+             *    this be easy...
+             */
+            if (mFullText != null) {
+                w.write(mFullText);
+                return;
+            }
+
             w.write("<!DOCTYPE");
             if (mRootName != null) {
                 /* Can only be null for plain XMLStreamReader interface...
@@ -182,10 +190,11 @@ public class WDTD
                 if (mPublicId != null) {
                     w.write(" PUBLIC \"");
                     w.write(mPublicId);
-                    w.write("\" ");
+                    w.write('"');
                 } else {
-                    w.write(" SYSTEM \"");
+                    w.write(" SYSTEM");
                 }
+                w.write(" \"");
                 w.write(mSystemId);
                 w.write('"');
             }

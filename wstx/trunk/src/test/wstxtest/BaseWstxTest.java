@@ -8,6 +8,7 @@ import junit.framework.TestCase;
 import javax.xml.stream.*;
 
 import org.codehaus.stax2.*;
+import org.codehaus.stax2.evt.*;
 
 import com.ctc.wstx.api.WstxOutputProperties;
 import com.ctc.wstx.stax.WstxInputFactory;
@@ -45,8 +46,8 @@ public class BaseWstxTest
      */
 
     XMLInputFactory2 mInputFactory = null;
-
     XMLOutputFactory2 mOutputFactory = null;
+    XMLEventFactory2 mEventFactory = null;
 
     /*
     ///////////////////////////////////////////////////
@@ -77,6 +78,16 @@ public class BaseWstxTest
             mInputFactory = getNewInputFactory();
         }
         return mInputFactory;
+    }
+
+    protected XMLEventFactory2 getEventFactory()
+    {
+        if (mEventFactory == null) {
+            System.setProperty("javax.xml.stream.XMLEventFactory",
+                               "com.ctc.wstx.stax.WstxEventFactory");
+            mEventFactory = (XMLEventFactory2) XMLEventFactory.newInstance();
+        }
+        return mEventFactory;
     }
 
     protected WstxInputFactory getWstxInputFactory() {
@@ -121,6 +132,12 @@ public class BaseWstxTest
                                                      new FileReader(inf));
         assertEquals(sr.getEventType(), START_DOCUMENT);
         return (XMLStreamReader2) sr;
+    }
+
+    protected static XMLEventReader2 constructEventReader(XMLInputFactory f, String content)
+        throws XMLStreamException
+    {
+        return (XMLEventReader2) f.createXMLEventReader(new StringReader(content));
     }
 
     /*
@@ -256,7 +273,7 @@ public class BaseWstxTest
     //////////////////////////////////////////////////
      */
 
-    protected static String printable(char ch)
+    public static String printable(char ch)
     {
         if (ch == '\n') {
             return "\\n";
@@ -283,7 +300,7 @@ public class BaseWstxTest
         return null;
     }
 
-    protected static String printableWithSpaces(char ch)
+    public static String printableWithSpaces(char ch)
     {
         if (ch == '\n') {
             return "\\n";
@@ -307,7 +324,7 @@ public class BaseWstxTest
         return null;
     }
 
-    protected static String printable(String str)
+    public static String printable(String str)
     {
         if (str == null || str.length() == 0) {
             return str;
@@ -327,7 +344,7 @@ public class BaseWstxTest
         return sb.toString();
     }
 
-    protected static String printableWithSpaces(String str)
+    public static String printableWithSpaces(String str)
     {
         if (str == null || str.length() == 0) {
             return str;

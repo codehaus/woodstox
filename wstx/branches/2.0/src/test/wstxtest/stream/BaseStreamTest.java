@@ -14,7 +14,7 @@ import wstxtest.cfg.*;
 public class BaseStreamTest
     extends BaseWstxTest
 {
-    protected BaseStreamTest() { super() ; }
+    protected BaseStreamTest() { super(); } 
 
     protected BaseStreamTest(String name) {
         super(name);
