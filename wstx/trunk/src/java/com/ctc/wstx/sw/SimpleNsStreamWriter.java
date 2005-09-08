@@ -217,7 +217,14 @@ public class SimpleNsStreamWriter
         while (it.hasNext()) {
             Attribute attr = (Attribute) it.next();
             name = attr.getName();
-            writeAttribute(name.getLocalPart(), attr.getValue());
+            nsURI = name.getNamespaceURI();
+            // In non-default/empty namespace?
+            if (nsURI != null && nsURI.length() > 0) {
+                writeAttribute(name.getPrefix(), nsURI,
+                               name.getLocalPart(), attr.getValue());
+            } else {
+                writeAttribute(name.getLocalPart(), attr.getValue());
+            }
         }
     }
 

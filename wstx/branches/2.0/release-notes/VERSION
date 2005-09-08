@@ -1,10 +1,19 @@
-Version: 2.0.2
+Version: 2.0.3
 
-Release date: 04-Sep-2005
+Release date: -Sep-2005
 
 Description:
-  The second maintenance release for 2.0.
+  The third maintenance release for 2.0.
 
+  Problems fixed:
+
+  * Fixed [WSTX-7]; SimpleNsStreamWriter#writeStartElement(StartElement)
+    was stripping out attribute namespaces.
+    [reported by Linus E]
+
+== History: ==
+
+2.0.1: [04-Sep-2005]
   Problems fixed:
 
   * A nasty encoding bug in (configurable) attribute writers: trying
@@ -17,8 +26,6 @@ Description:
     [reported by Linus E]
   * Fixed a problem with single-byte (ascii, ISO-Latin1) encoding writer;
     char-array methods could omit characters after encoded entities.
-
-== History: ==
 
 2.0.1: [10-Aug-2005]
 

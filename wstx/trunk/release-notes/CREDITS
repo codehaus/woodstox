@@ -101,6 +101,8 @@ Peter Tauter:
   * Reported a bug with WriterBase; see the entry next to Ulrich for details.
 
 Linus Ericson:
-  * Reported a bug in WDTD.java, was missing one double quote from output
-    [2.0.2/2.6] (Jira/WSTX-3)
-
+  * Reported bugs:
+    * in WDTD.java, was missing one double quote from output
+      [2.0.2/2.6] (Jira/WSTX-3)
+    * in SimpleNsStreamWriter.java, was stripping out attribute namespaces
+      [2.0.3/2.7] (Jira/WSTX-7)
