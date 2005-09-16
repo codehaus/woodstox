@@ -10,6 +10,9 @@ Description:
   * Fixed [WSTX-7]; SimpleNsStreamWriter#writeStartElement(StartElement)
     was stripping out attribute namespaces.
     [reported by Linus E]
+  * [WSTX-8] nextTag() followed by peek() at the start of a document
+    won't work. Also, fixed associated NPEs in WstxEventReader class.
+    [reported by Patrick C]
 
 == History: ==
 

@@ -106,3 +106,8 @@ Linus Ericson:
       [2.0.2/2.6] (Jira/WSTX-3)
     * in SimpleNsStreamWriter.java, was stripping out attribute namespaces
       [2.0.3/2.7] (Jira/WSTX-7)
+
+Patrick D'Cruze:
+  * Reported bug [WSTX-8]; nextTag() followed by peek() at the start of a
+    document did not work.
+    [2.0.3]

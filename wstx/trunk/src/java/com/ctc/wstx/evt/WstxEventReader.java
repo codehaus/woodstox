@@ -102,19 +102,8 @@ public class WstxEventReader
     public void close()
         throws XMLStreamException
     {
-        /* Nothing much we can do -- sure, could make factory and reader
-         * non-final, clear them up, but what's the point?
-         */
-        /*
-        try { // Stupid StAX 1.0 incompatibilities
-            mReader.close();
-        } catch (XMLStreamException sex) {
-            throwFromSex(sex); 
-        }
-        */
-
         /* 05-Dec-2004, TSa: Actually, looks like we can just throw
-         *   the XMLStreamReader ok?
+         *   the XMLStreamException ok?
          */
         mReader.close();
     }
@@ -235,20 +224,32 @@ public class WstxEventReader
             case CDATA:
             case CHARACTERS:
                 {
-                    if (((Characters) mPeekedEvent).isWhiteSpace()) {
+                    if (((Characters) evt).isWhiteSpace()) {
                         break;
                     }
                 }
                 throwParseError("Received non-all-whitespace CHARACTERS or CDATA event in nextTag().");
-		break; // never gets here, but some compilers whine without...
+                break; // never gets here, but some compilers whine without...
             case START_ELEMENT:
             case END_ELEMENT:
                 return evt;
 
             default:
-                throwParseError("Received event "+mPeekedEvent.getEventType()+", instead of START_ELEMENT or END_ELEMENT.");
+                throwParseError("Received event "+evt.getEventType()+", instead of START_ELEMENT or END_ELEMENT.");
+            }
+        } else {
+            /* 13-Sep-2005, TSa: As pointed out by Patrick, we may need to
+             *   initialize the state here, too; otherwise peek() won't work
+             *   correctly. The problem is that following loop's get method
+             *   does not use event reader's method but underlying reader's.
+             *   As such, it won't update state: most importantly, initial
+             *   state may not be changed to non-initial.
+             */
+            if (mState == STATE_INITIAL) {
+                mState = STATE_CONTENT;
             }
         }
+ 
         while (true) {
             int next = mReader.next();
 

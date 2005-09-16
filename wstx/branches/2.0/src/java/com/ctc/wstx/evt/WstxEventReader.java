@@ -235,7 +235,7 @@ public class WstxEventReader
             case CDATA:
             case CHARACTERS:
                 {
-                    if (((Characters) mPeekedEvent).isWhiteSpace()) {
+                    if (((Characters) evt).isWhiteSpace()) {
                         break;
                     }
                 }
@@ -246,9 +246,21 @@ public class WstxEventReader
                 return evt;
 
             default:
-                throwParseError("Received event "+mPeekedEvent.getEventType()+", instead of START_ELEMENT or END_ELEMENT.");
+                throwParseError("Received event "+evt.getEventType()+", instead of START_ELEMENT or END_ELEMENT.");
+            }
+        } else {
+            /* 13-Sep-2005, TSa: As pointed out by Patrick, we may need to
+             *   initialize the state here, too; otherwise peek() won't work
+             *   correctly. The problem is that following loop's get method
+             *   does not use event reader's method but underlying reader's.
+             *   As such, it won't update state: most importantly, initial
+             *   state may not be changed to non-initial.
+             */
+            if (mState == STATE_INITIAL) {
+                mState = STATE_CONTENT;
             }
         }
+
         while (true) {
             int next = mReader.next();
 

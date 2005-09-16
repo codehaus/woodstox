@@ -88,6 +88,9 @@ public final class WstxOutputFactory
     public XMLEventWriter createXMLEventWriter(OutputStream out, String enc)
          throws XMLStreamException
    {
+       if (out == null) {
+	    throw new IllegalArgumentException("Null OutputStream is not a valid argument");
+       }
        return new WstxEventWriter(createSW(out, null, enc));
     }
 
@@ -100,18 +103,24 @@ public final class WstxOutputFactory
     public XMLEventWriter createXMLEventWriter(Writer w)
         throws XMLStreamException
     {
+	if (w == null) {
+	    throw new IllegalArgumentException("Null Writer is not a valid argument");
+	}
         return new WstxEventWriter(createSW(null, w, null));
     }
 
     public XMLStreamWriter createXMLStreamWriter(OutputStream out)
         throws XMLStreamException
     {
-        return createSW(out, null, null);
+        return createXMLStreamWriter(out, null);
     }
 
     public XMLStreamWriter createXMLStreamWriter(OutputStream out, String enc)
         throws XMLStreamException
     {
+	if (out == null) {
+	    throw new IllegalArgumentException("Null OutputStream is not a valid argument");
+	}
         return createSW(out, null, enc);
     }
 
@@ -124,6 +133,9 @@ public final class WstxOutputFactory
     public XMLStreamWriter createXMLStreamWriter(Writer w)
         throws XMLStreamException
     {
+	if (w == null) {
+	    throw new IllegalArgumentException("Null Writer is not a valid argument");
+	}
         return createSW(null, w, null);
     }
     

@@ -7,9 +7,12 @@ Description:
 
   Problems fixed:
 
-  * Fixed [WSTX-7]; SimpleNsStreamWriter#writeStartElement(StartElement)
+  * [WSTX-7] SimpleNsStreamWriter#writeStartElement(StartElement)
     was stripping out attribute namespaces.
     [reported by Linus E]
+  * [WSTX-8] nextTag() followed by peek() at the start of a document
+    won't work. Also, fixed associated NPEs in WstxEventReader class.
+    [reported by Patrick C]
 
 == History: ==
 
@@ -17,7 +20,7 @@ Description:
 
   Problems fixed:
 
-  * Fixed [WSTX-3]; output of DTD event was missing a double quote.
+  * [WSTX-3] output of DTD event was missing a double quote.
     [reported by Linus E]
   * Fixed a problem with single-byte (ascii, ISO-Latin1) encoding writer;
     char-array methods could omit characters after encoded entities.

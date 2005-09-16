@@ -56,6 +56,20 @@ public class TestEventReader
         XMLEventReader er = mFactory.createXMLEventReader(file.toURL().toString(), fin);
 
         Writer out = new PrintWriter(System.out);
+	
+	{ // Testing peek functionality...
+	    XMLEvent e = er.nextTag();
+	    out.write("[EVT  "+e.getEventType()+"->");
+            e.writeAsEncodedUnicode(out);
+	    out.write("]\n");
+
+	    e = er.peek();
+	    out.write("[PEEK  "+e.getEventType()+"->");
+	    e.writeAsEncodedUnicode(out);
+	    out.write("]\n");
+	    out.flush();
+	}
+
         //out.write("[START]\n");
         while (er.hasNext()) {
             XMLEvent evt = er.nextEvent();

@@ -264,6 +264,10 @@ public final class WstxInputFactory
     public XMLStreamReader createXMLStreamReader(InputStream in)
         throws XMLStreamException
     {
+	// sanity check:
+	if (in == null) {
+	    throw new IllegalArgumentException("Null InputStream is not a valid argument");
+	}
         return createSR(null, StreamBootstrapper.getInstance(in, null, null,
                                                              mConfig.getInputBufferLength()));
     }
