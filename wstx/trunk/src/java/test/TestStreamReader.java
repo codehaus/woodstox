@@ -84,7 +84,7 @@ public class TestStreamReader
 
         if (f.isPropertySupported(WstxInputProperties.P_INPUT_BUFFER_LENGTH)) {
             f.setProperty(WstxInputProperties.P_INPUT_BUFFER_LENGTH,
-                          new Integer(17));
+                          new Integer(170));
         }
 
         /*
@@ -150,9 +150,10 @@ public class TestStreamReader
 	    */
 
             if (sr.hasText()) {
-                String text;
+                String text = null;
 
                 // Choose normal or streaming
+                /*
                 if (false) {
                     text = sr.getText();
                 } else {
@@ -163,9 +164,27 @@ public class TestStreamReader
                         throw new Error("Error: lengths didn't match: getText() returned "+gotLen+", but String has "+text.length()+" chars.");
                     }
                 }
+                */
+
+                int textLen = sr.getTextLength();
+                System.out.println("getTextChars, len -- "+textLen);
+
+                {
+                    StringBuffer sb = new StringBuffer();
+                    char[] buf = new char[200];
+                    int len2;
+                    int offset = 0;
+                    
+                    while ((len2 = sr.getTextCharacters(offset, buf, 0, buf.length)) > 0) {
+                        System.out.println("getTextChars, got "+len2+" -> "+new String(buf, 0, len2)+"'");
+                        sb.append(buf, 0, len2);
+                        offset += len2;
+                    }
+                    text = sb.toString();
+                }
+
 
 		/*
-                int textLen = sr.getTextLength();
                 //total += textLen;
                 // Sanity check (note: RI tends to return nulls?)
                 if (text != null) {

@@ -95,7 +95,7 @@ public final class DFAState
         // DEBUG:
         /*
         for (i = 0; i < stateList.size(); ++i) {
-            System.out.println(stateList.get(i));
+            //System.out.println(stateList.get(i));
         }
         */
 

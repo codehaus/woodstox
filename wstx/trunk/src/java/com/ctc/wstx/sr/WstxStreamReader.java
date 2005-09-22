@@ -3229,6 +3229,16 @@ public class WstxStreamReader
 
         case CHARACTERS:
             if (mCfgCoalesceText) {
+                /* 21-Sep-2005, TSa: It is often possible to optimize
+                 *   here: if we get '<' NOT followed by '!', it can not
+                 *   be CDATA, and thus we are done.
+                 */
+                if (mTokenState == TOKEN_FULL_SINGLE
+                    && (mInputPtr + 1) < mInputLen
+                    && mInputBuffer[mInputPtr+1] != '!') {
+                    mTokenState = TOKEN_FULL_COALESCED;
+                    return;
+                }
                 readCoalescedText(mCurrToken);
             } else {
                 if (readTextSecondary(mShortestTextSegment)) {

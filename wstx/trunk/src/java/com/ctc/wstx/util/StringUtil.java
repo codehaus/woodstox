@@ -254,18 +254,4 @@ public final class StringUtil
 	// Ok, prefix was exactly the same as encoding... that's fine
         return true; 
     }
-
-    public static void main(String[] args)
-    {
-        if (args.length < 1) {
-            System.err.println("Usage: java .... [word1] .... [wordN]");
-            System.exit(1);
-        }
-        for (int i = 0; i < args.length; ++i) {
-            String str = args[i];
-            char[] buf = str.toCharArray();
-            System.out.println("String in '"+str+"'");
-            System.out.println("   -> out '"+normalizeSpaces(buf, 0, buf.length)+"'");
-        }
-    }
 }
