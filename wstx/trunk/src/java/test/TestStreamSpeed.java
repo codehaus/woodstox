@@ -30,8 +30,8 @@ public class TestStreamSpeed
         XMLInputFactory f = XMLInputFactory.newInstance();
         System.out.println("Factory instance: "+f.getClass());
 
-        f.setProperty(XMLInputFactory.IS_COALESCING, Boolean.FALSE);
-        //f.setProperty(XMLInputFactory.IS_COALESCING, Boolean.TRUE);
+        //f.setProperty(XMLInputFactory.IS_COALESCING, Boolean.FALSE);
+        f.setProperty(XMLInputFactory.IS_COALESCING, Boolean.TRUE);
         f.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.TRUE);
         //f.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.FALSE);
         f.setProperty(XMLInputFactory.IS_REPLACING_ENTITY_REFERENCES,
@@ -142,6 +142,9 @@ public class TestStreamSpeed
 
         while (sr.hasNext()) {
             int type = sr.next();
+            if (type == CHARACTERS) { // let's prevent skipping
+                result += sr.getTextLength();
+            }
             result += type; // so it won't be optimized out...
         }
         return result;
