@@ -1,10 +1,15 @@
-Version: 2.0.3
+Version: 2.0.4
 
-Release date: -Sep-2005
+Release date: xx-Oct-2005
 
 Description:
-  The third maintenance release for 2.0.
+  The fourth maintenance release for 2.0.
 
+  Problems fixed:
+
+== History: ==
+
+2.0.3: [26-Sep-2005]
   Problems fixed:
 
   * Fixed [WSTX-7]; SimpleNsStreamWriter#writeStartElement(StartElement)
@@ -13,21 +18,13 @@ Description:
   * [WSTX-8] nextTag() followed by peek() at the start of a document
     won't work. Also, fixed associated NPEs in WstxEventReader class.
     [reported by Patrick C]
-  * [WSTX-9] sr.getTextCharacters(int srcStart, ...) fixed; had a bug
+  * [WSTX-9] sr.getTextCharacters(int srcStart, ...) had a bug
     that caused ArrayIndexOutOfBoundsException, and null chars in result
     [reported by Dan D, Erik S and Kevin V]
 
-== History: ==
-
-2.0.1: [04-Sep-2005]
+2.0.2: [04-Sep-2005]
   Problems fixed:
 
-  * A nasty encoding bug in (configurable) attribute writers: trying
-    to write entities failed with a NullPointerException...
-    [reported by Ulrich C and Peter T]
-  * Fixed a problem with DTDs that had enumerated value "-" (or "--"), was
-    throwing an exception
-    [reported by Ulrich C]
   * Fixed [WSTX-3]; output of DTD event was missing a double quote.
     [reported by Linus E]
   * Fixed a problem with single-byte (ascii, ISO-Latin1) encoding writer;

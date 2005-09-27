@@ -1,21 +1,16 @@
 Version: 2.7
 
-Release date: xx-Sep-2005
+Release date: xx-Oct-2005
 
 Description:
   Continuing development for 3.0 release...
 
   Problems fixed:
 
-  * [WSTX-7] SimpleNsStreamWriter#writeStartElement(StartElement)
-    was stripping out attribute namespaces.
-    [reported by Linus E]
-  * [WSTX-8] nextTag() followed by peek() at the start of a document
-    won't work. Also, fixed associated NPEs in WstxEventReader class.
-    [reported by Patrick C]
-  * [WSTX-9] sr.getTextCharacters(int srcStart, ...) fixed; had a bug
-    that caused ArrayIndexOutOfBoundsException, and null chars in result
-    [reported by Dan D, Erik S and Kevin V]
+  New functionality:
+
+  * Adding support for pluggable validation support; this is pre-requisite
+    for output side validation, as well dtd-based indentation.
 
   Improvements:
 
@@ -26,16 +21,15 @@ Description:
 
 == History: ==
 
-2.6 [04-Sep-2005]
+2.5 - 2.6 [19-Jul-2005 - 04-Sep-2005]
 
-  Problems fixed:
+  Improvements:
 
-  * [WSTX-3] output of DTD event was missing a double quote.
-    [reported by Linus E]
-  * Fixed a problem with single-byte (ascii, ISO-Latin1) encoding writer;
-    char-array methods could omit characters after encoded entities.
+  * Now input stream factory tries to use Woodstox-specific (fast) readers
+    even when specific encoding is passed. This should improve UTF-8 document
+    handling when encoding is explicitly passed along with input stream.
 
-2.5 [19-Jul-2005]
+2.0.1 - 2.0.3: [10-Aug=2005 - 26-Sep-2005]
 
   Problems fixed:
 
@@ -45,19 +39,26 @@ Description:
   * Fixed a problem with DTDs that had enumerated value "-" (or "--"), was
     throwing an exception
     [reported by Ulrich C]
-
-  Improvements:
-
-  * Now input stream factory tries to use Woodstox-specific (fast) readers
-    even when specific encoding is passed. This should improve UTF-8 document
-    handling when encoding is explicitly passed along with input stream.
+  * [WSTX-3] output of DTD event was missing a double quote.
+    [reported by Linus E]
+  * Fixed a problem with single-byte (ascii, ISO-Latin1) encoding writer;
+    char-array methods could omit characters after encoded entities.
+  * [WSTX-7] SimpleNsStreamWriter#writeStartElement(StartElement)
+    was stripping out attribute namespaces.
+    [reported by Linus E]
+  * [WSTX-8] nextTag() followed by peek() at the start of a document
+    won't work. Also, fixed associated NPEs in WstxEventReader class.
+    [reported by Patrick C]
+  * [WSTX-9] sr.getTextCharacters(int srcStart, ...) fixed; had a bug
+    that caused ArrayIndexOutOfBoundsException, and null chars in result
+    [reported by Dan D, Erik S and Kevin V]
 
 2.0rc1-rc3,2.0-final: [11-Apr-2005 - 20-Jun-2005]
 
   New functionality:
 
   * XMLStreamReader2.getText(Writer) now implemented in fully streaming manner
-    for CHARACTERS and CDATA events! (also tested succesfully using unit
+    for CHARACTERS and CDATA events (also tested succesfully using unit
     tests, so it does really work).
   * Improved text/attribute value writer system so that they now use
     character entities for characters outside of encoding range (for ascii
