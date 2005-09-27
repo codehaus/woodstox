@@ -26,6 +26,14 @@ public final class TextBuffer
 {
     final static int DEF_INITIAL_BUFFER_SIZE = 4000; // 8k
 
+    // // // Configuration:
+
+    /**
+     * Initial allocation size to use, if/when temporary output buffer
+     * is needed.
+     */
+    private final int mInitialBufSize;
+
     // // // Shared read-only input buffer:
 
     /**
@@ -43,18 +51,15 @@ public final class TextBuffer
 
     private int mInputLen;
 
-    // // // Internal collector buffers:
-
-    /**
-     * Initial allocation size to use, if/when temporary output buffer
-     * is needed.
-     */
-    private final int mInitialBufSize;
+    // // // Internal non-shared collector buffers:
 
     /**
      * List of segments prior to currently active segment.
      */
     private ArrayList mSegments;
+
+
+    // // // Currently used segment; not (yet) contained in mSegments
 
     /**
      * Amount of characters in segments in {@link mSegments}
@@ -121,6 +126,7 @@ public final class TextBuffer
      */
     public void resetWithEmpty()
     {
+//System.out.println("[DEBUG] resetWithEmpty");
         mInputBuffer = null;
         mInputStart = -1; // indicates shared buffer not used
         mInputLen = 0;
@@ -148,6 +154,7 @@ public final class TextBuffer
      */
     public void resetWithShared(char[] buf, int start, int len)
     {
+//System.out.println("[DEBUG] resetWithShared, "+len+" chars ("+new String(buf, start, len)+")");
         // Let's for mark things we need about input buffer
         mInputBuffer = buf;
         mInputStart = start;
@@ -170,6 +177,7 @@ public final class TextBuffer
 
     public void resetWithCopy(char[] buf, int start, int len)
     {
+//System.out.println("[DEBUG] resetWithCopy, start "+start+", len "+len);
         mInputBuffer = null;
         mInputStart = -1; // indicates shared buffer not used
         mInputLen = 0;
@@ -296,8 +304,12 @@ public final class TextBuffer
     }
 
     public int contentsToArray(int srcStart, char[] dst, int dstStart, int len) {
+//System.out.println("[DEBUG]: TextBuffer, contentsToArray, src "+srcStart+", dst "+dstStart+", len "+len);
+
         // Easy to copy from shared buffer:
         if (mInputStart >= 0) {
+//System.out.println("[DEBUG]: is shared, start: "+mInputStart);
+
             int amount = mInputLen - srcStart;
             if (amount > len) {
                 amount = len;
@@ -315,6 +327,8 @@ public final class TextBuffer
          * braindead clients that get full array first, then segments...
          * which hopefully aren't that common
          */
+        
+//System.out.println("[DEBUG]: is NOT shared, segs: "+((mSegments == null) ? 0 : mSegments.size()));
 
         // Copying from segmented array is bit more involved:
         int totalAmount = 0;
@@ -342,13 +356,13 @@ public final class TextBuffer
 
         // Need to copy anything from last segment?
         if (len > 0) {
-            int amount = mSegmentSize - srcStart;
-            if (len > amount) {
-                len = amount;
+            int maxAmount = mCurrentSize - srcStart;
+            if (len > maxAmount) {
+                len = maxAmount;
             }
-            if (amount > 0) {
-                System.arraycopy(mCurrentSegment, srcStart, dst, dstStart, amount);
-                totalAmount += amount;
+            if (len > 0) { // should always be true
+                System.arraycopy(mCurrentSegment, srcStart, dst, dstStart, len);
+                totalAmount += len;
             }
         }
 
@@ -663,6 +677,7 @@ public final class TextBuffer
      */
     public void unshare(int needExtra)
     {
+//System.out.println("[DEBUG] unshare");
         int len = mInputLen;
         mInputLen = 0;
         char[] inputBuf = mInputBuffer;

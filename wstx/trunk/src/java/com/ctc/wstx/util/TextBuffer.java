@@ -26,6 +26,14 @@ public final class TextBuffer
 {
     final static int DEF_INITIAL_BUFFER_SIZE = 4000; // 8k
 
+    // // // Configuration:
+
+    /**
+     * Initial allocation size to use, if/when temporary output buffer
+     * is needed.
+     */
+    private final int mInitialBufSize;
+
     // // // Shared read-only input buffer:
 
     /**
@@ -43,18 +51,15 @@ public final class TextBuffer
 
     private int mInputLen;
 
-    // // // Internal collector buffers:
-
-    /**
-     * Initial allocation size to use, if/when temporary output buffer
-     * is needed.
-     */
-    private final int mInitialBufSize;
+    // // // Internal non-shared collector buffers:
 
     /**
      * List of segments prior to currently active segment.
      */
     private ArrayList mSegments;
+
+
+    // // // Currently used segment; not (yet) contained in mSegments
 
     /**
      * Amount of characters in segments in {@link mSegments}
@@ -351,13 +356,13 @@ public final class TextBuffer
 
         // Need to copy anything from last segment?
         if (len > 0) {
-            int amount = mSegmentSize - srcStart;
-            if (len > amount) {
-                len = amount;
+            int maxAmount = mCurrentSize - srcStart;
+            if (len > maxAmount) {
+                len = maxAmount;
             }
-            if (amount > 0) {
-                System.arraycopy(mCurrentSegment, srcStart, dst, dstStart, amount);
-                totalAmount += amount;
+            if (len > 0) { // should always be true
+                System.arraycopy(mCurrentSegment, srcStart, dst, dstStart, len);
+                totalAmount += len;
             }
         }
 

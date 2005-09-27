@@ -33,6 +33,8 @@ Dan Diephouse:
   * Reported problems with QName construction (null prefix causes
     exception on some QName implementations)
     [1.0.1]
+  * Reported [WSTX-9] (sr.getTextCharacters() problems)
+    [2.0.3/2.7]
 
 Sven Köhler:
   * Reported the problem with blocking input streams, and behaviour of
@@ -102,12 +104,20 @@ Peter Tauter:
 
 Linus Ericson:
   * Reported bugs:
-    * (WSTX-3): in WDTD.java, was missing one double quote from output
+    * [WSTX-3]: WDTD.java was missing one double quote from output
       [2.0.2/2.6]
-    * (WSTX-7) in SimpleNsStreamWriter.java, was stripping out attribute namespaces
+    * [WSTX-7] SimpleNsStreamWriter was stripping out attribute namespaces
       [2.0.3/2.7]
 
 Patrick D'Cruze:
-  * Reported bug [WSTX-8]; nextTag() followed by peek() at the start of a
+  * Reported [WSTX-8]; nextTag() followed by peek() at the start of a
     document did not work.
+    [2.0.3/2.7]
+
+Erik Smith:
+  * Reported [WSTX-9] (sr.getTextCharacters() problems)
+    [2.0.3/2.7]
+
+Kevin Vargo:
+  * Reported [WSTX-9] (sr.getTextCharacters() problems)
     [2.0.3/2.7]

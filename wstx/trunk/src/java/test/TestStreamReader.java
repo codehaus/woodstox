@@ -176,13 +176,18 @@ public class TestStreamReader
                     int offset = 0;
                     
                     while ((len2 = sr.getTextCharacters(offset, buf, 0, buf.length)) > 0) {
-                        System.out.println("getTextChars, got "+len2+" -> "+new String(buf, 0, len2)+"'");
+                        System.out.println("getTextChars, got "+len2+" (had "+offset+", need "+textLen+") -> "+new String(buf, 0, len2)+"'");
                         sb.append(buf, 0, len2);
                         offset += len2;
                     }
                     text = sb.toString();
-                }
 
+		    String text2 = sr.getText();
+		    if (!text2.equals(text)) {
+			throw new Error("NOT EQUAL: getText() -> (lengths: got "+text.length()+", exp "+text2.length());
+					// -> '"+text2+", chars = '"+text+"'");
+		    }
+                }
 
 		/*
                 //total += textLen;

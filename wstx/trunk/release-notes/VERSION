@@ -13,6 +13,9 @@ Description:
   * [WSTX-8] nextTag() followed by peek() at the start of a document
     won't work. Also, fixed associated NPEs in WstxEventReader class.
     [reported by Patrick C]
+  * [WSTX-9] sr.getTextCharacters(int srcStart, ...) fixed; had a bug
+    that caused ArrayIndexOutOfBoundsException, and null chars in result
+    [reported by Dan D, Erik S and Kevin V]
 
   Improvements:
 
