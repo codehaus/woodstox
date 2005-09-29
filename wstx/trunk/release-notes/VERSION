@@ -52,6 +52,9 @@ Description:
   * [WSTX-9] sr.getTextCharacters(int srcStart, ...) fixed; had a bug
     that caused ArrayIndexOutOfBoundsException, and null chars in result
     [reported by Dan D, Erik S and Kevin V]
+  * [WSTX-10] Handling of 3-byte UTF-8 Byte Order Marker did not work
+    properly when XMLStreamReader was constructed for a Reader
+    [reported by Heinz Drews]
 
 2.0rc1-rc3,2.0-final: [11-Apr-2005 - 20-Jun-2005]
 

@@ -131,7 +131,24 @@ public class TestStreamReader
             in = new GZIPInputStream(in);
         }
 
-        sr = (XMLStreamReader2) f.createXMLStreamReader(file.toURL().toString(), in);
+	/* Ok; many ways to construct the reader; let's pick one; can use
+	 * an InputStream, a Reader, a URL...
+	 */
+
+
+	// URL: 
+
+        //sr = (XMLStreamReader2) f.createXMLStreamReader(file.toURL().toString(), in);
+
+	// Readers:
+
+        //sr = (XMLStreamReader2) f.createXMLStreamReader(new InputStreamReader(in));
+        sr = (XMLStreamReader2) f.createXMLStreamReader(new InputStreamReader(in, "UTF-8"));
+        //sr = (XMLStreamReader2) f.createXMLStreamReader(new InputStreamReader(in, "ISO-8859-1"));
+
+	// InputStream:
+
+        //sr = (XMLStreamReader2) f.createXMLStreamReader(in);
 
         while (sr.hasNext()) {
             int type = sr.next();

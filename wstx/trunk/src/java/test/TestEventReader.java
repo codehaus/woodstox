@@ -5,8 +5,7 @@ import java.util.Iterator;
 
 import javax.xml.namespace.QName;
 import javax.xml.stream.*;
-import javax.xml.stream.events.XMLEvent;
-import javax.xml.stream.events.StartElement;
+import javax.xml.stream.events.*;
 
 import org.codehaus.stax2.XMLInputFactory2;
 
@@ -84,6 +83,10 @@ public class TestEventReader
                     ++count;
                 }
 //System.err.println("[Ns count: "+count+"]");
+            } else if (evt.isCharacters()) {
+                Characters chars = evt.asCharacters();
+                int len = chars.getData().length();
+                out.write("[CHARACTERS("+len+"), ws: "+chars.isWhiteSpace()+", iws: "+chars.isIgnorableWhiteSpace()+"]");
             }
             evt.writeAsEncodedUnicode(out);
             //out.write("'\n");

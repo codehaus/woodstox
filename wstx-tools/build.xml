@@ -22,11 +22,11 @@
     <!-- Version information -->
 
     <property name="DTDFLATTEN_TITLE" value="DTDFlatten" />
-    <property name="DTDFLATTEN_VERSION" value="1.0rc2" />
+    <property name="DTDFLATTEN_VERSION" value="1.0rc3" />
     <property name="DTDFLATTEN_VENDOR" value="www.cowtowncoder.com" />
 
     <property name="VALIDATEXML_TITLE" value="ValidateXML" />
-    <property name="VALIDATEXML_VERSION" value="0.6" />
+    <property name="VALIDATEXML_VERSION" value="1.0rc1" />
     <property name="VALIDATEXML_VENDOR" value="www.cowtowncoder.com" />
 
     <path id="classpath">

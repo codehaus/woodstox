@@ -34,6 +34,7 @@ import com.ctc.wstx.exc.*;
 public final class ReaderBootstrapper
     extends InputBootstrapper
 {
+    final static char CHAR_BOM_MARKER = (char) 0xFEFF;
 
     /*
     ////////////////////////////////////////
@@ -116,19 +117,32 @@ public final class ReaderBootstrapper
         throws IOException, WstxException
     {
         initialLoad(mCharBuffer.length);
-        if (mInputLen >= 6) {
-            if (mCharBuffer[0] == '<' &&  mCharBuffer[1] == '?'
-                && mCharBuffer[2] == 'x' && mCharBuffer[3] == 'm'
-                && mCharBuffer[4] == 'l'
-                && ((mCharBuffer[5] & 0xFF) <= CHAR_SPACE)) {
-                // Yup, got the declaration ok!
-                mInputPtr = 6; // skip declaration
-                readXmlDecl(mainDoc);
+	/* Only need 6 for signature ("<?xml\s"), but there may be a leading
+	 * BOM in there... and a valid xml declaration has to be longer
+	 * than 7 chars anyway:
+	 */
+        if (mInputLen >= 7) {
+	    char c = mCharBuffer[mInputPtr];
 
-                // !!! TBI: Check that xml encoding is compatible?
-                if (mFoundEncoding != null && mAppEncoding != null) {
-                    verifyXmlEncoding(rep);
-                }
+	    // BOM to skip?
+	    if (c == CHAR_BOM_MARKER) {
+		c = mCharBuffer[++mInputPtr];
+	    }
+            if (c == '<') {
+		if (mCharBuffer[mInputPtr+1] == '?'
+		    && mCharBuffer[mInputPtr+2] == 'x'
+		    && mCharBuffer[mInputPtr+3] == 'm'
+		    && mCharBuffer[mInputPtr+4] == 'l'
+		    && mCharBuffer[mInputPtr+5] <= CHAR_SPACE) {
+		    // Yup, got the declaration ok!
+		    mInputPtr += 6; // skip declaration
+		    readXmlDecl(mainDoc);
+
+		    // !!! TBI: Check that xml encoding is compatible?
+		    if (mFoundEncoding != null && mAppEncoding != null) {
+			verifyXmlEncoding(rep);
+		    }
+		}
             }
         }
 
@@ -374,21 +388,6 @@ public final class ReaderBootstrapper
     ////////////////////////////////////////
     // Other private methods:
     ////////////////////////////////////////
-    */
-
-    /*
-    public static void main(String[] args)
-        throws Exception
-    {
-        File f = new File(args[0]);
-        java.net.URL url = f.toURL();
-
-        //System.err.println("URL = '"+url+"'");
-
-        InputStream in = url.openStream();
-
-        //System.err.println("Stream = "+in+", class: "+in.getClass());   
-        }
     */
 }
 
