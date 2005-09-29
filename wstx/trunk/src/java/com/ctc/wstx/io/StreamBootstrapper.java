@@ -252,10 +252,10 @@ public final class StreamBootstrapper
                     break;
                 }
 
-		/* And if that wasn't succesful, how about auto-detection
-		 * for '<?xm' (or subset for multi-byte encodings) marker?
-		 */
-		// Note: none of these consume bytes... so ptr remains at 0
+                /* And if that wasn't succesful, how about auto-detection
+                 * for '<?xm' (or subset for multi-byte encodings) marker?
+                 */
+                // Note: none of these consume bytes... so ptr remains at 0
                 if (quartet == 0x0000003c) { // UCS-4, BE?
                     mBigEndian = true;
                     mBytesPerChar = 4;

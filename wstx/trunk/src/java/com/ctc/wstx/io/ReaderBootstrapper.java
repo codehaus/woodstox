@@ -117,35 +117,50 @@ public final class ReaderBootstrapper
         throws IOException, WstxException
     {
         initialLoad(mCharBuffer.length);
-	/* Only need 6 for signature ("<?xml\s"), but there may be a leading
-	 * BOM in there... and a valid xml declaration has to be longer
-	 * than 7 chars anyway:
-	 */
+        /* Only need 6 for signature ("<?xml\s"), but there may be a leading
+         * BOM in there... and a valid xml declaration has to be longer
+         * than 7 chars anyway:
+         */
         if (mInputLen >= 7) {
-	    char c = mCharBuffer[mInputPtr];
-
-	    // BOM to skip?
-	    if (c == CHAR_BOM_MARKER) {
-		c = mCharBuffer[++mInputPtr];
-	    }
+            char c = mCharBuffer[mInputPtr];
+            
+            // BOM to skip?
+            if (c == CHAR_BOM_MARKER) {
+                c = mCharBuffer[++mInputPtr];
+            }
             if (c == '<') {
-		if (mCharBuffer[mInputPtr+1] == '?'
-		    && mCharBuffer[mInputPtr+2] == 'x'
-		    && mCharBuffer[mInputPtr+3] == 'm'
-		    && mCharBuffer[mInputPtr+4] == 'l'
-		    && mCharBuffer[mInputPtr+5] <= CHAR_SPACE) {
-		    // Yup, got the declaration ok!
-		    mInputPtr += 6; // skip declaration
-		    readXmlDecl(mainDoc);
-
-		    // !!! TBI: Check that xml encoding is compatible?
-		    if (mFoundEncoding != null && mAppEncoding != null) {
-			verifyXmlEncoding(rep);
-		    }
-		}
+                if (mCharBuffer[mInputPtr+1] == '?'
+                    && mCharBuffer[mInputPtr+2] == 'x'
+                    && mCharBuffer[mInputPtr+3] == 'm'
+                    && mCharBuffer[mInputPtr+4] == 'l'
+                    && mCharBuffer[mInputPtr+5] <= CHAR_SPACE) {
+                    // Yup, got the declaration ok!
+                    mInputPtr += 6; // skip declaration
+                    readXmlDecl(mainDoc);
+                    
+                    // !!! TBI: Check that xml encoding is compatible?
+                    if (mFoundEncoding != null && mAppEncoding != null) {
+                        verifyXmlEncoding(rep);
+                    }
+                }
+            } else {
+                /* We may also get something that would be invalid xml
+                 * ("garbage" char; neither '<' nor space). If so, and
+                 * it's one of "well-known" cases, we can not only throw
+                 * an exception but also indicate a clue as to what is likely
+                 * to be wrong.
+                 */
+                /* Specifically, UTF-8 read via, say, ISO-8859-1 reader, can
+                 * "leak" marker (0xEF, 0xBB, 0xBF). While we could just eat
+                 * it, there's bound to be other problems cropping up, so let's
+                 * inform about the problem right away.
+                 */
+                if (c == 0xEF) {
+                    throw new WstxIOException("Unexpected first character (char code 0xEF), not valid in xml document: could be mangled UTF-8 BOM marker, make sure that the Reader uses correct encoding or pass an InputStream instead");
+                }
             }
         }
-
+        
         /* Ok, now; do we have unused chars we have read that need to
          * be merged in?
          */

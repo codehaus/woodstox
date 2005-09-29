@@ -15,4 +15,8 @@ public class WstxIOException
     public WstxIOException(IOException ie) {
         super(ie);
     }
+
+    public WstxIOException(String msg) {
+        super(msg);
+    }
 }
