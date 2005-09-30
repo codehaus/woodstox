@@ -250,24 +250,6 @@ public abstract class StreamScanner
     protected TextBuffer mTextBuffer;
 
     /*
-    /////////////////////////////////////////////////////////////
-    // Pre-defined internal entities.
-    /////////////////////////////////////////////////////////////
-    */
-
-    /* 28-Sep-2004, TSa: Shouldn't be needed any more....
-     */
-
-    /*
-    //com.ctc.wstx.ent.IntEntity
-    final static IntEntity sEntityLt = IntEntity.create("lt", "&#38;#60;");
-    final static IntEntity sEntityGt = IntEntity.create("gt", "&#62;");
-    final static IntEntity sEntityAmp = IntEntity.create("amp", "&#38;#38;");
-    final static IntEntity sEntityApos = IntEntity.create("apos", "&#39;");
-    final static IntEntity sEntityQuot = IntEntity.create("quot", "&#34;");
-    */
-
-    /*
     ////////////////////////////////////////////////////
     // Information about starting location of event
     // Reader is pointing to; updated on-demand

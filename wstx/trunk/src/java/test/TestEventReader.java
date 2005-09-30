@@ -36,6 +36,11 @@ public class TestEventReader
             f.setProperty(XMLInputFactory2.P_REPORT_PROLOG_WHITESPACE, Boolean.TRUE);
         }
 
+        if (f.isPropertySupported(WstxInputProperties.P_MIN_TEXT_SEGMENT)) {
+            f.setProperty(WstxInputProperties.P_MIN_TEXT_SEGMENT,
+                          new Integer(23));
+        }
+
         System.out.println("Factory instance: "+f.getClass());
         System.out.println("  coalescing: "+f.getProperty(XMLInputFactory.IS_COALESCING));
     }
@@ -55,7 +60,8 @@ public class TestEventReader
         XMLEventReader er = mFactory.createXMLEventReader(file.toURL().toString(), fin);
 
         Writer out = new PrintWriter(System.out);
-	
+
+        /*
 	{ // Testing peek functionality...
 	    XMLEvent e = er.nextTag();
 	    out.write("[EVT  "+e.getEventType()+"->");
@@ -68,6 +74,7 @@ public class TestEventReader
 	    out.write("]\n");
 	    out.flush();
 	}
+        */
 
         //out.write("[START]\n");
         while (er.hasNext()) {

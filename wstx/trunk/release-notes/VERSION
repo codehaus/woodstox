@@ -1,6 +1,6 @@
 Version: 2.7
 
-Release date: xx-Oct-2005
+Release date: 29-Sep-2005
 
 Description:
   Continuing development for 3.0 release...
@@ -29,7 +29,7 @@ Description:
     even when specific encoding is passed. This should improve UTF-8 document
     handling when encoding is explicitly passed along with input stream.
 
-2.0.1 - 2.0.3: [10-Aug=2005 - 26-Sep-2005]
+2.0.1 - 2.0.3: [10-Aug-2005 - 29-Sep-2005]
 
   Problems fixed:
 
@@ -54,7 +54,7 @@ Description:
     [reported by Dan D, Erik S and Kevin V]
   * [WSTX-10] Handling of 3-byte UTF-8 Byte Order Marker did not work
     properly when XMLStreamReader was constructed for a Reader
-    [reported by Heinz Drews]
+    [reported by Heinz D]
 
 2.0rc1-rc3,2.0-final: [11-Apr-2005 - 20-Jun-2005]
 

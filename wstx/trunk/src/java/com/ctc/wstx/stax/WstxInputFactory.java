@@ -198,6 +198,8 @@ public final class WstxInputFactory
     /////////////////////////////////////////////////////
      */
 
+    // // // Filtered reader factory methods
+
     public XMLEventReader createFilteredReader(XMLEventReader reader, EventFilter filter)
     {
         return new FilteredEventReader(reader, filter);
@@ -215,42 +217,41 @@ public final class WstxInputFactory
         throws XMLStreamException
     {
         return new WstxEventReader(createEventAllocator(),
-                                   createXMLStreamReader(in));
+                                   createSR(null, in, null, true));
     }
 
     public XMLEventReader createXMLEventReader(InputStream in, String enc)
         throws XMLStreamException
     {
         return new WstxEventReader(createEventAllocator(),
-                                   createXMLStreamReader(in, enc));
+                                   createSR(null, in, enc, true));
     }
 
     public XMLEventReader createXMLEventReader(Reader r)
         throws XMLStreamException
     {
-        return new WstxEventReader(createEventAllocator(),
-                                   createXMLStreamReader(r));
+        return new WstxEventReader(createEventAllocator(), createSR(null, r, true));
     }
 
     public XMLEventReader createXMLEventReader(javax.xml.transform.Source source)
         throws XMLStreamException
     {
         return new WstxEventReader(createEventAllocator(),
-                                   createXMLStreamReader(source));
+                                   createSR(source, true));
     }
 
     public XMLEventReader createXMLEventReader(String systemId, InputStream in)
         throws XMLStreamException
     {
         return new WstxEventReader(createEventAllocator(),
-                                   createXMLStreamReader(systemId, in));
+                                   createSR(systemId, in, null, true));
     }
 
     public XMLEventReader createXMLEventReader(String systemId, Reader r)
         throws XMLStreamException
     {
         return new WstxEventReader(createEventAllocator(),
-                                   createXMLStreamReader(systemId, r));
+                                   createSR(systemId, r, true));
     }
 
     public XMLEventReader createXMLEventReader(XMLStreamReader sr)
@@ -264,118 +265,37 @@ public final class WstxInputFactory
     public XMLStreamReader createXMLStreamReader(InputStream in)
         throws XMLStreamException
     {
-	// sanity check:
-	if (in == null) {
-	    throw new IllegalArgumentException("Null InputStream is not a valid argument");
-	}
-        return createSR(null, StreamBootstrapper.getInstance(in, null, null,
-                                                             mConfig.getInputBufferLength()));
+        return createSR(null, in, null, false);
     }
-
+    
     public XMLStreamReader createXMLStreamReader(InputStream in, String enc)
         throws XMLStreamException
     {
-        if (enc == null || enc.length() == 0) {
-            return createXMLStreamReader(in);
-        }
-
-        /* 03-Jul-2005, TSa: Since Woodstox' implementations of specialized
-         *   readers are faster than default JDK ones (at least for 1.4, UTF-8
-         *   reader is especially fast...), let's use them if possible
-         */
-        Reader r = null;
-        int inputBufLen = mConfig.getInputBufferLength();
-
-        char c = enc.charAt(0);
-        if (c == 'u' || c == 'U') {
-            if (StringUtil.equalEncodings(enc, "UTF-8")) {
-                r = new UTF8Reader(in, new byte[inputBufLen], 0, 0);
-            } else if (StringUtil.equalEncodings(enc, "US-ASCII")) {
-                r = new AsciiReader(in, new byte[inputBufLen], 0, 0);
-            }
-        } else if (c == 'i' || c== 'I') {
-            if (StringUtil.equalEncodings(enc, "ISO-8859-1")) {
-                r = new ISOLatinReader(in, new byte[inputBufLen], 0, 0);
-            }
-        }
-
-        if (r == null) {
-            try {
-                r = new InputStreamReader(in, enc);
-            } catch (UnsupportedEncodingException ex) {
-                throw new XMLStreamException(ex);
-            }
-        }
-        return createSR(null, ReaderBootstrapper.getInstance
-                        (r, null, null, inputBufLen, enc));
+        return createSR(null, in, enc, false);
     }
 
     public XMLStreamReader createXMLStreamReader(Reader r)
         throws XMLStreamException
     {
-        return createXMLStreamReader(null, r);
+        return createSR(null, r, false);
     }
 
     public XMLStreamReader createXMLStreamReader(javax.xml.transform.Source src)
         throws XMLStreamException
     {
-        if (src instanceof StreamSource) {
-            StreamSource ss = (StreamSource) src;
-            InputBootstrapper bs;
-            Reader r = ss.getReader();
-            String sysId = ss.getSystemId();
-
-            if (r == null) {
-                InputStream in = ss.getInputStream();
-                if (in == null) { // can try just resolving the system id then
-                    if (sysId == null) {
-                        throw new XMLStreamException("Can not create StAX reader for a StreamSource -- neither reader, input stream nor system id was set.");
-                    }
-                    try {
-                        return createXMLStreamReader(URLUtil.urlFromSystemId(sysId));
-                    } catch (IOException ioe) {
-                        throw new WstxIOException(ioe);
-                    }
-                }
-                bs = StreamBootstrapper.getInstance
-                    (in, ss.getPublicId(), sysId,
-                     mConfig.getInputBufferLength());
-            } else {
-                bs = ReaderBootstrapper.getInstance
-                    (r, ss.getPublicId(), sysId,
-                     mConfig.getInputBufferLength(), null);
-            }
-            return createSR(sysId, bs);
-        }
-
-        if (src instanceof SAXSource) {
-            // !!! TBI
-            //SAXSource sr = (SAXSource) src;
-            throw new XMLStreamException("Can not create a STaX reader for a SAXSource -- not (yet) implemented.");
-        }
-
-        if (src instanceof DOMSource) {
-            // !!! TBI
-            //DOMSource sr = (DOMSource) src;
-            throw new XMLStreamException("Can not create a STaX reader for a DOMSource -- not (yet) implemented.");
-        }
-
-        throw new IllegalArgumentException("Can not instantiate StAX reader for XML source type "+src.getClass()+" (unknown type)");
+        return createSR(src, false);
     }
 
     public XMLStreamReader createXMLStreamReader(String systemId, InputStream in)
         throws XMLStreamException
     {
-        return createSR(systemId, StreamBootstrapper.getInstance(in, null, systemId,
-								 mConfig.getInputBufferLength()));
+        return createSR(systemId, in, null, false);
     }
 
     public XMLStreamReader createXMLStreamReader(String systemId, Reader r)
         throws XMLStreamException
     {
-        return createSR(systemId,
-                        ReaderBootstrapper.getInstance(r, null, systemId,
-						       mConfig.getInputBufferLength(), null));
+        return createSR(systemId, r, false);
     }
 
     /*
@@ -449,25 +369,19 @@ public final class WstxInputFactory
     public XMLEventReader2 createXMLEventReader(URL src)
         throws XMLStreamException
     {
-        return new WstxEventReader(createEventAllocator(),
-                                   createXMLStreamReader(src));
+        return new WstxEventReader(createEventAllocator(), createSR(src, true));
     }
 
     public XMLEventReader2 createXMLEventReader(File f)
         throws XMLStreamException
     {
-        return new WstxEventReader(createEventAllocator(),
-                                   createXMLStreamReader(f));
+        return new WstxEventReader(createEventAllocator(), createSR(f, true));
     }
 
     public XMLStreamReader2 createXMLStreamReader(URL src)
         throws XMLStreamException
     {
-        try {
-            return createSR(src, URLUtil.optimizedStreamFromURL(src));
-        } catch (IOException ie) {
-            throw new WstxIOException(ie);
-        }
+        return createSR(src, false);
     }
 
     /**
@@ -477,11 +391,7 @@ public final class WstxInputFactory
     public XMLStreamReader2 createXMLStreamReader(File f)
         throws XMLStreamException
     {
-        try {
-            return createSR(f.toURL(), new FileInputStream(f));
-        } catch (IOException ie) {
-            throw new WstxIOException(ie);
-        }
+        return createSR(f, false);
     }
 
     // // // StAX2 "Profile" mutators
@@ -528,31 +438,11 @@ public final class WstxInputFactory
      */
 
     /**
-     * Method that is eventually called to create a (full) stream read
-     * instance.
-     */
-    private FullStreamReader createSR(String systemId, InputBootstrapper bs)
-        throws XMLStreamException
-    {
-        // 16-Aug-2004, TSa: Maybe we have a context?
-        URL src = mConfig.getBaseURL();
-
-        // If not, maybe we can derive it from system id?
-        if ((src == null) && (systemId != null && systemId.length() > 0)) {
-            try {
-                src = URLUtil.urlFromSystemId(systemId);
-            } catch (IOException ie) {
-                throw new WstxIOException(ie);
-            }
-        }
-        return createSR(systemId, bs, src);
-    }
-
-    /**
-     * Bottleneck method used for creating ALL full stream reader instances.
+     * Bottleneck method used for creating ALL full stream reader instances
+     * (via other createSR() methods and directly)
      */
     private FullStreamReader createSR(String systemId, InputBootstrapper bs, 
-                                      URL src)
+                                      URL src, boolean forER)
         throws XMLStreamException
     {
         Reader r;
@@ -579,14 +469,163 @@ public final class WstxInputFactory
         }
     }
 
-    private FullStreamReader createSR(URL src, InputStream in)
+    /**
+     * Method that is eventually called to create a (full) stream read
+     * instance.
+     *
+     * @param systemId System id used for this reader (if any)
+     * @param bs Bootstrapper to use for creating actual underlying
+     *    physical reader
+     * @param forER Flag to indicate whether it will be used via
+     *    Event API (will affect some configuration settings), true if it
+     *    will be, false if not (or not known)
+     */
+    private FullStreamReader createSR(String systemId, InputBootstrapper bs,
+                                      boolean forER)
+        throws XMLStreamException
+    {
+        // 16-Aug-2004, TSa: Maybe we have a context?
+        URL src = mConfig.getBaseURL();
+
+        // If not, maybe we can derive it from system id?
+        if ((src == null) && (systemId != null && systemId.length() > 0)) {
+            try {
+                src = URLUtil.urlFromSystemId(systemId);
+            } catch (IOException ie) {
+                throw new WstxIOException(ie);
+            }
+        }
+        return createSR(systemId, bs, src, forER);
+    }
+
+    protected FullStreamReader createSR(String systemId, InputStream in, String enc, boolean forER)
+        throws XMLStreamException
+    {
+        // sanity check:
+        if (in == null) {
+            throw new IllegalArgumentException("Null InputStream is not a valid argument");
+        }
+
+        if (enc == null || enc.length() == 0) {
+            return createSR(null, StreamBootstrapper.getInstance(in, null, systemId,
+                                                                 mConfig.getInputBufferLength()),
+                            forER);
+        }
+
+        /* 03-Jul-2005, TSa: Since Woodstox' implementations of specialized
+         *   readers are faster than default JDK ones (at least for 1.4, UTF-8
+         *   reader is especially fast...), let's use them if possible
+         */
+        Reader r = null;
+        int inputBufLen = mConfig.getInputBufferLength();
+
+        char c = enc.charAt(0);
+        if (c == 'u' || c == 'U') {
+            if (StringUtil.equalEncodings(enc, "UTF-8")) {
+                r = new UTF8Reader(in, new byte[inputBufLen], 0, 0);
+            } else if (StringUtil.equalEncodings(enc, "US-ASCII")) {
+                r = new AsciiReader(in, new byte[inputBufLen], 0, 0);
+            }
+        } else if (c == 'i' || c== 'I') {
+            if (StringUtil.equalEncodings(enc, "ISO-8859-1")) {
+                r = new ISOLatinReader(in, new byte[inputBufLen], 0, 0);
+            }
+        }
+
+        if (r == null) {
+            try {
+                r = new InputStreamReader(in, enc);
+            } catch (UnsupportedEncodingException ex) {
+                throw new XMLStreamException(ex);
+            }
+        }
+        return createSR(null, ReaderBootstrapper.getInstance
+                        (r, null, systemId, inputBufLen, enc), forER);
+    }
+
+    protected FullStreamReader createSR(URL src, boolean forER)
+        throws XMLStreamException
+    {
+        try {
+            return createSR(src, URLUtil.optimizedStreamFromURL(src), forER);
+        } catch (IOException ie) {
+            throw new WstxIOException(ie);
+        }
+    }
+
+    private FullStreamReader createSR(URL src, InputStream in, boolean forER)
         throws XMLStreamException
     {
         String sysId = src.toExternalForm();
         return createSR(sysId,
                         StreamBootstrapper.getInstance
                         (in, null, sysId, mConfig.getInputBufferLength()),
-                        src);
+                        src, forER);
+    }
+
+    protected FullStreamReader createSR(String systemId, Reader r, boolean forER)
+        throws XMLStreamException
+    {
+        return createSR(systemId,
+                        ReaderBootstrapper.getInstance
+                        (r, null, systemId, mConfig.getInputBufferLength(), null), forER);
+    }
+
+    protected FullStreamReader createSR(File f, boolean forER)
+        throws XMLStreamException
+    {
+        try {
+            return createSR(f.toURL(), new FileInputStream(f), forER);
+        } catch (IOException ie) {
+            throw new WstxIOException(ie);
+        }
+    }
+
+    protected FullStreamReader createSR(javax.xml.transform.Source src, boolean forER)
+        throws XMLStreamException
+    {
+        if (src instanceof StreamSource) {
+            StreamSource ss = (StreamSource) src;
+            InputBootstrapper bs;
+            Reader r = ss.getReader();
+            String sysId = ss.getSystemId();
+
+            if (r == null) {
+                InputStream in = ss.getInputStream();
+                if (in == null) { // can try just resolving the system id then
+                    if (sysId == null) {
+                        throw new XMLStreamException("Can not create StAX reader for a StreamSource -- neither reader, input stream nor system id was set.");
+                    }
+                    try {
+                        return createSR(URLUtil.urlFromSystemId(sysId), forER);
+                    } catch (IOException ioe) {
+                        throw new WstxIOException(ioe);
+                    }
+                }
+                bs = StreamBootstrapper.getInstance
+                    (in, ss.getPublicId(), sysId,
+                     mConfig.getInputBufferLength());
+            } else {
+                bs = ReaderBootstrapper.getInstance
+                    (r, ss.getPublicId(), sysId,
+                     mConfig.getInputBufferLength(), null);
+            }
+            return createSR(sysId, bs, forER);
+        }
+
+        if (src instanceof SAXSource) {
+            // !!! TBI
+            //SAXSource sr = (SAXSource) src;
+            throw new XMLStreamException("Can not create a STaX reader for a SAXSource -- not (yet) implemented.");
+        }
+
+        if (src instanceof DOMSource) {
+            // !!! TBI
+            //DOMSource sr = (DOMSource) src;
+            throw new XMLStreamException("Can not create a STaX reader for a DOMSource -- not (yet) implemented.");
+        }
+
+        throw new IllegalArgumentException("Can not instantiate StAX reader for XML source type "+src.getClass()+" (unknown type)");
     }
 
     protected XMLEventAllocator createEventAllocator() 

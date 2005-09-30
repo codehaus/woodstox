@@ -9,7 +9,7 @@ package org.codehaus.stax2.validation;
  * for constructing such validator Objects. Because of this, they are
  * also guaranteed to be thread-safe and reusable. One way to think of this
  * is that schemas are actual validator factories instead of
- * {@link XMLValidatoryFactory} instances.
+ * {@link XMLValidatorFactory} instances.
  */
 public abstract class XMLValidatorSchema
 {

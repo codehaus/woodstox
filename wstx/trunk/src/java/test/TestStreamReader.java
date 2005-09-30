@@ -30,8 +30,8 @@ public class TestStreamReader
         XMLInputFactory f =  XMLInputFactory.newInstance();
         System.out.println("Factory instance: "+f.getClass());
 
-        //f.setProperty(XMLInputFactory.IS_COALESCING, Boolean.FALSE);
-        f.setProperty(XMLInputFactory.IS_COALESCING, Boolean.TRUE);
+        f.setProperty(XMLInputFactory.IS_COALESCING, Boolean.FALSE);
+        //f.setProperty(XMLInputFactory.IS_COALESCING, Boolean.TRUE);
         f.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.TRUE);
         //f.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.FALSE);
         f.setProperty(XMLInputFactory.IS_REPLACING_ENTITY_REFERENCES,
@@ -84,7 +84,7 @@ public class TestStreamReader
 
         if (f.isPropertySupported(WstxInputProperties.P_INPUT_BUFFER_LENGTH)) {
             f.setProperty(WstxInputProperties.P_INPUT_BUFFER_LENGTH,
-                          new Integer(170));
+                          new Integer(50));
         }
 
         /*
@@ -170,8 +170,7 @@ public class TestStreamReader
                 String text = null;
 
                 // Choose normal or streaming
-                /*
-                if (false) {
+                if (true) {
                     text = sr.getText();
                 } else {
                     StringWriter swr = new StringWriter();
@@ -181,8 +180,8 @@ public class TestStreamReader
                         throw new Error("Error: lengths didn't match: getText() returned "+gotLen+", but String has "+text.length()+" chars.");
                     }
                 }
-                */
 
+                /*
                 int textLen = sr.getTextLength();
                 System.out.println("getTextChars, len -- "+textLen);
 
@@ -198,14 +197,15 @@ public class TestStreamReader
                         offset += len2;
                     }
                     text = sb.toString();
-
-		    String text2 = sr.getText();
-		    if (!text2.equals(text)) {
-			throw new Error("NOT EQUAL: getText() -> (lengths: got "+text.length()+", exp "+text2.length());
-					// -> '"+text2+", chars = '"+text+"'");
-		    }
+                    
+                    String text2 = sr.getText();
+                    if (!text2.equals(text)) {
+                        throw new Error("NOT EQUAL: getText() -> (lengths: got "+text.length()+", exp "+text2.length());
+                        // -> '"+text2+", chars = '"+text+"'");
+                    }
                 }
-
+                */
+                
 		/*
                 //total += textLen;
                 // Sanity check (note: RI tends to return nulls?)
