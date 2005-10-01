@@ -2627,10 +2627,31 @@ public class FullDTDReader
                 throwDTDUnexpectedChar(c, getErrorMsg()+"; expected a quote to start the public identifier.");
             }
             pubId = parsePublicId(c, mCfgNormalizeLFs, getErrorMsg());
-        }
+            /* 30-Sep-2005, TSa: SGML has public ids that miss the system
+             *   id. Although not legal with XML DTDs, let's give bit more
+             *   meaningful error in those cases...
+             */
+            c = getNextExpanded();
+            if (c <= CHAR_SPACE) { // good
+                c = skipDtdWs();
+            } else { // not good...
+                // Let's just push it back and generate normal error then:
+                if (c != '>') { // this is handled below though
+                    --mInputPtr;
+                    c = skipObligatoryDtdWs();
+                }
+            }
 
-        // And then we need the system id:
-        c = skipObligatoryDtdWs();
+            /* But here let's deal with one case that we are familiar with:
+             * SGML does NOT require system id after public one...
+             */
+            if (c == '>') {
+                throwDTDError("Unexpected end of ENTITY declaration (expected a system id after public id): trying to use an SGML DTD instead of XML one?");
+            }
+        } else {
+            // Just need some white space here
+            c = skipObligatoryDtdWs();
+        }
         if (c != '"' && c != '\'') {
             throwDTDUnexpectedChar(c, getErrorMsg()+"; expected a quote to start the system identifier.");
         }

@@ -22,9 +22,11 @@ public class ErrorConsts
     public static String WT_ELEM_DECL = "element declaration";
     public static String WT_ATTR_DECL = "attribute declaration";
     public static String WT_XML_DECL = "xml declaration";
+    public static String WT_DT_DECL = "doctype declaration";
 
     public static String W_UNDEFINED_ELEM = "Undefined element \"{0}\"; referred to by attribute(s)";
     public static String W_MIXED_ENCODINGS = "Inconsistent text encoding; declared as \"{0}\" in xml declaration, application had passed \"{1}\"";
+    public static String W_MISSING_DTD = "Missing DOCTYPE declaration in validating mode; can not validate elements or attributes";
 
     // // // Generic errors:
 

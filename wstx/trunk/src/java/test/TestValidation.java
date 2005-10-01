@@ -5,6 +5,8 @@ import java.util.List;
 
 import javax.xml.stream.*;
 
+import org.codehaus.stax2.XMLInputFactory2;
+
 import com.ctc.wstx.api.WstxInputProperties;
 
 /**
@@ -17,9 +19,9 @@ public class TestValidation
     private TestValidation() {
     }
 
-    protected XMLInputFactory getFactory()
+    protected XMLInputFactory2 getFactory()
     {
-        XMLInputFactory f = super.getFactory();
+        XMLInputFactory2 f = super.getFactory();
 
         f.setProperty(XMLInputFactory.SUPPORT_DTD, Boolean.TRUE);
         f.setProperty(XMLInputFactory.IS_VALIDATING, Boolean.TRUE);

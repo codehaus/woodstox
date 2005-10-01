@@ -44,6 +44,15 @@ public final class VNonNsInputElementStack
         super(initialSize, normAttrs);
     }
 
+    public void beforeRoot() {
+        if (mElemSpecs == null) { // No DOCTYPE
+            /* It's ok to miss it, but it may not be what caller wants. Either
+             * way, let's pass the info and continue
+             */
+            mReporter.reportProblem(ErrorConsts.WT_DT_DECL, ErrorConsts.W_MISSING_DTD);
+        }
+    }
+
     /**
      * Method called by the validating stream reader if and when it has
      * read internal and/or external DTD subsets, and has thus parsed
@@ -52,7 +61,14 @@ public final class VNonNsInputElementStack
     public void setElementSpecs(Map elemSpecs, SymbolTable symbols,
                                 boolean normAttrs, Map generalEntities)
     {
-        mElemSpecs = elemSpecs;
+        /* 30-Sep-2005, TSa: This gets called if there was a DOCTYPE
+         *   declaration..
+         */
+        if (elemSpecs == null) { // no DTD
+            mElemSpecs = Collections.EMPTY_MAP;
+        } else {
+            mElemSpecs = elemSpecs;
+        }
         mValidator = new ElementValidator(mReporter, symbols, false,
                                           generalEntities,
                                           mAttrCollector, normAttrs);
@@ -91,12 +107,14 @@ public final class VNonNsInputElementStack
         /* It's ok not to have elements... but not when trying to validate;
          * and we are always validating if we end up here.
          */
-        DTDElement elem;
-        if (mElemSpecs == null) {
-            elem = null; // will trigger an error later on
-        } else {
-            elem = (DTDElement) mElemSpecs.get(mTmpKey);
+        /* 30-Sep-2005, TSa: Actually, if there was no DTD, let's consider
+         *   this ok. We should log a warning though
+         */
+        if (mValidator == null) { // no DTD in use
+            return CONTENT_ALLOW_MIXED;
         }
+
+        DTDElement elem = (DTDElement) mElemSpecs.get(mTmpKey);
         mCurrElem = elem;
         if (elem == null || !elem.isDefined()) {
             mReporter.throwParseError(ErrorConsts.ERR_VLD_UNKNOWN_ELEM, mTmpKey);
@@ -116,14 +134,17 @@ public final class VNonNsInputElementStack
      */
     public String getAttributeType(int index)
     {
-         return mValidator.getAttributeType(index);
+        return (mValidator == null) ? null : 
+            mValidator.getAttributeType(index);
     }
 
     public int getIdAttributeIndex() {
-        return mValidator.getIdAttrIndex();
+        return (mValidator == null) ? -1 : 
+            mValidator.getIdAttrIndex();
     }
 
     public int getNotationAttributeIndex() {
-        return mValidator.getNotationAttrIndex();
+        return (mValidator == null) ? -1 :
+            mValidator.getNotationAttrIndex();
     }
 }

@@ -1994,6 +1994,7 @@ public class WstxStreamReader
             }
             // Need to change state, first:
             mParseState = STATE_TREE;
+            mElementStack.beforeRoot();
             handleStartElem(c);
             // Does name match with DOCTYPE declaration (if any)?
             /* 21-Jul-2004, TSa: Only check this if we are supporting

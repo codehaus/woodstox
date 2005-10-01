@@ -22,12 +22,12 @@ public class TestStreamReader
     protected TestStreamReader() {
     }
 
-    protected XMLInputFactory getFactory()
+    protected XMLInputFactory2 getFactory()
     {
         System.setProperty("javax.xml.stream.XMLInputFactory",
                            "com.ctc.wstx.stax.WstxInputFactory");
 
-        XMLInputFactory f =  XMLInputFactory.newInstance();
+        XMLInputFactory2 f =  (XMLInputFactory2) XMLInputFactory.newInstance();
         System.out.println("Factory instance: "+f.getClass());
 
         f.setProperty(XMLInputFactory.IS_COALESCING, Boolean.FALSE);
@@ -41,8 +41,8 @@ public class TestStreamReader
 
         f.setProperty(XMLInputFactory.SUPPORT_DTD, Boolean.TRUE);
 
-        f.setProperty(XMLInputFactory.IS_VALIDATING, Boolean.FALSE);
-        //f.setProperty(XMLInputFactory.IS_VALIDATING, Boolean.TRUE);
+        //f.setProperty(XMLInputFactory.IS_VALIDATING, Boolean.FALSE);
+        f.setProperty(XMLInputFactory.IS_VALIDATING, Boolean.TRUE);
 
         f.setProperty(XMLInputFactory.REPORTER, new TestReporter());
 
@@ -105,7 +105,7 @@ public class TestStreamReader
     protected int test(File file)
         throws Exception
     {
-        XMLInputFactory f = getFactory();
+        XMLInputFactory2 f = getFactory();
 
 
         System.out.print("Coalesce: "+f.getProperty(XMLInputFactory.IS_COALESCING));
@@ -120,35 +120,17 @@ public class TestStreamReader
         */
 
         int total = 0;
-        InputStream in;
         XMLStreamReader2 sr;
-
-        in = new FileInputStream(file);
 
         // Let's deal with gzipped files too?
         if (file.getName().endsWith(".gz")) {
             System.out.println("[gzipped input file!]");
-            in = new GZIPInputStream(in);
+            sr = (XMLStreamReader2) f.createXMLStreamReader
+                (new InputStreamReader(new GZIPInputStream
+                                       (new FileInputStream(file)), "UTF-8"));
+        } else {
+            sr = (XMLStreamReader2) f.createXMLStreamReader(file);
         }
-
-	/* Ok; many ways to construct the reader; let's pick one; can use
-	 * an InputStream, a Reader, a URL...
-	 */
-
-
-	// URL: 
-
-        //sr = (XMLStreamReader2) f.createXMLStreamReader(file.toURL().toString(), in);
-
-	// Readers:
-
-        //sr = (XMLStreamReader2) f.createXMLStreamReader(new InputStreamReader(in));
-        sr = (XMLStreamReader2) f.createXMLStreamReader(new InputStreamReader(in, "UTF-8"));
-        //sr = (XMLStreamReader2) f.createXMLStreamReader(new InputStreamReader(in, "ISO-8859-1"));
-
-	// InputStream:
-
-        //sr = (XMLStreamReader2) f.createXMLStreamReader(in);
 
         while (sr.hasNext()) {
             int type = sr.next();

@@ -73,6 +73,18 @@ public abstract class InputElementStack
     }
 
     /**
+     * Method called by reader right before the root element is handled.
+     * Allows validating instances to check if they have validator settings,
+     * and if not, to warn about that.
+     *<p>
+     * Note: default implementation is for non-validating instances, and
+     * does nothing.
+     */
+    public void beforeRoot() {
+        ;
+    }
+
+    /**
      * Stub implementation for method that specialized sub-classes use.
      * Default implementation is fine for non-validating stacks.
      */
@@ -234,4 +246,3 @@ public abstract class InputElementStack
          return UNKNOWN_ATTR_TYPE;
     }
 }
-

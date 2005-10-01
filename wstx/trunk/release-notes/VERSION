@@ -13,6 +13,11 @@ Description:
      (no performance gain from lazy parsing; more accurate error reporting
     when it is disabled), and with min. segment size set to maximum (ie.
     text/cdata segments are never split).
+  * [WSTX-12] It is now ok for a document to not have a DOCTYPE declaration
+    in validating mode: if so, validation will essentially be skipped, and
+    a warning is sent via XMLReport interface (if any). Note that this does
+    not apply to empty DOCTYPE declaration (empty internal subset), just to
+    one completely missing.
 
 == History: ==
 

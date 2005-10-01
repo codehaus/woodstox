@@ -1,5 +1,9 @@
 == Immediate plans ==
 
+0. Check for SGML entities (PUBLIC, missing system identifier)
+
+0. Undeclared events: skip text properly
+
 1. Add more unit tests for encoding writers:
 
  Needed for regression testing, to ensure ones added work ok (should have
