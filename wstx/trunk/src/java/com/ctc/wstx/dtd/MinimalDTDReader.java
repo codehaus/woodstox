@@ -69,6 +69,10 @@ public class MinimalDTDReader
         mIsExternal = isExt;
         // Let's reuse the name buffer:
         mNameBuffer = (master == null) ? null : master.mNameBuffer;
+	/* And let's force expansion (matters mostly/only for undefined
+	 * entities)
+	 */
+        mCfgReplaceEntities = true;
     }
 
     /**

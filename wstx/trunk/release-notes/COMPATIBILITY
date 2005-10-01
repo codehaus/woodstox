@@ -1,0 +1,18 @@
+== Changes from 2.0.x to 3.0.x ==
+
+=== Stream reader ===
+
+* Default setting for P_REPORT_PROLOG_WHITESPACE is
+  now Boolean.TRUE (instead of Boolean.FALSE), to mimic behaviour
+  of the StAX reference implementation, and to keep output in pass-through
+  configurations more similar to input.
+
+=== Event reader ===
+
+* Event readers are now constructed so that P_LAZY_PARSING is always
+  disabled (to get accurate XMLStreamExceptions instead of possible
+  runtime exceptions, with no performance difference).
+  Also, P_MIN_TEXT_SEGMENT will be set to maximum value, to avoid
+  ever splitting a CHARACTERS or CDATA segment (to minimize number
+  of event objects).
+

@@ -1,11 +1,22 @@
-Version: 2.7
+Version: 2.8
 
-Release date: 29-Sep-2005
+Release date: xx-Oct-2005
 
 Description:
   Continuing development for 3.0 release...
 
   Problems fixed:
+
+  Improvements:
+
+  * [WSTX-11] Event readers are now always constructed lazy parsing disabled
+     (no performance gain from lazy parsing; more accurate error reporting
+    when it is disabled), and with min. segment size set to maximum (ie.
+    text/cdata segments are never split).
+
+== History: ==
+
+2.5 - 2.7 [19-Jul-2005 - 29-Sep-2005]
 
   New functionality:
 
@@ -14,20 +25,13 @@ Description:
 
   Improvements:
 
+  * Now input stream factory tries to use Woodstox-specific (fast) readers
+    even when specific encoding is passed. This should improve UTF-8 document
+    handling when encoding is explicitly passed along with input stream.
   * Improved handling of text parsing in IS_COALESCING mode: now parser
     is more likely to be able to use the shared buffer, leading to
     up to 10 - 15% faster parsing in this mode (depending on usage patterns
     and length of segments), without change to non-coalescing mode.
-
-== History: ==
-
-2.5 - 2.6 [19-Jul-2005 - 04-Sep-2005]
-
-  Improvements:
-
-  * Now input stream factory tries to use Woodstox-specific (fast) readers
-    even when specific encoding is passed. This should improve UTF-8 document
-    handling when encoding is explicitly passed along with input stream.
 
 2.0.1 - 2.0.3: [10-Aug-2005 - 29-Sep-2005]
 

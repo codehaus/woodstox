@@ -321,7 +321,9 @@ public class MinimalInputFactory
                                          InputBootstrapper bs)
         throws IOException, XMLStreamException
     {
-        return WstxStreamReader.createBasicStreamReader(input, this, cfg, bs);
+	// false -> stream reader never (directly) used by an event reader
+        return WstxStreamReader.createBasicStreamReader(input, this, cfg, bs,
+							false);
     }
 
     /*

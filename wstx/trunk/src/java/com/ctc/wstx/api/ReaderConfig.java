@@ -143,8 +143,13 @@ public final class ReaderConfig
         // and namespace URI interning
         | CFG_INTERN_NS_URIS
 
-        // but NOT reporting of ignorable white space in prolog/epilog:
-        // | CFG_REPORT_PROLOG_WS
+        /* 30-Sep-2005, TSa: Change from 2.0.x (released in 2.8+);
+	 *   let's by default report these white spaces, since that's
+	 *   what the reference implementation does. It also helps in
+	 *   keeping output lookig pretty, if input is (not a big deal
+	 *   but still)
+	 */
+        | CFG_REPORT_PROLOG_WS
 
         /* but enable DTD caching (if they are handled):
          * (... maybe J2ME subset shouldn't do it?)

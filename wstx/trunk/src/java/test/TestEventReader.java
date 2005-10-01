@@ -22,14 +22,16 @@ public class TestEventReader
                            "com.ctc.wstx.stax.WstxInputFactory");
         XMLInputFactory f = XMLInputFactory.newInstance();
         mFactory = f;
-        f.setProperty(XMLInputFactory.IS_COALESCING, Boolean.FALSE);
-        //f.setProperty(XMLInputFactory.IS_COALESCING, Boolean.TRUE);
+        //f.setProperty(XMLInputFactory.IS_COALESCING, Boolean.FALSE);
+        f.setProperty(XMLInputFactory.IS_COALESCING, Boolean.TRUE);
         f.setProperty(XMLInputFactory.REPORTER, new TestReporter());
+
+        f.setProperty(XMLInputFactory.IS_REPLACING_ENTITY_REFERENCES, Boolean.FALSE);
 
         // Uncomment for boundary-condition stress tests:
         if (f.isPropertySupported(WstxInputProperties.P_INPUT_BUFFER_LENGTH)) {
             f.setProperty(WstxInputProperties.P_INPUT_BUFFER_LENGTH,
-                                 new Integer(16));
+                                 new Integer(32));
         }
         // And let's try to preserve structure as much as possible:
         if (f.isPropertySupported(XMLInputFactory2.P_REPORT_PROLOG_WHITESPACE)) {
@@ -38,8 +40,12 @@ public class TestEventReader
 
         if (f.isPropertySupported(WstxInputProperties.P_MIN_TEXT_SEGMENT)) {
             f.setProperty(WstxInputProperties.P_MIN_TEXT_SEGMENT,
-                          new Integer(23));
+                          new Integer(13));
         }
+
+	f.setProperty(WstxInputProperties.P_LAZY_PARSING,
+		      //Boolean.FALSE);
+		      Boolean.TRUE);
 
         System.out.println("Factory instance: "+f.getClass());
         System.out.println("  coalescing: "+f.getProperty(XMLInputFactory.IS_COALESCING));
@@ -94,6 +100,9 @@ public class TestEventReader
                 Characters chars = evt.asCharacters();
                 int len = chars.getData().length();
                 out.write("[CHARACTERS("+len+"), ws: "+chars.isWhiteSpace()+", iws: "+chars.isIgnorableWhiteSpace()+"]");
+            } else if (evt instanceof EntityReference) {
+		EntityReference eref = (EntityReference) evt;
+                out.write("[ENTITY-REF '"+eref.getName()+"']");
             }
             evt.writeAsEncodedUnicode(out);
             //out.write("'\n");

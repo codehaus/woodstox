@@ -19,11 +19,14 @@ public class WEntityReference
 
     EntityDeclaration mDeclEvt;
 
+    final String mName;
+
     public WEntityReference(Location loc, com.ctc.wstx.ent.EntityDecl decl)
     {
         super(loc);
         mDecl = decl;
         mDeclEvt = null;
+	mName = null;
     }
 
     public WEntityReference(Location loc, javax.xml.stream.events.EntityDeclaration decl)
@@ -31,16 +34,35 @@ public class WEntityReference
         super(loc);
         mDecl = null;
         mDeclEvt = decl;
+	mName = null;
+    }
+
+    /**
+     * This constructor gets called for undeclared/defined entities: we will
+     * still know the name (from the reference), but not how it's defined
+     * (since it is not defined).
+     */
+    public WEntityReference(Location loc, String name)
+    {
+	super(loc);
+	mDecl = null;
+	mDeclEvt = null;
+	mName = name;
     }
 
     public EntityDeclaration getDeclaration() {
         if (mDeclEvt == null) {
-            mDeclEvt = new WEntityDeclaration(mDecl);
+	    if (mDecl != null) {
+		mDeclEvt = new WEntityDeclaration(mDecl);
+	    }
         }
         return mDeclEvt;
     }
 
     public String getName() {
+	if (mName != null) {
+	    return mName;
+	}
         return (mDecl == null) ? mDeclEvt.getName() : mDecl.getName();
     }
 

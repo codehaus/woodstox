@@ -10,6 +10,7 @@ import javax.xml.stream.*;
 import org.codehaus.stax2.*;
 import org.codehaus.stax2.evt.*;
 
+import com.ctc.wstx.api.WstxInputProperties;
 import com.ctc.wstx.api.WstxOutputProperties;
 import com.ctc.wstx.stax.WstxInputFactory;
 import com.ctc.wstx.stax.WstxOutputFactory;
@@ -176,6 +177,19 @@ public class BaseWstxTest
     {
         f.setProperty(XMLInputFactory.IS_REPLACING_ENTITY_REFERENCES,
                       state ? Boolean.TRUE : Boolean.FALSE);
+    }
+
+    protected static void setLazyParsing(XMLInputFactory f, boolean state)
+        throws XMLStreamException
+    {
+        f.setProperty(WstxInputProperties.P_LAZY_PARSING,
+                      state ? Boolean.TRUE : Boolean.FALSE);
+    }
+
+    protected static void setMinTextSegment(XMLInputFactory f, int len)
+        throws XMLStreamException
+    {
+        f.setProperty(WstxInputProperties.P_MIN_TEXT_SEGMENT, new Integer(len));
     }
 
     /*

@@ -89,10 +89,11 @@ public class FullStreamReader
      */
 
     private FullStreamReader(BranchingReaderSource input, ReaderCreator owner,
-                             ReaderConfig cfg, InputElementStack elemStack)
+                             ReaderConfig cfg, InputElementStack elemStack,
+			     boolean forER)
         throws IOException, XMLStreamException
     {
-        super(input, owner, cfg, elemStack);
+        super(input, owner, cfg, elemStack, forER);
     }
 
     /**
@@ -102,10 +103,15 @@ public class FullStreamReader
      *   needed for returning updated symbol table information after parsing.
      * @param input Input source used to read the XML document.
      * @param cfg Object that contains reader configuration info.
+     * @param bs Bootstrapper to use, for reading xml declaration etc.
+     * @param forER True if this reader is to be (configured to be) used by
+     *   an event reader. Will cause some changes to default settings, as
+     *   required by contracts Woodstox XMLEventReader implementation has
+     *   (with respect to lazy parsing, short text segments etc)
      */
     public static FullStreamReader createFullStreamReader
         (BranchingReaderSource input, ReaderCreator owner,
-         ReaderConfig cfg, InputBootstrapper bs)
+         ReaderConfig cfg, InputBootstrapper bs, boolean forER)
         throws IOException, XMLStreamException
     {
         InputElementStack elemStack;
@@ -120,7 +126,8 @@ public class FullStreamReader
             }
         }
 
-        FullStreamReader sr = new FullStreamReader(input, owner, cfg, elemStack);
+        FullStreamReader sr = new FullStreamReader(input, owner, cfg, elemStack,
+						   forER);
         sr.initProlog(bs);
         return sr;
     }

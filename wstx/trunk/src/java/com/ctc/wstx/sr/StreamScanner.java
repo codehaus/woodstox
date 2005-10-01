@@ -183,6 +183,8 @@ public abstract class StreamScanner
      */
     protected final ReaderConfig mConfig;
 
+    // // // Various extracted settings:
+
     /**
      * Object through which non-fatal problems should be reported.
      */
@@ -194,6 +196,14 @@ public abstract class StreamScanner
      */
     protected final boolean mCfgNsEnabled;
 
+    // Extracted standard on/off settings:
+
+    /**
+     * note: left non-final on purpose: sub-class may need to modify
+     * the default value after construction.
+     */
+    protected boolean mCfgReplaceEntities;
+
     /*
     ////////////////////////////////////////////////////
     // Symbol handling, if applicable
@@ -201,6 +211,19 @@ public abstract class StreamScanner
      */
 
     final SymbolTable mSymbols;
+
+    /**
+     * Local full name for the event, if it has one (note: element events
+     * do NOT use this variable; those names are stored in element stack):
+     * target for processing instructions.
+     *<p>
+     * Currently used for proc. instr. target, and entity name (at least
+     * when current entity reference is null).
+     *<p>
+     * Note: this variable is generally not cleared, since it comes from
+     * a symbol table, ie. this won't be the only reference.
+     */
+    protected String mCurrName;
 
     /*
     ////////////////////////////////////////////////////
@@ -299,6 +322,7 @@ public abstract class StreamScanner
         mSymbols = cfg.getSymbols();
         int cf = cfg.getConfigFlags();
         mCfgNsEnabled = (cf & CFG_NAMESPACE_AWARE) != 0;
+        mCfgReplaceEntities = (cf & CFG_REPLACE_ENTITY_REFS) != 0;
 
         mInputBuffer = null;
         mInputPtr = mInputLen = 0;
@@ -1273,6 +1297,7 @@ public abstract class StreamScanner
         // Otherwise, let's just parse in generic way:
         ++mInputPtr; // since we already read the first letter
         String id = parseEntityName(c);
+	mCurrName = id;
 
         if (ent1 != null) {
             ed = (EntityDecl) ent1.get(id);
@@ -1284,7 +1309,7 @@ public abstract class StreamScanner
                 ed = (EntityDecl) ent2.get(id);
             }
             if (ed == null) {
-                throwParseError("Undeclared entity '"+id+"'.");
+		ed = handleUndeclaredEntity(id);
             }
         }
 
@@ -1354,12 +1379,14 @@ public abstract class StreamScanner
      * generic entity)
      *
      * @return 1, if entity was found from the first Map passed in; 2,
-     *   if from second.
+     *   if from second, 0 if neither (only for non-entity-replacing mode)
      */
     protected int expandEntity(String id, Map ent1, Map ent2, boolean allowExt)
         throws IOException, XMLStreamException
     {
         EntityDecl ed;
+
+	mCurrName = id;
 
         if (ent1 == null) {
             ed = null;
@@ -1378,7 +1405,10 @@ public abstract class StreamScanner
         }
 
         if (ed == null) {
-            throwParseError("Undeclared entity '"+id+"'.");
+	    ed = handleUndeclaredEntity(id);
+	    if (ed == null) { // in non-expanding mode
+		return 0;
+	    }
         }
         expandEntity(ed, allowExt);
         return result;
@@ -1432,6 +1462,24 @@ public abstract class StreamScanner
             throwParseError("Illegal entity expansion: entity '"+ed.getName()+"' expands itself recursively.");
         }
         initInputSource(newInput, isExt);
+    }
+
+    /**
+     * Method called when an entity id refers to an entity for which no
+     * declaration has been found. This may or may not be fatal, depending
+     * on configuration settings.
+     */
+    protected EntityDecl handleUndeclaredEntity(String id)
+	throws WstxException
+    {
+	/* 30-Sep-2005, TSa: As per [WSTX-5], let's only throw exception
+	 *   if we have to resolve it (otherwise it's just best-effort, 
+	 *   and null is ok)
+	 */
+	if (mCfgReplaceEntities) {
+	    throwParseError("Undeclared entity '"+id+"'.");
+	}
+	return null;
     }
   
     /*

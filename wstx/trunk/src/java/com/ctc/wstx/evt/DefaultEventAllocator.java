@@ -188,6 +188,10 @@ public class DefaultEventAllocator
         case ENTITY_REFERENCE:
             {
                 EntityDecl ed = ((StreamReaderImpl) r).getCurrentEntityDecl();
+		if (ed == null) { // undefined?
+		    // We'll still know the name though...
+		    return new WEntityReference(loc, r.getLocalName());
+		}
                 return new WEntityReference(loc, ed);
             }
 

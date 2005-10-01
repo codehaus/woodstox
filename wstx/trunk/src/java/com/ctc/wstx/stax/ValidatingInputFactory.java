@@ -134,7 +134,11 @@ public final class ValidatingInputFactory
                                          InputBootstrapper bs)
         throws IOException, XMLStreamException
     {
-        return FullStreamReader.createFullStreamReader(input, this, cfg, bs);
+	/* false -> never used by event readers (since neither this factory
+	 *    nor base class creates event readers)
+	 */
+        return FullStreamReader.createFullStreamReader(input, this, cfg, bs,
+						       false);
     }
 
     /*

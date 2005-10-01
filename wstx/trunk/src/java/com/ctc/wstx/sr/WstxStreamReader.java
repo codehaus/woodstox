@@ -254,13 +254,6 @@ public class WstxStreamReader
      * since that's the state it starts in.
      */
     protected int mCurrToken = START_DOCUMENT;
-
-    /**
-     * Local full name for the event, if it has one (note: element events
-     * do NOT use this variable; those names are stored in element stack):
-     * target for processing instructions.
-     */
-    String mCurrName;
     
     // // // Indicator of type of text in text event (WRT white space)
 
@@ -321,10 +314,6 @@ public class WstxStreamReader
 
     // // // Various extracted settings:
 
-    // Extracted standard on/off settings:
-
-    protected final boolean mCfgReplaceEntities;
-
     // Extracted wstx-specific settings:
 
     protected final boolean mCfgNormalizeLFs;
@@ -358,9 +347,14 @@ public class WstxStreamReader
     /**
      * @param elemStack Input element stack to use; if null, will create
      *   instance locally.
+     * @param forER Override indicator; if true, this stream reader will be
+     *   used by an event reader, and should modify some of the base config
+     *   settings appropriately. If false, configuration settings are to
+     *   be used as is.
      */
     protected WstxStreamReader(BranchingReaderSource input, ReaderCreator owner,
-                               ReaderConfig cfg, InputElementStack elemStack)
+                               ReaderConfig cfg, InputElementStack elemStack,
+			       boolean forER)
         throws IOException, XMLStreamException
     {
         super(input, cfg, cfg.getEntityResolver());
@@ -370,13 +364,20 @@ public class WstxStreamReader
         mTextBuffer = new TextBuffer(cfg.getTextBufferLength());
         mConfigFlags = cfg.getConfigFlags();
 
-        mCfgReplaceEntities = (mConfigFlags & CFG_REPLACE_ENTITY_REFS) != 0;
-
         mCfgNormalizeLFs = (mConfigFlags & CFG_NORMALIZE_LFS) != 0;
         mCfgNormalizeAttrs = (mConfigFlags & CFG_NORMALIZE_ATTR_VALUES) != 0;
         mCfgCoalesceText = (mConfigFlags & CFG_COALESCE_TEXT) != 0;
         mCfgReportTextAsChars = (mConfigFlags & CFG_REPORT_ALL_TEXT_AS_CHARACTERS) != 0;
-        mCfgLazyParsing = (mConfigFlags & CFG_LAZY_PARSING) != 0;
+
+	/* 30-Sep-2005, TSa: Let's not do lazy parsing when access is via
+	 *   Event API. Reason is that there will be no performance benefit
+	 *   (event objects always access full info right after traversal),
+	 *   but the wrapping of stream exceptions within runtime exception
+	 *   wrappers would happen, which is inconvenient (loss of stack trace,
+	 *   not catching all exceptions as expected)
+	 */
+	mCfgLazyParsing = !forER && ((mConfigFlags & CFG_LAZY_PARSING) != 0);
+
         mCfgInternNsURIs = (mConfigFlags & CFG_INTERN_NS_URIS) != 0;
 
         /* There are a few derived settings used during tokenization that
@@ -387,7 +388,16 @@ public class WstxStreamReader
             mShortestTextSegment = Integer.MAX_VALUE;
         } else {
             mStTextThreshold =  TOKEN_PARTIAL_SINGLE;
-            mShortestTextSegment = cfg.getShortestReportedTextSegment();
+	    if (forER) {
+		/* 30-Sep-2005, TSa: No point in returning runt segments for
+		 *   event readers (due to event object overhead, less
+		 *   convenient); let's just force returning of full length
+		 *   segments.
+		 */
+		mShortestTextSegment = Integer.MAX_VALUE;
+	    } else {
+		mShortestTextSegment = cfg.getShortestReportedTextSegment();
+	    }
         }
 
         mCustomEntities = cfg.getCustomInternalEntities();
@@ -410,11 +420,11 @@ public class WstxStreamReader
      */
     public static WstxStreamReader createBasicStreamReader
         (BranchingReaderSource input, ReaderCreator owner, ReaderConfig cfg,
-         InputBootstrapper bs)
+         InputBootstrapper bs, boolean forER)
       throws IOException, XMLStreamException
     {
         WstxStreamReader sr = new WstxStreamReader(input, owner, cfg,
-                                                   createElementStack(cfg));
+                                                   createElementStack(cfg), forER);
         sr.initProlog(bs);
         return sr;
     }
@@ -616,7 +626,10 @@ public class WstxStreamReader
             return mElementStack.getLocalName();
         }
         if (mCurrToken == ENTITY_REFERENCE) {
-            return mCurrEntity.getName();
+	    /* 30-Sep-2005, TSa: Entity will be null in non-expanding mode
+	     *   if no definition was found:
+	     */
+	    return (mCurrEntity == null) ? mCurrName: mCurrEntity.getName();
         }
         throw new IllegalStateException("Current state not START_ELEMENT, END_ELEMENT or ENTITY_REFERENCE");
     }
@@ -2380,15 +2393,15 @@ public class WstxStreamReader
              * expanded; in non-auto, need to figure out entity itself.
              */
             if (!mCfgReplaceEntities) {
-                EntityDecl ed = resolveNonCharEntity
-                    (mCustomEntities, mGeneralEntities);
+                EntityDecl ed = resolveNonCharEntity(mCustomEntities, mGeneralEntities);
                 mTokenState = TOKEN_FULL_COALESCED;
-                if (ed == null) {
-                    throwParseError("Internal error: Entity neither char nor general entity; yet no exception thrown so far");
-                }
                 mCurrEntity = ed;
-                // Last check; needs to be a parsed entity:
-                if (!ed.isParsed()) {
+                if (ed == null) {
+		    if (mCfgReplaceEntities) {
+			throwParseError("Internal error: Entity neither char nor general entity; yet no exception thrown so far in IS_REPLACING_ENTITY_REFERENCES mode");
+		    }
+                } else if (!ed.isParsed()) {
+		    // Last check; needs to be a parsed entity:
                     throwParseError("Reference to unparsed entity '"
                                     +ed.getName()+"' from content not allowed.");
                 }

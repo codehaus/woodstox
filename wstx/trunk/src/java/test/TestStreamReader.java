@@ -223,7 +223,7 @@ public class TestStreamReader
                     total += text.length(); // to prevent dead code elimination
                 }
                 if (type == CHARACTERS || type == CDATA || type == COMMENT) {
-                    System.out.println(" Text = '"+text+"'.");
+                    System.out.println(" Text("+text.length()+") = '"+text+"'.");
                 } else if (type == SPACE) {
                     System.out.print(" Ws = '"+text+"'.");
                     char c = (text.length() == 0) ? ' ': text.charAt(text.length()-1);

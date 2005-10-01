@@ -462,10 +462,10 @@ public final class WstxInputFactory
       
         try {
             FullStreamReader sr = FullStreamReader.createFullStreamReader
-                (input, this, cfg, bs);
+                (input, this, cfg, bs, forER);
             return sr;
         } catch (IOException ie) {
-            throw new XMLStreamException(ie);
+            throw new WstxIOException(ie);
         }
     }
 
