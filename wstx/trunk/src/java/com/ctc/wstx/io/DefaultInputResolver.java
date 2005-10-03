@@ -91,6 +91,25 @@ public final class DefaultInputResolver
     }
 
     /**
+     * A very simple utility expansion method used generally when the
+     * only way to resolve an entity is via passed resolver; and where
+     * failing to resolve it is not fatal.
+     */
+    public static WstxInputSource resolveEntityUsing
+        (WstxInputSource refCtxt, String entityName,
+         String publicId, String systemId,
+         XMLResolver resolver, XMLReporter rep)
+        throws IOException, XMLStreamException
+    {
+        URL ctxt = (refCtxt == null) ? null : refCtxt.getSource();
+        if (ctxt == null) {
+            ctxt = URLUtil.urlFromCurrentDir();
+        }
+        Object source = resolver.resolveEntity(publicId, systemId, ctxt.toExternalForm(), entityName);
+        return (source == null) ? null : sourceFrom(refCtxt, entityName, source, rep);
+    }
+
+    /**
      * Factory method that accepts various types of Objects, and tries to
      * create a {@link WstxInputSource} from it. Currently it's only called
      * to locate external DTD subsets, when overriding default DOCTYPE

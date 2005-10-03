@@ -2395,17 +2395,15 @@ public class WstxStreamReader
              */
             if (!mCfgReplaceEntities) {
                 EntityDecl ed = resolveNonCharEntity(mCustomEntities, mGeneralEntities);
+                // Note: ed may still be null at this point
                 mTokenState = TOKEN_FULL_COALESCED;
                 mCurrEntity = ed;
-                if (ed == null) {
-		    if (mCfgReplaceEntities) {
-			throwParseError("Internal error: Entity neither char nor general entity; yet no exception thrown so far in IS_REPLACING_ENTITY_REFERENCES mode");
-		    }
-                } else if (!ed.isParsed()) {
-		    // Last check; needs to be a parsed entity:
-                    throwParseError("Reference to unparsed entity '"
-                                    +ed.getName()+"' from content not allowed.");
+                /*
+                // let's not worry about non-parsed entities, since this is unexpanded mode
+                if (ed != null && !ed.isParsed()) {
+                    throwParseError("Reference to unparsed entity '"+ed.getName()+"' from content not allowed.");
                 }
+                */
                 return ENTITY_REFERENCE;
             }
 

@@ -9,6 +9,12 @@ Description:
 
   Improvements:
 
+  * [WSTX-5] Undeclared entities (missing DTD, or dtd-handling disabled) do
+    not throw an exception in the non-entity-replacing mode any more. Calling
+    app can figure out whether the entity reference refers to a declared entity
+    by checking if expansion value is null (via Cursor API), or if the entity
+    reference does not refer to a declaration (via Event API, a null
+    declarationn object returned),
   * [WSTX-11] Event readers are now always constructed lazy parsing disabled
      (no performance gain from lazy parsing; more accurate error reporting
     when it is disabled), and with min. segment size set to maximum (ie.

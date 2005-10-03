@@ -104,7 +104,9 @@ public class TestEventReader
 		EntityReference eref = (EntityReference) evt;
                 out.write("[ENTITY-REF '"+eref.getName()+"']");
             }
+            out.write("{ENC:");
             evt.writeAsEncodedUnicode(out);
+            out.write("}");
             //out.write("'\n");
             out.flush();
         }

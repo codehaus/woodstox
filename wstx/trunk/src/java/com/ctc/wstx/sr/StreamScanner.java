@@ -1204,7 +1204,8 @@ public abstract class StreamScanner
      * Reverse of {@link #resolveCharOnlyEntity}; will only resolve entity
      * if it is NOT a character entity (or pre-defined 'generic' entity;
      * amp, apos, lt, gt or quot). Only used in cases where entities
-     * are to be separately returned unexpanded.
+     * are to be separately returned unexpanded (in non-entity-replacing
+     * mode); which means it's never called from dtd handler.
      */
     protected EntityDecl resolveNonCharEntity(Map ent1, Map ent2)
         throws IOException, WstxException
@@ -1297,7 +1298,7 @@ public abstract class StreamScanner
         // Otherwise, let's just parse in generic way:
         ++mInputPtr; // since we already read the first letter
         String id = parseEntityName(c);
-	mCurrName = id;
+        mCurrName = id;
 
         if (ent1 != null) {
             ed = (EntityDecl) ent1.get(id);
@@ -1308,10 +1309,10 @@ public abstract class StreamScanner
             if (ent2 != null) {
                 ed = (EntityDecl) ent2.get(id);
             }
-            if (ed == null) {
-		ed = handleUndeclaredEntity(id);
-            }
         }
+        /* No need for null checks -- only called in non-expanding mode,
+         * when it's ok to return null to signal an undeclared entity
+         */
 
         return ed;
     }
@@ -1377,6 +1378,8 @@ public abstract class StreamScanner
     /**
      * Helper method that will try to expand a parsed entity (parameter or
      * generic entity)
+     *<p>
+     * note: called by sub-classes (dtd parser), needs to be protected.
      *
      * @return 1, if entity was found from the first Map passed in; 2,
      *   if from second, 0 if neither (only for non-entity-replacing mode)
@@ -1385,8 +1388,8 @@ public abstract class StreamScanner
         throws IOException, XMLStreamException
     {
         EntityDecl ed;
-
-	mCurrName = id;
+        
+        mCurrName = id;
 
         if (ent1 == null) {
             ed = null;
@@ -1405,16 +1408,33 @@ public abstract class StreamScanner
         }
 
         if (ed == null) {
-	    ed = handleUndeclaredEntity(id);
-	    if (ed == null) { // in non-expanding mode
-		return 0;
-	    }
+            /* 30-Sep-2005, TSa: As per [WSTX-5], let's only throw exception
+             *   if we have to resolve it (otherwise it's just best-effort, 
+             *   and null is ok)
+             */
+            /* 02-Oct-2005, TSa: Plus, [WSTX-4] adds "undeclared entity
+             *    resolver"
+             */
+            if (mCfgReplaceEntities) {
+                expandUnresolvedEntity(id);
+            }
+            return 0;
         }
         expandEntity(ed, allowExt);
         return result;
     }
-    
-    protected void expandEntity(EntityDecl ed, boolean allowExt)
+
+    /**
+     *
+     *<p>
+     * note: defined as private for documentation, ie. it's just called
+     * from within this class (not sub-classes), from one specific method
+     * (see above)
+     *
+     * @param ed Entity to be expanded
+     * @param allowExt Whether external entities are allowed or not.
+     */
+    private void expandEntity(EntityDecl ed, boolean allowExt)
         throws IOException, XMLStreamException
     {
         /* Should not refer unparsed entities from attribute values
@@ -1444,12 +1464,9 @@ public abstract class StreamScanner
         // First, let's give current context chance to save its stuff
         WstxInputSource oldInput = mInput;
         oldInput.saveContext(this);
-        /* And then need to update ptr and/or len so next read is done
-         * straight from new input source:
-         */
         WstxInputSource newInput = null;
         try {
-            newInput = ed.expand(mInput, mEntityResolver, mReporter);
+            newInput = ed.expand(oldInput, mEntityResolver, mReporter);
         } catch (FileNotFoundException fex) {
             /* Let's catch and rethrow this just so we get more meaningful
              * description (with input source position etc)
@@ -1459,27 +1476,36 @@ public abstract class StreamScanner
 
         // Let's check there's no recursion (-> infinite loops)
         if (newInput.hasRecursion()) {
-            throwParseError("Illegal entity expansion: entity '"+ed.getName()+"' expands itself recursively.");
+            throwRecursionError(ed.getName());
         }
+        /* And then we'll need to make sure new input comes from the new
+         * input source
+         */
         initInputSource(newInput, isExt);
     }
 
     /**
-     * Method called when an entity id refers to an entity for which no
-     * declaration has been found. This may or may not be fatal, depending
-     * on configuration settings.
+     *<p>
+     * note: only from the local expandEntity() method
      */
-    protected EntityDecl handleUndeclaredEntity(String id)
-	throws WstxException
+    private void expandUnresolvedEntity(String id)
+        throws IOException, XMLStreamException
     {
-	/* 30-Sep-2005, TSa: As per [WSTX-5], let's only throw exception
-	 *   if we have to resolve it (otherwise it's just best-effort, 
-	 *   and null is ok)
-	 */
-	if (mCfgReplaceEntities) {
-	    throwParseError("Undeclared entity '"+id+"'.");
-	}
-	return null;
+        XMLResolver resolver = mConfig.getUndeclaredEntityResolver();
+        if (resolver != null) {
+            WstxInputSource oldInput = mInput;
+            oldInput.saveContext(this);
+            // null, null -> no public or system ids
+            WstxInputSource newInput = DefaultInputResolver.resolveEntityUsing
+                (oldInput, id, null, null, resolver, mReporter);
+            // Not 100% sure if recursion check is needed... but let's be safe?
+            if (newInput.hasRecursion()) {
+                throwRecursionError(id);
+            }
+            initInputSource(newInput, true); // true -> is external
+            return;
+        }
+        throwParseError("Undeclared entity '"+id+"'.");
     }
   
     /*
@@ -2069,5 +2095,11 @@ public abstract class StreamScanner
         throws WstxException
     {
         throwParseError("Illegal name '"+name+"' (PI target, entity/notation name): can not contain a colon (XML Namespaces 1.0#6)");
+    }
+
+    private void throwRecursionError(String entityName)
+        throws WstxException
+    {
+        throwParseError("Illegal entity expansion: entity '"+entityName+"' expands itself recursively.");
     }
 }
