@@ -1377,7 +1377,7 @@ public abstract class StreamScanner
 
     /**
      * Helper method that will try to expand a parsed entity (parameter or
-     * generic entity)
+     * generic entity).
      *<p>
      * note: called by sub-classes (dtd parser), needs to be protected.
      *
@@ -1498,12 +1498,14 @@ public abstract class StreamScanner
             // null, null -> no public or system ids
             WstxInputSource newInput = DefaultInputResolver.resolveEntityUsing
                 (oldInput, id, null, null, resolver, mReporter);
-            // Not 100% sure if recursion check is needed... but let's be safe?
-            if (newInput.hasRecursion()) {
-                throwRecursionError(id);
+            if (newInput != null) {
+                // Not 100% sure if recursion check is needed... but let's be safe?
+                if (newInput.hasRecursion()) {
+                    throwRecursionError(id);
+                }
+                initInputSource(newInput, true); // true -> is external
+                return;
             }
-            initInputSource(newInput, true); // true -> is external
-            return;
         }
         throwParseError("Undeclared entity '"+id+"'.");
     }

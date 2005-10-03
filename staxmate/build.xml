@@ -135,10 +135,8 @@
 
     <target name="javadoc" depends="prepare">
         <!-- Build a dirpath that contains just the "source" tree -->
-        <javadoc windowtitle="${ProjectName}"
-            destdir="${JavaDocDir}" 
-            author="true" 
-            version="true">
+        <javadoc windowtitle="${ProjectName}" destdir="${JavaDocDir}" 
+          author="true"  version="true">
             <packageset dir="${JavaSrcDir}" defaultexcludes="yes">
                 <include name="org/codehaus/staxmate/**" />
                 <exclude name="org/codehaus/staxmate/samples/**" />
@@ -218,7 +216,7 @@
 
        <!-- Then copy javadocs -->
        <copy todir="${DistDir}">
-         <fileset dir="${DocDir}" includes="javadoc/**/*" />
+         <fileset dir="${BuildDir}" includes="javadoc/**/*" />
        </copy>
        <!-- Plus, let's also just copy README and compatibility files, in
             addition to being included in source package

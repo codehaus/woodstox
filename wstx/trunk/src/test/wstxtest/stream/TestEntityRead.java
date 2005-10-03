@@ -4,8 +4,10 @@ import javax.xml.stream.*;
 
 import org.codehaus.stax2.*;
 
-import com.ctc.wstx.sr.WstxStreamReader;
+import com.ctc.wstx.api.WstxInputProperties;
 import com.ctc.wstx.ent.EntityDecl;
+import com.ctc.wstx.exc.WstxLazyException;
+import com.ctc.wstx.sr.WstxStreamReader;
 
 /**
  * This unit test suite checks to see that Woodstox implementation dependant
@@ -116,6 +118,68 @@ public class TestEntityRead
         sr.close();
     }
 
+    /**
+     * This unit test checks that it is possible to deal with undeclared
+     * entities in resolving mode too, as long as a special resolver
+     * is used.
+     */
+    public void testUndeclaredButResolved()
+        throws Exception
+    {
+        XMLInputFactory fact = getConfiguredFactory(true, true);
+
+        for (int i = 0; i < 3; ++i) {
+            String XML, expText;
+            XMLResolver resolver;
+
+            switch (i) {
+            case 0:
+                XML = "<root>value: &myent;</root>";
+                resolver = new Resolver("myent", "value");
+                expText = "value: value";
+                break;
+            case 1:
+                XML = "<root>expands to:&myent;...</root>";
+                resolver = new Resolver("myent", "X&amp;Y");
+                expText = "expands to:X&Y...";
+                break;
+            default:
+                XML = "<root>testing: &myent;</root>";
+                resolver = new Resolver("dummy", "foobar");
+                expText = ""; // whatever;
+                break;
+            }
+
+            fact.setProperty(WstxInputProperties.P_UNDECLARED_ENTITY_RESOLVER,
+                             resolver);
+            XMLStreamReader sr = constructStreamReader(fact, XML);
+            assertTokenType(START_ELEMENT, sr.next());
+            assertEquals("root", sr.getLocalName());
+
+            if (i == 2) { // Should throw an exception, then:
+                try {
+                    sr.next();
+                    String text = sr.getText(); // to force parsing
+                    fail("Expected an exception for undefined entity 'myent' that doesn't resolve via customer resolver");
+                } catch (XMLStreamException sex) {
+                    ; // good;
+                } catch (WstxLazyException lex) {
+                    ; // likewise
+                }
+            } else {
+                try {
+                    assertTokenType(CHARACTERS, sr.next());
+                } catch (XMLStreamException sex) {
+                    // only caught to provide more meaningful fail info:
+                    fail("Did not expect an exception, since 'myent' should have resolved; got: "+sex);
+                }
+                assertEquals(expText, sr.getText());
+                assertTokenType(END_ELEMENT, sr.next());
+                assertEquals("root", sr.getLocalName());
+            }
+        }
+    }
+
     /*
     ////////////////////////////////////////
     // Private methods, other
@@ -131,12 +195,44 @@ public class TestEntityRead
                                        boolean coalescing)
         throws XMLStreamException
     {
+        XMLInputFactory f = getConfiguredFactory(replEntities, coalescing);
+        return (WstxStreamReader) constructStreamReader(f, contents);
+    }
+
+    private XMLInputFactory getConfiguredFactory(boolean replEntities, boolean coalescing)
+        throws XMLStreamException
+    {
         XMLInputFactory f = getInputFactory();
         setNamespaceAware(f, true);
         setSupportDTD(f, true);
         setValidating(f, false);
         setReplaceEntities(f, replEntities);
         setCoalescing(f, coalescing);
-        return (WstxStreamReader) constructStreamReader(f, contents);
+        return f;
+    }
+
+    /*
+    ////////////////////////////////////////
+    // Helper classes
+    ////////////////////////////////////////
+     */
+
+    final static class Resolver
+        implements XMLResolver
+    {
+        final String mKey, mValue;
+
+        public Resolver(String key, String value) {
+            mKey = key;
+            mValue = value;
+        }
+
+        public Object resolveEntity(String publicID, String systemID, String baseURI, String namespace)
+        {
+            if (mKey.equals(namespace)) {
+                return mValue;
+            }
+            return null;
+        }
     }
 }

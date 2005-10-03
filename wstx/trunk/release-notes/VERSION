@@ -9,6 +9,9 @@ Description:
 
   Improvements:
 
+  * [WSTX-4] It is possible to define a specific handler for undeclared
+    entities; this handler will get called in entity-replacing mode, and
+    if it returns a valid expansion, no exception will be thrown.
   * [WSTX-5] Undeclared entities (missing DTD, or dtd-handling disabled) do
     not throw an exception in the non-entity-replacing mode any more. Calling
     app can figure out whether the entity reference refers to a declared entity
