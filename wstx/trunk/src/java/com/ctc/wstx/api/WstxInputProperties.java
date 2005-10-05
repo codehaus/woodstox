@@ -79,28 +79,13 @@ public final class WstxInputProperties
     /**
      * Whether the Reader will recognized DTD++ extensions when parsing
      * DTD subsets.
+     *<p>
+     * Note: not implemented as of 2.0.x
      */
     public final static String P_SUPPORT_DTDPP = "com.ctc.wstx.supportDTDPP";
 
     // // // Enabling alternate mode for parsing XML fragments instead
     // // // of full documents
-
-    // !!! Note: following is not yet implemented in parsers !!!
-    /**
-     * If true, will parse XML content in looser "fragment" mode; if false
-     * will expect regular fully well-formed document.
-     *<p>
-     * In fragment more it is not
-     * necessary to have just one root element; input can have multiple
-     * ones (or none). Elements will still need to be balanced properly.
-     * A single xml declaration is still allowed, but only
-     * in the beginning of the stream (just as in regular mode), and
-     * DTD declarations are allowed at the main level (outside of elements).
-     * If multiple DTDs are found, they will be used for validation (if
-     * enabled) as expected, ie. affecting following main-level "root"
-     * elements and their descendants.
-     */
-    public final static String P_FRAGMENT_MODE = "com.ctc.wstx.fragmentMode";
 
     /*
     ///////////////////////////////////////////////////////
@@ -176,4 +161,50 @@ public final class WstxInputProperties
      * DTD subset).
      */
     public final static String P_BASE_URL = "com.ctc.wstx.baseURL";
+
+    // // // Alternate parsing modes
+
+    /**
+     * Three-valued property (one of
+     * {@link #PARSING_MODE_DOCUMENT},
+     * {@link #PARSING_MODE_FRAGMENT} or
+     * {@link #PARSING_MODE_DOCUMENTS}; default being the document mode)
+     * that can be used to handle "non-standard" XML content. The default
+     * mode (<code>PARSING_MODE_DOCUMENT</code>) allows parsing of only
+     * well-formed XML documents, but the other two modes allow more lenient
+     * parsing. Fragment mode allows parsing of XML content that does not
+     * have a single root element (can have zero or more), nor can have
+     * XML or DOCTYPE declarations: this may be useful if parsing a subset
+     * of a full XML document. Multi-document
+     * (<code>PARSING_MODE_DOCUMENTS</code>) mode on the other hand allows
+     * parsing of a stream that contains multiple consequtive well-formed
+     * documents, with possibly multiple XML and DOCTYPE declarations.
+     *<p>
+     * The main difference from the API perspective is that in first two
+     * modes, START_DOCUMENT and END_DOCUMENT are used as usual (as the first
+     * and last events returned), whereas the multi-document mode can return
+     * multiple pairs of these events: although it is still true that the
+     * first event (one cursor points to when reader is instantiated or
+     * returned by the event reader), there may be intervening pairs that
+     * signal boundary between two adjacent enclosed documents.
+     */
+    public final static String P_INPUT_PARSING_MODE = "com.ctc.wstx.fragmentMode";
+
+    /*
+    ////////////////////////////////////////////////////////////////////
+    // Helper classes, values enumerations
+    ////////////////////////////////////////////////////////////////////
+     */
+
+    public final static ParsingMode PARSING_MODE_DOCUMENT = new ParsingMode();
+    public final static ParsingMode PARSING_MODE_FRAGMENT = new ParsingMode();
+    public final static ParsingMode PARSING_MODE_DOCUMENTS = new ParsingMode();
+
+    /**
+     * Inner class used for creating type-safe enumerations (prior to JDK 1.5).
+     */
+    public final static class ParsingMode
+    {
+        ParsingMode() { }
+    }
 }

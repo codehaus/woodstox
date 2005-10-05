@@ -21,12 +21,6 @@ import com.ctc.wstx.util.SymbolTable;
 /**
  * Simple configuration container class; passed by reader factory to reader
  * instance created.
- *<p>
- * TODO:
- *<ul>
- * <li>Enable/disable event support
- * <li>Enable/disable DTD support
- *</ul>
  */
 public final class ReaderConfig
     implements InputConfigFlags
@@ -81,6 +75,7 @@ public final class ReaderConfig
     public final static int PROP_ENTITY_RESOLVER = 55;
     public final static int PROP_UNDECLARED_ENTITY_RESOLVER = 56;
     public final static int PROP_BASE_URL = 57;
+    public final static int PROP_INPUT_PARSING_MODE = 58;
 
     /*
     ////////////////////////////////////////////////
@@ -250,6 +245,8 @@ public final class ReaderConfig
                         new Integer(PROP_UNDECLARED_ENTITY_RESOLVER));
         sProperties.put(WstxInputProperties.P_BASE_URL,
                         new Integer(PROP_BASE_URL));
+        sProperties.put(WstxInputProperties.P_INPUT_PARSING_MODE,
+                        new Integer(PROP_INPUT_PARSING_MODE));
     }
 
     /*
@@ -282,6 +279,9 @@ public final class ReaderConfig
      * references
      */
     URL mBaseURL = null;
+
+    WstxInputProperties.ParsingMode mParsingMode =
+        WstxInputProperties.PARSING_MODE_DOCUMENT;
 
     /*
     //////////////////////////////////////////////////////////
@@ -350,10 +350,11 @@ public final class ReaderConfig
                                            mMinTextSegmentLen);
         rc.mCustomEntities = mCustomEntities;
         rc.mReporter = mReporter;
-        rc.mBaseURL = mBaseURL;
         rc.mDtdResolver = mDtdResolver;
         rc.mEntityResolver = mEntityResolver;
         rc.mUndeclaredEntityResolver = mUndeclaredEntityResolver;
+        rc.mBaseURL = mBaseURL;
+        rc.mParsingMode = mParsingMode;
 
         return rc;
     }
@@ -504,10 +505,23 @@ public final class ReaderConfig
 
     public XMLResolver getXMLResolver() { return mEntityResolver; }
 
-    public URL getBaseURL() { return mBaseURL; }
     public XMLResolver getDtdResolver() { return mDtdResolver; }
     public XMLResolver getEntityResolver() { return mEntityResolver; }
     public XMLResolver getUndeclaredEntityResolver() { return mUndeclaredEntityResolver; }
+
+    public URL getBaseURL() { return mBaseURL; }
+
+    public WstxInputProperties.ParsingMode getInputParsingMode() {
+        return mParsingMode;
+    }
+
+    public boolean inputParsingModeDocuments() {
+        return mParsingMode == WstxInputProperties.PARSING_MODE_DOCUMENTS;
+    }
+
+    public boolean inputParsingModeFragment() {
+        return mParsingMode == WstxInputProperties.PARSING_MODE_FRAGMENT;
+    }
 
     /*
     //////////////////////////////////////////////////////////
@@ -674,6 +688,10 @@ public final class ReaderConfig
     }
 
     public void setBaseURL(URL baseURL) { mBaseURL = baseURL; }
+
+    public void setInputParsingMode(WstxInputProperties.ParsingMode mode) {
+        mParsingMode = mode;
+    }
 
     /*
     /////////////////////////////////////////////////////
@@ -990,6 +1008,8 @@ public final class ReaderConfig
             return getUndeclaredEntityResolver();
         case PROP_BASE_URL:
             return getBaseURL();
+        case PROP_INPUT_PARSING_MODE:
+            return getInputParsingMode();
 
         default: // sanity check, should never happen
             throw new Error("Internal error: no handler for property with internal id "+id+".");
@@ -1109,6 +1129,10 @@ public final class ReaderConfig
 
         case PROP_BASE_URL:
             setBaseURL((URL) value);
+            break;
+
+        case PROP_INPUT_PARSING_MODE:
+            setInputParsingMode((WstxInputProperties.ParsingMode) value);
             break;
 
         default: // sanity check, should never happen
