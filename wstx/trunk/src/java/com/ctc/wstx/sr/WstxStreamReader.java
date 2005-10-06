@@ -173,8 +173,7 @@ public class WstxStreamReader
      * based on whether there was xml declaration, and if so, whether
      * it had standalone attribute.
      */
-    public int mDocStandalone = DOC_STANDALONE_UNKNOWN;
-    // ^^^ Only public to be accessible from test classes...
+    protected int mDocStandalone = DOC_STANDALONE_UNKNOWN;
 
     /**
      * Prefix of root element, as dictated by DOCTYPE declaration; null
@@ -2010,7 +2009,8 @@ public class WstxStreamReader
         } else if (c == ':' || is11NameStartChar(c)) {
             // Root element, only allowed after prolog
             if (!isProlog) {
-                throwParseError("Illegal to have multiple roots (start tag in epilog?).");
+                handleMultipleRoots(); // will check input parsing mode...
+                // only returns if that's ok...
             }
             // Need to change state, first:
             mParseState = STATE_TREE;
@@ -2041,6 +2041,26 @@ public class WstxStreamReader
         if (!mCfgLazyParsing && mTokenState < mStTextThreshold) {
             finishToken();
         }
+    }
+
+    /**
+     * Method called if a root-level element is found after the main
+     * root element was closed. This is legal in multi-doc parsing
+     * mode (and in fragment mode), but not in the default single-doc
+     * mode. 
+     */
+    private void handleMultipleRoots()
+        throws WstxException
+    {
+        if (mConfig.inputParsingModeDocuments()) {
+            // Multi-doc mode, fine...
+            return;
+        }
+        /* Otherwise it has to be single-doc mode, since fragment mode
+         * should never get here (since fragment mode never has epilog
+         * or prolog modes)
+         */
+        throwParseError("Illegal to have multiple roots (start tag in epilog?).");
     }
 
     /**
