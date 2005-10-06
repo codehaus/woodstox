@@ -190,6 +190,24 @@ public final class WstxInputProperties
      */
     public final static String P_INPUT_PARSING_MODE = "com.ctc.wstx.fragmentMode";
 
+    // // // DTD defaulting, overriding
+
+    // TO BE IMPLEMENTED:
+
+    /**
+     * If defined, the (DTD) validator instance that should be used for
+     * validation, if no DOCTYPE declaration (or DTD override setting)
+     * exists for the document.
+     */
+    public final static String P_DEFAULT_DTD =  "com.ctc.wstx.defaultDTD";
+
+    /**
+     * If defined, the (DTD) validator instance that should always be used for
+     * validation, independent of any default DTD setting, or DOCTYPE
+     * declaration.
+     */
+    public final static String P_OVERRIDE_DTD =  "com.ctc.wstx.overrideDTD";
+
     /*
     ////////////////////////////////////////////////////////////////////
     // Helper classes, values enumerations

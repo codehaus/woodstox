@@ -52,6 +52,8 @@ public interface XMLStreamReader2
      * {@link #setFeature}, not all are: some features are read-only,
      * some write-only
      *
+     * @deprecated Should use {@link #getProperty} instead
+     *
      * @param name Name of the feature of which value to get
      *
      * @return Value of the feature (possibly null), if supported; null
@@ -69,10 +71,34 @@ public interface XMLStreamReader2
      * {@link #getFeature}, not all are: some features are read-only,
      * some write-only
      *
+     * @deprecated Should use {@link #setProperty} instead
+     *
      * @param name Name of the feature to set
      * @param value Value to set feature to.
      */
     public void setFeature(String name, Object value);
+
+    /**
+     * Method similar to {@link XMLInputFactory#isPropertySupported}, used
+     * to determine whether a property is supported by the Reader
+     * <b>instance</b>. This means that this method may return false
+     * for some properties that the input factory does support: specifically,
+     * it should only return true if the value is mutable on per-instance
+     * basis. False means that either the property is not recognized, or
+     * is not mutable via reader instance.
+     */
+    public boolean isPropertySupported(String name);
+
+    /**
+     * Method that can be used to set per-reader properties; a subset of
+     * properties one can set via matching {@link XMLInputFactory2}
+     * instance. Exactly which methods are mutable is implementation
+     * specific.
+     *
+     * @param name Name of the property to set
+     * @param value Value to set property to.
+     */
+    public void setProperty(String name, Object value);
 
     /*
     /////////////////////////////////

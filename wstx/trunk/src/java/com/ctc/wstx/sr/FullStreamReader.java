@@ -181,6 +181,17 @@ public class FullStreamReader
         }
     }
 
+    /*
+    public boolean isPropertySupported(String name)
+    {
+    }
+
+    public void setProperty(String name, Object value)
+    {
+        // !!! TBI
+    }
+    */
+
     /**
      * Actual method for setting override for DOCTYPE declaration override.
      */

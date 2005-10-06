@@ -1072,6 +1072,26 @@ public class WstxStreamReader
         throw new IllegalArgumentException("Unrecognized feature '"+name+"'");
     }
 
+    // NOTE: getProperty() defined in Stax 1.0 interface
+
+    public boolean isPropertySupported(String name) {
+        // !!! TBI: not all these properties are really supported
+        return mConfig.isPropertySupported(name);
+    }
+
+    public void setProperty(String name, Object value)
+    {
+        // !!! TBI
+
+        /* Note: can not call local method, since it'll return false for
+         * recognized but non-mutable properties
+         */
+        throw new IllegalArgumentException(mConfig.isPropertySupported(name)
+                                           ? "Can not set property '"+name+"' on per-instance basis"
+                                           : "Unrecognized property '"+name+"'");
+    }
+
+
     // // // StAX2, additional traversal methods
 
     public void skipElement() throws XMLStreamException
