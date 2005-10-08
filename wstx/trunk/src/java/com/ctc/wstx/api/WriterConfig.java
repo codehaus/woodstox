@@ -39,7 +39,8 @@ public final class WriterConfig
     // Escaping text content/attr values:
     final static int PROP_TEXT_ESCAPER = 5;
     final static int PROP_ATTR_VALUE_ESCAPER = 6;
-
+    // Problem checking/reporting options
+    final static int PROP_PROBLEM_REPORTER = 7;
 
     // // // And then custom Wstx properties:
 
@@ -53,7 +54,6 @@ public final class WriterConfig
     // Validation flags:
 
     // Let's not use this any more... no point:
-    //final static int PROP_VALIDATE_NS ;
     final static int PROP_VALIDATE_STRUCTURE = 15; 
     final static int PROP_VALIDATE_CONTENT = 16;
     final static int PROP_VALIDATE_ATTR = 17;
@@ -76,7 +76,6 @@ public final class WriterConfig
      * there are some performance hits when enabling them.
      */
 
-    //final static boolean DEFAULT_VALIDATE_NS = false;
     // Structural checks are easy, cheap and useful...
     final static boolean DEFAULT_VALIDATE_STRUCTURE = true;
     final static boolean DEFAULT_VALIDATE_CONTENT = false;
@@ -99,7 +98,6 @@ public final class WriterConfig
         | (DEFAULT_OUTPUT_CDATA_AS_TEXT ? CFG_OUTPUT_CDATA_AS_TEXT : 0)
         | (DEFAULT_COPY_DEFAULT_ATTRS ? CFG_COPY_DEFAULT_ATTRS : 0)
 
-        //| (DEFAULT_VALIDATE_NS ? CFG_VALIDATE_NS : 0)
         | (DEFAULT_VALIDATE_STRUCTURE ? CFG_VALIDATE_STRUCTURE : 0)
         | (DEFAULT_VALIDATE_CONTENT ? CFG_VALIDATE_CONTENT : 0)
         | (DEFAULT_VALIDATE_ATTR ? CFG_VALIDATE_ATTR : 0)
@@ -143,6 +141,9 @@ public final class WriterConfig
                         new Integer(PROP_TEXT_ESCAPER));
         sProperties.put(XMLOutputFactory2.P_ATTR_VALUE_ESCAPER,
                         new Integer(PROP_ATTR_VALUE_ESCAPER));
+        // Problem checking/reporting options
+        sProperties.put(XMLOutputFactory2.P_PROBLEM_REPORTER,
+                        new Integer(PROP_PROBLEM_REPORTER));
 
         // // Woodstox-specifics:
 
@@ -153,7 +154,6 @@ public final class WriterConfig
                         new Integer(PROP_COPY_DEFAULT_ATTRS));
 
         // Validation settings:
-        //sProperties.put(WstxOutputProperties.P_OUTPUT_VALIDATE_NS, new Integer(PROP_VALIDATE_NS));
         sProperties.put(WstxOutputProperties.P_OUTPUT_VALIDATE_STRUCTURE,
                         new Integer(PROP_VALIDATE_STRUCTURE));
         sProperties.put(WstxOutputProperties.P_OUTPUT_VALIDATE_CONTENT,
@@ -180,6 +180,8 @@ public final class WriterConfig
 
     protected EscapingWriterFactory mAttrValueEscaperFactory = null;
 
+    protected XMLReporter mProblemReporter = null;
+
     /*
     //////////////////////////////////////////////////////////
     // Life-cycle:
@@ -188,20 +190,22 @@ public final class WriterConfig
 
     private WriterConfig(boolean j2meSubset, int flags, String autoNsPrefix,
                          EscapingWriterFactory textEscaperF,
-                         EscapingWriterFactory attrValueEscaperF)
+                         EscapingWriterFactory attrValueEscaperF,
+                         XMLReporter problemReporter)
     {
         mIsJ2MESubset = j2meSubset;
         mConfigFlags = flags;
         mAutoNsPrefix = autoNsPrefix;
         mTextEscaperFactory = textEscaperF;
         mAttrValueEscaperFactory = attrValueEscaperF;
+        mProblemReporter = problemReporter;
     }
 
     public static WriterConfig createJ2MEDefaults()
     {
         WriterConfig rc = new WriterConfig
             (true, DEFAULT_FLAGS_J2ME, DEFAULT_AUTOMATIC_NS_PREFIX,
-             null, null);
+             null, null, null);
         return rc;
     }
 
@@ -209,7 +213,7 @@ public final class WriterConfig
     {
         WriterConfig rc = new WriterConfig
             (true, DEFAULT_FLAGS_FULL, DEFAULT_AUTOMATIC_NS_PREFIX,
-             null, null);
+             null, null, null);
         return rc;
     }
 
@@ -218,7 +222,8 @@ public final class WriterConfig
         WriterConfig rc = new WriterConfig(mIsJ2MESubset,
                                            mConfigFlags, mAutoNsPrefix,
                                            mTextEscaperFactory,
-                                           mAttrValueEscaperFactory);
+                                           mAttrValueEscaperFactory,
+                                           mProblemReporter);
         return rc;
     }
 
@@ -256,11 +261,6 @@ public final class WriterConfig
         case PROP_COPY_DEFAULT_ATTRS:
             return willCopyDefaultAttrs() ? Boolean.TRUE : Boolean.FALSE;
 
-            /*
-        case PROP_VALIDATE_NS:
-            return willValidateNamespaces() ? Boolean.TRUE : Boolean.FALSE;
-            */
-
         case PROP_VALIDATE_STRUCTURE:
             return willValidateStructure() ? Boolean.TRUE : Boolean.FALSE;
         case PROP_VALIDATE_CONTENT:
@@ -278,6 +278,8 @@ public final class WriterConfig
             return getTextEscaperFactory();
         case PROP_ATTR_VALUE_ESCAPER:
             return getAttrValueEscaperFactory();
+        case PROP_PROBLEM_REPORTER:
+            return getProblemReporter();
         }
 
         throw new Error("Internal error: no handler for property with internal id "+id+".");
@@ -310,12 +312,6 @@ public final class WriterConfig
             doCopyDefaultAttrs(ArgUtil.convertToBoolean(name, value));
             break;
 
-            /*
-        case PROP_VALIDATE_NS:
-            doValidateNamespaces(ArgUtil.convertToBoolean(name, value));
-            break;
-            */
-
         case PROP_VALIDATE_STRUCTURE:
             doValidateContent(ArgUtil.convertToBoolean(name, value));
             break;
@@ -344,6 +340,10 @@ public final class WriterConfig
 
         case PROP_ATTR_VALUE_ESCAPER:
             setAttrValueEscaperFactory((EscapingWriterFactory) value);
+            break;
+
+        case PROP_PROBLEM_REPORTER:
+            setProblemReporter((XMLReporter) value);
             break;
 
         default:
@@ -386,12 +386,6 @@ public final class WriterConfig
         return hasConfigFlag(CFG_COPY_DEFAULT_ATTRS);
     }
 
-    /*
-    public boolean willValidateNamespaces() {
-        return hasConfigFlag(CFG_VALIDATE_NS);
-    }
-    */
-
     public boolean willValidateStructure() {
         return hasConfigFlag(CFG_VALIDATE_STRUCTURE);
     }
@@ -429,6 +423,10 @@ public final class WriterConfig
         return mAttrValueEscaperFactory;
     }
 
+    public XMLReporter getProblemReporter() {
+        return mProblemReporter;
+    }
+
     // // // Mutators:
 
     // Standard properies:
@@ -454,12 +452,6 @@ public final class WriterConfig
     public void doCopyDefaultAttrs(boolean state) {
         setConfigFlag(CFG_COPY_DEFAULT_ATTRS, state);
     }
-
-    /*
-    public void doValidateNamespaces(boolean state) {
-        setConfigFlag(CFG_VALIDATE_NS, state);
-    }
-    */
 
     public void doValidateStructure(boolean state) {
         setConfigFlag(CFG_VALIDATE_STRUCTURE, state);
@@ -495,6 +487,10 @@ public final class WriterConfig
 
     public void setAttrValueEscaperFactory(EscapingWriterFactory f) {
         mAttrValueEscaperFactory = f;
+    }
+
+    public void setProblemReporter(XMLReporter rep) {
+        mProblemReporter = rep;
     }
 
     /*

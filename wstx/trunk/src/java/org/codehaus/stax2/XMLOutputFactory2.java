@@ -105,6 +105,15 @@ public abstract class XMLOutputFactory2
      */
     public final static String P_ATTR_VALUE_ESCAPER = "org.codehaus.stax2.attrValueEscaper";
 
+    // // Error checking/reporting options
+
+    /**
+     * Property that allows for definining a problem reporter (of type
+     * {@link javax.xml.stream.XMLReporter}), to be used by writers to
+     * report non-fatal problems.
+     */
+    public final static String P_PROBLEM_REPORTER = "org.codehaus.stax2.reporter";
+
 
     /*
     ////////////////////////////////////////////////////

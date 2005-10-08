@@ -376,15 +376,14 @@ public class WstxStreamReader
         mCfgCoalesceText = (mConfigFlags & CFG_COALESCE_TEXT) != 0;
         mCfgReportTextAsChars = (mConfigFlags & CFG_REPORT_ALL_TEXT_AS_CHARACTERS) != 0;
 
-	/* 30-Sep-2005, TSa: Let's not do lazy parsing when access is via
-	 *   Event API. Reason is that there will be no performance benefit
-	 *   (event objects always access full info right after traversal),
-	 *   but the wrapping of stream exceptions within runtime exception
-	 *   wrappers would happen, which is inconvenient (loss of stack trace,
-	 *   not catching all exceptions as expected)
-	 */
-	mCfgLazyParsing = !forER && ((mConfigFlags & CFG_LAZY_PARSING) != 0);
-
+        /* 30-Sep-2005, TSa: Let's not do lazy parsing when access is via
+         *   Event API. Reason is that there will be no performance benefit
+         *   (event objects always access full info right after traversal),
+         *   but the wrapping of stream exceptions within runtime exception
+         *   wrappers would happen, which is inconvenient (loss of stack trace,
+         *   not catching all exceptions as expected)
+         */
+        mCfgLazyParsing = !forER && ((mConfigFlags & CFG_LAZY_PARSING) != 0);
         mCfgInternNsURIs = (mConfigFlags & CFG_INTERN_NS_URIS) != 0;
 
         /* There are a few derived settings used during tokenization that
@@ -395,16 +394,16 @@ public class WstxStreamReader
             mShortestTextSegment = Integer.MAX_VALUE;
         } else {
             mStTextThreshold =  TOKEN_PARTIAL_SINGLE;
-	    if (forER) {
-		/* 30-Sep-2005, TSa: No point in returning runt segments for
-		 *   event readers (due to event object overhead, less
-		 *   convenient); let's just force returning of full length
-		 *   segments.
-		 */
-		mShortestTextSegment = Integer.MAX_VALUE;
-	    } else {
-		mShortestTextSegment = cfg.getShortestReportedTextSegment();
-	    }
+            if (forER) {
+                /* 30-Sep-2005, TSa: No point in returning runt segments for
+                 *   event readers (due to event object overhead, less
+                 *   convenient); let's just force returning of full length
+                 *   segments.
+                 */
+                mShortestTextSegment = Integer.MAX_VALUE;
+            } else {
+                mShortestTextSegment = cfg.getShortestReportedTextSegment();
+            }
         }
 
         mCustomEntities = cfg.getCustomInternalEntities();
@@ -428,7 +427,7 @@ public class WstxStreamReader
     public static WstxStreamReader createBasicStreamReader
         (BranchingReaderSource input, ReaderCreator owner, ReaderConfig cfg,
          InputBootstrapper bs, boolean forER)
-      throws IOException, XMLStreamException
+        throws IOException, XMLStreamException
     {
         WstxStreamReader sr = new WstxStreamReader(input, owner, cfg,
                                                    createElementStack(cfg), forER);
@@ -2082,6 +2081,8 @@ public class WstxStreamReader
              */
             throwParseError("Illegal to have multiple roots (start tag in epilog?).");
         }
+        // Need to push back the char, since it is the first char of elem name
+        --mInputPtr;
         return handleMultiDocStart(START_ELEMENT);
     }
 

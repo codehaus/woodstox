@@ -22,13 +22,18 @@ public class TestParsingMode
         ;
 
     final static String XML_MULTI_DOC =
-        "<?xml version='1.0'?><root>text</root><!--comment-->"
-        +"<?xml version='1.0'?><root>text</root><?proc instr>"
+        "<?xml version='1.0'?><root>text</root><!--comment-->\n"
+        +"<?xml version='1.0'?><root>text</root><?proc instr>\n"
+        +"<?xml version='1.0'?><root>text</root><!--comment-->"
+        +"<?xml version='1.0'?><root>text</root><!--comment-->"
         +"<?xml version='1.0'?><root>text</root><!--comment-->"
         ;
 
     final static String XML_FRAGMENT =
         "<branch>text</branch><branch>more</branch><!--comment-->"
+        ;
+    final static String XML_FRAGMENT2 =
+        "<branch />some text<!-- comment --><?proc instr?>   ";
         ;
 
     final static String XML_UNBALANCED =
@@ -46,12 +51,15 @@ public class TestParsingMode
         streamThroughFailing(getReader(XML_FRAGMENT,
                                        WstxInputProperties.PARSING_MODE_DOCUMENT),
                              "Expected an exception for fragment (non-single root) input, in single-document mode");
+        streamThroughFailing(getReader(XML_FRAGMENT2,
+                                       WstxInputProperties.PARSING_MODE_DOCUMENT),
+                             "Expected an exception for fragment (root-level text) input, in single-document mode");
         streamThroughFailing(getReader(XML_MULTI_DOC,
                                        WstxInputProperties.PARSING_MODE_DOCUMENT),
                              "Expected an exception for multi-document input, in single-document mode");
 
 
-        // But not the invalid one:
+        // As should the generally invalid ones:
         streamThroughFailing(getReader(XML_UNBALANCED,
                                        WstxInputProperties.PARSING_MODE_DOCUMENT),
                              "Expected an exception for unbalanced xml content");
@@ -74,6 +82,12 @@ public class TestParsingMode
                         "fragment input in multi-doc mode");
 
 
+        // Except for some fragment cases:
+        streamThroughFailing(getReader(XML_FRAGMENT2,
+                                       WstxInputProperties.PARSING_MODE_DOCUMENTS),
+                             "Expected an exception for fragments with root-level textual content");
+
+        // And broken one not
         streamThroughFailing(getReader(XML_UNBALANCED,
                                        WstxInputProperties.PARSING_MODE_DOCUMENTS),
                              "Expected an exception for unbalanced xml content");
@@ -82,8 +96,11 @@ public class TestParsingMode
     public void testFragmentMode()
         throws XMLStreamException
     {
-        // First the main valid case:
+        // First the main valid case2:
         streamThroughOk(getReader(XML_FRAGMENT,
+                                  WstxInputProperties.PARSING_MODE_FRAGMENT),
+                        "fragment input in fragment mode");
+        streamThroughOk(getReader(XML_FRAGMENT2,
                                   WstxInputProperties.PARSING_MODE_FRAGMENT),
                         "fragment input in fragment mode");
 
