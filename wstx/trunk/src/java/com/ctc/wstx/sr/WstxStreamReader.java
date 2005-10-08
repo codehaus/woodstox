@@ -90,7 +90,8 @@ public class WstxStreamReader
     final static int STATE_PROLOG = 0; // Before root element
     final static int STATE_TREE = 1; // Parsing actual XML tree
     final static int STATE_EPILOG = 2; // After root element has been closed
-    final static int STATE_CLOSED = 3; // After root element has been closed
+    final static int STATE_MULTIDOC_HACK = 3; // State "between" multiple documents (in multi-doc mode)
+    final static int STATE_CLOSED = 4; // After reader has been closed
 
     // // // Tokenization state consts:
 
@@ -253,6 +254,13 @@ public class WstxStreamReader
      * since that's the state it starts in.
      */
     protected int mCurrToken = START_DOCUMENT;
+
+    /**
+     * Additional information sometimes stored (when generating dummy
+     * events in multi-doc mode, for example) temporarily when
+     * {@link #mCurrToken} is already populated.
+     */
+    protected int mSecondaryToken = START_DOCUMENT;
     
     // // // Indicator of type of text in text event (WRT white space)
 
@@ -307,7 +315,7 @@ public class WstxStreamReader
     // note: mConfig defined in base class
 
     /**
-     * Various flags about tokenization state (TF_xxx)
+     * Set of locally stored configuration flags
      */
     protected final int mConfigFlags;
 
@@ -618,17 +626,17 @@ public class WstxStreamReader
         return mCurrToken;
     }
     
-    public String getLocalName() {
+    public String getLocalName()
+    {
         // Note: for this we need not (yet) finish reading element
-        if (mCurrToken == START_ELEMENT
-            || mCurrToken == END_ELEMENT) {
+        if (mCurrToken == START_ELEMENT || mCurrToken == END_ELEMENT) {
             return mElementStack.getLocalName();
         }
         if (mCurrToken == ENTITY_REFERENCE) {
-	    /* 30-Sep-2005, TSa: Entity will be null in non-expanding mode
-	     *   if no definition was found:
-	     */
-	    return (mCurrEntity == null) ? mCurrName: mCurrEntity.getName();
+            /* 30-Sep-2005, TSa: Entity will be null in non-expanding mode
+             *   if no definition was found:
+             */
+            return (mCurrEntity == null) ? mCurrName: mCurrEntity.getName();
         }
         throw new IllegalStateException("Current state not START_ELEMENT, END_ELEMENT or ENTITY_REFERENCE");
     }
@@ -647,9 +655,8 @@ public class WstxStreamReader
     public NamespaceContext getNamespaceContext() {
         /* Unlike other getNamespaceXxx methods, this is available
          * for all events.
-         * Note that although StAX specs do not require it, the context
-         * will actually remain valid throughout parsing, and does not
-         * get invalidated when next() is called. StAX compliant apps
+         * Note that the context is "live", ie. remains active (but not
+         * static) even through calls to next(). StAX compliant apps
          * should not count on this behaviour, however.         
          */
         return mElementStack;
@@ -670,11 +677,7 @@ public class WstxStreamReader
     }
 
     public String getNamespaceURI() {
-        /* 27-Jul-2004, TSa: As per Javadocs, should just return null
-         *    for wrong events, not throw an exception...
-         */
         if (mCurrToken != START_ELEMENT && mCurrToken != END_ELEMENT) {
-            //throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_ELEM);
             return null;
         }
         return mElementStack.getNsURI();
@@ -754,9 +757,6 @@ public class WstxStreamReader
         if (mCurrToken == DTD) {
             return getDTDInternalSubsetArray();
         }
-        /* Note: will be a newly allocated array, since contents would seldom
-         * if ever align completely within (and filling) the input buffer...
-         */
         return mTextBuffer.getTextBuffer();
     }
 
@@ -784,8 +784,8 @@ public class WstxStreamReader
             return len;
         }
         if (mCurrToken == DTD) {
-            /* !!! Note: not really optimal; could get the char array instead
-             *   of the String
+            /* Note: not really optimal; could get the char array instead
+             * of the String
              */
             String str = getDTDInternalSubset();
             if (str == null) {
@@ -838,7 +838,11 @@ public class WstxStreamReader
     }
 
     public boolean hasNext() {
-        return (mCurrToken != END_DOCUMENT);
+        /* 08-Oct-2005, TSa: In multi-doc mode, we have different
+         *   criteria...
+         */
+        return (mCurrToken != END_DOCUMENT)
+            || (mParseState == STATE_MULTIDOC_HACK);
     }
 
     public boolean hasText() {
@@ -985,7 +989,9 @@ public class WstxStreamReader
                 nextFromProlog(true);
             } else if (mParseState == STATE_EPILOG) {
                 nextFromProlog(false);
-            } else {
+            } else if (mParseState == STATE_MULTIDOC_HACK) {
+                mCurrToken = nextFromMultiDocState();
+            } else { // == STATE_CLOSED
                 return END_DOCUMENT;
             }
         } catch (IOException ie) {
@@ -1882,9 +1888,6 @@ public class WstxStreamReader
         /* At this point boot-strap code has read all the data we need...
          * we just have to get information from it.
          */
-        // 19-Oct-2004, TSa: These were mixed up:
-        //mDocInputEncoding = bs.getDeclaredEncoding();
-        //mDocCharEncoding = bs.getAppEncoding();
         mDocInputEncoding = bs.getAppEncoding();
         mDocCharEncoding = bs.getDeclaredEncoding();
 
@@ -1905,7 +1908,11 @@ public class WstxStreamReader
          * now initialize prolog parsing settings, without having to really
          * parse anything more.
          */
-        mParseState = STATE_PROLOG;
+        /* 07-Oct-2005, TSa: Except, if we are in fragment mode, in which
+         *   case we are kind of "in tree" mode...
+         */
+        mParseState = mConfig.inputParsingModeFragment() ?
+            STATE_TREE : STATE_PROLOG;
     }
 
     /**
@@ -1970,19 +1977,7 @@ public class WstxStreamReader
 
         // Did we hit EOF?
         if (i < 0) {
-            /* Let's give the factory a chance to update basic symbol table
-             * information now (if we got any new symbols) -- chances are,
-             * most documents have same names, and having them pre-allocated
-             * is more efficient than re-creating over and over again.
-             */
-            if (mSymbols.isDirty()) {
-                mOwner.updateSymbolTable(mSymbols);
-            }
-            mCurrToken = END_DOCUMENT;
-            // It's ok to get EOF from epilog but not from prolog
-            if (isProlog) {
-                throwUnexpectedEOF(SUFFIX_IN_PROLOG);
-            }
+            handleEOF(isProlog);
             return;
         }
 
@@ -1996,8 +1991,7 @@ public class WstxStreamReader
         char c = getNextChar(isProlog ? SUFFIX_IN_PROLOG : SUFFIX_IN_EPILOG);
 
         if (c == '?') { // proc. inst
-            mCurrToken = PROCESSING_INSTRUCTION;
-            readPIPrimary();
+            mCurrToken = readPIPrimary();
         } else  if (c == '!') { // DOCTYPE or comment (or CDATA, but not legal here)
             // Need to figure out bit more first...
             nextFromPrologBang(isProlog);
@@ -2009,28 +2003,13 @@ public class WstxStreamReader
         } else if (c == ':' || is11NameStartChar(c)) {
             // Root element, only allowed after prolog
             if (!isProlog) {
-                handleMultipleRoots(); // will check input parsing mode...
-                // only returns if that's ok...
+                /* This call will throw an exception if there's a problem;
+                 * otherwise set up everything properly
+                 */
+                mCurrToken = handleExtraRoot(c); // will check input parsing mode...
+                return;
             }
-            // Need to change state, first:
-            mParseState = STATE_TREE;
-            mElementStack.beforeRoot();
-            handleStartElem(c);
-            // Does name match with DOCTYPE declaration (if any)?
-            /* 21-Jul-2004, TSa: Only check this if we are supporting
-             *   DTDs (but not only if validating)
-             */
-            if (mRootLName != null) {
-                if (hasConfigFlags(CFG_SUPPORT_DTD)) {
-                    if (!mElementStack.matches(mRootPrefix, mRootLName)) {
-                        String str = (mRootPrefix == null) ? mRootLName
-                            : (mRootPrefix + ":" + mRootLName);
-                        throwParseError("Wrong root element <"
-                                        +mElementStack.getTopElementDesc()
-                                        +"> (expected <"+str+">)");
-                    }
-                }
-            }
+            handleRootElem(c);
             mCurrToken = START_ELEMENT;
         } else {
             throwUnexpectedChar(c, (isProlog ? SUFFIX_IN_PROLOG : SUFFIX_IN_EPILOG)
@@ -2043,24 +2022,130 @@ public class WstxStreamReader
         }
     }
 
+    protected void handleRootElem(char c)
+        throws IOException, XMLStreamException
+    {
+        mParseState = STATE_TREE;
+        mElementStack.beforeRoot();
+        handleStartElem(c);
+        // Does name match with DOCTYPE declaration (if any)?
+        /* 21-Jul-2004, TSa: Only check this if we are supporting
+         *   DTDs (but not only if validating)
+         */
+        if (mRootLName != null) {
+            if (hasConfigFlags(CFG_SUPPORT_DTD)) {
+                if (!mElementStack.matches(mRootPrefix, mRootLName)) {
+                    String str = (mRootPrefix == null) ? mRootLName
+                        : (mRootPrefix + ":" + mRootLName);
+                    throwParseError("Wrong root element <"
+                                    +mElementStack.getTopElementDesc()
+                                    +"> (expected <"+str+">)");
+                }
+            }
+        }
+    }
+
+    protected int handleEOF(boolean isProlog)
+        throws WstxException
+    {
+        /* Let's give the factory a chance to update basic symbol table
+         * information now (if we got any new symbols) -- chances are,
+         * most documents have same names, and having them pre-allocated
+         * is more efficient than re-creating over and over again.
+         */
+        if (mSymbols.isDirty()) {
+            mOwner.updateSymbolTable(mSymbols);
+        }
+        mCurrToken = END_DOCUMENT;
+        // It's ok to get EOF from epilog but not from prolog
+        if (isProlog) {
+            throwUnexpectedEOF(SUFFIX_IN_PROLOG);
+        }
+        return mCurrToken;
+    }
+
     /**
      * Method called if a root-level element is found after the main
      * root element was closed. This is legal in multi-doc parsing
      * mode (and in fragment mode), but not in the default single-doc
      * mode. 
+     *
+     * @return Token to return
      */
-    private void handleMultipleRoots()
+    private int handleExtraRoot(char c)
         throws WstxException
     {
-        if (mConfig.inputParsingModeDocuments()) {
-            // Multi-doc mode, fine...
-            return;
+        if (!mConfig.inputParsingModeDocuments()) {
+            /* Has to be single-doc mode, since fragment mode
+             * should never get here (since fragment mode never has epilog
+             * or prolog modes)
+             */
+            throwParseError("Illegal to have multiple roots (start tag in epilog?).");
         }
-        /* Otherwise it has to be single-doc mode, since fragment mode
-         * should never get here (since fragment mode never has epilog
-         * or prolog modes)
-         */
-        throwParseError("Illegal to have multiple roots (start tag in epilog?).");
+        return handleMultiDocStart(START_ELEMENT);
+    }
+
+    /**
+     * Method called when an event was encountered that indicates document
+     * boundary in multi-doc mode. Needs to trigger dummy
+     * END_DOCUMENT/START_DOCUMENT event combination, followed by the
+     * handling of the original event.
+     */
+    protected int handleMultiDocStart(int nextEvent)
+    {
+        mParseState = STATE_MULTIDOC_HACK;
+        mSecondaryToken = nextEvent;
+        return END_DOCUMENT;
+    }
+
+    /**
+     * Method called to get the next event when we are "multi-doc hack" mode,
+     * during which extra END_DOCUMENT/START_DOCUMENT events need to be
+     * returned.
+     */
+    private int nextFromMultiDocState()
+        throws IOException, XMLStreamException
+    {
+        if (mCurrToken == END_DOCUMENT) {
+            /* Ok; this is the initial step; need to advance: need to parse
+             * xml declaration if that was the cause, otherwise just clear
+             * up values.
+             */
+            if (mSecondaryToken == START_DOCUMENT) {
+                // !!! TBI: Parse xml declaration!!!
+                // For now: let's "skip" it...
+                readPI();
+                mDocCharEncoding = null;
+                mDocXmlVersion = null;
+                mDocStandalone = DOC_STANDALONE_UNKNOWN;
+            } else { // Nah, DOCTYPE or start element...
+                mDocCharEncoding = null;
+                mDocXmlVersion = null;
+                mDocStandalone = DOC_STANDALONE_UNKNOWN;
+            }
+            return START_DOCUMENT;
+        }
+        if (mCurrToken == START_DOCUMENT) {
+            mParseState = STATE_PROLOG; // yup, we are now officially in prolog again...
+
+            // Had an xml decl (ie. "real" START_DOCUMENT event)
+            if (mSecondaryToken == START_DOCUMENT) { // was a real xml decl
+                nextFromProlog(true);
+                return mCurrToken;
+            }
+            // Nah, start elem or DOCTYPE
+            if (mSecondaryToken == START_ELEMENT) {
+                handleRootElem(getNextChar(SUFFIX_IN_ELEMENT));
+                return START_ELEMENT;
+            }
+            if (mSecondaryToken == DTD) {
+                mStDoctypeFound = true;
+                startDTD();
+                return DTD;
+            }
+        }
+        throw new IllegalStateException("Internal error: unexpected state; current event "
+                                        +tokenTypeDesc(mCurrToken)+", sec. state: "+tokenTypeDesc(mSecondaryToken));
     }
 
     /**
@@ -2083,7 +2168,15 @@ public class WstxStreamReader
             }
             
             if (!isProlog) {
-                throwParseError(ErrorConsts.ERR_DTD_IN_EPILOG);
+                // Still possibly ok in multidoc mode...
+                if (mConfig.inputParsingModeDocuments()) {
+                    if (!mStDoctypeFound) {
+                        mCurrToken = handleMultiDocStart(DTD);
+                        return;
+                    }
+                } else {
+                    throwParseError(ErrorConsts.ERR_DTD_IN_EPILOG);
+                }
             }
             if (mStDoctypeFound) {
                 throwParseError(ErrorConsts.ERR_DTD_DUP);
@@ -2313,11 +2406,14 @@ public class WstxStreamReader
                 mVldContent = mElementStack.pop();
                 // ... which may be the root element?
                 if (mElementStack.isEmpty()) {
-                    // if so, we'll get to epilog
-                    mParseState = STATE_EPILOG;
-                    // this call will update the location too...
-                    nextFromProlog(false);
-                    return mCurrToken;
+                    // if so, we'll get to epilog, unless in fragment mode
+                    if (!mConfig.inputParsingModeFragment()) {
+                        mParseState = STATE_EPILOG;
+                        // this call will update the location too...
+                        nextFromProlog(false);
+                        return mCurrToken;
+                    }
+                    // in fragment mode, fine, we'll just continue
                 }
             } else if (mCurrToken == CDATA && mTokenState <= TOKEN_PARTIAL_SINGLE) {
                 /* Just returned a partial CDATA... that's ok, just need to
@@ -2379,7 +2475,15 @@ public class WstxStreamReader
         }
 
         if (i < 0) {
-            throwUnexpectedEOF("; was expecting a close tag.");
+            /* 07-Oct-2005, TSa: May be ok in fragment mode (not otherwise),
+             *   but we can just check if element stack has anything, as
+             *   handles all cases
+             */
+            if (!mElementStack.isEmpty()) {
+                throwUnexpectedEOF("; was expecting a close tag for element <"
+                                   +mElementStack.getTopElementDesc()+">");
+            }
+            return handleEOF(false);
         }
 
         /* 26-Aug-2004, TSa: We have to deal with entities, usually, if
@@ -2459,8 +2563,7 @@ public class WstxStreamReader
                 if (mVldContent == CONTENT_ALLOW_NONE) {
                     reportInvalidContent(PROCESSING_INSTRUCTION);
                 }
-                readPIPrimary();
-                return PROCESSING_INSTRUCTION;
+                return readPIPrimary();
             }
             
             if (c == '!') { // CDATA or comment
@@ -3477,8 +3580,12 @@ public class WstxStreamReader
     /**
      * Method that reads the primary part of a PI, ie. target, and also
      * skips white space between target and data (if any data)
+     *
+     * @return Usually <code>PROCESSING_INSTRUCTION</code>; but may be
+     *    different in multi-doc mode, if we actually hit a secondary
+     *    xml declaration.
      */
-    private void readPIPrimary()
+    private int readPIPrimary()
         throws IOException, XMLStreamException
     {
         // Ok, first we need the name:
@@ -3497,8 +3604,17 @@ public class WstxStreamReader
                 if (c == 'm' || c == 'M') {
                     c = target.charAt(2);
                     if (c == 'l' || c == 'L') {
-                        throwParseError("Illegal processing instruction target ('"
-                                        +target+"'); 'xml' (case insensitive) is reserved by the specs.");
+                        // 07-Oct-2005, TSa: Still legal in multi-doc mode...
+                        if (!mConfig.inputParsingModeDocuments() || !"xml".equals(target)){
+                            throwParseError("Illegal processing instruction target ('"
+                                            +target+"'); 'xml' (case insensitive) is reserved by the specs.");
+                        }
+                        // Ok, let's just verify we get space then
+                        c = getNextCharFromCurrent(SUFFIX_IN_XML_DECL);
+                        if (!isSpaceChar(c)) {
+                            throwUnexpectedChar(c, "excepted a space in xml declaration after 'xml'");
+                        }
+                        return handleMultiDocStart(START_DOCUMENT);
                     }
                 }
             }
@@ -3522,6 +3638,8 @@ public class WstxStreamReader
                 throwUnexpectedChar(c, "excepted '>' (as part of \"?>\") after PI target");
             }
         }
+
+        return PROCESSING_INSTRUCTION;
     }
 
     /**
@@ -4128,8 +4246,17 @@ public class WstxStreamReader
         int outPtr = mTextBuffer.getCurrentSegmentSize();
 
         while (true) {
-            char c = (mInputPtr < mInputLen) ?
-                mInputBuffer[mInputPtr++] : getNextChar(SUFFIX_IN_TEXT);
+            if (mInputPtr >= mInputLen) {
+                /* 07-Oct-2005, TSa: Let's not throw an exception for EOF from
+                 *   here -- in fragment mode, it shouldn't be thrown, and in
+                 *   other modes we might as well first return text, and only
+                 *   then throw an exception: no need to do that yet.
+                 */
+                if (!loadMore()) {
+                    break;
+                }
+            }
+            char c = mInputBuffer[mInputPtr++];
 
             // Most common case is we don't have special char, thus:
             if (c < CHAR_FIRST_PURE_TEXT) {
@@ -4137,8 +4264,7 @@ public class WstxStreamReader
                     markLF();
                 } else if (c == '<') { // end is nigh!
                     --mInputPtr;
-                    mTextBuffer.setCurrentLength(outPtr);
-                    return true;
+                    break;
                 } else if (c == '\r') {
                     if (skipCRLF(c)) { // got 2 char LF
                         if (!mCfgNormalizeLFs) {
@@ -4175,8 +4301,7 @@ public class WstxStreamReader
                         if (c == CHAR_NULL) { // some other entity...
                             // can't expand, so:
                             --mInputPtr; // push back ampersand
-                            mTextBuffer.setCurrentLength(outPtr);
-                            return true;
+                            break;
                         }
                         // .. otherwise we got char we needed
                     }
@@ -4221,6 +4346,8 @@ public class WstxStreamReader
                 outPtr = 0;
             }
         }
+        mTextBuffer.setCurrentLength(outPtr);
+        return true;
     }
 
     /**
@@ -4299,6 +4426,9 @@ public class WstxStreamReader
     /**
      * This is very similar to readSecondaryText(); called when we need
      * to read in rest of (ignorable) white space segment.
+     *
+     * @param prologWS True if the ignorable white space is within prolog
+     *   (or epilog); false if it's within xml tree.
      */
     private void readSpaceSecondary(boolean prologWS)
         throws IOException, XMLStreamException
@@ -4312,10 +4442,11 @@ public class WstxStreamReader
 
         while (true) {
             if (mInputPtr >= mInputLen) {
+                /* 07-Oct-2005, TSa: Let's not throw an exception in any
+                 *   case -- can return SPACE, and let exception be thrown
+                 *   when trying to fetch next event.
+                 */
                 if (!loadMore()) {
-                    if (!prologWS) {
-                        throwUnexpectedEOF(SUFFIX_IN_TEXT);
-                    }
                     break;
                 }
             }

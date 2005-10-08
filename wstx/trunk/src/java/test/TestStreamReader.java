@@ -45,9 +45,7 @@ public class TestStreamReader
         f.setProperty(XMLInputFactory.IS_VALIDATING, Boolean.TRUE);
 
         f.setProperty(XMLInputFactory.REPORTER, new TestReporter());
-
         f.setProperty(XMLInputFactory.RESOLVER, new TestResolver1());
-
         if (f.isPropertySupported(XMLInputFactory2.P_REPORT_PROLOG_WHITESPACE)) {
             f.setProperty(XMLInputFactory2.P_REPORT_PROLOG_WHITESPACE,
                           Boolean.FALSE
@@ -93,6 +91,11 @@ public class TestStreamReader
                           new Integer(17));
         }
         */
+
+        f.setProperty(WstxInputProperties.P_INPUT_PARSING_MODE,
+                      //WstxInputProperties.PARSING_MODE_FRAGMENT
+                      WstxInputProperties.PARSING_MODE_DOCUMENTS
+                      );
 
         // To test windows linefeeds:
         /*
