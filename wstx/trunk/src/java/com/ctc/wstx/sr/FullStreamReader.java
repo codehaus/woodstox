@@ -226,7 +226,8 @@ public class FullStreamReader
         }
 
         // Ok, no usable cached subset found, need to (try to) read it:
-        WstxInputSource src = DefaultInputResolver.sourceFrom(mInput, null, value, mReporter);
+        WstxInputSource src = DefaultInputResolver.sourceFrom(mInput, null, value,
+                                                              mConfig.getXMLReporter());
         return mConfig.getDtdReader().readExternalSubset(this, src, mConfig, null);
     }
 
@@ -416,7 +417,7 @@ public class FullStreamReader
              */
             src = DefaultInputResolver.resolveEntity
                 (mInput, null, pubId, sysId, mConfig.getDtdResolver(),
-                 mReporter);
+                 mConfig.getXMLReporter());
         } catch (FileNotFoundException fex) {
             /* Let's catch and rethrow this just so we get more meaningful
              * description (with input source position etc)

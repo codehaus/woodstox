@@ -186,11 +186,6 @@ public abstract class StreamScanner
     // // // Various extracted settings:
 
     /**
-     * Object through which non-fatal problems should be reported.
-     */
-    protected final XMLReporter mReporter;
-
-    /**
      * If true, Reader is namespace aware, and should do basic checks
      * (usually enforcing limitations on having colons in names)
      */
@@ -318,7 +313,6 @@ public abstract class StreamScanner
         mRootInput = input;
 
         mConfig = cfg;
-        mReporter = cfg.getXMLReporter();
         mSymbols = cfg.getSymbols();
         int cf = cfg.getConfigFlags();
         mCfgNsEnabled = (cf & CFG_NAMESPACE_AWARE) != 0;
@@ -424,22 +418,19 @@ public abstract class StreamScanner
 
     public void reportProblem(String probType, String msg)
     {
-        if (mReporter != null) {
-            doReportProblem(probType, msg, null);
-        }
+        doReportProblem(mConfig.getXMLReporter(), probType, msg, null);
     }
 
     public void reportProblem(String probType, String msg, Location loc)
     {
-        if (mReporter != null) {
-            doReportProblem(probType, msg, loc);
-        }
+        doReportProblem(mConfig.getXMLReporter(), probType, msg, loc);
     }
 
     public void reportProblem(String probType, String format, Object arg)
     {
-        if (mReporter != null) {
-            doReportProblem(probType,
+        XMLReporter rep = mConfig.getXMLReporter();
+        if (rep != null) {
+            doReportProblem(rep, probType,
                             MessageFormat.format(format, new Object[] { arg }),
                             null);
         }
@@ -448,8 +439,9 @@ public abstract class StreamScanner
     public void reportProblem(String probType, String format, Object arg,
                               Object arg2)
     {
-        if (mReporter != null) {
-            doReportProblem(probType,
+        XMLReporter rep = mConfig.getXMLReporter();
+        if (rep != null) {
+            doReportProblem(rep, probType,
                             MessageFormat.format(format, new Object[] { arg, arg2 }),
                             null);
         }
@@ -458,23 +450,27 @@ public abstract class StreamScanner
     public void reportProblem(String probType, String format, Object arg,
                               Object arg2, Location loc)
     {
-        if (mReporter != null) {
-            doReportProblem(probType,
+        XMLReporter rep = mConfig.getXMLReporter();
+        if (rep != null) {
+            doReportProblem(rep, probType,
                             MessageFormat.format(format, new Object[] { arg, arg2 }),
                             loc);
         }
     }
 
-    private final void doReportProblem(String probType, String msg,
-                                       Location loc)
+    protected final void doReportProblem(XMLReporter rep, String probType,
+                                         String msg, Location loc)
     {
-        if (loc == null) {
-            loc = getLastCharLocation();
-        }
-        try {
-            mReporter.report(msg, probType, null, loc);
-        } catch (XMLStreamException e) {
-            System.err.println("Problem reporting a problem: "+e);
+        if (rep != null) {
+            if (loc == null) {
+                loc = getLastCharLocation();
+            }
+            try {
+                rep.report(msg, probType, null, loc);
+            } catch (XMLStreamException e) {
+                // Hmmh. Weird that a reporter is allowed to do this...
+                System.err.println("Problem reporting a problem: "+e);
+            }
         }
     }
 
@@ -1466,7 +1462,8 @@ public abstract class StreamScanner
         oldInput.saveContext(this);
         WstxInputSource newInput = null;
         try {
-            newInput = ed.expand(oldInput, mEntityResolver, mReporter);
+            newInput = ed.expand(oldInput, mEntityResolver,
+                                 mConfig.getXMLReporter());
         } catch (FileNotFoundException fex) {
             /* Let's catch and rethrow this just so we get more meaningful
              * description (with input source position etc)
@@ -1497,7 +1494,7 @@ public abstract class StreamScanner
             oldInput.saveContext(this);
             // null, null -> no public or system ids
             WstxInputSource newInput = DefaultInputResolver.resolveEntityUsing
-                (oldInput, id, null, null, resolver, mReporter);
+                (oldInput, id, null, null, resolver, mConfig.getXMLReporter());
             if (newInput != null) {
                 // Not 100% sure if recursion check is needed... but let's be safe?
                 if (newInput.hasRecursion()) {

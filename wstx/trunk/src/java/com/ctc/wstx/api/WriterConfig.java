@@ -285,7 +285,11 @@ public final class WriterConfig
         throw new Error("Internal error: no handler for property with internal id "+id+".");
     }
 
-    public void setProperty(String name, Object value)
+    /**
+     * @return True, if the specified property was <b>succesfully</b>
+     *    set to specified value; false if its value was not changed
+     */
+    public boolean setProperty(String name, Object value)
     {
         int id = getPropertyId(name);
 
@@ -349,6 +353,8 @@ public final class WriterConfig
         default:
             throw new Error("Internal error: no handler for property with internal id "+id+".");
         }
+
+        return true;
     }
 
     /*

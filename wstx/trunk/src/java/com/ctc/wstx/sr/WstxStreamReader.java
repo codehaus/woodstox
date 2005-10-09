@@ -1083,18 +1083,20 @@ public class WstxStreamReader
         return mConfig.isPropertySupported(name);
     }
 
-    public void setProperty(String name, Object value)
+    /**
+     * @param name Name of the property to set
+     * @param value Value to set property to.
+     *
+     * @return True, if the specified property was <b>succesfully</b>
+     *    set to specified value; false if its value was not changed
+     */
+    public boolean setProperty(String name, Object value)
     {
-        // !!! TBI
-
         /* Note: can not call local method, since it'll return false for
          * recognized but non-mutable properties
          */
-        throw new IllegalArgumentException(mConfig.isPropertySupported(name)
-                                           ? "Can not set property '"+name+"' on per-instance basis"
-                                           : "Unrecognized property '"+name+"'");
+        return mConfig.setProperty(name, value);
     }
-
 
     // // // StAX2, additional traversal methods
 

@@ -657,15 +657,26 @@ public abstract class BaseStreamWriter
     ////////////////////////////////////////////////////
      */
 
-    public Object getFeature(String name)
-    {
-        // !!! TBI
-        return null;
+    // NOTE: getProperty() defined in Stax 1.0 interface
+
+    public boolean isPropertySupported(String name) {
+        // !!! TBI: not all these properties are really supported
+        return mConfig.isPropertySupported(name);
     }
 
-    public void setFeature(String name, Object value)
+    /**
+     * @param name Name of the property to set
+     * @param value Value to set property to.
+     *
+     * @return True, if the specified property was <b>succesfully</b>
+     *    set to specified value; false if its value was not changed
+     */
+    public boolean setProperty(String name, Object value)
     {
-        // !!! TBI
+        /* Note: can not call local method, since it'll return false for
+         * recognized but non-mutable properties
+         */
+        return mConfig.setProperty(name, value);
     }
 
     public void writeCData(char[] c, int start, int len)

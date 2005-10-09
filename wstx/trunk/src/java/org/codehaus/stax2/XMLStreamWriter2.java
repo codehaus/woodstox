@@ -21,18 +21,32 @@ public interface XMLStreamWriter2
     */
 
     /**
-     * @param name Name of the feature of which value to get
-     *
-     * @return Value of the feature (possibly null), if supported; null
-     *     otherwise
+     * Method similar to {@link XMLOutputFactory#isPropertySupported}, used
+     * to determine whether a property is supported by the Writer
+     * <b>instance</b>. This means that this method may return false
+     * for some properties that the output factory does support: specifically,
+     * it should only return true if the value is mutable on per-instance
+     * basis. False means that either the property is not recognized, or
+     * is not mutable via writer instance.
      */
-    public Object getFeature(String name);
+    public boolean isPropertySupported(String name);
 
     /**
-     * @param name Name of the feature to set
-     * @param value Value to set feature to.
+     * Method that can be used to set per-writer properties; a subset of
+     * properties one can set via matching {@link XMLOutputFactory2}
+     * instance. Exactly which methods are mutable is implementation
+     * specific.
+     *
+     * @param name Name of the property to set
+     * @param value Value to set property to.
+     *
+     * @return True, if the specified property was <b>succesfully</b>
+     *    set to specified value; false if its value was not changed
+     *
+     * @throw InvalidArgumentException if the property is not supported
+     *   (or recognized) by the stream writer implementation
      */
-    public void setFeature(String name, Object value);
+    public boolean setProperty(String name, Object value);
 
     /*
     //////////////////////////////////////////

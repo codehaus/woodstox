@@ -2015,7 +2015,8 @@ public class FullDTDReader
         Object old;
         if (m.size() > 0 && (old = m.get(id)) != null) {
             // Application may want to know about the problem...
-            if (mReporter != null) {
+            XMLReporter rep = mConfig.getXMLReporter();
+            if (rep != null) {
                 EntityDecl oldED = (EntityDecl) old;
                 String str = " entity '"+id+"' defined more than once: first declaration at "
                     + oldED.getLocation();
@@ -2025,7 +2026,7 @@ public class FullDTDReader
                     str = "General" + str;
                 }
                 try { // Doh.... this is silly.. but shouldn't really happen:
-                    mReporter.report(str, ErrorConsts.WT_ENT_DECL, oldED, evtLoc);
+                    rep.report(str, ErrorConsts.WT_ENT_DECL, oldED, evtLoc);
                 } catch (XMLStreamException strex) {
                     throwFromStrE(strex);
                 }
@@ -2301,9 +2302,10 @@ public class FullDTDReader
                                               defVal, enumValues);
         if (attr == null) {
             // anyone interested in knowing about possible problem?
-            if (mReporter != null) {
+            XMLReporter rep = mConfig.getXMLReporter();
+            if (rep != null) {
                 try { // Doh.... this is silly.. but shouldn't really happen:
-                    mReporter.report("Attribute '"+attrName+"' already declared for element <"+elem+">; ignoring re-declaration", ErrorConsts.WT_ATTR_DECL, elem, loc);
+                    rep.report("Attribute '"+attrName+"' already declared for element <"+elem+">; ignoring re-declaration", ErrorConsts.WT_ATTR_DECL, elem, loc);
                 } catch (XMLStreamException strex) {
                     throwFromStrE(strex);
                 }

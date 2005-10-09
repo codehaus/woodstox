@@ -97,8 +97,14 @@ public interface XMLStreamReader2
      *
      * @param name Name of the property to set
      * @param value Value to set property to.
+     *
+     * @return True, if the specified property was <b>succesfully</b>
+     *    set to specified value; false if its value was not changed
+     *
+     * @throw InvalidArgumentException if the property is not supported
+     *   (or recognized) by the stream reader implementation
      */
-    public void setProperty(String name, Object value);
+    public boolean setProperty(String name, Object value);
 
     /*
     /////////////////////////////////

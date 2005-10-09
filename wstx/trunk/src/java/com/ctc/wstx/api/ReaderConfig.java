@@ -380,9 +380,13 @@ public final class ReaderConfig
         return b;
     }
 
-    public void setProperty(String propName, Object value)
+    /**
+     * @return True, if the specified property was <b>succesfully</b>
+     *    set to specified value; false if its value was not changed
+     */
+    public boolean setProperty(String propName, Object value)
     {
-        setProperty(propName, getPropertyId(propName), value);
+        return setProperty(propName, getPropertyId(propName), value);
     }
  
     /*
@@ -1016,7 +1020,7 @@ public final class ReaderConfig
         }
     }
 
-    public void setProperty(String propName, int id, Object value)
+    public boolean setProperty(String propName, int id, Object value)
     {
         /* Properties NOT supported here:
              PROP_EVENT_ALLOCATOR
@@ -1138,5 +1142,7 @@ public final class ReaderConfig
         default: // sanity check, should never happen
             throw new Error("Internal error: no handler for property with internal id "+id+".");
         }
+
+        return true;
     }
 }
