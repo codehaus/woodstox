@@ -16,7 +16,7 @@ import com.ctc.wstx.util.StringUtil;
  * and then reader-based bootstrapper is used).
  *<p
  * Encoding used for an entity (including
- * main document entity) is detrmined using algorithms suggested in
+ * main document entity) is determined using algorithms suggested in
  * XML 1.0#3 spec, appendix F
  */
 public final class StreamBootstrapper
@@ -374,11 +374,11 @@ public final class StreamBootstrapper
             } else if (s.startsWith("16")) {
                 if (s.length() == 2) {
                     // BOM is obligatory, to know the ordering
-		    /* 22-Mar-2005, TSa: Actually, since we don't have a
-		     *   custom decoder, so the underlying JDK Reader may
-		     *   have dealt with it transparently... so we can not
-		     *   really throw an exception here.
-		     */
+                    /* 22-Mar-2005, TSa: Actually, since we don't have a
+                     *   custom decoder, so the underlying JDK Reader may
+                     *   have dealt with it transparently... so we can not
+                     *   really throw an exception here.
+                     */
                     if (!mHadBOM) {
                         //reportMissingBOM(enc);
                     }
@@ -545,11 +545,19 @@ public final class StreamBootstrapper
 
             if (mb) {
                 c = nextMultiByte();
+                if (c ==  CHAR_CR || c == CHAR_LF) {
+                    skipMbLF(c);
+                    c = CHAR_LF;
+                }
             } else {
                 byte b = (mInputPtr < mInputLen) ?
                     mByteBuffer[mInputPtr++] : nextByte();
                 if (b == BYTE_NULL) {
                     reportNull();
+                }
+                if (b == BYTE_CR || b == BYTE_LF) {
+                    skipSbLF(b);
+                    b = BYTE_LF;
                 }
                 c = (b & 0xFF);
             }
@@ -810,7 +818,7 @@ public final class StreamBootstrapper
         int len = expected.length();
         
         for (int ptr = 1; ptr < len; ++ptr) {
-	    int c = nextMultiByte();
+            int c = nextMultiByte();
             if (c == BYTE_NULL) {
                 reportNull();
             }

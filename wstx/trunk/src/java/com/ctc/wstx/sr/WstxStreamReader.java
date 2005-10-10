@@ -73,6 +73,11 @@ public class WstxStreamReader
     extends StreamScanner
     implements StreamReaderImpl, DTDInfo, LocationInfo
 {
+    // These should be moved to some const file?
+    final static String XML_DECL_VERSION = "version";
+    final static String XML_DECL_STANDALONE = "standalone";
+    final static String XML_DECL_ENCODING = "encoding";
+
     /**
      * StAX API expects null to indicate "no prefix", not an empty String...
      */
@@ -1494,7 +1499,7 @@ public class WstxStreamReader
 
     /*
     ////////////////////////////////////////////////////
-    // Internal methods, parsing help methods
+    // Internal methods, parsing helper methods
     ////////////////////////////////////////////////////
      */
 
@@ -1567,40 +1572,6 @@ public class WstxStreamReader
             throwUnexpectedChar(c, "excepted '[' after '<![CDATA'");
         }
         // Cool, that's it!
-    }
-
-    /**
-     * Method that checks that input following is of form
-     * '[S]* '=' [S]*' (as per XML specs, production #25).
-     * Will push back non-white space characters as necessary, in
-     * case no equals char is encountered.
-     */
-    protected boolean checkEquals(String errorMsg)
-        throws IOException, XMLStreamException
-    {
-        char c = (mInputPtr < mInputLen) ?
-            mInputBuffer[mInputPtr++] : getNextCharFromCurrent(errorMsg);
-
-        if (c <= CHAR_SPACE) { // leading WS
-            int i = getNextAfterWS();
-            if (i < 0) { // No EOF allowed
-                return false;
-            }
-            if (i != '=') {
-                // Need to push it back
-                --mInputPtr;
-                return false;
-            }
-        } else { // no leading WS
-            if (c != '=') {
-                --mInputPtr;
-                return false;
-            }
-        }
-
-        // trailing space?
-        skipWS();
-        return true;
     }
 
     /**
@@ -2115,13 +2086,8 @@ public class WstxStreamReader
              * up values.
              */
             if (mSecondaryToken == START_DOCUMENT) {
-                // !!! TBI: Parse xml declaration!!!
-                // For now: let's "skip" it...
-                readPI();
-                mDocCharEncoding = null;
-                mDocXmlVersion = null;
-                mDocStandalone = DOC_STANDALONE_UNKNOWN;
-            } else { // Nah, DOCTYPE or start element...
+                handleMultiDocXmlDecl();
+            } else { // Nah, DOCTYPE or start element... just need to clear decl info:
                 mDocCharEncoding = null;
                 mDocXmlVersion = null;
                 mDocStandalone = DOC_STANDALONE_UNKNOWN;
@@ -2149,6 +2115,99 @@ public class WstxStreamReader
         }
         throw new IllegalStateException("Internal error: unexpected state; current event "
                                         +tokenTypeDesc(mCurrToken)+", sec. state: "+tokenTypeDesc(mSecondaryToken));
+    }
+
+    protected void handleMultiDocXmlDecl()
+        throws IOException, XMLStreamException
+    {
+        // Let's default these first
+        mDocStandalone = DOC_STANDALONE_UNKNOWN;
+        mDocCharEncoding = null;
+
+        char c = getNextInCurrAfterWS(SUFFIX_IN_XML_DECL);
+        String wrong = checkKeyword(c, XML_DECL_VERSION);
+        if (wrong != null) {
+            throwParseError(ErrorConsts.ERR_UNEXP_KEYWORD, wrong, XML_DECL_VERSION);
+        }
+        c = skipEquals(XML_DECL_VERSION, SUFFIX_IN_XML_DECL);
+        mDocXmlVersion = parseQuoted(XML_DECL_VERSION, c);
+
+        if (!mDocXmlVersion.equals("1.0")
+            && !mDocXmlVersion.equals("1.0")) {
+            throwParseError("Unexpected xml version '"+mDocXmlVersion+"'; expected '1.0' or '1.1'");
+        }
+
+        c = getNextInCurrAfterWS(eofMsg);
+
+        if (c != '?') { // '?' signals end...
+            if (c == 'e') { // encoding
+                wrong = checkKeyword(c, XML_DECL_ENCODING);
+                if (wrong != null) {
+                    throwParseError(ErrorConsts.ERR_UNEXP_KEYWORD, wrong, XML_DECL_ENCODING);
+                }
+                c = skipEquals(XML_DECL_ENCODING, SUFFIX_IN_XML_DECL);
+                mDocCharEncoding = parseQuoted(XML_DECL_ENCODING, c);
+                // Should this be verified?
+                c = getNextInCurrAfterWS(eofMsg);
+            } else if (c != 's') {
+                throwUnexpectedChar(c, " in xml declaration; expected either 'encoding' or 'standalone' pseudo-attribute");
+            }
+
+            // Standalone?
+            if (c == 's') {
+                wrong = checkKeyword(c, XML_DECL_STANDALONE);
+                if (wrong != null) {
+                    throwParseError(ErrorConsts.ERR_UNEXP_KEYWORD, wrong, XML_DECL_STANDALONE);
+                }
+                c = skipEquals(XML_DECL_STANDALONE, SUFFIX_IN_XML_DECL);
+                String value = parseQuoted(XML_DECL_STANDALONE, c);
+                if ("yes".equals(value)) {
+                    mDocStandalone = DOC_STANDALONE_YES;
+                } else if ("no".equals(value)) {
+                    mDocStandalone = DOC_STANDALONE_NO;
+                } else {
+                    throwParseError("Unexpected xml standalone pseudo-attribute value '"+mDocXmlVersion+"'; expected 'yes' or 'no'");
+                }
+            }
+            c = getNextInCurrAfterWS(eofMsg);
+        }
+
+        if (c != '?') {
+            throwUnexpectedChar(c, " in xml declaration; expected '?>' as the end marker");
+        }
+        c = getNextInCurr(eofMsg);
+        if (c != '>') {
+            throwUnexpectedChar(c, " in xml declaration; expected '>' to close the declaration");
+        }
+    }
+
+    /**
+     * Method that checks that input following is of form
+     * '[S]* '=' [S]*' (as per XML specs, production #25).
+     * Will push back non-white space characters as necessary, in
+     * case no equals char is encountered.
+     */
+    protected final char skipEquals(String name, String eofMsg)
+        throws IOException, XMLStreamException
+    {
+        char c = getNextInCurrAfterWS(eofMsg);
+        if (c != '=') {
+            throwUnexpectedChar(c, " in xml declaration; expected '=' to follow pseudo-attribute '"+name+"'");
+        }
+        // trailing space?
+        return getNextInCurrAfterWS(eofMsg);
+    }
+
+    protected final String parseQuoted(String name, char quoteChar)
+        throws IOException, XMLStreamException
+    {
+        if (quoteChar != '"' && quoteChar != '\'') {
+            throwUnexpectedChar(quoteChar, " in xml declaration; waited ' or \" to start a value for pseudo-attribute '"+name+"'");
+            // !!!
+        }
+
+        // !!! TBI
+        return null;
     }
 
     /**
@@ -2297,7 +2356,7 @@ public class WstxStreamReader
                     throwUnexpectedChar(c, SUFFIX_IN_DTD+"; expected keywords 'PUBLIC' or 'SYSTEM'.");
                 } else {
                     --mInputPtr;
-              keyw = checkKeyword(c, "SYSTEM"); // keyword passed in doesn't matter
+                    keyw = checkKeyword(c, "SYSTEM"); // keyword passed in doesn't matter
                 }
             }
             

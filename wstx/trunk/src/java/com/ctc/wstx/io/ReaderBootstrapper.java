@@ -336,7 +336,9 @@ public final class ReaderBootstrapper
         while (i < len) {
             char c = (mInputPtr < mInputLen) ?
                 mCharBuffer[mInputPtr++] : nextChar();
-            if (c == CHAR_NULL) {
+            if (c == CHAR_CR || c == CHAR_LF) {
+                skipCRLF(c);
+            } else if (c == CHAR_NULL) {
                 reportNull();
             }
             if (c == quoteChar) {

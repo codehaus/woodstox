@@ -113,9 +113,9 @@ public abstract class InputBootstrapper
      * Need a short buffer to read in values of pseudo-attributes (version,
      * encoding, standalone). Don't really need tons of space; just enough
      * for the longest anticipated encoding id... and maybe few chars just
-     * in case
+     * in case (for additional white space that we ignore)
      */
-    final char[] mKeyword = new char[32];
+    final char[] mKeyword = new char[60];
 
     /*
     ////////////////////////////////////////
@@ -280,11 +280,11 @@ public abstract class InputBootstrapper
         c = handleEq(KW_ENC);
 
         // Let's request 'normalization', upper-casing and some substitutions
-	/* 22-Mar-2005, TSa: No, better not do modifications, since we do
-	 *   need to be able to return the original String via API. We
-	 *   can do loose comparison/substitutions when checking their
-	 *   validity.
-	 */
+        /* 22-Mar-2005, TSa: No, better not do modifications, since we do
+         *   need to be able to return the original String via API. We
+         *   can do loose comparison/substitutions when checking their
+         *   validity.
+         */
         //int len = readQuotedValue(mKeyword, c, true);
         int len = readQuotedValue(mKeyword, c, false);
 

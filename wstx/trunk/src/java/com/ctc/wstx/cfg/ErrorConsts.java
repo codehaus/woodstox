@@ -32,7 +32,6 @@ public class ErrorConsts
 
     public static String ERR_INTERNAL = "Internal error";
 
-
     // // // Wrong reader state:
 
     public static String ERR_STATE_NOT_STELEM = "Current state not START_ELEMENT";
@@ -48,6 +47,10 @@ public class ErrorConsts
 
     public static String ERR_HYPHENS_IN_COMMENT = "String '--' not allowed in comment (missing '>'?)";
     public static String ERR_BRACKET_IN_TEXT = "String ']]>' not allowed in textual content, except as the end marker of CDATA section";
+
+    // // // Generic parsing errors:
+
+    public static String ERR_UNEXP_KEYWORD = "Unexpected keyword '{0}'; expected '{1}'";
 
     // // // Namespace problems:
 
