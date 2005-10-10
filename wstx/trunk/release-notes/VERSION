@@ -7,26 +7,45 @@ Description:
 
   Problems fixed:
 
+  New functionality:
+
+  * [WSTX-6] Added new alternate input parsing modes ("fragment mode",
+    "multi-document mode"; existing one calle "single-document mode"):
+    these allow for parsing document fragments (which miss containing
+    root/parent elements), and parsing streams that have more than one
+    complete document.
+
   Improvements:
 
-  * [WSTX-4] It is possible to define a specific handler for undeclared
-    entities; this handler will get called in entity-replacing mode, and
-    if it returns a valid expansion, no exception will be thrown.
-  * [WSTX-5] Undeclared entities (missing DTD, or dtd-handling disabled) do
-    not throw an exception in the non-entity-replacing mode any more. Calling
-    app can figure out whether the entity reference refers to a declared entity
-    by checking if expansion value is null (via Cursor API), or if the entity
-    reference does not refer to a declaration (via Event API, a null
-    declarationn object returned),
-  * [WSTX-11] Event readers are now always constructed lazy parsing disabled
-     (no performance gain from lazy parsing; more accurate error reporting
-    when it is disabled), and with min. segment size set to maximum (ie.
-    text/cdata segments are never split).
-  * [WSTX-12] It is now ok for a document to not have a DOCTYPE declaration
-    in validating mode: if so, validation will essentially be skipped, and
-    a warning is sent via XMLReport interface (if any). Note that this does
-    not apply to empty DOCTYPE declaration (empty internal subset), just to
-    one completely missing.
+  * Configuration:
+     * [WSTX-13] Added setProperty() in reader/writer instances, to allow for
+       overriding some settings on per-instance basis (not just on per-factory
+       basis).
+  * Stream/Event readers:
+     * [WSTX-11] Event readers are now always constructed lazy parsing disabled
+       (no performance gain from lazy parsing; more accurate error reporting
+       when it is disabled), and with min. segment size set to maximum (ie.
+       text/cdata segments are never split).
+  * Stream/Event writers:
+     * [WSTX-16] Added P_PROBLEM_REPORT property for writers, to allow for
+       notification mechanisms for non-fatal (or potential) problems using
+       standard mechanism.
+  * Entity handling:
+     * [WSTX-4] It is possible to define a specific handler for undeclared
+       entities; this handler will get called in entity-replacing mode, and
+       if it returns a valid expansion, no exception will be thrown.
+     * [WSTX-5] Undeclared entities (missing DTD, or dtd-handling disabled) do
+       not throw an exception in the non-entity-replacing mode any more.
+       Calling app can figure out whether the entity reference refers to
+       a declared entity by checking if expansion value is null (via
+       Cursor API), or if the entity reference does not refer to a
+       declaration (via Event API, a null declarationn object returned).
+  * Validation:
+     * [WSTX-12] It is now ok for a document to not have a DOCTYPE declaration
+       in validating mode: if so, validation will essentially be skipped, and
+       a warning is sent via XMLReport interface (if any). Note that this does
+       not apply to empty DOCTYPE declaration (empty internal subset), just to
+       one completely missing.
 
 == History: ==
 
