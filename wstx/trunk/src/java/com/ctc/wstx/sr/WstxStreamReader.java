@@ -2137,7 +2137,7 @@ public class WstxStreamReader
             throwParseError("Unexpected xml version '"+mDocXmlVersion+"'; expected '1.0' or '1.1'");
         }
 
-        c = getNextInCurrAfterWS(eofMsg);
+        c = getNextInCurrAfterWS(SUFFIX_IN_XML_DECL);
 
         if (c != '?') { // '?' signals end...
             if (c == 'e') { // encoding
@@ -2148,7 +2148,7 @@ public class WstxStreamReader
                 c = skipEquals(XML_DECL_ENCODING, SUFFIX_IN_XML_DECL);
                 mDocCharEncoding = parseQuoted(XML_DECL_ENCODING, c);
                 // Should this be verified?
-                c = getNextInCurrAfterWS(eofMsg);
+                c = getNextInCurrAfterWS(SUFFIX_IN_XML_DECL);
             } else if (c != 's') {
                 throwUnexpectedChar(c, " in xml declaration; expected either 'encoding' or 'standalone' pseudo-attribute");
             }
@@ -2169,13 +2169,13 @@ public class WstxStreamReader
                     throwParseError("Unexpected xml standalone pseudo-attribute value '"+mDocXmlVersion+"'; expected 'yes' or 'no'");
                 }
             }
-            c = getNextInCurrAfterWS(eofMsg);
+            c = getNextInCurrAfterWS(SUFFIX_IN_XML_DECL);
         }
 
         if (c != '?') {
             throwUnexpectedChar(c, " in xml declaration; expected '?>' as the end marker");
         }
-        c = getNextInCurr(eofMsg);
+        c = getNextCharFromCurrent(SUFFIX_IN_XML_DECL);
         if (c != '>') {
             throwUnexpectedChar(c, " in xml declaration; expected '>' to close the declaration");
         }
