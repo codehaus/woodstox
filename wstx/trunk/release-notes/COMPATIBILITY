@@ -6,6 +6,8 @@
   now Boolean.TRUE (instead of Boolean.FALSE), to mimic behaviour
   of the StAX reference implementation, and to keep output in pass-through
   configurations more similar to input.
+* Handling of undeclared entities changed so that no exception is thrown
+  in non-expanding mode; this is similar to the way ref. impl. works.
 
 === Event reader ===
 

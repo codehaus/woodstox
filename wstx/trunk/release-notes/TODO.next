@@ -1,20 +1,21 @@
 == Immediate plans ==
 
-1. Add property DOCUMENT_MODE; DM_SINGLE_DOCUMENT (default),
-  DM_DOCUMENT_FRAGMENT, DM_MULTIPLE_DOCUMENTS
-
-2.(a) Add setProperty() to reader/writer instances
+1.(a) Add setProperty() to reader/writer instances
   (b) Add separate "override dtd" and "default dtd" entries to
   reader config
+
+2. Finish configuration documents at http://woodstxo.codehaus.org; need
+   to have complete coverage of all config options available for 3.0.
+
 3. Improve output character encoding: characters below 32 (except for
-  tab, cr and lf) should always be encoded as entities. This also allows
-  for barfing on null chars, should someone try to output them.
+   tab, cr and lf) should always be encoded as entities. This also allows
+   for barfing on null chars, should someone try to output them?
 
-4. Implement native SAX interface(s).
-
-5. Optimized reader for UTF-8, which will initially assume US-Ascii contents;
+4. Optimized reader for UTF-8, which will initially assume US-Ascii contents;
   thus allowing for tighter initial decode loop (will then transfer to
   full version upon encountering first non-ascii char)
+
+5. Implement native SAX interface(s).
 
 6. Refactor validator API, to:
   (a) Connect Multi-Schema Validator using its native API.

@@ -250,8 +250,10 @@ public class TestStreamReader
                     System.out.println(sr.isAttributeSpecified(i) ?
                                        "[specified]" : "[Default]");
                 }
-            }
-            if (hasName) {
+	    } else if (type == START_DOCUMENT) { // only for multi-doc mode
+		System.out.print("XML-DECL: version = '"+sr.getVersion()+"', enc = '"+sr.getCharacterEncodingScheme()+"', stand-alone set: "+sr.standaloneSet());
+	    }
+	    if (hasName) {
                 System.out.print(" Name: '"+sr.getName()+"' (prefix <"
                                    +sr.getPrefix()+">)");
             }

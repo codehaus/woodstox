@@ -327,13 +327,13 @@ public final class ReaderBootstrapper
         return CHAR_NULL;
     }
 
-    protected int readQuotedValue(char[] kw, int quoteChar, boolean norm)
+    protected int readQuotedValue(char[] kw, int quoteChar)
         throws IOException, WstxException
     {
         int i = 0;
         int len = kw.length;
 
-        while (i < len) {
+        while (true) {
             char c = (mInputPtr < mInputLen) ?
                 mCharBuffer[mInputPtr++] : nextChar();
             if (c == CHAR_CR || c == CHAR_LF) {
@@ -342,27 +342,13 @@ public final class ReaderBootstrapper
                 reportNull();
             }
             if (c == quoteChar) {
-                return i;
+                return (i < len) ? i : -1;
             }
-
-            /* Normalization used for encodings; for some reason encoding
-             * names are all upper-case...
-             */
-            if (norm) {
-                if (c <= CHAR_SPACE || c == '_') {
-                    c = '-';
-                } else {
-                    c = Character.toUpperCase(c);
-                }
-            }
-
-            kw[i++] = c;
-        }
-
-        /* If we end up this far, we ran out of buffer space... let's let
-         * caller figure that out, though
-         */
-        return -1;
+	    // Let's just truncate longer values, but match quote
+	    if (i < len) {
+		kw[i++] = c;
+	    }
+	}
     }
 
     protected Location getLocation()

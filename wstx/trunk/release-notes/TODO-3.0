@@ -3,7 +3,6 @@ Planned stuff for 3.0 (or later)
 ------------------------------------
 
 * Bugs / incomplete handling:
-  * Input reader creation: 
   * Should not fail on quoted ]]>... Does not, any more, but now
     catching ]]>s in textual content is only 98% reliable (won't match
     ones that are split by input buffer boundary).
@@ -12,11 +11,11 @@ Planned stuff for 3.0 (or later)
       This is done by Xerces; not sure if namespace specs dictate this?
 
 * Functionality that didn't quite make it to 2.0:
-   * Fragment parsing/writing:
-      * Allow for reading and writing of XML document fragments; essentially
+[DONE] * Fragment parsing/writing: allow for reading and writing of XML
+        document fragments; essentially
        suppressing checks for single-root, and assuming that the outermost
        element(s) are not document root nodes (meaning also that DTD is not
-       allowed to be output)
+       allowed to be output). Similarly, allow multi-doc input.
 
 * Refactoring:
    * Clean up DTD abstraction, make it public (at least partially);

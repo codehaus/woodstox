@@ -533,7 +533,7 @@ public final class StreamBootstrapper
         return checkSbKeyword(exp);
     }
 
-    protected int readQuotedValue(char[] kw, int quoteChar, boolean norm)
+    protected int readQuotedValue(char[] kw, int quoteChar)
         throws IOException, WstxException
     {
         int i = 0;
@@ -563,22 +563,12 @@ public final class StreamBootstrapper
             }
 
             if (c == quoteChar) {
-                return i;
+                return (i < len) ? i : -1;
             }
 
-            /* Normalization used for encodings; for some reason encoding
-             * names are all upper-case...
-             */
-            char d = (char) c;
-            if (norm) {
-                if (d <= CHAR_SPACE || d == '_') {
-                    d = '-';
-                } else {
-                    d = Character.toUpperCase(d);
-                }
-            }
-
-            kw[i++] = d;
+	    if (i < len) {
+		kw[i++] = (char) c;
+	    }
         }
 
         /* If we end up this far, we ran out of buffer space... let's let

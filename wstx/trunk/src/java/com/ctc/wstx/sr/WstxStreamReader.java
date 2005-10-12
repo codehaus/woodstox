@@ -2130,11 +2130,17 @@ public class WstxStreamReader
             throwParseError(ErrorConsts.ERR_UNEXP_KEYWORD, wrong, XML_DECL_VERSION);
         }
         c = skipEquals(XML_DECL_VERSION, SUFFIX_IN_XML_DECL);
-        mDocXmlVersion = parseQuoted(XML_DECL_VERSION, c);
+	TextBuffer tb = mTextBuffer;
+	tb.resetInitialized();
+	parseQuoted(XML_DECL_VERSION, c, tb);
 
-        if (!mDocXmlVersion.equals("1.0")
-            && !mDocXmlVersion.equals("1.0")) {
-            throwParseError("Unexpected xml version '"+mDocXmlVersion+"'; expected '1.0' or '1.1'");
+	if (tb.equalsString("1.0")) {
+	    mDocXmlVersion = "1.0";
+	} else if (tb.equalsString("1.1")) {
+	    mDocXmlVersion = "1.1";
+	} else {
+	    mDocXmlVersion = null;
+            throwParseError("Unexpected xml version '"+tb.toString()+"'; expected '1.0' or '1.1'");
         }
 
         c = getNextInCurrAfterWS(SUFFIX_IN_XML_DECL);
@@ -2146,8 +2152,13 @@ public class WstxStreamReader
                     throwParseError(ErrorConsts.ERR_UNEXP_KEYWORD, wrong, XML_DECL_ENCODING);
                 }
                 c = skipEquals(XML_DECL_ENCODING, SUFFIX_IN_XML_DECL);
-                mDocCharEncoding = parseQuoted(XML_DECL_ENCODING, c);
-                // Should this be verified?
+		tb.resetWithEmpty();
+                parseQuoted(XML_DECL_ENCODING, c, tb);
+		mDocCharEncoding = tb.toString();
+		/* should we verify encoding at this point? let's not, for now;
+		 * since it's for information only, first declaration from
+		 * bootstrapper is used for the whole stream.
+		 */
                 c = getNextInCurrAfterWS(SUFFIX_IN_XML_DECL);
             } else if (c != 's') {
                 throwUnexpectedChar(c, " in xml declaration; expected either 'encoding' or 'standalone' pseudo-attribute");
@@ -2160,13 +2171,14 @@ public class WstxStreamReader
                     throwParseError(ErrorConsts.ERR_UNEXP_KEYWORD, wrong, XML_DECL_STANDALONE);
                 }
                 c = skipEquals(XML_DECL_STANDALONE, SUFFIX_IN_XML_DECL);
-                String value = parseQuoted(XML_DECL_STANDALONE, c);
-                if ("yes".equals(value)) {
+		tb.resetWithEmpty();
+                parseQuoted(XML_DECL_STANDALONE, c, tb);
+		if (tb.equalsString("yes")) {
                     mDocStandalone = DOC_STANDALONE_YES;
-                } else if ("no".equals(value)) {
+		} else if (tb.equalsString("no")) {
                     mDocStandalone = DOC_STANDALONE_NO;
                 } else {
-                    throwParseError("Unexpected xml standalone pseudo-attribute value '"+mDocXmlVersion+"'; expected 'yes' or 'no'");
+                    throwParseError("Unexpected xml standalone pseudo-attribute value '"+tb.toString()+"'; expected 'yes' or 'no'");
                 }
             }
             c = getNextInCurrAfterWS(SUFFIX_IN_XML_DECL);
@@ -2198,16 +2210,45 @@ public class WstxStreamReader
         return getNextInCurrAfterWS(eofMsg);
     }
 
-    protected final String parseQuoted(String name, char quoteChar)
+    /**
+     * Method called to parse quoted xml declaration pseudo-attribute values.
+     * Works similar to attribute value parsing, except no entities can be
+     * included, and in general need not be as picky (since caller is to
+     * verify contents). One exception is that we do check for linefeeds
+     * and lt chars, since they generally would indicate problems and
+     * are useful to catch early on (can happen if a quote is missed etc)
+     *<p>
+     * Note: since it'll be called at most 3 times per document, this method
+     * is not optimized too much.
+     */
+    protected final void parseQuoted(String name, char quoteChar, TextBuffer tbuf)
         throws IOException, XMLStreamException
     {
         if (quoteChar != '"' && quoteChar != '\'') {
             throwUnexpectedChar(quoteChar, " in xml declaration; waited ' or \" to start a value for pseudo-attribute '"+name+"'");
-            // !!!
         }
+        char[] outBuf = tbuf.getCurrentSegment();
+        int outPtr = 0;
 
-        // !!! TBI
-        return null;
+	while (true) {
+            char c = (mInputPtr < mInputLen) ? mInputBuffer[mInputPtr++]
+                : getNextChar(SUFFIX_IN_XML_DECL);
+
+	    if (c == quoteChar) {
+		break;
+	    }
+	    if (c == '\n' || c == '\r' || c == '<') {
+		throwUnexpectedChar(c, SUFFIX_IN_XML_DECL);
+	    } else if (c == CHAR_NULL) {
+		throwNullChar();
+	    }
+            if (outPtr >= outBuf.length) {
+                outBuf = tbuf.finishCurrentSegment();
+                outPtr = 0;
+            }
+	    outBuf[outPtr++] = c;
+	}
+        tbuf.setCurrentLength(outPtr);
     }
 
     /**

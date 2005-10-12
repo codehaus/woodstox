@@ -729,7 +729,7 @@ public abstract class StreamScanner
     protected final char getNextInCurrAfterWS(String errorMsg, char c)
         throws IOException, WstxException
     {
-        do {
+	while (c <= CHAR_SPACE) {
             // Linefeed?
             if (c == '\n' || c == '\r') {
                 skipCRLF(c);
@@ -742,8 +742,7 @@ public abstract class StreamScanner
                 loadMoreFromCurrent(errorMsg);
             }
             c = mInputBuffer[mInputPtr++];
-        } while (c <= CHAR_SPACE);
-
+	}
         return c;
     }
     

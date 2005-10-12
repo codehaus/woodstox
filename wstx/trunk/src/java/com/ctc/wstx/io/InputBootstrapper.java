@@ -241,7 +241,7 @@ public abstract class InputBootstrapper
             reportUnexpectedChar(c, ERR_XMLDECL_KW_VERSION);
         }
         c = handleEq(KW_VERS);
-        int len = readQuotedValue(mKeyword, c, false);
+        int len = readQuotedValue(mKeyword, c);
 
         if (len == 3) {
             if (mKeyword[0] == '1' && mKeyword[1] == '.') {
@@ -279,14 +279,7 @@ public abstract class InputBootstrapper
         }
         c = handleEq(KW_ENC);
 
-        // Let's request 'normalization', upper-casing and some substitutions
-        /* 22-Mar-2005, TSa: No, better not do modifications, since we do
-         *   need to be able to return the original String via API. We
-         *   can do loose comparison/substitutions when checking their
-         *   validity.
-         */
-        //int len = readQuotedValue(mKeyword, c, true);
-        int len = readQuotedValue(mKeyword, c, false);
+        int len = readQuotedValue(mKeyword, c);
 
         /* Hmmh. How about "too long" encodings? Maybe just truncate them,
          * for now?
@@ -296,7 +289,7 @@ public abstract class InputBootstrapper
                                            getLocation());
         }
 
-        if (len < 0) {
+        if (len < 0) { // will be truncated...
             return new String(mKeyword);
         }
         return new String(mKeyword, 0, len);
@@ -310,7 +303,7 @@ public abstract class InputBootstrapper
             reportUnexpectedChar(c, ERR_XMLDECL_KW_STANDALONE);
         }
         c = handleEq(KW_SA);
-        int len = readQuotedValue(mKeyword, c, false);
+        int len = readQuotedValue(mKeyword, c);
 
         if (len == 2) {
             if (mKeyword[0] == 'n' && mKeyword[1] == 'o') {
@@ -396,7 +389,7 @@ public abstract class InputBootstrapper
     protected abstract int checkKeyword(String exp)
         throws IOException, WstxException;
 
-    protected abstract int readQuotedValue(char[] kw, int quoteChar, boolean norm)
+    protected abstract int readQuotedValue(char[] kw, int quoteChar)
         throws IOException, WstxException;
 
     protected abstract Location getLocation();

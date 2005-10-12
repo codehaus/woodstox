@@ -511,6 +511,53 @@ public final class TextBuffer
         return true;
     }
 
+    /**
+     * Note: it is assumed that this method is not used often enough to
+     * be a bottleneck, or for long segments. Based on this, it is optimized
+     * for common simple cases where there is only one single character
+     * segment to use; fallback for other cases is to create such segment.
+     */
+    public boolean equalsString(String str)
+    {
+	int expLen = str.length();
+
+	// First the easy check; if we have a shared buf:
+	if (mInputStart >= 0) {
+	    if (mInputLen != expLen) {
+		return false;
+	    }
+	    for (int i = 0; i < expLen; ++i) {
+		if (str.charAt(i) != mInputBuffer[mInputStart+i]) {
+		    return false;
+		}
+	    }
+	    return true;
+	}
+
+	// Otherwise, segments:
+	if (expLen != size()) {
+	    return false;
+	}
+	char[] seg;
+	if (mSegments == null || mSegments.size() == 0) {
+	    // just one segment, still easy
+	    seg = mCurrentSegment;
+	} else {
+	    /* Ok; this is the sub-optimal case. Could obviously juggle through
+	     * segments, but probably not worth the hassle, we seldom if ever
+	     * get here...
+	     */
+	    seg = contentsAsArray();
+	}
+
+	for (int i = 0; i < expLen; ++i) {
+	    if (seg[i] != str.charAt(i)) {
+		return false;
+	    }
+	}
+	return true;
+    }
+
     /*
     //////////////////////////////////////////////
     // Public mutators:

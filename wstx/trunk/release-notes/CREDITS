@@ -125,4 +125,4 @@ Kevin Vargo:
 Heinz Drews:
   * Reported [WSTX-10] (handling of 3-byte UTF-8 Byte Order Marker did
     not work properly when XMLStreamReader was constructed for a Reader)
-
+    [2.0.3/2.7]

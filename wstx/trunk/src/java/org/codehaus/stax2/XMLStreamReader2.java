@@ -79,7 +79,7 @@ public interface XMLStreamReader2
     public void setFeature(String name, Object value);
 
     /**
-     * Method similar to {@link XMLInputFactory#isPropertySupported}, used
+     * Method similar to {@link javax.xml.stream.XMLInputFactory#isPropertySupported}, used
      * to determine whether a property is supported by the Reader
      * <b>instance</b>. This means that this method may return false
      * for some properties that the input factory does support: specifically,
@@ -101,7 +101,7 @@ public interface XMLStreamReader2
      * @return True, if the specified property was <b>succesfully</b>
      *    set to specified value; false if its value was not changed
      *
-     * @throw InvalidArgumentException if the property is not supported
+     * @throws InvalidArgumentException if the property is not supported
      *   (or recognized) by the stream reader implementation
      */
     public boolean setProperty(String name, Object value);

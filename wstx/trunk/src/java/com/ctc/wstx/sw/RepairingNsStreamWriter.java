@@ -26,6 +26,7 @@ import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
 import javax.xml.stream.Location;
 import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLReporter;
 import javax.xml.stream.XMLStreamWriter;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.Attribute;
@@ -50,6 +51,11 @@ import com.ctc.wstx.util.DefaultXmlSymbolTable;
 public class RepairingNsStreamWriter
     extends BaseNsStreamWriter
 {
+    // // These are bit masks used for ensuring only one of each problem
+    // // type is reported via a single stream writer instance
+
+    final static int PROB_NS_WRITE = 0x0001;
+
     /*
     ////////////////////////////////////////////////////
     // Configuration (options, features)
@@ -83,6 +89,8 @@ public class RepairingNsStreamWriter
      * prefix.
      */
     HashMap mSuggestedPrefixes = null;
+
+    int mReportedProblems = 0;
 
     /*
     ////////////////////////////////////////////////////
@@ -143,18 +151,23 @@ public class RepairingNsStreamWriter
          *   (b) Ignore the call
          *   (c) Check potential validity; ignore if it matched a declaration,
          *     throw an exception if it didn't.
-         *
-         *  For now, let's do (b) or (c), depending on whether we are to do
-         * more thorough namespace output verification
          */
         // ... still, shouldn't get called in the wrong time, ever:
         if (!mStartElementOpen) {
             throw new IllegalStateException(ERR_NSDECL_WRONG_STATE);
         }
-
-        // ... Ok, should we verify something?
-
-        //throwOutputError("Should not call writeNamespace() for namespace-repairing writers");
+	/* 11-Oct-2005, TSa: How about we report the problem instead? But
+	 *   only once per instance.
+	 */
+	if (!hasReportedProblem(PROB_NS_WRITE)) {
+	    XMLReporter rep = mConfig.getProblemReporter();
+	    if (rep != null) {
+		rep.report("writeDefaultNamespace('"+nsURI+"') called in repairing mode, ignored",
+			   ErrorConsts.WT_NS_DECL,
+			   nsURI,
+			   null); // null -> no location
+	    }
+	}
     }
 
     //public void writeEmptyElement(String localName) throws XMLStreamException
@@ -169,9 +182,15 @@ public class RepairingNsStreamWriter
             throw new IllegalStateException(ERR_NSDECL_WRONG_STATE);
         }
 
-        // Ok... should we try to do some validation?
-
-        //throwOutputError("Should not call writeNamespace() for namespace-repairing writers");
+	if (!hasReportedProblem(PROB_NS_WRITE)) {
+	    XMLReporter rep = mConfig.getProblemReporter();
+	    if (rep != null) {
+		rep.report("writeNamespace('"+nsURI+"') called in repairing mode, ignored",
+			   ErrorConsts.WT_NS_DECL,
+			   nsURI,
+			   null); // null -> no location
+	    }
+	}
     }
 
     /*
@@ -544,6 +563,19 @@ public class RepairingNsStreamWriter
          * caller can then (try to) bind the preferred prefix:
          */
         return null;
+    }
+
+    /**
+     * Helper method used for ensuring that each type of a problem is only
+     * reported once per instance.
+     */
+    private boolean hasReportedProblem(int problem)
+    {
+	if ((mReportedProblems & PROB_NS_WRITE) != 0) {
+	    mReportedProblems |= PROB_NS_WRITE;
+	    return true;
+	}
+	return false;
     }
 }
 

@@ -24,6 +24,8 @@ public class ErrorConsts
     public static String WT_XML_DECL = "xml declaration";
     public static String WT_DT_DECL = "doctype declaration";
 
+    public static String WT_NS_DECL = "namespace declaration";
+
     public static String W_UNDEFINED_ELEM = "Undefined element \"{0}\"; referred to by attribute(s)";
     public static String W_MIXED_ENCODINGS = "Inconsistent text encoding; declared as \"{0}\" in xml declaration, application had passed \"{1}\"";
     public static String W_MISSING_DTD = "Missing DOCTYPE declaration in validating mode; can not validate elements or attributes";
@@ -50,7 +52,7 @@ public class ErrorConsts
 
     // // // Generic parsing errors:
 
-    public static String ERR_UNEXP_KEYWORD = "Unexpected keyword '{0}'; expected '{1}'";
+    public static String ERR_UNEXP_KEYWORD = "Unexpected keyword \"{0}\"; expected \"{1}\"";
 
     // // // Namespace problems:
 
