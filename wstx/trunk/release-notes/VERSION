@@ -1,6 +1,6 @@
-Version: 2.8
+Version: 2.8.1
 
-Release date: 11-Oct-2005
+Release date: xx-Oct-2005
 
 Description:
   Continuing development for 3.0 release; added all remaining features
@@ -9,6 +9,10 @@ Description:
   connecting external validators) and other new features.
 
   Problems fixed:
+
+== History: ==
+
+2.8 [11-Oct-2005]
 
   New functionality:
 
@@ -49,8 +53,6 @@ Description:
        a warning is sent via XMLReport interface (if any). Note that this does
        not apply to empty DOCTYPE declaration (empty internal subset), just to
        one completely missing.
-
-== History: ==
 
 2.5 - 2.7 [19-Jul-2005 - 29-Sep-2005]
 
