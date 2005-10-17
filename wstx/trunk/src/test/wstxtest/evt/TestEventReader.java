@@ -34,82 +34,82 @@ public class TestEventReader
     extends wstxtest.BaseWstxTest
 {
     public void testEventReaderNonLaziness()
-	throws XMLStreamException
+        throws XMLStreamException
     {
-	/* We can test this by forcing coalescing to happen, and injecting
-	 * an intentional error after first two segments. In lazy mode,
-	 * coalescing is done not when event type is fetched, but only
-	 * when getText() is called. In non-lazy mode, it's thrown right
-	 * from next() method. Although the exact mechanism is hidden by
-	 * the Event API, what we do see is the type of exception we get --
-	 * that should be XMLStreamException, NOT a runtime wrapper instead
-	 * of it.
-	 */
-	final String XML =
-	    "<root>Some text and &amp; <![CDATA[also cdata]]> &error;</root>"
-	    ;
-	XMLEventReader er = getReader(XML, true);
-	XMLEvent evt = er.nextEvent(); // start document
-	assertTrue(evt.isStartDocument());
-	assertTrue(er.nextEvent().isStartElement());
+        /* We can test this by forcing coalescing to happen, and injecting
+         * an intentional error after first two segments. In lazy mode,
+         * coalescing is done not when event type is fetched, but only
+         * when getText() is called. In non-lazy mode, it's thrown right
+         * from next() method. Although the exact mechanism is hidden by
+         * the Event API, what we do see is the type of exception we get --
+         * that should be XMLStreamException, NOT a runtime wrapper instead
+         * of it.
+         */
+        final String XML =
+            "<root>Some text and &amp; <![CDATA[also cdata]]> &error;</root>"
+            ;
+        XMLEventReader er = getReader(XML, true);
+        XMLEvent evt = er.nextEvent(); // start document
+        assertTrue(evt.isStartDocument());
+        assertTrue(er.nextEvent().isStartElement());
 
-	// Ok, and now...
-	try {
-	    evt = er.nextEvent();
-	    // should NOT get this far...
-	    fail("Expected an exception for invalid content: coalescing not workig?");
-	} catch (WstxParsingException wex) {
-	    // This is correct... parsing exc for entity, hopefully
-	    //System.err.println("GOOD: got "+wex.getClass()+": "+wex);
-	} catch (WstxException wex2) {
-	    // Unexpected... not a catastrophe, but not right
-	    fail("Should have gotten a non-lazy parsing exception; got non-lazy other wstx exception (why?): "+wex2);
-	} catch (WstxLazyException lex) {
-	    // Not good...
-	    fail("Should not get a lazy exception via (default) event reader; received: "+lex);
-	} catch (Throwable t) {
-	    fail("Unexpected excpetion caught: "+t);
-	}
+        // Ok, and now...
+        try {
+            evt = er.nextEvent();
+            // should NOT get this far...
+            fail("Expected an exception for invalid content: coalescing not workig?");
+        } catch (WstxParsingException wex) {
+            // This is correct... parsing exc for entity, hopefully
+            //System.err.println("GOOD: got "+wex.getClass()+": "+wex);
+        } catch (WstxException wex2) {
+            // Unexpected... not a catastrophe, but not right
+            fail("Should have gotten a non-lazy parsing exception; got non-lazy other wstx exception (why?): "+wex2);
+        } catch (WstxLazyException lex) {
+            // Not good...
+            fail("Should not get a lazy exception via (default) event reader; received: "+lex);
+        } catch (Throwable t) {
+            fail("Unexpected excpetion caught: "+t);
+        }
     }
 
     public void testEventReaderLongSegments()
-	throws XMLStreamException
+        throws XMLStreamException
     {
-	/* Ok. And here we should just check that we do not get 2 adjacent
-	 * separate Characters event. We can try to trigger this by long
-	 * segment and a set of char entities...
-	 */
-	final String XML =
-	    "<root>Some text and &amp; also &quot;quoted&quot; stuff..."
-	    +" not sure If we\r\nreally need anything much more but"
-	    +" let's still make this longer"
-	    +"</root>";
-	;
+        /* Ok. And here we should just check that we do not get 2 adjacent
+         * separate Characters event. We can try to trigger this by long
+         * segment and a set of char entities...
+         */
+        final String XML =
+            "<root>Some text and &amp; also &quot;quoted&quot; stuff..."
+            +" not sure If we\r\nreally need anything much more but"
+            +" let's still make this longer"
+            +"</root>";
+        ;
 	
-	// Need to disable coalescing though for test to work:
-	XMLEventReader er = getReader(XML, false);
-	XMLEvent evt = er.nextEvent(); // start document
-	assertTrue(evt.isStartDocument());
-	assertTrue(er.nextEvent().isStartElement());
-	assertTrue(er.nextEvent().isCharacters());
+        // Need to disable coalescing though for test to work:
+        XMLEventReader er = getReader(XML, false);
+        XMLEvent evt = er.nextEvent(); // start document
+        assertTrue(evt.isStartDocument());
+        assertTrue(er.nextEvent().isStartElement());
+        assertTrue(er.nextEvent().isCharacters());
 
-	evt = er.nextEvent();
-	if (evt.isEndElement()) {
-	    ; // good
-	} else {
-	    if (evt.isCharacters()) {
-		fail("Even in the absence of coalescing, event reader should not split CHARACTERS segments (Woodstox guarantee): did get 2 adjacent separate Characters events.");
-	    } else { // hmmh. strange
-		fail("Unexpected event object type after CHARACTERS: "+evt.getClass());
-	    }
-	}
+        evt = er.nextEvent();
+        if (evt.isEndElement()) {
+            ; // good
+        } else {
+            if (evt.isCharacters()) {
+                fail("Even in the absence of coalescing, event reader should not split CHARACTERS segments (Woodstox guarantee): did get 2 adjacent separate Characters events.");
+            } else { // hmmh. strange
+                fail("Unexpected event object type after CHARACTERS: "+evt.getClass());
+            }
+        }
     }
 
     /*
     //////////////////////////////////////////////////////
     // Internal methods
     //////////////////////////////////////////////////////
-     */
+    */
 
     private XMLEventReader getReader(String contents, boolean coalescing)
         throws XMLStreamException
@@ -117,9 +117,9 @@ public class TestEventReader
         XMLInputFactory f = getInputFactory();
         setNamespaceAware(f, true);
         setCoalescing(f, coalescing);
-	setLazyParsing(f, true); // shouldn't have effect for event readers!
-	setMinTextSegment(f, 8); // likewise
-	return constructEventReader(f, contents);
+        setLazyParsing(f, true); // shouldn't have effect for event readers!
+        setMinTextSegment(f, 8); // likewise
+        return constructEventReader(f, contents);
     }
 }
 

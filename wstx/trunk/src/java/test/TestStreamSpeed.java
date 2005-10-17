@@ -17,10 +17,15 @@ import com.ctc.wstx.api.WstxInputProperties;
  * quickly checking high-level performance effects of changes (albeit
  * not very accurately, obviously -- need longer running composite
  * tests for such verifications)
+ *<p>
+ * Note that this can be used to test both Reader and InputStream-based
+ * stream readers.
  */
 public class TestStreamSpeed
     implements XMLStreamConstants
 {
+    final int COUNT = 150;
+
     final XMLInputFactory mInputFactory;
 
     private TestStreamSpeed() {
@@ -30,8 +35,8 @@ public class TestStreamSpeed
         XMLInputFactory f = XMLInputFactory.newInstance();
         System.out.println("Factory instance: "+f.getClass());
 
-        //f.setProperty(XMLInputFactory.IS_COALESCING, Boolean.FALSE);
-        f.setProperty(XMLInputFactory.IS_COALESCING, Boolean.TRUE);
+        f.setProperty(XMLInputFactory.IS_COALESCING, Boolean.FALSE);
+        //f.setProperty(XMLInputFactory.IS_COALESCING, Boolean.TRUE);
         f.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.TRUE);
         //f.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.FALSE);
         f.setProperty(XMLInputFactory.IS_REPLACING_ENTITY_REFERENCES,
@@ -79,21 +84,17 @@ public class TestStreamSpeed
     protected int test(File file)
         throws Exception
     {
-        InputStream in = new FileInputStream(file);
+        byte[] bdata = readBData(file);
+        char[] cdata = readCData(file);
 
-        // Let's deal with gzipped files too?
-        if (file.getName().endsWith(".gz")) {
-            System.out.println("[gzipped input file!]");
-            in = new GZIPInputStream(in);
-        }
+        System.out.println(" -> "+bdata.length+" bytes/chars read.");
 
-        byte[] data = readData(in);
-        System.out.println(" -> "+data.length+" bytes read.");
-
-        return test2(data);
+        // Let's only pass one as non-null:
+        //return test2(file, bdata, null);
+        return test2(file, null, cdata);
     }
 
-    protected int test2(byte[] data)
+    protected int test2(File file, byte[] bdata, char[] cdata)
         throws Exception
     {
         int total = 0;
@@ -101,18 +102,26 @@ public class TestStreamSpeed
         long orig = System.currentTimeMillis();
         int count = 5;
 
+        if (bdata != null) {
+            System.out.println(" -> "+bdata.length+" bytes in buffer...");
+        } else if (cdata != null) {
+            System.out.println(" -> "+cdata.length+" chars in buffer...");
+        } else{
+            throw new Error("BData and CData both null!");
+        }
+
         System.out.print("First, warming up: ");
         while (--count >= 0) {
-            total += test3(data);
+            total += test3(bdata, cdata, file);
             System.out.print(".");
         }
         System.out.println();
         System.out.println("Ok, great. Then the actual test:");
 
-        count = 150;
+        count = COUNT;
         while (--count >= 0) {
             long now = System.currentTimeMillis();
-            total += (test3(data) & 0xFF);
+            total += (test3(bdata, cdata, file) & 0xFF);
             System.out.println("Took: "+(System.currentTimeMillis() - now)+" msecs.");
 
 
@@ -124,20 +133,33 @@ public class TestStreamSpeed
         }
 
         System.out.println();
-        System.out.println("Total time: "+(System.currentTimeMillis()-orig)+" msecs.");
+        // Need to subtract sleeps:
+        long ttime = (System.currentTimeMillis()-orig);
+        ttime -= (COUNT * 50);
+        System.out.println("Total time: "+ttime+" msecs.");
 
         return count;
     }
 
-    protected int test3(byte[] data)
+    protected int test3(byte[] bdata, char[] cdata, File file)
         throws Exception
     {
-        XMLInputFactory f = mInputFactory;
-        XMLStreamReader2 sr = (XMLStreamReader2) f.createXMLStreamReader
-            (new ByteArrayInputStream(data)
-             //,"ISO-8859-1"
-             //,"UTF-8"
-             );
+        XMLInputFactory2 f = (XMLInputFactory2) mInputFactory;
+        XMLStreamReader2 sr;
+
+        /*
+        if (bdata != null) {
+            sr = (XMLStreamReader2) f.createXMLStreamReader
+                (new ByteArrayInputStream(bdata)
+                 //,"ISO-8859-1"
+                 //,"UTF-8"
+                 );
+        } else {
+            sr = (XMLStreamReader2) f.createXMLStreamReader(new CharArrayReader(cdata));
+        }
+        */
+        sr = (XMLStreamReader2) f.createXMLStreamReader(file);
+
         int result = 0;
 
         while (sr.hasNext()) {
@@ -167,9 +189,16 @@ public class TestStreamSpeed
         }
     }
 
-    public static byte[] readData(InputStream fin)
+    public static byte[] readBData(File file)
         throws IOException
     {
+        // Let's deal with gzipped files too?
+        InputStream fin = new FileInputStream(file);
+        if (file.getName().endsWith(".gz")) {
+            System.out.println("[gzipped input file!]");
+            fin = new GZIPInputStream(fin);
+        }
+
         try {
             byte[] buf = new byte[16000];
             ByteArrayOutputStream bos = new ByteArrayOutputStream(4000);
@@ -181,6 +210,23 @@ public class TestStreamSpeed
             return bos.toByteArray();
         } finally {
             fin.close();
+        }
+    }
+    public static char[] readCData(File f)
+        throws IOException
+    {
+        FileReader fr = new FileReader(f);
+        try {
+            char[] buf = new char[16000];
+            CharArrayWriter cw = new CharArrayWriter(4000);
+            int count;
+
+            while ((count = fr.read(buf)) > 0) {
+                cw.write(buf, 0, count);
+            }
+            return cw.toCharArray();
+        } finally {
+            fr.close();
         }
     }
 }

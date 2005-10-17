@@ -11,6 +11,8 @@ import wstxtest.cfg.*;
 public class BaseWriterTest
     extends BaseWstxTest
 {
+    protected BaseWriterTest() { }
+
     protected BaseWriterTest(String name) {
         super(name);
     }

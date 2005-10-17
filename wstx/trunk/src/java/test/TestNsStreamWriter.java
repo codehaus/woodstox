@@ -62,7 +62,8 @@ public class TestNsStreamWriter
         //sw.writeCharacters("");
         w.flush();
         //sw.flush();
-        try { Thread.sleep(60000L); } catch (Exception e) { }
+
+        //try { Thread.sleep(60000L); } catch (Exception e) { }
 
         sw.writeEndElement();
         sw.writeCharacters("\n");

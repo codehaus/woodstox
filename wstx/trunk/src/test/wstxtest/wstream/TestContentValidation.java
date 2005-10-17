@@ -3,10 +3,6 @@ package wstxtest.wstream;
 public class TestContentValidation
     extends BaseWriterTest
 {
-    public TestContentValidation(String name) {
-        super(name);
-    }
-
     /*
     ////////////////////////////////////////////////////
     // Main test methods

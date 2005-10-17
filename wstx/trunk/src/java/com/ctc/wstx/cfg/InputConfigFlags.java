@@ -186,8 +186,7 @@ public interface InputConfigFlags
     /**
      * Content allowed to 'any' content specification type from DTD.
      * This is NOT the same as more generic 'whatever' implied by
-     * non-validating parser, now even 'mixed' content spec. According
-     * to XML specs it's actually bit more limiting... 
+     * non-validating parser, nor 'mixed' content spec.
      */
     final static int CONTENT_ALLOW_DTD_ANY = 2;
     final static int CONTENT_ALLOW_MIXED = 3;

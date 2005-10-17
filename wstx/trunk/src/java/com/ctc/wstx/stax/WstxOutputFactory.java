@@ -118,9 +118,9 @@ public final class WstxOutputFactory
     public XMLStreamWriter createXMLStreamWriter(OutputStream out, String enc)
         throws XMLStreamException
     {
-	if (out == null) {
-	    throw new IllegalArgumentException("Null OutputStream is not a valid argument");
-	}
+        if (out == null) {
+            throw new IllegalArgumentException("Null OutputStream is not a valid argument");
+        }
         return createSW(out, null, enc);
     }
 
@@ -133,9 +133,9 @@ public final class WstxOutputFactory
     public XMLStreamWriter createXMLStreamWriter(Writer w)
         throws XMLStreamException
     {
-	if (w == null) {
-	    throw new IllegalArgumentException("Null Writer is not a valid argument");
-	}
+        if (w == null) {
+            throw new IllegalArgumentException("Null Writer is not a valid argument");
+        }
         return createSW(null, w, null);
     }
     

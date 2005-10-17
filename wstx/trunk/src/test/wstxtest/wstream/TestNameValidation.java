@@ -51,10 +51,6 @@ public class TestNameValidation
         "ns:elem:blah", "a<>2", "", ".x", "-ab", "3cpu"
     };
 
-    public TestNameValidation(String name) {
-        super(name);
-    }
-
     /*
     ////////////////////////////////////////////////////
     // Main test methods
