@@ -39,8 +39,10 @@ public class TestNsStreamWriter3
         sw.writeStartElement("", "root", "");
         sw.writeAttribute("attr", "value");
         sw.writeAttribute("", "", "attr2", "value2");
-        sw.writeStartElement("", "leaf", "");
+        sw.writeStartElement("", "branch", "uri:some");
         sw.writeAttribute("", "", "foop", "value2");
+        sw.writeStartElement("", "leaf", "");
+        sw.writeEndElement();
         sw.writeEndElement();
         /*
         sw.writeAttribute("atpr", "http://attr-prefix", "attr", "value");

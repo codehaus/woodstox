@@ -156,18 +156,18 @@ public class RepairingNsStreamWriter
         if (!mStartElementOpen) {
             throw new IllegalStateException(ERR_NSDECL_WRONG_STATE);
         }
-	/* 11-Oct-2005, TSa: How about we report the problem instead? But
-	 *   only once per instance.
-	 */
-	if (!hasReportedProblem(PROB_NS_WRITE)) {
-	    XMLReporter rep = mConfig.getProblemReporter();
-	    if (rep != null) {
-		rep.report("writeDefaultNamespace('"+nsURI+"') called in repairing mode, ignored",
-			   ErrorConsts.WT_NS_DECL,
-			   nsURI,
-			   null); // null -> no location
-	    }
-	}
+        /* 11-Oct-2005, TSa: How about we report the problem instead? But
+         *   only once per instance.
+         */
+        if (!hasReportedProblem(PROB_NS_WRITE)) {
+            XMLReporter rep = mConfig.getProblemReporter();
+            if (rep != null) {
+                rep.report("writeDefaultNamespace('"+nsURI+"') called in repairing mode, ignored",
+                           ErrorConsts.WT_NS_DECL,
+                           nsURI,
+                           null); // null -> no location
+            }
+        }
     }
 
     //public void writeEmptyElement(String localName) throws XMLStreamException
@@ -181,16 +181,16 @@ public class RepairingNsStreamWriter
         if (!mStartElementOpen) {
             throw new IllegalStateException(ERR_NSDECL_WRONG_STATE);
         }
-
-	if (!hasReportedProblem(PROB_NS_WRITE)) {
-	    XMLReporter rep = mConfig.getProblemReporter();
-	    if (rep != null) {
-		rep.report("writeNamespace('"+nsURI+"') called in repairing mode, ignored",
-			   ErrorConsts.WT_NS_DECL,
-			   nsURI,
-			   null); // null -> no location
-	    }
-	}
+        
+        if (!hasReportedProblem(PROB_NS_WRITE)) {
+            XMLReporter rep = mConfig.getProblemReporter();
+            if (rep != null) {
+                rep.report("writeNamespace('"+nsURI+"') called in repairing mode, ignored",
+                           ErrorConsts.WT_NS_DECL,
+                           nsURI,
+                           null); // null -> no location
+            }
+        }
     }
 
     /*
@@ -206,7 +206,7 @@ public class RepairingNsStreamWriter
     public void setDefaultNamespace(String uri)
         throws XMLStreamException
     {
-	mSuggestedDefNs = (uri == null || uri.length() == 0) ? null : uri;
+        mSuggestedDefNs = (uri == null || uri.length() == 0) ? null : uri;
     }
 
     public void doSetPrefix(String prefix, String uri)
@@ -435,20 +435,25 @@ public class RepairingNsStreamWriter
          * ALWAYS be used, since it can mask preceding bindings:
          */
         if (suggPrefix == null || suggPrefix.length() == 0) {
-	    // caller wants this URI to map as the default namespace?
-	    if (mSuggestedDefNs != null && mSuggestedDefNs.equals(nsURI)) {
-		suggPrefix = "";
-	    } else {
-		suggPrefix = (mSuggestedPrefixes == null) ? null:
-		    (String) mSuggestedPrefixes.get(nsURI);
-		if (suggPrefix == null) {
-		    if (mAutoNsSeq == null) {
-			mAutoNsSeq = new int[1];
-			mAutoNsSeq[0] = 1;
-		    }
-		    suggPrefix = elem.generateMapping(mAutomaticNsPrefix, nsURI,
-						      mAutoNsSeq);
-		}
+            // caller wants this URI to map as the default namespace?
+            if (mSuggestedDefNs != null && mSuggestedDefNs.equals(nsURI)) {
+                suggPrefix = "";
+            } else {
+                suggPrefix = (mSuggestedPrefixes == null) ? null:
+                    (String) mSuggestedPrefixes.get(nsURI);
+                if (suggPrefix == null) {
+                    /* 16-Oct-2005, TSa: We have 2 choices here, essentially;
+                     *   could make elements always try to override the def
+                     *   ns... or can just generate new one. Let's do latter
+                     *   for now.
+                     */
+                    if (mAutoNsSeq == null) {
+                        mAutoNsSeq = new int[1];
+                        mAutoNsSeq[0] = 1;
+                    }
+                    suggPrefix = elem.generateMapping(mAutomaticNsPrefix, nsURI,
+                                                      mAutoNsSeq);
+                }
             }
         }
 
@@ -543,7 +548,7 @@ public class RepairingNsStreamWriter
          */
         if (nsURI.length() == 0) {
             String currURL = elem.getDefaultNsUri();
-            if (currURL != null && currURL.length() > 0) {
+            if (currURL == null || currURL.length() == 0) {
                 // Ok, good:
                 return "";
             }
@@ -571,11 +576,11 @@ public class RepairingNsStreamWriter
      */
     private boolean hasReportedProblem(int problem)
     {
-	if ((mReportedProblems & PROB_NS_WRITE) != 0) {
-	    mReportedProblems |= PROB_NS_WRITE;
-	    return true;
-	}
-	return false;
+        if ((mReportedProblems & PROB_NS_WRITE) != 0) {
+            mReportedProblems |= PROB_NS_WRITE;
+            return true;
+        }
+        return false;
     }
 }
 

@@ -10,6 +10,11 @@ Description:
 
   Problems fixed:
 
+  * [WSTX-19]: Unnecessary default namespace declarations were written
+    by stream writers in repairing mode.
+    [reported by Heinz D]
+
+
 == History: ==
 
 2.8 [11-Oct-2005]

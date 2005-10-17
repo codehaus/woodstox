@@ -1,10 +1,19 @@
-Version: 2.0.3
+Version: 2.0.4
 
-Release date: 29-Sep-2005
+Release date: -Oct-2005
 
 Description:
   A maintenance release for 2.0.
 
+  Problems fixed:
+
+  * [WSTX-19]: Unnecessary default namespace declarations were written
+    by stream writers in repairing mode.
+    [reported by Heinz D]
+
+== History: ==
+
+2.0.3: [29-Sep-2005]
   Problems fixed:
 
   * [WSTX-7]; SimpleNsStreamWriter#writeStartElement(StartElement)
@@ -19,8 +28,6 @@ Description:
   * [WSTX-10] Handling of 3-byte UTF-8 Byte Order Marker did not work
     properly when XMLStreamReader was constructed for a Reader
     [reported by Heinz D]
-
-== History: ==
 
 2.0.2: [04-Sep-2005]
   Problems fixed:

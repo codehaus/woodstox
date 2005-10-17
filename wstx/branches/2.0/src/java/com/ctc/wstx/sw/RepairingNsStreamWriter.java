@@ -524,7 +524,7 @@ public class RepairingNsStreamWriter
          */
         if (nsURI.length() == 0) {
             String currURL = elem.getDefaultNsUri();
-            if (currURL != null && currURL.length() > 0) {
+            if (currURL == null || currURL.length() == 0) {
                 // Ok, good:
                 return "";
             }
