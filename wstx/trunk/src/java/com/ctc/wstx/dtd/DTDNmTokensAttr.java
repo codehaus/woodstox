@@ -76,7 +76,7 @@ public final class DTDNmTokensAttr
         }
         // Empty value?
         if (start > last) {
-            reportParseError(v, "Empty NMTOKENS value");
+            reportValidationError(v, "Empty NMTOKENS value");
         }
 
         /* Then, let's have separate handling for normalizing and
@@ -171,7 +171,7 @@ public final class DTDNmTokensAttr
 
             do {
                 if (!WstxInputData.is11NameChar(c)) {
-                    reportParseError(rep, "Invalid default value '"+defValue
+                    reportValidationError(rep, "Invalid default value '"+defValue
                                      +"'; character #"+i+" ("
                                      +WstxInputData.getCharDesc(c)
                                      +") not a valid NMTOKENS character");
@@ -195,7 +195,7 @@ public final class DTDNmTokensAttr
         }
 
         if (count == 0) {
-            reportParseError(rep, "Invalid default value '"+defValue
+            reportValidationError(rep, "Invalid default value '"+defValue
                              +"'; empty String is not a valid NMTOKENS value");
         }
 

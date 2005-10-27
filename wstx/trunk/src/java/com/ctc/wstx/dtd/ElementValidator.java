@@ -202,8 +202,8 @@ public class ElementValidator
         if (v != null) {
             String msg = v.fullyValid();
             if (msg != null) {
-                rep.throwParseError("Validation error, element </"
-                                    +closingElem+">: "+msg);
+                rep.throwValidationError("Validation error, element </"
+                                         +closingElem+">: "+msg);
             }
         }
 
@@ -215,7 +215,7 @@ public class ElementValidator
             if (mIdMap != null) {
                 ElementId ref = mIdMap.getFirstUndefined();
                 if (ref != null) { // problem!
-                    throwParseError(ref.getLocation(), "Undefined id '"+ref.getId()
+                    throwValidationError(ref.getLocation(), "Undefined id '"+ref.getId()
                                     +"': referenced from element <"
                                     +ref.getElemName()+">, attribute '"
                                     +ref.getAttrName()+"'");
@@ -305,8 +305,8 @@ public class ElementValidator
             }
             DTDAttribute attr = (DTDAttribute) attrMap.get(tmpKey);
             if (attr == null) {
-                rep.throwParseError(ErrorConsts.ERR_VLD_UNKNOWN_ATTR,
-                                   elem.toString(), tmpKey.toString());
+                rep.throwValidationError(ErrorConsts.ERR_VLD_UNKNOWN_ATTR,
+                                         elem.toString(), tmpKey.toString());
             }
             mAttrSpecs[j] = attr;
             if (attr == idAttr) {
@@ -327,7 +327,7 @@ public class ElementValidator
                 String exp = attr.getDefaultValue();
                 String act = mAttrCollector.getValue(j);
                 if (!act.equals(exp)) {
-                    rep.throwParseError("Value of attribute \""+attr+"\" (element <"+elem+">) not \""+exp+"\" as expected, but \""+act+"\"");
+                    rep.throwValidationError("Value of attribute \""+attr+"\" (element <"+elem+">) not \""+exp+"\" as expected, but \""+act+"\"");
                 }
             }
         }
@@ -341,7 +341,7 @@ public class ElementValidator
                 DTDAttribute attr = (DTDAttribute) specAttrs.get(ix);
 
                 if (attr.isRequired()) {
-                    rep.throwParseError("Required attribute '"+attr+"' missing from element <"+elem+">");
+                    rep.throwValidationError("Required attribute '"+attr+"' missing from element <"+elem+">");
                 }
                 // Ok, if not required, should have default value!
                 String def = attr.getDefaultValue();
@@ -368,7 +368,7 @@ public class ElementValidator
                     msg = msg.substring(0, ix) + "</"+pname+">"
                         +msg.substring(ix+4);
                 }
-                rep.throwParseError("Validation error, encountered element <"
+                rep.throwValidationError("Validation error, encountered element <"
                                    +elem.getName()+"> as child of <"
                                    +pname+">: "+msg);
             }
@@ -465,12 +465,12 @@ public class ElementValidator
     ///////////////////////////////////////
     */
 
-    void throwParseError(String msg) throws WstxException {
-        mReporter.throwParseError(msg);
+    void throwValidationError(String msg) throws WstxException {
+        mReporter.throwValidationError(msg);
     }
 
-    void throwParseError(Location loc, String msg) throws WstxException {
-        mReporter.throwParseError(loc, msg);
+    void throwValidationError(Location loc, String msg) throws WstxException {
+        mReporter.throwValidationError(loc, msg);
     }
 
     /*

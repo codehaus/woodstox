@@ -416,6 +416,32 @@ public abstract class StreamScanner
         throw new WstxParsingException(msg, getLastCharLocation());
     }
 
+    public void throwValidationError(String msg)
+        throws WstxException
+    {
+        throw new WstxValidationException(msg, getLastCharLocation());
+    }
+
+    public void throwValidationError(Location loc, String msg)
+        throws WstxException
+    {
+        throw new WstxValidationException(msg, loc);
+    }
+
+    public void throwValidationError(String format, Object arg)
+        throws WstxException
+    {
+        String msg = MessageFormat.format(format, new Object[] { arg });
+        throw new WstxValidationException(msg, getLastCharLocation());
+    }
+
+    public void throwValidationError(String format, Object arg, Object arg2)
+        throws WstxException
+    {
+        String msg = MessageFormat.format(format, new Object[] { arg, arg2 });
+        throw new WstxValidationException(msg, getLastCharLocation());
+    }
+
     public void reportProblem(String probType, String msg)
     {
         doReportProblem(mConfig.getXMLReporter(), probType, msg, null);

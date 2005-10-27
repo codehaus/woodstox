@@ -79,7 +79,7 @@ public final class DTDIdRefsAttr
 
         // No id?
         if (start > last) {
-            reportParseError(v, "Empty IDREFS value");
+            reportValidationError(v, "Empty IDREFS value");
         }
 
         while (last > start && WstxInputData.isSpaceChar(ch[last])) {

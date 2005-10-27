@@ -56,41 +56,6 @@ public class TestValidatingReader
                           new Integer(16));
         }
 
-        /*
-        if (f.isPropertySupported(WstxInputProperties.P_CUSTOM_INTERNAL_ENTITIES)) {
-            java.util.Map m = new java.util.HashMap();
-            m.put("myent", "foobar");
-            m.put("myent2", "<tag>R&amp;B + &myent;</tag>");
-            f.setProperty(WstxInputProperties.P_CUSTOM_INTERNAL_ENTITIES, m);
-        }
-        */
-
-        /*
-        if (f.isPropertySupported(WstxInputProperties.P_DTD_RESOLVER)) {
-            f.setProperty(WstxInputProperties.P_DTD_RESOLVER,
-                          new TestResolver2());
-        }
-        if (f.isPropertySupported(WstxInputProperties.P_ENTITY_RESOLVER)) {
-            f.setProperty(WstxInputProperties.P_ENTITY_RESOLVER,
-                          new TestResolver2());
-        }
-        */
-
-        // Uncomment for boundary-condition stress tests:
-        if (f.isPropertySupported(WstxInputProperties.P_INPUT_BUFFER_LENGTH)) {
-            f.setProperty(WstxInputProperties.P_INPUT_BUFFER_LENGTH,
-                          new Integer(8));
-        }
-
-        // To test windows linefeeds:
-        /*
-        if (f.isPropertySupported(WstxInputProperties.P_NORMALIZE_LFS)) {
-            f.setProperty(WstxInputProperties.P_NORMALIZE_LFS, Boolean.TRUE);
-        } else {
-            System.out.println("No property "+WstxInputProperties.P_NORMALIZE_LFS+", skipping.");
-        }
-        */
-
         System.out.println("Coalesce: "+f.getProperty(XMLInputFactory.IS_COALESCING));
         System.out.println("Namespace-aware: "+f.getProperty(XMLInputFactory.IS_NAMESPACE_AWARE));
 

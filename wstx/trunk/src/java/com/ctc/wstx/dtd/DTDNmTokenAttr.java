@@ -75,7 +75,7 @@ public final class DTDNmTokenAttr
 
         // Empty value?
         if (start > last) {
-            reportParseError(v, "Empty NMTOKEN value");
+            reportValidationError(v, "Empty NMTOKEN value");
         }
 
         while (last > start && WstxInputData.isSpaceChar(ch[last])) {

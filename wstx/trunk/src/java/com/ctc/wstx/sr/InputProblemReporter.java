@@ -27,11 +27,19 @@ public interface InputProblemReporter
      */
     public void throwParseError(Location loc, String msg)
         throws WstxException;
-
     public void throwParseError(String msg, Object arg)
         throws WstxException;
-
     public void throwParseError(String msg, Object arg, Object arg2)
+        throws WstxException;
+
+
+    public void throwValidationError(String msg)
+        throws WstxException;
+    public void throwValidationError(Location loc, String msg)
+        throws WstxException;
+    public void throwValidationError(String msg, Object arg)
+        throws WstxException;
+    public void throwValidationError(String msg, Object arg, Object arg2)
         throws WstxException;
 
     /*

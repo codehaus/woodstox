@@ -62,7 +62,7 @@ public final class DTDEnumAttr
         String ok = ac.checkEnumValue(index, mEnumValues);
         if (ok == null) {
             String val = ac.getValue(index);
-            reportParseError(v, "Invalid value '"+val+"': has to be one of ("
+            reportValidationError(v, "Invalid value '"+val+"': has to be one of ("
                               +mEnumValues+")");
         }
     }
@@ -80,8 +80,8 @@ public final class DTDEnumAttr
         // And then that it's one of listed values:
         String shared = mEnumValues.find(def);
         if (shared == null) {
-            reportParseError(rep, "Invalid default value '"+def+"': has to be one of ("
-                               +mEnumValues+")");
+            reportValidationError(rep, "Invalid default value '"+def+"': has to be one of ("
+                                  +mEnumValues+")");
         }
 
         // Ok, cool it's ok...

@@ -237,21 +237,21 @@ public class DTDAttribute
         String defValue = mDefValue.trim();
 
         if (defValue.length() == 0) {
-            reportParseError(rep, "Invalid default value '"+defValue
+            reportValidationError(rep, "Invalid default value '"+defValue
                              +"'; empty String is not a valid name");
         }
 
         // Ok, needs to be a valid XML name:
         char c = defValue.charAt(0);
         if (!WstxInputData.is11NameChar(c) && c != ':') {
-            reportParseError(rep, "Invalid default value '"+defValue+"'; character "
+            reportValidationError(rep, "Invalid default value '"+defValue+"'; character "
                                 +WstxInputData.getCharDesc(c)
                                 +") not valid first character of a name");
         }
 
         for (int i = 1, len = defValue.length(); i < len; ++i) {
             if (!WstxInputData.is11NameChar(defValue.charAt(i))) {
-                reportParseError(rep, "Invalid default value '"+defValue+"'; character #"+i+" ("
+                reportValidationError(rep, "Invalid default value '"+defValue+"'; character #"+i+" ("
                                     +WstxInputData.getCharDesc(defValue.charAt(i))
                                    +") not valid name character");
             }
@@ -288,7 +288,7 @@ public class DTDAttribute
             }
 
             if (!WstxInputData.is11NameStartChar(c) && c != ':') {
-                reportParseError(rep, "Invalid default value '"+defValue
+                reportValidationError(rep, "Invalid default value '"+defValue
                                  +"'; character "
                                  +WstxInputData.getCharDesc(c)
                                  +") not valid first character of a name token");
@@ -300,7 +300,7 @@ public class DTDAttribute
                     break;
                 }
                 if (!WstxInputData.is11NameChar(c)) {
-                    reportParseError(rep, "Invalid default value '"+defValue
+                    reportValidationError(rep, "Invalid default value '"+defValue
                                      +"'; character "
                                      +WstxInputData.getCharDesc(c)
                                      +") not a valid name character");
@@ -321,7 +321,7 @@ public class DTDAttribute
         }
 
         if (count == 0) {
-            reportParseError(rep, "Invalid default value '"+defValue
+            reportValidationError(rep, "Invalid default value '"+defValue
                              +"'; empty String is not a valid name value");
         }
 
@@ -334,13 +334,13 @@ public class DTDAttribute
         String defValue = mDefValue.trim();
 
         if (defValue.length() == 0) {
-            reportParseError(rep, "Invalid default value '"+defValue+"'; empty String is not a valid NMTOKEN");
+            reportValidationError(rep, "Invalid default value '"+defValue+"'; empty String is not a valid NMTOKEN");
         }
 
         // Ok, needs to be a valid NMTOKEN:
         for (int i = 0, len = defValue.length(); i < len; ++i) {
             if (!WstxInputData.is11NameChar(defValue.charAt(i))) {
-                reportParseError(rep, "Invalid default value '"+defValue
+                reportValidationError(rep, "Invalid default value '"+defValue
                                     +"'; character #"+i+" ("
                                    +WstxInputData.getCharDesc(defValue.charAt(i))
                                    +") not valid NMTOKEN character");
@@ -373,10 +373,10 @@ public class DTDAttribute
         }
 
         if (ent == null) {
-            reportParseError(v, "Referenced entity '"+id+"' not defined");
+            reportValidationError(v, "Referenced entity '"+id+"' not defined");
         }
         if (ent.isParsed()) {
-            reportParseError(v, "Referenced entity '"+id+"' is not an unparsed entity");
+            reportValidationError(v, "Referenced entity '"+id+"' is not an unparsed entity");
         }
         return ent;
     }
@@ -390,10 +390,10 @@ public class DTDAttribute
         throws WstxException
     {
         if (ent == null) {
-            rep.throwParseError("Referenced entity '"+id+"' not defined");
+            rep.throwValidationError("Referenced entity '"+id+"' not defined");
         }
         if (ent.isParsed()) {
-            rep.throwParseError("Referenced entity '"+id+"' is not an unparsed entity");
+            rep.throwValidationError("Referenced entity '"+id+"' is not an unparsed entity");
         }
     }
 
@@ -406,19 +406,19 @@ public class DTDAttribute
     protected void reportInvalidChar(ElementValidator v, char c, String msg)
         throws WstxException
     {
-        reportParseError(v, "Invalid character "+WstxInputData.getCharDesc(c)+": "+msg);
+        reportValidationError(v, "Invalid character "+WstxInputData.getCharDesc(c)+": "+msg);
     }
 
-    protected void reportParseError(ElementValidator v, String msg)
+    protected void reportValidationError(ElementValidator v, String msg)
         throws WstxException
     {
-        v.throwParseError("Attribute '"+mName+"': "+msg);
+        v.throwValidationError("Attribute '"+mName+"': "+msg);
     }
 
-    protected void reportParseError(InputProblemReporter rep, String msg)
+    protected void reportValidationError(InputProblemReporter rep, String msg)
         throws WstxException
     {
-        rep.throwParseError("Attribute '"+mName+"': "+msg);
+        rep.throwValidationError("Attribute '"+mName+"': "+msg);
     }
 
     /*

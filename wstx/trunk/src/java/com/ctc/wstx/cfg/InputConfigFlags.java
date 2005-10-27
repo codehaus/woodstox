@@ -180,7 +180,17 @@ public interface InputConfigFlags
 
     // // // Constants related to (DTD-based) validation:
 
+    /**
+     * This mode is used for EMPTY content: it literally means that
+     * absolutely no content (including comments and PIs, as per
+     * xml specs 1.0.3, section 3) is allowed.
+     */
     final static int CONTENT_ALLOW_NONE = 0;
+
+    /**
+     * This mode means that no non-whitespace text is allowed, just
+     * elements (and comments, proc. instrs. etc)
+     */
     final static int CONTENT_ALLOW_NON_MIXED = 1;
 
     /**

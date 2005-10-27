@@ -77,7 +77,7 @@ public final class DTDIdRefAttr
         }
 
         if (start > last) { // empty (all white space) value?
-            reportParseError(v, "Empty IDREF value");
+            reportValidationError(v, "Empty IDREF value");
         }
 
         while (last > start && WstxInputData.isSpaceChar(ch[last])) {

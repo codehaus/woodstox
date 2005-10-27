@@ -79,7 +79,7 @@ public final class DTDIdAttr
 
         // No id?
         if (start > last) {
-            reportParseError(v, "Empty ID value");
+            reportValidationError(v, "Empty ID value");
         }
 
         while (last > start && WstxInputData.isSpaceChar(ch[last])) {
@@ -109,7 +109,7 @@ public final class DTDIdAttr
 
         // We can detect dups by checking if Location is the one we passed:
         if (id.getLocation() != loc) {
-            reportParseError(v, "Duplicate id '"+id.getId()+"', first declared at "
+            reportValidationError(v, "Duplicate id '"+id.getId()+"', first declared at "
                              +id.getLocation());
         }
 

@@ -85,7 +85,7 @@ public final class DTDEntitiesAttr
 
         // Empty value?
         if (last < start) {
-            reportParseError(v, "Empty ENTITIES value");
+            reportValidationError(v, "Empty ENTITIES value");
         }
         while (last > start && WstxInputData.isSpaceChar(ch[last])) {
             --last;
