@@ -239,7 +239,7 @@ public final class BijectiveNsMap
             }
         }
         // no previous binding, let's just add it at the end
-        if (strs.length < mScopeEnd) {
+        if (strs.length <= mScopeEnd) {
             // let's just double the array sizes...
             strs = DataUtil.growArrayBy(strs, strs.length);
             mNsStrings = strs;
