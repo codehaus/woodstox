@@ -1,0 +1,77 @@
+<?xml version="1.0" standalone='yes'?>
+
+    <project name="Stax2Dom" basedir="." default="readme">
+
+    <property name="ProjectName" value="Stax2Dom" />
+    <!-- Source directories -->
+    <property name="SrcDir" location="${basedir}/src" />
+    <!-- Libs -->
+    <property name="LibDir" location="${basedir}/lib" />
+    <!-- Build-related -->
+    <property name="BuildDir" location="${basedir}/build" />
+    <property name="BuildClassesDir" location="${BuildDir}/classes" />
+    <!-- Doc -->
+    <property name="JavaDocDir" location="${BuildDir}/javadoc" />
+
+    <path id="classpath">
+        <fileset dir="${LibDir}" includes="*.jar" />
+    </path>
+
+    <!--*********************************************************************-->
+    <!-- The readme target shows a brief description of all targets          -->
+    <!-- supported by this ant build file                                    -->
+    <!--*********************************************************************-->
+    <target name="readme">
+        <echo message = "${ProjectName}'s available targets" />
+        <echo message = "---------------------------------------------------" />
+        <echo message = "1)  readme - Displays this information (default target)." />
+        <echo message = "2)  clean - Remove any generated files/directories." />
+        <echo message = "3)  compile - Compile all non-test ${ProjectName} code." />
+        <echo message = "4)  jar - Compile and create jar for non-test ${ProjectName} code." />
+        <echo message = "       for JUnit tests." />
+        <echo message = "7)  test - Run JUnit tests." />
+        <echo message = "       Reports results and generates html output." />
+        <echo message = "8)  dist - Create distribution directory and copy necessary files there" />
+        <echo message = "9) all - Run the clean, compile, javadoc," />
+        <echo message = "         test and dist targets." />  
+    </target>
+
+    <target name="prepare">
+        <!-- make build directories -->
+        <mkdir dir="${BuildDir}" />
+        <mkdir dir="${BuildClassesDir}" />
+    </target>
+
+    <!--*********************************************************************-->
+    <!-- clean - Removes all generated files/directories.                    -->
+    <!--*********************************************************************-->
+    <target name="clean">
+        <delete dir="${BuildDir}"/>
+    </target>
+
+    <target name="compile" depends="prepare">
+        <javac SrcDir="${SrcDir}" destdir="${BuildClassesDir}"
+            debug="true"
+        >
+            <include name="*.java" />
+            <classpath refid="classpath" />
+        </javac>
+    </target>
+
+    <target name="javadoc" depends="compile">
+        <!-- Build a dirpath that contains just the "source" tree -->
+        <javadoc windowtitle="${ProjectName}"
+            destdir="${JavaDocDir}" 
+            author="true" 
+            version="true">
+            <packageset dir="${SrcDir}" defaultexcludes="yes">
+                <include name="**" />
+            </packageset>
+            <classpath refid="classpath" />
+        </javadoc>
+    </target> 
+ 
+    <target name="all" depends="clean,javadoc">
+        <!-- This target simply depends on others to do its job -->
+    </target>
+</project>
