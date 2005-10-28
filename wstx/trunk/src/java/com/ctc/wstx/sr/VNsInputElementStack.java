@@ -4,6 +4,8 @@ import java.util.*;
 
 import javax.xml.stream.XMLStreamException;
 
+import org.codehaus.stax2.validation.XMLValidator;
+
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.dtd.DTDElement;
 import com.ctc.wstx.dtd.ElementValidator;
@@ -85,7 +87,7 @@ public class VNsInputElementStack
     {
         super.pop();
         return (mValidator == null) ?
-            CONTENT_ALLOW_MIXED : mValidator.pop(mReporter);
+            XMLValidator.CONTENT_ALLOW_ANY_TEXT : mValidator.pop(mReporter);
     }
 
     /**
@@ -114,7 +116,7 @@ public class VNsInputElementStack
          *   this ok. We should log a warning though
          */
         if (mValidator == null) { // no DTD in use
-            return CONTENT_ALLOW_MIXED;
+            return XMLValidator.CONTENT_ALLOW_ANY_TEXT;
         }
 
         DTDElement elem = (DTDElement) mElemSpecs.get(mTmpKey);

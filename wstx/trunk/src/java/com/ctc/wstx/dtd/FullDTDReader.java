@@ -25,6 +25,8 @@ import javax.xml.stream.Location;
 import javax.xml.stream.XMLReporter;
 import javax.xml.stream.XMLStreamException;
 
+import org.codehaus.stax2.validation.XMLValidator;
+
 import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.compat.JdkFeatures;
@@ -1858,13 +1860,13 @@ public class FullDTDReader
          * a parenthesis group for 'real' content spec
          */
         StructValidator val = null;
-        int vldContent = CONTENT_ALLOW_MIXED;
+        int vldContent = XMLValidator.CONTENT_ALLOW_ANY_TEXT;
 
         if (c == '(') { // real content model
             c = skipDtdWs();
             if (c == '#') {
                 val = readMixedSpec(elemName, mCfgValidate);
-                vldContent = CONTENT_ALLOW_MIXED; // checked against DTD
+                vldContent = XMLValidator.CONTENT_ALLOW_ANY_TEXT; // checked against DTD
             } else {
                 --mInputPtr; // let's push it back...
                 ContentSpec spec = readContentSpec(elemName, true, mCfgValidate);
@@ -1872,7 +1874,7 @@ public class FullDTDReader
                 if (val == null) {
                     val = new DFAValidator(DFAState.constructDFA(spec));
                 }
-                vldContent = CONTENT_ALLOW_NON_MIXED; // checked against DTD
+                vldContent = XMLValidator.CONTENT_ALLOW_WS; // checked against DTD
             }
         } else if (is11NameStartChar(c)) {
             do { // dummy loop to allow break:
@@ -1881,7 +1883,7 @@ public class FullDTDReader
                     keyw = checkDTDKeyword("NY");
                     if (keyw == null) {
                         val = null;
-                        vldContent = CONTENT_ALLOW_DTD_ANY; // no DTD checks
+                        vldContent = XMLValidator.CONTENT_ALLOW_ANY_TEXT; // no DTD checks
                         break;
                     }
                     keyw = "A"+keyw;
@@ -1889,7 +1891,7 @@ public class FullDTDReader
                     keyw = checkDTDKeyword("MPTY");
                     if (keyw == null) {
                         val = null; // could also use the empty validator
-                        vldContent = CONTENT_ALLOW_NONE; // specific checks
+                        vldContent = XMLValidator.CONTENT_ALLOW_NONE; // specific checks
                         break;
                     }
                     keyw = "E"+keyw;

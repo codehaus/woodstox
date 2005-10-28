@@ -26,6 +26,8 @@ import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.transform.stream.StreamSource;
 
+import org.codehaus.stax2.validation.XMLValidator;
+
 import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.exc.WstxException;
@@ -240,28 +242,6 @@ public class FullStreamReader
     public Object getProcessedDTD() {
         return mDTD;
     }
-
-    /*
-    ////////////////////////////////////////////////////
-    // Extended (non-StAX) public API:
-    ////////////////////////////////////////////////////
-     */
-
-    /*
-    public void setDTDOverride(String pubId, String sysId)
-        throws IOException, XMLStreamException
-    {
-        mDTD = findDtdExtSubset(pubId, sysId, null);
-    }
-    */
-
-    /*
-    public void setDTDOverride(String pubId, URL source)
-        throws IOException, XMLStreamException
-    {
-        setDTDOverride(pubId, source.toExternalForm());
-    }
-    */
 
     /*
     ////////////////////////////////////////////////////
@@ -545,16 +525,17 @@ public class FullStreamReader
         throws WstxException
     {
         switch (mVldContent) {
-        case CONTENT_ALLOW_NONE:
+        case XMLValidator.CONTENT_ALLOW_NONE:
             throwParseError(ErrorConsts.ERR_VLD_EMPTY,
                             mElementStack.getTopElementDesc(),
                             ErrorConsts.tokenTypeDesc(evtType));
             break;
-        case CONTENT_ALLOW_NON_MIXED:
+        case XMLValidator.CONTENT_ALLOW_WS:
             throwParseError(ErrorConsts.ERR_VLD_NON_MIXED,
                             mElementStack.getTopElementDesc());
             break;
-        case CONTENT_ALLOW_DTD_ANY:
+        case XMLValidator.CONTENT_ALLOW_VALIDATABLE_TEXT:
+        case XMLValidator.CONTENT_ALLOW_ANY_TEXT:
             /* Not 100% sure if this should ever happen... depends on
              * interpretation of 'any' content model?
              */

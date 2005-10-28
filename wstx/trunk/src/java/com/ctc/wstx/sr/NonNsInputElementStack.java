@@ -8,6 +8,8 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
 
+import org.codehaus.stax2.validation.XMLValidator;
+
 import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.util.BaseNsContext;
 import com.ctc.wstx.util.EmptyIterator;
@@ -109,7 +111,7 @@ public class NonNsInputElementStack
          */
         mElements[--mSize] = null;
 
-        return CONTENT_ALLOW_MIXED;
+        return XMLValidator.CONTENT_ALLOW_ANY_TEXT;
     }
 
     /**
@@ -126,7 +128,7 @@ public class NonNsInputElementStack
         // Need to inform attribute collector, at least
         mAttrCollector.resolveValues(mReporter);
 
-        return CONTENT_ALLOW_MIXED;
+        return XMLValidator.CONTENT_ALLOW_ANY_TEXT;
     }
 
     /*

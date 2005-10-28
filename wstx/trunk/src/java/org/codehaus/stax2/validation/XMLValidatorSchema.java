@@ -1,4 +1,3 @@
-
 package org.codehaus.stax2.validation;
 
 /**

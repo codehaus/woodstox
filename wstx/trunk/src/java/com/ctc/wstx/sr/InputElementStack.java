@@ -26,7 +26,6 @@ import javax.xml.stream.XMLStreamException;
 
 import org.codehaus.stax2.AttributeInfo;
 
-import com.ctc.wstx.cfg.InputConfigFlags;
 import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.util.BaseNsContext;
 import com.ctc.wstx.util.SingletonIterator;
@@ -48,8 +47,7 @@ import com.ctc.wstx.util.TextBuilder;
  * instance as necesary.
  */
 public abstract class InputElementStack
-    implements AttributeInfo, NamespaceContext,
-      InputConfigFlags
+    implements AttributeInfo, NamespaceContext
 {
     /**
      * Constants used when no DTD handling is done, and we do not know the

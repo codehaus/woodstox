@@ -9,6 +9,8 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
 
+import org.codehaus.stax2.validation.XMLValidator;
+
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.util.*;
@@ -186,7 +188,7 @@ public class NsInputElementStack
         if (nsCount > 0) { // 2 entries for each NS mapping:
             mNamespaces.removeLast(nsCount);
         }
-        return CONTENT_ALLOW_MIXED;
+        return XMLValidator.CONTENT_ALLOW_ANY_TEXT;
     }
 
     /**
@@ -263,7 +265,7 @@ public class NsInputElementStack
         // And finally, resolve attributes' namespaces too:
         ac.resolveNamespaces(mReporter, mNamespaces);
         
-        return CONTENT_ALLOW_MIXED;
+        return XMLValidator.CONTENT_ALLOW_ANY_TEXT;
     }
 
     /*

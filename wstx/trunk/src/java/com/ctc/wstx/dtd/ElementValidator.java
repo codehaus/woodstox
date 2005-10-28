@@ -19,8 +19,9 @@ import java.util.*;
 
 import javax.xml.stream.Location;
 
+import org.codehaus.stax2.validation.XMLValidator;
+
 import com.ctc.wstx.cfg.ErrorConsts;
-import com.ctc.wstx.cfg.InputConfigFlags;
 import com.ctc.wstx.compat.JdkFeatures;
 import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.sr.AttributeCollector;
@@ -36,8 +37,6 @@ import com.ctc.wstx.util.SymbolTable;
  * namespace-aware or not).
  */
 public class ElementValidator
-    implements
-    InputConfigFlags
 {
     /**
      * Estimated maximum depth of typical documents; used to allocate
@@ -223,7 +222,7 @@ public class ElementValidator
             }
 
             // doesn't really matter; epilog/prolog differently handled:
-            return CONTENT_ALLOW_NON_MIXED;
+            return XMLValidator.CONTENT_ALLOW_WS;
         }
         return mElemStack[ix-1].getAllowedContent();
     }

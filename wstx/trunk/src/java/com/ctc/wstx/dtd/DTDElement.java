@@ -19,8 +19,9 @@ import java.util.*;
 
 import javax.xml.stream.Location;
 
+import org.codehaus.stax2.validation.XMLValidator;
+
 import com.ctc.wstx.cfg.ErrorConsts;
-import com.ctc.wstx.cfg.InputConfigFlags;
 import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.sr.InputProblemReporter;
 import com.ctc.wstx.util.WordResolver;
@@ -34,7 +35,6 @@ import com.ctc.wstx.util.WordResolver;
  * manner (with the exception of temporary arrays constructed on-demand).
  */
 public final class DTDElement
-    implements InputConfigFlags
 {
 
     /*
@@ -120,8 +120,8 @@ public final class DTDElement
     public static DTDElement createDefined(Location loc, NameKey name,
                                            StructValidator val, int allowedContent)
     {
-        if (allowedContent == CONTENT_ALLOW_UNDEFINED) { // sanity check
-            throw new Error("Internal error: trying to use CONTENT_ALLOW_UNDEFINED via createDefined()");
+        if (allowedContent == XMLValidator.CONTENT_ALLOW_UNDEFINED) { // sanity check
+            throw new Error("Internal error: trying to use XMLValidator.CONTENT_ALLOW_UNDEFINED via createDefined()");
         }
         return new DTDElement(loc, name, val, allowedContent);
     }
@@ -132,7 +132,7 @@ public final class DTDElement
      */
     public static DTDElement createPlaceholder(Location loc, NameKey name)
     {
-        return new DTDElement(loc, name, null, CONTENT_ALLOW_UNDEFINED);
+        return new DTDElement(loc, name, null, XMLValidator.CONTENT_ALLOW_UNDEFINED);
     }
         
     /**
@@ -143,10 +143,10 @@ public final class DTDElement
     public DTDElement define(Location loc, StructValidator val,
                              int allowedContent)
     {
-        if (mAllowedContent != CONTENT_ALLOW_UNDEFINED) { // sanity check
+        if (mAllowedContent != XMLValidator.CONTENT_ALLOW_UNDEFINED) { // sanity check
             throw new Error("Internal error: redefining defined element spec");
         }
-        if (allowedContent == CONTENT_ALLOW_UNDEFINED) { // sanity check
+        if (allowedContent == XMLValidator.CONTENT_ALLOW_UNDEFINED) { // sanity check
             throw new Error("Internal error: trying to use CONTENT_ALLOW_UNDEFINED via define()");
         }
 
@@ -333,7 +333,7 @@ public final class DTDElement
     public Location getLocation() { return mLocation; }
 
     public boolean isDefined() {
-        return (mAllowedContent != CONTENT_ALLOW_UNDEFINED);
+        return (mAllowedContent != XMLValidator.CONTENT_ALLOW_UNDEFINED);
     }
 
     /**

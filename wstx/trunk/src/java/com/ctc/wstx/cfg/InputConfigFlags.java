@@ -171,41 +171,5 @@ public interface InputConfigFlags
      * is enabled.
      */
     final static int CFG_SUPPORT_DTDPP = 0x00020000;
-
-    /*
-    //////////////////////////////////////////////////////
-    // Other constants
-    //////////////////////////////////////////////////////
-     */
-
-    // // // Constants related to (DTD-based) validation:
-
-    /**
-     * This mode is used for EMPTY content: it literally means that
-     * absolutely no content (including comments and PIs, as per
-     * xml specs 1.0.3, section 3) is allowed.
-     */
-    final static int CONTENT_ALLOW_NONE = 0;
-
-    /**
-     * This mode means that no non-whitespace text is allowed, just
-     * elements (and comments, proc. instrs. etc)
-     */
-    final static int CONTENT_ALLOW_NON_MIXED = 1;
-
-    /**
-     * Content allowed to 'any' content specification type from DTD.
-     * This is NOT the same as more generic 'whatever' implied by
-     * non-validating parser, nor 'mixed' content spec.
-     */
-    final static int CONTENT_ALLOW_DTD_ANY = 2;
-    final static int CONTENT_ALLOW_MIXED = 3;
-
-    /**
-     * Dummy marker type; used to mark 'undefined' element entries;
-     * entries created as placeholders.
-     */
-    final static int CONTENT_ALLOW_UNDEFINED = 4;
-
 }
 

@@ -29,6 +29,7 @@ import org.codehaus.stax2.DTDInfo;
 import org.codehaus.stax2.LocationInfo;
 import org.codehaus.stax2.XMLStreamLocation2;
 import org.codehaus.stax2.XMLStreamReader2;
+import org.codehaus.stax2.validation.XMLValidator;
 
 import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.cfg.ErrorConsts;
@@ -304,12 +305,12 @@ public class WstxStreamReader
      * Mode information needed at this level; mostly to check what kind
      * of textual content (if any) is allowed in current element
      * context. Constants come from
-     * {@link com.ctc.wstx.cfg.InputConfigFlags},
-     * (like {@link com.ctc.wstx.cfg.InputConfigFlags#CONTENT_ALLOW_MIXED}).
+     * {@link XMLValidator},
+     * (like {@link XMLValidator#CONTENT_ALLOW_VALIDATABLE_TEXT}).
      * Only used inside tree; ignored for prolog/epilog (which
      * have straight-forward static rules).
      */
-    protected int mVldContent = CONTENT_ALLOW_MIXED;
+    protected int mVldContent = XMLValidator.CONTENT_ALLOW_ANY_TEXT;
 
     /*
     ////////////////////////////////////////////////////
@@ -2598,7 +2599,7 @@ public class WstxStreamReader
             /* 30-Aug-2004, TSa: In some contexts entities are not
              *    allowed in any way, shape or form:
              */
-            if (mVldContent == CONTENT_ALLOW_NONE) {
+            if (mVldContent == XMLValidator.CONTENT_ALLOW_NONE) {
                 /* May be char entity, general entity; whatever it is it's
                  * invalid!
                  */
@@ -2619,12 +2620,13 @@ public class WstxStreamReader
                 /* 30-Aug-2004, TSa: In some contexts only white space is
                  *   accepted...
                  */
-                if (mVldContent == CONTENT_ALLOW_NON_MIXED) {
+                if (mVldContent <= XMLValidator.CONTENT_ALLOW_WS) {
                     /* !!! 06-Sep-2004, TSa: Is white space even allowed
                      *   via (char) entity expansion? If it is, we should
                      *   try to read primary white space; if not, throw
                      *   an exception.
                      */
+                    // No, as per xml specs, only straight white space is legal
                     if (c > CHAR_SPACE) {
                         reportInvalidContent(CHARACTERS);
                     }
@@ -2663,7 +2665,7 @@ public class WstxStreamReader
             char c = getNextChar(SUFFIX_IN_ELEMENT);
             if (c == '?') { // proc. inst
                 // 30-Aug-2004, TSa: Not legal for EMPTY elements
-                if (mVldContent == CONTENT_ALLOW_NONE) {
+                if (mVldContent == XMLValidator.CONTENT_ALLOW_NONE) {
                     reportInvalidContent(PROCESSING_INSTRUCTION);
                 }
                 return readPIPrimary();
@@ -2673,7 +2675,7 @@ public class WstxStreamReader
                 // Need to figure out bit more first...
                 int type = nextFromTreeCommentOrCData();
                 // 30-Aug-2004, TSa: Not legal for EMPTY elements
-                if (mVldContent == CONTENT_ALLOW_NONE) {
+                if (mVldContent == XMLValidator.CONTENT_ALLOW_NONE) {
                     reportInvalidContent(type);
                 }
                 return type;
@@ -2685,7 +2687,7 @@ public class WstxStreamReader
 
             if (c == ':' || is11NameStartChar(c)) {
                 // 30-Aug-2004, TSa: Not legal for EMPTY elements
-                if (mVldContent == CONTENT_ALLOW_NONE) {
+                if (mVldContent == XMLValidator.CONTENT_ALLOW_NONE) {
                     reportInvalidContent(START_ELEMENT);
                 }
                 handleStartElem(c);
@@ -2704,8 +2706,8 @@ public class WstxStreamReader
         /* But first, do we expect to get ignorable white space (only happens
          * in validating mode)? If so, needs bit different handling:
          */
-        if (mVldContent <= CONTENT_ALLOW_NON_MIXED) {
-            if (mVldContent == CONTENT_ALLOW_NONE
+        if (mVldContent <= XMLValidator.CONTENT_ALLOW_WS) {
+            if (mVldContent == XMLValidator.CONTENT_ALLOW_NONE
                 || (i > CHAR_SPACE)) {
                 reportInvalidContent(CHARACTERS);
             }
