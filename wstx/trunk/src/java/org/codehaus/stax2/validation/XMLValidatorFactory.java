@@ -23,6 +23,21 @@ import javax.xml.stream.FactoryConfigurationError;
  */
 public abstract class XMLValidatorFactory
 {
+    // // // Constants defining standard Schema types:
+
+    public final static String SCHEMA_ID_DTD = "http://www.w3.org/XML/1998/namespace";
+    public final static String SCHEMA_ID_RELAXNG = "http://relaxng.org/ns/structure/0.9";
+    public final static String SCHEMA_ID_W3C_SCHEMA = "http://www.w3.org/2001/XMLSchema";
+    public final static String SCHEMA_ID_TREX = "http://www.thaiopensource.com/trex";
+
+    public final static String INTERNAL_ID_SCHEMA_DTD = "dtd";
+    public final static String INTERNAL_ID_SCHEMA_RELAXNG = "relaxng";
+    public final static String INTERNAL_ID_SCHEMA_W3C = "w3c";
+    public final static String INTERNAL_ID_SCHEMA_TREX = "trex";
+
+
+    // // // Properties for locating implementations
+
     final static String JAXP_PROP_FILENAME = "jaxp.properties";
 
     /**
@@ -34,6 +49,8 @@ public abstract class XMLValidatorFactory
     public final static String SYSTEM_PROPERTY_FOR_IMPL = "org.codehaus.stax2.validation";
 
     public final static String SERVICE_DEFINITION_PATH = "META-INF/services/" + SYSTEM_PROPERTY_FOR_IMPL;
+
+    // // // Names of standard configuration properties
 
     /**
      * Property that determines whether schemas constructed are namespace-aware,
@@ -47,6 +64,12 @@ public abstract class XMLValidatorFactory
     public static final String P_IS_NAMESPACE_AWARE = "org.codehaus2.stax2.validation.isNamespaceAware";
 
     protected XMLValidatorFactory() { }
+
+    /*
+    ////////////////////////////////////////////////////////
+    // Factory methods
+    ////////////////////////////////////////////////////////
+    */
 
     /**
      * Creates a new XMLValidationFactory instance, using the default
@@ -69,7 +92,7 @@ public abstract class XMLValidatorFactory
         try {
             String clsName = System.getProperty(SYSTEM_PROPERTY_FOR_IMPL);
             if (clsName != null && clsName.length() > 0) {
-                return newInstance(classLoader, clsName);
+                return createNewInstance(classLoader, clsName);
             }
         } catch (SecurityException se) {
             // May happen on sandbox envs, like applets?
@@ -81,18 +104,18 @@ public abstract class XMLValidatorFactory
          * be done, as this is not [yet?] really jaxp specified)
          */
         try {
-            String home = System.getProperty( "java.home" );
+            String home = System.getProperty("java.home");
             File f = new File(home);
             // Let's not hard-code separators...
             f = new File(f, "lib");
-            f = new File(JAXP_PROP_FILENAME);
+            f = new File(f, JAXP_PROP_FILENAME);
             if (f.exists()) {
                 try {
                     Properties props = new Properties();
                     props.load(new FileInputStream(f));
                     String clsName = props.getProperty(SYSTEM_PROPERTY_FOR_IMPL);
                     if (clsName != null && clsName.length() > 0) {
-                        return newInstance(classLoader, clsName);
+                        return createNewInstance(classLoader, clsName);
                     }
                 } catch (IOException ioe) {
                     // can also happen quite easily...
@@ -118,18 +141,22 @@ public abstract class XMLValidatorFactory
                 BufferedReader rd =
                     new BufferedReader(new InputStreamReader(is, "UTF-8"));
                 String clsName = null;
+                String line;
 
                 try {
-                    clsName = rd.readLine();
-                    if (clsName != null) {
-                        clsName = clsName.trim();
+                    while ((line = rd.readLine()) != null) {
+                        line = line.trim();
+                        if (line.length() > 0 && line.charAt(0) != '#') {
+                            clsName = line;
+                            break;
+                        }
                     }
                 } finally {
                     rd.close();
                 }
-
+                
                 if (clsName != null && clsName.length() > 0) {
-                    return newInstance(classLoader, clsName);
+                    return createNewInstance(classLoader, clsName);
                 }
             }
         } catch (SecurityException se) {
@@ -149,12 +176,32 @@ public abstract class XMLValidatorFactory
     }
 
     /*
+    ////////////////////////////////////////////////////////
+    // Property-related methods
+    ////////////////////////////////////////////////////////
+    */
+
+    public abstract boolean isPropertySupported(String propName);
+
+    /**
+     * @param propName Name of property to set
+     * @param value Value to set property to
+     *
+     * @return True if setting succeeded; false if property was recognized
+     *   but could not be changed to specified value, or if it was not
+     *   recognized but the implementation did not throw an exception.
+     */
+    public abstract boolean setProperty(String propName, Object value);
+
+    public abstract Object getProperty(String propName);
+
+    /*
     ///////////////////////////////////////////////////////
     // Internal methods
     ///////////////////////////////////////////////////////
      */
 
-    private static XMLValidatorFactory newInstance(ClassLoader cloader, String clsName)
+    private static XMLValidatorFactory createNewInstance(ClassLoader cloader, String clsName)
         throws FactoryConfigurationError
     {
         try {

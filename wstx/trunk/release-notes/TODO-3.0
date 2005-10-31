@@ -64,7 +64,7 @@ Planned stuff for 3.0 (or later)
 
 * Exception-handling:
    * Add a WstxOutputException?
-   * Separate exception class for DTD-parsing problems?
+[DONE] * Separate exception class for DTD-parsing problems?
    * Perhaps add formal numeric (integer) error codes, to allow other code
      to more reliably determine problem type?
 
@@ -72,3 +72,6 @@ Planned stuff for 3.0 (or later)
    * Refactor caching out of input factory, to be shared between
      factories and input/output modes (but have 2 actual Maps in
      CacheManager, to prevent trashing by either side).
+
+* Xml:id support? Easy to add; should perhaps add a property for disabling
+  this behaviour?
