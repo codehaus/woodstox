@@ -60,6 +60,12 @@ public class ElementValidator
     ///////////////////////////////////////
     */
 
+    /**
+     * Map that contains element specifications from DTD; null if no
+     * DOCTYPE declaration found.
+     */
+    final Map mElemSpecs;
+
     final InputProblemReporter mReporter;
 
     /**
@@ -163,11 +169,13 @@ public class ElementValidator
     */
 
     public ElementValidator(InputProblemReporter rep, SymbolTable symbols,
+                            Map elemSpecs,
                             boolean nsAware, Map genEntities,
                             AttributeCollector ac, boolean normAttrs)
     {
         mReporter = rep;
         mSymbols = symbols;
+        mElemSpecs = elemSpecs;
         mNsAware = nsAware;
         mGeneralEntities = genEntities;
         mAttrCollector = ac;
@@ -187,7 +195,7 @@ public class ElementValidator
      * @return Validation state that should be effective for the parent
      *   element state
      */
-    public int pop(InputProblemReporter rep)
+    public int pop()
         throws WstxException
     {
         // First, let's remove the top:
@@ -201,8 +209,8 @@ public class ElementValidator
         if (v != null) {
             String msg = v.fullyValid();
             if (msg != null) {
-                rep.throwValidationError("Validation error, element </"
-                                         +closingElem+">: "+msg);
+                mReporter.throwValidationError("Validation error, element </"
+                                               +closingElem+">: "+msg);
             }
         }
 
@@ -233,9 +241,6 @@ public class ElementValidator
      * no DTD validation has been done. Validator is to do these validations,
      * including checking for attribute value (and existence) compatibility.
      *
-     * @param rep Reporter instance that can be used to report back problems
-     *   (via exceptions)
-     * @param elem Element to resolve
      * @param ns (optional) Data structure that contains all currently
      *   active namespace declarations; may be needed for resolving namespaced
      *   default attributes' namespace URIs.
@@ -243,9 +248,19 @@ public class ElementValidator
      * @return Validation state that should be effective for the fully
      *   resolved element context
      */
-    public int resolveElem(InputProblemReporter rep, DTDElement elem, StringVector ns)
+    public int validateElem(String prefix, String localName, StringVector ns)
         throws WstxException
     {
+        /* Ok, need to find the element definition; if not found (or
+         * only implicitly defined), need to throw the exception.
+         */
+        mTmpKey.reset(prefix, localName);
+
+        DTDElement elem = (DTDElement) mElemSpecs.get(mTmpKey);
+        if (elem == null || !elem.isDefined()) {
+            mReporter.throwParseError(ErrorConsts.ERR_VLD_UNKNOWN_ELEM, mTmpKey.toString());
+        }
+
         int elemCount = mElemCount++;
         if (elemCount >= mElemStack.length) {
             mElemStack = (DTDElement[]) DataUtil.growArrayBy50Pct(mElemStack);
@@ -261,7 +276,6 @@ public class ElementValidator
         if (attrMap == null) {
             attrMap = EMPTY_MAP;
         }
-        
         
         BitSet specBits;
         int specCount = elem.getSpecialCount();
@@ -304,8 +318,8 @@ public class ElementValidator
             }
             DTDAttribute attr = (DTDAttribute) attrMap.get(tmpKey);
             if (attr == null) {
-                rep.throwValidationError(ErrorConsts.ERR_VLD_UNKNOWN_ATTR,
-                                         elem.toString(), tmpKey.toString());
+                mReporter.throwValidationError(ErrorConsts.ERR_VLD_UNKNOWN_ATTR,
+                                               elem.toString(), tmpKey.toString());
             }
             mAttrSpecs[j] = attr;
             if (attr == idAttr) {
@@ -326,7 +340,7 @@ public class ElementValidator
                 String exp = attr.getDefaultValue();
                 String act = mAttrCollector.getValue(j);
                 if (!act.equals(exp)) {
-                    rep.throwValidationError("Value of attribute \""+attr+"\" (element <"+elem+">) not \""+exp+"\" as expected, but \""+act+"\"");
+                    mReporter.throwValidationError("Value of attribute \""+attr+"\" (element <"+elem+">) not \""+exp+"\" as expected, but \""+act+"\"");
                 }
             }
         }
@@ -340,7 +354,7 @@ public class ElementValidator
                 DTDAttribute attr = (DTDAttribute) specAttrs.get(ix);
 
                 if (attr.isRequired()) {
-                    rep.throwValidationError("Required attribute '"+attr+"' missing from element <"+elem+">");
+                    mReporter.throwValidationError("Required attribute '"+attr+"' missing from element <"+elem+">");
                 }
                 // Ok, if not required, should have default value!
                 String def = attr.getDefaultValue();
@@ -348,7 +362,7 @@ public class ElementValidator
                     throw new Error("Internal error: null default attribute value");
                 }
                 NameKey an = attr.getName();
-                mAttrCollector.addDefaultAttr(rep, ns, an.getPrefix(),
+                mAttrCollector.addDefaultAttr(mReporter, ns, an.getPrefix(),
                                               an.getLocalName(), def);
                 mAttrSpecs[mAttrCount++] = attr;
                 ix = specBits.nextClearBit(ix+1);
@@ -367,7 +381,7 @@ public class ElementValidator
                     msg = msg.substring(0, ix) + "</"+pname+">"
                         +msg.substring(ix+4);
                 }
-                rep.throwValidationError("Validation error, encountered element <"
+                mReporter.throwValidationError("Validation error, encountered element <"
                                    +elem.getName()+"> as child of <"
                                    +pname+">: "+msg);
             }

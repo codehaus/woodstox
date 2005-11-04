@@ -1,15 +1,13 @@
 package com.ctc.wstx.sr;
 
-import java.util.*;
-
 import javax.xml.stream.XMLStreamException;
+
+import java.util.*;
 
 import org.codehaus.stax2.validation.XMLValidator;
 
 import com.ctc.wstx.cfg.ErrorConsts;
-import com.ctc.wstx.dtd.DTDElement;
 import com.ctc.wstx.dtd.ElementValidator;
-import com.ctc.wstx.dtd.NameKey;
 import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.util.SymbolTable;
 
@@ -20,20 +18,7 @@ import com.ctc.wstx.util.SymbolTable;
 public final class VNonNsInputElementStack
     extends NonNsInputElementStack
 {
-    /**
-     * Map that contains element specifications from DTD; null for
-     * non-validating parsers.
-     */
-    protected Map mElemSpecs;
-
     ElementValidator mValidator = null;
-
-    /**
-     * DTD definition for the current element
-     */
-    DTDElement mCurrElem;
-
-    private final transient NameKey mTmpKey = new NameKey(null, null);
 
     /*
     //////////////////////////////////////////////////
@@ -46,8 +31,9 @@ public final class VNonNsInputElementStack
         super(initialSize, normAttrs);
     }
 
-    public void beforeRoot() {
-        if (mElemSpecs == null) { // No DOCTYPE
+    public void beforeRoot()
+    {
+        if (mValidator == null) { // No DOCTYPE
             /* It's ok to miss it, but it may not be what caller wants. Either
              * way, let's pass the info and continue
              */
@@ -67,11 +53,9 @@ public final class VNonNsInputElementStack
          *   declaration..
          */
         if (elemSpecs == null) { // no DTD
-            mElemSpecs = Collections.EMPTY_MAP;
-        } else {
-            mElemSpecs = elemSpecs;
+            elemSpecs = Collections.EMPTY_MAP;
         }
-        mValidator = new ElementValidator(mReporter, symbols, false,
+        mValidator = new ElementValidator(mReporter, symbols, elemSpecs, false,
                                           generalEntities,
                                           mAttrCollector, normAttrs);
     }
@@ -85,7 +69,7 @@ public final class VNonNsInputElementStack
     {
         super.pop();
         return (mValidator == null) ?
-            XMLValidator.CONTENT_ALLOW_ANY_TEXT : mValidator.pop(mReporter);
+            XMLValidator.CONTENT_ALLOW_ANY_TEXT : mValidator.pop();
     }
 
     /**
@@ -100,28 +84,14 @@ public final class VNonNsInputElementStack
         throws WstxException
     {
         super.resolveElem(internNsURIs);
-        
-        /* Ok, need to find the element definition; if not found (or
-         * only implicitly defined), need to throw the exception.
-         */
-        mTmpKey.reset(null, mElements[mSize-1]);
 
-        /* It's ok not to have elements... but not when trying to validate;
-         * and we are always validating if we end up here.
-         */
         /* 30-Sep-2005, TSa: Actually, if there was no DTD, let's consider
          *   this ok. We should log a warning though
          */
         if (mValidator == null) { // no DTD in use
             return XMLValidator.CONTENT_ALLOW_ANY_TEXT;
         }
-
-        DTDElement elem = (DTDElement) mElemSpecs.get(mTmpKey);
-        mCurrElem = elem;
-        if (elem == null || !elem.isDefined()) {
-            mReporter.throwParseError(ErrorConsts.ERR_VLD_UNKNOWN_ELEM, mTmpKey);
-        }
-        return mValidator.resolveElem(mReporter, elem, null);
+        return mValidator.validateElem(null, mElements[mSize-1], null);
     }
 
     /*
