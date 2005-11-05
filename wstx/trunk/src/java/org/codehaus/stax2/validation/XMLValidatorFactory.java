@@ -1,9 +1,11 @@
 package org.codehaus.stax2.validation;
 
 import java.io.*;
-import java.util.Properties;
+import java.net.URL;
+import java.util.*;
 
 import javax.xml.stream.FactoryConfigurationError;
+import javax.xml.stream.XMLStreamException;
 
 /**
  * Defines an abstract factory for constructing {@link XMLValidatorSchema}
@@ -30,10 +32,20 @@ public abstract class XMLValidatorFactory
     public final static String SCHEMA_ID_W3C_SCHEMA = "http://www.w3.org/2001/XMLSchema";
     public final static String SCHEMA_ID_TREX = "http://www.thaiopensource.com/trex";
 
+    // // // And then matching internal ids:
+
     public final static String INTERNAL_ID_SCHEMA_DTD = "dtd";
     public final static String INTERNAL_ID_SCHEMA_RELAXNG = "relaxng";
     public final static String INTERNAL_ID_SCHEMA_W3C = "w3c";
     public final static String INTERNAL_ID_SCHEMA_TREX = "trex";
+
+    final static HashMap sSchemaIds = new HashMap();
+    static {
+        sSchemaIds.put(SCHEMA_ID_DTD, INTERNAL_ID_SCHEMA_DTD);
+        sSchemaIds.put(SCHEMA_ID_RELAXNG, INTERNAL_ID_SCHEMA_RELAXNG);
+        sSchemaIds.put(SCHEMA_ID_W3C_SCHEMA, INTERNAL_ID_SCHEMA_W3C);
+        sSchemaIds.put(SCHEMA_ID_TREX, INTERNAL_ID_SCHEMA_TREX);
+    }
 
 
     // // // Properties for locating implementations
@@ -46,7 +58,7 @@ public abstract class XMLValidatorFactory
      * implementations; or the one used does not specify other mechanisms
      * for the loader to find the implementation class).
      */
-    public final static String SYSTEM_PROPERTY_FOR_IMPL = "org.codehaus.stax2.validation";
+    public final static String SYSTEM_PROPERTY_FOR_IMPL = "org.codehaus.stax2.validation.XMLValidatorFactory.";
 
     public final static String SERVICE_DEFINITION_PATH = "META-INF/services/" + SYSTEM_PROPERTY_FOR_IMPL;
 
@@ -63,6 +75,16 @@ public abstract class XMLValidatorFactory
      */
     public static final String P_IS_NAMESPACE_AWARE = "org.codehaus2.stax2.validation.isNamespaceAware";
 
+    /**
+     * Property that determines whether schema instances created by this
+     * factory instance can be cached by the factory; if false, no caching
+     * is allowed to be doe; if true, factory can do caching if it wants to.
+     * The exact rules used to determine unique id of schema instances is 
+     * factory dependant; it is expected that the implementations use
+     * implementation based on unified system ids (serialized URLs or such).
+     */
+    public static final String P_ENABLE_CACHING = "org.codehaus2.stax2.validation.enableCaching";
+
     protected XMLValidatorFactory() { }
 
     /*
@@ -71,26 +93,38 @@ public abstract class XMLValidatorFactory
     ////////////////////////////////////////////////////////
     */
 
+    // // // First creating the factory instances:
+
     /**
      * Creates a new XMLValidationFactory instance, using the default
      * instance configuration mechanism.
      */
-    public static XMLValidatorFactory newInstance()
+    public static XMLValidatorFactory newInstance(String schemaType)
         throws FactoryConfigurationError
     {
-        return newInstance(Thread.currentThread().getContextClassLoader());
+        return newInstance(schemaType,
+                           Thread.currentThread().getContextClassLoader());
     }
 
-    public static XMLValidatorFactory newInstance(ClassLoader classLoader)
+    public static XMLValidatorFactory newInstance(String schemaType, ClassLoader classLoader)
         throws FactoryConfigurationError
     {
+        /* First, let's check and map schema type to the shorter internal
+         * id:
+         */
+        String internalId = (String) sSchemaIds.get(schemaType);
+        if (internalId == null) {
+            throw new FactoryConfigurationError("Unrecognized schema type (id '"+schemaType+"')");
+        }
+
+        String propertyId = SYSTEM_PROPERTY_FOR_IMPL + internalId;
         SecurityException secEx = null;
 
         /* First, let's see if there's a system property (overrides other
          * settings)
          */
         try {
-            String clsName = System.getProperty(SYSTEM_PROPERTY_FOR_IMPL);
+            String clsName = System.getProperty(propertyId);
             if (clsName != null && clsName.length() > 0) {
                 return createNewInstance(classLoader, clsName);
             }
@@ -106,6 +140,7 @@ public abstract class XMLValidatorFactory
         try {
             String home = System.getProperty("java.home");
             File f = new File(home);
+
             // Let's not hard-code separators...
             f = new File(f, "lib");
             f = new File(f, JAXP_PROP_FILENAME);
@@ -113,7 +148,7 @@ public abstract class XMLValidatorFactory
                 try {
                     Properties props = new Properties();
                     props.load(new FileInputStream(f));
-                    String clsName = props.getProperty(SYSTEM_PROPERTY_FOR_IMPL);
+                    String clsName = props.getProperty(propertyId);
                     if (clsName != null && clsName.length() > 0) {
                         return createNewInstance(classLoader, clsName);
                     }
@@ -129,34 +164,39 @@ public abstract class XMLValidatorFactory
         /* Ok, no match; how about a service def from the impl jar?
          */
         // try to find services in CLASSPATH
+        String path = SERVICE_DEFINITION_PATH + internalId;
         try {
-            InputStream is;
-            if (classLoader == null) {
-                is = ClassLoader.getSystemResourceAsStream(SERVICE_DEFINITION_PATH);
-            } else {
-                is = classLoader.getResourceAsStream(SERVICE_DEFINITION_PATH);
-            }
-        
-            if (is!=null ) {
-                BufferedReader rd =
-                    new BufferedReader(new InputStreamReader(is, "UTF-8"));
-                String clsName = null;
-                String line;
+            Enumeration en;
 
-                try {
-                    while ((line = rd.readLine()) != null) {
-                        line = line.trim();
-                        if (line.length() > 0 && line.charAt(0) != '#') {
-                            clsName = line;
-                            break;
+            if (classLoader == null) {
+                en = ClassLoader.getSystemResources(path);
+            } else {
+                en = classLoader.getResources(path);
+            }
+
+            if (en != null) {
+                while (en.hasMoreElements()) {
+                    URL url = (URL) en.nextElement();
+                    InputStream is = url.openStream();
+                    BufferedReader rd =
+                        new BufferedReader(new InputStreamReader(is, "ISO-8859-1"));
+                    String clsName = null;
+                    String line;
+                    
+                    try {
+                        while ((line = rd.readLine()) != null) {
+                            line = line.trim();
+                            if (line.length() > 0 && line.charAt(0) != '#') {
+                                clsName = line;
+                                break;
+                            }
                         }
+                    } finally {
+                        rd.close();
                     }
-                } finally {
-                    rd.close();
-                }
-                
-                if (clsName != null && clsName.length() > 0) {
-                    return createNewInstance(classLoader, clsName);
+                    if (clsName != null && clsName.length() > 0) {
+                        return createNewInstance(classLoader, clsName);
+                    }
                 }
             }
         } catch (SecurityException se) {
@@ -166,14 +206,47 @@ public abstract class XMLValidatorFactory
              */
         }
         
-        String msg = "No XMLValidatoryFactory implementation class specified or accessible (via '"
-            +SYSTEM_PROPERTY_FOR_IMPL+"' system property, or service definition under '"+SERVICE_DEFINITION_PATH+"')";
+        String msg = "No XMLValidatorFactory implementation class specified or accessible (via system property '"
+            +propertyId+"', or service definition under '"+path+"')";
         
         if (secEx != null) {
             throw new FactoryConfigurationError(msg + " (possibly caused by: "+secEx+")", secEx);
         }
         throw new FactoryConfigurationError(msg);
     }
+
+    // // // And then actual per-instance factory methods
+
+    public XMLValidatorSchema createSchema(InputStream in)
+        throws XMLStreamException
+    {
+        return createSchema(in, null);
+    }
+
+    public XMLValidatorSchema createSchema(InputStream in, String encoding)
+        throws XMLStreamException
+    {
+        return createSchema(in, encoding, null, null);
+    }
+
+    public abstract XMLValidatorSchema createSchema(InputStream in, String encoding,
+                                                     String publicId, String systemId)
+        throws XMLStreamException;
+
+    public XMLValidatorSchema createSchema(Reader r)
+        throws XMLStreamException
+    {
+        return createSchema(r, null, null);
+    }
+
+    public abstract XMLValidatorSchema createSchema(Reader r, String publicId,
+                                                     String systemId);
+
+    public abstract XMLValidatorSchema createSchema(URL url)
+        throws XMLStreamException;
+
+    public abstract XMLValidatorSchema createSchema(File f)
+        throws XMLStreamException;
 
     /*
     ////////////////////////////////////////////////////////
@@ -215,10 +288,10 @@ public abstract class XMLValidatorFactory
             return (XMLValidatorFactory) factoryClass.newInstance();
         } catch (ClassNotFoundException x) {
             throw new FactoryConfigurationError
-                ("XMLValidatoryFactory implementation '"+clsName+"' not found (missing jar in classpath?)", x);
+                ("XMLValidatorFactory implementation '"+clsName+"' not found (missing jar in classpath?)", x);
         } catch (Exception x) {
             throw new FactoryConfigurationError
-                ("XMLValidatoryFactory implementation '"+clsName+"' could not be instantiated: "+x, x);
+                ("XMLValidatorFactory implementation '"+clsName+"' could not be instantiated: "+x, x);
         }
     }
 }
