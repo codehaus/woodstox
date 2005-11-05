@@ -1,5 +1,10 @@
 package org.codehaus.stax2.validation;
 
+import javax.xml.stream.XMLStreamException;
+
+import org.codehaus.stax2.XMLStreamReader2;
+import org.codehaus.stax2.XMLStreamWriter2;
+
 /**
  * Defines the API that validator schema instances have to implement. Schema
  * objects are results of parsing of input that defines validation rules;
@@ -9,8 +14,17 @@ package org.codehaus.stax2.validation;
  * also guaranteed to be thread-safe and reusable. One way to think of this
  * is that schemas are actual validator factories instead of
  * {@link XMLValidatorFactory} instances.
+ *<p>
+ * One note about creation of validator instances: due to potential differences
+ * in validation in input vs. output modes, there are separate factory
+ * methods for both sides. Actual instances created may or may not be
+ * different.
  */
-public abstract class XMLValidatorSchema
+public interface XMLValidatorSchema
 {
-    protected XMLValidatorSchema() { }
+    public XMLValidator createValidator(XMLStreamReader2 reader)
+        throws XMLStreamException;
+
+    public XMLValidator createValidator(XMLStreamWriter2 reader)
+        throws XMLStreamException;
 }
