@@ -27,4 +27,19 @@ public interface XMLValidatorSchema
 
     public XMLValidator createValidator(XMLStreamWriter2 reader)
         throws XMLStreamException;
+
+    /*
+    ///////////////////////////////////////////////////
+    // Configuration, properties
+    ///////////////////////////////////////////////////
+     */
+
+    /**
+     * Returns type of this schema.
+     *
+     * @return One of external schema identifier values from
+     *   {@link XMLValidatorFactory} (such as
+     *   {@link XMLValidatorFactory#SCHEMA_ID_DTD}).
+     */
+    public String getSchemaType();
 }

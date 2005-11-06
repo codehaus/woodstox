@@ -74,8 +74,61 @@ public abstract class XMLValidator
 
     /*
     ///////////////////////////////////////////////////
+    // Configuration, properties
+    ///////////////////////////////////////////////////
+     */
+
+    /**
+     * Returns type of schema that was used to construct this
+     * validator instance.
+     *
+     * @return One of external schema identifier values from
+     *   {@link XMLValidatorFactory} (such as
+     *   {@link XMLValidatorFactory#SCHEMA_ID_DTD}).
+     */
+    public abstract String getSchemaType();
+
+    /*
+    ///////////////////////////////////////////////////
     // Actual validation interface
     ///////////////////////////////////////////////////
      */
 
+    public abstract void validateElementStart(String localName, String uri,
+                                              String prefix)
+        throws XMLValidationException;
+
+    /**
+     * Callback method called on validator to give it a chance to validate
+     * the value of an attribute, as well as to normalize its value if
+     * appropriate (remove leading/trailing/intervening white space for
+     * certain token types etc.).
+     *
+     * @return Null, if the passed value is fine as is; or a String, if
+     *   it needs to be replaced. In latter case, caller will replace the
+     *   value before passing it to other validators. Also, if the attribute
+     *   value is accessible via caller (as is the case for stream readers),
+     *   caller should return this value, instead of the original one.
+     */
+    public abstract String validateAttribute(String localName, String uri,
+                                           String prefix, String value)
+        throws XMLValidationException;
+
+    /**
+     * Callback method called on validator to give it a chance to validate
+     * the value of an attribute, as well as to normalize its value if
+     * appropriate (remove leading/trailing/intervening white space for
+     * certain token types etc.).
+     *
+     * @return Null, if the passed value is fine as is; or a String, if
+     *   it needs to be replaced. In latter case, caller will replace the
+     *   value before passing it to other validators. Also, if the attribute
+     *   value is accessible via caller (as is the case for stream readers),
+     *   caller should return this value, instead of the original one.
+     */
+    public abstract String validateAttribute(String localName, String uri,
+                                             String prefix,
+                                             char[] valueChars, int valueStart,
+                                             int valueLen)
+        throws XMLValidationException;
 }

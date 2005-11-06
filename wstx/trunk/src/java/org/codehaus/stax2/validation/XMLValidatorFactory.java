@@ -250,7 +250,7 @@ public abstract class XMLValidatorFactory
 
     /*
     ////////////////////////////////////////////////////////
-    // Property-related methods
+    // Configuration
     ////////////////////////////////////////////////////////
     */
 
@@ -267,6 +267,13 @@ public abstract class XMLValidatorFactory
     public abstract boolean setProperty(String propName, Object value);
 
     public abstract Object getProperty(String propName);
+
+    /*
+    public abstract boolean isFeatureSupported(String featureName);
+    public abstract boolean disableFeature(String featureName);
+    public abstract boolean enableFeature(String featureName);
+    public abstract boolean isFeatureEnabled(String featureName);
+    */
 
     /*
     ///////////////////////////////////////////////////////
