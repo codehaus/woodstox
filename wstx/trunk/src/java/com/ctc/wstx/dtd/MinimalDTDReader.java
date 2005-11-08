@@ -22,6 +22,7 @@ import javax.xml.stream.Location;
 import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.ent.EntityDecl;
 import com.ctc.wstx.exc.WstxException;
+import com.ctc.wstx.io.WstxInputData;
 import com.ctc.wstx.io.WstxInputSource;
 import com.ctc.wstx.sr.StreamScanner;
 
@@ -53,25 +54,22 @@ public class MinimalDTDReader
     /**
      * Constructor used for reading/skipping internal subset.
      */
-    private MinimalDTDReader(StreamScanner master, WstxInputSource input,
-                             ReaderConfig cfg)
+    private MinimalDTDReader(WstxInputSource input, ReaderConfig cfg)
     {
-        this(input, cfg, master, false);
+        this(input, cfg, false);
     }
 
     /**
      * Common initialization part of int/ext subset constructors.
      */
     protected MinimalDTDReader(WstxInputSource input, ReaderConfig cfg,
-                               StreamScanner master, boolean isExt)
+                               boolean isExt)
     {
         super(input, cfg, cfg.getDtdResolver());
         mIsExternal = isExt;
-        // Let's reuse the name buffer:
-        mNameBuffer = (master == null) ? null : master.mNameBuffer;
-	/* And let's force expansion (matters mostly/only for undefined
-	 * entities)
-	 */
+        /* And let's force expansion (matters mostly/only for undefined
+         * entities)
+         */
         mCfgReplaceEntities = true;
     }
 
@@ -80,22 +78,25 @@ public class MinimalDTDReader
      * through structure of internal subset, but without doing any sort
      * of validation, or parsing of contents. Method may still throw an
      * exception, if skipping causes EOF or there's an I/O problem.
+     *
+     * @param srcData Link back to the input buffer shared with the owning
+     *    stream reader.
      */
-    public static void skipInternalSubset(StreamScanner master, WstxInputSource input,
+    public static void skipInternalSubset(WstxInputData srcData, WstxInputSource input,
                                           ReaderConfig cfg)
         throws IOException, WstxException
     {
-        MinimalDTDReader r = new MinimalDTDReader(master, input, cfg);
-        // Parser should reuse master's input buffers:
-        r.copyBufferStateFrom(master);
+        MinimalDTDReader r = new MinimalDTDReader(input, cfg);
+        // Need to read from same source as the master (owning stream reader)
+        r.copyBufferStateFrom(srcData);
         try {
             r.skipInternalSubset();
         } finally {
-            /* And then need to restore changes back to master (line nrs etc);
-             * effectively means that we'll stop reading external DTD subset,
+            /* And then need to restore changes back to srcData (line nrs etc);
+             * effectively means that we'll stop reading internal DTD subset,
              * if so.
              */
-            master.copyBufferStateFrom(r);
+            srcData.copyBufferStateFrom(r);
         }
     }
 

@@ -9,8 +9,8 @@ import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.dtd.DTDReaderProxy;
 import com.ctc.wstx.dtd.DTDSubset;
 import com.ctc.wstx.exc.WstxException;
+import com.ctc.wstx.io.WstxInputData;
 import com.ctc.wstx.io.WstxInputSource;
-import com.ctc.wstx.sr.StreamScanner;
 
 /**
  * Proxy implementation that will act as a dummy DTD reader that can only
@@ -45,7 +45,7 @@ public final class MinimalDTDReaderProxy
     /**
      * Method called to read in the internal subset definition.
      */
-    public DTDSubset readInternalSubset(StreamScanner master, WstxInputSource input,
+    public DTDSubset readInternalSubset(WstxInputData srcData, WstxInputSource input,
                                         ReaderConfig cfg)
         throws IOException, XMLStreamException
     {
@@ -56,8 +56,7 @@ public final class MinimalDTDReaderProxy
      * Method called to read in the external subset definition.
      */
     public DTDSubset readExternalSubset
-        (StreamScanner master, WstxInputSource src, ReaderConfig cfg,
-         DTDSubset intSubset)
+        (WstxInputSource src, ReaderConfig cfg, DTDSubset intSubset)
         throws IOException, XMLStreamException
     {
         throw new WstxException(NOT_IMPL);
@@ -69,11 +68,10 @@ public final class MinimalDTDReaderProxy
      * of validation, or parsing of contents. Method may still throw an
      * exception, if skipping causes EOF or there's an I/O problem.
      */
-    public void skipInternalSubset(StreamScanner master, WstxInputSource input,
+    public void skipInternalSubset(WstxInputData srcData, WstxInputSource input,
                                    ReaderConfig cfg)
         throws IOException, XMLStreamException
     {
-        MinimalDTDReader.skipInternalSubset(master, input, cfg);
+        MinimalDTDReader.skipInternalSubset(srcData, input, cfg);
     }
 }
-

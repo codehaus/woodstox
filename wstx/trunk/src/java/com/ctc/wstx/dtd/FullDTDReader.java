@@ -32,8 +32,8 @@ import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.compat.JdkFeatures;
 import com.ctc.wstx.ent.*;
 import com.ctc.wstx.exc.WstxException;
+import com.ctc.wstx.io.WstxInputData;
 import com.ctc.wstx.io.WstxInputSource;
-import com.ctc.wstx.sr.StreamScanner;
 import com.ctc.wstx.util.InternCache;
 import com.ctc.wstx.util.StringVector;
 import com.ctc.wstx.util.SymbolTable;
@@ -275,19 +275,18 @@ public class FullDTDReader
     /**
      * Constructor used for reading/skipping internal subset.
      */
-    private FullDTDReader(StreamScanner master, WstxInputSource input,
-                          ReaderConfig cfg)
+    private FullDTDReader(WstxInputSource input, ReaderConfig cfg)
     {
-        this(input, cfg, master, false, null);
+        this(input, cfg, false, null);
     }
 
     /**
      * Constructor used for reading external subset.
      */
-    private FullDTDReader(StreamScanner master, WstxInputSource input,
+    private FullDTDReader(WstxInputSource input,
                           ReaderConfig cfg,  DTDSubset intSubset)
     {
-        this(input, cfg, master, true, intSubset);
+        this(input, cfg, true, intSubset);
 
         // Let's make sure line/col offsets are correct...
         input.initInputLocation(this);
@@ -297,10 +296,9 @@ public class FullDTDReader
      * Common initialization part of int/ext subset constructors.
      */
     private FullDTDReader(WstxInputSource input, ReaderConfig cfg,
-                          StreamScanner master, boolean isExt,
-                          DTDSubset intSubset)
+                          boolean isExt, DTDSubset intSubset)
     {
-        super(input, cfg, master, isExt);
+        super(input, cfg, isExt);
         int cfgFlags = cfg.getConfigFlags();
         mConfigFlags = cfgFlags;
         mCfgNormalizeLFs = (cfgFlags & CFG_NORMALIZE_LFS) != 0;
@@ -344,23 +342,25 @@ public class FullDTDReader
     /**
      * Method called to read in the internal subset definition.
      */
-    public static DTDSubset readInternalSubset(StreamScanner master, WstxInputSource input,
+    public static DTDSubset readInternalSubset(WstxInputData srcData,
+                                               WstxInputSource input,
                                                ReaderConfig cfg)
         throws IOException, XMLStreamException
     {
-        FullDTDReader r = new FullDTDReader(master, input, cfg);
-        // Parser should reuse master's input buffers:
-        r.copyBufferStateFrom(master);
+        FullDTDReader r = new FullDTDReader(input, cfg);
+        /* Need to read using same low-level reader interface:
+         */
+        r.copyBufferStateFrom(srcData);
         DTDSubset ss;
 
         try {
             ss = r.parseDTD();
         } finally {
-            /* And then need to restore changes back to master (line nrs etc);
+            /* And then need to restore changes back to owner (line nrs etc);
              * effectively means that we'll stop reading external DTD subset,
              * if so.
              */
-            master.copyBufferStateFrom(r);
+            srcData.copyBufferStateFrom(r);
         }
         return ss;
     }
@@ -369,11 +369,10 @@ public class FullDTDReader
      * Method called to read in the external subset definition.
      */
     public static DTDSubset readExternalSubset
-        (StreamScanner master, WstxInputSource src, ReaderConfig cfg,
-         DTDSubset intSubset)
+        (WstxInputSource src, ReaderConfig cfg, DTDSubset intSubset)
         throws IOException, XMLStreamException
     {
-        FullDTDReader r = new FullDTDReader(master, src, cfg, intSubset);
+        FullDTDReader r = new FullDTDReader(src, cfg, intSubset);
         return r.parseDTD();
     }
 
@@ -413,8 +412,7 @@ public class FullDTDReader
         cfg.clearConfigFlag(CFG_NORMALIZE_LFS);
         cfg.clearConfigFlag(CFG_NORMALIZE_ATTR_VALUES);
 
-        // null -> no master
-        FullDTDReader r = new FullDTDReader(null, src, cfg, null);
+        FullDTDReader r = new FullDTDReader(src, cfg, null);
         r.setFlattenWriter(flattenWriter, inclComments, inclConditionals,
                            inclPEs);
         DTDSubset ss = r.parseDTD();

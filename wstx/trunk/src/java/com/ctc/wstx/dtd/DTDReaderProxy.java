@@ -21,8 +21,8 @@ import java.io.IOException;
 import javax.xml.stream.XMLStreamException;
 
 import com.ctc.wstx.api.ReaderConfig;
+import com.ctc.wstx.io.WstxInputData;
 import com.ctc.wstx.io.WstxInputSource;
-import com.ctc.wstx.sr.StreamScanner;
 
 /**
  * Interface that defines functionality for Objects that act as DTD reader
@@ -35,7 +35,7 @@ public abstract class DTDReaderProxy
     /**
      * Method called to read in the internal subset definition.
      */
-    public abstract DTDSubset readInternalSubset(StreamScanner master, WstxInputSource input,
+    public abstract DTDSubset readInternalSubset(WstxInputData srcData, WstxInputSource input,
                                                  ReaderConfig cfg)
         throws IOException, XMLStreamException;
     
@@ -43,8 +43,7 @@ public abstract class DTDReaderProxy
      * Method called to read in the external subset definition.
      */
     public abstract DTDSubset readExternalSubset
-        (StreamScanner master, WstxInputSource src, ReaderConfig cfg,
-         DTDSubset intSubset)
+        (WstxInputSource src, ReaderConfig cfg, DTDSubset intSubset)
         throws IOException, XMLStreamException;
 
     /**
@@ -53,7 +52,7 @@ public abstract class DTDReaderProxy
      * of validation, or parsing of contents. Method may still throw an
      * exception, if skipping causes EOF or there's an I/O problem.
      */
-    public abstract void skipInternalSubset(StreamScanner master, WstxInputSource input,
+    public abstract void skipInternalSubset(WstxInputData srcData, WstxInputSource input,
                                             ReaderConfig cfg)
         throws IOException, XMLStreamException;
 }

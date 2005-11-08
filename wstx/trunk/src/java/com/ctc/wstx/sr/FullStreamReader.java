@@ -230,7 +230,7 @@ public class FullStreamReader
         // Ok, no usable cached subset found, need to (try to) read it:
         WstxInputSource src = DefaultInputResolver.sourceFrom(mInput, null, value,
                                                               mConfig.getXMLReporter());
-        return mConfig.getDtdReader().readExternalSubset(this, src, mConfig, null);
+        return mConfig.getDtdReader().readExternalSubset(src, mConfig, null);
     }
 
     /*
@@ -405,7 +405,7 @@ public class FullStreamReader
             throwParseError("(was "+fex.getClass().getName()+") "+fex.getMessage());
         }
 
-        DTDSubset extSubset = mConfig.getDtdReader().readExternalSubset(this, src, mConfig, intSubset);
+        DTDSubset extSubset = mConfig.getDtdReader().readExternalSubset(src, mConfig, intSubset);
         
         if (cache) {
             /* Ok; can be cached, but only if it does NOT refer to

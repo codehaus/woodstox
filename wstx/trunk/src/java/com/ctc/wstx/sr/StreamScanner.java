@@ -254,11 +254,9 @@ public abstract class StreamScanner
 
     /**
      * Temporary buffer used if local name can not be just directly
-     * constructed from input buffer (name is on a boundary).
-     *<p>
-     * Note: public only as some sub-classes need to access... weird.
+     * constructed from input buffer (name is on a boundary or such).
      */
-    public char[] mNameBuffer = null;
+    protected char[] mNameBuffer = null;
 
     /**
      * TextBuffer mostly used to collect non-element text content; needs
