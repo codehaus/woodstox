@@ -42,7 +42,7 @@ import com.ctc.wstx.util.URLUtil;
  * {@link WstxStreamReader}, but adds full DTD-handling, including
  * DTD validation
  */
-public class FullStreamReader
+public class ValidatingStreamReader
     extends WstxStreamReader
 {
     /*
@@ -90,9 +90,9 @@ public class FullStreamReader
     ////////////////////////////////////////////////////
      */
 
-    private FullStreamReader(BranchingReaderSource input, ReaderCreator owner,
-                             ReaderConfig cfg, InputElementStack elemStack,
-			     boolean forER)
+    private ValidatingStreamReader(BranchingReaderSource input, ReaderCreator owner,
+                                   ReaderConfig cfg, InputElementStack elemStack,
+                                   boolean forER)
         throws IOException, XMLStreamException
     {
         super(input, owner, cfg, elemStack, forER);
@@ -111,7 +111,7 @@ public class FullStreamReader
      *   required by contracts Woodstox XMLEventReader implementation has
      *   (with respect to lazy parsing, short text segments etc)
      */
-    public static FullStreamReader createFullStreamReader
+    public static ValidatingStreamReader createValidatingStreamReader
         (BranchingReaderSource input, ReaderCreator owner,
          ReaderConfig cfg, InputBootstrapper bs, boolean forER)
         throws IOException, XMLStreamException
@@ -128,7 +128,7 @@ public class FullStreamReader
             }
         }
 
-        FullStreamReader sr = new FullStreamReader(input, owner, cfg, elemStack,
+        ValidatingStreamReader sr = new ValidatingStreamReader(input, owner, cfg, elemStack,
 						   forER);
         sr.initProlog(bs);
         return sr;

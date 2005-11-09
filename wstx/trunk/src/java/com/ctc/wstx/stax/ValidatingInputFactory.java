@@ -38,7 +38,7 @@ import com.ctc.wstx.io.WstxInputSource;
 import com.ctc.wstx.dtd.DTDId;
 import com.ctc.wstx.dtd.DTDSubset;
 import com.ctc.wstx.dtd.FullDTDReaderProxy;
-import com.ctc.wstx.sr.FullStreamReader;
+import com.ctc.wstx.sr.ValidatingStreamReader;
 import com.ctc.wstx.sr.ReaderCreator;
 import com.ctc.wstx.util.SimpleCache;
 
@@ -137,8 +137,8 @@ public final class ValidatingInputFactory
 	/* false -> never used by event readers (since neither this factory
 	 *    nor base class creates event readers)
 	 */
-        return FullStreamReader.createFullStreamReader(input, this, cfg, bs,
-						       false);
+        return ValidatingStreamReader.createValidatingStreamReader
+            (input, this, cfg, bs, false);
     }
 
     /*

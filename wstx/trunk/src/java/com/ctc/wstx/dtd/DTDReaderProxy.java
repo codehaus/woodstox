@@ -45,15 +45,5 @@ public abstract class DTDReaderProxy
     public abstract DTDSubset readExternalSubset
         (WstxInputSource src, ReaderConfig cfg, DTDSubset intSubset)
         throws IOException, XMLStreamException;
-
-    /**
-     * Method similar to {@link #readInternalSubset}, in that it skims
-     * through structure of internal subset, but without doing any sort
-     * of validation, or parsing of contents. Method may still throw an
-     * exception, if skipping causes EOF or there's an I/O problem.
-     */
-    public abstract void skipInternalSubset(WstxInputData srcData, WstxInputSource input,
-                                            ReaderConfig cfg)
-        throws IOException, XMLStreamException;
 }
 

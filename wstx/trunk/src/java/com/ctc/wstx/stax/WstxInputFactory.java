@@ -41,7 +41,7 @@ import com.ctc.wstx.evt.FilteredEventReader;
 import com.ctc.wstx.evt.WstxEventReader;
 import com.ctc.wstx.exc.WstxIOException;
 import com.ctc.wstx.io.*;
-import com.ctc.wstx.sr.FullStreamReader;
+import com.ctc.wstx.sr.ValidatingStreamReader;
 import com.ctc.wstx.sr.ReaderCreator;
 import com.ctc.wstx.util.DefaultXmlSymbolTable;
 import com.ctc.wstx.util.SimpleCache;
@@ -441,8 +441,8 @@ public final class WstxInputFactory
      * Bottleneck method used for creating ALL full stream reader instances
      * (via other createSR() methods and directly)
      */
-    private FullStreamReader createSR(String systemId, InputBootstrapper bs, 
-                                      URL src, boolean forER)
+    private ValidatingStreamReader createSR(String systemId, InputBootstrapper bs, 
+                                            URL src, boolean forER)
         throws XMLStreamException
     {
         Reader r;
@@ -461,7 +461,7 @@ public final class WstxInputFactory
 
       
         try {
-            FullStreamReader sr = FullStreamReader.createFullStreamReader
+            ValidatingStreamReader sr = ValidatingStreamReader.createValidatingStreamReader
                 (input, this, cfg, bs, forER);
             return sr;
         } catch (IOException ie) {
@@ -480,8 +480,8 @@ public final class WstxInputFactory
      *    Event API (will affect some configuration settings), true if it
      *    will be, false if not (or not known)
      */
-    private FullStreamReader createSR(String systemId, InputBootstrapper bs,
-                                      boolean forER)
+    private ValidatingStreamReader createSR(String systemId, InputBootstrapper bs,
+                                            boolean forER)
         throws XMLStreamException
     {
         // 16-Aug-2004, TSa: Maybe we have a context?
@@ -498,7 +498,7 @@ public final class WstxInputFactory
         return createSR(systemId, bs, src, forER);
     }
 
-    protected FullStreamReader createSR(String systemId, InputStream in, String enc, boolean forER)
+    protected ValidatingStreamReader createSR(String systemId, InputStream in, String enc, boolean forER)
         throws XMLStreamException
     {
         // sanity check:
@@ -543,7 +543,7 @@ public final class WstxInputFactory
                         (r, null, systemId, inputBufLen, enc), forER);
     }
 
-    protected FullStreamReader createSR(URL src, boolean forER)
+    protected ValidatingStreamReader createSR(URL src, boolean forER)
         throws XMLStreamException
     {
         try {
@@ -553,7 +553,7 @@ public final class WstxInputFactory
         }
     }
 
-    private FullStreamReader createSR(URL src, InputStream in, boolean forER)
+    private ValidatingStreamReader createSR(URL src, InputStream in, boolean forER)
         throws XMLStreamException
     {
         String sysId = src.toExternalForm();
@@ -563,7 +563,7 @@ public final class WstxInputFactory
                         src, forER);
     }
 
-    protected FullStreamReader createSR(String systemId, Reader r, boolean forER)
+    protected ValidatingStreamReader createSR(String systemId, Reader r, boolean forER)
         throws XMLStreamException
     {
         return createSR(systemId,
@@ -571,7 +571,7 @@ public final class WstxInputFactory
                         (r, null, systemId, mConfig.getInputBufferLength(), null), forER);
     }
 
-    protected FullStreamReader createSR(File f, boolean forER)
+    protected ValidatingStreamReader createSR(File f, boolean forER)
         throws XMLStreamException
     {
         try {
@@ -581,7 +581,7 @@ public final class WstxInputFactory
         }
     }
 
-    protected FullStreamReader createSR(javax.xml.transform.Source src, boolean forER)
+    protected ValidatingStreamReader createSR(javax.xml.transform.Source src, boolean forER)
         throws XMLStreamException
     {
         if (src instanceof StreamSource) {

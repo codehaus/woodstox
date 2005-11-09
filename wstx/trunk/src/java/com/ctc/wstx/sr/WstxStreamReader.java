@@ -34,6 +34,7 @@ import org.codehaus.stax2.validation.XMLValidator;
 import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.dtd.DTDSubset;
+import com.ctc.wstx.dtd.MinimalDTDReader;
 import com.ctc.wstx.ent.EntityDecl;
 import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.io.*;
@@ -2454,7 +2455,7 @@ public class WstxStreamReader
             }
 
             try {
-                mConfig.getDtdReader().skipInternalSubset(this, mInput, mConfig);
+                MinimalDTDReader.skipInternalSubset(this, mInput, mConfig);
             } finally {
                 /* Let's close branching in any and every case (may allow
                  * graceful recovery in error cases in future
