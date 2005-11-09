@@ -7,7 +7,7 @@ import org.codehaus.stax2.*;
 import com.ctc.wstx.api.WstxInputProperties;
 import com.ctc.wstx.ent.EntityDecl;
 import com.ctc.wstx.exc.WstxLazyException;
-import com.ctc.wstx.sr.WstxStreamReader;
+import com.ctc.wstx.sr.BasicStreamReader;
 
 /**
  * This unit test suite checks to see that Woodstox implementation dependant
@@ -36,7 +36,7 @@ public class TestEntityRead
             ;
 
         // Non-expanding, coalescing:
-        WstxStreamReader sr = getReader(XML, false, true);
+        BasicStreamReader sr = getReader(XML, false, true);
         assertTokenType(DTD, sr.next());
         DTDInfo dtd = sr.getDTDInfo();
         assertNotNull(dtd);
@@ -86,7 +86,7 @@ public class TestEntityRead
             ;
 
         // Non-expanding, coalescing:
-        WstxStreamReader sr = getReader(XML, false, true);
+        BasicStreamReader sr = getReader(XML, false, true);
         assertTokenType(DTD, sr.next());
         DTDInfo dtd = sr.getDTDInfo();
         assertNotNull(dtd);
@@ -191,12 +191,12 @@ public class TestEntityRead
      * otherwise entity definitions wouldn't be read. Validation shouldn't
      * need to be enabled just for that purpose.
      */
-    private WstxStreamReader getReader(String contents, boolean replEntities,
+    private BasicStreamReader getReader(String contents, boolean replEntities,
                                        boolean coalescing)
         throws XMLStreamException
     {
         XMLInputFactory f = getConfiguredFactory(replEntities, coalescing);
-        return (WstxStreamReader) constructStreamReader(f, contents);
+        return (BasicStreamReader) constructStreamReader(f, contents);
     }
 
     private XMLInputFactory getConfiguredFactory(boolean replEntities, boolean coalescing)

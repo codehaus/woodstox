@@ -32,9 +32,7 @@ import javax.xml.transform.stream.StreamSource;
 import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.cfg.InputConfigFlags;
 import com.ctc.wstx.dtd.DTDId;
-import com.ctc.wstx.dtd.DTDReaderProxy;
 import com.ctc.wstx.dtd.DTDSubset;
-import com.ctc.wstx.dtd.MinimalDTDReaderProxy;
 import com.ctc.wstx.exc.WstxIOException;
 import com.ctc.wstx.io.*;
 import com.ctc.wstx.util.DefaultXmlSymbolTable;
@@ -42,7 +40,7 @@ import com.ctc.wstx.util.SimpleCache;
 import com.ctc.wstx.util.SymbolTable;
 import com.ctc.wstx.util.TextBuilder;
 import com.ctc.wstx.util.URLUtil;
-import com.ctc.wstx.sr.WstxStreamReader;
+import com.ctc.wstx.sr.BasicStreamReader;
 import com.ctc.wstx.sr.ReaderCreator;
 
 /**
@@ -120,11 +118,11 @@ public class MinimalInputFactory
      */
 
     public MinimalInputFactory() {
-        this(MinimalDTDReaderProxy.getInstance(), true);
+        this(true);
     }
 
-    protected MinimalInputFactory(DTDReaderProxy dtdReader, boolean minimal) {
-        mConfig = ReaderConfig.createJ2MEDefaults(dtdReader);
+    protected MinimalInputFactory(boolean minimal) {
+        mConfig = ReaderConfig.createJ2MEDefaults();
         mIsMinimal = minimal;
     }
 
@@ -307,7 +305,7 @@ public class MinimalInputFactory
      */
 
     public ReaderConfig getConfig() {
-	return mConfig;
+        return mConfig;
     }
 
     /*
@@ -322,8 +320,8 @@ public class MinimalInputFactory
         throws IOException, XMLStreamException
     {
 	// false -> stream reader never (directly) used by an event reader
-        return WstxStreamReader.createBasicStreamReader(input, this, cfg, bs,
-							false);
+        return BasicStreamReader.createBasicStreamReader
+            (input, this, cfg, bs, false);
     }
 
     /*

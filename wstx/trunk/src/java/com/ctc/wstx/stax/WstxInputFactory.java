@@ -35,7 +35,6 @@ import com.ctc.wstx.api.WstxInputProperties;
 import com.ctc.wstx.cfg.InputConfigFlags;
 import com.ctc.wstx.dtd.DTDId;
 import com.ctc.wstx.dtd.DTDSubset;
-import com.ctc.wstx.dtd.FullDTDReaderProxy;
 import com.ctc.wstx.evt.DefaultEventAllocator;
 import com.ctc.wstx.evt.FilteredEventReader;
 import com.ctc.wstx.evt.WstxEventReader;
@@ -139,7 +138,7 @@ public final class WstxInputFactory
      */
 
     public WstxInputFactory() {
-        mConfig = ReaderConfig.createFullDefaults(FullDTDReaderProxy.getInstance());
+        mConfig = ReaderConfig.createFullDefaults();
     }
 
     /*

@@ -37,7 +37,6 @@ import com.ctc.wstx.io.InputBootstrapper;
 import com.ctc.wstx.io.WstxInputSource;
 import com.ctc.wstx.dtd.DTDId;
 import com.ctc.wstx.dtd.DTDSubset;
-import com.ctc.wstx.dtd.FullDTDReaderProxy;
 import com.ctc.wstx.sr.ValidatingStreamReader;
 import com.ctc.wstx.sr.ReaderCreator;
 import com.ctc.wstx.util.SimpleCache;
@@ -72,7 +71,7 @@ public final class ValidatingInputFactory
      */
 
     public ValidatingInputFactory() {
-        super(FullDTDReaderProxy.getInstance(), false);
+        super(false);
     }
 
     /**

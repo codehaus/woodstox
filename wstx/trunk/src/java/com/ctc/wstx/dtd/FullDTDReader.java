@@ -398,11 +398,7 @@ public class FullDTDReader
         throws IOException, XMLStreamException
     {
         int configFlags = -1; // let's start with all options set, first
-
-        /* null -> DTDReaderProxy to use -- since we are not using stream
-         *    reader,  need not pass valid value.
-         */
-        ReaderConfig cfg = ReaderConfig.createFullDefaults(null);
+        ReaderConfig cfg = ReaderConfig.createFullDefaults();
         // Need to create a non-shared copy to populate symbol table field
         cfg = cfg.createNonShared(new SymbolTable());
 

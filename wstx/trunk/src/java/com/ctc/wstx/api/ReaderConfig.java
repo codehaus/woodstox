@@ -12,7 +12,6 @@ import org.codehaus.stax2.XMLInputFactory2; // for property consts
 import com.ctc.wstx.api.WstxInputProperties;
 import com.ctc.wstx.cfg.InputConfigFlags;
 import com.ctc.wstx.compat.JdkFeatures;
-import com.ctc.wstx.dtd.DTDReaderProxy;
 import com.ctc.wstx.ent.IntEntity;
 import com.ctc.wstx.util.ArgUtil;
 import com.ctc.wstx.util.EmptyIterator;
@@ -258,7 +257,6 @@ public final class ReaderConfig
     final boolean mIsJ2MESubset;
 
     final SymbolTable mSymbols;
-    final DTDReaderProxy mDtdReader;
 
     int mConfigFlags;
 
@@ -289,16 +287,13 @@ public final class ReaderConfig
     //////////////////////////////////////////////////////////
      */
 
-    private ReaderConfig(boolean j2meSubset,
-                         SymbolTable symbols, DTDReaderProxy dtdReader,
+    private ReaderConfig(boolean j2meSubset, SymbolTable symbols,
                          int configFlags,
                          int inputBufLen, int textBufLen,
                          int minTextSegmentLen)
     {
         mIsJ2MESubset = j2meSubset;
-
         mSymbols = symbols;
-        mDtdReader = dtdReader;
 
         mConfigFlags = configFlags;
 
@@ -307,13 +302,13 @@ public final class ReaderConfig
         mMinTextSegmentLen = minTextSegmentLen;
     }
 
-    public static ReaderConfig createJ2MEDefaults(DTDReaderProxy dtdReader)
+    public static ReaderConfig createJ2MEDefaults()
     {
         /* For J2ME we'll use slightly smaller buffer sizes by
          * default, on assumption lower memory usage is desireable:
          */
         ReaderConfig rc = new ReaderConfig
-            (true, null, dtdReader, DEFAULT_FLAGS_J2ME,
+            (true, null, DEFAULT_FLAGS_J2ME,
              // 4k input buffer (2000 chars):
              2000,
              /* 2k initial temp buffer for storing text; defines the
@@ -324,13 +319,13 @@ public final class ReaderConfig
         return rc;
     }
 
-    public static ReaderConfig createFullDefaults(DTDReaderProxy dtdReader)
+    public static ReaderConfig createFullDefaults()
     {
         /* For full version, can use bit larger buffers to achieve better
          * overall performance.
          */
         ReaderConfig rc = new ReaderConfig
-            (false, null, dtdReader, DEFAULT_FLAGS_FULL,
+            (false, null, DEFAULT_FLAGS_FULL,
              // 8k input buffer (4000 chars):
              4000,
              /* 4k initial temp buffer for storing text; defines the
@@ -344,7 +339,6 @@ public final class ReaderConfig
     public ReaderConfig createNonShared(SymbolTable sym)
     {
         ReaderConfig rc = new ReaderConfig(mIsJ2MESubset, sym,
-                                           mDtdReader,
                                            mConfigFlags,
                                            mInputBufferLen, mTextBufferLen,
                                            mMinTextSegmentLen);
@@ -398,8 +392,6 @@ public final class ReaderConfig
     // // // Accessors for immutable configuration:
 
     public SymbolTable getSymbols() { return mSymbols; }
-
-    public DTDReaderProxy getDtdReader() { return mDtdReader; }
 
     /**
      * In future this property could/should be made configurable?

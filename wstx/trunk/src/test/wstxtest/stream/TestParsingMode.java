@@ -7,7 +7,6 @@ import org.codehaus.stax2.*;
 import com.ctc.wstx.api.WstxInputProperties;
 import com.ctc.wstx.ent.EntityDecl;
 import com.ctc.wstx.exc.WstxLazyException;
-import com.ctc.wstx.sr.WstxStreamReader;
 
 /**
  * This unit tests verifies that different input parsing modes

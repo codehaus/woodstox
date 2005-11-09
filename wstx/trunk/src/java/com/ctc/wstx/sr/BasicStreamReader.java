@@ -71,7 +71,7 @@ import com.ctc.wstx.util.URLUtil;
  * just an implementation detail; it could be implemented as a separate
  * Object if necessary.
  */
-public class WstxStreamReader
+public class BasicStreamReader
     extends StreamScanner
     implements StreamReaderImpl, DTDInfo, LocationInfo
 {
@@ -366,7 +366,7 @@ public class WstxStreamReader
      *   settings appropriately. If false, configuration settings are to
      *   be used as is.
      */
-    protected WstxStreamReader(BranchingReaderSource input, ReaderCreator owner,
+    protected BasicStreamReader(BranchingReaderSource input, ReaderCreator owner,
                                ReaderConfig cfg, InputElementStack elemStack,
 			       boolean forER)
         throws IOException, XMLStreamException
@@ -431,13 +431,13 @@ public class WstxStreamReader
      * @param input Input source used to read the XML document.
      * @param cfg Object that contains reader configuration info.
      */
-    public static WstxStreamReader createBasicStreamReader
+    public static BasicStreamReader createBasicStreamReader
         (BranchingReaderSource input, ReaderCreator owner, ReaderConfig cfg,
          InputBootstrapper bs, boolean forER)
         throws IOException, XMLStreamException
     {
-        WstxStreamReader sr = new WstxStreamReader(input, owner, cfg,
-                                                   createElementStack(cfg), forER);
+        BasicStreamReader sr = new BasicStreamReader(input, owner, cfg,
+                                                     createElementStack(cfg), forER);
         sr.initProlog(bs);
         return sr;
     }

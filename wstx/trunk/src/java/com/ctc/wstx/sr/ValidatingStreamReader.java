@@ -34,16 +34,17 @@ import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.io.*;
 import com.ctc.wstx.dtd.DTDId;
 import com.ctc.wstx.dtd.DTDSubset;
+import com.ctc.wstx.dtd.FullDTDReader;
 import com.ctc.wstx.util.ExceptionUtil;
 import com.ctc.wstx.util.URLUtil;
 
 /**
  * Implementation of {@link XMLStreamReader} that builds on
- * {@link WstxStreamReader}, but adds full DTD-handling, including
+ * {@link BasicStreamReader}, but adds full DTD-handling, including
  * DTD validation
  */
 public class ValidatingStreamReader
-    extends WstxStreamReader
+    extends BasicStreamReader
 {
     /*
     ////////////////////////////////////////////////
@@ -118,7 +119,7 @@ public class ValidatingStreamReader
     {
         InputElementStack elemStack;
         if (!cfg.willValidateWithDTD()) {
-            elemStack = WstxStreamReader.createElementStack(cfg);
+            elemStack = BasicStreamReader.createElementStack(cfg);
         } else {
             boolean normAttrs = cfg.willNormalizeAttrValues();
             if (cfg.willSupportNamespaces()) {
@@ -230,7 +231,7 @@ public class ValidatingStreamReader
         // Ok, no usable cached subset found, need to (try to) read it:
         WstxInputSource src = DefaultInputResolver.sourceFrom(mInput, null, value,
                                                               mConfig.getXMLReporter());
-        return mConfig.getDtdReader().readExternalSubset(src, mConfig, null);
+        return FullDTDReader.readExternalSubset(src, mConfig, null);
     }
 
     /*
@@ -284,7 +285,7 @@ public class ValidatingStreamReader
             }
 
             try {
-                intSubset = mConfig.getDtdReader().readInternalSubset(this, mInput, mConfig);
+                intSubset = FullDTDReader.readInternalSubset(this, mInput, mConfig);
             } finally {
                 /* Let's close branching in any and every case (may allow
                  * graceful recovery in error cases in future
@@ -405,7 +406,7 @@ public class ValidatingStreamReader
             throwParseError("(was "+fex.getClass().getName()+") "+fex.getMessage());
         }
 
-        DTDSubset extSubset = mConfig.getDtdReader().readExternalSubset(src, mConfig, intSubset);
+        DTDSubset extSubset = FullDTDReader.readExternalSubset(src, mConfig, intSubset);
         
         if (cache) {
             /* Ok; can be cached, but only if it does NOT refer to
