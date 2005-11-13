@@ -18,7 +18,6 @@ import com.ctc.wstx.util.EmptyIterator;
 import com.ctc.wstx.util.EmptyNamespaceContext;
 import com.ctc.wstx.util.SingletonIterator;
 import com.ctc.wstx.util.StringVector;
-import com.ctc.wstx.util.SymbolTable;
 import com.ctc.wstx.util.TextBuilder;
 
 /**
@@ -89,7 +88,7 @@ public class NonNsInputElementStack
      * read internal and/or external DTD subsets, and has thus parsed
      * element specifications.
      */
-    public void setElementSpecs(Map elemSpecs, SymbolTable symbols,
+    public void setElementSpecs(Map elemSpecs,
                                 boolean normAttrs, Map generalEntities)
     {
         /* 30-Sep-2005, TSa: This gets called if there was a DOCTYPE
@@ -98,7 +97,7 @@ public class NonNsInputElementStack
         if (elemSpecs == null) { // no DTD
             elemSpecs = Collections.EMPTY_MAP;
         }
-        mValidator = new ElementValidator(mReporter, symbols, elemSpecs, false,
+        mValidator = new ElementValidator(mReporter, elemSpecs, false,
                                           generalEntities,
                                           mAttrCollector, normAttrs);
     }
@@ -135,7 +134,7 @@ public class NonNsInputElementStack
          */
         mElements[--mSize] = null;
         return (mValidator == null) ?
-            XMLValidator.CONTENT_ALLOW_ANY_TEXT : mValidator.pop();
+            XMLValidator.CONTENT_ALLOW_ANY_TEXT : mValidator.validateElemClose();
     }
 
     /**
@@ -155,7 +154,7 @@ public class NonNsInputElementStack
         if (mValidator == null) { // no DTD in use
             return XMLValidator.CONTENT_ALLOW_ANY_TEXT;
         }
-        return mValidator.validateElem(null, mElements[mSize-1], null);
+        return mValidator.validateElemStart(null, mElements[mSize-1], null);
     }
 
     /*

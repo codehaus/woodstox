@@ -28,7 +28,6 @@ import com.ctc.wstx.sr.AttributeCollector;
 import com.ctc.wstx.sr.InputProblemReporter;
 import com.ctc.wstx.util.DataUtil;
 import com.ctc.wstx.util.StringVector;
-import com.ctc.wstx.util.SymbolTable;
 
 /**
  * Class that will be instantiated by specialized instances of
@@ -67,11 +66,6 @@ public class ElementValidator
     final Map mElemSpecs;
 
     final InputProblemReporter mReporter;
-
-    /**
-     * Symbol table used for resolving entity names
-     */
-    final SymbolTable mSymbols;
 
     /**
      * General entities defined in DTD subsets; needed for validating
@@ -168,13 +162,11 @@ public class ElementValidator
     ///////////////////////////////////////
     */
 
-    public ElementValidator(InputProblemReporter rep, SymbolTable symbols,
-                            Map elemSpecs,
+    public ElementValidator(InputProblemReporter rep, Map elemSpecs,
                             boolean nsAware, Map genEntities,
                             AttributeCollector ac, boolean normAttrs)
     {
         mReporter = rep;
-        mSymbols = symbols;
         mElemSpecs = elemSpecs;
         mNsAware = nsAware;
         mGeneralEntities = genEntities;
@@ -192,50 +184,6 @@ public class ElementValidator
     */
 
     /**
-     * @return Validation state that should be effective for the parent
-     *   element state
-     */
-    public int pop()
-        throws WstxException
-    {
-        // First, let's remove the top:
-        int ix = --mElemCount;
-        DTDElement closingElem = mElemStack[ix];
-        mElemStack[ix] = null;
-        StructValidator v = mValidators[ix];
-        mValidators[ix] = null;
-
-        // Validation?
-        if (v != null) {
-            String msg = v.fullyValid();
-            if (msg != null) {
-                mReporter.throwValidationError("Validation error, element </"
-                                               +closingElem+">: "+msg);
-            }
-        }
-
-        // Then let's get info from parent, if any
-        if (ix < 1) { // root element closing..
-            /* 02-Oct-2004, TSa: Now we can also check that all id references
-             *    pointed to ids that actually are defined
-             */
-            if (mIdMap != null) {
-                ElementId ref = mIdMap.getFirstUndefined();
-                if (ref != null) { // problem!
-                    throwValidationError(ref.getLocation(), "Undefined id '"+ref.getId()
-                                    +"': referenced from element <"
-                                    +ref.getElemName()+">, attribute '"
-                                    +ref.getAttrName()+"'");
-                }
-            }
-
-            // doesn't really matter; epilog/prolog differently handled:
-            return XMLValidator.CONTENT_ALLOW_WS;
-        }
-        return mElemStack[ix-1].getAllowedContent();
-    }
-
-    /**
      * Method called to update information about the newly encountered (start)
      * element. At this point namespace information has been resolved, but
      * no DTD validation has been done. Validator is to do these validations,
@@ -248,7 +196,7 @@ public class ElementValidator
      * @return Validation state that should be effective for the fully
      *   resolved element context
      */
-    public int validateElem(String prefix, String localName, StringVector ns)
+    public int validateElemStart(String prefix, String localName, StringVector ns)
         throws WstxException
     {
         /* Ok, need to find the element definition; if not found (or
@@ -393,6 +341,50 @@ public class ElementValidator
         return elem.getAllowedContent();
     }
 
+    /**
+     * @return Validation state that should be effective for the parent
+     *   element state
+     */
+    public int validateElemClose()
+        throws WstxException
+    {
+        // First, let's remove the top:
+        int ix = --mElemCount;
+        DTDElement closingElem = mElemStack[ix];
+        mElemStack[ix] = null;
+        StructValidator v = mValidators[ix];
+        mValidators[ix] = null;
+
+        // Validation?
+        if (v != null) {
+            String msg = v.fullyValid();
+            if (msg != null) {
+                mReporter.throwValidationError("Validation error, element </"
+                                               +closingElem+">: "+msg);
+            }
+        }
+
+        // Then let's get info from parent, if any
+        if (ix < 1) { // root element closing..
+            /* 02-Oct-2004, TSa: Now we can also check that all id references
+             *    pointed to ids that actually are defined
+             */
+            if (mIdMap != null) {
+                ElementId ref = mIdMap.getFirstUndefined();
+                if (ref != null) { // problem!
+                    throwValidationError(ref.getLocation(), "Undefined id '"+ref.getId()
+                                    +"': referenced from element <"
+                                    +ref.getElemName()+">, attribute '"
+                                    +ref.getAttrName()+"'");
+                }
+            }
+
+            // doesn't really matter; epilog/prolog differently handled:
+            return XMLValidator.CONTENT_ALLOW_WS;
+        }
+        return mElemStack[ix-1].getAllowedContent();
+    }
+
     /*
     ///////////////////////////////////////
     // Package methods, accessors
@@ -420,10 +412,6 @@ public class ElementValidator
             mIdMap = new ElementIdMap();
         }
         return mIdMap;
-    }
-
-    SymbolTable getSymbolTable() {
-        return mSymbols;
     }
 
     Map getEntityMap() {

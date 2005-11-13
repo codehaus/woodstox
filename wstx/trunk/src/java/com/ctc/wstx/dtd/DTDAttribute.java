@@ -22,7 +22,6 @@ import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.io.WstxInputData;
 import com.ctc.wstx.sr.AttributeCollector;
 import com.ctc.wstx.sr.InputProblemReporter;
-import com.ctc.wstx.util.SymbolTable;
 
 /**
  * Base class for objects that contain attribute definitions from DTD.
@@ -354,23 +353,12 @@ public class DTDAttribute
                                         char[] ch, int start, int len, int hash)
         throws WstxException
     {
-        // Let's assume symbol should have been intern'ed earlier...
-        SymbolTable st = v.getSymbolTable();
         Map entMap = v.getEntityMap();
-        String id = st.findSymbolIfExists(ch, start, len, hash);
-        EntityDecl ent;
-
-        if (id != null) {
-            ent = (EntityDecl) entMap.get(id);
-        } else {
-            // But if not interned, it's still possible it's valid
-            id = new String(ch, start, len);
-            ent = (EntityDecl) entMap.get(id);
-            if (ent != null) {
-                // ok, somehow symbol table wasn't up to date; let's fix that
-                id = st.findSymbol(id);
-            }
-        }
+        /* !!! 13-Nov-2005, TSa: If this was to become a bottle-neck, we
+         *   could use/share a symbol table. Or at least reuse Strings...
+         */
+        String id = new String(ch, start, len);
+        EntityDecl ent = (EntityDecl) entMap.get(id);
 
         if (ent == null) {
             reportValidationError(v, "Referenced entity '"+id+"' not defined");

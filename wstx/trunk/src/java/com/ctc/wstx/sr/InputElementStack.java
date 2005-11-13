@@ -32,7 +32,6 @@ import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.util.BaseNsContext;
 import com.ctc.wstx.util.SingletonIterator;
 import com.ctc.wstx.util.StringVector;
-import com.ctc.wstx.util.SymbolTable;
 import com.ctc.wstx.util.TextBuilder;
 
 /**
@@ -107,7 +106,7 @@ public abstract class InputElementStack
      * Stub implementation for method that specialized sub-classes use.
      * Default implementation is fine for non-validating stacks.
      */
-    protected abstract void setElementSpecs(Map elemSpecs, SymbolTable symbols,
+    protected abstract void setElementSpecs(Map elemSpecs,
                                             boolean normAttrs, Map generalEntities);
 
     /**

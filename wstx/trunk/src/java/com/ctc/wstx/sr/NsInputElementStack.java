@@ -128,7 +128,7 @@ public class NsInputElementStack
         mAttrCollector = new NsAttributeCollector(normAttrs, prefixXml, prefixXmlns);
     }
 
-    public void setElementSpecs(Map elemSpecs, SymbolTable symbols,
+    public void setElementSpecs(Map elemSpecs,
                                 boolean normAttrs, Map generalEntities)
     {
         /* 30-Sep-2005, TSa: This gets called if there was a DOCTYPE
@@ -137,7 +137,7 @@ public class NsInputElementStack
         if (elemSpecs == null) { // no DTD
             elemSpecs = Collections.EMPTY_MAP;
         }
-        mValidator = new ElementValidator(mReporter, symbols, elemSpecs, true,
+        mValidator = new ElementValidator(mReporter, elemSpecs, true,
                                           generalEntities,
                                           mAttrCollector, normAttrs);
     }
@@ -204,7 +204,7 @@ public class NsInputElementStack
             mNamespaces.removeLast(nsCount);
         }
         return (mValidator == null) ?
-            XMLValidator.CONTENT_ALLOW_ANY_TEXT : mValidator.pop();
+            XMLValidator.CONTENT_ALLOW_ANY_TEXT : mValidator.validateElemClose();
     }
 
     /**
@@ -284,7 +284,7 @@ public class NsInputElementStack
         if (mValidator == null) { // no DTD in use
             return XMLValidator.CONTENT_ALLOW_ANY_TEXT;
         }
-        return mValidator.validateElem
+        return mValidator.validateElemStart
             (mElements[mSize-(ENTRY_SIZE - IX_PREFIX)],
              mElements[mSize-(ENTRY_SIZE - IX_LOCALNAME)], mNamespaces);
     }

@@ -11,7 +11,6 @@ import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.io.WstxInputData;
 import com.ctc.wstx.sr.AttributeCollector;
 import com.ctc.wstx.sr.InputProblemReporter;
-import com.ctc.wstx.util.SymbolTable;
 import com.ctc.wstx.util.TextBuilder;
 import com.ctc.wstx.util.WordResolver;
 
@@ -33,7 +32,7 @@ public final class DTDEntitiesAttr
      * default values.
      */
     public DTDEntitiesAttr(NameKey name, int defValueType, String defValue,
-                         int specIndex)
+                           int specIndex)
     {
         super(name, defValueType, defValue, specIndex);
     }
@@ -92,7 +91,6 @@ public final class DTDEntitiesAttr
         }
 
         // Ok; now start points to first, last to last char (both inclusive)
-        SymbolTable st = v.getSymbolTable();
         Map entMap = v.getEntityMap();
         String idStr = null;
         StringBuffer sb = null;
