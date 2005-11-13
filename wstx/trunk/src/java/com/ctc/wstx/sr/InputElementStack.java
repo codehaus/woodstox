@@ -55,6 +55,8 @@ public abstract class InputElementStack
      */
     protected final static String UNKNOWN_ATTR_TYPE = "CDATA";
 
+    protected final boolean mInternNsURIs;
+
     protected InputProblemReporter mReporter = null;
 
     /*
@@ -63,10 +65,12 @@ public abstract class InputElementStack
     //////////////////////////////////////////////////
      */
 
-    protected InputElementStack() {
+    protected InputElementStack(boolean internNsURIs) {
+        mInternNsURIs = internNsURIs;
     }
 
-    public void connectReporter(InputProblemReporter rep) {
+    public void connectReporter(InputProblemReporter rep)
+    {
         mReporter = rep;
     }
 
@@ -134,7 +138,7 @@ public abstract class InputElementStack
      * @return Validation state that should be effective for the fully
      *   resolved element context
      */
-    public abstract int resolveElem(boolean internNsURIs)
+    public abstract int resolveElem()
         throws WstxException;
 
     /*

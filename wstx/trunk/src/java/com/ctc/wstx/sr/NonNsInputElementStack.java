@@ -68,9 +68,10 @@ public class NonNsInputElementStack
     //////////////////////////////////////////////////
      */
 
-    public NonNsInputElementStack(int initialSize, boolean normAttrs)
+    public NonNsInputElementStack(int initialSize,
+                                  boolean normAttrs, boolean internNsURIs)
     {
-        super();
+        super(internNsURIs);
         mSize = 0;
         if (initialSize < 4) {
             initialSize = 4;
@@ -122,7 +123,7 @@ public class NonNsInputElementStack
      * @return Validation state that should be effective for the fully
      *   resolved element context
      */
-    public int resolveElem(boolean internNsURIs)
+    public int resolveElem()
         throws WstxException
     {
         // Need to inform attribute collector, at least

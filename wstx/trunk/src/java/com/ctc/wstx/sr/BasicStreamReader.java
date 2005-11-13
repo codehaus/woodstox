@@ -446,11 +446,13 @@ public class BasicStreamReader
     {
         InputElementStack es;
         boolean normAttrs = cfg.willNormalizeAttrValues();
+        boolean internNsURIs = cfg.willInternNsURIs();
 
         if (cfg.willSupportNamespaces()) {
-            return new NsInputElementStack(16, sPrefixXml, sPrefixXmlns, normAttrs);
+            return new NsInputElementStack(16, normAttrs, internNsURIs,
+                                           sPrefixXml, sPrefixXmlns);
         }
-        return new NonNsInputElementStack(16, normAttrs);
+        return new NonNsInputElementStack(16, normAttrs, internNsURIs);
     }
 
     /*
@@ -2774,7 +2776,7 @@ public class BasicStreamReader
                 mInputBuffer[mInputPtr++] : getNextCharFromCurrent(SUFFIX_IN_ELEMENT);
             mStEmptyElem = (c == '>') ? false : handleNonNsAttrs(c);
         }
-        mVldContent = mElementStack.resolveElem(mCfgInternNsURIs);
+        mVldContent = mElementStack.resolveElem();
     }
 
     /**

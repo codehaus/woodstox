@@ -283,8 +283,8 @@ public class FullDTDReader
     /**
      * Constructor used for reading external subset.
      */
-    private FullDTDReader(WstxInputSource input,
-                          ReaderConfig cfg,  DTDSubset intSubset)
+    private FullDTDReader(WstxInputSource input, ReaderConfig cfg, 
+                          DTDSubset intSubset)
     {
         this(input, cfg, true, intSubset);
 

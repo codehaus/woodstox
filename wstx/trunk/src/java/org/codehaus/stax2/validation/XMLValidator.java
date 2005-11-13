@@ -99,6 +99,17 @@ public abstract class XMLValidator
         throws XMLValidationException;
 
     /**
+     * Method called right after encountering an element close tag.
+     *
+     * @return One of <code>CONTENT_ALLOW_</code> constants, to indicate
+     *   what kind of textual content is allowed at the scope returned
+     *   to after the element has closed.
+     */
+    public abstract int validateElementEnd(String localName, String uri,
+                                            String prefix)
+        throws XMLValidationException;
+
+    /**
      * Callback method called on validator to give it a chance to validate
      * the value of an attribute, as well as to normalize its value if
      * appropriate (remove leading/trailing/intervening white space for
@@ -130,5 +141,17 @@ public abstract class XMLValidator
                                              String prefix,
                                              char[] valueChars, int valueStart,
                                              int valueLen)
+        throws XMLValidationException;
+
+    /**
+     * Method called after calling {@link #validateAttribute} on all
+     * attributes (if any), but before starting to handle element
+     * content.
+     *
+     * @return One of <code>CONTENT_ALLOW_</code> constants, to indicate
+     *   what kind of textual content is allowed at the scope returned
+     *   to after the element has closed.
+     */
+    public abstract int validateElementAndAttributes(AttributeContainer ac)
         throws XMLValidationException;
 }

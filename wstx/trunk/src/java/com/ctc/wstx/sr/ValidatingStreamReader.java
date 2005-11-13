@@ -122,10 +122,12 @@ public class ValidatingStreamReader
             elemStack = BasicStreamReader.createElementStack(cfg);
         } else {
             boolean normAttrs = cfg.willNormalizeAttrValues();
+            boolean internNsURIs = cfg.willInternNsURIs();
             if (cfg.willSupportNamespaces()) {
-                elemStack = new VNsInputElementStack(16, sPrefixXml, sPrefixXmlns, normAttrs);
+                elemStack = new VNsInputElementStack(16, normAttrs, internNsURIs,
+                                                     sPrefixXml, sPrefixXmlns);
             } else {
-                elemStack = new VNonNsInputElementStack(16, normAttrs);
+                elemStack = new VNonNsInputElementStack(16, normAttrs, internNsURIs);
             }
         }
 

@@ -112,10 +112,10 @@ public class NsInputElementStack
      */
 
     public NsInputElementStack(int initialSize,
-                               String prefixXml, String prefixXmlns,
-                               boolean normAttrs)
+                               boolean normAttrs, boolean internNsURIs,
+                               String prefixXml, String prefixXmlns)
     {
-        super();
+        super(internNsURIs);
         mPrefixXml = prefixXml;
         mPrefixXmlns = prefixXmlns;
         mSize = 0;
@@ -199,7 +199,7 @@ public class NsInputElementStack
      * @return Validation state that should be effective for the fully
      *   resolved element context
      */
-    public int resolveElem(boolean internNsURIs)
+    public int resolveElem()
         throws WstxException
     {
         if (mSize == 0) {
@@ -215,7 +215,7 @@ public class NsInputElementStack
                 TextBuilder nsURIs = ac.getNsURIs();
                 for (int i = 0; i < nsCount; ++i) {
                     String nsUri = nsURIs.getEntry(i);
-                    if (internNsURIs && nsUri.length() > 0) {
+                    if (mInternNsURIs && nsUri.length() > 0) {
                         nsUri = sInternCache.intern(nsUri);
                     }
                     /* 28-Jul-2004, TSa: Now we will have default namespaces

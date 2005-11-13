@@ -26,9 +26,10 @@ public final class VNonNsInputElementStack
     //////////////////////////////////////////////////
      */
 
-    public VNonNsInputElementStack(int initialSize, boolean normAttrs)
+    public VNonNsInputElementStack(int initialSize,
+                                   boolean normAttrs, boolean internNsURIs)
     {
-        super(initialSize, normAttrs);
+        super(initialSize, normAttrs, internNsURIs);
     }
 
     public void beforeRoot()
@@ -80,10 +81,10 @@ public final class VNonNsInputElementStack
      * @return Validation state that should be effective for the fully
      *   resolved element context
      */
-    public int resolveElem(boolean internNsURIs)
+    public int resolveElem()
         throws WstxException
     {
-        super.resolveElem(internNsURIs);
+        super.resolveElem();
 
         /* 30-Sep-2005, TSa: Actually, if there was no DTD, let's consider
          *   this ok. We should log a warning though
