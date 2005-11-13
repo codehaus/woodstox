@@ -117,20 +117,7 @@ public class ValidatingStreamReader
          ReaderConfig cfg, InputBootstrapper bs, boolean forER)
         throws IOException, XMLStreamException
     {
-        InputElementStack elemStack;
-        if (!cfg.willValidateWithDTD()) {
-            elemStack = BasicStreamReader.createElementStack(cfg);
-        } else {
-            boolean normAttrs = cfg.willNormalizeAttrValues();
-            boolean internNsURIs = cfg.willInternNsURIs();
-            if (cfg.willSupportNamespaces()) {
-                elemStack = new VNsInputElementStack(16, normAttrs, internNsURIs,
-                                                     sPrefixXml, sPrefixXmlns);
-            } else {
-                elemStack = new VNonNsInputElementStack(16, normAttrs, internNsURIs);
-            }
-        }
-
+        InputElementStack elemStack = BasicStreamReader.createElementStack(cfg);
         ValidatingStreamReader sr = new ValidatingStreamReader(input, owner, cfg, elemStack,
 						   forER);
         sr.initProlog(bs);

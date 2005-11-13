@@ -26,6 +26,8 @@ import javax.xml.stream.XMLStreamException;
 
 import org.codehaus.stax2.AttributeInfo;
 
+import com.ctc.wstx.cfg.ErrorConsts;
+import com.ctc.wstx.dtd.ElementValidator;
 import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.util.BaseNsContext;
 import com.ctc.wstx.util.SingletonIterator;
@@ -55,9 +57,19 @@ public abstract class InputElementStack
      */
     protected final static String UNKNOWN_ATTR_TYPE = "CDATA";
 
+    protected InputProblemReporter mReporter = null;
+
     protected final boolean mInternNsURIs;
 
-    protected InputProblemReporter mReporter = null;
+    protected final boolean mExpectDTD;
+
+    /*
+    //////////////////////////////////////////////////
+    // Element validation (optional)
+    //////////////////////////////////////////////////
+    */
+
+    protected ElementValidator mValidator = null;
 
     /*
     //////////////////////////////////////////////////
@@ -65,11 +77,13 @@ public abstract class InputElementStack
     //////////////////////////////////////////////////
      */
 
-    protected InputElementStack(boolean internNsURIs) {
+    protected InputElementStack(boolean internNsURIs, boolean expectDTD)
+    {
         mInternNsURIs = internNsURIs;
+        mExpectDTD = expectDTD;
     }
 
-    public void connectReporter(InputProblemReporter rep)
+    protected void connectReporter(InputProblemReporter rep)
     {
         mReporter = rep;
     }
@@ -78,25 +92,29 @@ public abstract class InputElementStack
      * Method called by reader right before the root element is handled.
      * Allows validating instances to check if they have validator settings,
      * and if not, to warn about that.
-     *<p>
-     * Note: default implementation is for non-validating instances, and
-     * does nothing.
      */
-    public void beforeRoot() {
-        ;
+    public void beforeRoot()
+    {
+        if (mExpectDTD && mValidator == null) { // No DOCTYPE
+            /* It's ok to miss it, but it may not be what caller wants. Either
+             * way, let's pass the info and continue
+             */
+            mReporter.reportProblem(ErrorConsts.WT_DT_DECL, ErrorConsts.W_MISSING_DTD);
+        }
     }
 
     /**
      * Stub implementation for method that specialized sub-classes use.
      * Default implementation is fine for non-validating stacks.
      */
-    public void setElementSpecs(Map elemSpecs, SymbolTable symbols,
-                                boolean normAttrs, Map generalEntities)
-    {
-        ;
-    }
+    protected abstract void setElementSpecs(Map elemSpecs, SymbolTable symbols,
+                                            boolean normAttrs, Map generalEntities);
 
-    public abstract AttributeCollector getAttrCollector();
+    /**
+     * Method called by {@link BasicStreamReader}, to retrieve the
+     * attribute collector it needs for some direct access.
+     */
+    protected abstract AttributeCollector getAttrCollector();
 
     /**
      * Method called to construct a non-transient NamespaceContext instance;
@@ -161,18 +179,14 @@ public abstract class InputElementStack
      * attributes; this because that requires DTD information that only
      * some implementations have.
      */
-    public int getIdAttributeIndex() {
-        return -1;
-    }
+    public abstract int getIdAttributeIndex();
 
     /**
      * Default implementation just indicates it does not know of such
      * attributes; this because that requires DTD information that only
      * some implementations have.
      */
-    public int getNotationAttributeIndex() {
-        return -1;
-    }
+    public abstract int getNotationAttributeIndex();
 
     /*
     ///////////////////////////////////////////////////
@@ -243,8 +257,5 @@ public abstract class InputElementStack
      * Default implementation just returns the 'unknown' type; validating
      * sub-classes need to override
      */
-    public String getAttributeType(int index)
-    {
-         return UNKNOWN_ATTR_TYPE;
-    }
+    public abstract String getAttributeType(int index);
 }

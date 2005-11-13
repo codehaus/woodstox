@@ -1,7 +1,6 @@
 package com.ctc.wstx.sr;
 
-import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.*;
 
 import javax.xml.XMLConstants;
 import javax.xml.namespace.NamespaceContext;
@@ -12,6 +11,7 @@ import javax.xml.stream.XMLStreamException;
 import org.codehaus.stax2.validation.XMLValidator;
 
 import com.ctc.wstx.cfg.ErrorConsts;
+import com.ctc.wstx.dtd.ElementValidator;
 import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.util.*;
 
@@ -113,9 +113,10 @@ public class NsInputElementStack
 
     public NsInputElementStack(int initialSize,
                                boolean normAttrs, boolean internNsURIs,
+                               boolean expectDTD,
                                String prefixXml, String prefixXmlns)
     {
-        super(internNsURIs);
+        super(internNsURIs, expectDTD);
         mPrefixXml = prefixXml;
         mPrefixXmlns = prefixXmlns;
         mSize = 0;
@@ -125,6 +126,20 @@ public class NsInputElementStack
         mElements = new String[initialSize << 2];
         mNsCounts = new int[initialSize];
         mAttrCollector = new NsAttributeCollector(normAttrs, prefixXml, prefixXmlns);
+    }
+
+    public void setElementSpecs(Map elemSpecs, SymbolTable symbols,
+                                boolean normAttrs, Map generalEntities)
+    {
+        /* 30-Sep-2005, TSa: This gets called if there was a DOCTYPE
+         *   declaration..
+         */
+        if (elemSpecs == null) { // no DTD
+            elemSpecs = Collections.EMPTY_MAP;
+        }
+        mValidator = new ElementValidator(mReporter, symbols, elemSpecs, true,
+                                          generalEntities,
+                                          mAttrCollector, normAttrs);
     }
 
     public final void push(String prefix, String localName)
@@ -188,7 +203,8 @@ public class NsInputElementStack
         if (nsCount > 0) { // 2 entries for each NS mapping:
             mNamespaces.removeLast(nsCount);
         }
-        return XMLValidator.CONTENT_ALLOW_ANY_TEXT;
+        return (mValidator == null) ?
+            XMLValidator.CONTENT_ALLOW_ANY_TEXT : mValidator.pop();
     }
 
     /**
@@ -265,7 +281,12 @@ public class NsInputElementStack
         // And finally, resolve attributes' namespaces too:
         ac.resolveNamespaces(mReporter, mNamespaces);
         
-        return XMLValidator.CONTENT_ALLOW_ANY_TEXT;
+        if (mValidator == null) { // no DTD in use
+            return XMLValidator.CONTENT_ALLOW_ANY_TEXT;
+        }
+        return mValidator.validateElem
+            (mElements[mSize-(ENTRY_SIZE - IX_PREFIX)],
+             mElements[mSize-(ENTRY_SIZE - IX_LOCALNAME)], mNamespaces);
     }
 
     /*
@@ -432,6 +453,21 @@ public class NsInputElementStack
     public final int findAttributeIndex(String nsURI, String localName)
     {
         return mAttrCollector.findIndex(nsURI, localName);
+    }
+
+    public String getAttributeType(int index) {
+        return (mValidator == null) ? UNKNOWN_ATTR_TYPE : 
+            mValidator.getAttributeType(index);
+    }
+
+    public int getIdAttributeIndex() {
+        return (mValidator == null) ? -1 : 
+            mValidator.getIdAttrIndex();
+    }
+
+    public int getNotationAttributeIndex() {
+        return (mValidator == null) ? -1 :
+            mValidator.getNotationAttrIndex();
     }
 
     /*

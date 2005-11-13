@@ -447,12 +447,16 @@ public class BasicStreamReader
         InputElementStack es;
         boolean normAttrs = cfg.willNormalizeAttrValues();
         boolean internNsURIs = cfg.willInternNsURIs();
+        // This is only needed for warnings on missing DTD...
+        boolean useDTD = cfg.willValidateWithDTD();
 
         if (cfg.willSupportNamespaces()) {
             return new NsInputElementStack(16, normAttrs, internNsURIs,
+                                           useDTD,
                                            sPrefixXml, sPrefixXmlns);
         }
-        return new NonNsInputElementStack(16, normAttrs, internNsURIs);
+        return new NonNsInputElementStack(16, normAttrs, internNsURIs,
+                                           useDTD);
     }
 
     /*

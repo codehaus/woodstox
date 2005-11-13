@@ -1,6 +1,6 @@
 package com.ctc.wstx.sr;
 
-import java.util.Iterator;
+import java.util.*;
 
 import javax.xml.XMLConstants;
 import javax.xml.namespace.NamespaceContext;
@@ -10,12 +10,15 @@ import javax.xml.stream.XMLStreamException;
 
 import org.codehaus.stax2.validation.XMLValidator;
 
+import com.ctc.wstx.cfg.ErrorConsts;
+import com.ctc.wstx.dtd.ElementValidator;
 import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.util.BaseNsContext;
 import com.ctc.wstx.util.EmptyIterator;
 import com.ctc.wstx.util.EmptyNamespaceContext;
 import com.ctc.wstx.util.SingletonIterator;
 import com.ctc.wstx.util.StringVector;
+import com.ctc.wstx.util.SymbolTable;
 import com.ctc.wstx.util.TextBuilder;
 
 /**
@@ -69,15 +72,35 @@ public class NonNsInputElementStack
      */
 
     public NonNsInputElementStack(int initialSize,
-                                  boolean normAttrs, boolean internNsURIs)
+                                  boolean normAttrs, boolean internNsURIs,
+                                  boolean expectDTD)
     {
-        super(internNsURIs);
+        super(internNsURIs, expectDTD);
         mSize = 0;
         if (initialSize < 4) {
             initialSize = 4;
         }
         mElements = new String[initialSize];
         mAttrCollector = new NonNsAttributeCollector(normAttrs);
+    }
+
+    /**
+     * Method called by the validating stream reader if and when it has
+     * read internal and/or external DTD subsets, and has thus parsed
+     * element specifications.
+     */
+    public void setElementSpecs(Map elemSpecs, SymbolTable symbols,
+                                boolean normAttrs, Map generalEntities)
+    {
+        /* 30-Sep-2005, TSa: This gets called if there was a DOCTYPE
+         *   declaration..
+         */
+        if (elemSpecs == null) { // no DTD
+            elemSpecs = Collections.EMPTY_MAP;
+        }
+        mValidator = new ElementValidator(mReporter, symbols, elemSpecs, false,
+                                          generalEntities,
+                                          mAttrCollector, normAttrs);
     }
 
     public final void push(String prefix, String localName)
@@ -111,8 +134,8 @@ public class NonNsInputElementStack
          * likely interned... but it's a good habit
          */
         mElements[--mSize] = null;
-
-        return XMLValidator.CONTENT_ALLOW_ANY_TEXT;
+        return (mValidator == null) ?
+            XMLValidator.CONTENT_ALLOW_ANY_TEXT : mValidator.pop();
     }
 
     /**
@@ -129,7 +152,10 @@ public class NonNsInputElementStack
         // Need to inform attribute collector, at least
         mAttrCollector.resolveValues(mReporter);
 
-        return XMLValidator.CONTENT_ALLOW_ANY_TEXT;
+        if (mValidator == null) { // no DTD in use
+            return XMLValidator.CONTENT_ALLOW_ANY_TEXT;
+        }
+        return mValidator.validateElem(null, mElements[mSize-1], null);
     }
 
     /*
@@ -199,6 +225,26 @@ public class NonNsInputElementStack
             return -1;
         }
         return mAttrCollector.findIndex(localName);
+    }
+
+    /**
+     * Input element stack has to ask validator about this data; validator
+     * keeps track of attribute declarations for the current element
+     */
+    public String getAttributeType(int index)
+    {
+        return (mValidator == null) ? UNKNOWN_ATTR_TYPE : 
+            mValidator.getAttributeType(index);
+    }
+
+    public int getIdAttributeIndex() {
+        return (mValidator == null) ? -1 : 
+            mValidator.getIdAttrIndex();
+    }
+
+    public int getNotationAttributeIndex() {
+        return (mValidator == null) ? -1 :
+            mValidator.getNotationAttrIndex();
     }
 
     /*
