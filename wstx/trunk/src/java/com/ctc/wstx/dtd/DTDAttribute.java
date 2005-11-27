@@ -18,7 +18,7 @@ package com.ctc.wstx.dtd;
 import java.util.Map;
 
 import com.ctc.wstx.ent.EntityDecl;
-import com.ctc.wstx.exc.WstxException;
+import com.ctc.wstx.exc.*;
 import com.ctc.wstx.io.WstxInputData;
 import com.ctc.wstx.sr.AttributeCollector;
 import com.ctc.wstx.sr.InputProblemReporter;
@@ -66,7 +66,7 @@ public class DTDAttribute
      */
     final static String[] sTypes = new String[] {
         "CDATA",
-        "ENUMERATED", // !!! 23-Jan-2005, TSa: What's the official type? CDATA?
+        "ENUMERATED", // !!! 23-Jan-2005, TSa: What's the official type constant? CDATA?
         "ID",
         "IDREF",
         "IDREFS",
@@ -199,6 +199,20 @@ public class DTDAttribute
     ///////////////////////////////////////////////////
      */
 
+    public String validate(ElementValidator v, String value, boolean normalize)
+        throws WstxValidationException
+    {
+        // !!! TBI
+        return value;
+    }
+
+    public String validate(ElementValidator v, char[] cbuf, int start, int end, boolean normalize)
+        throws WstxValidationException
+    {
+        // !!! TBI
+        return null;
+    }
+
     /**
      * Method called by the {@link ElementValidator}
      * to let the attribute do necessary normalization and/or validation
@@ -206,7 +220,7 @@ public class DTDAttribute
      */
     public void validate(ElementValidator v, boolean normalize, AttributeCollector ac,
                          int index)
-        throws WstxException
+        throws WstxValidationException
     {
         /* Nothing to do for the base class; all values are fine...
          * except if the value has to be fixed
@@ -219,7 +233,7 @@ public class DTDAttribute
      * valid for such type.
      */
     public void validateDefault(InputProblemReporter rep, boolean normalize)
-        throws WstxException
+        throws javax.xml.stream.XMLStreamException
     {
         // Nothing to do for the base class; all values are fine
     }
@@ -231,26 +245,26 @@ public class DTDAttribute
      */
 
     protected String validateDefaultName(InputProblemReporter rep, boolean normalize)
-        throws WstxException
+        throws WstxValidationException
     {
         String defValue = mDefValue.trim();
 
         if (defValue.length() == 0) {
-            reportValidationError(rep, "Invalid default value '"+defValue
+            reportValidationProblem(rep, "Invalid default value '"+defValue
                              +"'; empty String is not a valid name");
         }
 
         // Ok, needs to be a valid XML name:
         char c = defValue.charAt(0);
         if (!WstxInputData.is11NameChar(c) && c != ':') {
-            reportValidationError(rep, "Invalid default value '"+defValue+"'; character "
+            reportValidationProblem(rep, "Invalid default value '"+defValue+"'; character "
                                 +WstxInputData.getCharDesc(c)
                                 +") not valid first character of a name");
         }
 
         for (int i = 1, len = defValue.length(); i < len; ++i) {
             if (!WstxInputData.is11NameChar(defValue.charAt(i))) {
-                reportValidationError(rep, "Invalid default value '"+defValue+"'; character #"+i+" ("
+                reportValidationProblem(rep, "Invalid default value '"+defValue+"'; character #"+i+" ("
                                     +WstxInputData.getCharDesc(defValue.charAt(i))
                                    +") not valid name character");
             }
@@ -261,7 +275,7 @@ public class DTDAttribute
     }
 
     protected String validateDefaultNames(InputProblemReporter rep, boolean normalize)
-        throws WstxException
+        throws WstxValidationException
     {
         String defValue = mDefValue;
         int len = defValue.length();
@@ -287,7 +301,7 @@ public class DTDAttribute
             }
 
             if (!WstxInputData.is11NameStartChar(c) && c != ':') {
-                reportValidationError(rep, "Invalid default value '"+defValue
+                reportValidationProblem(rep, "Invalid default value '"+defValue
                                  +"'; character "
                                  +WstxInputData.getCharDesc(c)
                                  +") not valid first character of a name token");
@@ -299,7 +313,7 @@ public class DTDAttribute
                     break;
                 }
                 if (!WstxInputData.is11NameChar(c)) {
-                    reportValidationError(rep, "Invalid default value '"+defValue
+                    reportValidationProblem(rep, "Invalid default value '"+defValue
                                      +"'; character "
                                      +WstxInputData.getCharDesc(c)
                                      +") not a valid name character");
@@ -320,7 +334,7 @@ public class DTDAttribute
         }
 
         if (count == 0) {
-            reportValidationError(rep, "Invalid default value '"+defValue
+            reportValidationProblem(rep, "Invalid default value '"+defValue
                              +"'; empty String is not a valid name value");
         }
 
@@ -328,18 +342,18 @@ public class DTDAttribute
     }
 
     protected String validateDefaultNmToken(InputProblemReporter rep, boolean normalize)
-        throws WstxException
+        throws WstxValidationException
     {
         String defValue = mDefValue.trim();
 
         if (defValue.length() == 0) {
-            reportValidationError(rep, "Invalid default value '"+defValue+"'; empty String is not a valid NMTOKEN");
+            reportValidationProblem(rep, "Invalid default value '"+defValue+"'; empty String is not a valid NMTOKEN");
         }
 
         // Ok, needs to be a valid NMTOKEN:
         for (int i = 0, len = defValue.length(); i < len; ++i) {
             if (!WstxInputData.is11NameChar(defValue.charAt(i))) {
-                reportValidationError(rep, "Invalid default value '"+defValue
+                reportValidationProblem(rep, "Invalid default value '"+defValue
                                     +"'; character #"+i+" ("
                                    +WstxInputData.getCharDesc(defValue.charAt(i))
                                    +") not valid NMTOKEN character");
@@ -351,7 +365,7 @@ public class DTDAttribute
 
     protected EntityDecl findEntityDecl(ElementValidator v,
                                         char[] ch, int start, int len, int hash)
-        throws WstxException
+        throws WstxValidationException
     {
         Map entMap = v.getEntityMap();
         /* !!! 13-Nov-2005, TSa: If this was to become a bottle-neck, we
@@ -361,10 +375,10 @@ public class DTDAttribute
         EntityDecl ent = (EntityDecl) entMap.get(id);
 
         if (ent == null) {
-            reportValidationError(v, "Referenced entity '"+id+"' not defined");
+            reportValidationProblem(v, "Referenced entity '"+id+"' not defined");
         }
         if (ent.isParsed()) {
-            reportValidationError(v, "Referenced entity '"+id+"' is not an unparsed entity");
+            reportValidationProblem(v, "Referenced entity '"+id+"' is not an unparsed entity");
         }
         return ent;
     }
@@ -375,7 +389,7 @@ public class DTDAttribute
      */
 
     protected void checkEntity(InputProblemReporter rep, String id, EntityDecl ent)
-        throws WstxException
+        throws WstxValidationException
     {
         if (ent == null) {
             rep.throwValidationError("Referenced entity '"+id+"' not defined");
@@ -391,22 +405,31 @@ public class DTDAttribute
     ///////////////////////////////////////////////////
      */
 
-    protected void reportInvalidChar(ElementValidator v, char c, String msg)
-        throws WstxException
+    protected String reportInvalidChar(ElementValidator v, char c, String msg)
+        throws WstxValidationException
     {
-        reportValidationError(v, "Invalid character "+WstxInputData.getCharDesc(c)+": "+msg);
+        reportValidationProblem(v, "Invalid character "+WstxInputData.getCharDesc(c)+": "+msg);
+        return null;
     }
 
-    protected void reportValidationError(ElementValidator v, String msg)
-        throws WstxException
+    protected String reportValidationProblem(ElementValidator v, String msg)
+        throws WstxValidationException
     {
-        v.throwValidationError("Attribute '"+mName+"': "+msg);
+        v.reportValidationProblem("Attribute '"+mName+"': "+msg);
+        return null;
     }
 
-    protected void reportValidationError(InputProblemReporter rep, String msg)
-        throws WstxException
+    /**
+     * Method called during parsing of DTD schema, to report a problem.
+     * Note that unlike during actual validation, we have no option of
+     * just gracefully listing problems and ignoring them; an exception
+     * is always thrown.
+     */
+    protected String reportValidationProblem(InputProblemReporter rep, String msg)
+        throws WstxValidationException
     {
-        rep.throwValidationError("Attribute '"+mName+"': "+msg);
+        rep.throwValidationError("Attribute definition '"+mName+"': "+msg);
+        return null;
     }
 
     /*

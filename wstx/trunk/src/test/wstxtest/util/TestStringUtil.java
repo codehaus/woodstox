@@ -79,4 +79,13 @@ public class TestStringUtil
         assertFalse(StringUtil.equalEncodings("isolatin", "iso-8859-1"));
         assertFalse(StringUtil.equalEncodings("utf8", "utf"));
     }
+
+    public void testMatches()
+    {
+        String STR = "fooBar!";
+        String STR2 = "foobar_";
+        assertTrue(StringUtil.matches(STR, STR.toCharArray(), 0, STR.length()));
+        assertFalse(StringUtil.matches(STR, STR.toCharArray(), 0, STR.length()-1));
+        assertFalse(StringUtil.matches(STR, STR2.toCharArray(), 0, STR2.length()));
+    }
 }

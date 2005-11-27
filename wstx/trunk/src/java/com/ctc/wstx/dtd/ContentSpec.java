@@ -59,7 +59,7 @@ public abstract class ContentSpec
      *   constructed, or null to indicate that a DFA needs to be
      *   created.
      */
-    public abstract StructValidator getValidator();
+    public abstract StructValidator getSimpleValidator();
 
     /**
      * Method called as the first part of DFA construction, if necessary;

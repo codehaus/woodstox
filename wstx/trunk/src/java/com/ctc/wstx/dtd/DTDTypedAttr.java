@@ -1,6 +1,6 @@
 package com.ctc.wstx.dtd;
 
-import com.ctc.wstx.exc.WstxException;
+import com.ctc.wstx.exc.WstxValidationException;
 import com.ctc.wstx.sr.AttributeCollector;
 import com.ctc.wstx.sr.InputProblemReporter;
 
@@ -69,7 +69,7 @@ public final class DTDTypedAttr
      */
     public void validate(ElementValidator v, boolean normalize, AttributeCollector ac,
                          int index)
-        throws WstxException
+        throws WstxValidationException
     {
         // !!! TBI
     }
@@ -80,7 +80,7 @@ public final class DTDTypedAttr
      * valid for such type.
      */
     public void validateDefault(InputProblemReporter rep, boolean normalize)
-        throws WstxException
+        throws WstxValidationException
     {
         // !!! TBI
     }

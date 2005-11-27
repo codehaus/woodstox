@@ -1,6 +1,6 @@
 package com.ctc.wstx.dtd;
 
-import com.ctc.wstx.exc.WstxException;
+import com.ctc.wstx.exc.WstxValidationException;
 import com.ctc.wstx.sr.AttributeCollector;
 import com.ctc.wstx.sr.InputProblemReporter;
 import com.ctc.wstx.sr.StreamScanner;
@@ -57,13 +57,13 @@ public final class DTDEnumAttr
      */
     public void validate(ElementValidator v, boolean normalize, AttributeCollector ac,
                          int index)
-        throws WstxException
+        throws WstxValidationException
     {
         String ok = ac.checkEnumValue(index, mEnumValues);
         if (ok == null) {
             String val = ac.getValue(index);
-            reportValidationError(v, "Invalid value '"+val+"': has to be one of ("
-                              +mEnumValues+")");
+            reportValidationProblem(v, "Invalid value '"+val+"': has to be one of ("
+                                    +mEnumValues+")");
         }
     }
 
@@ -73,15 +73,15 @@ public final class DTDEnumAttr
      * valid for such type.
      */
     public void validateDefault(InputProblemReporter rep, boolean normalize)
-        throws WstxException
+        throws WstxValidationException
     {
         String def = validateDefaultNmToken(rep, normalize);
 
         // And then that it's one of listed values:
         String shared = mEnumValues.find(def);
         if (shared == null) {
-            reportValidationError(rep, "Invalid default value '"+def+"': has to be one of ("
-                                  +mEnumValues+")");
+            reportValidationProblem(rep, "Invalid default value '"+def+"': has to be one of ("
+                                    +mEnumValues+")");
         }
 
         // Ok, cool it's ok...

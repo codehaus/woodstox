@@ -3,7 +3,7 @@ package com.ctc.wstx.dtd;
 import javax.xml.stream.Location;
 
 import com.ctc.wstx.cfg.ErrorConsts;
-import com.ctc.wstx.exc.WstxException;
+import com.ctc.wstx.exc.WstxValidationException;
 import com.ctc.wstx.io.WstxInputData;
 import com.ctc.wstx.sr.AttributeCollector;
 import com.ctc.wstx.sr.InputProblemReporter;
@@ -58,45 +58,48 @@ public final class DTDNmTokenAttr
      * to let the attribute do necessary normalization and/or validation
      * for the value.
      */
-    public void validate(ElementValidator v, boolean normalize, AttributeCollector ac,
-                         int index)
-        throws WstxException
+    public String validate(ElementValidator v, char[] cbuf, int start, int end, boolean normalize)
+        throws WstxValidationException
     {
-        TextBuilder tb = ac.getAttrBuilder();
-        char[] ch = tb.getCharBuffer();
-        int start = tb.getOffset(index);
-        int last = tb.getOffset(index+1) - 1;
-        int origCount = last - start;
+        int origLen = end-start;
 
         // Let's trim leading white space first...
-        while (start <= last && WstxInputData.isSpaceChar(ch[start])) {
+        while (start < end && WstxInputData.isSpaceChar(cbuf[start])) {
             ++start;
         }
 
         // Empty value?
-        if (start > last) {
-            reportValidationError(v, "Empty NMTOKEN value");
+        if (start >= end) {
+            return reportValidationProblem(v, "Empty NMTOKEN value");
         }
 
-        while (last > start && WstxInputData.isSpaceChar(ch[last])) {
-            --last;
+        --end; // so that it now points to the last char
+        while (end > start && WstxInputData.isSpaceChar(cbuf[end])) {
+            --end;
         }
 
         // Ok, need to check char validity
-        for (int i = start+1; i <= last; ++i) {
-            char c = ch[i];
+        for (int i = start+1; i <= end; ++i) {
+            char c = cbuf[i];
             if (!WstxInputData.is11NameChar(c)) {
-                reportInvalidChar(v, c, "not valid NMTOKEN character");
+                return reportInvalidChar(v, c, "not valid NMTOKEN character");
             }
         }
 
         if (normalize) {
             // Let's only create the String if we trimmed something
-            int count = (last - start);
-            if (count != origCount) {
-                ac.setNormalizedValue(index, new String(ch, start, count+1));
+            int len = (end - start)+1;
+            if (len != origLen) {
+                return new String(cbuf, start, len);
             }
         }
+        return null;
+    }
+
+    public String validate(String value, boolean normalize)
+    {
+        // !!! TBI
+        return value;
     }
 
     /**
@@ -105,7 +108,7 @@ public final class DTDNmTokenAttr
      * valid for such type.
      */
     public void validateDefault(InputProblemReporter rep, boolean normalize)
-        throws WstxException
+        throws WstxValidationException
     {
         mDefValue = validateDefaultNmToken(rep, normalize);
     }

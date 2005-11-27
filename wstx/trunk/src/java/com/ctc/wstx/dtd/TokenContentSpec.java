@@ -50,7 +50,7 @@ public class TokenContentSpec
         return mElemName;
     }
 
-    public StructValidator getValidator() {
+    public StructValidator getSimpleValidator() {
         return new Validator(mArity, mElemName);
     }
 

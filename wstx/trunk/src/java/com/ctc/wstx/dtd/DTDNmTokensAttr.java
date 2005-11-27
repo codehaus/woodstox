@@ -3,7 +3,7 @@ package com.ctc.wstx.dtd;
 import javax.xml.stream.Location;
 
 import com.ctc.wstx.cfg.ErrorConsts;
-import com.ctc.wstx.exc.WstxException;
+import com.ctc.wstx.exc.WstxValidationException;
 import com.ctc.wstx.io.WstxInputData;
 import com.ctc.wstx.sr.AttributeCollector;
 import com.ctc.wstx.sr.InputProblemReporter;
@@ -60,7 +60,7 @@ public final class DTDNmTokensAttr
      */
     public void validate(ElementValidator v, boolean normalize, AttributeCollector ac,
                          int index)
-        throws WstxException
+        throws WstxValidationException
     {
         TextBuilder tb = ac.getAttrBuilder();
         char[] ch = tb.getCharBuffer();
@@ -76,7 +76,7 @@ public final class DTDNmTokensAttr
         }
         // Empty value?
         if (start > last) {
-            reportValidationError(v, "Empty NMTOKENS value");
+            reportValidationProblem(v, "Empty NMTOKENS value");
         }
 
         /* Then, let's have separate handling for normalizing and
@@ -142,7 +142,7 @@ public final class DTDNmTokensAttr
      * valid for such type.
      */
     public void validateDefault(InputProblemReporter rep, boolean normalize)
-        throws WstxException
+        throws WstxValidationException
     {
         String defValue = mDefValue;
         int len = defValue.length();
@@ -171,10 +171,10 @@ public final class DTDNmTokensAttr
 
             do {
                 if (!WstxInputData.is11NameChar(c)) {
-                    reportValidationError(rep, "Invalid default value '"+defValue
-                                     +"'; character #"+i+" ("
-                                     +WstxInputData.getCharDesc(c)
-                                     +") not a valid NMTOKENS character");
+                    reportValidationProblem(rep, "Invalid default value '"+defValue
+                                            +"'; character #"+i+" ("
+                                            +WstxInputData.getCharDesc(c)
+                                            +") not a valid NMTOKENS character");
                 }
                 if (++i >= len) {
                     break;
@@ -195,8 +195,8 @@ public final class DTDNmTokensAttr
         }
 
         if (count == 0) {
-            reportValidationError(rep, "Invalid default value '"+defValue
-                             +"'; empty String is not a valid NMTOKENS value");
+            reportValidationProblem(rep, "Invalid default value '"+defValue
+                                    +"'; empty String is not a valid NMTOKENS value");
         }
 
         if (normalize) {

@@ -10,7 +10,7 @@ public final class DataUtil
     private DataUtil() { }
 
     public static char[] getEmptyCharArray() {
-	return EMPTY_CHAR_ARRAY;
+        return EMPTY_CHAR_ARRAY;
     }
 
     /*

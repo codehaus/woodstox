@@ -12,7 +12,6 @@ import org.codehaus.stax2.validation.XMLValidator;
 
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.dtd.ElementValidator;
-import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.util.BaseNsContext;
 import com.ctc.wstx.util.EmptyIterator;
 import com.ctc.wstx.util.EmptyNamespaceContext;
@@ -88,12 +87,12 @@ public class NonNsInputElementStack
      * read internal and/or external DTD subsets, and has thus parsed
      * element specifications.
      */
+    /*
     public void setElementSpecs(Map elemSpecs,
                                 boolean normAttrs, Map generalEntities)
     {
-        /* 30-Sep-2005, TSa: This gets called if there was a DOCTYPE
-         *   declaration..
-         */
+        // 30-Sep-2005, TSa: This gets called if there was a DOCTYPE
+        //   declaration..
         if (elemSpecs == null) { // no DTD
             elemSpecs = Collections.EMPTY_MAP;
         }
@@ -101,6 +100,7 @@ public class NonNsInputElementStack
                                           generalEntities,
                                           mAttrCollector, normAttrs);
     }
+    */
 
     public final void push(String prefix, String localName)
     {
@@ -124,17 +124,30 @@ public class NonNsInputElementStack
      *   element state
      */
     public int pop()
-        throws WstxException
+        throws XMLStreamException
     {
         if (mSize == 0) {
             throw new IllegalStateException("Popping from empty stack.");
         }
-        /* Let's allow GCing (not likely to matter, as Strings are very
-         * likely interned... but it's a good habit
+
+        if (mValidator == null) {
+            /* Let's allow GCing (not likely to matter, as Strings are very
+             * likely interned... but it's a good habit
+             */
+            mElements[--mSize] = null;
+            return XMLValidator.CONTENT_ALLOW_ANY_TEXT;
+        }
+
+        /* Note: can and should not shrink the stack before calling
+         * validator (since it can do a callback to access the info --
+         * not just the current element, but possibly other related data
+         * like stack depth)
          */
-        mElements[--mSize] = null;
-        return (mValidator == null) ?
-            XMLValidator.CONTENT_ALLOW_ANY_TEXT : mValidator.validateElemClose();
+        int size = mSize-1;
+        int result = mValidator.validateElementEnd(mElements[size], null, null);
+        mSize = size;
+        mElements[size] = null;
+        return result;
     }
 
     /**
@@ -145,16 +158,50 @@ public class NonNsInputElementStack
      * @return Validation state that should be effective for the fully
      *   resolved element context
      */
-    public int resolveElem()
-        throws WstxException
+    public int resolveAndValidateElement()
+        throws XMLStreamException
     {
-        // Need to inform attribute collector, at least
-        mAttrCollector.resolveValues(mReporter);
+        NonNsAttributeCollector ac = mAttrCollector;
 
-        if (mValidator == null) { // no DTD in use
+        /* Attribute collector can now build its accessor data structs
+         * as necessary
+         */
+        ac.resolveValues(mReporter);
+
+        // Any validator(s)? If not, we are done
+        if (mValidator == null) {
             return XMLValidator.CONTENT_ALLOW_ANY_TEXT;
         }
-        return mValidator.validateElemStart(null, mElements[mSize-1], null);
+
+        // Otherwise need to call validator's methods:
+
+        /* First, a call to check if the element itself may be acceptable
+         * within structure:
+         */
+        mValidator.validateElementStart(mElements[mSize-1], null,null);
+
+        // Then attributes, if any:
+        StringVector attrNames = ac.getNameList();
+        int attrLen = attrNames.size();
+        if (attrLen > 0) {
+            String[] nameData = attrNames.getInternalArray();
+            TextBuilder attrBuilder = ac.getAttrBuilder();
+            char[] attrCB = attrBuilder.getCharBuffer();
+            for (int i = 0; i < attrLen; ++i) {
+                String normValue = mValidator.validateAttribute
+                    (nameData[i], null, null, attrCB,
+                     attrBuilder.getOffset(i),
+                     attrBuilder.getOffset(i+1) - 1);
+                if (normValue != null) {
+                    ac.setNormalizedValue(i, normValue);
+                }
+            }
+        }
+
+        /* And finally let's wrap things up to see what textual content
+         * is allowed as child content, if any:
+         */
+        return mValidator.validateElementAndAttributes();
     }
 
     /*

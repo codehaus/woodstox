@@ -254,4 +254,17 @@ public final class StringUtil
 	// Ok, prefix was exactly the same as encoding... that's fine
         return true; 
     }
+
+    public static boolean matches(String str, char[] cbuf, int offset, int len)
+    {
+        if (str.length() != len) {
+            return false;
+        }
+        for (int i = 0; i < len; ++i) {
+            if (str.charAt(i) != cbuf[offset+i]) {
+                return false;
+            }
+        }
+        return true;
+    }
 }

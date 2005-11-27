@@ -3,6 +3,7 @@ package com.ctc.wstx.sr;
 import javax.xml.stream.Location;
 
 import com.ctc.wstx.exc.WstxException;
+import com.ctc.wstx.exc.WstxValidationException;
 
 /**
  * Interface implemented by input reader, and used by other components to
@@ -19,14 +20,6 @@ public interface InputProblemReporter
     public void throwParseError(String msg)
         throws WstxException;
 
-    /**
-     * Similar to {@link #throwParseError(String)}, but specifically defines
-     * location where the error happened. Used usually when validity of
-     * a declaration can not be verified at the point of declaration but
-     * only later on (reference to undefined id value, for example)
-     */
-    public void throwParseError(Location loc, String msg)
-        throws WstxException;
     public void throwParseError(String msg, Object arg)
         throws WstxException;
     public void throwParseError(String msg, Object arg, Object arg2)
@@ -34,13 +27,13 @@ public interface InputProblemReporter
 
 
     public void throwValidationError(String msg)
-        throws WstxException;
+        throws WstxValidationException;
     public void throwValidationError(Location loc, String msg)
-        throws WstxException;
+        throws WstxValidationException;
     public void throwValidationError(String msg, Object arg)
-        throws WstxException;
+        throws WstxValidationException;
     public void throwValidationError(String msg, Object arg, Object arg2)
-        throws WstxException;
+        throws WstxValidationException;
 
     /*
     ///////////////////////////////////////////////////////
@@ -49,8 +42,6 @@ public interface InputProblemReporter
      */
 
     public void reportProblem(String probType, String msg);
-
-    public void reportProblem(String probType, String msg, Location loc);
 
     public void reportProblem(String probType, String format, Object arg);
 

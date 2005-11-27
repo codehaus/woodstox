@@ -394,12 +394,6 @@ public abstract class StreamScanner
         throw new WstxParsingException(msg, getLastCharLocation());
     }
 
-    public void throwParseError(Location loc, String msg)
-        throws WstxException
-    {
-        throw new WstxParsingException(msg, loc);
-    }
-
     public void throwParseError(String format, Object arg)
         throws WstxException
     {
@@ -415,39 +409,34 @@ public abstract class StreamScanner
     }
 
     public void throwValidationError(String msg)
-        throws WstxException
+        throws WstxValidationException
     {
-        throw new WstxValidationException(msg, getLastCharLocation());
+        throw WstxValidationException.create(msg, getLastCharLocation());
     }
 
     public void throwValidationError(Location loc, String msg)
-        throws WstxException
+        throws WstxValidationException
     {
-        throw new WstxValidationException(msg, loc);
+        throw WstxValidationException.create(msg, loc);
     }
 
     public void throwValidationError(String format, Object arg)
-        throws WstxException
+        throws WstxValidationException
     {
         String msg = MessageFormat.format(format, new Object[] { arg });
-        throw new WstxValidationException(msg, getLastCharLocation());
+        throw WstxValidationException.create(msg, getLastCharLocation());
     }
 
     public void throwValidationError(String format, Object arg, Object arg2)
-        throws WstxException
+        throws WstxValidationException
     {
         String msg = MessageFormat.format(format, new Object[] { arg, arg2 });
-        throw new WstxValidationException(msg, getLastCharLocation());
+        throw WstxValidationException.create(msg, getLastCharLocation());
     }
 
     public void reportProblem(String probType, String msg)
     {
         doReportProblem(mConfig.getXMLReporter(), probType, msg, null);
-    }
-
-    public void reportProblem(String probType, String msg, Location loc)
-    {
-        doReportProblem(mConfig.getXMLReporter(), probType, msg, loc);
     }
 
     public void reportProblem(String probType, String format, Object arg)

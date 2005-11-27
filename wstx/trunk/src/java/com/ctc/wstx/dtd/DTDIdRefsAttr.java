@@ -3,7 +3,7 @@ package com.ctc.wstx.dtd;
 import javax.xml.stream.Location;
 
 import com.ctc.wstx.cfg.ErrorConsts;
-import com.ctc.wstx.exc.WstxException;
+import com.ctc.wstx.exc.WstxValidationException;
 import com.ctc.wstx.io.WstxInputData;
 import com.ctc.wstx.sr.AttributeCollector;
 import com.ctc.wstx.sr.InputProblemReporter;
@@ -47,72 +47,56 @@ public final class DTDIdRefsAttr
         return TYPE_IDREFS;
     }
 
-    /*
-    ///////////////////////////////////////////////////
-    // Public API, validation
-    ///////////////////////////////////////////////////
-     */
-
-    /**
-     * Method called by the {@link ElementValidator}
-     * to let the attribute do necessary normalization and/or validation
-     * for the value.
-     * 
-     */
-    public void validate(ElementValidator v, boolean normalize, AttributeCollector ac,
-                         int index)
-        throws WstxException
+    public String validate(ElementValidator v, char[] cbuf, int start, int end, boolean normalize)
+        throws WstxValidationException
     {
-        TextBuilder tb = ac.getAttrBuilder();
-        char[] ch = tb.getCharBuffer();
-        int start = tb.getOffset(index);
-        int last = tb.getOffset(index+1) - 1;
-
         /* Let's skip leading/trailing white space, even if we are not
          * to normalize visible attribute value. This allows for better
          * round-trip handling (no changes for physical value caller
          * gets), but still allows succesful validation.
          */
-        while (start <= last && WstxInputData.isSpaceChar(ch[start])) {
+        while (start < end && WstxInputData.isSpaceChar(cbuf[start])) {
             ++start;
         }
 
         // No id?
-        if (start > last) {
-            reportValidationError(v, "Empty IDREFS value");
+        if (start >= end) {
+            return reportValidationProblem(v, "Empty IDREFS value");
         }
 
-        while (last > start && WstxInputData.isSpaceChar(ch[last])) {
-            --last;
+        --end; // so that it now points to the last char
+        // We now the first char is not a space by now...
+        while (end > start && WstxInputData.isSpaceChar(cbuf[end])) {
+            --end;
         }
 
-        // Ok; now start points to first, last to last char (both inclusive)
+        // Ok; now start points to first, end to last char (both inclusive)
         ElementIdMap m = v.getIdMap();
         Location loc = v.getLocation();
 
         String idStr = null;
         StringBuffer sb = null;
-        while (start <= last) {
+        while (start <= end) {
             // Ok, need to check char validity, and also calc hash code:
-            char c = ch[start];
+            char c = cbuf[start];
             if (!WstxInputData.is11NameStartChar(c) && c != ':') {
-                reportInvalidChar(v, c, "not valid as the first IDREFS character");
+                return reportInvalidChar(v, c, "not valid as the first IDREFS character");
             }
             int hash = (int) c;
             int i = start+1;
-            for (; i <= last; ++i) {
-                c = ch[i];
+            for (; i <= end; ++i) {
+                c = cbuf[i];
                 if (WstxInputData.isSpaceChar(c)) {
                     break;
                 }
                 if (!WstxInputData.is11NameChar(c)) {
-                    reportInvalidChar(v, c, "not valid as an IDREFS character");
+                    return reportInvalidChar(v, c, "not valid as an IDREFS character");
                 }
                 hash = (hash * 31) + (int) c;
             }
 
             // Ok, got the next id ref...
-            ElementId id = m.addReferenced(ch, start, i - start, hash,
+            ElementId id = m.addReferenced(cbuf, start, i - start, hash,
                                            loc, v.getElemName(), mName);
             
             // Can skip the trailing space char (if there was one)
@@ -135,7 +119,7 @@ public final class DTDIdRefsAttr
             }
 
             // Ok, any white space to skip?
-            while (start <= last && WstxInputData.isSpaceChar(ch[start])) {
+            while (start <= end && WstxInputData.isSpaceChar(cbuf[start])) {
                 ++start;
             }
         }
@@ -144,8 +128,34 @@ public final class DTDIdRefsAttr
             if (sb != null) {
                 idStr = sb.toString();
             }
-            ac.setNormalizedValue(index, idStr);
+            return idStr;
         }
+
+        return null;
+    }
+
+    public String validate(String value, boolean normalize)
+    {
+        // !!! TBI
+        return value;
+    }
+
+    /*
+    ///////////////////////////////////////////////////
+    // Public API, validation
+    ///////////////////////////////////////////////////
+     */
+
+    /**
+     * Method called by the {@link ElementValidator}
+     * to let the attribute do necessary normalization and/or validation
+     * for the value.
+     * 
+     */
+    public void validate(ElementValidator v, boolean normalize, AttributeCollector ac,
+                         int index)
+    {
+        // !!! To be removed
     }
 
     /**
@@ -157,7 +167,7 @@ public final class DTDIdRefsAttr
      * let's implement it properly.
      */
     public void validateDefault(InputProblemReporter rep, boolean normalize)
-        throws WstxException
+        throws WstxValidationException
     {
         mDefValue = validateDefaultNames(rep, normalize);
     }

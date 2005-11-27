@@ -328,8 +328,11 @@ public class ValidatingStreamReader
         } else {
             mGeneralEntities = combo.getGeneralEntityMap();
             if (hasConfigFlags(CFG_VALIDATE_AGAINST_DTD)) {
+                // !!! To Be Fixed !!!
+                /*
                 mElementStack.setElementSpecs(combo.getElementMap(),
                                               mCfgNormalizeAttrs, mGeneralEntities);
+                */
             }
         }
     }

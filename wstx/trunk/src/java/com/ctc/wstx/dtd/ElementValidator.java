@@ -19,24 +19,32 @@ import java.util.*;
 
 import javax.xml.stream.Location;
 
-import org.codehaus.stax2.validation.XMLValidator;
+import org.codehaus.stax2.validation.*;
 
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.compat.JdkFeatures;
 import com.ctc.wstx.exc.WstxException;
+import com.ctc.wstx.exc.WstxValidationException;
 import com.ctc.wstx.sr.AttributeCollector;
 import com.ctc.wstx.sr.InputProblemReporter;
 import com.ctc.wstx.util.DataUtil;
+import com.ctc.wstx.util.StringUtil;
 import com.ctc.wstx.util.StringVector;
 
 /**
  * Class that will be instantiated by specialized instances of
  * {@link com.ctc.wstx.sr.InputElementStack}, specifically the
- * validating ones (whether
- * namespace-aware or not).
+ * validating ones (whether namespace-aware or not).
  */
 public class ElementValidator
+    extends XMLValidator
 {
+    /*
+    /////////////////////////////////////////////////////
+    // Constants
+    /////////////////////////////////////////////////////
+     */
+
     /**
      * Estimated maximum depth of typical documents; used to allocate
      * the array for element stack
@@ -60,6 +68,12 @@ public class ElementValidator
     */
 
     /**
+     * Validation context (owner) for this validator. Needed for adding
+     * default attribute values, for example.
+     */
+    final ValidationContext mContext;
+
+    /**
      * Map that contains element specifications from DTD; null if no
      * DOCTYPE declaration found.
      */
@@ -73,21 +87,27 @@ public class ElementValidator
      */
     final Map mGeneralEntities;
 
-    final boolean mNsAware;
-
-    /**
-     * We need to work with the attribute collector instance,
-     * when validating attributes, adding default values and
-     * so on.
-     */
-    final AttributeCollector mAttrCollector;
-
     /**
      * Flag that indicates whether parser wants the attribute values
      * to be normalized (according to XML specs) or not (which may be
-     * more efficient, although not strictly legal according to specs)
+     * more efficient, although not compliant with the specs)
      */
     final boolean mNormAttrs;
+
+    /**
+     * Determines how validation problems are reported: if true, will
+     * throw an exception, if false, will add problem description objects
+     * to a list.
+     */
+    protected boolean mReportProblemsAsExceptions = true;
+
+    /**
+     * Determines if identical problems (definition of the same element,
+     * for example) should cause multiple error notifications or not:
+     * if true, will get one error per instance, if false, only the first
+     * one will get reported.
+     */
+    protected boolean mReportDuplicateErrors = false;
 
     /*
     ///////////////////////////////////////
@@ -96,16 +116,38 @@ public class ElementValidator
     */
 
     /**
-     * Stack of element definitions read from DTD.
+     * This is the element that is currently being validated; valid
+     * during
+     * <code>validateElementStart</code>,
+     * <code>validateAttribute</code>,
+     * <code>validateElementAndAttributes</code> calls.
      */
-    protected DTDElement[] mElemStack = null;
-
-    protected int mElemCount = 0;
+    protected DTDElement mCurrElem = null;
 
     /**
-     * Stack of content structure validators, on matching indexes
-     * with element specification objects.
+     * Stack of element definitions matching the current active element stack.
+     * Instances are elements definitions read from DTD.
      */
+    protected DTDElement[] mElems = null;
+
+    /**
+     * Attribute definitions for attributes the current element may have
+     */
+    protected HashMap mCurrAttrDefs = null;
+
+    /**
+     * Bitset used for keeping track of required and defaulted attributes
+     * for which values have been found.
+     */
+    protected BitSet mCurrSpecialAttrs = null;
+
+    boolean mCurrHasAnyFixed = false;
+
+    /**
+     * Number of elements in {@link #mElems}.
+     */
+    protected int mElemCount = 0;
+
     protected StructValidator[] mValidators = null;
 
     /**
@@ -117,7 +159,8 @@ public class ElementValidator
 
     /**
      * Number of attribute specification Objects in
-     * {@link #mAttrSpecs}.
+     * {@link #mAttrSpecs}; needed to store in case type information
+     * is requested later on.
      */
     protected int mAttrCount = 1;
 
@@ -131,7 +174,7 @@ public class ElementValidator
 
     /*
     ///////////////////////////////////////
-    // Collected other state information
+    // Id/idref state
     ///////////////////////////////////////
     */
 
@@ -154,7 +197,7 @@ public class ElementValidator
      * missing 'special' attributes (required ones, ones with default
      * values)
      */
-    BitSet mTmpSpecs;
+    BitSet mTmpSpecialAttrs;
 
     /*
     ///////////////////////////////////////
@@ -162,26 +205,28 @@ public class ElementValidator
     ///////////////////////////////////////
     */
 
-    public ElementValidator(InputProblemReporter rep, Map elemSpecs,
-                            boolean nsAware, Map genEntities,
-                            AttributeCollector ac, boolean normAttrs)
+    public ElementValidator(ValidationContext ctxt, InputProblemReporter rep, Map elemSpecs,
+                            Map genEntities, boolean normAttrs)
     {
+        mContext = ctxt;
         mReporter = rep;
         mElemSpecs = elemSpecs;
-        mNsAware = nsAware;
         mGeneralEntities = genEntities;
-        mAttrCollector = ac;
         mNormAttrs = normAttrs;
-        mElemStack = new DTDElement[DEFAULT_STACK_SIZE];
+        mElems = new DTDElement[DEFAULT_STACK_SIZE];
         mValidators = new StructValidator[DEFAULT_STACK_SIZE];
         mAttrSpecs = new DTDAttribute[EXP_MAX_ATTRS];
     }
 
     /*
     ///////////////////////////////////////
-    // Public API
+    // XMLValidator implementation
     ///////////////////////////////////////
     */
+
+    public String getSchemaType() {
+        return XMLValidatorFactory.SCHEMA_ID_DTD;
+    }
 
     /**
      * Method called to update information about the newly encountered (start)
@@ -192,12 +237,9 @@ public class ElementValidator
      * @param ns (optional) Data structure that contains all currently
      *   active namespace declarations; may be needed for resolving namespaced
      *   default attributes' namespace URIs.
-     *
-     * @return Validation state that should be effective for the fully
-     *   resolved element context
      */
-    public int validateElemStart(String prefix, String localName, StringVector ns)
-        throws WstxException
+    public void validateElementStart(String localName, String uri, String prefix)
+        throws XMLValidationException
     {
         /* Ok, need to find the element definition; if not found (or
          * only implicitly defined), need to throw the exception.
@@ -205,104 +247,170 @@ public class ElementValidator
         mTmpKey.reset(prefix, localName);
 
         DTDElement elem = (DTDElement) mElemSpecs.get(mTmpKey);
-        if (elem == null || !elem.isDefined()) {
-            mReporter.throwParseError(ErrorConsts.ERR_VLD_UNKNOWN_ELEM, mTmpKey.toString());
-        }
 
+        /* Let's add the entry in (even if it's a null); this is necessary
+         * to keep things in-sync if allowing graceful handling of validity
+         * errors
+         */
         int elemCount = mElemCount++;
-        if (elemCount >= mElemStack.length) {
-            mElemStack = (DTDElement[]) DataUtil.growArrayBy50Pct(mElemStack);
+        if (elemCount >= mElems.length) {
+            mElems = (DTDElement[]) DataUtil.growArrayBy50Pct(mElems);
             mValidators = (StructValidator[]) DataUtil.growArrayBy50Pct(mValidators);
         }
-        mElemStack[elemCount] = elem;
-
-        /* Ok; we have updated element spec stack: then we need to handle
-         * attributes:
-         */
-        StringVector attrNames = mAttrCollector.getNameList();
-        HashMap attrMap = elem.getAttributes();
-        if (attrMap == null) {
-            attrMap = EMPTY_MAP;
+        mElems[elemCount] = mCurrElem = elem;
+        if (elem == null || !elem.isDefined()) {
+            reportValidationProblem(ErrorConsts.ERR_VLD_UNKNOWN_ELEM, mTmpKey.toString());
         }
-        
-        BitSet specBits;
-        int specCount = elem.getSpecialCount();
-        
-        if (specCount == 0) {
-            specBits = null;
+
+        // Is this element legal under the parent element?
+        StructValidator pv = (elemCount > 0) ? mValidators[elemCount-1] : null;
+
+        if (pv != null) {
+            String msg = pv.tryToValidate(elem.getName());
+            if (msg != null) {
+                int ix = msg.indexOf("$END");
+                String pname = mElems[elemCount-1].toString();
+                if (ix >= 0) {
+                    msg = msg.substring(0, ix) + "</"+pname+">"
+                        +msg.substring(ix+4);
+                }
+                reportValidationProblem("Validation error, encountered element <"
+                                        +elem.getName()+"> as a child of <"
+                                        +pname+">: "+msg);
+            }
+        }
+
+        // Ok, need to get the child validator, then:
+        if (elem == null) {
+            mValidators[elemCount] = null;
+            mCurrAttrDefs = EMPTY_MAP;
+            mCurrHasAnyFixed = false;
+            mCurrSpecialAttrs = null;
         } else {
-            specBits = mTmpSpecs;
-            if (specBits == null) {
-                mTmpSpecs = specBits = new BitSet(specCount);
-            } else {
-                specBits.clear();
+            mValidators[elemCount] = elem.getValidator();
+            mCurrAttrDefs = elem.getAttributes();
+            if (mCurrAttrDefs == null) {
+                mCurrAttrDefs = EMPTY_MAP;
             }
-        }
-
-        // Need to have enough room for attr specs too:
-        int attrLen = attrNames.size();
-        {
-            int maxAttrs = specCount + (mNsAware ? (attrLen >> 1) : (attrLen));
-            if (mAttrSpecs.length < maxAttrs) {
-                mAttrSpecs = (DTDAttribute[]) DataUtil.growArrayToAtLeast(mAttrSpecs, maxAttrs);
-            }
-        }
-
-        NameKey tmpKey = mTmpKey;
-        boolean validateAttrs = elem.attrsNeedValidation();
-        boolean anyFixed = elem.hasFixedAttrs();
-
-        int j = 0;
-        DTDAttribute idAttr = elem.getIdAttribute();
-        mIdAttrIndex = -1;
-
-        for (int i = 0; i < attrLen; ++j) {
-            if (mNsAware) {
-                tmpKey.reset(attrNames.getString(i), attrNames.getString(i+1));
-                i += 2;
-            } else {
-                tmpKey.reset(null, attrNames.getString(i));
-                ++i;
-            }
-            DTDAttribute attr = (DTDAttribute) attrMap.get(tmpKey);
-            if (attr == null) {
-                mReporter.throwValidationError(ErrorConsts.ERR_VLD_UNKNOWN_ATTR,
-                                               elem.toString(), tmpKey.toString());
-            }
-            mAttrSpecs[j] = attr;
-            if (attr == idAttr) {
-                mIdAttrIndex = j;
-            }
-            if (specBits != null) { // Need to mark that we got it
-                int specIndex = attr.getSpecialIndex();
-                if (specIndex >= 0) {
-                    specBits.set(specIndex);
-                }
-            }
+            mCurrHasAnyFixed = elem.hasFixedAttrs();
             
-            // Need to validate?
-            if (validateAttrs) {
-                attr.validate(this, mNormAttrs, mAttrCollector, j);
-            }
-            if (anyFixed && attr.isFixed()) {
-                String exp = attr.getDefaultValue();
-                String act = mAttrCollector.getValue(j);
-                if (!act.equals(exp)) {
-                    mReporter.throwValidationError("Value of attribute \""+attr+"\" (element <"+elem+">) not \""+exp+"\" as expected, but \""+act+"\"");
+            mAttrCount = 0;
+            mIdAttrIndex = -2; // -2 as a "don't know yet" marker
+            int specCount = elem.getSpecialCount();
+            if (specCount == 0) {
+                mCurrSpecialAttrs = null;
+            } else {
+                BitSet bs = mTmpSpecialAttrs;
+                if (bs == null) {
+                    mTmpSpecialAttrs = bs = new BitSet(specCount);
+                } else {
+                    bs.clear();
                 }
+                mCurrSpecialAttrs = bs;
             }
         }
-        mAttrCount = j;
+    }
+
+    public String validateAttribute(String localName, String uri,
+                                    String prefix, String value)
+        throws XMLValidationException
+    {
+        DTDAttribute attr = (DTDAttribute) mCurrAttrDefs.get(mTmpKey.reset(prefix, localName));
+        if (attr == null) {
+            // Only report error if not already covering from an error:
+            if (mCurrElem == null) {
+                return null;
+            }
+            reportValidationProblem(ErrorConsts.ERR_VLD_UNKNOWN_ATTR,
+                                    mCurrElem.toString(), mTmpKey.toString());
+        }
+        int index = mAttrCount++;
+        if (index >= mAttrSpecs.length) {
+            mAttrSpecs = (DTDAttribute[]) DataUtil.growArrayBy50Pct(mAttrSpecs);
+        }
+        mAttrSpecs[index] = attr;
+        if (mCurrSpecialAttrs != null) { // Need to mark that we got it
+            int specIndex = attr.getSpecialIndex();
+            if (specIndex >= 0) {
+                mCurrSpecialAttrs.set(specIndex);
+            }
+        }
+        String result = attr.validate(this, value, mNormAttrs);
+        if (mCurrHasAnyFixed && attr.isFixed()) {
+            String act = (result == null) ? value : result;
+            String exp = attr.getDefaultValue();
+            if (!act.equals(exp)) {
+                reportValidationProblem("Value of attribute \""+attr+"\" (element <"+mCurrElem+">) not \""+exp+"\" as expected, but \""+act+"\"");
+            }
+        }
+        return result;
+    }
+
+    public String validateAttribute(String localName, String uri,
+                                    String prefix,
+                                    char[] valueChars, int valueStart,
+                                    int valueEnd)
+        throws XMLValidationException
+    {
+        DTDAttribute attr = (DTDAttribute) mCurrAttrDefs.get(mTmpKey.reset(prefix, localName));
+        if (attr == null) {
+            // Only report error if not already covering from an error:
+            if (mCurrElem == null) {
+                return null;
+            }
+            reportValidationProblem(ErrorConsts.ERR_VLD_UNKNOWN_ATTR,
+                                    mCurrElem.toString(), mTmpKey.toString());
+        }
+        int index = mAttrCount++;
+        if (index >= mAttrSpecs.length) {
+            mAttrSpecs = (DTDAttribute[]) DataUtil.growArrayBy50Pct(mAttrSpecs);
+        }
+        mAttrSpecs[index] = attr;
+        if (mCurrSpecialAttrs != null) { // Need to mark that we got it
+            int specIndex = attr.getSpecialIndex();
+            if (specIndex >= 0) {
+                mCurrSpecialAttrs.set(specIndex);
+            }
+        }
+        String result = attr.validate(this, valueChars, valueStart, valueEnd, mNormAttrs);
+        if (mCurrHasAnyFixed && attr.isFixed()) {
+            String exp = attr.getDefaultValue();
+            boolean match;
+            if (result == null) {
+                match = StringUtil.matches(exp, valueChars, valueStart, valueEnd);
+            } else {
+                match = exp.equals(result);
+            }
+            if (!match) {
+                String act = (result == null) ? 
+                    new String(valueChars, valueStart, valueEnd) : result;
+                reportValidationProblem("Value of attribute \""+attr+"\" (element <"+mCurrElem+">) not \""+exp+"\" as expected, but \""+act+"\"");
+            }
+        }
+        return result;
+    }
+    
+    public int validateElementAndAttributes()
+        throws XMLValidationException
+    {
+        // Ok: are we fine with the attributes?
+        DTDElement elem = mCurrElem;
+        if (elem == null) { // had an error, most likely no such element defined...
+            // need to just return, nothing to do here
+            return XMLValidator.CONTENT_ALLOW_ANY_TEXT;
+        }
         
         // Any special attributes missing?
-        if (specBits != null) {
+        if (mCurrSpecialAttrs != null) {
+            BitSet specBits = mCurrSpecialAttrs;
+            int specCount = elem.getSpecialCount();
             int ix = specBits.nextClearBit(0);
             while (ix < specCount) { // something amiss!
                 List specAttrs = elem.getSpecialAttrs();
                 DTDAttribute attr = (DTDAttribute) specAttrs.get(ix);
 
                 if (attr.isRequired()) {
-                    mReporter.throwValidationError("Required attribute '"+attr+"' missing from element <"+elem+">");
+                    reportValidationProblem("Required attribute '"+attr+"' missing from element <"+elem+">");
                 }
                 // Ok, if not required, should have default value!
                 String def = attr.getDefaultValue();
@@ -310,33 +418,26 @@ public class ElementValidator
                     throw new Error("Internal error: null default attribute value");
                 }
                 NameKey an = attr.getName();
-                mAttrCollector.addDefaultAttr(mReporter, ns, an.getPrefix(),
-                                              an.getLocalName(), def);
-                mAttrSpecs[mAttrCount++] = attr;
+                // Ok, do we need to find the URI?
+                String prefix = an.getPrefix();
+                String uri = "";
+                if (prefix != null && prefix.length() > 0) {
+                    uri = mContext.getNamespaceURI(prefix);
+                    // Can not map to empty NS!
+                    if (uri == null || uri.length() == 0) {
+                        reportValidationProblem("Unbound namespace prefix '"+prefix+"' for default attribute "+attr);
+                    }
+                }
+                int defIx = mContext.addDefaultAttribute(an.getLocalName(),
+                                                         uri, prefix, def);
+                while (defIx >= mAttrSpecs.length) {
+                    mAttrSpecs = (DTDAttribute[]) DataUtil.growArrayBy50Pct(mAttrSpecs);
+                }
+                mAttrSpecs[defIx] = attr;
+                mAttrCount = defIx+1;
                 ix = specBits.nextClearBit(ix+1);
             }
         }
-
-        // Ok, how about structural validation?
-        StructValidator pv = (elemCount > 0) ? mValidators[elemCount-1] : null;
-
-        if (pv != null) {
-            String msg = pv.tryToValidate(elem.getName());
-            if (msg != null) {
-                int ix = msg.indexOf("$END");
-                String pname = mElemStack[elemCount-1].toString();
-                if (ix >= 0) {
-                    msg = msg.substring(0, ix) + "</"+pname+">"
-                        +msg.substring(ix+4);
-                }
-                mReporter.throwValidationError("Validation error, encountered element <"
-                                   +elem.getName()+"> as child of <"
-                                   +pname+">: "+msg);
-            }
-        }
-
-        // Ok, need to get the child validator, then:
-        mValidators[elemCount] = elem.getValidator();
 
         return elem.getAllowedContent();
     }
@@ -345,13 +446,13 @@ public class ElementValidator
      * @return Validation state that should be effective for the parent
      *   element state
      */
-    public int validateElemClose()
-        throws WstxException
+    public int validateElementEnd(String localName, String uri, String prefix)
+        throws XMLValidationException
     {
         // First, let's remove the top:
         int ix = --mElemCount;
-        DTDElement closingElem = mElemStack[ix];
-        mElemStack[ix] = null;
+        DTDElement closingElem = mElems[ix];
+        mElems[ix] = null;
         StructValidator v = mValidators[ix];
         mValidators[ix] = null;
 
@@ -359,8 +460,8 @@ public class ElementValidator
         if (v != null) {
             String msg = v.fullyValid();
             if (msg != null) {
-                mReporter.throwValidationError("Validation error, element </"
-                                               +closingElem+">: "+msg);
+                reportValidationProblem("Validation error, element </"
+                                        +closingElem+">: "+msg);
             }
         }
 
@@ -372,51 +473,22 @@ public class ElementValidator
             if (mIdMap != null) {
                 ElementId ref = mIdMap.getFirstUndefined();
                 if (ref != null) { // problem!
-                    throwValidationError(ref.getLocation(), "Undefined id '"+ref.getId()
-                                    +"': referenced from element <"
-                                    +ref.getElemName()+">, attribute '"
-                                    +ref.getAttrName()+"'");
+                    reportValidationProblem("Undefined id '"+ref.getId()
+                                            +"': referenced from element <"
+                                            +ref.getElemName()+">, attribute '"
+                                            +ref.getAttrName()+"'",
+                                            ref.getLocation());
                 }
             }
 
             // doesn't really matter; epilog/prolog differently handled:
             return XMLValidator.CONTENT_ALLOW_WS;
         }
-        return mElemStack[ix-1].getAllowedContent();
+        return mElems[ix-1].getAllowedContent();
     }
 
-    /*
-    ///////////////////////////////////////
-    // Package methods, accessors
-    ///////////////////////////////////////
-    */
 
-    /**
-     * Name of current element on the top of the element stack.
-     */
-    NameKey getElemName() {
-        DTDElement elem = mElemStack[mElemCount-1];
-        return elem.getName();
-    }
-
-    InputProblemReporter getReporter() {
-        return mReporter;
-    }
-
-    Location getLocation() {
-        return mReporter.getLocation();
-    }
-
-    ElementIdMap getIdMap() {
-        if (mIdMap == null) {
-            mIdMap = new ElementIdMap();
-        }
-        return mIdMap;
-    }
-
-    Map getEntityMap() {
-        return mGeneralEntities;
-    }
+    // // // Access to type info
 
     public String getAttributeType(int index)
     {
@@ -434,7 +506,25 @@ public class ElementValidator
      */
     public int getIdAttrIndex()
     {
-        return mIdAttrIndex;
+        // Let's figure out the index only when needed
+        int ix = mIdAttrIndex;
+        if (ix == -2) {
+            ix = -1;
+            if (mCurrElem != null) {
+                DTDAttribute idAttr = mCurrElem.getIdAttribute();
+                if (idAttr != null) {
+                    DTDAttribute[] attrs = mAttrSpecs;
+                    for (int i = 0, len = attrs.length; i < len; ++i) {
+                    if (attrs[i] == idAttr) {
+                        ix = i;
+                        break;
+                    }
+                    }
+                }
+            }
+            mIdAttrIndex = ix;
+        }
+        return ix;
     }
 
     /**
@@ -462,16 +552,88 @@ public class ElementValidator
 
     /*
     ///////////////////////////////////////
+    // Package methods, accessors
+    ///////////////////////////////////////
+    */
+
+    /**
+     * Name of current element on the top of the element stack.
+     */
+    NameKey getElemName() {
+        DTDElement elem = mElems[mElemCount-1];
+        return elem.getName();
+    }
+
+    /* // !!! remove for good?
+    InputProblemReporter getReporter() {
+        return mReporter;
+    }
+    */
+
+    Location getLocation() {
+        return mReporter.getLocation();
+    }
+
+    ElementIdMap getIdMap() {
+        if (mIdMap == null) {
+            mIdMap = new ElementIdMap();
+        }
+        return mIdMap;
+    }
+
+    Map getEntityMap() {
+        return mGeneralEntities;
+    }
+
+    /*
+    ///////////////////////////////////////
     // Package methods, error handling
     ///////////////////////////////////////
     */
 
-    void throwValidationError(String msg) throws WstxException {
-        mReporter.throwValidationError(msg);
+    /**
+     * Method called to report validity problems; depending on mode, will
+     * either throw an exception, or add a problem notification to the
+     * list of problems.
+     */
+    void reportValidationProblem(String msg)
+        throws WstxValidationException
+    {
+        if (mReportProblemsAsExceptions) {
+            mReporter.throwValidationError(msg);
+        } else {
+            // !!! TBI:
+        }
     }
 
-    void throwValidationError(Location loc, String msg) throws WstxException {
-        mReporter.throwValidationError(loc, msg);
+    void reportValidationProblem(String msg, Location loc)
+        throws WstxValidationException
+    {
+        if (mReportProblemsAsExceptions) {
+            mReporter.throwValidationError(loc, msg);
+        } else {
+            // !!! TBI:
+        }
+    }
+
+    void reportValidationProblem(String format, String arg1)
+        throws WstxValidationException
+    {
+        if (mReportProblemsAsExceptions) {
+            mReporter.throwValidationError(format, arg1);
+        } else {
+            // !!! TBI:
+        }
+    }
+
+    void reportValidationProblem(String format, String arg1, String arg2)
+        throws WstxValidationException
+    {
+        if (mReportProblemsAsExceptions) {
+            mReporter.throwValidationError(format, arg1, arg2);
+        } else {
+            // !!! TBI:
+        }
     }
 
     /*

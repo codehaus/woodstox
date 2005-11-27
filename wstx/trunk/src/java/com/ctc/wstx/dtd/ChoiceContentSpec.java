@@ -60,7 +60,7 @@ public class ChoiceContentSpec
     ///////////////////////////////////////////////////
      */
 
-    public StructValidator getValidator()
+    public StructValidator getSimpleValidator()
     {
         /* Can we create a simple validator? Yes, if the sub-specs are
          * all simple (leaves == element tokens with no arity modifier);

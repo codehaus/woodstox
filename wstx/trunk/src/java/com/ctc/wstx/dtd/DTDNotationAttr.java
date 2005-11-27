@@ -1,6 +1,6 @@
 package com.ctc.wstx.dtd;
 
-import com.ctc.wstx.exc.WstxException;
+import com.ctc.wstx.exc.WstxValidationException;
 import com.ctc.wstx.sr.AttributeCollector;
 import com.ctc.wstx.sr.InputProblemReporter;
 import com.ctc.wstx.sr.StreamScanner;
@@ -63,13 +63,13 @@ public final class DTDNotationAttr
      */
     public void validate(ElementValidator v, boolean normalize, AttributeCollector ac,
                          int index)
-        throws WstxException
+        throws WstxValidationException
     {
         String ok = ac.checkEnumValue(index, mEnumValues);
         if (ok == null) {
             String val = ac.getValue(index);
-            reportValidationError(v, "Invalid value '"+val+"': has to be one of ("
-                              +mEnumValues+")");
+            reportValidationProblem(v, "Invalid value '"+val+"': has to be one of ("
+                                    +mEnumValues+")");
         }
     }
 
@@ -79,7 +79,7 @@ public final class DTDNotationAttr
      * valid for such type.
      */
     public void validateDefault(InputProblemReporter rep, boolean normalize)
-        throws WstxException
+        throws WstxValidationException
     {
         // First, basic checks that it's a valid non-empty name:
         String def = validateDefaultName(rep, normalize);
@@ -87,8 +87,8 @@ public final class DTDNotationAttr
         // And then that it's one of listed values:
         String shared = mEnumValues.find(def);
         if (shared == null) {
-            reportValidationError(rep, "Invalid default value '"+def+"': has to be one of ("
-                               +mEnumValues+")");
+            reportValidationProblem(rep, "Invalid default value '"+def+"': has to be one of ("
+                                    +mEnumValues+")");
         }
 
         // Ok, cool it's ok...

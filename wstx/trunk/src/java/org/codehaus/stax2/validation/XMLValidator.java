@@ -99,17 +99,6 @@ public abstract class XMLValidator
         throws XMLValidationException;
 
     /**
-     * Method called right after encountering an element close tag.
-     *
-     * @return One of <code>CONTENT_ALLOW_</code> constants, to indicate
-     *   what kind of textual content is allowed at the scope returned
-     *   to after the element has closed.
-     */
-    public abstract int validateElementEnd(String localName, String uri,
-                                            String prefix)
-        throws XMLValidationException;
-
-    /**
      * Callback method called on validator to give it a chance to validate
      * the value of an attribute, as well as to normalize its value if
      * appropriate (remove leading/trailing/intervening white space for
@@ -122,7 +111,7 @@ public abstract class XMLValidator
      *   caller should return this value, instead of the original one.
      */
     public abstract String validateAttribute(String localName, String uri,
-                                           String prefix, String value)
+                                             String prefix, String value)
         throws XMLValidationException;
 
     /**
@@ -130,6 +119,14 @@ public abstract class XMLValidator
      * the value of an attribute, as well as to normalize its value if
      * appropriate (remove leading/trailing/intervening white space for
      * certain token types etc.).
+     *
+     * @param valueChars Character array that contains value (possibly
+     *   along with some other text)
+     * @param valueStart Index of the first character of the value in
+     *   in <code>valueChars</code> array
+     * @param valueEnd Index of the character AFTER the last character;
+     *    so that the length of the value String is
+     *    <code>valueEnd - valueStart</code>
      *
      * @return Null, if the passed value is fine as is; or a String, if
      *   it needs to be replaced. In latter case, caller will replace the
@@ -152,6 +149,53 @@ public abstract class XMLValidator
      *   what kind of textual content is allowed at the scope returned
      *   to after the element has closed.
      */
-    public abstract int validateElementAndAttributes(AttributeContainer ac)
+    public abstract int validateElementAndAttributes()
         throws XMLValidationException;
+
+    /**
+     * Method called right after encountering an element close tag.
+     *
+     * @return One of <code>CONTENT_ALLOW_</code> constants, to indicate
+     *   what kind of textual content is allowed at the scope returned
+     *   to after the element has closed.
+     */
+    public abstract int validateElementEnd(String localName, String uri,
+                                           String prefix)
+        throws XMLValidationException;
+
+
+    /*
+    ///////////////////////////////////////////////////
+    // Access to post-validation data (type info)
+    ///////////////////////////////////////////////////
+     */
+
+    /**
+     * Method for getting schema-specified type of an attribute, if
+     * information is available. If not, validators can return
+     * null to explicitly indicate no information was available.
+     */
+    public abstract String getAttributeType(int index);
+
+    /**
+     * Method for finding out the index of the attribute that
+     * is of type ID; derived from DTD, W4C Schema, or some other validation
+     * source. Usually schemas explicitly specifies that at most one
+     * attribute can have this type for any element.
+     * 
+     * @return Index of the attribute with type ID, in the current
+     *    element, if one exists: -1 otherwise
+     */
+    public abstract int getIdAttrIndex();
+
+    /**
+     * Method for finding out the index of the attribute (collected using
+     * the attribute collector; having DTD/Schema-derived info in same order)
+     * that is of type NOTATION. DTD explicitly specifies that at most one
+     * attribute can have this type for any element.
+     * 
+     * @return Index of the attribute with type NOTATION, in the current
+     *    element, if one exists: -1 otherwise
+     */
+    public abstract int getNotationAttrIndex();
 }

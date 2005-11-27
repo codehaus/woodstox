@@ -64,7 +64,16 @@ import com.ctc.wstx.util.URLUtil;
  *  <li>Content characters are not restricted to only legal XML 1.0 characters;
  *    all Unicode chars except for markup (and null char) is passed through.
  *   </li>
+ *  <li>Entity expansions are not fully checked for scope nesting: that is,
+ *     although it is illegal for start and element to be expanded from
+ *     separate entities (or, start from an entity, end from the main
+ *     document etc), this is not fully checked.
+ *   </li>
  * </ul>
+ * What this means is that while all well-formed documents should be 
+ * considered such, a small subset of non-well-formed documents can also
+ * be considered well-formed. In future, more checks may be added to
+ * further remove (and eventually eliminate) such subset.
  *<p>
  * About interfaces implemented: {@link XMLStreamReader2} is part of StAX2,
  * and implemented as the "main" interface. Implementing {@link DTDInfo} is
@@ -2780,7 +2789,7 @@ public class BasicStreamReader
                 mInputBuffer[mInputPtr++] : getNextCharFromCurrent(SUFFIX_IN_ELEMENT);
             mStEmptyElem = (c == '>') ? false : handleNonNsAttrs(c);
         }
-        mVldContent = mElementStack.resolveElem();
+        mVldContent = mElementStack.resolveAndValidateElement();
     }
 
     /**

@@ -26,12 +26,18 @@ public class XMLValidationException
     protected XMLValidationException(XMLValidationProblem cause)
     {
         super();
+        if (cause == null) {
+            throwMissing();
+        }
         mCause = cause;
     }
 
     protected XMLValidationException(XMLValidationProblem cause, String msg)
     {
         super(msg);
+        if (cause == null) {
+            throwMissing();
+        }
         mCause = cause;
     }
 
@@ -39,6 +45,9 @@ public class XMLValidationException
                                      Location loc)
     {
         super(msg, loc);
+        if (cause == null) {
+            throwMissing();
+        }
         mCause = cause;
     }
 
@@ -46,6 +55,32 @@ public class XMLValidationException
 
     public static XMLValidationException createException(XMLValidationProblem cause)
     {
-        return new XMLValidationException(cause);
+        String msg = cause.getMessage();
+        if (msg == null) {
+            return new XMLValidationException(cause);
+        }
+        Location loc = cause.getLocation();
+        if (loc == null) {
+            return new XMLValidationException(cause, msg);
+        }
+        return new XMLValidationException(cause, msg, loc);
+    }
+
+    // // // Accessors
+
+    /**
+     * @return Object that has all information about details of the
+     *   validation problem
+     */
+    public XMLValidationProblem getValidationProblem() {
+        return mCause;
+    }
+
+    // // // Internal
+
+    protected static void throwMissing()
+        throws RuntimeException
+    {
+        throw new IllegalArgumentException("Validation problem argument can not be null");
     }
 }

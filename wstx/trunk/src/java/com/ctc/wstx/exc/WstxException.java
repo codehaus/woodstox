@@ -68,7 +68,8 @@ public class WstxException
     public String getMessage()
     {
         String locMsg = getLocationDesc();
-        /* Better not use super's message, as it contains (part of) Location
+        /* Better not use super's message if we do have location information,
+         * since parent's message contains (part of) Location
          * info; something we can regenerate better...
          */
         if (locMsg == null) {

@@ -3,7 +3,7 @@ package com.ctc.wstx.dtd;
 import javax.xml.stream.Location;
 
 import com.ctc.wstx.cfg.ErrorConsts;
-import com.ctc.wstx.exc.WstxException;
+import com.ctc.wstx.exc.WstxValidationException;
 import com.ctc.wstx.io.WstxInputData;
 import com.ctc.wstx.sr.AttributeCollector;
 import com.ctc.wstx.sr.InputProblemReporter;
@@ -65,7 +65,7 @@ public final class DTDIdAttr
      */
     public void validate(ElementValidator v, boolean normalize, AttributeCollector ac,
                          int index)
-        throws WstxException
+        throws WstxValidationException
     {
         TextBuilder tb = ac.getAttrBuilder();
         char[] ch = tb.getCharBuffer();
@@ -79,7 +79,7 @@ public final class DTDIdAttr
 
         // No id?
         if (start > last) {
-            reportValidationError(v, "Empty ID value");
+            reportValidationProblem(v, "Empty ID value");
         }
 
         while (last > start && WstxInputData.isSpaceChar(ch[last])) {
@@ -109,7 +109,7 @@ public final class DTDIdAttr
 
         // We can detect dups by checking if Location is the one we passed:
         if (id.getLocation() != loc) {
-            reportValidationError(v, "Duplicate id '"+id.getId()+"', first declared at "
+            reportValidationProblem(v, "Duplicate id '"+id.getId()+"', first declared at "
                              +id.getLocation());
         }
 
@@ -124,7 +124,7 @@ public final class DTDIdAttr
      * valid for such type.
      */
     public void validateDefault(InputProblemReporter rep, boolean normalize)
-        throws WstxException
+        throws WstxValidationException
     {
         // Should never get called
         throw new Error(ErrorConsts.ERR_INTERNAL);

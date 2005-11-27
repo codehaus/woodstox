@@ -1864,7 +1864,7 @@ public class FullDTDReader
             } else {
                 --mInputPtr; // let's push it back...
                 ContentSpec spec = readContentSpec(elemName, true, mCfgValidate);
-                val = spec.getValidator();
+                val = spec.getSimpleValidator();
                 if (val == null) {
                     val = new DFAValidator(DFAState.constructDFA(spec));
                 }
@@ -2482,7 +2482,7 @@ public class FullDTDReader
             return EmptyValidator.getInstance();
         }
         ContentSpec spec = ChoiceContentSpec.constructMixed(mCfgNsEnabled, m.values());
-        StructValidator val = spec.getValidator();
+        StructValidator val = spec.getSimpleValidator();
         if (val == null) {
             DFAState dfa = DFAState.constructDFA(spec);
             val = new DFAValidator(dfa);

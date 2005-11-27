@@ -51,11 +51,12 @@ public final class NameKey
         mLocalName = localName;
     }
 
-    public void reset(String prefix, String localName)
+    public NameKey reset(String prefix, String localName)
     {
         mPrefix = prefix;
         mLocalName = localName;
         mHash = 0;
+        return this;
     }
 
     /*

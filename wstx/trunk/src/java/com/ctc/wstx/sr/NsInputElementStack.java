@@ -12,7 +12,6 @@ import org.codehaus.stax2.validation.XMLValidator;
 
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.dtd.ElementValidator;
-import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.util.*;
 
 /**
@@ -128,12 +127,12 @@ public class NsInputElementStack
         mAttrCollector = new NsAttributeCollector(normAttrs, prefixXml, prefixXmlns);
     }
 
+    /*
     public void setElementSpecs(Map elemSpecs,
                                 boolean normAttrs, Map generalEntities)
     {
-        /* 30-Sep-2005, TSa: This gets called if there was a DOCTYPE
-         *   declaration..
-         */
+        // 30-Sep-2005, TSa: This gets called if there was a DOCTYPE
+        //   declaration..
         if (elemSpecs == null) { // no DTD
             elemSpecs = Collections.EMPTY_MAP;
         }
@@ -141,6 +140,7 @@ public class NsInputElementStack
                                           generalEntities,
                                           mAttrCollector, normAttrs);
     }
+    */
 
     public final void push(String prefix, String localName)
     {
@@ -181,30 +181,46 @@ public class NsInputElementStack
      *   element state
      */
     public int pop()
-        throws WstxException
+        throws XMLStreamException
     {
         int index = mSize;
         if (index == 0) {
             throw new IllegalStateException("Popping from empty stack.");
         }
-        /* Let's allow GCing (not likely to matter, as Strings are very
-         * likely interned... but it's a good habit
+
+        int result;
+
+        /* Can and should not shrink (or clear) the stack before calling
+         * the validator
          */
         index -= 4;
+
+        if (mValidator == null) {
+            /* Let's allow GCing (not likely to matter, as Strings are very
+             * likely interned... but it's a good habit
+             */
+            result = XMLValidator.CONTENT_ALLOW_ANY_TEXT;
+        } else {
+            result = mValidator.validateElementEnd(mElements[index+IX_LOCALNAME],
+                                                   mElements[index+IX_URI],
+                                                   mElements[index+IX_PREFIX]);
+
+        }
+
+        // Now we can shrink the stack:
         mSize = index;
         mElements[index] = null;
         mElements[index+1] = null;
         mElements[index+2] = null;
         mElements[index+3] = null;
-
+            
         // Need to purge namespaces?
         index = (index >> 2);
         int nsCount = mNamespaces.size() - mNsCounts[index];
         if (nsCount > 0) { // 2 entries for each NS mapping:
             mNamespaces.removeLast(nsCount);
         }
-        return (mValidator == null) ?
-            XMLValidator.CONTENT_ALLOW_ANY_TEXT : mValidator.validateElemClose();
+        return result;
     }
 
     /**
@@ -215,10 +231,10 @@ public class NsInputElementStack
      * @return Validation state that should be effective for the fully
      *   resolved element context
      */
-    public int resolveElem()
-        throws WstxException
+    public int resolveAndValidateElement()
+        throws XMLStreamException
     {
-        if (mSize == 0) {
+        if (mSize == 0) { // just a simple sanity check
             throw new IllegalStateException("Calling validate() on empty stack.");
         }
         NsAttributeCollector ac = mAttrCollector;
@@ -280,13 +296,48 @@ public class NsInputElementStack
 
         // And finally, resolve attributes' namespaces too:
         ac.resolveNamespaces(mReporter, mNamespaces);
-        
-        if (mValidator == null) { // no DTD in use
+
+        // If we have no validator(s), nothing more to do:
+        XMLValidator vld = mValidator;
+        if (vld == null) { // no DTD in use
             return XMLValidator.CONTENT_ALLOW_ANY_TEXT;
         }
-        return mValidator.validateElemStart
-            (mElements[mSize-(ENTRY_SIZE - IX_PREFIX)],
-             mElements[mSize-(ENTRY_SIZE - IX_LOCALNAME)], mNamespaces);
+
+        // Otherwise need to call relevant validation methods.
+
+        /* First, a call to check if the element itself may be acceptable
+         * within structure:
+         */
+        vld.validateElementStart
+            (mElements[mSize-(ENTRY_SIZE - IX_LOCALNAME)],
+             mElements[mSize-(ENTRY_SIZE - IX_URI)],
+             prefix);
+
+        // Then attributes, if any:
+        StringVector attrNames = ac.getNameList();
+        int attrLen = attrNames.size();
+        if (attrLen > 0) {
+            String[] attrURIs = ac.getAttrURIs();
+            String[] nameData = attrNames.getInternalArray();
+            TextBuilder attrBuilder = ac.getAttrBuilder();
+            char[] attrCB = attrBuilder.getCharBuffer();
+            for (int i = 0, nr = 0; i < attrLen; i += 2, ++nr) {
+                prefix = nameData[i];
+                String ln = nameData[i+1];
+                String normValue = mValidator.validateAttribute
+                    (ln, attrURIs[nr], prefix,
+                     attrCB, attrBuilder.getOffset(nr),
+                     attrBuilder.getOffset(nr+1));
+                if (normValue != null) {
+                    ac.setNormalizedValue(nr, normValue);
+                }
+            }
+        }
+
+        /* And finally let's wrap things up to see what textual content
+         * is allowed as child content, if any:
+         */
+        return mValidator.validateElementAndAttributes();
     }
 
     /*

@@ -15,17 +15,18 @@ import org.codehaus.stax2.XMLStreamWriter2;
  * is that schemas are actual validator factories instead of
  * {@link XMLValidatorFactory} instances.
  *<p>
- * One note about creation of validator instances: due to potential differences
- * in validation in input vs. output modes, there are separate factory
- * methods for both sides. Actual instances created may or may not be
- * different.
+ * One note about creation of validator instances: since the validation
+ * may be invoked from wide variety of contexts (from parser, from serializer,
+ * from processing pipeline etc), the validation context is abstracted
+ * as {@link ValidationContext}. Instances may make use of additional
+ * knowledge about actual implementing classes if they can safely determine
+ * the type runtime, but should gracefully handle the cases where
+ * the context is created by a caller that is not part of the same
+ * StAX implementation as the validator.
  */
 public interface XMLValidatorSchema
 {
-    public XMLValidator createValidator(XMLStreamReader2 reader)
-        throws XMLStreamException;
-
-    public XMLValidator createValidator(XMLStreamWriter2 reader)
+    public XMLValidator createValidator(ValidationContext ctxt)
         throws XMLStreamException;
 
     /*

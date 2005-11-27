@@ -136,6 +136,7 @@ final class NsAttributeCollector
         // Need to have room for URIs:
         String[] attrURIs = mAttrURIs;
         if (attrURIs == null || attrURIs.length < attrCount) {
+            int size = (attrCount < 16) ? 16 : attrCount;
             mAttrURIs = attrURIs = new String[attrCount];
         }
         String[] attrNames = mAttrNames.getInternalArray();
@@ -457,6 +458,14 @@ final class NsAttributeCollector
      */
     public TextBuilder getNsURIs() {
         return mNamespaceURIs;
+    }
+
+    /**
+     *<p>
+     * Note: only called by {@link InputElementStack}
+     */
+    protected String[] getAttrURIs() {
+        return mAttrURIs;
     }
 
     /**

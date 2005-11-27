@@ -25,10 +25,12 @@ import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
 
 import org.codehaus.stax2.AttributeInfo;
+import org.codehaus.stax2.validation.XMLValidator;
 
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.dtd.ElementValidator;
 import com.ctc.wstx.exc.WstxException;
+import com.ctc.wstx.exc.WstxValidationException;
 import com.ctc.wstx.util.BaseNsContext;
 import com.ctc.wstx.util.SingletonIterator;
 import com.ctc.wstx.util.StringVector;
@@ -68,7 +70,13 @@ public abstract class InputElementStack
     //////////////////////////////////////////////////
     */
 
-    protected ElementValidator mValidator = null;
+    /**
+     * Optional validator object that will get called if set,
+     * and that can validate xml content. Note that it is possible
+     * that this is set to a proxy object that calls multiple
+     * validators in sequence.
+     */
+    protected XMLValidator mValidator = null;
 
     /*
     //////////////////////////////////////////////////
@@ -89,7 +97,7 @@ public abstract class InputElementStack
 
     /**
      * Method called by reader right before the root element is handled.
-     * Allows validating instances to check if they have validator settings,
+     * Allows validator instances to check if they have validator settings,
      * and if not, to warn about that.
      */
     public void beforeRoot()
@@ -102,12 +110,14 @@ public abstract class InputElementStack
         }
     }
 
-    /**
-     * Stub implementation for method that specialized sub-classes use.
-     * Default implementation is fine for non-validating stacks.
-     */
+    protected void setValidator(XMLValidator validator) {
+        mValidator = validator;
+    }
+
+    /*
     protected abstract void setElementSpecs(Map elemSpecs,
                                             boolean normAttrs, Map generalEntities);
+    */
 
     /**
      * Method called by {@link BasicStreamReader}, to retrieve the
@@ -145,18 +155,18 @@ public abstract class InputElementStack
      *   element state
      */
     public abstract int pop()
-        throws WstxException;
+        throws XMLStreamException;
 
     /**
-     * Method called to update information about top of the stack, with
-     * attribute information passed in. In namespace aware mode, will resolve
-     * namespace mapping.
+     * Method called to resolve element and attribute namespaces (in
+     * namespace-aware mode), and do optional validation using pluggable
+     * validator object.
      *
-     * @return Validation state that should be effective for the fully
-     *   resolved element context
+     * @return Text content validation state that should be effective
+     *   for the fully resolved element context
      */
-    public abstract int resolveElem()
-        throws WstxException;
+    public abstract int resolveAndValidateElement()
+        throws XMLStreamException;
 
     /*
     ///////////////////////////////////////////////////

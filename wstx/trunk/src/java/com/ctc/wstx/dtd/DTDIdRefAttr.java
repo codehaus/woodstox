@@ -3,7 +3,7 @@ package com.ctc.wstx.dtd;
 import javax.xml.stream.Location;
 
 import com.ctc.wstx.cfg.ErrorConsts;
-import com.ctc.wstx.exc.WstxException;
+import com.ctc.wstx.exc.WstxValidationException;
 import com.ctc.wstx.io.WstxInputData;
 import com.ctc.wstx.sr.AttributeCollector;
 import com.ctc.wstx.sr.InputProblemReporter;
@@ -61,7 +61,7 @@ public final class DTDIdRefAttr
      */
     public void validate(ElementValidator v, boolean normalize, AttributeCollector ac,
                          int index)
-        throws WstxException
+        throws WstxValidationException
     {
         TextBuilder tb = ac.getAttrBuilder();
         char[] ch = tb.getCharBuffer();
@@ -77,7 +77,7 @@ public final class DTDIdRefAttr
         }
 
         if (start > last) { // empty (all white space) value?
-            reportValidationError(v, "Empty IDREF value");
+            reportValidationProblem(v, "Empty IDREF value");
         }
 
         while (last > start && WstxInputData.isSpaceChar(ch[last])) {
@@ -116,7 +116,7 @@ public final class DTDIdRefAttr
      * valid for such type.
      */
     public void validateDefault(InputProblemReporter rep, boolean normalize)
-        throws WstxException
+        throws WstxValidationException
     {
         mDefValue = validateDefaultName(rep, normalize);
     }
