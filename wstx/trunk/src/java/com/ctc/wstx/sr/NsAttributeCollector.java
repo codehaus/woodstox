@@ -510,10 +510,12 @@ final class NsAttributeCollector
     /**
      * Method called by validator to insert an attribute that has a default
      * value and wasn't yet included in collector's attribute set.
+     *
+     * @return Index of the newly added attribute, if added; -1 to indicate
+     *    this was a duplicate
      */
-    public void addDefaultAttr(InputProblemReporter rep, StringVector ns,
-                               String prefix, String localName, String value)
-        throws WstxException
+    public int addDefaultAttribute(String localName, String uri, String prefix,
+                                   String value)
     {
         int attrIndex = mAttrCount;
 
@@ -521,20 +523,6 @@ final class NsAttributeCollector
         mAttrNames.addStrings(prefix, localName);
         if (mAttrCount >= mAttrURIs.length) {
             mAttrURIs = DataUtil.growArrayBy(mAttrURIs, 8);
-        }
-        // Namespace mapping: copied from resolveNamespaces():
-        String uri;
-        if (prefix == null || prefix.length() == 0) {
-            uri = DEFAULT_NS_URI;
-            // xml:lang etc? no need for mapping
-        } else if (prefix == mXmlPrefix) {
-            uri = XMLConstants.XML_NS_URI;
-        } else {
-            uri = ns.findLastFromMap(prefix);
-            if (uri == null) {
-                rep.throwParseError("Undeclared namespace prefix '"
-                                   +prefix+"' for attribute '"+localName+"'");
-            }
         }
         mAttrURIs[attrIndex] = uri;
 
@@ -577,7 +565,7 @@ final class NsAttributeCollector
             mAttrSpillEnd += 2;
         }
 
-        ++mAttrCount;
+        return mAttrCount++;
     }
 
     /**

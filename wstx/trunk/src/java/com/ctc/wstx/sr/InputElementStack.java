@@ -210,6 +210,12 @@ public abstract class InputElementStack
         return mReporter.getLocation();
     }
 
+    /**
+     * Method called by actual validator instances when attributes with
+     * default values have no explicit values for the element; if so,
+     * default value needs to be added as if it was parsed from the
+     * element.
+     */
     public abstract int addDefaultAttribute(String localName, String uri, String prefix,
                                             String value);
 

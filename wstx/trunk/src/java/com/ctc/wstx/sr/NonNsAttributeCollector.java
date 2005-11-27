@@ -365,9 +365,11 @@ final class NonNsAttributeCollector
     /**
      * Method called by validator to insert an attribute that has a default
      * value and wasn't yet included in collector's attribute set.
+     *
+     * @return Index of the newly added attribute, if added; -1 to indicate
+     *    this was a duplicate
      */
-    public void addDefaultAttr(InputProblemReporter rep, StringVector ns,
-                               String prefix, String localName, String value)
+    public int addDefaultAttribute(String localName, String value)
     {
         mAttrNames.addString(localName); // First, the name
         int attrIndex = mAttrCount;
@@ -408,7 +410,7 @@ final class NonNsAttributeCollector
             mAttrSpillEnd += 2;
         }
 
-        ++mAttrCount;
+        return mAttrCount++;
     }
 
     /**

@@ -433,6 +433,8 @@ public class ElementValidator
                     // Can not map to empty NS!
                     if (uri == null || uri.length() == 0) {
                         reportValidationProblem("Unbound namespace prefix '"+prefix+"' for default attribute "+attr);
+                        // May continue if we don't throw errors, just collect them to a list
+                        uri = "";
                     }
                 }
                 int defIx = mContext.addDefaultAttribute(an.getLocalName(),

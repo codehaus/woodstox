@@ -305,8 +305,8 @@ public class NonNsInputElementStack
     public int addDefaultAttribute(String localName, String uri, String prefix,
                                    String value)
     {
-        // !!! TBI
-        return -1;
+        // No real namespace info passed...
+        return mAttrCollector.addDefaultAttribute(localName, value);
     }
 
     /*

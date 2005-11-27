@@ -278,14 +278,6 @@ public abstract class AttributeCollector
     }
 
     /**
-     * Method called by validator to insert an attribute that has a default
-     * value and wasn't yet included in collector's attribute set.
-     */
-    public abstract void addDefaultAttr(InputProblemReporter rep, StringVector ns,
-                                        String prefix, String localName, String value)
-        throws WstxException;
-
-    /**
      * Low-level accessor method that attribute validation code may call
      * for certain types of attributes; generally only for id and idref/idrefs
      * attributes. It returns the underlying 'raw' attribute value buffer
