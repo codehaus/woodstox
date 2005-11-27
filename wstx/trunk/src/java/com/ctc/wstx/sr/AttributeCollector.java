@@ -278,50 +278,6 @@ public abstract class AttributeCollector
     }
 
     /**
-     * Method called by validation/normalization code for enumeration-valued
-     * attributes, to trim
-     * specified attribute value (full normalization not needed -- called
-     * for values that CAN NOT have spaces inside; such values can not
-     * be legal), and then check whether it is included
-     * in set of words (tokens) passed in. If actual value was included,
-     * will return the normalized word (as well as store shared String
-     * locally); otherwise will return null.
-     */
-    public String checkEnumValue(int index, WordResolver res)
-    {
-        /* Better NOT to build temporary Strings quite yet; can resolve
-         * matches via resolver more efficiently.
-         */
-
-        TextBuilder b = mValueBuffer;
-        int start = b.getOffset(index);
-        int end = b.getOffset(index+1)-1;
-        char[] buf = b.getCharBuffer();
-
-        if (mNormAttrs) {
-            while (start <= end && buf[start] == CHAR_SPACE) {
-                ++start;
-            }
-            while (end > start && buf[end] == CHAR_SPACE) {
-                --end;
-            }
-        }
-
-        // Empty String is never legal for enums:
-        if (start > end) {
-            return null;
-        }
-        String result = res.find(buf, start, end+1);
-        if (result != null) {
-            if (mAttrValues == null) {
-                mAttrValues = new String[mAttrCount];
-            }
-            mAttrValues[index] = result;
-        }
-        return result;
-    }
-
-    /**
      * Method called by validator to insert an attribute that has a default
      * value and wasn't yet included in collector's attribute set.
      */

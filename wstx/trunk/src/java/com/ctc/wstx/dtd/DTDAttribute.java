@@ -22,6 +22,7 @@ import com.ctc.wstx.exc.*;
 import com.ctc.wstx.io.WstxInputData;
 import com.ctc.wstx.sr.AttributeCollector;
 import com.ctc.wstx.sr.InputProblemReporter;
+import com.ctc.wstx.util.WordResolver;
 
 /**
  * Base class for objects that contain attribute definitions from DTD.
@@ -31,6 +32,8 @@ import com.ctc.wstx.sr.InputProblemReporter;
  */
 public class DTDAttribute
 {
+    final static char CHAR_SPACE = (char) 0x0020;
+
     /*
     ///////////////////////////////////////////////////
     // Type constants
@@ -199,18 +202,31 @@ public class DTDAttribute
     ///////////////////////////////////////////////////
      */
 
-    public String validate(ElementValidator v, String value, boolean normalize)
-        throws WstxValidationException
-    {
-        // !!! TBI
-        return value;
-    }
-
     public String validate(ElementValidator v, char[] cbuf, int start, int end, boolean normalize)
         throws WstxValidationException
     {
-        // !!! TBI
+        // Nothing to do for pure CDATA attributes...
         return null;
+    }
+
+    /**
+     *<p>
+     * Note: the default implementation is not optimized, as it does
+     * a potentially unnecessary copy of the contents. It is expected that
+     * this method is seldom called (Woodstox never directly calls it; it
+     * only gets called for chained validators when one validator normalizes
+     * the value, and then following validators are passed a String, not
+     * char array)
+     */
+    public String validate(ElementValidator v, String value, boolean normalize)
+        throws WstxValidationException
+    {
+        int len = value.length();
+        char[] cbuf = v.getTempAttrValueBuffer(value.length());
+        if (len > 0) {
+            value.getChars(0, len, cbuf, 0);
+        }
+        return validate(v, cbuf, 0, len, normalize);
     }
 
     /**
@@ -220,7 +236,7 @@ public class DTDAttribute
      */
     public void validate(ElementValidator v, boolean normalize, AttributeCollector ac,
                          int index)
-        throws WstxValidationException
+    //throws WstxValidationException
     {
         /* Nothing to do for the base class; all values are fine...
          * except if the value has to be fixed
@@ -361,6 +377,41 @@ public class DTDAttribute
         }
         // Ok, cool it's ok...
         return normalize ? defValue : mDefValue;
+    }
+
+    /**
+     * Method called by validation/normalization code for enumeration-valued
+     * attributes, to trim
+     * specified attribute value (full normalization not needed -- called
+     * for values that CAN NOT have spaces inside; such values can not
+     * be legal), and then check whether it is included
+     * in set of words (tokens) passed in. If actual value was included,
+     * will return the normalized word (as well as store shared String
+     * locally); otherwise will return null.
+     */
+    public String validateEnumValue(char[] cbuf, int start, int end,
+                                    boolean normalize,
+                                    WordResolver res)
+    {
+        /* Better NOT to build temporary Strings quite yet; can resolve
+         * matches via resolver more efficiently.
+         */
+        // Note: at this point, should only have real spaces...
+        if (normalize) {
+            while (start < end && cbuf[start] <= CHAR_SPACE) {
+                ++start;
+            }
+            while (--end > start && cbuf[end] <= CHAR_SPACE) {
+                ;
+            }
+            ++end; // so it'll point to the first char (or beyond end of buffer)
+        }
+
+        // Empty String is never legal for enums:
+        if (start >= end) {
+            return null;
+        }
+        return res.find(cbuf, start, end);
     }
 
     protected EntityDecl findEntityDecl(ElementValidator v,

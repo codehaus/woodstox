@@ -548,6 +548,12 @@ public class NsInputElementStack
         return n;
     }
 
+    public int addDefaultAttribute(String localName, String uri, String prefix,
+                                   String value)
+    {
+        // !!! TBI
+        return -1;
+    }
 
     /*
     ///////////////////////////////////////////////////

@@ -207,16 +207,11 @@ public abstract class InputElementStack
 
     public Location getValidationLocation()
     {
-        // !!! TBI
-        return null;
+        return mReporter.getLocation();
     }
 
-    public int addDefaultAttribute(String localName, String uri, String prefix,
-                                   String value)
-    {
-        // !!! TBI
-        return -1;
-    }
+    public abstract int addDefaultAttribute(String localName, String uri, String prefix,
+                                            String value);
 
     /*
     ///////////////////////////////////////////////////

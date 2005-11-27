@@ -2,13 +2,9 @@ package com.ctc.wstx.dtd;
 
 import javax.xml.stream.Location;
 
-import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.exc.WstxValidationException;
 import com.ctc.wstx.io.WstxInputData;
-import com.ctc.wstx.sr.AttributeCollector;
 import com.ctc.wstx.sr.InputProblemReporter;
-import com.ctc.wstx.util.TextBuilder;
-import com.ctc.wstx.util.WordResolver;
 
 /**
  * Specific attribute class for attributes that contain (unique)
@@ -58,47 +54,43 @@ public final class DTDNmTokensAttr
      * to let the attribute do necessary normalization and/or validation
      * for the value.
      */
-    public void validate(ElementValidator v, boolean normalize, AttributeCollector ac,
-                         int index)
+    public String validate(ElementValidator v, char[] cbuf, int start, int end, boolean normalize)
         throws WstxValidationException
     {
-        TextBuilder tb = ac.getAttrBuilder();
-        char[] ch = tb.getCharBuffer();
-        int start = tb.getOffset(index);
         int origStart = start;
-        int last = tb.getOffset(index+1) - 1;
 
         /* First things first; let's ensure value is not empty (all
          * white space)...
          */
-        while (start <= last && WstxInputData.isSpaceChar(ch[start])) {
+        while (start < end && WstxInputData.isSpaceChar(cbuf[start])) {
             ++start;
         }
         // Empty value?
-        if (start > last) {
-            reportValidationProblem(v, "Empty NMTOKENS value");
+        if (start >= end) {
+            return reportValidationProblem(v, "Empty NMTOKENS value");
         }
 
         /* Then, let's have separate handling for normalizing and
          * non-normalizing case, since latter is trivially easy case:
          */
         if (!normalize) {
-            for (; start <= last; ++start) {
-                char c = ch[start];
+            for (; start < end; ++start) {
+                char c = cbuf[start];
                 if (!WstxInputData.isSpaceChar(c) 
                     && !WstxInputData.is11NameChar(c)) {
-                    reportInvalidChar(v, c, "not valid as NMTOKENS character");
+                    return reportInvalidChar(v, c, "not valid as NMTOKENS character");
                 }
             }
-            return; // ok, all good
+            return null; // ok, all good
         }
 
         boolean trimmed = (origStart != start);
         origStart = start;
 
+        --end; // so that it now points to the last char
         // Wouldn't absolutely have to trim trailing... but is easy to do
-        while (last > start && WstxInputData.isSpaceChar(ch[last])) {
-            --last;
+        while (end > start && WstxInputData.isSpaceChar(cbuf[end])) {
+            --end;
             trimmed = true;
         }
 
@@ -107,33 +99,37 @@ public final class DTDNmTokensAttr
          */
         StringBuffer sb = null;
 
-        while (start <= last) {
+        while (start <= end) {
             int i = start;
-            for (; i <= last; ++i) {
-                char c = ch[i];
+            for (; i <= end; ++i) {
+                char c = cbuf[i];
                 if (WstxInputData.isSpaceChar(c)) {
                     break;
                 }
                 if (!WstxInputData.is11NameChar(c)) {
-                    reportInvalidChar(v, c, "not valid as an NMTOKENS character");
+                    return reportInvalidChar(v, c, "not valid as an NMTOKENS character");
                 }
             }
 
             if (sb == null) {
-                sb = new StringBuffer(last - start + 1);
+                sb = new StringBuffer(end - start + 1);
             } else {
                 sb.append(' ');
             }
-            sb.append(ch, start, (i - start));
+            sb.append(cbuf, start, (i - start));
 
             start = i + 1;
             // Ok, any white space to skip?
-            while (start <= last && WstxInputData.isSpaceChar(ch[start])) {
+            while (start <= end && WstxInputData.isSpaceChar(cbuf[start])) {
                 ++start;
             }
         }
 
-        ac.setNormalizedValue(index, sb.toString());
+        /* 27-Nov-2005, TSa: Could actually optimize trimming, and often
+         *   avoid using StringBuffer... but let's only do it if it turns
+         *   out dealing with NMTOKENS normalization shows up on profiling...
+         */
+        return sb.toString();
     }
 
     /**
@@ -175,6 +171,7 @@ public final class DTDNmTokensAttr
                                             +"'; character #"+i+" ("
                                             +WstxInputData.getCharDesc(c)
                                             +") not a valid NMTOKENS character");
+                    return;
                 }
                 if (++i >= len) {
                     break;
@@ -197,6 +194,7 @@ public final class DTDNmTokensAttr
         if (count == 0) {
             reportValidationProblem(rep, "Invalid default value '"+defValue
                                     +"'; empty String is not a valid NMTOKENS value");
+            return;
         }
 
         if (normalize) {

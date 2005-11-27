@@ -1,9 +1,7 @@
 package com.ctc.wstx.dtd;
 
 import com.ctc.wstx.exc.WstxValidationException;
-import com.ctc.wstx.sr.AttributeCollector;
 import com.ctc.wstx.sr.InputProblemReporter;
-import com.ctc.wstx.sr.StreamScanner;
 import com.ctc.wstx.util.WordResolver;
 
 /**
@@ -59,18 +57,18 @@ public final class DTDNotationAttr
      * to let the attribute do necessary normalization and/or validation
      * for the value.
      *<p>
-     * Note: identical 
+     * Note: identical to the implementation in {@link DTDEnumAttr}
      */
-    public void validate(ElementValidator v, boolean normalize, AttributeCollector ac,
-                         int index)
+   public String validate(ElementValidator v, char[] cbuf, int start, int end, boolean normalize)
         throws WstxValidationException
     {
-        String ok = ac.checkEnumValue(index, mEnumValues);
+        String ok = validateEnumValue(cbuf, start, end, normalize, mEnumValues);
         if (ok == null) {
-            String val = ac.getValue(index);
-            reportValidationProblem(v, "Invalid value '"+val+"': has to be one of ("
+            String val = new String(cbuf, start, (end-start));
+            return reportValidationProblem(v, "Invalid notation value '"+val+"': has to be one of ("
                                     +mEnumValues+")");
         }
+        return ok;
     }
 
     /**

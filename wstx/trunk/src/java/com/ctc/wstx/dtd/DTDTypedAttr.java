@@ -1,7 +1,6 @@
 package com.ctc.wstx.dtd;
 
 import com.ctc.wstx.exc.WstxValidationException;
-import com.ctc.wstx.sr.AttributeCollector;
 import com.ctc.wstx.sr.InputProblemReporter;
 
 /**
@@ -12,6 +11,9 @@ import com.ctc.wstx.sr.InputProblemReporter;
 public final class DTDTypedAttr
     extends DTDAttribute
 {
+    /* ??? 27-Nov-2005, TSa: Hmmh. When will this type actually be used?!?!
+     */
+
     final int mValueType;
 
     final boolean mSingleValued;
@@ -67,11 +69,11 @@ public final class DTDTypedAttr
      * to let the attribute do necessary normalization and/or validation
      * for the value.
      */
-    public void validate(ElementValidator v, boolean normalize, AttributeCollector ac,
-                         int index)
+   public String validate(ElementValidator v, char[] cbuf, int start, int end, boolean normalize)
         throws WstxValidationException
     {
         // !!! TBI
+        return null;
     }
 
     /**

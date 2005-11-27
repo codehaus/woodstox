@@ -199,6 +199,12 @@ public class ElementValidator
      */
     BitSet mTmpSpecialAttrs;
 
+    /**
+     * Temporary buffer attribute instances can share for validation
+     * purposes
+     */
+    char[] mTmpAttrValueBuffer = null;
+
     /*
     ///////////////////////////////////////
     // Life-cycle
@@ -435,6 +441,12 @@ public class ElementValidator
                     while (defIx >= mAttrSpecs.length) {
                         mAttrSpecs = (DTDAttribute[]) DataUtil.growArrayBy50Pct(mAttrSpecs);
                     }
+                    /* Any intervening empty slots? (can happen if other
+                     * validators add default attributes...)
+                     */
+                    while (mAttrCount < defIx) {
+                        mAttrSpecs[mAttrCount++] = null;
+                    }
                     mAttrSpecs[defIx] = attr;
                     mAttrCount = defIx+1;
                 }
@@ -567,12 +579,6 @@ public class ElementValidator
         return elem.getName();
     }
 
-    /* // !!! remove for good?
-    InputProblemReporter getReporter() {
-        return mReporter;
-    }
-    */
-
     Location getLocation() {
         return mReporter.getLocation();
     }
@@ -586,6 +592,16 @@ public class ElementValidator
 
     Map getEntityMap() {
         return mGeneralEntities;
+    }
+
+    char[] getTempAttrValueBuffer(int neededLength)
+    {
+        if (mTmpAttrValueBuffer == null
+            || mTmpAttrValueBuffer.length < neededLength) {
+            int size = (neededLength < 100) ? 100 : neededLength;
+            mTmpAttrValueBuffer = new char[size];
+        }
+        return mTmpAttrValueBuffer;
     }
 
     /*

@@ -5,9 +5,7 @@ import javax.xml.stream.Location;
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.exc.WstxValidationException;
 import com.ctc.wstx.io.WstxInputData;
-import com.ctc.wstx.sr.AttributeCollector;
 import com.ctc.wstx.sr.InputProblemReporter;
-import com.ctc.wstx.util.TextBuilder;
 import com.ctc.wstx.util.WordResolver;
 
 /**
@@ -94,12 +92,6 @@ public final class DTDNmTokenAttr
             }
         }
         return null;
-    }
-
-    public String validate(String value, boolean normalize)
-    {
-        // !!! TBI
-        return value;
     }
 
     /**

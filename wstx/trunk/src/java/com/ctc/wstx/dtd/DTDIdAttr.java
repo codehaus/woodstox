@@ -5,7 +5,6 @@ import javax.xml.stream.Location;
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.exc.WstxValidationException;
 import com.ctc.wstx.io.WstxInputData;
-import com.ctc.wstx.sr.AttributeCollector;
 import com.ctc.wstx.sr.InputProblemReporter;
 import com.ctc.wstx.util.TextBuilder;
 import com.ctc.wstx.util.WordResolver;
@@ -61,41 +60,34 @@ public final class DTDIdAttr
      * Method called by the {@link ElementValidator}
      * to let the attribute do necessary normalization and/or validation
      * for the value.
-     * 
      */
-    public void validate(ElementValidator v, boolean normalize, AttributeCollector ac,
-                         int index)
+    public String validate(ElementValidator v, char[] cbuf, int start, int end, boolean normalize)
         throws WstxValidationException
     {
-        TextBuilder tb = ac.getAttrBuilder();
-        char[] ch = tb.getCharBuffer();
-        int start = tb.getOffset(index);
-        int last = tb.getOffset(index+1) - 1;
-
         // Let's trim leading white space first...
-        while (start <= last && WstxInputData.isSpaceChar(ch[start])) {
+        while (start < end && WstxInputData.isSpaceChar(cbuf[start])) {
             ++start;
         }
 
         // No id?
-        if (start > last) {
-            reportValidationProblem(v, "Empty ID value");
+        if (start >= end) {
+            return reportValidationProblem(v, "Empty ID value");
         }
-
-        while (last > start && WstxInputData.isSpaceChar(ch[last])) {
-            --last;
+        --end; // so that it now points to the last char
+        while (end > start && WstxInputData.isSpaceChar(cbuf[end])) {
+            --end;
         }
 
         // Ok, need to check char validity, and also calc hash code:
-        char c = ch[start];
+        char c = cbuf[start];
         if (!WstxInputData.is11NameStartChar(c) && c != ':') {
-            reportInvalidChar(v, c, "not valid as the first ID character");
+            return reportInvalidChar(v, c, "not valid as the first ID character");
         }
         int hash = (int) c;
-        for (int i = start+1; i <= last; ++i) {
-            c = ch[i];
+        for (int i = start+1; i <= end; ++i) {
+            c = cbuf[i];
             if (!WstxInputData.is11NameChar(c)) {
-                reportInvalidChar(v, c, "not valid as an ID character");
+                return reportInvalidChar(v, c, "not valid as an ID character");
             }
             hash = (hash * 31) + (int) c;
         }
@@ -104,18 +96,19 @@ public final class DTDIdAttr
         ElementIdMap m = v.getIdMap();
         NameKey elemName = v.getElemName();
         Location loc = v.getLocation();
-        ElementId id = m.addDefined(ch, start, (last - start + 1), hash,
+        ElementId id = m.addDefined(cbuf, start, (end - start + 1), hash,
                                     loc, elemName, mName);
 
         // We can detect dups by checking if Location is the one we passed:
         if (id.getLocation() != loc) {
-            reportValidationProblem(v, "Duplicate id '"+id.getId()+"', first declared at "
-                             +id.getLocation());
+            return reportValidationProblem(v, "Duplicate id '"+id.getId()+"', first declared at "
+                                           +id.getLocation());
         }
 
         if (normalize) {
-            ac.setNormalizedValue(index, id.getId());
+            return id.getId();
         }
+        return null;
     }
 
     /**
@@ -129,11 +122,4 @@ public final class DTDIdAttr
         // Should never get called
         throw new Error(ErrorConsts.ERR_INTERNAL);
     }
-
-    /*
-    ///////////////////////////////////////////////////
-    // Internal methods
-    ///////////////////////////////////////////////////
-     */
-
 }

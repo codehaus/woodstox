@@ -5,9 +5,7 @@ import javax.xml.stream.Location;
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.exc.WstxValidationException;
 import com.ctc.wstx.io.WstxInputData;
-import com.ctc.wstx.sr.AttributeCollector;
 import com.ctc.wstx.sr.InputProblemReporter;
-import com.ctc.wstx.util.TextBuilder;
 import com.ctc.wstx.util.WordResolver;
 
 /**
@@ -57,43 +55,37 @@ public final class DTDIdRefAttr
      * Method called by the {@link ElementValidator}
      * to let the attribute do necessary normalization and/or validation
      * for the value.
-     * 
      */
-    public void validate(ElementValidator v, boolean normalize, AttributeCollector ac,
-                         int index)
+    public String validate(ElementValidator v, char[] cbuf, int start, int end, boolean normalize)
         throws WstxValidationException
     {
-        TextBuilder tb = ac.getAttrBuilder();
-        char[] ch = tb.getCharBuffer();
-        int start = tb.getOffset(index);
-        int last = tb.getOffset(index+1) - 1;
-
         /* Let's skip leading/trailing white space, even if we are not
          * to normalize visible attribute value. This allows for better
          * round-trip handling, but still allow validation.
          */
-        while (start <= last && WstxInputData.isSpaceChar(ch[start])) {
+        while (start < end && WstxInputData.isSpaceChar(cbuf[start])) {
             ++start;
         }
 
-        if (start > last) { // empty (all white space) value?
-            reportValidationProblem(v, "Empty IDREF value");
+        if (start >= end) { // empty (all white space) value?
+            return reportValidationProblem(v, "Empty IDREF value");
         }
 
-        while (last > start && WstxInputData.isSpaceChar(ch[last])) {
-            --last;
+        --end; // so that it now points to the last char
+        while (end > start && WstxInputData.isSpaceChar(cbuf[end])) {
+            --end;
         }
 
         // Ok, need to check char validity, and also calc hash code:
-        char c = ch[start];
+        char c = cbuf[start];
         if (!WstxInputData.is11NameStartChar(c) && c != ':') {
-            reportInvalidChar(v, c, "not valid as the first IDREF character");
+            return reportInvalidChar(v, c, "not valid as the first IDREF character");
         }
         int hash = (int) c;
-        for (int i = start+1; i <= last; ++i) {
-            c = ch[i];
+        for (int i = start+1; i <= end; ++i) {
+            c = cbuf[i];
             if (!WstxInputData.is11NameChar(c)) {
-                reportInvalidChar(v, c, "not valid as an IDREF character");
+                return reportInvalidChar(v, c, "not valid as an IDREF character");
             }
             hash = (hash * 31) + (int) c;
         }
@@ -101,13 +93,10 @@ public final class DTDIdRefAttr
         // Ok, let's check and update id ref list...
         ElementIdMap m = v.getIdMap();
         Location loc = v.getLocation();
-        ElementId id = m.addReferenced(ch, start, (last - start + 1), hash,
+        ElementId id = m.addReferenced(cbuf, start, (end - start + 1), hash,
                                        loc, v.getElemName(), mName);
-        // and that's all; no checks needed here
-
-        if (normalize) {
-            ac.setNormalizedValue(index, id.getId());
-        }
+        // and that's all; no more checks needed here
+        return normalize ? id.getId() : null;
     }
 
     /**

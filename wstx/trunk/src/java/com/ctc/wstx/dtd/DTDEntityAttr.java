@@ -63,7 +63,6 @@ public final class DTDEntityAttr
      * Method called by the {@link ElementValidator}
      * to let the attribute do necessary normalization and/or validation
      * for the value.
-     * 
      */
     public String validate(ElementValidator v, char[] cbuf, int start, int end, boolean normalize)
         throws WstxValidationException
