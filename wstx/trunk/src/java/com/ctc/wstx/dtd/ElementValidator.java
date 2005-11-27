@@ -205,12 +205,13 @@ public class ElementValidator
     ///////////////////////////////////////
     */
 
-    public ElementValidator(ValidationContext ctxt, InputProblemReporter rep, Map elemSpecs,
-                            Map genEntities, boolean normAttrs)
+    public ElementValidator(ValidationContext ctxt, InputProblemReporter rep,
+                            Map elemSpecs, Map genEntities, boolean normAttrs)
     {
         mContext = ctxt;
         mReporter = rep;
-        mElemSpecs = elemSpecs;
+        mElemSpecs = (elemSpecs == null || elemSpecs.size() == 0) ?
+            Collections.EMPTY_MAP : elemSpecs;
         mGeneralEntities = genEntities;
         mNormAttrs = normAttrs;
         mElems = new DTDElement[DEFAULT_STACK_SIZE];
@@ -430,11 +431,13 @@ public class ElementValidator
                 }
                 int defIx = mContext.addDefaultAttribute(an.getLocalName(),
                                                          uri, prefix, def);
-                while (defIx >= mAttrSpecs.length) {
-                    mAttrSpecs = (DTDAttribute[]) DataUtil.growArrayBy50Pct(mAttrSpecs);
+                if (defIx >= 0) { // -1 means it was not added...
+                    while (defIx >= mAttrSpecs.length) {
+                        mAttrSpecs = (DTDAttribute[]) DataUtil.growArrayBy50Pct(mAttrSpecs);
+                    }
+                    mAttrSpecs[defIx] = attr;
+                    mAttrCount = defIx+1;
                 }
-                mAttrSpecs[defIx] = attr;
-                mAttrCount = defIx+1;
                 ix = specBits.nextClearBit(ix+1);
             }
         }

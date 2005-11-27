@@ -26,6 +26,7 @@ import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.transform.stream.StreamSource;
 
+import org.codehaus.stax2.validation.ValidationContext;
 import org.codehaus.stax2.validation.XMLValidator;
 
 import com.ctc.wstx.api.ReaderConfig;
@@ -34,6 +35,7 @@ import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.io.*;
 import com.ctc.wstx.dtd.DTDId;
 import com.ctc.wstx.dtd.DTDSubset;
+import com.ctc.wstx.dtd.ElementValidator;
 import com.ctc.wstx.dtd.FullDTDReader;
 import com.ctc.wstx.util.ExceptionUtil;
 import com.ctc.wstx.util.URLUtil;
@@ -328,12 +330,25 @@ public class ValidatingStreamReader
         } else {
             mGeneralEntities = combo.getGeneralEntityMap();
             if (hasConfigFlags(CFG_VALIDATE_AGAINST_DTD)) {
-                // !!! To Be Fixed !!!
-                /*
-                mElementStack.setElementSpecs(combo.getElementMap(),
-                                              mCfgNormalizeAttrs, mGeneralEntities);
-                */
+                ElementValidator vld = new ElementValidator
+                    (/*(ValidationContext)*/ mElementStack,
+                     /*(InputProblemReporter)*/ this,
+                     combo.getElementMap(), mGeneralEntities,
+                     mCfgNormalizeAttrs);
+                mElementStack.setValidator(vld);
             }
+        }
+    }
+
+    protected void initValidation()
+        throws XMLStreamException
+    {
+        if (hasConfigFlags(CFG_VALIDATE_AGAINST_DTD)
+            && !mElementStack.hasDTDValidator()) {
+            /* It's ok to miss it, but it may not be what caller wants. Either
+             * way, let's pass the info and continue
+             */
+            reportProblem(ErrorConsts.WT_DT_DECL, ErrorConsts.W_MISSING_DTD);
         }
     }
 

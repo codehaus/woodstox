@@ -25,6 +25,7 @@ import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
 
 import org.codehaus.stax2.AttributeInfo;
+import org.codehaus.stax2.validation.ValidationContext;
 import org.codehaus.stax2.validation.XMLValidator;
 
 import com.ctc.wstx.cfg.ErrorConsts;
@@ -50,7 +51,7 @@ import com.ctc.wstx.util.TextBuilder;
  * instance as necesary.
  */
 public abstract class InputElementStack
-    implements AttributeInfo, NamespaceContext
+    implements AttributeInfo, NamespaceContext, ValidationContext
 {
     /**
      * Constants used when no DTD handling is done, and we do not know the
@@ -61,8 +62,6 @@ public abstract class InputElementStack
     protected InputProblemReporter mReporter = null;
 
     protected final boolean mInternNsURIs;
-
-    protected final boolean mExpectDTD;
 
     /*
     //////////////////////////////////////////////////
@@ -84,10 +83,9 @@ public abstract class InputElementStack
     //////////////////////////////////////////////////
      */
 
-    protected InputElementStack(boolean internNsURIs, boolean expectDTD)
+    protected InputElementStack(boolean internNsURIs)
     {
         mInternNsURIs = internNsURIs;
-        mExpectDTD = expectDTD;
     }
 
     protected void connectReporter(InputProblemReporter rep)
@@ -95,29 +93,16 @@ public abstract class InputElementStack
         mReporter = rep;
     }
 
-    /**
-     * Method called by reader right before the root element is handled.
-     * Allows validator instances to check if they have validator settings,
-     * and if not, to warn about that.
-     */
-    public void beforeRoot()
-    {
-        if (mExpectDTD && mValidator == null) { // No DOCTYPE
-            /* It's ok to miss it, but it may not be what caller wants. Either
-             * way, let's pass the info and continue
-             */
-            mReporter.reportProblem(ErrorConsts.WT_DT_DECL, ErrorConsts.W_MISSING_DTD);
-        }
-    }
-
     protected void setValidator(XMLValidator validator) {
         mValidator = validator;
     }
 
-    /*
-    protected abstract void setElementSpecs(Map elemSpecs,
-                                            boolean normAttrs, Map generalEntities);
-    */
+    protected boolean hasDTDValidator() {
+        /* !!! 26-Nov-2005, TSa: Should be fixed once other pluggable
+         *   validators are allowed
+         */
+        return (mValidator != null);
+    }
 
     /**
      * Method called by {@link BasicStreamReader}, to retrieve the
@@ -211,6 +196,30 @@ public abstract class InputElementStack
 
     /*
     ///////////////////////////////////////////////////
+    // Implementation of ValidationContext:
+    ///////////////////////////////////////////////////
+     */
+
+    public abstract QName getCurrentElementName();
+
+    // This was defined above for NamespaceContext
+    //public String getNamespaceURI(String prefix);
+
+    public Location getValidationLocation()
+    {
+        // !!! TBI
+        return null;
+    }
+
+    public int addDefaultAttribute(String localName, String uri, String prefix,
+                                   String value)
+    {
+        // !!! TBI
+        return -1;
+    }
+
+    /*
+    ///////////////////////////////////////////////////
     // Accessors:
     ///////////////////////////////////////////////////
      */
@@ -239,8 +248,6 @@ public abstract class InputElementStack
     public abstract String getPrefix();
 
     public abstract String getLocalName();
-
-    public abstract QName getQName();
 
     public abstract boolean matches(String prefix, String localName);
 

@@ -456,16 +456,12 @@ public class BasicStreamReader
         InputElementStack es;
         boolean normAttrs = cfg.willNormalizeAttrValues();
         boolean internNsURIs = cfg.willInternNsURIs();
-        // This is only needed for warnings on missing DTD...
-        boolean useDTD = cfg.willValidateWithDTD();
 
         if (cfg.willSupportNamespaces()) {
             return new NsInputElementStack(16, normAttrs, internNsURIs,
-                                           useDTD,
                                            sPrefixXml, sPrefixXmlns);
         }
-        return new NonNsInputElementStack(16, normAttrs, internNsURIs,
-                                           useDTD);
+        return new NonNsInputElementStack(16, normAttrs, internNsURIs);
     }
 
     /*
@@ -664,11 +660,12 @@ public class BasicStreamReader
 
     // // // getLocation() defined in StreamScanner
 
-    public QName getName() {
+    public QName getName()
+    {
         if (mCurrToken != START_ELEMENT && mCurrToken != END_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_ELEM);
         }
-        return mElementStack.getQName();
+        return mElementStack.getCurrentElementName();
     }
 
     // // // Namespace access
@@ -2015,7 +2012,7 @@ public class BasicStreamReader
         throws IOException, XMLStreamException
     {
         mParseState = STATE_TREE;
-        mElementStack.beforeRoot();
+        initValidation();
         handleStartElem(c);
         // Does name match with DOCTYPE declaration (if any)?
         /* 21-Jul-2004, TSa: Only check this if we are supporting
@@ -2032,6 +2029,18 @@ public class BasicStreamReader
                 }
             }
         }
+    }
+
+    /**
+     * Method called right before the document root element is handled.
+     * The default implementation is empty; validating stream readers
+     * should override the method and do whatever initialization is
+     * necessary
+     */
+    protected void initValidation()
+        throws XMLStreamException
+    {
+        ; // nothing to do here
     }
 
     protected int handleEOF(boolean isProlog)

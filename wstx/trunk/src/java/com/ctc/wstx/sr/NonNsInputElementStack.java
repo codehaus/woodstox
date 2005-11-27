@@ -70,10 +70,9 @@ public class NonNsInputElementStack
      */
 
     public NonNsInputElementStack(int initialSize,
-                                  boolean normAttrs, boolean internNsURIs,
-                                  boolean expectDTD)
+                                  boolean normAttrs, boolean internNsURIs)
     {
-        super(internNsURIs, expectDTD);
+        super(internNsURIs);
         mSize = 0;
         if (initialSize < 4) {
             initialSize = 4;
@@ -81,26 +80,6 @@ public class NonNsInputElementStack
         mElements = new String[initialSize];
         mAttrCollector = new NonNsAttributeCollector(normAttrs);
     }
-
-    /**
-     * Method called by the validating stream reader if and when it has
-     * read internal and/or external DTD subsets, and has thus parsed
-     * element specifications.
-     */
-    /*
-    public void setElementSpecs(Map elemSpecs,
-                                boolean normAttrs, Map generalEntities)
-    {
-        // 30-Sep-2005, TSa: This gets called if there was a DOCTYPE
-        //   declaration..
-        if (elemSpecs == null) { // no DTD
-            elemSpecs = Collections.EMPTY_MAP;
-        }
-        mValidator = new ElementValidator(mReporter, elemSpecs, false,
-                                          generalEntities,
-                                          mAttrCollector, normAttrs);
-    }
-    */
 
     public final void push(String prefix, String localName)
     {
@@ -295,6 +274,36 @@ public class NonNsInputElementStack
 
     /*
     ///////////////////////////////////////////////////
+    // ValidationContext methods
+    ///////////////////////////////////////////////////
+     */
+
+    public final QName getCurrentElementName()
+    {
+        if (mSize == 0) {
+            return null;
+        }
+        /* 03-Dec-2004, TSa: Maybe we can just reuse the last QName
+         *    object created, if we have same data? (happens if
+         *    state hasn't changed, or we got end element for a leaf
+         *    element, or repeating leaf elements)
+         */
+        String ln = mElements[mSize-1];
+
+        /* Since local names are always interned, can just use cheap
+         * identity comparison here:
+         */
+        if (ln == mLastLocalName) {
+            return mLastName;
+        }
+        QName n = new QName(ln);
+        mLastLocalName = ln;
+        mLastName = n;
+        return n;
+    }
+
+    /*
+    ///////////////////////////////////////////////////
     // Accessors:
     ///////////////////////////////////////////////////
      */
@@ -324,29 +333,6 @@ public class NonNsInputElementStack
             throw new IllegalStateException("Illegal access, empty stack.");
         }
         return mElements[mSize-1];
-    }
-
-    public final QName getQName() {
-        if (mSize == 0) {
-            throw new IllegalStateException("Illegal access, empty stack.");
-        }
-        /* 03-Dec-2004, TSa: Maybe we can just reuse the last QName
-         *    object created, if we have same data? (happens if
-         *    state hasn't changed, or we got end element for a leaf
-         *    element, or repeating leaf elements)
-         */
-        String ln = mElements[mSize-1];
-
-        /* Since local names are always interned, can just use cheap
-         * identity comparison here:
-         */
-        if (ln == mLastLocalName) {
-            return mLastName;
-        }
-        QName n = new QName(ln);
-        mLastLocalName = ln;
-        mLastName = n;
-        return n;
     }
 
     public final boolean matches(String prefix, String localName)

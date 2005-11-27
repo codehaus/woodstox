@@ -112,10 +112,9 @@ public class NsInputElementStack
 
     public NsInputElementStack(int initialSize,
                                boolean normAttrs, boolean internNsURIs,
-                               boolean expectDTD,
                                String prefixXml, String prefixXmlns)
     {
-        super(internNsURIs, expectDTD);
+        super(internNsURIs);
         mPrefixXml = prefixXml;
         mPrefixXmlns = prefixXmlns;
         mSize = 0;
@@ -126,21 +125,6 @@ public class NsInputElementStack
         mNsCounts = new int[initialSize];
         mAttrCollector = new NsAttributeCollector(normAttrs, prefixXml, prefixXmlns);
     }
-
-    /*
-    public void setElementSpecs(Map elemSpecs,
-                                boolean normAttrs, Map generalEntities)
-    {
-        // 30-Sep-2005, TSa: This gets called if there was a DOCTYPE
-        //   declaration..
-        if (elemSpecs == null) { // no DTD
-            elemSpecs = Collections.EMPTY_MAP;
-        }
-        mValidator = new ElementValidator(mReporter, elemSpecs, true,
-                                          generalEntities,
-                                          mAttrCollector, normAttrs);
-    }
-    */
 
     public final void push(String prefix, String localName)
     {
@@ -523,6 +507,50 @@ public class NsInputElementStack
 
     /*
     ///////////////////////////////////////////////////
+    // ValidationContext methods
+    ///////////////////////////////////////////////////
+     */
+
+    public final QName getCurrentElementName()
+    {
+        if (mSize == 0) {
+            return null;
+        }
+        String prefix = mElements[mSize-(ENTRY_SIZE - IX_PREFIX)];
+        if (prefix == null) {
+            prefix = "";
+        }
+        /* 03-Dec-2004, TSa: Maybe we can just reuse the last QName
+         *    object created, if we have same data? (happens if
+         *    state hasn't changed, or we got end element for a leaf
+         *    element, or repeating leaf elements)
+         */
+        String nsURI = mElements[mSize-(ENTRY_SIZE - IX_URI)];
+        String ln = mElements[mSize-(ENTRY_SIZE - IX_LOCALNAME)];
+
+        /* Since we generally intern most Strings, can do identity
+         * comparisons here:
+         */
+        if (ln != mLastLocalName) {
+            mLastLocalName = ln;
+            mLastPrefix = prefix;
+            mLastNsURI = nsURI;
+        } else if (prefix != mLastPrefix) {
+            mLastPrefix = prefix;
+            mLastNsURI = nsURI;
+        } else if (nsURI != mLastNsURI) {
+            mLastNsURI = nsURI;
+        } else {
+            return mLastName;
+        }
+        QName n = new QName(nsURI, ln, prefix);
+        mLastName = n;
+        return n;
+    }
+
+
+    /*
+    ///////////////////////////////////////////////////
     // Accessors:
     ///////////////////////////////////////////////////
      */
@@ -561,42 +589,6 @@ public class NsInputElementStack
             throw new IllegalStateException("Illegal access, empty stack.");
         }
         return mElements[mSize-(ENTRY_SIZE - IX_LOCALNAME)];
-    }
-
-    public final QName getQName() {
-        if (mSize == 0) {
-            throw new IllegalStateException("Illegal access, empty stack.");
-        }
-        String prefix = mElements[mSize-(ENTRY_SIZE - IX_PREFIX)];
-        if (prefix == null) {
-            prefix = "";
-        }
-        /* 03-Dec-2004, TSa: Maybe we can just reuse the last QName
-         *    object created, if we have same data? (happens if
-         *    state hasn't changed, or we got end element for a leaf
-         *    element, or repeating leaf elements)
-         */
-        String nsURI = mElements[mSize-(ENTRY_SIZE - IX_URI)];
-        String ln = mElements[mSize-(ENTRY_SIZE - IX_LOCALNAME)];
-
-        /* Since we generally intern most Strings, can do identity
-         * comparisons here:
-         */
-        if (ln != mLastLocalName) {
-            mLastLocalName = ln;
-            mLastPrefix = prefix;
-            mLastNsURI = nsURI;
-        } else if (prefix != mLastPrefix) {
-            mLastPrefix = prefix;
-            mLastNsURI = nsURI;
-        } else if (nsURI != mLastNsURI) {
-            mLastNsURI = nsURI;
-        } else {
-            return mLastName;
-        }
-        QName n = new QName(nsURI, ln, prefix);
-        mLastName = n;
-        return n;
     }
 
     public final boolean matches(String prefix, String localName) {
