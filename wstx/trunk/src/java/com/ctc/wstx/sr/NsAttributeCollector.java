@@ -222,8 +222,8 @@ final class NsAttributeCollector
                      * a separate method for clarity (and maybe it'll be
                      * easier to inline by JVM too)
                      */
-                    map = spillAttr(uri, name, map, currIndex, spillIndex, attrCount,
-                                    hash, hashCount);
+                    map = spillAttr(uri, name, map, currIndex, spillIndex,
+                                    attrCount, hash, hashCount);
                     if (map == null) {
                         throwDupAttr(rep, currIndex);
                     }
@@ -519,51 +519,43 @@ final class NsAttributeCollector
     {
         int attrIndex = mAttrCount;
 
-        // First, the name
-        mAttrNames.addStrings(prefix, localName);
-        if (mAttrCount >= mAttrURIs.length) {
-            mAttrURIs = DataUtil.growArrayBy(mAttrURIs, 8);
-        }
-        mAttrURIs[attrIndex] = uri;
-
-        /* Then the value. First, need to make sure value array exists and
-         * is big enough:
-         */
-        if (mAttrValues == null) {
-            mAttrValues = new String[attrIndex + 8];
-        } else if (attrIndex >= mAttrValues.length) {
-            mAttrValues = DataUtil.growArrayBy(mAttrValues, 8);
-        }
-        mAttrValues[attrIndex] = value;
-        /* Could also add a dummy entry to value builder, but why bother;
-         * cached value set above should effectively mask it for this entry.
-         */
-
-        /* However, we do need to add an entry to the access Map;
-         * this code is modelled after resolveValues().
+        /* Ok, first, since we do want to verify that we can not accidentally
+         * add duplicates, let's first try to add entry to Map, since that
+         * will catch dups.
          */
         int hash = localName.hashCode();
         if (uri.length() > 0) {
             hash ^= uri.hashCode();
         }
         int index = hash & (mAttrHashSize - 1);
-        // Note: at this point mAttrCount has been added by one
         int[] map = mAttrMap;
         if (map[index] == 0) { // whoa, have room...
             map[index] = attrIndex+1; // add 1 to get 1-based index (0 is empty marker)
         } else { // nah, collision...
-            /* No point in calling spillAttr(), unfortunately, as it's
-             * been specifically tuned for needs of resolveXxx method...
-             * plus we don't need to check for dups at this point (wouldn't
-             * add default value if such attr was encountered)
-             */
-            if ((mAttrSpillEnd + 1) >= map.length) {
-                mAttrMap = map = DataUtil.growArrayBy(map, 8);
+            int currIndex = map[index]-1; // Index of primary collision entry
+            int spillIndex = mAttrSpillEnd;
+            map = spillAttr(uri, localName, map, currIndex, spillIndex,
+                            attrIndex, hash, mAttrHashSize);
+            if (map == null) { // dup!
+                return -1; // could return negation (-(index+1)) of the prev index?
             }
-            map[mAttrSpillEnd] = hash;
-            map[mAttrSpillEnd+1] = attrIndex;
-            mAttrSpillEnd += 2;
+            map[++spillIndex] = attrIndex; // no need to specifically avoid 0
+            mAttrMap = map;
+            mAttrSpillEnd = ++spillIndex;
         }
+
+        // And then, finally, let's add the entry to Lists:
+        mAttrNames.addStrings(prefix, localName);
+        if (mAttrCount >= mAttrURIs.length) {
+            mAttrURIs = DataUtil.growArrayBy(mAttrURIs, 8);
+        }
+        mAttrURIs[attrIndex] = uri;
+        if (mAttrValues == null) {
+            mAttrValues = new String[attrIndex + 8];
+        } else if (attrIndex >= mAttrValues.length) {
+            mAttrValues = DataUtil.growArrayBy(mAttrValues, 8);
+        }
+        mAttrValues[attrIndex] = value;
 
         return mAttrCount++;
     }

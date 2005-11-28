@@ -439,6 +439,10 @@ public class ElementValidator
                 }
                 int defIx = mContext.addDefaultAttribute(an.getLocalName(),
                                                          uri, prefix, def);
+                if (defIx < 0) {
+                    throw new Error("Internal error: tried to add default attribute "+attr+", but value for it already existed");
+                }
+
                 if (defIx >= 0) { // -1 means it was not added...
                     while (defIx >= mAttrSpecs.length) {
                         mAttrSpecs = (DTDAttribute[]) DataUtil.growArrayBy50Pct(mAttrSpecs);

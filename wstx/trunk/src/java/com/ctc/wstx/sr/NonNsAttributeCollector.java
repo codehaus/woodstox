@@ -371,45 +371,38 @@ final class NonNsAttributeCollector
      */
     public int addDefaultAttribute(String localName, String value)
     {
-        mAttrNames.addString(localName); // First, the name
         int attrIndex = mAttrCount;
 
-        /* Then the value. First, need to make sure value array exists and
-         * is big enough:
+        /* Ok, first, since we do want to verify that we can not accidentally
+         * add duplicates, let's first try to add entry to Map, since that
+         * will catch dups.
          */
+        int hash = localName.hashCode();
+        int index = hash & (mAttrHashSize - 1);
+        int[] map = mAttrMap;
+        if (map[index] == 0) { // whoa, have room...
+            map[index] = attrIndex+1; // add 1 to get 1-based index (0 is empty marker)
+        } else { // nah, collision...
+            int currIndex = map[index]-1; // Index of primary collision entry
+            int spillIndex = mAttrSpillEnd;
+            map = spillAttr(localName, map, currIndex, spillIndex, attrIndex,
+                            hash, mAttrHashSize);
+            if (map == null) { // dup!
+                return -1; // could return negation (-(index+1)) of the prev index?
+            }
+            map[++spillIndex] = attrIndex; // no need to specifically avoid 0
+            mAttrMap = map;
+            mAttrSpillEnd = ++spillIndex;
+        }
+
+        // And then, finally, let's add the entry to Lists:
+        mAttrNames.addString(localName); // First, the name
         if (mAttrValues == null) {
             mAttrValues = new String[attrIndex + 8];
         } else if (attrIndex >= mAttrValues.length) {
             mAttrValues = DataUtil.growArrayBy(mAttrValues, 8);
         }
         mAttrValues[attrIndex] = value;
-        /* Could also add a dummy entry to value builder, but why bother;
-         * cached value set above should effectively mask it for this entry.
-         */
-
-        /* However, we do need to add an entry to the access Map;
-         * this code is modelled after resolveValues().
-         */
-        int hash = localName.hashCode();
-        int index = hash & (mAttrHashSize - 1);
-        // Note: at this point mAttrCount has been added by one
-        int[] map = mAttrMap;
-        if (map[index] == 0) { // whoa, have room...
-            map[index] = attrIndex+1; // add 1 to get 1-based index (0 is empty marker)
-        } else { // nah, collision...
-            /* No point in calling spillAttr(), unfortunately, as it's
-             * been specifically tuned for needs of resolveXxx method...
-             * plus we don't need to check for dups at this point (wouldn't
-             * add default value if such attr was encountered)
-             */
-            if ((mAttrSpillEnd + 1) >= map.length) {
-                mAttrMap = map = DataUtil.growArrayBy(map, 8);
-            }
-            map[mAttrSpillEnd] = hash;
-            map[mAttrSpillEnd+1] = attrIndex;
-            mAttrSpillEnd += 2;
-        }
-
         return mAttrCount++;
     }
 
@@ -458,7 +451,7 @@ final class NonNsAttributeCollector
         /* Is there room to spill into? (need to have 2 int spaces; one for
          * hash, the other for index)
          */
-        if ((spillIndex + 1)>= map.length) {
+        if ((spillIndex + 1) >= map.length) {
             // Let's just add room for 4 spills...
             map = DataUtil.growArrayBy(map, 8);
         }
