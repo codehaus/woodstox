@@ -16,8 +16,10 @@ import com.ctc.wstx.util.TextBuilder;
 /**
  * Attribute collector class used in non-namespace parsing mode; much
  * simpler than the one that has to handle namespaces.
+ *<p>
+ * Note: only public for testing purposes
  */
-final class NonNsAttributeCollector
+public final class NonNsAttributeCollector
     extends AttributeCollector
 {
     /**
@@ -34,7 +36,7 @@ final class NonNsAttributeCollector
     ///////////////////////////////////////////////
      */
 
-    protected NonNsAttributeCollector(boolean normAttrs)
+    public NonNsAttributeCollector(boolean normAttrs)
     {
         super(normAttrs);
     }
@@ -43,7 +45,7 @@ final class NonNsAttributeCollector
      * Method called to allow reusing of collector, usually right before
      * starting collecting attributes for a new start tag.
      */
-    protected void reset()
+    public void reset()
     {
         mValueBuffer.reset();
         /* No need to clear attr name, or NS prefix Strings; they are
@@ -65,7 +67,7 @@ final class NonNsAttributeCollector
      * the element have been parsed. Now collector can build data structures
      * it needs, if any.
      */
-    protected void resolveValues(InputProblemReporter rep)
+    public void resolveValues(InputProblemReporter rep)
         throws WstxException
     {
         int attrCount = mAttrCount;

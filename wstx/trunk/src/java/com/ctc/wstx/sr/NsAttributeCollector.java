@@ -15,8 +15,10 @@ import com.ctc.wstx.util.TextBuilder;
 
 /**
  * Attribute collector class used in namespace-aware parsing mode
+ *<p>
+ * Note: only public for testing purposes
  */
-final class NsAttributeCollector
+public final class NsAttributeCollector
     extends AttributeCollector
 {
     /**
@@ -93,8 +95,10 @@ final class NsAttributeCollector
     /**
      * Method called to allow reusing of collector, usually right before
      * starting collecting attributes for a new start tag.
+     *<p>
+     * Note: public only so that it can be called by unit tests.
      */
-    protected void reset()
+    public void reset()
     {
         mValueBuffer.reset();
         mNamespaceURIs.reset();
@@ -117,8 +121,10 @@ final class NsAttributeCollector
 
     /**
      * Method called to resolve namespace URIs from attribute prefixes.
+     *<p>
+     * Note: public only so that it can be called by unit tests.
      */
-    protected void resolveNamespaces(InputProblemReporter rep, StringVector ns)
+    public void resolveNamespaces(InputProblemReporter rep, StringVector ns)
         throws WstxException
     {
         int attrCount = mAttrCount;
