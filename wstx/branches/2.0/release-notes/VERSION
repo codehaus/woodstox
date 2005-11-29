@@ -10,6 +10,9 @@ Description:
   * [WSTX-19]: Unnecessary default namespace declarations were written
     by stream writers in repairing mode.
     [reported by Heinz D]
+  * Fixed DTD/attribute value normalization problem with NMTOKEN; was not
+    catching a problem if the first non-space character of the value
+    was not valid a valid NMTOKEN character.
 
 == History: ==
 

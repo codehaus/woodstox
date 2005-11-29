@@ -83,7 +83,7 @@ public final class DTDNmTokenAttr
         }
 
         // Ok, need to check char validity
-        for (int i = start+1; i <= last; ++i) {
+        for (int i = start; i <= last; ++i) {
             char c = ch[i];
             if (!WstxInputData.is11NameChar(c)) {
                 reportInvalidChar(v, c, "not valid NMTOKEN character");

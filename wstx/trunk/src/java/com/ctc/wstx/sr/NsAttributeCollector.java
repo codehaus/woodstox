@@ -123,6 +123,9 @@ public final class NsAttributeCollector
      * Method called to resolve namespace URIs from attribute prefixes.
      *<p>
      * Note: public only so that it can be called by unit tests.
+     *
+     * @param rep Reporter to use for reporting well-formedness problems
+     * @param ns Namespace prefix/URI mappings active for this element
      */
     public void resolveNamespaces(InputProblemReporter rep, StringVector ns)
         throws WstxException

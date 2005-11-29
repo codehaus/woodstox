@@ -129,7 +129,7 @@ public final class TextBuilder
      */
 
     public void startNewEntry() {
-        // Not enough for a new entry?
+        // Not enough room for a new entry?
         if (mEntryCount >= mBufferOffsets.length) {
             int[] old = mBufferOffsets;
             mBufferOffsets = new int[old.length << 1];
