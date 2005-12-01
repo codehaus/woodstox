@@ -279,7 +279,7 @@ public final class DTDElement
 
         // Maybe we already have it? If so, need to ignore
         if (attrMap.containsKey(attrName)) {
-            rep.reportProblem(ErrorConsts.WT_ATTR_DECL, "Attribute '{0}' (for element <{1}>) declared multiple times.",
+            rep.reportProblem(ErrorConsts.WT_ATTR_DECL, ErrorConsts.W_DTD_DUP_ATTR,
                               attrName, mName);
             return;
         }

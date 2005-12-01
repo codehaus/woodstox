@@ -8,12 +8,18 @@ Description:
   re-factoring dtd validation (to allow for output validation etc,
   connecting external validators) and other new features.
 
+  Refactoring:
+
+  * DTD validation completely rewritten, to use the next StAX2 validation
+    interfaces; some minor problems fixed.
+
   Problems fixed:
 
   * [WSTX-19]: Unnecessary default namespace declarations were written
     by stream writers in repairing mode.
     [reported by Heinz D]
-
+  * [WSTX-24]: Predefined namespace with prefix 'xml' was not handled
+    properly for elements, only for attributes.
 
 == History: ==
 

@@ -1,6 +1,6 @@
 Version: 2.0.4
 
-Release date: -Oct-2005
+Release date: -Dec-2005
 
 Description:
   A maintenance release for 2.0.
@@ -13,6 +13,8 @@ Description:
   * Fixed DTD/attribute value normalization problem with NMTOKEN; was not
     catching a problem if the first non-space character of the value
     was not valid a valid NMTOKEN character.
+  * [WSTX-24]: Predefined namespace with prefix 'xml' was not handled
+    properly for elements, only for attributes.
 
 == History: ==
 

@@ -8,6 +8,7 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
 
+import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.util.DataUtil;
 import com.ctc.wstx.util.StringVector;
@@ -163,8 +164,8 @@ public final class NsAttributeCollector
             } else {
                 String uri = ns.findLastFromMap(prefix);
                 if (uri == null) {
-                    rep.throwParseError("Undeclared namespace prefix '"
-                                       +prefix+"' for attribute '"+attrNames[i+i+1]+"'.");
+                    rep.throwParseError(ErrorConsts.ERR_NS_UNDECLARED_FOR_ATTR, 
+                                        prefix, attrNames[i+i+1]);
                 }
                 attrURIs[i] = uri;
             }

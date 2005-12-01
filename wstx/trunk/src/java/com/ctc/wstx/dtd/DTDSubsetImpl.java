@@ -343,8 +343,10 @@ public final class DTDSubsetImpl
         throws WstxException
     {
         throw new WstxParsingException
-            ("Trying to redefine notation '"
-             +newDecl.getName()+"' (originally defined at "+oldDecl.getLocation()+")",
+            (MessageFormat.format(ErrorConsts.ERR_DTD_NOTATION_REDEFD,
+                                  new Object[] {
+                                  newDecl.getName(),
+                                  oldDecl.getLocation().toString()}),
              newDecl.getLocation());
     }
 
@@ -352,8 +354,10 @@ public final class DTDSubsetImpl
         throws WstxException
     {
         throw new WstxParsingException
-            ("Trying to redefine element '"
-             +oldElem.getDisplayName()+"' (originally defined at "+oldElem.getLocation()+")",
+            (MessageFormat.format(ErrorConsts.ERR_DTD_ELEM_REDEFD,
+                                  new Object[] {
+                                  oldElem.getDisplayName(),
+                                  oldElem.getLocation().toString() }),
              loc);
     }
 

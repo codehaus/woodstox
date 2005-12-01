@@ -266,17 +266,21 @@ public class NsInputElementStack
 
         // Then, let's set element's namespace, if any:
         String prefix = mElements[mSize-(ENTRY_SIZE - IX_PREFIX)];
+        String ns;
+
         if (prefix == null || prefix.length() == 0) { // use default NS, if any
-            mElements[mSize-(ENTRY_SIZE - IX_URI)] 
-                = mElements[mSize-(ENTRY_SIZE - IX_DEFAULT_NS)];
+            ns = mElements[mSize-(ENTRY_SIZE - IX_DEFAULT_NS)];
+        } else if (prefix == mPrefixXml) {
+            ns = XMLConstants.XML_NS_URI;
         } else {
             // Need to find namespace with the prefix:
-            String ns = mNamespaces.findLastFromMap(prefix);
+            ns = mNamespaces.findLastFromMap(prefix);
             if (ns == null) {
-                mReporter.throwParseError("Undeclared namespace prefix '"+prefix+"'.");
+                mReporter.throwParseError(ErrorConsts.ERR_NS_UNDECLARED, prefix);
+                ns = ""; // will never get here, for now
             }
-            mElements[mSize-(ENTRY_SIZE - IX_URI)] = ns;
         }
+        mElements[mSize-(ENTRY_SIZE - IX_URI)] = ns;
 
         // And finally, resolve attributes' namespaces too:
         ac.resolveNamespaces(mReporter, mNamespaces);

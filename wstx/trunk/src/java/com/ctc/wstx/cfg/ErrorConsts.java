@@ -18,17 +18,18 @@ public class ErrorConsts
     // // // Types of warnings we issue via XMLReporter
 
     public static String WT_ENT_DECL = "entity declaration";
-
     public static String WT_ELEM_DECL = "element declaration";
     public static String WT_ATTR_DECL = "attribute declaration";
     public static String WT_XML_DECL = "xml declaration";
     public static String WT_DT_DECL = "doctype declaration";
-
     public static String WT_NS_DECL = "namespace declaration";
+
+    // // And then warning strings
 
     public static String W_UNDEFINED_ELEM = "Undefined element \"{0}\"; referred to by attribute(s)";
     public static String W_MIXED_ENCODINGS = "Inconsistent text encoding; declared as \"{0}\" in xml declaration, application had passed \"{1}\"";
     public static String W_MISSING_DTD = "Missing DOCTYPE declaration in validating mode; can not validate elements or attributes";
+    public static String W_DTD_DUP_ATTR = "Attribute \"{0}\" (for element <{1}>) declared multiple times.";
 
     // // // Generic errors:
 
@@ -56,6 +57,9 @@ public class ErrorConsts
 
     // // // Namespace problems:
 
+    public static String ERR_NS_UNDECLARED = "Undeclared namespace prefix \"{0}\"";
+    public static String ERR_NS_UNDECLARED_FOR_ATTR = "Undeclared namespace prefix \"{0}\" (for attribute \"{1}\")";
+
     public static String ERR_NS_REDECL_XML = "Trying to redeclare prefix 'xml' from its default URI '"
                                                +XMLConstants.XML_NS_URI
                                                +"' to \"{0}\"";
@@ -80,6 +84,11 @@ public class ErrorConsts
     public static String ERR_DTD_ATTR_TYPE = "; expected one of type (CDATA, ID, IDREF, IDREFS, ENTITY, ENTITIES NOTATION, NMTOKEN or NMTOKENS)";
 
     public static String ERR_DTD_DEFAULT_TYPE = "; expected #REQUIRED, #IMPLIED or #FIXED";
+
+    public static String ERR_DTD_ELEM_REDEFD =
+        "Trying to redefine element \"{0}\" (originally defined at {1})";
+    public static String ERR_DTD_NOTATION_REDEFD =
+        "Trying to redefine notation \"{0}\" (originally defined at {1})";
 
 
     // // // DTD-validation:
