@@ -2,8 +2,9 @@ package com.ctc.wstx.dtd;
 
 import javax.xml.stream.Location;
 
+import org.codehaus.stax2.validation.XMLValidationException;
+
 import com.ctc.wstx.cfg.ErrorConsts;
-import com.ctc.wstx.exc.WstxValidationException;
 import com.ctc.wstx.io.WstxInputData;
 import com.ctc.wstx.sr.InputProblemReporter;
 import com.ctc.wstx.util.WordResolver;
@@ -57,7 +58,7 @@ public final class DTDIdRefAttr
      * for the value.
      */
     public String validate(ElementValidator v, char[] cbuf, int start, int end, boolean normalize)
-        throws WstxValidationException
+        throws XMLValidationException
     {
         /* Let's skip leading/trailing white space, even if we are not
          * to normalize visible attribute value. This allows for better
@@ -105,7 +106,7 @@ public final class DTDIdRefAttr
      * valid for such type.
      */
     public void validateDefault(InputProblemReporter rep, boolean normalize)
-        throws WstxValidationException
+        throws XMLValidationException
     {
         mDefValue = validateDefaultName(rep, normalize);
     }

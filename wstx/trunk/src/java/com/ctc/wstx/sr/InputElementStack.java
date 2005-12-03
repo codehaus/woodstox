@@ -27,6 +27,8 @@ import javax.xml.stream.XMLStreamException;
 import org.codehaus.stax2.AttributeInfo;
 import org.codehaus.stax2.validation.ValidationContext;
 import org.codehaus.stax2.validation.XMLValidator;
+import org.codehaus.stax2.validation.XMLValidationException;
+import org.codehaus.stax2.validation.XMLValidationProblem;
 
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.dtd.ElementValidator;
@@ -208,6 +210,12 @@ public abstract class InputElementStack
     public Location getValidationLocation()
     {
         return mReporter.getLocation();
+    }
+
+    public void reportProblem(XMLValidationProblem problem)
+        throws XMLValidationException
+    {
+        mReporter.reportValidationProblem(problem);
     }
 
     /**

@@ -1,6 +1,7 @@
 package com.ctc.wstx.dtd;
 
-import com.ctc.wstx.exc.WstxValidationException;
+import org.codehaus.stax2.validation.XMLValidationException;
+
 import com.ctc.wstx.sr.InputProblemReporter;
 import com.ctc.wstx.util.WordResolver;
 
@@ -53,7 +54,7 @@ public final class DTDEnumAttr
      * for the value.
      */
    public String validate(ElementValidator v, char[] cbuf, int start, int end, boolean normalize)
-        throws WstxValidationException
+        throws XMLValidationException
     {
         String ok = validateEnumValue(cbuf, start, end, normalize, mEnumValues);
         if (ok == null) {
@@ -70,7 +71,7 @@ public final class DTDEnumAttr
      * valid for such type.
      */
     public void validateDefault(InputProblemReporter rep, boolean normalize)
-        throws WstxValidationException
+        throws XMLValidationException
     {
         String def = validateDefaultNmToken(rep, normalize);
 

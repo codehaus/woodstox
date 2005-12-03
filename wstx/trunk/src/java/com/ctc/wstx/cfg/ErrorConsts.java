@@ -24,6 +24,12 @@ public class ErrorConsts
     public static String WT_DT_DECL = "doctype declaration";
     public static String WT_NS_DECL = "namespace declaration";
 
+    /**
+     * This is the generic type for warnings based on XMLValidationProblem
+     * objects.
+     */
+    public static String WT_VALIDATION = "namespace declaration";
+
     // // And then warning strings
 
     public static String W_UNDEFINED_ELEM = "Undefined element \"{0}\"; referred to by attribute(s)";

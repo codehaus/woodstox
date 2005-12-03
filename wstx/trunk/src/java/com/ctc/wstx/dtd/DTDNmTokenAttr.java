@@ -2,8 +2,9 @@ package com.ctc.wstx.dtd;
 
 import javax.xml.stream.Location;
 
+import org.codehaus.stax2.validation.XMLValidationException;
+
 import com.ctc.wstx.cfg.ErrorConsts;
-import com.ctc.wstx.exc.WstxValidationException;
 import com.ctc.wstx.io.WstxInputData;
 import com.ctc.wstx.sr.InputProblemReporter;
 import com.ctc.wstx.util.WordResolver;
@@ -57,7 +58,7 @@ public final class DTDNmTokenAttr
      * for the value.
      */
     public String validate(ElementValidator v, char[] cbuf, int start, int end, boolean normalize)
-        throws WstxValidationException
+        throws XMLValidationException
     {
         int origLen = end-start;
 
@@ -100,15 +101,8 @@ public final class DTDNmTokenAttr
      * valid for such type.
      */
     public void validateDefault(InputProblemReporter rep, boolean normalize)
-        throws WstxValidationException
+        throws XMLValidationException
     {
         mDefValue = validateDefaultNmToken(rep, normalize);
     }
-
-    /*
-    ///////////////////////////////////////////////////
-    // Internal methods
-    ///////////////////////////////////////////////////
-     */
-
 }

@@ -17,6 +17,8 @@ package com.ctc.wstx.dtd;
 
 import java.util.Map;
 
+import org.codehaus.stax2.validation.XMLValidationException;
+
 import com.ctc.wstx.ent.EntityDecl;
 import com.ctc.wstx.exc.*;
 import com.ctc.wstx.io.WstxInputData;
@@ -203,7 +205,7 @@ public class DTDAttribute
      */
 
     public String validate(ElementValidator v, char[] cbuf, int start, int end, boolean normalize)
-        throws WstxValidationException
+        throws XMLValidationException
     {
         // Nothing to do for pure CDATA attributes...
         return null;
@@ -219,7 +221,7 @@ public class DTDAttribute
      * char array)
      */
     public String validate(ElementValidator v, String value, boolean normalize)
-        throws WstxValidationException
+        throws XMLValidationException
     {
         int len = value.length();
         char[] cbuf = v.getTempAttrValueBuffer(value.length());
@@ -234,9 +236,9 @@ public class DTDAttribute
      * to let the attribute do necessary normalization and/or validation
      * for the value.
      */
-    public void validate(ElementValidator v, boolean normalize, AttributeCollector ac,
+    public final void validate(ElementValidator v, boolean normalize, AttributeCollector ac,
                          int index)
-    //throws WstxValidationException
+    //throws XMLValidationException
     {
         /* Nothing to do for the base class; all values are fine...
          * except if the value has to be fixed
@@ -261,7 +263,7 @@ public class DTDAttribute
      */
 
     protected String validateDefaultName(InputProblemReporter rep, boolean normalize)
-        throws WstxValidationException
+        throws XMLValidationException
     {
         String defValue = mDefValue.trim();
 
@@ -291,7 +293,7 @@ public class DTDAttribute
     }
 
     protected String validateDefaultNames(InputProblemReporter rep, boolean normalize)
-        throws WstxValidationException
+        throws XMLValidationException
     {
         String defValue = mDefValue;
         int len = defValue.length();
@@ -358,7 +360,7 @@ public class DTDAttribute
     }
 
     protected String validateDefaultNmToken(InputProblemReporter rep, boolean normalize)
-        throws WstxValidationException
+        throws XMLValidationException
     {
         String defValue = mDefValue.trim();
 
@@ -416,7 +418,7 @@ public class DTDAttribute
 
     protected EntityDecl findEntityDecl(ElementValidator v,
                                         char[] ch, int start, int len, int hash)
-        throws WstxValidationException
+        throws XMLValidationException
     {
         Map entMap = v.getEntityMap();
         /* !!! 13-Nov-2005, TSa: If this was to become a bottle-neck, we
@@ -440,13 +442,13 @@ public class DTDAttribute
      */
 
     protected void checkEntity(InputProblemReporter rep, String id, EntityDecl ent)
-        throws WstxValidationException
+        throws XMLValidationException
     {
         if (ent == null) {
-            rep.throwValidationError("Referenced entity '"+id+"' not defined");
+            rep.reportValidationProblem("Referenced entity '"+id+"' not defined");
         }
         if (ent.isParsed()) {
-            rep.throwValidationError("Referenced entity '"+id+"' is not an unparsed entity");
+            rep.reportValidationProblem("Referenced entity '"+id+"' is not an unparsed entity");
         }
     }
 
@@ -457,14 +459,14 @@ public class DTDAttribute
      */
 
     protected String reportInvalidChar(ElementValidator v, char c, String msg)
-        throws WstxValidationException
+        throws XMLValidationException
     {
         reportValidationProblem(v, "Invalid character "+WstxInputData.getCharDesc(c)+": "+msg);
         return null;
     }
 
     protected String reportValidationProblem(ElementValidator v, String msg)
-        throws WstxValidationException
+        throws XMLValidationException
     {
         v.reportValidationProblem("Attribute '"+mName+"': "+msg);
         return null;
@@ -477,9 +479,9 @@ public class DTDAttribute
      * is always thrown.
      */
     protected String reportValidationProblem(InputProblemReporter rep, String msg)
-        throws WstxValidationException
+        throws XMLValidationException
     {
-        rep.throwValidationError("Attribute definition '"+mName+"': "+msg);
+        rep.reportValidationProblem("Attribute definition '"+mName+"': "+msg);
         return null;
     }
 

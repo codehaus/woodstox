@@ -39,9 +39,10 @@ public class WstxValidationException
         super(cause, msg, loc);
     }
 
-    public static WstxValidationException create(String msg, Location loc)
+    public static WstxValidationException create(String msg, Location loc,
+                                                 int severity)
     {
-        return create(new XMLValidationProblem(loc, msg));
+        return create(new XMLValidationProblem(loc, msg, severity));
     }
 
     public static WstxValidationException create(XMLValidationProblem cause)

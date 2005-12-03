@@ -1,6 +1,7 @@
 package com.ctc.wstx.dtd;
 
-import com.ctc.wstx.exc.WstxValidationException;
+import org.codehaus.stax2.validation.XMLValidationException;
+
 import com.ctc.wstx.sr.InputProblemReporter;
 
 /**
@@ -70,7 +71,7 @@ public final class DTDTypedAttr
      * for the value.
      */
    public String validate(ElementValidator v, char[] cbuf, int start, int end, boolean normalize)
-        throws WstxValidationException
+        throws XMLValidationException
     {
         // !!! TBI
         return null;
@@ -82,7 +83,7 @@ public final class DTDTypedAttr
      * valid for such type.
      */
     public void validateDefault(InputProblemReporter rep, boolean normalize)
-        throws WstxValidationException
+        throws XMLValidationException
     {
         // !!! TBI
     }

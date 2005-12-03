@@ -95,6 +95,7 @@ public class TestStreamReader
         f.setProperty(WstxInputProperties.P_INPUT_PARSING_MODE,
                       //WstxInputProperties.PARSING_MODE_FRAGMENT
                       WstxInputProperties.PARSING_MODE_DOCUMENTS
+                      //WstxInputProperties.PARSING_MODE_DOCUMENT
                       );
 
         // To test windows linefeeds:

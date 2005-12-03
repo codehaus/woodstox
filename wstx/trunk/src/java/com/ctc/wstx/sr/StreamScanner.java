@@ -29,6 +29,8 @@ import javax.xml.stream.XMLResolver;
 import javax.xml.stream.XMLStreamException;
 
 import org.codehaus.stax2.XMLStreamLocation2;
+import org.codehaus.stax2.validation.XMLValidationException;
+import org.codehaus.stax2.validation.XMLValidationProblem;
 
 import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.cfg.ErrorConsts;
@@ -408,32 +410,6 @@ public abstract class StreamScanner
         throw new WstxParsingException(msg, getLastCharLocation());
     }
 
-    public void throwValidationError(String msg)
-        throws WstxValidationException
-    {
-        throw WstxValidationException.create(msg, getLastCharLocation());
-    }
-
-    public void throwValidationError(Location loc, String msg)
-        throws WstxValidationException
-    {
-        throw WstxValidationException.create(msg, loc);
-    }
-
-    public void throwValidationError(String format, Object arg)
-        throws WstxValidationException
-    {
-        String msg = MessageFormat.format(format, new Object[] { arg });
-        throw WstxValidationException.create(msg, getLastCharLocation());
-    }
-
-    public void throwValidationError(String format, Object arg, Object arg2)
-        throws WstxValidationException
-    {
-        String msg = MessageFormat.format(format, new Object[] { arg, arg2 });
-        throw WstxValidationException.create(msg, getLastCharLocation());
-    }
-
     public void reportProblem(String probType, String msg)
     {
         doReportProblem(mConfig.getXMLReporter(), probType, msg, null);
@@ -469,6 +445,74 @@ public abstract class StreamScanner
                             MessageFormat.format(format, new Object[] { arg, arg2 }),
                             loc);
         }
+    }
+
+    /**
+     *<p>
+     * Note: this is the base implementation use for implementing
+     * <code>ValidationContext</code>
+     */
+    public void reportValidationProblem(XMLValidationProblem prob)
+        throws XMLValidationException
+    {
+        // !!! TBI: Fail-fast vs. deferred modes
+
+        /* For now let's implement basic functionality: warnings get
+         * reported via XMLReporter, errors and fatal errors result in
+         * immediate exceptions.
+         */
+        if (prob.getSeverity() >= XMLValidationProblem.SEVERITY_ERROR) {
+            throw WstxValidationException.create(prob);
+        }
+        XMLReporter rep = mConfig.getXMLReporter();
+        if (rep != null) {
+            doReportProblem(rep, ErrorConsts.WT_VALIDATION, prob.getMessage(),
+                            prob.getLocation());
+        }
+    }
+
+    public void reportValidationProblem(String msg, Location loc, int severity)
+        throws XMLValidationException
+    {
+        reportValidationProblem(new XMLValidationProblem(loc, msg, severity));
+    }
+
+    public void reportValidationProblem(String msg, int severity)
+        throws XMLValidationException
+    {
+        reportValidationProblem(new XMLValidationProblem(getLastCharLocation(),
+                                                         msg, severity));
+    }
+
+    public void reportValidationProblem(String msg)
+        throws XMLValidationException
+    {
+        reportValidationProblem(new XMLValidationProblem(getLastCharLocation(),
+                                                         msg,
+                                                         XMLValidationProblem.SEVERITY_ERROR));
+    }
+
+    public void reportValidationProblem(Location loc, String msg)
+        throws XMLValidationException
+    {
+        reportValidationProblem(new XMLValidationProblem(getLastCharLocation(),
+                                                         msg));
+    }
+
+    public void reportValidationProblem(String format, Object arg)
+        throws XMLValidationException
+    {
+        String msg = MessageFormat.format(format, new Object[] { arg });
+        reportValidationProblem(new XMLValidationProblem(getLastCharLocation(),
+                                                         msg));
+    }
+
+    public void reportValidationProblem(String format, Object arg, Object arg2)
+        throws XMLValidationException
+    {
+        String msg = MessageFormat.format(format, new Object[] { arg, arg2 });
+        reportValidationProblem(new XMLValidationProblem(getLastCharLocation(),
+                                                         msg));
     }
 
     protected final void doReportProblem(XMLReporter rep, String probType,

@@ -2,8 +2,10 @@ package com.ctc.wstx.sr;
 
 import javax.xml.stream.Location;
 
+import org.codehaus.stax2.validation.XMLValidationException;
+import org.codehaus.stax2.validation.XMLValidationProblem;
+
 import com.ctc.wstx.exc.WstxException;
-import com.ctc.wstx.exc.WstxValidationException;
 
 /**
  * Interface implemented by input reader, and used by other components to
@@ -25,16 +27,6 @@ public interface InputProblemReporter
     public void throwParseError(String msg, Object arg, Object arg2)
         throws WstxException;
 
-
-    public void throwValidationError(String msg)
-        throws WstxValidationException;
-    public void throwValidationError(Location loc, String msg)
-        throws WstxValidationException;
-    public void throwValidationError(String msg, Object arg)
-        throws WstxValidationException;
-    public void throwValidationError(String msg, Object arg, Object arg2)
-        throws WstxValidationException;
-
     /*
     ///////////////////////////////////////////////////////
     // Methods for reporting "soft" (recoverable) problems
@@ -50,6 +42,23 @@ public interface InputProblemReporter
 
     public void reportProblem(String probType, String format, Object arg,
                               Object arg2, Location loc);
+
+    /*
+    ///////////////////////////////////////////////////////
+    // Reporting validation problems
+    ///////////////////////////////////////////////////////
+     */
+
+    public void reportValidationProblem(XMLValidationProblem prob)
+        throws XMLValidationException;
+    public void reportValidationProblem(String msg)
+        throws XMLValidationException;
+    public void reportValidationProblem(String msg, Location loc, int severity)
+        throws XMLValidationException;
+    public void reportValidationProblem(String msg, Object arg)
+        throws XMLValidationException;
+    public void reportValidationProblem(String msg, Object arg, Object arg2)
+        throws XMLValidationException;
 
     /*
     ////////////////////////////////////////////////////

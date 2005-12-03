@@ -15,6 +15,7 @@
 
 package com.ctc.wstx.dtd;
 
+import java.text.MessageFormat;
 import java.util.*;
 
 import javax.xml.stream.Location;
@@ -93,13 +94,6 @@ public class ElementValidator
      * more efficient, although not compliant with the specs)
      */
     final boolean mNormAttrs;
-
-    /**
-     * Determines how validation problems are reported: if true, will
-     * throw an exception, if false, will add problem description objects
-     * to a list.
-     */
-    protected boolean mReportProblemsAsExceptions = true;
 
     /**
      * Determines if identical problems (definition of the same element,
@@ -622,43 +616,27 @@ public class ElementValidator
      * list of problems.
      */
     void reportValidationProblem(String msg)
-        throws WstxValidationException
+        throws XMLValidationException
     {
-        if (mReportProblemsAsExceptions) {
-            mReporter.throwValidationError(msg);
-        } else {
-            // !!! TBI:
-        }
+        mReporter.reportValidationProblem(msg);
     }
 
     void reportValidationProblem(String msg, Location loc)
-        throws WstxValidationException
+        throws XMLValidationException
     {
-        if (mReportProblemsAsExceptions) {
-            mReporter.throwValidationError(loc, msg);
-        } else {
-            // !!! TBI:
-        }
+        mReporter.reportValidationProblem(msg, loc);
     }
 
-    void reportValidationProblem(String format, String arg1)
-        throws WstxValidationException
+    void reportValidationProblem(String format, String arg)
+        throws XMLValidationException
     {
-        if (mReportProblemsAsExceptions) {
-            mReporter.throwValidationError(format, arg1);
-        } else {
-            // !!! TBI:
-        }
+        mReporter.reportValidationProblem(MessageFormat.format(format, new Object[] { arg }));
     }
 
     void reportValidationProblem(String format, String arg1, String arg2)
-        throws WstxValidationException
+        throws XMLValidationException
     {
-        if (mReportProblemsAsExceptions) {
-            mReporter.throwValidationError(format, arg1, arg2);
-        } else {
-            // !!! TBI:
-        }
+        mReporter.reportValidationProblem(MessageFormat.format(format, new Object[] { arg1, arg2 }));
     }
 
     /*
