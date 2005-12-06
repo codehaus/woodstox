@@ -1,10 +1,6 @@
 package com.ctc.wstx.io;
 
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.io.IOException;
-import java.io.Reader;
-import java.io.StringReader;
+import java.io.*;
 import java.net.URL;
 
 import javax.xml.stream.XMLReporter;
@@ -14,6 +10,7 @@ import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 
 import com.ctc.wstx.exc.WstxException;
+import com.ctc.wstx.util.StringUtil;
 import com.ctc.wstx.util.URLUtil;
 
 /**
@@ -144,8 +141,40 @@ public final class DefaultInputResolver
         if (o instanceof String) {
             return sourceFromString(parent, rep, refName, (String) o);
         }
+        if (o instanceof File) {
+            URL u = ((File) o).toURL();
+            return sourceFromURL(parent, rep, refName, u, null, null);
+        }
 
         throw new IllegalArgumentException("Unrecognized input argument type for sourceFrom(): "+o.getClass());
+    }
+
+    public static Reader constructOptimizedReader(InputStream in, String encoding, int inputBufLen)
+        throws XMLStreamException
+    {
+        /* 03-Jul-2005, TSa: Since Woodstox' implementations of specialized
+         *   readers are faster than default JDK ones (at least for 1.4, UTF-8
+         *   reader is especially fast...), let's use them if possible
+         */
+        char c = encoding.charAt(0);
+        if (c == 'u' || c == 'U') {
+            if (StringUtil.equalEncodings(encoding, "UTF-8")) {
+                return new UTF8Reader(in, new byte[inputBufLen], 0, 0);
+            }
+            if (StringUtil.equalEncodings(encoding, "US-ASCII")) {
+                return new AsciiReader(in, new byte[inputBufLen], 0, 0);
+            }
+        } else if (c == 'i' || c== 'I') {
+            if (StringUtil.equalEncodings(encoding, "ISO-8859-1")) {
+                return new ISOLatinReader(in, new byte[inputBufLen], 0, 0);
+            }
+        }
+
+        try {
+            return new InputStreamReader(in, encoding);
+        } catch (UnsupportedEncodingException ex) {
+            throw new XMLStreamException(ex);
+        }
     }
 
     /*
@@ -228,21 +257,6 @@ public final class DefaultInputResolver
         return sourceFromR(parent, rep, refName,
                            new StringReader(refContent),
                            null, refName);
-
-        /* 11-Aug-2005, TSa: Used to use this code, which assumes it is
-         *    actually a reference...
-         */
-        /*
-         URL url = (parent == null) ? null : parent.getSource();
-         url = URLUtil.urlFromSystemId(sysId, url);
-
-         InputStream in = URLUtil.optimizedStreamFromURL(url);
-         StreamBootstrapper bs = StreamBootstrapper.getInstance(in, null, sysId,
-                                                                getInputBufferLength(parent));
-         Reader r = bs.bootstrapInput(false, rep);
-         return InputSourceFactory.constructEntitySource
-            (parent, refName, bs, null, sysId, url, r);
-        */
     }
 
     private static WstxInputSource sourceFromIS(WstxInputSource parent,

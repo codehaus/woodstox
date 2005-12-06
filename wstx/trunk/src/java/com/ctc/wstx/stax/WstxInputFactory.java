@@ -1,6 +1,6 @@
 /* Woodstox XML processor
  *
- * Copyright (c) 2004 Tatu Saloranta, tatu.saloranta@iki.fi
+ * Copyright (c) 2004- Tatu Saloranta, tatu.saloranta@iki.fi
  *
  * Licensed under the License specified in the file LICENSE which is
  * included with the source code.
@@ -44,7 +44,6 @@ import com.ctc.wstx.sr.ValidatingStreamReader;
 import com.ctc.wstx.sr.ReaderCreator;
 import com.ctc.wstx.util.DefaultXmlSymbolTable;
 import com.ctc.wstx.util.SimpleCache;
-import com.ctc.wstx.util.StringUtil;
 import com.ctc.wstx.util.SymbolTable;
 import com.ctc.wstx.util.TextBuilder;
 import com.ctc.wstx.util.URLUtil;
@@ -505,39 +504,12 @@ public final class WstxInputFactory
             throw new IllegalArgumentException("Null InputStream is not a valid argument");
         }
 
-        if (enc == null || enc.length() == 0) {
-            return createSR(null, StreamBootstrapper.getInstance(in, null, systemId,
-                                                                 mConfig.getInputBufferLength()),
-                            forER);
-        }
-
-        /* 03-Jul-2005, TSa: Since Woodstox' implementations of specialized
-         *   readers are faster than default JDK ones (at least for 1.4, UTF-8
-         *   reader is especially fast...), let's use them if possible
-         */
-        Reader r = null;
         int inputBufLen = mConfig.getInputBufferLength();
-
-        char c = enc.charAt(0);
-        if (c == 'u' || c == 'U') {
-            if (StringUtil.equalEncodings(enc, "UTF-8")) {
-                r = new UTF8Reader(in, new byte[inputBufLen], 0, 0);
-            } else if (StringUtil.equalEncodings(enc, "US-ASCII")) {
-                r = new AsciiReader(in, new byte[inputBufLen], 0, 0);
-            }
-        } else if (c == 'i' || c== 'I') {
-            if (StringUtil.equalEncodings(enc, "ISO-8859-1")) {
-                r = new ISOLatinReader(in, new byte[inputBufLen], 0, 0);
-            }
+        if (enc == null || enc.length() == 0) {
+            return createSR(null, StreamBootstrapper.getInstance(in, null, systemId, inputBufLen), forER);
         }
 
-        if (r == null) {
-            try {
-                r = new InputStreamReader(in, enc);
-            } catch (UnsupportedEncodingException ex) {
-                throw new XMLStreamException(ex);
-            }
-        }
+        Reader r = DefaultInputResolver.constructOptimizedReader(in, enc, mConfig.getInputBufferLength());
         return createSR(null, ReaderBootstrapper.getInstance
                         (r, null, systemId, inputBufLen, enc), forER);
     }

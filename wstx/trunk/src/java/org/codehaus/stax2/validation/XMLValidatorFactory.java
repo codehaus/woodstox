@@ -240,7 +240,8 @@ public abstract class XMLValidatorFactory
     }
 
     public abstract XMLValidatorSchema createSchema(Reader r, String publicId,
-                                                     String systemId);
+                                                     String systemId)
+       throws XMLStreamException;
 
     public abstract XMLValidatorSchema createSchema(URL url)
         throws XMLStreamException;

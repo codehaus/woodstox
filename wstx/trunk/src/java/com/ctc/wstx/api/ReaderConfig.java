@@ -338,6 +338,8 @@ public final class ReaderConfig
 
     public ReaderConfig createNonShared(SymbolTable sym)
     {
+        if (sym == null) {
+        }
         ReaderConfig rc = new ReaderConfig(mIsJ2MESubset, sym,
                                            mConfigFlags,
                                            mInputBufferLen, mTextBufferLen,

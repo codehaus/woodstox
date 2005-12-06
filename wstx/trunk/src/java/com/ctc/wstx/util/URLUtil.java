@@ -64,7 +64,7 @@ public final class URLUtil
      * not explicitly passed.
      */
     public static URL urlFromCurrentDir()
-        throws IOException
+        throws java.net.MalformedURLException /* an IOException */
     {
         /* This seems to work; independent of whether there happens to
          * be such/file dir or not.
