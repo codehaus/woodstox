@@ -217,36 +217,36 @@ public abstract class XMLValidatorFactory
 
     // // // And then actual per-instance factory methods
 
-    public XMLValidatorSchema createSchema(InputStream in)
+    public XMLValidationSchema createSchema(InputStream in)
         throws XMLStreamException
     {
         return createSchema(in, null);
     }
 
-    public XMLValidatorSchema createSchema(InputStream in, String encoding)
+    public XMLValidationSchema createSchema(InputStream in, String encoding)
         throws XMLStreamException
     {
         return createSchema(in, encoding, null, null);
     }
 
-    public abstract XMLValidatorSchema createSchema(InputStream in, String encoding,
+    public abstract XMLValidationSchema createSchema(InputStream in, String encoding,
                                                      String publicId, String systemId)
         throws XMLStreamException;
 
-    public XMLValidatorSchema createSchema(Reader r)
+    public XMLValidationSchema createSchema(Reader r)
         throws XMLStreamException
     {
         return createSchema(r, null, null);
     }
 
-    public abstract XMLValidatorSchema createSchema(Reader r, String publicId,
+    public abstract XMLValidationSchema createSchema(Reader r, String publicId,
                                                      String systemId)
        throws XMLStreamException;
 
-    public abstract XMLValidatorSchema createSchema(URL url)
+    public abstract XMLValidationSchema createSchema(URL url)
         throws XMLStreamException;
 
-    public abstract XMLValidatorSchema createSchema(File f)
+    public abstract XMLValidationSchema createSchema(File f)
         throws XMLStreamException;
 
     /*

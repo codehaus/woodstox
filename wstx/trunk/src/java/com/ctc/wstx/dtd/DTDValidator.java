@@ -27,17 +27,15 @@ import com.ctc.wstx.compat.JdkFeatures;
 import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.exc.WstxValidationException;
 import com.ctc.wstx.sr.AttributeCollector;
-import com.ctc.wstx.sr.InputProblemReporter;
 import com.ctc.wstx.util.DataUtil;
 import com.ctc.wstx.util.StringUtil;
 import com.ctc.wstx.util.StringVector;
 
 /**
- * Class that will be instantiated by specialized instances of
- * {@link com.ctc.wstx.sr.InputElementStack}, specifically the
- * validating ones (whether namespace-aware or not).
+ * Woodstox implementation of {@link XMLValidator}; the class that
+ * handles DTD-based validation.
  */
-public class ElementValidator
+public class DTDValidator
     extends XMLValidator
 {
     /*
@@ -80,8 +78,6 @@ public class ElementValidator
      */
     final Map mElemSpecs;
 
-    final InputProblemReporter mReporter;
-
     /**
      * General entities defined in DTD subsets; needed for validating
      * ENTITY/ENTITIES attributes.
@@ -93,7 +89,7 @@ public class ElementValidator
      * to be normalized (according to XML specs) or not (which may be
      * more efficient, although not compliant with the specs)
      */
-    final boolean mNormAttrs;
+    boolean mNormAttrs;
 
     /**
      * Determines if identical problems (definition of the same element,
@@ -205,18 +201,36 @@ public class ElementValidator
     ///////////////////////////////////////
     */
 
-    public ElementValidator(ValidationContext ctxt, InputProblemReporter rep,
-                            Map elemSpecs, Map genEntities, boolean normAttrs)
+    public DTDValidator(ValidationContext ctxt,
+                            Map elemSpecs, Map genEntities)
     {
         mContext = ctxt;
-        mReporter = rep;
         mElemSpecs = (elemSpecs == null || elemSpecs.size() == 0) ?
             Collections.EMPTY_MAP : elemSpecs;
         mGeneralEntities = genEntities;
-        mNormAttrs = normAttrs;
+        // By default, let's assume they are to be normalized (fully xml compliant)
+        mNormAttrs = true;
         mElems = new DTDElement[DEFAULT_STACK_SIZE];
         mValidators = new StructValidator[DEFAULT_STACK_SIZE];
         mAttrSpecs = new DTDAttribute[EXP_MAX_ATTRS];
+    }
+
+    /*
+    ///////////////////////////////////////
+    // Configuration
+    ///////////////////////////////////////
+    */
+
+    /**
+     * Method that allows enabling/disabling attribute value normalization.
+     * In general, readers by default enable normalization (to be fully xml
+     * compliant),
+     * whereas writers do not (since there is usually little to gain, if
+     * anything -- it is even possible value may be written before validation
+     * is called in some cases)
+     */
+    public void setAttrValueNormalization(boolean state) {
+        mNormAttrs = state;
     }
 
     /*
@@ -580,7 +594,7 @@ public class ElementValidator
     }
 
     Location getLocation() {
-        return mReporter.getLocation();
+        return mContext.getValidationLocation();
     }
 
     ElementIdMap getIdMap() {
@@ -618,25 +632,27 @@ public class ElementValidator
     void reportValidationProblem(String msg)
         throws XMLValidationException
     {
-        mReporter.reportValidationProblem(msg);
+        doReportProblem(msg, null);
     }
 
     void reportValidationProblem(String msg, Location loc)
         throws XMLValidationException
     {
-        mReporter.reportValidationProblem(msg, loc);
+        doReportProblem(msg, loc);
     }
 
     void reportValidationProblem(String format, String arg)
         throws XMLValidationException
     {
-        mReporter.reportValidationProblem(MessageFormat.format(format, new Object[] { arg }));
+        doReportProblem(MessageFormat.format(format, new Object[] { arg }),
+                        null);
     }
 
     void reportValidationProblem(String format, String arg1, String arg2)
         throws XMLValidationException
     {
-        mReporter.reportValidationProblem(MessageFormat.format(format, new Object[] { arg1, arg2 }));
+        doReportProblem(MessageFormat.format(format, new Object[] { arg1, arg2 }),
+                        null);
     }
 
     /*
@@ -644,4 +660,13 @@ public class ElementValidator
     // Private methods
     ///////////////////////////////////////
     */
+
+    protected void doReportProblem(String msg, Location loc)
+        throws XMLValidationException
+    {
+        if (loc == null) {
+            loc = getLocation();
+        }
+        throw WstxValidationException.create(msg, loc, XMLValidationProblem.SEVERITY_ERROR);
+    }
 }

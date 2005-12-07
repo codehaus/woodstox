@@ -11,7 +11,6 @@ import javax.xml.stream.XMLStreamException;
 import org.codehaus.stax2.validation.XMLValidator;
 
 import com.ctc.wstx.cfg.ErrorConsts;
-import com.ctc.wstx.dtd.ElementValidator;
 import com.ctc.wstx.util.*;
 
 /**

@@ -24,7 +24,7 @@ import org.codehaus.stax2.XMLStreamWriter2;
  * the context is created by a caller that is not part of the same
  * StAX implementation as the validator.
  */
-public interface XMLValidatorSchema
+public interface XMLValidationSchema
 {
     public XMLValidator createValidator(ValidationContext ctxt)
         throws XMLStreamException;

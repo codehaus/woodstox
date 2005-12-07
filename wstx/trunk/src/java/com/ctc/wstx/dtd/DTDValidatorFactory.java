@@ -98,7 +98,7 @@ public final class DTDValidatorFactory
     ////////////////////////////////////////////////////////////
      */
 
-    public XMLValidatorSchema createSchema(InputStream in, String encoding,
+    public XMLValidationSchema createSchema(InputStream in, String encoding,
                                            String publicId, String systemId)
         throws XMLStreamException
     {
@@ -106,7 +106,7 @@ public final class DTDValidatorFactory
                               publicId, systemId, null);
     }
 
-    public XMLValidatorSchema createSchema(Reader r, String publicId,
+    public XMLValidationSchema createSchema(Reader r, String publicId,
                                            String systemId)
         throws XMLStreamException
     {
@@ -114,7 +114,7 @@ public final class DTDValidatorFactory
                               publicId, systemId, null);
     }
 
-    public XMLValidatorSchema createSchema(URL url)
+    public XMLValidationSchema createSchema(URL url)
         throws XMLStreamException
     {
         try {
@@ -127,7 +127,7 @@ public final class DTDValidatorFactory
         }
     }
 
-    public XMLValidatorSchema createSchema(File f)
+    public XMLValidationSchema createSchema(File f)
         throws XMLStreamException
     {
         try {
@@ -156,7 +156,7 @@ public final class DTDValidatorFactory
      * The main validator construction method, called by all externally
      * visible methods.
      */
-    protected XMLValidatorSchema doCreateSchema
+    protected XMLValidationSchema doCreateSchema
         (InputBootstrapper bs, String publicId, String systemId, URL ctxt)
         throws XMLStreamException
     {
@@ -170,14 +170,9 @@ public final class DTDValidatorFactory
             WstxInputSource src = InputSourceFactory.constructEntitySource
                 (null, null, bs, publicId, systemId, ctxt, r);
             
-            DTDSubset extSubset = FullDTDReader.readExternalSubset
-                (src, cfg, /*int. subset*/ null);
-            
-            // !!! TBI
+            return FullDTDReader.readExternalSubset(src, cfg, /*int.subset*/null);
         } catch (IOException ioe) {
             throw new WstxIOException(ioe);
         }
-
-        return null;
     }
 }

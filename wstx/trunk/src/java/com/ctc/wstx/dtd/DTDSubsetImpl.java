@@ -21,6 +21,8 @@ import java.util.*;
 import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
 
+import org.codehaus.stax2.validation.*;
+
 import com.ctc.wstx.compat.JdkFeatures;
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.ent.NotationDecl;
@@ -229,7 +231,21 @@ public final class DTDSubsetImpl
 
     /*
     //////////////////////////////////////////////////////
-    // Public API
+    // Life-cycle
+    //////////////////////////////////////////////////////
+     */
+
+    public XMLValidator createValidator(ValidationContext ctxt)
+        throws XMLStreamException
+    {
+        return new DTDValidator(ctxt, 
+                                getElementMap(), getGeneralEntityMap());
+
+    }
+
+    /*
+    //////////////////////////////////////////////////////
+    // Woodstox-specific public API
     //////////////////////////////////////////////////////
      */
 

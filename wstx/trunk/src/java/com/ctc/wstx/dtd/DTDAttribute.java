@@ -22,7 +22,6 @@ import org.codehaus.stax2.validation.XMLValidationException;
 import com.ctc.wstx.ent.EntityDecl;
 import com.ctc.wstx.exc.*;
 import com.ctc.wstx.io.WstxInputData;
-import com.ctc.wstx.sr.AttributeCollector;
 import com.ctc.wstx.sr.InputProblemReporter;
 import com.ctc.wstx.util.WordResolver;
 
@@ -204,7 +203,7 @@ public class DTDAttribute
     ///////////////////////////////////////////////////
      */
 
-    public String validate(ElementValidator v, char[] cbuf, int start, int end, boolean normalize)
+    public String validate(DTDValidator v, char[] cbuf, int start, int end, boolean normalize)
         throws XMLValidationException
     {
         // Nothing to do for pure CDATA attributes...
@@ -220,7 +219,7 @@ public class DTDAttribute
      * the value, and then following validators are passed a String, not
      * char array)
      */
-    public String validate(ElementValidator v, String value, boolean normalize)
+    public String validate(DTDValidator v, String value, boolean normalize)
         throws XMLValidationException
     {
         int len = value.length();
@@ -232,21 +231,7 @@ public class DTDAttribute
     }
 
     /**
-     * Method called by the {@link ElementValidator}
-     * to let the attribute do necessary normalization and/or validation
-     * for the value.
-     */
-    public final void validate(ElementValidator v, boolean normalize, AttributeCollector ac,
-                         int index)
-    //throws XMLValidationException
-    {
-        /* Nothing to do for the base class; all values are fine...
-         * except if the value has to be fixed
-         */
-    }
-
-    /**
-     * Method called by the {@link ElementValidator}
+     * Method called by the {@link DTDValidator}
      * to ask attribute to verify that the default it has (if any) is
      * valid for such type.
      */
@@ -416,7 +401,7 @@ public class DTDAttribute
         return res.find(cbuf, start, end);
     }
 
-    protected EntityDecl findEntityDecl(ElementValidator v,
+    protected EntityDecl findEntityDecl(DTDValidator v,
                                         char[] ch, int start, int len, int hash)
         throws XMLValidationException
     {
@@ -437,7 +422,7 @@ public class DTDAttribute
     }
 
     /* Too bad this method can not be combined with previous segment --
-     * the reason is that ElementValidator does not implement
+     * the reason is that DTDValidator does not implement
      * InputProblemReporter...
      */
 
@@ -458,14 +443,14 @@ public class DTDAttribute
     ///////////////////////////////////////////////////
      */
 
-    protected String reportInvalidChar(ElementValidator v, char c, String msg)
+    protected String reportInvalidChar(DTDValidator v, char c, String msg)
         throws XMLValidationException
     {
         reportValidationProblem(v, "Invalid character "+WstxInputData.getCharDesc(c)+": "+msg);
         return null;
     }
 
-    protected String reportValidationProblem(ElementValidator v, String msg)
+    protected String reportValidationProblem(DTDValidator v, String msg)
         throws XMLValidationException
     {
         v.reportValidationProblem("Attribute '"+mName+"': "+msg);

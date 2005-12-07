@@ -17,18 +17,25 @@ package com.ctc.wstx.dtd;
 
 import java.util.*;
 
+import javax.xml.stream.XMLStreamException;
+
+import org.codehaus.stax2.validation.*;
+
 import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.sr.InputProblemReporter;
 
 /**
- * This is the abstract base class that defines API for Objects that contain
- * specification read from DTDs (internal and external subsets).
+ * This is the abstract base class that implements the standard Stax2
+ * validation schema base class ({@link XMLValidationSchema}, as well
+ * as specifies extended Woodstox-specific interface for accessing
+ * DTD-specific things like entity expansions and notation properties.
  *<p>
- * API is separated from its implementations so that different XML reader
- * subsets can be created; specifically ones with no DTD processing 
- * functionality.
+ * API is separated from its implementation to reduce coupling; for example,
+ * it is possible to have DTD subset implementations that do not implement
+ * validation logics, just entity expansion.
  */
 public abstract class DTDSubset
+    implements XMLValidationSchema
 {
     /*
     //////////////////////////////////////////////////////
@@ -49,11 +56,41 @@ public abstract class DTDSubset
 
     /*
     //////////////////////////////////////////////////////
-    // Public API
+    // XMLValidationSchema implementation
+    //////////////////////////////////////////////////////
+     */
+
+    public abstract XMLValidator createValidator(ValidationContext ctxt)
+        throws XMLStreamException;
+
+    public String getSchemaType() {
+        return XMLValidatorFactory.SCHEMA_ID_DTD;
+    }
+
+    /*
+    //////////////////////////////////////////////////////
+    // Woodstox-specific API, caching support
     //////////////////////////////////////////////////////
      */
 
     public abstract boolean isCachable();
+
+    /**
+     * Method used in determining whether cached external subset instance
+     * can be used with specified internal subset. If ext. subset references
+     * any parameter entities int subset (re-)defines, it can not; otherwise
+     * it can be used.
+     *
+     * @return True if this (external) subset refers to a parameter entity
+     *    defined in passed-in internal subset.
+     */
+    public abstract boolean isReusableWith(DTDSubset intSubset);
+
+    /*
+    //////////////////////////////////////////////////////
+    // Woodstox-specific API, entity/notation handling
+    //////////////////////////////////////////////////////
+     */
     
     public abstract HashMap getGeneralEntityMap();
 
@@ -66,15 +103,4 @@ public abstract class DTDSubset
     public abstract List getNotationList();
 
     public abstract HashMap getElementMap();
-
-    /**
-     * Method used in determining whether cached external subset instance
-     * can be used with specified internal subset. If ext. subset references
-     * any parameter entities int subset (re-)defines, it can not; otherwise
-     * it can be used.
-     *
-     * @return True if this (external) subset refers to a parameter entity
-     *    defined in passed-in internal subset.
-     */
-    public abstract boolean isReusableWith(DTDSubset intSubset);
 }

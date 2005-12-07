@@ -35,7 +35,7 @@ import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.io.*;
 import com.ctc.wstx.dtd.DTDId;
 import com.ctc.wstx.dtd.DTDSubset;
-import com.ctc.wstx.dtd.ElementValidator;
+import com.ctc.wstx.dtd.DTDValidator;
 import com.ctc.wstx.dtd.FullDTDReader;
 import com.ctc.wstx.util.ExceptionUtil;
 import com.ctc.wstx.util.URLUtil;
@@ -330,11 +330,8 @@ public class ValidatingStreamReader
         } else {
             mGeneralEntities = combo.getGeneralEntityMap();
             if (hasConfigFlags(CFG_VALIDATE_AGAINST_DTD)) {
-                ElementValidator vld = new ElementValidator
-                    (/*(ValidationContext)*/ mElementStack,
-                     /*(InputProblemReporter)*/ this,
-                     combo.getElementMap(), mGeneralEntities,
-                     mCfgNormalizeAttrs);
+                XMLValidator vld = combo.createValidator(/*(ValidationContext)*/ mElementStack);
+                ((DTDValidator) vld).setAttrValueNormalization(mCfgNormalizeAttrs);
                 mElementStack.setValidator(vld);
             }
         }

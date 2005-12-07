@@ -58,12 +58,12 @@ public final class DTDEntitiesAttr
      */
 
     /**
-     * Method called by the {@link ElementValidator}
+     * Method called by the {@link DTDValidator}
      * to let the attribute do necessary normalization and/or validation
      * for the value.
      * 
      */
-    public String validate(ElementValidator v, char[] cbuf, int start, int end, boolean normalize)
+    public String validate(DTDValidator v, char[] cbuf, int start, int end, boolean normalize)
         throws XMLValidationException
     {
         /* Let's skip leading/trailing white space, even if we are not
@@ -147,7 +147,7 @@ public final class DTDEntitiesAttr
     }
 
     /**
-     * Method called by the {@link ElementValidator}
+     * Method called by the {@link DTDValidator}
      * to ask attribute to verify that the default it has (if any) is
      * valid for such type.
      */

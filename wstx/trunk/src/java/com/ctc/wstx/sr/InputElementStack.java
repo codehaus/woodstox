@@ -31,7 +31,6 @@ import org.codehaus.stax2.validation.XMLValidationException;
 import org.codehaus.stax2.validation.XMLValidationProblem;
 
 import com.ctc.wstx.cfg.ErrorConsts;
-import com.ctc.wstx.dtd.ElementValidator;
 import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.exc.WstxValidationException;
 import com.ctc.wstx.util.BaseNsContext;

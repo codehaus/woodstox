@@ -52,7 +52,7 @@ public final class DTDIdRefsAttr
     ///////////////////////////////////////////////////
      */
 
-    public String validate(ElementValidator v, char[] cbuf, int start, int end, boolean normalize)
+    public String validate(DTDValidator v, char[] cbuf, int start, int end, boolean normalize)
         throws XMLValidationException
     {
         /* Let's skip leading/trailing white space, even if we are not
@@ -140,7 +140,7 @@ public final class DTDIdRefsAttr
     }
 
     /**
-     * Method called by the {@link ElementValidator}
+     * Method called by the {@link DTDValidator}
      * to ask attribute to verify that the default it has (if any) is
      * valid for such type.
      *<p>
