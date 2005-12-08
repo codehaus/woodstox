@@ -21,12 +21,12 @@ import java.net.URL;
 import javax.xml.stream.*;
 
 import org.codehaus.stax2.XMLStreamReader2;
+import org.codehaus.stax2.validation.XMLValidationSchema;
+import org.codehaus.stax2.validation.XMLValidatorFactory;
 
 import com.ctc.wstx.api.ReaderConfig;
-import com.ctc.wstx.dtd.DTDSubset;
+import com.ctc.wstx.dtd.DTDValidatorFactory;
 import com.ctc.wstx.io.WstxInputSource;
-import com.ctc.wstx.sr.FullStreamReader;
-import com.ctc.wstx.sr.FullStreamReader;
 import com.ctc.wstx.stax.ValidatingInputFactory;
 import com.ctc.wstx.util.URLUtil;
 
@@ -124,16 +124,15 @@ public class ValidateXML
             InputStream in = null;
             
             try {
-                //System.out.println("[trying to open XML document '"+xmlSrc+"' for eading]");
                 in = xmlSrc.openStream();
                 XMLStreamReader sr = f.createXMLStreamReader(xmlSrc.toExternalForm(), in);
-                
-//XMLStreamReader sr = f.createXMLStreamReader(in, "UTF-8");
                 // Override DTD specified?
                 if (dtdSrc != null) {
+                    DTDValidatorFactory vf = new DTDValidatorFactory();
+                    XMLValidationSchema schema = vf.createSchema(dtdSrc);
                     System.out.println("  [trying to use dtd '"+dtdSrc+" for validation]");
                     ((XMLStreamReader2) sr).setFeature(XMLStreamReader2.FEATURE_DTD_OVERRIDE,
-                                                       dtdSrc);
+                                                       schema);
                 }
                 
                 while (sr.hasNext()) {
