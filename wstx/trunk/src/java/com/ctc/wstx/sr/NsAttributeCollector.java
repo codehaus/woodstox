@@ -15,7 +15,7 @@ import com.ctc.wstx.util.StringVector;
 import com.ctc.wstx.util.TextBuilder;
 
 /**
- * Attribute collector class used in namespace-aware parsing mode
+ * Attribute collector class used in namespace-aware parsing mode.
  *<p>
  * Note: only public for testing purposes
  */

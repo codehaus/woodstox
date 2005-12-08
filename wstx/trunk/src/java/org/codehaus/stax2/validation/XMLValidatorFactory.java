@@ -8,19 +8,19 @@ import javax.xml.stream.FactoryConfigurationError;
 import javax.xml.stream.XMLStreamException;
 
 /**
- * Defines an abstract factory for constructing {@link XMLValidatorSchema}
+ * Defines an abstract factory for constructing {@link XMLValidationSchema}
  * instances. This abstract base class has methods for instantiating the
  * actual implementation (similar to the way
  * {@link javax.xml.stream.XMLInputFactory} works, and defines the API to
  * use for configuring these instances, as well as factory methods concrete
- * classes implement for actually creating {@link XMLValidatorSchema}
+ * classes implement for actually creating {@link XMLValidationSchema}
  * instances.
  *<p>
  * Note: this class is part of the second major revision of StAX 2 API
  * (StAX2, v2), and is optional for StAX2 implementations to support.
  *
  * @see javax.xml.stream.XMLInputFactory
- * @see org.codehaus.stax2.validation.XMLValidatorSchema
+ * @see org.codehaus.stax2.validation.XMLValidationSchema
  * @see org.codehaus.stax2.XMLInputFactory2
  */
 public abstract class XMLValidatorFactory

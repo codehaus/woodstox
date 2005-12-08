@@ -33,7 +33,7 @@ import com.ctc.wstx.util.ExceptionUtil;
 
 /**
  * Implementation of {@link XMLEventReader}, built on top of
- * {@link com.ctc.wstx.sr.WstxStreamReader} (using composition).
+ * {@link com.ctc.wstx.sr.BasicStreamReader} (using composition).
  * Since there is not much to optimize at this
  * level (API and underlying stream reader pretty much define functionality
  * and optimizations that can be done), implementation is fairly straight

@@ -87,9 +87,14 @@ public class FullDTDReader
 
     final boolean mCfgNormAttrs;
 
-    final boolean mCfgValidate;
-
     final boolean mCfgSupportDTDPP;
+
+    /**
+     * This flag indicates whether we should build a real validator (true,
+     * the usual case), or just a simple container that has entity and notation
+     * information (false, used when stream reader is non-validating).
+     */
+    final boolean mCfgFullyConstruct;
 
     /*
     //////////////////////////////////////////////////
@@ -275,18 +280,20 @@ public class FullDTDReader
     /**
      * Constructor used for reading/skipping internal subset.
      */
-    private FullDTDReader(WstxInputSource input, ReaderConfig cfg)
+    private FullDTDReader(WstxInputSource input, ReaderConfig cfg,
+                          boolean constructFully)
     {
-        this(input, cfg, false, null);
+        this(input, cfg, false, null, constructFully);
     }
 
     /**
      * Constructor used for reading external subset.
      */
     private FullDTDReader(WstxInputSource input, ReaderConfig cfg, 
-                          DTDSubset intSubset)
+                          DTDSubset intSubset,
+                          boolean constructFully)
     {
-        this(input, cfg, true, intSubset);
+        this(input, cfg, true, intSubset, constructFully);
 
         // Let's make sure line/col offsets are correct...
         input.initInputLocation(this);
@@ -296,15 +303,17 @@ public class FullDTDReader
      * Common initialization part of int/ext subset constructors.
      */
     private FullDTDReader(WstxInputSource input, ReaderConfig cfg,
-                          boolean isExt, DTDSubset intSubset)
+                          boolean isExt, DTDSubset intSubset,
+                          boolean constructFully)
     {
         super(input, cfg, isExt);
         int cfgFlags = cfg.getConfigFlags();
         mConfigFlags = cfgFlags;
         mCfgNormalizeLFs = (cfgFlags & CFG_NORMALIZE_LFS) != 0;
         mCfgNormAttrs = (cfgFlags & CFG_NORMALIZE_ATTR_VALUES) != 0;
-        mCfgValidate = (cfgFlags & CFG_VALIDATE_AGAINST_DTD) != 0;
         mCfgSupportDTDPP = (cfgFlags & CFG_SUPPORT_DTDPP) != 0;
+        mCfgFullyConstruct = constructFully;
+
         mUsesPredefdEntities = false;
         mParamEntities = null;
         mRefdPEs = null;
@@ -344,10 +353,11 @@ public class FullDTDReader
      */
     public static DTDSubset readInternalSubset(WstxInputData srcData,
                                                WstxInputSource input,
-                                               ReaderConfig cfg)
+                                               ReaderConfig cfg,
+                                               boolean constructFully)
         throws IOException, XMLStreamException
     {
-        FullDTDReader r = new FullDTDReader(input, cfg);
+        FullDTDReader r = new FullDTDReader(input, cfg, constructFully);
         /* Need to read using same low-level reader interface:
          */
         r.copyBufferStateFrom(srcData);
@@ -369,10 +379,11 @@ public class FullDTDReader
      * Method called to read in the external subset definition.
      */
     public static DTDSubset readExternalSubset
-        (WstxInputSource src, ReaderConfig cfg, DTDSubset intSubset)
+        (WstxInputSource src, ReaderConfig cfg, DTDSubset intSubset, 
+         boolean constructFully)
         throws IOException, XMLStreamException
     {
-        FullDTDReader r = new FullDTDReader(src, cfg, intSubset);
+        FullDTDReader r = new FullDTDReader(src, cfg, intSubset, constructFully);
         return r.parseDTD();
     }
 
@@ -408,7 +419,7 @@ public class FullDTDReader
         cfg.clearConfigFlag(CFG_NORMALIZE_LFS);
         cfg.clearConfigFlag(CFG_NORMALIZE_ATTR_VALUES);
 
-        FullDTDReader r = new FullDTDReader(src, cfg, null);
+        FullDTDReader r = new FullDTDReader(src, cfg, null, true);
         r.setFlattenWriter(flattenWriter, inclComments, inclConditionals,
                            inclPEs);
         DTDSubset ss = r.parseDTD();
@@ -1859,11 +1870,11 @@ public class FullDTDReader
         if (c == '(') { // real content model
             c = skipDtdWs();
             if (c == '#') {
-                val = readMixedSpec(elemName, mCfgValidate);
+                val = readMixedSpec(elemName, mCfgFullyConstruct);
                 vldContent = XMLValidator.CONTENT_ALLOW_ANY_TEXT; // checked against DTD
             } else {
                 --mInputPtr; // let's push it back...
-                ContentSpec spec = readContentSpec(elemName, true, mCfgValidate);
+                ContentSpec spec = readContentSpec(elemName, true, mCfgFullyConstruct);
                 val = spec.getSimpleValidator();
                 if (val == null) {
                     val = new DFAValidator(DFAState.constructDFA(spec));

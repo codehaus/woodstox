@@ -248,10 +248,6 @@ public class DTDValidator
      * element. At this point namespace information has been resolved, but
      * no DTD validation has been done. Validator is to do these validations,
      * including checking for attribute value (and existence) compatibility.
-     *
-     * @param ns (optional) Data structure that contains all currently
-     *   active namespace declarations; may be needed for resolving namespaced
-     *   default attributes' namespace URIs.
      */
     public void validateElementStart(String localName, String uri, String prefix)
         throws XMLValidationException

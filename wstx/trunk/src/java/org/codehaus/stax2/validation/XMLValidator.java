@@ -8,7 +8,7 @@ package org.codehaus.stax2.validation;
  * xml documents.
  *<p>
  * Validator instances are created from and by non-stateful
- * {@link XMLValidatorSchema} instances. A new validator instance has to
+ * {@link XMLValidationSchema} instances. A new validator instance has to
  * be created for each document read or written, ie. can not be shared
  * or reused, unlike schema instances which can be.
  */
@@ -26,7 +26,7 @@ public abstract class XMLValidator
 
     /**
      * This value indicates that no content whatsoever
-     * is legal within current context, ie. where the only legal content
+     * is legal within current context, that is, where the only legal content
      * to follow is the closing end tag -- not even comments or processing
      * instructions are allowed.  This is the case for example for
      * elements that DTD defines to have EMPTY content model.
@@ -137,7 +137,7 @@ public abstract class XMLValidator
     public abstract String validateAttribute(String localName, String uri,
                                              String prefix,
                                              char[] valueChars, int valueStart,
-                                             int valueLen)
+                                             int valueEnd)
         throws XMLValidationException;
 
     /**
