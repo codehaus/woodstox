@@ -52,6 +52,10 @@ public final class SimpleOutputElement
     ////////////////////////////////////////////
      */
 
+    /**
+     * Reference to the parent element, element enclosing this element.
+     * Null for root element.
+     */
     final SimpleOutputElement mParent;
 
     /**
@@ -87,6 +91,9 @@ public final class SimpleOutputElement
      */
     boolean mDefaultNsSet;
 
+    /**
+     * Mapping of namespace prefixes to URIs and back.
+     */
     BijectiveNsMap mNsMapping;
 
     /**
@@ -176,6 +183,21 @@ public final class SimpleOutputElement
     public boolean isRoot() {
         // (Virtual) Root element has no parent...
         return (mParent == null);
+    }
+
+    /**
+     * @return String presentation of the fully-qualified name, in
+     *   "prefix:localName" format (no URI). Useful for error and
+     *   debugging messages.
+     */
+    public String getNameDesc() {
+        if (mPrefix != null && mPrefix.length() > 0) {
+            return mPrefix + ":" +mLocalName;
+        }
+        if (mLocalName != null && mLocalName.length() > 0) {
+            return mLocalName;
+        }
+        return "#error"; // unexpected case
     }
 
     public String getPrefix() {

@@ -376,6 +376,11 @@ public class NonNsStreamWriter
         }
     }
 
+    protected String getTopElementDesc()
+    {
+        return mElements.isEmpty() ? "#root" : mElements.getLastString();
+    }
+
     /*
     ////////////////////////////////////////////////////
     // Internal methods

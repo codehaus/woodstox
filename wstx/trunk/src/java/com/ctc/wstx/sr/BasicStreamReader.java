@@ -2156,21 +2156,21 @@ public class BasicStreamReader
             throwParseError(ErrorConsts.ERR_UNEXP_KEYWORD, wrong, XML_DECL_VERSION);
         }
         c = skipEquals(XML_DECL_VERSION, SUFFIX_IN_XML_DECL);
-	TextBuffer tb = mTextBuffer;
-	tb.resetInitialized();
-	parseQuoted(XML_DECL_VERSION, c, tb);
-
-	if (tb.equalsString("1.0")) {
-	    mDocXmlVersion = "1.0";
-	} else if (tb.equalsString("1.1")) {
-	    mDocXmlVersion = "1.1";
-	} else {
-	    mDocXmlVersion = null;
+        TextBuffer tb = mTextBuffer;
+        tb.resetInitialized();
+        parseQuoted(XML_DECL_VERSION, c, tb);
+        
+        if (tb.equalsString("1.0")) {
+            mDocXmlVersion = "1.0";
+        } else if (tb.equalsString("1.1")) {
+            mDocXmlVersion = "1.1";
+        } else {
+            mDocXmlVersion = null;
             throwParseError("Unexpected xml version '"+tb.toString()+"'; expected '1.0' or '1.1'");
         }
-
+        
         c = getNextInCurrAfterWS(SUFFIX_IN_XML_DECL);
-
+        
         if (c != '?') { // '?' signals end...
             if (c == 'e') { // encoding
                 wrong = checkKeyword(c, XML_DECL_ENCODING);
@@ -2178,18 +2178,18 @@ public class BasicStreamReader
                     throwParseError(ErrorConsts.ERR_UNEXP_KEYWORD, wrong, XML_DECL_ENCODING);
                 }
                 c = skipEquals(XML_DECL_ENCODING, SUFFIX_IN_XML_DECL);
-		tb.resetWithEmpty();
+                tb.resetWithEmpty();
                 parseQuoted(XML_DECL_ENCODING, c, tb);
-		mDocCharEncoding = tb.toString();
-		/* should we verify encoding at this point? let's not, for now;
-		 * since it's for information only, first declaration from
-		 * bootstrapper is used for the whole stream.
-		 */
+                mDocCharEncoding = tb.toString();
+                /* should we verify encoding at this point? let's not, for now;
+                 * since it's for information only, first declaration from
+                 * bootstrapper is used for the whole stream.
+                 */
                 c = getNextInCurrAfterWS(SUFFIX_IN_XML_DECL);
             } else if (c != 's') {
                 throwUnexpectedChar(c, " in xml declaration; expected either 'encoding' or 'standalone' pseudo-attribute");
             }
-
+            
             // Standalone?
             if (c == 's') {
                 wrong = checkKeyword(c, XML_DECL_STANDALONE);
@@ -2197,11 +2197,11 @@ public class BasicStreamReader
                     throwParseError(ErrorConsts.ERR_UNEXP_KEYWORD, wrong, XML_DECL_STANDALONE);
                 }
                 c = skipEquals(XML_DECL_STANDALONE, SUFFIX_IN_XML_DECL);
-		tb.resetWithEmpty();
+                tb.resetWithEmpty();
                 parseQuoted(XML_DECL_STANDALONE, c, tb);
-		if (tb.equalsString("yes")) {
+                if (tb.equalsString("yes")) {
                     mDocStandalone = DOC_STANDALONE_YES;
-		} else if (tb.equalsString("no")) {
+                } else if (tb.equalsString("no")) {
                     mDocStandalone = DOC_STANDALONE_NO;
                 } else {
                     throwParseError("Unexpected xml standalone pseudo-attribute value '"+tb.toString()+"'; expected 'yes' or 'no'");
@@ -2209,7 +2209,7 @@ public class BasicStreamReader
             }
             c = getNextInCurrAfterWS(SUFFIX_IN_XML_DECL);
         }
-
+        
         if (c != '?') {
             throwUnexpectedChar(c, " in xml declaration; expected '?>' as the end marker");
         }
@@ -4991,7 +4991,7 @@ public class BasicStreamReader
      * however, details of error reports are not needed here.
      */
     protected void reportInvalidContent(int evtType)
-        throws WstxException
+        throws XMLStreamException
     {
         // should never happen; sub-class has to override:
         throwParseError("Internal error: sub-class should override method");

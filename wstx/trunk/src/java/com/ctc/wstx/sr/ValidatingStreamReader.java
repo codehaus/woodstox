@@ -500,26 +500,26 @@ public class ValidatingStreamReader
      * through this method.
      */
     protected void reportInvalidContent(int evtType)
-        throws WstxException
+        throws XMLStreamException
     {
         switch (mVldContent) {
         case XMLValidator.CONTENT_ALLOW_NONE:
-            throwParseError(ErrorConsts.ERR_VLD_EMPTY,
-                            mElementStack.getTopElementDesc(),
-                            ErrorConsts.tokenTypeDesc(evtType));
+            reportValidationProblem(ErrorConsts.ERR_VLD_EMPTY,
+                                    mElementStack.getTopElementDesc(),
+                                    ErrorConsts.tokenTypeDesc(evtType));
             break;
         case XMLValidator.CONTENT_ALLOW_WS:
-            throwParseError(ErrorConsts.ERR_VLD_NON_MIXED,
-                            mElementStack.getTopElementDesc());
+            reportValidationProblem(ErrorConsts.ERR_VLD_NON_MIXED,
+                                    mElementStack.getTopElementDesc());
             break;
         case XMLValidator.CONTENT_ALLOW_VALIDATABLE_TEXT:
         case XMLValidator.CONTENT_ALLOW_ANY_TEXT:
             /* Not 100% sure if this should ever happen... depends on
              * interpretation of 'any' content model?
              */
-            throwParseError(ErrorConsts.ERR_VLD_ANY,
-                            mElementStack.getTopElementDesc(),
-                            ErrorConsts.tokenTypeDesc(evtType));
+            reportValidationProblem(ErrorConsts.ERR_VLD_ANY,
+                                    mElementStack.getTopElementDesc(),
+                                    ErrorConsts.tokenTypeDesc(evtType));
             break;
         default: // should never occur:
             throwParseError("Internal error: trying to report invalid content for "+evtType);

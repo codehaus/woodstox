@@ -24,6 +24,7 @@ import javax.xml.XMLConstants;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
 import javax.xml.stream.Location;
+import javax.xml.stream.XMLReporter;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
@@ -36,6 +37,9 @@ import org.codehaus.stax2.DTDInfo;
 import org.codehaus.stax2.EscapingWriterFactory;
 import org.codehaus.stax2.XMLStreamReader2;
 import org.codehaus.stax2.XMLStreamWriter2;
+import org.codehaus.stax2.validation.XMLValidator;
+import org.codehaus.stax2.validation.XMLValidationException;
+import org.codehaus.stax2.validation.XMLValidationProblem;
 
 import com.ctc.wstx.api.WriterConfig;
 import com.ctc.wstx.api.WstxOutputProperties;
@@ -145,6 +149,12 @@ public abstract class BaseStreamWriter
      */
     protected String mEncoding;
 
+    /**
+     * Optional validator to use for validating output against
+     * one or more schemas, and/or for safe pretty-printing (indentation).
+     */
+    protected XMLValidator mValidator;
+
     /*
     ////////////////////////////////////////////////////
     // State information
@@ -177,6 +187,14 @@ public abstract class BaseStreamWriter
      * elements not.
      */
     protected boolean mEmptyElement = false;
+
+    /**
+     * State value used with validation, to track types of content
+     * that is allowed at this point in output stream. Only used if
+     * validation is enabled: if so, value is determined via validation
+     * callbacks.
+     */
+    protected int mVldContent = XMLValidator.CONTENT_ALLOW_ANY_TEXT;
 
     /*
     ////////////////////////////////////////////////////
@@ -319,19 +337,7 @@ public abstract class BaseStreamWriter
             writeCharacters(data);
             return;
         }
-
-        mAnyOutput = true;
-        // Need to finish an open start element?
-        if (mStartElementOpen) {
-            closeStartElement(mEmptyElement);
-        }
-
-        // Not legal outside main element tree:
-        if (mCheckStructure) {
-            if (inPrologOrEpilog()) {
-                throw new IllegalStateException(ErrorConsts.WERR_PROLOG_CDATA);
-            }
-        }
+        verifyWriteCData();
 
         try {
             if (mCheckContent) {
@@ -350,7 +356,7 @@ public abstract class BaseStreamWriter
             if (data != null) {
                 /* 20-Nov-2004, TSa: Should we try to validate content,
                  *   and/or handle embedded end marker?
-             */
+                 */
                 mWriter.write(data);
             }
             mWriter.write("]]>");
@@ -365,7 +371,7 @@ public abstract class BaseStreamWriter
         /* Not legal outside main element tree, except if it's all
          * white space
          */
-        if (mCheckStructure) {
+        if (mCheckStructure || mValidator != null) {
             if (inPrologOrEpilog()) {
                 if (!StringUtil.isAllWhitespace(text, start, len)) {
                     throw new IllegalStateException(ErrorConsts.WERR_PROLOG_NONWS_TEXT);
@@ -377,6 +383,17 @@ public abstract class BaseStreamWriter
         // Need to finish an open start element?
         if (mStartElementOpen) {
             closeStartElement(mEmptyElement);
+        }
+
+        // 08-Dec-2005, TSa: validator-based validation?
+        if (mVldContent <= XMLValidator.CONTENT_ALLOW_WS) {
+            if (mVldContent == XMLValidator.CONTENT_ALLOW_NONE) { // never ok
+                reportInvalidContent(CHARACTERS);
+            } else { // all-ws is ok...
+                if (!StringUtil.isAllWhitespace(text, start, len)) {
+                    reportInvalidContent(CHARACTERS);
+                }
+            }
         }
 
         if (len > 0) { // minor optimization
@@ -410,6 +427,17 @@ public abstract class BaseStreamWriter
             closeStartElement(mEmptyElement);
         }
 
+        // 08-Dec-2005, TSa: validator-based validation?
+        if (mVldContent <= XMLValidator.CONTENT_ALLOW_WS) {
+            if (mVldContent == XMLValidator.CONTENT_ALLOW_NONE) { // never ok
+                reportInvalidContent(CHARACTERS);
+            } else { // all-ws is ok...
+                if (!StringUtil.isAllWhitespace(text)) {
+                    reportInvalidContent(CHARACTERS);
+                }
+            }
+        }
+
         // Ok, let's just write it out (if there's any text)
         try {
             if (mTextWriter == null) {
@@ -430,23 +458,28 @@ public abstract class BaseStreamWriter
             closeStartElement(mEmptyElement);
         }
 
+        // 08-Dec-2005, TSa: validator-based validation?
+        if (mVldContent == XMLValidator.CONTENT_ALLOW_NONE) {
+            reportInvalidContent(COMMENT);
+        }
+
         try {
-	    /* No structural validation needed per se, for comments; they are
-	     * allowed anywhere in XML content. However, content may need to
-	     * be checked, to see it has no embedded '--'s.
-	     */
-	    if (mCheckContent) {
-		int ix = verifyCommentContent(data);
-		if (ix >= 0) {
-		    // Can we fix it?
-		    if (mFixContent) { // Yes we can! (...Bob the Builder...)
-			writeSegmentedComment(data, ix);
-			return;
-		    }
-		    // nope, let's err out
-		    throw new XMLStreamException(ErrorConsts.formatMessage(ErrorConsts.WERR_COMMENT_CONTENT, new Integer(ix)));
-		}
-	    }
+            /* No structural validation needed per se, for comments; they are
+             * allowed anywhere in XML content. However, content may need to
+             * be checked, to see it has no embedded '--'s.
+             */
+            if (mCheckContent) {
+                int ix = verifyCommentContent(data);
+                if (ix >= 0) {
+                    // Can we fix it?
+                    if (mFixContent) { // Yes we can! (...Bob the Builder...)
+                        writeSegmentedComment(data, ix);
+                        return;
+                    }
+                    // nope, let's err out
+                    throw new XMLStreamException(ErrorConsts.formatMessage(ErrorConsts.WERR_COMMENT_CONTENT, new Integer(ix)));
+                }
+            }
             mWriter.write("<!--");
             mWriter.write(data);
             mWriter.write("-->");
@@ -509,13 +542,21 @@ public abstract class BaseStreamWriter
         }
 
         // Structurally, need to check we are not in prolog/epilog.
-        if (mCheckStructure) {
+        if (mCheckStructure || mValidator != null) {
             if (inPrologOrEpilog()) {
                 throw new IllegalStateException("Trying to output an entity reference outside main element tree (in prolog or epilog)");
             }
         }
+        // 08-Dec-2005, TSa: validator-based validation?
+        if (mVldContent == XMLValidator.CONTENT_ALLOW_NONE) {
+            /* May be char entity, general entity; whatever it is it's
+             * invalid!
+             */
+            reportInvalidContent(ENTITY_REFERENCE);
+        }
+        
         if (mCheckNames) {
-	    verifyNameValidity(name, mNsAware);
+            verifyNameValidity(name, mNsAware);
         }
 
         try {
@@ -545,10 +586,15 @@ public abstract class BaseStreamWriter
             closeStartElement(mEmptyElement);
         }
 
+        // 08-Dec-2005, TSa: validator-based validation?
+        if (mVldContent == XMLValidator.CONTENT_ALLOW_NONE) {
+            reportInvalidContent(PROCESSING_INSTRUCTION);
+        }
+
         // Structurally, PIs are always ok. But content may need to be checked.
         if (mCheckNames) {
-	    // As per namespace specs, can not have colon(s)
-	    verifyNameValidity(target, mNsAware);
+            // As per namespace specs, can not have colon(s)
+            verifyNameValidity(target, mNsAware);
         }
         if (mCheckContent) {
             if (data != null && data.length() > 1) {
@@ -694,6 +740,15 @@ public abstract class BaseStreamWriter
         return mConfig.setProperty(name, value);
     }
 
+    public Location getLocation()
+    {
+        /* !!! 08-Dec-2005, TSa: Should implement a mode in which writer does
+         *   keep track of the output location. Would be useful when debugging
+         *   problems, especially regarding output validation problem.
+         */
+        return null;
+    }
+
     public void writeCData(char[] c, int start, int len)
         throws XMLStreamException
     {
@@ -705,18 +760,7 @@ public abstract class BaseStreamWriter
             writeCharacters(c, start, len);
             return;
         }
-
-        mAnyOutput = true;
-        if (mStartElementOpen) { // need to close start element?
-            closeStartElement(mEmptyElement);
-        }
-
-        // Not legal outside main element tree:
-        if (mCheckStructure) {
-            if (inPrologOrEpilog()) {
-                throw new IllegalStateException(ErrorConsts.WERR_PROLOG_CDATA);
-            }
-        }
+        verifyWriteCData();
 
         try {
             if (mCheckContent && c != null) {
@@ -1148,32 +1192,55 @@ public abstract class BaseStreamWriter
      */
     public static void verifyNameValidity(String name, boolean nsAware)
     {
-	/* No empty names... caller must have dealt with optional arguments
-	 * prior to calling this method
-	 */
-	if (name == null || name.length() == 0) {
-	    throwIllegalArg(ErrorConsts.WERR_NAME_EMPTY);
-	}
-	char c = name.charAt(0);
-
-	if (c == ':' && !nsAware) { // ok, but only in non-ns mode
-	    ;
-	} else {
-	    if (!WstxInputData.is11NameStartChar(c)) {		
-		throwIllegalArg(ErrorConsts.WERR_NAME_ILLEGAL_FIRST_CHAR,
-				WstxInputData.getCharDesc(c));
-	    }
-	}
-
-	for (int i = 1, len = name.length(); i < len; ++i) {
+        /* No empty names... caller must have dealt with optional arguments
+         * prior to calling this method
+         */
+        if (name == null || name.length() == 0) {
+            throwIllegalArg(ErrorConsts.WERR_NAME_EMPTY);
+        }
+        char c = name.charAt(0);
+        
+        if (c == ':' && !nsAware) { // ok, but only in non-ns mode
+            ;
+        } else {
+            if (!WstxInputData.is11NameStartChar(c)) {		
+                throwIllegalArg(ErrorConsts.WERR_NAME_ILLEGAL_FIRST_CHAR,
+                                WstxInputData.getCharDesc(c));
+            }
+        }
+        
+        for (int i = 1, len = name.length(); i < len; ++i) {
             c = name.charAt(i);
             if (c == ':' && !nsAware) {
                 ; // is ok, but has to be explicitly checked...
             } else if (!WstxInputData.is11NameChar(c)) {
-		throwIllegalArg(ErrorConsts.WERR_NAME_ILLEGAL_CHAR,
-				WstxInputData.getCharDesc(c));
-	    }
-	}
+                throwIllegalArg(ErrorConsts.WERR_NAME_ILLEGAL_CHAR,
+                                WstxInputData.getCharDesc(c));
+            }
+        }
+    }
+    
+    protected void verifyWriteCData()
+        throws XMLStreamException
+    {
+        mAnyOutput = true;
+        // Need to finish an open start element?
+        if (mStartElementOpen) {
+            closeStartElement(mEmptyElement);
+        }
+
+        // Not legal outside main element tree:
+        if (mCheckStructure || mValidator != null) {
+            if (inPrologOrEpilog()) {
+                throw new IllegalStateException(ErrorConsts.WERR_PROLOG_CDATA);
+            }
+        }
+
+        // 08-Dec-2005, TSa: validator-based validation?
+        if (mVldContent <= XMLValidator.CONTENT_ALLOW_WS) {
+            // there's no ignorable white space CDATA...
+            reportInvalidContent(CDATA);
+        }
     }
 
     protected void verifyWriteDTD()
@@ -1323,7 +1390,7 @@ public abstract class BaseStreamWriter
 
     /*
     ////////////////////////////////////////////////////
-    // Package methods, logging, exception handling
+    // Package methods, basic output problem reporting
     ////////////////////////////////////////////////////
      */
 
@@ -1358,4 +1425,123 @@ public abstract class BaseStreamWriter
         String msg = MessageFormat.format(format, new Object[] { arg });
         throw new IllegalArgumentException(msg);
     }
+
+    /*
+    ///////////////////////////////////////////////////////
+    // Package methods, output validation problem reporting
+    ///////////////////////////////////////////////////////
+     */
+
+    protected void reportInvalidContent(int evtType)
+        throws XMLStreamException
+    {
+        switch (mVldContent) {
+        case XMLValidator.CONTENT_ALLOW_NONE:
+            reportValidationProblem(ErrorConsts.ERR_VLD_EMPTY,
+                                    getTopElementDesc(),
+                                    ErrorConsts.tokenTypeDesc(evtType));
+            break;
+        case XMLValidator.CONTENT_ALLOW_WS:
+            reportValidationProblem(ErrorConsts.ERR_VLD_NON_MIXED,
+                                    getTopElementDesc());
+            break;
+        case XMLValidator.CONTENT_ALLOW_VALIDATABLE_TEXT:
+        case XMLValidator.CONTENT_ALLOW_ANY_TEXT:
+            /* Not 100% sure if this should ever happen... depends on
+             * interpretation of 'any' content model?
+             */
+            reportValidationProblem(ErrorConsts.ERR_VLD_ANY,
+                                    getTopElementDesc(),
+                                    ErrorConsts.tokenTypeDesc(evtType));
+            break;
+        default: // should never occur:
+            reportValidationProblem("Internal error: trying to report invalid content for "+evtType);
+        }
+    }
+
+    /**
+     *<p>
+     * Note: this is the base implementation used for implementing
+     * <code>ValidationContext</code>
+     */
+    public void reportValidationProblem(XMLValidationProblem prob)
+        throws XMLValidationException
+    {
+        // !!! TBI: Fail-fast vs. deferred modes
+
+        /* For now let's implement basic functionality: warnings get
+         * reported via XMLReporter, errors and fatal errors result in
+         * immediate exceptions.
+         */
+        if (prob.getSeverity() >= XMLValidationProblem.SEVERITY_ERROR) {
+            throw WstxValidationException.create(prob);
+        }
+        XMLReporter rep = mConfig.getProblemReporter();
+        if (rep != null) {
+            doReportProblem(rep, ErrorConsts.WT_VALIDATION, prob.getMessage(),
+                            prob.getLocation());
+        }
+    }
+
+    public void reportValidationProblem(String msg, Location loc, int severity)
+        throws XMLValidationException
+    {
+        reportValidationProblem(new XMLValidationProblem(loc, msg, severity));
+    }
+
+    public void reportValidationProblem(String msg, int severity)
+        throws XMLValidationException
+    {
+        reportValidationProblem(new XMLValidationProblem(getLocation(),
+                                                         msg, severity));
+    }
+
+    public void reportValidationProblem(String msg)
+        throws XMLValidationException
+    {
+        reportValidationProblem(new XMLValidationProblem(getLocation(),
+                                                         msg,
+                                                         XMLValidationProblem.SEVERITY_ERROR));
+    }
+
+    public void reportValidationProblem(Location loc, String msg)
+        throws XMLValidationException
+    {
+        reportValidationProblem(new XMLValidationProblem(getLocation(),
+                                                         msg));
+    }
+
+    public void reportValidationProblem(String format, Object arg)
+        throws XMLValidationException
+    {
+        String msg = MessageFormat.format(format, new Object[] { arg });
+        reportValidationProblem(new XMLValidationProblem(getLocation(),
+                                                         msg));
+    }
+
+    public void reportValidationProblem(String format, Object arg, Object arg2)
+        throws XMLValidationException
+    {
+        String msg = MessageFormat.format(format, new Object[] { arg, arg2 });
+        reportValidationProblem(new XMLValidationProblem(getLocation(),
+                                                         msg));
+    }
+
+    protected final void doReportProblem(XMLReporter rep, String probType,
+                                         String msg, Location loc)
+    {
+        if (rep != null) {
+            if (loc == null) {
+                loc = getLocation();
+            }
+            try {
+                rep.report(msg, probType, null, loc);
+            } catch (XMLStreamException e) {
+                // Hmmh. Weird that a reporter is allowed to do this...
+                System.err.println("Problem reporting a problem: "+e);
+            }
+        }
+    }
+
+    protected abstract String getTopElementDesc();
 }

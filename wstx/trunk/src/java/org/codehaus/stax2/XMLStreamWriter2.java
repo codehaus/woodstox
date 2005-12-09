@@ -1,5 +1,6 @@
 package org.codehaus.stax2;
 
+import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
@@ -47,6 +48,18 @@ public interface XMLStreamWriter2
      *   (or recognized) by the stream writer implementation
      */
     public boolean setProperty(String name, Object value);
+
+    /*
+    //////////////////////////////////////////
+    // Other accessors, mutators
+    //////////////////////////////////////////
+    */
+
+    /**
+     * Method that should return current output location, if the writer
+     * keeps track of it; null if it does not.
+     */
+    public Location getLocation();
 
     /*
     //////////////////////////////////////////

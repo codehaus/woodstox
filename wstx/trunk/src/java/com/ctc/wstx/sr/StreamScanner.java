@@ -449,7 +449,7 @@ public abstract class StreamScanner
 
     /**
      *<p>
-     * Note: this is the base implementation use for implementing
+     * Note: this is the base implementation used for implementing
      * <code>ValidationContext</code>
      */
     public void reportValidationProblem(XMLValidationProblem prob)

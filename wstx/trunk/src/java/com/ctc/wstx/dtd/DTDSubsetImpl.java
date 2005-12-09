@@ -238,7 +238,7 @@ public final class DTDSubsetImpl
     public XMLValidator createValidator(ValidationContext ctxt)
         throws XMLStreamException
     {
-        return new DTDValidator(ctxt, 
+        return new DTDValidator(this, ctxt, 
                                 getElementMap(), getGeneralEntityMap());
 
     }

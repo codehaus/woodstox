@@ -67,6 +67,12 @@ public class DTDValidator
     */
 
     /**
+     * DTD schema ({@link DTDSubsetImpl}) object that created this validator
+     * instance.
+     */
+    final DTDSubset mSchema;
+
+    /**
      * Validation context (owner) for this validator. Needed for adding
      * default attribute values, for example.
      */
@@ -201,9 +207,10 @@ public class DTDValidator
     ///////////////////////////////////////
     */
 
-    public DTDValidator(ValidationContext ctxt,
-                            Map elemSpecs, Map genEntities)
+    public DTDValidator(DTDSubset schema, ValidationContext ctxt,
+                        Map elemSpecs, Map genEntities)
     {
+        mSchema = schema;
         mContext = ctxt;
         mElemSpecs = (elemSpecs == null || elemSpecs.size() == 0) ?
             Collections.EMPTY_MAP : elemSpecs;
@@ -239,8 +246,8 @@ public class DTDValidator
     ///////////////////////////////////////
     */
 
-    public String getSchemaType() {
-        return XMLValidatorFactory.SCHEMA_ID_DTD;
+    public XMLValidationSchema getSchema() {
+        return mSchema;
     }
 
     /**

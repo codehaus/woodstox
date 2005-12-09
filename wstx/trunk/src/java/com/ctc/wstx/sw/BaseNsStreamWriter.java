@@ -528,6 +528,10 @@ public abstract class BaseNsStreamWriter
         }
     }
 
+    protected String getTopElementDesc() {
+        return mCurrElem.getNameDesc();
+    }
+
     /*
     ////////////////////////////////////////////////////
     // More abstract methods for sub-classes to implement

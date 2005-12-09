@@ -86,7 +86,19 @@ public abstract class XMLValidator
      *   {@link XMLValidatorFactory} (such as
      *   {@link XMLValidatorFactory#SCHEMA_ID_DTD}).
      */
-    public abstract String getSchemaType();
+    public String getSchemaType() {
+        XMLValidationSchema sch = getSchema();
+        return (sch == null) ? null : sch.getSchemaType();
+    }
+
+    /**
+     * Returns the schema instance that created this validator
+     * object, if known (and applicable). May return null for
+     * some instances: specifically, {@link XMLValidatorPair}
+     * will return null since it 'contains' multiple validators
+     * and generally does not have just one parent or owner schema.
+     */
+    public abstract XMLValidationSchema getSchema();
 
     /*
     ///////////////////////////////////////////////////
