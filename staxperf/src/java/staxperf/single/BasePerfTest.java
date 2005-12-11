@@ -37,7 +37,9 @@ abstract class BasePerfTest
             System.out.println("Factory instance: "+mFactory.getClass());
             mFactory.setProperty(XMLInputFactory.IS_COALESCING, Boolean.FALSE);
             //mFactory.setProperty(XMLInputFactory.IS_COALESCING, Boolean.TRUE);
-            mFactory.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.TRUE);
+
+            // Default is ns-aware, no need to re-set:
+            //mFactory.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.TRUE);
             //mFactory.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.FALSE);
             mFactory.setProperty(XMLInputFactory.IS_VALIDATING, Boolean.FALSE);
             System.out.print("  coalescing: "+mFactory.getProperty(XMLInputFactory.IS_COALESCING));
@@ -187,8 +189,15 @@ abstract class BasePerfTest
              */
             ++subtotal;
             if (now > nextTime) {
-                System.out.print((subtotal > 9) ? '+' :
-                                 (char) ('0' + subtotal));
+                char c;
+                if (subtotal > 35) {
+                    c = '+';
+                } else if (subtotal < 10) {
+                    c = (char) ('a' + (subtotal-10));
+                } else {
+                    c = (char) ('0' + subtotal);
+                }
+                System.out.print(c);
                 nextTime += SUB_PERIOD;
                 if (nextTime < now) {
                     nextTime = now;

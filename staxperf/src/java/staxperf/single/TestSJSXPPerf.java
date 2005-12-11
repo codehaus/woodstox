@@ -8,17 +8,18 @@ import javax.xml.stream.XMLStreamReader;
 
 //import com.ctc.wstx.api.WstxInputProperties;
 
-public class TestWstxPerf
+public class TestSJSXPPerf
     extends BasePerfTest
 {
-    protected TestWstxPerf() {
+    protected TestSJSXPPerf() {
         super();
     }
 
     protected XMLInputFactory getFactory()
     {
+
         System.setProperty("javax.xml.stream.XMLInputFactory",
-                           "com.ctc.wstx.stax.WstxInputFactory");
+                           "com.sun.xml.stream.ZephyrParserFactory");
         XMLInputFactory f =  XMLInputFactory.newInstance();
 
         // To test performance without lazy parsing, uncomment this:
@@ -42,6 +43,6 @@ public class TestWstxPerf
 
     public static void main(String[] args) throws Exception
     {
-        new TestWstxPerf().test(args);
+        new TestSJSXPPerf().test(args);
     }
 }
