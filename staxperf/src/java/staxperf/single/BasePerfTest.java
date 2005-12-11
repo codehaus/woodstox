@@ -192,7 +192,7 @@ abstract class BasePerfTest
                 char c;
                 if (subtotal > 35) {
                     c = '+';
-                } else if (subtotal < 10) {
+                } else if (subtotal > 9) {
                     c = (char) ('a' + (subtotal-10));
                 } else {
                     c = (char) ('0' + subtotal);

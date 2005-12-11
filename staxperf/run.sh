@@ -5,7 +5,7 @@
 
 java -Xmx32m -server\
  -cp lib/stax-api-1.0.jar:\
-lib/wstx.jar:\
+lib/wstx-1.0.jar:\
 lib/wstx-asl-2.5.jar:\
 lib/wstx-asl-2.8.1.jar:\
 lib/stax_ri.jar:\
