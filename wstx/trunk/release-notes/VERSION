@@ -21,6 +21,12 @@ Description:
   * [WSTX-24]: Predefined namespace with prefix 'xml' was not handled
     properly for elements, only for attributes.
 
+  Improvements:
+
+  * Improved performace of handling of elements that do not have any
+    attributes: results in up to 5% speed increase for documents that
+    are element-heavy but attribute poor.
+
 == History: ==
 
 2.8 [11-Oct-2005]

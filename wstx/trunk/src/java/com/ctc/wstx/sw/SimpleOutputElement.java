@@ -70,6 +70,11 @@ public final class SimpleOutputElement
      */
     final String mLocalName;
 
+    /**
+     * Namespace of the element, whatever {@link #mPrefix} maps to.
+     */
+    final String mURI;
+
     /*
     ////////////////////////////////////////////
     // Namespace binding/mapping information
@@ -113,7 +118,7 @@ public final class SimpleOutputElement
      * Map used to check for duplicate attribute declarations, if
      * feature is enabled.
      */
-    HashMap mAttr = null;
+    HashMap mAttrMap = null;
 
     /*
     ////////////////////////////////////////////
@@ -122,12 +127,13 @@ public final class SimpleOutputElement
      */
 
     private SimpleOutputElement(SimpleOutputElement parent,
-                                String prefix, String localName,
+                                String prefix, String localName, String uri,
                                 BijectiveNsMap ns)
     {
         mParent = parent;
         mPrefix = prefix;
         mLocalName = localName;
+        mURI = uri;
         mNsMapping = ns;
         mNsMapShared = (ns != null);
         if (parent == null) {
@@ -141,19 +147,43 @@ public final class SimpleOutputElement
     }
 
     public static SimpleOutputElement createRoot()
-     {
-        return new SimpleOutputElement(null, "", "", null);
+    {
+        return new SimpleOutputElement(null, "", "", "", null);
     }
 
-    public SimpleOutputElement createChild(String prefix, String localName)
+    /**
+     * Simplest factory method, which gets called when a 1-argument
+     * element output method is called. It is, then, assumed to
+     * use the default namespce.
+     */
+    public SimpleOutputElement createChild(String localName)
     {
-        SimpleOutputElement elem = new SimpleOutputElement(this, prefix, localName,
+        SimpleOutputElement elem = new SimpleOutputElement(this, "", localName,
+                                                           mDefaultNsURI,
                                                            mNsMapping);
         /* At this point we can also discard attribute Map; it is assumed
          * that when a child element has been opened, no more attributes
          * can be output.
          */
-        mAttr = null;
+        mAttrMap = null;
+        return elem;
+    }
+
+    /**
+     * Full factory method, used for 'normal' namespace qualified output
+     * methods.
+     */
+    public SimpleOutputElement createChild(String prefix, String localName,
+                                           String uri)
+    {
+        SimpleOutputElement elem = new SimpleOutputElement(this,
+                                                           prefix, localName, uri,
+                                                           mNsMapping);
+        /* At this point we can also discard attribute Map; it is assumed
+         * that when a child element has been opened, no more attributes
+         * can be output.
+         */
+        mAttrMap = null;
         return elem;
     }
 
@@ -210,6 +240,10 @@ public final class SimpleOutputElement
 
     public String getDefaultNsUri() {
         return mDefaultNsURI;
+    }
+
+    public QName getName() {
+        return new QName(mURI, mLocalName, mPrefix);
     }
 
     /**
@@ -323,11 +357,11 @@ public final class SimpleOutputElement
         throws XMLStreamException
     {
         AttrName an = new AttrName(nsURI, localName);
-        if (mAttr == null) {
-            mAttr = new HashMap();
-            mAttr.put(an, value);
+        if (mAttrMap == null) {
+            mAttrMap = new HashMap();
+            mAttrMap.put(an, value);
         } else {
-            Object old = mAttr.put(an, value);
+            Object old = mAttrMap.put(an, value);
             if (old != null) {
                 throw new XMLStreamException("Duplicate attribute write for attribute '"+an+"' (previous value '"+old+"', new value '"+value+"').");
             }

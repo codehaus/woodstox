@@ -80,6 +80,8 @@ public final class NonNsAttributeCollector
         if (attrCount < 1) {
             // Checked if doing access by FQN:
             mAttrHashSize = 0;
+            // And let's just bail out, too...
+            return;
         }
         String[] attrNames = mAttrNames.getInternalArray();
 
@@ -374,6 +376,12 @@ public final class NonNsAttributeCollector
     public int addDefaultAttribute(String localName, String value)
     {
         int attrIndex = mAttrCount;
+        if (attrIndex < 1) {
+            /* had no explicit attributes... better initialize now, then.
+             * Let's just use hash area of 4, and 
+             */
+            initHashArea();
+        }
 
         /* Ok, first, since we do want to verify that we can not accidentally
          * add duplicates, let's first try to add entry to Map, since that
@@ -468,5 +476,23 @@ public final class NonNsAttributeCollector
         }
         map[spillIndex] = hash;
         return map;
+    }
+
+    /**
+     * Method called to ensure hash area will be properly set up in
+     * cases where initially no room was needed, but default attribute(s)
+     * is being added.
+     */
+    private void initHashArea()
+    {
+        /* Let's use small hash area of size 4, and one spill; don't
+         * want too big (need to clear up room), nor too small (only
+         * collisions)
+         */
+        mAttrHashSize = 5;
+        if (mAttrMap == null || mAttrMap.length < mAttrHashSize) {
+            mAttrMap = new int[mAttrHashSize];
+        }
+        mAttrMap[0] =  mAttrMap[1] = mAttrMap[2] = mAttrMap[3] = 0;
     }
 }

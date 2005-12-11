@@ -1,6 +1,6 @@
 /* Woodstox XML processor
  *
- * Copyright (c) 2004 Tatu Saloranta, tatu.saloranta@iki.fi
+ * Copyright (c) 2004- Tatu Saloranta, tatu.saloranta@iki.fi
  *
  * Licensed under the License specified in the file LICENSE,
  * included with the source code.
@@ -263,11 +263,11 @@ public class RepairingNsStreamWriter
         // Need a prefix....
         String prefix = findElemPrefix(nsURI, mCurrElem);
         if (prefix != null) { // prefix ok, easy
-            mCurrElem = mCurrElem.createChild(prefix, localName);
+            mCurrElem = mCurrElem.createChild(prefix, localName, nsURI);
             doWriteStartElement(prefix, localName);
         } else { // no prefix, more work
             prefix = generateElemPrefix(null, nsURI, mCurrElem);
-            mCurrElem = mCurrElem.createChild(prefix, localName);
+            mCurrElem = mCurrElem.createChild(prefix, localName, nsURI);
             mCurrElem.setPrefix(prefix);
             doWriteStartElement(prefix, localName);
             if (prefix == null || prefix.length() == 0) { // def NS
@@ -288,11 +288,11 @@ public class RepairingNsStreamWriter
         // In repairing mode, better ensure validity:
         String actPrefix = validateElemPrefix(suggPrefix, nsURI, mCurrElem);
         if (actPrefix != null) { // fine, an existing binding we can use:
-            mCurrElem = mCurrElem.createChild(actPrefix, localName);
+            mCurrElem = mCurrElem.createChild(actPrefix, localName, nsURI);
             doWriteStartElement(actPrefix, localName);
         } else { // nah, need to create a new binding...
             actPrefix = generateElemPrefix(suggPrefix, nsURI, mCurrElem);
-            mCurrElem = mCurrElem.createChild(actPrefix, localName);
+            mCurrElem = mCurrElem.createChild(actPrefix, localName, nsURI);
             mCurrElem.setPrefix(actPrefix);
             doWriteStartElement(actPrefix, localName);
             if (actPrefix == null || actPrefix.length() == 0) { // def NS

@@ -28,6 +28,11 @@ public final class NsAttributeCollector
     protected final static String DEFAULT_NS_URI = "";
 
     /**
+     * Initial size for attribute NS URI buffer
+     */
+    protected final static int ATTR_URI_BUF_SIZE = 16;
+
+    /**
      * Expected typical maximum number of namespace declarations for any
      * elmement;
      * chosen to minimize need to resize, while trying not to waste space.
@@ -140,13 +145,16 @@ public final class NsAttributeCollector
 
         if (attrCount < 1) {
             // Checked if doing access by FQN:
-            mAttrHashSize = 0;
+            mAttrHashSize = mAttrSpillEnd = 0;
+            // And let's just bail out, too...
+            return;
         }
 
         // Need to have room for URIs:
         String[] attrURIs = mAttrURIs;
         if (attrURIs == null || attrURIs.length < attrCount) {
-            int size = (attrCount < 16) ? 16 : attrCount;
+            int size = (attrCount < ATTR_URI_BUF_SIZE) ? ATTR_URI_BUF_SIZE
+                : attrCount;
             mAttrURIs = attrURIs = new String[attrCount];
         }
         String[] attrNames = mAttrNames.getInternalArray();
@@ -189,21 +197,28 @@ public final class NsAttributeCollector
          */
         int[] map = mAttrMap;
 
-        /* What's minimum size, to contain at most 80% full hash area,
+        /* What's minimum size to contain at most 80% full hash area,
          * plus 1/8 spill area (12.5% spilled entries, two ints each)?
          */
         int hashCount = 4;
         {
             int min = attrCount + (attrCount >> 2); // == 80% fill rate
+            /* Need to hand 2^N size that can contain all elements, with
+             * 80% fill rate
+             */
             while (hashCount < min) {
                 hashCount += hashCount; // 2x
             }
-            // And then the spill area
+            // And then add the spill area
             mAttrHashSize = hashCount;
             min = hashCount + (hashCount >> 4); // 12.5 x 2 ints
             if (map == null || map.length < min) {
                 map = new int[min];
-            } else { // need to clear old hash entries:
+            } else {
+                /* Need to clear old hash entries (if any). But note that
+                 * spilled entries we can leave alone -- they are just ints,
+                 * and get overwritten if and as needed
+                 */
                 for (int i = 0; i < hashCount; ++i) {
                     map[i] = 0;
                 }
@@ -286,6 +301,10 @@ public final class NsAttributeCollector
         return mAttrURIs[index];
     }
 
+    /**
+     * Note: caller must check validity of the index prior to calling this
+     * method.
+     */
     public QName getQName(int index) {
         String prefix = getPrefix(index);
         if (prefix == null) { // QName barfs on null...
@@ -528,6 +547,12 @@ public final class NsAttributeCollector
                                    String value)
     {
         int attrIndex = mAttrCount;
+        if (attrIndex < 1) {
+            /* had no explicit attributes... better initialize now, then.
+             * Let's just use hash area of 4, and 
+             */
+            initHashArea();
+        }
 
         /* Ok, first, since we do want to verify that we can not accidentally
          * add duplicates, let's first try to add entry to Map, since that
@@ -556,7 +581,9 @@ public final class NsAttributeCollector
 
         // And then, finally, let's add the entry to Lists:
         mAttrNames.addStrings(prefix, localName);
-        if (mAttrCount >= mAttrURIs.length) {
+        if (mAttrURIs == null) {
+            mAttrURIs = new String[ATTR_URI_BUF_SIZE];
+        } else if (mAttrCount >= mAttrURIs.length) {
             mAttrURIs = DataUtil.growArrayBy(mAttrURIs, 8);
         }
         mAttrURIs[attrIndex] = uri;
@@ -639,5 +666,23 @@ public final class NsAttributeCollector
         }
         map[spillIndex] = hash;
         return map;
+    }
+
+    /**
+     * Method called to ensure hash area will be properly set up in
+     * cases where initially no room was needed, but default attribute(s)
+     * is being added.
+     */
+    private void initHashArea()
+    {
+        /* Let's use small hash area of size 4, and one spill; don't
+         * want too big (need to clear up room), nor too small (only
+         * collisions)
+         */
+        mAttrHashSize = 5;
+        if (mAttrMap == null || mAttrMap.length < mAttrHashSize) {
+            mAttrMap = new int[mAttrHashSize];
+        }
+        mAttrMap[0] =  mAttrMap[1] = mAttrMap[2] = mAttrMap[3] = 0;
     }
 }

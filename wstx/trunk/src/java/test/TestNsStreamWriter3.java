@@ -5,8 +5,10 @@ import java.io.*;
 import javax.xml.stream.*;
 
 import org.codehaus.stax2.XMLOutputFactory2;
+import org.codehaus.stax2.validation.*;
 
 import com.ctc.wstx.api.WstxOutputProperties;
+import com.ctc.wstx.sw.BaseStreamWriter;
 
 /**
  * Simple non-automated unit test for outputting namespace-aware XML
@@ -24,6 +26,11 @@ public class TestNsStreamWriter3
         return XMLOutputFactory.newInstance();
     }
 
+    final static String dtdStr =
+        "<!ELEMENT root (branch)>\n"
+        +"<!ELEMENT branch ANY>\n"
+        ;
+
     protected void test()
         throws Exception
     {
@@ -35,10 +42,17 @@ public class TestNsStreamWriter3
         Writer w = new PrintWriter(System.out);
         XMLStreamWriter sw = f.createXMLStreamWriter(w);
 
+        XMLValidatorFactory vd = XMLValidatorFactory.newInstance(XMLValidatorFactory.SCHEMA_ID_DTD);
+
+        XMLValidationSchema schema = vd.createSchema(new StringReader(dtdStr));
+
+        ((BaseStreamWriter) sw).setValidator(schema);
+
         sw.writeStartDocument();
         sw.writeStartElement("", "root", "");
         sw.writeAttribute("attr", "value");
         sw.writeAttribute("", "", "attr2", "value2");
+        sw.writeCharacters("Illegal text!");
         sw.writeStartElement("", "branch", "uri:some");
         sw.writeAttribute("", "", "foop", "value2");
         sw.writeStartElement("", "leaf", "");

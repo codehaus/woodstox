@@ -82,6 +82,7 @@
     <patternset id="wstx-dist-class-files">
         <include name="com/ctc/**/*.class" />
         <include name="META-INF/services/javax.xml.stream.*" />
+        <include name="META-INF/services/org.codehaus.stax2.*" />
     </patternset>
 
     <!-- StAX2 class files common to all license flavours: -->
@@ -212,7 +213,8 @@
         <mkdir dir="${BuildClassesDir}/META-INF/services" />
         <copy toDir="${BuildClassesDir}/META-INF/services">    		
             <fileset dir="${ResourcesDir}">
-                <include name="javax.xml.stream.XML*" />
+                <include name="javax.xml.stream.*" />
+                <include name="org.codehaus.stax2.*" />
             </fileset>           	
         </copy>
     </target>

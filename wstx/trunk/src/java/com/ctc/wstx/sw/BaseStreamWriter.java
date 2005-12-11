@@ -37,9 +37,11 @@ import org.codehaus.stax2.DTDInfo;
 import org.codehaus.stax2.EscapingWriterFactory;
 import org.codehaus.stax2.XMLStreamReader2;
 import org.codehaus.stax2.XMLStreamWriter2;
+import org.codehaus.stax2.validation.ValidationContext;
 import org.codehaus.stax2.validation.XMLValidator;
 import org.codehaus.stax2.validation.XMLValidationException;
 import org.codehaus.stax2.validation.XMLValidationProblem;
+import org.codehaus.stax2.validation.XMLValidationSchema;
 
 import com.ctc.wstx.api.WriterConfig;
 import com.ctc.wstx.api.WstxOutputProperties;
@@ -61,7 +63,7 @@ import com.ctc.wstx.util.StringUtil;
  * to any of stream writer implementations in general way.
  */
 public abstract class BaseStreamWriter
-    implements XMLStreamWriter2,
+    implements XMLStreamWriter2, ValidationContext,
                XMLStreamConstants, OutputConfigFlags
 {
     protected final static int STATE_PROLOG = 1;
@@ -195,6 +197,7 @@ public abstract class BaseStreamWriter
      * callbacks.
      */
     protected int mVldContent = XMLValidator.CONTENT_ALLOW_ANY_TEXT;
+    //protected int mVldContent = XMLValidator.CONTENT_ALLOW_WS;
 
     /*
     ////////////////////////////////////////////////////
@@ -1077,6 +1080,50 @@ public abstract class BaseStreamWriter
 
     /*
     ////////////////////////////////////////////////////
+    // ValidationContext interface (StAX2, validation)
+    ////////////////////////////////////////////////////
+     */
+
+    public abstract QName getCurrentElementName();
+
+    public abstract String getNamespaceURI(String prefix);
+
+    public Location getValidationLocation() {
+        return getLocation();
+    }
+
+    public void reportProblem(XMLValidationProblem prob)
+        throws XMLValidationException
+    {
+        // !!! TBI: Fail-fast vs. deferred modes
+
+        /* For now let's implement basic functionality: warnings get
+         * reported via XMLReporter, errors and fatal errors result in
+         * immediate exceptions.
+         */
+        if (prob.getSeverity() >= XMLValidationProblem.SEVERITY_ERROR) {
+            throw WstxValidationException.create(prob);
+        }
+        XMLReporter rep = mConfig.getProblemReporter();
+        if (rep != null) {
+            doReportProblem(rep, ErrorConsts.WT_VALIDATION, prob.getMessage(),
+                            prob.getLocation());
+        }
+    }
+
+    /**
+     * Adding default attribute values does not usually make sense on
+     * output side, so the implementation is a NOP for now.
+     */
+    public int addDefaultAttribute(String localName, String uri, String prefix,
+                                   String value)
+    {
+        // nothing to do, but to indicate we didn't add it...
+        return -1;
+    }
+
+    /*
+    ////////////////////////////////////////////////////
     // Package methods (ie not part of public API)
     ////////////////////////////////////////////////////
      */
@@ -1088,6 +1135,13 @@ public abstract class BaseStreamWriter
      */
     public Writer getWriter() {
         return mWriter;
+    }
+
+    // !!! TESTING: remove when done
+    public void setValidator(XMLValidationSchema schema)
+        throws XMLStreamException
+    {
+        mValidator = schema.createValidator(this);
     }
 
     /**
@@ -1459,55 +1513,31 @@ public abstract class BaseStreamWriter
         }
     }
 
-    /**
-     *<p>
-     * Note: this is the base implementation used for implementing
-     * <code>ValidationContext</code>
-     */
-    public void reportValidationProblem(XMLValidationProblem prob)
-        throws XMLValidationException
-    {
-        // !!! TBI: Fail-fast vs. deferred modes
-
-        /* For now let's implement basic functionality: warnings get
-         * reported via XMLReporter, errors and fatal errors result in
-         * immediate exceptions.
-         */
-        if (prob.getSeverity() >= XMLValidationProblem.SEVERITY_ERROR) {
-            throw WstxValidationException.create(prob);
-        }
-        XMLReporter rep = mConfig.getProblemReporter();
-        if (rep != null) {
-            doReportProblem(rep, ErrorConsts.WT_VALIDATION, prob.getMessage(),
-                            prob.getLocation());
-        }
-    }
-
     public void reportValidationProblem(String msg, Location loc, int severity)
         throws XMLValidationException
     {
-        reportValidationProblem(new XMLValidationProblem(loc, msg, severity));
+        reportProblem(new XMLValidationProblem(loc, msg, severity));
     }
 
     public void reportValidationProblem(String msg, int severity)
         throws XMLValidationException
     {
-        reportValidationProblem(new XMLValidationProblem(getLocation(),
-                                                         msg, severity));
+        reportProblem(new XMLValidationProblem(getValidationLocation(),
+                                               msg, severity));
     }
 
     public void reportValidationProblem(String msg)
         throws XMLValidationException
     {
-        reportValidationProblem(new XMLValidationProblem(getLocation(),
-                                                         msg,
-                                                         XMLValidationProblem.SEVERITY_ERROR));
+        reportProblem(new XMLValidationProblem(getValidationLocation(),
+                                               msg,
+                                               XMLValidationProblem.SEVERITY_ERROR));
     }
 
     public void reportValidationProblem(Location loc, String msg)
         throws XMLValidationException
     {
-        reportValidationProblem(new XMLValidationProblem(getLocation(),
+        reportProblem(new XMLValidationProblem(getValidationLocation(),
                                                          msg));
     }
 
@@ -1515,7 +1545,7 @@ public abstract class BaseStreamWriter
         throws XMLValidationException
     {
         String msg = MessageFormat.format(format, new Object[] { arg });
-        reportValidationProblem(new XMLValidationProblem(getLocation(),
+        reportProblem(new XMLValidationProblem(getValidationLocation(),
                                                          msg));
     }
 
@@ -1523,17 +1553,13 @@ public abstract class BaseStreamWriter
         throws XMLValidationException
     {
         String msg = MessageFormat.format(format, new Object[] { arg, arg2 });
-        reportValidationProblem(new XMLValidationProblem(getLocation(),
-                                                         msg));
+        reportProblem(new XMLValidationProblem(getValidationLocation(), msg));
     }
 
     protected final void doReportProblem(XMLReporter rep, String probType,
                                          String msg, Location loc)
     {
         if (rep != null) {
-            if (loc == null) {
-                loc = getLocation();
-            }
             try {
                 rep.report(msg, probType, null, loc);
             } catch (XMLStreamException e) {

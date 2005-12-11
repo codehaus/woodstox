@@ -246,6 +246,23 @@ public class NonNsStreamWriter
     
     /*
     ////////////////////////////////////////////////////
+    // Remaining ValidationContext methods (StAX2)
+    ////////////////////////////////////////////////////
+     */
+
+    public QName getCurrentElementName() {
+        if (mElements.isEmpty()) {
+            return null;
+        }
+        return new QName(mElements.getLastString());
+    }
+
+    public String getNamespaceURI(String prefix) {
+        return null;
+    }
+
+    /*
+    ////////////////////////////////////////////////////
     // Package methods:
     ////////////////////////////////////////////////////
      */

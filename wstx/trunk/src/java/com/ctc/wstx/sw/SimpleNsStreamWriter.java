@@ -240,7 +240,7 @@ public class SimpleNsStreamWriter
             throw new XMLStreamException("Unbound namespace URI '"+nsURI+"'");
         }
 
-        mCurrElem = mCurrElem.createChild(prefix, localName);
+        mCurrElem = mCurrElem.createChild(prefix, localName, nsURI);
         doWriteStartElement(prefix, localName);
     }
 
@@ -248,9 +248,8 @@ public class SimpleNsStreamWriter
         throws XMLStreamException
     {
         checkStartElement(localName);
-        mCurrElem = mCurrElem.createChild(prefix, localName);
+        mCurrElem = mCurrElem.createChild(prefix, localName, nsURI);
 
-        // 01-Apr-2005, TSa: Can we (and do we want to) verify NS consistency?
         doWriteStartElement(prefix, localName);
     }
 
@@ -272,7 +271,7 @@ public class SimpleNsStreamWriter
         
         if (nsCount > 0) { // yup, got some...
             /* First, need to (or at least, should?) add prefix bindings:
-             * (may not be 100% required, but probably good thing to do,
+             * (may not be 100% required, but probably a good thing to do,
              * just so that app code has access to prefixes then)
              */
             for (int i = 0; i < nsCount; ++i) {

@@ -216,7 +216,7 @@ public abstract class BaseNsStreamWriter
         checkStartElement(localName);
 
         mEmptyElement = true;
-        mCurrElem = mCurrElem.createChild("", localName);
+        mCurrElem = mCurrElem.createChild(localName);
         doWriteStartElement(null, localName);
 
     }
@@ -251,7 +251,7 @@ public abstract class BaseNsStreamWriter
         checkStartElement(localName);
 
         mEmptyElement = false;
-        mCurrElem = mCurrElem.createChild("", localName);
+        mCurrElem = mCurrElem.createChild(localName);
 
         doWriteStartElement(null, localName);
     }
@@ -284,6 +284,21 @@ public abstract class BaseNsStreamWriter
         throws XMLStreamException
     {
         doWriteEndElement(null, false);
+    }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Remaining ValidationContext methods (StAX2)
+    ////////////////////////////////////////////////////
+     */
+
+    public QName getCurrentElementName()
+    {
+        return mCurrElem.getName();
+    }
+
+    public String getNamespaceURI(String prefix) {
+        return mCurrElem.getNamespaceURI(prefix);
     }
 
     /*
