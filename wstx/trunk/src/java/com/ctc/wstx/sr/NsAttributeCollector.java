@@ -203,7 +203,7 @@ public final class NsAttributeCollector
         int hashCount = 4;
         {
             int min = attrCount + (attrCount >> 2); // == 80% fill rate
-            /* Need to hand 2^N size that can contain all elements, with
+            /* Need to get 2^N size that can contain all elements, with
              * 80% fill rate
              */
             while (hashCount < min) {

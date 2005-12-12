@@ -9,9 +9,8 @@ import wstxtest.BaseWstxTest;
 public class BaseStax2Test
     extends BaseWstxTest
 {
-    protected BaseStax2Test(String name) {
-        super(name);
-    }
+    protected BaseStax2Test() { super(); }
+    protected BaseStax2Test(String name) { super(name); }
 
     /*
     //////////////////////////////////////////////////

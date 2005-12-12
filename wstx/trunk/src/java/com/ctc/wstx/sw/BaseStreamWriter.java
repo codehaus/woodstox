@@ -562,6 +562,12 @@ public abstract class BaseStreamWriter
             verifyNameValidity(name, mNsAware);
         }
 
+        if (mValidator != null) {
+            /* !!! 11-Dec-2005, TSa: Should be able to use DTD based validators
+             *    to check if entity has been declared...
+             */
+        }
+
         try {
             mWriter.write('&');
             mWriter.write(name);
@@ -1137,7 +1143,7 @@ public abstract class BaseStreamWriter
         return mWriter;
     }
 
-    // !!! TESTING: remove when done
+    // !!! TESTING: remove when validation interfaces completed
     public void setValidator(XMLValidationSchema schema)
         throws XMLStreamException
     {

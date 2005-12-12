@@ -48,6 +48,9 @@ import com.ctc.wstx.util.StringVector;
 public class NonNsStreamWriter
     extends BaseStreamWriter
 {
+    protected final static String NO_NS_URI = "";
+    protected final static String NO_PREFIX = null;
+
     /*
     ////////////////////////////////////////////////////
     // Configuration (options, features)
@@ -133,7 +136,10 @@ public class NonNsStreamWriter
         if (mCheckNames) {
             verifyNameValidity(localName, false);
         }
-        if (mCheckAttr) {
+        if (mCheckAttr || mValidator != null) {
+            /* 11-Dec-2005, TSa: Should use a more efficient Set/Map value
+             *   for this in future.
+             */
             if (mAttrNames == null) {
                 mAttrNames = new TreeMap();
                 mAttrNames.put(localName, value);
@@ -143,6 +149,12 @@ public class NonNsStreamWriter
                     throw new IllegalArgumentException("Trying to write attribute '"+localName+"' twice (first value '"+old+"'; second '"+value+"').");
                 }
             }
+        }
+        if (mValidator != null) {
+            /* No need to get it normalized... even if validator does normalize
+             * it, we don't use that for anything
+             */
+            mValidator.validateAttribute(localName, NO_NS_URI, NO_PREFIX, value);
         }
         
         try {
@@ -298,9 +310,12 @@ public class NonNsStreamWriter
      * attribute) is being output; except for end element which is
      * handled differently.
      */
-    public void closeStartElement(boolean emptyElem)
+    protected void closeStartElement(boolean emptyElem)
         throws XMLStreamException
     {
+        if (mValidator != null) {
+            mVldContent = mValidator.validateElementAndAttributes();
+        }
         mStartElementOpen = false;
         if (mAttrNames != null) {
             mAttrNames.clear();
@@ -418,10 +433,15 @@ public class NonNsStreamWriter
 
         if (mState == STATE_PROLOG) {
             mState = STATE_TREE;
-        } else if (mCheckStructure && mState == STATE_EPILOG) {
+        } else if ((mCheckStructure || mValidator != null)
+                   && mState == STATE_EPILOG) {
             throw new IllegalStateException("Trying to output second root ('"
                                             +localName+"').");
         }
+
+        if (mValidator != null) {
+            mValidator.validateElementStart(localName, NO_NS_URI, NO_PREFIX);
+        }       
 
         mStartElementOpen = true;
         mElements.addString(localName);
@@ -471,11 +491,26 @@ public class NonNsStreamWriter
              */
             throw new IllegalArgumentException("Mismatching close element name, '"+localName+"'; expected '"+expName+"'.");
         }
+
+        /* And this seems like the place to handle validation, right before
+         * outputting it:
+         */
+        if (mValidator != null) {
+            mVldContent = mValidator.validateElementEnd(localName, NO_NS_URI, NO_PREFIX);
+        }
+
+        // Got a half output start element to close?
         if (mStartElementOpen) {
             /* Can't/shouldn't call closeStartElement, but need to do same
              * processing. Thus, this is almost identical to closeStartElement:
              */
+            if (mValidator != null) {
+                mVldContent = mValidator.validateElementAndAttributes();
+            }
             mStartElementOpen = false;
+            if (mAttrNames != null) {
+                mAttrNames.clear();
+            }
             try {
                 // We could write an empty element, implicitly?
                 if (allowEmpty) {

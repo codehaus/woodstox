@@ -5,8 +5,10 @@ import java.io.*;
 import javax.xml.stream.*;
 
 import org.codehaus.stax2.XMLOutputFactory2;
+import org.codehaus.stax2.validation.*;
 
 import com.ctc.wstx.api.WstxOutputProperties;
+import com.ctc.wstx.sw.BaseStreamWriter;
 
 /**
  * Simple non-automated unit test for outputting non-namespace-aware XML
@@ -34,6 +36,20 @@ public class TestNonNsStreamWriter
                       Boolean.TRUE);
         Writer w = new PrintWriter(System.out);
         XMLStreamWriter sw = f.createXMLStreamWriter(w);
+
+        final String dtdStr =
+            "<!ELEMENT root (elem, elem3)>\n"
+            +"<!ATTLIST root attr CDATA #IMPLIED>\n"
+            +"<!ATTLIST root another CDATA #IMPLIED>\n"
+            +"<!ELEMENT elem ANY>\n"
+            +"<!ELEMENT elem3 ANY>\n"
+            ;
+
+        XMLValidatorFactory vd = XMLValidatorFactory.newInstance(XMLValidatorFactory.SCHEMA_ID_DTD);
+
+        XMLValidationSchema schema = vd.createSchema(new StringReader(dtdStr));
+
+        ((BaseStreamWriter) sw).setValidator(schema);
 
         sw.writeStartDocument();
         sw.writeComment("Comment!");
