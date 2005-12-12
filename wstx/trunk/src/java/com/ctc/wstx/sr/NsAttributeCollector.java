@@ -679,9 +679,9 @@ public final class NsAttributeCollector
          * want too big (need to clear up room), nor too small (only
          * collisions)
          */
-        mAttrHashSize = 5;
+        mAttrHashSize = 4;
         if (mAttrMap == null || mAttrMap.length < mAttrHashSize) {
-            mAttrMap = new int[mAttrHashSize];
+            mAttrMap = new int[mAttrHashSize+1];
         }
         mAttrMap[0] =  mAttrMap[1] = mAttrMap[2] = mAttrMap[3] = 0;
     }

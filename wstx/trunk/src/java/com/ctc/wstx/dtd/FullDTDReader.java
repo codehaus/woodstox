@@ -1905,16 +1905,16 @@ public class FullDTDReader
                     keyw = readDTDKeyword(null);
                 }
                 throwParseError("Unrecognized DTD content spec keyword '"
-                                +keyw+"'; expected ANY or EMPTY");
+                                +keyw+"' (for element <"+elemName+">); expected ANY or EMPTY");
              } while (false);
         } else {
-            throwDTDUnexpectedChar(c, ": excepted '(' to start content specification");
+            throwDTDUnexpectedChar(c, ": excepted '(' to start content specification for element <"+elemName+">");
         }
 
         // Ok, still need the trailing gt-char to close the declaration:
         c = skipDtdWs();
         if (c != '>') {
-            throwDTDUnexpectedChar(c, "; expected '>' to finish the ENTITY declaration");
+            throwDTDUnexpectedChar(c, "; expected '>' to finish the element declaration for <"+elemName+">");
         }
 
         HashMap m = getElementMap();
