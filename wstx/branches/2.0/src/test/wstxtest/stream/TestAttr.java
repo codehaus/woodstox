@@ -90,6 +90,119 @@ public class TestAttr
         }
     }
 
+    final static String NESTED_XML =
+        "<?xml version='1.0'?>"
+        +"<!DOCTYPE root [\n"
+        +"<!ELEMENT root (branch | leaf)+>\n"
+        +"<!ELEMENT branch (#PCDATA | branch | leaf)*>\n"
+        +"<!ELEMENT leaf (#PCDATA)>\n"
+        +"<!ATTLIST root a CDATA 'rootValue'>\n"
+        +"<!ATTLIST root a:b CDATA 'xyz'>\n"
+        +"<!ATTLIST root foo CDATA #IMPLIED>\n"
+        +"<!ATTLIST root xyz CDATA #IMPLIED>\n"
+        +"<!ATTLIST branch a CDATA 'branchValue'>\n"
+        +"<!ATTLIST branch a:b CDATA 'xyz'>\n"
+        +"<!ATTLIST branch foo CDATA #IMPLIED>\n"
+        +"<!ATTLIST branch xyz CDATA #IMPLIED>\n"
+        +"<!ATTLIST branch c CDATA #IMPLIED>\n"
+        +"<!ATTLIST branch f CDATA #IMPLIED>\n"
+        +"<!ATTLIST leaf l CDATA 'leafValue'>\n"
+        +"<!ATTLIST leaf a:b CDATA '123'>\n"
+        +"<!ATTLIST leaf foo CDATA #IMPLIED>\n"
+        +"<!ATTLIST leaf xyz CDATA #IMPLIED>\n"
+        +"<!ATTLIST leaf a2 CDATA #IMPLIED>\n"
+        +"<!ATTLIST leaf b7 CDATA #IMPLIED>\n"
+        +"]>"
+        +"<root xmlns:a='ns' xyz='123'>"
+        +"<branch a:b='ab'>"
+        +"<branch a='value' xyz='456' c='1' f=''>"
+        +"<leaf />"
+        +"</branch>"
+        +"</branch>"
+        +"</root>"
+            ;
+
+    /**
+     * Test that verifies that the counts of attributes, values etc.
+     * are consistent within nested elements, and in the presence/absence
+     * of DTD default attributes. This is tested since attribute collectors
+     * are highly specialized for performance, and small problems might
+     * not manifest with simpler tests.
+     *<p>
+     * Note: one more implicit assumption tested: not only is the ordering
+     * of explicit attributes fixed, but so is that of defaulted attributes.
+     * Latter always come after explicit ones, and in the same order as
+     * they were declared in DTD.
+     */
+    public void testNestedAttrsNs()
+        throws Exception
+    {
+        XMLStreamReader sr = getValidatingReader(NESTED_XML, true);
+        assertTokenType(DTD, sr.next());
+
+        // root elem:
+        assertTokenType(START_ELEMENT, sr.next());
+        assertEquals(3, sr.getAttributeCount());
+        assertEquals("123", sr.getAttributeValue(0)); // explicit
+        assertEquals("rootValue", sr.getAttributeValue(1)); // default
+        assertEquals("xyz", sr.getAttributeValue(2)); // default
+
+        // 1st branch:
+        assertTokenType(START_ELEMENT, sr.next());
+        assertEquals(2, sr.getAttributeCount());
+        assertEquals("a", sr.getAttributePrefix(0));
+        assertEquals("b", sr.getAttributeLocalName(0));
+        assertEquals("ns", sr.getAttributeNamespace(0));
+        assertEquals("ab", sr.getAttributeValue(0)); // explicit
+        assertEquals("branchValue", sr.getAttributeValue(1)); // default
+
+        // and how about what should NOT be found?
+        assertNull(sr.getAttributeValue(null, "xyz"));
+
+        // 2nd branch:
+        assertTokenType(START_ELEMENT, sr.next());
+        assertEquals(5, sr.getAttributeCount());
+        assertEquals("a", sr.getAttributeLocalName(0));
+        assertEquals("value", sr.getAttributeValue(0)); // explicit
+        assertEquals("xyz", sr.getAttributeLocalName(1));
+        assertEquals("456", sr.getAttributeValue(1)); // explicit
+        assertEquals("c", sr.getAttributeLocalName(2));
+        assertEquals("1", sr.getAttributeValue(2)); // explicit
+        assertEquals("f", sr.getAttributeLocalName(3));
+        assertEquals("", sr.getAttributeValue(3)); // explicit
+        assertEquals("a", sr.getAttributePrefix(4));
+        assertEquals("ns", sr.getAttributeNamespace(4));
+        assertEquals("b", sr.getAttributeLocalName(4));
+        assertEquals("xyz", sr.getAttributeValue(4)); // default
+
+        // 1st leaf:
+        assertTokenType(START_ELEMENT, sr.next());
+        assertEquals(2, sr.getAttributeCount());
+        assertEquals("leafValue", sr.getAttributeValue(0)); // default
+        assertEquals("123", sr.getAttributeValue(1)); // default
+
+        // and how about what should not be found?
+        assertNull(sr.getAttributeValue(null, "foo"));
+        assertNull(sr.getAttributeValue(null, "a"));
+        assertNull(sr.getAttributeValue(null, "c"));
+        assertNull(sr.getAttributeValue(null, "f"));
+        assertNull(sr.getAttributeValue(null, "xyz"));
+
+        // close leaf
+        assertTokenType(END_ELEMENT, sr.next());
+
+        // close 2nd branch
+        assertTokenType(END_ELEMENT, sr.next());
+
+        // close 1st branch
+        assertTokenType(END_ELEMENT, sr.next());
+
+        // close root
+        assertTokenType(END_ELEMENT, sr.next());
+
+        assertTokenType(END_DOCUMENT, sr.next());
+    }
+
     /*
     //////////////////////////////////////////////////////
     // Internal methods
