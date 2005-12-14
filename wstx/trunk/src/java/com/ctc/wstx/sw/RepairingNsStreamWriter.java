@@ -263,10 +263,16 @@ public class RepairingNsStreamWriter
         // Need a prefix....
         String prefix = findElemPrefix(nsURI, mCurrElem);
         if (prefix != null) { // prefix ok, easy
+            if (mValidator != null) {
+                mValidator.validateElementStart(localName, nsURI, prefix);
+            }
             mCurrElem = mCurrElem.createChild(prefix, localName, nsURI);
             doWriteStartElement(prefix, localName);
         } else { // no prefix, more work
             prefix = generateElemPrefix(null, nsURI, mCurrElem);
+            if (mValidator != null) {
+                mValidator.validateElementStart(localName, nsURI, prefix);
+            }
             mCurrElem = mCurrElem.createChild(prefix, localName, nsURI);
             mCurrElem.setPrefix(prefix);
             doWriteStartElement(prefix, localName);
@@ -288,10 +294,16 @@ public class RepairingNsStreamWriter
         // In repairing mode, better ensure validity:
         String actPrefix = validateElemPrefix(suggPrefix, nsURI, mCurrElem);
         if (actPrefix != null) { // fine, an existing binding we can use:
+            if (mValidator != null) {
+                mValidator.validateElementStart(localName, nsURI, actPrefix);
+            }
             mCurrElem = mCurrElem.createChild(actPrefix, localName, nsURI);
             doWriteStartElement(actPrefix, localName);
         } else { // nah, need to create a new binding...
             actPrefix = generateElemPrefix(suggPrefix, nsURI, mCurrElem);
+            if (mValidator != null) {
+                mValidator.validateElementStart(localName, nsURI, actPrefix);
+            }
             mCurrElem = mCurrElem.createChild(actPrefix, localName, nsURI);
             mCurrElem.setPrefix(actPrefix);
             doWriteStartElement(actPrefix, localName);

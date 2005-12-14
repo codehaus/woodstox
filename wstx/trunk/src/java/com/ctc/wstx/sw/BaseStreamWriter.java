@@ -79,6 +79,9 @@ public abstract class BaseStreamWriter
      */
     protected final static String DEFAULT_ENCODING = "UTF-8";
 
+    protected final static String NO_NS_URI = "";
+    protected final static String NO_PREFIX = null;
+
     /*
     ////////////////////////////////////////////////////
     // Output objects
@@ -341,7 +344,19 @@ public abstract class BaseStreamWriter
             return;
         }
         verifyWriteCData();
+        if (mVldContent == XMLValidator.CONTENT_ALLOW_VALIDATABLE_TEXT
+            && mValidator != null) {
+            /* Last arg is false, since we do not know if more text
+             * may be added with additional calls
+             */
+            mValidator.validateText(data, false);
+        }
 
+        mAnyOutput = true;
+        // Need to finish an open start element?
+        if (mStartElementOpen) {
+            closeStartElement(mEmptyElement);
+        }
         try {
             if (mCheckContent) {
                 int ix = verifyCDataContent(data);
@@ -380,6 +395,13 @@ public abstract class BaseStreamWriter
                     throw new IllegalStateException(ErrorConsts.WERR_PROLOG_NONWS_TEXT);
                 }
             }
+        }
+        if (mVldContent == XMLValidator.CONTENT_ALLOW_VALIDATABLE_TEXT
+            && mValidator != null) {
+            /* Last arg is false, since we do not know if more text
+             * may be added with additional calls
+             */
+            mValidator.validateText(text, start, len, false);
         }
 
         mAnyOutput = true;
@@ -422,6 +444,13 @@ public abstract class BaseStreamWriter
                     throw new IllegalStateException(ErrorConsts.WERR_PROLOG_NONWS_TEXT);
                 }
             }
+        }
+        if (mVldContent == XMLValidator.CONTENT_ALLOW_VALIDATABLE_TEXT
+            && mValidator != null) {
+            /* Last arg is false, since we do not know if more text
+             * may be added with additional calls
+             */
+            mValidator.validateText(text, false);
         }
 
         mAnyOutput = true;
@@ -770,7 +799,19 @@ public abstract class BaseStreamWriter
             return;
         }
         verifyWriteCData();
+        if (mVldContent == XMLValidator.CONTENT_ALLOW_VALIDATABLE_TEXT
+            && mValidator != null) {
+            /* Last arg is false, since we do not know if more text
+             * may be added with additional calls
+             */
+            mValidator.validateText(c, start, len, false);
+        }
 
+        mAnyOutput = true;
+        // Need to finish an open start element?
+        if (mStartElementOpen) {
+            closeStartElement(mEmptyElement);
+        }
         try {
             if (mCheckContent && c != null) {
                 int ix = verifyCDataContent(c, start, len);
@@ -1283,19 +1324,12 @@ public abstract class BaseStreamWriter
     protected void verifyWriteCData()
         throws XMLStreamException
     {
-        mAnyOutput = true;
-        // Need to finish an open start element?
-        if (mStartElementOpen) {
-            closeStartElement(mEmptyElement);
-        }
-
         // Not legal outside main element tree:
         if (mCheckStructure || mValidator != null) {
             if (inPrologOrEpilog()) {
                 throw new IllegalStateException(ErrorConsts.WERR_PROLOG_CDATA);
             }
         }
-
         // 08-Dec-2005, TSa: validator-based validation?
         if (mVldContent <= XMLValidator.CONTENT_ALLOW_WS) {
             // there's no ignorable white space CDATA...

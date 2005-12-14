@@ -109,6 +109,21 @@ public class XMLValidatorPair
         return (textType1 < textType2) ? textType1 : textType2;
     }
 
+    public void validateText(String text, boolean lastTextSegment)
+        throws XMLValidationException
+    {
+        mFirst.validateText(text, lastTextSegment);
+        mSecond.validateText(text, lastTextSegment);
+    }
+
+    public void validateText(char[] cbuf, int textStart, int textEnd,
+                             boolean lastTextSegment)
+        throws XMLValidationException
+    {
+        mFirst.validateText(cbuf, textStart, textEnd, lastTextSegment);
+        mSecond.validateText(cbuf, textStart, textEnd, lastTextSegment);
+    }
+
     public String getAttributeType(int index)
     {
         String type = mFirst.getAttributeType(index);

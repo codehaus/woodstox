@@ -1,6 +1,6 @@
 /* Woodstox XML processor
  *
- * Copyright (c) 2004 Tatu Saloranta, tatu.saloranta@iki.fi
+ * Copyright (c) 2004- Tatu Saloranta, tatu.saloranta@iki.fi
  *
  * Licensed under the License specified in the file LICENSE,
  * included with the source code.
@@ -239,6 +239,9 @@ public class SimpleNsStreamWriter
         if (prefix == null) {
             throw new XMLStreamException("Unbound namespace URI '"+nsURI+"'");
         }
+        if (mValidator != null) {
+            mValidator.validateElementStart(localName, nsURI, prefix);
+        }
 
         mCurrElem = mCurrElem.createChild(prefix, localName, nsURI);
         doWriteStartElement(prefix, localName);
@@ -248,8 +251,11 @@ public class SimpleNsStreamWriter
         throws XMLStreamException
     {
         checkStartElement(localName);
-        mCurrElem = mCurrElem.createChild(prefix, localName, nsURI);
+        if (mValidator != null) {
+            mValidator.validateElementStart(localName, nsURI, prefix);
+        }
 
+        mCurrElem = mCurrElem.createChild(prefix, localName, nsURI);
         doWriteStartElement(prefix, localName);
     }
 

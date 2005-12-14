@@ -519,6 +519,28 @@ public class DTDValidator
         return mElems[ix-1].getAllowedContent();
     }
 
+    public void validateText(String text, boolean lastTextSegment)
+        throws XMLValidationException
+    {
+        /* This method is a NOP, since basic DTD has no mechanism for
+         * validating textual content.
+         */
+    }
+
+    public void validateText(char[] cbuf, int textStart, int textEnd,
+                             boolean lastTextSegment)
+        throws XMLValidationException
+    {
+        /* This method is a NOP, since basic DTD has no mechanism for
+         * validating textual content.
+         */
+    }
+
+    /*
+    ///////////////////////////////////////
+    // Attribute info access
+    ///////////////////////////////////////
+    */
 
     // // // Access to type info
 

@@ -175,6 +175,52 @@ public abstract class XMLValidator
                                            String prefix)
         throws XMLValidationException;
 
+    /**
+     * Method called to validate textual content.
+     *<p>
+     * Note: this method is only guaranteed to be called when
+     * {@link #validateElementAndAttributes()} for the currently open
+     * element returned {@link #CONTENT_ALLOW_VALIDATABLE_TEXT} (or,
+     * in case of mixed content, {@link #validateElementEnd()}, for the
+     * last enclosed element). Otherwise, validator context may choose
+     * not to call the method as an optimization.
+     *
+     * @param text Text content to validate
+     * @param lastTextSegment Whether this text content is the last text
+     *    segment before a close element; true if it is, false if it is not,
+     *    or no determination can be made. Can be used for optimizing
+     *    validation -- if this is true, no text needs to be buffered since
+     *    no more will be sent before the current element closes.
+     */
+    public abstract void validateText(String text, boolean lastTextSegment)
+        throws XMLValidationException;
+
+    /**
+     * Method called to validate textual content.
+     *<p>
+     * Note: this method is only guaranteed to be called when
+     * {@link #validateElementAndAttributes()} for the currently open
+     * element returned {@link #CONTENT_ALLOW_VALIDATABLE_TEXT} (or,
+     * in case of mixed content, {@link #validateElementEnd()}, for the
+     * last enclosed element). Otherwise, validator context may choose
+     * not to call the method as an optimization.
+     *
+     * @param cbuf Character array that contains text content to validate
+     * @param textStart Index of the first character of the content to
+     *   validate
+     * @param textEnd Character following the last character of the
+     *   content to validate (that is, length of content to validate is
+     *   <code>textEnd - textStart</code>).
+     * @param lastTextSegment Whether this text content is the last text
+     *    segment before a close element; true if it is, false if it is not,
+     *    or no determination can be made. Can be used for optimizing
+     *    validation -- if this is true, no text needs to be buffered since
+     *    no more will be sent before the current element closes.
+     */
+    public abstract void validateText(char[] cbuf, int textStart, int textEnd,
+                                      boolean lastTextSegment)
+        throws XMLValidationException;
+
 
     /*
     ///////////////////////////////////////////////////

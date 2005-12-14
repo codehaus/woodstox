@@ -214,10 +214,12 @@ public abstract class BaseNsStreamWriter
         throws XMLStreamException
     {
         checkStartElement(localName);
-
+        if (mValidator != null) {
+            mValidator.validateElementStart(localName, NO_NS_URI, NO_PREFIX);
+        }
         mEmptyElement = true;
         mCurrElem = mCurrElem.createChild(localName);
-        doWriteStartElement(null, localName);
+        doWriteStartElement(NO_PREFIX, localName);
 
     }
 
@@ -249,11 +251,13 @@ public abstract class BaseNsStreamWriter
         throws XMLStreamException
     {
         checkStartElement(localName);
-
+        if (mValidator != null) {
+            mValidator.validateElementStart(localName, NO_NS_URI, NO_PREFIX);
+        }
         mEmptyElement = false;
         mCurrElem = mCurrElem.createChild(localName);
 
-        doWriteStartElement(null, localName);
+        doWriteStartElement(NO_PREFIX, localName);
     }
 
     public void writeStartElement(String nsURI, String localName)
@@ -302,9 +306,9 @@ public abstract class BaseNsStreamWriter
     }
 
     /*
-    /////////////////////////////////////////////////////////
-    // Implementations for base-class defined abstract method
-    /////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////
+    // Implementations for base-class defined abstract methods
+    //////////////////////////////////////////////////////////
      */
 
     /**
@@ -354,6 +358,10 @@ public abstract class BaseNsStreamWriter
         }
     }
 
+    protected String getTopElementDesc() {
+        return mCurrElem.getNameDesc();
+    }
+
     /*
     ////////////////////////////////////////////////////
     // Package methods sub-classes may also need
@@ -392,10 +400,16 @@ public abstract class BaseNsStreamWriter
         if (mCheckNames) {
             verifyNameValidity(localName, true);
         }
-        if (mCheckAttr) { // still need to ensure no duplicate attrs?
+        if (mCheckAttr || mValidator != null) { // still need to ensure no duplicate attrs?
             mCurrElem.checkAttrWrite(nsURI, localName, value);
         }
 
+        if (mValidator != null) {
+            /* No need to get it normalized... even if validator does normalize
+             * it, we don't use that for anything
+             */
+            mValidator.validateAttribute(localName, nsURI, prefix, value);
+        }
         try {
             if (mAttrValueWriter == null) {
                 mAttrValueWriter = constructAttributeValueWriter();
@@ -429,6 +443,29 @@ public abstract class BaseNsStreamWriter
                 mWriter.write(nsURI);
             }
             mWriter.write('"');
+        } catch (IOException ioe) {
+            throw new XMLStreamException(ioe);
+        }
+    }
+
+    protected void doWriteStartElement(String prefix, String localName)
+        throws XMLStreamException
+    {
+        if (mCheckNames) {
+            if (prefix != null && prefix.length() > 0) {
+                verifyNameValidity(prefix, true);
+            }
+            verifyNameValidity(localName, true);
+        }
+        mAnyOutput = true;
+        mStartElementOpen = true;
+        try {
+            mWriter.write('<');
+            if (prefix != null && prefix.length() > 0) {
+                mWriter.write(prefix);
+                mWriter.write(':');
+            }
+            mWriter.write(localName);
         } catch (IOException ioe) {
             throw new XMLStreamException(ioe);
         }
@@ -475,6 +512,13 @@ public abstract class BaseNsStreamWriter
             }
         }
 
+        /* And this seems like the place to handle validation, right before
+         * outputting it:
+         */
+        if (mValidator != null) {
+            mVldContent = mValidator.validateElementEnd(localName, mCurrElem.getNamespaceURI(), prefix);
+        }
+
         /* Now, do we have an unfinished start element (created via
          * writeStartElement() earlier)?
          */
@@ -516,35 +560,6 @@ public abstract class BaseNsStreamWriter
         if (mCurrElem.isRoot()) {
             mState = STATE_EPILOG;
         }
-    }
-
-    protected void doWriteStartElement(String prefix, String localName)
-        throws XMLStreamException
-    {
-        mAnyOutput = true;
-        mStartElementOpen = true;
-
-        if (mCheckNames) {
-            if (prefix != null && prefix.length() > 0) {
-                verifyNameValidity(prefix, true);
-            }
-            verifyNameValidity(localName, true);
-        }
-
-        try {
-            mWriter.write('<');
-            if (prefix != null && prefix.length() > 0) {
-                mWriter.write(prefix);
-                mWriter.write(':');
-            }
-            mWriter.write(localName);
-        } catch (IOException ioe) {
-            throw new XMLStreamException(ioe);
-        }
-    }
-
-    protected String getTopElementDesc() {
-        return mCurrElem.getNameDesc();
     }
 
     /*

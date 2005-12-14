@@ -48,9 +48,6 @@ import com.ctc.wstx.util.StringVector;
 public class NonNsStreamWriter
     extends BaseStreamWriter
 {
-    protected final static String NO_NS_URI = "";
-    protected final static String NO_PREFIX = null;
-
     /*
     ////////////////////////////////////////////////////
     // Configuration (options, features)

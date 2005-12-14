@@ -238,6 +238,10 @@ public final class SimpleOutputElement
         return mLocalName;
     }
 
+    public String getNamespaceURI() {
+        return mURI;
+    }
+
     public String getDefaultNsUri() {
         return mDefaultNsURI;
     }
@@ -358,6 +362,10 @@ public final class SimpleOutputElement
     {
         AttrName an = new AttrName(nsURI, localName);
         if (mAttrMap == null) {
+            /* 13-Dec-2005, TSa: Should use a more efficient Set/Map value
+             *   for this in future -- specifically one that could use
+             *   ns/local-name pairs without intermediate objects
+             */
             mAttrMap = new HashMap();
             mAttrMap.put(an, value);
         } else {
