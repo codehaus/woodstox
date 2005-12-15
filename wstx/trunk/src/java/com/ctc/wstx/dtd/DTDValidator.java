@@ -402,7 +402,7 @@ public class DTDValidator
             if (!match) {
                 String act = (result == null) ? 
                     new String(valueChars, valueStart, valueEnd) : result;
-                reportValidationProblem("Value of attribute \""+attr+"\" (element <"+mCurrElem+">) not \""+exp+"\" as expected, but \""+act+"\"");
+                reportValidationProblem("Value of #FIXED attribute \""+attr+"\" (element <"+mCurrElem+">) not \""+exp+"\" as expected, but \""+act+"\"");
             }
         }
         return result;

@@ -152,7 +152,9 @@ public class DTDAttribute
     }
 
     public static boolean isSpecial(int defValueType) {
-        return (defValueType == DEF_DEFAULT) || (defValueType == DEF_REQUIRED);
+        return (defValueType == DEF_DEFAULT)
+            || (defValueType == DEF_FIXED)
+            || (defValueType == DEF_REQUIRED);
     }
 
     public final boolean isRequired() {

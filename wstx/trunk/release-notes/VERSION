@@ -1,6 +1,6 @@
 Version: 2.8.1
 
-Release date: xx-Oct-2005
+Release date: xx-Dec-2005
 
 Description:
   Continuing development for 3.0 release; added all remaining features
@@ -14,12 +14,6 @@ Description:
     interfaces; some minor problems fixed.
 
   Problems fixed:
-
-  * [WSTX-19]: Unnecessary default namespace declarations were written
-    by stream writers in repairing mode.
-    [reported by Heinz D]
-  * [WSTX-24]: Predefined namespace with prefix 'xml' was not handled
-    properly for elements, only for attributes.
 
   Improvements:
 
@@ -88,7 +82,7 @@ Description:
     up to 10 - 15% faster parsing in this mode (depending on usage patterns
     and length of segments), without change to non-coalescing mode.
 
-2.0.1 - 2.0.3: [10-Aug-2005 - 29-Sep-2005]
+2.0.1 - 2.0.4: [10-Aug-2005 - xx-Dec-2005]
 
   Problems fixed:
 
@@ -114,6 +108,17 @@ Description:
   * [WSTX-10] Handling of 3-byte UTF-8 Byte Order Marker did not work
     properly when XMLStreamReader was constructed for a Reader
     [reported by Heinz D]
+  * [WSTX-19]: Unnecessary default namespace declarations were written
+    by stream writers in repairing mode.
+    [reported by Heinz D]
+  * Fixed DTD/attribute value normalization problem with NMTOKEN; was not
+    catching a problem if the first non-space character of the value
+    was not valid a valid NMTOKEN character.
+  * [WSTX-24]: Predefined namespace with prefix 'xml' was not handled
+    properly for elements, only for attributes.
+  * [WSTX-27]: Attribute #FIXED default value was not added (just checked
+    for explicit attributes), now it is used properly.
+
 
 2.0rc1-rc3,2.0-final: [11-Apr-2005 - 20-Jun-2005]
 

@@ -30,7 +30,7 @@ public class TestSaxValidation
         SAXParser parser = factory.newSAXParser();
         XMLReader xr = parser.getXMLReader();
 
-        //xr.setContentHandler((ContentHandler) mHandler);
+        xr.setContentHandler(new MyHandler());
         xr.parse(new InputSource(new FileInputStream(f)));
 
         return 1;
@@ -49,6 +49,16 @@ public class TestSaxValidation
         } catch (Throwable t) {
           System.err.println("Error: "+t);
           t.printStackTrace();
+        }
+    }
+
+    final static class MyHandler
+        extends org.xml.sax.helpers.DefaultHandler
+    {
+        public void startElement(String uri, String ln, String qname,
+                                 Attributes attrs)
+        {
+            System.err.println("Elem <"+qname+">, "+attrs.getLength()+" attrs.");
         }
     }
 }

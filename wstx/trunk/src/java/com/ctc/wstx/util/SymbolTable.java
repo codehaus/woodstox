@@ -1,6 +1,6 @@
 /* Woodstox XML processor
  *
- * Copyright (c) 2004 Tatu Saloranta, tatu.saloranta@iki.fi
+ * Copyright (c) 2004- Tatu Saloranta, tatu.saloranta@iki.fi
  *
  * Licensed under the License specified in the file LICENSE which is
  * included with the source code.
@@ -14,8 +14,6 @@
  */
 
 package com.ctc.wstx.util;
-
-import java.io.*; // just for test driver
 
 /**
  * This class is a kind of specialized type-safe Map, from char array to
@@ -745,8 +743,8 @@ public class SymbolTable {
 
         SymbolTable root = new SymbolTable(true, 4);
         for (int i = 0; i < args.length; ++i) {
-            FileReader fr = new FileReader(args[i]);
-            StreamTokenizer st = new StreamTokenizer(fr);
+            java.io.FileReader fr = new java.io.FileReader(args[i]);
+            java.io.StreamTokenizer st = new java.io.StreamTokenizer(fr);
             SymbolTable table1 = root.makeChild();
             SymbolTable table2 = root.makeChild();
 
@@ -756,8 +754,8 @@ public class SymbolTable {
 
             int tt;
             int count = 0;
-            while ((tt = st.nextToken()) != StreamTokenizer.TT_EOF) {
-                if (tt == StreamTokenizer.TT_WORD) {
+            while ((tt = st.nextToken()) != java.io.StreamTokenizer.TT_EOF) {
+                if (tt == java.io.StreamTokenizer.TT_WORD) {
                     String word = st.sval;
                     int hash = calcHash(word);
                     char[] ch = word.toCharArray();
