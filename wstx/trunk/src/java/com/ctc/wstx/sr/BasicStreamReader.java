@@ -2374,7 +2374,7 @@ public class BasicStreamReader
         }
 
         // Ok, fine, what next?
-        c = getNextCharAfterWS(SUFFIX_IN_DTD);
+        c = getNextInCurrAfterWS(SUFFIX_IN_DTD);
         if (c != '[' && c != '>') {
             String keyw = null;
             
@@ -2383,7 +2383,7 @@ public class BasicStreamReader
                 if (keyw != null) {
                     keyw = "P" + keyw;
                 } else {
-                    c = getNextCharAfterWS(SUFFIX_IN_DTD);
+                    c = getNextInCurrAfterWS(SUFFIX_IN_DTD);
                     if (c != '"' && c != '\'') {
                         throwUnexpectedChar(c, SUFFIX_IN_DTD+"; expected a public identifier.");
                     }
@@ -2392,7 +2392,7 @@ public class BasicStreamReader
                         // According to XML specs, this isn't illegal?
                         mDtdPublicId = null;
                     }
-                    c = getNextCharAfterWS(SUFFIX_IN_DTD);
+                    c = getNextInCurrAfterWS(SUFFIX_IN_DTD);
                     if (c != '"' && c != '\'') {
                         throwParseError(SUFFIX_IN_DTD+"; expected a system identifier.");
                     }
@@ -2408,7 +2408,7 @@ public class BasicStreamReader
                 if (keyw != null) {
                     keyw = "S" + keyw;
                 } else {
-                    c = getNextCharAfterWS(SUFFIX_IN_DTD);
+                    c = getNextInCurrAfterWS(SUFFIX_IN_DTD);
                     if (c != '"' && c != '\'') {
                         throwUnexpectedChar(c, SUFFIX_IN_DTD+"; expected a system identifier.");
                     }
@@ -2432,7 +2432,7 @@ public class BasicStreamReader
             }
             
             // Ok, should be done with external DTD identifier:
-            c = getNextCharAfterWS(SUFFIX_IN_DTD);
+            c = getNextInCurrAfterWS(SUFFIX_IN_DTD);
         }
         
         if (c == '[') { // internal subset

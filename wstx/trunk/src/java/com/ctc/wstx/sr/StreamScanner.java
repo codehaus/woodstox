@@ -709,7 +709,7 @@ public abstract class StreamScanner
                 }
             }
             c = mInputBuffer[mInputPtr++];
-        } while (c <= 0x0020);
+        } while (c <= CHAR_SPACE);
 
         return (int) c;
     }
@@ -732,7 +732,7 @@ public abstract class StreamScanner
                 }
             }
             c = mInputBuffer[mInputPtr++];
-        } while (c <= 0x0020);
+        } while (c <= CHAR_SPACE);
 
         return c;
     }
@@ -746,7 +746,7 @@ public abstract class StreamScanner
             }
         }
         char c = mInputBuffer[mInputPtr++];
-        if (c <= 0x0020) {
+        if (c <= CHAR_SPACE) {
             return getNextAfterWS(c);
         }
         return (int) c;
@@ -760,7 +760,7 @@ public abstract class StreamScanner
         }
 
         char c = mInputBuffer[mInputPtr++];
-        while (c <= 0x0020) {
+        while (c <= CHAR_SPACE) {
             // Linefeed?
             if (c == '\n' || c == '\r') {
                 skipCRLF(c);
@@ -786,7 +786,7 @@ public abstract class StreamScanner
     protected final char getNextInCurrAfterWS(String errorMsg, char c)
         throws IOException, WstxException
     {
-	while (c <= CHAR_SPACE) {
+        while (c <= CHAR_SPACE) {
             // Linefeed?
             if (c == '\n' || c == '\r') {
                 skipCRLF(c);
@@ -799,7 +799,7 @@ public abstract class StreamScanner
                 loadMoreFromCurrent(errorMsg);
             }
             c = mInputBuffer[mInputPtr++];
-	}
+        }
         return c;
     }
     
@@ -820,7 +820,7 @@ public abstract class StreamScanner
                 }
             }
             char c = mInputBuffer[mInputPtr];
-            if (c > 0x0020) { // not WS? Need to return
+            if (c > CHAR_SPACE) { // not WS? Need to return
                 break;
             }
             ++mInputPtr;

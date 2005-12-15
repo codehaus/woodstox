@@ -204,6 +204,34 @@ public class TestAttr
     }
 
     /*
+    public void testXXX()
+        throws Exception
+    {
+
+        XMLStreamReader sr = getValidatingReader
+            (
+        "<?xml version='1.0'?>\r\n<!DOCTYPE PLAY SYSTEM 'play.dtd'>\r\n\r\n<PLAY>\n<TITLE></TITLE></PLAY>"
+        ,true);
+        assertTokenType(SPACE, sr.next());
+        assertTokenType(DTD, sr.next());
+        assertTokenType(SPACE, sr.next());
+        assertTokenType(START_ELEMENT, sr.next());
+
+        sr = getValidatingReader
+            ("<!DOCTYPE PLAY>\r<PLAY />", true);
+        assertTokenType(DTD, sr.next());
+        assertTokenType(SPACE, sr.next());
+        assertTokenType(START_ELEMENT, sr.next());
+
+        sr = getValidatingReader
+            ("<!DOCTYPE PLAY>\r\n<PLAY />", true);
+        assertTokenType(DTD, sr.next());
+        assertTokenType(SPACE, sr.next());
+        assertTokenType(START_ELEMENT, sr.next());
+    }
+    */
+
+    /*
     //////////////////////////////////////////////////////
     // Internal methods
     //////////////////////////////////////////////////////
