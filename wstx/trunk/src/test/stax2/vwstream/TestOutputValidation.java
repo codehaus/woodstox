@@ -55,8 +55,6 @@ public class TestOutputValidation
             } catch (XMLValidationException vex) {
                 // expected...
             }
-            sw.writeEndElement();
-            sw.writeEndDocument();
         }
     }
 }

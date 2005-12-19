@@ -520,13 +520,6 @@ public abstract class BaseNsStreamWriter
             }
         }
 
-        /* And this seems like the place to handle validation, right before
-         * outputting it:
-         */
-        if (mValidator != null) {
-            mVldContent = mValidator.validateElementEnd(localName, thisElem.getNamespaceURI(), prefix);
-        }
-
         /* Now, do we have an unfinished start element (created via
          * writeStartElement() earlier)?
          */
