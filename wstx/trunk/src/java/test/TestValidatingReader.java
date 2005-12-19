@@ -118,7 +118,11 @@ public class TestValidatingReader
                 System.out.println(" PI target = '"+streamReader.getPITarget()+"'.");
                 System.out.println(" PI data = '"+streamReader.getPIData()+"'.");
             } else if (type == START_ELEMENT) {
-                System.out.print(" ["+streamReader.getAttributeCount()+" attrs]");
+                int acount = streamReader.getAttributeCount();
+                System.out.print(" ["+acount+" attrs]");
+                for (int i = 0; i < acount; ++i) {
+                    System.out.println("  #"+i+": "+streamReader.getAttributeName(i)+" -> '"+streamReader.getAttributeValue(i)+"'");
+                }
             }
             if (hasName) {
                 System.out.print(" Name: '"+streamReader.getName()+"' (prefix <"

@@ -1,6 +1,6 @@
 /* Woodstox XML processor
  *
- * Copyright (c) 2004 Tatu Saloranta, tatu.saloranta@iki.fi
+ * Copyright (c) 2004- Tatu Saloranta, tatu.saloranta@iki.fi
  *
  * Licensed under the License specified in the file LICENSE,
  * included with the source code.
@@ -336,8 +336,6 @@ public abstract class BaseNsStreamWriter
     {
         mStartElementOpen = false;
 
-        // 01-Apr-2005, TSa: Can we check anything regarding NS output?
-
         try {
             if (emptyElem) {
                 // Extra space for readability (plus, browsers like it if using XHTML)
@@ -349,11 +347,20 @@ public abstract class BaseNsStreamWriter
             throw new XMLStreamException(ioe);
         }
 
+        if (mValidator != null) {
+            mVldContent = mValidator.validateElementAndAttributes();
+        }
+
         // Need bit more special handling for empty elements...
         if (emptyElem) {
-            mCurrElem = mCurrElem.getParent();
-            if (mCurrElem.isRoot()) {
+            SimpleOutputElement curr = mCurrElem;
+            mCurrElem = curr.getParent();
+            if (curr.isRoot()) {
                 mState = STATE_EPILOG;
+            }
+            if (mValidator != null) {
+                mVldContent = mValidator.validateElementEnd
+                    (curr.getLocalName(), curr.getNamespaceURI(), curr.getPrefix());
             }
         }
     }
@@ -496,14 +503,15 @@ public abstract class BaseNsStreamWriter
             throwOutputError("No open start element, when trying to write end element");
         }
 
-        String prefix = mCurrElem.getPrefix();
-        String localName = mCurrElem.getLocalName();
+        SimpleOutputElement thisElem = mCurrElem;
+        String prefix = thisElem.getPrefix();
+        String localName = thisElem.getLocalName();
+
         // Ok, and then let's pop that element from the stack
-        mCurrElem = mCurrElem.getParent();
+        mCurrElem = thisElem.getParent();
 
         if (expName != null) {
-            /* Let's only check the local name, for now...
-             */
+            // Let's only check the local name, for now...
             if (!localName.equals(expName.getLocalPart())) {
                 /* Only gets called when trying to output an XMLEvent... in
                  * which case names can actually be compared
@@ -516,7 +524,7 @@ public abstract class BaseNsStreamWriter
          * outputting it:
          */
         if (mValidator != null) {
-            mVldContent = mValidator.validateElementEnd(localName, mCurrElem.getNamespaceURI(), prefix);
+            mVldContent = mValidator.validateElementEnd(localName, thisElem.getNamespaceURI(), prefix);
         }
 
         /* Now, do we have an unfinished start element (created via
@@ -526,8 +534,13 @@ public abstract class BaseNsStreamWriter
             /* Can't/shouldn't call closeStartElement, but need to do same
              * processing. Thus, this is almost identical to closeStartElement:
              */
+            if (mValidator != null) {
+                /* Note: return value is not of much use, since the
+                 * element will be closed right away...
+                 */
+                mVldContent = mValidator.validateElementAndAttributes();
+            }
             mStartElementOpen = false;
-
             try {
                 // We could write an empty element, implicitly?
                 if (allowEmpty) {
@@ -535,6 +548,9 @@ public abstract class BaseNsStreamWriter
                     mWriter.write(" />");
                     if (mCurrElem.isRoot()) {
                         mState = STATE_EPILOG;
+                    }
+                    if (mValidator != null) {
+                        mVldContent = mValidator.validateElementEnd(localName, thisElem.getNamespaceURI(), prefix);
                     }
                     return;
                 }
@@ -559,6 +575,11 @@ public abstract class BaseNsStreamWriter
 
         if (mCurrElem.isRoot()) {
             mState = STATE_EPILOG;
+        }
+
+        // Ok, time to validate...
+        if (mValidator != null) {
+            mVldContent = mValidator.validateElementEnd(localName, thisElem.getNamespaceURI(), prefix);
         }
     }
 

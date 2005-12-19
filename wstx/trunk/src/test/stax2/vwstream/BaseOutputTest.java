@@ -8,8 +8,6 @@ import org.codehaus.stax2.validation.*;
 
 import stax2.BaseStax2Test;
 
-import com.ctc.wstx.sw.BaseStreamWriter;
-
 public class BaseOutputTest
     extends BaseStax2Test
 {
@@ -17,17 +15,18 @@ public class BaseOutputTest
 
     public BaseOutputTest(String name) { super(name); }
 
-    public XMLStreamWriter getDTDValidatingWriter(Writer w, boolean nsAware, String dtdSrc)
+    public XMLStreamWriter2 getDTDValidatingWriter(Writer w, boolean repairing, String dtdSrc)
         throws XMLStreamException
     {
         XMLOutputFactory2 outf = getOutputFactory();
-        XMLStreamWriter strw = outf.createXMLStreamWriter(w);
-        
+        XMLStreamWriter2 strw = (XMLStreamWriter2)outf.createXMLStreamWriter(w);
         XMLValidatorFactory vd = XMLValidatorFactory.newInstance(XMLValidatorFactory.SCHEMA_ID_DTD);
+        vd.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES, new Boolean(repairing));
 
         XMLValidationSchema schema = vd.createSchema(new StringReader(dtdSrc));
 
-        ((BaseStreamWriter) strw).setValidator(schema);
+        strw.validateAgainst(schema);
+        strw.writeStartDocument();
         return strw;
     }
 }

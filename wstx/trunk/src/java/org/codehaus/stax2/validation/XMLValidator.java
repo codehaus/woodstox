@@ -221,6 +221,17 @@ public abstract class XMLValidator
                                       boolean lastTextSegment)
         throws XMLValidationException;
 
+    /**
+     * Method called when the validation is completed; either due to the
+     * input stream ending, or due to an explicit 'stop validation' request
+     * by the application (via context object).
+     *
+     * @param eod Flag that indicates whether this method was called by the
+     *    context due to the end of the stream (true); or by an application
+     *    requesting end of validation (false).
+     */
+    public abstract void validationCompleted(boolean eod)
+        throws XMLValidationException;
 
     /*
     ///////////////////////////////////////////////////

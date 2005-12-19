@@ -5,6 +5,7 @@ import java.io.*;
 import javax.xml.stream.*;
 
 import org.codehaus.stax2.XMLOutputFactory2;
+import org.codehaus.stax2.XMLStreamWriter2;
 import org.codehaus.stax2.validation.*;
 
 import com.ctc.wstx.api.WstxOutputProperties;
@@ -38,20 +39,22 @@ public class TestNsStreamWriter3
         f.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES,
                       Boolean.TRUE);
         //Boolean.FALSE);
+
         f.setProperty(XMLOutputFactory2.P_NAMESPACE_AWARE, Boolean.TRUE);
+        //f.setProperty(XMLOutputFactory2.P_NAMESPACE_AWARE, Boolean.FALSE);
         Writer w = new PrintWriter(System.out);
-        XMLStreamWriter sw = f.createXMLStreamWriter(w);
+        XMLStreamWriter2 sw = (XMLStreamWriter2)f.createXMLStreamWriter(w);
 
         XMLValidatorFactory vd = XMLValidatorFactory.newInstance(XMLValidatorFactory.SCHEMA_ID_DTD);
 
         XMLValidationSchema schema = vd.createSchema(new StringReader(dtdStr));
 
-        ((BaseStreamWriter) sw).setValidator(schema);
+        sw.validateAgainst(schema);
 
         sw.writeStartDocument();
         sw.writeStartElement("", "root", "");
-        sw.writeAttribute("attr", "value");
-        sw.writeAttribute("", "", "attr2", "value2");
+        //sw.writeAttribute("attr", "value");
+        //sw.writeAttribute("", "", "attr2", "value2");
         sw.writeCharacters("Illegal text!");
         sw.writeStartElement("", "branch", "uri:some");
         sw.writeAttribute("", "", "foop", "value2");

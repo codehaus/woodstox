@@ -124,6 +124,19 @@ public class XMLValidatorPair
         mSecond.validateText(cbuf, textStart, textEnd, lastTextSegment);
     }
 
+    public void validationCompleted(boolean eod)
+        throws XMLValidationException
+    {
+        mFirst.validationCompleted(eod);
+        mSecond.validationCompleted(eod);
+    }
+
+    /*
+    ///////////////////////////////////////////////////
+    // Access to post-validation data (type info)
+    ///////////////////////////////////////////////////
+     */
+
     public String getAttributeType(int index)
     {
         String type = mFirst.getAttributeType(index);
@@ -158,6 +171,39 @@ public class XMLValidatorPair
         }
         return index;
     }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Additional API used by Woodstox core
+    ////////////////////////////////////////////////////
+     */
+
+    /**
+     * Returns the first validator created by specified schema, from
+     * the child validators of this pair, and returns the result
+     * root validator or pair, if such validator found. If no such
+     * validator is part of the chain of validators, returns null.
+     *<p>
+     * Note: if there are more than one such validator instance, only
+     * the first one is removed.
+     *
+     * @return New validator (either a single remaining validator, or
+     *   the new root pair), if the validator found; null otherwise.
+     */
+    //public XMLValidator createValidatorWithout(XMLValidationSchema schema)
+    // !!! TBI
+
+    /**
+     * Returns the validator passed in, from
+     * the child validators of this pair, and returns the result
+     * root validator or pair, if such validator found. If no such
+     * validator is part of the chain of validators, returns null.
+     *
+     * @return New validator (either a single remaining validator, or
+     *   the new root pair), if the validator found; null otherwise.
+     */
+    //public XMLValidator createValidatorWithout(XMLValidator vld)
+    // !!! TBI
 
     /*
     ////////////////////////////////////////////////////

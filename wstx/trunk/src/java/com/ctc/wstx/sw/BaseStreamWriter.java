@@ -37,11 +37,7 @@ import org.codehaus.stax2.DTDInfo;
 import org.codehaus.stax2.EscapingWriterFactory;
 import org.codehaus.stax2.XMLStreamReader2;
 import org.codehaus.stax2.XMLStreamWriter2;
-import org.codehaus.stax2.validation.ValidationContext;
-import org.codehaus.stax2.validation.XMLValidator;
-import org.codehaus.stax2.validation.XMLValidationException;
-import org.codehaus.stax2.validation.XMLValidationProblem;
-import org.codehaus.stax2.validation.XMLValidationSchema;
+import org.codehaus.stax2.validation.*;
 
 import com.ctc.wstx.api.WriterConfig;
 import com.ctc.wstx.api.WstxOutputProperties;
@@ -158,7 +154,7 @@ public abstract class BaseStreamWriter
      * Optional validator to use for validating output against
      * one or more schemas, and/or for safe pretty-printing (indentation).
      */
-    protected XMLValidator mValidator;
+    protected XMLValidator mValidator = null;
 
     /*
     ////////////////////////////////////////////////////
@@ -343,6 +339,12 @@ public abstract class BaseStreamWriter
             writeCharacters(data);
             return;
         }
+
+        mAnyOutput = true;
+        // Need to finish an open start element?
+        if (mStartElementOpen) {
+            closeStartElement(mEmptyElement);
+        }
         verifyWriteCData();
         if (mVldContent == XMLValidator.CONTENT_ALLOW_VALIDATABLE_TEXT
             && mValidator != null) {
@@ -350,12 +352,6 @@ public abstract class BaseStreamWriter
              * may be added with additional calls
              */
             mValidator.validateText(data, false);
-        }
-
-        mAnyOutput = true;
-        // Need to finish an open start element?
-        if (mStartElementOpen) {
-            closeStartElement(mEmptyElement);
         }
         try {
             if (mCheckContent) {
@@ -386,6 +382,12 @@ public abstract class BaseStreamWriter
     public void writeCharacters(char[] text, int start, int len)
         throws XMLStreamException
     {
+        mAnyOutput = true;
+        // Need to finish an open start element?
+        if (mStartElementOpen) {
+            closeStartElement(mEmptyElement);
+        }
+
         /* Not legal outside main element tree, except if it's all
          * white space
          */
@@ -396,20 +398,6 @@ public abstract class BaseStreamWriter
                 }
             }
         }
-        if (mVldContent == XMLValidator.CONTENT_ALLOW_VALIDATABLE_TEXT
-            && mValidator != null) {
-            /* Last arg is false, since we do not know if more text
-             * may be added with additional calls
-             */
-            mValidator.validateText(text, start, len, false);
-        }
-
-        mAnyOutput = true;
-        // Need to finish an open start element?
-        if (mStartElementOpen) {
-            closeStartElement(mEmptyElement);
-        }
-
         // 08-Dec-2005, TSa: validator-based validation?
         if (mVldContent <= XMLValidator.CONTENT_ALLOW_WS) {
             if (mVldContent == XMLValidator.CONTENT_ALLOW_NONE) { // never ok
@@ -418,6 +406,13 @@ public abstract class BaseStreamWriter
                 if (!StringUtil.isAllWhitespace(text, start, len)) {
                     reportInvalidContent(CHARACTERS);
                 }
+            }
+        } else if (mVldContent == XMLValidator.CONTENT_ALLOW_VALIDATABLE_TEXT) {
+            if (mValidator != null) {
+                /* Last arg is false, since we do not know if more text
+                 * may be added with additional calls
+                 */
+                mValidator.validateText(text, start, len, false);
             }
         }
 
@@ -436,8 +431,14 @@ public abstract class BaseStreamWriter
     public void writeCharacters(String text)
         throws XMLStreamException
     {
+        mAnyOutput = true;
+        // Need to finish an open start element?
+        if (mStartElementOpen) {
+            closeStartElement(mEmptyElement);
+        }
+
         // Need to validate structure?
-        if (mCheckStructure) {
+        if (mCheckStructure || mValidator != null) {
             // Not valid in prolog/epilog, except if it's all white space:
             if (inPrologOrEpilog()) {
                 if (!StringUtil.isAllWhitespace(text)) {
@@ -445,21 +446,12 @@ public abstract class BaseStreamWriter
                 }
             }
         }
-        if (mVldContent == XMLValidator.CONTENT_ALLOW_VALIDATABLE_TEXT
-            && mValidator != null) {
-            /* Last arg is false, since we do not know if more text
-             * may be added with additional calls
-             */
-            mValidator.validateText(text, false);
-        }
 
-        mAnyOutput = true;
-        // Need to finish an open start element?
-        if (mStartElementOpen) {
-            closeStartElement(mEmptyElement);
-        }
-
-        // 08-Dec-2005, TSa: validator-based validation?
+        /* 08-Dec-2005, TSa: validator-based validation?
+         *   Note: although it'd be good to check validity first, we
+         *   do not know allowed textual content before actually writing
+         *   pending start element (if any)... so can't call this earlier
+         */
         if (mVldContent <= XMLValidator.CONTENT_ALLOW_WS) {
             if (mVldContent == XMLValidator.CONTENT_ALLOW_NONE) { // never ok
                 reportInvalidContent(CHARACTERS);
@@ -467,6 +459,13 @@ public abstract class BaseStreamWriter
                 if (!StringUtil.isAllWhitespace(text)) {
                     reportInvalidContent(CHARACTERS);
                 }
+            }
+        } else if (mVldContent == XMLValidator.CONTENT_ALLOW_VALIDATABLE_TEXT) {
+            if (mValidator != null) {
+                /* Last arg is false, since we do not know if more text
+                 * may be added with additional calls
+                 */
+                mValidator.validateText(text, false);
             }
         }
 
@@ -624,15 +623,14 @@ public abstract class BaseStreamWriter
             closeStartElement(mEmptyElement);
         }
 
-        // 08-Dec-2005, TSa: validator-based validation?
-        if (mVldContent == XMLValidator.CONTENT_ALLOW_NONE) {
-            reportInvalidContent(PROCESSING_INSTRUCTION);
-        }
-
         // Structurally, PIs are always ok. But content may need to be checked.
         if (mCheckNames) {
             // As per namespace specs, can not have colon(s)
             verifyNameValidity(target, mNsAware);
+        }
+        // 08-Dec-2005, TSa: validator-based validation?
+        if (mVldContent == XMLValidator.CONTENT_ALLOW_NONE) {
+            reportInvalidContent(PROCESSING_INSTRUCTION);
         }
         if (mCheckContent) {
             if (data != null && data.length() > 1) {
@@ -756,6 +754,12 @@ public abstract class BaseStreamWriter
     ////////////////////////////////////////////////////
      */
 
+    /*
+    ////////////////////////////////////////////////////
+    // StAX2, config
+    ////////////////////////////////////////////////////
+     */
+
     // NOTE: getProperty() defined in Stax 1.0 interface
 
     public boolean isPropertySupported(String name) {
@@ -778,6 +782,39 @@ public abstract class BaseStreamWriter
         return mConfig.setProperty(name, value);
     }
 
+    public XMLValidator validateAgainst(XMLValidationSchema schema)
+        throws XMLStreamException
+    {
+        XMLValidator vld = schema.createValidator(this);
+
+        if (mValidator == null) {
+            mValidator = vld;
+        } else {
+            mValidator = new XMLValidatorPair(mValidator, vld);
+        }
+        return vld;
+    }
+
+    public XMLValidator stopValidatingAgainst(XMLValidationSchema schema)
+        throws XMLStreamException
+    {
+        // !!! TBI
+        return null;
+    }
+
+    public XMLValidator stopValidatingAgainst(XMLValidator validator)
+        throws XMLStreamException
+    {
+        // !!! TBI
+        return null;
+    }
+
+    /*
+    ////////////////////////////////////////////////////
+    // StAX2, other accessors, mutators
+    ////////////////////////////////////////////////////
+     */
+
     public Location getLocation()
     {
         /* !!! 08-Dec-2005, TSa: Should implement a mode in which writer does
@@ -786,6 +823,12 @@ public abstract class BaseStreamWriter
          */
         return null;
     }
+
+    /*
+    ////////////////////////////////////////////////////
+    // StAX2, output methods
+    ////////////////////////////////////////////////////
+     */
 
     public void writeCData(char[] c, int start, int len)
         throws XMLStreamException
@@ -798,6 +841,11 @@ public abstract class BaseStreamWriter
             writeCharacters(c, start, len);
             return;
         }
+        mAnyOutput = true;
+        // Need to finish an open start element?
+        if (mStartElementOpen) {
+            closeStartElement(mEmptyElement);
+        }
         verifyWriteCData();
         if (mVldContent == XMLValidator.CONTENT_ALLOW_VALIDATABLE_TEXT
             && mValidator != null) {
@@ -805,12 +853,6 @@ public abstract class BaseStreamWriter
              * may be added with additional calls
              */
             mValidator.validateText(c, start, len, false);
-        }
-
-        mAnyOutput = true;
-        // Need to finish an open start element?
-        if (mStartElementOpen) {
-            closeStartElement(mEmptyElement);
         }
         try {
             if (mCheckContent && c != null) {

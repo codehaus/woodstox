@@ -310,9 +310,6 @@ public class NonNsStreamWriter
     protected void closeStartElement(boolean emptyElem)
         throws XMLStreamException
     {
-        if (mValidator != null) {
-            mVldContent = mValidator.validateElementAndAttributes();
-        }
         mStartElementOpen = false;
         if (mAttrNames != null) {
             mAttrNames.clear();
@@ -329,11 +326,18 @@ public class NonNsStreamWriter
             throw new XMLStreamException(ioe);
         }
 
+        if (mValidator != null) {
+            mVldContent = mValidator.validateElementAndAttributes();
+        }
+
         // Need bit more special handling for empty elements...
         if (emptyElem) {
-            mElements.removeLast();
+            String localName = mElements.removeLast();
             if (mElements.isEmpty()) {
                 mState = STATE_EPILOG;
+            }
+            if (mValidator != null) {
+                mVldContent = mValidator.validateElementEnd(localName, NO_NS_URI, NO_PREFIX);
             }
         }
     }
@@ -470,6 +474,7 @@ public class NonNsStreamWriter
          */
         if (mStartElementOpen && mEmptyElement) {
             mEmptyElement = false;
+            // note: this method guarantees proper updates to validation
             closeStartElement(true);
         }
 
@@ -489,12 +494,9 @@ public class NonNsStreamWriter
             throw new IllegalArgumentException("Mismatching close element name, '"+localName+"'; expected '"+expName+"'.");
         }
 
-        /* And this seems like the place to handle validation, right before
-         * outputting it:
+        /* Can't yet validate, since we have two paths; one for empty
+         * elements, another for non-empty...
          */
-        if (mValidator != null) {
-            mVldContent = mValidator.validateElementEnd(localName, NO_NS_URI, NO_PREFIX);
-        }
 
         // Got a half output start element to close?
         if (mStartElementOpen) {
@@ -502,6 +504,9 @@ public class NonNsStreamWriter
              * processing. Thus, this is almost identical to closeStartElement:
              */
             if (mValidator != null) {
+                /* Note: return value is not of much use, since the
+                 * element will be closed right away...
+                 */
                 mVldContent = mValidator.validateElementAndAttributes();
             }
             mStartElementOpen = false;
@@ -515,6 +520,9 @@ public class NonNsStreamWriter
                     mWriter.write(" />");
                     if (mElements.isEmpty()) {
                         mState = STATE_EPILOG;
+                    }
+                    if (mValidator != null) {
+                        mVldContent = mValidator.validateElementEnd(localName, NO_NS_URI, NO_PREFIX);
                     }
                     return;
                 }
@@ -535,6 +543,11 @@ public class NonNsStreamWriter
 
         if (mElements.isEmpty()) {
             mState = STATE_EPILOG;
+        }
+
+        // Ok, time to validate...
+        if (mValidator != null) {
+            mVldContent = mValidator.validateElementEnd(localName, NO_NS_URI, NO_PREFIX);
         }
     }
 }
