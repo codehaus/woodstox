@@ -536,6 +536,13 @@ public class DTDValidator
          */
     }
 
+    public void validationCompleted(boolean eod)
+        throws XMLValidationException
+    {
+        /* 18-Dec-2005, TSa: Is there something we should do here...?
+         */
+    }
+
     /*
     ///////////////////////////////////////
     // Attribute info access

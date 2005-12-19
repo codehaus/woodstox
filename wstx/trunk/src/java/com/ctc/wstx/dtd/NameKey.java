@@ -47,14 +47,16 @@ public final class NameKey
 
     public NameKey(String prefix, String localName)
     {
-        mPrefix = prefix;
         mLocalName = localName;
+        mPrefix = (prefix != null && prefix.length() == 0) ?
+            null : prefix;
     }
 
     public NameKey reset(String prefix, String localName)
     {
-        mPrefix = prefix;
         mLocalName = localName;
+        mPrefix = (prefix != null && prefix.length() == 0) ?
+            null : prefix;
         mHash = 0;
         return this;
     }
@@ -75,8 +77,9 @@ public final class NameKey
     ///////////////////////////////////////////////////
      */
     
-    public String toString() {
-        if (mPrefix == null) {
+    public String toString()
+    {
+        if (mPrefix == null || mPrefix.length() == 0) {
             return mLocalName;
         }
         StringBuffer sb = new StringBuffer(mPrefix.length() + 1 + mLocalName.length());
@@ -96,20 +99,10 @@ public final class NameKey
         }
         NameKey other = (NameKey) o;
 
-        return (mLocalName == other.mLocalName)
-            && (mPrefix == other.mPrefix);
-
-        /*
-        String n = other.mLocalName;
-        if (n != mLocalName && !n.equals(mLocalName)) {
+        if (mLocalName != other.mLocalName) { // assumes equality
             return false;
         }
-        n = other.mPrefix;
-        if (n == mPrefix) {
-            return true;
-        }
-        return (n != null) && n.equals(mPrefix);
-        */
+        return (mPrefix == other.mPrefix);
     }
 
     public int hashCode() {
