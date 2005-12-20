@@ -7,6 +7,11 @@ import javax.xml.stream.*;
 import org.codehaus.stax2.XMLStreamWriter2;
 import org.codehaus.stax2.validation.*;
 
+/**
+ * Unit test suite that test basic aspects of (DTD validation,
+ * mostly regarding specialized content types (EMPTY)
+ * 
+ */
 public class TestOutputValidation
     extends BaseOutputTest
 {
@@ -18,10 +23,11 @@ public class TestOutputValidation
             +"<!ELEMENT branch (branch)*>\n"
         ;
 
-        for (int i = 0; i < 2; ++i) {
-            boolean repairing = (i > 0);
+        for (int i = 0; i < 3; ++i) {
+            boolean nsAware = (i >= 1);
+            boolean repairing = (i == 2);
             StringWriter strw = new StringWriter();
-            XMLStreamWriter2 sw = getDTDValidatingWriter(strw, repairing, dtdStr);
+            XMLStreamWriter2 sw = getDTDValidatingWriter(strw, dtdStr, nsAware, repairing);
             sw.writeStartElement("root");
             // Should be fine now
             sw.writeCharacters("Text that should be ok");
@@ -42,11 +48,11 @@ public class TestOutputValidation
             +"<!ELEMENT branch ANY>\n"
         ;
 
-        for (int i = 0; i < 2; ++i) {
-            boolean repairing = (i > 0);
+        for (int i = 0; i < 3; ++i) {
+            boolean nsAware = (i >= 1);
+            boolean repairing = (i == 2);
             StringWriter strw = new StringWriter();
-            XMLStreamWriter sw = getDTDValidatingWriter(strw, repairing, dtdStr);
-            
+            XMLStreamWriter2 sw = getDTDValidatingWriter(strw, dtdStr, nsAware, repairing);
             sw.writeStartElement("root");
             // Should get validation exception here:
             try {
@@ -55,6 +61,153 @@ public class TestOutputValidation
             } catch (XMLValidationException vex) {
                 // expected...
             }
+        }
+    }
+
+    public void testValidEmptyContent()
+        throws XMLStreamException
+    {
+        final String dtdStr = "<!ELEMENT root EMPTY>\n"
+            +"<!ATTLIST root attr CDATA #IMPLIED>\n";
+
+        for (int i = 0; i < 3; ++i) {
+            boolean nsAware = (i >= 1);
+            boolean repairing = (i == 2);
+            StringWriter strw = new StringWriter();
+
+            XMLStreamWriter2 sw = getDTDValidatingWriter(strw, dtdStr, nsAware, repairing);
+
+            sw.writeStartElement("root");
+            // No content whatsoever is allowed...
+            sw.writeEndElement();
+            sw.writeEndDocument();
+            sw.close();
+
+            // Next; same but with an attribute
+            sw = getDTDValidatingWriter(strw, dtdStr, nsAware, repairing);
+
+            sw.writeStartElement("root");
+            // no content, but attribute is fine
+            sw.writeAttribute("attr", "value");
+
+            sw.writeEndElement();
+            sw.writeEndDocument();
+            sw.close();
+
+            // And then using empty element write method(s)
+            sw = getDTDValidatingWriter(strw, dtdStr, nsAware, repairing);
+            sw.writeEmptyElement("root");
+            // note: empty element need/can not be closed
+            sw.writeEndDocument();
+            sw.close();
+
+            // and finally empty with attribute
+            sw = getDTDValidatingWriter(strw, dtdStr, nsAware, repairing);
+            sw.writeEmptyElement("root");
+            sw.writeAttribute("attr", "otherValue");
+            sw.writeEndDocument();
+            sw.close();
+        }
+    }
+
+    public void testInvalidEmptyContent()
+        throws XMLStreamException
+    {
+        final String dtdStr = "<!ELEMENT root EMPTY>\n"
+            +"<!ATTLIST root attr CDATA #IMPLIED>\n"
+            +"<!ELEMENT leaf ANY>\n"
+            ;
+
+        for (int i = 0; i < 3; ++i) {
+            boolean nsAware, repairing;
+            String modeDesc;
+
+            switch (i) {
+            case 0:
+                modeDesc = "[non-namespace-aware]";
+                nsAware = repairing = false;
+                break;
+            case 1:
+                modeDesc = "[namespace-aware, non-repairing]";
+                nsAware = true;
+                repairing = false;
+                break;
+            default:
+                modeDesc = "[namespace-aware, repairing]";
+                nsAware = repairing = true;
+                break;
+            }
+
+            StringWriter strw = new StringWriter();
+
+            // No content whatsoever is allowed with EMPTY.
+            // Let's first test with a regualr child element:
+
+            XMLStreamWriter2 sw = getDTDValidatingWriter(strw, dtdStr, nsAware, repairing);
+            sw.writeStartElement("root");
+            try {
+                sw.writeStartElement("leaf");
+                fail(modeDesc+" Expected a validation exception when trying to add an element into EMPTY content model");
+            } catch (XMLValidationException vex) {
+                // expected...
+            }
+            sw.close();
+
+            // Then with an empty child
+            sw = getDTDValidatingWriter(strw, dtdStr, nsAware, repairing);
+            sw.writeStartElement("root");
+            try {
+                sw.writeEmptyElement("leaf");
+                fail(modeDesc+" Expected a validation exception when trying to add an element into EMPTY content model");
+            } catch (XMLValidationException vex) {
+                // expected...
+            }
+            sw.close();
+
+            // Then with any text (even just white space):
+            sw = getDTDValidatingWriter(strw, dtdStr, nsAware, repairing);
+            sw.writeStartElement("root");
+            try {
+                sw.writeCharacters(" ");
+                fail(modeDesc+" Expected a validation exception when trying to any text into EMPTY content model");
+            } catch (XMLValidationException vex) { }
+            sw.close();
+
+            // Then CDATA
+            sw = getDTDValidatingWriter(strw, dtdStr, nsAware, repairing);
+            sw.writeStartElement("root");
+            try {
+                sw.writeCData("foo");
+                fail(modeDesc+" Expected a validation exception when trying to add CDATA into EMPTY content model");
+            } catch (XMLValidationException vex) { }
+            sw.close();
+
+            // Then ENTITY
+            sw = getDTDValidatingWriter(strw, dtdStr, nsAware, repairing);
+            sw.writeStartElement("root");
+            try {
+                sw.writeEntityRef("amp");
+                fail(modeDesc+" Expected a validation exception when trying to add CDATA into EMPTY content model");
+            } catch (XMLValidationException vex) { }
+            sw.close();
+
+            // Then comment
+            sw = getDTDValidatingWriter(strw, dtdStr, nsAware, repairing);
+            sw.writeStartElement("root");
+            try {
+                sw.writeComment("comment");
+                fail(modeDesc+" Expected a validation exception when trying to add comment into EMPTY content model");
+            } catch (XMLValidationException vex) { }
+            sw.close();
+
+            // Then proc. instr.
+            sw = getDTDValidatingWriter(strw, dtdStr, nsAware, repairing);
+            sw.writeStartElement("root");
+            try {
+                sw.writeProcessingInstruction("target", "data");
+                fail(modeDesc+" Expected a validation exception when trying to add processing instruction into EMPTY content model");
+            } catch (XMLValidationException vex) { }
+            sw.close();
         }
     }
 }

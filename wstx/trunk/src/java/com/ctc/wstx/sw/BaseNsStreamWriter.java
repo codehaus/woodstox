@@ -406,7 +406,7 @@ public abstract class BaseNsStreamWriter
         if (mCheckNames) {
             verifyNameValidity(localName, true);
         }
-        if (mCheckAttr || mValidator != null) { // still need to ensure no duplicate attrs?
+        if (mCheckAttrs) { // still need to ensure no duplicate attrs?
             mCurrElem.checkAttrWrite(nsURI, localName, value);
         }
 

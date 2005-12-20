@@ -127,9 +127,9 @@ public abstract class BaseStreamWriter
     protected final boolean mCfgCDataAsText;
     protected final boolean mCfgCopyDefaultAttrs;
 
-    protected final boolean mCheckStructure;
+    protected boolean mCheckStructure;
+    protected boolean mCheckAttrs;
     protected final boolean mCheckContent;
-    protected final boolean mCheckAttr;
     protected final boolean mCheckNames;
     protected final boolean mFixContent;
 
@@ -196,7 +196,6 @@ public abstract class BaseStreamWriter
      * callbacks.
      */
     protected int mVldContent = XMLValidator.CONTENT_ALLOW_ANY_TEXT;
-    //protected int mVldContent = XMLValidator.CONTENT_ALLOW_WS;
 
     /*
     ////////////////////////////////////////////////////
@@ -234,8 +233,8 @@ public abstract class BaseStreamWriter
         mNsAware = (flags & CFG_ENABLE_NS) != 0;
 
         mCheckStructure = (flags & CFG_VALIDATE_STRUCTURE) != 0;
+        mCheckAttrs = (flags & CFG_VALIDATE_ATTR) != 0;
         mCheckContent = (flags & CFG_VALIDATE_CONTENT) != 0;
-        mCheckAttr = (flags & CFG_VALIDATE_ATTR) != 0;
         mCheckNames = (flags & CFG_VALIDATE_NAMES) != 0;
         mFixContent = (flags & CFG_FIX_CONTENT) != 0;
 
@@ -391,7 +390,7 @@ public abstract class BaseStreamWriter
         /* Not legal outside main element tree, except if it's all
          * white space
          */
-        if (mCheckStructure || mValidator != null) {
+        if (mCheckStructure) {
             if (inPrologOrEpilog()) {
                 if (!StringUtil.isAllWhitespace(text, start, len)) {
                     throw new IllegalStateException(ErrorConsts.WERR_PROLOG_NONWS_TEXT);
@@ -438,7 +437,7 @@ public abstract class BaseStreamWriter
         }
 
         // Need to validate structure?
-        if (mCheckStructure || mValidator != null) {
+        if (mCheckStructure) {
             // Not valid in prolog/epilog, except if it's all white space:
             if (inPrologOrEpilog()) {
                 if (!StringUtil.isAllWhitespace(text)) {
@@ -573,7 +572,7 @@ public abstract class BaseStreamWriter
         }
 
         // Structurally, need to check we are not in prolog/epilog.
-        if (mCheckStructure || mValidator != null) {
+        if (mCheckStructure) {
             if (inPrologOrEpilog()) {
                 throw new IllegalStateException("Trying to output an entity reference outside main element tree (in prolog or epilog)");
             }
@@ -788,6 +787,12 @@ public abstract class BaseStreamWriter
         XMLValidator vld = schema.createValidator(this);
 
         if (mValidator == null) {
+            /* Need to enable other validation modes? Structural validation
+             * should always be done when we have other validators as well,
+             * as well as attribute uniqueness checks.
+             */
+            mCheckStructure = true;
+            mCheckAttrs = true;
             mValidator = vld;
         } else {
             mValidator = new XMLValidatorPair(mValidator, vld);
@@ -798,6 +803,11 @@ public abstract class BaseStreamWriter
     public XMLValidator stopValidatingAgainst(XMLValidationSchema schema)
         throws XMLStreamException
     {
+        // If it was the last validator:
+        if (mValidator == null) {
+            resetValidationFlags();
+        }        
+
         // !!! TBI
         return null;
     }
@@ -806,7 +816,19 @@ public abstract class BaseStreamWriter
         throws XMLStreamException
     {
         // !!! TBI
+
+        // If it was the last validator:
+        if (mValidator == null) {
+            resetValidationFlags();
+        }        
         return null;
+    }
+
+    private void resetValidationFlags()
+    {
+        int flags = mConfig.getConfigFlags();
+        mCheckStructure = (flags & CFG_VALIDATE_STRUCTURE) != 0;
+        mCheckAttrs = (flags & CFG_VALIDATE_ATTR) != 0;
     }
 
     /*
@@ -1367,7 +1389,7 @@ public abstract class BaseStreamWriter
         throws XMLStreamException
     {
         // Not legal outside main element tree:
-        if (mCheckStructure || mValidator != null) {
+        if (mCheckStructure) {
             if (inPrologOrEpilog()) {
                 throw new IllegalStateException(ErrorConsts.WERR_PROLOG_CDATA);
             }

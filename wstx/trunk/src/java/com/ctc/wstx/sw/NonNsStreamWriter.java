@@ -30,6 +30,7 @@ import javax.xml.stream.events.Attribute;
 import javax.xml.stream.events.StartElement;
 
 import org.codehaus.stax2.XMLStreamReader2;
+import org.codehaus.stax2.validation.XMLValidator;
 
 import com.ctc.wstx.api.WriterConfig;
 import com.ctc.wstx.cfg.ErrorConsts;
@@ -133,7 +134,7 @@ public class NonNsStreamWriter
         if (mCheckNames) {
             verifyNameValidity(localName, false);
         }
-        if (mCheckAttr || mValidator != null) {
+        if (mCheckAttrs) {
             /* 11-Dec-2005, TSa: Should use a more efficient Set/Map value
              *   for this in future.
              */
@@ -434,12 +435,17 @@ public class NonNsStreamWriter
 
         if (mState == STATE_PROLOG) {
             mState = STATE_TREE;
-        } else if ((mCheckStructure || mValidator != null)
-                   && mState == STATE_EPILOG) {
+        } else if (mCheckStructure && mState == STATE_EPILOG) {
             throw new IllegalStateException("Trying to output second root ('"
                                             +localName+"').");
         }
 
+        /* Note: need not check for CONTENT_ALLOW_NONE here, since the
+         * validator should handle this particular case...
+         */
+        /*if (mVldContent == XMLValidator.CONTENT_ALLOW_NONE) { // EMPTY content
+            reportInvalidContent(START_ELEMENT);
+            }*/
         if (mValidator != null) {
             mValidator.validateElementStart(localName, NO_NS_URI, NO_PREFIX);
         }       

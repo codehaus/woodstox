@@ -15,13 +15,16 @@ public class BaseOutputTest
 
     public BaseOutputTest(String name) { super(name); }
 
-    public XMLStreamWriter2 getDTDValidatingWriter(Writer w, boolean repairing, String dtdSrc)
+    public XMLStreamWriter2 getDTDValidatingWriter(Writer w, String dtdSrc,
+                                                   boolean nsAware, boolean repairing)
         throws XMLStreamException
     {
         XMLOutputFactory2 outf = getOutputFactory();
+        outf.setProperty(XMLOutputFactory2.P_NAMESPACE_AWARE, new Boolean(nsAware));
+        outf.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES, new Boolean(repairing));
+
         XMLStreamWriter2 strw = (XMLStreamWriter2)outf.createXMLStreamWriter(w);
         XMLValidatorFactory vd = XMLValidatorFactory.newInstance(XMLValidatorFactory.SCHEMA_ID_DTD);
-        vd.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES, new Boolean(repairing));
 
         XMLValidationSchema schema = vd.createSchema(new StringReader(dtdSrc));
 
