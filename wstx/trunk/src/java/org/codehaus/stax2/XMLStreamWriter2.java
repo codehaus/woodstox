@@ -60,7 +60,8 @@ public interface XMLStreamWriter2
      * initialize it if necessary, and make stream writer
      * call appropriate validation methods from this point on until the
      * end of the document (ie. not scoped with sub-trees), or until
-     * validator is removed by an explicit call to {@link #removeValidation}.
+     * validator is removed by an explicit call to
+     * {@link #stopValidatingAgainst}.
      *<p>
      * Note that while this method can be called at any point in output
      * processing, validator instances are not required to be able to handle

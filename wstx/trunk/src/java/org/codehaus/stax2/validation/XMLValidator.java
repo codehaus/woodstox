@@ -181,7 +181,7 @@ public abstract class XMLValidator
      * Note: this method is only guaranteed to be called when
      * {@link #validateElementAndAttributes()} for the currently open
      * element returned {@link #CONTENT_ALLOW_VALIDATABLE_TEXT} (or,
-     * in case of mixed content, {@link #validateElementEnd()}, for the
+     * in case of mixed content, {@link #validateElementEnd}, for the
      * last enclosed element). Otherwise, validator context may choose
      * not to call the method as an optimization.
      *
@@ -201,7 +201,7 @@ public abstract class XMLValidator
      * Note: this method is only guaranteed to be called when
      * {@link #validateElementAndAttributes()} for the currently open
      * element returned {@link #CONTENT_ALLOW_VALIDATABLE_TEXT} (or,
-     * in case of mixed content, {@link #validateElementEnd()}, for the
+     * in case of mixed content, {@link #validateElementEnd}, for the
      * last enclosed element). Otherwise, validator context may choose
      * not to call the method as an optimization.
      *

@@ -244,7 +244,7 @@ public class SimpleNsStreamWriter
         }
 
         mCurrElem = mCurrElem.createChild(prefix, localName, nsURI);
-        doWriteStartElement(prefix, localName);
+        doWriteStartTag(prefix, localName);
     }
 
     protected void writeStartOrEmpty(String prefix, String localName, String nsURI)
@@ -256,7 +256,7 @@ public class SimpleNsStreamWriter
         }
 
         mCurrElem = mCurrElem.createChild(prefix, localName, nsURI);
-        doWriteStartElement(prefix, localName);
+        doWriteStartTag(prefix, localName);
     }
 
     /**

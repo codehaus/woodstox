@@ -267,7 +267,7 @@ public class RepairingNsStreamWriter
                 mValidator.validateElementStart(localName, nsURI, prefix);
             }
             mCurrElem = mCurrElem.createChild(prefix, localName, nsURI);
-            doWriteStartElement(prefix, localName);
+            doWriteStartTag(prefix, localName);
         } else { // no prefix, more work
             prefix = generateElemPrefix(null, nsURI, mCurrElem);
             if (mValidator != null) {
@@ -275,7 +275,7 @@ public class RepairingNsStreamWriter
             }
             mCurrElem = mCurrElem.createChild(prefix, localName, nsURI);
             mCurrElem.setPrefix(prefix);
-            doWriteStartElement(prefix, localName);
+            doWriteStartTag(prefix, localName);
             if (prefix == null || prefix.length() == 0) { // def NS
                 mCurrElem.setDefaultNsUri(nsURI);
                 doWriteNamespace(null, nsURI);
@@ -298,7 +298,7 @@ public class RepairingNsStreamWriter
                 mValidator.validateElementStart(localName, nsURI, actPrefix);
             }
             mCurrElem = mCurrElem.createChild(actPrefix, localName, nsURI);
-            doWriteStartElement(actPrefix, localName);
+            doWriteStartTag(actPrefix, localName);
         } else { // nah, need to create a new binding...
             actPrefix = generateElemPrefix(suggPrefix, nsURI, mCurrElem);
             if (mValidator != null) {
@@ -306,7 +306,7 @@ public class RepairingNsStreamWriter
             }
             mCurrElem = mCurrElem.createChild(actPrefix, localName, nsURI);
             mCurrElem.setPrefix(actPrefix);
-            doWriteStartElement(actPrefix, localName);
+            doWriteStartTag(actPrefix, localName);
             if (actPrefix == null || actPrefix.length() == 0) { // def NS
                 mCurrElem.setDefaultNsUri(nsURI);
                 doWriteNamespace(null, nsURI);

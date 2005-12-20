@@ -219,7 +219,7 @@ public abstract class BaseNsStreamWriter
         }
         mEmptyElement = true;
         mCurrElem = mCurrElem.createChild(localName);
-        doWriteStartElement(NO_PREFIX, localName);
+        doWriteStartTag(NO_PREFIX, localName);
 
     }
 
@@ -240,7 +240,7 @@ public abstract class BaseNsStreamWriter
     public void writeEndElement()
         throws XMLStreamException
     {
-        doWriteEndElement(null, mCfgAutomaticEmptyElems);
+        doWriteEndTag(null, mCfgAutomaticEmptyElems);
     }
 
     /**
@@ -257,7 +257,7 @@ public abstract class BaseNsStreamWriter
         mEmptyElement = false;
         mCurrElem = mCurrElem.createChild(localName);
 
-        doWriteStartElement(NO_PREFIX, localName);
+        doWriteStartTag(NO_PREFIX, localName);
     }
 
     public void writeStartElement(String nsURI, String localName)
@@ -287,7 +287,7 @@ public abstract class BaseNsStreamWriter
     public void writeFullEndElement()
         throws XMLStreamException
     {
-        doWriteEndElement(null, false);
+        doWriteEndTag(null, false);
     }
 
     /*
@@ -319,8 +319,7 @@ public abstract class BaseNsStreamWriter
     public void writeEndElement(QName name)
         throws XMLStreamException
     {
-        doWriteEndElement(mCheckStructure ? name : null,
-                          mCfgAutomaticEmptyElems);
+        doWriteEndTag(mCheckStructure ? name : null, mCfgAutomaticEmptyElems);
     }
 
     /**
@@ -355,7 +354,7 @@ public abstract class BaseNsStreamWriter
         if (emptyElem) {
             SimpleOutputElement curr = mCurrElem;
             mCurrElem = curr.getParent();
-            if (curr.isRoot()) {
+            if (mCurrElem.isRoot()) { // Did we close the root? (isRoot() returns true for the virtual "document node")
                 mState = STATE_EPILOG;
             }
             if (mValidator != null) {
@@ -455,7 +454,7 @@ public abstract class BaseNsStreamWriter
         }
     }
 
-    protected void doWriteStartElement(String prefix, String localName)
+    protected void doWriteStartTag(String prefix, String localName)
         throws XMLStreamException
     {
         if (mCheckNames) {
@@ -486,7 +485,7 @@ public abstract class BaseNsStreamWriter
      *   if the closing element was truly empty; if false, has to write
      *   the full empty element no matter what
      */
-    protected void doWriteEndElement(QName expName, boolean allowEmpty)
+    protected void doWriteEndTag(QName expName, boolean allowEmpty)
         throws XMLStreamException
     {
         /* First of all, do we need to close up an earlier empty element?

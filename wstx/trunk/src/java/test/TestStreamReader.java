@@ -39,7 +39,8 @@ public class TestStreamReader
                       //Boolean.TRUE
                       );
 
-        f.setProperty(XMLInputFactory.SUPPORT_DTD, Boolean.TRUE);
+        //f.setProperty(XMLInputFactory.SUPPORT_DTD, Boolean.TRUE);
+        f.setProperty(XMLInputFactory.SUPPORT_DTD, Boolean.FALSE);
 
         //f.setProperty(XMLInputFactory.IS_VALIDATING, Boolean.FALSE);
         f.setProperty(XMLInputFactory.IS_VALIDATING, Boolean.TRUE);

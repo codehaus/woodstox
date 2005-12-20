@@ -29,9 +29,11 @@ public class TestNsStreamWriter
     {
         XMLOutputFactory f = getFactory();
         f.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES,
-                      Boolean.TRUE);
+                      //Boolean.TRUE);
+                      Boolean.FALSE);
         f.setProperty(XMLOutputFactory2.P_NAMESPACE_AWARE,
                       Boolean.TRUE);
+        //Boolean.FALSE);
         f.setProperty(XMLOutputFactory2.P_AUTOMATIC_EMPTY_ELEMENTS,
                       //Boolean.TRUE);
                       Boolean.FALSE);
@@ -39,6 +41,13 @@ public class TestNsStreamWriter
         XMLStreamWriter sw = f.createXMLStreamWriter(w);
 
         sw.writeStartDocument();
+
+        sw.writeEmptyElement("foo");
+        //sw.writeStartElement("foo");
+        //sw.writeEndElement();
+        sw.writeCharacters("\n");
+
+        /*
         sw.writeComment("Comment!");
         sw.writeCharacters("\n");
         sw.writeStartElement("root");
@@ -77,6 +86,8 @@ public class TestNsStreamWriter
         sw.writeCharacters("\n"); // white space in epilog
         sw.writeProcessingInstruction("target", "some data");
         sw.writeCharacters("\n"); // white space in epilog
+        */
+
         sw.writeEndDocument();
 
         sw.flush();

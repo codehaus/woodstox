@@ -228,6 +228,9 @@ public class ValidatingStreamReader
             return;
         }
 
+        /* We know there are no spaces, as this char was read and pushed
+         * back earlier...
+         */
         char c = getNextChar(SUFFIX_IN_DTD);
         DTDSubset intSubset = null;
 
