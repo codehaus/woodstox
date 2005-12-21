@@ -45,7 +45,7 @@ public class TestNsStreamWriter3
         Writer w = new PrintWriter(System.out);
         XMLStreamWriter2 sw = (XMLStreamWriter2)f.createXMLStreamWriter(w);
 
-        XMLValidatorFactory vd = XMLValidatorFactory.newInstance(XMLValidatorFactory.SCHEMA_ID_DTD);
+        XMLValidationSchemaFactory vd = XMLValidationSchemaFactory.newInstance(XMLValidationSchema.SCHEMA_ID_DTD);
 
         XMLValidationSchema schema = vd.createSchema(new StringReader(dtdStr));
 

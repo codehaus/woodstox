@@ -5,6 +5,7 @@ import java.io.*;
 import javax.xml.stream.*;
 
 import org.codehaus.stax2.XMLOutputFactory2;
+import org.codehaus.stax2.XMLStreamWriter2;
 import org.codehaus.stax2.validation.*;
 
 import com.ctc.wstx.api.WstxOutputProperties;
@@ -35,7 +36,7 @@ public class TestNonNsStreamWriter
         f.setProperty(XMLOutputFactory2.P_AUTOMATIC_EMPTY_ELEMENTS,
                       Boolean.TRUE);
         Writer w = new PrintWriter(System.out);
-        XMLStreamWriter sw = f.createXMLStreamWriter(w);
+        XMLStreamWriter2 sw = (XMLStreamWriter2) f.createXMLStreamWriter(w);
 
         final String dtdStr =
             "<!ELEMENT root (elem, elem3)>\n"
@@ -45,11 +46,11 @@ public class TestNonNsStreamWriter
             +"<!ELEMENT elem3 ANY>\n"
             ;
 
-        XMLValidatorFactory vd = XMLValidatorFactory.newInstance(XMLValidatorFactory.SCHEMA_ID_DTD);
+        XMLValidationSchemaFactory vd = XMLValidationSchemaFactory.newInstance(XMLValidationSchema.SCHEMA_ID_DTD);
 
         XMLValidationSchema schema = vd.createSchema(new StringReader(dtdStr));
 
-        ((BaseStreamWriter) sw).setValidator(schema);
+        sw.validateAgainst(schema);
 
         sw.writeStartDocument();
         sw.writeComment("Comment!");

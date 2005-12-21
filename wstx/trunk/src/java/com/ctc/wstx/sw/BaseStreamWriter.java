@@ -197,6 +197,15 @@ public abstract class BaseStreamWriter
      */
     protected int mVldContent = XMLValidator.CONTENT_ALLOW_ANY_TEXT;
 
+    /**
+     * Value passed as the expected root element, when using the multiple
+     * argument {@link #writeDTD} method. Will be used in structurally
+     * validating mode (and in dtd-validating mode, since that automatically
+     * enables structural validation as well, to pre-filter well-formedness
+     * errors that validators might have trouble dealing with).
+     */
+    protected String mDtdRootElem = null;
+
     /*
     ////////////////////////////////////////////////////
     // State needed for efficient copy-through output
@@ -507,7 +516,7 @@ public abstract class BaseStreamWriter
                         return;
                     }
                     // nope, let's err out
-                    throw new XMLStreamException(ErrorConsts.formatMessage(ErrorConsts.WERR_COMMENT_CONTENT, new Integer(ix)));
+                    throwOutputError(ErrorConsts.WERR_COMMENT_CONTENT, new Integer(ix));
                 }
             }
             mWriter.write("<!--");
@@ -525,11 +534,16 @@ public abstract class BaseStreamWriter
         throws XMLStreamException
     {
         verifyWriteDTD();
+        mDtdRootElem = ""; // marker to verify only one is output
         try {
             mWriter.write(dtd);
         } catch (IOException ioe) {
             throw new WstxIOException(ioe);
         }
+
+        /* 20-Dec-2005, TSa: Should we try to decipher what was actually
+         *   written, for validation?
+         */
     }
 
     public abstract void writeEmptyElement(String localName)
@@ -910,16 +924,17 @@ public abstract class BaseStreamWriter
         throws XMLStreamException
     {
         verifyWriteDTD();
+        if (mCheckNames) {
+            /* 20-Apr-2005, TSa: Can only really verify that it has at most
+             *    one colon in ns-aware mode (and not even that in non-ns
+             *    mode)... so let's just ignore colon count, and check
+             *    that other chars are valid at least
+             */
+            verifyNameValidity(rootName, false);
+        }
+        mDtdRootElem = rootName;
         try {
             mWriter.write("<!DOCTYPE ");
-            if (mCheckNames) {
-                /* 20-Apr-2005, TSa: Can only really verify that it has at most
-                 *    one colon in ns-aware mode (and not even that in non-ns
-                 *    mode)... so let's just ignore colon count, and check
-                 *    that other chars are valid at least
-                 */
-                verifyNameValidity(rootName, false);
-            }
             mWriter.write(rootName);
             if (systemId != null) {
                 if (publicId != null) {
@@ -1409,6 +1424,10 @@ public abstract class BaseStreamWriter
             if (mState != STATE_PROLOG) {
                 throw new XMLStreamException("Can not write DOCTYPE declaration (DTD) when not in prolog any more (state "+mState+"; start element(s) written)");
             }
+            // 20-Dec-2005, TSa: and that we only output one...
+            if (mDtdRootElem != null) {
+                throw new XMLStreamException("Trying to write multiple DOCTYPE declarations");
+            }
         }
     }
 
@@ -1464,6 +1483,46 @@ public abstract class BaseStreamWriter
             }
         }
         return ix;
+    }
+
+    protected void verifyRootElement(String localName, String prefix)
+        throws XMLValidationException
+    {
+        /* Note: this check is bit lame, due to DOCTYPE declaration (and DTD
+         * in general) being namespace-ignorant...
+         */
+        if (mDtdRootElem != null && mDtdRootElem.length() > 0) {
+            String wrongElem = null;
+
+            /* Ugh. It is possible that we just don't know the prefix --
+             * in repairing mode it's assigned after this check. So for
+             * now, let's only verify the local name
+             */
+            if (localName.equals(mDtdRootElem)) {
+                // good
+            } else {
+                int lnLen = localName.length();
+                int oldLen = mDtdRootElem.length();
+
+                if (oldLen > lnLen
+                    && mDtdRootElem.endsWith(localName)
+                    && mDtdRootElem.charAt(oldLen - lnLen - 1) == ':') {
+                    // good also
+                } else {
+                    if (prefix == null) { // doesn't and won't have one
+                        wrongElem = localName;
+                    } else if (prefix.length() == 0) { // don't know what it'd be
+                        wrongElem = "[unknown]:"+localName;
+                    } else {
+                        wrongElem = prefix + ":" + localName;
+                    }
+                }
+            }
+            if (wrongElem != null) {
+                reportValidationProblem(ErrorConsts.ERR_VLD_WRONG_ROOT, wrongElem, mDtdRootElem);
+            }
+        }
+        mState = STATE_TREE;
     }
 
     protected void writeSegmentedCData(String content, int index)

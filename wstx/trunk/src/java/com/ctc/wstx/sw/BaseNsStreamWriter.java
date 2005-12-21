@@ -213,7 +213,7 @@ public abstract class BaseNsStreamWriter
     public void writeEmptyElement(String localName)
         throws XMLStreamException
     {
-        checkStartElement(localName);
+        checkStartElement(localName, null);
         if (mValidator != null) {
             mValidator.validateElementStart(localName, NO_NS_URI, NO_PREFIX);
         }
@@ -250,7 +250,7 @@ public abstract class BaseNsStreamWriter
     public void writeStartElement(String localName)
         throws XMLStreamException
     {
-        checkStartElement(localName);
+        checkStartElement(localName, null);
         if (mValidator != null) {
             mValidator.validateElementStart(localName, NO_NS_URI, NO_PREFIX);
         }
@@ -379,7 +379,7 @@ public abstract class BaseNsStreamWriter
      * element, both from structural point of view, and from syntactic
      * (close previously open start element, if any).
      */
-    protected void checkStartElement(String localName)
+    protected void checkStartElement(String localName, String prefix)
         throws XMLStreamException
     {
         // Need to finish an open start element?
@@ -395,7 +395,7 @@ public abstract class BaseNsStreamWriter
         }
 
         if (mState == STATE_PROLOG) {
-            mState = STATE_TREE;
+            verifyRootElement(localName, prefix);
         }
     }
 

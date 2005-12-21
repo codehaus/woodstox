@@ -1,7 +1,5 @@
 package com.ctc.wstx.cfg;
 
-import java.text.MessageFormat;
-
 import javax.xml.XMLConstants;
 import javax.xml.stream.XMLStreamConstants;
 
@@ -105,6 +103,7 @@ public class ErrorConsts
     public static String ERR_VLD_NON_MIXED = "Element <{0}> has non-mixed content specification; can not contain non-white space text, or any CDATA sections";
     public static String ERR_VLD_ANY = "Element <{0}> has ANY content specification; can not contain {1}";
     public static String ERR_VLD_UNKNOWN_ATTR = "Element <{0}> has no attribute \"{1}\"";
+    public static String ERR_VLD_WRONG_ROOT = "Unexpected root element <{0}>; expected <{0}> as per DOCTYPE declaration";
 
     // // // Namespace problems:
 
@@ -166,15 +165,5 @@ public class ErrorConsts
             return "ENTITY_REFERENCE";
         }
         return "["+type+"]";
-    }
-
-    public static String formatMessage(String format, Object arg)
-    {
-        return MessageFormat.format(format, new Object[] { arg });
-    }
-
-    public static String formatMessage(String format, Object arg1, Object arg2)
-    {
-        return MessageFormat.format(format, new Object[] { arg1, arg2 });
     }
 }

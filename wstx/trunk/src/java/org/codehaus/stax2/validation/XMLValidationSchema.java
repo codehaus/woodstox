@@ -13,7 +13,7 @@ import org.codehaus.stax2.XMLStreamWriter2;
  * for constructing such validator Objects. Because of this, they are
  * also guaranteed to be thread-safe and reusable. One way to think of this
  * is that schemas are actual validator factories instead of
- * {@link XMLValidatorFactory} instances.
+ * {@link XMLValidationSchemaFactory} instances.
  *<p>
  * One note about creation of validator instances: since the validation
  * may be invoked from wide variety of contexts (from parser, from serializer,
@@ -26,6 +26,13 @@ import org.codehaus.stax2.XMLStreamWriter2;
  */
 public interface XMLValidationSchema
 {
+    // // // Constants defining standard Schema types:
+
+    public final static String SCHEMA_ID_DTD = "http://www.w3.org/XML/1998/namespace";
+    public final static String SCHEMA_ID_RELAXNG = "http://relaxng.org/ns/structure/0.9";
+    public final static String SCHEMA_ID_W3C_SCHEMA = "http://www.w3.org/2001/XMLSchema";
+    public final static String SCHEMA_ID_TREX = "http://www.thaiopensource.com/trex";
+
     public XMLValidator createValidator(ValidationContext ctxt)
         throws XMLStreamException;
 

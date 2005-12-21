@@ -258,7 +258,7 @@ public class RepairingNsStreamWriter
     protected void writeStartOrEmpty(String localName, String nsURI)
         throws XMLStreamException
     {
-        checkStartElement(localName);
+        checkStartElement(localName, "");
 
         // Need a prefix....
         String prefix = findElemPrefix(nsURI, mCurrElem);
@@ -289,7 +289,7 @@ public class RepairingNsStreamWriter
     protected void writeStartOrEmpty(String suggPrefix, String localName, String nsURI)
         throws XMLStreamException
     {
-        checkStartElement(localName);
+        checkStartElement(localName, suggPrefix);
 
         // In repairing mode, better ensure validity:
         String actPrefix = validateElemPrefix(suggPrefix, nsURI, mCurrElem);
@@ -412,7 +412,7 @@ public class RepairingNsStreamWriter
         throws XMLStreamException
     {
         /* Special case: empty NS URI can only be bound to the empty
-         * prefix... so:
+         * prefix...
          */
         if (nsURI == null || nsURI.length() == 0) {
             String currDefNsURI = elem.getDefaultNsUri();

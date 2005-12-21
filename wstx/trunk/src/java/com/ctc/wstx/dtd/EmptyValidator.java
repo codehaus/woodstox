@@ -11,14 +11,18 @@ import java.util.*;
 public class EmptyValidator
     extends StructValidator
 {
-    final static EmptyValidator sInstance = new EmptyValidator();
+    final static EmptyValidator sPcdataInstance = new EmptyValidator("No elements allowed in pure #PCDATA content model");
 
-    private EmptyValidator() {
+    final static EmptyValidator sEmptyInstance = new EmptyValidator("No elements allowed in EMPTY content model");
+
+    final String mErrorMsg;
+
+    private EmptyValidator(String errorMsg) {
+        mErrorMsg = errorMsg;
     }
 
-    public static EmptyValidator getInstance() {
-        return sInstance;
-    }
+    public static EmptyValidator getPcdataInstance() { return sPcdataInstance; }
+    public static EmptyValidator getEmptyInstance() { return sPcdataInstance; }
 
     /**
      * Simple; can always (re)use instance itself; no state information
@@ -30,10 +34,7 @@ public class EmptyValidator
 
     public String tryToValidate(NameKey elemName)
     {
-        /* Note: this assumes that this validator is only used for
-         * pure #PCDATA elements
-         */
-        return "No elements allowed in pure #PCDATA content model";
+        return mErrorMsg;
     }
 
     /**

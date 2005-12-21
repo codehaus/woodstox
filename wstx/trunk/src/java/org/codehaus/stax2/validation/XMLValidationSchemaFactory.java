@@ -23,16 +23,9 @@ import javax.xml.stream.XMLStreamException;
  * @see org.codehaus.stax2.validation.XMLValidationSchema
  * @see org.codehaus.stax2.XMLInputFactory2
  */
-public abstract class XMLValidatorFactory
+public abstract class XMLValidationSchemaFactory
 {
-    // // // Constants defining standard Schema types:
-
-    public final static String SCHEMA_ID_DTD = "http://www.w3.org/XML/1998/namespace";
-    public final static String SCHEMA_ID_RELAXNG = "http://relaxng.org/ns/structure/0.9";
-    public final static String SCHEMA_ID_W3C_SCHEMA = "http://www.w3.org/2001/XMLSchema";
-    public final static String SCHEMA_ID_TREX = "http://www.thaiopensource.com/trex";
-
-    // // // And then matching internal ids:
+    // // // Internal ids matching SCHEMA_ID_ constants from XMLValidationSchema
 
     public final static String INTERNAL_ID_SCHEMA_DTD = "dtd";
     public final static String INTERNAL_ID_SCHEMA_RELAXNG = "relaxng";
@@ -41,10 +34,10 @@ public abstract class XMLValidatorFactory
 
     final static HashMap sSchemaIds = new HashMap();
     static {
-        sSchemaIds.put(SCHEMA_ID_DTD, INTERNAL_ID_SCHEMA_DTD);
-        sSchemaIds.put(SCHEMA_ID_RELAXNG, INTERNAL_ID_SCHEMA_RELAXNG);
-        sSchemaIds.put(SCHEMA_ID_W3C_SCHEMA, INTERNAL_ID_SCHEMA_W3C);
-        sSchemaIds.put(SCHEMA_ID_TREX, INTERNAL_ID_SCHEMA_TREX);
+        sSchemaIds.put(XMLValidationSchema.SCHEMA_ID_DTD, INTERNAL_ID_SCHEMA_DTD);
+        sSchemaIds.put(XMLValidationSchema.SCHEMA_ID_RELAXNG, INTERNAL_ID_SCHEMA_RELAXNG);
+        sSchemaIds.put(XMLValidationSchema.SCHEMA_ID_W3C_SCHEMA, INTERNAL_ID_SCHEMA_W3C);
+        sSchemaIds.put(XMLValidationSchema.SCHEMA_ID_TREX, INTERNAL_ID_SCHEMA_TREX);
     }
 
 
@@ -58,7 +51,7 @@ public abstract class XMLValidatorFactory
      * implementations; or the one used does not specify other mechanisms
      * for the loader to find the implementation class).
      */
-    public final static String SYSTEM_PROPERTY_FOR_IMPL = "org.codehaus.stax2.validation.XMLValidatorFactory.";
+    public final static String SYSTEM_PROPERTY_FOR_IMPL = "org.codehaus.stax2.validation.XMLValidationSchemaFactory.";
 
     public final static String SERVICE_DEFINITION_PATH = "META-INF/services/" + SYSTEM_PROPERTY_FOR_IMPL;
 
@@ -85,7 +78,7 @@ public abstract class XMLValidatorFactory
      */
     public static final String P_ENABLE_CACHING = "org.codehaus2.stax2.validation.enableCaching";
 
-    protected XMLValidatorFactory() { }
+    protected XMLValidationSchemaFactory() { }
 
     /*
     ////////////////////////////////////////////////////////
@@ -99,14 +92,14 @@ public abstract class XMLValidatorFactory
      * Creates a new XMLValidationFactory instance, using the default
      * instance configuration mechanism.
      */
-    public static XMLValidatorFactory newInstance(String schemaType)
+    public static XMLValidationSchemaFactory newInstance(String schemaType)
         throws FactoryConfigurationError
     {
         return newInstance(schemaType,
                            Thread.currentThread().getContextClassLoader());
     }
 
-    public static XMLValidatorFactory newInstance(String schemaType, ClassLoader classLoader)
+    public static XMLValidationSchemaFactory newInstance(String schemaType, ClassLoader classLoader)
         throws FactoryConfigurationError
     {
         /* First, let's check and map schema type to the shorter internal
@@ -206,7 +199,7 @@ public abstract class XMLValidatorFactory
              */
         }
         
-        String msg = "No XMLValidatorFactory implementation class specified or accessible (via system property '"
+        String msg = "No XMLValidationSchemaFactory implementation class specified or accessible (via system property '"
             +propertyId+"', or service definition under '"+path+"')";
         
         if (secEx != null) {
@@ -282,7 +275,7 @@ public abstract class XMLValidatorFactory
     ///////////////////////////////////////////////////////
      */
 
-    private static XMLValidatorFactory createNewInstance(ClassLoader cloader, String clsName)
+    private static XMLValidationSchemaFactory createNewInstance(ClassLoader cloader, String clsName)
         throws FactoryConfigurationError
     {
         try {
@@ -293,13 +286,13 @@ public abstract class XMLValidatorFactory
             } else {
                 factoryClass = cloader.loadClass(clsName);
             }
-            return (XMLValidatorFactory) factoryClass.newInstance();
+            return (XMLValidationSchemaFactory) factoryClass.newInstance();
         } catch (ClassNotFoundException x) {
             throw new FactoryConfigurationError
-                ("XMLValidatorFactory implementation '"+clsName+"' not found (missing jar in classpath?)", x);
+                ("XMLValidationSchemaFactory implementation '"+clsName+"' not found (missing jar in classpath?)", x);
         } catch (Exception x) {
             throw new FactoryConfigurationError
-                ("XMLValidatorFactory implementation '"+clsName+"' could not be instantiated: "+x, x);
+                ("XMLValidationSchemaFactory implementation '"+clsName+"' could not be instantiated: "+x, x);
         }
     }
 }

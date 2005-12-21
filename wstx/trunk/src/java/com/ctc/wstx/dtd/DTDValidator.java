@@ -451,10 +451,13 @@ public class DTDValidator
                 int defIx = mContext.addDefaultAttribute(an.getLocalName(),
                                                          uri, prefix, def);
                 if (defIx < 0) {
-                    throw new Error("Internal error: tried to add default attribute "+attr+", but value for it already existed");
-                }
-
-                if (defIx >= 0) { // -1 means it was not added...
+                    /* 13-Dec-2005, Tatus: Hmmh. For readers this is an error
+                     *   condition, but writers may just indicate they are not
+                     *   interested in defaults. So let's let context report
+                     *   problem(s) if it has any regarding the request.
+                     */
+                    //throw new Error("Internal error: tried to add default attribute "+attr+", but value for it already existed");
+                } else {
                     while (defIx >= mAttrSpecs.length) {
                         mAttrSpecs = (DTDAttribute[]) DataUtil.growArrayBy50Pct(mAttrSpecs);
                     }

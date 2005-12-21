@@ -233,7 +233,7 @@ public class SimpleNsStreamWriter
     protected void writeStartOrEmpty(String localName, String nsURI)
         throws XMLStreamException
     {
-        checkStartElement(localName);
+        checkStartElement(localName, "");
         // Need a prefix...
         String prefix = mCurrElem.getPrefix(nsURI);
         if (prefix == null) {
@@ -250,7 +250,7 @@ public class SimpleNsStreamWriter
     protected void writeStartOrEmpty(String prefix, String localName, String nsURI)
         throws XMLStreamException
     {
-        checkStartElement(localName);
+        checkStartElement(localName, prefix);
         if (mValidator != null) {
             mValidator.validateElementStart(localName, nsURI, prefix);
         }

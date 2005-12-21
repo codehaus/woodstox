@@ -23,6 +23,7 @@
     <!-- Build-related -->
     <property name="BuildDir" location="${basedir}/build" />
     <property name="BuildClassesDir" location="${BuildDir}/classes" />
+    <property name="EmmaBuildClassesDir" location="${BuildDir}/emma-classes" />
     <!-- Documentation -->
     <property name="DocDir" location="${basedir}/doc" />
     <property name="JavaDocDir" location="${BuildDir}/javadoc" />
@@ -113,6 +114,17 @@
        <rootfileset dir="${BuildClassesDir}" includes="com/ctc/wstx/compat/Jdk*Impl.class" />
     </classfileset>
 
+    <!-- Enabling support for Emma (http://emma.sourceforge.net) code
+       - coverage library
+      -->
+    <property name="emma.dir" value="${LibDir}" />
+    <property name="emma.coverage.dir" value="${BuildDir}/coverage" />
+    <path id="emma.lib">
+      <pathelement location="${emma.dir}/emma.jar" />
+      <pathelement location="${emma.dir}/emma_ant.jar" />
+    </path>
+    <taskdef resource="emma_ant.properties" classpathref="emma.lib" />
+
     <!--*********************************************************************-->
     <!-- The readme target shows a brief description of all targets          -->
     <!-- supported by this ant build file                                    -->
@@ -145,6 +157,8 @@
         <!-- make build directories -->
         <mkdir dir="${BuildDir}" />
         <mkdir dir="${BuildClassesDir}" />
+        <mkdir dir="${EmmaBuildClassesDir}" />
+        <mkdir dir="${emma.coverage.dir}" />
 
         <!-- make docs directories -->
         <mkdir dir="${DocDir}" />
@@ -196,6 +210,7 @@
         <delete dir="${DocDir}"/>
         <delete dir="${TestDir}"/>
         <delete dir="${DistDir}"/>
+        <delete file="coverage.ec" />
     </target>
 
     <target name="compile" depends="prepare,copy-resources">
@@ -221,7 +236,7 @@
 
     <!-- Dummy target that just includes all individual jars... --> 
     <target name="jars"
-       depends="jar.stax2, jar.wstx.lgpl, jar.wstx.asl, jars.j2me"
+       depends="jar.stax2, jar.wstx.lgpl, jar.wstx.asl, jars.j2me, jar.resources"
     />
 
     <target name="jars.j2me"
@@ -247,6 +262,28 @@
             <include name="LICENSE" />
             <include name="NOTICE" />
             <include name="LGPL2.1" />
+          </fileset>
+        </jar>
+    </target> 
+
+    <!-- This jar is only needed for testing purposes, to specify 
+       - which StAX implementation to use
+      -->
+    <target name="jar.resources" depends="compile,copy-resources">
+        <jar jarfile="${BuildDir}/wstx-api-${WSTX_VERSION}.jar"
+         filesonly="true" >
+          <manifest>
+            <attribute name="Built-By" value="${user.name}"/>
+            <attribute name="Specification-Title"   value="${STAX_TITLE}"/>
+            <attribute name="Specification-Version" value="${STAX_VERSION}"/>
+            <attribute name="Specification-Vendor"  value="${STAX_VENDOR}"/>
+            <attribute name="Implementation-Title"   value="${WSTX_TITLE}"/>
+            <attribute name="Implementation-Version" value="${WSTX_VERSION}"/>
+            <attribute name="Implementation-Vendor"  value="${WSTX_VENDOR}"/>
+          </manifest>
+          <fileset dir="${BuildClassesDir}">
+              <include name="META-INF/services/javax.xml.stream.*" />
+              <include name="META-INF/services/org.codehaus.stax2.*" />
           </fileset>
         </jar>
     </target> 
@@ -411,9 +448,7 @@
     <target name="all-tests" depends="test,staxtest" />
 
     <!-- Running generic StAX tests -->
-    <target name="staxtest"
-      depends="prepare-staxtest,jar.wstx.asl"
-    >
+    <target name="staxtest" depends="prepare-staxtest">
        <!-- showoutput 'yes' to allow outputting debug msgs... -->
         <junit fork="no" printsummary="yes" haltonfailure="no"
          showoutput="yes">
@@ -424,13 +459,14 @@
             </batchtest>
             <formatter type="xml" />
             <classpath refid="compile-classpath" />
-           <classpath path="${StaxTestClassesDir}" />
-           <!-- Note: need to use Wstx jar, since it has properties to point
-            - StAX to use correct implementation classes!
-            -->
-            <classpath>     
+            <classpath path="${StaxTestClassesDir}" />
+            <classpath>
+              <pathelement path="${BuildClassesDir}" />
+             <!-- Note: need to add the dummy wstx.jar, since it has properties
+                -  to point StAX to use correct implementation classes!
+               -->
               <fileset dir="${BuildDir}">
-                <include name="wstx-asl-*.jar" />
+                <include name="wstx-api-*.jar" />
               </fileset> 
               <path refid="junit-libs"/>
            </classpath>  
@@ -444,7 +480,7 @@
         </junitreport>
     </target>
 
-    <target name="prepare-staxtest">
+    <target name="prepare-staxtest" depends="jar.resources">
         <mkdir dir="${StaxTestClassesDir}" />
         <!-- and unpack test classes... unfortunately needed so JUnit
              can find classes (maybe there's a way to refer to a jar too,
@@ -502,5 +538,106 @@
             <report todir="${TestResultsDir}" />
         </junitreport>
     </target>
+
+    <target name="test-emma" depends="test.compile, prepare-staxtest">
+
+      <!-- First, need to instrument using Emma -->
+      <property name="emma.instr.dir" value="${BuildDir}/emma-instr" />
+      <!-- 20-Dec-2005, TSa: How the hell do I exclude specific sub-dirs
+         -    from being instrumented? Ugh. There has to be a way... but
+         -    so far nothing has worked to just exclude test.* classes.
+         -
+         -    Will probably just need to copy the real classes to a temporary
+         -    location to make it work
+        --> 
+      <property name="emma.tmp.dir" value="${BuildDir}/emma-tmp" />
+      <mkdir dir="${emma.tmp.dir}" />
+      <copy toDir="${emma.tmp.dir}">
+        <fileset dir="${BuildClassesDir}">
+          <include name="org/codehaus/stax2/**/*.class" />
+          <include name="com/ctc/**/*.class" />
+        </fileset>           	
+      </copy>
+      <path id="emma-classpath">
+          <pathelement location="${emma.tmp.dir}">
+          </pathelement>
+      </path>
+      <mkdir dir="${emma.instr.dir}" />
+      <emma enabled="true"> <!--  verbosity="verbose" -->
+        <instr instrpathref="emma-classpath"
+             destdir="${EmmaBuildClassesDir}"	
+             metadatafile="${emma.coverage.dir}/metadata.emma"
+             merge="true"
+ mode="fullcopy"
+        />
+      </emma>
+      <!-- Ok, so let's just nuke the stupid test classes...
+        -  ... for which there are 2 possible locations...
+        -->
+      <delete dir="${EmmaBuildClassesDir}/classes/test"/>
+      <delete dir="${EmmaBuildClassesDir}/test"/>
+
+      <!-- Then run tests. Note: need to fork for Emma to work...? -->
+      <junit fork="yes" printsummary="yes" haltonfailure="no"
+         showoutput="yes">
+            <batchtest fork="no" todir="${TestXmlResultsDir}">
+                <!-- Generic StAX tests -->
+                <fileset dir="${StaxTestClassesDir}">
+                    <include name="org/codehaus/**/Test*.class"/>
+                </fileset>
+                <!-- Woodstox-specific tests -->
+                <fileset dir="${TestClassesDir}">
+                    <!-- Need to exclude inner classes... -->
+                    <exclude name="**/*$*.class"/>
+                    <include name="**/Test*.class"/>
+                </fileset>
+            </batchtest>
+            <formatter type="xml" />
+            <!-- StAX API: -->
+            <classpath refid="compile-classpath" />
+            <!-- Actual tests: -->
+            <classpath path="${TestClassesDir}" />
+            <classpath path="${StaxTestClassesDir}" />
+            <!-- Emma jars: -->
+            <classpath>
+                <pathelement path="${EmmaBuildClassesDir}/classes" />
+                <pathelement location="${LibDir}/emma.jar" /> 
+                <!-- need resource (service) files so stax(2) knows which
+                   - impl to use
+                 -->
+                <fileset dir="${BuildDir}">
+                  <include name="wstx-api-*.jar" />
+                </fileset>
+                <path refid="junit-libs"/>
+            </classpath>     
+        </junit>
+
+        <junitreport todir="${TestResultsDir}">
+            <fileset dir="${TestXmlResultsDir}">
+                <include name="TEST-*.xml" />
+            </fileset>
+            <report todir="${TestResultsDir}" />
+        </junitreport>
+
+       <!-- Then Emma coverage reporting... -->
+
+       <emma enabled="true"> <!-- verbosity="verbose" -->
+        <report sourcepath="${JavaSrcDir}" >
+          <fileset dir="${emma.coverage.dir}" >
+            <include name="*.emma" />
+          </fileset>
+          <fileset dir="${basedir}" >
+            <include name="coverage.ec" />
+          </fileset>
+         <txt outfile="${emma.coverage.dir}/coverage.txt" />
+         <html outfile="${emma.coverage.dir}/coverage.html" />
+        </report>
+       </emma>
+
+        <!-- Don't really need actual JUnit output do we? -->
+        <!--
+        -->
+    </target>
+
 
 </project>

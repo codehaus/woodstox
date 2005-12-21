@@ -64,7 +64,7 @@ public abstract class DTDSubset
         throws XMLStreamException;
 
     public String getSchemaType() {
-        return XMLValidatorFactory.SCHEMA_ID_DTD;
+        return XMLValidationSchema.SCHEMA_ID_DTD;
     }
 
     /*

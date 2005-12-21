@@ -2712,9 +2712,16 @@ public class BasicStreamReader
 
             if (c == ':' || is11NameStartChar(c)) {
                 // 30-Aug-2004, TSa: Not legal for EMPTY elements
+                /* 20-Dec-2005, TSa: No need to check here any more; validator
+                 *   now takes care of this (to consolidate all elem/attr
+                 *   validation in validator, and only leave other types
+                 *   here)
+                 */
+                /*
                 if (mVldContent == XMLValidator.CONTENT_ALLOW_NONE) {
                     reportInvalidContent(START_ELEMENT);
                 }
+                */
                 handleStartElem(c);
                 return START_ELEMENT;
             }

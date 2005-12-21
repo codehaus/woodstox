@@ -41,7 +41,7 @@ import com.ctc.wstx.util.URLUtil;
  * accessible
  */
 public final class DTDValidatorFactory
-    extends XMLValidatorFactory
+    extends XMLValidationSchemaFactory
 {
     /*
     /////////////////////////////////////////////////////

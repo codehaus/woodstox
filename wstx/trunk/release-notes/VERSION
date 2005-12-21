@@ -1,12 +1,21 @@
 Version: 2.8.1
 
-Release date: xx-Dec-2005
+Release date: 20-Dec-2005
 
 Description:
-  Continuing development for 3.0 release; added all remaining features
-  that were planned for 2.0 but did not get in. Next can focus on
-  re-factoring dtd validation (to allow for output validation etc,
-  connecting external validators) and other new features.
+  Another major milestone; the validation infrastructure complete rewritten.
+  Now validators are pluggable. And what's more, now DTD validators work
+  both directions: in addition parsing input, it is possible to now validate
+  output too! (next steps are integrating external validators, and allow
+  overriding of parser-side validators).
+
+  New functionality:
+
+  * Full validator support on writer side: the existing Woodstox DTD
+    validator (constructed via XMLSchemaFactory() or gotten from
+    a XMLStreamReader2 instance) can be plugged in to validate output.
+  * Added initial code coverage testing support using Emma (right now,
+    test cover about 50% of Woodstox code).
 
   Refactoring:
 
@@ -14,6 +23,8 @@ Description:
     interfaces; some minor problems fixed.
 
   Problems fixed:
+
+  * Various fixes from 2.0.4 release.
 
   Improvements:
 
