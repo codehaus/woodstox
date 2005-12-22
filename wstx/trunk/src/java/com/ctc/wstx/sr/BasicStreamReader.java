@@ -878,9 +878,13 @@ public class BasicStreamReader
         return mAttrCollector.isSpecified(index);
     }
 
-    public boolean isCharacters() {
-        return (mCurrToken == CHARACTERS || mCurrToken == CDATA
-                ||mCurrToken == SPACE);
+    public boolean isCharacters()
+    {
+        /* 21-Dec-2005, TSa: Changed for 3.0 to work the same way as stax
+         *    ref impl.
+         */
+        //return (mCurrToken == CHARACTERS || mCurrToken == CDATA || mCurrToken == SPACE);
+        return (mCurrToken == CHARACTERS);
     }
 
     public boolean isEndElement() {

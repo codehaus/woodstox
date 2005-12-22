@@ -1,10 +1,9 @@
 == Immediate plans ==
 
 1.(a) Add setProperty() to reader/writer instances
-  (b) Add separate "override dtd" and "default dtd" entries to
-  reader config
+     * What features to add?
 
-2. Finish configuration documents at http://woodstxo.codehaus.org; need
+2. Finish configuration documents at http://woodstox.codehaus.org; need
    to have complete coverage of all config options available for 3.0.
 
 3. Improve output character encoding: characters below 32 (except for
@@ -18,9 +17,19 @@
 5. Implement native SAX interface(s).
 
 6. Refactor validator API, to:
-  (a) Connect Multi-Schema Validator using its native API.
-  (b) Allow smart indenting
-  (c) Allow writer-side validation
+  (a) Allow dynamic adding/removal of validators for reader
+  (b) Connect Multi-Schema Validator using its native API.
+  (c) Allow smart indenting
 
-7. Indentation, heuristic
+7. Indentation:
+   (a) DTD/Schema based
+   (b) heuristic
 
+8. Xml:id support
+
+9. Testing, add:
+
+   * Test event writer
+   * Test pass-through modes
+   * Test filtered readers (event, stream)
+   * Event objects; test isXxx()

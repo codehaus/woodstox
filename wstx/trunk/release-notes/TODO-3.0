@@ -18,27 +18,24 @@ Planned stuff for 3.0 (or later)
        allowed to be output). Similarly, allow multi-doc input.
 
 * Refactoring:
-   * Clean up DTD abstraction, make it public (at least partially);
-     makes it easier to add/expose other functionality.
-   * Make public API that allows parsing of DTDs; main use will be
+[DONE] * Clean up DTD abstraction, make it public makes it easier to
+     add/expose other functionality.
+[DONE] * Make public API that allows parsing of DTDs; main use will be
      to feed such DTD objects back as either override-DTDs (input),
      or actual DTDs (output+indenting, output+validation)
-  * Continue working on J2ME subset; partial implementations do exist for
-    both input and output factories, but should be able to squeeze out
-    some more classes from subsets.
 
 * Compatibility:
    * JDK 1.2/1.3: Remove dependency to BitSet.nextSetBit and nextClearBit;
      these methods are only in JDK 1.4. But they are (alas!) used by
      DTD processing.
-   * Implement missing JAXP Sources (SAXSource, DOMSource); now only uses
-    StreamSources?
+   * Implement missing JAXP Sources (DOMSource; maybe SAXSource?); now only
+     uses StreamSources?
    * Implement missing JAXP Targets (SAXTarget, DOMTarget); now only uses
      StreamSources?
    * Native SAX(2?) wrappers?
 
 * DTD-validation, handling:
-   * Allow validating output!
+[DONE] * Allow validating output!
    * (pretty-printing using DTD, see below)
 
 * Other validation (RelaxNG, W3C Schema):
@@ -63,7 +60,7 @@ Planned stuff for 3.0 (or later)
       * Output streaming; use of 'writeCharacters("");', flush()
 
 * Exception-handling:
-   * Add a WstxOutputException?
+[DONE] * Add a WstxOutputException?
 [DONE] * Separate exception class for DTD-parsing problems?
    * Perhaps add formal numeric (integer) error codes, to allow other code
      to more reliably determine problem type?

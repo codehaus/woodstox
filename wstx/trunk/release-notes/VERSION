@@ -9,6 +9,16 @@ Description:
   output too! (next steps are integrating external validators, and allow
   overriding of parser-side validators).
 
+  Problems fixed:
+
+  * Changed behaviour of BasicStreamReader.isCharacters() to be identical
+    to the ref. impl, ie. only to return true if the current event is
+    CHARACTERS (but not if it's CDATA and SPACE).
+
+== History: ==
+
+2.8.1 [20-Dec-2005]
+
   New functionality:
 
   * Full validator support on writer side: the existing Woodstox DTD
@@ -31,8 +41,6 @@ Description:
   * Improved performace of handling of elements that do not have any
     attributes: results in up to 5% speed increase for documents that
     are element-heavy but attribute poor.
-
-== History: ==
 
 2.8 [11-Oct-2005]
 

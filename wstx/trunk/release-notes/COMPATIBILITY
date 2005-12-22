@@ -3,11 +3,15 @@
 === Stream reader ===
 
 * Default setting for P_REPORT_PROLOG_WHITESPACE is
-  now Boolean.TRUE (instead of Boolean.FALSE), to mimic behaviour
+  now Boolean.TRUE (instead of Boolean.FALSE), to emulate behaviour
   of the StAX reference implementation, and to keep output in pass-through
   configurations more similar to input.
 * Handling of undeclared entities changed so that no exception is thrown
   in non-expanding mode; this is similar to the way ref. impl. works.
+* isCharacters() now only returns true if current event is CHARACTERS,
+  instead of CHARACTERS, CDATA and SPACE (as in 1.0 and 2.0). Change was
+  done for interoperatibility -- the StAX reference implementation
+  behaves like 3.0.
 
 === Event reader ===
 
