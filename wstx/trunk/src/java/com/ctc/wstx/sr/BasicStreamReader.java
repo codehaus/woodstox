@@ -29,6 +29,7 @@ import org.codehaus.stax2.DTDInfo;
 import org.codehaus.stax2.LocationInfo;
 import org.codehaus.stax2.XMLStreamLocation2;
 import org.codehaus.stax2.XMLStreamReader2;
+import org.codehaus.stax2.validation.DTDValidationSchema;
 import org.codehaus.stax2.validation.XMLValidator;
 
 import com.ctc.wstx.api.ReaderConfig;
@@ -1390,6 +1391,15 @@ public class BasicStreamReader
          * to call this
          */
         return mTextBuffer.contentsAsArray();
+    }
+
+    // // StAX2, v2.0
+
+    /**
+     * Sub-class will override this method
+     */
+    public DTDValidationSchema getProcessedDTDSchema() {
+        return null;
     }
 
     /*

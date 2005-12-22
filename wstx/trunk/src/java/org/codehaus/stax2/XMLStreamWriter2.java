@@ -55,11 +55,10 @@ public interface XMLStreamWriter2
     /**
      * Method that will construct a {@link XMLValidator} instance from the
      * given schema (unless a validator for that schema has already been
-     * added -- this check is done by raw comparison of schema objects, not
-     * by calling equals() method),
+     * added),
      * initialize it if necessary, and make stream writer
      * call appropriate validation methods from this point on until the
-     * end of the document (ie. not scoped with sub-trees), or until
+     * end of the document (that is, it's not scoped with sub-trees), or until
      * validator is removed by an explicit call to
      * {@link #stopValidatingAgainst}.
      *<p>

@@ -45,9 +45,8 @@ public interface XMLValidationSchema
     /**
      * Returns type of this schema.
      *
-     * @return One of external schema identifier values from
-     *   {@link XMLValidatorFactory} (such as
-     *   {@link XMLValidatorFactory#SCHEMA_ID_DTD}).
+     * @return One of external schema identifier values (such as
+     *   {@link #SCHEMA_ID_DTD}).
      */
     public String getSchemaType();
 }

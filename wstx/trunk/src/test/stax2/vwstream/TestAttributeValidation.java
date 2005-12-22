@@ -15,10 +15,16 @@ import org.codehaus.stax2.validation.*;
 public class TestAttributeValidation
     extends BaseOutputTest
 {
+    final String NS_PREFIX = "ns";
+    final String NS_PREFIX2 = "ns2";
+    final String NS_URI = "http://ns";
+
     final String FIXED_DTD_STR = "<!ELEMENT root EMPTY>\n"
         +"<!ATTLIST root fixAttr CDATA #FIXED 'fixedValue'>\n";
     final String REQUIRED_DTD_STR = "<!ELEMENT root EMPTY>\n"
         +"<!ATTLIST root reqAttr CDATA #REQUIRED>\n";
+    final String IMPLIED_NS_DTD_STR = "<!ELEMENT root EMPTY>\n"
+        +"<!ATTLIST root "+NS_PREFIX+":attr CDATA #REQUIRED>\n";
 
     public void testValidFixedAttr()
         throws XMLStreamException
@@ -180,5 +186,70 @@ public class TestAttributeValidation
             // Should not close, since stream is invalid now...
         }
     }
+
+    /**
+     * Test to ensure that the namespace-prefix mapping works (to the degree
+     * it can... wrt dtd-non-ns-awareness) with attributes.
+     */
+    public void testValidNsAttr()
+        throws XMLStreamException
+    {
+        for (int i = 0; i < 2; ++i) {
+            boolean repairing = (i > 0);
+            StringWriter strw = new StringWriter();
+
+            /* Ok, as long as we use the right ns prefix... better also
+             * output namespace declaration, in non-repairing mode.
+             */
+            XMLStreamWriter2 sw = getDTDValidatingWriter(strw, IMPLIED_NS_DTD_STR, true, repairing);
+            sw.writeStartElement("root");
+            if (!repairing) {
+                sw.writeNamespace(NS_PREFIX, NS_URI);
+            }
+            // prefix, uri, localname (for attrs!)
+            sw.writeAttribute(NS_PREFIX, NS_URI, "attr", "value");
+            sw.writeEndElement();
+            sw.writeEndDocument();
+            sw.close();
+        }
+    }
+
+    public void testInvalidNsAttr()
+        throws XMLStreamException
+    {
+        for (int i = 0; i < 2; ++i) {
+            boolean repairing;
+            String modeDesc;
+
+            switch (i) {
+            case 0:
+                modeDesc = "[namespace-aware, non-repairing]";
+                repairing = false;
+                break;
+            default:
+                modeDesc = "[namespace-aware, repairing]";
+                repairing = true;
+                break;
+            }
+
+            // Invalid case, trying to use "wrong" prefix:
+
+            StringWriter strw = new StringWriter();
+            XMLStreamWriter2 sw = getDTDValidatingWriter(strw, IMPLIED_NS_DTD_STR, true, repairing);
+            sw.writeStartElement("root");
+            if (!repairing) {
+                sw.writeNamespace(NS_PREFIX, NS_URI);
+            }
+            // prefix, uri, localname (for attrs!)
+            try {
+                sw.writeAttribute(NS_PREFIX2, NS_URI, "attr", "value");
+                fail(modeDesc+" Expected a validation exception when trying to add an attribute with wrong ns prefix");
+            } catch (XMLValidationException vex) {
+                // expected...
+            }
+            // Should not close, since stream is invalid now...
+        }
+    }
+
 }
 

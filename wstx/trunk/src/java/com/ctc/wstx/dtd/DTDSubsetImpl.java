@@ -231,7 +231,7 @@ public final class DTDSubsetImpl
 
     /*
     //////////////////////////////////////////////////////
-    // Life-cycle
+    // XMLValidationSchema implementation
     //////////////////////////////////////////////////////
      */
 
@@ -241,6 +241,20 @@ public final class DTDSubsetImpl
         return new DTDValidator(this, ctxt, 
                                 getElementMap(), getGeneralEntityMap());
 
+    }
+
+    /*
+    //////////////////////////////////////////////////////
+    // DTDValidationSchema implementation
+    //////////////////////////////////////////////////////
+     */
+
+    public int getEntityCount() {
+        return (mGeneralEntities == null) ? 0 : mGeneralEntities.size();
+    }
+
+    public int getNotationCount() {
+        return (mNotations == null) ? 0 : mNotations.size();
     }
 
     /*
@@ -342,7 +356,7 @@ public final class DTDSubsetImpl
     public String toString() {
         StringBuffer sb = new StringBuffer();
         sb.append("[DTDSubset: ");
-        int count = (mGeneralEntities == null) ? 0 : mGeneralEntities.size();
+        int count = getEntityCount();
         sb.append(count);
         sb.append(" general entities");
         sb.append(']');

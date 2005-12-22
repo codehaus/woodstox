@@ -1,5 +1,7 @@
 package org.codehaus.stax2;
 
+import org.codehaus.stax2.validation.DTDValidationSchema;
+
 /**
  * Interface that specifies additional access functionality to parsed DTD
  * information (if any); these methods are encapsulated on a separate
@@ -11,6 +13,8 @@ package org.codehaus.stax2;
  */
 public interface DTDInfo
 {
+    // // // Stax2, v1.0
+
     /**
      * @return If current event is DTD, DTD support is enabled,
      *   and reader supports DTD processing, returns an internal
@@ -43,4 +47,13 @@ public interface DTDInfo
      */
     public String getDTDInternalSubset();
 
+
+    // // // Stax2, v2.0
+
+    /**
+     * Method similar to {@link #getProcessedDTD}, but type-safe. Will
+     * return the DTD schema instance that was read, if we are in mode
+     * where it does get read (at least dtd-aware).
+     */
+    public DTDValidationSchema getProcessedDTDSchema();
 }

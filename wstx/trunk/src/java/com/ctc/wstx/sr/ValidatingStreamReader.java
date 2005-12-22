@@ -26,6 +26,7 @@ import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.transform.stream.StreamSource;
 
+import org.codehaus.stax2.validation.DTDValidationSchema;
 import org.codehaus.stax2.validation.ValidationContext;
 import org.codehaus.stax2.validation.XMLValidationSchema;
 import org.codehaus.stax2.validation.XMLValidator;
@@ -72,7 +73,7 @@ public class ValidatingStreamReader
      * Combined DTD set, constructed from parsed internal and external
      * entities (which may have been set via override DTD functionality).
      */
-    XMLValidationSchema mDTD = null;
+    DTDValidationSchema mDTD = null;
 
     /**
      * Flag to indicate that the DOCTYPE declaration is to be
@@ -173,7 +174,7 @@ public class ValidatingStreamReader
             if (value != null && !(value instanceof XMLValidationSchema)) {
                 throw new IllegalArgumentException("Value to set for feature "+name+" not of type XMLValidationSchema");
             }
-            mDTD = (XMLValidationSchema) value;
+            mDTD = (DTDValidationSchema) value;
         } else {
             super.setFeature(name, value);
         }
@@ -197,6 +198,10 @@ public class ValidatingStreamReader
      */
 
     public Object getProcessedDTD() {
+        return mDTD;
+    }
+
+    public DTDValidationSchema getProcessedDTDSchema() {
         return mDTD;
     }
 
@@ -300,7 +305,7 @@ public class ValidatingStreamReader
                  * since entities and notations can not be accessed
                  */
                 doReportProblem(mConfig.getXMLReporter(), ErrorConsts.WT_DT_DECL,
-                                "Value to set for feature "+FEATURE_DTD_OVERRIDE+" not a native Woodstox DTD implementation (but "+mDTD.getClass()+"): can not access entity or notation information", null);
+                                "Value to set for feature "+FEATURE_DTD_OVERRIDE+" not a native Woodstox DTD implementation (but "+mDTD.getClass()+"): can not access full entity or notation information", null);
             }
             if (hasConfigFlags(CFG_VALIDATE_AGAINST_DTD)) {
                 XMLValidator vld = mDTD.createValidator(/*(ValidationContext)*/ mElementStack);

@@ -35,7 +35,7 @@ import com.ctc.wstx.sr.InputProblemReporter;
  * validation logics, just entity expansion.
  */
 public abstract class DTDSubset
-    implements XMLValidationSchema
+    implements DTDValidationSchema
 {
     /*
     //////////////////////////////////////////////////////
@@ -66,6 +66,16 @@ public abstract class DTDSubset
     public String getSchemaType() {
         return XMLValidationSchema.SCHEMA_ID_DTD;
     }
+
+    /*
+    //////////////////////////////////////////////////////
+    // And extended DTDValidationSchema
+    //////////////////////////////////////////////////////
+     */
+
+    public abstract int getEntityCount();
+
+    public abstract int getNotationCount();
 
     /*
     //////////////////////////////////////////////////////

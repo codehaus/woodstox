@@ -7,6 +7,7 @@ import java.util.zip.GZIPInputStream;
 import javax.xml.stream.*;
 
 import org.codehaus.stax2.*;
+import org.codehaus.stax2.validation.*;
 
 import com.ctc.wstx.api.WstxInputProperties;
 import com.ctc.wstx.api.WstxOutputProperties;
@@ -17,6 +18,8 @@ import com.ctc.wstx.api.WstxOutputProperties;
  */
 public class TestStreamCopier
 {
+    final static boolean ENABLE_DTD_VALIDATION = true;
+
     protected TestStreamCopier() { }
 
     protected XMLInputFactory2 getFactory()
@@ -32,7 +35,7 @@ public class TestStreamCopier
         f.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.TRUE);
 
         f.setProperty(XMLInputFactory.SUPPORT_DTD, Boolean.TRUE);
-        f.setProperty(XMLInputFactory.IS_VALIDATING, Boolean.FALSE);
+        f.setProperty(XMLInputFactory.IS_VALIDATING, Boolean.TRUE);
 
         f.setProperty(XMLInputFactory2.P_REPORT_PROLOG_WHITESPACE,
                       Boolean.TRUE);
@@ -54,7 +57,7 @@ public class TestStreamCopier
         */
 
         // Let's leave LFs as is...
-        f.setProperty(WstxInputProperties.P_NORMALIZE_LFS, Boolean.FALSE);
+        //f.setProperty(WstxInputProperties.P_NORMALIZE_LFS, Boolean.FALSE);
         return (XMLInputFactory2) f;
     }
 
@@ -76,23 +79,34 @@ public class TestStreamCopier
         /* Let's have special handling for gzipped stuff...
          */
         XMLStreamReader2 sr;
-        /*
+
         if (input.endsWith(".gz")) {
             InputStream in = new GZIPInputStream(new FileInputStream(new File(input)));
             sr = (XMLStreamReader2)ifact.createXMLStreamReader(in);
         } else {
             sr = (XMLStreamReader2)ifact.createXMLStreamReader(new File(input));
         }
-        */
-        URL url = new URL("http://www.isb-sib.ch/~ejain/uniprot-rdf/data/taxonomy.rdf.gz");
-		InputStream in = new GZIPInputStream(new BufferedInputStream(url.openStream()));
-    sr = (XMLStreamReader2)ifact.createXMLStreamReader(in);
+        //URL url = new URL("http://www.isb-sib.ch/~ejain/uniprot-rdf/data/taxonomy.rdf.gz");
+        //sr = (XMLStreamReader2)ifact.createXMLStreamReader(in);
 	
         XMLStreamWriter2 sw = (XMLStreamWriter2) of.createXMLStreamWriter(out);
 //System.err.println("[XMLStreamWriter: "+sw.getClass()+"]");
 
         int count = 0;
-		while (sr.next() != XMLStreamConstants.END_DOCUMENT) {
+        int type;
+
+		while ((type = sr.next()) != XMLStreamConstants.END_DOCUMENT) {
+            if (type == XMLStreamConstants.DTD && ENABLE_DTD_VALIDATION) {
+                DTDInfo info = sr.getDTDInfo();
+                if (info != null) {
+                    DTDValidationSchema vld = info.getProcessedDTDSchema();
+                    if (vld != null) {
+                        System.err.println("Attaching DTD schema: "+vld);
+                        sw.validateAgainst(vld);
+                    }
+                }
+            }
+            sw.copyEventFromReader(sr, false);
             if (++count % 1000 == 100) {
                 System.err.println("#"+count);
             }

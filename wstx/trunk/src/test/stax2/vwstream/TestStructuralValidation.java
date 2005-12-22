@@ -14,11 +14,20 @@ import org.codehaus.stax2.validation.*;
 public class TestStructuralValidation
     extends BaseOutputTest
 {
+    final String NS_PREFIX = "ns";
+    final String NS_PREFIX2 = "ns2";
+    final String NS_URI = "http://ns";
+
     final String SIMPLE_DTD =
         "<!ELEMENT root (branch+, end)>\n"
         +"<!ELEMENT branch (#PCDATA)>\n"
         +"<!ELEMENT end EMPTY>\n"
         +"<!ATTLIST end endAttr CDATA #IMPLIED>\n"
+        ;
+
+    final String SIMPLE_NS_DTD =
+        "<!ELEMENT "+NS_PREFIX+":root (branch*)>\n"
+        +"<!ELEMENT branch (#PCDATA)>\n"
         ;
 
     public void testInvalidRootElem()
@@ -159,6 +168,92 @@ public class TestStructuralValidation
             try {
                 sw.writeEmptyElement("end");
                 fail(modeDesc+" Expected a validation exception when omitting non-optional <branch> element");
+            } catch (XMLValidationException vex) {
+                // expected...
+            }
+        }
+    }
+
+    public void testValidNsElem()
+        throws XMLStreamException
+    {
+        for (int i = 0; i < 3; ++i) {
+            boolean repairing = (i == 2);
+            StringWriter strw = new StringWriter();
+
+            XMLStreamWriter2 sw = getDTDValidatingWriter(strw, SIMPLE_NS_DTD, true, repairing);
+            // prefix, local name, uri (for elems)
+            sw.writeStartElement(NS_PREFIX, "root", NS_URI);
+            if (!repairing) {
+                sw.writeNamespace(NS_PREFIX, NS_URI);
+            }
+            sw.writeEndElement();
+            sw.writeEndDocument();
+            sw.close();
+
+            // and same with empty elem
+            sw = getDTDValidatingWriter(strw, SIMPLE_NS_DTD, true, repairing);
+            sw.writeEmptyElement(NS_PREFIX, "root", NS_URI);
+            if (!repairing) {
+                sw.writeNamespace(NS_PREFIX, NS_URI);
+            }
+            sw.writeEndDocument();
+            sw.close();
+        }
+    }
+
+    /**
+     * Let's also do quick testing on structure that would be ok but
+     * where namespace prefix is not what dtd expects...
+     */
+    public void testInvalidNsElem()
+        throws XMLStreamException
+    {
+        for (int i = 0; i < 2; ++i) {
+            boolean repairing;
+            String modeDesc;
+
+            switch (i) {
+            case 0:
+                modeDesc = "[namespace-aware, non-repairing]";
+                repairing = false;
+                break;
+            default:
+                modeDesc = "[namespace-aware, repairing]";
+                repairing = true;
+                break;
+            }
+
+            StringWriter strw = new StringWriter();
+            
+            // Let's try omitting the end element, first...
+
+            XMLStreamWriter2 sw = getDTDValidatingWriter(strw, SIMPLE_NS_DTD, true, repairing);
+            // prefix, local name, uri (for elems)
+            try {
+                sw.writeStartElement(NS_PREFIX2, "root", NS_URI);
+                fail(modeDesc+" Expected a validation exception when passing wrong (unexpected) ns for element");
+            } catch (XMLValidationException vex) {
+                // expected...
+            }
+            // should not continue after exception; state may not be valid
+
+            // and then the same for empty elem
+            sw = getDTDValidatingWriter(strw, SIMPLE_NS_DTD, true, repairing);
+            // prefix, local name, uri (for elems)
+            try {
+                sw.writeEmptyElement(NS_PREFIX2, NS_URI, "root");
+                fail(modeDesc+" Expected a validation exception when passing wrong (unexpected) ns for element");
+            } catch (XMLValidationException vex) {
+                // expected...
+            }
+
+            // Oh, and finally, using non-ns DTD:
+            sw = getDTDValidatingWriter(strw, SIMPLE_DTD, true, repairing);
+            // prefix, local name, uri (for elems)
+            try {
+                sw.writeEmptyElement(NS_PREFIX, NS_URI, "root");
+                fail(modeDesc+" Expected a validation exception when passing wrong (unexpected) ns for element");
             } catch (XMLValidationException vex) {
                 // expected...
             }
