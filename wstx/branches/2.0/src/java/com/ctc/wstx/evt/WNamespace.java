@@ -64,7 +64,7 @@ public class WNamespace
      */
 
     public int getEventType() {
-        return START_ELEMENT;
+        return NAMESPACE;
     }
 
     public boolean isNamespace() {

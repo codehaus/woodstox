@@ -1,9 +1,18 @@
-Version: 2.0.4
+Version: 2.0.5
 
-Release date: -Dec-2005
+Release date: xx-Jan-2006
 
 Description:
   A maintenance release for 2.0.
+
+  Problems fixed:
+
+  * Problem with Namespace event; was returning incorrect event
+    type (CHARACTERS)
+
+== History: ==
+
+2.0.4: [16-Dec-2005]
 
   Problems fixed:
 
@@ -17,10 +26,10 @@ Description:
     properly for elements, only for attributes.
   * [WSTX-27]: Attribute #FIXED default value was not added (just checked
     for explicit attributes), now it is used properly.
-
-== History: ==
+    [reported by Wolfgang H]
 
 2.0.3: [29-Sep-2005]
+
   Problems fixed:
 
   * [WSTX-7]; SimpleNsStreamWriter#writeStartElement(StartElement)
@@ -37,6 +46,7 @@ Description:
     [reported by Heinz D]
 
 2.0.2: [04-Sep-2005]
+
   Problems fixed:
 
   * Fixed [WSTX-3]; output of DTD event was missing a double quote.
