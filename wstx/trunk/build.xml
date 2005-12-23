@@ -628,14 +628,13 @@
        </emma>
 
         <!-- Don't really need actual JUnit output do we? -->
-        <!--
         <junitreport todir="${TestResultsDir}">
             <fileset dir="${TestXmlResultsDir}">
                 <include name="TEST-*.xml" />
             </fileset>
             <report todir="${TestResultsDir}" />
         </junitreport>
-
+        <!--
         -->
     </target>
 

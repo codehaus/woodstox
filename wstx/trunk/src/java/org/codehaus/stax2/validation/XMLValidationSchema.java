@@ -2,9 +2,6 @@ package org.codehaus.stax2.validation;
 
 import javax.xml.stream.XMLStreamException;
 
-import org.codehaus.stax2.XMLStreamReader2;
-import org.codehaus.stax2.XMLStreamWriter2;
-
 /**
  * Defines the API that validator schema instances have to implement. Schema
  * objects are results of parsing of input that defines validation rules;
