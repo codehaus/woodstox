@@ -22,7 +22,6 @@ import javax.xml.stream.*;
 
 import org.codehaus.stax2.XMLStreamReader2;
 import org.codehaus.stax2.validation.XMLValidationSchema;
-import org.codehaus.stax2.validation.XMLValidatorFactory;
 
 import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.dtd.DTDValidatorFactory;
