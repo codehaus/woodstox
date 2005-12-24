@@ -417,6 +417,8 @@
          showoutput="yes">
             <batchtest fork="no" todir="${TestXmlResultsDir}">
                 <fileset dir="${StaxTestClassesDir}">
+                    <!-- Need to exclude inner classes... -->
+                    <exclude name="**/*$*.class"/>
                     <include name="org/codehaus/**/Test*.class"/>
                 </fileset>
             </batchtest>

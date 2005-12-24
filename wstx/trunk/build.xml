@@ -454,6 +454,8 @@
          showoutput="yes">
             <batchtest fork="no" todir="${TestXmlResultsDir}">
                 <fileset dir="${StaxTestClassesDir}">
+                    <!-- Need to exclude inner classes... -->
+                    <exclude name="**/*$*.class"/>
                     <include name="org/codehaus/**/Test*.class"/>
                 </fileset>
             </batchtest>
@@ -583,11 +585,12 @@
             <batchtest fork="no" todir="${TestXmlResultsDir}">
                 <!-- Generic StAX tests -->
                 <fileset dir="${StaxTestClassesDir}">
+                    <!-- Need to exclude inner classes... -->
+                    <exclude name="**/*$*.class"/>
                     <include name="org/codehaus/**/Test*.class"/>
                 </fileset>
                 <!-- Woodstox-specific tests -->
                 <fileset dir="${TestClassesDir}">
-                    <!-- Need to exclude inner classes... -->
                     <exclude name="**/*$*.class"/>
                     <include name="**/Test*.class"/>
                 </fileset>
