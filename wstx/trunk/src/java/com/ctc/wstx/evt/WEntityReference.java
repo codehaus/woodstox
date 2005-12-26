@@ -26,7 +26,7 @@ public class WEntityReference
         super(loc);
         mDecl = decl;
         mDeclEvt = null;
-	mName = null;
+        mName = null;
     }
 
     public WEntityReference(Location loc, javax.xml.stream.events.EntityDeclaration decl)
@@ -34,7 +34,7 @@ public class WEntityReference
         super(loc);
         mDecl = null;
         mDeclEvt = decl;
-	mName = null;
+        mName = null;
     }
 
     /**
@@ -73,7 +73,7 @@ public class WEntityReference
      */
 
     public int getEventType() {
-        return ENTITY_DECLARATION;
+        return ENTITY_REFERENCE;
     }
 
     public boolean isEntityReference() {

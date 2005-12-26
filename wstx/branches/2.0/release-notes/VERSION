@@ -7,8 +7,8 @@ Description:
 
   Problems fixed:
 
-  * Problem with Namespace event; was returning incorrect event
-    type (CHARACTERS)
+  * Problem with Namespace and EntityRerences event; were returning incorrect
+    event type (CHARACTERS and ENTITY_REFERENCE, respectively)
 
 == History: ==
 

@@ -51,7 +51,7 @@ public class WEntityReference
      */
 
     public int getEventType() {
-        return ENTITY_DECLARATION;
+        return ENTITY_REFERENCE;
     }
 
     public boolean isEntityReference() {
