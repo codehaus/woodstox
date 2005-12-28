@@ -1,5 +1,6 @@
 package wstxtest.stream;
 
+import java.util.*;
 import javax.xml.stream.*;
 
 import org.codehaus.stax2.*;
@@ -19,10 +20,6 @@ import com.ctc.wstx.sr.BasicStreamReader;
 public class TestEntityRead
     extends BaseStreamTest
 {
-    public TestEntityRead(String name) {
-        super(name);
-    }
-
     /**
      * This unit test checks that the information received as part of the
      * event, in non-expanding mode, is as expected.
@@ -116,6 +113,52 @@ public class TestEntityRead
 
         assertTokenType(END_DOCUMENT, sr.next());
         sr.close();
+    }
+
+    /**
+     * This unit test verifies that it's possible to add a Map of
+     * expansions from Entity names to 
+     */
+    public void testUndeclaredUsingCustomMap()
+        throws XMLStreamException
+    {
+        // First, let's check actual usage:
+
+        String XML = "<root>ok: &myent;&myent2;</root>";
+        String EXP_TEXT = "ok: (simple)expand to ([text])";
+        XMLInputFactory fact = getConfiguredFactory(true, true);
+        Map m = new HashMap();
+        m.put("myent", "(simple)");
+        m.put("myent3", "[text]");
+        m.put("myent2", "expand to (&myent3;)");
+        fact.setProperty(WstxInputProperties.P_CUSTOM_INTERNAL_ENTITIES, m);
+        XMLStreamReader sr = constructStreamReader(fact, XML);
+        assertTokenType(START_ELEMENT, sr.next());
+        assertEquals("root", sr.getLocalName());
+        assertTokenType(CHARACTERS, sr.next());
+        assertEquals(EXP_TEXT, getAndVerifyText(sr));
+        assertTokenType(END_ELEMENT, sr.next());
+        sr.close();
+
+        /* And then see if we can query configured value and get expected
+         * types of results
+         */
+        m = (Map) fact.getProperty(WstxInputProperties.P_CUSTOM_INTERNAL_ENTITIES);
+        assertNotNull(m);
+        assertEquals(3, m.size());
+        Iterator it = m.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry entry = (Map.Entry) it.next();
+            String name = entry.getKey().toString();
+            if (name.equals("myent") || name.equals("myent2")
+                || name.equals("myent3")) {
+                // fine, let's just verify the type
+                EntityDecl ed = (EntityDecl) entry.getValue();
+                assertNotNull(ed);
+            } else {
+                fail("Unexpected entity '"+name+"' in the custom entity map");
+            }
+        }
     }
 
     /**

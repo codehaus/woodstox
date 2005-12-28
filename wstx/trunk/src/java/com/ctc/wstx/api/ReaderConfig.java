@@ -13,6 +13,7 @@ import com.ctc.wstx.api.WstxInputProperties;
 import com.ctc.wstx.cfg.InputConfigFlags;
 import com.ctc.wstx.compat.JdkFeatures;
 import com.ctc.wstx.ent.IntEntity;
+import com.ctc.wstx.ent.EntityDecl;
 import com.ctc.wstx.util.ArgUtil;
 import com.ctc.wstx.util.EmptyIterator;
 import com.ctc.wstx.util.SymbolTable;
@@ -201,7 +202,7 @@ public final class ReaderConfig
         sProperties.put(XMLInputFactory.RESOLVER,
                         new Integer(PROP_XML_RESOLVER));
 
-	// StAX2-introduced flags:
+        // StAX2-introduced flags:
         sProperties.put(XMLInputFactory2.P_INTERN_NAMES,
                         new Integer(PROP_INTERN_NAMES));
         sProperties.put(XMLInputFactory2.P_INTERN_NS_URIS,
@@ -483,18 +484,21 @@ public final class ReaderConfig
 
     public int getShortestReportedTextSegment() { return mMinTextSegmentLen; }
 
-    public Map getCustomInternalEntities() {
+    public Map getCustomInternalEntities()
+    {
         if (mCustomEntities == null) {
             return JdkFeatures.getInstance().getEmptyMap();
         }
-        /* Better be defensive and just return a copy...
-         */
+        // Better be defensive and just return a copy...
         int len = mCustomEntities.size();
         HashMap m = new HashMap(len + (len >> 2), 0.81f);
-        Iterator it = m.entrySet().iterator();
+        Iterator it = mCustomEntities.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry me = (Map.Entry) it.next();
-            m.put(me.getKey(), new String((char[]) me.getValue()));
+            /* Cast is there just as a safe-guard (assertion), and to
+             * document the type...
+             */
+            m.put(me.getKey(), (EntityDecl) me.getValue());
         }
         return m;
     }
@@ -632,7 +636,8 @@ public final class ReaderConfig
         mMinTextSegmentLen = value;
     }
 
-    public void setCustomInternalEntities(Map m) {
+    public void setCustomInternalEntities(Map m)
+    {
         Map entMap;
         if (m == null || m.size() < 1) {
             entMap = JdkFeatures.getInstance().getEmptyMap();

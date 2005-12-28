@@ -128,8 +128,13 @@ Heinz Drews:
     [2.0.3/2.7]
   * Reported [WSTX-19] (unnecessary default namespace declarations written
     in repairing mode)
-    [2.0.4/2.9]
+    [2.0.4/2.8.1]
 
 Wolfgang Hoschek:
   * Reported [WSTX-27] (incorrect handling of #FIXED attribute defaults)
-    [2.0.4]
+    [2.0.4/2.8.1]
+
+Bartlomiej Rymkowski:
+  * Reported [WSTX-28] (broken handling of property
+    (WstxInputProperties.P_CUSTOM_INTERNAL_ENTITIES)
+    [2.0.5/2.8.2]
