@@ -133,3 +133,8 @@ Heinz Drews:
 Wolfgang Hoschek:
   * Reported [WSTX-27] (incorrect handling of #FIXED attribute defaults)
     [2.0.4]
+
+Bartlomiej Rymkowski:
+  * Reported [WSTX-28] (broken handling of property
+    (WstxInputProperties.P_CUSTOM_INTERNAL_ENTITIES)
+    [2.0.5]

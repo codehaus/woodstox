@@ -171,6 +171,13 @@ public class BaseWstxTest
         f.setProperty(XMLInputFactory.SUPPORT_DTD, Boolean.valueOf(state));
     }
 
+    protected static void setReplaceEntities(XMLInputFactory f, boolean state)
+        throws XMLStreamException
+    {
+        f.setProperty(XMLInputFactory.IS_REPLACING_ENTITY_REFERENCES,
+                      state ? Boolean.TRUE : Boolean.FALSE);
+    }
+
     /*
     //////////////////////////////////////////////////
     // Configuring input factory

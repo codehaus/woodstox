@@ -9,6 +9,9 @@ Description:
 
   * Problem with Namespace and EntityRerences event; were returning incorrect
     event type (CHARACTERS and ENTITY_REFERENCE, respectively)
+  * [WSTX-28] Feature (WstxInputProperties.P_CUSTOM_INTERNAL_ENTITIES) did
+    not work properly
+    [reported by Bartlomiej R]
 
 == History: ==
 

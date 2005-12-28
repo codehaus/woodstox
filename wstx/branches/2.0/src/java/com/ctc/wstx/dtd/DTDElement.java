@@ -1,6 +1,6 @@
 /* Woodstox XML processor
  *
- * Copyright (c) 2004 Tatu Saloranta, tatu.saloranta@iki.fi
+ * Copyright (c) 2004- Tatu Saloranta, tatu.saloranta@iki.fi
  *
  * Licensed under the License specified in the file LICENSE which is
  * included with the source code.
@@ -260,7 +260,7 @@ public final class DTDElement
                 Map.Entry me = (Map.Entry) it.next();
                 Object key = me.getKey();
                 DTDAttribute attr = (DTDAttribute) m.get(key);
-                if (attr != null) {
+                if (attr == null) {
                     continue;
                 }
 
