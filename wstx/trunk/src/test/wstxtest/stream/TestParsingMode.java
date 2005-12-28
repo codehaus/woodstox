@@ -136,17 +136,6 @@ public class TestParsingMode
         f.setProperty(WstxInputProperties.P_INPUT_PARSING_MODE, mode);
         return constructStreamReader(f, contents);
     }
-    
-    void streamThroughFailing(XMLStreamReader sr, String msg)
-        throws XMLStreamException
-    {
-        try {
-            streamThrough(sr);
-        } catch (XMLStreamException sex) {
-            return;
-        }
-        fail(msg);
-    }
 
     void streamThroughOk(XMLStreamReader sr, String type)
         throws XMLStreamException

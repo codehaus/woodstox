@@ -1,5 +1,11 @@
 package stax2;
 
+import java.io.StringReader;
+
+import javax.xml.stream.*;
+
+import org.codehaus.stax2.*;
+
 import wstxtest.BaseWstxTest;
 
 /**
@@ -18,5 +24,13 @@ public class BaseStax2Test
     //////////////////////////////////////////////////
      */
 
+    protected XMLStreamReader2 constructNsStreamReader(String content, boolean coal)
+        throws XMLStreamException
+    {
+        XMLInputFactory f = getInputFactory();
+        setNamespaceAware(f, true);
+        setCoalescing(f, coal);
+        return (XMLStreamReader2) f.createXMLStreamReader(new StringReader(content));
+    }
 }
 
