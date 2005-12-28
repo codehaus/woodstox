@@ -55,9 +55,9 @@ public final class DTDElement
      * Base validator object for validating content model of this element;
      * may be null for some simple content models (ANY, EMPTY).
      */
-    final StructValidator mValidator;
+    StructValidator mValidator;
 
-    final int mAllowedContent;
+    int mAllowedContent;
 
     /*
     ///////////////////////////////////////////////////
@@ -143,9 +143,7 @@ public final class DTDElement
     public DTDElement define(Location loc, StructValidator val,
                              int allowedContent)
     {
-        if (mAllowedContent != XMLValidator.CONTENT_ALLOW_UNDEFINED) { // sanity check
-            throw new Error("Internal error: redefining defined element spec");
-        }
+        verifyUndefined();
         if (allowedContent == XMLValidator.CONTENT_ALLOW_UNDEFINED) { // sanity check
             throw new Error("Internal error: trying to use CONTENT_ALLOW_UNDEFINED via define()");
         }
@@ -161,6 +159,26 @@ public final class DTDElement
         elem.mNotationAttr = mNotationAttr;
 
         return elem;
+    }
+
+    /**
+     * Method called to "upgrade" a placeholder using a defined element,
+     * including adding attributes.
+     */
+    public void defineFrom(InputProblemReporter rep, DTDElement definedElem)
+        throws WstxException
+    {
+        verifyUndefined();
+        mValidator = definedElem.mValidator;
+        mAllowedContent = definedElem.mAllowedContent;
+        mergeMissingAttributesFrom(rep, definedElem);
+    }
+
+    private void verifyUndefined()
+    {
+        if (mAllowedContent != XMLValidator.CONTENT_ALLOW_UNDEFINED) { // sanity check
+            throw new Error("Internal error: redefining defined element spec");
+        }
     }
 
     /**
@@ -259,14 +277,20 @@ public final class DTDElement
             while (it.hasNext()) {
                 Map.Entry me = (Map.Entry) it.next();
                 Object key = me.getKey();
-                DTDAttribute attr = (DTDAttribute) m.get(key);
-                if (attr == null) {
-                    continue;
+                // Should only add if no such attribute exists...
+                if (!m.containsKey(key)) {
+                    // can only use as is, if it's not a special attr
+                    DTDAttribute newAttr = (DTDAttribute) me.getValue();
+                    List specList;
+                    // otherwise need to clone
+                    if (newAttr.isSpecial()) {
+                        specList = getSpecialList();
+                        newAttr = newAttr.cloneWith(specList.size());
+                    } else {
+                        specList = null;
+                    }
+                    doAddAttribute(m, rep, newAttr, specList);
                 }
-
-                List specList = attr.isSpecial() ? getSpecialList() : null;
-                DTDAttribute newAttr = attr.cloneWith((specList == null) ? -1 : specList.size());
-                doAddAttribute(m, rep, newAttr, specList);
             }
         }
     }

@@ -12,6 +12,8 @@ Description:
   * [WSTX-28] Feature (WstxInputProperties.P_CUSTOM_INTERNAL_ENTITIES) did
     not work properly
     [reported by Bartlomiej R]
+  * Problems with external/internal DTD subset combination as identified
+    by unit tests (attribute, element combination, precedence).
 
 == History: ==
 

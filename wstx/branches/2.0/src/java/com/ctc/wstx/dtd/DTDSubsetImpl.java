@@ -395,36 +395,42 @@ public final class DTDSubsetImpl
             Map.Entry me = (Map.Entry) it.next();
             Object key = me.getKey();
             Object extVal = me.getValue();
-            Object oldVal = intElems.put(key, extVal);
+            Object oldVal = intElems.get(key);
 
             // If there was no old value, can just merge new one in and continue
             if (oldVal == null) {
+                intElems.put(key, extVal);
                 continue;
             }
 
             DTDElement extElem = (DTDElement) extVal;
             DTDElement intElem = (DTDElement) oldVal;
 
-            // First: it's illegal to have a full redeclaration:
-            if (extElem.isDefined()) {
-                if (intElem.isDefined()) {
+            // Which one is defined (if either)?
+            if (extElem.isDefined()) { // one from the ext subset
+                if (intElem.isDefined()) { // but both can't be; that's an error
                     throwElementException(intElem, extElem.getLocation());
+                } else {
+                    /* Note: can/should not modify the external element (by
+                     * for example adding attributes); external element may
+                     * be cached and shared... so, need to do the reverse,
+                     * define the one from internal subset.
+                     */
+                    intElem.defineFrom(rep, extElem);
                 }
-            } else if (!intElem.isDefined()) {
-                /* ??? Should we warn about neither of them being really
-                 *   declared?
-                 */
-                rep.reportProblem(ErrorConsts.WT_ENT_DECL,
-                                  ErrorConsts.W_UNDEFINED_ELEM,
-                                  extElem.getDisplayName(), null,
-                                  intElem.getLocation());
+            } else {
+                if (!intElem.isDefined()) {
+                    /* ??? Should we warn about neither of them being really
+                     *   declared?
+                     */
+                    rep.reportProblem(ErrorConsts.WT_ENT_DECL,
+                                      ErrorConsts.W_UNDEFINED_ELEM,
+                                      extElem.getDisplayName(), null,
+                                      intElem.getLocation());
+                } else {
+                    intElem.mergeMissingAttributesFrom(rep, extElem);
+                }
             }
-
-            /* Now, need to add external subset attributes internal one is
-             * missing, and put that entry back in the map
-             */
-            intElem.mergeMissingAttributesFrom(rep, extElem);
-            intElems.put(key, intElem);
         }
     }
 
