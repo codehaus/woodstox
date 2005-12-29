@@ -55,6 +55,8 @@
     <!-- jars needed for compilation -->
     <path id="compile-classpath">
         <fileset dir="${LibDir}" includes="stax-api*.jar" />
+        <!-- these are needed for optional MSV-based validators -->
+        <fileset dir="${LibDir}/msv" includes="*.jar" />
     </path>
     <path id="junit-libs">
        <fileset dir="${LibDir}">

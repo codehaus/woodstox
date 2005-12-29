@@ -40,7 +40,7 @@ import com.ctc.wstx.util.URLUtil;
  * documents) is only accessible by core Woodstox. The externally
  * accessible
  */
-public final class DTDValidatorFactory
+public class DTDValidatorFactory
     extends XMLValidationSchemaFactory
 {
     /*
