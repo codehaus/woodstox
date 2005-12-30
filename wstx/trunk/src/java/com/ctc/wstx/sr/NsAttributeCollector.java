@@ -268,8 +268,7 @@ public final class NsAttributeCollector
      */
 
     /**
-     * @return Number of namespace declarations collected, not including
-     *   possible default namespace declaration
+     * @return Number of 'new' namespace declarations collected
      */
     public int getNsCount() {
         return mNamespaceURIs.size();

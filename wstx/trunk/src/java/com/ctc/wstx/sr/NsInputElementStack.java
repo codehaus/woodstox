@@ -31,6 +31,16 @@ import com.ctc.wstx.util.*;
 /**
  * Sub-class of {@link InputElementStack} used when operating in
  * namespace-aware mode.
+ *<p>
+ * Implementation note: this class reuses {@link NamespaceContext}
+ * instances, so that consequtive accesses just return the same instance,
+ * as long as nothing in bindings change. As a result, only those instances
+ * that explicitly add new bindings create distinct non-shareable context
+ * instances. Although it would also be possible to share underlying String
+ * array to further improve object sharing, it seems like marginal gain
+ * with more complexity: as such the current simple scheme should work
+ * just fine (and is measure to be very close to optimal for most common
+ * namespace-heavey document types like Soap messages).
  */
 public final class NsInputElementStack
     extends InputElementStack
@@ -124,9 +134,14 @@ public final class NsInputElementStack
     // instance - mostly for event API as well
     /////////////////////////////////////////////////////
      */
-    
-    // !!! To Be Implemented
-    //protected NamespaceContext mLastNsContext = null;
+
+    /**
+     * Last potentially shareable NamespaceContext created by
+     * this stack. This reference is cleared each time bindings
+     * change (either due to a start element with new bindings, or due
+     * to the matching end element that closes scope of such binding(s)).
+     */
+    protected BaseNsContext mLastNsContext = null;
 
     /*
     //////////////////////////////////////////////////
@@ -199,7 +214,7 @@ public final class NsInputElementStack
         int result;
 
         /* Can and should not shrink (or clear) the stack before calling
-         * the validator
+         * the validator, so let's just update the local count
          */
         index -= 4;
 
@@ -223,9 +238,9 @@ public final class NsInputElementStack
         mElements[index+3] = null;
             
         // Need to purge namespaces?
-        index = (index >> 2);
-        int nsCount = mNamespaces.size() - mNsCounts[index];
+        int nsCount = mNamespaces.size() - mNsCounts[index >> 2];
         if (nsCount > 0) { // 2 entries for each NS mapping:
+            mLastNsContext = null; // let's invalidate ns ctxt too, if we had one
             mNamespaces.removeLast(nsCount);
         }
         return result;
@@ -251,6 +266,11 @@ public final class NsInputElementStack
         {
             int nsCount = ac.getNsCount();
             if (nsCount > 0) {
+                /* let's first invalidate old (possibly) shared ns ctxt too,
+                 * if we had one; new one can be created at a later point
+                 */
+                mLastNsContext = null;
+
                 String [] nsPrefixes = ac.getNsPrefixes();
                 TextBuilder nsURIs = ac.getNsURIs();
                 for (int i = 0; i < nsCount; ++i) {
@@ -381,18 +401,31 @@ public final class NsInputElementStack
      */
     public final BaseNsContext createNonTransientNsContext(Location loc)
     {
-        // No namespaces declared at this point?
-        if (getTotalNsCount() == 0) {
-            return EmptyNamespaceContext.getInstance();
+        // Have an instance we can reuse? Great!
+        if (mLastNsContext != null) {
+            return mLastNsContext;
         }
-        /* !!! 29-Dec-2005, TSa: Should be able to use a simple caching
-         *   scheme to reuse instances... but for now, to make this work
-         *   100% ok, let's just create new instances
-         */
+
+        // No namespaces declared at this point? Easy, as well:
+        int totalNsSize = mNamespaces.size();
+        if (totalNsSize < 1) {
+            return (mLastNsContext = EmptyNamespaceContext.getInstance());
+        }
+
+        // Otherwise, we need to create a new non-empty context:
         int localCount = getCurrentNsCount() << 1;
-        return new CompactNsContext(loc, getDefaultNsURI(), mNamespaces.asArray(),
-                              mNamespaces.size() - localCount);
-                              
+        BaseNsContext nsCtxt = new CompactNsContext
+            (loc, getDefaultNsURI(),
+             mNamespaces.asArray(), totalNsSize,
+             totalNsSize - localCount);
+        /* And it can be shared if there are no new ('local', ie. included
+         * within this start element) bindings -- if there are, underlying
+         * array might be shareable, but offsets wouldn't be)
+         */
+        if (localCount == 0) {
+            mLastNsContext = nsCtxt;
+        }
+        return nsCtxt;
     }
 
     /*

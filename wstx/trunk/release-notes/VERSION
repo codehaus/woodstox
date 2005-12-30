@@ -1,19 +1,22 @@
-Version: 2.8.1
+Version: 2.8.2
 
-Release date: 20-Dec-2005
+Release date: xx-Jan-2005
 
 Description:
-  Another major milestone; the validation infrastructure complete rewritten.
-  Now validators are pluggable. And what's more, now DTD validators work
-  both directions: in addition parsing input, it is possible to now validate
-  output too! (next steps are integrating external validators, and allow
-  overriding of parser-side validators).
+
 
   Problems fixed:
 
   * Changed behaviour of BasicStreamReader.isCharacters() to be identical
     to the ref. impl, ie. only to return true if the current event is
     CHARACTERS (but not if it's CDATA and SPACE).
+
+  Improvements:
+
+  * Related to fixing [WSTX-29] (NamespaceContext problems with StartElement
+    event), added a simple reuse schema for NamespaceContext instances. For
+    typical namespace using documents, this can improve Event API parsing
+    performance by up to 15% based on throughput measurements.
 
 == History: ==
 
@@ -38,7 +41,7 @@ Description:
 
   Improvements:
 
-  * Improved performace of handling of elements that do not have any
+  * Improved performance of handling of elements that do not have any
     attributes: results in up to 5% speed increase for documents that
     are element-heavy but attribute poor.
 

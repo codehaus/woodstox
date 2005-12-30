@@ -36,8 +36,16 @@ public final class CompactNsContext
     final String[] mNamespaces;
 
     /**
+     * Number of entries in {@link #mNamespaces} (which is twice the number
+     * of bindings)
+     */
+    final int mNsLength;
+
+    /**
      * Index of first namespace pair in mNamespaces that is declared
-     * in scope of element for which this context was constructed.
+     * in scope of element for which this context was constructed. May be
+     * equal to {@link #mNsLength} (which indicates there are no local
+     * bindings).
      */
     final int mFirstLocalNs;
 
@@ -47,11 +55,13 @@ public final class CompactNsContext
      */
     transient ArrayList mNsList;
 
-    public CompactNsContext(Location loc, String defaultNsURI, String[] namespaces,
+    public CompactNsContext(Location loc, String defaultNsURI,
+                            String[] namespaces, int nsLen,
                             int firstLocal)
     {
         mLocation = loc;
         mNamespaces = namespaces;
+        mNsLength = nsLen;
         mFirstLocalNs = firstLocal;
     }
 
@@ -64,14 +74,14 @@ public final class CompactNsContext
         // (note: default namespace will be there too...)
         String[] ns = mNamespaces;
         if (prefix == null || prefix.length() == 0) {
-            for (int i = ns.length-2; i >= 0; i -= 2) {
+            for (int i = mNsLength-2; i >= 0; i -= 2) {
                 if (ns[i].length() == 0) {
                     return ns[i+1];
                 }
             }
             return "";
         }
-        for (int i = ns.length-2; i >= 0; i -= 2) {
+        for (int i = mNsLength-2; i >= 0; i -= 2) {
             if (prefix.equals(ns[i])) {
                 return ns[i+1];
             }
@@ -84,7 +94,7 @@ public final class CompactNsContext
         // Note: base class checks for 'known' problems and prefixes:
 
         String[] ns = mNamespaces;
-        int len = ns.length;
+        int len = mNsLength;
 
         main_loop:
         for (int i = len-1; i > 0; i -= 2) {
@@ -112,7 +122,7 @@ public final class CompactNsContext
         // Note: base class checks for 'known' problems and prefixes:
 
         String[] ns = mNamespaces;
-        int len = ns.length;
+        int len = mNsLength;
         String first = null;
         ArrayList all = null;
 
@@ -160,7 +170,7 @@ public final class CompactNsContext
     {
         if (mNsList == null) {
             int firstLocal = mFirstLocalNs;
-            int len = mNamespaces.length - firstLocal;
+            int len = mNsLength - firstLocal;
             if (len == 0) { // can this happen?
                 return EmptyIterator.getInstance();
             }
@@ -172,7 +182,7 @@ public final class CompactNsContext
             }
             ArrayList l = new ArrayList(len >> 1);
             String[] ns = mNamespaces;
-            for (len = mNamespaces.length; firstLocal < len;
+            for (len = mNsLength; firstLocal < len;
                  firstLocal += 2) {
                 l.add(new WNamespace(mLocation, ns[firstLocal],
                                      ns[firstLocal+1]));
@@ -191,7 +201,7 @@ public final class CompactNsContext
     public void outputNamespaceDeclarations(Writer w) throws IOException
     {
         String[] ns = mNamespaces;
-        for (int i = mFirstLocalNs, len = ns.length; i < len; i += 2) {
+        for (int i = mFirstLocalNs, len = mNsLength; i < len; i += 2) {
             w.write(' ');
             w.write(XMLConstants.XMLNS_ATTRIBUTE);
             String prefix = ns[i];
