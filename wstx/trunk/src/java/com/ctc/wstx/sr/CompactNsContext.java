@@ -18,6 +18,10 @@ import com.ctc.wstx.evt.WNamespace;
  * Simple implementation of separate non-transient namespace context
  * object. Created for start-element event by transient namespace
  * instance updated by stream reader.
+ *<p>
+ * Note about implementation: Location information is only needed (and
+ * only needs to passed) if access is made via extended interface; one
+ * that can return information about actual Namespace event objects.
  */
 public final class CompactNsContext
     extends BaseNsContext
@@ -41,7 +45,7 @@ public final class CompactNsContext
      * List only needed to support List accessor from start-element event;
      * created lazily if/as needed.
      */
-    ArrayList mNsList;
+    transient ArrayList mNsList;
 
     public CompactNsContext(Location loc, String defaultNsURI, String[] namespaces,
                             int firstLocal)

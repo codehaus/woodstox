@@ -24,6 +24,8 @@ import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
 import javax.xml.stream.Location;
 
+import com.ctc.wstx.cfg.ErrorConsts;
+
 /**
  * Abstract base class that defines extra features defined by most
  * NamespaceContext implementations Wodstox uses.
@@ -49,7 +51,7 @@ public abstract class BaseNsContext
          * prefixes
          */
         if (prefix == null) {
-            throw new IllegalArgumentException("Illegal to pass null as argument.");
+            throw new IllegalArgumentException(ErrorConsts.ERR_NULL_ARG);
         }
         if (prefix.length() > 0) {
             if (prefix.equals(XMLConstants.XML_NS_PREFIX)) {

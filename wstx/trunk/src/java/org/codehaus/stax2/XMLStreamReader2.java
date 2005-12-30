@@ -1,9 +1,25 @@
+/* StAX2 extension for StAX API (JSR-173).
+ *
+ * Copyright (c) 2005- Tatu Saloranta, tatu.saloranta@iki.fi
+ *
+ * Licensed under the License specified in file LICENSE, included with
+ * the source code.
+ * You may not use this file except in compliance with the License.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.codehaus.stax2;
 
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 
+import javax.xml.namespace.NamespaceContext;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
@@ -262,5 +278,20 @@ public interface XMLStreamReader2
      * @return Number of open elements currently in the reader's stack
      */
     public int getDepth();
+
+    /**
+     * This method returns a namespace contenxt object that contains
+     * information identical to that returned by
+     * {@link XMLStreamReader#getNamespaceContext}, but one that is
+     * not transient. That is, one that will remain valid and unchanged
+     * after its creation. This allows the namespace context to be used
+     * independent of its source documents life cycle. One possible use
+     * case is to use this namespace context for 'initializing' writers
+     * (especially ones that use repairing mode) with optimal/preferred name
+     * space bindings.
+     *
+     * @return Non-transient namespace context as explained above.
+     */
+    public NamespaceContext getNonTransientNamespaceContext();
 }
 

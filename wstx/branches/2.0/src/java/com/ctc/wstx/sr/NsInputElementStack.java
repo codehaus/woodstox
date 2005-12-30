@@ -297,13 +297,17 @@ public class NsInputElementStack
      */
     public final BaseNsContext createNonTransientNsContext(Location loc)
     {
-        int localCount = getCurrentNsCount() << 1;
-        if (localCount == 0) { // no new NS declarations, can return shared inst
+        // No namespaces declared at this point?
+        if (getTotalNsCount() == 0) {
             return EmptyNamespaceContext.getInstance();
         }
+        /* 29-Dec-2005, TSa: Should be able to use a simple caching
+         *   scheme to reuse instances... but for 2.0.x, let's make this work
+         *   100% ok by creating new instances.
+         */
+        int localCount = getCurrentNsCount() << 1;
         return new CompactNsContext(loc, getDefaultNsURI(), mNamespaces.asArray(),
                               mNamespaces.size() - localCount);
-                              
     }
 
     /*

@@ -38,6 +38,7 @@ public class ErrorConsts
     // // // Generic errors:
 
     public static String ERR_INTERNAL = "Internal error";
+    public static String ERR_NULL_ARG = "Illegal to pass null as argument";
 
     // // // Wrong reader state:
 

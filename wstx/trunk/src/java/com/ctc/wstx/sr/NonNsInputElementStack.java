@@ -22,7 +22,7 @@ import com.ctc.wstx.util.TextBuilder;
  * Sub-class of {@link InputElementStack} used when operating in
  * non-namespace-aware, non validating mode.
  */
-public class NonNsInputElementStack
+public final class NonNsInputElementStack
     extends InputElementStack
 {
     /*

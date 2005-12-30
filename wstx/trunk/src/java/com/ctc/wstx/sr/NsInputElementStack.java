@@ -1,3 +1,18 @@
+/* Woodstox XML processor
+ *
+ * Copyright (c) 2004- Tatu Saloranta, tatu.saloranta@iki.fi
+ *
+ * Licensed under the License specified in file LICENSE, included with
+ * the source code.
+ * You may not use this file except in compliance with the License.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.ctc.wstx.sr;
 
 import java.util.*;
@@ -17,7 +32,7 @@ import com.ctc.wstx.util.*;
  * Sub-class of {@link InputElementStack} used when operating in
  * namespace-aware mode.
  */
-public class NsInputElementStack
+public final class NsInputElementStack
     extends InputElementStack
 {
     /**
@@ -102,6 +117,16 @@ public class NsInputElementStack
     protected String mLastNsURI = null;
 
     protected QName mLastName = null;
+
+    /*
+    /////////////////////////////////////////////////////
+    // Simple caching for non-transient NamespaceContext
+    // instance - mostly for event API as well
+    /////////////////////////////////////////////////////
+     */
+    
+    // !!! To Be Implemented
+    //protected NamespaceContext mLastNsContext = null;
 
     /*
     //////////////////////////////////////////////////
@@ -356,10 +381,15 @@ public class NsInputElementStack
      */
     public final BaseNsContext createNonTransientNsContext(Location loc)
     {
-        int localCount = getCurrentNsCount() << 1;
-        if (localCount == 0) { // no new NS declarations, can return shared inst
+        // No namespaces declared at this point?
+        if (getTotalNsCount() == 0) {
             return EmptyNamespaceContext.getInstance();
         }
+        /* !!! 29-Dec-2005, TSa: Should be able to use a simple caching
+         *   scheme to reuse instances... but for now, to make this work
+         *   100% ok, let's just create new instances
+         */
+        int localCount = getCurrentNsCount() << 1;
         return new CompactNsContext(loc, getDefaultNsURI(), mNamespaces.asArray(),
                               mNamespaces.size() - localCount);
                               
@@ -371,9 +401,10 @@ public class NsInputElementStack
     ///////////////////////////////////////////////////
      */
 
-    public final String getNamespaceURI(String prefix) {
+    public final String getNamespaceURI(String prefix)
+    {
         if (prefix == null) {
-            throw new IllegalArgumentException("Illegal to pass null as argument.");
+            throw new IllegalArgumentException(ErrorConsts.ERR_NULL_ARG);
         }
         if (prefix.length() == 0) {
             if (mSize == 0) { // could signal an error too

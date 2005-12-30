@@ -1346,6 +1346,12 @@ public class BasicStreamReader
             mStEmptyElem : false;
     }
 
+    public NamespaceContext getNonTransientNamespaceContext()
+    {
+        // null -> no Location info, not needed with basic API
+        return mElementStack.createNonTransientNsContext(null);
+    }
+
     /*
     ////////////////////////////////////////////////////
     // DTDInfo implementation (StAX 2)
