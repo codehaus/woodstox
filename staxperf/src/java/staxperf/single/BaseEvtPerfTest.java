@@ -1,6 +1,6 @@
 package staxperf.single;
 
-import java.io.Reader;
+import java.io.*;
 
 import javax.xml.stream.*;
 import javax.xml.stream.events.XMLEvent;
@@ -32,19 +32,22 @@ abstract class BaseEvtPerfTest
         System.out.println("Factory instance: "+mFactory.getClass());
         mFactory.setProperty(XMLInputFactory.IS_COALESCING, Boolean.FALSE);
         //mFactory.setProperty(XMLInputFactory.IS_COALESCING, Boolean.TRUE);
-        //mFactory.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.TRUE);
-        mFactory.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.FALSE);
+        mFactory.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.TRUE);
+        //mFactory.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.FALSE);
         mFactory.setProperty(XMLInputFactory.IS_VALIDATING, Boolean.FALSE);
         System.out.println("  coalescing: "+mFactory.getProperty(XMLInputFactory.IS_COALESCING));
     }
 
-    protected int testExec(Reader r) throws Exception
+    protected int testExec(InputStream in) throws Exception
     {
-        mEventReader = mFactory.createXMLEventReader(r);
+        mEventReader = mFactory.createXMLEventReader(in);
 
         int total = 0;
         while (mEventReader.hasNext()) {
             XMLEvent evt = mEventReader.nextEvent();
+            if (evt.isStartElement()) {
+                ; // nothing to do for now
+            }
             total += evt.getEventType(); // to prevent dead code elimination
         }
         return total;
@@ -69,7 +72,7 @@ abstract class BaseEvtPerfTest
 
         int total = 0; // to prevent any dead code optimizations
         for (int i = 0; i < WARMUP_ROUNDS; ++i) {
-            Reader fin = new java.io.BufferedReader(new java.io.FileReader(filename));
+            InputStream fin = new FileInputStream(filename);
             try {
                 total = testExec(fin);
                 //testFinish();
@@ -92,7 +95,9 @@ abstract class BaseEvtPerfTest
         System.gc();
         try {  Thread.sleep(100L); } catch (InterruptedException ie) { }
 
-        final int TEST_PERIOD = 60;
+        //final int TEST_PERIOD = 60;
+        final int TEST_PERIOD = 30;
+
         System.out.println("Ok, warmup done. Now doing real testing, running for "+TEST_PERIOD+" seconds.");
 
         long nextTime = System.currentTimeMillis();
@@ -104,7 +109,7 @@ abstract class BaseEvtPerfTest
         nextTime += SUB_PERIOD;
 
         while (true) {
-            Reader fin = new java.io.BufferedReader(new java.io.FileReader(filename));
+            InputStream fin = new java.io.FileInputStream(filename);
             try {
                 total += testExec(fin);
                 //testFinish();
@@ -121,8 +126,15 @@ abstract class BaseEvtPerfTest
              */
             ++subtotal;
             if (now > nextTime) {
-                System.out.print((subtotal > 9) ? '+' :
-                                 (char) ('0' + subtotal));
+                char c;
+                if (subtotal > 35) {
+                    c = '+';
+                } else if (subtotal > 9) {
+                    c = (char) ('a' + (subtotal-10));
+                } else {
+                    c = (char) ('0' + subtotal);
+                }
+                System.out.print(c);
                 nextTime += SUB_PERIOD;
                 if (nextTime < now) {
                     nextTime = now;
