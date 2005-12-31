@@ -37,7 +37,8 @@ public interface XMLStreamWriter2
 
     /**
      * Method that can be used to set per-writer properties; a subset of
-     * properties one can set via matching {@link XMLOutputFactory2}
+     * properties one can set via matching
+     * {@link org.codehaus.stax2.XMLOutputFactory2}
      * instance. Exactly which methods are mutable is implementation
      * specific.
      *

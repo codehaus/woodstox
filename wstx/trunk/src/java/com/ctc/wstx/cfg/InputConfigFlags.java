@@ -37,9 +37,10 @@ public interface InputConfigFlags
     final static int CFG_REPLACE_ENTITY_REFS = 0x0004;
 
     /**
-     * ???.
-     *<p>
-     *What does this option really mean?
+     * Flag that enables support for expanding external entities. Woodstox
+     * pretty much ignores the setting, since effectively it is irrelevant,
+     * as {@link #CFG_REPLACE_ENTITY_REFS} and {@link #CFG_SUPPORT_DTD}
+     * both need to be enabled for external entities to be supported.
      */
     final static int CFG_SUPPORT_EXTERNAL_ENTITIES = 0x0008;
 
@@ -60,30 +61,24 @@ public interface InputConfigFlags
 
     /*
     //////////////////////////////////////////////////////
-    // Wstx Flags for extended features
+    // Flags for StAX2 features
     //////////////////////////////////////////////////////
      */
 
     /**
-     * If true, will convert all 'alien' linefeeds (\r\n, \r) to
-     * standard linefeed char (\n), in content like text, CDATA,
-     * processing instructions and comments. If false, will leave
-     * linefeeds as they were.
-     *<p>
-     * Note: not normalizing linefeeds is against XML 1.0 specs
+     * If true, parser will report (ignorable) white space events in prolog
+     * and epilog; if false, it will silently ignore them.
      */
-    final static int CFG_NORMALIZE_LFS  =   0x0100;
+    final static int CFG_REPORT_PROLOG_WS = 0x0100;
+
+    // // // Type conversions:
+
 
     /**
-     * If true, will do attribute value normalization as explained in
-     * XML specs; if false, will leave values as they are in input (including
-     * not converting linefeeds).
-     *<p>
-     * Note: not normalizing attribute values is against XML 1.0 specs
+     * If true, parser will report CDATA and SPACE events as CHARACTERS,
+     * independent of coalescing settings.
      */
-    final static int CFG_NORMALIZE_ATTR_VALUES = 0x0200;
-
-
+    final static int CFG_REPORT_ALL_TEXT_AS_CHARACTERS = 0x0200;
 
     // // // String interning:
 
@@ -95,25 +90,56 @@ public interface InputConfigFlags
      */
     final static int CFG_INTERN_NS_URIS = 0x0400;
 
-
-    // // // Type conversions:
-
+    // // // Lazy/incomplete parsing
 
     /**
-     * If true, parser will report CDATA and SPACE events as CHARACTERS,
-     * independent of coalescing settings.
+     * Property that determines whether Event objects created will
+     * contain (accurate) {@link javax.xml.stream.Location} information or not. If not,
+     * Location may be null or a fixed location (beginning of main
+     * XML file).
+     *<p>
+     * Note, however, that the underlying parser will still keep track
+     * of location information for error reporting purposes; it's only
+     * Event objects that are affected.
      */
-    final static int CFG_REPORT_ALL_TEXT_AS_CHARACTERS = 0x0800;
+    final static int CFG_PRESERVE_LOCATION = 0x0800;
 
     /**
-     * If true, parser will report (ignorable) white space events in prolog
-     * and epilog; if false, it will silently ignore them.
+     * Property that enables/disables stream reader to close the underlying
+     * input source, either when it is asked to (.close() is called), or
+     * when it doesn't need it any more (reaching EOF, hitting an
+     * unrecoverable exception).
      */
-    final static int CFG_REPORT_PROLOG_WS = 0x1000;
+    final static int CFG_CLOSE_INPUT_SOURCE = 0x1000;
 
+    /*
+    //////////////////////////////////////////////////////
+    // Flags for Woodstox-specific features
+    //////////////////////////////////////////////////////
+     */
+
+    // // // Content normalization
+
+    /**
+     * If true, will convert all 'alien' linefeeds (\r\n, \r) to
+     * standard linefeed char (\n), in content like text, CDATA,
+     * processing instructions and comments. If false, will leave
+     * linefeeds as they were.
+     *<p>
+     * Note: not normalizing linefeeds is against XML 1.0 specs
+     */
+    final static int CFG_NORMALIZE_LFS  =   0x2000;
+
+    /**
+     * If true, will do attribute value normalization as explained in
+     * XML specs; if false, will leave values as they are in input (including
+     * not converting linefeeds).
+     *<p>
+     * Note: not normalizing attribute values is against XML 1.0 specs
+     */
+    final static int CFG_NORMALIZE_ATTR_VALUES = 0x4000;
 
     // // // XML character class validation
-
 
     /**
      * If true, will check that all characters in textual content of
@@ -125,7 +151,7 @@ public interface InputConfigFlags
      *<p>
      * !!! TBI.
      */
-    final static int CFG_VALIDATE_TEXT_CHARS =   0x2000;
+    final static int CFG_VALIDATE_TEXT_CHARS =   0x8000;
 
 
     // // // Caching
@@ -135,7 +161,7 @@ public interface InputConfigFlags
      * potentially speeding up things for which DTDs are needed for: entity
      * substitution, attribute defaulting, and of course DTD-based validation.
      */
-    final static int CFG_CACHE_DTDS = 0x4000;
+    final static int CFG_CACHE_DTDS = 0x00010000;
 
     // // // Lazy/incomplete parsing
 
@@ -149,27 +175,20 @@ public interface InputConfigFlags
      * reporting is also done 'lazily'; not right away when getting the next
      * even type but when either accessing data, or skipping it.
      */
-    final static int CFG_LAZY_PARSING = 0x8000;
+    final static int CFG_LAZY_PARSING = 0x00020000;
 
-    /**
-     * Property that determines whether Event objects created will
-     * contain (accurate) {@link javax.xml.stream.Location} information or not. If not,
-     * Location may be null or a fixed location (beginning of main
-     * XML file).
-     *<p>
-     * Note, however, that the underlying parser will still keep track
-     * of location information for error reporting purposes; it's only
-     * Event objects that are affected.
-     */
-    final static int CFG_PRESERVE_LOCATION = 0x10000;
+    // // // Validation support
 
-    // // // DTD++ support
+    // DTD++ support
 
     /**
      * If true, DTD-parser will recognize DTD++ features, and the validator
      * will also use any such information found from DTD when DTD validation
      * is enabled.
      */
-    final static int CFG_SUPPORT_DTDPP = 0x00020000;
+    final static int CFG_SUPPORT_DTDPP = 0x00040000;
+
+    // Automatic W3C Schema support?
+    //final static int CFG_AUTOMATIC_W3C_SCHEMA = 0x00080000;
 }
 

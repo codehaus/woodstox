@@ -23,10 +23,6 @@ import com.ctc.wstx.stax.WstxInputFactory;
 public class TestStreaming
     extends BaseStreamTest
 {
-    public TestStreaming(String name) {
-        super(name);
-    }
-
     public void testTextStreaming()
         throws IOException, XMLStreamException
     {

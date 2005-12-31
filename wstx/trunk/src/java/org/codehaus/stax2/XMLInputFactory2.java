@@ -106,6 +106,21 @@ public abstract class XMLInputFactory2
      */
     public final static String P_PRESERVE_LOCATION = "org.codehaus.stax2.preserveLocation";
  
+    // // // Input source settings
+
+    /**
+     * Whether stream reader is to close the underlying input source (input
+     * stream, reader) when stream reader is closed. Basic StAX2
+     * specification mandates this feature to be set to false by default
+     * (for sources that are passed by the application).
+     *<p>
+     * Note: if set to true, readers are also allowed (but not required) to
+     * close the underlying input source when they do not need it any more,
+     * for example when encountering EOF, or when throwing an unrecoverable
+     * parsing exception
+     */
+    public final static String P_CLOSE_INPUT_SOURCE = "org.codehaus.stax2.closeInputSource";
+
     /*
     ////////////////////////////////////////////////////
     // Life-cycle

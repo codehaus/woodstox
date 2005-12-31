@@ -17,6 +17,7 @@ package com.ctc.wstx.sr;
 
 import java.io.*;
 import java.net.URL;
+import java.text.MessageFormat;
 import java.util.Map;
 
 import javax.xml.namespace.NamespaceContext;
@@ -345,7 +346,6 @@ public class BasicStreamReader
     protected final boolean mCfgCoalesceText;
     protected final boolean mCfgReportTextAsChars;
     protected final boolean mCfgLazyParsing;
-    protected final boolean mCfgInternNsURIs;
 
     /**
      * Minimum number of characters parser can return as partial text
@@ -361,6 +361,18 @@ public class BasicStreamReader
      * and external subsets).
      */
     final Map mCustomEntities;
+
+    /*
+    ////////////////////////////////////////////////////
+    // Input source state...
+    ////////////////////////////////////////////////////
+     */
+
+    /**
+     * Flag that indicates whether the underlying input source
+     * has been physically closed or not.
+     */
+    protected boolean mInputClosed = false;
 
     /*
     ////////////////////////////////////////////////////
@@ -401,7 +413,6 @@ public class BasicStreamReader
          *   not catching all exceptions as expected)
          */
         mCfgLazyParsing = !forER && ((mConfigFlags & CFG_LAZY_PARSING) != 0);
-        mCfgInternNsURIs = (mConfigFlags & CFG_INTERN_NS_URIS) != 0;
 
         /* There are a few derived settings used during tokenization that
          * need to be initialized now...
@@ -1061,7 +1072,9 @@ public class BasicStreamReader
     /**
      *<p>
      * Note: as per StAX 1.0 specs, this method does NOT close the underlying
-     * input reader.
+     * input reader. That is, unless the new StAX2 property
+     * {@link org.codehaus.stax2.XMLInputFactory#P_CLOSE_INPUT_SOURCE} is
+     * set to true.
      */
     public void close()
     {
@@ -1077,6 +1090,9 @@ public class BasicStreamReader
                     mOwner.updateSymbolTable(mSymbols);
                 }
             }
+
+            if (!mInputClosed && hasConfigFlags(CFG_CLOSE_INPUT_SOURCE)) {
+            }
         }
     }
 
@@ -1091,13 +1107,13 @@ public class BasicStreamReader
     public Object getFeature(String name)
     {
         // No readable features defined yet...
-        throw new IllegalArgumentException("Unrecognized feature '"+name+"'");
+        throw new IllegalArgumentException(MessageFormat.format(ErrorConsts.ERR_UNKNOWN_FEATURE, new Object[] { name })); 
     }
 
     public void setFeature(String name, Object value)
     {
         // Base-class has no settable features at this point.
-        throw new IllegalArgumentException("Unrecognized feature '"+name+"'");
+        throw new IllegalArgumentException(MessageFormat.format(ErrorConsts.ERR_UNKNOWN_FEATURE, new Object[] { name })); 
     }
 
     // NOTE: getProperty() defined in Stax 1.0 interface

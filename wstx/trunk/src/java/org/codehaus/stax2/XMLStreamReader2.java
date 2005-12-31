@@ -107,7 +107,8 @@ public interface XMLStreamReader2
 
     /**
      * Method that can be used to set per-reader properties; a subset of
-     * properties one can set via matching {@link XMLInputFactory2}
+     * properties one can set via matching
+     * {@link org.codehaus.stax2.XMLInputFactory2}
      * instance. Exactly which methods are mutable is implementation
      * specific.
      *
@@ -282,7 +283,8 @@ public interface XMLStreamReader2
     /**
      * This method returns a namespace contenxt object that contains
      * information identical to that returned by
-     * {@link XMLStreamReader#getNamespaceContext}, but one that is
+     * {@link javax.xml.stream.XMLStreamReader#getNamespaceContext()},
+     * but one that is
      * not transient. That is, one that will remain valid and unchanged
      * after its creation. This allows the namespace context to be used
      * independent of its source documents life cycle. One possible use

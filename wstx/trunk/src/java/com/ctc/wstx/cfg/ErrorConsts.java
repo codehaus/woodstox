@@ -39,6 +39,7 @@ public class ErrorConsts
 
     public static String ERR_INTERNAL = "Internal error";
     public static String ERR_NULL_ARG = "Illegal to pass null as argument";
+    public static String ERR_UNKNOWN_FEATURE = "Unrecognized feature \"{1}\"";
 
     // // // Wrong reader state:
 

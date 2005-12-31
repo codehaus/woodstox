@@ -146,7 +146,7 @@ public class ReaderSource
             mReader.close();
         }
         /* Let's help GC a bit, in case there might be back references
-         * to this Onject from somewhere...
+         * to this Object from somewhere...
          */
         mReader = null;
         mBuffer = null;
