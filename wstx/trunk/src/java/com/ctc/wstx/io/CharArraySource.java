@@ -108,6 +108,10 @@ public final class CharArraySource
         mBuffer = null;
     }
 
+    public void closeCompletely() {
+        close();
+    }
+
     /*
     public String toString() {
         return "[CharArraySource #"+Integer.toHexString(System.identityHashCode(this))

@@ -142,14 +142,33 @@ public class ReaderSource
     public void close()
         throws IOException
     {
-        if (mDoRealClose) {
-            mReader.close();
+        if (mBuffer != null) { // so that it's ok to call multiple times
+            /* Let's help GC a bit, in case there might be back references
+             * to this Object from somewhere...
+             */
+            mBuffer = null;
+            /* Can't yet clear Reader; caller may need to call forcing
+             * close at a later point
+             */
+            if (mDoRealClose && mReader != null) {
+                Reader r = mReader;
+                mReader = null;
+                r.close();
+            }
         }
-        /* Let's help GC a bit, in case there might be back references
-         * to this Object from somewhere...
-         */
-        mReader = null;
-        mBuffer = null;
+    }
+
+    public void closeCompletely()
+        throws IOException
+    {
+        if (mReader != null) { // so that it's ok to call multiple times
+            mBuffer = null; // may have been cleared already...
+            if (mReader != null) {
+                Reader r = mReader;
+                mReader = null;
+                r.close();
+            }
+        }
     }
 }
 

@@ -54,6 +54,7 @@ public final class ReaderConfig
     public final static int PROP_REPORT_ALL_TEXT_AS_CHARACTERS = 22;
     public final static int PROP_REPORT_PROLOG_WS = 23;
     public final static int PROP_PRESERVE_LOCATION = 24;
+    public final static int PROP_AUTO_CLOSE_INPUT = 25;
 
     // // // Constants for additional Wstx properties:
 
@@ -139,11 +140,11 @@ public final class ReaderConfig
         | CFG_INTERN_NS_URIS
 
         /* 30-Sep-2005, TSa: Change from 2.0.x (released in 2.8+);
-	 *   let's by default report these white spaces, since that's
-	 *   what the reference implementation does. It also helps in
-	 *   keeping output lookig pretty, if input is (not a big deal
-	 *   but still)
-	 */
+         *   let's by default report these white spaces, since that's
+         *   what the reference implementation does. It also helps in
+         *   keeping output lookig pretty, if input is (not a big deal
+         *   but still)
+         */
         | CFG_REPORT_PROLOG_WS
 
         /* but enable DTD caching (if they are handled):
@@ -163,6 +164,7 @@ public final class ReaderConfig
         /* Also, let's enable dtd++ support (shouldn't hurt with non-dtd++
          * dtds)
          */
+
         | CFG_SUPPORT_DTDPP
         ;
 
@@ -178,7 +180,7 @@ public final class ReaderConfig
      * Map to use for converting from String property ids to ints
      * described above; useful to allow use of switch later on.
      */
-    final static HashMap sProperties = new HashMap(24); // 9 + 7, currently, 75% fill rate
+    final static HashMap sProperties = new HashMap(64); // we have about 40 entries
     static {
         // Standard ones; support for features
         sProperties.put(XMLInputFactory.IS_COALESCING,
@@ -213,6 +215,8 @@ public final class ReaderConfig
                         new Integer(PROP_REPORT_PROLOG_WS));
         sProperties.put(XMLInputFactory2.P_PRESERVE_LOCATION,
                         new Integer(PROP_PRESERVE_LOCATION));
+        sProperties.put(XMLInputFactory2.P_AUTO_CLOSE_INPUT,
+                        new Integer(PROP_AUTO_CLOSE_INPUT));
 
         // Non-standard ones, flags:
 
@@ -475,6 +479,10 @@ public final class ReaderConfig
         return hasConfigFlags(CFG_PRESERVE_LOCATION);
     }
 
+    public boolean willAutoCloseInput() {
+        return hasConfigFlags(CFG_AUTO_CLOSE_INPUT);
+    }
+
     public boolean willSupportDTDPP() {
         return hasConfigFlags(CFG_SUPPORT_DTDPP);
     }
@@ -606,6 +614,10 @@ public final class ReaderConfig
 
     public void doPreserveLocation(boolean state) {
         setConfigFlag(CFG_PRESERVE_LOCATION, state);
+    }
+
+    public void doAutoCloseInput(boolean state) {
+        setConfigFlag(CFG_AUTO_CLOSE_INPUT, state);
     }
 
     public void doSupportDTDPP(boolean state) {
@@ -991,6 +1003,8 @@ public final class ReaderConfig
             return willParseLazily() ? Boolean.TRUE : Boolean.FALSE;
         case PROP_PRESERVE_LOCATION:
             return willPreserveLocation() ? Boolean.TRUE : Boolean.FALSE;
+        case PROP_AUTO_CLOSE_INPUT:
+            return willAutoCloseInput() ? Boolean.TRUE : Boolean.FALSE;
 
 
             // // // Custom ones; Object properties:
@@ -1094,6 +1108,10 @@ public final class ReaderConfig
 
         case PROP_PRESERVE_LOCATION:
             doPreserveLocation(ArgUtil.convertToBoolean(propName, value));
+            break;
+
+        case PROP_AUTO_CLOSE_INPUT:
+            doAutoCloseInput(ArgUtil.convertToBoolean(propName, value));
             break;
 
         case PROP_REPORT_ALL_TEXT_AS_CHARACTERS:

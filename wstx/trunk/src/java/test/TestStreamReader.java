@@ -168,44 +168,6 @@ public class TestStreamReader
                     }
                 }
 
-                /*
-                int textLen = sr.getTextLength();
-                System.out.println("getTextChars, len -- "+textLen);
-
-                {
-                    StringBuffer sb = new StringBuffer();
-                    char[] buf = new char[200];
-                    int len2;
-                    int offset = 0;
-                    
-                    while ((len2 = sr.getTextCharacters(offset, buf, 0, buf.length)) > 0) {
-                        System.out.println("getTextChars, got "+len2+" (had "+offset+", need "+textLen+") -> "+new String(buf, 0, len2)+"'");
-                        sb.append(buf, 0, len2);
-                        offset += len2;
-                    }
-                    text = sb.toString();
-                    
-                    String text2 = sr.getText();
-                    if (!text2.equals(text)) {
-                        throw new Error("NOT EQUAL: getText() -> (lengths: got "+text.length()+", exp "+text2.length());
-                        // -> '"+text2+", chars = '"+text+"'");
-                    }
-                }
-                */
-                
-		/*
-                //total += textLen;
-                // Sanity check (note: RI tends to return nulls?)
-                if (text != null) {
-                    char[] textBuf = sr.getTextCharacters();
-                    int start = sr.getTextStart();
-                    String text2 = new String(textBuf, start, textLen);
-                    if (!text.equals(text2)) {
-                        throw new Error("Text access via 'getText()' different from accessing via buffer: text='"+text+"', array='"+text2+"'");
-                    }
-                }
-		*/
-
                 if (text != null) { // Ref. impl. returns nulls sometimes
                     total += text.length(); // to prevent dead code elimination
                 }
@@ -239,10 +201,25 @@ public class TestStreamReader
                 System.out.println(" PI target = '"+sr.getPITarget()+"'.");
                 System.out.println(" PI data = '"+sr.getPIData()+"'.");
             } else if (type == START_ELEMENT) {
+                String prefix = sr.getPrefix();
+                System.out.print('<');
+                if (prefix != null && prefix.length() > 0) {
+                    System.out.print(prefix);
+                    System.out.print(':');
+                }
+                System.out.print(sr.getLocalName());
+                System.out.print(" {ns '");
+                System.out.print(sr.getNamespaceURI());
+                System.out.print("'}> ");
                 int count = sr.getAttributeCount();
                 int nsCount = sr.getNamespaceCount();
-                System.out.println(" ["+count+" attrs, "+nsCount+" ns]");
+                System.out.println(" ["+nsCount+" ns, "+count+" attrs]");
                 // debugging:
+                for (int i = 0; i < nsCount; ++i) {
+                    System.out.println(" ns#"+i+": '"+sr.getNamespacePrefix(i)
+                                     +"' -> '"+sr.getNamespaceURI(i)
+                                     +"'");
+                }
                 for (int i = 0; i < count; ++i) {
                     System.out.print(" attr#"+i+": "+sr.getAttributePrefix(i)
                                      +":"+sr.getAttributeLocalName(i)
@@ -252,15 +229,22 @@ public class TestStreamReader
                     System.out.println(sr.isAttributeSpecified(i) ?
                                        "[specified]" : "[Default]");
                 }
-	    } else if (type == START_DOCUMENT) { // only for multi-doc mode
-		System.out.print("XML-DECL: version = '"+sr.getVersion()+"', enc = '"+sr.getCharacterEncodingScheme()+"', stand-alone set: "+sr.standaloneSet());
-	    }
-	    if (hasName) {
-                System.out.print(" Name: '"+sr.getName()+"' (prefix <"
-                                   +sr.getPrefix()+">)");
+            } else if (type == END_ELEMENT) {
+                System.out.print("</");
+                String prefix = sr.getPrefix();
+                if (prefix != null && prefix.length() > 0) {
+                    System.out.print(prefix);
+                    System.out.print(':');
+                }
+                System.out.print(sr.getLocalName());
+                System.out.print(" {ns '");
+                System.out.print(sr.getNamespaceURI());
+                System.out.print("'}> ");
+                int nsCount = sr.getNamespaceCount();
+                System.out.println(" ["+nsCount+" ns unbound]");
+            } else if (type == START_DOCUMENT) { // only for multi-doc mode
+                System.out.print("XML-DECL: version = '"+sr.getVersion()+"', enc = '"+sr.getCharacterEncodingScheme()+"', stand-alone set: "+sr.standaloneSet());
             }
-
-            System.out.println();
         }
         return total;
     }

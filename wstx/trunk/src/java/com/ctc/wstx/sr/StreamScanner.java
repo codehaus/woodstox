@@ -932,10 +932,8 @@ public abstract class StreamScanner
             }
             WstxInputSource parent = input.getParent();
             if (parent == null) { // sanity check!
-                throw new Error("Internal error: null parent for input source '"
-                                +input+"'; should never occur (should have stopped at root input '"+mRootInput+"'.");
+                throwNullParent(input);
             }
-
             mInput = input = parent;
             input.restoreContext(this);
             // Maybe there are leftovers from that input in buffer now?
@@ -994,6 +992,37 @@ public abstract class StreamScanner
             return true;
         }
         return mInput.readMore(this, minAmount);
+    }
+
+    protected void closeAllInput(boolean force)
+        throws XMLStreamException
+    {
+        WstxInputSource input = mInput;
+        while (true) {
+            try {
+                if (force) {
+                    input.closeCompletely();
+                } else {
+                    input.close();
+                }
+            } catch (IOException ie) {
+                throwFromIOE(ie);
+            }
+            if (input == mRootInput) {
+                break;
+            }
+            WstxInputSource parent = input.getParent();
+            if (parent == null) { // sanity check!
+                throwNullParent(input);
+            }
+            mInput = input = parent;
+        }
+    }
+
+    private void throwNullParent(WstxInputSource curr)
+    {
+        throw new Error("Internal error: null parent for input source '"
+                        +curr+"'; should never occur (should have stopped at root input '"+mRootInput+"').");
     }
 
     /*

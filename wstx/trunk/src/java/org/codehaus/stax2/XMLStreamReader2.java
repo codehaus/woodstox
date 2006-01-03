@@ -295,5 +295,26 @@ public interface XMLStreamReader2
      * @return Non-transient namespace context as explained above.
      */
     public NamespaceContext getNonTransientNamespaceContext();
+
+    /*
+    ///////////////////////////
+    // Input handling
+    ///////////////////////////
+    */
+
+    /**
+     * Method similar to
+     * {@link javax.xml.stream.XMLStreamReader#getNamespaceContext()},
+     * except that this method also does close the underlying input
+     * source if it has not yet been closed. It is generally preferable
+     * to call this method if the parsing ends in an exception;
+     * and for some input sources (when passing
+     * a {@link java.io.File} or {@link java.net.URL} for factory
+     * method) it has to be called as the application does not have
+     * access to the actually input source ({@link java.io.InputStream}
+     * opened from a {@link java.net.URL} and so on).
+     */
+    public void closeCompletely()
+        throws XMLStreamException;
 }
 

@@ -1,15 +1,29 @@
-Version: 2.8.2
+Version: 2.9
 
-Release date: xx-Jan-2005
+Release date: xx-Jan-2006
 
 Description:
 
+  Problems fixed:
+
+== History: ==
+
+2.8.2 [31-Dec-2005]
 
   Problems fixed:
 
   * Changed behaviour of BasicStreamReader.isCharacters() to be identical
     to the ref. impl, ie. only to return true if the current event is
     CHARACTERS (but not if it's CDATA and SPACE).
+  * [WSTX-14]: Added property XMLInputFactory2.P_AUTO_CLOSE_INPUT that can
+    enable automatic closing for all input types (default is false).
+    Also, added explict XMLStreamReader2.closeCompletely() method to force
+    closing of all associated streams, indepent of auto-closing property.
+  * [WSTX-17]: Fixed the problem with new stream reader methods, so that
+    the underlying input stream does get properly closed independent
+    of value of XMLInputFactory2.P_AUTO_CLOSE_INPUT, if the source is
+    URL, File or javax.xml.transform.Source.
+  * Fixes that will go to 2.0.5 (WSTX-28, WSTX-29)
 
   Improvements:
 
@@ -17,8 +31,8 @@ Description:
     event), added a simple reuse schema for NamespaceContext instances. For
     typical namespace using documents, this can improve Event API parsing
     performance by up to 15% based on throughput measurements.
-
-== History: ==
+  * [WSTX-15] Added XMLStreamReader2.getNonTransientNamespaceContext()
+    method.
 
 2.8.1 [20-Dec-2005]
 

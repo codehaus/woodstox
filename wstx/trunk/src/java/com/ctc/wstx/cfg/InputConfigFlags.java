@@ -104,13 +104,15 @@ public interface InputConfigFlags
      */
     final static int CFG_PRESERVE_LOCATION = 0x0800;
 
+    // // // Input source handling
+
     /**
      * Property that enables/disables stream reader to close the underlying
      * input source, either when it is asked to (.close() is called), or
      * when it doesn't need it any more (reaching EOF, hitting an
      * unrecoverable exception).
      */
-    final static int CFG_CLOSE_INPUT_SOURCE = 0x1000;
+    final static int CFG_AUTO_CLOSE_INPUT = 0x1000;
 
     /*
     //////////////////////////////////////////////////////

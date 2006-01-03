@@ -214,42 +214,52 @@ public final class WstxInputFactory
     public XMLEventReader createXMLEventReader(InputStream in)
         throws XMLStreamException
     {
+        // false for auto-close, since caller has access to the input stream
         return new WstxEventReader(createEventAllocator(),
-                                   createSR(null, in, null, true));
+                                   createSR(null, in, null, true, false));
     }
 
     public XMLEventReader createXMLEventReader(InputStream in, String enc)
         throws XMLStreamException
     {
+        // false for auto-close, since caller has access to the input stream
         return new WstxEventReader(createEventAllocator(),
-                                   createSR(null, in, enc, true));
+                                   createSR(null, in, enc, true, false));
     }
 
     public XMLEventReader createXMLEventReader(Reader r)
         throws XMLStreamException
     {
-        return new WstxEventReader(createEventAllocator(), createSR(null, r, true));
+        // false for auto-close, since caller has access to the input stream
+        return new WstxEventReader(createEventAllocator(),
+                                   createSR(null, r, true, false));
     }
 
     public XMLEventReader createXMLEventReader(javax.xml.transform.Source source)
         throws XMLStreamException
     {
+        /* true for auto-close, since caller has no (guaranteed) access to
+         * the underlying input stream/reader (source object may hand
+         * different readers for each call)
+         */
         return new WstxEventReader(createEventAllocator(),
-                                   createSR(source, true));
+                                   createSR(source, true, true));
     }
 
     public XMLEventReader createXMLEventReader(String systemId, InputStream in)
         throws XMLStreamException
     {
+        // false for auto-close, since caller has access to the input stream
         return new WstxEventReader(createEventAllocator(),
-                                   createSR(systemId, in, null, true));
+                                   createSR(systemId, in, null, true, false));
     }
 
     public XMLEventReader createXMLEventReader(String systemId, Reader r)
         throws XMLStreamException
     {
+        // false for auto-close, since caller has access to the reader
         return new WstxEventReader(createEventAllocator(),
-                                   createSR(systemId, r, true));
+                                   createSR(systemId, r, true, false));
     }
 
     public XMLEventReader createXMLEventReader(XMLStreamReader sr)
@@ -263,37 +273,46 @@ public final class WstxInputFactory
     public XMLStreamReader createXMLStreamReader(InputStream in)
         throws XMLStreamException
     {
-        return createSR(null, in, null, false);
+        // false for auto-close, since caller has access to the input stream
+        return createSR(null, in, null, false, false);
     }
     
     public XMLStreamReader createXMLStreamReader(InputStream in, String enc)
         throws XMLStreamException
     {
-        return createSR(null, in, enc, false);
+        // false for auto-close, since caller has access to the input stream
+        return createSR(null, in, enc, false, false);
     }
 
     public XMLStreamReader createXMLStreamReader(Reader r)
         throws XMLStreamException
     {
-        return createSR(null, r, false);
+        // false for auto-close, since caller has access to the reader
+        return createSR(null, r, false, false);
     }
 
     public XMLStreamReader createXMLStreamReader(javax.xml.transform.Source src)
         throws XMLStreamException
     {
-        return createSR(src, false);
+        /* true for auto-close, since caller has no (guaranteed) access to
+         * the underlying input stream/reader (source object may hand
+         * different readers for each call)
+         */
+        return createSR(src, false, true);
     }
 
     public XMLStreamReader createXMLStreamReader(String systemId, InputStream in)
         throws XMLStreamException
     {
-        return createSR(systemId, in, null, false);
+        // false for auto-close, since caller has access to the input stream
+        return createSR(systemId, in, null, false, false);
     }
 
     public XMLStreamReader createXMLStreamReader(String systemId, Reader r)
         throws XMLStreamException
     {
-        return createSR(systemId, r, false);
+        // false for auto-close, since caller has access to the Reader
+        return createSR(systemId, r, false, false);
     }
 
     /*
@@ -367,19 +386,30 @@ public final class WstxInputFactory
     public XMLEventReader2 createXMLEventReader(URL src)
         throws XMLStreamException
     {
-        return new WstxEventReader(createEventAllocator(), createSR(src, true));
+        /* true for auto-close, since caller has no access to the underlying
+         * input stream created from the URL
+         */
+        return new WstxEventReader(createEventAllocator(),
+                                   createSR(src, true, true));
     }
 
     public XMLEventReader2 createXMLEventReader(File f)
         throws XMLStreamException
     {
-        return new WstxEventReader(createEventAllocator(), createSR(f, true));
+        /* true for auto-close, since caller has no access to the underlying
+         * input stream created from the File
+         */
+        return new WstxEventReader(createEventAllocator(),
+                                   createSR(f, true, true));
     }
 
     public XMLStreamReader2 createXMLStreamReader(URL src)
         throws XMLStreamException
     {
-        return createSR(src, false);
+        /* true for auto-close, since caller has no access to the underlying
+         * input stream created from the URL
+         */
+        return createSR(src, false, true);
     }
 
     /**
@@ -389,7 +419,10 @@ public final class WstxInputFactory
     public XMLStreamReader2 createXMLStreamReader(File f)
         throws XMLStreamException
     {
-        return createSR(f, false);
+        /* true for auto-close, since caller has no access to the underlying
+         * input stream created from the File
+         */
+        return createSR(f, false, true);
     }
 
     // // // StAX2 "Profile" mutators
@@ -438,11 +471,33 @@ public final class WstxInputFactory
     /**
      * Bottleneck method used for creating ALL full stream reader instances
      * (via other createSR() methods and directly)
+     *
+     * @param forER True, if the reader is being constructed to be used
+     *   by an event reader; false if it is not (or the purpose is not
+     *   known)
+     * @param autoCloseInput Whether the underlying input source should be
+     *   actually closed when encountering EOF, or when <code>close()</code>
+     *   is called. Will be true for input sources that are automatically
+     *   managed by stream reader (input streams created for
+     *   {@link java.net.URL} and {@link java.io.File} arguments, or when
+     *   configuration settings indicate auto-closing is to be enabled
+     *   (the default value is false as per Stax 1.0 specs).
      */
     private ValidatingStreamReader createSR(String systemId, InputBootstrapper bs, 
-                                            URL src, boolean forER)
+                                            URL src, boolean forER,
+                                            boolean autoCloseInput)
         throws XMLStreamException
     {
+        ReaderConfig cfg = mConfig.createNonShared(mSymbols.makeChild());
+
+        /* Automatic closing of input: will happen always for some input
+         * types (ones application has no direct access to; but can also
+         * be explicitly enabled.
+         */
+        if (!autoCloseInput) {
+            autoCloseInput = cfg.willAutoCloseInput();
+        }
+
         Reader r;
         try {
             r = bs.bootstrapInput(true, getXMLReporter());
@@ -453,9 +508,8 @@ public final class WstxInputFactory
         /* null -> no public id available
          * false -> don't close the reader when scope is closed.
          */
-        ReaderConfig cfg = mConfig.createNonShared(mSymbols.makeChild());
         BranchingReaderSource input = InputSourceFactory.constructDocumentSource
-            (bs, null, systemId, src, r, false, cfg.getInputBufferLength());
+            (bs, null, systemId, src, r, autoCloseInput, cfg.getInputBufferLength());
 
       
         try {
@@ -477,9 +531,17 @@ public final class WstxInputFactory
      * @param forER Flag to indicate whether it will be used via
      *    Event API (will affect some configuration settings), true if it
      *    will be, false if not (or not known)
+     * @param autoCloseInput Whether the underlying input source should be
+     *   actually closed when encountering EOF, or when <code>close()</code>
+     *   is called. Will be true for input sources that are automatically
+     *   managed by stream reader (input streams created for
+     *   {@link java.net.URL} and {@link java.io.File} arguments, or when
+     *   configuration settings indicate auto-closing is to be enabled
+     *   (the default value is false as per Stax 1.0 specs).
      */
     private ValidatingStreamReader createSR(String systemId, InputBootstrapper bs,
-                                            boolean forER)
+                                            boolean forER,
+                                            boolean autoCloseInput)
         throws XMLStreamException
     {
         // 16-Aug-2004, TSa: Maybe we have a context?
@@ -493,10 +555,12 @@ public final class WstxInputFactory
                 throw new WstxIOException(ie);
             }
         }
-        return createSR(systemId, bs, src, forER);
+        return createSR(systemId, bs, src, forER, autoCloseInput);
     }
 
-    protected ValidatingStreamReader createSR(String systemId, InputStream in, String enc, boolean forER)
+    protected ValidatingStreamReader createSR(String systemId, InputStream in, String enc,
+                                              boolean forER,
+                                              boolean autoCloseInput)
         throws XMLStreamException
     {
         // sanity check:
@@ -506,53 +570,67 @@ public final class WstxInputFactory
 
         int inputBufLen = mConfig.getInputBufferLength();
         if (enc == null || enc.length() == 0) {
-            return createSR(null, StreamBootstrapper.getInstance(in, null, systemId, inputBufLen), forER);
+            return createSR(null, StreamBootstrapper.getInstance(in, null, systemId, inputBufLen),
+                            forER, autoCloseInput);
         }
 
         Reader r = DefaultInputResolver.constructOptimizedReader(in, enc, mConfig.getInputBufferLength());
         return createSR(null, ReaderBootstrapper.getInstance
-                        (r, null, systemId, inputBufLen, enc), forER);
+                        (r, null, systemId, inputBufLen, enc),
+                        forER, autoCloseInput);
     }
 
-    protected ValidatingStreamReader createSR(URL src, boolean forER)
+    protected ValidatingStreamReader createSR(URL src, boolean forER,
+                                              boolean autoCloseInput)
         throws XMLStreamException
     {
         try {
-            return createSR(src, URLUtil.optimizedStreamFromURL(src), forER);
+            return createSR(src, URLUtil.optimizedStreamFromURL(src),
+                            forER, autoCloseInput);
         } catch (IOException ie) {
             throw new WstxIOException(ie);
         }
     }
 
-    private ValidatingStreamReader createSR(URL src, InputStream in, boolean forER)
+    private ValidatingStreamReader createSR(URL src, InputStream in,
+                                            boolean forER,
+                                            boolean autoCloseInput)
         throws XMLStreamException
     {
         String sysId = src.toExternalForm();
         return createSR(sysId,
                         StreamBootstrapper.getInstance
                         (in, null, sysId, mConfig.getInputBufferLength()),
-                        src, forER);
+                        src,
+                        forER, autoCloseInput);
     }
 
-    protected ValidatingStreamReader createSR(String systemId, Reader r, boolean forER)
+    protected ValidatingStreamReader createSR(String systemId, Reader r,
+                                              boolean forER,
+                                              boolean autoCloseInput)
         throws XMLStreamException
     {
         return createSR(systemId,
                         ReaderBootstrapper.getInstance
-                        (r, null, systemId, mConfig.getInputBufferLength(), null), forER);
+                        (r, null, systemId, mConfig.getInputBufferLength(), null),
+                        forER, autoCloseInput);
     }
 
-    protected ValidatingStreamReader createSR(File f, boolean forER)
+    protected ValidatingStreamReader createSR(File f, boolean forER,
+                                              boolean autoCloseInput)
         throws XMLStreamException
     {
         try {
-            return createSR(f.toURL(), new FileInputStream(f), forER);
+            return createSR(f.toURL(), new FileInputStream(f),
+                            forER, autoCloseInput);
         } catch (IOException ie) {
             throw new WstxIOException(ie);
         }
     }
 
-    protected ValidatingStreamReader createSR(javax.xml.transform.Source src, boolean forER)
+    protected ValidatingStreamReader createSR(javax.xml.transform.Source src,
+                                              boolean forER,
+                                              boolean autoCloseInput)
         throws XMLStreamException
     {
         if (src instanceof StreamSource) {
@@ -568,7 +646,8 @@ public final class WstxInputFactory
                         throw new XMLStreamException("Can not create StAX reader for a StreamSource -- neither reader, input stream nor system id was set.");
                     }
                     try {
-                        return createSR(URLUtil.urlFromSystemId(sysId), forER);
+                        return createSR(URLUtil.urlFromSystemId(sysId),
+                                        forER, autoCloseInput);
                     } catch (IOException ioe) {
                         throw new WstxIOException(ioe);
                     }
@@ -581,13 +660,13 @@ public final class WstxInputFactory
                     (r, ss.getPublicId(), sysId,
                      mConfig.getInputBufferLength(), null);
             }
-            return createSR(sysId, bs, forER);
+            return createSR(sysId, bs, forER, autoCloseInput);
         }
 
         if (src instanceof SAXSource) {
             // !!! TBI
             //SAXSource sr = (SAXSource) src;
-            throw new XMLStreamException("Can not create a STaX reader for a SAXSource -- not (yet) implemented.");
+            throw new XMLStreamException("Can not create a STaX reader for a SAXSource -- not implemented.");
         }
 
         if (src instanceof DOMSource) {
@@ -613,28 +692,6 @@ public final class WstxInputFactory
         return mConfig.willPreserveLocation() ?
             DefaultEventAllocator.getDefaultInstance()
             : DefaultEventAllocator.getFastInstance();
-    }
-
-    /*
-    /////////////////////////////////////////////////////
-    // Trivial test driver, to check loading of the
-    // class and instance creation work.
-    /////////////////////////////////////////////////////
-     */
-
-    public static void main(String[] args)
-        throws Exception
-    {
-        if (args.length != 1) {
-            System.err.println("Usage: java com.ctc.wstx.stax.WstxInputFactory [input file]");
-            System.exit(1);
-        }
-        WstxInputFactory f = new WstxInputFactory();
-
-        System.out.println("Creating stream reader for file '"+args[0]+"'.");
-        XMLStreamReader r = f.createXMLStreamReader(new java.io.FileInputStream(args[0]));
-        r.close();
-        System.out.println("Reader created and closed ok, exiting.");
     }
 }
 

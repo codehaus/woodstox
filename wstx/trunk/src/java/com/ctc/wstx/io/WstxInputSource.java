@@ -159,7 +159,20 @@ public abstract class WstxInputSource
      */
     public abstract void restoreContext(WstxInputData reader);
 
+    /**
+     * Method reader calls for this input source when it has encountered
+     * EOF. This may or may not close the underlying stream/reader; what
+     * happens depends on configuration
+     */
     public abstract void close() throws IOException;
+
+    /**
+     * Method reader MAY call to force full closing of the underlying
+     * input stream(s)/reader(s). No checks are done regarding configuration,
+     * but input source object is to deal gracefully with multiple calls
+     * (ie. it's not an error for reader to call this more than once).
+     */
+    public abstract void closeCompletely() throws IOException;
 
     /*
     //////////////////////////////////////////////////////////

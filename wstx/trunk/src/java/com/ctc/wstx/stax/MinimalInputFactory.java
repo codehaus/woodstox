@@ -1,6 +1,6 @@
 /* Woodstox XML processor
  *
- * Copyright (c) 2004 Tatu Saloranta, tatu.saloranta@iki.fi
+ * Copyright (c) 2004- Tatu Saloranta, tatu.saloranta@iki.fi
  *
  * Licensed under the License specified in the file LICENSE which is
  * included with the source code.
@@ -56,6 +56,10 @@ import com.ctc.wstx.sr.ReaderCreator;
  * to most of StAX event classes. It does however have lots of shared
  * (cut'n pasted code) with {@link com.ctc.wstx.stax.WstxInputFactory}.
  * Hopefully in future this problem can be resolved.
+ *<p>
+ * Regarding Stax2 extensions: they are not included either (since
+ * just like stax 1.0, it does have event API extensions) in this
+ * minimal subset.
  *<p>
  * Implementation note: since entity objects are built directly on top
  * of StAX events Objects, couple of event classes (specifically,

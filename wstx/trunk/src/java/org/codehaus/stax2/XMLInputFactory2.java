@@ -119,7 +119,7 @@ public abstract class XMLInputFactory2
      * for example when encountering EOF, or when throwing an unrecoverable
      * parsing exception
      */
-    public final static String P_CLOSE_INPUT_SOURCE = "org.codehaus.stax2.closeInputSource";
+    public final static String P_AUTO_CLOSE_INPUT = "org.codehaus.stax2.closeInputSource";
 
     /*
     ////////////////////////////////////////////////////

@@ -178,9 +178,9 @@ public final class MinimalOutputFactory
         }
 
         if (mConfig.willSupportNamespaces()) {
-	    if (mConfig.automaticNamespacesEnabled()) {
-		return new RepairingNsStreamWriter(w, enc, mConfig);
-	    }
+            if (mConfig.automaticNamespacesEnabled()) {
+                return new RepairingNsStreamWriter(w, enc, mConfig);
+            }
             return new SimpleNsStreamWriter(w, enc, mConfig);
         }
         return new NonNsStreamWriter(w, enc, mConfig);

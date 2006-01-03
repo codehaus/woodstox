@@ -43,7 +43,7 @@
     <property name="STAX_VERSION" value="1.0" />
     <property name="STAX_VENDOR" value="http://jcp.org/en/jsr/detail?id=173" />
     <property name="WSTX_TITLE" value="WoodSToX XML-processor" />
-    <property name="WSTX_VERSION" value="2.8.2" />
+    <property name="WSTX_VERSION" value="2.9" />
     <property name="WSTX_VENDOR" value="woodstox.codehaus.org" />
 
     <!-- Extended API, working title "StAX2" (not version 2.0, but 2/squared)
@@ -101,17 +101,12 @@
        <rootfileset dir="${BuildClassesDir}" includes="com/ctc/wstx/compat/Jdk*Impl.class" />
     </classfileset>
 
-    <classfileset id="j2meInputValidating" dir="${BuildClassesDir}">
-       <root classname="com.ctc.wstx.stax.ValidatingInputFactory" />
-       <rootfileset dir="${BuildClassesDir}" includes="com/ctc/wstx/compat/Jdk*Impl.class" />
-    </classfileset>
-
     <classfileset id="j2eeInput" dir="${BuildClassesDir}">
        <root classname="com.ctc.wstx.stax.WstxInputFactory" />
        <rootfileset dir="${BuildClassesDir}" includes="com/ctc/wstx/compat/Jdk*Impl.class" />
     </classfileset>
 
-    <classfileset id="j2meOutput" dir="${BuildClassesDir}">
+    <classfileset id="j2meOutputMinimal" dir="${BuildClassesDir}">
        <root classname="com.ctc.wstx.stax.MinimalOutputFactory" />
        <rootfileset dir="${BuildClassesDir}" includes="com/ctc/wstx/compat/Jdk*Impl.class" />
     </classfileset>
@@ -242,7 +237,7 @@
     />
 
     <target name="jars.j2me"
-       depends="jar.j2me_input_min, jar.j2me_input_val, jar.j2me_output, jar.j2me_both_min, jar.j2me_both_val"
+       depends="jar.j2me_input_min, jar.j2me_output_min, jar.j2me_both_min"
     />
 
     <target name="jar.wstx.lgpl" depends="compile,copy-resources">
@@ -345,26 +340,18 @@
           <fileset dir="${RelNotesDir}/lgpl">
             <include name="LICENSE" />
             <include name="NOTICE" />
+            <include name="LGPL2.1" />
           </fileset>
         </jar>
     </target> 
 
-    <target name="jar.j2me_input_val" depends="compile,check_license">
-        <jar jarfile="${BuildDir}/wstx-j2me-val-input.jar" filesonly="true">
-          <fileset refid="j2meInputValidating" />
+    <target name="jar.j2me_output_min" depends="compile,check_license">
+        <jar jarfile="${BuildDir}/wstx-j2me-min-output.jar" filesonly="true">
+          <fileset refid="j2meOutputMinimal" />
           <fileset dir="${RelNotesDir}/lgpl">
             <include name="LICENSE" />
             <include name="NOTICE" />
-          </fileset>
-        </jar>
-    </target> 
-
-    <target name="jar.j2me_output" depends="compile,check_license">
-        <jar jarfile="${BuildDir}/wstx-j2me-output.jar" filesonly="true">
-          <fileset refid="j2meOutput" />
-          <fileset dir="${RelNotesDir}/lgpl">
-            <include name="LICENSE" />
-            <include name="NOTICE" />
+            <include name="LGPL2.1" />
           </fileset>
         </jar>
     </target> 
@@ -372,21 +359,11 @@
     <target name="jar.j2me_both_min" depends="compile,check_license">
         <jar jarfile="${BuildDir}/wstx-j2me-min-both.jar" filesonly="true">
           <fileset refid="j2meInputMinimal" />
-          <fileset refid="j2meOutput" />
+          <fileset refid="j2meOutputMinimal" />
           <fileset dir="${RelNotesDir}/lgpl">
             <include name="LICENSE" />
             <include name="NOTICE" />
-          </fileset>
-        </jar>
-    </target> 
-
-    <target name="jar.j2me_both_val" depends="compile,check_license">
-        <jar jarfile="${BuildDir}/wstx-j2me-val-both.jar" filesonly="true">
-          <fileset refid="j2meInputValidating" />
-          <fileset refid="j2meOutput" />
-          <fileset dir="${RelNotesDir}/lgpl">
-            <include name="LICENSE" />
-            <include name="NOTICE" />
+            <include name="LGPL2.1" />
           </fileset>
         </jar>
     </target> 

@@ -339,11 +339,10 @@ public class BasicStreamReader
 
     // // // Various extracted settings:
 
-    // Extracted wstx-specific settings:
+    protected final boolean mCfgCoalesceText;
 
     protected final boolean mCfgNormalizeLFs;
     protected final boolean mCfgNormalizeAttrs;
-    protected final boolean mCfgCoalesceText;
     protected final boolean mCfgReportTextAsChars;
     protected final boolean mCfgLazyParsing;
 
@@ -364,18 +363,6 @@ public class BasicStreamReader
 
     /*
     ////////////////////////////////////////////////////
-    // Input source state...
-    ////////////////////////////////////////////////////
-     */
-
-    /**
-     * Flag that indicates whether the underlying input source
-     * has been physically closed or not.
-     */
-    protected boolean mInputClosed = false;
-
-    /*
-    ////////////////////////////////////////////////////
     // Life-cycle (ctors)
     ////////////////////////////////////////////////////
      */
@@ -389,8 +376,8 @@ public class BasicStreamReader
      *   be used as is.
      */
     protected BasicStreamReader(BranchingReaderSource input, ReaderCreator owner,
-                               ReaderConfig cfg, InputElementStack elemStack,
-			       boolean forER)
+                                ReaderConfig cfg, InputElementStack elemStack,
+                                boolean forER)
         throws IOException, XMLStreamException
     {
         super(input, cfg, cfg.getEntityResolver());
@@ -1073,10 +1060,11 @@ public class BasicStreamReader
      *<p>
      * Note: as per StAX 1.0 specs, this method does NOT close the underlying
      * input reader. That is, unless the new StAX2 property
-     * {@link org.codehaus.stax2.XMLInputFactory#P_CLOSE_INPUT_SOURCE} is
+     * {@link org.codehaus.stax2.XMLInputFactory2#P_AUTO_CLOSE_INPUT} is
      * set to true.
      */
     public void close()
+        throws XMLStreamException
     {
         if (mParseState != STATE_CLOSED) {
             mParseState = STATE_CLOSED;
@@ -1090,9 +1078,14 @@ public class BasicStreamReader
                     mOwner.updateSymbolTable(mSymbols);
                 }
             }
-
-            if (!mInputClosed && hasConfigFlags(CFG_CLOSE_INPUT_SOURCE)) {
-            }
+            /* Hmmh. Actually, we need to close all the dependant input
+             * sources, first, and then also call clsoe() 
+             * on the root input source object; it
+             * will only do real close if that was enabled earlier.
+             * The root input source also prevents multiple close() calls
+             * for the underlying source, so we need not check that here.
+             */
+            closeAllInput(false);
         }
     }
 
@@ -1366,6 +1359,11 @@ public class BasicStreamReader
     {
         // null -> no Location info, not needed with basic API
         return mElementStack.createNonTransientNsContext(null);
+    }
+
+    public void closeCompletely() throws XMLStreamException
+    {
+        closeAllInput(true);
     }
 
     /*
