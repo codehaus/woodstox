@@ -16,6 +16,8 @@ Description:
     by unit tests (attribute, element combination, precedence).
   * [WSTX-29] NamespaceContext returned by StartElement events was sometimes
     empty.
+  * A bug in WordResolver, which could cause ArrayIndexOutOfBoundsException
+    for enumeration/notation attributes with just one value.
 
 == History: ==
 

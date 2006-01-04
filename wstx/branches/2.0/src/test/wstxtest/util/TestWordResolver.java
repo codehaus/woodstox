@@ -54,6 +54,23 @@ public class TestWordResolver
 
     }
 
+    /**
+     * This unit test was created as a regression test, to check for
+     * a bug that was found during development.
+     */
+    public void testSingle()
+    {
+        TreeSet set = new TreeSet();
+        set.add("CDATA");
+        WordResolver res = WordResolver.constructInstance(set);
+        assertEquals("CDATA", res.find(new String("CDATA")));
+        assertNull(res.find("CDAT"));
+        assertNull(res.find("CDATA "));
+
+        // this caused an NPE:
+        assertNull(res.find("value"));
+    }
+
     /*
     ///////////////////////////////////////////////////////
     // Private methods:
