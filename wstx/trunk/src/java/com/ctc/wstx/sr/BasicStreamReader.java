@@ -1180,9 +1180,11 @@ public class BasicStreamReader
         if (mCurrToken != DTD) {
             return null;
         }
+System.err.println("About to finish token for getDTDInfo...");
         if (mTokenState < TOKEN_FULL_SINGLE) { // need to fully read it in now
             wrappedFinishToken();
         }
+System.err.println("STATE -> "+mTokenState);
         return this;
     }
 
@@ -3312,7 +3314,7 @@ public class BasicStreamReader
          * + 0 -> could reliably read the prev event, now need the
          *   following char/EOF
          * + -1 -> hit EOF; can return it
-         * + something else -> this is the next c har, return it.
+         * + something else -> this is the next char, return it.
          *
          * In first 2 cases, next event start offset is the current location;
          * in third case, it needs to be backtracked by one char

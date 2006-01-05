@@ -51,7 +51,48 @@ public class TestWordResolver
 
         // And then that ones shouldn't be there aren't:
         checkNotFind(wr, "foo");
+    }
 
+    /**
+     * This unit test was created as a regression test, to check for
+     * a bug that was found during development.
+     */
+    public void testSingle()
+    {
+        TreeSet set = new TreeSet();
+
+        set.add("CDATA");
+        WordResolver res = WordResolver.constructInstance(set);
+        assertEquals("CDATA", res.find("CDATA"));
+        assertEquals("CDATA", res.find("CDATA".toCharArray(), 0, 5));
+        assertEquals("CDATA", res.find(new String("CDATA")));
+        assertNull(res.find("CDAT"));
+        assertNull(res.find("CDATA "));
+        assertNull(res.find("aaa"));
+        assertNull(res.find("ZZZ"));
+        assertNull(res.find("ZZZ".toCharArray(), 0, 3));
+
+        // this caused an ArrayIndexOutOfBoundsException:
+        assertNull(res.find("value"));
+
+        // And let's try with another value:
+
+        set = new TreeSet();
+        set.add("somethingelse");
+        res = WordResolver.constructInstance(set);
+
+        final String SMTH = "somethingelse";
+
+        assertEquals(SMTH, res.find(SMTH));
+        assertEquals(SMTH, res.find(new String(SMTH)));
+        assertEquals(SMTH, res.find(SMTH.toCharArray(), 0, SMTH.length()));
+
+        assertNull(res.find("a"));
+        assertNull(res.find("CDATA "));
+        assertNull(res.find("value"));
+        assertNull(res.find("aaa"));
+        assertNull(res.find("aaa".toCharArray(), 0, 3));
+        assertNull(res.find("ZZZ"));
     }
 
     /*

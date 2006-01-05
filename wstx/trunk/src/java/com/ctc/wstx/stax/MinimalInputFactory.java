@@ -427,6 +427,7 @@ public class MinimalInputFactory
     /////////////////////////////////////////////////////
      */
 
+    /*
     public static void main(String[] args)
         throws Exception
     {
@@ -441,5 +442,6 @@ public class MinimalInputFactory
         r.close();
         System.out.println("Reader created and closed ok, exiting.");
     }
+    */
 }
 

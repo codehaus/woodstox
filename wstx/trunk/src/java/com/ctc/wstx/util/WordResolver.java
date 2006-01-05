@@ -17,6 +17,8 @@ import java.util.*;
  * patterns, one restriction is that the full set of words to include has to
  * be known before constructing the instnace. Also, the size of the set is
  * limited to total word content of about 20k characters.
+ *<p>
+ * TODO: Should document the internal data structure...
  */
 public final class WordResolver
 {
@@ -94,12 +96,11 @@ public final class WordResolver
         return mWords.length;
     }
 
-    /**
-     *
-     */
+    /*
     public int indexSize() {
         return mData.length;
     }
+    */
 
     /**
      * @param str Character array that contains the word to find
@@ -114,6 +115,12 @@ public final class WordResolver
     public String find(char[] str, final int start, final int end)
     {
         char[] data = mData;
+
+        // 03-Jan-2006, TSa: Special case; one entry
+        if (data == null) {
+            return findFromOne(str, start, end);
+        }
+
         int ptr = 0; // pointer to compressed set data
         int offset = start;
 
@@ -134,13 +141,18 @@ public final class WordResolver
             do { // dummy loop, need to have break
                 // Linear or binary search?
                 if (count < MIN_BINARY_SEARCH) {
+                    // always at least two branches; never less
                     if (data[ptr] == c) {
                         ptr = (int) data[ptr+1];
                         break inner_block;
                     }
+                    if (data[ptr+2] == c) {
+                        ptr = (int) data[ptr+3];
+                        break inner_block;
+                    }
                     int branchEnd = ptr + (count << 1);
-                    // Starts from entry #2, if such exists
-                    for (ptr += 2; ptr < branchEnd; ptr += 2) {
+                    // Starts from entry #3, if such exists
+                    for (ptr += 4; ptr < branchEnd; ptr += 2) {
                         if (data[ptr] == c) {
                             ptr = (int) data[ptr+1];
                             break inner_block;
@@ -187,6 +199,21 @@ public final class WordResolver
         // never gets here
     }
 
+    private String findFromOne(char[] str, final int start, final int end)
+    {
+        String word = mWords[0];
+        int len = end-start;
+        if (word.length() != len) {
+            return null;
+        }
+        for (int i = 0; i < len; ++i) {
+            if (word.charAt(i) != str[start+i]) {
+                return null;
+            }
+        }
+        return word;
+    }
+
     /**
      * @return (Shared) string instance of the word, if it exists in
      *   the word set; null if not.
@@ -194,6 +221,13 @@ public final class WordResolver
     public String find(String str)
     {
         char[] data = mData;
+
+        // 03-Jan-2006, TSa: Special case; one entry
+        if (data == null) {
+            String word = mWords[0];
+            return word.equals(str) ? word : null;
+        }
+
         int ptr = 0; // pointer to compressed set data
         int offset = 0;
         int end = str.length();
@@ -313,20 +347,33 @@ public final class WordResolver
          */
         int mSize;
 
-        public Builder(TreeSet wordSet) {
+        public Builder(TreeSet wordSet)
+        {
             int wordCount = wordSet.size();
+
             mWords = new String[wordCount];
             wordSet.toArray(mWords);
 
-            /* Let's guess approximate size we should need, assuming
-             * average word length of 6 characters, overhead matching
-             * compression (ie. about 1-to-1 ratio overall)
+            /* 03-Jan-2006, TSa: Special case: just one entry; if so,
+             *   let's leave char array null, and just have the String
+             *   array with one entry.
              */
-            int size = wordCount * 6;
-            if (size < 256) {
-                size = 256;
+            if (wordCount < 2) {
+                if (wordCount == 0) {
+                    throw new IllegalArgumentException(); // not legal
+                }
+                mData = null;
+            } else {
+                /* Let's guess approximate size we should need, assuming
+                 * average word length of 6 characters, overhead matching
+                 * compression (ie. about 1-to-1 ratio overall)
+                 */
+                int size = wordCount * 6;
+                if (size < 256) {
+                    size = 256;
+                }
+                mData = new char[size];
             }
-            mData = new char[size];
         }
 
         /**
@@ -335,15 +382,26 @@ public final class WordResolver
          */
         public WordResolver construct() 
         {
-            constructBranch(0, 0, mWords.length);
+            char[] result;
 
-            // Too big?
-            if (mSize > NEGATIVE_OFFSET) {
-                return null;
+            /* 03-Jan-2006, TSa: Special case: just one entry; if so,
+             *   let's leave char array null, and just have the String
+             *   array with one entry.
+             */
+            if (mData == null) {
+                result = null;
+            } else {
+                constructBranch(0, 0, mWords.length);
+                
+                // Too big?
+                if (mSize > NEGATIVE_OFFSET) {
+                    return null;
+                }
+                
+                result = new char[mSize];
+                System.arraycopy(mData, 0, result, 0, mSize);
             }
 
-            char[] result = new char[mSize];
-            System.arraycopy(mData, 0, result, 0, mSize);
             return new WordResolver(mWords, result);
         }
 
@@ -475,15 +533,18 @@ public final class WordResolver
     }
 
     /*
-    /////////////////////////////////////////////
+    ////////////////////////////////////////////////////
     // Simple test driver, useful for debugging
-    /////////////////////////////////////////////
+    // (uncomment if needed -- commented out so it won't
+    // affect coverage testing)
+    ////////////////////////////////////////////////////
      */
 
+    /*
     public static void main(String[] args)
     {
         if (args.length < 2) {
-            System.err.println("Usage: "+WordSet.class+" word1 [word2] ... [wordN] keyword");
+            System.err.println("Usage: "+WordResolver.class+" word1 [word2] ... [wordN] keyword");
             System.exit(1);
         }
         String key = args[args.length-1];
@@ -499,7 +560,7 @@ public final class WordResolver
         // Ok, and then the test!
         char[] keyA = new char[key.length() + 4];
         key.getChars(0, key.length(), keyA, 2);
-        //System.out.println("Word '"+key+"' found via array search: "+WordSet.find(data, keyA, 2, key.length() + 2));
+        //System.out.println("Word '"+key+"' found via array search: "+WordResolver.find(data, keyA, 2, key.length() + 2));
         System.out.println("Word '"+key+"' found via array search: "+set.find(keyA, 2, key.length() + 2));
     }
 
@@ -515,4 +576,5 @@ public final class WordResolver
             }
         }
     }
+    */
 }

@@ -210,6 +210,7 @@ public class ValidatingStreamReader
     // Private methods, DOCTYPE handling
     ////////////////////////////////////////////////////
      */
+boolean called = false;
 
     /**
      * This method gets called to handle remainder of DOCTYPE declaration,
@@ -232,6 +233,9 @@ public class ValidatingStreamReader
             super.finishDTD(copyContents);
             return;
         }
+System.err.println("finishDTD("+copyContents+")");
+if (called) throw new Error("FOO");
+called = true;
 
         /* We know there are no spaces, as this char was read and pushed
          * back earlier...
@@ -315,6 +319,8 @@ public class ValidatingStreamReader
                 mElementStack.setValidator(vld);
             }
         }
+called = true;
+System.err.println("finishDTD end");
     }
 
     protected void initValidation()

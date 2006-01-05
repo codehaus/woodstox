@@ -733,6 +733,7 @@ public class SymbolTable {
      * starting with a small initial size which should trigger
      * enough rehash()ings.
      */
+    /*
     public static void main(String[] args)
         throws Exception
     {
@@ -785,4 +786,5 @@ public class SymbolTable {
         }
         System.out.println("DONE!");
     }
+    */
 }
