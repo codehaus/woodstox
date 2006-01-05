@@ -148,9 +148,11 @@ public final class NonNsAttributeCollector
                                     hash, hashCount);
                     if (map == null) {
                         throwDupAttr(rep, currIndex);
+                        // won't return, but let's use else so FindBugs won't mind
+                    } else {
+                        map[++spillIndex] = i; // no need to specifically avoid 0
+                        ++spillIndex;
                     }
-                    map[++spillIndex] = i; // no need to specifically avoid 0
-                    ++spillIndex;
                 }
             }
             mAttrSpillEnd = spillIndex;

@@ -141,7 +141,8 @@ public class WstxEventReader
             }
             int type = evt.getEventType();
             if (type == COMMENT || type == PROCESSING_INSTRUCTION) {
-                ; // can/should just ignore them
+                // can/should just ignore them
+                continue;
             }
             if (!evt.isCharacters()) {
                 throw new WstxParsingException("Expected a text token, got "

@@ -85,7 +85,6 @@ public final class DTDEntitiesAttr
         }
 
         // Ok; now start points to first, last to last char (both inclusive)
-        Map entMap = v.getEntityMap();
         String idStr = null;
         StringBuffer sb = null;
 

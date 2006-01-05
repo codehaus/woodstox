@@ -92,7 +92,7 @@ public class CompactStartElement
         if (ix < 0) {
             return null;
         }
-        return constructAttr(mRawAttrs, ix, mAttrs.isDefault(ix));
+        return constructAttr(mRawAttrs, ix, !mAttrs.isDefault(ix));
     }
 
     public Iterator getAttributes()

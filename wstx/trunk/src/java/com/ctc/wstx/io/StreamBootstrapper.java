@@ -30,7 +30,7 @@ public final class StreamBootstrapper
      * (UCS-4), that comes to 28 bytes. And for good measure, let's pad
      * that a bit as well....
      */
-    final static int MIN_BUF_SIZE = 64;
+    final static int MIN_BUF_SIZE = 128;
 
     /*
     ////////////////////////////////////////
@@ -84,6 +84,7 @@ public final class StreamBootstrapper
             bufSize = MIN_BUF_SIZE;
         }
         mByteBuffer = new byte[bufSize];
+        mInputPtr = mInputLen = 0;
     }
 
     /*
@@ -92,7 +93,8 @@ public final class StreamBootstrapper
     ////////////////////////////////////////
     */
 
-    public static StreamBootstrapper getInstance(InputStream in, String pubId, String sysId, int bufSize)
+    public static StreamBootstrapper getInstance(InputStream in, String pubId, String sysId,
+                                                 int bufSize)
     {
         return new StreamBootstrapper(in, pubId, sysId, bufSize);
     }
@@ -200,39 +202,38 @@ public final class StreamBootstrapper
         mBytesPerChar = 0;
         mBigEndian = true;
 
-        /* Let's try to read enough data for the longest possible XML
-         * declaration (and leading BOM if any).
+        /* Ok; first just need 4 bytes for determining bytes-per-char from
+         * BOM or first char(s) of likely xml declaration:
          */
-        initialLoad(MIN_BUF_SIZE);
-
-        // However, for these first checks, we just need first 4 bytes:
-        if (mInputLen >= 4) {
+        if (ensureLoaded(4)) {
+            bomblock:
             do { // BOM/auto-detection block
                 int quartet = (mByteBuffer[0] << 24)
                     | ((mByteBuffer[1] & 0xFF) << 16)
                     | ((mByteBuffer[2] & 0xFF) << 8)
                     | (mByteBuffer[3] & 0xFF);
                 
-                /* First, handling of (usually) optional BOM (required for
-                 * multi-byte formats)
+                /* Handling of (usually) optional BOM (required for
+                 * multi-byte formats); first 32-bit charsets:
                  */
-                if (quartet == 0x0000FEFF) { // UCS-4, BE?
+                switch (quartet) {
+                case 0x0000FEFF:
                     mBigEndian = true;
                     mInputPtr = mBytesPerChar = 4;
-                    break;
-                }
-                if (quartet == 0xFFFE0000) { // UCS-4, LE?
+                    break bomblock;
+                case 0xFFFE0000: // UCS-4, LE?
                     mInputPtr = mBytesPerChar = 4;
                     mBigEndian = false;
-                    break;
-                }
-                if (quartet == 0x0000FFFE) { // UCS-4, in-order...
+                    break bomblock;
+                case 0x0000FFFE: // UCS-4, in-order...
                     reportWeirdUCS4("2143");
-                }
-                if (quartet == 0x0FEFF0000) { // UCS-4, in-order...
+                    break bomblock;
+                case 0x0FEFF0000: // UCS-4, in-order...
                     reportWeirdUCS4("3412");
+                    break bomblock;
                 }
 
+                // Ok, if not, how about 16-bit encoding BOMs?
                 int msw = quartet >>> 16;
                 if (msw == 0xFEFF) { // UTF-16, BE
                     mInputPtr = mBytesPerChar = 2;
@@ -245,6 +246,7 @@ public final class StreamBootstrapper
                     break;
                 }
 
+                // And if not, then UTF-8 BOM?
                 if ((quartet >>> 8) == 0xEFBBBF) { // UTF-8
                     mInputPtr = 3;
                     mBytesPerChar = 1;
@@ -256,99 +258,46 @@ public final class StreamBootstrapper
                  * for '<?xm' (or subset for multi-byte encodings) marker?
                  */
                 // Note: none of these consume bytes... so ptr remains at 0
-                if (quartet == 0x0000003c) { // UCS-4, BE?
+
+                switch (quartet) {
+                case 0x0000003c: // UCS-4, BE?
                     mBigEndian = true;
                     mBytesPerChar = 4;
-                    break;
-                }
-                if (quartet == 0x3c000000) { // UCS-4, LE?
+                    break bomblock;
+                case 0x3c000000: // UCS-4, LE?
                     mBytesPerChar = 4;
                     mBigEndian = false;
-                    break;
-                }
-                if (quartet == 0x00003c00) { // UCS-4, in-order...
+                    break bomblock;
+                case 0x00003c00: // UCS-4, in-order...
                     reportWeirdUCS4("2143");
-                }
-                if (quartet == 0x003c0000) { // UCS-4, in-order...
+                    break bomblock;
+                case 0x003c0000: // UCS-4, in-order...
                     reportWeirdUCS4("3412");
-                }
-
-                if (quartet == 0x003c003f) { // UTF-16, BE
-		    mBytesPerChar = 2;
+                    break bomblock;
+                case 0x003c003f: // UTF-16, BE
+                    mBytesPerChar = 2;
                     mBigEndian = true;
-                    break;
-                }
-                if (quartet == 0x3c003f00) { // UTF-16, LE
+                    break bomblock;
+                case 0x3c003f00: // UTF-16, LE
                     mBytesPerChar = 2;
                     mBigEndian = false;
-                    break;
-                }
-
-                if (quartet == 0x3c3f786d) { // UTF-8, Ascii, ISO-Latin
+                    break bomblock;
+                case 0x3c3f786d: // UTF-8, Ascii, ISO-Latin
                     mBytesPerChar = 1;
                     mBigEndian = true; // doesn't really matter
-                    break;
+                    break bomblock;
                 }
-
-		/* Otherwise it's either single-byte doc without xml
-		 * declaration, or corrupt input...
-		 */
+                
+                /* Otherwise it's either single-byte doc without xml
+                 * declaration, or corrupt input...
+                 */
             } while (false); // BOM/auto-detection block
-
-            mHadBOM = (mBytesPerChar > 0);
+            
+            mHadBOM = (mInputPtr > 0);
 
             // Let's update location markers to ignore BOM.
             mInputProcessed = -mInputPtr;
             mInputRowStart = mInputPtr;
-
-            /* Well, if there was no BOM, we can potentially still figure
-             * out encoding with first 4 bytes; assuming there is a
-             * valid XML declaration...
-             */
-
-            if (!mHadBOM) {
-                int quartet = (mByteBuffer[0] << 24)
-                    | ((mByteBuffer[1] & 0xFF) << 16)
-                    | ((mByteBuffer[2] & 0xFF) << 8)
-                    | (mByteBuffer[3] & 0xFF);
-                
-                /* Note: should not update input pointer since the full
-                 * XML declaration needs to be read later on to verify
-                 * it's correct; here it's just used as the marker
-                 */
-                
-                switch (quartet) {
-                case 0x0000003C: // UCS-4, BE
-                    mBytesPerChar = 4;
-                    mBigEndian = true;
-                    break;
-                case 0x3C000000: // UCS-4, LE
-                    mBytesPerChar = 4;
-                    mBigEndian = false;
-                    break;
-                case 0x00003C00: // UCS, mixed
-                    reportWeirdUCS4("2143");
-		    break; // to keep jikes happy
-                case 0x003C0000: // UCS, mixed
-                    reportWeirdUCS4("3412");
-		    break; // to keep jikes happy
-                case 0x003C003F: // UTF-16 BE etc
-                    mBytesPerChar = 2;
-                    mBigEndian = false;
-                    break;
-                case 0x3C003F00: // UTF-16 LE etc
-                    mBytesPerChar = 2;
-                    mBigEndian = false;
-                    break;
-                case 0x3C3F786D: // UTF-8, ISO-8859-x, Ascii etc
-                    mBytesPerChar = 1;
-                    mBigEndian = false;
-                    break;
-                case 0x4C6FA794: // EBCDIC... if/how can we handle that?
-                    // !!! 10-Aug-2004, TSa: not (yet?) supported
-                    reportEBCDIC();
-                }
-            }
         }
 
         /* Hmmh. If we haven't figured it out, let's just assume
@@ -379,17 +328,17 @@ public final class StreamBootstrapper
                      *   have dealt with it transparently... so we can not
                      *   really throw an exception here.
                      */
-                    if (!mHadBOM) {
-                        //reportMissingBOM(enc);
-                    }
+                    //if (!mHadBOM) {
+                    //reportMissingBOM(enc);
+                    //}
                     verifyEncoding(enc, 2);
-		    enc = "UTF-16";
+                    enc = "UTF-16";
                 } else if (s.equals("16BE")) {
                     verifyEncoding(enc, 2, true);
-		    enc = "UTF-16BE";
+                    enc = "UTF-16BE";
                 } else if (s.equals("16LE")) {
                     verifyEncoding(enc, 2, false);
-		    enc = "UTF-16LE";
+                    enc = "UTF-16LE";
                 }
             }
         } else if (enc.startsWith("ISO")) {
@@ -397,7 +346,7 @@ public final class StreamBootstrapper
                 enc.substring(4) : enc.substring(3);
             if (s.startsWith("8859")) { // various code pages, incl. ISO-Latin
                 verifyEncoding(enc, 1);
-		// enc should be good as is...
+                // enc should be good as is...
             } else if (s.startsWith("10646")) { // alias(es) for UTF...?
                 if (s.equals("10646-UCS-2")) {
                     /* JDK doesn't seem to have direct match, but shouldn't
@@ -436,19 +385,21 @@ public final class StreamBootstrapper
     /////////////////////////////////////////////////////
     */
 
-    protected boolean initialLoad(int minimum)
+    protected boolean ensureLoaded(int minimum)
         throws IOException
     {
-        mInputPtr = 0;
-        mInputLen = 0;
-
-        while (mInputLen < minimum) {
+        /* Let's assume here buffer has enough room -- this will always
+         * be true for the limited used this method gets
+         */
+        int gotten = (mInputLen - mInputPtr);
+        while (gotten < minimum) {
             int count = mIn.read(mByteBuffer, mInputLen,
                                  mByteBuffer.length - mInputLen);
             if (count < 1) {
                 return false;
             }
             mInputLen += count;
+            gotten += count;
         }
         return true;
     }
@@ -587,7 +538,7 @@ public final class StreamBootstrapper
             /* However... there has to be at least 6 bytes available; and if
              * so, can check the 'signature' easily:
              */
-            if ((mInputLen - mInputPtr) >= 6) {
+            if (ensureLoaded(6)) {
                 if (mByteBuffer[mInputPtr] == '<'
                     && mByteBuffer[mInputPtr+1] == '?'
                     && mByteBuffer[mInputPtr+2] == 'x'
@@ -604,9 +555,7 @@ public final class StreamBootstrapper
             // ... and then for slower fixed-multibyte encodings:
 
             // Is there enough data for checks?
-            int last = mInputPtr + (6 * mBytesPerChar);
-
-            if (last <= mInputLen) { // yup
+            if (ensureLoaded (6 * mBytesPerChar)) {
                 int start = mInputPtr; // if we have to 'unread' chars
                 if (nextMultiByte() == '<'
                     && nextMultiByte() == '?'

@@ -265,17 +265,19 @@ public abstract class AttributeCollector
      * specified attribute value and return it as (non-interned) String,
      * if normalization was done. May return null if no changes were done.
      */
+    /*
     public void normalizeValue(int index)
     {
         String val = mValueBuffer.normalizeSpaces(index);
 
-        if (val == null) {
+        if (val != null) {
             if (mAttrValues == null) {
                 mAttrValues = new String[mAttrCount];
             }
             mAttrValues[index] = val;
         }
     }
+    */
 
     /**
      * Low-level accessor method that attribute validation code may call

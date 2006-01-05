@@ -137,7 +137,7 @@ public final class CompactNsContext
                 for (int j = i+1; j < len; j += 2) {
                     // Prefixes are interned, can do straight equality check
                     if (ns[j] == prefix) {
-                        continue; // was masked!
+                        continue main_loop; // was masked, need to ignore
                     }
                 }
                 if (first == null) {

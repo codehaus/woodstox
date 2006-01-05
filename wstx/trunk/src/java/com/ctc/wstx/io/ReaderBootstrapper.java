@@ -1,6 +1,6 @@
 /* Woodstox XML processor
  *
- * Copyright (c) 2004 Tatu Saloranta, tatu.saloranta@iki.fi
+ * Copyright (c) 2004- Tatu Saloranta, tatu.saloranta@iki.fi
  *
  * Licensed under the License specified in file LICENSE, included with
  * the source code.
@@ -30,6 +30,9 @@ import com.ctc.wstx.exc.*;
  * Input bootstrap class used when input comes from a Reader; in this case,
  * encoding is already known, and thus encoding from XML declaration (if
  * any) is only double-checked, not really used.
+ *<p>
+ * Note: since the actual Reader to use after bootstrapping is pre-constructed,
+ * the local input buffer can (and should) be quite small.
  */
 public final class ReaderBootstrapper
     extends InputBootstrapper
@@ -73,22 +76,17 @@ public final class ReaderBootstrapper
     */
 
     private ReaderBootstrapper(Reader r, String pubId, String sysId,
-                               int bufSize, String appEncoding)
+                               String appEncoding)
     {
         super(pubId, sysId);
         mIn = r;
 
         /* Let's make sure buffer is at least 6 chars (to know '<?xml '
-         * prefix), but not too long to waste space -- it won't be reused
+         * prefix), and preferably big enough to contain the whole declaration,
+         *  but not too long to waste space -- it won't be reused
          * by the real input reader.
          */
-        /*
-        if (bufSize < MIN_BUF_SIZE) {
-            bufSize = MIN_BUF_SIZE;
-        }
-        */
-        bufSize = 128;
-        mCharBuffer = new char[bufSize];
+        mCharBuffer = new char[128]; // 128 chars should be enough
         mAppEncoding = appEncoding;
     }
 
@@ -99,27 +97,33 @@ public final class ReaderBootstrapper
     */
 
     /**
+     * @param r Eventual reader that will be reading actual content, after
+     *   bootstrapping finishes
      * @param appEncoding Encoding that application declared; may be null.
      *   If not null, will be compared to actual declaration found; and
      *   incompatibility reported as a potential (but not necessarily fatal)
      *   problem.
      */
     public static ReaderBootstrapper getInstance(Reader r, String pubId, String sysId,
-                                                 int bufSize, String appEncoding)
+                                                 String appEncoding)
     {
-        return new ReaderBootstrapper(r, pubId, sysId, bufSize, appEncoding);
+        return new ReaderBootstrapper(r, pubId, sysId, appEncoding);
     }
 
     /**
+     * Method called to do actual bootstrapping.
      *
+     * @return Actual reader to use for reading xml content
      */
     public Reader bootstrapInput(boolean mainDoc, XMLReporter rep)
         throws IOException, WstxException
     {
-        initialLoad(mCharBuffer.length);
+        initialLoad(7);
+
         /* Only need 6 for signature ("<?xml\s"), but there may be a leading
          * BOM in there... and a valid xml declaration has to be longer
-         * than 7 chars anyway:
+         * than 7 chars anyway (although, granted, shortest valid xml docl
+         * is just 4 chars... "<a/>")
          */
         if (mInputLen >= 7) {
             char c = mCharBuffer[mInputPtr];
@@ -138,7 +142,6 @@ public final class ReaderBootstrapper
                     mInputPtr += 6; // skip declaration
                     readXmlDecl(mainDoc);
                     
-                    // !!! TBI: Check that xml encoding is compatible?
                     if (mFoundEncoding != null && mAppEncoding != null) {
                         verifyXmlEncoding(rep);
                     }
@@ -156,7 +159,7 @@ public final class ReaderBootstrapper
                  * inform about the problem right away.
                  */
                 if (c == 0xEF) {
-                    throw new WstxIOException("Unexpected first character (char code 0xEF), not valid in xml document: could be mangled UTF-8 BOM marker, make sure that the Reader uses correct encoding or pass an InputStream instead");
+                    throw new WstxIOException("Unexpected first character (char code 0xEF), not valid in xml document: could be mangled UTF-8 BOM marker. Make sure that the Reader uses correct encoding or pass an InputStream instead");
                 }
             }
         }

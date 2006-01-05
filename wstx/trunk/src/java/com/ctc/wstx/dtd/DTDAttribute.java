@@ -416,8 +416,7 @@ public class DTDAttribute
 
         if (ent == null) {
             reportValidationProblem(v, "Referenced entity '"+id+"' not defined");
-        }
-        if (ent.isParsed()) {
+        } else if (ent.isParsed()) {
             reportValidationProblem(v, "Referenced entity '"+id+"' is not an unparsed entity");
         }
         return ent;
@@ -433,8 +432,7 @@ public class DTDAttribute
     {
         if (ent == null) {
             rep.reportValidationProblem("Referenced entity '"+id+"' not defined");
-        }
-        if (ent.isParsed()) {
+        } else if (ent.isParsed()) {
             rep.reportValidationProblem("Referenced entity '"+id+"' is not an unparsed entity");
         }
     }

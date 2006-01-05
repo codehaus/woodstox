@@ -2381,7 +2381,7 @@ public class FullDTDReader
     /**
      * Method called to read a notation referency entry; done both for
      * attributes of type NOTATION, and for external unparsed entities
-     * that refere to a notation. In both cases, notation referenced
+     * that refer to a notation. In both cases, notation referenced
      * needs to have been defined earlier.
      */
     private String readNotationEntry(char c, NameKey attrName)
@@ -2397,8 +2397,8 @@ public class FullDTDReader
             NotationDecl decl = (NotationDecl) mPredefdNotations.get(id);
             if (decl != null) {
                 mUsesPredefdNotations = true;
+                return decl.getName();
             }
-            return decl.getName();
         }
 
         NotationDecl decl = (mNotations == null) ? null :
@@ -2501,16 +2501,10 @@ public class FullDTDReader
         return val;
     }
 
-    private int mTokenIndex = 1;
-
     private ContentSpec readContentSpec(NameKey elemName, boolean mainLevel,
                                         boolean construct)
         throws IOException, XMLStreamException
     {
-        if (mainLevel) {
-            mTokenIndex = 1;
-        }
-        
         ArrayList subSpecs = new ArrayList();
         boolean isChoice = false; // default to sequence
         boolean choiceSet = false;

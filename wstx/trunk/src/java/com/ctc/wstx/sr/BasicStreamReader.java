@@ -1180,11 +1180,11 @@ public class BasicStreamReader
         if (mCurrToken != DTD) {
             return null;
         }
-System.err.println("About to finish token for getDTDInfo...");
         if (mTokenState < TOKEN_FULL_SINGLE) { // need to fully read it in now
+System.err.println("DEBUG: getDTDInfo, need to finish");
             wrappedFinishToken();
         }
-System.err.println("STATE -> "+mTokenState);
+else System.err.println("DEBUG: getDTDInfo, was done");
         return this;
     }
 
@@ -2126,10 +2126,13 @@ System.err.println("STATE -> "+mTokenState);
      * boundary in multi-doc mode. Needs to trigger dummy
      * END_DOCUMENT/START_DOCUMENT event combination, followed by the
      * handling of the original event.
+     *
+     * @return Event type to return
      */
     protected int handleMultiDocStart(int nextEvent)
     {
         mParseState = STATE_MULTIDOC_HACK;
+        mTokenState = TOKEN_FULL_COALESCED; // this is a virtual event after all...
         mSecondaryToken = nextEvent;
         return END_DOCUMENT;
     }
@@ -3238,6 +3241,7 @@ System.err.println("STATE -> "+mTokenState);
             break;
 
         case DTD:
+System.err.println("DEBUG: call finishDTD() from skipToken");
             finishDTD(false);
             result = 0;
             break;
@@ -3595,6 +3599,7 @@ System.err.println("STATE -> "+mTokenState);
             return;
 
         case DTD:
+System.err.println("DEBUG: call finishDTD() from finishToken");
             finishDTD(true);
             mTokenState = TOKEN_FULL_COALESCED;
             return;
@@ -3826,12 +3831,6 @@ System.err.println("STATE -> "+mTokenState);
         int start = ptr;
         char[] inputBuf = mInputBuffer;
         int inputLen = mInputLen;
-
-        /* Output pointers; calls will also ensure that the buffer is
-         * not shared, AND has room for one more char
-         */
-        char[] outBuf = mTextBuffer.getCurrentSegment();
-        int outPtr = mTextBuffer.getCurrentSegmentSize();
 
         outer_loop:
         while (ptr < inputLen) {

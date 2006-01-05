@@ -18,15 +18,55 @@ public class TestWordResolver
 
     public void testNormal()
     {
-        TreeSet set = new TreeSet();
+        checkResolver(new String[] {
+            "word", "123", "len", "length",
+            "leno", "1", "foobar",
+        }, new String[] {
+            "foo", "21", "__", "12", "lengt",
+        });
+    }
 
-        set.add("word");
-        set.add("123");
-        set.add("len");
-        set.add("length");
-        set.add("leno");
-        set.add("1");
-        set.add("foobar");
+    /**
+     * This unit test was created as a regression test, to check for
+     * a bug that was found during development.
+     */
+    public void testSingle()
+    {
+        // this caused an arrayindexoutofbounds exception
+        checkResolver(new String[] { "CDATA" },
+                      new String[] { "value", "aaa", "ZZZ", "CDAT" });
+
+        checkResolver(new String[] { "somethingelse" },
+                      new String[] { "value", "aaa", "ZZZ", "CDAT" });
+    }
+
+    /**
+     * This unit test tries to verify that things work ok with even bigger
+     * word sets
+     */
+    public void testLarge()
+    {
+        // this caused an arrayindexoutofbounds exception
+        checkResolver(new String[] {
+            "a", "a1", "a2", "a4", "a5", "a6", "ab", "az", "a9", "aa", "ax",
+            "c", "ca", "caa", "caaa", "caad", "caaa",
+        }, new String[] {
+            "a3", "aA", "a0", "b"
+        });
+    }
+
+    /*
+    ///////////////////////////////////////////////////////
+    // Private methods:
+    ///////////////////////////////////////////////////////
+     */
+
+    private void checkResolver(String[] words, String[] missingWords)
+    {
+        TreeSet set = new TreeSet();
+        for (int i = 0, len = words.length; i < len; ++i) {
+            set.add(words[i]);
+        }
 
         WordResolver wr = WordResolver.constructInstance(set);
 
@@ -50,56 +90,10 @@ public class TestWordResolver
         }
 
         // And then that ones shouldn't be there aren't:
-        checkNotFind(wr, "foo");
+        for (int i = 0, len = missingWords.length; i < len; ++i) {
+            checkNotFind(wr, missingWords[i]);
+        }
     }
-
-    /**
-     * This unit test was created as a regression test, to check for
-     * a bug that was found during development.
-     */
-    public void testSingle()
-    {
-        TreeSet set = new TreeSet();
-
-        set.add("CDATA");
-        WordResolver res = WordResolver.constructInstance(set);
-        assertEquals("CDATA", res.find("CDATA"));
-        assertEquals("CDATA", res.find("CDATA".toCharArray(), 0, 5));
-        assertEquals("CDATA", res.find(new String("CDATA")));
-        assertNull(res.find("CDAT"));
-        assertNull(res.find("CDATA "));
-        assertNull(res.find("aaa"));
-        assertNull(res.find("ZZZ"));
-        assertNull(res.find("ZZZ".toCharArray(), 0, 3));
-
-        // this caused an ArrayIndexOutOfBoundsException:
-        assertNull(res.find("value"));
-
-        // And let's try with another value:
-
-        set = new TreeSet();
-        set.add("somethingelse");
-        res = WordResolver.constructInstance(set);
-
-        final String SMTH = "somethingelse";
-
-        assertEquals(SMTH, res.find(SMTH));
-        assertEquals(SMTH, res.find(new String(SMTH)));
-        assertEquals(SMTH, res.find(SMTH.toCharArray(), 0, SMTH.length()));
-
-        assertNull(res.find("a"));
-        assertNull(res.find("CDATA "));
-        assertNull(res.find("value"));
-        assertNull(res.find("aaa"));
-        assertNull(res.find("aaa".toCharArray(), 0, 3));
-        assertNull(res.find("ZZZ"));
-    }
-
-    /*
-    ///////////////////////////////////////////////////////
-    // Private methods:
-    ///////////////////////////////////////////////////////
-     */
 
     private void checkNotFind(WordResolver wr, String str)
     {
@@ -111,5 +105,6 @@ public class TestWordResolver
         assertNull(wr.find(strArr, 0, strArr.length));
         assertNull(wr.find(strArr2, 1, strArr.length + 1));
     }
+
 }
 

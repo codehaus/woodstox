@@ -110,8 +110,7 @@ public class WAttribute
 
     public boolean isSpecified()
     {
-        // !!! TBI, when DTD support added
-        return true;
+        return mWasSpecified;
     }
 
     /*

@@ -198,8 +198,8 @@ public final class TextEscaper
         if (enc.length() < 1) { // let's assume default is UTF-8...
             return 16;
         }
-	char c = enc.charAt(0);
-
+        char c = enc.charAt(0);
+        
         /* Hmmh. Now this is bit tricky... whether to do "anything other
          * than Ascii is 8-bit clean" or "anything other than ISO-Latin
          * _may_ only support 7-bit ones" (obviously there are even more
@@ -211,48 +211,70 @@ public final class TextEscaper
         /* For now, let's just do former, so that in general first 256
          * chars get output as is, while others get escaped.
          */
-
-	/* Let's check first if it's a Unicode encoding... they
-	 * start with "UTF" and "UCS" (UTF-8, UCS-xxx). Otherwise,
-	 * let's just play safe and assume it's a single-byte encoding
-	 */
-	if (c == 'u' || c == 'U') {
-	    if (StringUtil.encodingStartsWith(enc, "UTF")
-		|| StringUtil.encodingStartsWith(enc, "UCS")) {
+        
+        /* Let's check first if it's a Unicode encoding... they
+         * start with "UTF" and "UCS" (UTF-8, UCS-xxx). Otherwise,
+         * let's just play safe and assume it's a single-byte encoding
+         */
+        if (c == 'u' || c == 'U') {
+            if (StringUtil.encodingStartsWith(enc, "UTF")
+                || StringUtil.encodingStartsWith(enc, "UCS")) {
                 return 16;
-	    }
-	    if (StringUtil.equalEncodings(enc, "US-ASCII")) {
+            }
+            if (StringUtil.equalEncodings(enc, "US-ASCII")) {
                 return 7;
             }
-	    if (StringUtil.encodingStartsWith(enc, "UNICODE")) {
+            if (StringUtil.encodingStartsWith(enc, "UNICODE")) {
                 // Not too standard... but is listed in IANA charset list
                 return 16;
             }
-	} else if (c == 'i' || c == 'I') {
-	    if (StringUtil.encodingStartsWith(enc, "ISO-10646")) {
+        } else if (c == 'i' || c == 'I') {
+            if (StringUtil.encodingStartsWith(enc, "ISO-10646")) {
                 /* Hmmh. There are boatloads of alternatives here, it
                  * seems (see http://www.iana.org/assignments/character-sets
                  * for details)
                  */
                 int ix = enc.indexOf("10646");
                 String suffix = enc.substring(ix+5);
-
-                if (StringUtil.encodingStartsWith(enc, "UTF")
-                    || StringUtil.encodingStartsWith(enc, "UCS")) {
-                    return 16; // full unicode
-                } else if (StringUtil.equalEncodings(enc, "US-ASCII")) {
+                
+                if (StringUtil.equalEncodings(suffix, "UCS-Basic")) { // ascii
                     return 7;
+                }
+                if (StringUtil.equalEncodings(suffix, "Unicode-Latin1")) { // ISO-Latin
+                    return 8;
+                }
+                if (StringUtil.equalEncodings(suffix, "UCS-2")) { // ISO-10646-UCS-2 == 2-byte unicode
+                    return 16;
+                }
+                if (StringUtil.equalEncodings(suffix, "UCS-4")) {
+                    return 16; // while it is 32-bit wide, we only have 16-bit chars
+                }
+                if (StringUtil.equalEncodings(suffix, "UTF-1")) {
+                    // Universal Transfer Format (1), this is the multibyte encoding, that subsets ASCII-7.
+                    return 7;
+                }
+                if (StringUtil.equalEncodings(suffix, "J-1")) {
+                    // Name: ISO-10646-J-1, Source: ISO 10646 Japanese, see RFC 1815.
+                    // ... so what does that really mean? let's limit to ascii
+                    return 7;
+                }
+                if (StringUtil.equalEncodings(suffix, "US-ASCII")) {
+                    return 7;
+                }
+                // and with nothing else, it's ISO-Latin1...
+                if (StringUtil.equalEncodings(enc, "ISO-10646")) {
+                    return 8;
                 }
             } else if (StringUtil.encodingStartsWith(enc, "ISO-646")) {
                 return 7; // another name for Ascii...
             } else if (StringUtil.encodingStartsWith(enc, "ISO-Latin")) {
                 return 8;
             }
-	} else if (c == 'a' || c == 'A') {
-	    if (StringUtil.equalEncodings(enc, "ASCII")) {
+        } else if (c == 'a' || c == 'A') {
+            if (StringUtil.equalEncodings(enc, "ASCII")) {
                 return 7;
             }
-	}
+        }
         
         // Ok, let's just assume it's 8-bit clean, but no more...
         return 8;

@@ -70,8 +70,7 @@ public final class DefaultInputResolver
 
         // Do we have a custom resolver that may be able to resolve it?
         if (customResolver != null) {
-            Object source = (customResolver == null) ? null :
-                customResolver.resolveEntity(publicId, systemId, ctxt.toExternalForm(), entityName);
+            Object source = customResolver.resolveEntity(publicId, systemId, ctxt.toExternalForm(), entityName);
             if (source != null) {
                 return sourceFrom(refCtxt, entityName, source, rep);
             }
@@ -204,11 +203,9 @@ public final class DefaultInputResolver
                 }
                 in = URLUtil.optimizedStreamFromURL(url);
             }
-            bs = StreamBootstrapper.getInstance
-                (in, pubId, sysId, getInputBufferLength(parent));
+            bs = StreamBootstrapper.getInstance(in, pubId, sysId, getInputBufferLength(parent));
         } else {
-            bs = ReaderBootstrapper.getInstance
-                (r, pubId, sysId, getInputBufferLength(parent), null);
+            bs = ReaderBootstrapper.getInstance(r, pubId, sysId, null);
         }
         
         Reader r2 = bs.bootstrapInput(false, rep);
@@ -232,8 +229,7 @@ public final class DefaultInputResolver
         if (sysId == null) {
             sysId = url.toExternalForm();
         }
-        StreamBootstrapper bs = StreamBootstrapper.getInstance(in, pubId, sysId,
-                                                               getInputBufferLength(parent));
+        StreamBootstrapper bs = StreamBootstrapper.getInstance(in, pubId, sysId, getInputBufferLength(parent));
         Reader r = bs.bootstrapInput(false, rep);
         return InputSourceFactory.constructEntitySource
             (parent, refName, bs, pubId, sysId, url, r);
@@ -266,8 +262,7 @@ public final class DefaultInputResolver
                                                 String pubId, String sysId)
         throws IOException, WstxException
     {
-        StreamBootstrapper bs = StreamBootstrapper.getInstance
-            (is, pubId, sysId, getInputBufferLength(parent));
+        StreamBootstrapper bs = StreamBootstrapper.getInstance(is, pubId, sysId, getInputBufferLength(parent));
         Reader r = bs.bootstrapInput(false, rep);
         URL ctxt = parent.getSource();
 
@@ -287,8 +282,7 @@ public final class DefaultInputResolver
         /* Last null -> no app-provided encoding (doesn't matter for non-
          * main-level handling)
          */
-        ReaderBootstrapper rbs = ReaderBootstrapper.getInstance
-            (r, pubId, sysId, getInputBufferLength(parent), null);
+        ReaderBootstrapper rbs = ReaderBootstrapper.getInstance(r, pubId, sysId, null);
         // null -> no xml reporter... should have one?
         r = rbs.bootstrapInput(false, rep);
         URL ctxt = parent.getSource();

@@ -123,13 +123,6 @@ public final class WstxInputFactory
      */
     SymbolTable mSymbols = mRootSymbols;
 
-    /**
-     * Lazily constructed default allocator; is used when no explicit
-     * allocator is set by application and full location information
-     * is needed.
-     */
-    static DefaultEventAllocator sStdAllocator = null;
-
     /*
     /////////////////////////////////////////////////////
     // Life-cycle:
@@ -568,16 +561,16 @@ public final class WstxInputFactory
             throw new IllegalArgumentException("Null InputStream is not a valid argument");
         }
 
-        int inputBufLen = mConfig.getInputBufferLength();
         if (enc == null || enc.length() == 0) {
-            return createSR(null, StreamBootstrapper.getInstance(in, null, systemId, inputBufLen),
+            return createSR(null, StreamBootstrapper.getInstance
+                            (in, null, systemId, mConfig.getInputBufferLength()),
                             forER, autoCloseInput);
         }
 
-        Reader r = DefaultInputResolver.constructOptimizedReader(in, enc, mConfig.getInputBufferLength());
+        int inputBufLen = mConfig.getInputBufferLength();
+        Reader r = DefaultInputResolver.constructOptimizedReader(in, enc, inputBufLen);
         return createSR(null, ReaderBootstrapper.getInstance
-                        (r, null, systemId, inputBufLen, enc),
-                        forER, autoCloseInput);
+                        (r, null, systemId, enc), forER, autoCloseInput);
     }
 
     protected ValidatingStreamReader createSR(URL src, boolean forER,
@@ -599,8 +592,7 @@ public final class WstxInputFactory
     {
         String sysId = src.toExternalForm();
         return createSR(sysId,
-                        StreamBootstrapper.getInstance
-                        (in, null, sysId, mConfig.getInputBufferLength()),
+                        StreamBootstrapper.getInstance(in, null, sysId, mConfig.getInputBufferLength()),
                         src,
                         forER, autoCloseInput);
     }
@@ -612,8 +604,7 @@ public final class WstxInputFactory
     {
         return createSR(systemId,
                         ReaderBootstrapper.getInstance
-                        (r, null, systemId, mConfig.getInputBufferLength(), null),
-                        forER, autoCloseInput);
+                        (r, null, systemId, null), forER, autoCloseInput);
     }
 
     protected ValidatingStreamReader createSR(File f, boolean forER,
@@ -652,13 +643,10 @@ public final class WstxInputFactory
                         throw new WstxIOException(ioe);
                     }
                 }
-                bs = StreamBootstrapper.getInstance
-                    (in, ss.getPublicId(), sysId,
-                     mConfig.getInputBufferLength());
+                bs = StreamBootstrapper.getInstance(in, ss.getPublicId(), sysId, mConfig.getInputBufferLength());
             } else {
                 bs = ReaderBootstrapper.getInstance
-                    (r, ss.getPublicId(), sysId,
-                     mConfig.getInputBufferLength(), null);
+                    (r, ss.getPublicId(), sysId, null);
             }
             return createSR(sysId, bs, forER, autoCloseInput);
         }

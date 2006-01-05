@@ -6,6 +6,7 @@ import java.util.zip.GZIPInputStream;
 
 import javax.xml.stream.*;
 
+import org.codehaus.stax2.DTDInfo;
 import org.codehaus.stax2.LocationInfo;
 import org.codehaus.stax2.XMLInputFactory2;
 import org.codehaus.stax2.XMLStreamReader2;
@@ -30,8 +31,8 @@ public class TestStreamReader
         XMLInputFactory2 f =  (XMLInputFactory2) XMLInputFactory.newInstance();
         System.out.println("Factory instance: "+f.getClass());
 
-        f.setProperty(XMLInputFactory.IS_COALESCING, Boolean.FALSE);
-        //f.setProperty(XMLInputFactory.IS_COALESCING, Boolean.TRUE);
+        //f.setProperty(XMLInputFactory.IS_COALESCING, Boolean.FALSE);
+        f.setProperty(XMLInputFactory.IS_COALESCING, Boolean.TRUE);
         f.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.TRUE);
         //f.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.FALSE);
         f.setProperty(XMLInputFactory.IS_REPLACING_ENTITY_REFERENCES,
@@ -58,6 +59,12 @@ public class TestStreamReader
             f.setProperty(WstxInputProperties.P_MIN_TEXT_SEGMENT,
                           new Integer(23));
         }
+
+        /*
+        f.setProperty(WstxInputProperties.P_LAZY_PARSING,
+                      //Boolean.FALSE);
+                      Boolean.TRUE);
+        */
 
         /*
         if (f.isPropertySupported(WstxInputProperties.P_CUSTOM_INTERNAL_ENTITIES)) {
@@ -153,6 +160,11 @@ public class TestStreamReader
             System.out.println(" END:   "+li.getEndLocation());
 	    */
 
+            // Debugging...
+            if (type == DTD) {
+                DTDInfo info = sr.getDTDInfo();
+            }
+
             if (sr.hasText()) {
                 String text = null;
 
@@ -180,6 +192,7 @@ public class TestStreamReader
                         System.out.println();
                     }
                 } else if (type == DTD) {
+                DTDInfo info = sr.getDTDInfo();
                     List entities = (List) sr.getProperty("javax.xml.stream.entities");
                     List notations = (List) sr.getProperty("javax.xml.stream.notations");
                     int entCount = (entities == null) ? -1 : entities.size();

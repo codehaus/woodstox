@@ -87,7 +87,7 @@ public final class DTDNmTokensAttr
         }
 
         boolean trimmed = (origStart != start);
-        origStart = start;
+        //origStart = start;
 
         --end; // so that it now points to the last char
         // Wouldn't absolutely have to trim trailing... but is easy to do

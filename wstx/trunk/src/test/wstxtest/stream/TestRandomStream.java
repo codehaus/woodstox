@@ -33,7 +33,7 @@ public class TestRandomStream
     public void testCoalescingAutoEntity()
         throws Exception
     {
-	mReallyStreaming = false;
+        mReallyStreaming = false;
         doTest(false, true, true); // non-ns
         doTest(true, true, true); // ns-aware
     }
@@ -41,7 +41,7 @@ public class TestRandomStream
     public void testCoalescingAutoEntityStreaming()
         throws Exception
     {
-	mReallyStreaming = true;
+        mReallyStreaming = true;
         doTest(true, true, true); // ns-aware
     }
 

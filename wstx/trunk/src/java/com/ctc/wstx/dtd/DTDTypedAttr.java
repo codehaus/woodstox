@@ -17,8 +17,8 @@ public final class DTDTypedAttr
 
     final int mValueType;
 
-    final boolean mSingleValued;
-    final boolean mNameValued;
+    //final boolean mSingleValued;
+    //final boolean mNameValued;
 
     /*
     ///////////////////////////////////////////////////
@@ -32,6 +32,7 @@ public final class DTDTypedAttr
         super(name, defValueType, defValue, specIndex);
         mValueType = valueType;
 
+        /*
         if (valueType == TYPE_ENTITIES
             || valueType == TYPE_IDREFS
             || valueType == TYPE_NMTOKENS) {
@@ -41,6 +42,7 @@ public final class DTDTypedAttr
             mSingleValued = true;
             mNameValued = (valueType != TYPE_NMTOKEN);
         }
+        */
     }
 
     public DTDAttribute cloneWith(int specIndex)

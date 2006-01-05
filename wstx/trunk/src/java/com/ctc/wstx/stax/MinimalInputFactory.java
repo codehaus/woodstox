@@ -196,7 +196,7 @@ public class MinimalInputFactory
         throws XMLStreamException
     {
         return createSR(null, StreamBootstrapper.getInstance(in, null, null,
-							     mConfig.getInputBufferLength()));
+                                                             mConfig.getInputBufferLength()));
     }
 
     public XMLStreamReader createXMLStreamReader(InputStream in, String enc)
@@ -208,8 +208,7 @@ public class MinimalInputFactory
 
         try {
             return createSR(null, ReaderBootstrapper.getInstance
-                            (new InputStreamReader(in, enc), null, null,
-                             mConfig.getInputBufferLength(), enc));
+                            (new InputStreamReader(in, enc), null, null, enc));
         } catch (UnsupportedEncodingException ex) {
             throw new XMLStreamException(ex);
         }
@@ -230,14 +229,15 @@ public class MinimalInputFactory
     public XMLStreamReader createXMLStreamReader(String systemId, InputStream in)
         throws XMLStreamException
     {
-        return createSR(systemId, StreamBootstrapper.getInstance(in, null, systemId, mConfig.getInputBufferLength()));
+        return createSR(systemId, StreamBootstrapper.getInstance
+                        (in, null, systemId, mConfig.getInputBufferLength()));
     }
 
     public XMLStreamReader createXMLStreamReader(String systemId, Reader r)
         throws XMLStreamException
     {
         return createSR(systemId,
-                        ReaderBootstrapper.getInstance(r, null, systemId, mConfig.getInputBufferLength(), null));
+                        ReaderBootstrapper.getInstance(r, null, systemId, null));
     }
 
     /*
@@ -395,20 +395,19 @@ public class MinimalInputFactory
                      mConfig.getInputBufferLength());
             } else {
                 bs = ReaderBootstrapper.getInstance
-                    (r, ss.getPublicId(), ss.getSystemId(),
-                     mConfig.getInputBufferLength(), null);
+                    (r, ss.getPublicId(), ss.getSystemId(), null);
             }
             return createSR(src.getSystemId(), bs);
         }
 
         if (src instanceof SAXSource) {
-            SAXSource sr = (SAXSource) src;
+            //SAXSource sr = (SAXSource) src;
             // !!! TBI
             throw new XMLStreamException("Can not create a STaX reader for a SAXSource -- not (yet) implemented.");
         }
 
         if (src instanceof DOMSource) {
-            DOMSource sr = (DOMSource) src;
+            //DOMSource sr = (DOMSource) src;
             // !!! TBI
             throw new XMLStreamException("Can not create a STaX reader for a DOMSource -- not (yet) implemented.");
         }

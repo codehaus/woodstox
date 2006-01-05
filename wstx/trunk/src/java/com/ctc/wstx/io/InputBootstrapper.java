@@ -95,7 +95,7 @@ public abstract class InputBootstrapper
     ////////////////////////////////////////
     */
 
-    boolean mHadDeclaration = false;
+    //boolean mHadDeclaration = false;
 
     String mVersion;
 
@@ -403,7 +403,6 @@ public abstract class InputBootstrapper
     protected void reportNull()
         throws WstxException
     {
-        Location loc = getLocation();
         throw new WstxException("Illegal null byte in input stream",
                                 getLocation());
     }

@@ -102,7 +102,8 @@ public class DTDValidatorFactory
                                            String publicId, String systemId)
         throws XMLStreamException
     {
-        return doCreateSchema(StreamBootstrapper.getInstance(in, publicId, systemId, mConfig.getInputBufferLength()),
+        return doCreateSchema(StreamBootstrapper.getInstance
+                              (in, publicId, systemId, mConfig.getInputBufferLength()),
                               publicId, systemId, null);
     }
 
@@ -110,7 +111,7 @@ public class DTDValidatorFactory
                                            String systemId)
         throws XMLStreamException
     {
-        return doCreateSchema(ReaderBootstrapper.getInstance(r, publicId, systemId, mConfig.getInputBufferLength(), null),
+        return doCreateSchema(ReaderBootstrapper.getInstance(r, publicId, systemId, null),
                               publicId, systemId, null);
     }
 

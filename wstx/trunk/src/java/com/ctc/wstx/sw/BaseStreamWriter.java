@@ -603,11 +603,11 @@ public abstract class BaseStreamWriter
             verifyNameValidity(name, mNsAware);
         }
 
-        if (mValidator != null) {
+        //if (mValidator != null) {
             /* !!! 11-Dec-2005, TSa: Should be able to use DTD based validators
              *    to check if entity has been declared...
              */
-        }
+        //}
 
         try {
             mWriter.write('&');
@@ -714,9 +714,12 @@ public abstract class BaseStreamWriter
 
         if (mCheckContent) {
             // !!! 06-May-2004, TSa: Should validate version and encoding?
-            if (encoding != null) {
-            }
-            if (version != null) {
+            /*if (encoding != null) {
+            }*/
+            if (version != null && version.length() > 0) {
+                if (!(version.equals("1.0") || version.equals("1.1"))) {
+                    throw new IllegalArgumentException("Illegal version argument ('"+version+"'); should only use '1.0' or '1.1'");
+                }
             }
         }
 

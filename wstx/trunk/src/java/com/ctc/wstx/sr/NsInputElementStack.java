@@ -162,7 +162,7 @@ public final class NsInputElementStack
         }
         mElements = new String[initialSize << 2];
         mNsCounts = new int[initialSize];
-        mAttrCollector = new NsAttributeCollector(normAttrs, prefixXml, prefixXmlns);
+        mAttrCollector = new NsAttributeCollector(normAttrs, prefixXml);
     }
 
     public final void push(String prefix, String localName)

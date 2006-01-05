@@ -902,9 +902,8 @@ public abstract class StreamScanner
          * declaration; this can and should be done before calling init, 
          * since init will update
          */
-        if (isExt) {
-            // 13-Aug-2004, TSa: Nope; bootstrappers get rid of them...
-        }
+        // 13-Aug-2004, TSa: Nope; bootstrappers get rid of them...
+        //if (isExt) { ... }
     }
 
     /**

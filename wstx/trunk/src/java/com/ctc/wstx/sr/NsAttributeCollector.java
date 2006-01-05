@@ -43,11 +43,6 @@ public final class NsAttributeCollector
      * Canonicalized prefix string "xml"
      */
     final String mXmlPrefix;
-
-    /**
-     * Canonicalized prefix string "xmlns"
-     */
-    final String mXmlnsPrefix;
     
     /*
     //////////////////////////////////////////
@@ -91,11 +86,10 @@ public final class NsAttributeCollector
     ///////////////////////////////////////////////
      */
 
-    public NsAttributeCollector(boolean normAttrs, String xmlPrefix, String xmlnsPrefix)
+    public NsAttributeCollector(boolean normAttrs, String xmlPrefix)
     {
         super(normAttrs);
         mXmlPrefix = xmlPrefix;
-        mXmlnsPrefix = xmlnsPrefix;
     }
 
     /**
@@ -251,9 +245,11 @@ public final class NsAttributeCollector
                                     attrCount, hash, hashCount);
                     if (map == null) {
                         throwDupAttr(rep, currIndex);
+                        // never returns here...
+                    } else { // let's use else to keep FindBugs happy
+                        map[++spillIndex] = i; // no need to specifically avoid 0
+                        ++spillIndex;
                     }
-                    map[++spillIndex] = i; // no need to specifically avoid 0
-                    ++spillIndex;
                 }
             }
             mAttrSpillEnd = spillIndex;

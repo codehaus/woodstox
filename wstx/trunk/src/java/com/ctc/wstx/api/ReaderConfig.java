@@ -343,8 +343,8 @@ public final class ReaderConfig
 
     public ReaderConfig createNonShared(SymbolTable sym)
     {
-        if (sym == null) {
-        }
+        // should we throw an exception?
+        //if (sym == null) { }
         ReaderConfig rc = new ReaderConfig(mIsJ2MESubset, sym,
                                            mConfigFlags,
                                            mInputBufferLen, mTextBufferLen,

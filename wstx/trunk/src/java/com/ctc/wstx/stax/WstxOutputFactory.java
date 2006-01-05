@@ -262,13 +262,13 @@ public final class WstxOutputFactory
         }
 
         if (res instanceof SAXResult) {
-            SAXResult sr = (SAXResult) res;
+            //SAXResult sr = (SAXResult) res;
             // !!! TBI
             throw new XMLStreamException("Can not create a STaX writer for a SAXResult -- not (yet) implemented.");
         }
 
         if (res instanceof DOMResult) {
-            DOMResult sr = (DOMResult) res;
+            //DOMResult sr = (DOMResult) res;
             // !!! TBI
             throw new XMLStreamException("Can not create a STaX writer for a DOMResult -- not (yet) implemented.");
         }
@@ -284,6 +284,7 @@ public final class WstxOutputFactory
     /////////////////////////////////////////////////////
      */
 
+    /*
     public static void main(String[] args)
         throws Exception
     {
@@ -293,4 +294,5 @@ public final class WstxOutputFactory
 
         System.out.println("Writer factory created ok.");
     }
+    */
 }

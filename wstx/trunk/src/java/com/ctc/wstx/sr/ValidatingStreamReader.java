@@ -210,7 +210,6 @@ public class ValidatingStreamReader
     // Private methods, DOCTYPE handling
     ////////////////////////////////////////////////////
      */
-boolean called = false;
 
     /**
      * This method gets called to handle remainder of DOCTYPE declaration,
@@ -233,9 +232,6 @@ boolean called = false;
             super.finishDTD(copyContents);
             return;
         }
-System.err.println("finishDTD("+copyContents+")");
-if (called) throw new Error("FOO");
-called = true;
 
         /* We know there are no spaces, as this char was read and pushed
          * back earlier...
@@ -319,8 +315,6 @@ called = true;
                 mElementStack.setValidator(vld);
             }
         }
-called = true;
-System.err.println("finishDTD end");
     }
 
     protected void initValidation()
@@ -360,24 +354,18 @@ System.err.println("finishDTD end");
                 return extSubset;
             }
         }
+        // No useful cached copy? Need to read it then:
 
         URL sysRef = dtdId.getSystemId();
-
-        // No useful cached copy? Need to read it then:
             
         /* For now, we do require system identifier; otherwise we don't
          * know how to resolve DTDs by public id. In future should
          * probably also have some simple catalog resolving facility?
          */
-        if (sysId == null) {
+        if (sysRef == null) {
             throwParseError("Can not resolve DTD with public id '"
                             +mDtdPublicId+"'; missing system identifier.");
         }
-        
-        if (sysRef == null) {
-            sysRef = resolveExtSubsetPath(sysId);
-        }
-
         WstxInputSource src = null;
 
         try {
