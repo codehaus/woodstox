@@ -87,11 +87,12 @@ public class TestStreamReader
         /* Uncomment for boundary-condition stress tests; should be ok to 
          * use some fairly small (but not tiny) number...
          */
-
+        /*
         if (f.isPropertySupported(WstxInputProperties.P_INPUT_BUFFER_LENGTH)) {
             f.setProperty(WstxInputProperties.P_INPUT_BUFFER_LENGTH,
                           new Integer(50));
         }
+        */
 
         /*
         if (f.isPropertySupported(WstxInputProperties.P_TEXT_BUFFER_LENGTH)) {
@@ -102,8 +103,8 @@ public class TestStreamReader
 
         f.setProperty(WstxInputProperties.P_INPUT_PARSING_MODE,
                       //WstxInputProperties.PARSING_MODE_FRAGMENT
-                      WstxInputProperties.PARSING_MODE_DOCUMENTS
-                      //WstxInputProperties.PARSING_MODE_DOCUMENT
+                      //WstxInputProperties.PARSING_MODE_DOCUMENTS
+                      WstxInputProperties.PARSING_MODE_DOCUMENT
                       );
 
         // To test windows linefeeds:
@@ -144,9 +145,19 @@ public class TestStreamReader
             sr = (XMLStreamReader2) f.createXMLStreamReader(file);
         }
 
-        while (sr.hasNext()) {
-            int type = sr.next();
+        int type = 0;
+
+        //while (sr.hasNext()) {
+        while (type != END_DOCUMENT) {
+            type = sr.next();
             total += type; // so it won't be optimized out...
+
+            // Debugging...
+            if (type == DTD) {
+                DTDInfo info = sr.getDTDInfo();
+                sr.next();
+                continue;
+            }
 
             boolean hasName = sr.hasName();
 
@@ -159,11 +170,6 @@ public class TestStreamReader
             //System.out.println(" CURR:  "+li.getCurrentLocation());
             System.out.println(" END:   "+li.getEndLocation());
 	    */
-
-            // Debugging...
-            if (type == DTD) {
-                DTDInfo info = sr.getDTDInfo();
-            }
 
             if (sr.hasText()) {
                 String text = null;
@@ -192,7 +198,7 @@ public class TestStreamReader
                         System.out.println();
                     }
                 } else if (type == DTD) {
-                DTDInfo info = sr.getDTDInfo();
+                    DTDInfo info = sr.getDTDInfo();
                     List entities = (List) sr.getProperty("javax.xml.stream.entities");
                     List notations = (List) sr.getProperty("javax.xml.stream.notations");
                     int entCount = (entities == null) ? -1 : entities.size();

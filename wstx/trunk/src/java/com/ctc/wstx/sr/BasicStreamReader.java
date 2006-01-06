@@ -1181,10 +1181,8 @@ public class BasicStreamReader
             return null;
         }
         if (mTokenState < TOKEN_FULL_SINGLE) { // need to fully read it in now
-System.err.println("DEBUG: getDTDInfo, need to finish");
             wrappedFinishToken();
         }
-else System.err.println("DEBUG: getDTDInfo, was done");
         return this;
     }
 
@@ -3241,7 +3239,6 @@ else System.err.println("DEBUG: getDTDInfo, was done");
             break;
 
         case DTD:
-System.err.println("DEBUG: call finishDTD() from skipToken");
             finishDTD(false);
             result = 0;
             break;
@@ -3599,9 +3596,18 @@ System.err.println("DEBUG: call finishDTD() from skipToken");
             return;
 
         case DTD:
-System.err.println("DEBUG: call finishDTD() from finishToken");
-            finishDTD(true);
-            mTokenState = TOKEN_FULL_COALESCED;
+
+            /* 05-Jan-2006, TSa: Although we shouldn't have to use finally
+             *   here, it's probably better to do that for robustness
+             *   (specifically, in case of a parsing problem, we don't want
+             *   to remain in 'DTD partially read' case -- it's better
+             *   to get in panic mode and skip the rest)
+             */
+            try {
+                finishDTD(true);
+            } finally {
+                mTokenState = TOKEN_FULL_COALESCED;
+            }
             return;
 
         case PROCESSING_INSTRUCTION:

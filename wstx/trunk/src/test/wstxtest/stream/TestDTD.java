@@ -26,12 +26,16 @@ public class TestDTD
             +"<!ATTLIST root attr CDATA #IMPLIED>\r\n"
             +"<!ENTITY xyz 'some &amp; value'>"
             +"<!-- comment -->"
-            +"]>\n"
+            +"]>"
             +"<root />";
 
         XMLInputFactory2 f = getInputFactory();
         setSupportDTD(f, false);
-        XMLStreamReader sr = constructStreamReader(f, XML);
-        streamThrough(sr);
+        XMLStreamReader2 sr = constructStreamReader(f, XML);
+        assertTokenType(DTD, sr.next());
+
+        DTDInfo info = sr.getDTDInfo();
+
+        assertTokenType(START_ELEMENT, sr.next());
     }
 }

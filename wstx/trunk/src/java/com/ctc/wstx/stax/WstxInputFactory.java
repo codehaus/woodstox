@@ -562,14 +562,14 @@ public final class WstxInputFactory
         }
 
         if (enc == null || enc.length() == 0) {
-            return createSR(null, StreamBootstrapper.getInstance
+            return createSR(systemId, StreamBootstrapper.getInstance
                             (in, null, systemId, mConfig.getInputBufferLength()),
                             forER, autoCloseInput);
         }
 
         int inputBufLen = mConfig.getInputBufferLength();
         Reader r = DefaultInputResolver.constructOptimizedReader(in, enc, inputBufLen);
-        return createSR(null, ReaderBootstrapper.getInstance
+        return createSR(systemId, ReaderBootstrapper.getInstance
                         (r, null, systemId, enc), forER, autoCloseInput);
     }
 

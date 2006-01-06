@@ -26,8 +26,7 @@ public final class InputSourceFactory
         (WstxInputSource parent, String entityName, InputBootstrapper bs,
          String pubId, String sysId, URL src, Reader r)
     {
-        /* true -> do close the underlying Reader at EOF
-         */
+        // true -> do close the underlying Reader at EOF
         int bufLen = (parent == null) ? DEFAULT_BUFFER_LENGTH : parent.getInputBufferLength();
         ReaderSource rs = new ReaderSource
             (parent, entityName, pubId, sysId, src, r, true, bufLen);
