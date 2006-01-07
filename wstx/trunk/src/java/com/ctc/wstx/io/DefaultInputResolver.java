@@ -172,7 +172,7 @@ public final class DefaultInputResolver
         try {
             return new InputStreamReader(in, encoding);
         } catch (UnsupportedEncodingException ex) {
-            throw new XMLStreamException(ex);
+            throw new XMLStreamException("[unsupported encoding]: "+ex);
         }
     }
 

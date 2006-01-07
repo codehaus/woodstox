@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.zip.GZIPInputStream;
 
 import javax.xml.stream.*;
+import javax.xml.transform.Source;
+import javax.xml.transform.stream.StreamSource;
 
 import org.codehaus.stax2.DTDInfo;
 import org.codehaus.stax2.LocationInfo;
@@ -43,8 +45,8 @@ public class TestStreamReader
         f.setProperty(XMLInputFactory.SUPPORT_DTD, Boolean.TRUE);
         //f.setProperty(XMLInputFactory.SUPPORT_DTD, Boolean.FALSE);
 
-        //f.setProperty(XMLInputFactory.IS_VALIDATING, Boolean.FALSE);
-        f.setProperty(XMLInputFactory.IS_VALIDATING, Boolean.TRUE);
+        f.setProperty(XMLInputFactory.IS_VALIDATING, Boolean.FALSE);
+        //f.setProperty(XMLInputFactory.IS_VALIDATING, Boolean.TRUE);
 
         f.setProperty(XMLInputFactory.REPORTER, new TestReporter());
         f.setProperty(XMLInputFactory.RESOLVER, new TestResolver1());
@@ -143,6 +145,7 @@ public class TestStreamReader
                                        (new FileInputStream(file)), "UTF-8"));
         } else {
             sr = (XMLStreamReader2) f.createXMLStreamReader(file);
+            //sr = (XMLStreamReader2) f.createXMLStreamReader(new StreamSource(file));
         }
 
         int type = 0;
@@ -151,13 +154,6 @@ public class TestStreamReader
         while (type != END_DOCUMENT) {
             type = sr.next();
             total += type; // so it won't be optimized out...
-
-            // Debugging...
-            if (type == DTD) {
-                DTDInfo info = sr.getDTDInfo();
-                sr.next();
-                continue;
-            }
 
             boolean hasName = sr.hasName();
 

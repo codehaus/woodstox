@@ -30,6 +30,7 @@ public class UTFAttrValueWriter
 
     public void write(int c) throws IOException
     {
+        // Nothing above the range, just need to check for low range:
         if (c <= HIGHEST_ENCODABLE_ATTR_CHAR) {
             if (c == mQuoteChar) {
                 out.write(mQuoteEntity);
@@ -43,97 +44,106 @@ public class UTFAttrValueWriter
                 out.write("&amp;");
                 return;
             }
-	    // Do we want to encode "restricted" spaces as char entities?
-            //if (c < CHAR_SPACE) { }
-	    if (c == 0) {
-		throwNullChar();
-	    }
-        } else {
-            out.write(c);
+            if (c < CHAR_SPACE) { // tab, cr/lf need encoding too
+                if (c == CHAR_NULL) {
+                    throwNullChar();
+                } else {
+                    writeAsEntity(c);
+                    return;
+                }
+            }
         }
+        // fine as is
+        out.write(c);
     }
 
-    public void write(char cbuf[], int off, int len) throws IOException
+    public void write(char cbuf[], int offset, int len) throws IOException
     {
-        len += off;
+        len += offset;
         final char qchar = mQuoteChar;
         do {
-            int start = off;
+            int start = offset;
             char c = CHAR_NULL;
-	    String ent = null;
+            String ent = null;
 
-            for (; off < len; ++off) {
-                c = cbuf[off]; 
-		if (c > HIGHEST_ENCODABLE_ATTR_CHAR) {
-		    continue;
-		}
-		if (c == qchar) {
-		    ent = mQuoteEntity;
-		    break;
-		}
-		if (c == '<') {
-		    ent = "&lt;";
-		    break;
-		}
-		if (c == '&') {
-		    ent = "&amp;";
-		    break;
-		}
-		// Do we want to encode "restricted" spaces as char entities?
-		//if (c < CHAR_SPACE) { }
-		if (c == CHAR_NULL) {
-		    throwNullChar();
-		}
+            for (; offset < len; ++offset) {
+                c = cbuf[offset]; 
+                if (c <= HIGHEST_ENCODABLE_ATTR_CHAR) { // special char?
+                    if (c == qchar) {
+                        ent = mQuoteEntity;
+                        break;
+                    }
+                    if (c == '<') {
+                        ent = "&lt;";
+                        break;
+                    }
+                    if (c == '&') {
+                        ent = "&amp;";
+                        break;
+                    }
+                    if (c < CHAR_SPACE) { // tab, cr/lf need encoding too
+                        if (c == CHAR_NULL) {
+                            throwNullChar();
+                        }
+                        break;
+                    }
+                }
             }
-            int outLen = off - start;
+            int outLen = offset - start;
             if (outLen > 0) {
                 out.write(cbuf, start, outLen);
             } 
-	    if (ent != null) {
-		out.write(ent);
-	    }
-        } while (++off < len);
+            if (ent != null) {
+                out.write(ent);
+                ent = null;
+            } else if (offset < len) {
+                writeAsEntity(c);
+            }
+        } while (++offset < len);
     }
-
-    public void write(String str, int off, int len) throws IOException
+    
+    public void write(String str, int offset, int len) throws IOException
     {
-        len += off;
+        len += offset;
         final char qchar = mQuoteChar;
         do {
-            int start = off;
+            int start = offset;
             char c = '\u0000';
-	    String ent = null;
+            String ent = null;
 
-            for (; off < len; ++off) {
-                c = str.charAt(off);
-		if (c > HIGHEST_ENCODABLE_ATTR_CHAR) {
-		    continue;
-		}
-		if (c == qchar) {
-		    ent = mQuoteEntity;
-		    break;
-		}
-		if (c == '<') {
-		    ent = "&lt;";
-		    break;
-		}
-		if (c == '&') {
-		    ent = "&amp;";
-		    break;
-		}
-		// Do we want to encode "restricted" spaces as char entities?
-		//if (c < CHAR_SPACE) { }
-		if (c == CHAR_NULL) {
-		    throwNullChar();
-		}
+            for (; offset < len; ++offset) {
+                c = str.charAt(offset);
+                if (c <= HIGHEST_ENCODABLE_ATTR_CHAR) { // special char?
+                    if (c == qchar) {
+                        ent = mQuoteEntity;
+                        break;
+                    }
+                    if (c == '<') {
+                        ent = "&lt;";
+                        break;
+                    }
+                    if (c == '&') {
+                        ent = "&amp;";
+                        break;
+                    }
+                    if (c < CHAR_SPACE) { // tab, cr/lf need encoding too
+                        if (c == CHAR_NULL) {
+                            throwNullChar();
+                        }
+                        break;
+                    }
+                }
             }
-            int outLen = off - start;
+            int outLen = offset - start;
             if (outLen > 0) {
                 out.write(str, start, outLen);
             }
-	    if (ent != null) {
-		out.write(ent);
-	    }
-        } while (++off < len);
+            if (ent != null) {
+                out.write(ent);
+                ent = null;
+            } else if (offset < len) {
+                writeAsEntity(c);
+            }
+        } while (++offset < len);
     }
 }

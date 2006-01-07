@@ -196,6 +196,13 @@ public class BaseWstxTest
                       state ? Boolean.TRUE : Boolean.FALSE);
     }
 
+    protected static void setSupportExternalEntities(XMLInputFactory f, boolean state)
+        throws XMLStreamException
+    {
+        f.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES,
+                      state ? Boolean.TRUE : Boolean.FALSE);
+    }
+
     protected static void setLazyParsing(XMLInputFactory f, boolean state)
         throws XMLStreamException
     {

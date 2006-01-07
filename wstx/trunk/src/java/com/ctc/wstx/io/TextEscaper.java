@@ -18,7 +18,7 @@ public final class TextEscaper
 
     public static Writer constructAttrValueWriter(Writer w, String enc,
 						  char qchar)
-	throws UnsupportedEncodingException
+        throws UnsupportedEncodingException
     {
         int bitSize = guessEncodingBitSize(enc);
 

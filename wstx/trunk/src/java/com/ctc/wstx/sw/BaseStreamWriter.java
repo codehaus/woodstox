@@ -256,7 +256,7 @@ public abstract class BaseStreamWriter
         throws UnsupportedEncodingException
     {
         EscapingWriterFactory f = mConfig.getAttrValueEscaperFactory();
-        String enc = (mEncoding == null) ? DEFAULT_ENCODING : mEncoding;
+        String enc = (mEncoding == null || mEncoding.length() == 0) ? DEFAULT_ENCODING : mEncoding;
         if (f == null) {
             return TextEscaper.constructAttrValueWriter(mWriter, enc, '"');
         }

@@ -17,14 +17,13 @@ public class BaseWriterTest
 {
     protected BaseWriterTest() { super(); }
 
-    public XMLStreamWriter2 getRepairingWriter(Writer w, boolean nsAware)
+    public XMLStreamWriter2 getRepairingWriter(Writer w)
         throws XMLStreamException
     {
         XMLOutputFactory f = getOutputFactory();
+        f.setProperty(XMLOutputFactory2.P_NAMESPACE_AWARE, Boolean.TRUE);
         f.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES,
                       Boolean.TRUE);
-        f.setProperty(XMLOutputFactory2.P_NAMESPACE_AWARE,
-                      Boolean.valueOf(nsAware));
         return (XMLStreamWriter2) f.createXMLStreamWriter(w);
     }
 

@@ -354,15 +354,13 @@ public class ValidatingStreamReader
                 return extSubset;
             }
         }
-        // No useful cached copy? Need to read it then:
 
-        URL sysRef = dtdId.getSystemId();
-            
+        // No useful cached copy? Need to read it then.
         /* For now, we do require system identifier; otherwise we don't
          * know how to resolve DTDs by public id. In future should
          * probably also have some simple catalog resolving facility?
          */
-        if (sysRef == null) {
+        if (sysId == null) {
             throwParseError("Can not resolve DTD with public id '"
                             +mDtdPublicId+"'; missing system identifier.");
         }

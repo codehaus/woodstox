@@ -17,28 +17,6 @@ public class TestEscapingWriters
     extends TestCase
 {
     /**
-     * Need to create a dummy class to test WriterBase's functionality
-     */
-    private final class TestableWriter
-        extends WriterBase
-    {
-        TestableWriter(Writer out) {
-            super(out);
-        }
-
-        // Ugh, need this method to call the protected method...
-        public void doWriteAsEntity(int c)
-            throws IOException
-        {
-            writeAsEntity(c);
-        }
-    }
-
-    public TestEscapingWriters(String name) {
-        super(name);
-    }
-
-    /**
      * This unit test was added to catch a regression bug in
      * {@link WriterBase#writeAsEntity}.
      */
@@ -49,7 +27,7 @@ public class TestEscapingWriters
             13, 127, 0x00a0, 0x00ff, 4097
         };
         String[] out_str = new String[] {
-            "&#x000d;",
+            "&#xd;", // simple optimization
             "&#x007f;",
             "&#x00a0;",
             "&#x00ff;",
@@ -102,7 +80,7 @@ public class TestEscapingWriters
                     if (!doISOLatin) {
                         continue;
                     }
-                    w = new SingleByteTextWriter(sw, "ISO-9959-1", 256);
+                    w = new SingleByteTextWriter(sw, "ISO-8859-1", 256);
                 }
 
                 switch (type) {
@@ -130,14 +108,32 @@ public class TestEscapingWriters
                 w.close();
                 String act = sw.toString();
                 if (!output.equals(act)) {
-System.out.println("Got: ["+act+"]");
-System.out.println("Exp: ["+output+"]");
+//System.out.println("Got: ["+act+"]");
+//System.out.println("Exp: ["+output+"]");
 
                     fail("Encoding failure (ascii: "+ascii+", type "+type+"): expected '"
                          +BaseWstxTest.printableWithSpaces(output)+"', got '"
                          +BaseWstxTest.printableWithSpaces(act)+"'");
                 }
             }
+        }
+    }
+
+    /**
+     * Need to create a dummy class to test WriterBase's functionality
+     */
+    private final class TestableWriter
+        extends WriterBase
+    {
+        TestableWriter(Writer out) {
+            super(out);
+        }
+
+        // Ugh, need this method to call the protected method...
+        public void doWriteAsEntity(int c)
+            throws IOException
+        {
+            writeAsEntity(c);
         }
     }
 }

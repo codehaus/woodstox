@@ -81,15 +81,24 @@ public class WriterBase
             cbuf[0] = '&';
             cbuf[1] = '#';
             cbuf[2] = 'x';
+        }
+        // Can use shorter quoting for tab, cr, lf:
+        if (c < 16) {
+            cbuf[3] = (char) ((c < 10) ?
+                              ('0' + c) :
+                              (('a' - 10) + c));
+            cbuf[4] = ';';
+            out.write(cbuf, 0, 5);
+        } else {
+            for (int ix = 6; ix > 2; --ix) {
+                int digit = (c & 0xF);
+                c >>= 4;
+                cbuf[ix] = (char) ((digit < 10) ?
+                                   ('0' + digit) :
+                                   (('a' - 10) + digit));
+            }
             cbuf[7] = ';';
+            out.write(cbuf, 0, 8);
         }
-        for (int ix = 6; ix > 2; --ix) {
-            int digit = (c & 0xF);
-            c >>= 4;
-            cbuf[ix] = (char) ((digit < 10) ?
-                               ('0' + digit) :
-                               (('a' - 10) + digit));
-        }
-        out.write(cbuf, 0, 8);
     }
 }

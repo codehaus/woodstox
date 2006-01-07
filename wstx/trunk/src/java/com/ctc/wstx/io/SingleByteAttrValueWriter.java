@@ -19,7 +19,7 @@ public class SingleByteAttrValueWriter
      * First Unicode character (one with lowest value) after (and including)
      * which character entities have to be used.
      */
-    private final char mLowestEntity;
+    private final char mHighChar;
 
     /**
      * Character that is considered to be the enclosing quote character;
@@ -38,12 +38,14 @@ public class SingleByteAttrValueWriter
         super(out);
         mQuoteChar = qchar;
         mQuoteEntity = getQuoteEntity(qchar);
-        mLowestEntity = (char) charsetSize;
+        mHighChar = (char) charsetSize;
     }
 
     public void write(int c) throws IOException
     {
-        if (c <= HIGHEST_ENCODABLE_ATTR_CHAR) {
+        if (c >= mHighChar) { // out of range, need to quote:
+            writeAsEntity(c);
+        } else if (c <= HIGHEST_ENCODABLE_ATTR_CHAR) { // special char?
             if (c == mQuoteChar) {
                 out.write(mQuoteEntity);
                 return;
@@ -56,16 +58,17 @@ public class SingleByteAttrValueWriter
                 out.write("&amp;");
                 return;
             }
-            // Do we want to encode "restricted" spaces as char entities?
-            //if (c < CHAR_SPACE) { }
-            if (c == 0) {
-                throwNullChar();
+            if (c < CHAR_SPACE) { // tab, cr/lf need encoding too
+                if (c == CHAR_NULL) {
+                    throwNullChar();
+                } else {
+                    writeAsEntity(c);
+                    return;
+                }
             }
-        } else if (c >= mLowestEntity) {
-            writeAsEntity(c);
-        } else {
-            out.write(c);
         }
+        // fine as is
+        out.write(c);
     }
 
     public void write(char cbuf[], int offset, int len) throws IOException
@@ -79,23 +82,27 @@ public class SingleByteAttrValueWriter
 
             for (; offset < len; ++offset) {
                 c = cbuf[offset]; 
-                if (c > HIGHEST_ENCODABLE_ATTR_CHAR) {
-                    continue;
+                if (c >= mHighChar) { // out of range, have to escape
+                    break;
                 }
-                if (c < mLowestEntity) {
+                if (c <= HIGHEST_ENCODABLE_ATTR_CHAR) { // special char?
                     if (c == qchar) {
                         ent = mQuoteEntity;
+                        break;
                     } else if (c == '<') {
                         ent = "&lt;";
+                        break;
                     } else if (c == '&') {
                         ent = "&amp;";
-                    } else if (c == CHAR_NULL) {
-                        throwNullChar();
-                    } else {
-                        continue;
+                        break;
+                    } else if (c < CHAR_SPACE) { // tab, cr/lf need encoding too
+                        if (c == CHAR_NULL) {
+                            throwNullChar();
+                        }
+                        break; // need quoting ok
                     }
-                } // else 'ent' remains null
-                break;
+                }
+                // otherwise ok
             }
             int outLen = offset - start;
             if (outLen > 0) {
@@ -103,6 +110,7 @@ public class SingleByteAttrValueWriter
             } 
             if (ent != null) {
                 out.write(ent);
+                ent = null;
             } else if (offset < len) {
                 writeAsEntity(c);
             }
@@ -120,23 +128,27 @@ public class SingleByteAttrValueWriter
 
             for (; offset < len; ++offset) {
                 c = str.charAt(offset);
-                if (c > HIGHEST_ENCODABLE_ATTR_CHAR) {
-                    continue;
+                if (c >= mHighChar) { // out of range, have to escape
+                    break;
                 }
-                if (c < mLowestEntity) {
+                if (c <= HIGHEST_ENCODABLE_ATTR_CHAR) { // special char?
                     if (c == qchar) {
                         ent = mQuoteEntity;
+                        break;
                     } else if (c == '<') {
                         ent = "&lt;";
+                        break;
                     } else if (c == '&') {
                         ent = "&amp;";
-                    } else if (c == CHAR_NULL) {
-                        throwNullChar();
-                    } else {
-                        continue;
+                        break;
+                    } else if (c < CHAR_SPACE) { // tab, cr/lf need encoding too
+                        if (c == CHAR_NULL) {
+                            throwNullChar();
+                        }
+                        break; // need quoting ok
                     }
-                } // else 'ent' remains null
-                break;
+                }
+                // otherwise ok
             }
             int outLen = offset - start;
             if (outLen > 0) {
@@ -144,6 +156,7 @@ public class SingleByteAttrValueWriter
             }
             if (ent != null) {
                 out.write(ent);
+                ent = null;
             } else if (offset < len) {
                 writeAsEntity(c);
             }

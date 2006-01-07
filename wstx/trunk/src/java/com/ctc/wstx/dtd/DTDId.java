@@ -19,7 +19,8 @@ import java.net.URL;
 
 /**
  * Simple key object class, used for accessing (external) DTDs when stored for
- * caching. Main idea is that the primary id of a DTD (public or system id)
+ * caching. Main idea is that the primary id of a DTD (public or system id;
+ * latter normalized if possible)
  * has to match, as well as couple of on/off settings for parsing (namespace
  * support, text normalization).
  * Latter restriction is needed since although DTDs do not deal
@@ -77,20 +78,6 @@ public final class DTDId
             throw new IllegalArgumentException("Illegal arguments; both public and system id null/empty.");
         }
         return new DTDId(null, systemId, configFlags);
-    }
-
-    /*
-    ///////////////////////////////////////////////
-    // Public API, accessors:
-    ///////////////////////////////////////////////
-     */
-
-    public String getPublicId() {
-        return mPublicId;
-    }
-
-    public URL getSystemId() {
-        return mSystemId;
     }
 
     /*

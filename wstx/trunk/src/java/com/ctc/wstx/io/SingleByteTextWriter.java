@@ -19,7 +19,7 @@ public class SingleByteTextWriter
      * First Unicode character (one with lowest value) after (and including)
      * which character entities have to be used.
      */
-    private final char mLowestEntity;
+    private final char mHighChar;
     
     private boolean mJustWroteBracket = false;
 
@@ -34,7 +34,7 @@ public class SingleByteTextWriter
                                 int charsetSize)
     {
         super(out);
-        mLowestEntity = (char) charsetSize;
+        mHighChar = (char) charsetSize;
     }
 
 
@@ -55,7 +55,7 @@ public class SingleByteTextWriter
                 out.write(c);
             } 
             mJustWroteBracket = false;
-        } else if (c >= mLowestEntity) {
+        } else if (c >= mHighChar) {
             writeAsEntity(c);
         } else {
             out.write(c);
@@ -73,41 +73,41 @@ public class SingleByteTextWriter
             return;
         }
         
-        char c = CHAR_NULL;
         len += offset; // to get the index past last char to output
         // Need special handing for leftover ']' to cause quoting of '>'
         if (mJustWroteBracket) {
-            c = cbuf[offset];
-            if (c == '>') {
+            if (cbuf[offset] == '>') {
                 out.write("&gt;");
                 ++offset;
             }
         }
         
+        char c = CHAR_NULL;
         do {
             int start = offset;
             String ent = null;
             
             for (; offset < len; ++offset) {
                 c = cbuf[offset]; 
-                if (c > HIGHEST_ENCODABLE_TEXT_CHAR) {
-                    continue;
-                }
-                if (c < mLowestEntity) {
+                if (c <= HIGHEST_ENCODABLE_TEXT_CHAR) {
                     if (c == '<') {
                         ent = "&lt;";
+                        break;
                     } else if (c == '&') {
                         ent = "&amp;";
+                        break;
                     } else if (c == '>' && (offset > start)
                                && cbuf[offset-1] == ']') {
                         ent = "&gt;";
+                        break;
                     } else if (c == CHAR_NULL) {
                         throwNullChar();
-                    } else {
-                        continue;
                     }
-                } // else 'ent' remains null
-                break;
+                    // should we escape \r?
+                } else if (c >= mHighChar) {
+                    break;
+                }
+                // otherwise ok
             }
             int outLen = offset - start;
 
@@ -116,12 +116,11 @@ public class SingleByteTextWriter
             }
             if (ent != null) {
                 out.write(ent);
+                ent = null;
             } else if (offset < len) {
                 writeAsEntity(c);
             }
         } while (++offset < len);
-
-        // Any leftovers?
         
         // Ok, did we end up with a bracket?
         mJustWroteBracket = (c == ']');
@@ -136,39 +135,39 @@ public class SingleByteTextWriter
             return;
         }
 
-        char c = CHAR_NULL;
         len += offset; // to get the index past last char to output
         // Ok, leftover ']' to cause quoting of '>'?
         if (mJustWroteBracket) {
-            c = str.charAt(offset);
-            if (c == '>') {
+            if (str.charAt(offset) == '>') {
                 out.write("&gt;");
                 ++offset;
             }
         }
 
+        char c = CHAR_NULL;
         do {
             int start = offset;
             String ent = null;
 
             for (; offset < len; ++offset) {
                 c = str.charAt(offset); 
-                if (c > HIGHEST_ENCODABLE_TEXT_CHAR) {
-                    continue;
-                }
-                if (c < mLowestEntity) {
+                if (c <= HIGHEST_ENCODABLE_TEXT_CHAR) {
                     if (c == '<') {
                         ent = "&lt;";
+                        break;
                     } else if (c == '&') {
                         ent = "&amp;";
+                        break;
                     } else if (c == '>' && (offset > start)
                                && str.charAt(offset-1) == ']') {
                         ent = "&gt;";
-                    } else {
-                        continue;
+                        break;
                     }
-                } // else 'ent' remains null
-                break;
+                    // should we escape \r?
+                } else if (c >= mHighChar) {
+                    break;
+                }
+                // otherwise ok
             }
             int outLen = offset - start;
             if (outLen > 0) {
@@ -176,6 +175,7 @@ public class SingleByteTextWriter
             } 
             if (ent != null) {
                 out.write(ent);
+                ent = null;
             } else if (offset < len) {
                 writeAsEntity(c);
             }
