@@ -43,6 +43,24 @@ public final class ExceptionUtil
         }
     }
 
+    /**
+     * This method is just added for convenience, and only to be used for
+     * assertion style of exceptions. For errors that actually occur, method
+     * with the string arg should be called instead.
+     */
+    public static void throwGenericInternal()
+    {
+        throwInternal(null);
+    }
+
+    public static void throwInternal(String msg)
+    {
+        if (msg == null) {
+            msg = "[no description]";
+        }
+        throw new RuntimeException("Internal error: "+msg);
+    }
+
     /*
     ///////////////////////////////////////////////////////////
     // Internal methods

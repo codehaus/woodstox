@@ -53,11 +53,11 @@ public final class DTDNmTokenAttr
      */
 
     /**
-     * Method called by the {@link DTDValidator}
+     * Method called by the validator
      * to let the attribute do necessary normalization and/or validation
      * for the value.
      */
-    public String validate(DTDValidator v, char[] cbuf, int start, int end, boolean normalize)
+    public String validate(DTDValidatorBase v, char[] cbuf, int start, int end, boolean normalize)
         throws XMLValidationException
     {
         int origLen = end-start;
@@ -96,7 +96,7 @@ public final class DTDNmTokenAttr
     }
 
     /**
-     * Method called by the {@link DTDValidator}
+     * Method called by the validator
      * to ask attribute to verify that the default it has (if any) is
      * valid for such type.
      */

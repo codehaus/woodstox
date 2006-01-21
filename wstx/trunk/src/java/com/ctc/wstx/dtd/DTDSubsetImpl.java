@@ -44,6 +44,14 @@ public final class DTDSubsetImpl
      */
     final boolean mIsCachable;
 
+    /**
+     * Whether this subset has full validation information; and
+     * consequently whether it will do actual validation, or just allow
+     * access to type information, notations, entities, and add default
+     * attribute values.
+     */
+    final boolean mFullyValidating;
+
     /*
     //////////////////////////////////////////////////////
     // Entity information
@@ -141,7 +149,8 @@ public final class DTDSubsetImpl
     private DTDSubsetImpl(boolean cachable,
                           HashMap genEnt, Set refdGEs,
                           HashMap paramEnt, Set peRefs,
-                          HashMap notations, HashMap elements)
+                          HashMap notations, HashMap elements,
+                          boolean fullyValidating)
     {
         mIsCachable = cachable;
         mGeneralEntities = genEnt;
@@ -150,17 +159,19 @@ public final class DTDSubsetImpl
         mRefdPEs = peRefs;
         mNotations = notations;
         mElements = elements;
+        mFullyValidating = fullyValidating;
     }
 
     public static DTDSubsetImpl constructInstance(boolean cachable,
                                                   HashMap genEnt, Set refdGEs,
                                                   HashMap paramEnt, Set refdPEs,
-                                                  HashMap notations,
-                                                  HashMap elements)
+                                                  HashMap notations, HashMap elements,
+                                                  boolean fullyValidating)
     {
         return new DTDSubsetImpl(cachable, genEnt, refdGEs,
                                  paramEnt, refdPEs,
-                                 notations, elements);
+                                 notations, elements,
+                                 fullyValidating);
     }
 
     /**
@@ -226,7 +237,8 @@ public final class DTDSubsetImpl
         /* Combos are not cachable, and because of that, there's no point
          * in storing any PE info either.
          */
-        return constructInstance(false, ge1, null, null, null, n1, e1);
+        return constructInstance(false, ge1, null, null, null, n1, e1,
+                                 mFullyValidating);
     }
 
     /*
@@ -238,8 +250,12 @@ public final class DTDSubsetImpl
     public XMLValidator createValidator(ValidationContext ctxt)
         throws XMLStreamException
     {
-        return new DTDValidator(this, ctxt, 
-                                getElementMap(), getGeneralEntityMap());
+        if (mFullyValidating) {
+            return new DTDValidator(this, ctxt, 
+                                    getElementMap(), getGeneralEntityMap());
+        }
+        return new DTDTypingNonValidator(this, ctxt, 
+                                         getElementMap(), getGeneralEntityMap());
 
     }
 

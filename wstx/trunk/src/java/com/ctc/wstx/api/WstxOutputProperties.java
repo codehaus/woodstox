@@ -16,6 +16,14 @@ public final class WstxOutputProperties
      */
     public final static String DEFAULT_XML_VERSION = "1.0";
 
+    /**
+     * If no encoding is passed, we should just default to what xml
+     * in general expects (and can determine), UTF-8.
+     *<p>
+     * Note: you can check out bug entry [WSTX-18] for more details
+     */
+    public final static String DEFAULT_OUTPUT_ENCODING = "UTF-8";
+
     // // // Output options, simple on/off settings:
 
     /**

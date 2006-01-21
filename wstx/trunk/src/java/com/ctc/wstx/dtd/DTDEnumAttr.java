@@ -49,11 +49,11 @@ public final class DTDEnumAttr
      */
 
     /**
-     * Method called by the {@link DTDValidator}
+     * Method called by the validator
      * to let the attribute do necessary normalization and/or validation
      * for the value.
      */
-   public String validate(DTDValidator v, char[] cbuf, int start, int end, boolean normalize)
+   public String validate(DTDValidatorBase v, char[] cbuf, int start, int end, boolean normalize)
         throws XMLValidationException
     {
         String ok = validateEnumValue(cbuf, start, end, normalize, mEnumValues);
@@ -66,7 +66,7 @@ public final class DTDEnumAttr
     }
 
     /**
-     * Method called by the {@link DTDValidator}
+     * Method called by the validator
      * to ask attribute to verify that the default it has (if any) is
      * valid for such type.
      */

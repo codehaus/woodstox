@@ -23,42 +23,21 @@ import javax.xml.stream.Location;
 import org.codehaus.stax2.validation.*;
 
 import com.ctc.wstx.cfg.ErrorConsts;
-import com.ctc.wstx.compat.JdkFeatures;
-import com.ctc.wstx.exc.WstxException;
-import com.ctc.wstx.exc.WstxValidationException;
-import com.ctc.wstx.sr.AttributeCollector;
 import com.ctc.wstx.util.DataUtil;
 import com.ctc.wstx.util.StringUtil;
-import com.ctc.wstx.util.StringVector;
 
 /**
  * Woodstox implementation of {@link XMLValidator}; the class that
  * handles DTD-based validation.
  */
 public class DTDValidator
-    extends XMLValidator
+    extends DTDValidatorBase
 {
     /*
     /////////////////////////////////////////////////////
     // Constants
     /////////////////////////////////////////////////////
      */
-
-    /**
-     * Estimated maximum depth of typical documents; used to allocate
-     * the array for element stack
-     */
-    final static int DEFAULT_STACK_SIZE = 32;
-
-    /**
-     * Estimated maximum number of attributes for a single element
-     */
-    final static int EXP_MAX_ATTRS = 32;
-
-    /**
-     * Let's actually just reuse a local Map...
-     */
-    final static HashMap EMPTY_MAP = new HashMap();
 
     /*
     ///////////////////////////////////////
@@ -67,106 +46,12 @@ public class DTDValidator
     */
 
     /**
-     * DTD schema ({@link DTDSubsetImpl}) object that created this validator
-     * instance.
-     */
-    final DTDSubset mSchema;
-
-    /**
-     * Validation context (owner) for this validator. Needed for adding
-     * default attribute values, for example.
-     */
-    final ValidationContext mContext;
-
-    /**
-     * Map that contains element specifications from DTD; null if no
-     * DOCTYPE declaration found.
-     */
-    final Map mElemSpecs;
-
-    /**
-     * General entities defined in DTD subsets; needed for validating
-     * ENTITY/ENTITIES attributes.
-     */
-    final Map mGeneralEntities;
-
-    /**
-     * Flag that indicates whether parser wants the attribute values
-     * to be normalized (according to XML specs) or not (which may be
-     * more efficient, although not compliant with the specs)
-     */
-    boolean mNormAttrs;
-
-    /**
      * Determines if identical problems (definition of the same element,
      * for example) should cause multiple error notifications or not:
      * if true, will get one error per instance, if false, only the first
      * one will get reported.
      */
     protected boolean mReportDuplicateErrors = false;
-
-    /*
-    ///////////////////////////////////////
-    // Element definition/spec stack
-    ///////////////////////////////////////
-    */
-
-    /**
-     * This is the element that is currently being validated; valid
-     * during
-     * <code>validateElementStart</code>,
-     * <code>validateAttribute</code>,
-     * <code>validateElementAndAttributes</code> calls.
-     */
-    protected DTDElement mCurrElem = null;
-
-    /**
-     * Stack of element definitions matching the current active element stack.
-     * Instances are elements definitions read from DTD.
-     */
-    protected DTDElement[] mElems = null;
-
-    /**
-     * Attribute definitions for attributes the current element may have
-     */
-    protected HashMap mCurrAttrDefs = null;
-
-    /**
-     * Bitset used for keeping track of required and defaulted attributes
-     * for which values have been found.
-     */
-    protected BitSet mCurrSpecialAttrs = null;
-
-    boolean mCurrHasAnyFixed = false;
-
-    /**
-     * Number of elements in {@link #mElems}.
-     */
-    protected int mElemCount = 0;
-
-    protected StructValidator[] mValidators = null;
-
-    /**
-     * List of attribute declarations/specifications, one for each
-     * attribute of the current element, for which there is a matching
-     * value (either explicitly defined, or assigned via defaulting).
-     */
-    protected DTDAttribute[] mAttrSpecs = null;
-
-    /**
-     * Number of attribute specification Objects in
-     * {@link #mAttrSpecs}; needed to store in case type information
-     * is requested later on.
-     */
-    protected int mAttrCount = 1;
-
-    /**
-     * Index of the attribute of type ID, within current element's
-     * attribute list. Track of this is kept separate from other
-     * attribute since id attributes often need to be used for resolving
-     * cross-references.
-     */
-    protected int mIdAttrIndex = -1;
 
     /*
     ///////////////////////////////////////
@@ -181,12 +66,29 @@ public class DTDValidator
     protected ElementIdMap mIdMap = null;
 
     /*
+    ///////////////////////////////////////////
+    // Element def/spec/validator stack, state
+    ///////////////////////////////////////////
+    */
+
+    /**
+     * Stack of validators for open elements
+     */
+    protected StructValidator[] mValidators = null;
+
+    /**
+     * Bitset used for keeping track of required and defaulted attributes
+     * for which values have been found.
+     */
+    protected BitSet mCurrSpecialAttrs = null;
+
+    boolean mCurrHasAnyFixed = false;
+
+    /*
     ///////////////////////////////////////
     // Temporary helper objects
     ///////////////////////////////////////
     */
-
-    final transient NameKey mTmpKey = new NameKey(null, null);
 
     /**
      * Reusable lazily instantiated BitSet; needed to keep track of
@@ -194,12 +96,6 @@ public class DTDValidator
      * values)
      */
     BitSet mTmpSpecialAttrs;
-
-    /**
-     * Temporary buffer attribute instances can share for validation
-     * purposes
-     */
-    char[] mTmpAttrValueBuffer = null;
 
     /*
     ///////////////////////////////////////
@@ -210,34 +106,8 @@ public class DTDValidator
     public DTDValidator(DTDSubset schema, ValidationContext ctxt,
                         Map elemSpecs, Map genEntities)
     {
-        mSchema = schema;
-        mContext = ctxt;
-        mElemSpecs = (elemSpecs == null || elemSpecs.size() == 0) ?
-            Collections.EMPTY_MAP : elemSpecs;
-        mGeneralEntities = genEntities;
-        // By default, let's assume they are to be normalized (fully xml compliant)
-        mNormAttrs = true;
-        mElems = new DTDElement[DEFAULT_STACK_SIZE];
+        super(schema, ctxt, elemSpecs, genEntities);
         mValidators = new StructValidator[DEFAULT_STACK_SIZE];
-        mAttrSpecs = new DTDAttribute[EXP_MAX_ATTRS];
-    }
-
-    /*
-    ///////////////////////////////////////
-    // Configuration
-    ///////////////////////////////////////
-    */
-
-    /**
-     * Method that allows enabling/disabling attribute value normalization.
-     * In general, readers by default enable normalization (to be fully xml
-     * compliant),
-     * whereas writers do not (since there is usually little to gain, if
-     * anything -- it is even possible value may be written before validation
-     * is called in some cases)
-     */
-    public void setAttrValueNormalization(boolean state) {
-        mNormAttrs = state;
     }
 
     /*
@@ -246,9 +116,7 @@ public class DTDValidator
     ///////////////////////////////////////
     */
 
-    public XMLValidationSchema getSchema() {
-        return mSchema;
-    }
+    //public XMLValidationSchema getSchema();
 
     /**
      * Method called to update information about the newly encountered (start)
@@ -298,6 +166,9 @@ public class DTDValidator
             }
         }
 
+        mAttrCount = 0;
+        mIdAttrIndex = -2; // -2 as a "don't know yet" marker
+
         // Ok, need to get the child validator, then:
         if (elem == null) {
             mValidators[elemCount] = null;
@@ -311,9 +182,6 @@ public class DTDValidator
                 mCurrAttrDefs = EMPTY_MAP;
             }
             mCurrHasAnyFixed = elem.hasFixedAttrs();
-            
-            mAttrCount = 0;
-            mIdAttrIndex = -2; // -2 as a "don't know yet" marker
             int specCount = elem.getSpecialCount();
             if (specCount == 0) {
                 mCurrSpecialAttrs = null;
@@ -430,46 +298,7 @@ public class DTDValidator
                 if (attr.isRequired()) {
                     reportValidationProblem("Required attribute '"+attr+"' missing from element <"+elem+">");
                 }
-                // Ok, if not required, should have default value!
-                String def = attr.getDefaultValue();
-                if (def == null) {
-                    throw new Error("Internal error: null default attribute value");
-                }
-                NameKey an = attr.getName();
-                // Ok, do we need to find the URI?
-                String prefix = an.getPrefix();
-                String uri = "";
-                if (prefix != null && prefix.length() > 0) {
-                    uri = mContext.getNamespaceURI(prefix);
-                    // Can not map to empty NS!
-                    if (uri == null || uri.length() == 0) {
-                        reportValidationProblem("Unbound namespace prefix '"+prefix+"' for default attribute "+attr);
-                        // May continue if we don't throw errors, just collect them to a list
-                        uri = "";
-                    }
-                }
-                int defIx = mContext.addDefaultAttribute(an.getLocalName(),
-                                                         uri, prefix, def);
-                if (defIx < 0) {
-                    /* 13-Dec-2005, Tatus: Hmmh. For readers this is an error
-                     *   condition, but writers may just indicate they are not
-                     *   interested in defaults. So let's let context report
-                     *   problem(s) if it has any regarding the request.
-                     */
-                    //throw new Error("Internal error: tried to add default attribute "+attr+", but value for it already existed");
-                } else {
-                    while (defIx >= mAttrSpecs.length) {
-                        mAttrSpecs = (DTDAttribute[]) DataUtil.growArrayBy50Pct(mAttrSpecs);
-                    }
-                    /* Any intervening empty slots? (can happen if other
-                     * validators add default attributes...)
-                     */
-                    while (mAttrCount < defIx) {
-                        mAttrSpecs[mAttrCount++] = null;
-                    }
-                    mAttrSpecs[defIx] = attr;
-                    mAttrCount = defIx+1;
-                }
+                doAddDefaultValue(attr);
                 ix = specBits.nextClearBit(ix+1);
             }
         }
@@ -502,19 +331,7 @@ public class DTDValidator
 
         // Then let's get info from parent, if any
         if (ix < 1) { // root element closing..
-            /* 02-Oct-2004, TSa: Now we can also check that all id references
-             *    pointed to ids that actually are defined
-             */
-            if (mIdMap != null) {
-                ElementId ref = mIdMap.getFirstUndefined();
-                if (ref != null) { // problem!
-                    reportValidationProblem("Undefined id '"+ref.getId()
-                                            +"': referenced from element <"
-                                            +ref.getElemName()+">, attribute '"
-                                            +ref.getAttrName()+"'",
-                                            ref.getLocation());
-                }
-            }
+            checkIdRefs();
 
             // doesn't really matter; epilog/prolog differently handled:
             return XMLValidator.CONTENT_ALLOW_WS;
@@ -522,96 +339,13 @@ public class DTDValidator
         return mElems[ix-1].getAllowedContent();
     }
 
-    public void validateText(String text, boolean lastTextSegment)
-        throws XMLValidationException
-    {
-        /* This method is a NOP, since basic DTD has no mechanism for
-         * validating textual content.
-         */
-    }
-
-    public void validateText(char[] cbuf, int textStart, int textEnd,
-                             boolean lastTextSegment)
-        throws XMLValidationException
-    {
-        /* This method is a NOP, since basic DTD has no mechanism for
-         * validating textual content.
-         */
-    }
+    //public void validateText(String text, boolean lastTextSegment) ;
+    //public void validateText(char[] cbuf, int textStart, int textEnd, boolean lastTextSegment) ;
 
     public void validationCompleted(boolean eod)
         throws XMLValidationException
     {
-        /* 18-Dec-2005, TSa: Is there something we should do here...?
-         */
-    }
-
-    /*
-    ///////////////////////////////////////
-    // Attribute info access
-    ///////////////////////////////////////
-    */
-
-    // // // Access to type info
-
-    public String getAttributeType(int index)
-    {
-        return mAttrSpecs[index].getValueTypeString();
-    }    
-
-    /**
-     * Method for finding out the index of the attribute (collected using
-     * the attribute collector; having DTD-derived info in same order)
-     * that is of type ID. DTD explicitly specifies that at most one
-     * attribute can have this type for any element.
-     * 
-     * @return Index of the attribute with type ID, in the current
-     *    element, if one exists: -1 otherwise
-     */
-    public int getIdAttrIndex()
-    {
-        // Let's figure out the index only when needed
-        int ix = mIdAttrIndex;
-        if (ix == -2) {
-            ix = -1;
-            if (mCurrElem != null) {
-                DTDAttribute idAttr = mCurrElem.getIdAttribute();
-                if (idAttr != null) {
-                    DTDAttribute[] attrs = mAttrSpecs;
-                    for (int i = 0, len = attrs.length; i < len; ++i) {
-                    if (attrs[i] == idAttr) {
-                        ix = i;
-                        break;
-                    }
-                    }
-                }
-            }
-            mIdAttrIndex = ix;
-        }
-        return ix;
-    }
-
-    /**
-     * Method for finding out the index of the attribute (collected using
-     * the attribute collector; having DTD-derived info in same order)
-     * that is of type NOTATION. DTD explicitly specifies that at most one
-     * attribute can have this type for any element.
-     * 
-     * @return Index of the attribute with type NOTATION, in the current
-     *    element, if one exists: -1 otherwise
-     */
-    public int getNotationAttrIndex()
-    {
-        /* If necessary, we could find this index when resolving the
-         * element, could avoid linear search. But who knows how often
-         * it's really needed...
-         */
-        for (int i = 0, len = mAttrCount; i < len; ++i) {
-            if (mAttrSpecs[i].typeIsNotation()) {
-                return i;
-            }
-        }
-        return -1;
+        // 18-Dec-2005, TSa: Is there something we should do here...?
     }
 
     /*
@@ -620,88 +354,35 @@ public class DTDValidator
     ///////////////////////////////////////
     */
 
-    /**
-     * Name of current element on the top of the element stack.
-     */
-    NameKey getElemName() {
-        DTDElement elem = mElems[mElemCount-1];
-        return elem.getName();
-    }
-
-    Location getLocation() {
-        return mContext.getValidationLocation();
-    }
-
-    ElementIdMap getIdMap() {
+    protected ElementIdMap getIdMap() {
         if (mIdMap == null) {
             mIdMap = new ElementIdMap();
         }
         return mIdMap;
     }
 
-    Map getEntityMap() {
-        return mGeneralEntities;
-    }
-
-    char[] getTempAttrValueBuffer(int neededLength)
-    {
-        if (mTmpAttrValueBuffer == null
-            || mTmpAttrValueBuffer.length < neededLength) {
-            int size = (neededLength < 100) ? 100 : neededLength;
-            mTmpAttrValueBuffer = new char[size];
-        }
-        return mTmpAttrValueBuffer;
-    }
-
     /*
     ///////////////////////////////////////
-    // Package methods, error handling
+    // Internal methods
     ///////////////////////////////////////
     */
 
-    /**
-     * Method called to report validity problems; depending on mode, will
-     * either throw an exception, or add a problem notification to the
-     * list of problems.
-     */
-    void reportValidationProblem(String msg)
+    protected void checkIdRefs()
         throws XMLValidationException
     {
-        doReportProblem(msg, null);
-    }
-
-    void reportValidationProblem(String msg, Location loc)
-        throws XMLValidationException
-    {
-        doReportProblem(msg, loc);
-    }
-
-    void reportValidationProblem(String format, String arg)
-        throws XMLValidationException
-    {
-        doReportProblem(MessageFormat.format(format, new Object[] { arg }),
-                        null);
-    }
-
-    void reportValidationProblem(String format, String arg1, String arg2)
-        throws XMLValidationException
-    {
-        doReportProblem(MessageFormat.format(format, new Object[] { arg1, arg2 }),
-                        null);
-    }
-
-    /*
-    ///////////////////////////////////////
-    // Private methods
-    ///////////////////////////////////////
-    */
-
-    protected void doReportProblem(String msg, Location loc)
-        throws XMLValidationException
-    {
-        if (loc == null) {
-            loc = getLocation();
+        /* 02-Oct-2004, TSa: Now we can also check that all id references
+         *    pointed to ids that actually are defined
+         */
+        if (mIdMap != null) {
+            ElementId ref = mIdMap.getFirstUndefined();
+            if (ref != null) { // problem!
+                reportValidationProblem("Undefined id '"+ref.getId()
+                                        +"': referenced from element <"
+                                        +ref.getElemName()+">, attribute '"
+                                        +ref.getAttrName()+"'",
+                                        ref.getLocation());
+            }
         }
-        throw WstxValidationException.create(msg, loc, XMLValidationProblem.SEVERITY_ERROR);
     }
+
 }

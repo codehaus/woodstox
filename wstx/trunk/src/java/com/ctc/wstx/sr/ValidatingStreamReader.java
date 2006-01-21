@@ -121,9 +121,8 @@ public class ValidatingStreamReader
          ReaderConfig cfg, InputBootstrapper bs, boolean forER)
         throws IOException, XMLStreamException
     {
-        InputElementStack elemStack = BasicStreamReader.createElementStack(cfg);
-        ValidatingStreamReader sr = new ValidatingStreamReader(input, owner, cfg, elemStack,
-						   forER);
+        ValidatingStreamReader sr = new ValidatingStreamReader
+            (input, owner, cfg, createElementStack(cfg), forER);
         sr.initProlog(bs);
         return sr;
     }
@@ -307,16 +306,25 @@ public class ValidatingStreamReader
                 doReportProblem(mConfig.getXMLReporter(), ErrorConsts.WT_DT_DECL,
                                 "Value to set for feature "+FEATURE_DTD_OVERRIDE+" not a native Woodstox DTD implementation (but "+mDTD.getClass()+"): can not access full entity or notation information", null);
             }
-            if (hasConfigFlags(CFG_VALIDATE_AGAINST_DTD)) {
-                XMLValidator vld = mDTD.createValidator(/*(ValidationContext)*/ mElementStack);
-                if (vld instanceof DTDValidator) {
-                    ((DTDValidator) vld).setAttrValueNormalization(mCfgNormalizeAttrs);
-                }
-                mElementStack.setValidator(vld);
+            /* 16-Jan-2006, TSa: Actually, we have both fully-validating mode,
+             *   and non-validating-but-DTD-aware mode. In latter case, we'll
+             *   still need to add a validator, but just to get type info
+             *   and to add attribute default values if necessary.
+             */
+            //if (hasConfigFlags(CFG_VALIDATE_AGAINST_DTD))
+            XMLValidator vld = mDTD.createValidator(/*(ValidationContext)*/ mElementStack);
+            if (vld instanceof DTDValidator) {
+                ((DTDValidator) vld).setAttrValueNormalization(mCfgNormalizeAttrs);
             }
+            mElementStack.setValidator(vld);
         }
     }
 
+    /**
+     * Method called right before handling the root element, by the base
+     * class. This allows for some initialization and checks to be done
+     * (not including ones that need access to actual element name)
+     */
     protected void initValidation()
         throws XMLStreamException
     {
@@ -448,7 +456,8 @@ public class ValidatingStreamReader
             (CFG_NAMESPACE_AWARE
              | CFG_NORMALIZE_LFS | CFG_NORMALIZE_ATTR_VALUES
              /* Let's optimize non-validating case; DTD info we need
-              * is less if so (no need to store content specs for one)
+              * is less if so (no need to store content specs for one)...
+              * plus, eventual functionality may be different too.
               */
              | CFG_VALIDATE_AGAINST_DTD
              /* Also, whether we support dtd++ or not may change construction

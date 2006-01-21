@@ -32,6 +32,7 @@ import org.codehaus.stax2.XMLOutputFactory2;
 import org.codehaus.stax2.XMLStreamWriter2;
 
 import com.ctc.wstx.api.WriterConfig;
+import com.ctc.wstx.api.WstxOutputProperties;
 import com.ctc.wstx.cfg.OutputConfigFlags;
 import com.ctc.wstx.evt.WstxEventWriter;
 import com.ctc.wstx.sw.BaseStreamWriter;
@@ -89,7 +90,7 @@ public final class WstxOutputFactory
          throws XMLStreamException
    {
        if (out == null) {
-	    throw new IllegalArgumentException("Null OutputStream is not a valid argument");
+           throw new IllegalArgumentException("Null OutputStream is not a valid argument");
        }
        return new WstxEventWriter(createSW(out, null, enc));
     }
@@ -103,9 +104,9 @@ public final class WstxOutputFactory
     public XMLEventWriter createXMLEventWriter(Writer w)
         throws XMLStreamException
     {
-	if (w == null) {
-	    throw new IllegalArgumentException("Null Writer is not a valid argument");
-	}
+        if (w == null) {
+            throw new IllegalArgumentException("Null Writer is not a valid argument");
+        }
         return new WstxEventWriter(createSW(null, w, null));
     }
 
@@ -221,7 +222,12 @@ public final class WstxOutputFactory
         if (w == null) {
             try {
                 if (enc == null) {
-                    w = new OutputStreamWriter(out);
+                    /* 11-Jan-2006, TSa: Fixing [WSTX-18], we really should
+                     *   use UTF-8 as per xml specs, not the default platform
+                     *   encoding (which often would be ISO-8859-1 or some
+                     *   other single char 8-bit encoding scheme)
+                     */
+                    w = new OutputStreamWriter(out, WstxOutputProperties.DEFAULT_OUTPUT_ENCODING);
                 } else {
                     w = new OutputStreamWriter(out, enc);
                 }

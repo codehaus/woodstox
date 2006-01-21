@@ -62,7 +62,7 @@ public abstract class XMLValidator
      * validators, but that can be used internally as an uninitialized
      * value.
      */
-    public final static int CONTENT_ALLOW_UNDEFINED = 5;
+    public final static int CONTENT_ALLOW_UNDEFINED = 4;
 
     /*
     ///////////////////////////////////////////////////

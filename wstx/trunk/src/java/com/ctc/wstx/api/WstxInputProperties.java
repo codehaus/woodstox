@@ -14,6 +14,12 @@ import javax.xml.stream.XMLResolver;
  */
 public final class WstxInputProperties
 {
+    /**
+     * Constants used when no DTD handling is done, and we do not know the
+     * 'real' type of an attribute. Seems like CDATA is the safe choice.
+     */
+    public final static String UNKNOWN_ATTR_TYPE = "CDATA";
+
     /*
     ///////////////////////////////////////////////////////
     // Simple on/off settings:

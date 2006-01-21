@@ -340,10 +340,12 @@ public class WstxInputData
 
     public static String getCharDesc(char c)
     {
-        // WTF? JDK thinks null char is just fine as?!
         int i = (int) c;
         if (Character.isISOControl(c)) {
             return "(CTRL-CHAR, code "+i+")";
+        }
+        if (i > 255) {
+            return "'"+c+"' (code "+i+" / 0x"+Integer.toHexString(i)+")";
         }
         return "'"+c+"' (code "+i+")";
     }

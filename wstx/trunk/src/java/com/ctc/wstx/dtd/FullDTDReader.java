@@ -90,11 +90,14 @@ public class FullDTDReader
     final boolean mCfgSupportDTDPP;
 
     /**
-     * This flag indicates whether we should build a real validator (true,
-     * the usual case), or just a simple container that has entity and notation
-     * information (false, used when stream reader is non-validating).
+     * This flag indicates whether we should build a validating 'real'
+     * validator (true, the usual case),
+     * or a simpler pseudo-validator that can do all non-validation tasks
+     * that are based on DTD info (entity expansion, notation references,
+     * default attribute values). Latter is used in non-validating mode.
+     *<p>
      */
-    final boolean mCfgFullyConstruct;
+    final boolean mCfgFullyValidating;
 
     /*
     //////////////////////////////////////////////////
@@ -312,7 +315,7 @@ public class FullDTDReader
         mCfgNormalizeLFs = (cfgFlags & CFG_NORMALIZE_LFS) != 0;
         mCfgNormAttrs = (cfgFlags & CFG_NORMALIZE_ATTR_VALUES) != 0;
         mCfgSupportDTDPP = (cfgFlags & CFG_SUPPORT_DTDPP) != 0;
-        mCfgFullyConstruct = constructFully;
+        mCfgFullyValidating = constructFully;
 
         mUsesPredefdEntities = false;
         mParamEntities = null;
@@ -549,9 +552,9 @@ public class FullDTDReader
             }
 
             if (mIsExternal) {
-                throwDTDUnexpectedChar(i, SUFFIX_IN_DTD_EXTERNAL+"; expected a '<' to start a directive.");
+                throwDTDUnexpectedChar(i, "; expected a '<' to start a directive.");
             }
-            throwDTDUnexpectedChar(i, SUFFIX_IN_DTD_INTERNAL+"; expected a '<' to start a directive, or \"]>\" to end internal subset.");
+            throwDTDUnexpectedChar(i, "; expected a '<' to start a directive, or \"]>\" to end internal subset.");
         }
 
         // Ok; time to construct and return DTD data object.
@@ -572,7 +575,8 @@ public class FullDTDReader
             ss = DTDSubsetImpl.constructInstance(cachable,
                                                  mGeneralEntities, mRefdGEs,
                                                  null, mRefdPEs,
-                                                 mNotations, mElements);
+                                                 mNotations, mElements,
+                                                 mCfgFullyValidating);
         } else {
             /* Internal subsets are not cachable (no unique way to refer
              * to unique internal subsets), and there can be no references
@@ -580,7 +584,8 @@ public class FullDTDReader
              */
             ss = DTDSubsetImpl.constructInstance(false, mGeneralEntities, null,
                                                  mParamEntities, null,
-                                                 mNotations, mElements);
+                                                 mNotations, mElements,
+                                                 mCfgFullyValidating);
         }
 
         return ss;
@@ -1651,10 +1656,10 @@ public class FullDTDReader
     private void reportBadDirective(String dir)
         throws WstxException
     {
-	String msg = "Unrecognized DTD directive '<!"+dir+" >'; expected ATTLIST, ELEMENT, ENTITY or NOTATION";
-	if (mCfgSupportDTDPP) {
-	    msg += " (or, for DTD++, TARGETNS)";
-	}
+        String msg = "Unrecognized DTD directive '<!"+dir+" >'; expected ATTLIST, ELEMENT, ENTITY or NOTATION";
+        if (mCfgSupportDTDPP) {
+            msg += " (or, for DTD++, TARGETNS)";
+        }
         throwDTDError(msg);
     }
 
@@ -1870,11 +1875,11 @@ public class FullDTDReader
         if (c == '(') { // real content model
             c = skipDtdWs();
             if (c == '#') {
-                val = readMixedSpec(elemName, mCfgFullyConstruct);
+                val = readMixedSpec(elemName, mCfgFullyValidating);
                 vldContent = XMLValidator.CONTENT_ALLOW_ANY_TEXT; // checked against DTD
             } else {
                 --mInputPtr; // let's push it back...
-                ContentSpec spec = readContentSpec(elemName, true, mCfgFullyConstruct);
+                ContentSpec spec = readContentSpec(elemName, true, mCfgFullyValidating);
                 val = spec.getSimpleValidator();
                 if (val == null) {
                     val = new DFAValidator(DFAState.constructDFA(spec));
@@ -2382,17 +2387,17 @@ public class FullDTDReader
      * Method called to read a notation referency entry; done both for
      * attributes of type NOTATION, and for external unparsed entities
      * that refer to a notation. In both cases, notation referenced
-     * needs to have been defined earlier.
+     * needs to have been defined earlier; but only if we are building
+     * a fully validating DTD subset object (there is the alternative
+     * of a minimal DTD in DTD-aware mode, which does no validation
+     * but allows attribute defaulting and normalization, as well as
+     * access to entity and notation declarations).
      */
     private String readNotationEntry(char c, NameKey attrName)
         throws IOException, WstxException
     {
         String id = readDTDName(c);
 
-        /* 05-Oct-2004, TSa: Need to check that notation has been declared
-         *    somewhere... and if that somewhere is int. subset, when parsing
-         *    external subset, also need to note that:
-         */
         if (mPredefdNotations != null) {
             NotationDecl decl = (NotationDecl) mPredefdNotations.get(id);
             if (decl != null) {
@@ -2404,12 +2409,17 @@ public class FullDTDReader
         NotationDecl decl = (mNotations == null) ? null :
             (NotationDecl) mNotations.get(id);
         if (decl == null) {
-            String msg = "Notation '"+id+"' not defined; ";
-            if (attrName == null) { // reference from entity
-                throwDTDError(msg+"can not refer to from an entity");
+            // In validating mode, this is a problem:
+            if (mCfgFullyValidating) {
+                String msg = "Notation '"+id+"' not defined; ";
+                if (attrName == null) { // reference from entity
+                    throwDTDError(msg+"can not refer to from an entity");
+                }
+                // reference from attribute
+                throwDTDError(msg+"can not be used as value for attribute list of '"+attrName+"'");
+            } else { // but in non-validating, it is not...
+                return id;
             }
-            // reference from attribute
-            throwDTDError(msg+"can not be used as value for attribute list of '"+attrName+"'");
         }
 
         return decl.getName();
@@ -2441,6 +2451,10 @@ public class FullDTDReader
 
     /**
      * Method called to parse what seems like a mixed content specification.
+     *
+     * @param construct If true, will build full object for validating content
+     *   within mixed content model; if false, will just parse and discard
+     *   information (done in non-validating DTD-supporting mode)
      */
     private StructValidator readMixedSpec(NameKey elemName, boolean construct)
         throws IOException, XMLStreamException

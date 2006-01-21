@@ -25,6 +25,7 @@ import javax.xml.stream.XMLStreamException;
 
 import org.codehaus.stax2.validation.XMLValidator;
 
+import com.ctc.wstx.api.WstxInputProperties;
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.util.*;
 
@@ -558,7 +559,7 @@ public final class NsInputElementStack
     }
 
     public String getAttributeType(int index) {
-        return (mValidator == null) ? UNKNOWN_ATTR_TYPE : 
+        return (mValidator == null) ? WstxInputProperties.UNKNOWN_ATTR_TYPE : 
             mValidator.getAttributeType(index);
     }
 

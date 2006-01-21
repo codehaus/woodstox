@@ -1,6 +1,6 @@
 /* Woodstox XML processor
  *
- * Copyright (c) 2004 Tatu Saloranta, tatu.saloranta@iki.fi
+ * Copyright (c) 2004- Tatu Saloranta, tatu.saloranta@iki.fi
  *
  * Licensed under the License specified in the file LICENSE which is
  * included with the source code.
@@ -23,6 +23,7 @@ import com.ctc.wstx.ent.EntityDecl;
 import com.ctc.wstx.exc.*;
 import com.ctc.wstx.io.WstxInputData;
 import com.ctc.wstx.sr.InputProblemReporter;
+import com.ctc.wstx.util.StringUtil;
 import com.ctc.wstx.util.WordResolver;
 
 /**
@@ -31,7 +32,7 @@ import com.ctc.wstx.util.WordResolver;
  * non-CDATA ones); base class itself is used for attributes of type
  * CDATA.
  */
-public class DTDAttribute
+public abstract class DTDAttribute
 {
     final static char CHAR_SPACE = (char) 0x0020;
 
@@ -119,10 +120,7 @@ public class DTDAttribute
         mSpecialIndex = specIndex;
     }
 
-    public DTDAttribute cloneWith(int specIndex)
-    {
-        return new DTDAttribute(mName, mDefValueType, mDefValue, specIndex);
-    }
+    public abstract DTDAttribute cloneWith(int specIndex);
 
     /*
     ///////////////////////////////////////////////////
@@ -158,6 +156,11 @@ public class DTDAttribute
         return (defValueType == DEF_DEFAULT)
             || (defValueType == DEF_FIXED)
             || (defValueType == DEF_REQUIRED);
+    }
+
+    public final boolean hasDefaultValue() {
+        return (mDefValueType == DEF_DEFAULT)
+            || (mDefValueType == DEF_FIXED);
     }
 
     public final boolean isRequired() {
@@ -205,12 +208,8 @@ public class DTDAttribute
     ///////////////////////////////////////////////////
      */
 
-    public String validate(DTDValidator v, char[] cbuf, int start, int end, boolean normalize)
-        throws XMLValidationException
-    {
-        // Nothing to do for pure CDATA attributes...
-        return null;
-    }
+    public abstract String validate(DTDValidatorBase v, char[] cbuf, int start, int end, boolean normalize)
+        throws XMLValidationException;
 
     /**
      *<p>
@@ -221,10 +220,13 @@ public class DTDAttribute
      * the value, and then following validators are passed a String, not
      * char array)
      */
-    public String validate(DTDValidator v, String value, boolean normalize)
+    public String validate(DTDValidatorBase v, String value, boolean normalize)
         throws XMLValidationException
     {
         int len = value.length();
+        /* Temporary buffer has to come from the validator itself, since
+         * attribute objects are stateless and shared...
+         */
         char[] cbuf = v.getTempAttrValueBuffer(value.length());
         if (len > 0) {
             value.getChars(0, len, cbuf, 0);
@@ -237,10 +239,24 @@ public class DTDAttribute
      * to ask attribute to verify that the default it has (if any) is
      * valid for such type.
      */
-    public void validateDefault(InputProblemReporter rep, boolean normalize)
-        throws javax.xml.stream.XMLStreamException
+    public abstract void validateDefault(InputProblemReporter rep, boolean normalize)
+        throws javax.xml.stream.XMLStreamException;
+
+    /**
+     * Method called when no validation is to be done, but value is still
+     * to be normalized as much as it can. What this usually means is that
+     * all regular space (parser earlier on converts other white space to
+     * spaces, except for specific character entities; and these special
+     * cases are NOT to be normalized).
+     *<p>
+     * The only exception is that CDATA will not do any normalization. But
+     * for now, let's implement basic functionality that CDTA instance will
+     * override
+     */
+    public String normalize(DTDValidatorBase v, char[] cbuf, int start, int end)
+        throws XMLValidationException
     {
-        // Nothing to do for the base class; all values are fine
+        return StringUtil.normalizeSpaces(cbuf, start, end);
     }
 
     /*
@@ -403,7 +419,7 @@ public class DTDAttribute
         return res.find(cbuf, start, end);
     }
 
-    protected EntityDecl findEntityDecl(DTDValidator v,
+    protected EntityDecl findEntityDecl(DTDValidatorBase v,
                                         char[] ch, int start, int len, int hash)
         throws XMLValidationException
     {
@@ -443,14 +459,14 @@ public class DTDAttribute
     ///////////////////////////////////////////////////
      */
 
-    protected String reportInvalidChar(DTDValidator v, char c, String msg)
+    protected String reportInvalidChar(DTDValidatorBase v, char c, String msg)
         throws XMLValidationException
     {
         reportValidationProblem(v, "Invalid character "+WstxInputData.getCharDesc(c)+": "+msg);
         return null;
     }
 
-    protected String reportValidationProblem(DTDValidator v, String msg)
+    protected String reportValidationProblem(DTDValidatorBase v, String msg)
         throws XMLValidationException
     {
         v.reportValidationProblem("Attribute '"+mName+"': "+msg);

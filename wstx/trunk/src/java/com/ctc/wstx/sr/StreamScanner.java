@@ -1107,8 +1107,15 @@ public abstract class StreamScanner
                 if (value == 0) {
                     throwParseError("Invalid character reference -- null character not allowed in XML content.");
                 }
-                mInputPtr = ptr;
-                return (char) value;
+                /* 20-Jan-2005, TSa: Ok; if we get "high" Unicode char,
+                 *   it needs to be expressed via surrogate pair. And since
+                 *   we have to return a char, have to handle that in 'full'
+                 *   resolution path (can as well handle errors there too)
+                 */
+                if (value < 0x10000) {
+                    mInputPtr = ptr;
+                    return (char) value;
+                }
             }
 
             /* If we ran out of input, need to just fall back, gets

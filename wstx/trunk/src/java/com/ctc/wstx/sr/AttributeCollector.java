@@ -1,6 +1,6 @@
 /* Woodstox XML processor
  *
- * Copyright (c) 2004 Tatu Saloranta, tatu.saloranta@iki.fi
+ * Copyright (c) 2004- Tatu Saloranta, tatu.saloranta@iki.fi
  *
  * Licensed under the License specified in file LICENSE, included with
  * the source code.
@@ -259,25 +259,6 @@ public abstract class AttributeCollector
     // Validation methods:
     ///////////////////////////////////////////////
      */
-
-    /**
-     * Method called by validation/normalization code, to normalize
-     * specified attribute value and return it as (non-interned) String,
-     * if normalization was done. May return null if no changes were done.
-     */
-    /*
-    public void normalizeValue(int index)
-    {
-        String val = mValueBuffer.normalizeSpaces(index);
-
-        if (val != null) {
-            if (mAttrValues == null) {
-                mAttrValues = new String[mAttrCount];
-            }
-            mAttrValues[index] = val;
-        }
-    }
-    */
 
     /**
      * Low-level accessor method that attribute validation code may call

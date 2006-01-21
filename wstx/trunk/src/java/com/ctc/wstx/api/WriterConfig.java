@@ -82,7 +82,8 @@ public final class WriterConfig
     final static boolean DEFAULT_VALIDATE_ATTR = false;
     final static boolean DEFAULT_VALIDATE_NAMES = false;
     /* In a way it doesn't matter; if validation is not enabled, neither
-     * is fixing...
+     * is fixing... but let's set it on, so that enabling checking also
+     * enables fixing
      */
     final static boolean DEFAULT_FIX_CONTENT = true;
 
@@ -162,6 +163,8 @@ public final class WriterConfig
                         new Integer(PROP_VALIDATE_ATTR));
         sProperties.put(WstxOutputProperties.P_OUTPUT_VALIDATE_NAMES,
                         new Integer(PROP_VALIDATE_NAMES));
+        sProperties.put(WstxOutputProperties.P_OUTPUT_FIX_CONTENT,
+                        new Integer(PROP_FIX_CONTENT));
     }
 
     /*
@@ -269,6 +272,8 @@ public final class WriterConfig
             return willValidateAttributes() ? Boolean.TRUE : Boolean.FALSE;
         case PROP_VALIDATE_NAMES:
             return willValidateNames() ? Boolean.TRUE : Boolean.FALSE;
+        case PROP_FIX_CONTENT:
+            return willFixContent() ? Boolean.TRUE : Boolean.FALSE;
 
             // // // Object valued ones:
 
@@ -317,19 +322,19 @@ public final class WriterConfig
             break;
 
         case PROP_VALIDATE_STRUCTURE:
-            doValidateContent(ArgUtil.convertToBoolean(name, value));
+            doValidateStructure(ArgUtil.convertToBoolean(name, value));
             break;
-
         case PROP_VALIDATE_CONTENT:
             doValidateContent(ArgUtil.convertToBoolean(name, value));
             break;
-
         case PROP_VALIDATE_ATTR:
             doValidateAttributes(ArgUtil.convertToBoolean(name, value));
             break;
-
         case PROP_VALIDATE_NAMES:
             doValidateNames(ArgUtil.convertToBoolean(name, value));
+            break;
+        case PROP_FIX_CONTENT:
+            doFixContent(ArgUtil.convertToBoolean(name, value));
             break;
 
 

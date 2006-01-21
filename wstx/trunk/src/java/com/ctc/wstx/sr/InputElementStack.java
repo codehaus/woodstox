@@ -1,6 +1,6 @@
 /* Woodstox XML processor
  *
- * Copyright (c) 2004 Tatu Saloranta, tatu.saloranta@iki.fi
+ * Copyright (c) 2004- Tatu Saloranta, tatu.saloranta@iki.fi
  *
  * Licensed under the License specified in file LICENSE, included with
  * the source code.
@@ -54,12 +54,6 @@ import com.ctc.wstx.util.TextBuilder;
 public abstract class InputElementStack
     implements AttributeInfo, NamespaceContext, ValidationContext
 {
-    /**
-     * Constants used when no DTD handling is done, and we do not know the
-     * 'real' type of an attribute. Seems like CDATA is the safe choice.
-     */
-    protected final static String UNKNOWN_ATTR_TYPE = "CDATA";
-
     protected InputProblemReporter mReporter = null;
 
     protected final boolean mInternNsURIs;

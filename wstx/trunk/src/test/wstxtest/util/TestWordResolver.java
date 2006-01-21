@@ -12,10 +12,6 @@ import com.ctc.wstx.util.WordResolver;
 public class TestWordResolver
     extends TestCase
 {
-    public TestWordResolver(String name) {
-        super(name);
-    }
-
     public void testNormal()
     {
         checkResolver(new String[] {

@@ -17,10 +17,6 @@ public class TestAttr
         +"widget='a' length='1' start='2' styledTextNewValue='t' "
         +"replacedText='' styledTextFunction='f' raw='b' />";
 
-    public TestAttr(String name) {
-        super(name);
-    }
-
     /**
      * This test case was added after encountering a specific problem, which
      * only occurs when many attributes were spilled from main hash area....
@@ -66,7 +62,7 @@ public class TestAttr
 
         for (int i = 0; i < 2; ++i) {
             boolean ns = (i > 0);
-            // Need validating, to get default attribute values
+            // (May) need validating, to get default attribute values
             XMLStreamReader sr = getValidatingReader(XML, ns);
 
             assertTokenType(START_DOCUMENT, sr.getEventType());

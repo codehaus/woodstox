@@ -25,6 +25,8 @@ public final class StringVector
         mStrings = new String[initialCount];
     }
 
+    // 12-Jan-2006, TSa: Not used at this point... can be removed maybe?
+    /*
     private StringVector(String[] str, int size) {
         mStrings = str;
         mSize = size;
@@ -38,6 +40,7 @@ public final class StringVector
         }
         return new StringVector(strs, mSize);
     }
+    */
 
     /*
     ///////////////////////////////////////////////////////
@@ -111,7 +114,10 @@ public final class StringVector
         mSize += 2;
     }
 
-    public void addStrings(StringVector v) {
+    // 12-Jan-2006, TSa: Not used at this point... can be removed maybe?
+    /*
+    public void addStrings(StringVector v)
+    {
         int addSize = v.size();
         if ((mSize + addSize) > mStrings.length) {
             String[] old = mStrings;
@@ -128,6 +134,7 @@ public final class StringVector
         }
         mSize += addSize;
     }
+    */
 
     public void setString(int index, String str) {
         mStrings[index] = str;

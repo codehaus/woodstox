@@ -12,16 +12,12 @@ import org.codehaus.stax2.evt.*;
 import stax2.BaseStax2Test;
 
 /**
- * Set of unit tests that checks that {@link that the {@link AttributeInfo} implementation
- * works as expected.
+ * Set of unit tests that checks that {@link {@link AttributeInfo}
+ * implementation works as expected.
  */
 public class TestDTDEvent
     extends BaseStax2Test
 {
-    public TestDTDEvent(String name) {
-        super(name);
-    }
-
     public void testDTDCreation()
         throws XMLStreamException
     {
@@ -50,7 +46,7 @@ public class TestDTDEvent
          * this works:
          */
         setSupportDTD(f2, false);
-        XMLEventReader er = constructEventReader(f2, xmlContent);
+        XMLEventReader2 er = (XMLEventReader2) constructEventReader(f2, xmlContent);
 
         assertTokenType(START_DOCUMENT, er.nextEvent().getEventType());
         XMLEvent evt = er.nextEvent();
@@ -69,6 +65,9 @@ public class TestDTDEvent
         StartElement start = evt.asStartElement();
         QName name = start.getName();
         assertEquals("root", name.getLocalPart());
+
+        // just to test hasNextEvent()...
+        assertTrue(er.hasNextEvent());
 
         assertTokenType(END_ELEMENT, er.nextEvent().getEventType());
         assertTokenType(END_DOCUMENT, er.nextEvent().getEventType());

@@ -1,6 +1,6 @@
 /* Woodstox XML processor
  *
- * Copyright (c) 2004 Tatu Saloranta, tatu.saloranta@iki.fi
+ * Copyright (c) 2004- Tatu Saloranta, tatu.saloranta@iki.fi
  *
  * Licensed under the License specified in the file LICENSE which is
  * included with the source code.
@@ -128,6 +128,7 @@ public class WstxEventReader
             throw new WstxParsingException
                 (ErrorConsts.ERR_STATE_NOT_STELEM, evt.getLocation());
         }
+        // ??? do we need to update mPrePeekEvent now
 
         String str = null;
         StringBuffer sb = null;
@@ -154,7 +155,7 @@ public class WstxEventReader
                 str = curr;
             } else {
                 if (sb == null) {
-                    sb = new StringBuffer(str.length() + curr);
+                    sb = new StringBuffer(str.length() + curr.length());
                     sb.append(str);
                 }
                 sb.append(curr);

@@ -157,7 +157,6 @@ public class BaseWstxTest
     {
         return (XMLEventReader2) f.createXMLEventReader(new StringReader(content));
     }
-
     /*
     //////////////////////////////////////////////////
     // Configuring input factory
@@ -242,6 +241,18 @@ public class BaseWstxTest
     protected static void setValidateNames(XMLOutputFactory f, boolean state)
     {
         f.setProperty(WstxOutputProperties.P_OUTPUT_VALIDATE_NAMES,
+                      Boolean.valueOf(state));
+    }
+
+    protected static void setValidateAll(XMLOutputFactory f, boolean state)
+    {
+        setValidateContent(f, state);
+        setValidateNames(f, state);
+    }
+
+    protected static void setFixContent(XMLOutputFactory f, boolean state)
+    {
+        f.setProperty(WstxOutputProperties.P_OUTPUT_FIX_CONTENT,
                       Boolean.valueOf(state));
     }
 
@@ -364,6 +375,26 @@ public class BaseWstxTest
                 actStr = ""+actType;
             }
             fail("Expected token "+expStr+"; got "+actStr+".");
+        }
+    }
+
+    /**
+     * Helper assertion that assert that the String is either null or
+     * empty ("").
+     */
+    protected static void assertNullOrEmpty(String str)
+    {
+        if (str != null && str.length() > 0) {
+            fail("Expected String to be empty or null; was '"+str+"' (length "
+                 +str.length()+")");
+        }
+    }
+
+    protected static void assertNotNullOrEmpty(String str)
+    {
+        if (str == null || str.length() == 0) {
+            fail("Expected String to be non-empty; got "
+                 +((str == null) ? "NULL" : "\"\""));
         }
     }
 

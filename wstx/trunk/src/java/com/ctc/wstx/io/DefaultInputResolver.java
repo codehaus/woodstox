@@ -242,8 +242,10 @@ public final class DefaultInputResolver
      * use that (alternative would be to consider it to be a reference
      * like URL -- those need to be returned as appropriate objects
      * instead).
+     *<p>
+     * Note: public to give access for unit tests that need it...
      */
-    private static WstxInputSource sourceFromString(WstxInputSource parent, XMLReporter rep, 
+    public static WstxInputSource sourceFromString(WstxInputSource parent, XMLReporter rep, 
                                                     String refName, String refContent)
         throws IOException, WstxException
     {
@@ -285,7 +287,7 @@ public final class DefaultInputResolver
         ReaderBootstrapper rbs = ReaderBootstrapper.getInstance(r, pubId, sysId, null);
         // null -> no xml reporter... should have one?
         r = rbs.bootstrapInput(false, rep);
-        URL ctxt = parent.getSource();
+        URL ctxt = (parent == null) ? null : parent.getSource();
         if (sysId != null && sysId.length() > 0) {
             ctxt = URLUtil.urlFromSystemId(sysId, ctxt);
         }

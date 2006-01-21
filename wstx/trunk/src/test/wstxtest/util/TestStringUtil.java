@@ -13,12 +13,8 @@ import com.ctc.wstx.util.StringUtil;
  * class.
  */
 public class TestStringUtil
-    extends TestCase
+    extends wstxtest.BaseWstxTest
 {
-    public TestStringUtil(String name) {
-        super(name);
-    }
-
     public void testConcatEntries()
     {
         List l = new ArrayList();
@@ -51,7 +47,7 @@ public class TestStringUtil
 
     public void testNormalizeSpaces()
     {
-        String str = "\tmy   my";
+        String str = " my   my";
         assertEquals("my my", StringUtil.normalizeSpaces(str.toCharArray(), 0,
                                                          str.length()));
 
@@ -64,6 +60,15 @@ public class TestStringUtil
                      StringUtil.normalizeSpaces(str.toCharArray(), 1,
                                                 str.length() - 3));
 
+
+        /* Also, how about other white-space; not to be normalized fully,
+         * so in this case should get null (no normalization done)
+         */
+        str = "some \t text";
+        String result = StringUtil.normalizeSpaces(str.toCharArray(), 0, str.length());        
+        if (result != null) {
+            fail("Expected <null>, not '"+quotedPrintable(result)+"' when normalizing '"+quotedPrintable(str)+"'");
+        }
     }
 
     public void testEqualEncodings()

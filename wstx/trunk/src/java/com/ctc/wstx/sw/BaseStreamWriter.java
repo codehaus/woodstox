@@ -70,11 +70,6 @@ public abstract class BaseStreamWriter
 
     protected final static char DEFAULT_QUOTE_CHAR = '"';
 
-    /**
-     * Default encoding we assume, if nothing is passed explicitly.
-     */
-    protected final static String DEFAULT_ENCODING = "UTF-8";
-
     protected final static String NO_NS_URI = "";
     protected final static String NO_PREFIX = null;
 
@@ -256,7 +251,8 @@ public abstract class BaseStreamWriter
         throws UnsupportedEncodingException
     {
         EscapingWriterFactory f = mConfig.getAttrValueEscaperFactory();
-        String enc = (mEncoding == null || mEncoding.length() == 0) ? DEFAULT_ENCODING : mEncoding;
+        String enc = (mEncoding == null || mEncoding.length() == 0) ?
+            WstxOutputProperties.DEFAULT_OUTPUT_ENCODING : mEncoding;
         if (f == null) {
             return TextEscaper.constructAttrValueWriter(mWriter, enc, '"');
         }
@@ -267,7 +263,8 @@ public abstract class BaseStreamWriter
         throws UnsupportedEncodingException
     {
         EscapingWriterFactory f = mConfig.getTextEscaperFactory();
-        String enc = (mEncoding == null) ? DEFAULT_ENCODING : mEncoding;
+        String enc = (mEncoding == null || mEncoding.length() == 0) ?
+            WstxOutputProperties.DEFAULT_OUTPUT_ENCODING : mEncoding;
         if (f == null) {
             return TextEscaper.constructTextWriter(mWriter, enc);
         }
@@ -371,7 +368,7 @@ public abstract class BaseStreamWriter
                         return;
                     }
                     // nope, let's err out
-                    throwOutputError(ErrorConsts.WERR_CDATA_CONTENT, new Integer(ix));
+                    throwCheckError(ErrorConsts.WERR_CDATA_CONTENT, new Integer(ix));
                 }
             }
             mWriter.write("<![CDATA[");
@@ -402,7 +399,7 @@ public abstract class BaseStreamWriter
         if (mCheckStructure) {
             if (inPrologOrEpilog()) {
                 if (!StringUtil.isAllWhitespace(text, start, len)) {
-                    throw new IllegalStateException(ErrorConsts.WERR_PROLOG_NONWS_TEXT);
+                    throwIllegalState(ErrorConsts.WERR_PROLOG_NONWS_TEXT);
                 }
             }
         }
@@ -450,7 +447,7 @@ public abstract class BaseStreamWriter
             // Not valid in prolog/epilog, except if it's all white space:
             if (inPrologOrEpilog()) {
                 if (!StringUtil.isAllWhitespace(text)) {
-                    throw new IllegalStateException(ErrorConsts.WERR_PROLOG_NONWS_TEXT);
+                    throwIllegalState(ErrorConsts.WERR_PROLOG_NONWS_TEXT);
                 }
             }
         }
@@ -560,7 +557,7 @@ public abstract class BaseStreamWriter
         // Is tree still open?
         if (mState != STATE_EPILOG) {
             if (mCheckStructure  && mState == STATE_PROLOG) {
-                throw new IllegalStateException("Trying to write END_DOCUMENT when document has no root (ie. trying to output empty document).");
+                throwIllegalState("Trying to write END_DOCUMENT when document has no root (ie. trying to output empty document).");
             }
             // 20-Jul-2004, TSa: Need to close the open sub-tree, if it exists...
             // First, do we have an open start element?
@@ -588,7 +585,7 @@ public abstract class BaseStreamWriter
         // Structurally, need to check we are not in prolog/epilog.
         if (mCheckStructure) {
             if (inPrologOrEpilog()) {
-                throw new IllegalStateException("Trying to output an entity reference outside main element tree (in prolog or epilog)");
+                throwIllegalState("Trying to output an entity reference outside main element tree (in prolog or epilog)");
             }
         }
         // 08-Dec-2005, TSa: validator-based validation?
@@ -682,13 +679,19 @@ public abstract class BaseStreamWriter
          *   be "1.0", and encoding "utf-8" (yes, lower case... it's
          *   wrong, but specs mandate it)
          */
-        writeStartDocument("utf-8", "1.0");
+        /* 11-Jan-2006, TSa: Let's actually rather use whatever was passed
+         *   in, if anything; only if none then default to something else.
+         *   Plus, what the heck; let's use properly capitalized value
+         *   too (and ignore faulty def in stax specs).
+         */
+        String enc = (mEncoding == null) ? WstxOutputProperties.DEFAULT_OUTPUT_ENCODING : mEncoding;
+        writeStartDocument(enc, WstxOutputProperties.DEFAULT_XML_VERSION);
     }
 
     public void writeStartDocument(String version)
         throws XMLStreamException
     {
-        writeStartDocument(null, version);
+        writeStartDocument(mEncoding, version);
     }
 
     public void writeStartDocument(String encoding, String version)
@@ -706,7 +709,7 @@ public abstract class BaseStreamWriter
          */
         if (mCheckStructure) {
             if (mAnyOutput) {
-                throw new IllegalStateException("Can not output XML declaration, after other output has already been done.");
+                throwIllegalState("Can not output XML declaration, after other output has already been done.");
             }
         }
 
@@ -718,7 +721,7 @@ public abstract class BaseStreamWriter
             }*/
             if (version != null && version.length() > 0) {
                 if (!(version.equals("1.0") || version.equals("1.1"))) {
-                    throw new IllegalArgumentException("Illegal version argument ('"+version+"'); should only use '1.0' or '1.1'");
+                    throwIllegalArg("Illegal version argument ('"+version+"'); should only use '1.0' or '1.1'");
                 }
             }
         }
@@ -1015,6 +1018,7 @@ public abstract class BaseStreamWriter
         throws XMLStreamException
     {
         try {
+
 // Uncomment for debugging:
 //System.err.println("EVENT -> "+sr.getEventType());
             switch (sr.getEventType()) {
@@ -1046,8 +1050,7 @@ public abstract class BaseStreamWriter
                 writeEndDocument();
                 return;
                 
-                /* Element start/end events:
-                 */
+                // Element start/end events:
             case START_ELEMENT:
                 {
                     if (sr != mLastReader) {
@@ -1085,7 +1088,7 @@ public abstract class BaseStreamWriter
                     // Not legal outside main element tree:
                     if (mCheckStructure) {
                         if (inPrologOrEpilog()) {
-                            throw new IllegalStateException(ErrorConsts.WERR_PROLOG_CDATA);
+                            throwIllegalState(ErrorConsts.WERR_PROLOG_CDATA);
                         }
                     }
                     /* Note: no need to check content, since reader is assumed
@@ -1176,7 +1179,7 @@ public abstract class BaseStreamWriter
                          * it, there's no way to write a valid thing.
                          * So, let's just throw an exception.
                          */
-                        throw new IllegalArgumentException("Current state DOCTYPE, but not DTDInfo Object returned -- reader doesn't support DTDs?");
+                        throwIllegalArg("Current state DOCTYPE, but not DTDInfo Object returned -- reader doesn't support DTDs?");
                     }
                     /* Could optimize this a bit (stream the int. subset
                      * possible), but it's never going to occur more than
@@ -1266,13 +1269,6 @@ public abstract class BaseStreamWriter
         return mWriter;
     }
 
-    // !!! TESTING: remove when validation interfaces completed
-    public void setValidator(XMLValidationSchema schema)
-        throws XMLStreamException
-    {
-        mValidator = schema.createValidator(this);
-    }
-
     /**
      * Convenience method needed by {@link com.ctc.wstx.evt.WstxEventWriter}, to use when
      * writing a start element, and possibly its attributes and namespace
@@ -1307,7 +1303,7 @@ public abstract class BaseStreamWriter
         if (mCheckStructure) {
             if (inPrologOrEpilog()) {
                 if (!ch.isIgnorableWhiteSpace() && !ch.isWhiteSpace()) {
-                    throw new IllegalStateException(ErrorConsts.WERR_PROLOG_NONWS_TEXT);
+                    throwIllegalState(ErrorConsts.WERR_PROLOG_NONWS_TEXT);
                 }
             }
         }
@@ -1409,7 +1405,7 @@ public abstract class BaseStreamWriter
         // Not legal outside main element tree:
         if (mCheckStructure) {
             if (inPrologOrEpilog()) {
-                throw new IllegalStateException(ErrorConsts.WERR_PROLOG_CDATA);
+                throwIllegalState(ErrorConsts.WERR_PROLOG_CDATA);
             }
         }
         // 08-Dec-2005, TSa: validator-based validation?
@@ -1605,7 +1601,7 @@ public abstract class BaseStreamWriter
         if (content.charAt(len-1) == '-') {
             mWriter.write(' ');
         }
-        mWriter.write("]]>");
+        mWriter.write("-->");
     }
 
     /*
@@ -1624,7 +1620,24 @@ public abstract class BaseStreamWriter
         throws XMLStreamException
     {
         String msg = MessageFormat.format(format, new Object[] { arg });
+        throwOutputError(msg);
+    }
+
+    /**
+     * This method is (to be) used when a well-formedness error is found
+     * when additional validation is to be performed.
+     */
+    protected static void throwCheckError(String msg)
+        throws XMLStreamException
+    {
         throw new XMLStreamException(msg);
+    }
+
+    protected static void throwCheckError(String format, Object arg)
+        throws XMLStreamException
+    {
+        String msg = MessageFormat.format(format, new Object[] { arg });
+        throwCheckError(msg);
     }
 
     protected static void throwFromIOE(IOException ioe)
@@ -1643,7 +1656,13 @@ public abstract class BaseStreamWriter
         throws IllegalArgumentException
     {
         String msg = MessageFormat.format(format, new Object[] { arg });
-        throw new IllegalArgumentException(msg);
+        throwIllegalArg(msg);
+    }
+
+    protected static void throwIllegalState(String msg)
+        throws IllegalArgumentException
+    {
+        throw new IllegalStateException(msg);
     }
 
     /*

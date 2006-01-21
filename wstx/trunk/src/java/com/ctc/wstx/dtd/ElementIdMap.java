@@ -17,6 +17,8 @@ package com.ctc.wstx.dtd;
 
 import javax.xml.stream.Location;
 
+import com.ctc.wstx.util.ExceptionUtil;
+
 /**
  * This class is a specialized type-safe linked hash map used for
  * storing {@link ElementId} instances. {@link ElementId} instances
@@ -296,7 +298,7 @@ final class ElementIdMap
         }
 
         if (count != mSize) {
-            throw new Error("Internal error on rehash(): had "+mSize+" entries; now have "+count+".");
+            ExceptionUtil.throwInternal("on rehash(): had "+mSize+" entries; now have "+count+".");
         }
     }
 }

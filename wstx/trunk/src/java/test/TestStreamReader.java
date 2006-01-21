@@ -148,7 +148,9 @@ public class TestStreamReader
             //sr = (XMLStreamReader2) f.createXMLStreamReader(new StreamSource(file));
         }
 
-        int type = 0;
+        int type = sr.getEventType();
+
+        System.out.println("START: version = '"+sr.getVersion()+"', enc = '"+sr.getEncoding()+"'/'"+sr.getCharacterEncodingScheme()+"'.");
 
         //while (sr.hasNext()) {
         while (type != END_DOCUMENT) {
@@ -258,7 +260,10 @@ public class TestStreamReader
                 int nsCount = sr.getNamespaceCount();
                 System.out.println(" ["+nsCount+" ns unbound]");
             } else if (type == START_DOCUMENT) { // only for multi-doc mode
-                System.out.print("XML-DECL: version = '"+sr.getVersion()+"', enc = '"+sr.getCharacterEncodingScheme()+"', stand-alone set: "+sr.standaloneSet());
+                System.out.print("XML-DECL: version = '"+sr.getVersion()
+                                 +"', xml-decl-encoding = '"+sr.getCharacterEncodingScheme()
+                                 +"', app-encoding = '"+sr.getEncoding()
+                                 +"', stand-alone set: "+sr.standaloneSet());
             }
         }
         return total;

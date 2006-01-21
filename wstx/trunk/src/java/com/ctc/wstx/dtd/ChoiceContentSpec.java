@@ -2,6 +2,8 @@ package com.ctc.wstx.dtd;
 
 import java.util.*;
 
+import com.ctc.wstx.util.ExceptionUtil;
+
 /**
  * Content specification that defines content model that has
  * multiple alternative elements; including mixed content model.
@@ -230,7 +232,8 @@ public class ChoiceContentSpec
                     +" one of elements ("+mNames+")";
             }
             // should never happen:
-            throw new Error("Internal error");
+            ExceptionUtil.throwGenericInternal();
+            return null;
         }
     }
 }

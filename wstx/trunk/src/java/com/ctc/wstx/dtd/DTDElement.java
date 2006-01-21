@@ -24,6 +24,7 @@ import org.codehaus.stax2.validation.XMLValidator;
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.sr.InputProblemReporter;
+import com.ctc.wstx.util.ExceptionUtil;
 import com.ctc.wstx.util.WordResolver;
 
 /**
@@ -69,12 +70,18 @@ public final class DTDElement
 
     /**
      * Ordered list of attributes that have 'special' properties (attribute
-     * is required or has a default value); these attributes have to be
-     * specifically checked after actual values have been resolved.
+     * is required, has a default value [regular or fixed]); these attributes
+     * have to be specifically checked after actual values have been resolved.
      */
     ArrayList mSpecAttrList = null;
 
     boolean mAnyFixed = false;
+
+    /**
+     * Flag set to true if there are any attributes that have either
+     * basic default value, or #FIXED default value.
+     */
+    boolean mAnyDefaults = false;
 
     /**
      * Flag that is set to true if there is at least one attribute that
@@ -121,7 +128,7 @@ public final class DTDElement
                                            StructValidator val, int allowedContent)
     {
         if (allowedContent == XMLValidator.CONTENT_ALLOW_UNDEFINED) { // sanity check
-            throw new Error("Internal error: trying to use XMLValidator.CONTENT_ALLOW_UNDEFINED via createDefined()");
+            ExceptionUtil.throwInternal("trying to use XMLValidator.CONTENT_ALLOW_UNDEFINED via createDefined()");
         }
         return new DTDElement(loc, name, val, allowedContent);
     }
@@ -145,7 +152,7 @@ public final class DTDElement
     {
         verifyUndefined();
         if (allowedContent == XMLValidator.CONTENT_ALLOW_UNDEFINED) { // sanity check
-            throw new Error("Internal error: trying to use CONTENT_ALLOW_UNDEFINED via define()");
+            ExceptionUtil.throwInternal("trying to use CONTENT_ALLOW_UNDEFINED via define()");
         }
 
         DTDElement elem = new DTDElement(loc, mName, val, allowedContent);
@@ -155,6 +162,7 @@ public final class DTDElement
         elem.mSpecAttrList = mSpecAttrList;
         elem.mAnyFixed = mAnyFixed;
         elem.mValidateAttrs = mValidateAttrs;
+        elem.mAnyDefaults = mAnyDefaults;
         elem.mIdAttr = mIdAttr;
         elem.mNotationAttr = mNotationAttr;
 
@@ -177,7 +185,7 @@ public final class DTDElement
     private void verifyUndefined()
     {
         if (mAllowedContent != XMLValidator.CONTENT_ALLOW_UNDEFINED) { // sanity check
-            throw new Error("Internal error: redefining defined element spec");
+            ExceptionUtil.throwInternal("redefining defined element spec");
         }
     }
 
@@ -207,7 +215,7 @@ public final class DTDElement
 
         switch (valueType) {
         case DTDAttribute.TYPE_CDATA:
-            attr = new DTDAttribute(attrName, defValueType, defValue, specIndex);
+            attr = new DTDCdataAttr(attrName, defValueType, defValue, specIndex);
             break;
 
         case DTDAttribute.TYPE_ENUMERATED:
@@ -253,8 +261,9 @@ public final class DTDElement
             break;
 
         default:
-            attr = new DTDTypedAttr(attrName, defValueType, defValue, specIndex,
-                                    valueType);
+            // 18-Jan-2006, TSa: should never get here...
+            ExceptionUtil.throwGenericInternal();
+            attr = null; // unreachable, but compiler wants it
         }
 
         doAddAttribute(m, rep, attr, specList);
@@ -336,6 +345,9 @@ public final class DTDElement
         if (!mValidateAttrs) {
             mValidateAttrs = attr.needsValidation();
         }
+        if (!mAnyDefaults) {
+            mAnyDefaults = attr.hasDefaultValue();
+        }
     }
 
     /*
@@ -390,6 +402,10 @@ public final class DTDElement
 
     public boolean hasFixedAttrs() {
         return mAnyFixed;
+    }
+
+    public boolean hasAttrDefaultValues() {
+        return mAnyDefaults;
     }
 
     public DTDAttribute getIdAttribute() {

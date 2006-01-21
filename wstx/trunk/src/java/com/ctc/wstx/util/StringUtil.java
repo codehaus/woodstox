@@ -52,9 +52,14 @@ public final class StringUtil
 
     /**
      * Method that will check character array passed, and remove all
-     * "extra" spaces (leading and trailing white space), and normalize
+     * "extra" spaces (leading and trailing space), and normalize
      * other white space (more than one consequtive space character
      * replaced with a single space).
+     *<p>
+     * NOTE: we only remove explicit space characters (char code 0x0020);
+     * the reason being that other white space must have come from
+     * non-normalizable sources, ie. via entity expansion, and is thus
+     * not to be normalized
      *
      * @param buf Buffer that contains the String to check
      * @param origStart Offset of the first character of the text to check
@@ -73,7 +78,7 @@ public final class StringUtil
         int end = origEnd;
 
         // First let's trim start...
-        while (start <= end && buf[start] <= CHAR_SPACE) {
+        while (start <= end && buf[start] == CHAR_SPACE) {
             ++start;
         }
         // Was it all empty?
@@ -84,7 +89,7 @@ public final class StringUtil
         /* Nope, need to trim from the end then (note: it's known that char
          * at index 'start' is not a space, at this point)
          */
-        while (end > start && buf[end] <= CHAR_SPACE) {
+        while (end > start && buf[end] == CHAR_SPACE) {
             --end;
         }
 
@@ -95,8 +100,8 @@ public final class StringUtil
         int i = start+1;
 
         while (i < end) {
-            if (buf[i] <= CHAR_SPACE) {
-                if (buf[i+1] <= CHAR_SPACE) {
+            if (buf[i] == CHAR_SPACE) {
+                if (buf[i+1] == CHAR_SPACE) {
                     break;
                 }
                 // Nah; no hole for these 2 chars!
@@ -123,7 +128,7 @@ public final class StringUtil
 
         while (i <= end) {
             char c = buf[i++];
-            if (c <= CHAR_SPACE) {
+            if (c == CHAR_SPACE) {
                 sb.append(CHAR_SPACE);
                 // Need to skip dups
                 while (true) {
@@ -239,9 +244,9 @@ public final class StringUtil
             }
             // Ok, how about case differences, then?
             if (c1 != c2) {
-		if (c2 == EOS) { // Prefix done, good!
-		    return true;
-		}
+                if (c2 == EOS) { // Prefix done, good!
+                    return true;
+                }
                 if (c1 == EOS) { // Encoding done, not good
                     return false;
                 }
@@ -251,7 +256,7 @@ public final class StringUtil
             }
         }
 
-	// Ok, prefix was exactly the same as encoding... that's fine
+        // Ok, prefix was exactly the same as encoding... that's fine
         return true; 
     }
 

@@ -6,6 +6,9 @@ Description:
 
   Problems fixed:
 
+  * [WSTX-18]: XMLOutputWriter should default to UTF-8 if no encoding
+    explictly passed (when constructing output writer).
+
 == History: ==
 
 2.8.2 [31-Dec-2005]

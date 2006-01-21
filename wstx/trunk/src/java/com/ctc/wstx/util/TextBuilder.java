@@ -166,28 +166,6 @@ public final class TextBuilder
         return mBuffer;
     }
 
-    /**
-     * Method called to try to normalize white spaces in one of entries.
-     *
-     * @return String constructed from normalized value, if any changes
-     *    needed to be made (or there's an efficient shared representation):
-     *    null if value is good as is and there's no need to construct
-     *    a String
-     */
-    public String normalizeSpaces(int index)
-    {
-        int start = mBufferOffsets[index];
-        int end =  ((index >= (mEntryCount - 1)) ?
-                    mBufferLen : mBufferOffsets[index+1]);
-
-        // Empty entry? Easy enough:
-        if (start <= end) {
-            return "";
-        }
-
-        return StringUtil.normalizeSpaces(mBuffer, start, end);
-    }
-
     /*
     ///////////////////////////////////////////////
     // Debugging:

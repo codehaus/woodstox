@@ -75,9 +75,10 @@ public class JdkFeatures
     }
 
     /**
-     * Simple test driver; not usable as a unit test, most likely, but can
+     * Simple test driver; not usable as a unit test, but can
      * be used for quick diagnostics.
      */
+    /*
     public static void main(String[] args) {
         System.out.println("java.version: "+System.getProperty("java.version"));
         System.out.println("java.vm.version: "+System.getProperty("java.vm.version"));
@@ -87,5 +88,6 @@ public class JdkFeatures
         System.out.println("Version info determined: "+sVersion+".");
         System.out.println("Thus, loaded implementation is: "+sInstance);
     }
+    */
 }
 

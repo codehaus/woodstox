@@ -444,8 +444,8 @@ public class BasicStreamReader
          InputBootstrapper bs, boolean forER)
         throws IOException, XMLStreamException
     {
-        BasicStreamReader sr = new BasicStreamReader(input, owner, cfg,
-                                                     createElementStack(cfg), forER);
+        BasicStreamReader sr = new BasicStreamReader
+            (input, owner, cfg, createElementStack(cfg), forER);
         sr.initProlog(bs);
         return sr;
     }
@@ -1621,124 +1621,6 @@ public class BasicStreamReader
         }
         // Cool, that's it!
     }
-
-    /**
-     * Method that will parse an attribute value enclosed in quotes and
-     * then canonicalizes it using symbol table. Thus it's only to be used for
-     * that have limited set of values.
-     */
-
-    // 13-Aug-2004, TSa: Not used any more... but may be in future?
-    /**
-     * Temporary working buffer for some parsing
-     */
-    //char[] mAttrBuffer = null;
-
-    /*
-    protected String parseSharedAttrValue(char openingQuote, boolean normalize)
-        throws IOException, XMLStreamException
-    {
-        // Let's first ensure we have some data in there, beyond quote
-        if (mInputPtr >= mInputLen) {
-            loadMore(" in quoted value.");
-        }
-        int startPtr = mInputPtr;
-        int hash = 0;
-
-        while (mInputPtr < mInputLen) {
-            char c = mInputBuffer[mInputPtr++];
-            if (c == openingQuote) {
-                // voila! got it all in one fell swoop...
-                int len = mInputPtr - startPtr - 1;
-                if (len == 0) { // empty...
-                    return DEFAULT_NS_PREFIX;
-                }
-                return mSymbols.findSymbol(mInputBuffer, startPtr, len, hash);
-            }
-            // Entities mean almost certainly we can't just use input
-            // buffer as is; same if there's white space which may need
-            // be normalized:
-            if (c == '&' || (normalize && c <= CHAR_SPACE)) {
-                // Need to do longer processing
-                --mInputPtr;
-                break;
-            }
-            if (c == '<') {
-                throwParseError("Unexpected '<' in quoted value.");
-            }
-            hash = (hash * 31) + (int) c;
-        }
-
-        // Let's initialize temp. buffer, then...
-        if (mAttrBuffer == null) { // won't need a big buffer for attr values?
-            mAttrBuffer = new char[256];
-        }
-        int amount = mInputLen - startPtr;
-        if (amount > mAttrBuffer.length) {
-            mAttrBuffer = new char[amount + 256];
-        }
-        if (amount > 0) {
-            System.arraycopy(mInputBuffer, startPtr, mAttrBuffer, 0, amount);
-        }
-
-        // Ok, need to do less efficient handling:
-        return parseSharedAttrValue2(openingQuote, normalize,
-                                     mAttrBuffer, amount, hash);
-    }
-*/
-
-/*
-    // 13-Aug-2004, TSa: Not used any more... but may be in future?
-    protected String parseSharedAttrValue2(char openingQuote, boolean normalize,
-                                           char[] buf, int textPtr, int hash)
-        throws IOException, XMLStreamException
-    {
-        int bufSize = buf.length;
-
-        while (true) {
-            char c;
-
-            if (mInputPtr >= mInputLen) {
-                loadMore(SUFFIX_IN_ATTR_VALUE);
-            }
-            c = mInputBuffer[mInputPtr++];
-            if (c == openingQuote) {
-                return mSymbols.findSymbol(buf, 0, textPtr, hash);
-            }
-            if (c == '&') { // entity of some sort
-                // Note: we'll always automatically expand internal entities
-                // that are in attribute values...
-                if ((mInputLen - mInputPtr) >= 3
-                    && (c = resolveSimpleEntity(true)) != CHAR_NULL) {
-                    // Cool, can use returned char is, then.
-                    ;
-                } else {
-                    c = fullyResolveEntity(mCustomEntities, mGeneralEntities, false);
-                    if (c == CHAR_NULL) {
-                        continue; // will just update input buffer
-                    }
-                }
-            } else if (c <= CHAR_SPACE) {
-                if (c == CHAR_NULL) {
-                    throwNullChar();
-                }
-                if (normalize) {
-                    c = CHAR_SPACE;
-                }
-            }
-            hash = (hash * 31) + (int) c;
-
-            // Need to expand working buffer?
-            if (textPtr >= bufSize) {
-                char[] old = buf;
-                buf = new char[old.length << 1];
-                System.arraycopy(old, 0, buf, 0, old.length);
-                bufSize = buf.length;
-            }
-            buf[textPtr++] = c;
-        }
-    }
-*/
 
     /**
      * Method that will parse an attribute value enclosed in quotes, using
@@ -5051,7 +4933,5 @@ public class BasicStreamReader
     ////////////////////////////////////////////////////
      */
 
-    public SymbolTable getSymbolTable() {
-        return mSymbols;
-    }
+    //public SymbolTable getSymbolTable() { return mSymbols; }
 }
