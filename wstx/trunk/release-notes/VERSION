@@ -11,6 +11,9 @@ Description:
   * Fixed a problem with bootstrapping UTF-16 streams; if "UTF-16" explicitly
     specified as encoding, underlying JDK reader did not always use correct
     endianness.
+  * Root element name is now only check in validating mode (not if only
+    DTD aware but not validating), since this really is validation, not
+    just part of DTD awareness.
 
   Improvements:
 

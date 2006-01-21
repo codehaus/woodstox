@@ -1931,17 +1931,13 @@ public class BasicStreamReader
         initValidation();
         handleStartElem(c);
         // Does name match with DOCTYPE declaration (if any)?
-        /* 21-Jul-2004, TSa: Only check this if we are supporting
-         *   DTDs (but not only if validating)
-         */
+        // 20-Jan-2006, TSa: Only check this is we are (DTD) validating...
         if (mRootLName != null) {
-            if (hasConfigFlags(CFG_SUPPORT_DTD)) {
+            if (hasConfigFlags(CFG_VALIDATE_AGAINST_DTD)) {
                 if (!mElementStack.matches(mRootPrefix, mRootLName)) {
-                    String str = (mRootPrefix == null) ? mRootLName
+                    String actual = (mRootPrefix == null) ? mRootLName
                         : (mRootPrefix + ":" + mRootLName);
-                    throwParseError("Wrong root element <"
-                                    +mElementStack.getTopElementDesc()
-                                    +"> (expected <"+str+">)");
+                    reportValidationProblem(ErrorConsts.ERR_VLD_WRONG_ROOT, actual, mRootLName);
                 }
             }
         }
