@@ -8,6 +8,15 @@ Description:
 
   * [WSTX-18]: XMLOutputWriter should default to UTF-8 if no encoding
     explictly passed (when constructing output writer).
+  * Fixed a problem with bootstrapping UTF-16 streams; if "UTF-16" explicitly
+    specified as encoding, underlying JDK reader did not always use correct
+    endianness.
+
+  Improvements:
+
+  * Non-validating-but-DTD-aware mode now works better: attribute type
+    information as well as attribute default values will now work, so
+    validation only needs to be enabled for actual validation features.
 
 == History: ==
 

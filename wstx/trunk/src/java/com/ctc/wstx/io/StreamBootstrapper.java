@@ -162,6 +162,13 @@ public final class StreamBootstrapper
             if (mInputPtr < mInputLen) {
                 in = new MergedStream(in, mByteBuffer, mInputPtr, mInputLen);
             }
+            /* 20-Jan-2006, TSa: Ok; although it is possible to declare
+             *   stream as 'UTF-16', JDK may need help in figuring out
+             *   the right order, so let's be explicit:
+             */
+            if (StringUtil.equalEncodings(enc, "UTF-16")) {
+                enc = mBigEndian ? "UTF-16BE" : "UTF-16LE";
+            }
             r = new InputStreamReader(in, enc);
         }
         return r;
