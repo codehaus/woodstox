@@ -15,6 +15,8 @@
 
 package com.ctc.wstx.dtd;
 
+import javax.xml.XMLConstants;
+
 /**
  * Simple key Object to be used for storing/accessing of potentially namespace
  * scoped element and attribute names.
@@ -70,6 +72,18 @@ public final class NameKey
     public String getPrefix() { return mPrefix; }
 
     public String getLocalName() { return mLocalName; }
+
+    /**
+     * @return True, if this attribute name would result in a namespace
+     *    binding (ie. it's "xmlns" or starts with "xmlns:").
+     */
+    public boolean isaNsDeclaration()
+    {
+        if (mPrefix == null) {
+            return mLocalName.equals(XMLConstants.XMLNS_ATTRIBUTE);
+        }
+        return mPrefix.equals(XMLConstants.XMLNS_ATTRIBUTE);
+    }
 
     /*
     ///////////////////////////////////////////////////

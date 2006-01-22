@@ -150,7 +150,11 @@ public class TestStreamReader
 
         int type = sr.getEventType();
 
-        System.out.println("START: version = '"+sr.getVersion()+"', enc = '"+sr.getEncoding()+"'/'"+sr.getCharacterEncodingScheme()+"'.");
+        System.out.println("START: version = '"+sr.getVersion()
+                           +"', xml-encoding = '"+sr.getCharacterEncodingScheme()
+                           +"', input encoding = '"+sr.getEncoding()+"'");
+
+
 
         //while (sr.hasNext()) {
         while (type != END_DOCUMENT) {

@@ -1,6 +1,6 @@
 Version: 2.9
 
-Release date: xx-Jan-2006
+Release date: 22-Jan-2006
 
 Description:
 
@@ -8,6 +8,13 @@ Description:
 
   * [WSTX-18]: XMLOutputWriter should default to UTF-8 if no encoding
     explictly passed (when constructing output writer).
+  * [WSTX-37]: Need to be return auto-detected character encoding for
+    input streams; not just encoding application passed in.
+  * [WSTX-39] (partial fix): If namespace declarations were declared in
+    DTD (to support legacy documents or processors), Woodstox would not
+    recognized their special status, and could add default values for
+    those as if they were regular attributes. Now such declarations will
+    basically be ignored, which usually should work acceptably.
   * Fixed a problem with bootstrapping UTF-16 streams; if "UTF-16" explicitly
     specified as encoding, underlying JDK reader did not always use correct
     endianness.
@@ -17,8 +24,8 @@ Description:
 
   Improvements:
 
-  * Non-validating-but-DTD-aware mode now works better: attribute type
-    information as well as attribute default values will now work, so
+  * [WSTX-30] Non-validating-but-DTD-aware mode now works better: attribute
+    type information as well as attribute default values will now work, so
     validation only needs to be enabled for actual validation features.
 
 == History: ==

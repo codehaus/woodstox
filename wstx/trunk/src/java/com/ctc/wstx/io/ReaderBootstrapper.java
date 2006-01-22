@@ -25,6 +25,7 @@ import javax.xml.stream.XMLStreamException;
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.cfg.ParsingErrorMsgs;
 import com.ctc.wstx.exc.*;
+import com.ctc.wstx.util.StringUtil;
 
 /**
  * Input bootstrap class used when input comes from a Reader; in this case,
@@ -55,7 +56,7 @@ public final class ReaderBootstrapper
      * will be compared to actual xml declaration based encoding (if
      * declaration found)
      */
-    final String mAppEncoding;
+    final String mInputEncoding;
 
     /*
     ///////////////////////////////////////////////////////////////
@@ -87,7 +88,7 @@ public final class ReaderBootstrapper
          * by the real input reader.
          */
         mCharBuffer = new char[128]; // 128 chars should be enough
-        mAppEncoding = appEncoding;
+        mInputEncoding = appEncoding;
     }
 
     /*
@@ -116,7 +117,7 @@ public final class ReaderBootstrapper
      * @return Actual reader to use for reading xml content
      */
     public Reader bootstrapInput(boolean mainDoc, XMLReporter rep)
-        throws IOException, WstxException
+        throws IOException, XMLStreamException
     {
         initialLoad(7);
 
@@ -142,7 +143,7 @@ public final class ReaderBootstrapper
                     mInputPtr += 6; // skip declaration
                     readXmlDecl(mainDoc);
                     
-                    if (mFoundEncoding != null && mAppEncoding != null) {
+                    if (mFoundEncoding != null && mInputEncoding != null) {
                         verifyXmlEncoding(rep);
                     }
                 }
@@ -174,8 +175,8 @@ public final class ReaderBootstrapper
         return mIn;
     }
 
-    public String getAppEncoding() {
-        return mAppEncoding;
+    public String getInputEncoding() {
+        return mInputEncoding;
     }
 
     public int getInputTotal() {
@@ -193,34 +194,26 @@ public final class ReaderBootstrapper
     */
 
     protected void verifyXmlEncoding(XMLReporter rep)
-        throws WstxException
+        throws XMLStreamException
     {
-        String appEnc = mAppEncoding;
+        String inputEnc = mInputEncoding;
 
-        if (appEnc.equalsIgnoreCase(mFoundEncoding)) {
+        // Close enough?
+        if (StringUtil.equalEncodings(inputEnc, mFoundEncoding)) {
             return;
         }
 
-        // UTF-8 has alias UTF8
-        //appEnc = appEnc.toUpperCase();
-        if (appEnc.equalsIgnoreCase("UTF8")) {
-            if (mFoundEncoding.equalsIgnoreCase("UTF-8")) {
-                return;
-            }
-        }
-
-        // ... probably need to add others too...
+        /* Ok, maybe the difference is just with endianness indicator?
+         * (UTF-16BE vs. UTF-16)?
+         */
+        // !!! TBI
 
         Location loc = getLocation();
-        try {
-            rep.report(MessageFormat.format(ErrorConsts.W_MIXED_ENCODINGS,
-                                            new Object[] { mFoundEncoding,
-                                                           mAppEncoding }),
-                       ErrorConsts.WT_XML_DECL,
-                       this, loc);
-        } catch (XMLStreamException ex) {
-            throw new WstxException(ex.toString(), loc);
-        }
+        rep.report(MessageFormat.format(ErrorConsts.W_MIXED_ENCODINGS,
+                                        new Object[] { mFoundEncoding,
+                                                       inputEnc }),
+                   ErrorConsts.WT_XML_DECL,
+                   this, loc);
     }
 
     /*

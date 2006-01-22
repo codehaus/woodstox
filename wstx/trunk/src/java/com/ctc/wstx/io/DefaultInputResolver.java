@@ -9,7 +9,6 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 
-import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.util.StringUtil;
 import com.ctc.wstx.util.URLUtil;
 
@@ -120,7 +119,7 @@ public final class DefaultInputResolver
      */
     public static WstxInputSource sourceFrom(WstxInputSource parent, String refName, Object o,
                                              XMLReporter rep)
-        throws IllegalArgumentException, IOException, WstxException
+        throws IllegalArgumentException, IOException, XMLStreamException
     {
         if (o instanceof Source) {
             if (o instanceof StreamSource) {
@@ -185,7 +184,7 @@ public final class DefaultInputResolver
     private static WstxInputSource sourceFromSS(WstxInputSource parent, XMLReporter rep,
                                                String refName,
                                                StreamSource ssrc)
-        throws IOException, WstxException
+        throws IOException, XMLStreamException
     {
         InputBootstrapper bs;
         Reader r = ssrc.getReader();
@@ -217,7 +216,7 @@ public final class DefaultInputResolver
     private static WstxInputSource sourceFromURL(WstxInputSource parent, XMLReporter rep,
                                                  String refName, URL url,
                                                  String pubId, String sysId)
-        throws IOException, WstxException
+        throws IOException, XMLStreamException
     {
         /* And then create the input source. Note that by default URL's
          * own input stream creation creates buffered reader -- for us
@@ -247,7 +246,7 @@ public final class DefaultInputResolver
      */
     public static WstxInputSource sourceFromString(WstxInputSource parent, XMLReporter rep, 
                                                     String refName, String refContent)
-        throws IOException, WstxException
+        throws IOException, XMLStreamException
     {
         /* Last null -> no app-provided encoding (doesn't matter for non-
          * main-level handling)
@@ -262,7 +261,7 @@ public final class DefaultInputResolver
                                                 String refName,
                                                 InputStream is,
                                                 String pubId, String sysId)
-        throws IOException, WstxException
+        throws IOException, XMLStreamException
     {
         StreamBootstrapper bs = StreamBootstrapper.getInstance(is, pubId, sysId, getInputBufferLength(parent));
         Reader r = bs.bootstrapInput(false, rep);
@@ -279,7 +278,7 @@ public final class DefaultInputResolver
     private static WstxInputSource sourceFromR(WstxInputSource parent, XMLReporter rep,
                                                String refName, Reader r,
                                                String pubId, String sysId)
-        throws IOException, WstxException
+        throws IOException, XMLStreamException
     {
         /* Last null -> no app-provided encoding (doesn't matter for non-
          * main-level handling)

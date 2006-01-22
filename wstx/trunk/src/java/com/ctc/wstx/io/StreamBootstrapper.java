@@ -69,6 +69,12 @@ public final class StreamBootstrapper
 
     int mBytesPerChar; // minimum, ie. 1 for UTF-8
 
+    /**
+     * Let's default encoding to what XML assumes it to be in the absence
+     * of other indications...
+     */
+    String mInputEncoding = "UTF-8";
+
     /*
     ////////////////////////////////////////
     // Life-cycle
@@ -100,7 +106,7 @@ public final class StreamBootstrapper
     }
 
     public Reader bootstrapInput(boolean mainDoc, XMLReporter rep)
-        throws IOException, WstxException
+        throws IOException, XMLStreamException
     {
         resolveStreamEncoding();
         if (hasXmlDecl()) {
@@ -111,21 +117,21 @@ public final class StreamBootstrapper
         }
 
         // Now, have we figured out the encoding?
-        String enc = mFoundEncoding;
+        mInputEncoding = mFoundEncoding;
 
-        if (enc == null) { // not via xml declaration
+        if (mInputEncoding == null) { // not via xml declaration
             if (mBytesPerChar == 2) { // UTF-16, BE/LE
-                enc = mBigEndian ? "UTF-16BE" : "UTF-16LE";
+                mInputEncoding = mBigEndian ? "UTF-16BE" : "UTF-16LE";
             } else if (mBytesPerChar == 4) { // UCS-4... ?
                 /* 22-Mar-2005, TSa: JDK apparently has no way of dealing
                  *   with these encodings... not sure if and how it should
                  *   be dealt with, really. Name could be UCS-4xx... or
                  *   perhaps UTF-32xx
                  */
-                enc = mBigEndian ? "UTF-32BE" : "UTF-32LE";
+                mInputEncoding = mBigEndian ? "UTF-32BE" : "UTF-32LE";
             } else {
                 // Ok, default has to be UTF-8, as per XML specs
-                enc = "UTF-8";
+                mInputEncoding = "UTF-8";
             }
         }
         
@@ -134,24 +140,27 @@ public final class StreamBootstrapper
          */
         Reader r = null;
         
-        char c = (enc.length() > 0) ? enc.charAt(0) : ' ';
+        char c = (mInputEncoding.length() > 0) ? mInputEncoding.charAt(0) : ' ';
         
         if (c == 'u' || c == 'U') {
-            if (StringUtil.equalEncodings(enc, "UTF-8")) {
+            if (StringUtil.equalEncodings(mInputEncoding, "UTF-8")) {
                 r = new UTF8Reader(mIn, mByteBuffer, mInputPtr, mInputLen);
-            } else if (StringUtil.equalEncodings(enc, "US-ASCII")) {
+                mInputEncoding = "UTF-8";
+            } else if (StringUtil.equalEncodings(mInputEncoding, "US-ASCII")) {
                 r = new AsciiReader(mIn, mByteBuffer, mInputPtr, mInputLen);
-            } else if (StringUtil.equalEncodings(enc, "UTF-16BE")) {
+                mInputEncoding = "US-ASCII";
+            } else if (StringUtil.equalEncodings(mInputEncoding, "UTF-16BE")) {
                 // let's just make sure they're using canonical name...
-                enc = "UTF-16BE";
-            } else if (StringUtil.equalEncodings(enc, "UTF-16LE")) {
-                enc = "UTF-16LE";
-            } else if (StringUtil.equalEncodings(enc, "UTF")) {
-                enc = "UTF";
+                mInputEncoding = "UTF-16BE";
+            } else if (StringUtil.equalEncodings(mInputEncoding, "UTF-16LE")) {
+                mInputEncoding = "UTF-16LE";
+            } else if (StringUtil.equalEncodings(mInputEncoding, "UTF")) {
+                mInputEncoding = "UTF";
             }
         } else if (c == 'i' || c== 'I') {
-            if (StringUtil.equalEncodings(enc, "ISO-8859-1")) {
+            if (StringUtil.equalEncodings(mInputEncoding, "ISO-8859-1")) {
                 r = new ISOLatinReader(mIn, mByteBuffer, mInputPtr, mInputLen);
+                mInputEncoding = "ISO-8859-1";
             }
         }
         
@@ -166,20 +175,20 @@ public final class StreamBootstrapper
              *   stream as 'UTF-16', JDK may need help in figuring out
              *   the right order, so let's be explicit:
              */
-            if (StringUtil.equalEncodings(enc, "UTF-16")) {
-                enc = mBigEndian ? "UTF-16BE" : "UTF-16LE";
+            if (StringUtil.equalEncodings(mInputEncoding, "UTF-16")) {
+                mInputEncoding = mBigEndian ? "UTF-16BE" : "UTF-16LE";
             }
-            r = new InputStreamReader(in, enc);
+            r = new InputStreamReader(in, mInputEncoding);
         }
         return r;
     }
     
     /**
-     * By definition, when this bootstrapper is used, encoding is not
-     * known...
+     * Since this class only gets used when encoding is not explicitly
+     * passed, need use the encoding that was auto-detected...
      */
-    public String getAppEncoding() {
-        return null;
+    public String getInputEncoding() {
+        return mInputEncoding;
     }
 
     public int getInputTotal() {

@@ -47,7 +47,7 @@ public class TestComments
             +"</root>";
         XMLStreamReader sr = constructStreamReader(f, XML);
         streamAndCheck(sr, it, XML, XML, false);
-	// Let's also test real streaming...
+        // Let's also test real streaming...
         sr = constructStreamReader(f, XML);
         streamAndCheck(sr, it, XML, XML, true);
     }

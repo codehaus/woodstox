@@ -171,7 +171,8 @@ public class BasicStreamReader
      */
 
     /**
-     * Input stream encoding, if known; null if not.
+     * Input stream encoding, if known (passed in, or determined by
+     * auto-detection); null if not.
      */
     String mDocInputEncoding = null;
 
@@ -179,7 +180,7 @@ public class BasicStreamReader
      * Character encoding from xml declaration, if any; null if no
      * declaration, or it didn't specify encoding.
      */
-    String mDocCharEncoding = null;
+    String mDocXmlEncoding = null;
 
     /**
      * XML version used by document, from XML declaration; null if no
@@ -469,10 +470,22 @@ public class BasicStreamReader
     ////////////////////////////////////////////////////
      */
 
+    /**
+     * As per Stax (1.0) specs, needs to return whatever xml declaration
+     * claimed encoding is, if any; or null if no xml declaration found.
+     *<p>
+     * Note: method name is rather confusing (compare to {@link #getEncoding}).
+     */
     public String getCharacterEncodingScheme() {
-        return mDocCharEncoding;
+        return mDocXmlEncoding;
     }
 
+    /**
+     * As per Stax (1.0) specs, needs to return whatever parser determined
+     * the encoding was, if it was able to figure it out. If not (there are
+     * cases where this can not be found; specifically when being passed a
+     * {@link Reader}), it should return null.
+     */
     public String getEncoding() {
         return mDocInputEncoding;
     }
@@ -1790,8 +1803,8 @@ public class BasicStreamReader
         /* At this point boot-strap code has read all the data we need...
          * we just have to get information from it.
          */
-        mDocInputEncoding = bs.getAppEncoding();
-        mDocCharEncoding = bs.getDeclaredEncoding();
+        mDocInputEncoding = bs.getInputEncoding();
+        mDocXmlEncoding = bs.getDeclaredEncoding();
 
         mDocXmlVersion = bs.getVersion();
 
@@ -2029,7 +2042,7 @@ public class BasicStreamReader
             if (mSecondaryToken == START_DOCUMENT) {
                 handleMultiDocXmlDecl();
             } else { // Nah, DOCTYPE or start element... just need to clear decl info:
-                mDocCharEncoding = null;
+                mDocXmlEncoding = null;
                 mDocXmlVersion = null;
                 mDocStandalone = DOC_STANDALONE_UNKNOWN;
             }
@@ -2063,7 +2076,7 @@ public class BasicStreamReader
     {
         // Let's default these first
         mDocStandalone = DOC_STANDALONE_UNKNOWN;
-        mDocCharEncoding = null;
+        mDocXmlEncoding = null;
 
         char c = getNextInCurrAfterWS(SUFFIX_IN_XML_DECL);
         String wrong = checkKeyword(c, XML_DECL_VERSION);
@@ -2095,7 +2108,7 @@ public class BasicStreamReader
                 c = skipEquals(XML_DECL_ENCODING, SUFFIX_IN_XML_DECL);
                 tb.resetWithEmpty();
                 parseQuoted(XML_DECL_ENCODING, c, tb);
-                mDocCharEncoding = tb.toString();
+                mDocXmlEncoding = tb.toString();
                 /* should we verify encoding at this point? let's not, for now;
                  * since it's for information only, first declaration from
                  * bootstrapper is used for the whole stream.

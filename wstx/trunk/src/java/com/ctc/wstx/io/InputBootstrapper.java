@@ -99,6 +99,10 @@ public abstract class InputBootstrapper
 
     String mVersion;
 
+    /**
+     * Value of encoding pseudo-attribute from xml declaration, if
+     * one was found; null otherwise.
+     */
     String mFoundEncoding;
 
     String mStandalone;
@@ -136,7 +140,7 @@ public abstract class InputBootstrapper
     */
 
     public abstract Reader bootstrapInput(boolean mainDoc, XMLReporter rep)
-        throws IOException, WstxException;
+        throws IOException, XMLStreamException;
 
     // // // Source information:
 
@@ -179,10 +183,15 @@ public abstract class InputBootstrapper
     // // // Misc other info
 
     /**
-     * @return Application specified input-encoding used, if any; null
-     *   if no information was passed.
+     * Actual character encoding used by the underlying input source;
+     * may have been passed by the application, or auto-detected
+     * by byte stream boot strapper (can not be determined from a
+     * Reader source).
+     *
+     * @return Input encoding in use, if it could be determined or was 
+     *   passed by the calling application
      */
-    public abstract String getAppEncoding();
+    public abstract String getInputEncoding();
 
     /*
     ////////////////////////////////////////
