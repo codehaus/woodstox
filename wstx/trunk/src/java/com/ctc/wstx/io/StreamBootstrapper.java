@@ -69,11 +69,7 @@ public final class StreamBootstrapper
 
     int mBytesPerChar; // minimum, ie. 1 for UTF-8
 
-    /**
-     * Let's default encoding to what XML assumes it to be in the absence
-     * of other indications...
-     */
-    String mInputEncoding = "UTF-8";
+    String mInputEncoding = null;
 
     /*
     ////////////////////////////////////////
@@ -155,6 +151,7 @@ public final class StreamBootstrapper
             } else if (StringUtil.equalEncodings(mInputEncoding, "UTF-16LE")) {
                 mInputEncoding = "UTF-16LE";
             } else if (StringUtil.equalEncodings(mInputEncoding, "UTF")) {
+                // 21-Jan-2006, TSa: ??? What is this to do... ?
                 mInputEncoding = "UTF";
             }
         } else if (c == 'i' || c== 'I') {
@@ -228,7 +225,7 @@ public final class StreamBootstrapper
                     | ((mByteBuffer[1] & 0xFF) << 16)
                     | ((mByteBuffer[2] & 0xFF) << 8)
                     | (mByteBuffer[3] & 0xFF);
-                
+
                 /* Handling of (usually) optional BOM (required for
                  * multi-byte formats); first 32-bit charsets:
                  */

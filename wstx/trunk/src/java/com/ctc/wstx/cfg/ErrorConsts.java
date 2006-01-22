@@ -34,8 +34,9 @@ public class ErrorConsts
     public static String W_MIXED_ENCODINGS = "Inconsistent text encoding; declared as \"{0}\" in xml declaration, application had passed \"{1}\"";
     public static String W_MISSING_DTD = "Missing DOCTYPE declaration in validating mode; can not validate elements or attributes";
     public static String W_DTD_DUP_ATTR = "Attribute \"{0}\" (for element <{1}>) declared multiple times";
+    public static String W_DTD_ATTR_REDECL = "Attribute \"{0}\" already declared for element <{1}>; ignoring re-declaration";
 
-    public static String W_NS_ATTR = "Declaring namespace attribute \"{0}\"{1}, ignoring";
+    public static String W_DTD_NS_ATTR = "Declaring namespace attribute \"{0}\"{1}, ignoring";
 
     // // // Generic errors:
 

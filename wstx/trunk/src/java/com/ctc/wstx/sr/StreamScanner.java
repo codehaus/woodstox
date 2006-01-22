@@ -526,7 +526,7 @@ public abstract class StreamScanner
                 rep.report(msg, probType, null, loc);
             } catch (XMLStreamException e) {
                 // Hmmh. Weird that a reporter is allowed to do this...
-                System.err.println("Problem reporting a problem: "+e);
+                System.err.println("Internal error - problem reporting a problem: "+e);
             }
         }
     }

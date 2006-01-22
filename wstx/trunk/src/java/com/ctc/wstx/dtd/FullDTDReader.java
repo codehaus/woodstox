@@ -2038,11 +2038,7 @@ public class FullDTDReader
                 } else {
                     str = "General" + str;
                 }
-                try { // Doh.... this is silly.. but shouldn't really happen:
-                    rep.report(str, ErrorConsts.WT_ENT_DECL, oldED, evtLoc);
-                } catch (XMLStreamException strex) {
-                    throwFromStrE(strex);
-                }
+                reportProblem(rep, ErrorConsts.WT_ENT_DECL, str, evtLoc, oldED);
             }
         } else {
             m.put(id, ent);
@@ -2320,13 +2316,9 @@ public class FullDTDReader
         if (mCfgNsEnabled && attrName.isaNsDeclaration()) { // only check in ns mode
             XMLReporter rep = mConfig.getXMLReporter();
             if (rep != null) {
-                try { // Doh.... this is silly.. but shouldn't really happen:
-                    String extra = (defVal == null) ? "" : " (with default value '"+defVal+"')";
-                    String msg = MessageFormat.format(ErrorConsts.W_NS_ATTR, new Object[] { attrName, extra });
-                    rep.report(msg, ErrorConsts.WT_ATTR_DECL, elem, loc);
-                } catch (XMLStreamException strex) {
-                    throwFromStrE(strex);
-                }
+                String extra = (defVal == null) ? "" : " (with default value '"+defVal+"')";
+                String msg = MessageFormat.format(ErrorConsts.W_DTD_NS_ATTR, new Object[] { attrName, extra });
+                reportProblem(rep, ErrorConsts.WT_ATTR_DECL, msg, loc, elem);
             }
             return;
         }
@@ -2338,11 +2330,8 @@ public class FullDTDReader
             // anyone interested in knowing about possible problem?
             XMLReporter rep = mConfig.getXMLReporter();
             if (rep != null) {
-                try { // Doh.... this is silly.. but shouldn't really happen:
-                    rep.report("Attribute '"+attrName+"' already declared for element <"+elem+">; ignoring re-declaration", ErrorConsts.WT_ATTR_DECL, elem, loc);
-                } catch (XMLStreamException strex) {
-                    throwFromStrE(strex);
-                }
+                String msg = MessageFormat.format(ErrorConsts.W_DTD_ATTR_REDECL, new Object[] { attrName, elem });
+                reportProblem(rep, ErrorConsts.WT_ATTR_DECL, msg, loc, elem);
             }
         } else {
             /* 21-Jan-2006, TSa: Should only validate in fully validating
@@ -2776,6 +2765,21 @@ public class FullDTDReader
         NameKey result = new NameKey(prefix, localName);
         m.put(result, result);
         return result;
+    }
+
+    /*
+    ///////////////////////////////////////////////////////
+    // Error handling
+    ///////////////////////////////////////////////////////
+     */
+
+    private void reportProblem(XMLReporter rep, String probType, String msg,
+                               Location loc, Object extraArg)
+        throws XMLStreamException
+    {
+        if (rep != null) {
+            rep.report(msg, probType, extraArg, loc);
+        }
     }
 }
 

@@ -199,33 +199,39 @@ public class TestAttr
         assertTokenType(END_DOCUMENT, sr.next());
     }
 
-    /*
-    public void testXXX()
-        throws Exception
+    /**
+     * This tests handling of ATTLIST declarations for "xmlns:xx" and "xmlns"
+     * attributes (that is, namespace declarations). Some legacy DTDs
+     * (most notably, XHTML dtd) do this, and Woodstox had some problems with
+     * this concept...
+     */
+    public void testNsAttr()
+        throws XMLStreamException
     {
+        String XML = 
+            "<!DOCTYPE root ["
+            +"<!ELEMENT root EMPTY>\n"
+            +"<!ATTLIST root attr CDATA #IMPLIED\n"
+            +"   xmlns:ns CDATA 'some-weird-uri'\n"
+            +"   xmlns:ns2 CDATA #IMPLIED\n"
+            +">\n"
+            +"]><root xmlns:ns='foobar' attr='123' />"
+            ;
+        XMLStreamReader sr = getReader(XML, true);
 
-        XMLStreamReader sr = getValidatingReader
-            (
-        "<?xml version='1.0'?>\r\n<!DOCTYPE PLAY SYSTEM 'play.dtd'>\r\n\r\n<PLAY>\n<TITLE></TITLE></PLAY>"
-        ,true);
-        assertTokenType(SPACE, sr.next());
         assertTokenType(DTD, sr.next());
-        assertTokenType(SPACE, sr.next());
         assertTokenType(START_ELEMENT, sr.next());
-
-        sr = getValidatingReader
-            ("<!DOCTYPE PLAY>\r<PLAY />", true);
-        assertTokenType(DTD, sr.next());
-        assertTokenType(SPACE, sr.next());
-        assertTokenType(START_ELEMENT, sr.next());
-
-        sr = getValidatingReader
-            ("<!DOCTYPE PLAY>\r\n<PLAY />", true);
-        assertTokenType(DTD, sr.next());
-        assertTokenType(SPACE, sr.next());
-        assertTokenType(START_ELEMENT, sr.next());
+        assertEquals(1, sr.getNamespaceCount());
+        assertEquals("ns", sr.getNamespacePrefix(0));
+        assertEquals("foobar", sr.getNamespaceURI(0));
+        /* This will be 2, if namespace attr declarations are not handled
+         * properly...
+         */
+        assertEquals(1, sr.getAttributeCount());
+        assertEquals("attr", sr.getAttributeLocalName(0));
+        assertEquals("123", sr.getAttributeValue(0));
+        sr.close();
     }
-    */
 
     /*
     //////////////////////////////////////////////////////
@@ -237,6 +243,7 @@ public class TestAttr
         throws XMLStreamException
     {
         WstxInputFactory f = getWstxInputFactory();
+        f.getConfig().doValidateWithDTD(false);
         f.getConfig().doSupportNamespaces(nsAware);
         return constructStreamReader(f, contents);
     }
