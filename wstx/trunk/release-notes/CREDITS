@@ -133,6 +133,8 @@ Heinz Drews:
 Wolfgang Hoschek:
   * Reported [WSTX-27] (incorrect handling of #FIXED attribute defaults)
     [2.0.4/2.8.1]
+  * Pointed out countless other bugs based on extensive Nux and Xom
+    xml compatibility suites (and w3c compatibility suite as well).
 
 Bartlomiej Rymkowski:
   * Reported [WSTX-28] (broken handling of property

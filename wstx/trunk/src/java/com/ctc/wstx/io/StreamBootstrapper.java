@@ -137,8 +137,16 @@ public final class StreamBootstrapper
         Reader r = null;
         
         char c = (mInputEncoding.length() > 0) ? mInputEncoding.charAt(0) : ' ';
-        
-        if (c == 'u' || c == 'U') {
+
+        /* Canonical charset names here are from IANA recommendation:
+         *   http://www.iana.org/assignments/character-sets
+         * but comparison is done loosely (case-insensitive, ignoring
+         * spacing, underscore vs. hyphen etc) to try to make detection
+         * as extensive as possible.
+         */
+        switch (c) {
+        case 'u':
+        case 'U':
             if (StringUtil.equalEncodings(mInputEncoding, "UTF-8")) {
                 r = new UTF8Reader(mIn, mByteBuffer, mInputPtr, mInputLen);
                 mInputEncoding = "UTF-8";
@@ -154,11 +162,26 @@ public final class StreamBootstrapper
                 // 21-Jan-2006, TSa: ??? What is this to do... ?
                 mInputEncoding = "UTF";
             }
-        } else if (c == 'i' || c== 'I') {
+            break;
+        case 'i':
+        case 'I':
             if (StringUtil.equalEncodings(mInputEncoding, "ISO-8859-1")) {
                 r = new ISOLatinReader(mIn, mByteBuffer, mInputPtr, mInputLen);
                 mInputEncoding = "ISO-8859-1";
             }
+            break;
+        case 'j':
+        case 'J':
+            if (StringUtil.equalEncodings(mInputEncoding, "JIS_Encoding")) {
+                mInputEncoding = "Shift_JIS";
+            }
+            break;
+        case 's':
+        case 'S':
+            if (StringUtil.equalEncodings(mInputEncoding, "Shift_JIS")) {
+                mInputEncoding = "Shift_JIS";
+            }
+            break;
         }
         
         if (r == null) {

@@ -3,6 +3,9 @@ Version: 2.9
 Release date: 22-Jan-2006
 
 Description:
+  One more important pre-3.0 release that fixes lots of various compatibility
+  issues, as well as a few bugs especially in the areas of encodings and
+  handling of various DTD problems.
 
   Problems fixed:
 

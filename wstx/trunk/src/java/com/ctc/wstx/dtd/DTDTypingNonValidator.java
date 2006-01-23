@@ -88,7 +88,7 @@ public class DTDTypingNonValidator
     */
 
     /**
-     * This 'validator' will never (or just yet?) normalize any attributes,
+     * This 'validator' will not normalize any attributes,
      * so let's implement this as no-op.
      */
     public void setAttrValueNormalization(boolean state) {

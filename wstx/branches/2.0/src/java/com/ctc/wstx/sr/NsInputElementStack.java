@@ -526,7 +526,7 @@ public class NsInputElementStack
                 return false;
             }
         } else {
-            if (thisPrefix != prefix && !thisPrefix.equals(prefix)) {
+            if (thisPrefix != prefix && !prefix.equals(thisPrefix)) {
                 return false;
             }
         }

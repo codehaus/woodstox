@@ -151,6 +151,10 @@ public final class StreamBootstrapper
             if (StringUtil.equalEncodings(enc, "ISO-8859-1")) {
                 r = new ISOLatinReader(mIn, mByteBuffer, mInputPtr, mInputLen);
             }
+        } else if (c == 's' || c== 'S') {
+            if (StringUtil.equalEncodings(enc, "Shift_JIS")) {
+                enc = "Shift_JIS";
+            }
         }
         
         if (r == null) {
