@@ -107,7 +107,7 @@ public final class StreamBootstrapper
                 mFoundEncoding = verifyXmlEncoding(mFoundEncoding);
             }
         }
-
+        
         // Now, have we figured out the encoding?
         String enc = mFoundEncoding;
 
@@ -115,56 +115,63 @@ public final class StreamBootstrapper
             if (mBytesPerChar == 2) { // UTF-16, BE/LE
                 enc = mBigEndian ? "UTF-16BE" : "UTF-16LE";
             } else if (mBytesPerChar == 4) { // UCS-4... ?
-		/* 22-Mar-2005, TSa: JDK apparently has no way of dealing
-		 *   with these encodings... not sure if and how it should
-		 *   be dealt with, really. Name could be UCS-4xx... or
-		 *   perhaps UTF-32xx
-		 */
+                /* 22-Mar-2005, TSa: JDK apparently has no way of dealing
+                 *   with these encodings... not sure if and how it should
+                 *   be dealt with, really. Name could be UCS-4xx... or
+                 *   perhaps UTF-32xx
+                 */
                 enc = mBigEndian ? "UTF-32BE" : "UTF-32LE";
             } else {
                 // Ok, default has to be UTF-8, as per XML specs
                 enc = "UTF-8";
             }
         }
-
+        
         /* And then the reader. Let's figure out if we can use our own fast
          * implementations first:
          */
         Reader r = null;
-
-	char c = (enc.length() > 0) ? enc.charAt(0) : ' ';
-
-	if (c == 'u' || c == 'U') {
-	    if (StringUtil.equalEncodings(enc, "UTF-8")) {
-		r = new UTF8Reader(mIn, mByteBuffer, mInputPtr, mInputLen);
-	    } else if (StringUtil.equalEncodings(enc, "US-ASCII")) {
-		r = new AsciiReader(mIn, mByteBuffer, mInputPtr, mInputLen);
-	    } else if (StringUtil.equalEncodings(enc, "UTF-16BE")) {
-		// let's just make sure they're using canonical name...
-		enc = "UTF-16BE";
-	    } else if (StringUtil.equalEncodings(enc, "UTF-16LE")) {
-		enc = "UTF-16LE";
-	    } else if (StringUtil.equalEncodings(enc, "UTF")) {
-		enc = "UTF";
-	    }
-	} else if (c == 'i' || c== 'I') {
-	    if (StringUtil.equalEncodings(enc, "ISO-8859-1")) {
-		r = new ISOLatinReader(mIn, mByteBuffer, mInputPtr, mInputLen);
-	    }
-	}
-
-	if (r == null) {
+        
+        char c = (enc.length() > 0) ? enc.charAt(0) : ' ';
+        
+        if (c == 'u' || c == 'U') {
+            if (StringUtil.equalEncodings(enc, "UTF-8")) {
+                r = new UTF8Reader(mIn, mByteBuffer, mInputPtr, mInputLen);
+            } else if (StringUtil.equalEncodings(enc, "US-ASCII")) {
+                r = new AsciiReader(mIn, mByteBuffer, mInputPtr, mInputLen);
+            } else if (StringUtil.equalEncodings(enc, "UTF-16BE")) {
+                // let's just make sure they're using canonical name...
+                enc = "UTF-16BE";
+            } else if (StringUtil.equalEncodings(enc, "UTF-16LE")) {
+                enc = "UTF-16LE";
+            } else if (StringUtil.equalEncodings(enc, "UTF")) {
+                enc = "UTF";
+            }
+        } else if (c == 'i' || c== 'I') {
+            if (StringUtil.equalEncodings(enc, "ISO-8859-1")) {
+                r = new ISOLatinReader(mIn, mByteBuffer, mInputPtr, mInputLen);
+            }
+        }
+        
+        if (r == null) {
             // Nah, JDK needs to try it
             // Ok; first, do we need to merge stuff back?
             InputStream in = mIn;
             if (mInputPtr < mInputLen) {
                 in = new MergedStream(in, mByteBuffer, mInputPtr, mInputLen);
             }
+            /* 20-Jan-2006, TSa: Ok; although it is possible to declare
+             *   stream as 'UTF-16', JDK may need help in figuring out
+             *   the right order, so let's be explicit:
+             */
+            if (StringUtil.equalEncodings(enc, "UTF-16")) {
+                enc = mBigEndian ? "UTF-16BE" : "UTF-16LE";
+            }
             r = new InputStreamReader(in, enc);
         }
         return r;
     }
-
+    
     /**
      * By definition, when this bootstrapper is used, encoding is not
      * known...

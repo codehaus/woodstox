@@ -25,6 +25,7 @@ public class ErrorConsts
 
     public static String W_UNDEFINED_ELEM = "Undefined element \"{0}\"; referred to by attribute(s)";
     public static String W_MIXED_ENCODINGS = "Inconsistent text encoding; declared as \"{0}\" in xml declaration, application had passed \"{1}\"";
+    public static String W_DTD_NS_ATTR = "Declaring namespace attribute \"{0}\"{1}, ignoring";
 
     // // // Generic errors:
 

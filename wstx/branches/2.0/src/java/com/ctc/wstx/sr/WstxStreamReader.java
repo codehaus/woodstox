@@ -3472,12 +3472,6 @@ public class WstxStreamReader
         char[] inputBuf = mInputBuffer;
         int inputLen = mInputLen;
 
-        /* Output pointers; calls will also ensure that the buffer is
-         * not shared, AND has room for one more char
-         */
-        char[] outBuf = mTextBuffer.getCurrentSegment();
-        int outPtr = mTextBuffer.getCurrentSegmentSize();
-
         outer_loop:
         while (ptr < inputLen) {
             char c = inputBuf[ptr++];

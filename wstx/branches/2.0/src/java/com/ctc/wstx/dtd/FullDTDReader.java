@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.net.URL;
+import java.text.MessageFormat;
 import java.util.*;
 
 import javax.xml.stream.Location;
@@ -2296,6 +2297,23 @@ public class FullDTDReader
             }
         }
 
+        /* 21-Jan-2006, TSa: Hmmh. Apparently some legacy documents also
+         *   define namespace declarations. Fools. Assuming they were to
+         *   be fully supported, more work would be needed: for now just
+         *   ignoring them should work 95% ok (since docs really should
+         *   never count on these defaults; non-dtd-aware parsers will
+         *   not see them, thus they have to be explicitly added too).
+         */
+        if (mCfgNsEnabled && attrName.isaNsDeclaration()) { // only check in ns mode
+            XMLReporter rep = mConfig.getXMLReporter();
+            if (rep != null) {
+                String extra = (defVal == null) ? "" : " (with default value '"+defVal+"')";
+                String msg = MessageFormat.format(ErrorConsts.W_DTD_NS_ATTR, new Object[] { attrName, extra });
+                reportProblem(rep, ErrorConsts.WT_ATTR_DECL, msg, loc, elem);
+            }
+            return;
+        }
+
         // getting null means this is a dup...
         DTDAttribute attr = elem.addAttribute(this, attrName, type, defType,
                                               defVal, enumValues);
@@ -2713,6 +2731,22 @@ public class FullDTDReader
         NameKey result = new NameKey(prefix, localName);
         m.put(result, result);
         return result;
+    }
+
+
+    /*
+    ///////////////////////////////////////////////////////
+    // Error handling
+    ///////////////////////////////////////////////////////
+     */
+
+    private void reportProblem(XMLReporter rep, String probType, String msg,
+                               Location loc, Object extraArg)
+        throws XMLStreamException
+    {
+        if (rep != null) {
+            rep.report(msg, probType, extraArg, loc);
+        }
     }
 }
 

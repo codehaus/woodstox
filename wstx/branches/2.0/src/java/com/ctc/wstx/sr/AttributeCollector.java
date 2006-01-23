@@ -269,7 +269,7 @@ public abstract class AttributeCollector
     {
         String val = mValueBuffer.normalizeSpaces(index);
 
-        if (val == null) {
+        if (val != null) {
             if (mAttrValues == null) {
                 mAttrValues = new String[mAttrCount];
             }

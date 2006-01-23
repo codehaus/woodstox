@@ -141,13 +141,18 @@ public final class WordResolver
             do { // dummy loop, need to have break
                 // Linear or binary search?
                 if (count < MIN_BINARY_SEARCH) {
+                    // always at least two branches; never less
                     if (data[ptr] == c) {
                         ptr = (int) data[ptr+1];
                         break inner_block;
                     }
+                    if (data[ptr+2] == c) {
+                        ptr = (int) data[ptr+3];
+                        break inner_block;
+                    }
                     int branchEnd = ptr + (count << 1);
-                    // Starts from entry #2, if such exists
-                    for (ptr += 2; ptr < branchEnd; ptr += 2) {
+                    // Starts from entry #3, if such exists
+                    for (ptr += 4; ptr < branchEnd; ptr += 2) {
                         if (data[ptr] == c) {
                             ptr = (int) data[ptr+1];
                             break inner_block;
@@ -255,7 +260,7 @@ public final class WordResolver
                     }
                     int branchEnd = ptr + (count << 1);
                     // Starts from entry #3, if such exists
-                    for (ptr += 2; ptr < branchEnd; ptr += 2) {
+                    for (ptr += 4; ptr < branchEnd; ptr += 2) {
                         if (data[ptr] == c) {
                             ptr = (int) data[ptr+1];
                             break inner_block;
@@ -539,7 +544,7 @@ public final class WordResolver
     public static void main(String[] args)
     {
         if (args.length < 2) {
-            System.err.println("Usage: "+WordSet.class+" word1 [word2] ... [wordN] keyword");
+            System.err.println("Usage: "+WordResolver.class+" word1 [word2] ... [wordN] keyword");
             System.exit(1);
         }
         String key = args[args.length-1];
@@ -555,7 +560,7 @@ public final class WordResolver
         // Ok, and then the test!
         char[] keyA = new char[key.length() + 4];
         key.getChars(0, key.length(), keyA, 2);
-        //System.out.println("Word '"+key+"' found via array search: "+WordSet.find(data, keyA, 2, key.length() + 2));
+        //System.out.println("Word '"+key+"' found via array search: "+WordResolver.find(data, keyA, 2, key.length() + 2));
         System.out.println("Word '"+key+"' found via array search: "+set.find(keyA, 2, key.length() + 2));
     }
 

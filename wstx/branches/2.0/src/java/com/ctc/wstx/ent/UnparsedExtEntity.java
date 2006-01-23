@@ -42,7 +42,7 @@ public class UnparsedExtEntity
         w.write("<!ENTITY ");
         w.write(mName);
         String pubId = getPublicId();
-        if (pubId == null) {
+        if (pubId != null) {
             w.write("PUBLIC \"");
             w.write(pubId);
             w.write("\" ");
