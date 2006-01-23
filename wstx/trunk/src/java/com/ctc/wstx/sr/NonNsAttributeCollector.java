@@ -491,7 +491,7 @@ public final class NonNsAttributeCollector
          * want too big (need to clear up room), nor too small (only
          * collisions)
          */
-        mAttrHashSize = 4;
+        mAttrHashSize = mAttrSpillEnd = 4;
         if (mAttrMap == null || mAttrMap.length < mAttrHashSize) {
             mAttrMap = new int[mAttrHashSize+1];
         }

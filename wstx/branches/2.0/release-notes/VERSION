@@ -3,21 +3,30 @@ Version: 2.0.5
 Release date: xx-Jan-2006
 
 Description:
-  A maintenance release for 2.0.
+  A maintenance release for 2.0, merging critical fixes (that have limited
+  scope of changes in codebase) from 3.0 development branch.
 
   Problems fixed:
 
-  * Problem with Namespace and EntityRerences event; were returning incorrect
-    event type (CHARACTERS and ENTITY_REFERENCE, respectively)
   * [WSTX-28] Feature (WstxInputProperties.P_CUSTOM_INTERNAL_ENTITIES) did
     not work properly
     [reported by Bartlomiej R]
-  * Problems with external/internal DTD subset combination as identified
-    by unit tests (attribute, element combination, precedence).
   * [WSTX-29] NamespaceContext returned by StartElement events was sometimes
     empty.
+  * [WSTX-39] (partial fix): If namespace declarations were declared in
+    DTD (to support legacy documents or processors), Woodstox would not
+    recognized their special status, and could add default values for
+    those as if they were regular attributes. Now such declarations will
+    basically be ignored, which usually should work acceptably.
+  * Problem with Namespace and EntityRerences event; were returning incorrect
+    event type (CHARACTERS and ENTITY_REFERENCE, respectively)
+  * Problems with external/internal DTD subset combination as identified
+    by unit tests (attribute, element combination, precedence).
   * A bug in WordResolver, which could cause ArrayIndexOutOfBoundsException
     for enumeration/notation attributes with just one value.
+  * Fixed a problem with bootstrapping UTF-16 streams; if "UTF-16" explicitly
+    specified as encoding, underlying JDK reader did not always use correct
+    endianness.
 
 == History: ==
 

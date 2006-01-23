@@ -17,6 +17,16 @@ import com.ctc.wstx.util.TextBuilder;
 /**
  * Attribute collector class used in namespace-aware parsing mode.
  *<p>
+ * Some notes about low-level raw hashing map implementation. Hash area
+ * is divided into two sections: first (of size 2^N) is somewhat usual
+ * set of indexes to actual attribute names (values in these slots are
+ * 'entry + 1', since 0 means 'empty'). There is just one int entry
+ * per name; actual name comparison is done using secondary tables that
+ * contain (interned) name components.
+ * Secondary area will be used for spills, and it is initially sized to
+ * have N/8 entries; and since there are 2 ints per entry, size will actually
+ * be N/4, following right after the primary hash area.
+ *<p>
  * Note: only public for testing purposes
  */
 public final class NsAttributeCollector
@@ -674,7 +684,7 @@ public final class NsAttributeCollector
          * want too big (need to clear up room), nor too small (only
          * collisions)
          */
-        mAttrHashSize = 4;
+        mAttrHashSize = mAttrSpillEnd = 4;
         if (mAttrMap == null || mAttrMap.length < mAttrHashSize) {
             mAttrMap = new int[mAttrHashSize+1];
         }

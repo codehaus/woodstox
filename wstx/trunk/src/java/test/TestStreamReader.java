@@ -283,6 +283,7 @@ public class TestStreamReader
 
         try {
             int total = new TestStreamReader().test(new File(args[0]));
+            System.out.println();
             System.out.println("Total: "+total);
         } catch (Throwable t) {
           System.err.println("Error: "+t);
