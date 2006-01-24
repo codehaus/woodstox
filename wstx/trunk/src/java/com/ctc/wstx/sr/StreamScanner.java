@@ -550,7 +550,7 @@ public abstract class StreamScanner
         throws WstxException
     {
         WstxInputLocation loc = getLastCharLocation();
-        throw new WstxUnexpectedCharException("Illegal character (NULL, unicode 0) encountered: not valid in any context", loc, CHAR_NULL);
+        throw new WstxUnexpectedCharException("Illegal character (NULL, unicode 0) encountered: not valid in any content", loc, CHAR_NULL);
     }
 
     protected void throwUnexpectedEOF(String msg)
@@ -1085,11 +1085,23 @@ public abstract class StreamScanner
                         mInputPtr = ptr; // so error points to correct char
                         throwUnexpectedChar(c, "; expected a hex number (0-9a-zA-Z).");
                     }
+                    /* 20-Jan-2005, TSa: Ok; if we get "high" Unicode char,
+                     *   it needs to be expressed via surrogate pair. And since
+                     *   we have to return a char, have to handle that in 'full'
+                     *   resolution path (can as well handle errors there too)
+                     */
+                    if (value > 0xFFFF) {
+                        return CHAR_NULL;
+                    }
                 }
             } else { // numeric (decimal)
                 while (c != ';') {
                     if (c <= '9' && c >= '0') {
                         value = (value * 10) + (c - '0');
+                        // 20-Jan-2005, TSa: Ok; if we get "high" Unicode char,
+                        if (value > 0xFFFF) {
+                            return CHAR_NULL;
+                        }
                     } else {
                         mInputPtr = ptr; // so error points to correct char
                         throwUnexpectedChar(c, "; expected a decimal number.");
@@ -1107,21 +1119,13 @@ public abstract class StreamScanner
                 if (value == 0) {
                     throwParseError("Invalid character reference -- null character not allowed in XML content.");
                 }
-                /* 20-Jan-2005, TSa: Ok; if we get "high" Unicode char,
-                 *   it needs to be expressed via surrogate pair. And since
-                 *   we have to return a char, have to handle that in 'full'
-                 *   resolution path (can as well handle errors there too)
-                 */
-                if (value < 0x10000) {
-                    mInputPtr = ptr;
-                    return (char) value;
-                }
+                mInputPtr = ptr;
+                return (char) value;
             }
 
             /* If we ran out of input, need to just fall back, gets
              * resolved via 'full' resolution mechanism.
              */
-
         } else if (checkStd) {
             /* Caller may not want to resolve these quite yet...
              * (when it wants separate events for non-char entities)
