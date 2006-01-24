@@ -164,7 +164,7 @@ public class WstxEventReader
                 str = curr;
             } else {
                 if (sb == null) {
-                    sb = new StringBuffer(str.length() + curr);
+                    sb = new StringBuffer(str.length() + curr.length());
                     sb.append(str);
                 }
                 sb.append(curr);
