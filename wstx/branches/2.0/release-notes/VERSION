@@ -1,10 +1,15 @@
-Version: 2.0.5
+Version: 2.0.6
 
-Release date: 22-Jan-2006
+Release date: xx-Feb-2006
 
 Description:
-  A maintenance release for 2.0, merging critical fixes (that have limited
-  scope of changes in codebase) from 3.0 development branch.
+  A maintenance release for 2.0, including some critical fixes.
+
+  Problems fixed:
+
+== History: ==
+
+2.0.5: [22-Jan-2006]
 
   Problems fixed:
 
@@ -27,8 +32,6 @@ Description:
   * Fixed a problem with bootstrapping UTF-16 streams; if "UTF-16" explicitly
     specified as encoding, underlying JDK reader did not always use correct
     endianness.
-
-== History: ==
 
 2.0.4: [16-Dec-2005]
 

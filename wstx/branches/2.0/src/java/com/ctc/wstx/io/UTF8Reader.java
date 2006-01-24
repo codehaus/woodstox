@@ -29,6 +29,8 @@ public final class UTF8Reader
     final static char NULL_CHAR = (char) 0;
     final static char NULL_BYTE = (byte) 0;
 
+    final static int MAX_UNICODE_CHAR = 0x10FFFF;
+
     char mSurrogate = NULL_CHAR;
 
     /**
@@ -172,39 +174,37 @@ public final class UTF8Reader
             }
             c = (c << 6) | (d & 0x3F);
 
-            if (needed > 1) {
-                d = buf[mPtr++];
+            if (needed > 1) { // needed == 1 means 2 bytes total
+                d = buf[mPtr++]; // 3rd byte
                 if ((d & 0xC0) != 0x080) {
                     reportInvalidOther(d & 0xFF, outPtr-start);
                 }
                 c = (c << 6) | (d & 0x3F);
-                if (needed > 2) {
+                if (needed > 2) { // 4 bytes? (need surrogates)
                     d = buf[mPtr++];
                     if ((d & 0xC0) != 0x080) {
                         reportInvalidOther(d & 0xFF, outPtr-start);
                     }
                     c = (c << 6) | (d & 0x3F);
-                    if (needed > 3) { // weird case! (surrogates)
-                        d = buf[mPtr++];
-                        if ((d & 0xC0) != 0x080) {
-                            reportInvalidOther(d & 0xFF, outPtr-start);
-                        }
-                        c = (c << 6) | (d & 0x3F);
-                        /* Ugh. Need to mess with surrogates. Ok; let's inline them
-                         * there, then, if there's room: if only room for one,
-                         * need to save the surrogate for the rainy day...
-                         */
-                        c -= 0x10000; // to normalize it starting with 0x0
-                        cbuf[outPtr++] = (char) (0xD800 + (c >> 10));
-                        // hmmh. can this ever be 0? (not legal, at least?)
-                        c = (0xDC00 | (c & 0x03FF));
-                        // Room for second part?
-                        if (outPtr >= len) { // nope
-                            mSurrogate = (char) c;
-                            break main_loop;
-                        }
-                        // sure, let's fall back to normal processing:
+                    /* Ugh. Need to mess with surrogates. Ok; let's inline them
+                     * there, then, if there's room: if only room for one,
+                     * need to save the surrogate for the rainy day...
+                     */
+                    // But first, let's check max chars:
+                    if (c > MAX_UNICODE_CHAR) {
+                        reportInvalidMax(c, outPtr-start);
                     }
+                    c -= 0x10000; // to normalize it starting with 0x0
+                    cbuf[outPtr++] = (char) (0xD800 + (c >> 10));
+                    // hmmh. can this ever be 0? (not legal, at least?)
+                    c = (0xDC00 | (c & 0x03FF));
+
+                    // Room for second part?
+                    if (outPtr >= len) { // nope
+                        mSurrogate = (char) c;
+                        break main_loop;
+                    }
+                    // sure, let's fall back to normal processing:
                 }
             }
             cbuf[outPtr++] = (char) c;
@@ -256,6 +256,15 @@ public final class UTF8Reader
         throw new CharConversionException("Unexpected EOF in the middle of a multi-byte char: got "
                                           +gotBytes+", needed "+needed
                                           +", at char #"+charPos+", byte #"+bytePos+")");
+    }
+
+    private void reportInvalidMax(int value, int offset)
+        throws IOException
+    { 
+        int bytePos = mByteCount + mPtr - 1;
+        int charPos = mCharCount + offset;
+
+        throw new CharConversionException("Invalid 4-byte UTF-8 character (value "+Integer.toHexString(value)+" above "+Integer.toHexString(MAX_UNICODE_CHAR)+"), at char #"+charPos+", byte #"+bytePos+")");
     }
 
     /**
@@ -337,33 +346,5 @@ public final class UTF8Reader
         }
         return true;
     }
-
-    /*
-    private void loadMore(int needed)
-        throws IOException
-    {
-        // let's first move existing bytes back
-        for (int i = mPtr; i < mLength; ++i) {
-            mBuffer[i - mPtr] = mBuffer[i];
-        }
-        mLength = mLength - mPtr;
-        mPtr = 0;
-
-        // and then load more:
-        while (mLength < needed) {
-            int count = mIn.read(mBuffer, mLength, mBuffer.length - mLength);
-            if (count < 1) {
-                // Let's actually then free the buffer right away; shouldn't
-                // yet close the underlying stream though?
-                mBuffer = null;
-                if (count == 0) {
-                    reportStrangeStream();
-                }
-                throw new IOException("Unexpected EOF in the middle of multi-byte UTF-8 character");
-            }
-            mLength += count;
-        }
-    }
-    */
 }
 
