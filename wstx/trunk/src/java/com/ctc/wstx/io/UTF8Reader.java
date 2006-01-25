@@ -29,6 +29,10 @@ public final class UTF8Reader
     final static char NULL_CHAR = (char) 0;
     final static char NULL_BYTE = (byte) 0;
 
+    /**
+     * This constant defines the highest Unicode character allowed
+     * in XML content.
+     */
     final static int MAX_UNICODE_CHAR = 0x10FFFF;
 
     char mSurrogate = NULL_CHAR;

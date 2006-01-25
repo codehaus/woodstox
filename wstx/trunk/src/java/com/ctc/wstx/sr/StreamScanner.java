@@ -1085,22 +1085,20 @@ public abstract class StreamScanner
                         mInputPtr = ptr; // so error points to correct char
                         throwUnexpectedChar(c, "; expected a hex number (0-9a-zA-Z).");
                     }
-                    /* 20-Jan-2005, TSa: Ok; if we get "high" Unicode char,
-                     *   it needs to be expressed via surrogate pair. And since
-                     *   we have to return a char, have to handle that in 'full'
-                     *   resolution path (can as well handle errors there too)
+                    /* Need to check for overflow; easiest to do right as
+                     * it happens...
                      */
-                    if (value > 0xFFFF) {
-                        return CHAR_NULL;
+                    if (value > MAX_UNICODE_CHAR) {
+                        reportUnicodeOverflow();
                     }
                 }
             } else { // numeric (decimal)
                 while (c != ';') {
                     if (c <= '9' && c >= '0') {
                         value = (value * 10) + (c - '0');
-                        // 20-Jan-2005, TSa: Ok; if we get "high" Unicode char,
-                        if (value > 0xFFFF) {
-                            return CHAR_NULL;
+                        // Overflow?
+                        if (value > MAX_UNICODE_CHAR) {
+                            reportUnicodeOverflow();
                         }
                     } else {
                         mInputPtr = ptr; // so error points to correct char
@@ -1120,6 +1118,15 @@ public abstract class StreamScanner
                     throwParseError("Invalid character reference -- null character not allowed in XML content.");
                 }
                 mInputPtr = ptr;
+                /* 24-Jan-2006, TSa: Ok, "high" Unicode chars are problematic,
+                 *   need to be reported by a surrogate pair..
+                 */
+                if (value > 0xFFFF) {
+                    /* Ok, have overwrite one char with second surrogate,
+                     * push back input pointer, and return the first surrogate
+                     */
+                    return expandSurrogatePair(value);
+                }
                 return (char) value;
             }
 
@@ -2138,11 +2145,19 @@ public abstract class StreamScanner
                 } else {
                     throwUnexpectedChar(c, "; expected a hex number (0-9a-zA-Z).");
                 }
+                // Overflow?
+                if (value > MAX_UNICODE_CHAR) {
+                    reportUnicodeOverflow();
+                }
             }
         } else { // numeric (decimal)
             while (c != ';') {
                 if (c <= '9' && c >= '0') {
                     value = (value * 10) + (c - '0');
+                    // Overflow?
+                    if (value > MAX_UNICODE_CHAR) {
+                        reportUnicodeOverflow();
+                    }
                 } else {
                     throwUnexpectedChar(c, "; expected a decimal number.");
                 }
@@ -2155,7 +2170,32 @@ public abstract class StreamScanner
         if (value == 0) {
             throwParseError("Invalid character reference -- null character not allowed in XML content.");
         }
+        if (value > 0xFFFF) { // "high" Unicode char?
+            return expandSurrogatePair(value);
+        }
         return c;
+    }
+
+    /**
+     * Method called to expand a character entity with "high" character
+     * value: basically any character above 16-bit limit (over 0x10000).
+     */
+    protected char expandSurrogatePair(int highChar)
+        throws WstxException
+    {
+        // sanity check first:
+        if (highChar > MAX_UNICODE_CHAR) {
+            reportUnicodeOverflow();
+        }
+        highChar -= 0x10000;
+        char first = (char) ((highChar >> 10)  + 0xD800);
+        char second = (char) ((highChar & 0x3FF)  + 0xDC00);
+
+        /* Ok, so; need to push back second, return first:
+         * (we now buffer has room for at least one char at this point)
+         */
+        mInputBuffer[--mInputPtr] = second;
+        return first;
     }
 
     protected final char[] getNameBuffer(int minSize)
@@ -2195,5 +2235,11 @@ public abstract class StreamScanner
         throws WstxException
     {
         throwParseError("Illegal entity expansion: entity '"+entityName+"' expands itself recursively.");
+    }
+
+    private void reportUnicodeOverflow()
+        throws WstxException
+    {
+        throwParseError("Illegal character entity: value higher than max allowed (0x"+Integer.toHexString(MAX_UNICODE_CHAR)+")");
     }
 }

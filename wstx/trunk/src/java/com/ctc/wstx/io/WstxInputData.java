@@ -42,6 +42,12 @@ public class WstxInputData
     public final static char CHAR_SPACE = (char) 0x0020;
     public final static char INT_SPACE = 0x0020;
 
+    /**
+     * This constant defines the highest Unicode character allowed
+     * in XML content.
+     */
+    public final static int MAX_UNICODE_CHAR = 0x10FFFF;
+
     /*
     ////////////////////////////////////////////////////
     // Character validity constants, structs
