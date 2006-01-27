@@ -886,32 +886,49 @@ public class FullDTDReader
         }
     }
 
+    /**
+     * Note: Apparently a parameter entity expansion does also count
+     * as white space (that is, PEs outside of quoted text are considered
+     * to be separated by white spaces on both sides). Fortunately this
+     * can be handled by 2 little hacks: both a start of a PE, and an
+     * end of input block (== end of PE expansion) count as succesful
+     * spaces.
+     */
     private char skipObligatoryDtdWs()
         throws IOException, XMLStreamException
     {
-        char c = CHAR_NULL;
-        int count = 0;
-        
+        /* Ok; since we need at least one space, or a PE, or end of input
+         * block, let's do this unique check first...
+         */
+        int i = peekNext();
+        char c;
+
+        if (i == -1) { // just means 'local' EOF (since peek only checks current)
+            c = getNextChar(getErrorMsg());
+            // Non-space, non PE is ok, due to end-of-block...
+            if (c > CHAR_SPACE && c != '%') {
+                return c;
+            }
+        } else {
+            c = mInputBuffer[mInputPtr++]; // was peek, need to read
+            if (c > CHAR_SPACE && c != '%') {
+                throwDTDUnexpectedChar(c, "; expected a separating white space.");
+            }
+        }
+
+        // Ok, got it, now can loop...
         while (true) {
-            c = (mInputPtr < mInputLen)
-                ? mInputBuffer[mInputPtr++] : getNextChar(getErrorMsg());
             if (c == '%') {
                 expandPE();
-                continue;
-            }
-            if (c > CHAR_SPACE) {
+            } else if (c > CHAR_SPACE) {
                 break;
             }
-            ++count;
+            c = (mInputPtr < mInputLen)
+                ? mInputBuffer[mInputPtr++] : getNextCharFromCurrent(getErrorMsg());
             if (c == '\n' || c == '\r') {
                 skipCRLF(c);
             }
         }
-        
-        if (count == 0) {
-            throwDTDUnexpectedChar(c, "; expected a separating white space.");
-        }
-        
         return c;
     }
 
@@ -935,7 +952,7 @@ public class FullDTDReader
             id = readDTDName();
             try {
                 c = (mInputPtr < mInputLen) ?
-                    mInputBuffer[mInputPtr++] : getNextChar(getErrorMsg());
+                    mInputBuffer[mInputPtr++] : getNextCharFromCurrent(getErrorMsg());
             } finally {
                 // will ignore name and colon (or whatever was parsed)
                 mFlattenWriter.enableOutput(mInputPtr);
@@ -943,7 +960,7 @@ public class FullDTDReader
         } else {
             id = readDTDName();
             c = (mInputPtr < mInputLen) ?
-                mInputBuffer[mInputPtr++] : getNextChar(getErrorMsg());
+                mInputBuffer[mInputPtr++] : getNextCharFromCurrent(getErrorMsg());
         }
         
         // Should now get semicolon...
@@ -988,8 +1005,15 @@ public class FullDTDReader
 
     /**
      * Method called to verify whether input has specified keyword; if it
-     * has, returns null and points to char after the keyword; if not, returns
-     * whatever constitutes a keyword matched, for error reporting purposes.
+     * has, returns null and points to char after the keyword; if not,
+     * returns whatever constitutes a keyword matched, for error
+     * reporting purposes.
+     *<p>
+     * Note: no PE expansion should be done within keyword; however,
+     * apparently it IS ok to expand one right after keyword...
+     * which is bit strange, but there are test cases that indicate
+     * it should be accepted. But at the very least, let's not expand
+     * PEs, ie. just quit if % is encountered.
      */
     protected String checkDTDKeyword(String exp)
         throws IOException, XMLStreamException
@@ -999,40 +1023,42 @@ public class FullDTDReader
         char c = ' ';
 
         for (; i < len; ++i) {
-            while (true) { // inlined getNextExpanded()
-                c = (mInputPtr < mInputLen) ?
-                    mInputBuffer[mInputPtr++] : getNextChar(getErrorMsg());
-                if (c != '%') {
-                    break;
-                }
-                expandPE();
-            }
+            c = (mInputPtr < mInputLen) ?
+                mInputBuffer[mInputPtr++] : getNextCharFromCurrent(getErrorMsg());
             if (c != exp.charAt(i)) {
                 break;
             }
         }
 
         if (i == len) {
-            /* Got a match? Cool... except if identifier still continues...
-             */
-            c = getNextExpanded();
-            --mInputPtr; // ie. we just peek it...
-            if (!is11NameChar(c)) {
+            // Got a match? Cool... except if identifier still continues...
+            int nextChar = peekNext();
+            if (nextChar < 0 || !is11NameChar((char) nextChar)) {
                 // Yup, that's fine!
                 return null;
             }
             // Nope, need to just fall down to get full 'wrong' keyword
+            c = (char) nextChar;
+            ++mInputPtr;
         }
 
         // Let's first add previous parts of the keyword:
         StringBuffer sb = new StringBuffer(exp.substring(0, i));
         sb.append(c);
         while (true) {
-            c = getNextExpanded();
+            if (mInputPtr < mInputLen) {
+                c = mInputBuffer[mInputPtr];
+            } else {
+                int nextChar = peekNext();
+                if (nextChar < 0) { // end-of-block
+                    break;
+                }
+                c = (char) nextChar;
+            }
             if (!is11NameChar(c) && c != ':') {
-                --mInputPtr;
                 break;
             }
+            ++mInputPtr;
             sb.append(c);
         }
         return sb.toString();
@@ -1059,15 +1085,8 @@ public class FullDTDReader
         int len = exp.length();
 
         for (; i < len; ++i) {
-            char c;
-            while (true) { // inlined getNextExpanded()
-                c = (mInputPtr < mInputLen) ?
-                    mInputBuffer[mInputPtr++] : getNextChar(getErrorMsg());
-                if (c != '%') {
-                    break;
-                }
-                expandPE();
-            }
+            char c = (mInputPtr < mInputLen) ?
+                mInputBuffer[mInputPtr++] : getNextCharFromCurrent(getErrorMsg());
             if (c != exp.charAt(i)) {
                 break;
             }
@@ -1075,7 +1094,8 @@ public class FullDTDReader
 
         if (i == len) {
             // Got a match? Cool... except if identifier still continues...
-            char c = getNextExpanded();
+            char c = (mInputPtr < mInputLen) ?
+                mInputBuffer[mInputPtr++] : getNextCharFromCurrent(getErrorMsg());
             --mInputPtr; // ie. we just peek it...
             if (!is11NameChar(c)) {
                 // Yup, that's fine!
@@ -1087,7 +1107,8 @@ public class FullDTDReader
         // Let's first add previous parts of the keyword:
         StringBuffer sb = new StringBuffer(exp.substring(0, i));
         while (true) {
-            char c = getNextExpanded();
+            char c = (mInputPtr < mInputLen) ?
+                mInputBuffer[mInputPtr++] : getNextCharFromCurrent(getErrorMsg());
             if (!is11NameChar(c) && c != ':') {
                 --mInputPtr;
                 break;
@@ -1109,7 +1130,7 @@ public class FullDTDReader
     protected String readDTDKeyword(String prefix)
         throws IOException, XMLStreamException
     {
-        boolean gotPrefix = prefix != null && prefix.length() > 0;
+        boolean gotPrefix = (prefix != null) && prefix.length() > 0;
         StringBuffer sb = gotPrefix ?
             new StringBuffer(prefix) : new StringBuffer();
 
@@ -1123,7 +1144,8 @@ public class FullDTDReader
         }
 
         while (true) {
-            char c = getNextExpanded();
+            char c = (mInputPtr < mInputLen) ?
+                mInputBuffer[mInputPtr++] : getNextCharFromCurrent(getErrorMsg());
             if (!is11NameChar(c) && c != ':') {
                 --mInputPtr;
                 break;
@@ -1220,7 +1242,7 @@ public class FullDTDReader
             }
             outBuf[outPtr++] = c;
             c = (mInputPtr < mInputLen) ? mInputBuffer[mInputPtr++]
-                : getNextChar(SUFFIX_IN_NAME);
+                : getNextCharFromCurrent(SUFFIX_IN_NAME);
         }
 
         /* Nmtokens need not be canonicalized; they will be processed
@@ -1249,16 +1271,24 @@ public class FullDTDReader
             localName = parseFullName(firstChar);
         } else {
             localName = parseLocalName(firstChar);
-            char c = (mInputPtr < mInputLen) ?
-                mInputBuffer[mInputPtr++] : getNextChar(getErrorMsg());
-            if (c == ':') { // Ok, got namespace and local name
-                prefix = localName;
-                c = (mInputPtr < mInputLen) ?
-                    mInputBuffer[mInputPtr++] : getNextChar(getErrorMsg());
-                localName = parseLocalName(c);
-            } else {
-                --mInputPtr; // pushback
+            /* Hmmh. This is tricky; should only read from the current
+             * scope, but it is ok to hit end-of-block if it was a PE
+             * expansion...
+             */
+            if (mInputPtr >= mInputLen && !loadMoreFromCurrent()) {
+                // ok, that's it...
                 prefix = null;
+            } else {
+                char c = mInputBuffer[mInputPtr];
+                if (c == ':') { // Ok, got namespace and local name
+                    ++mInputPtr;
+                    prefix = localName;
+                    c = (mInputPtr < mInputLen) ?
+                        mInputBuffer[mInputPtr++] : getNextCharFromCurrent(getErrorMsg());
+                    localName = parseLocalName(c);
+                } else {
+                    prefix = null;
+                }
             }
         }
 
@@ -1760,7 +1790,7 @@ public class FullDTDReader
 
     /**
      * Specialized method that handles potentially suppressable entity
-     * declaration. Specifically: at this point it is know that first
+     * declaration. Specifically: at this point it is known that first
      * letter is 'E', that we are outputting flattened DTD info,
      * and that parameter entity declarations are to be suppressed.
      * Furthermore, flatten output is still being disabled, and needs
@@ -1799,6 +1829,10 @@ public class FullDTDReader
         reportBadDirective(keyw);
     }
 
+    /**
+     * note: when this method is called, the keyword itself has
+     * been succesfully parsed.
+     */
     private void handleAttlistDecl()
         throws IOException, XMLStreamException
     {
@@ -1837,8 +1871,17 @@ public class FullDTDReader
                 // Let's push it back in case it's LF, to be handled properly
                 --mInputPtr;
                 c = skipDtdWs();
+
+                /* 26-Jan-2006, TSa: actually there are edge cases where
+                 *   we may get the attribute name right away (esp.
+                 *   with PEs...); so let's defer possible error for
+                 *   later on. Should not allow missing spaces between
+                 *   attribute declarations... ?
+                 */
+                /*
             } else if (c != '>') {
                 throwDTDUnexpectedChar(c, "; excepted either '>' closing ATTLIST declaration, or a white space character separating individual attribute declarations");
+                */
             }
             if (c == '>') {
                 break;
@@ -1854,6 +1897,9 @@ public class FullDTDReader
         /* This method will handle PEs that contain the whole element
          * name. Since it's illegal to have partials, we can then proceed
          * to just use normal parsing...
+         */
+        /* 26-Jan-2006, TSa: Apparently white space is optional, at least
+         *   if a PE is found here...
          */
         char c = skipObligatoryDtdWs();
         final NameKey elemName = readDTDQName(c);
@@ -2197,7 +2243,7 @@ public class FullDTDReader
     {
         // First attribute name
         NameKey attrName = readDTDQName(c);
-        
+
         // then type:
         c = skipObligatoryDtdWs();
 

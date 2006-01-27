@@ -1651,16 +1651,14 @@ public abstract class StreamScanner
         }
 
         int ptr = mInputPtr;
-        int inputLen = mInputLen;
-        //char[] inputBuf = mInputBuffer;
-        int startPtr = ptr-1; // already read previous char
         int hash = (int) c;
+        int inputLen = mInputLen;
+        int startPtr = ptr-1; // already read previous char
 
         /* After which there may be zero or more name chars
          * we have to consider
          */
         while (ptr < inputLen) {
-            //c = inputBuf[ptr];
             c = mInputBuffer[ptr];
             if ((c < CHAR_LOWEST_LEGAL_LOCALNAME_CHAR) || !is11NameChar(c)) {
                 mInputPtr = ptr;
@@ -1700,15 +1698,20 @@ public abstract class StreamScanner
 
         int outLen = outBuf.length;
         while (true) {
-            char c = (mInputPtr < mInputLen) ? mInputBuffer[mInputPtr++]
-                : getNextChar(SUFFIX_IN_NAME);
+            // note: names can not cross input block (entity) boundaries...
+            if (mInputPtr >= mInputLen) {
+                if (!loadMoreFromCurrent()) {
+                    break;
+                }
+            }
+            char c = mInputBuffer[mInputPtr];
             if ((c < CHAR_LOWEST_LEGAL_LOCALNAME_CHAR) || !is11NameChar(c)) {
-                --mInputPtr; // pusback
                 break;
             }
+            ++mInputPtr;
             if (ptr >= outLen) {
-              mNameBuffer = outBuf = expandBy50Pct(outBuf);
-              outLen = outBuf.length;
+                mNameBuffer = outBuf = expandBy50Pct(outBuf);
+                outLen = outBuf.length;
             }
             outBuf[ptr++] = c;
             hash = (hash * 31) + (int) c;
@@ -1763,10 +1766,9 @@ public abstract class StreamScanner
             }
         }
 
-        int hash = (int) c;
         int ptr = mInputPtr;
+        int hash = (int) c;
         int inputLen = mInputLen;
-        char[] inputBuf = mInputBuffer;
         int startPtr = ptr-1; // to account for the first char
 
         /* After which there may be zero or more name chars
@@ -1781,11 +1783,11 @@ public abstract class StreamScanner
                 mInputPtr = ptr;
                 return parseFullName2(startPtr, hash);
             }
-            c = inputBuf[ptr];
+            c = mInputBuffer[ptr];
             if (c == ':') { // colon only allowed in non-NS mode
                 if (mCfgNsEnabled) {
                     mInputPtr = ptr;
-                    throwNsColonException(new String(inputBuf, startPtr, ptr - startPtr) + parseFNameForError());
+                    throwNsColonException(new String(mInputBuffer, startPtr, ptr - startPtr) + parseFNameForError());
                 }
             } else if (!is11NameChar(c)) {
                 break;
@@ -1794,7 +1796,7 @@ public abstract class StreamScanner
             ++ptr;
         }
         mInputPtr = ptr;
-        return mSymbols.findSymbol(inputBuf, startPtr, ptr - startPtr, hash);
+        return mSymbols.findSymbol(mInputBuffer, startPtr, ptr - startPtr, hash);
     }
 
     protected String parseFullName2(int start, int hash)
@@ -1815,19 +1817,12 @@ public abstract class StreamScanner
              *   have to come from the same input source. Thus, let's only
              *   load things from same input level
              */
-            char c;
-
             if (mInputPtr >= mInputLen) {
-                /* Should only load more input from the current input
-                 * source... and usually it'd also be an error to hit
-                 * an EOB, but not always. Thus, let's just let the caller
-                 * deal with such situations.
-                 */
                 if (!loadMoreFromCurrent()) {
                     break;
                 }
             }
-            c = mInputBuffer[mInputPtr];
+            char c = mInputBuffer[mInputPtr];
             if (c == ':') { // colon only allowed in non-NS mode
                 ++mInputPtr;
                 if (mCfgNsEnabled) {
