@@ -1435,8 +1435,8 @@ public abstract class StreamScanner
     protected char fullyResolveEntity(Map ent1, Map ent2, boolean allowExt)
         throws IOException, XMLStreamException
     {
-        char c = getNextChar(SUFFIX_IN_ENTITY_REF);
-        
+        char c = getNextCharFromCurrent(SUFFIX_IN_ENTITY_REF);
+
         // Do we have a (numeric) character entity reference?
         if (c == '#') { // numeric
             return resolveCharEnt();

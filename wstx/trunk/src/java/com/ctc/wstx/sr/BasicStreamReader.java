@@ -3668,7 +3668,7 @@ public class BasicStreamReader
         mCurrName = target;
 
         if (target.length() == 0) {
-            throwParseError("Missing processing instruction target.");
+            throwParseError(ErrorConsts.ERR_WF_PI_MISSING_TARGET);
         }
 
         // As per XML specs, #17, case-insensitive 'xml' is illegal:
@@ -3680,9 +3680,8 @@ public class BasicStreamReader
                     c = target.charAt(2);
                     if (c == 'l' || c == 'L') {
                         // 07-Oct-2005, TSa: Still legal in multi-doc mode...
-                        if (!mConfig.inputParsingModeDocuments() || !"xml".equals(target)){
-                            throwParseError("Illegal processing instruction target ('"
-                                            +target+"'); 'xml' (case insensitive) is reserved by the specs.");
+                        if (!mConfig.inputParsingModeDocuments()) {
+                            throwParseError(ErrorConsts.ERR_WF_PI_MISSING_TARGET, target);
                         }
                         // Ok, let's just verify we get space then
                         c = getNextCharFromCurrent(SUFFIX_IN_XML_DECL);

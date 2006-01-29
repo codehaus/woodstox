@@ -26,6 +26,8 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.stream.StreamSource;
 
+import org.xml.sax.InputSource;
+
 import org.codehaus.stax2.XMLEventReader2;
 import org.codehaus.stax2.XMLInputFactory2;
 import org.codehaus.stax2.XMLStreamReader2;
@@ -652,9 +654,36 @@ public final class WstxInputFactory
         }
 
         if (src instanceof SAXSource) {
-            // !!! TBI
-            //SAXSource sr = (SAXSource) src;
-            throw new XMLStreamException("Can not create a STaX reader for a SAXSource -- not implemented.");
+            SAXSource ss = (SAXSource) src;
+            /* 28-Jan-2006, TSa: Not a complete implementation, but maybe
+             *   even this might help...
+             */
+            InputSource isrc = ss.getInputSource();
+            if (isrc != null) {
+                InputBootstrapper bs = null;
+                Reader r = isrc.getCharacterStream();
+                String sysId = isrc.getSystemId();
+                if (r != null) {
+                    bs = ReaderBootstrapper.getInstance
+                        (r, isrc.getPublicId(), sysId, null);
+                } else {
+                    InputStream in = isrc.getByteStream();
+                    if (in != null) {
+                        bs = StreamBootstrapper.getInstance(in, isrc.getPublicId(), sysId, mConfig.getInputBufferLength());
+                    } else if (sysId != null) { // can try just resolving the system id then
+                        try {
+                            return createSR(URLUtil.urlFromSystemId(sysId),
+                                            forER, autoCloseInput);
+                        } catch (IOException ioe) {
+                            throw new WstxIOException(ioe);
+                        }
+                    }
+                }
+                if (bs != null) {
+                    return createSR(sysId, bs, forER, autoCloseInput);
+                }
+            }
+            throw new XMLStreamException("Can only create STaX reader for a SAXSource if Reader or InputStream exposed via getSource(); can not use -- not implemented.");
         }
 
         if (src instanceof DOMSource) {

@@ -32,6 +32,13 @@ public class WriterBase
 
     protected final static char CHAR_SPACE = ' ';
 
+    /**
+     * Character entity for representing \r character; used if this
+     * character is to be round-trippable (receiving app needs to be
+     * able to distinguish it from other linefeeds)
+     */
+    protected final static String STR_ESCAPED_CR = "&#13;";
+
     // // // Working space:
 
     /**

@@ -10,6 +10,8 @@ import java.io.*;
 public class UTFAttrValueWriter
     extends WriterBase
 {
+    private final boolean mEscapeCR;
+
     /**
      * Character that is considered to be the enclosing quote character;
      * for XML either single or double quote.
@@ -21,9 +23,18 @@ public class UTFAttrValueWriter
      */
     final String mQuoteEntity;
 
-    public UTFAttrValueWriter(Writer out, String enc, char qchar)
+    /**
+     * @param enc Name of actual encoding in use; ignored for UTF
+     *   writers
+     * @param escapeCR If true, will encode \r character; if false, will
+     *   output as is (former is needed for reliable round-tripping, but
+     *   adds verbosity without necessary benefits)
+     */
+    public UTFAttrValueWriter(Writer out, String enc, char qchar,
+                              boolean escapeCR)
     {
         super(out);
+        mEscapeCR = escapeCR;
         mQuoteChar = qchar;
         mQuoteEntity = getQuoteEntity(qchar);
     }
@@ -42,6 +53,10 @@ public class UTFAttrValueWriter
             }
             if (c == '&') {
                 out.write("&amp;");
+                return;
+            }
+            if (c == '\r' && mEscapeCR) {
+                out.write(STR_ESCAPED_CR);
                 return;
             }
             if (c < CHAR_SPACE) { // tab, cr/lf need encoding too
@@ -79,6 +94,10 @@ public class UTFAttrValueWriter
                     }
                     if (c == '&') {
                         ent = "&amp;";
+                        break;
+                    }
+                    if (c == '\r' && mEscapeCR) {
+                        ent = STR_ESCAPED_CR;
                         break;
                     }
                     if (c < CHAR_SPACE) { // tab, cr/lf need encoding too
@@ -124,6 +143,10 @@ public class UTFAttrValueWriter
                     }
                     if (c == '&') {
                         ent = "&amp;";
+                        break;
+                    }
+                    if (c == '\r' && mEscapeCR) {
+                        ent = STR_ESCAPED_CR;
                         break;
                     }
                     if (c < CHAR_SPACE) { // tab, cr/lf need encoding too

@@ -1,6 +1,6 @@
 /* Woodstox XML processor
  *
- * Copyright (c) 2004 Tatu Saloranta, tatu.saloranta@iki.fi
+ * Copyright (c) 2004- Tatu Saloranta, tatu.saloranta@iki.fi
  *
  * Licensed under the License specified in file LICENSE, included with
  * the source code.

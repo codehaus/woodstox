@@ -17,27 +17,48 @@ import java.io.*;
 public class UTFTextWriter
     extends WriterBase
 {
+    private final boolean mEscapeCR;
+
     private boolean mJustWroteBracket = false;
 
-    public UTFTextWriter(Writer out, String enc) {
+    /**
+     * @param enc Name of actual encoding in use; ignored for UTF
+     *   writers
+     * @param escapeCR If true, will encode \r character; if false, will
+     *   output as is (former is needed for reliable round-tripping, but
+     *   adds verbosity without necessary benefits)
+     */
+    public UTFTextWriter(Writer out, String enc, boolean escapeCR)
+    {
         super(out);
+        mEscapeCR = escapeCR;
     }
-
 
     public void write(int c) throws IOException
     {
         if (c <= HIGHEST_ENCODABLE_TEXT_CHAR) {
-            if (c == '<') {
+            switch (c) {
+            case '<':
                 out.write("&lt;");
-            } else if (c == '&') {
+                break;
+            case '&':
                 out.write("&amp;");
-            } else if (c == '>') {
+                break;
+            case '>':
                 if (mJustWroteBracket) {
                     out.write("&gt;");
                 } else {
                     out.write(c);
                 }
-            } else {
+                break;
+            case '\r':
+                if (mEscapeCR) {
+                    out.write(STR_ESCAPED_CR);
+                } else {
+                    out.write(c);
+                }
+                break;
+            default:
                 out.write(c);
             } 
             mJustWroteBracket = false;
@@ -81,6 +102,11 @@ public class UTFTextWriter
                     ent = "&lt;";
                 } else if (c == '&') {
                     ent = "&amp;";
+                } else if (c == '\r') {
+                    if (!mEscapeCR) {
+                        continue;
+                    }
+                    ent = STR_ESCAPED_CR;
                 } else if (c == '>' && (offset > start)
                            && cbuf[offset-1] == ']') {
                     ent = "&gt;";
@@ -137,6 +163,11 @@ public class UTFTextWriter
                     ent = "&lt;";
                 } else if (c == '&') {
                     ent = "&amp;";
+                } else if (c == '\r') {
+                    if (!mEscapeCR) {
+                        continue;
+                    }
+                    ent = STR_ESCAPED_CR;
                 } else if (c == '>' && (offset > start)
                            && str.charAt(offset-1) == ']') {
                     ent = "&gt;";

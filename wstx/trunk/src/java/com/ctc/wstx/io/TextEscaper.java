@@ -29,7 +29,7 @@ public final class TextEscaper
         if (bitSize < 16) {
             return new SingleByteAttrValueWriter(w, enc, qchar, (1 << bitSize));
         }
-        return new UTFAttrValueWriter(w, enc, qchar);
+        return new UTFAttrValueWriter(w, enc, qchar, true);
     }
 
     public static Writer constructTextWriter(Writer w, String enc)
@@ -44,7 +44,7 @@ public final class TextEscaper
         if (bitSize < 16) {
             return new SingleByteTextWriter(w, enc, (1 << bitSize));
         }
-        return new UTFTextWriter(w, enc);
+        return new UTFTextWriter(w, enc, true);
     }
 
     /*

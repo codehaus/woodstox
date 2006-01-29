@@ -603,7 +603,7 @@ public class FullDTDReader
          *   instructions... but let's allow them, for now?
          */
         if (c == '?') { // xml decl?
-            skipPI();
+            skimPI();
             //throwDTDUnexpectedChar(c, " expected '!' to start a directive.");
             return;
         }
@@ -657,7 +657,7 @@ public class FullDTDReader
         if (c == '?') { // xml decl?
             mFlattenWriter.enableOutput(mInputPtr);
             mFlattenWriter.output("<?");
-            skipPI();
+            skimPI();
             //throwDTDUnexpectedChar(c, " expected '!' to start a directive.");
             return;
         }
@@ -721,7 +721,7 @@ public class FullDTDReader
 
     /*
     ////////////////////////////////////////////////////
-    // Overrided input handling 
+    // Overridden input handling 
     ////////////////////////////////////////////////////
      */
 
@@ -1578,6 +1578,42 @@ public class FullDTDReader
         return tb.contentsAsString();
     }
 
+    /**
+     * Method similar to {@link #skipPI}, but one that does basic
+     * well-formedness checks.
+     */
+    protected void skimPI()
+        throws IOException, WstxException
+    {
+        String target = parseFullName();
+        if (target.length() == 0) {
+            throwParseError(ErrorConsts.ERR_WF_PI_MISSING_TARGET);
+        }
+        if (target.equalsIgnoreCase("xml")) {
+            throwParseError(ErrorConsts.ERR_WF_PI_MISSING_TARGET, target);
+        }
+
+        /* Otherwise, not that much to check since we don't care about
+         * the contents.
+         */
+        while (true) {
+            char c = (mInputPtr < mInputLen)
+                ? mInputBuffer[mInputPtr++] : getNextChar(getErrorMsg());
+            if (c == '?') {
+                do {
+                    c = (mInputPtr < mInputLen)
+                        ? mInputBuffer[mInputPtr++] : getNextChar(getErrorMsg());
+                } while (c == '?');
+                if (c == '>') {
+                    break;
+                }
+            }
+            if (c == '\n' || c == '\r') {
+                skipCRLF(c);
+            }
+        }
+    }
+
     /*
     //////////////////////////////////////////////////
     // Internal methods, conditional blocks:
@@ -2025,7 +2061,7 @@ public class FullDTDReader
         EntityDecl ent;
 
         try {
-            c = skipDtdWs();
+            c = skipObligatoryDtdWs();
             if (c == '\'' || c == '"') { // internal entity
                 /* Let's get the exact location of actual content, not the
                  * opening quote. To do that, need to 'peek' next char, then
@@ -2319,7 +2355,7 @@ public class FullDTDReader
         String defVal = null;
 
         // Ok, and how about the default declaration?
-        c = skipDtdWs();
+        c = skipObligatoryDtdWs();
         if (c == '#') {
             String defTypeStr = readDTDName();
             if (defTypeStr == "REQUIRED") {
@@ -2685,6 +2721,8 @@ public class FullDTDReader
      * it's been figured out entity is not internal (does not continue
      * with a quote).
      * 
+     * @param isParam True if this a parameter entity declaration; false
+     *    if general entity declaration
      * @param evtLoc Location where entity declaration directive started;
      *   needed when construction event Objects for declarations.
      */
@@ -2737,12 +2775,39 @@ public class FullDTDReader
         // Ok; how about notation?
         String notationId = null;
 
-        c = skipDtdWs();
-        if (c != '>') {
-            checkDTDKeyword("NDATA", c, "; expected either NDATA keyword, or closing '>'.");
-            c = skipObligatoryDtdWs();
-            notationId = readNotationEntry(c, null);
+        /* Ok; PEs are simpler, as they always are parsed (see production
+         *   #72 in xml 1.0 specs)
+         */
+        if (isParam) {
             c = skipDtdWs();
+        } else {
+            /* GEs can be unparsed, too, so it's bit more complicated;
+             * if we get '>', don't need space; otherwise need separating
+             * space (or PE boundary). Thus, need bit more code.
+             */
+            int i = peekNext();
+            if (i == '>') { // good
+                c = '>';
+                ++mInputPtr;
+            } else if (i < 0) { // local EOF, ok
+                c = skipDtdWs();
+            } else if (i == '%') {
+                c = getNextExpanded();
+            } else {
+                ++mInputPtr;
+                c = (char) i;
+                if (!isSpaceChar(c)) {
+                    throwUnexpectedChar(c, "; expected a separating space or closing '>'");
+                }
+                c = skipDtdWs();
+            }
+
+            if (c != '>') {
+                checkDTDKeyword("NDATA", c, "; expected either NDATA keyword, or closing '>'");
+                c = skipObligatoryDtdWs();
+                notationId = readNotationEntry(c, null);
+                c = skipDtdWs();
+            }
         }
 
         // Ok, better have '>' now:

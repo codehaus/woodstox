@@ -38,8 +38,8 @@ public class TestStreamReader
         f.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.TRUE);
         //f.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.FALSE);
         f.setProperty(XMLInputFactory.IS_REPLACING_ENTITY_REFERENCES,
-                      Boolean.FALSE
-                      //Boolean.TRUE
+                      //Boolean.FALSE
+                      Boolean.TRUE
                       );
 
         f.setProperty(XMLInputFactory.SUPPORT_DTD, Boolean.TRUE);
@@ -193,6 +193,9 @@ public class TestStreamReader
                 }
                 if (type == CHARACTERS || type == CDATA || type == COMMENT) {
                     System.out.println(" Text("+text.length()+") = '"+text+"'.");
+                    if (text.length() == 1) {
+                        System.out.println(" [first char code: 0x"+Integer.toHexString(text.charAt(0))+"]");
+                    }
                 } else if (type == SPACE) {
                     System.out.print(" Ws = '"+text+"'.");
                     char c = (text.length() == 0) ? ' ': text.charAt(text.length()-1);

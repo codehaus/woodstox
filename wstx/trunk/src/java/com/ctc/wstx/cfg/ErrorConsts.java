@@ -64,6 +64,9 @@ public class ErrorConsts
 
     public static String ERR_UNEXP_KEYWORD = "Unexpected keyword \"{0}\"; expected \"{1}\"";
 
+    public static String ERR_WF_PI_MISSING_TARGET = "Missing processing instruction target";
+    public static String ERR_WF_PI_XML_TARGET = "Illegal processing instruction target (\"{0}\"); 'xml' (case insensitive) is reserved by the specs.";
+
     // // // Namespace problems:
 
     public static String ERR_NS_UNDECLARED = "Undeclared namespace prefix \"{0}\"";

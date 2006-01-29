@@ -54,7 +54,7 @@ public class TestNonNsStreamWriter
 
         sw.writeStartDocument();
         sw.writeComment("Comment!");
-        sw.writeCharacters("\n");
+        sw.writeCharacters("\r");
         sw.writeStartElement("root");
         sw.writeAttribute("attr", "value");
         sw.writeAttribute("another", "this & that");
@@ -65,7 +65,7 @@ public class TestNonNsStreamWriter
         //sw.writeStartElement("elem3:foo"); // error, colon inside local name
         sw.writeStartElement("elem3");
         sw.writeEndElement();
-        sw.writeCharacters("Root text <> ]]>\n");
+        //sw.writeCharacters("Root text <> ]]>\n");
         sw.writeEndElement();
         //sw.writeEmptyElement("secondRoot"); // error!
         sw.writeCharacters("\n"); // white space in epilog
