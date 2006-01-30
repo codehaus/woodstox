@@ -1,6 +1,6 @@
 /* Woodstox XML processor
  *
- * Copyright (c) 2004 Tatu Saloranta, tatu.saloranta@iki.fi
+ * Copyright (c) 2004- Tatu Saloranta, tatu.saloranta@iki.fi
  *
  * Licensed under the License specified in the file LICENSE which is
  * included with the source code.
@@ -35,6 +35,8 @@ final class ElementIdMap
      * be expanded.
      */
     protected static final int DEFAULT_SIZE = 128;
+
+    protected static final int MIN_SIZE = 16;
 
     /**
      * Let's use 80% fill factor...
@@ -90,11 +92,24 @@ final class ElementIdMap
 
     public ElementIdMap()
     {
-        mTable = new ElementId[DEFAULT_SIZE];
+        this(DEFAULT_SIZE);
+    }
+
+    /**
+     * This constructor is mainly used for testing, as it can be sized
+     * appropriately to test rehashing etc.
+     */
+    public ElementIdMap(int initialSize)
+    {
+        int actual = MIN_SIZE;
+        while (actual < initialSize) {
+            actual += actual;
+        }
+        mTable = new ElementId[actual];
         // Mask is easy to calc for powers of two.
-        mIndexMask = DEFAULT_SIZE - 1;
+        mIndexMask = actual - 1;
         mSize = 0;
-        mSizeThreshold = (DEFAULT_SIZE * FILL_PCT) / 100;
+        mSizeThreshold = (actual * FILL_PCT) / 100;
         mHead = mTail = null;
     }
 
@@ -189,6 +204,7 @@ final class ElementIdMap
                 rehash();
                 index = (hash & mIndexMask);
             }
+            ++mSize;
             String idStr = new String(buffer, start, len);
             id = new ElementId(idStr, loc, true, elemName, attrName);
             id.mNextColl = mTable[index];
@@ -287,11 +303,13 @@ final class ElementIdMap
         int count = 0; // let's do sanity check
 
         for (int i = 0; i < size; ++i) {
-            for (ElementId id = oldSyms[i]; id != null; id = id.mNextColl) {
+            for (ElementId id = oldSyms[i]; id != null; ) {
                 ++count;
                 int index = calcHash(id.mIdValue) & mIndexMask;
+                ElementId nextIn = id.mNextColl;
                 id.mNextColl = mTable[index];
                 mTable[index] = id;
+                id = nextIn;
             }
         }
 

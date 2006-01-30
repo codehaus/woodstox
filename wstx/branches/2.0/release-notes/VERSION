@@ -7,6 +7,9 @@ Description:
 
   Problems fixed:
 
+  * Fixed a bug in dtd.ElementIdMap; was missing entries on rehash() (and
+    that causing an error from sanity check)
+
 == History: ==
 
 2.0.5: [22-Jan-2006]
