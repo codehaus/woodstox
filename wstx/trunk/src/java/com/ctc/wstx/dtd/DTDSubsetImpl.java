@@ -433,11 +433,11 @@ public final class DTDSubsetImpl
     /**
      * Method that will try to merge in elements defined in the external
      * subset, into internal subset; it will also check for redeclarations
-     * when doing this, as it's illegal to redeclare elements. Care has to
+     * when doing this, as it's invalid to redeclare elements. Care has to
      * be taken to only check actual redeclarations: placeholders should
      * not cause problems.
      */
-    private static void combineElements(InputProblemReporter rep, HashMap intElems, HashMap extElems)
+    private void combineElements(InputProblemReporter rep, HashMap intElems, HashMap extElems)
         throws WstxException
     {
         Iterator it = extElems.entrySet().iterator();
@@ -466,7 +466,7 @@ public final class DTDSubsetImpl
                      * be cached and shared... so, need to do the reverse,
                      * define the one from internal subset.
                      */
-                    intElem.defineFrom(rep, extElem);
+                    intElem.defineFrom(rep, extElem, mFullyValidating);
                 }
             } else {
                 if (!intElem.isDefined()) {
@@ -478,7 +478,7 @@ public final class DTDSubsetImpl
                                       extElem.getDisplayName(), null,
                                       intElem.getLocation());
                 } else {
-                    intElem.mergeMissingAttributesFrom(rep, extElem);
+                    intElem.mergeMissingAttributesFrom(rep, extElem, mFullyValidating);
                 }
             }
         }

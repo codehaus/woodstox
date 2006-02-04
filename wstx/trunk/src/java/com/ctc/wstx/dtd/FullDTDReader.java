@@ -2468,7 +2468,8 @@ public class FullDTDReader
         }
         // getting null means this is a dup...
         DTDAttribute attr = elem.addAttribute(this, attrName, type, defType,
-                                              defVal, enumValues);
+                                              defVal, enumValues,
+                                              mCfgFullyValidating);
         if (attr == null) {
             // anyone interested in knowing about possible problem?
             XMLReporter rep = mConfig.getXMLReporter();

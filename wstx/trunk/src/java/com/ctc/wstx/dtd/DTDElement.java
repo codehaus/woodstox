@@ -173,13 +173,16 @@ public final class DTDElement
      * Method called to "upgrade" a placeholder using a defined element,
      * including adding attributes.
      */
-    public void defineFrom(InputProblemReporter rep, DTDElement definedElem)
+    public void defineFrom(InputProblemReporter rep, DTDElement definedElem,
+                           boolean fullyValidate)
         throws WstxException
     {
-        verifyUndefined();
+        if (fullyValidate) {
+            verifyUndefined();
+        }
         mValidator = definedElem.mValidator;
         mAllowedContent = definedElem.mAllowedContent;
-        mergeMissingAttributesFrom(rep, definedElem);
+        mergeMissingAttributesFrom(rep, definedElem, fullyValidate);
     }
 
     private void verifyUndefined()
@@ -199,7 +202,8 @@ public final class DTDElement
      */
     public DTDAttribute addAttribute(InputProblemReporter rep,
                                      NameKey attrName, int valueType, int defValueType,
-                                     String defValue, WordResolver enumValues)
+                                     String defValue, WordResolver enumValues,
+                                     boolean fullyValidate)
         throws WstxException
     {
         HashMap m = mAttrMap;
@@ -271,11 +275,12 @@ public final class DTDElement
             attr = null; // unreachable, but compiler wants it
         }
 
-        doAddAttribute(m, rep, attr, specList);
+        doAddAttribute(m, rep, attr, specList, fullyValidate);
         return attr;
     }
 
-    public void mergeMissingAttributesFrom(InputProblemReporter rep, DTDElement other)
+    public void mergeMissingAttributesFrom(InputProblemReporter rep, DTDElement other,
+                                           boolean fullyValidate)
         throws WstxException
     {
         Map otherMap = other.getAttributes();
@@ -303,14 +308,15 @@ public final class DTDElement
                     } else {
                         specList = null;
                     }
-                    doAddAttribute(m, rep, newAttr, specList);
+                    doAddAttribute(m, rep, newAttr, specList, fullyValidate);
                 }
             }
         }
     }
 
     private void doAddAttribute(Map attrMap, InputProblemReporter rep,
-                                DTDAttribute attr, List specList)
+                                DTDAttribute attr, List specList,
+                                boolean fullyValidate)
         throws WstxException
     {
         NameKey attrName = attr.getName();
@@ -325,7 +331,7 @@ public final class DTDElement
         switch (attr.getValueType()) {
         case DTDAttribute.TYPE_ID:
             // Only one such attribute per element (Specs, 1.0#3.3.1)
-            if (mIdAttr != null) {
+            if (fullyValidate && mIdAttr != null) {
                 rep.throwParseError("Invalid id attribute '"+attrName+"' for element <"+mName+">: already had id attribute '"+mIdAttr.getName()+"'");
             }
             mIdAttr = attr;
@@ -333,7 +339,7 @@ public final class DTDElement
 
         case DTDAttribute.TYPE_NOTATION:
             // Only one such attribute per element (Specs, 1.0#3.3.1)
-            if (mNotationAttr != null) {
+            if (fullyValidate && mNotationAttr != null) {
                 rep.throwParseError("Invalid notation attribute '"+attrName+"' for element <"+mName+">: already had notation attribute '"+mNotationAttr.getName()+"'");
             }
             mNotationAttr = attr;
