@@ -224,7 +224,12 @@ public final class DTDElement
             break;
 
         case DTDAttribute.TYPE_ID:
-            attr = new DTDIdAttr(attrName, defValueType, specIndex);
+            /* note: although ID attributes are not to have default value,
+             * this is 'only' a validity constraint, and in dtd-aware-but-
+             * not-validating mode it is apparently 'legal' to add default
+             * values. Bleech.
+             */
+            attr = new DTDIdAttr(attrName, defValueType, defValue, specIndex);
             break;
 
         case DTDAttribute.TYPE_IDREF:

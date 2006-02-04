@@ -25,15 +25,21 @@ public final class DTDIdAttr
     /**
      * Main constructor. Note that id attributes can never have
      * default values.
+     *<p>
+     * note: although ID attributes are not to have default value,
+     * this is 'only' a validity constraint, and in dtd-aware-but-
+     * not-validating mode it is apparently 'legal' to add default
+     * values. Bleech.
      */
-    public DTDIdAttr(NameKey name, int defValueType, int specIndex)
+    public DTDIdAttr(NameKey name, int defValueType, String defValue,
+                     int specIndex)
     {
-        super(name, defValueType, null, specIndex);
+        super(name, defValueType, defValue, specIndex);
     }
 
     public DTDAttribute cloneWith(int specIndex)
     {
-        return new DTDIdAttr(mName, mDefValueType, specIndex);
+        return new DTDIdAttr(mName, mDefValueType, mDefValue, specIndex);
     }
 
     /*

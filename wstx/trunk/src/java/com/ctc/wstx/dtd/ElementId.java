@@ -137,8 +137,12 @@ class ElementId
 
     /*
     /////////////////////////////////////////////////
-    // Private methods
+    // Other methods
     /////////////////////////////////////////////////
     */
+
+    public String toString() {
+        return mIdValue;
+    }
 }
 

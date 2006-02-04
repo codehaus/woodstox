@@ -209,7 +209,13 @@ public class TestStreamReader
                     int entCount = (entities == null) ? -1 : entities.size();
                     int notCount = (notations == null) ? -1 : notations.size();
                     System.out.print(" DTD ("+entCount+" entities, "+notCount
-                                       +" notations), declaration = <<");
+                                       +" notations), sysid ");
+                    String sysId = info.getDTDSystemId();
+                    System.out.print((sysId == null) ? "NULL" : "\""+sysId+"\"");
+                    System.out.print(", pubid ");
+                    String pubId = info.getDTDPublicId();
+                    System.out.print((pubId == null) ? "NULL" : "\""+pubId+"\"");
+                    System.out.print(", declaration = <<");
                     System.out.print(text);
                     System.out.println(">>");
                 } else if (type == ENTITY_REFERENCE) {

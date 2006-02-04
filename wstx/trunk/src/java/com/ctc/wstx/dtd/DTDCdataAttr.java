@@ -48,7 +48,12 @@ public final class DTDCdataAttr
     }
 
     public String normalize(DTDValidatorBase v, char[] cbuf, int start, int end)
-        throws XMLValidationException
+    {
+        // Nothing to do for pure CDATA attributes...
+        return null;
+    }
+
+    public String normalize(InputProblemReporter rep, String defValue)
     {
         // Nothing to do for pure CDATA attributes...
         return null;

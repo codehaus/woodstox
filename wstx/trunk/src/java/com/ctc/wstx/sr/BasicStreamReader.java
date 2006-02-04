@@ -2318,7 +2318,8 @@ public class BasicStreamReader
                     mDtdPublicId = parsePublicId(c, mCfgNormalizeLFs, SUFFIX_IN_DTD);
                     if (mDtdPublicId.length() == 0) {
                         // According to XML specs, this isn't illegal?
-                        mDtdPublicId = null;
+                        // however, better report it as empty, not null.
+                        //mDtdPublicId = null;
                     }
                     c = getNextInCurrAfterWS(SUFFIX_IN_DTD);
                     if (c != '"' && c != '\'') {
@@ -2327,7 +2328,8 @@ public class BasicStreamReader
                     mDtdSystemId = parseSystemId(c, mCfgNormalizeLFs, SUFFIX_IN_DTD);
                     if (mDtdSystemId.length() == 0) {
                         // According to XML specs, this isn't illegal?
-                        mDtdSystemId = null;
+                        // however, better report it as empty, not null.
+                        //mDtdSystemId = null;
                     }
                 }
             } else if (c == 'S') {

@@ -80,7 +80,8 @@ public class WstxInputData
             sCharValidity['A' + i] = NAME_CHAR_ALL_VALID_B;
             sCharValidity['a' + i] = NAME_CHAR_ALL_VALID_B;
         }
-        for (int i = 0xC0; i < 0xF6; ++i) { // not all are fully valid, but
+        // not all are fully valid, but
+        for (int i = 0xC0; i < VALID_CHAR_COUNT; ++i) {
             sCharValidity[i] = NAME_CHAR_ALL_VALID_B;
         }
         // ... now we can 'revert' ones not fully valid:

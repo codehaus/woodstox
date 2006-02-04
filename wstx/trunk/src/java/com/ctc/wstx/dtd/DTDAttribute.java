@@ -252,11 +252,29 @@ public abstract class DTDAttribute
      * The only exception is that CDATA will not do any normalization. But
      * for now, let's implement basic functionality that CDTA instance will
      * override
+     *
+     * @return Normalized value as a String, if any changes were done; 
+     *  null if input was normalized
      */
     public String normalize(DTDValidatorBase v, char[] cbuf, int start, int end)
-        throws XMLValidationException
     {
         return StringUtil.normalizeSpaces(cbuf, start, end);
+    }
+
+    /**
+     * Method called to do initial normalization of the default attribute
+     * value, without trying to (fully?) verify its validity. Thus, it's
+     * called independent of whether we are fully validating the document.
+     */
+    public void normalizeDefault()
+    {
+        if (mDefValue != null && mDefValue.length() > 0) {
+            char[] cbuf = mDefValue.toCharArray();
+            String str = StringUtil.normalizeSpaces(cbuf, 0, cbuf.length);
+            if (str != null) {
+                mDefValue = str;
+            }
+        }
     }
 
     /*

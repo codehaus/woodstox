@@ -322,6 +322,9 @@ public final class StreamBootstrapper
                     mBytesPerChar = 1;
                     mBigEndian = true; // doesn't really matter
                     break bomblock;
+
+                case 0x4c6fa794: // EBCDIC, not (yet?) supported...
+                    reportEBCDIC();
                 }
                 
                 /* Otherwise it's either single-byte doc without xml

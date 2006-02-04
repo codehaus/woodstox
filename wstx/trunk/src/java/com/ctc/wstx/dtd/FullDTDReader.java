@@ -923,8 +923,57 @@ public class FullDTDReader
             } else if (c > CHAR_SPACE) {
                 break;
             }
+            /* Now we got one space (or end of input block) -- no need to
+             * restrict get next on current block (in case PE ends); happens
+             * with xmltest/valid/not-sa/003.xml, for eaxmple.
+             */
             c = (mInputPtr < mInputLen)
-                ? mInputBuffer[mInputPtr++] : getNextCharFromCurrent(getErrorMsg());
+                ? mInputBuffer[mInputPtr++] : getNextChar(getErrorMsg());
+            if (c == '\n' || c == '\r') {
+                skipCRLF(c);
+            }
+        }
+        return c;
+    }
+
+    /**
+     * Method similar to {@link #skipObligatoryDtdWs}, but one that does
+     * not accept or expect PEs to expand (and thus does not deal with
+     * them). Also, in addition to white space (from current scope),
+     * end of the current scope may also be acceptable.
+     */
+    private char skipOblNonPeWs(String errorMsg, boolean eofOk)
+        throws IOException, XMLStreamException
+    {
+        /* Ok; since we need at least one space, or a PE, or end of input
+         * block, let's do this unique check first...
+         */
+        int i = peekNext();
+        char c;
+
+        if (i == -1) {
+            if (!eofOk) {
+                throwUnexpectedEOF(errorMsg);
+            }
+            c = getNextChar(getErrorMsg());
+            // Non-space, non PE is ok, due to end-of-block...
+            if (c > CHAR_SPACE) { // may be %; caller has to take care
+                return c;
+            }
+        } else {
+            c = mInputBuffer[mInputPtr++]; // was peek, need to read
+            if (c > CHAR_SPACE) {
+                throwDTDUnexpectedChar(c, "; expected a separating white space.");
+            }
+        }
+
+        // Ok, got it, now can loop...
+        while (true) {
+            if (c > CHAR_SPACE) {
+                break;
+            }
+            c = (mInputPtr < mInputLen)
+                ? mInputBuffer[mInputPtr++] : getNextChar(getErrorMsg());
             if (c == '\n' || c == '\r') {
                 skipCRLF(c);
             }
@@ -2011,7 +2060,15 @@ public class FullDTDReader
 
         if (oldElem != null) {
             if (oldElem.isDefined()) { // oops, a problem!
-                DTDSubsetImpl.throwElementException(oldElem, loc);
+                /* 03-Feb-2006, TSa: Hmmh. Apparently all other XML parsers
+                 *    consider it's ok in non-validating mode. All right.
+                 */
+                if (mCfgFullyValidating) {
+                    DTDSubsetImpl.throwElementException(oldElem, loc);
+                } else {
+                    // let's just ignore re-definition if not validating
+                    return;
+                }
             }
 
             /* 09-Sep-2004, TSa: Need to transfer existing attribute
@@ -2036,10 +2093,10 @@ public class FullDTDReader
         /* Hmmh. We won't allow parameter entities at this point, so let's
          * not use 'skipDtdWs'.
          */
-        char c = getNextCharAfterWS(emsg);
+        char c = skipOblNonPeWs(emsg, true);
         boolean isParam = (c == '%');
 
-        if (suppressPEDecl) {
+        if (suppressPEDecl) { // only if mFlattenWriter != null
             if (!isParam) {
                 mFlattenWriter.enableOutput(mInputPtr);
                 mFlattenWriter.output("<!ENTITY ");
@@ -2048,7 +2105,7 @@ public class FullDTDReader
         }
 
         if (isParam) {
-            c = skipObligatoryDtdWs();
+            c = skipOblNonPeWs(emsg, false);
         }
 
         String id = readDTDName(c);
@@ -2383,8 +2440,13 @@ public class FullDTDReader
         if (type == DTDAttribute.TYPE_ID) {
             if (defType == DTDAttribute.DEF_DEFAULT
                 || defType == DTDAttribute.DEF_FIXED) {
-                throwDTDAttrError("has type ID; can not have a default (or #FIXED) value (XML 1.0/#3.3.1)",
-                                  elem, attrName);
+                /* 03-Feb-2006, TSa: Hmmh. Apparently all other XML parsers
+                 *    consider it's ok in non-validating mode. All right.
+                 */
+                if (mCfgFullyValidating) {
+                    throwDTDAttrError("has type ID; can not have a default (or #FIXED) value (XML 1.0/#3.3.1)",
+                                      elem, attrName);
+                }
             }
         }
 
@@ -2404,7 +2466,6 @@ public class FullDTDReader
             }
             return;
         }
-
         // getting null means this is a dup...
         DTDAttribute attr = elem.addAttribute(this, attrName, type, defType,
                                               defVal, enumValues);
@@ -2419,8 +2480,11 @@ public class FullDTDReader
             /* 21-Jan-2006, TSa: Should only validate in fully validating
              *   mode.
              */
-            if (defVal != null && mCfgFullyValidating) {
-                attr.validateDefault(this, mCfgNormAttrs);
+            if (defVal != null) {
+                attr.normalizeDefault();
+                if (mCfgFullyValidating) {
+                    attr.validateDefault(this, mCfgNormAttrs);
+                }
             }
         }
     }
@@ -2470,8 +2534,13 @@ public class FullDTDReader
             id = isNotation ? readNotationEntry(c, attrName)
                 : readEnumEntry(c, sharedEnums);
             if (!set.add(id)) {
-                throwDTDAttrError("Duplicate enumeration value '"+id+"'",
-                                   elem, attrName);
+                /* 03-Feb-2006, TSa: Hmmh. Apparently all other XML parsers
+                 *    consider it's ok in non-validating mode. All right.
+                 */
+                if (mCfgFullyValidating) {
+                    throwDTDAttrError("Duplicate enumeration value '"+id+"'",
+                                      elem, attrName);
+                }
             }
         }
 
@@ -2576,8 +2645,13 @@ public class FullDTDReader
             NameKey n = readDTDQName(c);
             Object old = m.put(n, TokenContentSpec.construct(' ', n));
             if (old != null) {
-                throwDTDElemError("duplicate child element <"+n+"> in mixed content model",
-                                  elemName);
+                /* 03-Feb-2006, TSa: Hmmh. Apparently all other XML parsers
+                 *    consider it's ok in non-validating mode. All right.
+                 */
+                if (mCfgFullyValidating) {
+                    throwDTDElemError("duplicate child element <"+n+"> in mixed content model",
+                                      elemName);
+                }
             }
         }
 
