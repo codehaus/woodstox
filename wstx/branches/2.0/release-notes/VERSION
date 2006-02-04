@@ -9,6 +9,8 @@ Description:
 
   * Fixed a bug in dtd.ElementIdMap; was missing entries on rehash() (and
     that causing an error from sanity check)
+  * Fixed a bug in XML name parsing -- was not acception some valid
+    (albeit seldom used) name characters (0xF6 for example)
 
 == History: ==
 

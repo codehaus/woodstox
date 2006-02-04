@@ -42,6 +42,12 @@ public class WstxInputData
     public final static char CHAR_SPACE = (char) 0x0020;
     public final static char INT_SPACE = 0x0020;
 
+    /**
+     * This constant defines the highest Unicode character allowed
+     * in XML content.
+     */
+    public final static int MAX_UNICODE_CHAR = 0x10FFFF;
+
     /*
     ////////////////////////////////////////////////////
     // Character validity constants, structs
@@ -74,7 +80,8 @@ public class WstxInputData
             sCharValidity['A' + i] = NAME_CHAR_ALL_VALID_B;
             sCharValidity['a' + i] = NAME_CHAR_ALL_VALID_B;
         }
-        for (int i = 0xC0; i < 0xF6; ++i) { // not all are fully valid, but
+        // not all are fully valid, but
+        for (int i = 0xC0; i < VALID_CHAR_COUNT; ++i) {
             sCharValidity[i] = NAME_CHAR_ALL_VALID_B;
         }
         // ... now we can 'revert' ones not fully valid:
@@ -340,10 +347,12 @@ public class WstxInputData
 
     public static String getCharDesc(char c)
     {
-        // WTF? JDK thinks null char is just fine as?!
         int i = (int) c;
         if (Character.isISOControl(c)) {
             return "(CTRL-CHAR, code "+i+")";
+        }
+        if (i > 255) {
+            return "'"+c+"' (code "+i+" / 0x"+Integer.toHexString(i)+")";
         }
         return "'"+c+"' (code "+i+")";
     }
