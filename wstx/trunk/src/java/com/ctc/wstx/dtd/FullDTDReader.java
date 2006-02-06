@@ -558,6 +558,14 @@ public class FullDTDReader
             throwDTDUnexpectedChar(i, "; expected a '<' to start a directive, or \"]>\" to end internal subset.");
         }
 
+        /* 05-Feb-2006, TSa: Not allowed to have unclosed INCLUDE/IGNORE
+         *    blocks...
+         */
+        if (mIncludeCount > 0) { // active INCLUDE block(s) open?
+            String suffix = (mIncludeCount == 1) ? "an INCLUDE block" : (""+mIncludeCount+" INCLUDE blocks");
+            throwUnexpectedEOF(getErrorMsg()+"; expected closing marker for "+suffix);
+        }
+
         // Ok; time to construct and return DTD data object.
         DTDSubset ss;
 

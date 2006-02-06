@@ -71,7 +71,13 @@ public abstract class DTDAttribute
      */
     final static String[] sTypes = new String[] {
         "CDATA",
-        "ENUMERATED", // !!! 23-Jan-2005, TSa: What's the official type constant? CDATA?
+        /* 05-Feb-2006, TSa: Hmmh. Apparently SAX specs indicate that
+         *   enumerated type should be listed as "NMTOKEN"... but most
+         *   SAX parsers use ENUMERATED, plus this way application can
+         *   distinguish real NMTOKEN from enumerated type.
+         */
+        //"NMTOKEN",
+        "ENUMERATED",
         "ID",
         "IDREF",
         "IDREFS",

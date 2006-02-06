@@ -234,8 +234,9 @@ public abstract class InputBootstrapper
          *    not include XML 1.1 external entities...
          */
             if (xmlVersion != null) {
-                if (XmlConsts.XML_V_11.equals(xmlVersion) &&
-                    (mVersion == null || !XmlConsts.XML_V_11.equals(mVersion))) {
+                // did we have 1.0, and now refer to 1.1?
+                if (XmlConsts.XML_V_10.equals(xmlVersion) &&
+                    XmlConsts.XML_V_11.equals(mVersion)) {
                     reportXmlProblem(ErrorConsts.ERR_XML_10_VS_11);
                 }
             }
