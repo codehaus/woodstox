@@ -164,12 +164,17 @@ public class DTDValidatorFactory
         ReaderConfig cfg = mConfig.createNonShared(mRootSymbols.makeChild());
 
         try {
-            Reader r = bs.bootstrapInput(false, cfg.getXMLReporter());
+            Reader r = bs.bootstrapInput(false, cfg.getXMLReporter(), null);
             if (ctxt == null) { // this is just needed as context for param entity expansion
                 ctxt = URLUtil.urlFromCurrentDir();
             }
+            /* Note: need to pass null for 'xmlVersion' here (as well as
+             * above for bootstrapping), since this is assumed to be the main
+             * level parsed document and no xml version compatibility checks
+             * should be done.
+             */
             WstxInputSource src = InputSourceFactory.constructEntitySource
-                (null, null, bs, publicId, systemId, ctxt, r);
+                (null, null, bs, publicId, systemId, /*(String)*/null, ctxt, r);
 
             /* last true -> yes, fully construct for validation
              * (does not mean it has to be used for validation, but required

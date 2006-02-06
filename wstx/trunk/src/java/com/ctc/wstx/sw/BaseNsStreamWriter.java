@@ -175,8 +175,13 @@ public abstract class BaseNsStreamWriter
              *   namespace URI can not be bound as a non-default namespace
              *   (ie. for any actual prefix)
              */
-            if (uri.length() == 0) {
-                throwOutputError(ErrorConsts.ERR_NS_EMPTY);
+            /* 04-Feb-2005, TSa: Namespaces 1.1 does allow this, though,
+             *   so for xml 1.1 documents we need to allow it
+             */
+            if (!mXml11) {
+                if (uri.length() == 0) {
+                    throwOutputError(ErrorConsts.ERR_NS_EMPTY);
+                }
             }
         }
 

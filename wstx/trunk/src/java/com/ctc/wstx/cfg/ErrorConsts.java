@@ -49,6 +49,10 @@ public class ErrorConsts
     public static String ERR_STATE_NOT_STELEM = "Current state not START_ELEMENT";
     public static String ERR_STATE_NOT_ELEM = "Current state not START_ELEMENT or END_ELEMENT";
 
+    // // // XML declaration related problems
+
+    public static String ERR_XML_10_VS_11 = "XML 1.0 document can not refer to XML 1.1 parsed external entities";
+
     // // // Structural problems, prolog/epilog:
 
     public static String ERR_DTD_IN_EPILOG = "Can not have DOCTYPE declaration in epilog";
@@ -116,7 +120,7 @@ public class ErrorConsts
     // // // Namespace problems:
 
     public static String ERR_NS_EMPTY = 
-"Non-default namespace can not map to empty URI (as per Namespace 1.0 # 2)";
+"Non-default namespace can not map to empty URI (as per Namespace 1.0 # 2) in XML 1.0 documents";
 
     // // // Output problems:
 

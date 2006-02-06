@@ -119,6 +119,7 @@ public abstract class EntityDecl
      * value of the entity can be read.
      */
     public abstract WstxInputSource expand(WstxInputSource parent, 
-                                           XMLResolver res, XMLReporter rep)
+                                           XMLResolver res, XMLReporter rep,
+                                           String xmlVersion)
         throws IOException, XMLStreamException;
 }

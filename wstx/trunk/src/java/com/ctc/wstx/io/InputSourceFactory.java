@@ -21,10 +21,15 @@ public final class InputSourceFactory
      * @param entityName Name of the entity expanded to create this input
      *    source: null when source created for the (main level) external
      *    DTD subset entity.
+     * @param xmlVersion Optional xml version identifier of the main parsed
+     *   document. Currently only relevant for checking that XML 1.0 document
+     *   does not include XML 1.1 external parsed entities.
+     *   If null, no checks will be done.
      */
     public static ReaderSource constructEntitySource
         (WstxInputSource parent, String entityName, InputBootstrapper bs,
-         String pubId, String sysId, URL src, Reader r)
+         String pubId, String sysId, String xmlVersion,
+         URL src, Reader r)
     {
         // true -> do close the underlying Reader at EOF
         int bufLen = (parent == null) ? DEFAULT_BUFFER_LENGTH : parent.getInputBufferLength();

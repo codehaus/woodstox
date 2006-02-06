@@ -101,12 +101,12 @@ public final class StreamBootstrapper
         return new StreamBootstrapper(in, pubId, sysId, bufSize);
     }
 
-    public Reader bootstrapInput(boolean mainDoc, XMLReporter rep)
+    public Reader bootstrapInput(boolean mainDoc, XMLReporter rep, String xmlVersion)
         throws IOException, XMLStreamException
     {
         resolveStreamEncoding();
         if (hasXmlDecl()) {
-            readXmlDecl(mainDoc);
+            readXmlDecl(mainDoc, xmlVersion);
             if (mFoundEncoding != null) {
                 mFoundEncoding = verifyXmlEncoding(mFoundEncoding);
             }
@@ -145,22 +145,14 @@ public final class StreamBootstrapper
          * as extensive as possible.
          */
         switch (c) {
-        case 'u':
-        case 'U':
-            if (StringUtil.equalEncodings(mInputEncoding, "UTF-8")) {
-                r = new UTF8Reader(mIn, mByteBuffer, mInputPtr, mInputLen);
-                mInputEncoding = "UTF-8";
-            } else if (StringUtil.equalEncodings(mInputEncoding, "US-ASCII")) {
-                r = new AsciiReader(mIn, mByteBuffer, mInputPtr, mInputLen);
-                mInputEncoding = "US-ASCII";
-            } else if (StringUtil.equalEncodings(mInputEncoding, "UTF-16BE")) {
-                // let's just make sure they're using canonical name...
-                mInputEncoding = "UTF-16BE";
-            } else if (StringUtil.equalEncodings(mInputEncoding, "UTF-16LE")) {
-                mInputEncoding = "UTF-16LE";
-            } else if (StringUtil.equalEncodings(mInputEncoding, "UTF")) {
-                // 21-Jan-2006, TSa: ??? What is this to do... ?
-                mInputEncoding = "UTF";
+        case 'e':
+        case 'E':
+            /* 05-Feb-2006, TSa: We don't really support it quite yet...
+             *    but let's add basic support
+             */
+            if (mInputEncoding.startsWith("EBCDIC") ||
+                mInputEncoding.startsWith("ebcdic")) {
+                mInputEncoding = "EBCDIC";
             }
             break;
         case 'i':
@@ -180,6 +172,24 @@ public final class StreamBootstrapper
         case 'S':
             if (StringUtil.equalEncodings(mInputEncoding, "Shift_JIS")) {
                 mInputEncoding = "Shift_JIS";
+            }
+            break;
+        case 'u':
+        case 'U':
+            if (StringUtil.equalEncodings(mInputEncoding, "UTF-8")) {
+                r = new UTF8Reader(mIn, mByteBuffer, mInputPtr, mInputLen);
+                mInputEncoding = "UTF-8";
+            } else if (StringUtil.equalEncodings(mInputEncoding, "US-ASCII")) {
+                r = new AsciiReader(mIn, mByteBuffer, mInputPtr, mInputLen);
+                mInputEncoding = "US-ASCII";
+            } else if (StringUtil.equalEncodings(mInputEncoding, "UTF-16BE")) {
+                // let's just make sure they're using canonical name...
+                mInputEncoding = "UTF-16BE";
+            } else if (StringUtil.equalEncodings(mInputEncoding, "UTF-16LE")) {
+                mInputEncoding = "UTF-16LE";
+            } else if (StringUtil.equalEncodings(mInputEncoding, "UTF")) {
+                // 21-Jan-2006, TSa: ??? What is this to do... ?
+                mInputEncoding = "UTF";
             }
             break;
         }

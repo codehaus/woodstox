@@ -33,6 +33,7 @@ import org.codehaus.stax2.validation.XMLValidator;
 
 import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.cfg.ErrorConsts;
+import com.ctc.wstx.cfg.XmlConsts;
 import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.io.*;
 import com.ctc.wstx.dtd.DTDId;
@@ -380,9 +381,16 @@ public class ValidatingStreamReader
              * that's the one used for general entities, whereas ext subset
              * should be resolved by the param entity resolver.
              */
+            String xmlVersion = mDocXmlVersion;
+            /* 05-Feb-2006, TSa: If xmlVersion not explicitly known, it defaults
+             *    to 1.0
+             */
+            if (xmlVersion == null) {
+                xmlVersion = XmlConsts.XML_V_10;
+            }
             src = DefaultInputResolver.resolveEntity
                 (mInput, null, pubId, sysId, mConfig.getDtdResolver(),
-                 mConfig.getXMLReporter());
+                 mConfig.getXMLReporter(), xmlVersion);
         } catch (FileNotFoundException fex) {
             /* Let's catch and rethrow this just so we get more meaningful
              * description (with input source position etc)

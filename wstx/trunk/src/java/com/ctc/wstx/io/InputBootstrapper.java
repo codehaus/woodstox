@@ -6,6 +6,8 @@ import javax.xml.stream.Location;
 import javax.xml.stream.XMLReporter;
 import javax.xml.stream.XMLStreamException;
 
+import com.ctc.wstx.cfg.ErrorConsts;
+import com.ctc.wstx.cfg.XmlConsts;
 import com.ctc.wstx.exc.*;
 
 /**
@@ -22,13 +24,9 @@ public abstract class InputBootstrapper
     ////////////////////////////////////////////////////////////
      */
 
-    private final static String KW_ENC = "encoding";
-    private final static String KW_VERS = "version";
-    private final static String KW_SA = "standalone";
-
-    protected final static String ERR_XMLDECL_KW_VERSION = "; expected keyword 'version'";
-    protected final static String ERR_XMLDECL_KW_ENCODING = "; expected keyword 'encoding'";
-    protected final static String ERR_XMLDECL_KW_STANDALONE = "; expected keyword 'standalone'";
+    protected final static String ERR_XMLDECL_KW_VERSION = "; expected keyword '"+XmlConsts.XML_DECL_KW_VERSION+"'";
+    protected final static String ERR_XMLDECL_KW_ENCODING = "; expected keyword '"+XmlConsts.XML_DECL_KW_ENCODING+"'";
+    protected final static String ERR_XMLDECL_KW_STANDALONE = "; expected keyword '"+XmlConsts.XML_DECL_KW_STANDALONE+"'";
 
     protected final static String ERR_XMLDECL_END_MARKER = "; expected \"?>\" end marker";
 
@@ -139,7 +137,16 @@ public abstract class InputBootstrapper
     ////////////////////////////////////////
     */
 
-    public abstract Reader bootstrapInput(boolean mainDoc, XMLReporter rep)
+    /**
+     * @param xmlVersion Optional xml version identifier of the main parsed
+     *   document (if not bootstrapping the main document).
+     *   Currently only relevant for checking that XML 1.0 document does not
+     *   include XML 1.1 external parsed entities.
+     *   If null, no checks will be done; when bootstrapping parsing of the
+     *   main document, null should be passed for this argument.
+     */
+    public abstract Reader bootstrapInput(boolean mainDoc, XMLReporter rep,
+                                          String xmlVersion)
         throws IOException, XMLStreamException;
 
     // // // Source information:
@@ -199,7 +206,15 @@ public abstract class InputBootstrapper
     ////////////////////////////////////////
     */
 
-    protected void readXmlDecl(boolean isMainDoc)
+    /**
+     * @param xmlVersion Optional xml version identifier of the main parsed
+     *   document (if not bootstrapping the main document).
+     *   Currently only relevant for checking that XML 1.0 document does not
+     *   include XML 1.1 external parsed entities.
+     *   If null, no checks will be done; when bootstrapping parsing of the
+     *   main document, null should be passed for this argument.
+     */
+    protected void readXmlDecl(boolean isMainDoc, String xmlVersion)
         throws IOException, WstxException
     {
         int c = getNextAfterWs(false);
@@ -214,6 +229,16 @@ public abstract class InputBootstrapper
             mVersion = readXmlVersion();
             c = getWsOrChar('?');
         }
+
+        /* 05-Feb-2006, TSa: May need to check that XML 1.0 document does
+         *    not include XML 1.1 external entities...
+         */
+            if (xmlVersion != null) {
+                if (XmlConsts.XML_V_11.equals(xmlVersion) &&
+                    (mVersion == null || !XmlConsts.XML_V_11.equals(mVersion))) {
+                    reportXmlProblem(ErrorConsts.ERR_XML_10_VS_11);
+                }
+            }
 
         // Then, 'encoding'
         if (c != 'e') { // obligatory for external entities
@@ -245,21 +270,21 @@ public abstract class InputBootstrapper
     private final String readXmlVersion()
         throws IOException, WstxException
     {
-        int c = checkKeyword(KW_VERS);
+        int c = checkKeyword(XmlConsts.XML_DECL_KW_VERSION);
         if (c != CHAR_NULL) {
-            reportUnexpectedChar(c, ERR_XMLDECL_KW_VERSION);
+            reportUnexpectedChar(c, XmlConsts.XML_DECL_KW_VERSION);
         }
-        c = handleEq(KW_VERS);
+        c = handleEq(XmlConsts.XML_DECL_KW_VERSION);
         int len = readQuotedValue(mKeyword, c);
 
         if (len == 3) {
             if (mKeyword[0] == '1' && mKeyword[1] == '.') {
                 c = mKeyword[2];
                 if (c == '0') {
-                    return "1.0";
+                    return XmlConsts.XML_V_10;
                 }
                 if (c == '1') {
-                    return "1.1";
+                    return XmlConsts.XML_V_11;
                 }
             }
         }
@@ -274,19 +299,19 @@ public abstract class InputBootstrapper
         } else {
             got = "'"+new String(mKeyword, 0, len)+"'";
         }
-
-        throw new WstxParsingException("Invalid XML version value "+got+"; expected '1.0' or '1.1'",
-                                       getLocation());
+        reportPseudoAttrProblem(XmlConsts.XML_DECL_KW_VERSION, got,
+                                XmlConsts.XML_V_10, XmlConsts.XML_V_11);
+        return got; // never gets here, but compiler needs it
     }
 
     private final String readXmlEncoding()
         throws IOException, WstxException
     {
-        int c = checkKeyword(KW_ENC);
+        int c = checkKeyword(XmlConsts.XML_DECL_KW_ENCODING);
         if (c != CHAR_NULL) {
-            reportUnexpectedChar(c, ERR_XMLDECL_KW_VERSION);
+            reportUnexpectedChar(c, XmlConsts.XML_DECL_KW_ENCODING);
         }
-        c = handleEq(KW_ENC);
+        c = handleEq(XmlConsts.XML_DECL_KW_ENCODING);
 
         int len = readQuotedValue(mKeyword, c);
 
@@ -294,8 +319,8 @@ public abstract class InputBootstrapper
          * for now?
          */
         if (len == 0) { // let's still detect missing value...
-            throw new WstxParsingException("Missing XML encoding value for encoding pseudo-attribute",
-                                           getLocation());
+            reportPseudoAttrProblem(XmlConsts.XML_DECL_KW_ENCODING, null,
+                                    null, null);
         }
 
         if (len < 0) { // will be truncated...
@@ -307,21 +332,21 @@ public abstract class InputBootstrapper
     private final String readXmlStandalone()
         throws IOException, WstxException
     {
-        int c = checkKeyword(KW_SA);
+        int c = checkKeyword(XmlConsts.XML_DECL_KW_STANDALONE);
         if (c != CHAR_NULL) {
-            reportUnexpectedChar(c, ERR_XMLDECL_KW_STANDALONE);
+            reportUnexpectedChar(c, XmlConsts.XML_DECL_KW_STANDALONE);
         }
-        c = handleEq(KW_SA);
+        c = handleEq(XmlConsts.XML_DECL_KW_STANDALONE);
         int len = readQuotedValue(mKeyword, c);
 
         if (len == 2) {
             if (mKeyword[0] == 'n' && mKeyword[1] == 'o') {
-                return "no";
+                return XmlConsts.XML_SA_NO;
             }
         } else if (len == 3) {
             if (mKeyword[0] == 'y' && mKeyword[1] == 'e'
                 && mKeyword[2] == 's') {
-                return "yes";
+                return XmlConsts.XML_SA_YES;
             }
         }
 
@@ -336,8 +361,9 @@ public abstract class InputBootstrapper
             got = "'"+new String(mKeyword, 0, len)+"'";
         }
 
-        throw new WstxParsingException("Invalid XML 'standalone' value "+got+"; expected 'yes' or 'no'",
-                                       getLocation());
+        reportPseudoAttrProblem(XmlConsts.XML_DECL_KW_STANDALONE, got,
+                                XmlConsts.XML_SA_YES, XmlConsts.XML_SA_NO);
+        return got; // never gets here, but compiler can't figure it out
     }
 
     private final int handleEq(String attr)
@@ -444,12 +470,20 @@ public abstract class InputBootstrapper
     ////////////////////////////////////////
     */
 
-    /*
-    public static void main(String[] args)
-        throws Exception
+    private final void reportPseudoAttrProblem(String attrName, String got,
+                                               String expVal1, String expVal2)
+        throws WstxException
     {
+        String expStr = (expVal1 == null) ? "" :
+            ("; expected \""+expVal1+"\" or \""+expVal2+"\"");
+
+        if (got == null || got.length() == 0) {
+            throw new WstxParsingException("Missing XML pseudo-attribute '"+attrName+"' value"+expStr,
+                                           getLocation());
+        }
+        throw new WstxParsingException("Invalid XML pseudo-attribute '"+attrName+"' value "+got+expStr,
+                                       getLocation());
     }
-    */
 }
 
 

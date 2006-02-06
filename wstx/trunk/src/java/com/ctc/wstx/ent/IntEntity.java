@@ -122,9 +122,11 @@ public class IntEntity
     public boolean isParsed() { return true; }
     
     public WstxInputSource expand(WstxInputSource parent,
-                                  XMLResolver res, XMLReporter rep)
+                                  XMLResolver res, XMLReporter rep,
+                                  String xmlVersion)
     {
         return InputSourceFactory.constructCharArraySource
             (parent, mName, mRepl, 0, mRepl.length, mContentLocation, getSource());
     }
 }
+

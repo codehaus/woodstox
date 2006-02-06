@@ -116,7 +116,7 @@ public final class ReaderBootstrapper
      *
      * @return Actual reader to use for reading xml content
      */
-    public Reader bootstrapInput(boolean mainDoc, XMLReporter rep)
+    public Reader bootstrapInput(boolean mainDoc, XMLReporter rep, String xmlVersion)
         throws IOException, XMLStreamException
     {
         initialLoad(7);
@@ -141,7 +141,7 @@ public final class ReaderBootstrapper
                     && mCharBuffer[mInputPtr+5] <= CHAR_SPACE) {
                     // Yup, got the declaration ok!
                     mInputPtr += 6; // skip declaration
-                    readXmlDecl(mainDoc);
+                    readXmlDecl(mainDoc, xmlVersion);
                     
                     if (mFoundEncoding != null && mInputEncoding != null) {
                         verifyXmlEncoding(rep);

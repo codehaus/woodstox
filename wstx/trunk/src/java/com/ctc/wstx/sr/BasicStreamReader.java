@@ -35,6 +35,7 @@ import org.codehaus.stax2.validation.XMLValidator;
 
 import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.cfg.ErrorConsts;
+import com.ctc.wstx.cfg.XmlConsts;
 import com.ctc.wstx.dtd.DTDSubset;
 import com.ctc.wstx.dtd.MinimalDTDReader;
 import com.ctc.wstx.ent.EntityDecl;
@@ -86,10 +87,6 @@ public class BasicStreamReader
     extends StreamScanner
     implements StreamReaderImpl, DTDInfo, LocationInfo
 {
-    // These should be moved to some const file?
-    final static String XML_DECL_VERSION = "version";
-    final static String XML_DECL_STANDALONE = "standalone";
-    final static String XML_DECL_ENCODING = "encoding";
 
     /**
      * StAX API expects null to indicate "no prefix", not an empty String...
@@ -165,28 +162,10 @@ public class BasicStreamReader
 
     /*
     ////////////////////////////////////////////////////
-    // XML document information (from doc decl if one
-    // was found)
+    // Additional XML document information, in addition
+    // to what StreamScanner has
     ////////////////////////////////////////////////////
      */
-
-    /**
-     * Input stream encoding, if known (passed in, or determined by
-     * auto-detection); null if not.
-     */
-    String mDocInputEncoding = null;
-
-    /**
-     * Character encoding from xml declaration, if any; null if no
-     * declaration, or it didn't specify encoding.
-     */
-    String mDocXmlEncoding = null;
-
-    /**
-     * XML version used by document, from XML declaration; null if no
-     * XML declaration found.
-     */
-    String mDocXmlVersion = null;
 
     /**
      * Status about "stand-aloneness" of document; set to 'yes'/'no'/'unknown'
@@ -194,6 +173,13 @@ public class BasicStreamReader
      * it had standalone attribute.
      */
     protected int mDocStandalone = DOC_STANDALONE_UNKNOWN;
+
+    /*
+    ////////////////////////////////////////////////////
+    // DOCTYPE information from document type declaration
+    // (if any found)
+    ////////////////////////////////////////////////////
+     */
 
     /**
      * Prefix of root element, as dictated by DOCTYPE declaration; null
@@ -1808,11 +1794,16 @@ public class BasicStreamReader
 
         mDocXmlVersion = bs.getVersion();
 
+        /* Some features/handling are only enabled for xml 1.1; such as
+         * namespace prefix unbinding.
+         */
+        mXml11 = (mDocXmlVersion != null && XmlConsts.XML_V_11.equals(mDocXmlVersion));
+
         String sa = bs.getStandalone();
         if (sa == null) {
             mDocStandalone = DOC_STANDALONE_UNKNOWN;
         } else {
-            if ("yes".equals(sa)) {
+            if (XmlConsts.XML_SA_YES.equals(sa)) {
                 mDocStandalone = DOC_STANDALONE_YES;
             } else {
                 mDocStandalone = DOC_STANDALONE_NO;
@@ -2079,35 +2070,35 @@ public class BasicStreamReader
         mDocXmlEncoding = null;
 
         char c = getNextInCurrAfterWS(SUFFIX_IN_XML_DECL);
-        String wrong = checkKeyword(c, XML_DECL_VERSION);
+        String wrong = checkKeyword(c, XmlConsts.XML_DECL_KW_VERSION);
         if (wrong != null) {
-            throwParseError(ErrorConsts.ERR_UNEXP_KEYWORD, wrong, XML_DECL_VERSION);
+            throwParseError(ErrorConsts.ERR_UNEXP_KEYWORD, wrong, XmlConsts.XML_DECL_KW_VERSION);
         }
-        c = skipEquals(XML_DECL_VERSION, SUFFIX_IN_XML_DECL);
+        c = skipEquals(XmlConsts.XML_DECL_KW_VERSION, SUFFIX_IN_XML_DECL);
         TextBuffer tb = mTextBuffer;
         tb.resetInitialized();
-        parseQuoted(XML_DECL_VERSION, c, tb);
+        parseQuoted(XmlConsts.XML_DECL_KW_VERSION, c, tb);
         
-        if (tb.equalsString("1.0")) {
-            mDocXmlVersion = "1.0";
-        } else if (tb.equalsString("1.1")) {
-            mDocXmlVersion = "1.1";
+        if (tb.equalsString(XmlConsts.XML_V_10)) {
+            mDocXmlVersion = XmlConsts.XML_V_10;
+        } else if (tb.equalsString(XmlConsts.XML_V_11)) {
+            mDocXmlVersion = XmlConsts.XML_V_11;
         } else {
             mDocXmlVersion = null;
-            throwParseError("Unexpected xml version '"+tb.toString()+"'; expected '1.0' or '1.1'");
+            throwParseError("Unexpected xml version '"+tb.toString()+"'; expected '"+XmlConsts.XML_V_10+"' or '"+XmlConsts.XML_V_11+"'");
         }
         
         c = getNextInCurrAfterWS(SUFFIX_IN_XML_DECL);
         
         if (c != '?') { // '?' signals end...
             if (c == 'e') { // encoding
-                wrong = checkKeyword(c, XML_DECL_ENCODING);
+                wrong = checkKeyword(c, XmlConsts.XML_DECL_KW_ENCODING);
                 if (wrong != null) {
-                    throwParseError(ErrorConsts.ERR_UNEXP_KEYWORD, wrong, XML_DECL_ENCODING);
+                    throwParseError(ErrorConsts.ERR_UNEXP_KEYWORD, wrong, XmlConsts.XML_DECL_KW_ENCODING);
                 }
-                c = skipEquals(XML_DECL_ENCODING, SUFFIX_IN_XML_DECL);
+                c = skipEquals(XmlConsts.XML_DECL_KW_ENCODING, SUFFIX_IN_XML_DECL);
                 tb.resetWithEmpty();
-                parseQuoted(XML_DECL_ENCODING, c, tb);
+                parseQuoted(XmlConsts.XML_DECL_KW_ENCODING, c, tb);
                 mDocXmlEncoding = tb.toString();
                 /* should we verify encoding at this point? let's not, for now;
                  * since it's for information only, first declaration from
@@ -2120,20 +2111,22 @@ public class BasicStreamReader
             
             // Standalone?
             if (c == 's') {
-                wrong = checkKeyword(c, XML_DECL_STANDALONE);
+                wrong = checkKeyword(c, XmlConsts.XML_DECL_KW_STANDALONE);
                 if (wrong != null) {
-                    throwParseError(ErrorConsts.ERR_UNEXP_KEYWORD, wrong, XML_DECL_STANDALONE);
+                    throwParseError(ErrorConsts.ERR_UNEXP_KEYWORD, wrong, XmlConsts.XML_DECL_KW_STANDALONE);
                 }
-                c = skipEquals(XML_DECL_STANDALONE, SUFFIX_IN_XML_DECL);
+                c = skipEquals(XmlConsts.XML_DECL_KW_STANDALONE, SUFFIX_IN_XML_DECL);
                 tb.resetWithEmpty();
-                parseQuoted(XML_DECL_STANDALONE, c, tb);
-                if (tb.equalsString("yes")) {
+                parseQuoted(XmlConsts.XML_DECL_KW_STANDALONE, c, tb);
+                if (tb.equalsString(XmlConsts.XML_SA_YES)) {
                     mDocStandalone = DOC_STANDALONE_YES;
-                } else if (tb.equalsString("no")) {
+                } else if (tb.equalsString(XmlConsts.XML_SA_NO)) {
                     mDocStandalone = DOC_STANDALONE_NO;
                 } else {
-                    throwParseError("Unexpected xml standalone pseudo-attribute value '"+tb.toString()+"'; expected 'yes' or 'no'");
-                }
+                    throwParseError("Unexpected xml '"+XmlConsts.XML_DECL_KW_STANDALONE+"' pseudo-attribute value '"
+                                    +tb.toString()+"'; expected '"+XmlConsts.XML_SA_YES+"' or '"+
+                                    XmlConsts.XML_SA_NO+"'");
+               }
             }
             c = getNextInCurrAfterWS(SUFFIX_IN_XML_DECL);
         }
@@ -2311,6 +2304,8 @@ public class BasicStreamReader
                 if (keyw != null) {
                     keyw = "P" + keyw;
                 } else {
+                    //c = getNextAfterOblWS(SUFFIX_IN_DTD, "before public identifier");
+                    // int count = skipWS();
                     c = getNextInCurrAfterWS(SUFFIX_IN_DTD);
                     if (c != '"' && c != '\'') {
                         throwUnexpectedChar(c, SUFFIX_IN_DTD+"; expected a public identifier.");
@@ -2835,8 +2830,13 @@ public class BasicStreamReader
             /* (note: startLen is only set to first char position for
              * non-default NS declarations, see above...)
              */
-            if (startLen >= 0 && tb.getCharSize() == startLen) { // is empty!
-                throwParseError(ErrorConsts.ERR_NS_EMPTY);
+            /* 04-Feb-2005, TSa: Namespaces 1.1 does allow this, though,
+             *   so for xml 1.1 documents we need to allow it
+             */
+            if (!mXml11) {
+                if (startLen >= 0 && tb.getCharSize() == startLen) { // is empty!
+                    throwParseError(ErrorConsts.ERR_NS_EMPTY);
+                }
             }
 
             // and then we need to iterate some more

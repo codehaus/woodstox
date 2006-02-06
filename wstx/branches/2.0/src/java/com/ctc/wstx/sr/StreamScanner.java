@@ -991,13 +991,13 @@ public abstract class StreamScanner
                     value = value << 4;
                     if (c <= '9' && c >= '0') {
                         value += (c - '0');
-                    } else if (c >= 'a' && c <= 'z') {
+                    } else if (c >= 'a' && c <= 'f') {
                         value += (10 + (c - 'a'));
-                    } else if (c >= 'A' && c <= 'Z') {
+                    } else if (c >= 'A' && c <= 'F') {
                         value += (10 + (c - 'A'));
                     } else {
                         mInputPtr = ptr; // so error points to correct char
-                        throwUnexpectedChar(c, "; expected a hex number (0-9a-zA-Z).");
+                        throwUnexpectedChar(c, "; expected a hex digit (0-9a-zA-Z).");
                     }
                 }
             } else { // numeric (decimal)
@@ -1981,12 +1981,12 @@ public abstract class StreamScanner
                 value = value << 4;
                 if (c <= '9' && c >= '0') {
                     value += (c - '0');
-                } else if (c >= 'a' && c <= 'z') {
+                } else if (c >= 'a' && c <= 'f') {
                     value += 10 + (c - 'a');
-                } else if (c >= 'A' && c <= 'Z') {
+                } else if (c >= 'A' && c <= 'F') {
                     value += 10 + (c - 'A');
                 } else {
-                    throwUnexpectedChar(c, "; expected a hex number (0-9a-zA-Z).");
+                    throwUnexpectedChar(c, "; expected a hex digit (0-9a-zA-Z).");
                 }
             }
         } else { // numeric (decimal)

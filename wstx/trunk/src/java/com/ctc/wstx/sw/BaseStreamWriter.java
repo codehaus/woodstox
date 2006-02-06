@@ -43,6 +43,7 @@ import com.ctc.wstx.api.WriterConfig;
 import com.ctc.wstx.api.WstxOutputProperties;
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.cfg.OutputConfigFlags;
+import com.ctc.wstx.cfg.XmlConsts;
 import com.ctc.wstx.exc.*;
 import com.ctc.wstx.io.TextEscaper;
 import com.ctc.wstx.io.WstxInputData;
@@ -150,6 +151,12 @@ public abstract class BaseStreamWriter
      * one or more schemas, and/or for safe pretty-printing (indentation).
      */
     protected XMLValidator mValidator = null;
+    
+    /**
+     * Since XML 1.1 has some differences to 1.0, we need to keep a flag
+     * to indicate if we were to output XML 1.1 document.
+     */
+    protected boolean mXml11 = false;
 
     /*
     ////////////////////////////////////////////////////
@@ -716,15 +723,27 @@ public abstract class BaseStreamWriter
         mAnyOutput = true;
 
         if (mCheckContent) {
-            // !!! 06-May-2004, TSa: Should validate version and encoding?
+            // !!! 06-May-2004, TSa: Should validate encoding?
             /*if (encoding != null) {
             }*/
             if (version != null && version.length() > 0) {
-                if (!(version.equals("1.0") || version.equals("1.1"))) {
-                    throwIllegalArg("Illegal version argument ('"+version+"'); should only use '1.0' or '1.1'");
+                if (!(version.equals(XmlConsts.XML_V_10)
+                      || version.equals(XmlConsts.XML_V_11))) {
+                    throwIllegalArg("Illegal version argument ('"+version
+                                    +"'); should only use '"+XmlConsts.XML_V_10
+                                    +"' or '"+XmlConsts.XML_V_11+"'");
                 }
             }
         }
+
+        if (version == null || version.length() == 0) {
+            version = WstxOutputProperties.DEFAULT_XML_VERSION;
+        }
+
+        /* 04-Feb-2006, TSa: Need to know if we are writing XML 1.1
+         *   document...
+         */
+        mXml11 = XmlConsts.XML_V_11.equals(version);
 
         if (encoding != null && encoding.length() > 0) {
             /* 03-May-2005, TSa: But what about conflicting encoding? Let's
@@ -737,8 +756,7 @@ public abstract class BaseStreamWriter
 
         try {
             mWriter.write("<?xml version='");
-            mWriter.write((version == null || version.length() == 0)
-                          ? WstxOutputProperties.DEFAULT_XML_VERSION : version);
+            mWriter.write(version);
             mWriter.write('\'');
 
             if (encoding != null && encoding.length() > 0) {

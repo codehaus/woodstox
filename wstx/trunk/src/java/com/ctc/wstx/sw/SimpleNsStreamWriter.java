@@ -128,14 +128,14 @@ public class SimpleNsStreamWriter
         if (!mStartElementOpen) {
             throw new IllegalStateException(ERR_NSDECL_WRONG_STATE);
         }
-        {
-            /* 05-Feb-2005, TSa: Also, as per namespace specs; the 'empty'
-             *   namespace URI can not be bound as a non-default namespace
-             *   (ie. for any actual prefix)
-             */
-            /* 01-Apr-2005, TSa: Let's not leave this optional... it's plain
-             *  wrong to try to do that
-             */
+        /* 05-Feb-2005, TSa: Also, as per namespace specs; the 'empty'
+         *   namespace URI can not be bound as a non-default namespace
+         *   (ie. for any actual prefix)
+         */
+        /* 04-Feb-2005, TSa: Namespaces 1.1 does allow this, though,
+         *   so for xml 1.1 documents we need to allow it
+         */
+        if (!mXml11) {
             if (nsURI.length() == 0) {
                 throwOutputError(ErrorConsts.ERR_NS_EMPTY);
             }

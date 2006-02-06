@@ -74,6 +74,7 @@ public abstract class ExtEntity
     public abstract boolean isParsed();
     
     public abstract WstxInputSource expand(WstxInputSource parent,
-                                           XMLResolver res, XMLReporter rep)
+                                           XMLResolver res, XMLReporter rep,
+                                           String xmlVersion)
         throws IOException, XMLStreamException;
 }

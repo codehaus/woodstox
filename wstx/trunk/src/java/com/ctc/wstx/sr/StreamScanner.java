@@ -36,6 +36,7 @@ import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.cfg.InputConfigFlags;
 import com.ctc.wstx.cfg.ParsingErrorMsgs;
+import com.ctc.wstx.cfg.XmlConsts;
 import com.ctc.wstx.compat.JdkFeatures;
 import com.ctc.wstx.ent.EntityDecl;
 import com.ctc.wstx.exc.*;
@@ -293,6 +294,39 @@ public abstract class StreamScanner
      * in the end it'll be converted to 1-based)
      */
     protected int mTokenInputCol = 0;
+
+    /*
+    ////////////////////////////////////////////////////
+    // XML document information (from doc decl if one
+    // was found) common to all entities (main xml
+    // document, external DTD subset)
+    ////////////////////////////////////////////////////
+     */
+
+    /**
+     * Input stream encoding, if known (passed in, or determined by
+     * auto-detection); null if not.
+     */
+    String mDocInputEncoding = null;
+
+    /**
+     * Character encoding from xml declaration, if any; null if no
+     * declaration, or it didn't specify encoding.
+     */
+    String mDocXmlEncoding = null;
+
+    /**
+     * XML version used by document, from XML declaration; null if no
+     * XML declaration found.
+     */
+    String mDocXmlVersion = null;
+
+    /**
+     * Flag that indicates whether XML version was declared as "1.1" (or
+     * in future, if new versions get supported above). Needed to
+     * distinguish some of the features used.
+     */
+    boolean mXml11 = false;
 
     /*
     ////////////////////////////////////////////////////
@@ -1077,13 +1111,13 @@ public abstract class StreamScanner
                     value = value << 4;
                     if (c <= '9' && c >= '0') {
                         value += (c - '0');
-                    } else if (c >= 'a' && c <= 'z') {
+                    } else if (c >= 'a' && c <= 'f') {
                         value += (10 + (c - 'a'));
-                    } else if (c >= 'A' && c <= 'Z') {
+                    } else if (c >= 'A' && c <= 'F') {
                         value += (10 + (c - 'A'));
                     } else {
                         mInputPtr = ptr; // so error points to correct char
-                        throwUnexpectedChar(c, "; expected a hex number (0-9a-zA-Z).");
+                        throwUnexpectedChar(c, "; expected a hex digit (0-9a-zA-Z).");
                     }
                     /* Need to check for overflow; easiest to do right as
                      * it happens...
@@ -1326,8 +1360,7 @@ public abstract class StreamScanner
             /* Shortest valid reference would be 3 chars ('&a;'); which
              * would only be legal from an expanded entity...
              */
-            if (!ensureInput(6)) {
-                avail = inputInBuffer();
+            if (!ensureInput(6)) {                avail = inputInBuffer();
                 if (avail < 3) {
                     throwUnexpectedEOF(SUFFIX_IN_ENTITY_REF);
                 }
@@ -1565,7 +1598,7 @@ public abstract class StreamScanner
         WstxInputSource newInput = null;
         try {
             newInput = ed.expand(oldInput, mEntityResolver,
-                                 mConfig.getXMLReporter());
+                                 mConfig.getXMLReporter(), mDocXmlVersion);
         } catch (FileNotFoundException fex) {
             /* Let's catch and rethrow this just so we get more meaningful
              * description (with input source position etc)
@@ -1595,8 +1628,15 @@ public abstract class StreamScanner
             WstxInputSource oldInput = mInput;
             oldInput.saveContext(this);
             // null, null -> no public or system ids
+            String xmlVersion = mDocXmlVersion;
+            /* 05-Feb-2006, TSa: If xmlVersion not explicitly known, it defaults
+             *    to 1.0
+             */
+            if (xmlVersion == null) {
+                xmlVersion = XmlConsts.XML_V_10;
+            }
             WstxInputSource newInput = DefaultInputResolver.resolveEntityUsing
-                (oldInput, id, null, null, resolver, mConfig.getXMLReporter());
+                (oldInput, id, null, null, resolver, mConfig.getXMLReporter(), xmlVersion);
             if (newInput != null) {
                 // Not 100% sure if recursion check is needed... but let's be safe?
                 if (newInput.hasRecursion()) {
@@ -2133,12 +2173,12 @@ public abstract class StreamScanner
                 value = value << 4;
                 if (c <= '9' && c >= '0') {
                     value += (c - '0');
-                } else if (c >= 'a' && c <= 'z') {
+                } else if (c >= 'a' && c <= 'f') {
                     value += 10 + (c - 'a');
-                } else if (c >= 'A' && c <= 'Z') {
+                } else if (c >= 'A' && c <= 'F') {
                     value += 10 + (c - 'A');
                 } else {
-                    throwUnexpectedChar(c, "; expected a hex number (0-9a-zA-Z).");
+                    throwUnexpectedChar(c, "; expected a hex digit (0-9a-zA-Z).");
                 }
                 // Overflow?
                 if (value > MAX_UNICODE_CHAR) {

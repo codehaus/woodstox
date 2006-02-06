@@ -11,6 +11,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.EntityReference;
 import javax.xml.stream.events.EntityDeclaration;
 
+import com.ctc.wstx.cfg.XmlConsts;
 import com.ctc.wstx.io.DefaultInputResolver;
 import com.ctc.wstx.io.WstxInputSource;
 import com.ctc.wstx.util.URLUtil;
@@ -62,10 +63,17 @@ public class ParsedExtEntity
     public boolean isParsed() { return true; }
     
     public WstxInputSource expand(WstxInputSource parent,
-                                  XMLResolver res, XMLReporter rep)
+                                  XMLResolver res, XMLReporter rep,
+                                  String xmlVersion)
         throws IOException, XMLStreamException
     {
+        /* 05-Feb-2006, TSa: If xmlVersion not explicitly known, it defaults
+         *    to 1.0
+         */
+        if (xmlVersion == null) {
+            xmlVersion = XmlConsts.XML_V_10;
+        }
         return DefaultInputResolver.resolveEntity
-            (parent, mName, getPublicId(), getSystemId(), res, rep);
+            (parent, mName, getPublicId(), getSystemId(), res, rep, xmlVersion);
     }
 }

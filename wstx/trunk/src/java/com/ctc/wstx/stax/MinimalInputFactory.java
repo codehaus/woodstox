@@ -351,7 +351,7 @@ public class MinimalInputFactory
 
         Reader r;
         try {
-            r = bs.bootstrapInput(true, getXMLReporter());
+            r = bs.bootstrapInput(true, getXMLReporter(), null);
         } catch (IOException ie) {
             throw new WstxIOException(ie);
         }

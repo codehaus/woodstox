@@ -49,7 +49,7 @@ public class TestFlattening
             boolean inclComments = (i & 4) != 0;
             boolean inclConditionals = (i & 2) != 0;
             boolean inclPEs = (i & 1) != 0;
-            WstxInputSource input = DefaultInputResolver.sourceFromString(null, null, "[dtd]", DTD);
+            WstxInputSource input = DefaultInputResolver.sourceFromString(null, null, "[dtd]", /*xml version for compatibility checks*/ null, DTD);
             StringWriter strw = new StringWriter();
             DTDSubset ss = FullDTDReader.flattenExternalSubset
                 (input, strw,
@@ -61,7 +61,7 @@ public class TestFlattening
              * just re-parse it to ensure it seems valid? And let's also
              * compare second-time output.
              */
-            input = DefaultInputResolver.sourceFromString(null, null, "[dtd]", output);
+            input = DefaultInputResolver.sourceFromString(null, null, "[dtd]", /*xml version for compatibility checks*/ null, output);
             strw = new StringWriter();
             ss = FullDTDReader.flattenExternalSubset
                 (input, strw,
