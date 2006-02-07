@@ -4118,9 +4118,9 @@ public class WstxStreamReader
                      *  to access previous buffer's contents. But at least we
                      *  won't produce false positives from entity expansion
                      */
-                    if (mInputPtr >= 2) { // can we do it here?
-                        if (mInputBuffer[mInputPtr-2] == ']'
-                            && mInputBuffer[mInputPtr-1] == ']') {
+                    if (mInputPtr > 2) { // can we do it here?
+                        if (mInputBuffer[mInputPtr-3] == ']'
+                            && mInputBuffer[mInputPtr-2] == ']') {
                             throwParseError(ErrorConsts.ERR_BRACKET_IN_TEXT);
                         }
                     } else {
