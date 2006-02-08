@@ -48,7 +48,7 @@ public class TestRandomStream
     public void testNonCoalescingAutoEntity()
         throws Exception
     {
-	mReallyStreaming = false;
+        mReallyStreaming = false;
         doTest(false, false, true); // non-ns
         doTest(true, false, true); // ns-aware
     }
@@ -56,14 +56,14 @@ public class TestRandomStream
     public void testNonCoalescingAutoEntityStreaming()
         throws Exception
     {
-	mReallyStreaming = true;
+        mReallyStreaming = true;
         doTest(true, false, true); // ns-aware
     }
 
     public void testCoalescingNonAutoEntity()
         throws Exception
     {
-	mReallyStreaming = false;
+        mReallyStreaming = false;
         doTest(false, true, false); // non-ns
         doTest(true, true, false); // ns-aware
     }
@@ -71,14 +71,14 @@ public class TestRandomStream
     public void testCoalescingNonAutoEntityStreaming()
         throws Exception
     {
-	mReallyStreaming = true;
+        mReallyStreaming = true;
         doTest(true, true, false); // ns-aware
     }
 
     public void testNonCoalescingNonAutoEntity()
         throws Exception
     {
-	mReallyStreaming = false;
+        mReallyStreaming = false;
         doTest(false, false, false); // non-ns
         doTest(true, false, false); // ns-aware
     }
@@ -86,7 +86,7 @@ public class TestRandomStream
     public void testNonCoalescingNonAutoEntityStreaming()
         throws Exception
     {
-	mReallyStreaming = true;
+        mReallyStreaming = true;
         doTest(true, false, false); // ns-aware
     }
 

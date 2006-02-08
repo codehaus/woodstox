@@ -522,6 +522,9 @@ public class FullDTDReader
             }
 
             if (i == ']') {
+                if (mIncludeCount == 0 && !mIsExternal) { // End of internal subset
+                    break;
+                }
                 if (mIncludeCount > 0) { // active INCLUDE block(s) open?
                     boolean suppress = (mFlattenWriter != null) && !mFlattenWriter.includeConditionals();
 
@@ -531,25 +534,24 @@ public class FullDTDReader
                     }
 
                     try {
-                        char c = getNextExpanded();
-                        if (c != ']' 
-                            || (c = getNextExpanded()) != '>') {
-                            throwDTDUnexpectedChar(c, "; expected ']]>' to close conditional include section.");
+                        // ]]> needs to be a token, can not come from PE:
+                        char c = dtdNextFromCurr();
+                        if (c == ']') {
+                            c = dtdNextFromCurr();
+                            if (c == '>') {
+                                // Ok, fine, conditional include section ended.
+                                --mIncludeCount;
+                                continue;
+                            }
                         }
+                        throwDTDUnexpectedChar(c, "; expected ']]>' to close conditional include section.");
                     } finally {
                         if (suppress) {
                             mFlattenWriter.enableOutput(mInputPtr);
                         }
                     }
-
-                    // Ok, fine, conditional include section ended.
-                    --mIncludeCount;
-                    continue;
                 }
-                if (!mIsExternal) {
-                    // End of internal subset
-                    break;
-                }
+                // otherwise will fall through, and give an error
             }
 
             if (mIsExternal) {
@@ -603,27 +605,25 @@ public class FullDTDReader
     protected void parseDirective()
         throws IOException, XMLStreamException
     {
-        /* Let's determine type here, and call appropriate skip/parse
-         * methods.
+        /* Hmmh. Don't think PEs are allowed to contain starting
+         * '!' (or '?')... and it has to come from the same
+         * input source too (no splits)
          */
-        char c = getNextExpanded();
-        /* 11-Jul-2004, TSa: DTDs are not defined to have processing
-         *   instructions... but let's allow them, for now?
-         */
+        char c = dtdNextFromCurr();
         if (c == '?') { // xml decl?
             skimPI();
-            //throwDTDUnexpectedChar(c, " expected '!' to start a directive.");
             return;
         }
         if (c != '!') { // nothing valid
             throwDTDUnexpectedChar(c, "; expected '!' to start a directive");
         }
 
-        // ignore/include, comment, or directive
-
-        c = getNextExpanded();
+        /* ignore/include, comment, or directive; we are still getting
+         * token from same section though
+         */
+        c = dtdNextFromCurr();
         if (c == '-') { // plain comment
-            c = getNextExpanded();
+            c = dtdNextFromCurr();
             if (c != '-') {
                 throwDTDUnexpectedChar(c, "; expected '-' for a comment.");
             }
@@ -658,10 +658,7 @@ public class FullDTDReader
         /* Let's determine type here, and call appropriate skip/parse
          * methods.
          */
-        char c = getNextExpanded();
-        /* 11-Jul-2004, TSa: DTDs are not defined to have processing
-         *   instructions... but let's allow them, for now?
-         */
+        char c = dtdNextFromCurr();
         if (c == '?') { // xml decl?
             mFlattenWriter.enableOutput(mInputPtr);
             mFlattenWriter.output("<?");
@@ -675,9 +672,9 @@ public class FullDTDReader
 
         // ignore/include, comment, or directive
 
-        c = getNextExpanded();
+        c = dtdNextFromCurr();
         if (c == '-') { // plain comment
-            c = getNextExpanded();
+            c = dtdNextFromCurr();
             if (c != '-') {
                 throwDTDUnexpectedChar(c, "; expected '-' for a comment.");
             }
@@ -858,6 +855,74 @@ public class FullDTDReader
     //////////////////////////////////////////////////
      */
 
+    private char dtdNextFromCurr()
+        throws IOException, XMLStreamException
+    {
+        return (mInputPtr < mInputLen) ?
+            mInputBuffer[mInputPtr++] : getNextCharFromCurrent(getErrorMsg());
+    }
+
+    private char dtdNextChar()
+        throws IOException, XMLStreamException
+    {
+        return (mInputPtr < mInputLen) ?
+            mInputBuffer[mInputPtr++] : getNextChar(getErrorMsg());
+    }
+
+    /**
+     * @return Next character from the current input block, if any left;
+     *    NULL if end of block (entity expansion)
+     */
+    private char dtdNextIfAvailable()
+        throws IOException, WstxException
+    {
+        char c;
+        if (mInputPtr < mInputLen) {
+            c = mInputBuffer[mInputPtr++];
+        } else {
+            int i = peekNext();
+            if (i < 0) {
+                return CHAR_NULL;
+            }
+            ++mInputPtr;
+            c = (char) i;
+        }
+        if (c == CHAR_NULL) {
+            throwNullChar();
+        }
+        return c;
+    }
+
+    /**
+     * @return Number of white space characters skipped
+     */
+    private int dtdSkipCurrWs()
+        throws IOException, XMLStreamException
+    {
+        int count = 0;
+
+        while (true) {
+            char c;
+            if (mInputPtr < mInputLen) {
+                c = mInputBuffer[mInputPtr];
+            } else {
+                int i = peekNext();
+                if (i < 0) {
+                    break;
+                }
+                c = (char) i;
+            }
+            if (!isSpaceChar(c)) {
+                break;
+            }
+            if (c == '\n' || c == '\r') {
+                skipCRLF(c);
+            }
+            ++count;
+        }
+        return count;
+    }
+
     /**
      * Method that will get next character, and either return it as is (for
      * normal chars), or expand parameter entity that starts with next
@@ -876,17 +941,17 @@ public class FullDTDReader
         }
     }
 
-    private char skipDtdWs()
+    private char skipDtdWs(boolean handlePEs)
         throws IOException, XMLStreamException
     {
         while (true) {
             char c = (mInputPtr < mInputLen)
                 ? mInputBuffer[mInputPtr++] : getNextChar(getErrorMsg());
-            if (c == '%') {
-                expandPE(true); // true -> not in attr/entity value, add spaces
-                continue;
-            }
             if (c > CHAR_SPACE) {
+                if (c == '%' && handlePEs) {
+                    expandPE(true); // true -> not in attr/entity value, add spaces
+                    continue;
+                }
                 return c;
             }
             if (c == '\n' || c == '\r') {
@@ -902,6 +967,9 @@ public class FullDTDReader
      * can be handled by 2 little hacks: both a start of a PE, and an
      * end of input block (== end of PE expansion) count as succesful
      * spaces.
+     *
+     * @return Character following the obligatory boundary (white space
+     *   or PE start/end)
      */
     private char skipObligatoryDtdWs()
         throws IOException, XMLStreamException
@@ -946,51 +1014,6 @@ public class FullDTDReader
     }
 
     /**
-     * Method similar to {@link #skipObligatoryDtdWs}, but one that does
-     * not accept or expect PEs to expand (and thus does not deal with
-     * them). Also, in addition to white space (from current scope),
-     * end of the current scope may also be acceptable.
-     */
-    private char skipOblNonPeWs(String errorMsg, boolean eofOk)
-        throws IOException, XMLStreamException
-    {
-        /* Ok; since we need at least one space, or a PE, or end of input
-         * block, let's do this unique check first...
-         */
-        int i = peekNext();
-        char c;
-
-        if (i == -1) {
-            if (!eofOk) {
-                throwUnexpectedEOF(errorMsg);
-            }
-            c = getNextChar(getErrorMsg());
-            // Non-space, non PE is ok, due to end-of-block...
-            if (c > CHAR_SPACE) { // may be %; caller has to take care
-                return c;
-            }
-        } else {
-            c = mInputBuffer[mInputPtr++]; // was peek, need to read
-            if (c > CHAR_SPACE) {
-                throwDTDUnexpectedChar(c, "; expected a separating white space.");
-            }
-        }
-
-        // Ok, got it, now can loop...
-        while (true) {
-            if (c > CHAR_SPACE) {
-                break;
-            }
-            c = (mInputPtr < mInputLen)
-                ? mInputBuffer[mInputPtr++] : getNextChar(getErrorMsg());
-            if (c == '\n' || c == '\r') {
-                skipCRLF(c);
-            }
-        }
-        return c;
-    }
-
-    /**
      * Method called to handle expansion of parameter entities. When called,
      * '%' character has been encountered as a reference indicator, and
      * now we should get parameter entity name.
@@ -1014,7 +1037,7 @@ public class FullDTDReader
             id = readDTDName();
             try {
                 c = (mInputPtr < mInputLen) ?
-                    mInputBuffer[mInputPtr++] : getNextCharFromCurrent(getErrorMsg());
+                    mInputBuffer[mInputPtr++] : dtdNextFromCurr();
             } finally {
                 // will ignore name and colon (or whatever was parsed)
                 mFlattenWriter.enableOutput(mInputPtr);
@@ -1022,7 +1045,7 @@ public class FullDTDReader
         } else {
             id = readDTDName();
             c = (mInputPtr < mInputLen) ?
-                mInputBuffer[mInputPtr++] : getNextCharFromCurrent(getErrorMsg());
+                mInputBuffer[mInputPtr++] : dtdNextFromCurr();
         }
         
         // Should now get semicolon...
@@ -1071,12 +1094,6 @@ public class FullDTDReader
      * has, returns null and points to char after the keyword; if not,
      * returns whatever constitutes a keyword matched, for error
      * reporting purposes.
-     *<p>
-     * Note: no PE expansion should be done within keyword; however,
-     * apparently it IS ok to expand one right after keyword...
-     * which is bit strange, but there are test cases that indicate
-     * it should be accepted. But at the very least, let's not expand
-     * PEs, ie. just quit if % is encountered.
      */
     protected String checkDTDKeyword(String exp)
         throws IOException, XMLStreamException
@@ -1086,8 +1103,14 @@ public class FullDTDReader
         char c = ' ';
 
         for (; i < len; ++i) {
-            c = (mInputPtr < mInputLen) ?
-                mInputBuffer[mInputPtr++] : getNextCharFromCurrent(getErrorMsg());
+            if (mInputPtr < mInputLen) {
+                c = mInputBuffer[mInputPtr++];
+            } else {
+                c = dtdNextIfAvailable();
+                if (c == CHAR_NULL) { // end of block, fine
+                    return exp.substring(0, i);
+                }
+            }
             if (c != exp.charAt(i)) {
                 break;
             }
@@ -1095,90 +1118,29 @@ public class FullDTDReader
 
         if (i == len) {
             // Got a match? Cool... except if identifier still continues...
-            int nextChar = peekNext();
-            if (nextChar < 0 || !is11NameChar((char) nextChar)) {
-                // Yup, that's fine!
+            c = dtdNextIfAvailable();
+            if (c == CHAR_NULL) { // EOB, fine
                 return null;
             }
-            // Nope, need to just fall down to get full 'wrong' keyword
-            c = (char) nextChar;
-            ++mInputPtr;
+            if (!is11NameChar(c)) {
+                --mInputPtr; // to push it back
+                return null;
+            }
         }
-
-        // Let's first add previous parts of the keyword:
         StringBuffer sb = new StringBuffer(exp.substring(0, i));
         sb.append(c);
         while (true) {
-            if (mInputPtr < mInputLen) {
-                c = mInputBuffer[mInputPtr];
-            } else {
-                int nextChar = peekNext();
-                if (nextChar < 0) { // end-of-block
-                    break;
-                }
-                c = (char) nextChar;
-            }
-            if (!is11NameChar(c) && c != ':') {
+            c = dtdNextIfAvailable();
+            if (c == CHAR_NULL) { // EOB, fine
                 break;
             }
-            ++mInputPtr;
-            sb.append(c);
-        }
-        return sb.toString();
-    }
-
-    /**
-     * Method called to verify whether input has specified keyword; if it
-     * has, returns null and points to char after the keyword; if not, returns
-     * whatever constitutes a keyword matched, for error reporting purposes.
-     */
-    protected void checkDTDKeyword(String exp, char firstChar, String extraError)
-        throws IOException, XMLStreamException
-    {
-        // First thing, is the first char ok?
-        if (firstChar != exp.charAt(0)) {
-            if (is11NameStartChar(firstChar)) {
-                ; // Ok, fine, let's fall to code that gets the identifier
-            } else {
-                throwDTDUnexpectedChar(firstChar, extraError);
-            }
-        }
-
-        int i = 1;
-        int len = exp.length();
-
-        for (; i < len; ++i) {
-            char c = (mInputPtr < mInputLen) ?
-                mInputBuffer[mInputPtr++] : getNextCharFromCurrent(getErrorMsg());
-            if (c != exp.charAt(i)) {
-                break;
-            }
-        }
-
-        if (i == len) {
-            // Got a match? Cool... except if identifier still continues...
-            char c = (mInputPtr < mInputLen) ?
-                mInputBuffer[mInputPtr++] : getNextCharFromCurrent(getErrorMsg());
-            --mInputPtr; // ie. we just peek it...
-            if (!is11NameChar(c)) {
-                // Yup, that's fine!
-                return;
-            }
-            // Nope, need to just fall down to get full 'wrong' keyword
-        }
-      
-        // Let's first add previous parts of the keyword:
-        StringBuffer sb = new StringBuffer(exp.substring(0, i));
-        while (true) {
-            char c = (mInputPtr < mInputLen) ?
-                mInputBuffer[mInputPtr++] : getNextCharFromCurrent(getErrorMsg());
             if (!is11NameChar(c) && c != ':') {
-                --mInputPtr;
+                --mInputPtr; // to push it back
                 break;
             }
             sb.append(c);
         }
-        throwParseError(getErrorMsg()+extraError);
+        return sb.toString();
     }
 
     /**
@@ -1187,28 +1149,24 @@ public class FullDTDReader
      * identifiers), append that to passed prefix (which is optional), and
      * return resulting String.
      *
-     * @param prefix Part of keyword already read in, if any; may be null
-     *    if keyword is just starting.
+     * @param prefix Part of keyword already read in.
      */
     protected String readDTDKeyword(String prefix)
         throws IOException, XMLStreamException
     {
-        boolean gotPrefix = (prefix != null) && prefix.length() > 0;
-        StringBuffer sb = gotPrefix ?
-            new StringBuffer(prefix) : new StringBuffer();
-
-        if (!gotPrefix) {
-            char c = getNextExpanded();
-            if (!is11NameStartChar(c)) { // should never happen...
-                --mInputPtr;
-                return "";
-            }
-            sb.append(c);
-        }
+        StringBuffer sb = new StringBuffer(prefix);
 
         while (true) {
-            char c = (mInputPtr < mInputLen) ?
-                mInputBuffer[mInputPtr++] : getNextCharFromCurrent(getErrorMsg());
+            char c;
+            if (mInputPtr < mInputLen) {
+                c = mInputBuffer[mInputPtr++];
+            } else {
+                // Don't want to cross block boundary
+                c = dtdNextIfAvailable();
+                if (c == CHAR_NULL) {
+                    break; // end-of-block
+                }
+            }
             if (!is11NameChar(c) && c != ':') {
                 --mInputPtr;
                 break;
@@ -1243,8 +1201,7 @@ public class FullDTDReader
             if (!is11NameStartChar(c)) {
                 throwDTDUnexpectedChar(c, "; expected 'PUBLIC' or 'SYSTEM' keyword.");
             }
-            --mInputPtr;
-            errId = readDTDKeyword(null);
+            errId = readDTDKeyword(String.valueOf(c));
         }
 
         throwParseError("Unrecognized keyword '"+errId+"'; expected 'PUBLIC' or 'SYSTEM'");
@@ -1271,8 +1228,8 @@ public class FullDTDReader
         throws IOException, WstxException
     {
         /* Let's just check this first, to get better error msg
-	 * (parseLocalName() will double-check it too)
-	 */
+         * (parseLocalName() will double-check it too)
+         */
         if (checkChar && !is11NameStartChar(c)) {
             throwDTDUnexpectedChar(c, "; expected an identifier");
         }
@@ -1307,8 +1264,14 @@ public class FullDTDReader
                 outLen = outBuf.length;
             }
             outBuf[outPtr++] = c;
-            c = (mInputPtr < mInputLen) ? mInputBuffer[mInputPtr++]
-                : getNextCharFromCurrent(SUFFIX_IN_NAME);
+            if (mInputPtr < mInputLen) {
+                c = mInputBuffer[mInputPtr++];
+            } else {
+                c = dtdNextIfAvailable();
+                if (c == CHAR_NULL) { // end-of-block
+                    break;
+                }
+            }
         }
 
         /* Nmtokens need not be canonicalized; they will be processed
@@ -1341,19 +1304,18 @@ public class FullDTDReader
              * scope, but it is ok to hit end-of-block if it was a PE
              * expansion...
              */
-            if (mInputPtr >= mInputLen && !loadMoreFromCurrent()) {
+            char c = dtdNextIfAvailable();
+            if (c == CHAR_NULL) { // end-of-block
                 // ok, that's it...
                 prefix = null;
             } else {
-                char c = mInputBuffer[mInputPtr];
                 if (c == ':') { // Ok, got namespace and local name
-                    ++mInputPtr;
                     prefix = localName;
-                    c = (mInputPtr < mInputLen) ?
-                        mInputBuffer[mInputPtr++] : getNextCharFromCurrent(getErrorMsg());
+                    c = dtdNextFromCurr();
                     localName = parseLocalName(c);
                 } else {
                     prefix = null;
+                    --mInputPtr;
                 }
             }
         }
@@ -1481,7 +1443,7 @@ public class FullDTDReader
         tb.setCurrentLength(outPtr);
 
         // Ok, now need the closing '>':
-        char c = skipDtdWs();
+        char c = skipDtdWs(true);
         if (c != '>') {
             throwDTDUnexpectedChar(c, "; expected closing '>' after ENTITY declaration.");
         }
@@ -1575,7 +1537,8 @@ public class FullDTDReader
                     }
                 } else if (c == quoteChar) {
                     /* It is possible to get these via expanded entities;
-                     * need to make sure this is the main input level:
+                     * need to make sure this is the same input level as
+                     * the one that had starting quote
                      */
                     if (mInput == currScope) {
                         break;
@@ -1695,17 +1658,16 @@ public class FullDTDReader
         /* 18-Jul-2004, TSa: Except if it's in an expanded parsed external
          *   entity...
          */
-        if (!mIsExternal) {
-            if (mInput == mRootInput) {
-                throwParseError("Internal DTD subset can not use (INCLUDE/IGNORE) directives (except via external entities).");
-            }
+        if (!mIsExternal && mInput == mRootInput) {
+            throwParseError("Internal DTD subset can not use (INCLUDE/IGNORE) directives (except via external entities).");
         }
 
-        if (skipDtdWs() != 'I') {
+        char c = skipDtdWs(true);
+        if (c != 'I') {
             // let's obtain the keyword for error reporting purposes:
-            keyword = readDTDKeyword("I");
+            keyword = readDTDKeyword(String.valueOf(c));
         } else {
-            char c = getNextExpanded();
+            c = dtdNextFromCurr();
             if (c == 'G') {
                 keyword = checkDTDKeyword("NORE");
                 if (keyword == null) {
@@ -1733,7 +1695,7 @@ public class FullDTDReader
     private void handleIncluded()
         throws IOException, XMLStreamException
     {
-        char c = skipDtdWs();
+        char c = skipDtdWs(false);
         if (c != '[') {
             throwDTDUnexpectedChar(c, "; expected '[' to follow 'INCLUDE' directive.");
         }
@@ -1743,7 +1705,7 @@ public class FullDTDReader
     private void handleIgnored()
         throws IOException, XMLStreamException
     {
-        char c = skipDtdWs();
+        char c = skipDtdWs(false);
         int count = 1; // Nesting of IGNORE/INCLUDE sections we have to match
 
         if (c != '[') {
@@ -1838,6 +1800,10 @@ public class FullDTDReader
     /////////////////////////////////////////////////////
      */
 
+    /**
+     *<p>
+     * Note: c is known to be a letter (from 'A' to 'Z') at this poit.
+     */
     private void handleDeclaration(char c)
         throws IOException, XMLStreamException
     {
@@ -1884,8 +1850,7 @@ public class FullDTDReader
             }
             keyw = "T" + keyw;
         } else {
-            --mInputPtr;
-            keyw = readDTDKeyword(null);
+            keyw = readDTDKeyword(String.valueOf(c));
         }
         reportBadDirective(keyw);
     }
@@ -1972,7 +1937,7 @@ public class FullDTDReader
             if (isSpaceChar(c)) {
                 // Let's push it back in case it's LF, to be handled properly
                 --mInputPtr;
-                c = skipDtdWs();
+                c = skipDtdWs(true);
 
                 /* 26-Jan-2006, TSa: actually there are edge cases where
                  *   we may get the attribute name right away (esp.
@@ -1996,13 +1961,6 @@ public class FullDTDReader
     private void handleElementDecl()
         throws IOException, XMLStreamException
     {
-        /* This method will handle PEs that contain the whole element
-         * name. Since it's illegal to have partials, we can then proceed
-         * to just use normal parsing...
-         */
-        /* 26-Jan-2006, TSa: Apparently white space is optional, at least
-         *   if a PE is found here...
-         */
         char c = skipObligatoryDtdWs();
         final NameKey elemName = readDTDQName(c);
 
@@ -2022,7 +1980,7 @@ public class FullDTDReader
         int vldContent = XMLValidator.CONTENT_ALLOW_ANY_TEXT;
 
         if (c == '(') { // real content model
-            c = skipDtdWs();
+            c = skipDtdWs(true);
             if (c == '#') {
                 val = readMixedSpec(elemName, mCfgFullyValidating);
                 vldContent = XMLValidator.CONTENT_ALLOW_ANY_TEXT; // checked against DTD
@@ -2056,7 +2014,7 @@ public class FullDTDReader
                     keyw = "E"+keyw;
                 } else {
                     --mInputPtr;
-                    keyw = readDTDKeyword(null);
+                    keyw = readDTDKeyword(String.valueOf(c));
                 }
                 throwParseError("Unrecognized DTD content spec keyword '"
                                 +keyw+"' (for element <"+elemName+">); expected ANY or EMPTY");
@@ -2066,7 +2024,7 @@ public class FullDTDReader
         }
 
         // Ok, still need the trailing gt-char to close the declaration:
-        c = skipDtdWs();
+        c = skipDtdWs(true);
         if (c != '>') {
             throwDTDUnexpectedChar(c, "; expected '>' to finish the element declaration for <"+elemName+">");
         }
@@ -2100,18 +2058,63 @@ public class FullDTDReader
     }
 
     /**
+     * This method is tricky to implement, since it can contain parameter
+     * entities in multiple combinations... and yet declare one as well.
+     *
      * @param suppressPEDecl If true, will need to take of enabling/disabling
      *   of flattened output.
      */
     private void handleEntityDecl(boolean suppressPEDecl)
         throws IOException, XMLStreamException
     {
-        String emsg = getErrorMsg();
-        /* Hmmh. We won't allow parameter entities at this point, so let's
-         * not use 'skipDtdWs'.
+        /* Hmmh. It seems that PE reference are actually accepted
+         * even here... which makes distinguishing definition from
+         * reference bit challenging.
          */
-        char c = skipOblNonPeWs(emsg, true);
-        boolean isParam = (c == '%');
+        char c = dtdNextFromCurr();
+        boolean gotSeparator = false;
+        boolean isParam = false;
+
+        while (true) {
+            if (c == '%') { // reference?
+                char d = dtdNextFromCurr();
+                if (isSpaceChar(d)) { // ok, PE declaration
+                    isParam = true;
+                    if (d == '\n' || c == '\r') {
+                        skipCRLF(d);
+                    }
+                    break;
+                }
+                // Reference?
+                if (!is11NameStartChar(d)) {
+                    throwDTDUnexpectedChar(d, "; expected a space (for PE declaration) or PE reference name");
+                }
+                gotSeparator = true;
+                expandPE(true);
+                // need the next char, from the new scope... or if it gets closed, this one
+                c = dtdNextChar();
+            } else if (!isSpaceChar(c)) { // non-PE entity?
+                break;
+            } else {
+                gotSeparator = true;
+                c = dtdNextFromCurr();
+            }
+        }
+
+        if (!gotSeparator) {
+            throwDTDUnexpectedChar(c, "; expected a space separating ENTITY keyword and entity name");
+        }
+
+        /* Ok; fair enough: now must have either '%', or a name start
+         * character:
+         */
+        if (isParam) {
+            /* PE definition: at this point we already know that there must
+             * have been a space... just need to skip the rest, if any
+             */
+            dtdSkipCurrWs();
+            c = dtdNextChar();
+        }
 
         if (suppressPEDecl) { // only if mFlattenWriter != null
             if (!isParam) {
@@ -2121,10 +2124,7 @@ public class FullDTDReader
             }
         }
 
-        if (isParam) {
-            c = skipOblNonPeWs(emsg, false);
-        }
-
+        // Need a name char, then
         String id = readDTDName(c);
 
         /* Ok, event needs to know its exact starting point (opening '<'
@@ -2141,7 +2141,7 @@ public class FullDTDReader
                  * opening quote. To do that, need to 'peek' next char, then
                  * push it back:
                  */
-                char foo = getNextChar(emsg);
+                char foo = dtdNextFromCurr();
                 Location contentLoc = getLastCharLocation();
                 --mInputPtr; // pushback
                 TextBuffer contents = parseEntityValue(id, contentLoc, c);
@@ -2223,7 +2223,7 @@ public class FullDTDReader
                 throwDTDUnexpectedChar(c, "; expected a quote to start the public identifier.");
             }
             pubId = parsePublicId(c, mCfgNormalizeLFs, getErrorMsg());
-            c = skipDtdWs();
+            c = skipDtdWs(true);
         } else {
             pubId = null;
         }
@@ -2233,7 +2233,7 @@ public class FullDTDReader
          */
         if (c == '"' || c == '\'') {
             sysId = parseSystemId(c, mCfgNormalizeLFs, getErrorMsg());
-            c = skipDtdWs();
+            c = skipDtdWs(true);
         } else {
             if (!isPublic) {
                 throwDTDUnexpectedChar(c, "; expected a quote to start the system identifier.");
@@ -2319,7 +2319,7 @@ public class FullDTDReader
         }
         
         // Ok, and then the closing '>':
-        c = skipDtdWs();
+        c = skipDtdWs(true);
         if (c != '>') {
             throwDTDUnexpectedChar(c, "; expected '>' to end TARGETNS directive");
         }
@@ -2520,7 +2520,7 @@ public class FullDTDReader
          */
         TreeSet set = new TreeSet();
 
-        char c = skipDtdWs();
+        char c = skipDtdWs(true);
         if (c == ')') { // just to give more meaningful error msgs
             throwDTDUnexpectedChar(c, " (empty list; missing identifier(s))?");
         }
@@ -2541,14 +2541,14 @@ public class FullDTDReader
         set.add(id);
         
         while (true) {
-            c = skipDtdWs();
+            c = skipDtdWs(true);
             if (c == ')') {
                 break;
             }
             if (c != '|') {
                 throwDTDUnexpectedChar(c, "; missing '|' separator?");
             }
-            c = skipDtdWs();
+            c = skipDtdWs(true);
             id = isNotation ? readNotationEntry(c, attrName)
                 : readEnumEntry(c, sharedEnums);
             if (!set.add(id)) {
@@ -2649,12 +2649,12 @@ public class FullDTDReader
 
         HashMap m = JdkFeatures.getInstance().getInsertOrderedMap();
         while (true) {
-            char c = skipDtdWs();
+            char c = skipDtdWs(true);
             if (c == ')') {
                 break;
             }
             if (c == '|') {
-                c = skipDtdWs();
+                c = skipDtdWs(true);
             } else if (c == ',') {
                 throwDTDUnexpectedChar(c, " (sequences not allowed within mixed content)");
             } else if (c == '(') {
@@ -2712,7 +2712,7 @@ public class FullDTDReader
         boolean choiceSet = false;
 
         while (true) {
-            char c = skipDtdWs();
+            char c = skipDtdWs(true);
             if (c == ')') {
                 // Need to have had at least one entry...
                 if (subSpecs.isEmpty()) {
@@ -2730,7 +2730,7 @@ public class FullDTDReader
                         throwParseError("Can not mix content spec separators ('|' and ','); need to use parenthesis groups");
                     }
                 }
-                c = skipDtdWs();
+                c = skipDtdWs(true);
             } else {
                 // Need separator between subspecs...
                 if (!subSpecs.isEmpty()) {
@@ -2840,7 +2840,7 @@ public class FullDTDReader
              */
             c = getNextExpanded();
             if (c <= CHAR_SPACE) { // good
-                c = skipDtdWs();
+                c = skipDtdWs(true);
             } else { // not good...
                 // Let's just push it back and generate normal error then:
                 if (c != '>') { // this is handled below though
@@ -2871,7 +2871,7 @@ public class FullDTDReader
          *   #72 in xml 1.0 specs)
          */
         if (isParam) {
-            c = skipDtdWs();
+            c = skipDtdWs(true);
         } else {
             /* GEs can be unparsed, too, so it's bit more complicated;
              * if we get '>', don't need space; otherwise need separating
@@ -2882,23 +2882,29 @@ public class FullDTDReader
                 c = '>';
                 ++mInputPtr;
             } else if (i < 0) { // local EOF, ok
-                c = skipDtdWs();
+                c = skipDtdWs(true);
             } else if (i == '%') {
                 c = getNextExpanded();
             } else {
                 ++mInputPtr;
                 c = (char) i;
                 if (!isSpaceChar(c)) {
-                    throwUnexpectedChar(c, "; expected a separating space or closing '>'");
+                    throwDTDUnexpectedChar(c, "; expected a separating space or closing '>'");
                 }
-                c = skipDtdWs();
+                c = skipDtdWs(true);
             }
 
             if (c != '>') {
-                checkDTDKeyword("NDATA", c, "; expected either NDATA keyword, or closing '>'");
+                if (!is11NameStartChar(c)) {
+                    throwDTDUnexpectedChar(c, "; expected either NDATA keyword, or closing '>'");
+                }
+                String keyw = checkDTDKeyword("DATA");
+                if (keyw != null) {
+                    throwParseError("Unrecognized keyword '"+keyw+"'; expected NOTATION (or closing '>')");
+                }
                 c = skipObligatoryDtdWs();
                 notationId = readNotationEntry(c, null);
-                c = skipDtdWs();
+                c = skipDtdWs(true);
             }
         }
 

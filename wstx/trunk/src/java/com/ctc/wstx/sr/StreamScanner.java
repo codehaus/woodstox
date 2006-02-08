@@ -708,8 +708,8 @@ public abstract class StreamScanner
      *<p>
      * Note: this method only peeks within current input source;
      * it does not close it and check nested input source (if any).
-     * This because that's never the desired behaviour (if such
-     * behaviour is needed, have to create a new method).
+     * This is necessary when checking keywords, since they can never
+     * cross input block boundary.
      */
     protected final int peekNext()
         throws IOException, WstxException
