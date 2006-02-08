@@ -17,6 +17,8 @@ package com.ctc.wstx.io;
 
 import java.io.*;
 
+import com.ctc.wstx.cfg.XmlConsts;
+
 /**
  * Optimized Reader that reads UTF-8 encoded content from an input stream.
  * In addition to doing (hopefully) optimal conversion, it can also take
@@ -26,15 +28,6 @@ import java.io.*;
 public final class UTF8Reader
     extends BaseReader
 {
-    final static char NULL_CHAR = (char) 0;
-    final static char NULL_BYTE = (byte) 0;
-
-    /**
-     * This constant defines the highest Unicode character allowed
-     * in XML content.
-     */
-    final static int MAX_UNICODE_CHAR = 0x10FFFF;
-
     char mSurrogate = NULL_CHAR;
 
     /**
@@ -195,7 +188,7 @@ public final class UTF8Reader
                      * need to save the surrogate for the rainy day...
                      */
                     // But first, let's check max chars:
-                    if (c > MAX_UNICODE_CHAR) {
+                    if (c > XmlConsts.MAX_UNICODE_CHAR) {
                         reportInvalidMax(c, outPtr-start);
                     }
                     c -= 0x10000; // to normalize it starting with 0x0
@@ -268,7 +261,7 @@ public final class UTF8Reader
         int bytePos = mByteCount + mPtr - 1;
         int charPos = mCharCount + offset;
 
-        throw new CharConversionException("Invalid 4-byte UTF-8 character (value "+Integer.toHexString(value)+" above "+Integer.toHexString(MAX_UNICODE_CHAR)+"), at char #"+charPos+", byte #"+bytePos+")");
+        throw new CharConversionException("Invalid 4-byte UTF-8 character (value "+Integer.toHexString(value)+" above "+Integer.toHexString(XmlConsts.MAX_UNICODE_CHAR)+"), at char #"+charPos+", byte #"+bytePos+")");
     }
 
     /**

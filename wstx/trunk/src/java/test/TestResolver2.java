@@ -13,8 +13,8 @@ public class TestResolver2
     public Object resolveEntity(String publicId, String systemId,
                                 String baseURL, String name)
     {
-        System.err.println("TestResolver: '"+publicId+"'/'"+systemId
-                           +", baseURL "+baseURL+", entity '"+name+"'.");
+        System.err.println("[TestResolver2: '"+publicId+"'/'"+systemId
+                           +", baseURL "+baseURL+", entity '"+name+"']");
         return null;
     }
 }

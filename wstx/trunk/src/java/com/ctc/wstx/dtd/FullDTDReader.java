@@ -501,7 +501,7 @@ public class FullDTDReader
             }
 
             if (i == '%') { // parameter entity
-                expandPE();
+                expandPE(true); // true -> not in attr/entity value, add spaces
                 continue;
             }
 
@@ -733,7 +733,8 @@ public class FullDTDReader
     ////////////////////////////////////////////////////
      */
 
-    protected void initInputSource(WstxInputSource newInput, boolean isExt)
+    protected void initInputSource(WstxInputSource newInput, boolean isExt,
+                                   boolean padWithSpaces)
         throws IOException, XMLStreamException
     {
         if (mFlattenWriter != null) {
@@ -745,13 +746,13 @@ public class FullDTDReader
                  * this includes skipping of optional XML declaration that we
                  * do NOT want to output
                  */
-                super.initInputSource(newInput, isExt);
+                super.initInputSource(newInput, isExt, padWithSpaces);
             } finally {
                 // This will effectively skip declaration
                 mFlattenWriter.enableOutput(mInputPtr);
             }
         } else {
-            super.initInputSource(newInput, isExt);
+            super.initInputSource(newInput, isExt, padWithSpaces);
         }
     }
 
@@ -871,7 +872,7 @@ public class FullDTDReader
             if (c != '%') {
                 return c;
             }
-            expandPE();
+            expandPE(true); // true -> not in attr/entity value, add spaces
         }
     }
 
@@ -882,7 +883,7 @@ public class FullDTDReader
             char c = (mInputPtr < mInputLen)
                 ? mInputBuffer[mInputPtr++] : getNextChar(getErrorMsg());
             if (c == '%') {
-                expandPE();
+                expandPE(true); // true -> not in attr/entity value, add spaces
                 continue;
             }
             if (c > CHAR_SPACE) {
@@ -927,7 +928,7 @@ public class FullDTDReader
         // Ok, got it, now can loop...
         while (true) {
             if (c == '%') {
-                expandPE();
+                expandPE(true); // not in attr/entity value, add spaces
             } else if (c > CHAR_SPACE) {
                 break;
             }
@@ -993,11 +994,15 @@ public class FullDTDReader
      * Method called to handle expansion of parameter entities. When called,
      * '%' character has been encountered as a reference indicator, and
      * now we should get parameter entity name.
+     *
+     * @param addSpaces If true, the expansion text should have one space
+     *   appended and prepended (XML 1.0.3, #4.4, "Reference in DTD");
+     *   if false, not ("Included in literal", that is, in attribute value
+     *   or internal entity value)
      */
-    private void expandPE()
+    private void expandPE(boolean addSpaces)
         throws IOException, XMLStreamException
     {
-
         String id;
         char c;
 
@@ -1028,9 +1033,10 @@ public class FullDTDReader
         if (mIsExternal) {
             /* Need more checking when expanding PEs for external subsets;
              * need to see if definition was pre-defined or locally
-             * defined.
+             * defined (to know if subset will be cacheable)
              */
-            int setId = expandEntity(id, mPredefdPEs, mParamEntities, true);
+            int setId = expandEntity(id, mPredefdPEs, mParamEntities, true,
+                                     addSpaces);
             if (setId == 1) { // came from internal subset...
                 mUsesPredefdEntities = true;
                 /* No need to further keep track of internal references,
@@ -1050,7 +1056,7 @@ public class FullDTDReader
                 }
             }
         } else {
-            expandEntity(id, mParamEntities, null, true);
+            expandEntity(id, mParamEntities, null, true, addSpaces);
         }
     }
 
@@ -1285,7 +1291,10 @@ public class FullDTDReader
         int outPtr = 0;
 
         while (true) {
-            if (!is11NameChar(c)) {
+            /* Note: colon not included in name char array, since it has
+             * special meaning WRT QNames, need to add into account here:
+             */
+            if (!is11NameChar(c)  && c != ':') {
                 // Need to get at least one char
                 if (outPtr == 0) {
                     throwDTDUnexpectedChar(c, "; expected a NMTOKEN character to start a NMTOKEN");
@@ -1431,7 +1440,7 @@ public class FullDTDReader
                 if (!allowPEs) {
                     throwParseError("Can not have parameter entities in entity value defined at the main level of internal subset (XML 1.1, #2.8).");
                 }
-                expandPE();
+                expandPE(false); // in entity (PE/GE) value, no extra spaces
                 // Need to loop over, no char available yet
                 continue;
             } else if (c == '\n') {
@@ -1591,8 +1600,8 @@ public class FullDTDReader
                          * internal subset...
                          */
                         if (mIsExternal) {
-                            int setId = expandEntity(id, mPredefdGEs,
-                                                     mGeneralEntities, false);
+                            int setId = expandEntity
+                                (id, mPredefdGEs, mGeneralEntities, false, false);
                             if (setId == 1) { // came from internal subset...
                                 mUsesPredefdEntities = true;
                                 /* No need to further keep track of references,
@@ -1611,13 +1620,13 @@ public class FullDTDReader
                                 }
                             }
                         } else { // internal subset, let's just expand it
-                            expandEntity(id, null, mGeneralEntities, false);
+                            expandEntity(id, null, mGeneralEntities, false, false);
                         }
                         // Ok, should have updated the input source by now
                         continue main_loop;
                     }
                 } else if (c == '<') {
-                    throwParseError("Unexpected '<' "+SUFFIX_IN_DEF_ATTR_VALUE);
+                    throwDTDUnexpectedChar(c, SUFFIX_IN_DEF_ATTR_VALUE);
                 }
             } // if (c < CHAR_FIRST_PURE_TEXT)
                 

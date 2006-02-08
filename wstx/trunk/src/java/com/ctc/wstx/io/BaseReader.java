@@ -9,6 +9,9 @@ import java.io.*;
 abstract class BaseReader
     extends Reader
 {
+    protected final static char NULL_CHAR = (char) 0;
+    protected final static char NULL_BYTE = (byte) 0;
+
     protected InputStream mIn;
 
     protected byte[] mBuffer;

@@ -55,6 +55,8 @@ public abstract class StreamScanner
     implements InputProblemReporter,
         InputConfigFlags, ParsingErrorMsgs
 {
+    final static char sSingleSpaceBuffer[] = new char[] { ' ' };
+
     // // // Some well-known chars:
 
     /**
@@ -920,7 +922,8 @@ public abstract class StreamScanner
      * has been created). Needs to initialize location information and change
      * active input source.
      */
-    protected void initInputSource(WstxInputSource newInput, boolean isExt)
+    protected void initInputSource(WstxInputSource newInput, boolean isExt,
+                                   boolean padWithSpaces)
         throws IOException, XMLStreamException
     {
         mInput = newInput;
@@ -932,12 +935,21 @@ public abstract class StreamScanner
          */
         mInput.initInputLocation(this);
 
-        /* Then, for external (parsed) entities, may need to skip the xml
-         * declaration; this can and should be done before calling init, 
-         * since init will update
+        /* Ok; do we need to do some padding? This is bit tricky, since
+         * although spaces are needed around expansion value, they should not
+         * really count towards the offsets... they are only needed to
+         * make sure tokenization doesn't cross expansion boundaries.
          */
-        // 13-Aug-2004, TSa: Nope; bootstrappers get rid of them...
-        //if (isExt) { ... }
+        if (padWithSpaces) {
+            /* First we can just stuff the leading space in the current
+             * input buffer... easy:
+             */
+
+            /* But we do also need to add a marker so that we can similarly
+             * stick a space when this input source closes
+             */
+            newInput.markPadding();
+        }
     }
 
     /**
@@ -949,6 +961,11 @@ public abstract class StreamScanner
     {
         WstxInputSource input = mInput;
         do {
+            /* Padding just added (and consumed since we got back here)?
+             * Ok; will just need to close the current input, then
+             */
+            // !!! TBI
+
             /* Need to make sure offsets are properly updated for error
              * reporting purposes, and do this now while previous amounts
              * are still known.
@@ -963,6 +980,21 @@ public abstract class StreamScanner
             if (input == mRootInput) {
                 return false;
             }
+
+            /* 07-Feb-2005, TSa: Padding around Parameter Entities is easiest
+             *   to add here... (granted, not a very clean way; but it's bit
+             *   tricky to do right in any case). Note: here we can not just
+             *   modify either current input's, or its parent's, buffers:
+             *   for internal values that would corrupt re-used expansion
+             *   value. So we'll just use a single char dummy buffer and
+             *   flag to know what is being done.
+             */
+            if (input.needsPadding()) {
+                // !!! TBI
+                //padInputWithSingleSpace();
+                //return true;
+            }
+
             WstxInputSource parent = input.getParent();
             if (parent == null) { // sanity check!
                 throwNullParent(input);
@@ -1052,10 +1084,24 @@ public abstract class StreamScanner
         }
     }
 
+    /**
+     * Method called to insert a single space between two input sources
+     * (usually around an input source, which then puts one between parent
+     * and child expansions)
+     */
+    // !!! TBI
+    /*
+    private void padInputWithSingleSpace()
+    {
+        mJustPadded = true;
+
+    }
+    */
+
     private void throwNullParent(WstxInputSource curr)
     {
-        throw new Error("Internal error: null parent for input source '"
-                        +curr+"'; should never occur (should have stopped at root input '"+mRootInput+"').");
+        throw new Error(ErrorConsts.ERR_INTERNAL);
+        //throw new Error("Internal error: null parent for input source '"+curr+"'; should never occur (should have stopped at root input '"+mRootInput+"').");
     }
 
     /*
@@ -1502,7 +1548,7 @@ public abstract class StreamScanner
                 return '"';
             }
         }
-        expandEntity(id, ent1, ent2, allowExt);
+        expandEntity(id, ent1, ent2, allowExt, false);
         return CHAR_NULL;
     }
 
@@ -1512,10 +1558,23 @@ public abstract class StreamScanner
      *<p>
      * note: called by sub-classes (dtd parser), needs to be protected.
      *
+     * @param id Name of the entity being expanded 
+     * @param ent1 Primary set of entities to expand from (can not be null)
+     * @param ent2 (optional) Secondary set of entities to expand from;
+     *   may be null
+     * @param allowExt Whether external entities can be expanded or not; if
+     *   not, and the entity to expand would be external one, an exception
+     *   will be thrown
+     * @param padWithSpaces If true, expansion value needs to have a single
+     *   space added before and after the content. This needs to done when
+     *   expanding Parameter Entities in DTD content, outside of attribute
+     *   and entity expansion values.
+     *
      * @return 1, if entity was found from the first Map passed in; 2,
      *   if from second, 0 if neither (only for non-entity-replacing mode)
      */
-    protected int expandEntity(String id, Map ent1, Map ent2, boolean allowExt)
+    protected int expandEntity(String id, Map ent1, Map ent2, boolean allowExt,
+                               boolean padWithSpaces)
         throws IOException, XMLStreamException
     {
         EntityDecl ed;
@@ -1547,11 +1606,11 @@ public abstract class StreamScanner
              *    resolver"
              */
             if (mCfgReplaceEntities) {
-                expandUnresolvedEntity(id);
+                expandUnresolvedEntity(id, padWithSpaces);
             }
             return 0;
         }
-        expandEntity(ed, allowExt);
+        expandEntity(ed, allowExt, padWithSpaces);
         return result;
     }
 
@@ -1564,8 +1623,12 @@ public abstract class StreamScanner
      *
      * @param ed Entity to be expanded
      * @param allowExt Whether external entities are allowed or not.
+     * @param padWithSpaces If true, expansion value needs to have a single
+     *   space added before and after the content. This needs to done when
+     *   expanding Parameter Entities in DTD content, outside of attribute
+     *   and entity expansion values.
      */
-    private void expandEntity(EntityDecl ed, boolean allowExt)
+    private void expandEntity(EntityDecl ed, boolean allowExt, boolean padWithSpaces)
         throws IOException, XMLStreamException
     {
         /* Should not refer unparsed entities from attribute values
@@ -1613,14 +1676,14 @@ public abstract class StreamScanner
         /* And then we'll need to make sure new input comes from the new
          * input source
          */
-        initInputSource(newInput, isExt);
+        initInputSource(newInput, isExt, padWithSpaces);
     }
 
     /**
      *<p>
      * note: only from the local expandEntity() method
      */
-    private void expandUnresolvedEntity(String id)
+    private void expandUnresolvedEntity(String id, boolean padWithSpaces)
         throws IOException, XMLStreamException
     {
         XMLResolver resolver = mConfig.getUndeclaredEntityResolver();
@@ -1629,8 +1692,8 @@ public abstract class StreamScanner
             oldInput.saveContext(this);
             // null, null -> no public or system ids
             String xmlVersion = mDocXmlVersion;
-            /* 05-Feb-2006, TSa: If xmlVersion not explicitly known, it defaults
-             *    to 1.0
+            /* 05-Feb-2006, TSa: If xmlVersion not explicitly known,
+             *    it defaults to 1.0
              */
             if (xmlVersion == null) {
                 xmlVersion = XmlConsts.XML_V_10;
@@ -1642,7 +1705,8 @@ public abstract class StreamScanner
                 if (newInput.hasRecursion()) {
                     throwRecursionError(id);
                 }
-                initInputSource(newInput, true); // true -> is external
+                // true -> is external
+                initInputSource(newInput, true, padWithSpaces);
                 return;
             }
         }

@@ -17,4 +17,14 @@ public interface XmlConsts
 
     public final static String XML_SA_YES = "yes";
     public final static String XML_SA_NO = "no";
+
+    // // // Well, these are not strictly xml constants, but for
+    // // // now can live here
+
+    /**
+     * This constant defines the highest Unicode character allowed
+     * in XML content.
+     */
+    final static int MAX_UNICODE_CHAR = 0x10FFFF;
+
 }

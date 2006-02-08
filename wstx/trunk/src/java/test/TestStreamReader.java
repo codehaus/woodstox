@@ -204,17 +204,17 @@ public class TestStreamReader
                     }
                 } else if (type == DTD) {
                     DTDInfo info = sr.getDTDInfo();
+                    System.out.println(" DTD (root "
+                                       +getNullOrStr(info.getDTDRootName())
+                                       +", sysid "+getNullOrStr(info.getDTDSystemId())
+                                       +", pubid "+getNullOrStr(info.getDTDPublicId())
+                                       +");");
                     List entities = (List) sr.getProperty("javax.xml.stream.entities");
                     List notations = (List) sr.getProperty("javax.xml.stream.notations");
                     int entCount = (entities == null) ? -1 : entities.size();
                     int notCount = (notations == null) ? -1 : notations.size();
-                    System.out.print(" DTD ("+entCount+" entities, "+notCount
+                    System.out.print("  ("+entCount+" entities, "+notCount
                                        +" notations), sysid ");
-                    String sysId = info.getDTDSystemId();
-                    System.out.print((sysId == null) ? "NULL" : "\""+sysId+"\"");
-                    System.out.print(", pubid ");
-                    String pubId = info.getDTDPublicId();
-                    System.out.print((pubId == null) ? "NULL" : "\""+pubId+"\"");
                     System.out.print(", declaration = <<");
                     System.out.print(text);
                     System.out.println(">>");
@@ -280,6 +280,10 @@ public class TestStreamReader
             }
         }
         return total;
+    }
+
+    static String getNullOrStr(String input) {
+        return (input == null) ? "[NULL]" : ("'"+input+"'");
     }
 
     public static void main(String[] args)

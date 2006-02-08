@@ -104,113 +104,77 @@ public final class StreamBootstrapper
     public Reader bootstrapInput(boolean mainDoc, XMLReporter rep, String xmlVersion)
         throws IOException, XMLStreamException
     {
+        String normEnc = null;
+
         resolveStreamEncoding();
         if (hasXmlDecl()) {
             readXmlDecl(mainDoc, xmlVersion);
             if (mFoundEncoding != null) {
-                mFoundEncoding = verifyXmlEncoding(mFoundEncoding);
+                normEnc = verifyXmlEncoding(mFoundEncoding);
             }
         }
-
         // Now, have we figured out the encoding?
-        mInputEncoding = mFoundEncoding;
 
-        if (mInputEncoding == null) { // not via xml declaration
+        if (normEnc == null) { // not via xml declaration
             if (mBytesPerChar == 2) { // UTF-16, BE/LE
-                mInputEncoding = mBigEndian ? "UTF-16BE" : "UTF-16LE";
+                normEnc = mBigEndian ? CharsetNames.CS_UTF16BE : CharsetNames.CS_UTF16LE;
             } else if (mBytesPerChar == 4) { // UCS-4... ?
                 /* 22-Mar-2005, TSa: JDK apparently has no way of dealing
                  *   with these encodings... not sure if and how it should
                  *   be dealt with, really. Name could be UCS-4xx... or
                  *   perhaps UTF-32xx
                  */
-                mInputEncoding = mBigEndian ? "UTF-32BE" : "UTF-32LE";
+                normEnc = mBigEndian ? CharsetNames.CS_UTF32BE : CharsetNames.CS_UTF32LE;
             } else {
                 // Ok, default has to be UTF-8, as per XML specs
-                mInputEncoding = "UTF-8";
+                normEnc = CharsetNames.CS_UTF8;
             }
         }
-        
+
+        mInputEncoding = normEnc;
+
         /* And then the reader. Let's figure out if we can use our own fast
          * implementations first:
          */
         Reader r = null;
-        
-        char c = (mInputEncoding.length() > 0) ? mInputEncoding.charAt(0) : ' ';
 
-        /* Canonical charset names here are from IANA recommendation:
-         *   http://www.iana.org/assignments/character-sets
-         * but comparison is done loosely (case-insensitive, ignoring
-         * spacing, underscore vs. hyphen etc) to try to make detection
-         * as extensive as possible.
+        // Normalized, can thus use straight equality checks now
+        if (normEnc == CharsetNames.CS_UTF8) {
+            return new UTF8Reader(mIn, mByteBuffer, mInputPtr, mInputLen);
+        }
+        if (normEnc == CharsetNames.CS_ISO_LATIN1) {
+            return new ISOLatinReader(mIn, mByteBuffer, mInputPtr, mInputLen);
+        }
+        if (normEnc == CharsetNames.CS_US_ASCII) {
+            return new AsciiReader(mIn, mByteBuffer, mInputPtr, mInputLen);
+        }
+        if (normEnc.startsWith(CharsetNames.CS_UTF32)) {
+            // let's augment with actual endianness info
+            if (normEnc == CharsetNames.CS_UTF32) {
+                mInputEncoding = mBigEndian ? CharsetNames.CS_UTF32BE : CharsetNames.CS_UTF32LE;
+            }
+            return new UTF32Reader(mIn, mByteBuffer, mInputPtr, mInputLen,
+                                   mBigEndian);
+        }
+
+        // Nah, JDK needs to try it
+        // Ok; first, do we need to merge stuff back?
+        InputStream in = mIn;
+        if (mInputPtr < mInputLen) {
+            in = new MergedStream(in, mByteBuffer, mInputPtr, mInputLen);
+        }
+        /* 20-Jan-2006, TSa: Ok; although it is possible to declare
+         *   stream as 'UTF-16', JDK may need help in figuring out
+         *   the right order, so let's be explicit:
          */
-        switch (c) {
-        case 'e':
-        case 'E':
-            /* 05-Feb-2006, TSa: We don't really support it quite yet...
-             *    but let's add basic support
-             */
-            if (mInputEncoding.startsWith("EBCDIC") ||
-                mInputEncoding.startsWith("ebcdic")) {
-                mInputEncoding = "EBCDIC";
-            }
-            break;
-        case 'i':
-        case 'I':
-            if (StringUtil.equalEncodings(mInputEncoding, "ISO-8859-1")) {
-                r = new ISOLatinReader(mIn, mByteBuffer, mInputPtr, mInputLen);
-                mInputEncoding = "ISO-8859-1";
-            }
-            break;
-        case 'j':
-        case 'J':
-            if (StringUtil.equalEncodings(mInputEncoding, "JIS_Encoding")) {
-                mInputEncoding = "Shift_JIS";
-            }
-            break;
-        case 's':
-        case 'S':
-            if (StringUtil.equalEncodings(mInputEncoding, "Shift_JIS")) {
-                mInputEncoding = "Shift_JIS";
-            }
-            break;
-        case 'u':
-        case 'U':
-            if (StringUtil.equalEncodings(mInputEncoding, "UTF-8")) {
-                r = new UTF8Reader(mIn, mByteBuffer, mInputPtr, mInputLen);
-                mInputEncoding = "UTF-8";
-            } else if (StringUtil.equalEncodings(mInputEncoding, "US-ASCII")) {
-                r = new AsciiReader(mIn, mByteBuffer, mInputPtr, mInputLen);
-                mInputEncoding = "US-ASCII";
-            } else if (StringUtil.equalEncodings(mInputEncoding, "UTF-16BE")) {
-                // let's just make sure they're using canonical name...
-                mInputEncoding = "UTF-16BE";
-            } else if (StringUtil.equalEncodings(mInputEncoding, "UTF-16LE")) {
-                mInputEncoding = "UTF-16LE";
-            } else if (StringUtil.equalEncodings(mInputEncoding, "UTF")) {
-                // 21-Jan-2006, TSa: ??? What is this to do... ?
-                mInputEncoding = "UTF";
-            }
-            break;
+        if (normEnc == CharsetNames.CS_UTF16) {
+            mInputEncoding = normEnc = mBigEndian ? CharsetNames.CS_UTF16BE : CharsetNames.CS_UTF16LE;
         }
-        
-        if (r == null) {
-            // Nah, JDK needs to try it
-            // Ok; first, do we need to merge stuff back?
-            InputStream in = mIn;
-            if (mInputPtr < mInputLen) {
-                in = new MergedStream(in, mByteBuffer, mInputPtr, mInputLen);
-            }
-            /* 20-Jan-2006, TSa: Ok; although it is possible to declare
-             *   stream as 'UTF-16', JDK may need help in figuring out
-             *   the right order, so let's be explicit:
-             */
-            if (StringUtil.equalEncodings(mInputEncoding, "UTF-16")) {
-                mInputEncoding = mBigEndian ? "UTF-16BE" : "UTF-16LE";
-            }
-            r = new InputStreamReader(in, mInputEncoding);
+        try {
+            return new InputStreamReader(in, normEnc);
+        } catch (UnsupportedEncodingException usex) {
+            throw new WstxIOException("Unsupported encoding: "+usex.getMessage());
         }
-        return r;
     }
     
     /**
@@ -359,71 +323,47 @@ public final class StreamBootstrapper
         }
     }
 
+    /**
+     * @return Normalized encoding name
+     */
     protected String verifyXmlEncoding(String enc)
         throws WstxException
     {
+        enc = CharsetNames.normalize(enc);
+
         // Let's actually verify we got matching information:
-        if (enc.startsWith("UTF")) {
-            String s = (enc.charAt(3) == '-') ?
-                enc.substring(4) : enc.substring(3);
-            if (s.equals("8")) {
-                verifyEncoding(enc, 1);
-                enc = "UTF-8";
-            } else if (s.startsWith("16")) {
-                if (s.length() == 2) {
-                    // BOM is obligatory, to know the ordering
-                    /* 22-Mar-2005, TSa: Actually, since we don't have a
-                     *   custom decoder, so the underlying JDK Reader may
-                     *   have dealt with it transparently... so we can not
-                     *   really throw an exception here.
-                     */
-                    //if (!mHadBOM) {
-                    //reportMissingBOM(enc);
-                    //}
-                    verifyEncoding(enc, 2);
-                    enc = "UTF-16";
-                } else if (s.equals("16BE")) {
-                    verifyEncoding(enc, 2, true);
-                    enc = "UTF-16BE";
-                } else if (s.equals("16LE")) {
-                    verifyEncoding(enc, 2, false);
-                    enc = "UTF-16LE";
-                }
-            }
-        } else if (enc.startsWith("ISO")) {
-            String s = (enc.charAt(3) == '-') ?
-                enc.substring(4) : enc.substring(3);
-            if (s.startsWith("8859")) { // various code pages, incl. ISO-Latin
-                verifyEncoding(enc, 1);
-                // enc should be good as is...
-            } else if (s.startsWith("10646")) { // alias(es) for UTF...?
-                if (s.equals("10646-UCS-2")) {
-                    /* JDK doesn't seem to have direct match, but shouldn't
-                     * following mapping work? (see after checks)
-                     */
-                    if (!mHadBOM) { // needs BOM
-                        reportMissingBOM(enc);
-                    }
-                    verifyEncoding(enc, 2);
-                    enc = "UTF-16";
-                } else if (s.equals("10646-UCS-4")) {
-                    /* Does JDK even support this encoding? Hmmh...
-                     * didn't see one in the list Charset returns?
-                     * Let's try it, however; may fail later on.
-                     */
-                    if (!mHadBOM) { // needs BOM
-                        reportMissingBOM(enc);
-                    }
-                    verifyEncoding(enc, 4);
-                    enc = "UTF-32";
-                }
-            } else if (s.equals("646-US")) {
-                enc = "US-ASCII";
-                verifyEncoding(enc, 1);
-            }
-        } else if (enc.endsWith("ASCII")) {
-            enc = "US-ASCII";
+        if (enc == CharsetNames.CS_UTF8) {
             verifyEncoding(enc, 1);
+        } else if (enc == CharsetNames.CS_ISO_LATIN1) {
+            verifyEncoding(enc, 1);
+        } else if (enc == CharsetNames.CS_US_ASCII) {
+            verifyEncoding(enc, 1);
+        } else if (enc == CharsetNames.CS_UTF16) {
+            // BOM is obligatory, to know the ordering
+            /* 22-Mar-2005, TSa: Actually, since we don't have a
+             *   custom decoder, so the underlying JDK Reader may
+             *   have dealt with it transparently... so we can not
+             *   really throw an exception here.
+             */
+            //if (!mHadBOM) {
+            //reportMissingBOM(enc);
+            //}
+            verifyEncoding(enc, 2);
+        } else if (enc == CharsetNames.CS_UTF16LE) {
+            verifyEncoding(enc, 2, false);
+        } else if (enc == CharsetNames.CS_UTF16BE) {
+            verifyEncoding(enc, 2, true);
+
+        } else if (enc == CharsetNames.CS_UTF32) {
+            // Do we require a BOM here? we can live without it...
+            //if (!mHadBOM) {
+            //    reportMissingBOM(enc);
+            //}
+            verifyEncoding(enc, 4);
+        } else if (enc == CharsetNames.CS_UTF32LE) {
+            verifyEncoding(enc, 4, false);
+        } else if (enc == CharsetNames.CS_UTF32BE) {
+            verifyEncoding(enc, 4, true);
         }
         return enc;
     }

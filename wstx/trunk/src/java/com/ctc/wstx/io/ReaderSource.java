@@ -58,6 +58,10 @@ public class ReaderSource
         reader.mCurrInputRowStart = mInputRowStart;
     }
 
+    /**
+     * Note: only used to carry forward the configuration value for
+     * the input buffer size; it has no additional semantics.
+     */
     public int getInputBufferLength() {
         return mBuffer.length;
     }

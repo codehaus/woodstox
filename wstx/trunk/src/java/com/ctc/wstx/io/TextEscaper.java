@@ -198,85 +198,29 @@ public final class TextEscaper
         if (enc.length() < 1) { // let's assume default is UTF-8...
             return 16;
         }
-        char c = enc.charAt(0);
-        
-        /* Hmmh. Now this is bit tricky... whether to do "anything other
-         * than Ascii is 8-bit clean" or "anything other than ISO-Latin
-         * _may_ only support 7-bit ones" (obviously there are even more
-         * strict cases but these are main alternatives).
-         * It's also possible that some schemes (Shift-JIS?) would support
-         * much bigger subset of Unicode... but let's cross that bridge
-         * if and when we get there.
-         */
-        /* For now, let's just do former, so that in general first 256
-         * chars get output as is, while others get escaped.
-         */
-        
-        /* Let's check first if it's a Unicode encoding... they
-         * start with "UTF" and "UCS" (UTF-8, UCS-xxx). Otherwise,
-         * let's just play safe and assume it's a single-byte encoding
-         */
-        if (c == 'u' || c == 'U') {
-            if (StringUtil.encodingStartsWith(enc, "UTF")
-                || StringUtil.encodingStartsWith(enc, "UCS")) {
-                return 16;
-            }
-            if (StringUtil.equalEncodings(enc, "US-ASCII")) {
-                return 7;
-            }
-            if (StringUtil.encodingStartsWith(enc, "UNICODE")) {
-                // Not too standard... but is listed in IANA charset list
-                return 16;
-            }
-        } else if (c == 'i' || c == 'I') {
-            if (StringUtil.encodingStartsWith(enc, "ISO-10646")) {
-                /* Hmmh. There are boatloads of alternatives here, it
-                 * seems (see http://www.iana.org/assignments/character-sets
-                 * for details)
-                 */
-                int ix = enc.indexOf("10646");
-                String suffix = enc.substring(ix+5);
-                
-                if (StringUtil.equalEncodings(suffix, "UCS-Basic")) { // ascii
-                    return 7;
-                }
-                if (StringUtil.equalEncodings(suffix, "Unicode-Latin1")) { // ISO-Latin
-                    return 8;
-                }
-                if (StringUtil.equalEncodings(suffix, "UCS-2")) { // ISO-10646-UCS-2 == 2-byte unicode
-                    return 16;
-                }
-                if (StringUtil.equalEncodings(suffix, "UCS-4")) {
-                    return 16; // while it is 32-bit wide, we only have 16-bit chars
-                }
-                if (StringUtil.equalEncodings(suffix, "UTF-1")) {
-                    // Universal Transfer Format (1), this is the multibyte encoding, that subsets ASCII-7.
-                    return 7;
-                }
-                if (StringUtil.equalEncodings(suffix, "J-1")) {
-                    // Name: ISO-10646-J-1, Source: ISO 10646 Japanese, see RFC 1815.
-                    // ... so what does that really mean? let's limit to ascii
-                    return 7;
-                }
-                if (StringUtil.equalEncodings(suffix, "US-ASCII")) {
-                    return 7;
-                }
-                // and with nothing else, it's ISO-Latin1...
-                if (StringUtil.equalEncodings(enc, "ISO-10646")) {
-                    return 8;
-                }
-            } else if (StringUtil.encodingStartsWith(enc, "ISO-646")) {
-                return 7; // another name for Ascii...
-            } else if (StringUtil.encodingStartsWith(enc, "ISO-Latin")) {
-                return 8;
-            }
-        } else if (c == 'a' || c == 'A') {
-            if (StringUtil.equalEncodings(enc, "ASCII")) {
-                return 7;
-            }
+        // Let's see if we can find a normalized name, first:
+        enc = CharsetNames.normalize(enc);
+
+        // Ok, first, do we have known ones; starting with most common:
+        if (enc == CharsetNames.CS_UTF8) {
+            return 16; // meaning up to 2^16 can be represented natively
+        } else if (enc == CharsetNames.CS_ISO_LATIN1) {
+            return 8;
+        } else if (enc == CharsetNames.CS_US_ASCII) {
+            return 7;
+        } else if (enc == CharsetNames.CS_UTF16
+                   || enc == CharsetNames.CS_UTF16BE
+                   || enc == CharsetNames.CS_UTF16LE
+                   || enc == CharsetNames.CS_UTF32BE
+                   || enc == CharsetNames.CS_UTF32LE) {
+            return 16;
         }
-        
-        // Ok, let's just assume it's 8-bit clean, but no more...
+
+        /* Above and beyond well-recognized names, it might still be
+         * good to have more heuristics for as-of-yet unhandled cases...
+         * But, it's probably easier to only assume 8-bit clean (could
+         * even make it just 7, let's see how this works out)
+         */
         return 8;
     }
 }

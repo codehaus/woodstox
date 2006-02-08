@@ -62,7 +62,7 @@ public final class CharArraySource
     public int readInto(WstxInputData reader)
     {
         /* Shouldn't really try to read after closing, but it may be easier
-         * for caller not to have to keep track of closure...
+         * for caller not to have to keep track of open/close state...
          */
         if (mBuffer == null) {
             return -1;
@@ -103,7 +103,7 @@ public final class CharArraySource
     public void close()
     {
         /* Let's help GC a bit, in case there might be back references
-         * to this Onject from somewhere...
+         * to this Object from somewhere...
          */
         mBuffer = null;
     }
