@@ -915,6 +915,7 @@ public class FullDTDReader
             if (!isSpaceChar(c)) {
                 break;
             }
+            ++mInputPtr;
             if (c == '\n' || c == '\r') {
                 skipCRLF(c);
             }
