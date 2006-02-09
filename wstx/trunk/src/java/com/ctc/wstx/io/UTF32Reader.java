@@ -116,19 +116,30 @@ public final class UTF32Reader
             mPtr += 4;
 
             // Does it need to be split to surrogates?
-            if (ch > 0xFFFF) {
-                // Illegal?
-                if (ch > XmlConsts.MAX_UNICODE_CHAR) {
-                    reportInvalidMax(ch, outPtr-start);
-                }
-                ch -= 0x10000; // to normalize it starting with 0x0
-                cbuf[outPtr++] = (char) (0xD800 + (ch >> 10));
-                // hmmh. can this ever be 0? (not legal, at least?)
-                ch = (0xDC00 | (ch & 0x03FF));
-                // Room for second part?
-                if (outPtr >= len) { // nope
-                    mSurrogate = (char) ch;
-                    break main_loop;
+            // (also, we can and need to verify illegal chars)
+            if (ch >= 0xD800) {
+                if (ch <= 0xFFFF) { // need to split into surrogates?
+                    // Illegal?
+                    if (ch > XmlConsts.MAX_UNICODE_CHAR) {
+                        reportInvalid(ch, outPtr-start,
+                                      "(above "+Integer.toHexString(XmlConsts.MAX_UNICODE_CHAR)+") ");
+                    }
+                    ch -= 0x10000; // to normalize it starting with 0x0
+                    cbuf[outPtr++] = (char) (0xD800 + (ch >> 10));
+                    // hmmh. can this ever be 0? (not legal, at least?)
+                    ch = (0xDC00 | (ch & 0x03FF));
+                    // Room for second part?
+                    if (outPtr >= len) { // nope
+                        mSurrogate = (char) ch;
+                        break main_loop;
+                    }
+                } else { // in 16-bit range... just need validity checks
+                    if (ch < 0xE000) {
+                        reportInvalid(ch, outPtr-start,
+                                      "(a surrogate char) ");
+                    } else if (ch >= 0xFFFE) {
+                        reportInvalid(ch, outPtr-start, "");
+                    }
                 }
             }
             cbuf[outPtr++] = (char) ch;
@@ -159,13 +170,15 @@ public final class UTF32Reader
                                           +", at char #"+charPos+", byte #"+bytePos+")");
     }
 
-    private void reportInvalidMax(int value, int offset)
+    private void reportInvalid(int value, int offset, String msg)
         throws IOException
-    { 
+    {
         int bytePos = mByteCount + mPtr - 1;
         int charPos = mCharCount + offset;
 
-        throw new CharConversionException("Invalid 4-byte UTF-8 character (value "+Integer.toHexString(value)+" above "+Integer.toHexString(XmlConsts.MAX_UNICODE_CHAR)+"), at char #"+charPos+", byte #"+bytePos+")");
+        throw new CharConversionException("Invalid UTF-32 character 0x"
+                                          +Integer.toHexString(value)
+                                          +msg+" at char #"+charPos+", byte #"+bytePos+")");
     }
 
     /**

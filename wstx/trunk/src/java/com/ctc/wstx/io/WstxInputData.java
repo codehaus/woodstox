@@ -300,7 +300,10 @@ public class WstxInputData
 
         // Others are checked block-by-block:
         if (c <= 0x2FEF) {
-            if (c < 0x2000 || c >= 0x2C00) {
+            if (c < 0x2000) { // only a single non-valid char in there...
+                return (c != 0x37E);
+            }
+            if (c >= 0x2C00) {
                 // 0x100 - 0x1FFF, 0x2C00 - 0x2FEF are ok
                 return true;
             }

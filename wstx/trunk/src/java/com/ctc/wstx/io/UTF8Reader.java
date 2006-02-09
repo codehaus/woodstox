@@ -183,14 +183,14 @@ public final class UTF8Reader
                         reportInvalidOther(d & 0xFF, outPtr-start);
                     }
                     c = (c << 6) | (d & 0x3F);
+                    if (c > XmlConsts.MAX_UNICODE_CHAR) {
+                        reportInvalid(c, outPtr-start,
+                                      "(above "+Integer.toHexString(XmlConsts.MAX_UNICODE_CHAR)+") ");
+                    }
                     /* Ugh. Need to mess with surrogates. Ok; let's inline them
                      * there, then, if there's room: if only room for one,
                      * need to save the surrogate for the rainy day...
                      */
-                    // But first, let's check max chars:
-                    if (c > XmlConsts.MAX_UNICODE_CHAR) {
-                        reportInvalidMax(c, outPtr-start);
-                    }
                     c -= 0x10000; // to normalize it starting with 0x0
                     cbuf[outPtr++] = (char) (0xD800 + (c >> 10));
                     // hmmh. can this ever be 0? (not legal, at least?)
@@ -202,6 +202,19 @@ public final class UTF8Reader
                         break main_loop;
                     }
                     // sure, let's fall back to normal processing:
+                } else {
+                    /* Otherwise, need to check that 3-byte chars are
+                     * legal ones (should not expand to surrogates;
+                     * 0xFFFE and 0xFFFF are illegal)
+                     */
+                    if (c >= 0xD800) {
+                        // But first, let's check max chars:
+                        if (c < 0xE000) {
+                            reportInvalid(c, outPtr-start, "(a surrogate character) ");
+                        } else if (c >= 0xFFFE) {
+                            reportInvalid(c, outPtr-start, "");
+                        }
+                    }
                 }
             }
             cbuf[outPtr++] = (char) c;
@@ -255,13 +268,15 @@ public final class UTF8Reader
                                           +", at char #"+charPos+", byte #"+bytePos+")");
     }
 
-    private void reportInvalidMax(int value, int offset)
+    private void reportInvalid(int value, int offset, String msg)
         throws IOException
     { 
         int bytePos = mByteCount + mPtr - 1;
         int charPos = mCharCount + offset;
 
-        throw new CharConversionException("Invalid 4-byte UTF-8 character (value "+Integer.toHexString(value)+" above "+Integer.toHexString(XmlConsts.MAX_UNICODE_CHAR)+"), at char #"+charPos+", byte #"+bytePos+")");
+        throw new CharConversionException("Invalid 4-byte UTF-8 character 0x"
+                                          +Integer.toHexString(value)+msg
+                                          +" at char #"+charPos+", byte #"+bytePos+")");
     }
 
     /**

@@ -216,6 +216,20 @@ public class MinimalDTDReader
     //////////////////////////////////////////////////
      */
 
+    protected char dtdNextFromCurr()
+        throws IOException, WstxException
+    {
+        return (mInputPtr < mInputLen) ?
+            mInputBuffer[mInputPtr++] : getNextCharFromCurrent(getErrorMsg());
+    }
+
+    protected char dtdNextChar()
+        throws IOException, WstxException
+    {
+        return (mInputPtr < mInputLen) ?
+            mInputBuffer[mInputPtr++] : getNextChar(getErrorMsg());
+    }
+
     protected char getNextSkippingPEs()
         throws IOException, WstxException
     {
@@ -244,7 +258,7 @@ public class MinimalDTDReader
          * internal subset here.
          */
         char c = (mInputPtr < mInputLen) ?
-            mInputBuffer[mInputPtr++] : getNextChar(getErrorMsg());
+            mInputBuffer[mInputPtr++] : dtdNextFromCurr();
         if (c != ';') {
             --mInputPtr;
         }
@@ -256,7 +270,7 @@ public class MinimalDTDReader
         skipCommentContent();
         // Now, we may be getting end mark; first need second marker char:.
         char c = (mInputPtr < mInputLen)
-            ? mInputBuffer[mInputPtr++] : getNextChar(getErrorMsg());
+            ? mInputBuffer[mInputPtr++] : dtdNextFromCurr();
         if (c != '>') {
             throwParseError("String '--' not allowed in comment (missing '>'?)");
         }
@@ -267,10 +281,10 @@ public class MinimalDTDReader
     {
         while (true) {
             char c = (mInputPtr < mInputLen) ?
-                mInputBuffer[mInputPtr++] : getNextChar(getErrorMsg());
+                mInputBuffer[mInputPtr++] : dtdNextFromCurr();
             if (c == '-') {
                 c = (mInputPtr < mInputLen) ?
-                    mInputBuffer[mInputPtr++] : getNextChar(getErrorMsg());
+                    mInputBuffer[mInputPtr++] : dtdNextFromCurr();
                 if (c == '-') {
                     return;
                 }
@@ -285,11 +299,11 @@ public class MinimalDTDReader
     {
         while (true) {
             char c = (mInputPtr < mInputLen)
-                ? mInputBuffer[mInputPtr++] : getNextChar(getErrorMsg());
+                ? mInputBuffer[mInputPtr++] : dtdNextFromCurr();
             if (c == '?') {
                 do {
                     c = (mInputPtr < mInputLen)
-                        ? mInputBuffer[mInputPtr++] : getNextChar(getErrorMsg());
+                        ? mInputBuffer[mInputPtr++] : dtdNextFromCurr();
                 } while (c == '?');
                 if (c == '>') {
                     break;
@@ -306,15 +320,15 @@ public class MinimalDTDReader
     {
         while (c != '>') {
             c = (mInputPtr < mInputLen)
-                ? mInputBuffer[mInputPtr++] : getNextChar(getErrorMsg());
+                ? mInputBuffer[mInputPtr++] : dtdNextFromCurr();
             if (c == '\n' || c == '\r') {
                 skipCRLF(c);
-            /* No need for specific handling for PE refs; they just have
-             * identifier that'll get properly skipped.
-             */
-            /* 17-Jul-2004, TSa: But we do need to properly handle literals;
-             *   it is possible to add '>' char in entity expansion values.
-             */
+                /* No need for specific handling for PE refs; they just have
+                 * identifier that'll get properly skipped.
+                 */
+                /* 17-Jul-2004, TSa: But we do need to properly handle literals;
+                 *   it is possible to add '>' char in entity expansion values.
+                 */
             } else if (c == '\'' || c == '"') {
                 skipLiteral(c);
             }
@@ -326,7 +340,7 @@ public class MinimalDTDReader
     {
         while (true) {
             char c = (mInputPtr < mInputLen)
-                ? mInputBuffer[mInputPtr++] : getNextChar(getErrorMsg());
+                ? mInputBuffer[mInputPtr++] : dtdNextFromCurr();
             if (c == '\n' || c == '\r') {
                 skipCRLF(c);
             } else if (c == quoteChar) {

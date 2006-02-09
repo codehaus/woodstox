@@ -43,22 +43,10 @@ public abstract class WstxInputSource
      */
     final String mFromEntity;
 
-    protected boolean mNeedsPadding = false;
-
     protected WstxInputSource(WstxInputSource parent, String fromEntity)
     {
         mParent = parent;
         mFromEntity = fromEntity;
-    }
-
-    /**
-     * Method called to indicate that the content read via this input
-     * source has to be 'wrapped' in one leading and one trailing space.
-     * This is needed to support a weird property of Parameter Entity
-     * expansion.
-     */
-    public void markPadding() {
-        mNeedsPadding = true;
     }
     
     /*
@@ -97,16 +85,6 @@ public abstract class WstxInputSource
             }
         }
         return false;
-    }
-
-    /**
-     * @return Whether the contents read from this input source need to
-     *   be padded with a single leading and trailing space. This generally
-     *   only needs to be done for Parameter Entities expanded in DTD
-     *   subsets, outside of internal attribute/entity value.
-     */
-    public boolean needsPadding() {
-        return mNeedsPadding;
     }
 
     /*
