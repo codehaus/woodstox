@@ -80,17 +80,13 @@ public class ErrorConsts
                                                +XMLConstants.XML_NS_URI
                                                +"' to \"{0}\"";
 
-    public static String ERR_NS_REDECL_XMLNS = "Trying to redeclare prefix 'xmlns' from its default URI '"
-                                               +XMLConstants.XMLNS_ATTRIBUTE_NS_URI
-                                               +"' to \"{0}\"";
+    public static String ERR_NS_REDECL_XMLNS = "Trying to declare prefix 'xmlns' (illegal as per NS 1.1 #4)";
 
-    public static String ERR_NS_REDECL_XML_URI = "Trying to redeclare URI '"
-                                               +XMLConstants.XML_NS_URI
-                                               +"' from its default prefix 'xml' to \"{0}\"";
+    public static String ERR_NS_REDECL_XML_URI = "Trying to bind URI '"
+        +XMLConstants.XML_NS_URI+" to prefix \"{0}\" (can only bind to 'xml')";
 
-    public static String ERR_NS_REDECL_XMLNS_URI = "Trying to redeclare URI '"
-                                               +XMLConstants.XMLNS_ATTRIBUTE_NS_URI
-                                               +"' from its default prefix 'xmlns' to \"{0}\"";
+    public static String ERR_NS_REDECL_XMLNS_URI = "Trying to bind URI '"
+        +XMLConstants.XMLNS_ATTRIBUTE_NS_URI+" to prefix \"{0}\" (can not be explicitly bound)";
 
 
     // // // DTD-specific:

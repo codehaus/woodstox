@@ -283,28 +283,52 @@ public final class NsInputElementStack
                      *   in there too; they have empty String as prefix
                      */
                     String prefix = nsPrefixes[i];
-                    if (prefix == null) {
-                        prefix = "";
-                        mElements[mSize-(ENTRY_SIZE - IX_DEFAULT_NS)] = nsUri;
-
                     /* 18-Jul-2004, TSa: Need to check that 'xml' and 'xmlns'
-                     *   prefixes are not re-defined.
-                     * !!! Should probably also check that matching URIs are
-                     *   never bound to other prefixes, since that's what
-                     *   Xerces does?
+                     *   prefixes are not re-defined (and 'xmlns' not even
+                     *   defined to its correct ns).
                      */
+                    if (prefix == mPrefixXmlns) {
+                        // xmlns can never be declared, even to its correct URI
+                        mReporter.throwParseError(ErrorConsts.ERR_NS_REDECL_XMLNS);
                     } else if (prefix == mPrefixXml) {
+                        // whereas xml is ok, as long as it's same URI:
                         if (!nsUri.equals(XMLConstants.XML_NS_URI)) {
                             mReporter.throwParseError(ErrorConsts.ERR_NS_REDECL_XML,
                                                       nsUri);
                         }
-                    } else if (prefix == mPrefixXmlns) {
-                        if (!nsUri.equals(XMLConstants.XMLNS_ATTRIBUTE_NS_URI)) {
-                            mReporter.throwParseError(ErrorConsts.ERR_NS_REDECL_XMLNS,
-                                                      nsUri);
+                        /* 09-Feb-2006, TSa: Hmmh. Now, should this explicit
+                         *   xml declaration be visible to the app? I think
+                         *   not; but not 100% sure. Uncomment if it does:
+                         */
+                        mNamespaces.addStrings(prefix, nsUri);
+                    } else { // ok, valid prefix, so far
+                        // The default ns binding needs special handling:
+                        if (prefix == null) {
+                            prefix = "";
+                            mElements[mSize-(ENTRY_SIZE - IX_DEFAULT_NS)] = nsUri;
                         }
+
+                        /* But then let's ensure that URIs matching xml
+                         * and xmlns are not being bound to anything else
+                         */
+                        if (mInternNsURIs) { // identity comparison is ok:
+                            if (nsUri == XMLConstants.XML_NS_URI) {
+                                mReporter.throwParseError(ErrorConsts.ERR_NS_REDECL_XML_URI, prefix);
+                            } else if (nsUri == XMLConstants.XMLNS_ATTRIBUTE_NS_URI) {
+                                mReporter.throwParseError(ErrorConsts.ERR_NS_REDECL_XMLNS_URI);
+                            }
+                        } else { // need to check equals()
+                            if (nsUri.equals(XMLConstants.XML_NS_URI)) {
+                                mReporter.throwParseError(ErrorConsts.ERR_NS_REDECL_XML_URI, prefix);
+                            } else if (nsUri.equals(XMLConstants.XMLNS_ATTRIBUTE_NS_URI)) {
+                                mReporter.throwParseError(ErrorConsts.ERR_NS_REDECL_XMLNS_URI);
+                            }
+                        }
+                        /* and at any rate, binding needs to be added, to
+                         * be visible to the app (including def ns):
+                         */
+                        mNamespaces.addStrings(prefix, nsUri);
                     }
-                    mNamespaces.addStrings(prefix, nsUri);
                 }
             }
         }
