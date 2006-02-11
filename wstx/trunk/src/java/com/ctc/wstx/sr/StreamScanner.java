@@ -1220,8 +1220,8 @@ public abstract class StreamScanner
      * Otherwise it is to return the null char; if so,
      * the input pointer will point to the same point as when method
      * entered (char after ampersand), plus the ampersand itself is
-     * guaranteed to be in the input buffer (so caller can just push
-     * back it if necessary).
+     * guaranteed to be in the input buffer (so caller can just push it
+     * back if necessary).
      *<p>
      * Most often this method is called when reader is not to expand
      * non-char entities automatically, but to return them as separate

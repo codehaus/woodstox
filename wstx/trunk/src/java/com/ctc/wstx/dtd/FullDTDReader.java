@@ -546,7 +546,7 @@ public class FullDTDReader
                                 continue;
                             }
                         }
-                        throwDTDUnexpectedChar(c, "; expected ']]>' to close conditional include section.");
+                        throwDTDUnexpectedChar(c, "; expected ']]>' to close conditional include section");
                     } finally {
                         if (suppress) {
                             mFlattenWriter.enableOutput(mInputPtr);
@@ -557,9 +557,9 @@ public class FullDTDReader
             }
 
             if (mIsExternal) {
-                throwDTDUnexpectedChar(i, "; expected a '<' to start a directive.");
+                throwDTDUnexpectedChar(i, "; expected a '<' to start a directive");
             }
-            throwDTDUnexpectedChar(i, "; expected a '<' to start a directive, or \"]>\" to end internal subset.");
+            throwDTDUnexpectedChar(i, "; expected a '<' to start a directive, or \"]>\" to end internal subset");
         }
 
         /* 05-Feb-2006, TSa: Not allowed to have unclosed INCLUDE/IGNORE
@@ -627,7 +627,7 @@ public class FullDTDReader
         if (c == '-') { // plain comment
             c = dtdNextFromCurr();
             if (c != '-') {
-                throwDTDUnexpectedChar(c, "; expected '-' for a comment.");
+                throwDTDUnexpectedChar(c, "; expected '-' for a comment");
             }
             skipComment();
         } else if (c == '[') {
@@ -665,7 +665,7 @@ public class FullDTDReader
             mFlattenWriter.enableOutput(mInputPtr);
             mFlattenWriter.output("<?");
             skimPI();
-            //throwDTDUnexpectedChar(c, " expected '!' to start a directive.");
+            //throwDTDUnexpectedChar(c, " expected '!' to start a directive");
             return;
         }
         if (c != '!') { // nothing valid
@@ -678,7 +678,7 @@ public class FullDTDReader
         if (c == '-') { // plain comment
             c = dtdNextFromCurr();
             if (c != '-') {
-                throwDTDUnexpectedChar(c, "; expected '-' for a comment.");
+                throwDTDUnexpectedChar(c, "; expected '-' for a comment");
             }
             boolean comm = mFlattenWriter.includeComments();
             if (comm) {
@@ -794,7 +794,7 @@ public class FullDTDReader
             WstxInputSource parent = input.getParent();
             if (parent == null) { // sanity check!
                 throw new Error("Internal error: null parent for input source '"
-                                +input+"'; should never occur (should have stopped at root input '"+mRootInput+"'.");
+                                +input+"'; should never occur (should have stopped at root input '"+mRootInput+"'");
             }
 
             mInput = input = parent;
@@ -856,6 +856,20 @@ public class FullDTDReader
     //////////////////////////////////////////////////
      */
 
+    private void loadMoreScoped(WstxInputSource currScope,
+                                String entityName, Location loc)
+        throws IOException, XMLStreamException
+    {
+        boolean check = (mInput == currScope);
+        loadMore(getErrorMsg());
+        // Did we get out of the scope?
+        if (check && (mInput != currScope)) {
+            throwParseError("Unterminated entity value for entity '"
+                            +entityName+"' (definition started at "
+                            +loc+")");
+        }
+    }
+        
     /**
      * @return Next character from the current input block, if any left;
      *    NULL if end of block (entity expansion)
@@ -977,7 +991,7 @@ public class FullDTDReader
         } else {
             c = mInputBuffer[mInputPtr++]; // was peek, need to read
             if (c > CHAR_SPACE && c != '%') {
-                throwDTDUnexpectedChar(c, "; expected a separating white space.");
+                throwDTDUnexpectedChar(c, "; expected a separating white space");
             }
         }
 
@@ -1033,7 +1047,7 @@ public class FullDTDReader
         
         // Should now get semicolon...
         if (c != ';') {
-            throwDTDUnexpectedChar(c, "; expected ';' to end parameter entity name.");
+            throwDTDUnexpectedChar(c, "; expected ';' to end parameter entity name");
         }
 
         if (mIsExternal) {
@@ -1181,7 +1195,7 @@ public class FullDTDReader
             errId = "S" + errId;
         } else {
             if (!is11NameStartChar(c)) {
-                throwDTDUnexpectedChar(c, "; expected 'PUBLIC' or 'SYSTEM' keyword.");
+                throwDTDUnexpectedChar(c, "; expected 'PUBLIC' or 'SYSTEM' keyword");
             }
             errId = readDTDKeyword(String.valueOf(c));
         }
@@ -1337,7 +1351,8 @@ public class FullDTDReader
 
         /* 18-Jul-2004, TSa: Also, let's see if parameter entities are
          *  allowed; they are only legal outside of main internal subset
-         *  (ie. main XML input) file.
+         *  (ie. main XML input) file (or to be precise; they are legal
+         *  in the int. subset only as complete declarations)
          */
         boolean allowPEs = mIsExternal || (mInput != mRootInput);
 
@@ -1349,14 +1364,7 @@ public class FullDTDReader
 
         while (true) {
             if (mInputPtr >= mInputLen) {
-                boolean check = (mInput == currScope);
-                loadMore(getErrorMsg());
-                // Did we get out of the scope?
-                if (check && (mInput != currScope)) {
-                    throwParseError("Unterminated entity value for entity '"
-                                    +id+"' (definition started at "
-                                    +loc+")");
-                }
+                loadMoreScoped(currScope, id, loc);
             }
             char c = mInputBuffer[mInputPtr++];
 
@@ -1378,11 +1386,48 @@ public class FullDTDReader
                 // Did we get a real char entity?
                 if (d != CHAR_NULL) {
                     c = d;
+                } else {
+                    /* 11-Feb-2006, TSa: Even so, must verify that the
+                     *   entity reference is well-formed.
+                     */
+                    boolean first = true;
+                    while (true) {
+                        if (outPtr >= outBuf.length) { // need more room?
+                            outBuf = tb.finishCurrentSegment();
+                            outPtr = 0;
+                        }
+                        outBuf[outPtr++] = c; // starting with '&'
+                        if (mInputPtr >= mInputLen) {
+                            loadMoreScoped(currScope, id, loc);
+                        }
+                        c = mInputBuffer[mInputPtr++];
+                        if (c == ';') {
+                            break;
+                        }
+                        if (first) {
+                            first = false;
+                            if (is11NameStartChar(c)) {
+                                continue;
+                            }
+                        } else {
+                            if (is11NameChar(c)) {
+                                continue;
+                            }
+                        }
+                        if (c == ':' && !mCfgNsEnabled) {
+                            continue; // fine in non-ns mode
+                        }
+                        if (first) { // missing name
+                            throwDTDUnexpectedChar(c, "; expected entity name after '&'");
+                        }
+                        throwDTDUnexpectedChar(c, "; expected semi-colon after entity name");
+                    }
+                    // we can just fall through to let semicolon be added
                 }
                 // Either '&' itself, or expanded char entity
             } else if (c == '%') { // param entity?
                 if (!allowPEs) {
-                    throwParseError("Can not have parameter entities in entity value defined at the main level of internal subset (XML 1.1, #2.8).");
+                    throwParseError("Can not have parameter entities in entity value defined at the main level of internal subset (XML 1.1, #2.8)");
                 }
                 expandPE();
                 // Need to loop over, no char available yet
@@ -1427,7 +1472,7 @@ public class FullDTDReader
         // Ok, now need the closing '>':
         char c = skipDtdWs(true);
         if (c != '>') {
-            throwDTDUnexpectedChar(c, "; expected closing '>' after ENTITY declaration.");
+            throwDTDUnexpectedChar(c, "; expected closing '>' after ENTITY declaration");
         }
         return tb;
     }
@@ -1650,7 +1695,7 @@ public class FullDTDReader
          *   entity...
          */
         if (!mIsExternal && mInput == mRootInput) {
-            throwParseError("Internal DTD subset can not use (INCLUDE/IGNORE) directives (except via external entities).");
+            throwParseError("Internal DTD subset can not use (INCLUDE/IGNORE) directives (except via external entities)");
         }
 
         char c = skipDtdWs(true);
@@ -1680,7 +1725,7 @@ public class FullDTDReader
         }
 
         // If we get here, it was an error...
-        throwParseError("Unrecognized directive '"+keyword+"'; expected either 'IGNORE' or 'INCLUDE'.");
+        throwParseError("Unrecognized directive '"+keyword+"'; expected either 'IGNORE' or 'INCLUDE'");
     }
 
     private void handleIncluded()
@@ -1688,7 +1733,7 @@ public class FullDTDReader
     {
         char c = skipDtdWs(false);
         if (c != '[') {
-            throwDTDUnexpectedChar(c, "; expected '[' to follow 'INCLUDE' directive.");
+            throwDTDUnexpectedChar(c, "; expected '[' to follow 'INCLUDE' directive");
         }
         ++mIncludeCount;
     }
@@ -1700,7 +1745,7 @@ public class FullDTDReader
         int count = 1; // Nesting of IGNORE/INCLUDE sections we have to match
 
         if (c != '[') {
-            throwDTDUnexpectedChar(c, "; expected '[' to follow 'IGNORE' directive.");
+            throwDTDUnexpectedChar(c, "; expected '[' to follow 'IGNORE' directive");
         }
 
         /* Ok; now, let's just skip until we get the closing ']]>'
@@ -2140,7 +2185,7 @@ public class FullDTDReader
                                     contents.contentsAsArray(), contentLoc);
             } else {
                 if (!is11NameStartChar(c)) {
-                    throwDTDUnexpectedChar(c, "; expected either quoted value, or keyword 'PUBLIC' or 'SYSTEM'.");
+                    throwDTDUnexpectedChar(c, "; expected either quoted value, or keyword 'PUBLIC' or 'SYSTEM'");
                 }
                 ent = handleExternalEntityDecl(isParam, id, c, evtLoc);
             }
@@ -2211,7 +2256,7 @@ public class FullDTDReader
         // Ok, now we can parse the reference; first public id if needed:
         if (isPublic) {
             if (c != '"' && c != '\'') {
-                throwDTDUnexpectedChar(c, "; expected a quote to start the public identifier.");
+                throwDTDUnexpectedChar(c, "; expected a quote to start the public identifier");
             }
             pubId = parsePublicId(c, mCfgNormalizeLFs, getErrorMsg());
             c = skipDtdWs(true);
@@ -2227,14 +2272,14 @@ public class FullDTDReader
             c = skipDtdWs(true);
         } else {
             if (!isPublic) {
-                throwDTDUnexpectedChar(c, "; expected a quote to start the system identifier.");
+                throwDTDUnexpectedChar(c, "; expected a quote to start the system identifier");
             }
             sysId = null;
         }
 
         // And then we should get the closing '>'
         if (c != '>') {
-            throwDTDUnexpectedChar(c, "; expected closing '>' after NOTATION declaration.");
+            throwDTDUnexpectedChar(c, "; expected closing '>' after NOTATION declaration");
         }
 
         /* Ok, event needs to know its exact starting point (opening '<'
@@ -2822,7 +2867,7 @@ public class FullDTDReader
         if (isPublic) {
             c = skipObligatoryDtdWs();
             if (c != '"' && c != '\'') {
-                throwDTDUnexpectedChar(c, "; expected a quote to start the public identifier.");
+                throwDTDUnexpectedChar(c, "; expected a quote to start the public identifier");
             }
             pubId = parsePublicId(c, mCfgNormalizeLFs, getErrorMsg());
             /* 30-Sep-2005, TSa: SGML has public ids that miss the system
@@ -2851,7 +2896,7 @@ public class FullDTDReader
             c = skipObligatoryDtdWs();
         }
         if (c != '"' && c != '\'') {
-            throwDTDUnexpectedChar(c, "; expected a quote to start the system identifier.");
+            throwDTDUnexpectedChar(c, "; expected a quote to start the system identifier");
         }
         String sysId = parseSystemId(c, mCfgNormalizeLFs, getErrorMsg());
 
@@ -2901,7 +2946,7 @@ public class FullDTDReader
 
         // Ok, better have '>' now:
         if (c != '>') {
-            throwDTDUnexpectedChar(c, "; expected closing '>'.");
+            throwDTDUnexpectedChar(c, "; expected closing '>'");
         }
 
         if (notationId == null) { // parsed entity:
