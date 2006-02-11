@@ -43,10 +43,6 @@ import com.ctc.wstx.util.WordResolver;
 
 /**
  * Reader that reads in DTD information from internal or external subset.
- * It also implements simple stand-alone functionality for flattening
- * DTD files; this is sometimes useful when optimizing modularized DTDs
- * (which are more maintainable) into single monolithic DTDs (which in
- * general can be more performant).
  *<p>
  * There are 2 main modes for DTDReader, depending on whether it is parsing
  * internal or external subset. Parsing of internal subset is somewhat
@@ -55,6 +51,12 @@ import com.ctc.wstx.util.WordResolver;
  * be taken to distinguish between using PEs defined in int. subset, and
  * ones defined in ext. subset itself. This determines cachability of
  * external subsets.
+ *<p>
+ * Reader also implements simple stand-alone functionality for flattening
+ * DTD files (expanding all references to their eventual textual form);
+ * this is sometimes useful when optimizing modularized DTDs
+ * (which are more maintainable) into single monolithic DTDs (which in
+ * general can be more performant).
  */
 
 public class FullDTDReader
@@ -1435,8 +1437,9 @@ public class FullDTDReader
      * but has some notable differences, due to the way XML specs define
      * differences. Main differences are that parameter entities are not
      * allowed (or rather, recognized as entities), and that general
-     * entities are expanded right away; latter meaning that it is not
-     * possible to do forward references to GEs.
+     * entities need to be verified, but NOT expanded right away.
+     * Whether forward references are allowed or not is an open question
+     * right now.
      */
     private String parseAttrDefaultValue(char quoteChar, NameKey attrName,
                                          Location loc, boolean gotFixed)
@@ -1503,7 +1506,7 @@ public class FullDTDReader
                                         outPtr = 0;
                                         outLen = outBuf.length;
                                     }
-                                outBuf[outPtr++] = '\r';
+                                    outBuf[outPtr++] = '\r';
                                 }
                                 // c is fine to continue
                             }
@@ -1602,23 +1605,31 @@ public class FullDTDReader
             throwParseError(ErrorConsts.ERR_WF_PI_MISSING_TARGET, target);
         }
 
-        /* Otherwise, not that much to check since we don't care about
-         * the contents.
-         */
-        while (true) {
-            char c = (mInputPtr < mInputLen)
-                ? mInputBuffer[mInputPtr++] : getNextChar(getErrorMsg());
-            if (c == '?') {
-                do {
-                    c = (mInputPtr < mInputLen)
-                        ? mInputBuffer[mInputPtr++] : getNextChar(getErrorMsg());
-                } while (c == '?');
-                if (c == '>') {
-                    break;
-                }
+        char c = dtdNextFromCurr();
+        // Ok, need a space between target and data nonetheless
+        if (!isSpaceChar(c)) { // except if it ends right away
+            if (c != '?' || dtdNextFromCurr() != '>') {
+                throwUnexpectedChar(c, ErrorConsts.ERR_WF_PI_XML_MISSING_SPACE);
             }
-            if (c == '\n' || c == '\r') {
-                skipCRLF(c);
+        } else {
+            /* Otherwise, not that much to check since we don't care about
+             * the contents.
+             */
+            while (true) {
+                c = (mInputPtr < mInputLen)
+                    ? mInputBuffer[mInputPtr++] : dtdNextFromCurr();
+                if (c == '?') {
+                    do {
+                        c = (mInputPtr < mInputLen)
+                            ? mInputBuffer[mInputPtr++] : dtdNextFromCurr();
+                    } while (c == '?');
+                    if (c == '>') {
+                        break;
+                    }
+                }
+                if (c == '\n' || c == '\r') {
+                    skipCRLF(c);
+                }
             }
         }
     }

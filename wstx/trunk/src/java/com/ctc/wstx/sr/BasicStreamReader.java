@@ -3674,26 +3674,17 @@ public class BasicStreamReader
         }
 
         // As per XML specs, #17, case-insensitive 'xml' is illegal:
-        if (target.length() == 3) {
-            char c = target.charAt(0);
-            if (c == 'x' || c == 'X') {
-                c = target.charAt(1);
-                if (c == 'm' || c == 'M') {
-                    c = target.charAt(2);
-                    if (c == 'l' || c == 'L') {
-                        // 07-Oct-2005, TSa: Still legal in multi-doc mode...
-                        if (!mConfig.inputParsingModeDocuments()) {
-                            throwParseError(ErrorConsts.ERR_WF_PI_MISSING_TARGET, target);
-                        }
-                        // Ok, let's just verify we get space then
-                        c = getNextCharFromCurrent(SUFFIX_IN_XML_DECL);
-                        if (!isSpaceChar(c)) {
-                            throwUnexpectedChar(c, "excepted a space in xml declaration after 'xml'");
-                        }
-                        return handleMultiDocStart(START_DOCUMENT);
-                    }
-                }
+        if (target.equalsIgnoreCase("xml")) {
+            // 07-Oct-2005, TSa: Still legal in multi-doc mode...
+            if (!mConfig.inputParsingModeDocuments()) {
+                throwParseError(ErrorConsts.ERR_WF_PI_MISSING_TARGET, target);
             }
+            // Ok, let's just verify we get space then
+            char c = getNextCharFromCurrent(SUFFIX_IN_XML_DECL);
+            if (!isSpaceChar(c)) {
+                throwUnexpectedChar(c, "excepted a space in xml declaration after 'xml'");
+            }
+            return handleMultiDocStart(START_DOCUMENT);
         }
 
         // And then either white space before data, or end marker:
@@ -3706,12 +3697,9 @@ public class BasicStreamReader
         } else { // Nope; apparently finishes right away...
             mTokenState = TOKEN_FULL_COALESCED;
             mTextBuffer.resetWithEmpty();
-            if (c != '?') {
-                throwUnexpectedChar(c, "excepted either space or \"?>\" after PI target");
-            }
-            c = getNextCharFromCurrent(SUFFIX_IN_PROC_INSTR);
-            if (c != '>') {
-                throwUnexpectedChar(c, "excepted '>' (as part of \"?>\") after PI target");
+            // or does it?
+            if (c != '?' || getNextCharFromCurrent(SUFFIX_IN_PROC_INSTR) != '>') {
+                throwUnexpectedChar(c, ErrorConsts.ERR_WF_PI_XML_MISSING_SPACE);
             }
         }
 

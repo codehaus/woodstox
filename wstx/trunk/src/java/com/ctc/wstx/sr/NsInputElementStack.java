@@ -297,10 +297,10 @@ public final class NsInputElementStack
                                                       nsUri);
                         }
                         /* 09-Feb-2006, TSa: Hmmh. Now, should this explicit
-                         *   xml declaration be visible to the app? I think
-                         *   not; but not 100% sure. Uncomment if it does:
+                         *   xml declaration be visible to the app? SAX API
+                         *   seem to ignore it.
                          */
-                        mNamespaces.addStrings(prefix, nsUri);
+                        //mNamespaces.addStrings(prefix, nsUri);
                     } else { // ok, valid prefix, so far
                         // The default ns binding needs special handling:
                         if (prefix == null) {
