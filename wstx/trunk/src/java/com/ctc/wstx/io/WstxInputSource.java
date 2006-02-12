@@ -66,22 +66,22 @@ public abstract class WstxInputSource
     }
 
     /**
-     * Method that recursively checks if this input source has been
-     * expanded -- directly or indirectly -- from specified entity.
+     * Method that checks if this input source expanded from the specified
+     * entity id, directly or by ancestor.
+     *<p>
      * Note that entity ids are expected to have been interned (using
      * whatever uniqueness mechanism used), and thus can be simply
-     * equality checked.
+     * identity checked.
      */
-    public boolean hasRecursion()
+    public boolean isOrIsExpandedFrom(String entityId)
     {
-        String entityId = mFromEntity;
         if (entityId != null) { // should always be true
-            WstxInputSource input = mParent;
-            while (input != null) {
-                if (input.mFromEntity == entityId) {
+            WstxInputSource curr = this;
+            while (curr != null) {
+                if (entityId == curr.mFromEntity) {
                     return true;
                 }
-                input = input.mParent;
+                curr = curr.mParent;
             }
         }
         return false;

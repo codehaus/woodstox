@@ -1560,13 +1560,22 @@ public abstract class StreamScanner
     private void expandEntity(EntityDecl ed, boolean allowExt)
         throws IOException, XMLStreamException
     {
+        String id = ed.getName();
+
+        /* Very first thing; we can immediately check if expanding
+         * this entity would result in infinite recursion:
+         */
+        if (mInput.isOrIsExpandedFrom(id)) {
+            throwRecursionError(id);
+        }
+
         /* Should not refer unparsed entities from attribute values
          * or text content (except via notation mechanism, but that's
          * not parsed here)
          */
         if (!ed.isParsed()) {
             throwParseError("Illegal reference to unparsed external entity '"
-                            +ed.getName()+"'.");
+                            +id+"'.");
         }
 
         // 28-Jun-2004, TSa: Do we support external entity expansion?
@@ -1574,11 +1583,11 @@ public abstract class StreamScanner
         if (isExt) {
             if (!allowExt) { // never ok in attribute value...
                 throwParseError("Encountered a reference to external parsed entity '"
-                                +ed.getName()+"' when expanding attribute value: not legal as per XML 1.0/1.1 #3.1.");
+                                +id+"' when expanding attribute value: not legal as per XML 1.0/1.1 #3.1.");
             }
             if (!mConfig.hasConfigFlags(CFG_SUPPORT_EXTERNAL_ENTITIES)) {
                 throwParseError("Encountered a reference to external entity '"
-                                +ed.getName()+"', but Reader has feature '"
+                                +id+"', but Reader has feature '"
                                 +XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES
                                 +"' disabled.");
             }
@@ -1597,11 +1606,6 @@ public abstract class StreamScanner
              */
             throwParseError("(was "+fex.getClass().getName()+") "+fex.getMessage());
         }
-
-        // Let's check there's no recursion (-> infinite loops)
-        if (newInput.hasRecursion()) {
-            throwRecursionError(ed.getName());
-        }
         /* And then we'll need to make sure new input comes from the new
          * input source
          */
@@ -1617,6 +1621,15 @@ public abstract class StreamScanner
     {
         XMLResolver resolver = mConfig.getUndeclaredEntityResolver();
         if (resolver != null) {
+            /* Ok, we can check for recursion here; but let's only do that
+             * if there is any chance that it might get resolved by
+             * the special resolver (it must have been resolved this way
+             * earlier, too...)
+             */
+            if (mInput.isOrIsExpandedFrom(id)) {
+                throwRecursionError(id);
+            }
+
             WstxInputSource oldInput = mInput;
             oldInput.saveContext(this);
             // null, null -> no public or system ids
@@ -1630,10 +1643,6 @@ public abstract class StreamScanner
             WstxInputSource newInput = DefaultInputResolver.resolveEntityUsing
                 (oldInput, id, null, null, resolver, mConfig.getXMLReporter(), xmlVersion);
             if (newInput != null) {
-                // Not 100% sure if recursion check is needed... but let's be safe?
-                if (newInput.hasRecursion()) {
-                    throwRecursionError(id);
-                }
                 // true -> is external
                 initInputSource(newInput, true);
                 return;
