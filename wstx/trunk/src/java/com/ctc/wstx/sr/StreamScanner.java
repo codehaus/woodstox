@@ -1355,7 +1355,8 @@ public abstract class StreamScanner
             /* Shortest valid reference would be 3 chars ('&a;'); which
              * would only be legal from an expanded entity...
              */
-            if (!ensureInput(6)) {                avail = inputInBuffer();
+            if (!ensureInput(6)) {
+                avail = inputInBuffer();
                 if (avail < 3) {
                     throwUnexpectedEOF(SUFFIX_IN_ENTITY_REF);
                 }
@@ -2170,7 +2171,7 @@ public abstract class StreamScanner
         if (c == 'x') { // hex
             while (true) {
                 c = (mInputPtr < mInputLen) ? mInputBuffer[mInputPtr++]
-                    : getNextChar(SUFFIX_IN_ENTITY_REF);
+                    : getNextCharFromCurrent(SUFFIX_IN_ENTITY_REF);
                 if (c == ';') {
                     break;
                 }
@@ -2201,7 +2202,7 @@ public abstract class StreamScanner
                     throwUnexpectedChar(c, "; expected a decimal number.");
                 }
                 c = (mInputPtr < mInputLen) ? mInputBuffer[mInputPtr++]
-                    : getNextChar(SUFFIX_IN_ENTITY_REF);
+                    : getNextCharFromCurrent(SUFFIX_IN_ENTITY_REF);
             }
         }
         c = (char) value;
