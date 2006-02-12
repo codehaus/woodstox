@@ -1112,7 +1112,7 @@ public abstract class StreamScanner
                         value += (10 + (c - 'A'));
                     } else {
                         mInputPtr = ptr; // so error points to correct char
-                        throwUnexpectedChar(c, "; expected a hex digit (0-9a-zA-Z).");
+                        throwUnexpectedChar(c, "; expected a hex digit (0-9a-fA-F).");
                     }
                     /* Need to check for overflow; easiest to do right as
                      * it happens...
@@ -1143,20 +1143,8 @@ public abstract class StreamScanner
              * input in current buffer.
              */
             if (c == ';') { // got the full thing
-                if (value == 0) {
-                    throwParseError("Invalid character reference -- null character not allowed in XML content.");
-                }
                 mInputPtr = ptr;
-                /* 24-Jan-2006, TSa: Ok, "high" Unicode chars are problematic,
-                 *   need to be reported by a surrogate pair..
-                 */
-                if (value > 0xFFFF) {
-                    /* Ok, have overwrite one char with second surrogate,
-                     * push back input pointer, and return the first surrogate
-                     */
-                    return expandSurrogatePair(value);
-                }
-                return (char) value;
+                return checkAndExpandChar(value);
             }
 
             /* If we ran out of input, need to just fall back, gets
@@ -2183,7 +2171,7 @@ public abstract class StreamScanner
                 } else if (c >= 'A' && c <= 'F') {
                     value += 10 + (c - 'A');
                 } else {
-                    throwUnexpectedChar(c, "; expected a hex digit (0-9a-zA-Z).");
+                    throwUnexpectedChar(c, "; expected a hex digit (0-9a-fA-F).");
                 }
                 // Overflow?
                 if (value > MAX_UNICODE_CHAR) {
@@ -2205,37 +2193,62 @@ public abstract class StreamScanner
                     : getNextCharFromCurrent(SUFFIX_IN_ENTITY_REF);
             }
         }
-        c = (char) value;
-        // Could check for other invalid chars as well...
-        if (value == 0) {
-            throwParseError("Invalid character reference -- null character not allowed in XML content.");
-        }
-        if (value > 0xFFFF) { // "high" Unicode char?
-            return expandSurrogatePair(value);
-        }
-        return c;
+        return checkAndExpandChar(value);
     }
 
     /**
-     * Method called to expand a character entity with "high" character
-     * value: basically any character above 16-bit limit (over 0x10000).
+     * Method that will handle expansion of a single character entity.
+     * It will first check the general validity of the character (checking
+     * characters that are never valid in any context); and if that succeeds,
+     * will deal with splitting high-order characters (> 0xFFFF) into
+     * surrogate pair as necessary.
      */
-    protected char expandSurrogatePair(int highChar)
+    private final char checkAndExpandChar(int value)
         throws WstxException
     {
-        // sanity check first:
-        if (highChar > MAX_UNICODE_CHAR) {
-            reportUnicodeOverflow();
-        }
-        highChar -= 0x10000;
-        char first = (char) ((highChar >> 10)  + 0xD800);
-        char second = (char) ((highChar & 0x3FF)  + 0xDC00);
-
-        /* Ok, so; need to push back second, return first:
-         * (we now buffer has room for at least one char at this point)
+        /* 24-Jan-2006, TSa: Ok, "high" Unicode chars are problematic,
+         *   need to be reported by a surrogate pair..
          */
-        mInputBuffer[--mInputPtr] = second;
-        return first;
+        if (value >= 0xD800) {
+            if (value < 0xE000) { // no surrogates via entity expansion
+                reportIllegalChar(value);
+            }
+            if (value > 0xFFFF) {
+                // Within valid range at all?
+                if (value > MAX_UNICODE_CHAR) {
+                    reportUnicodeOverflow();
+                }
+                /* Ok, have overwrite one char with second surrogate,
+                 * push back input pointer, and return the first surrogate
+                 */
+                value -= 0x10000;
+                char first = (char) ((value >> 10)  + 0xD800);
+                char second = (char) ((value & 0x3FF)  + 0xDC00);
+                
+                /* Ok, so; need to push back second, return first:
+                 * (we know buffer has room for at least one char at this point)
+                 */
+                /* !!! 11-Feb-2006, TSa: But is this safe with internal entities?
+                 *   It probably is (since char entities are expanded within
+                 *   those values...? but there may be secondary expansions?)
+                 */
+                mInputBuffer[--mInputPtr] = second;
+                return first;
+            } else if (value >= 0xFFFE) { // 0xFFFE and 0xFFFF are illegal too
+                reportIllegalChar(value);
+            }
+            // Ok, fine as is
+        } else if (value < 32) {
+            if (value == 0) {
+                throwParseError("Invalid character reference -- null character not allowed in XML content.");
+            }
+            // XML 1.1 allows most other chars; 1.0 does not:
+            if (!mXml11 &&
+                (value != 0x9 && value != 0xA && value != 0xD)) {
+                reportIllegalChar(value);
+            }
+        }
+        return (char) value;
     }
 
     protected final char[] getNameBuffer(int minSize)
@@ -2281,5 +2294,11 @@ public abstract class StreamScanner
         throws WstxException
     {
         throwParseError("Illegal character entity: value higher than max allowed (0x"+Integer.toHexString(MAX_UNICODE_CHAR)+")");
+    }
+
+    private void reportIllegalChar(int value)
+        throws WstxException
+    {
+        throwParseError("Illegal character entity: expansion character (code 0x"+Integer.toHexString(value)+") not a valid XML character");
     }
 }
