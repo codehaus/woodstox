@@ -245,6 +245,12 @@ public class FullDTDReader
      */
     int mIncludeCount = 0;
 
+    /**
+     * This flag is used to catch uses of PEs in the internal subset
+     * within declarations (full declarations are ok, but not other types)
+     */
+    boolean mCheckForbiddenPEs = false;
+
     /*
     //////////////////////////////////////////////////
     // DTD++ support information
@@ -493,6 +499,7 @@ public class FullDTDReader
         throws IOException, XMLStreamException
     {
         while (true) {
+            mCheckForbiddenPEs = false; // PEs are ok at this point
             int i = getNextAfterWS();
             if (i < 0) {
                 if (mIsExternal) { // ok for external DTDs
@@ -515,6 +522,8 @@ public class FullDTDReader
             mTokenInputCol = mInputPtr - mCurrInputRowStart;
 
             if (i == '<') {
+                // PEs not allowed within declarations, in the internal subset proper
+                mCheckForbiddenPEs = !mIsExternal && (mInput == mRootInput);
                 if (mFlattenWriter == null) {
                     parseDirective();
                 } else {
@@ -1026,12 +1035,21 @@ public class FullDTDReader
         String id;
         char c;
 
+        if (mCheckForbiddenPEs) {
+            /* Ok; we hit a PE where we should not have (within the internal
+             * dtd subset proper, within a declaration). This is a WF error.
+             */
+            throwForbiddenPE();
+        }
+
         // 01-Jul-2004, TSa: When flattening, need to flush previous output
         if (mFlattenWriter != null) {
             // Flush up to but not including ampersand...
             mFlattenWriter.flush(mInputBuffer, mInputPtr-1);
             mFlattenWriter.disableOutput();
-            id = readDTDName();
+            c = (mInputPtr < mInputLen) ?
+                mInputBuffer[mInputPtr++] : dtdNextFromCurr();
+            id = readDTDName(c);
             try {
                 c = (mInputPtr < mInputLen) ?
                     mInputBuffer[mInputPtr++] : dtdNextFromCurr();
@@ -1040,7 +1058,9 @@ public class FullDTDReader
                 mFlattenWriter.enableOutput(mInputPtr);
             }
         } else {
-            id = readDTDName();
+            c = (mInputPtr < mInputLen) ?
+                mInputBuffer[mInputPtr++] : dtdNextFromCurr();
+            id = readDTDName(c);
             c = (mInputPtr < mInputLen) ?
                 mInputBuffer[mInputPtr++] : dtdNextFromCurr();
         }
@@ -1202,12 +1222,6 @@ public class FullDTDReader
 
         throwParseError("Unrecognized keyword '"+errId+"'; expected 'PUBLIC' or 'SYSTEM'");
         return false; // never gets here
-    }
-
-    private String readDTDName()
-        throws IOException, WstxException
-    {
-        return readDTDName(getNextChar(getErrorMsg()));
     }
 
     private String readDTDName(char c)
@@ -1426,9 +1440,6 @@ public class FullDTDReader
                 }
                 // Either '&' itself, or expanded char entity
             } else if (c == '%') { // param entity?
-                if (!allowPEs) {
-                    throwParseError("Can not have parameter entities in entity value defined at the main level of internal subset (XML 1.1, #2.8)");
-                }
                 expandPE();
                 // Need to loop over, no char available yet
                 continue;
@@ -1822,6 +1833,12 @@ public class FullDTDReader
         throwUnexpectedChar(i, getErrorMsg()+extraMsg);
     }
 
+    private void throwForbiddenPE()
+        throws WstxException
+    {
+        throwParseError("Can not have parameter entities in the internal subset, except for defining complete declarations (XML 1.0, #2.8, WFC 'PEs In Internal Subset')");
+    }
+
     private String elemDesc(Object elem) {
         return "Element <"+elem+">)";
     }
@@ -1853,7 +1870,7 @@ public class FullDTDReader
             }
             keyw = "A" + keyw;
         } else if (c == 'E') { // ENTITY, ELEMENT?
-            c = getNextExpanded();
+            c = dtdNextFromCurr();
             if (c == 'N') {
                 keyw = checkDTDKeyword("TITY");
                 if (keyw == null) {
@@ -1903,7 +1920,7 @@ public class FullDTDReader
         throws IOException, XMLStreamException
     {
         String keyw;
-        char c = getNextExpanded();
+        char c = dtdNextFromCurr();
 
         if (c == 'N') {
             keyw = checkDTDKeyword("TITY");
@@ -2467,7 +2484,7 @@ public class FullDTDReader
         // Ok, and how about the default declaration?
         c = skipObligatoryDtdWs();
         if (c == '#') {
-            String defTypeStr = readDTDName();
+            String defTypeStr = readDTDName(getNextExpanded());
             if (defTypeStr == "REQUIRED") {
                 defType = DTDAttribute.DEF_REQUIRED;
             } else if (defTypeStr == "IMPLIED") {
