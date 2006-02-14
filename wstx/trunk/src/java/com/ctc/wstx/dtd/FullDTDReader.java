@@ -251,6 +251,12 @@ public class FullDTDReader
      */
     boolean mCheckForbiddenPEs = false;
 
+    /**
+     * Keyword of the declaration being currently parsed (if any). Used
+     * for error reporting purposes.
+     */
+    String mCurrDeclaration;
+
     /*
     //////////////////////////////////////////////////
     // DTD++ support information
@@ -308,7 +314,7 @@ public class FullDTDReader
         this(input, cfg, true, intSubset, constructFully);
 
         // Let's make sure line/col offsets are correct...
-        input.initInputLocation(this);
+        input.initInputLocation(this, mCurrDepth);
     }
 
     /**
@@ -508,7 +514,6 @@ public class FullDTDReader
                 // Error for internal subset
                 throwUnexpectedEOF(SUFFIX_IN_DTD_INTERNAL);
             }
-
             if (i == '%') { // parameter entity
                 expandPE();
                 continue;
@@ -770,7 +775,7 @@ public class FullDTDReader
      * secondly, to handle (optional) flattening output.
      */
     protected boolean loadMore()
-        throws IOException, WstxException
+        throws IOException, XMLStreamException
     {
         WstxInputSource input = mInput;
 
@@ -796,14 +801,20 @@ public class FullDTDReader
                 }
                 return true;
             }
+
             input.close();
             if (input == mRootInput) {
                 return false;
             }
             WstxInputSource parent = input.getParent();
             if (parent == null) { // sanity check!
-                throw new Error("Internal error: null parent for input source '"
-                                +input+"'; should never occur (should have stopped at root input '"+mRootInput+"'");
+                throwNullParent(input);
+            }
+            /* 13-Feb-2006, TSa: Ok, do we violate a proper nesting constraints
+             *   with this input block closure?
+             */
+            if (mCurrDepth != input.getScopeId()) {
+                handleIncompleteEntityProblem(input);
             }
 
             mInput = input = parent;
@@ -811,6 +822,7 @@ public class FullDTDReader
             if (mFlattenWriter != null) {
                 mFlattenWriter.setFlattenStart(mInputPtr);
             }
+            mInputTopDepth = input.getScopeId();
             // Maybe there are leftovers from that input in buffer now?
         } while (mInputPtr >= mInputLen);
 
@@ -818,7 +830,7 @@ public class FullDTDReader
     }
 
     protected boolean loadMoreFromCurrent()
-        throws IOException, WstxException
+        throws IOException, XMLStreamException
     {
         // Any flattened not-yet-output input to flush?
         if (mFlattenWriter != null) {
@@ -884,7 +896,7 @@ public class FullDTDReader
      *    NULL if end of block (entity expansion)
      */
     private char dtdNextIfAvailable()
-        throws IOException, WstxException
+        throws IOException, XMLStreamException
     {
         char c;
         if (mInputPtr < mInputLen) {
@@ -1225,7 +1237,7 @@ public class FullDTDReader
     }
 
     private String readDTDName(char c)
-        throws IOException, WstxException
+        throws IOException, XMLStreamException
     {
         // Let's just check this before trying to parse the id...
         if (!is11NameStartChar(c)) {
@@ -1235,7 +1247,7 @@ public class FullDTDReader
     }
 
     private String readDTDLocalName(char c, boolean checkChar)
-        throws IOException, WstxException
+        throws IOException, XMLStreamException
     {
         /* Let's just check this first, to get better error msg
          * (parseLocalName() will double-check it too)
@@ -1251,7 +1263,7 @@ public class FullDTDReader
      * ie. there are no additional restrictions for the first char
      */
     private String readDTDNmtoken(char c)
-        throws IOException, WstxException
+        throws IOException, XMLStreamException
     {
         char[] outBuf = getNameBuffer(64);
         int outLen = outBuf.length;
@@ -1651,7 +1663,7 @@ public class FullDTDReader
      * well-formedness checks.
      */
     protected void skimPI()
-        throws IOException, WstxException
+        throws IOException, XMLStreamException
     {
         String target = parseFullName();
         if (target.length() == 0) {
@@ -1847,6 +1859,10 @@ public class FullDTDReader
         return "Attribute '"+attrName+"' (of element <"+elem+">)";
     }
 
+    private String entityDesc(WstxInputSource input) {
+        return "Entity &"+input.getEntityId()+";";
+    }
+
     /*
     /////////////////////////////////////////////////////
     // Internal methods, main-level declaration parsing:
@@ -1862,50 +1878,82 @@ public class FullDTDReader
     {
         String keyw = null;
  
-        if (c == 'A') { // ATTLIST?
-            keyw = checkDTDKeyword("TTLIST");
-            if (keyw == null) {
-                handleAttlistDecl();
-                return;
-            }
-            keyw = "A" + keyw;
-        } else if (c == 'E') { // ENTITY, ELEMENT?
-            c = dtdNextFromCurr();
-            if (c == 'N') {
-                keyw = checkDTDKeyword("TITY");
-                if (keyw == null) {
-                    handleEntityDecl(false);
-                    return;
+        /* We need to ensure that PEs do not span declaration boundaries
+         * (similar to element nesting wrt. GE expansion for xml content).
+         * This VC is defined in xml 1.0, section 2.8 as
+         * "VC: Proper Declaration/PE Nesting"
+         */
+        /* We have binary depths within DTDs, for now: since the declaration
+         * just started, we should now have 1 as the depth:
+         */
+        mCurrDepth = 1;
+
+        try {
+            do { // dummy loop, for break
+                if (c == 'A') { // ATTLIST?
+                    keyw = checkDTDKeyword("TTLIST");
+                    if (keyw == null) {
+                        mCurrDeclaration = "ATTLIST";
+                        handleAttlistDecl();
+                        break;
+                    }
+                    keyw = "A" + keyw;
+                } else if (c == 'E') { // ENTITY, ELEMENT?
+                    c = dtdNextFromCurr();
+                    if (c == 'N') {
+                        keyw = checkDTDKeyword("TITY");
+                        if (keyw == null) {
+                            mCurrDeclaration = "ENTITY";
+                            handleEntityDecl(false);
+                            break;
+                        }
+                        keyw = "EN" + keyw;
+                    } else if (c == 'L') {
+                        keyw = checkDTDKeyword("EMENT");
+                        if (keyw == null) {
+                            mCurrDeclaration = "ELEMENT";
+                            handleElementDecl();
+                            break;
+                        }
+                        keyw = "EL" + keyw;
+                    } else {
+                        keyw = readDTDKeyword("E");
+                    }
+                } else if (c == 'N') { // NOTATION?
+                    keyw = checkDTDKeyword("OTATION");
+                    if (keyw == null) {
+                        mCurrDeclaration = "NOTATION";
+                        handleNotationDecl();
+                        break;
+                    }
+                    keyw = "N" + keyw;
+                } else if (c == 'T' && mCfgSupportDTDPP) { // (dtd++ only) TARGETNS?
+                    keyw = checkDTDKeyword("ARGETNS");
+                    if (keyw == null) {
+                        mCurrDeclaration = "TARGETNS";
+                        handleTargetNsDecl();
+                        break;
+                    }
+                    keyw = "T" + keyw;
+                } else {
+                    keyw = readDTDKeyword(String.valueOf(c));
                 }
-                keyw = "EN" + keyw;
-            } else if (c == 'L') {
-                keyw = checkDTDKeyword("EMENT");
-                if (keyw == null) {
-                    handleElementDecl();
-                    return;
-                }
-                keyw = "EL" + keyw;
-            } else {
-                keyw = readDTDKeyword("E");
+
+                // If we got this far, we got a problem...
+                reportBadDirective(keyw);
+            } while (false);
+            /* Ok: now, the current input can not have been started
+             * within the scope... so:
+             */
+            if (mInput.getScopeId() > 0) {
+                handleGreedyEntityProblem(mInput);
             }
-        } else if (c == 'N') { // NOTATION?
-            keyw = checkDTDKeyword("OTATION");
-            if (keyw == null) {
-                handleNotationDecl();
-                return;
-            }
-            keyw = "N" + keyw;
-        } else if (c == 'T' && mCfgSupportDTDPP) { // (dtd++ only) TARGETNS?
-            keyw = checkDTDKeyword("ARGETNS");
-            if (keyw == null) {
-                handleTargetNsDecl();
-                return;
-            }
-            keyw = "T" + keyw;
-        } else {
-            keyw = readDTDKeyword(String.valueOf(c));
+
+        } finally {
+            // Either way, declaration has ended now...
+            mCurrDepth = 0;
+            mCurrDeclaration = null;
         }
-        reportBadDirective(keyw);
     }
 
     /**
@@ -2630,7 +2678,7 @@ public class FullDTDReader
      * access to entity and notation declarations).
      */
     private String readNotationEntry(char c, NameKey attrName)
-        throws IOException, WstxException
+        throws IOException, XMLStreamException
     {
         String id = readDTDName(c);
 
@@ -2662,7 +2710,7 @@ public class FullDTDReader
     }
 
     private String readEnumEntry(char c, HashMap sharedEnums)
-        throws IOException, WstxException
+        throws IOException, XMLStreamException
     {
         String id = readDTDNmtoken(c);
 
@@ -3041,6 +3089,29 @@ public class FullDTDReader
     {
         if (rep != null) {
             rep.report(msg, probType, extraArg, loc);
+        }
+    }
+
+    // @Override
+    /**
+     * For full (validating) DTD readers, this VC needs to lead to reporting
+     * of a validity error.
+     */
+    protected void handleIncompleteEntityProblem(WstxInputSource closing)
+        throws XMLStreamException
+    {
+        if (mCfgFullyValidating) { // since it's a VC, not WFC
+            throwDTDError(entityDesc(closing) + ": " + 
+                          "Incomplete PE: has to either fully contain or be contained in a declaration (as per xml 1.0.3, section 2.8, VC 'Proper Declaration/PE Nesting')");
+        }
+    }
+
+    protected void handleGreedyEntityProblem(WstxInputSource input)
+        throws XMLStreamException
+    {
+        if (mCfgFullyValidating) { // since it's a VC, not WFC
+            throwDTDError(entityDesc(input) + ": " + 
+                          "Unbalanced PE: has to either fully contain or be contained in a declaration (as per xml 1.0.3, section 2.8, VC 'Proper Declaration/PE Nesting')");
         }
     }
 }

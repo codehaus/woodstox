@@ -43,6 +43,14 @@ public abstract class WstxInputSource
      */
     final String mFromEntity;
 
+    /**
+     * Scope of the reader when this entity was initially expanded. Snapshot
+     * that will generally be used by the reader to match scoping
+     * limitations, such as proper nesting entity expansion with respect
+     * to element and declaration nesting.
+     */
+    int mScopeId = 0;
+
     protected WstxInputSource(WstxInputSource parent, String fromEntity)
     {
         mParent = parent;
@@ -108,6 +116,10 @@ public abstract class WstxInputSource
 
     public abstract WstxInputLocation getLocation(long total, int row, int col);
 
+    public String getEntityId() { return mFromEntity; }
+
+    public int getScopeId() { return mScopeId; }
+
     /*
     //////////////////////////////////////////////////////////
     // Actual input handling
@@ -118,8 +130,17 @@ public abstract class WstxInputSource
      * Method called by Reader when current input has changed to come
      * from this input source. Should reset/initialize input location
      * information Reader keeps, for error messages to work ok.
+     *
+     * @param reader Reader whose data structures are to be used for
+     *   returning data read
+     * @param currScopeId
      */
-    public abstract void initInputLocation(WstxInputData reader);
+    public final void initInputLocation(WstxInputData reader, int currScopeId) {
+        mScopeId = currScopeId;
+        doInitInputLocation(reader);
+    }
+
+    protected abstract void doInitInputLocation(WstxInputData reader);
 
     /**
      * Method called to read at least one more char from input source, and

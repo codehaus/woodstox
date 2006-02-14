@@ -94,7 +94,7 @@ public abstract class BaseInputSource
       return mSystemId;
     }
 
-    public abstract void initInputLocation(WstxInputData reader);
+    protected abstract void doInitInputLocation(WstxInputData reader);
 
     public abstract int readInto(WstxInputData reader)
         throws IOException;

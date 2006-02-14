@@ -407,13 +407,7 @@ public final class NsInputElementStack
         return true;
     }
 
-    /**
-     * @return Number of open elements in the stack; 0 when parser is in
-     *  prolog/epilog, 1 inside root element and so on.
-     */
-    public final int getDepth() {
-        return (mSize >> 2);
-    }
+    public final int getDepth() { return (mSize >> 2); }
 
     public final AttributeCollector getAttrCollector() {
         return mAttrCollector;

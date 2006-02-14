@@ -413,7 +413,7 @@ public class BasicStreamReader
         mAttrCollector = elemStack.getAttrCollector();
 
         // And finally, location information may have offsets:
-        input.initInputLocation(this);
+        input.initInputLocation(this, mCurrDepth);
 
         elemStack.connectReporter(this);
     }
@@ -1340,6 +1340,11 @@ public class BasicStreamReader
      *  prolog/epilog, 1 inside root element and so on.
      */
     public int getDepth() {
+        /* Note: we can not necessarily use mCurrDepth, since it is
+         * directly synchronized to the input (to catch unbalanced entity
+         * expansion WRT element nesting), and not to actual token values
+         * returned.
+         */
         return mElementStack.getDepth();
     }
 
@@ -1555,7 +1560,7 @@ public class BasicStreamReader
      *   keyword if not.
      */
     protected String checkKeyword(char c, String expected)
-        throws IOException, WstxException
+        throws IOException, XMLStreamException
     {
       int ptr = 0;
       int len = expected.length();
@@ -1607,7 +1612,7 @@ public class BasicStreamReader
     }
 
     protected void checkCData()
-        throws IOException, WstxException
+        throws IOException, XMLStreamException
     {
         String wrong = checkKeyword(getNextCharFromCurrent(SUFFIX_IN_CDATA), "CDATA");
         if (wrong != null) {
@@ -1869,16 +1874,18 @@ public class BasicStreamReader
                 return;
             }
             // If not, can skip it right away
-            i = getNextAfterWS((char)i);
-            // ... after which location has to be reset properly:
-            /* 11-Apr-2005, TSa: But note that we need to "move back"
-             *   column and total offset values by one, to compensate
-             *   for the char that was read (row can not have changed,
-             *   since it's non-WS, and thus non-lf/cr char)
-             */
-            mTokenInputTotal = mCurrInputProcessed + mInputPtr - 1;
-            mTokenInputRow = mCurrInputRow;
-            mTokenInputCol = mInputPtr - mCurrInputRowStart - 1;
+            i = getNextAfterWS();
+            if (i >= 0) {
+                // ... after which location has to be reset properly:
+                /* 11-Apr-2005, TSa: But note that we need to "move back"
+                 *   column and total offset values by one, to compensate
+                 *   for the char that was read (row can not have changed,
+                 *   since it's non-WS, and thus non-lf/cr char)
+                 */
+                mTokenInputTotal = mCurrInputProcessed + mInputPtr - 1;
+                mTokenInputRow = mCurrInputRow;
+                mTokenInputCol = mInputPtr - mCurrInputRowStart - 1;
+            }
         }
 
         // Did we hit EOF?
@@ -1960,7 +1967,7 @@ public class BasicStreamReader
     }
 
     protected int handleEOF(boolean isProlog)
-        throws WstxException
+        throws XMLStreamException
     {
         /* Let's give the factory a chance to update basic symbol table
          * information now (if we got any new symbols) -- chances are,
@@ -1987,7 +1994,7 @@ public class BasicStreamReader
      * @return Token to return
      */
     private int handleExtraRoot(char c)
-        throws WstxException
+        throws XMLStreamException
     {
         if (!mConfig.inputParsingModeDocuments()) {
             /* Has to be single-doc mode, since fragment mode
@@ -2458,6 +2465,7 @@ public class BasicStreamReader
             } else if (mCurrToken == END_ELEMENT) {
                 // Close tag removes current element from stack
                 mVldContent = mElementStack.pop();
+
                 // ... which may be the root element?
                 if (mElementStack.isEmpty()) {
                     // if so, we'll get to epilog, unless in fragment mode
@@ -2632,6 +2640,14 @@ public class BasicStreamReader
             }
             if (c == '/') { // always legal
                 readEndElem();
+                /* 13-Feb-2006, TSa: Are we about to close an element that
+                 *    started within a parent element?
+                 *    That's a GE/element nesting WFC violation...
+                 */
+                if (mCurrDepth == mInputTopDepth) {
+                    handleGreedyEntityProblem(mInput);
+                }
+                --mCurrDepth;
                 return END_ELEMENT;
             }
 
@@ -2700,6 +2716,8 @@ public class BasicStreamReader
         throws IOException, XMLStreamException
     {
         mTokenState = TOKEN_FULL_COALESCED;
+        boolean empty;
+
         if (mCfgNsEnabled) {
             String str = parseLocalName(c);
             c = (mInputPtr < mInputLen) ?
@@ -2723,13 +2741,17 @@ public class BasicStreamReader
               *   closing '>' right away. Let's do that, since it can save
               *   a call to a rather long method.
               */
-            mStEmptyElem = (c == '>') ? false : handleNsAttrs(c);
+            empty = (c == '>') ? false : handleNsAttrs(c);
         } else { // Namespace handling not enabled:
             mElementStack.push(parseFullName(c));
             c = (mInputPtr < mInputLen) ?
                 mInputBuffer[mInputPtr++] : getNextCharFromCurrent(SUFFIX_IN_ELEMENT);
-            mStEmptyElem = (c == '>') ? false : handleNonNsAttrs(c);
+            empty = (c == '>') ? false : handleNonNsAttrs(c);
         }
+        if (!empty) {
+            ++mCurrDepth; // needed to match nesting with entity expansion
+        }
+        mStEmptyElem = empty;
         mVldContent = mElementStack.resolveAndValidateElement();
     }
 
@@ -2779,7 +2801,7 @@ public class BasicStreamReader
             c = (mInputPtr < mInputLen) ?
                 mInputBuffer[mInputPtr++] : getNextCharFromCurrent(SUFFIX_IN_ELEMENT);
             if (c <= CHAR_SPACE) {
-                c = getNextCharAfterWS(c, SUFFIX_IN_ELEMENT);
+                c = getNextInCurrAfterWS(SUFFIX_IN_ELEMENT, c);
             }
             if (c != '=') {
                 throwUnexpectedChar(c, " expected '='");
@@ -2787,7 +2809,7 @@ public class BasicStreamReader
             c = (mInputPtr < mInputLen) ?
                 mInputBuffer[mInputPtr++] : getNextCharFromCurrent(SUFFIX_IN_ELEMENT);
             if (c <= CHAR_SPACE) {
-                c = getNextCharAfterWS(c, SUFFIX_IN_ELEMENT);
+                c = getNextInCurrAfterWS(SUFFIX_IN_ELEMENT, c);
             }
 
             // And then a quote:
@@ -2877,7 +2899,7 @@ public class BasicStreamReader
             c = (mInputPtr < mInputLen) ?
                 mInputBuffer[mInputPtr++] : getNextCharFromCurrent(SUFFIX_IN_ELEMENT);
             if (c <= CHAR_SPACE) {
-                c = getNextCharAfterWS(c, SUFFIX_IN_ELEMENT);
+                c = getNextInCurrAfterWS(SUFFIX_IN_ELEMENT, c);
             }
             if (c != '=') {
                 throwUnexpectedChar(c, " expected '='");
@@ -2885,7 +2907,7 @@ public class BasicStreamReader
             c = (mInputPtr < mInputLen) ?
                 mInputBuffer[mInputPtr++] : getNextCharFromCurrent(SUFFIX_IN_ELEMENT);
             if (c <= CHAR_SPACE) {
-                c = getNextCharAfterWS(c, SUFFIX_IN_ELEMENT);
+                c = getNextInCurrAfterWS(SUFFIX_IN_ELEMENT, c);
             }
 
             // And then a quote:
@@ -2995,7 +3017,7 @@ public class BasicStreamReader
         c = (mInputPtr < mInputLen) ? mInputBuffer[mInputPtr++]
             : getNextCharFromCurrent(SUFFIX_IN_CLOSE_ELEMENT);
         if (c <= CHAR_SPACE) {
-            c = getNextCharAfterWS(c, SUFFIX_IN_CLOSE_ELEMENT);
+            c = getNextInCurrAfterWS(SUFFIX_IN_CLOSE_ELEMENT, c);
         } else if (c == '>') {
             ;
         } else if (c == ':' || is11NameChar(c)) {
@@ -3150,11 +3172,11 @@ public class BasicStreamReader
                         break main_switch;
                     }
                 }
-                if (c <= CHAR_CR_LF_OR_NULL) {
+                if (c < CHAR_SPACE) {
                     if (c == '\n' || c == '\r') {
                         skipCRLF(c);
-                    } else if (c == CHAR_NULL) {
-                        throwNullChar();
+                    } else if (c != '\t') {
+                        throwInvalidSpace(c);
                     }
                 }
             }
@@ -3170,8 +3192,10 @@ public class BasicStreamReader
                         result = c;
                         break main_switch;
                     }
-                    if (c == CHAR_NULL) {
-                        throwNullChar();
+                    if (c == '\n' || c == '\r') {
+                        skipCRLF(c);
+                    } else if (c != CHAR_SPACE && c != '\t') {
+                        throwInvalidSpace(c);
                     }
                 }
                 if (!loadMore()) {
@@ -3238,11 +3262,11 @@ public class BasicStreamReader
             do {
                 c = (mInputPtr < mInputLen)
                     ? mInputBuffer[mInputPtr++] : getNextCharFromCurrent(errorMsg);
-                if (c <= CHAR_CR_LF_OR_NULL) {
+                if (c < CHAR_SPACE) {
                     if (c == '\n' || c == '\r') {
                         skipCRLF(c);
-                    } else if (c == CHAR_NULL) {
-                        throwNullChar();
+                    } else if (c != '\t') {
+                        throwInvalidSpace(c);
                     }
                 }
             } while (c != endChar);
@@ -3269,11 +3293,11 @@ public class BasicStreamReader
             }
 
             // No match, did we get a linefeed?
-            if (c <= CHAR_CR_LF_OR_NULL) {
+            if (c < CHAR_SPACE) {
                 if (c == '\n' || c == '\r') {
                     skipCRLF(c);
-                } else if (c == CHAR_NULL) {
-                    throwNullChar();
+                } else if (c != '\t') {
+                    throwInvalidSpace(c);
                 }
             }
 
@@ -3363,14 +3387,15 @@ public class BasicStreamReader
                         return i;
                     }
                 }
-            } else if (i <= INT_CR_LF_OR_NULL) {
+            } else if (i < CHAR_SPACE) {
                 if (i == '\r' || i == '\n') {
                     skipCRLF((char) i);
-                } else if (i == INT_NULL) {
-                    throwNullChar();
                 } else if (i < 0) { // EOF
                     return i;
+                } else if (i != '\t') {
+                    throwInvalidSpace(i);
                 }
+
             }
 
             // Hmmh... let's do quick looping here:
@@ -3541,17 +3566,21 @@ public class BasicStreamReader
                 continue;
             }
 
-            if (c == '\n') {
-                markLF(ptr);
-            } else if (c == '\r') {
-                if (!mCfgNormalizeLFs && ptr < inputLen) {
-                    if (inputBuf[ptr] == '\n') {
-                        ++ptr;
-                    }
+            if (c < CHAR_SPACE) {
+                if (c == '\n') {
                     markLF(ptr);
-                } else {
-                    --ptr; // pushback
-                    break;
+                } else if (c == '\r') {
+                    if (!mCfgNormalizeLFs && ptr < inputLen) {
+                        if (inputBuf[ptr] == '\n') {
+                            ++ptr;
+                        }
+                        markLF(ptr);
+                    } else {
+                        --ptr; // pushback
+                        break;
+                    }
+                } else if (c != '\t') {
+                    throwInvalidSpace(c);
                 }
             } else if (c == '-') {
                 // Ok; need to get '->', can not get '--'
@@ -3576,8 +3605,6 @@ public class BasicStreamReader
                 mTextBuffer.resetWithShared(inputBuf, start, ptr-start-1);
                 mInputPtr = ptr + 2;
                 return;
-            } else if (c == CHAR_NULL) {
-                throwNullChar();
             }
         }
 
@@ -3600,7 +3627,7 @@ public class BasicStreamReader
             char c = (mInputPtr < mInputLen) ?
                 mInputBuffer[mInputPtr++] : getNextCharFromCurrent(SUFFIX_IN_COMMENT);
 
-            if (c <= CHAR_CR_LF_OR_NULL) {
+            if (c < CHAR_SPACE) {
                 if (c == '\n') {
                     markLF();
                 } else if (c == '\r') {
@@ -3618,8 +3645,8 @@ public class BasicStreamReader
                     } else if (mCfgNormalizeLFs) { // just \r, but need to convert
                         c = '\n'; // For Mac text
                     }
-                } else if (c == CHAR_NULL) {
-                    throwNullChar();
+                } else if (c != '\t') {
+                    throwInvalidSpace(c);
                 }
             } else if (c == '-') { // Ok; need to get '->', can not get '--'
                 c = getNextCharFromCurrent(SUFFIX_IN_COMMENT);
@@ -3693,7 +3720,7 @@ public class BasicStreamReader
         if (isSpaceChar(c)) { // Ok, space to skip
             mTokenState = TOKEN_STARTED;
             // Need to skip the WS...
-            skipWS();
+            skipWS(c);
         } else { // Nope; apparently finishes right away...
             mTokenState = TOKEN_FULL_COALESCED;
             mTextBuffer.resetWithEmpty();
@@ -3721,7 +3748,7 @@ public class BasicStreamReader
         outer_loop:
         while (ptr < inputLen) {
             char c = inputBuf[ptr++];
-            if (c <= CHAR_CR_LF_OR_NULL) {
+            if (c < CHAR_SPACE) {
                 if (c == '\n') {
                     markLF(ptr);
                 } else if (c == '\r') {
@@ -3734,8 +3761,8 @@ public class BasicStreamReader
                         --ptr; // pushback
                         break;
                     }
-                } else if (c == CHAR_NULL) {
-                    throwNullChar();
+                } else if (c != '\t') {
+                    throwInvalidSpace(c);
                 }
             } else if (c == '?') {
                 // K; now just need '>' after zero or more '?'s
@@ -3795,7 +3822,7 @@ public class BasicStreamReader
 
             // And then do chunks
             char c = inputBuf[inputPtr++];
-            if (c <= CHAR_CR_LF_OR_NULL) {
+            if (c < CHAR_SPACE) {
                 if (c == '\n') {
                     markLF(inputPtr);
                 } else if (c == '\r') {
@@ -3820,8 +3847,8 @@ public class BasicStreamReader
                     inputPtr = mInputPtr;
                     inputBuf = mInputBuffer;
                     inputLen = mInputLen;
-                } else if (c == CHAR_NULL) {
-                    throwNullChar();
+                } else if (c != '\t') {
+                    throwInvalidSpace(c);
                 }
             } else if (c == '?') { // Ok, just need '>' after zero or more '?'s
                 mInputPtr = inputPtr; // to allow us to call getNextChar
@@ -3972,7 +3999,7 @@ public class BasicStreamReader
 
         outer_loop:
         while (true) {
-            if (c <= CHAR_CR_LF_OR_NULL) {
+            if (c < CHAR_SPACE) {
                 if (c == '\n') {
                     markLF(ptr);
                 } else if (c == '\r') {
@@ -3993,8 +4020,8 @@ public class BasicStreamReader
                         }
                     }
                     markLF(ptr);
-                } else if (c == CHAR_NULL) {
-                    throwNullChar();
+                } else if (c != '\t') {
+                    throwInvalidSpace(c);
                 }
             } else if (c == ']') {
                 // Ok; need to get one or more ']'s, then '>'
@@ -4085,7 +4112,7 @@ public class BasicStreamReader
             }
             char c = inputBuf[inputPtr++];
 
-            if (c <= CHAR_CR_LF_OR_NULL) {
+            if (c < CHAR_SPACE) {
                 if (c == '\n') {
                     markLF(inputPtr);
                 } else if (c == '\r') {
@@ -4110,8 +4137,8 @@ public class BasicStreamReader
                     inputPtr = mInputPtr;
                     inputBuf = mInputBuffer;
                     inputLen = mInputLen;
-                } else if (c == CHAR_NULL) {
-                    throwNullChar();
+                } else if (c != '\t') {
+                    throwInvalidSpace(c);
                 }
             } else if (c == ']') {
                 // Ok; need to get ']>'
@@ -4227,32 +4254,36 @@ public class BasicStreamReader
                     mTextBuffer.resetWithShared(inputBuf, start, ptr-start);
                     return true;
                 }
-                if (c == '\n') {
-                    markLF(ptr);
-                } else if (c == '\r') {
-                    if (ptr >= inputLen) { // can't peek?
-                        --ptr;
-                        break;
-                    }
-                    if (mCfgNormalizeLFs) { // can we do in-place Mac replacement?
-                        if (inputBuf[ptr] == '\n') { // nope, 2 char lf
+                if (c < CHAR_SPACE) {
+                    if (c == '\n') {
+                        markLF(ptr);
+                    } else if (c == '\r') {
+                        if (ptr >= inputLen) { // can't peek?
                             --ptr;
                             break;
                         }
-                        /* This would otherwise be risky (may modify value
-                         * of a shared entity value), but since DTDs are
-                         * cached/accessed based on properties including
-                         * lf-normalization there's no harm in 'fixing' it
-                         * in place.
-                         */
-                        inputBuf[ptr-1] = '\n'; // yup
-                    } else {
-                        // No LF normalization... can we just skip it?
-                        if (inputBuf[ptr] == '\n') {
-                            ++ptr;
+                        if (mCfgNormalizeLFs) { // can we do in-place Mac replacement?
+                            if (inputBuf[ptr] == '\n') { // nope, 2 char lf
+                                --ptr;
+                                break;
+                            }
+                            /* This would otherwise be risky (may modify value
+                             * of a shared entity value), but since DTDs are
+                             * cached/accessed based on properties including
+                             * lf-normalization there's no harm in 'fixing' it
+                             * in place.
+                             */
+                            inputBuf[ptr-1] = '\n'; // yup
+                        } else {
+                            // No LF normalization... can we just skip it?
+                            if (inputBuf[ptr] == '\n') {
+                                ++ptr;
+                            }
                         }
+                        markLF(ptr);
+                    } else if (c != '\t') {
+                        throwInvalidSpace(c);
                     }
-                    markLF(ptr);
                 } else if (c == '&') {
                     // Let's push it back and break
                     --ptr;
@@ -4265,8 +4296,6 @@ public class BasicStreamReader
                             throwParseError(ErrorConsts.ERR_BRACKET_IN_TEXT);
                         }
                     }
-                } else if (c == CHAR_NULL) {
-                    throwNullChar();
                 }
             } // if (char in lower code range)
 
@@ -4318,26 +4347,30 @@ public class BasicStreamReader
 
             // Most common case is we don't have special char, thus:
             if (c < CHAR_FIRST_PURE_TEXT) {
-                if (c == '\n') {
-                    markLF();
+                if (c < CHAR_SPACE) {
+                    if (c == '\n') {
+                        markLF();
+                    } else if (c == '\r') {
+                        if (skipCRLF(c)) { // got 2 char LF
+                            if (!mCfgNormalizeLFs) {
+                                // Special handling, to output 2 chars at a time:
+                                outBuf[outPtr++] = c;
+                                if (outPtr >= outBuf.length) { // need more room?
+                                    outBuf = mTextBuffer.finishCurrentSegment();
+                                    outPtr = 0;
+                                }
+                            }
+                            // And let's let default output the 2nd char
+                            c = '\n';
+                        } else if (mCfgNormalizeLFs) { // just \r, but need to convert
+                            c = '\n'; // For Mac text
+                        }
+                    } else if (c != '\t') {
+                        throwInvalidSpace(c);
+                    }
                 } else if (c == '<') { // end is nigh!
                     --mInputPtr;
                     break;
-                } else if (c == '\r') {
-                    if (skipCRLF(c)) { // got 2 char LF
-                        if (!mCfgNormalizeLFs) {
-                            // Special handling, to output 2 chars at a time:
-                            outBuf[outPtr++] = c;
-                            if (outPtr >= outBuf.length) { // need more room?
-                                outBuf = mTextBuffer.finishCurrentSegment();
-                                outPtr = 0;
-                            }
-                        }
-                        // And let's let default output the 2nd char
-                        c = '\n';
-                    } else if (mCfgNormalizeLFs) { // just \r, but need to convert
-                        c = '\n'; // For Mac text
-                    }
                 } else if (c == '&') {
                     if (mCfgReplaceEntities) { // can we expand all entities?
                         if ((mInputLen - mInputPtr) >= 3
@@ -4384,8 +4417,6 @@ public class BasicStreamReader
                          */
                         ;
                     }
-                } else if (c == CHAR_NULL) {
-                    throwNullChar();
                 }
             }
                 
@@ -4464,8 +4495,8 @@ public class BasicStreamReader
                     }
                 }
                 markLF(ptr);
-            } else if (c == CHAR_NULL) {
-                throwNullChar();
+            } else if (c != CHAR_SPACE && c != '\t') {
+                throwInvalidSpace(c);
             }
             if (ptr >= inputLen) { // end-of-buffer?
                 break;
@@ -4533,8 +4564,8 @@ public class BasicStreamReader
                 } else if (mCfgNormalizeLFs) {
                     c = '\n'; // For Mac text
                 }
-            } else if (c == CHAR_NULL) {
-                throwNullChar();
+            } else if (c != CHAR_SPACE && c != '\t') {
+                throwInvalidSpace(c);
             }
                 
             // Ok, let's add char to output:
@@ -4588,50 +4619,54 @@ public class BasicStreamReader
             }
             // Most common case is we don't have a special char, thus:
             if (c < CHAR_FIRST_PURE_TEXT) {
-                if (c == '\n') {
-                    markLF();
-                } else if (c == '<') { // end is nigh!
-                    break main_loop;
-                } else if (c == '\r') {
-                    char d;
-                    if (mInputPtr >= mInputLen) {
-                        /* If we can't peek easily, let's flush past stuff
-                         * and load more... (have to flush, since new read
-                         * will overwrite inbut buffers)
-                         */
-                        int len = mInputPtr - start;
-                        if (len > 0) {
-                            w.write(mInputBuffer, start, len);
-                            count += len;
-                        }
-                        d = getNextChar(SUFFIX_IN_TEXT);
-                        start = mInputPtr; // to mark 'no past content'
-                    } else {
-                        d = mInputBuffer[mInputPtr++];
-                    }
-                    if (d == '\n') {
-                        if (mCfgNormalizeLFs) {
-                            /* Let's flush content prior to 2-char LF, and
-                             * start the new segment on the second char...
-                             * this way, no mods are needed for the buffer,
-                             * AND it'll also  work on split 2-char lf!
+                if (c < CHAR_SPACE) {
+                    if (c == '\n') {
+                        markLF();
+                    } else if (c == '\r') {
+                        char d;
+                        if (mInputPtr >= mInputLen) {
+                            /* If we can't peek easily, let's flush past stuff
+                             * and load more... (have to flush, since new read
+                             * will overwrite inbut buffers)
                              */
-                            int len = mInputPtr - 2 - start;
+                            int len = mInputPtr - start;
                             if (len > 0) {
                                 w.write(mInputBuffer, start, len);
                                 count += len;
                             }
-                            start = mInputPtr-1; // so '\n' is the first char
+                            d = getNextChar(SUFFIX_IN_TEXT);
+                            start = mInputPtr; // to mark 'no past content'
                         } else {
-                            ; // otherwise it's good as is
+                            d = mInputBuffer[mInputPtr++];
                         }
-                    } else { // not 2-char... need to replace?
-                        --mInputPtr;
-                        if (mCfgNormalizeLFs) {
-                            mInputBuffer[mInputPtr-1] = '\n';
+                        if (d == '\n') {
+                            if (mCfgNormalizeLFs) {
+                                /* Let's flush content prior to 2-char LF, and
+                                 * start the new segment on the second char...
+                                 * this way, no mods are needed for the buffer,
+                                 * AND it'll also  work on split 2-char lf!
+                                 */
+                                int len = mInputPtr - 2 - start;
+                                if (len > 0) {
+                                    w.write(mInputBuffer, start, len);
+                                    count += len;
+                                }
+                                start = mInputPtr-1; // so '\n' is the first char
+                            } else {
+                                ; // otherwise it's good as is
+                            }
+                        } else { // not 2-char... need to replace?
+                            --mInputPtr;
+                            if (mCfgNormalizeLFs) {
+                                mInputBuffer[mInputPtr-1] = '\n';
+                            }
                         }
+                        markLF();
+                    } else if (c != '\t') {
+                        throwInvalidSpace(c);
                     }
-                    markLF();
+                } else if (c == '<') { // end is nigh!
+                    break main_loop;
                 } else if (c == '&') {
                     /* Have to flush all stuff, since entities pretty much
                      * force it; input buffer won't be contiguous
@@ -4730,50 +4765,52 @@ public class BasicStreamReader
                         break quick_loop;
                     }
                 } else {
-                    if (c == '\n') {
-                        markLF();
-                    } else if (c == '\r') {
-                        char d;
-                        if (mInputPtr >= mInputLen) {
-                            /* If we can't peek easily, let's flush past stuff
-                             * and load more... (have to flush, since new read
-                             * will overwrite inbut buffers)
-                             */
-                            int len = mInputPtr - start;
-                            if (len > 0) {
-                                w.write(mInputBuffer, start, len);
-                                count += len;
-                            }
-                            d = getNextChar(SUFFIX_IN_CDATA);
-                            start = mInputPtr; // to mark 'no past content'
-                        } else {
-                            d = mInputBuffer[mInputPtr++];
-                        }
-                        if (d == '\n') {
-                            if (mCfgNormalizeLFs) {
-                                /* Let's flush content prior to 2-char LF, and
-                                 * start the new segment on the second char...
-                                 * this way, no mods are needed for the buffer,
-                                 * AND it'll also  work on split 2-char lf!
+                    if (c < CHAR_SPACE) {
+                        if (c == '\n') {
+                            markLF();
+                        } else if (c == '\r') {
+                            char d;
+                            if (mInputPtr >= mInputLen) {
+                                /* If we can't peek easily, let's flush past stuff
+                                 * and load more... (have to flush, since new read
+                                 * will overwrite inbut buffers)
                                  */
-                                int len = mInputPtr - 2 - start;
+                                int len = mInputPtr - start;
                                 if (len > 0) {
                                     w.write(mInputBuffer, start, len);
                                     count += len;
                                 }
-                                start = mInputPtr-1; // so '\n' is the first char
+                                d = getNextChar(SUFFIX_IN_CDATA);
+                                start = mInputPtr; // to mark 'no past content'
                             } else {
-                                // otherwise it's good as is
+                                d = mInputBuffer[mInputPtr++];
                             }
-                        } else { // not 2-char... need to replace?
-                            --mInputPtr;
-                            if (mCfgNormalizeLFs) {
-                                mInputBuffer[mInputPtr-1] = '\n';
+                            if (d == '\n') {
+                                if (mCfgNormalizeLFs) {
+                                    /* Let's flush content prior to 2-char LF, and
+                                     * start the new segment on the second char...
+                                     * this way, no mods are needed for the buffer,
+                                     * AND it'll also  work on split 2-char lf!
+                                     */
+                                    int len = mInputPtr - 2 - start;
+                                    if (len > 0) {
+                                        w.write(mInputBuffer, start, len);
+                                        count += len;
+                                    }
+                                    start = mInputPtr-1; // so '\n' is the first char
+                                } else {
+                                    // otherwise it's good as is
+                                }
+                            } else { // not 2-char... need to replace?
+                                --mInputPtr;
+                                if (mCfgNormalizeLFs) {
+                                    mInputBuffer[mInputPtr-1] = '\n';
+                                }
                             }
+                            markLF();
+                        } else if (c != '\t') {
+                            throwInvalidSpace(c);
                         }
-                        markLF();
-                    } else if (c == CHAR_NULL) {
-                        throwNullChar();
                     }
                 }
                 // Reached the end of buffer? Need to flush, then
@@ -4894,15 +4931,31 @@ public class BasicStreamReader
 
     /*
     ////////////////////////////////////////////////////
-    // Internal methods, low-level parsing
+    // Internal methods, validation, error handling and
+    // reporting
     ////////////////////////////////////////////////////
      */
 
-    /*
-    ////////////////////////////////////////////////////
-    // Internal methods, validation, error reporting
-    ////////////////////////////////////////////////////
+    protected void handleIncompleteEntityProblem(WstxInputSource closing)
+        throws XMLStreamException
+    {
+        String top = mElementStack.isEmpty() ? "[ROOT]" : mElementStack.getTopElementDesc();
+        throwParseError("Unexpected end of entity expansion for entity &"
+                        +closing.getEntityId()+"; was expecting a close tag for element <"+top+">");
+    } 
+
+    /**
+     * This problem gets reported if an entity tries to expand to
+     * a close tag matching start tag that did not came from the same
+     * entity (but from parent).
      */
+    protected void handleGreedyEntityProblem(WstxInputSource input)
+        throws XMLStreamException
+    {
+        String top = mElementStack.isEmpty() ? "[ROOT]" : mElementStack.getTopElementDesc();
+        throwParseError("Improper GE/element nesting: entity &"
+                        +input.getEntityId()+" contains closing tag for <"+top+">");
+    }
 
     private void throwNotTextual(int type)
     {
@@ -4931,12 +4984,4 @@ public class BasicStreamReader
         // should never happen; sub-class has to override:
         throwParseError("Internal error: sub-class should override method");
     }
-
-    /*
-    ////////////////////////////////////////////////////
-    // Support for debugging, profiling:
-    ////////////////////////////////////////////////////
-     */
-
-    //public SymbolTable getSymbolTable() { return mSymbols; }
 }

@@ -251,6 +251,21 @@ public abstract class StreamScanner
      */
     XMLResolver mEntityResolver = null;
 
+    /**
+     * This is the current depth of the input stack (same as what input
+     * element stack would return as its depth).
+     * It is used to enforce input scope constraints for nesting of
+     * elements (for xml reader) and dtd declaration (for dtd reader)
+     * with regards to input block (entity expansion) boundaries.
+     *<p>
+     * Basically this value is compared to {@link #mInputTopDepth}, which
+     * indicates what was the depth at the point where the currently active
+     * input scope/block was started.
+     */
+    protected int mCurrDepth = 0;
+
+    protected int mInputTopDepth = 0;
+
     /*
     ////////////////////////////////////////////////////
     // Buffer(s) for local name(s) and text content
@@ -578,8 +593,7 @@ public abstract class StreamScanner
     {
         char c = (char) i;
         String excMsg = "Unexpected character "+getCharDesc(c)+msg;
-        WstxInputLocation loc = getLastCharLocation();
-        throw new WstxUnexpectedCharException(excMsg, loc, c);
+        throw new WstxUnexpectedCharException(excMsg, getLastCharLocation(), c);
     }
 
     protected void throwNullChar()
@@ -587,6 +601,21 @@ public abstract class StreamScanner
     {
         WstxInputLocation loc = getLastCharLocation();
         throw new WstxUnexpectedCharException("Illegal character (NULL, unicode 0) encountered: not valid in any content", loc, CHAR_NULL);
+    }
+
+    protected void throwInvalidSpace(int i)
+        throws WstxException
+    {
+        char c = (char) i;
+        if (c == CHAR_NULL) {
+            throwNullChar();
+        } else {
+            String msg = "Illegal character ("+getCharDesc(c)+")";
+            if (mXml11) {
+                msg += " [note: in XML 1.1, it could be included via entity expansion]";
+            }
+            throw new WstxUnexpectedCharException(msg, getLastCharLocation(), c);
+        }
     }
 
     protected void throwUnexpectedEOF(String msg)
@@ -666,7 +695,7 @@ public abstract class StreamScanner
     }
 
     protected final int getNext()
-        throws IOException, WstxException
+        throws IOException, XMLStreamException
     {
         if (mInputPtr >= mInputLen) {
             if (!loadMore()) {
@@ -676,8 +705,28 @@ public abstract class StreamScanner
         return (int) mInputBuffer[mInputPtr++];
     }
 
+    /**
+     * Similar to {@link #getNext}, but does not advance pointer
+     * in input buffer.
+     *<p>
+     * Note: this method only peeks within current input source;
+     * it does not close it and check nested input source (if any).
+     * This is necessary when checking keywords, since they can never
+     * cross input block boundary.
+     */
+    protected final int peekNext()
+        throws IOException, XMLStreamException
+    {
+        if (mInputPtr >= mInputLen) {
+            if (!loadMoreFromCurrent()) {
+                return -1;
+            }
+        }
+        return (int) mInputBuffer[mInputPtr];
+    }
+
     protected final char getNextChar(String errorMsg)
-        throws IOException, WstxException
+        throws IOException, XMLStreamException
     {
         if (mInputPtr >= mInputLen) {
             loadMore(errorMsg);
@@ -694,7 +743,7 @@ public abstract class StreamScanner
      * such markup is not legal.
      */
     protected final char getNextCharFromCurrent(String errorMsg)
-        throws IOException, WstxException
+        throws IOException, XMLStreamException
     {
         if (mInputPtr >= mInputLen) {
             loadMoreFromCurrent(errorMsg);
@@ -703,78 +752,12 @@ public abstract class StreamScanner
     }
 
     /**
-     * Similar to {@link #getNext}, but does not advance pointer
-     * in input buffer.
-     *<p>
-     * Note: this method only peeks within current input source;
-     * it does not close it and check nested input source (if any).
-     * This is necessary when checking keywords, since they can never
-     * cross input block boundary.
+     * Method that will skip through zero or more white space characters,
+     * and return either the character following white space, or -1 to
+     * indicate EOF (end of the outermost input source)/
      */
-    protected final int peekNext()
-        throws IOException, WstxException
-    {
-        if (mInputPtr >= mInputLen) {
-            if (!loadMoreFromCurrent()) {
-                return -1;
-            }
-        }
-        return (int) mInputBuffer[mInputPtr];
-    }
-
-    /**
-     * Method that will completely skip and ignore zero or more white space
-     * characters, and return next character (or EOF marker) after white
-     * space.
-     */
-    protected final int getNextAfterWS(char c)
-        throws IOException, WstxException
-    {
-        do {
-            // Linefeed?
-            if (c == '\n' || c == '\r') {
-                skipCRLF(c);
-            } else if (c == CHAR_NULL) {
-                throwNullChar();
-            }
-
-            // Still a white space?
-            if (mInputPtr >= mInputLen) {
-                if (!loadMore()) {
-                    return -1;
-                }
-            }
-            c = mInputBuffer[mInputPtr++];
-        } while (c <= CHAR_SPACE);
-
-        return (int) c;
-    }
-
-    protected final char getNextCharAfterWS(char c, String errorMsg)
-        throws IOException, WstxException
-    {
-        do {
-            // Linefeed?
-            if (c == '\n' || c == '\r') {
-                skipCRLF(c);
-            } else if (c == CHAR_NULL) {
-                throwNullChar();
-            }
-
-            // Still a white space?
-            if (mInputPtr >= mInputLen) {
-                if (!loadMore()) {
-                    throwUnexpectedEOF(errorMsg);
-                }
-            }
-            c = mInputBuffer[mInputPtr++];
-        } while (c <= CHAR_SPACE);
-
-        return c;
-    }
-
     protected final int getNextAfterWS()
-        throws IOException, WstxException
+        throws IOException, XMLStreamException
     {
         if (mInputPtr >= mInputLen) {
             if (!loadMore()) {
@@ -782,14 +765,26 @@ public abstract class StreamScanner
             }
         }
         char c = mInputBuffer[mInputPtr++];
-        if (c <= CHAR_SPACE) {
-            return getNextAfterWS(c);
+        while (c <= CHAR_SPACE) {
+            // Linefeed?
+            if (c == '\n' || c == '\r') {
+                skipCRLF(c);
+            } else if (c != CHAR_SPACE && c != '\t') {
+                throwInvalidSpace(c);
+            }
+            // Still a white space?
+            if (mInputPtr >= mInputLen) {
+                if (!loadMore()) {
+                    return -1;
+                }
+            }
+            c = mInputBuffer[mInputPtr++];
         }
         return (int) c;
     }
 
     protected final char getNextCharAfterWS(String errorMsg)
-        throws IOException, WstxException
+        throws IOException, XMLStreamException
     {
         if (mInputPtr >= mInputLen) {
             loadMore(errorMsg);
@@ -800,8 +795,8 @@ public abstract class StreamScanner
             // Linefeed?
             if (c == '\n' || c == '\r') {
                 skipCRLF(c);
-            } else if (c == CHAR_NULL) {
-                throwNullChar();
+            } else if (c != CHAR_SPACE && c != '\t') {
+                throwInvalidSpace(c);
             }
 
             // Still a white space?
@@ -814,20 +809,20 @@ public abstract class StreamScanner
     }
 
     protected final char getNextInCurrAfterWS(String errorMsg)
-        throws IOException, WstxException
+        throws IOException, XMLStreamException
     {
         return getNextInCurrAfterWS(errorMsg, getNextCharFromCurrent(errorMsg));
     }
 
     protected final char getNextInCurrAfterWS(String errorMsg, char c)
-        throws IOException, WstxException
+        throws IOException, XMLStreamException
     {
         while (c <= CHAR_SPACE) {
             // Linefeed?
             if (c == '\n' || c == '\r') {
                 skipCRLF(c);
-            } else if (c == CHAR_NULL) {
-                throwNullChar();
+            } else if (c != CHAR_SPACE && c != '\t') {
+                throwInvalidSpace(c);
             }
 
             // Still a white space?
@@ -845,28 +840,27 @@ public abstract class StreamScanner
      * it does NOT continue to the next input source, in case of a
      * nested input source (like entity expansion).
      */
-    protected final void skipWS() 
-        throws IOException, WstxException
+    protected final void skipWS(char c) 
+        throws IOException, XMLStreamException
     {
         while (true) {
+            // Linefeed?
+            if (c == '\n' || c == '\r') {
+                skipCRLF(c);
+            } else if (c != CHAR_SPACE && c != '\t') {
+                throwInvalidSpace(c);
+            }
             if (mInputPtr >= mInputLen) {
                 // Let's see if current source has more
                 if (!loadMoreFromCurrent()) {
                     return;
                 }
             }
-            char c = mInputBuffer[mInputPtr];
+            c = mInputBuffer[mInputPtr];
             if (c > CHAR_SPACE) { // not WS? Need to return
                 break;
             }
             ++mInputPtr;
-
-            // Linefeed?
-            if (c == '\n' || c == '\r') {
-                skipCRLF(c);
-            } else if (c == CHAR_NULL) {
-                throwNullChar();
-            }
         }
     }
 
@@ -879,7 +873,7 @@ public abstract class StreamScanner
      * @return True, if passed in char is '\r' and next one is '\n'.
      */
     protected final boolean skipCRLF(char c) 
-        throws IOException, WstxException
+        throws IOException, XMLStreamException
     {
         boolean result;
 
@@ -932,15 +926,19 @@ public abstract class StreamScanner
         /* Plus, reset the input location so that'll be accurate for
          * error reporting etc.
          */
-        mInput.initInputLocation(this);
+        mInputTopDepth = mCurrDepth;
+        mInput.initInputLocation(this, mCurrDepth);
     }
 
     /**
+     * Method that will try to read one or more characters from currently
+     * open input sources; closing input sources if necessary.
+     *
      * @return true if reading succeeded (or may succeed), false if
      *   we reached EOF.
      */
     protected boolean loadMore()
-        throws IOException, WstxException
+        throws IOException, XMLStreamException
     {
         WstxInputSource input = mInput;
         do {
@@ -956,22 +954,37 @@ public abstract class StreamScanner
             }
             input.close();
             if (input == mRootInput) {
+                /* Note: no need to check entity/input nesting in this
+                 * particular case, since it will be handled by higher level
+                 * parsing code (results in an unexpected EOF)
+                 */
                 return false;
             }
             WstxInputSource parent = input.getParent();
             if (parent == null) { // sanity check!
                 throwNullParent(input);
             }
+            /* 13-Feb-2006, TSa: Ok, do we violate a proper nesting constraints
+             *   with this input block closure?
+             */
+            if (mCurrDepth != input.getScopeId()) {
+                handleIncompleteEntityProblem(input);
+            }
+
             mInput = input = parent;
             input.restoreContext(this);
+            mInputTopDepth = input.getScopeId();
             // Maybe there are leftovers from that input in buffer now?
         } while (mInputPtr >= mInputLen);
 
         return true;
     }
 
+    protected abstract void handleIncompleteEntityProblem(WstxInputSource closing)
+        throws XMLStreamException;
+
     protected final boolean loadMore(String errorMsg)
-        throws WstxException, IOException
+        throws IOException, XMLStreamException
     {
         if (!loadMore()) {
             throwUnexpectedEOF(errorMsg);
@@ -980,7 +993,7 @@ public abstract class StreamScanner
     }
 
     protected boolean loadMoreFromCurrent()
-        throws IOException, WstxException
+        throws IOException, XMLStreamException
     {
         // Need to update offsets properly
         mCurrInputProcessed += mInputLen;
@@ -990,7 +1003,7 @@ public abstract class StreamScanner
     }
 
     protected final boolean loadMoreFromCurrent(String errorMsg)
-        throws WstxException, IOException
+        throws IOException, XMLStreamException
     {
         if (!loadMoreFromCurrent()) {
             throwUnexpectedEOB(errorMsg);
@@ -1047,7 +1060,7 @@ public abstract class StreamScanner
         }
     }
 
-    private void throwNullParent(WstxInputSource curr)
+    protected void throwNullParent(WstxInputSource curr)
     {
         throw new Error(ErrorConsts.ERR_INTERNAL);
         //throw new Error("Internal error: null parent for input source '"+curr+"'; should never occur (should have stopped at root input '"+mRootInput+"').");
@@ -1086,7 +1099,7 @@ public abstract class StreamScanner
      *   entity, or spans input buffer boundary).
      */
     protected char resolveSimpleEntity(boolean checkStd)
-        throws WstxException
+        throws XMLStreamException
     {
         char[] buf = mInputBuffer;
         int ptr = mInputPtr;
@@ -1231,7 +1244,7 @@ public abstract class StreamScanner
      *   entity, or spans input buffer boundary).
      */
     protected char resolveCharOnlyEntity(boolean checkStd)
-        throws IOException, WstxException
+        throws IOException, XMLStreamException
     {
         //int avail = inputInBuffer();
         int avail = mInputLen - mInputPtr;
@@ -1323,7 +1336,7 @@ public abstract class StreamScanner
      * mode); which means it's never called from dtd handler.
      */
     protected EntityDecl resolveNonCharEntity(Map ent1, Map ent2)
-        throws IOException, WstxException
+        throws IOException, XMLStreamException
     {
         //int avail = inputInBuffer();
         int avail = mInputLen - mInputPtr;
@@ -1333,12 +1346,6 @@ public abstract class StreamScanner
              * the entity), so let's push it back first
              */
             --mInputPtr;
-
-            /* !!! Hmmh, need to rewrite:
-            if (mInput.getParent() != null) { // main level, ok
-                throwParseError("Entity not completely defined in included entity (starting '&' in entity expansion; entity identifier outside expansion).");
-            }
-            */
 
             /* Shortest valid reference would be 3 chars ('&a;'); which
              * would only be legal from an expanded entity...
@@ -1679,7 +1686,7 @@ public abstract class StreamScanner
      *    EOF or non-name-start char encountered)
      */
     protected String parseLocalName(char c)
-        throws IOException, WstxException
+        throws IOException, XMLStreamException
     {
         /* Has to start with letter, or '_' (etc); we won't allow ':' as that
          * is taken as namespace separator; no use trying to optimize
@@ -1728,7 +1735,7 @@ public abstract class StreamScanner
      * called very often.
      */
     protected String parseLocalName2(int start, int hash)
-        throws IOException, WstxException
+        throws IOException, XMLStreamException
     {
         int ptr = mInputLen - start;
         // Let's assume fairly short names
@@ -1780,7 +1787,7 @@ public abstract class StreamScanner
      *    EOF or non-name-start char encountered)
      */
     protected String parseFullName()
-        throws IOException, WstxException
+        throws IOException, XMLStreamException
     {
         char c;
 
@@ -1791,7 +1798,7 @@ public abstract class StreamScanner
     }
 
     protected String parseFullName(char c)
-        throws IOException, WstxException
+        throws IOException, XMLStreamException
     {
         // First char has special handling:
         if (!is11NameStartChar(c)) {
@@ -1842,7 +1849,7 @@ public abstract class StreamScanner
     }
 
     protected String parseFullName2(int start, int hash)
-        throws IOException, WstxException
+        throws IOException, XMLStreamException
     {
         int ptr = mInputLen - start;
         // Let's assume fairly short names
@@ -1896,7 +1903,7 @@ public abstract class StreamScanner
      * messages.
      */
     protected String parseFNameForError()
-        throws IOException, WstxException
+        throws IOException, XMLStreamException
     {
         StringBuffer sb = new StringBuffer(100);
         while (true) {
@@ -1921,7 +1928,7 @@ public abstract class StreamScanner
     }
 
     protected final String parseEntityName(char c)
-        throws IOException, WstxException
+        throws IOException, XMLStreamException
     {
         String id = parseFullName(c);
         // Needs to be followed by a semi-colon, too.. from same input source:
@@ -1947,7 +1954,7 @@ public abstract class StreamScanner
      * @return Length of skipped name.
      */
     protected int skipFullName(char c)
-        throws IOException, WstxException
+        throws IOException, XMLStreamException
     {
         if (!is11NameStartChar(c)) {
             --mInputPtr;
@@ -1983,7 +1990,7 @@ public abstract class StreamScanner
      */
     protected final String parseSystemId(char quoteChar, boolean convertLFs,
 					 String errorMsg)
-        throws IOException, WstxException
+        throws IOException, XMLStreamException
     {
         char[] buf = getNameBuffer(-1);
         int ptr = 0;
@@ -2042,7 +2049,7 @@ public abstract class StreamScanner
      */
     protected final String parsePublicId(char quoteChar, boolean convertLFs,
                                          String errorMsg)
-        throws IOException, WstxException
+        throws IOException, XMLStreamException
     {
         char[] buf = getNameBuffer(-1);
         int ptr = 0;
@@ -2088,7 +2095,7 @@ public abstract class StreamScanner
 
     protected final void parseUntil(TextBuffer tb, char endChar, boolean convertLFs,
                                     String errorMsg)
-        throws IOException, WstxException
+        throws IOException, XMLStreamException
     {
         // Let's first ensure we have some data in there...
         if (mInputPtr >= mInputLen) {
@@ -2161,7 +2168,7 @@ public abstract class StreamScanner
      */
 
     private char resolveCharEnt()
-        throws IOException, WstxException
+        throws IOException, XMLStreamException
     {
         int value = 0;
         char c = getNextChar(SUFFIX_IN_ENTITY_REF);
@@ -2213,7 +2220,7 @@ public abstract class StreamScanner
      * surrogate pair as necessary.
      */
     private final char checkAndExpandChar(int value)
-        throws WstxException
+        throws XMLStreamException
     {
         /* 24-Jan-2006, TSa: Ok, "high" Unicode chars are problematic,
          *   need to be reported by a surrogate pair..

@@ -18,10 +18,10 @@ package com.ctc.wstx.dtd;
 import java.io.IOException;
 
 import javax.xml.stream.Location;
+import javax.xml.stream.XMLStreamException;
 
 import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.ent.EntityDecl;
-import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.io.WstxInputData;
 import com.ctc.wstx.io.WstxInputSource;
 import com.ctc.wstx.sr.StreamScanner;
@@ -84,7 +84,7 @@ public class MinimalDTDReader
      */
     public static void skipInternalSubset(WstxInputData srcData, WstxInputSource input,
                                           ReaderConfig cfg)
-        throws IOException, WstxException
+        throws IOException, XMLStreamException
     {
         MinimalDTDReader r = new MinimalDTDReader(input, cfg);
         // Need to read from same source as the master (owning stream reader)
@@ -116,6 +116,16 @@ public class MinimalDTDReader
         return getStartLocation();
     }
 
+    /**
+     * Since improper entity/PE nesting is VC, not WFC, let's not
+     * react to this failure at all when only skipping the DTD subset.
+     */
+    protected void handleIncompleteEntityProblem(WstxInputSource closing)
+        throws XMLStreamException
+    {
+        // nothing to do...
+    }
+
     /*
     //////////////////////////////////////////////////
     // Internal API
@@ -145,7 +155,7 @@ public class MinimalDTDReader
      * any parsing, except for trying to match end of subset properly.
      */
     protected void skipInternalSubset()
-        throws IOException, WstxException
+        throws IOException, XMLStreamException
     {
         while (true) {
             int i = getNextAfterWS();
@@ -217,21 +227,21 @@ public class MinimalDTDReader
      */
 
     protected char dtdNextFromCurr()
-        throws IOException, WstxException
+        throws IOException, XMLStreamException
     {
         return (mInputPtr < mInputLen) ?
             mInputBuffer[mInputPtr++] : getNextCharFromCurrent(getErrorMsg());
     }
 
     protected char dtdNextChar()
-        throws IOException, WstxException
+        throws IOException, XMLStreamException
     {
         return (mInputPtr < mInputLen) ?
             mInputBuffer[mInputPtr++] : getNextChar(getErrorMsg());
     }
 
     protected char getNextSkippingPEs()
-        throws IOException, WstxException
+        throws IOException, XMLStreamException
     {
         while (true) {
             char c = (mInputPtr < mInputLen) ?
@@ -250,7 +260,7 @@ public class MinimalDTDReader
      */
 
     private void skipPE()
-        throws IOException, WstxException
+        throws IOException, XMLStreamException
     {
         skipDTDName();
         /* Should now get semicolon... let's try to find and skip it; but
@@ -265,7 +275,7 @@ public class MinimalDTDReader
     }
 
     protected void skipComment()
-        throws IOException, WstxException
+        throws IOException, XMLStreamException
     {
         skipCommentContent();
         // Now, we may be getting end mark; first need second marker char:.
@@ -277,7 +287,7 @@ public class MinimalDTDReader
     }
 
     protected void skipCommentContent()
-        throws IOException, WstxException
+        throws IOException, XMLStreamException
     {
         while (true) {
             char c = (mInputPtr < mInputLen) ?
@@ -295,7 +305,7 @@ public class MinimalDTDReader
     }
 
     protected void skipPI()
-        throws IOException, WstxException
+        throws IOException, XMLStreamException
     {
         while (true) {
             char c = (mInputPtr < mInputLen)
@@ -316,7 +326,7 @@ public class MinimalDTDReader
     }
 
     private void skipDeclaration(char c)
-        throws IOException, WstxException
+        throws IOException, XMLStreamException
     {
         while (c != '>') {
             c = (mInputPtr < mInputLen)
@@ -336,7 +346,7 @@ public class MinimalDTDReader
     }
 
     private void skipLiteral(char quoteChar)
-        throws IOException, WstxException
+        throws IOException, XMLStreamException
     {
         while (true) {
             char c = (mInputPtr < mInputLen)
@@ -353,7 +363,7 @@ public class MinimalDTDReader
     }
 
     private void skipDTDName()
-        throws IOException, WstxException
+        throws IOException, XMLStreamException
     {
         int len = skipFullName(getNextChar(getErrorMsg()));
         /* Should we give an error about missing name? For now,
@@ -370,6 +380,5 @@ public class MinimalDTDReader
     protected String getErrorMsg() {
         return mIsExternal ? SUFFIX_IN_DTD_EXTERNAL : SUFFIX_IN_DTD_INTERNAL;
     }
-
 }
 

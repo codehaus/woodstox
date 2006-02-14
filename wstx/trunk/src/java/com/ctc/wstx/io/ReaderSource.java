@@ -51,7 +51,7 @@ public class ReaderSource
      * Input location is easy to set, as we'll start from the beginning
      * of a File.
      */
-    public void initInputLocation(WstxInputData reader)
+    protected void doInitInputLocation(WstxInputData reader)
     {
         reader.mCurrInputProcessed = mInputProcessed;
         reader.mCurrInputRow = mInputRow;

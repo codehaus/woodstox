@@ -193,13 +193,7 @@ public final class NonNsInputElementStack
         return false;
     }
 
-    /**
-     * @return Number of open elements in the stack; 0 when parser is in
-     *  prolog/epilog, 1 inside root element and so on.
-     */
-    public final int getDepth() {
-        return mSize;
-    }
+    public final int getDepth() { return mSize; }
 
     public final AttributeCollector getAttrCollector() {
         return mAttrCollector;

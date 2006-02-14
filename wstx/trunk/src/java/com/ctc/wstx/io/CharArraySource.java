@@ -48,7 +48,7 @@ public final class CharArraySource
      * Unlike with reader source, we won't start from beginning of a file,
      * but usually from somewhere in the middle...
      */
-    public void initInputLocation(WstxInputData reader)
+    protected void doInitInputLocation(WstxInputData reader)
     {
         reader.mCurrInputProcessed = mContentStart.getCharacterOffset();
         reader.mCurrInputRow = mContentStart.getLineNumber();
