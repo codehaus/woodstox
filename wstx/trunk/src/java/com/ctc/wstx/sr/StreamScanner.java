@@ -833,36 +833,6 @@ public abstract class StreamScanner
         }
         return c;
     }
-    
-    /**
-     * Method that will skip any white space potentially coming from the
-     * current input source, without returning next character. Note that
-     * it does NOT continue to the next input source, in case of a
-     * nested input source (like entity expansion).
-     */
-    protected final void skipWS(char c) 
-        throws IOException, XMLStreamException
-    {
-        while (true) {
-            // Linefeed?
-            if (c == '\n' || c == '\r') {
-                skipCRLF(c);
-            } else if (c != CHAR_SPACE && c != '\t') {
-                throwInvalidSpace(c);
-            }
-            if (mInputPtr >= mInputLen) {
-                // Let's see if current source has more
-                if (!loadMoreFromCurrent()) {
-                    return;
-                }
-            }
-            c = mInputBuffer[mInputPtr];
-            if (c > CHAR_SPACE) { // not WS? Need to return
-                break;
-            }
-            ++mInputPtr;
-        }
-    }
 
     /**
      * Method called when a CR has been spotted in input; checks if next

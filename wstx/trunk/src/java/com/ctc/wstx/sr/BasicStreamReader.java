@@ -1644,7 +1644,7 @@ public class BasicStreamReader
                 : getNextChar(SUFFIX_IN_ATTR_VALUE);
             // Let's do a quick for most attribute content chars:
             if (c < CHAR_FIRST_PURE_TEXT) {
-                if (c <= CHAR_SPACE) {
+                if (c < CHAR_SPACE) {
                     if (c == '\n') {
                         markLF();
                     } else if (c == '\r') {
@@ -1666,8 +1666,8 @@ public class BasicStreamReader
                             }
                         }
                         markLF();
-                    } else if (c == CHAR_NULL) {
-                        throwNullChar();
+                    } else if (c != '\t') {
+                        throwInvalidSpace(c);
                     }
                 } else if (c == openingQuote) {
                     /* 06-Aug-2004, TSa: Can get these via entities; only "real"
@@ -1729,7 +1729,7 @@ public class BasicStreamReader
                 : getNextChar(SUFFIX_IN_ATTR_VALUE);
             // Let's do a quick for most attribute content chars:
             if (c < CHAR_FIRST_PURE_TEXT) {
-                if (c <= CHAR_SPACE) {
+                if (c < CHAR_SPACE) {
                     if (c == '\n') {
                         markLF();
                     } else if (c == '\r') {
@@ -1738,8 +1738,8 @@ public class BasicStreamReader
                             --mInputPtr;
                         }
                         markLF();
-                    } else if (c == CHAR_NULL) {
-                        throwNullChar();
+                    } else if (c != '\t') {
+                        throwInvalidSpace(c);
                     }
                     // Whatever it was, it'll be 'normal' space now.
                     c = CHAR_SPACE;
@@ -2184,24 +2184,24 @@ public class BasicStreamReader
         char[] outBuf = tbuf.getCurrentSegment();
         int outPtr = 0;
 
-	while (true) {
+        while (true) {
             char c = (mInputPtr < mInputLen) ? mInputBuffer[mInputPtr++]
                 : getNextChar(SUFFIX_IN_XML_DECL);
-
-	    if (c == quoteChar) {
-		break;
-	    }
-	    if (c == '\n' || c == '\r' || c == '<') {
-		throwUnexpectedChar(c, SUFFIX_IN_XML_DECL);
-	    } else if (c == CHAR_NULL) {
-		throwNullChar();
-	    }
+            
+            if (c == quoteChar) {
+                break;
+            }
+            if (c < CHAR_SPACE || c == '<') {
+                throwUnexpectedChar(c, SUFFIX_IN_XML_DECL);
+            } else if (c == CHAR_NULL) {
+                throwNullChar();
+            }
             if (outPtr >= outBuf.length) {
                 outBuf = tbuf.finishCurrentSegment();
                 outPtr = 0;
             }
-	    outBuf[outPtr++] = c;
-	}
+            outBuf[outPtr++] = c;
+        }
         tbuf.setCurrentLength(outPtr);
     }
 
@@ -2311,9 +2311,10 @@ public class BasicStreamReader
                 if (keyw != null) {
                     keyw = "P" + keyw;
                 } else {
-                    //c = getNextAfterOblWS(SUFFIX_IN_DTD, "before public identifier");
-                    // int count = skipWS();
-                    c = getNextInCurrAfterWS(SUFFIX_IN_DTD);
+                    if (!skipWS(getNextChar(SUFFIX_IN_DTD))) {
+                        throwUnexpectedChar(c, SUFFIX_IN_DTD+"; expected a space between PUBLIC keyword and public id");
+                    }
+                    c = getNextCharFromCurrent(SUFFIX_IN_DTD);
                     if (c != '"' && c != '\'') {
                         throwUnexpectedChar(c, SUFFIX_IN_DTD+"; expected a public identifier.");
                     }
@@ -2323,7 +2324,10 @@ public class BasicStreamReader
                         // however, better report it as empty, not null.
                         //mDtdPublicId = null;
                     }
-                    c = getNextInCurrAfterWS(SUFFIX_IN_DTD);
+                    if (!skipWS(getNextChar(SUFFIX_IN_DTD))) {
+                        throwUnexpectedChar(c, SUFFIX_IN_DTD+"; expected a space between public and system identifiers");
+                    }
+                    c = getNextCharFromCurrent(SUFFIX_IN_DTD);
                     if (c != '"' && c != '\'') {
                         throwParseError(SUFFIX_IN_DTD+"; expected a system identifier.");
                     }
@@ -4927,6 +4931,45 @@ public class BasicStreamReader
         }
 
         return count;
+    }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Internal methods, low-level input access
+    ////////////////////////////////////////////////////
+     */
+    
+    /**
+     * Method that will skip any white space from input source(s)
+     *
+     * @return true If at least one white space was skipped; false
+     *   if not (character passed was not white space)
+     */
+    protected final boolean skipWS(char c) 
+        throws IOException, XMLStreamException
+    {
+        if (c > CHAR_SPACE) {
+            return false;
+        }
+        while (true) {
+            // Linefeed?
+            if (c == '\n' || c == '\r') {
+                skipCRLF(c);
+            } else if (c != CHAR_SPACE && c != '\t') {
+                throwInvalidSpace(c);
+            }
+            if (mInputPtr >= mInputLen) {
+                // Let's see if current source has more
+                if (!loadMoreFromCurrent()) {
+                    return true;
+                }
+            }
+            c = mInputBuffer[mInputPtr];
+            if (c > CHAR_SPACE) { // not WS? Need to return
+                return true;
+            }
+            ++mInputPtr;
+        }
     }
 
     /*

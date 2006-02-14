@@ -940,7 +940,10 @@ public class FullDTDReader
             ++mInputPtr;
             if (c == '\n' || c == '\r') {
                 skipCRLF(c);
+            } else if (c != CHAR_SPACE && c != '\t') {
+                throwInvalidSpace(c);
             }
+
             ++count;
         }
         return count;
@@ -979,6 +982,8 @@ public class FullDTDReader
             }
             if (c == '\n' || c == '\r') {
                 skipCRLF(c);
+            } else if (c != CHAR_SPACE && c != '\t') {
+                throwInvalidSpace(c);
             }
         }
     }
@@ -1022,6 +1027,12 @@ public class FullDTDReader
                 expandPE();
             } else if (c > CHAR_SPACE) {
                 break;
+            } else {
+                if (c == '\n' || c == '\r') {
+                    skipCRLF(c);
+                } else if (c != CHAR_SPACE && c != '\t') {
+                    throwInvalidSpace(c);
+                }
             }
             /* Now we got one space (or end of input block) -- no need to
              * restrict get next on current block (in case PE ends); happens
@@ -1029,9 +1040,6 @@ public class FullDTDReader
              */
             c = (mInputPtr < mInputLen)
                 ? mInputBuffer[mInputPtr++] : getNextChar(getErrorMsg());
-            if (c == '\n' || c == '\r') {
-                skipCRLF(c);
-            }
         }
         return c;
     }
@@ -1455,29 +1463,33 @@ public class FullDTDReader
                 expandPE();
                 // Need to loop over, no char available yet
                 continue;
-            } else if (c == '\n') {
-                markLF();
-            } else if (c == '\r') {
-                if (skipCRLF(c)) {
-                    if (mCfgNormalizeLFs) {
-                        c = '\n';
-                    } else {
-                        // Special handling, to output 2 chars at a time:
-                        outBuf[outPtr++] = c;
-                        if (outPtr >= outBuf.length) { // need more room?
-                            outBuf = tb.finishCurrentSegment();
-                            outPtr = 0;
+            } else if (c < CHAR_SPACE) {
+                if (c == '\n') {
+                    markLF();
+                } else if (c == '\r') {
+                    if (skipCRLF(c)) {
+                        if (mCfgNormalizeLFs) {
+                            c = '\n';
+                        } else {
+                            // Special handling, to output 2 chars at a time:
+                            outBuf[outPtr++] = c;
+                            if (outPtr >= outBuf.length) { // need more room?
+                                outBuf = tb.finishCurrentSegment();
+                                outPtr = 0;
+                            }
+                            outBuf[outPtr++] = '\n';
+                            if (outPtr >= outBuf.length) {
+                                outBuf = tb.finishCurrentSegment();
+                                outPtr = 0;
+                            }
+                            // No need to use default output
+                            continue;
                         }
-                        outBuf[outPtr++] = '\n';
-                        if (outPtr >= outBuf.length) {
-                            outBuf = tb.finishCurrentSegment();
-                            outPtr = 0;
-                        }
-                        // No need to use default output
-                        continue;
+                    } else if (mCfgNormalizeLFs) {
+                        c = '\n'; // For Mac text
                     }
-                } else if (mCfgNormalizeLFs) {
-                    c = '\n'; // For Mac text
+                } else if (c != '\t') {
+                    throwInvalidSpace(c);
                 }
             }
                 
@@ -1580,8 +1592,8 @@ public class FullDTDReader
                             }
                         }
                         markLF();
-                    } else if (c == CHAR_NULL) {
-                        throwNullChar();
+                    } else if (c != CHAR_SPACE && c != '\t') {
+                        throwInvalidSpace(c);
                     }
                     if (mCfgNormAttrs) {
                         c = CHAR_SPACE;
@@ -1695,8 +1707,12 @@ public class FullDTDReader
                         break;
                     }
                 }
-                if (c == '\n' || c == '\r') {
-                    skipCRLF(c);
+                if (c < CHAR_SPACE) {
+                    if (c == '\n' || c == '\r') {
+                        skipCRLF(c);
+                    } else if (c != '\t') {
+                        throwInvalidSpace(c);
+                    }
                 }
             }
         }
@@ -1777,8 +1793,12 @@ public class FullDTDReader
         while (true) {
             c = (mInputPtr < mInputLen)
                 ? mInputBuffer[mInputPtr++] : getNextChar(errorMsg);
-            if (c == '\n' || c == '\r') {
-                skipCRLF(c);
+            if (c < CHAR_SPACE) {
+                if (c == '\n' || c == '\r') {
+                    skipCRLF(c);
+                } else if (c != '\t') {
+                    throwInvalidSpace(c);
+                }
             } else if (c == ']') { // closing?
                 if (getNextChar(errorMsg) == ']'
                     && getNextChar(errorMsg) == '>') {
@@ -2760,6 +2780,8 @@ public class FullDTDReader
                 throwDTDUnexpectedChar(c, " (sequences not allowed within mixed content)");
             } else if (c == '(') {
                 throwDTDUnexpectedChar(c, " (sub-content specs not allowed within mixed content)");
+            } else {
+                throwDTDUnexpectedChar(c, "; expected either '|' to separate elements, or ')' to close the list");
             }
             NameKey n = readDTDQName(c);
             Object old = m.put(n, TokenContentSpec.construct(' ', n));
@@ -3094,24 +3116,36 @@ public class FullDTDReader
 
     // @Override
     /**
-     * For full (validating) DTD readers, this VC needs to lead to reporting
-     * of a validity error.
+     * Handling of PE matching problems is actually intricate; one type
+     * will be a WFC ("PE Between Declarations", which refers to PEs that
+     * start from outside declarations), and another just a VC
+     * ("Proper Declaration/PE Nesting", when PE is contained within
+     * declaration)
      */
     protected void handleIncompleteEntityProblem(WstxInputSource closing)
         throws XMLStreamException
     {
-        if (mCfgFullyValidating) { // since it's a VC, not WFC
-            throwDTDError(entityDesc(closing) + ": " + 
-                          "Incomplete PE: has to either fully contain or be contained in a declaration (as per xml 1.0.3, section 2.8, VC 'Proper Declaration/PE Nesting')");
+        // Did it start outside of declaration?
+        if (closing.getScopeId() == 0) { // yup
+            // and being WFC, need not be validating
+            throwDTDError(entityDesc(closing) + ": "
+                          +"Incomplete PE: has to fully contain a declaration (as per xml 1.0.3, section 2.8, WFC 'PE Between Declarations')");
+        } else {
+            // whereas the other one is only sent in validating mode..
+            if (mCfgFullyValidating) {
+                throwDTDError(entityDesc(closing) + ": "
+                              +"Incomplete PE: has to be fully contained in a declaration (as per xml 1.0.3, section 2.8, VC 'Proper Declaration/PE Nesting')");
+            }
         }
     }
 
     protected void handleGreedyEntityProblem(WstxInputSource input)
         throws XMLStreamException
     {
+        // Here it can only be of VC kind...
         if (mCfgFullyValidating) { // since it's a VC, not WFC
             throwDTDError(entityDesc(input) + ": " + 
-                          "Unbalanced PE: has to either fully contain or be contained in a declaration (as per xml 1.0.3, section 2.8, VC 'Proper Declaration/PE Nesting')");
+                          "Unbalanced PE: has to be fully contained in a declaration (as per xml 1.0.3, section 2.8, VC 'Proper Declaration/PE Nesting')");
         }
     }
 }
