@@ -160,6 +160,10 @@ public abstract class InputBootstrapper
         return mVersion;
     }
 
+    public boolean isXml11() {
+        return (mVersion != null) && XmlConsts.XML_V_11.equals(mVersion);
+    }
+
     public String getStandalone() {
         return mStandalone;
     }

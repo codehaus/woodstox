@@ -13,6 +13,22 @@ public interface ValidationContext
 {
     /*
     //////////////////////////////////////////////////////
+    // Basic configuration
+    //////////////////////////////////////////////////////
+     */
+
+    /**
+     * Method that validator can call to figure out which xml version
+     * document being validated declared (if none, "1.0" is assumed as
+     * per xml specifications 1.0 and 1.1).
+     *
+     * @return Xml version of the document: currently has to be either
+     *   "1.0" or "1.1".
+     */
+    public String getXmlVersion();
+
+    /*
+    //////////////////////////////////////////////////////
     // Input element stack access
     //////////////////////////////////////////////////////
      */

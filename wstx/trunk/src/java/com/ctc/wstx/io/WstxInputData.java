@@ -61,6 +61,10 @@ public class WstxInputData
      */
     private final static int VALID_CHAR_COUNT = 0x100;
 
+    // These are the same for both 1.0 and 1.1...
+    private final static int FIRST_VALID_FOR_FIRST = 0x0041; // 'A'
+    private final static int FIRST_VALID_FOR_REST = 0x002D; // '.'
+
     private final static byte NAME_CHAR_INVALID_B = (byte) 0;
     private final static byte NAME_CHAR_ALL_VALID_B = (byte) 1;
     private final static byte NAME_CHAR_VALID_NONFIRST_B = (byte) -1;
@@ -222,23 +226,38 @@ public class WstxInputData
 
     /**
      * Method that can be used to check whether specified character
-     * is a valid first character of an XML 1.1 name; except that
+     * is a valid first character of an XML 1.0 name; except that
      * colon (:) is not recognized as a start char here: caller has
      * to verify it separately (since it generally affects namespace
      * mapping of a qualified name).
      */
-    public final static boolean is11NameStartChar(char c)
+    public final static boolean is10NameStartChar(char c)
     {
-        // ISO-Latin can be checked via type array:
+        // ISO-Latin can be checked via type array (and is identical to 1.1):
         if (c < VALID_CHAR_COUNT) {
-            if (c <= CHAR_SPACE) {
+            if (c < FIRST_VALID_FOR_FIRST) { // white space, punctuation
                 return false;
             }
             return (sCharValidity[c] == NAME_CHAR_ALL_VALID_B);
         }
 
-        // Others are checked block-by-block:
+        // Others are checked block-by-block... gosh, 1.0 is messy
         if (c <= 0x2FEF) {
+            if (c < 0x200) {
+                switch (c) {
+                case 0x132: case 0x133:
+                case 0x13F: case 0x140:
+                case 0x149:
+                case 0x17F:
+                case 0x1C4: case 0x1C5: case 0x1C6: case 0x1C7:
+                case 0x1C8: case 0x1C9: case 0x1CA: case 0x1CB: case 0x1CC:
+                case 0x1F1: case 0x1F2: case 0x1F3:
+                case 0x1F6: case 0x1F7: case 0x1F8: case 0x1F9:
+                    return false;
+                }
+                // all others are fine actually
+                return true;
+            }
             if (c < 0x300 || c >= 0x2C00) {
                 // 0x100 - 0x2FF, 0x2C00 - 0x2FEF are ok
                 return true;
@@ -273,6 +292,145 @@ public class WstxInputData
             if (c >= 0xF900 && c <= 0xFFFD) {
                 /* Check above removes low surrogate (since one can not
                  * START an identifier), and byte-order markers..
+                 */
+                return (c <= 0xFDCF || c >= 0xFDF0);
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Method that can be used to check whether specified character
+     * is a valid first character of an XML 1.1 name; except that
+     * colon (:) is not recognized as a start char here: caller has
+     * to verify it separately (since it generally affects namespace
+     * mapping of a qualified name).
+     */
+    public final static boolean is11NameStartChar(char c)
+    {
+        // ISO-Latin can be checked via type array:
+        if (c < VALID_CHAR_COUNT) {
+            if (c < FIRST_VALID_FOR_FIRST) { // white space, punctuation
+                return false;
+            }
+            return (sCharValidity[c] == NAME_CHAR_ALL_VALID_B);
+        }
+
+        // Others are checked block-by-block:
+        if (c <= 0x2FEF) {
+            if (c < 0x300) {
+            } else if (c >= 0x2C00) {
+                // 0x100 - 0x2FF, 0x2C00 - 0x2FEF are ok
+                return true;
+            }
+            if (c < 0x370 || c > 0x218F) {
+                // 0x300 - 0x36F, 0x2190 - 0x2BFF invalid
+                return false;
+            }
+            if (c < 0x2000) {
+                // 0x370 - 0x37D, 0x37F - 0x1FFF are ok
+                return (c != 0x37E);
+            }
+            if (c >= 0x2070) {
+                // 0x2070 - 0x218F are ok
+                return (c <= 0x218F);
+            }
+            // And finally, 0x200C - 0x200D
+            return (c == 0x200C || c == 0x200D);
+        }
+
+        // 0x3000 and above:
+        if (c >= 0x3001) {
+            /* Hmmh, let's allow high surrogates here, without checking
+             * that they are properly followed... crude basic support,
+             * I know, but allow valid combinations, just doesn't catch
+             * invalid ones
+             */
+            if (c <= 0xDBFF) { // 0x3001 - 0xD7FF (chars),
+                // 0xD800 - 0xDBFF (high surrogate) are ok:
+                return true;
+            }
+            if (c >= 0xF900 && c <= 0xFFFD) {
+                /* Check above removes low surrogate (since one can not
+                 * START an identifier), and byte-order markers..
+                 */
+                return (c <= 0xFDCF || c >= 0xFDF0);
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Method that can be used to check whether specified character
+     * is a valid character of an XML 1.0 name as any other char than
+     * the first one; except that colon (:) is not recognized as valid here:
+     * caller has to verify it separately (since it generally affects namespace
+     * mapping of a qualified name).
+     */
+    public final static boolean is10NameChar(char c)
+    {
+        // ISO-Latin can be checked via type array (same as in 1.1, too)
+        if (c < VALID_CHAR_COUNT) {
+            if (c <= CHAR_SPACE) {
+                return false;
+            }
+            return (sCharValidity[c] != NAME_CHAR_INVALID_B);
+        }
+
+        // Others are checked block-by-block:
+        if (c <= 0x2FEF) {
+            if (c < 0x2000) { // only a single non-valid char in there...
+                if (c < 0x200) {
+                    switch (c) {
+                    case 0x132: case 0x133:
+                    case 0x13F: case 0x140:
+                    case 0x149:
+                    case 0x17F:
+                    case 0x1C4: case 0x1C5: case 0x1C6: case 0x1C7:
+                    case 0x1C8: case 0x1C9: case 0x1CA: case 0x1CB: case 0x1CC:
+                    case 0x1F1: case 0x1F2: case 0x1F3:
+                    case 0x1F6: case 0x1F7: case 0x1F8: case 0x1F9:
+                        return false;
+                    }
+                    // all others are fine actually
+                    return true;
+                }
+                return (c != 0x37E);
+            }
+            if (c >= 0x2C00) {
+                // 0x100 - 0x1FFF, 0x2C00 - 0x2FEF are ok
+                return true;
+            }
+            if (c < 0x200C || c > 0x218F) {
+                // 0x2000 - 0x200B, 0x2190 - 0x2BFF invalid
+                return false;
+            }
+            if (c >= 0x2070) {
+                // 0x2070 - 0x218F are ok
+                return true;
+            }
+            // And finally, 0x200C - 0x200D, 0x203F - 0x2040 are ok
+            return (c == 0x200C || c == 0x200D
+                || c == 0x203F || c == 0x2040);
+        }
+
+        // 0x3000 and above:
+        if (c >= 0x3001) {
+            /* Hmmh, let's allow surrogate heres, without checking that
+             * they have proper ordering. For non-first name chars, both are
+             * ok, for valid names. Crude basic support,
+             * I know, but allows valid combinations, just doesn't catch
+             * invalid ones
+             */
+            if (c <= 0xDFFF) { // 0x3001 - 0xD7FF (chars),
+                // 0xD800 - 0xDFFF (high, low surrogate) are ok:
+                return true;
+            }
+            if (c >= 0xF900 && c <= 0xFFFD) {
+                /* Check above removes other invalid chars (below valid
+                 * range), and byte-order markers (0xFFFE, 0xFFFF).
                  */
                 return (c <= 0xFDCF || c >= 0xFDF0);
             }

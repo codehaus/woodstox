@@ -301,7 +301,7 @@ public abstract class DTDAttribute
 
         // Ok, needs to be a valid XML name:
         char c = defValue.charAt(0);
-        if (!WstxInputData.is11NameChar(c) && c != ':') {
+        if (!WstxInputData.is11NameStartChar(c) && c != ':') {
             reportValidationProblem(rep, "Invalid default value '"+defValue+"'; character "
                                 +WstxInputData.getCharDesc(c)
                                 +") not valid first character of a name");

@@ -1234,6 +1234,10 @@ public abstract class BaseStreamWriter
     ////////////////////////////////////////////////////
      */
 
+    public String getXmlVersion() {
+        return mXml11 ? XmlConsts.XML_V_11 : XmlConsts.XML_V_10;
+    }
+
     public abstract QName getCurrentElementName();
 
     public abstract String getNamespaceURI(String prefix);
@@ -1387,7 +1391,7 @@ public abstract class BaseStreamWriter
     /**
      * Method called to verify that the name is a legal XML name.
      */
-    public static void verifyNameValidity(String name, boolean nsAware)
+    public final void verifyNameValidity(String name, boolean nsAware)
     {
         /* No empty names... caller must have dealt with optional arguments
          * prior to calling this method
@@ -1396,23 +1400,38 @@ public abstract class BaseStreamWriter
             throwIllegalArg(ErrorConsts.WERR_NAME_EMPTY);
         }
         char c = name.charAt(0);
-        
-        if (c == ':' && !nsAware) { // ok, but only in non-ns mode
-            ;
-        } else {
-            if (!WstxInputData.is11NameStartChar(c)) {		
+
+        if (mXml11) {
+            if (c == ':' && !nsAware) { // ok, but only in non-ns mode
+                ;
+            } else if (!WstxInputData.is11NameStartChar(c)) {		
                 throwIllegalArg(ErrorConsts.WERR_NAME_ILLEGAL_FIRST_CHAR,
                                 WstxInputData.getCharDesc(c));
             }
-        }
-        
-        for (int i = 1, len = name.length(); i < len; ++i) {
-            c = name.charAt(i);
-            if (c == ':' && !nsAware) {
-                ; // is ok, but has to be explicitly checked...
-            } else if (!WstxInputData.is11NameChar(c)) {
-                throwIllegalArg(ErrorConsts.WERR_NAME_ILLEGAL_CHAR,
+            for (int i = 1, len = name.length(); i < len; ++i) {
+                c = name.charAt(i);
+                if (c == ':' && !nsAware) {
+                    ; // is ok, but has to be explicitly checked...
+                } else if (!WstxInputData.is11NameChar(c)) {
+                    throwIllegalArg(ErrorConsts.WERR_NAME_ILLEGAL_CHAR,
+                                    WstxInputData.getCharDesc(c));
+                }
+            }
+        } else {
+            if (c == ':' && !nsAware) { // ok, but only in non-ns mode
+                ;
+            } else if (!WstxInputData.is10NameStartChar(c)) {		
+                throwIllegalArg(ErrorConsts.WERR_NAME_ILLEGAL_FIRST_CHAR,
                                 WstxInputData.getCharDesc(c));
+            }
+            for (int i = 1, len = name.length(); i < len; ++i) {
+                c = name.charAt(i);
+                if (c == ':' && !nsAware) {
+                    ; // is ok, but has to be explicitly checked...
+                } else if (!WstxInputData.is10NameChar(c)) {
+                    throwIllegalArg(ErrorConsts.WERR_NAME_ILLEGAL_CHAR,
+                                    WstxInputData.getCharDesc(c));
+                }
             }
         }
     }

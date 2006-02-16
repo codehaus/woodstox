@@ -350,7 +350,7 @@ public class BasicStreamReader
 
     /*
     ////////////////////////////////////////////////////
-    // Life-cycle (ctors)
+    // Instance construction, initialization
     ////////////////////////////////////////////////////
      */
 
@@ -362,7 +362,8 @@ public class BasicStreamReader
      *   settings appropriately. If false, configuration settings are to
      *   be used as is.
      */
-    protected BasicStreamReader(BranchingReaderSource input, ReaderCreator owner,
+    protected BasicStreamReader(InputBootstrapper bs,
+                                BranchingReaderSource input, ReaderCreator owner,
                                 ReaderConfig cfg, InputElementStack elemStack,
                                 boolean forER)
         throws IOException, XMLStreamException
@@ -372,6 +373,9 @@ public class BasicStreamReader
         mOwner = owner;
 
         mTextBuffer = new TextBuffer(cfg.getTextBufferLength());
+
+        // // // First, configuration settings:
+
         mConfigFlags = cfg.getConfigFlags();
 
         mCfgNormalizeLFs = (mConfigFlags & CFG_NORMALIZE_LFS) != 0;
@@ -409,6 +413,36 @@ public class BasicStreamReader
         }
 
         mCustomEntities = cfg.getCustomInternalEntities();
+
+        // // // Then handling of xml declaration data:
+
+        mDocXmlVersion = bs.getVersion();
+        mDocInputEncoding = bs.getInputEncoding();
+        mDocXmlEncoding = bs.getDeclaredEncoding();
+
+        String sa = bs.getStandalone();
+        if (sa == null) {
+            mDocStandalone = DOC_STANDALONE_UNKNOWN;
+        } else {
+            if (XmlConsts.XML_SA_YES.equals(sa)) {
+                mDocStandalone = DOC_STANDALONE_YES;
+            } else {
+                mDocStandalone = DOC_STANDALONE_NO;
+            }
+        }
+
+        /* Ok; either we got declaration or not, but in either case we can
+         * now initialize prolog parsing settings, without having to really
+         * parse anything more.
+         */
+        /* 07-Oct-2005, TSa: Except, if we are in fragment mode, in which
+         *   case we are kind of "in tree" mode...
+         */
+        mParseState = mConfig.inputParsingModeFragment() ?
+            STATE_TREE : STATE_PROLOG;
+
+        // // // And then connecting element stack and attribute collector
+
         mElementStack = elemStack;
         mAttrCollector = elemStack.getAttrCollector();
 
@@ -431,23 +465,23 @@ public class BasicStreamReader
          InputBootstrapper bs, boolean forER)
         throws IOException, XMLStreamException
     {
+
         BasicStreamReader sr = new BasicStreamReader
-            (input, owner, cfg, createElementStack(cfg), forER);
-        sr.initProlog(bs);
+            (bs, input, owner, cfg, createElementStack(cfg, bs.isXml11()), forER);
         return sr;
     }
 
-    protected static InputElementStack createElementStack(ReaderConfig cfg)
+    protected static InputElementStack createElementStack(ReaderConfig cfg, boolean xml11)
     {
         InputElementStack es;
         boolean normAttrs = cfg.willNormalizeAttrValues();
         boolean internNsURIs = cfg.willInternNsURIs();
 
         if (cfg.willSupportNamespaces()) {
-            return new NsInputElementStack(16, normAttrs, internNsURIs,
+            return new NsInputElementStack(16, normAttrs, internNsURIs, xml11,
                                            sPrefixXml, sPrefixXmlns);
         }
-        return new NonNsInputElementStack(16, normAttrs, internNsURIs);
+        return new NonNsInputElementStack(16, normAttrs, internNsURIs, xml11);
     }
 
     /*
@@ -1788,44 +1822,6 @@ public class BasicStreamReader
     /////////////////////////////////////////////////////
      */
     
-    protected void initProlog(InputBootstrapper bs)
-        throws IOException, XMLStreamException
-    {
-        /* At this point boot-strap code has read all the data we need...
-         * we just have to get information from it.
-         */
-        mDocInputEncoding = bs.getInputEncoding();
-        mDocXmlEncoding = bs.getDeclaredEncoding();
-
-        mDocXmlVersion = bs.getVersion();
-
-        /* Some features/handling are only enabled for xml 1.1; such as
-         * namespace prefix unbinding.
-         */
-        mXml11 = (mDocXmlVersion != null && XmlConsts.XML_V_11.equals(mDocXmlVersion));
-
-        String sa = bs.getStandalone();
-        if (sa == null) {
-            mDocStandalone = DOC_STANDALONE_UNKNOWN;
-        } else {
-            if (XmlConsts.XML_SA_YES.equals(sa)) {
-                mDocStandalone = DOC_STANDALONE_YES;
-            } else {
-                mDocStandalone = DOC_STANDALONE_NO;
-            }
-        }
-
-        /* Ok; either we got declaration or not, but in either case we can
-         * now initialize prolog parsing settings, without having to really
-         * parse anything more.
-         */
-        /* 07-Oct-2005, TSa: Except, if we are in fragment mode, in which
-         *   case we are kind of "in tree" mode...
-         */
-        mParseState = mConfig.inputParsingModeFragment() ?
-            STATE_TREE : STATE_PROLOG;
-    }
-
     /**
      * Method called to find type of next token in prolog; either reading
      * just enough information to know the type (lazy parsing), or the

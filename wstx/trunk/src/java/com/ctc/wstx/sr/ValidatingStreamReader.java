@@ -96,12 +96,13 @@ public class ValidatingStreamReader
     ////////////////////////////////////////////////////
      */
 
-    private ValidatingStreamReader(BranchingReaderSource input, ReaderCreator owner,
+    private ValidatingStreamReader(InputBootstrapper bs,
+                                   BranchingReaderSource input, ReaderCreator owner,
                                    ReaderConfig cfg, InputElementStack elemStack,
                                    boolean forER)
         throws IOException, XMLStreamException
     {
-        super(input, owner, cfg, elemStack, forER);
+        super(bs, input, owner, cfg, elemStack, forER);
     }
 
     /**
@@ -123,8 +124,7 @@ public class ValidatingStreamReader
         throws IOException, XMLStreamException
     {
         ValidatingStreamReader sr = new ValidatingStreamReader
-            (input, owner, cfg, createElementStack(cfg), forER);
-        sr.initProlog(bs);
+            (bs, input, owner, cfg, createElementStack(cfg, bs.isXml11()), forER);
         return sr;
     }
 

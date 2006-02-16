@@ -150,11 +150,11 @@ public final class NsInputElementStack
     //////////////////////////////////////////////////
      */
 
-    public NsInputElementStack(int initialSize,
-                               boolean normAttrs, boolean internNsURIs,
+    public NsInputElementStack(int initialSize, boolean normAttrs,
+                               boolean internNsURIs, boolean xml11,
                                String prefixXml, String prefixXmlns)
     {
-        super(internNsURIs);
+        super(internNsURIs, xml11);
         mPrefixXml = prefixXml;
         mPrefixXmlns = prefixXmlns;
         mSize = 0;

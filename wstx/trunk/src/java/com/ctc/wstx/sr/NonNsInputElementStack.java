@@ -69,10 +69,10 @@ public final class NonNsInputElementStack
     //////////////////////////////////////////////////
      */
 
-    public NonNsInputElementStack(int initialSize,
-                                  boolean normAttrs, boolean internNsURIs)
+    public NonNsInputElementStack(int initialSize, boolean normAttrs,
+                                  boolean internNsURIs, boolean xml11)
     {
-        super(internNsURIs);
+        super(internNsURIs, xml11);
         mSize = 0;
         if (initialSize < 4) {
             initialSize = 4;

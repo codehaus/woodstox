@@ -31,6 +31,7 @@ import org.codehaus.stax2.validation.XMLValidationException;
 import org.codehaus.stax2.validation.XMLValidationProblem;
 
 import com.ctc.wstx.cfg.ErrorConsts;
+import com.ctc.wstx.cfg.XmlConsts;
 import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.exc.WstxValidationException;
 import com.ctc.wstx.util.BaseNsContext;
@@ -58,6 +59,12 @@ public abstract class InputElementStack
 
     protected final boolean mInternNsURIs;
 
+    /**
+     * State flag that indicates whether we are processing an xml 1.1
+     * document or not.
+     */
+    protected final boolean mXml11;
+
     /*
     //////////////////////////////////////////////////
     // Element validation (optional)
@@ -78,9 +85,10 @@ public abstract class InputElementStack
     //////////////////////////////////////////////////
      */
 
-    protected InputElementStack(boolean internNsURIs)
+    protected InputElementStack(boolean internNsURIs, boolean xml11)
     {
         mInternNsURIs = internNsURIs;
+        mXml11 = xml11;
     }
 
     protected void connectReporter(InputProblemReporter rep)
@@ -194,6 +202,10 @@ public abstract class InputElementStack
     // Implementation of ValidationContext:
     ///////////////////////////////////////////////////
      */
+
+    public final String getXmlVersion() {
+        return mXml11 ? XmlConsts.XML_V_11 : XmlConsts.XML_V_10;
+    }
 
     public abstract QName getCurrentElementName();
 

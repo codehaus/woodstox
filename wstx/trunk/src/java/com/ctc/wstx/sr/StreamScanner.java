@@ -1662,7 +1662,8 @@ public abstract class StreamScanner
          * is taken as namespace separator; no use trying to optimize
          * heavily as it's 98% likely it is a valid char...
          */
-        if (!is11NameStartChar(c)) {
+        if ((mXml11 && !is11NameStartChar(c))
+            || (!mXml11 && !is10NameStartChar(c))) {
             if (c == ':') {
                 throwUnexpectedChar(c, " (missing namespace prefix?)");
             }
@@ -1677,23 +1678,34 @@ public abstract class StreamScanner
         /* After which there may be zero or more name chars
          * we have to consider
          */
-        while (ptr < inputLen) {
-            c = mInputBuffer[ptr];
-            if ((c < CHAR_LOWEST_LEGAL_LOCALNAME_CHAR) || !is11NameChar(c)) {
+        while (true) {
+            if (ptr >= inputLen) {
+                /* Ok, identifier may continue past buffer end, need
+                 * to continue with part 2 (separate method, as this is
+                 * not as common as having it all in buffer)
+                 */
                 mInputPtr = ptr;
-                return mSymbols.findSymbol(mInputBuffer, startPtr, ptr - startPtr, hash);
+                return parseLocalName2(startPtr, hash);
+            }
+            // Ok, we have the char... is it a name char?
+            c = mInputBuffer[ptr];
+            if (c < CHAR_LOWEST_LEGAL_LOCALNAME_CHAR) {
+                break;
+            }
+            if (mXml11) {
+                if (!is11NameChar(c)) {
+                    break;
+                }
+            } else {
+                if (!is10NameChar(c)) {
+                    break;
+                }
             }
             hash = (hash * 31) + (int) c;
             ++ptr;
         }
-
-        
-        /* Ok, identifier may continue past buffer end, need
-         * to continue with part 2 (separate method, as this is
-         * not as common as having it all in buffer)
-         */
         mInputPtr = ptr;
-        return parseLocalName2(startPtr, hash);
+        return mSymbols.findSymbol(mInputBuffer, startPtr, ptr - startPtr, hash);
     }
 
     /**
@@ -1724,9 +1736,19 @@ public abstract class StreamScanner
                 }
             }
             char c = mInputBuffer[mInputPtr];
-            if ((c < CHAR_LOWEST_LEGAL_LOCALNAME_CHAR) || !is11NameChar(c)) {
+            if (c < CHAR_LOWEST_LEGAL_LOCALNAME_CHAR) {
                 break;
             }
+            if (mXml11) {
+                if (!is11NameChar(c)) {
+                    break;
+                }
+            } else {
+                if (!is10NameChar(c)) {
+                    break;
+                }
+            }
+
             ++mInputPtr;
             if (ptr >= outLen) {
                 mNameBuffer = outBuf = expandBy50Pct(outBuf);
@@ -1808,8 +1830,19 @@ public abstract class StreamScanner
                     mInputPtr = ptr;
                     throwNsColonException(new String(mInputBuffer, startPtr, ptr - startPtr) + parseFNameForError());
                 }
-            } else if (!is11NameChar(c)) {
-                break;
+            } else {
+                if (c < CHAR_LOWEST_LEGAL_LOCALNAME_CHAR) {
+                    break;
+                }
+                if (mXml11) {
+                    if (!is11NameChar(c)) {
+                        break;
+                    }
+                } else {
+                    if (!is10NameChar(c)) {
+                        break;
+                    }
+                }
             }
             hash = (hash * 31) + (int) c;
             ++ptr;
@@ -1843,15 +1876,21 @@ public abstract class StreamScanner
             }
             char c = mInputBuffer[mInputPtr];
             if (c == ':') { // colon only allowed in non-NS mode
-                ++mInputPtr;
                 if (mCfgNsEnabled) {
                     throwNsColonException(new String(outBuf, 0, ptr) + c + parseFNameForError());
                 }
-            } else if (is11NameChar(c)) {
-                ++mInputPtr;
-            } else {
+            } else if (c < CHAR_LOWEST_LEGAL_LOCALNAME_CHAR) {
                 break;
+            } else if (mXml11) {
+                if (!is11NameChar(c)) {
+                    break;
+                }
+            } else {
+                if (!is10NameChar(c)) {
+                    break;
+                }
             }
+            ++mInputPtr;
 
             if (ptr >= outLen) {
                 mNameBuffer = outBuf = expandBy50Pct(outBuf);
@@ -1888,6 +1927,7 @@ public abstract class StreamScanner
                 }
                 c = (char) i;
             }
+            // note: xml 1.0/1.1 doesn't matter here... it's just an error msg
             if (c != ':' && !is11NameChar(c)) {
                 --mInputPtr;
                 break;
@@ -1926,6 +1966,7 @@ public abstract class StreamScanner
     protected int skipFullName(char c)
         throws IOException, XMLStreamException
     {
+        // Note; xml1.1 is bit simpler/faster to check, thus we'll 1.1 methods
         if (!is11NameStartChar(c)) {
             --mInputPtr;
             return 0;
