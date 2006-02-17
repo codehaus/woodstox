@@ -15,6 +15,8 @@
 
 package com.ctc.wstx.io;
 
+import com.ctc.wstx.util.XmlChars;
+
 /**
  * Base class used by readers (specifically, by
  * {@link com.ctc.wstx.sr.StreamScanner}, and its sub-classes)
@@ -233,71 +235,18 @@ public class WstxInputData
      */
     public final static boolean is10NameStartChar(char c)
     {
-        // ISO-Latin can be checked via type array (and is identical to 1.1):
-        if (c < VALID_CHAR_COUNT) {
-            if (c < FIRST_VALID_FOR_FIRST) { // white space, punctuation
+        // First, let's handle 7-bit ascii range (identical to xml 1.1)
+        if (c <= 0x7A) { // 'z' or earlier
+            if (c >= 0x61) { // 'a' - 'z' are ok
+                return true;
+            }
+            if (c < 0x41) { // before 'A' just white space
                 return false;
             }
-            return (sCharValidity[c] == NAME_CHAR_ALL_VALID_B);
+            return (c <= 0x5A) || (c == '_'); // 'A' - 'Z' and '_' are ok
         }
-
-        // Others are checked block-by-block... gosh, 1.0 is messy
-        if (c <= 0x2FEF) {
-            if (c < 0x200) {
-                switch (c) {
-                case 0x132: case 0x133:
-                case 0x13F: case 0x140:
-                case 0x149:
-                case 0x17F:
-                case 0x1C4: case 0x1C5: case 0x1C6: case 0x1C7:
-                case 0x1C8: case 0x1C9: case 0x1CA: case 0x1CB: case 0x1CC:
-                case 0x1F1: case 0x1F2: case 0x1F3:
-                case 0x1F6: case 0x1F7: case 0x1F8: case 0x1F9:
-                    return false;
-                }
-                // all others are fine actually
-                return true;
-            }
-            if (c < 0x300 || c >= 0x2C00) {
-                // 0x100 - 0x2FF, 0x2C00 - 0x2FEF are ok
-                return true;
-            }
-            if (c < 0x370 || c > 0x218F) {
-                // 0x300 - 0x36F, 0x2190 - 0x2BFF invalid
-                return false;
-            }
-            if (c < 0x2000) {
-                // 0x370 - 0x37D, 0x37F - 0x1FFF are ok
-                return (c != 0x37E);
-            }
-            if (c >= 0x2070) {
-                // 0x2070 - 0x218F are ok
-                return (c <= 0x218F);
-            }
-            // And finally, 0x200C - 0x200D
-            return (c == 0x200C || c == 0x200D);
-        }
-
-        // 0x3000 and above:
-        if (c >= 0x3001) {
-            /* Hmmh, let's allow high surrogates here, without checking
-             * that they are properly followed... crude basic support,
-             * I know, but allow valid combinations, just doesn't catch
-             * invalid ones
-             */
-            if (c <= 0xDBFF) { // 0x3001 - 0xD7FF (chars),
-                // 0xD800 - 0xDBFF (high surrogate) are ok:
-                return true;
-            }
-            if (c >= 0xF900 && c <= 0xFFFD) {
-                /* Check above removes low surrogate (since one can not
-                 * START an identifier), and byte-order markers..
-                 */
-                return (c <= 0xFDCF || c >= 0xFDF0);
-            }
-        }
-
-        return false;
+        // Ok, otherwise need to use a big honking bit set...
+        return XmlChars.is10NameStartChar(c);
     }
 
     /**
@@ -309,57 +258,17 @@ public class WstxInputData
      */
     public final static boolean is11NameStartChar(char c)
     {
-        // ISO-Latin can be checked via type array:
-        if (c < VALID_CHAR_COUNT) {
-            if (c < FIRST_VALID_FOR_FIRST) { // white space, punctuation
-                return false;
-            }
-            return (sCharValidity[c] == NAME_CHAR_ALL_VALID_B);
-        }
-
-        // Others are checked block-by-block:
-        if (c <= 0x2FEF) {
-            if (c < 0x300) {
-            } else if (c >= 0x2C00) {
-                // 0x100 - 0x2FF, 0x2C00 - 0x2FEF are ok
+        // First, let's handle 7-bit ascii range (identical to xml 1.0)
+        if (c <= 0x7A) { // 'z' or earlier
+            if (c >= 0x61) { // 'a' - 'z' are ok
                 return true;
             }
-            if (c < 0x370 || c > 0x218F) {
-                // 0x300 - 0x36F, 0x2190 - 0x2BFF invalid
+            if (c < 0x41) { // before 'A' just white space
                 return false;
             }
-            if (c < 0x2000) {
-                // 0x370 - 0x37D, 0x37F - 0x1FFF are ok
-                return (c != 0x37E);
-            }
-            if (c >= 0x2070) {
-                // 0x2070 - 0x218F are ok
-                return (c <= 0x218F);
-            }
-            // And finally, 0x200C - 0x200D
-            return (c == 0x200C || c == 0x200D);
+            return (c <= 0x5A) || (c == '_'); // 'A' - 'Z' and '_' are ok
         }
-
-        // 0x3000 and above:
-        if (c >= 0x3001) {
-            /* Hmmh, let's allow high surrogates here, without checking
-             * that they are properly followed... crude basic support,
-             * I know, but allow valid combinations, just doesn't catch
-             * invalid ones
-             */
-            if (c <= 0xDBFF) { // 0x3001 - 0xD7FF (chars),
-                // 0xD800 - 0xDBFF (high surrogate) are ok:
-                return true;
-            }
-            if (c >= 0xF900 && c <= 0xFFFD) {
-                /* Check above removes low surrogate (since one can not
-                 * START an identifier), and byte-order markers..
-                 */
-                return (c <= 0xFDCF || c >= 0xFDF0);
-            }
-        }
-
-        return false;
+        return XmlChars.is11NameStartChar(c);
     }
 
     /**
@@ -371,72 +280,21 @@ public class WstxInputData
      */
     public final static boolean is10NameChar(char c)
     {
-        // ISO-Latin can be checked via type array (same as in 1.1, too)
-        if (c < VALID_CHAR_COUNT) {
-            if (c <= CHAR_SPACE) {
-                return false;
+        // First, let's handle 7-bit ascii range (identical to xml 1.1)
+        if (c <= 0x7A) { // 'z' or earlier
+            if (c >= 0x61) { // 'a' - 'z' are ok
+                return true;
             }
-            return (sCharValidity[c] != NAME_CHAR_INVALID_B);
-        }
-
-        // Others are checked block-by-block:
-        if (c <= 0x2FEF) {
-            if (c < 0x2000) { // only a single non-valid char in there...
-                if (c < 0x200) {
-                    switch (c) {
-                    case 0x132: case 0x133:
-                    case 0x13F: case 0x140:
-                    case 0x149:
-                    case 0x17F:
-                    case 0x1C4: case 0x1C5: case 0x1C6: case 0x1C7:
-                    case 0x1C8: case 0x1C9: case 0x1CA: case 0x1CB: case 0x1CC:
-                    case 0x1F1: case 0x1F2: case 0x1F3:
-                    case 0x1F6: case 0x1F7: case 0x1F8: case 0x1F9:
-                        return false;
-                    }
-                    // all others are fine actually
+            if (c <= 0x5A) {
+                if (c >= 0x41) { // 'A' - 'Z' ok too
                     return true;
                 }
-                return (c != 0x37E);
+                // As are 0-9, '.' and '-'
+                return (c >= 0x30 && c <= 0x39) || (c == '.') || c == '-';
             }
-            if (c >= 0x2C00) {
-                // 0x100 - 0x1FFF, 0x2C00 - 0x2FEF are ok
-                return true;
-            }
-            if (c < 0x200C || c > 0x218F) {
-                // 0x2000 - 0x200B, 0x2190 - 0x2BFF invalid
-                return false;
-            }
-            if (c >= 0x2070) {
-                // 0x2070 - 0x218F are ok
-                return true;
-            }
-            // And finally, 0x200C - 0x200D, 0x203F - 0x2040 are ok
-            return (c == 0x200C || c == 0x200D
-                || c == 0x203F || c == 0x2040);
+            return (c == 0x5F); // '_' is ok too
         }
-
-        // 0x3000 and above:
-        if (c >= 0x3001) {
-            /* Hmmh, let's allow surrogate heres, without checking that
-             * they have proper ordering. For non-first name chars, both are
-             * ok, for valid names. Crude basic support,
-             * I know, but allows valid combinations, just doesn't catch
-             * invalid ones
-             */
-            if (c <= 0xDFFF) { // 0x3001 - 0xD7FF (chars),
-                // 0xD800 - 0xDFFF (high, low surrogate) are ok:
-                return true;
-            }
-            if (c >= 0xF900 && c <= 0xFFFD) {
-                /* Check above removes other invalid chars (below valid
-                 * range), and byte-order markers (0xFFFE, 0xFFFF).
-                 */
-                return (c <= 0xFDCF || c >= 0xFDF0);
-            }
-        }
-
-        return false;
+        return XmlChars.is10NameChar(c);
     }
 
     /**
@@ -448,57 +306,21 @@ public class WstxInputData
      */
     public final static boolean is11NameChar(char c)
     {
-        // ISO-Latin can be checked via type array:
-        if (c < VALID_CHAR_COUNT) {
-            if (c <= CHAR_SPACE) {
-                return false;
-            }
-            return (sCharValidity[c] != NAME_CHAR_INVALID_B);
-        }
-
-        // Others are checked block-by-block:
-        if (c <= 0x2FEF) {
-            if (c < 0x2000) { // only a single non-valid char in there...
-                return (c != 0x37E);
-            }
-            if (c >= 0x2C00) {
-                // 0x100 - 0x1FFF, 0x2C00 - 0x2FEF are ok
+        // First, let's handle 7-bit ascii range (identical to xml 1.0)
+        if (c <= 0x7A) { // 'z' or earlier
+            if (c >= 0x61) { // 'a' - 'z' are ok
                 return true;
             }
-            if (c < 0x200C || c > 0x218F) {
-                // 0x2000 - 0x200B, 0x2190 - 0x2BFF invalid
-                return false;
+            if (c <= 0x5A) {
+                if (c >= 0x41) { // 'A' - 'Z' ok too
+                    return true;
+                }
+                // As are 0-9, '.' and '-'
+                return (c >= 0x30 && c <= 0x39) || (c == '.') || c == '-';
             }
-            if (c >= 0x2070) {
-                // 0x2070 - 0x218F are ok
-                return true;
-            }
-            // And finally, 0x200C - 0x200D, 0x203F - 0x2040 are ok
-            return (c == 0x200C || c == 0x200D
-                || c == 0x203F || c == 0x2040);
+            return (c == 0x5F); // '_' is ok too
         }
-
-        // 0x3000 and above:
-        if (c >= 0x3001) {
-            /* Hmmh, let's allow surrogate heres, without checking that
-             * they have proper ordering. For non-first name chars, both are
-             * ok, for valid names. Crude basic support,
-             * I know, but allows valid combinations, just doesn't catch
-             * invalid ones
-             */
-            if (c <= 0xDFFF) { // 0x3001 - 0xD7FF (chars),
-                // 0xD800 - 0xDFFF (high, low surrogate) are ok:
-                return true;
-            }
-            if (c >= 0xF900 && c <= 0xFFFD) {
-                /* Check above removes other invalid chars (below valid
-                 * range), and byte-order markers (0xFFFE, 0xFFFF).
-                 */
-                return (c <= 0xFDCF || c >= 0xFDF0);
-            }
-        }
-
-        return false;
+        return XmlChars.is11NameChar(c);
     }
 
     public final static boolean isSpaceChar(char c)

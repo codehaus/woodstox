@@ -1793,7 +1793,8 @@ public abstract class StreamScanner
         throws IOException, XMLStreamException
     {
         // First char has special handling:
-        if (!is11NameStartChar(c)) {
+        if ((mXml11 && !is11NameStartChar(c)) ||
+            (!mXml11 && !is10NameStartChar(c))) {
             if (c == ':') { // no name.... generally an error:
                 if (mCfgNsEnabled) {
                     throwNsColonException(parseFNameForError());
