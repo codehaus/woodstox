@@ -2318,7 +2318,7 @@ public class BasicStreamReader
                     if (c != '"' && c != '\'') {
                         throwUnexpectedChar(c, SUFFIX_IN_DTD+"; expected a public identifier.");
                     }
-                    mDtdPublicId = parsePublicId(c, mCfgNormalizeLFs, SUFFIX_IN_DTD);
+                    mDtdPublicId = parsePublicId(c, mCfgNormalizeAttrs, SUFFIX_IN_DTD);
                     if (mDtdPublicId.length() == 0) {
                         // According to XML specs, this isn't illegal?
                         // however, better report it as empty, not null.

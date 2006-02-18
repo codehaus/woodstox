@@ -360,7 +360,7 @@ public class FullDTDReader
         // And finally, notations
         HashMap not = (intSubset == null) ?
             null : intSubset.getNotationMap();
-        if (not == null || ges.isEmpty()) {
+        if (not == null || not.isEmpty()) {
             mPredefdNotations = null;
         } else {
             mPredefdNotations = not;
@@ -2348,7 +2348,7 @@ public class FullDTDReader
             if (c != '"' && c != '\'') {
                 throwDTDUnexpectedChar(c, "; expected a quote to start the public identifier");
             }
-            pubId = parsePublicId(c, mCfgNormalizeLFs, getErrorMsg());
+            pubId = parsePublicId(c, mCfgNormAttrs, getErrorMsg());
             c = skipDtdWs(true);
         } else {
             pubId = null;
@@ -2966,7 +2966,7 @@ public class FullDTDReader
             if (c != '"' && c != '\'') {
                 throwDTDUnexpectedChar(c, "; expected a quote to start the public identifier");
             }
-            pubId = parsePublicId(c, mCfgNormalizeLFs, getErrorMsg());
+            pubId = parsePublicId(c, mCfgNormAttrs, getErrorMsg());
             /* 30-Sep-2005, TSa: SGML has public ids that miss the system
              *   id. Although not legal with XML DTDs, let's give bit more
              *   meaningful error in those cases...

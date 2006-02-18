@@ -2052,19 +2052,26 @@ public abstract class StreamScanner
      * used in entities (from DOCTYPE declaration to internal/external
      * subsets).
      *<p>
+     * As per xml specs, the contents are actually normalized.
+     *<p>
      * NOTE: returned String is not canonicalized, on assumption that
      * external ids may be longish, and are not shared all that often, as
      * they are generally just used for resolving paths, if anything.
      *<br />
      * Also note that this method is not heavily optimized, as it's not
      * likely to be a bottleneck for parsing.
+     *
+     * @param normalize If true, will concatenate all white space into
+     *   a single space char (as per xml specs); if false, will leave
+     *   it as is (for 100% round trip)
      */
-    protected final String parsePublicId(char quoteChar, boolean convertLFs,
+    protected final String parsePublicId(char quoteChar, boolean normalize,
                                          String errorMsg)
         throws IOException, XMLStreamException
     {
         char[] buf = getNameBuffer(-1);
         int ptr = 0;
+        boolean spaceToAdd = false;
 
         while (true) {
             char c = (mInputPtr < mInputLen) ?
@@ -2074,18 +2081,26 @@ public abstract class StreamScanner
             }
             if (c == '\n') {
                 markLF();
+                if (normalize) {
+                    c = CHAR_SPACE;
+                    spaceToAdd = true;
+                }
             } else if (c == '\r') {
                 if (peekNext() == '\n') {
                     ++mInputPtr;
-                    if (!convertLFs) {
+                    if (normalize) {
+                        c = CHAR_SPACE;
+                        spaceToAdd = true;
+                    } else {
                         if (ptr >= buf.length) {
                             buf = expandBy50Pct(buf);
                         }
                         buf[ptr++] = '\r';
+                        c = '\n';
                     }
-                    c = '\n';
-                } else if (convertLFs) {
-                    c = '\n';
+                } else if (normalize) {
+                    c = CHAR_SPACE;
+                    spaceToAdd = true;
                 }
             } else {
                 // Verify it's a legal pubid char (see XML spec, #13, from 2.3)
@@ -2098,6 +2113,25 @@ public abstract class StreamScanner
             // Other than that, let's just append it:
             if (ptr >= buf.length) {
                 buf = expandBy50Pct(buf);
+            }
+            /* Space-normalization means scrapping leading and trailing
+             * white space, and coalescing remaining ws into single spaces.
+             */
+            if (spaceToAdd) { // pending white space to add?
+                if (c == CHAR_SPACE) { // still a space; let's skip
+                    continue;
+                }
+                /* ok: if we have non-space, we'll either forget about
+                 * space(s) (if nothing has been output, ie. leading space),
+                 * or output a single space (in-between non-white space)
+                 */
+                spaceToAdd = false;
+                if (ptr > 0) {
+                    buf[ptr++] = CHAR_SPACE;
+                    if (ptr >= buf.length) {
+                        buf = expandBy50Pct(buf);
+                    }
+                }
             }
             buf[ptr++] = c;
         }
