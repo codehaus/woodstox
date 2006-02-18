@@ -26,6 +26,8 @@ import com.ctc.wstx.cfg.XmlConsts;
 public final class UTF32Reader
     extends BaseReader
 {
+    final boolean mXml11;
+
     final boolean mBigEndian;
 
     /**
@@ -51,10 +53,17 @@ public final class UTF32Reader
     ////////////////////////////////////////
     */
 
-    public UTF32Reader(InputStream in, byte[] buf, int ptr, int len,
+    /**
+     * @param xml11mode If true, character validity is done in xml1.1
+     *   compliant way, and we should check for high-order control chars
+     *   here; if false, those are ok
+     */
+    public UTF32Reader(InputStream in, boolean xml11mode,
+                       byte[] buf, int ptr, int len,
                        boolean isBigEndian)
     {
         super(in, buf, ptr, len);
+        mXml11 = xml11mode;
         mBigEndian = isBigEndian;
     }
 
@@ -117,28 +126,34 @@ public final class UTF32Reader
 
             // Does it need to be split to surrogates?
             // (also, we can and need to verify illegal chars)
-            if (ch >= 0xD800) {
-                if (ch <= 0xFFFF) { // need to split into surrogates?
-                    // Illegal?
-                    if (ch > XmlConsts.MAX_UNICODE_CHAR) {
-                        reportInvalid(ch, outPtr-start,
-                                      "(above "+Integer.toHexString(XmlConsts.MAX_UNICODE_CHAR)+") ");
+            if (ch >= 0x7F) {
+                if (mXml11) { // high-order ctrl char detection...
+                    if (ch <= 0x9F && ch != 0x85) {
+                        reportInvalid(ch, outPtr-start, "(can only be included via entity in xml 1.1)");
                     }
-                    ch -= 0x10000; // to normalize it starting with 0x0
-                    cbuf[outPtr++] = (char) (0xD800 + (ch >> 10));
-                    // hmmh. can this ever be 0? (not legal, at least?)
-                    ch = (0xDC00 | (ch & 0x03FF));
-                    // Room for second part?
-                    if (outPtr >= len) { // nope
-                        mSurrogate = (char) ch;
-                        break main_loop;
-                    }
-                } else { // in 16-bit range... just need validity checks
-                    if (ch < 0xE000) {
-                        reportInvalid(ch, outPtr-start,
-                                      "(a surrogate char) ");
-                    } else if (ch >= 0xFFFE) {
-                        reportInvalid(ch, outPtr-start, "");
+                } else if (ch >= 0xD800) {
+                    if (ch <= 0xFFFF) { // need to split into surrogates?
+                        // Illegal?
+                        if (ch > XmlConsts.MAX_UNICODE_CHAR) {
+                            reportInvalid(ch, outPtr-start,
+                                          "(above "+Integer.toHexString(XmlConsts.MAX_UNICODE_CHAR)+") ");
+                        }
+                        ch -= 0x10000; // to normalize it starting with 0x0
+                        cbuf[outPtr++] = (char) (0xD800 + (ch >> 10));
+                        // hmmh. can this ever be 0? (not legal, at least?)
+                        ch = (0xDC00 | (ch & 0x03FF));
+                        // Room for second part?
+                        if (outPtr >= len) { // nope
+                            mSurrogate = (char) ch;
+                            break main_loop;
+                        }
+                    } else { // in 16-bit range... just need validity checks
+                        if (ch < 0xE000) {
+                            reportInvalid(ch, outPtr-start,
+                                          "(a surrogate char) ");
+                        } else if (ch >= 0xFFFE) {
+                            reportInvalid(ch, outPtr-start, "");
+                        }
                     }
                 }
             }

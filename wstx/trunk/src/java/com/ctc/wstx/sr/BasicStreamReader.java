@@ -467,7 +467,7 @@ public class BasicStreamReader
     {
 
         BasicStreamReader sr = new BasicStreamReader
-            (bs, input, owner, cfg, createElementStack(cfg, bs.isXml11()), forER);
+            (bs, input, owner, cfg, createElementStack(cfg, bs.declaredXml11()), forER);
         return sr;
     }
 
@@ -3704,7 +3704,7 @@ public class BasicStreamReader
         if (target.equalsIgnoreCase("xml")) {
             // 07-Oct-2005, TSa: Still legal in multi-doc mode...
             if (!mConfig.inputParsingModeDocuments()) {
-                throwParseError(ErrorConsts.ERR_WF_PI_MISSING_TARGET, target);
+                throwParseError(ErrorConsts.ERR_WF_PI_XML_TARGET, target);
             }
             // Ok, let's just verify we get space then
             char c = getNextCharFromCurrent(SUFFIX_IN_XML_DECL);

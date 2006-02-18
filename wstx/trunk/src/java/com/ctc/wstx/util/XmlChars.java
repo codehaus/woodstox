@@ -13,215 +13,344 @@ public final class XmlChars
 
     final static int[] sXml10StartChars = new int[SIZE];
     static {
-        FILL(sXml10StartChars, 0xC0, 0xD6);
-        FILL(sXml10StartChars, 0xD8, 0xF6);
-        FILL(sXml10StartChars, 0xF8, 0xFF);
-        FILL(sXml10StartChars, 0x100, 0x131);
-        FILL(sXml10StartChars, 0x134, 0x13e);
-        FILL(sXml10StartChars, 0x141, 0x148);
-        FILL(sXml10StartChars, 0x14a, 0x17e);
-        FILL(sXml10StartChars, 0x180, 0x1c3);
-        FILL(sXml10StartChars, 0x1cd, 0x1f0);
-        FILL(sXml10StartChars, 0x1f4, 0x1f5);
-        FILL(sXml10StartChars, 0x1fa, 0x217);
-        FILL(sXml10StartChars, 0x250, 0x2a8);
-        FILL(sXml10StartChars, 0x2bb, 0x2c1);
-        FILL(sXml10StartChars, 0x386);
-        FILL(sXml10StartChars, 0x388, 0x38a);
-        FILL(sXml10StartChars, 0x38c);
-        FILL(sXml10StartChars, 0x38e, 0x3a1);
-        FILL(sXml10StartChars, 0x3a3, 0x3c3);
-        FILL(sXml10StartChars, 0x3d0, 0x3d6);
-        FILL(sXml10StartChars, 0x3da);
-        FILL(sXml10StartChars, 0x3dc);
-        FILL(sXml10StartChars, 0x3de);
-        FILL(sXml10StartChars, 0x3e0);
-        FILL(sXml10StartChars, 0x3e2, 0x3f3);
-        FILL(sXml10StartChars, 0x401, 0x40c);
-        FILL(sXml10StartChars, 0x40e, 0x44f);
-        FILL(sXml10StartChars, 0x451, 0x45c);
-        FILL(sXml10StartChars, 0x45e, 0x481);
-        FILL(sXml10StartChars, 0x490, 0x4c4);
-        FILL(sXml10StartChars, 0x4c7, 0x4c8);
-        FILL(sXml10StartChars, 0x4cb, 0x4cc);
-        FILL(sXml10StartChars, 0x4d0, 0x4eb);
-        FILL(sXml10StartChars, 0x4ee, 0x4f5);
-        FILL(sXml10StartChars, 0x4f8, 0x4f9);
+        SETBITS(sXml10StartChars, 0xC0, 0xD6);
+        SETBITS(sXml10StartChars, 0xD8, 0xF6);
+        SETBITS(sXml10StartChars, 0xF8, 0xFF);
+        SETBITS(sXml10StartChars, 0x100, 0x131);
+        SETBITS(sXml10StartChars, 0x134, 0x13e);
+        SETBITS(sXml10StartChars, 0x141, 0x148);
+        SETBITS(sXml10StartChars, 0x14a, 0x17e);
+        SETBITS(sXml10StartChars, 0x180, 0x1c3);
+        SETBITS(sXml10StartChars, 0x1cd, 0x1f0);
+        SETBITS(sXml10StartChars, 0x1f4, 0x1f5);
+        SETBITS(sXml10StartChars, 0x1fa, 0x217);
+        SETBITS(sXml10StartChars, 0x250, 0x2a8);
+        SETBITS(sXml10StartChars, 0x2bb, 0x2c1);
+        SETBITS(sXml10StartChars, 0x386);
+        SETBITS(sXml10StartChars, 0x388, 0x38a);
+        SETBITS(sXml10StartChars, 0x38c);
+        SETBITS(sXml10StartChars, 0x38e, 0x3a1);
+        SETBITS(sXml10StartChars, 0x3a3, 0x3ce);
+        SETBITS(sXml10StartChars, 0x3d0, 0x3d6);
+        SETBITS(sXml10StartChars, 0x3da);
+        SETBITS(sXml10StartChars, 0x3dc);
+        SETBITS(sXml10StartChars, 0x3de);
+        SETBITS(sXml10StartChars, 0x3e0);
+        SETBITS(sXml10StartChars, 0x3e2, 0x3f3);
+        SETBITS(sXml10StartChars, 0x401, 0x40c);
+        SETBITS(sXml10StartChars, 0x40e, 0x44f);
+        SETBITS(sXml10StartChars, 0x451, 0x45c);
+        SETBITS(sXml10StartChars, 0x45e, 0x481);
+        SETBITS(sXml10StartChars, 0x490, 0x4c4);
+        SETBITS(sXml10StartChars, 0x4c7, 0x4c8);
+        SETBITS(sXml10StartChars, 0x4cb, 0x4cc);
+        SETBITS(sXml10StartChars, 0x4d0, 0x4eb);
+        SETBITS(sXml10StartChars, 0x4ee, 0x4f5);
+        SETBITS(sXml10StartChars, 0x4f8, 0x4f9);
 
-        FILL(sXml10StartChars, 0x531, 0x556);
-        FILL(sXml10StartChars, 0x559);
-        FILL(sXml10StartChars, 0x561, 0x586);
-        FILL(sXml10StartChars, 0x5d0, 0x5ea);
-        FILL(sXml10StartChars, 0x5f0, 0x5f2);
-        FILL(sXml10StartChars, 0x621, 0x63a);
-        FILL(sXml10StartChars, 0x641, 0x64a);
-        FILL(sXml10StartChars, 0x671, 0x6b7);
-        FILL(sXml10StartChars, 0x6ba, 0x6be);
-        FILL(sXml10StartChars, 0x6c0, 0x6ce);
-        FILL(sXml10StartChars, 0x6d0, 0x6d3);
-        FILL(sXml10StartChars, 0x6d5);
+        SETBITS(sXml10StartChars, 0x531, 0x556);
+        SETBITS(sXml10StartChars, 0x559);
+        SETBITS(sXml10StartChars, 0x561, 0x586);
+        SETBITS(sXml10StartChars, 0x5d0, 0x5ea);
+        SETBITS(sXml10StartChars, 0x5f0, 0x5f2);
+        SETBITS(sXml10StartChars, 0x621, 0x63a);
+        SETBITS(sXml10StartChars, 0x641, 0x64a);
+        SETBITS(sXml10StartChars, 0x671, 0x6b7);
+        SETBITS(sXml10StartChars, 0x6ba, 0x6be);
+        SETBITS(sXml10StartChars, 0x6c0, 0x6ce);
+        SETBITS(sXml10StartChars, 0x6d0, 0x6d3);
+        SETBITS(sXml10StartChars, 0x6d5);
 
-        FILL(sXml10StartChars, 0x6e5, 0x6e6);
-        FILL(sXml10StartChars, 0x905, 0x939);
-        FILL(sXml10StartChars, 0x93d);
-        FILL(sXml10StartChars, 0x958, 0x961);
-        FILL(sXml10StartChars, 0x985, 0x98c);
-        FILL(sXml10StartChars, 0x98f, 0x990);
-        FILL(sXml10StartChars, 0x993, 0x9a8);
-        FILL(sXml10StartChars, 0x9aa, 0x9b0);
-        FILL(sXml10StartChars, 0x9b2);
-        FILL(sXml10StartChars, 0x9b6, 0x9b9);
-        FILL(sXml10StartChars, 0x9dc);
-        FILL(sXml10StartChars, 0x9dd);
-        FILL(sXml10StartChars, 0x9df, 0x9e1);
-        FILL(sXml10StartChars, 0x9f0); FILL(sXml10StartChars, 0x9f1);
-        FILL(sXml10StartChars, 0xA05, 0xA0A);
-        FILL(sXml10StartChars, 0xA0F); FILL(sXml10StartChars, 0xA10);
-        FILL(sXml10StartChars, 0xA13, 0xA28);
-        FILL(sXml10StartChars, 0xA2A, 0xA30);
-        FILL(sXml10StartChars, 0xA32); FILL(sXml10StartChars, 0xA33);
-        FILL(sXml10StartChars, 0xA35); FILL(sXml10StartChars, 0xA36);
-        FILL(sXml10StartChars, 0xA38); FILL(sXml10StartChars, 0xA39);
-        FILL(sXml10StartChars, 0xA59, 0xA5C);
-        FILL(sXml10StartChars, 0xA5E);
-        FILL(sXml10StartChars, 0xA72, 0xA74);
-        FILL(sXml10StartChars, 0xA85, 0xA8B);
-        FILL(sXml10StartChars, 0xA8D);
-        FILL(sXml10StartChars, 0xA8F, 0xA91);
-        FILL(sXml10StartChars, 0xA93, 0xAA8);
-        FILL(sXml10StartChars, 0xAAA, 0xAB0);
-        FILL(sXml10StartChars, 0xAB2, 0xAB3);
-        FILL(sXml10StartChars, 0xAB5, 0xAB9);
-        FILL(sXml10StartChars, 0xABD);
-        FILL(sXml10StartChars, 0xAE0);
-        FILL(sXml10StartChars, 0xB05, 0xB0C);
-        FILL(sXml10StartChars, 0xB0F); FILL(sXml10StartChars, 0xB10);
-        FILL(sXml10StartChars, 0xB13, 0xB28);
+        SETBITS(sXml10StartChars, 0x6e5, 0x6e6);
+        SETBITS(sXml10StartChars, 0x905, 0x939);
+        SETBITS(sXml10StartChars, 0x93d);
+        SETBITS(sXml10StartChars, 0x958, 0x961);
+        SETBITS(sXml10StartChars, 0x985, 0x98c);
+        SETBITS(sXml10StartChars, 0x98f, 0x990);
+        SETBITS(sXml10StartChars, 0x993, 0x9a8);
+        SETBITS(sXml10StartChars, 0x9aa, 0x9b0);
+        SETBITS(sXml10StartChars, 0x9b2);
+        SETBITS(sXml10StartChars, 0x9b6, 0x9b9);
+        SETBITS(sXml10StartChars, 0x9dc);
+        SETBITS(sXml10StartChars, 0x9dd);
+        SETBITS(sXml10StartChars, 0x9df, 0x9e1);
+        SETBITS(sXml10StartChars, 0x9f0); SETBITS(sXml10StartChars, 0x9f1);
+        SETBITS(sXml10StartChars, 0xA05, 0xA0A);
+        SETBITS(sXml10StartChars, 0xA0F); SETBITS(sXml10StartChars, 0xA10);
+        SETBITS(sXml10StartChars, 0xA13, 0xA28);
+        SETBITS(sXml10StartChars, 0xA2A, 0xA30);
+        SETBITS(sXml10StartChars, 0xA32); SETBITS(sXml10StartChars, 0xA33);
+        SETBITS(sXml10StartChars, 0xA35); SETBITS(sXml10StartChars, 0xA36);
+        SETBITS(sXml10StartChars, 0xA38); SETBITS(sXml10StartChars, 0xA39);
+        SETBITS(sXml10StartChars, 0xA59, 0xA5C);
+        SETBITS(sXml10StartChars, 0xA5E);
+        SETBITS(sXml10StartChars, 0xA72, 0xA74);
+        SETBITS(sXml10StartChars, 0xA85, 0xA8B);
+        SETBITS(sXml10StartChars, 0xA8D);
+        SETBITS(sXml10StartChars, 0xA8F, 0xA91);
+        SETBITS(sXml10StartChars, 0xA93, 0xAA8);
+        SETBITS(sXml10StartChars, 0xAAA, 0xAB0);
+        SETBITS(sXml10StartChars, 0xAB2, 0xAB3);
+        SETBITS(sXml10StartChars, 0xAB5, 0xAB9);
+        SETBITS(sXml10StartChars, 0xABD);
+        SETBITS(sXml10StartChars, 0xAE0);
+        SETBITS(sXml10StartChars, 0xB05, 0xB0C);
+        SETBITS(sXml10StartChars, 0xB0F); SETBITS(sXml10StartChars, 0xB10);
+        SETBITS(sXml10StartChars, 0xB13, 0xB28);
 
-        FILL(sXml10StartChars, 0xB2A, 0xB30);
-        FILL(sXml10StartChars, 0xB32); FILL(sXml10StartChars, 0xB33);
-        FILL(sXml10StartChars, 0xB36, 0xB39);
-        FILL(sXml10StartChars, 0xB3D);
-        FILL(sXml10StartChars, 0xB5C); FILL(sXml10StartChars, 0xB5D);
-        FILL(sXml10StartChars, 0xB5F, 0xB61);
-        FILL(sXml10StartChars, 0xB85, 0xB8A);
-        FILL(sXml10StartChars, 0xB8E, 0xB90);
+        SETBITS(sXml10StartChars, 0xB2A, 0xB30);
+        SETBITS(sXml10StartChars, 0xB32); SETBITS(sXml10StartChars, 0xB33);
+        SETBITS(sXml10StartChars, 0xB36, 0xB39);
+        SETBITS(sXml10StartChars, 0xB3D);
+        SETBITS(sXml10StartChars, 0xB5C); SETBITS(sXml10StartChars, 0xB5D);
+        SETBITS(sXml10StartChars, 0xB5F, 0xB61);
+        SETBITS(sXml10StartChars, 0xB85, 0xB8A);
+        SETBITS(sXml10StartChars, 0xB8E, 0xB90);
 
-        FILL(sXml10StartChars, 0xB92, 0xB95);
-        FILL(sXml10StartChars, 0xB99, 0xB9A);
-        FILL(sXml10StartChars, 0xB9C);
-        FILL(sXml10StartChars, 0xB9E); FILL(sXml10StartChars, 0xB9F);
-        FILL(sXml10StartChars, 0xBA3); FILL(sXml10StartChars, 0xBA4);
-        FILL(sXml10StartChars, 0xBA8, 0xBAA);
-        FILL(sXml10StartChars, 0xBAE, 0xBB5);
-        FILL(sXml10StartChars, 0xBB7, 0xBB9);
-        FILL(sXml10StartChars, 0xC05, 0xC0C);
-        FILL(sXml10StartChars, 0xC0E, 0xC10);
+        SETBITS(sXml10StartChars, 0xB92, 0xB95);
+        SETBITS(sXml10StartChars, 0xB99, 0xB9A);
+        SETBITS(sXml10StartChars, 0xB9C);
+        SETBITS(sXml10StartChars, 0xB9E); SETBITS(sXml10StartChars, 0xB9F);
+        SETBITS(sXml10StartChars, 0xBA3); SETBITS(sXml10StartChars, 0xBA4);
+        SETBITS(sXml10StartChars, 0xBA8, 0xBAA);
+        SETBITS(sXml10StartChars, 0xBAE, 0xBB5);
+        SETBITS(sXml10StartChars, 0xBB7, 0xBB9);
+        SETBITS(sXml10StartChars, 0xC05, 0xC0C);
+        SETBITS(sXml10StartChars, 0xC0E, 0xC10);
 
-        //FILL(sXml10StartChars, 0x, 0x);
+        SETBITS(sXml10StartChars, 0xC12, 0xC28);
+        SETBITS(sXml10StartChars, 0xC2A, 0xC33);
+        SETBITS(sXml10StartChars, 0xC35, 0xC39);
+        SETBITS(sXml10StartChars, 0xC60); SETBITS(sXml10StartChars, 0xC61);
+        SETBITS(sXml10StartChars, 0xC85, 0xC8C);
+        SETBITS(sXml10StartChars, 0xC8E, 0xC90);
+        SETBITS(sXml10StartChars, 0xC92, 0xCA8);
+        SETBITS(sXml10StartChars, 0xCAA, 0xCB3);
+        SETBITS(sXml10StartChars, 0xCB5, 0xCB9);
+        SETBITS(sXml10StartChars, 0xCDE);
+        SETBITS(sXml10StartChars, 0xCE0); SETBITS(sXml10StartChars, 0xCE1);
+        SETBITS(sXml10StartChars, 0xD05, 0xD0C);
+        SETBITS(sXml10StartChars, 0xD0E, 0xD10);
+        SETBITS(sXml10StartChars, 0xD12, 0xD28);
+        SETBITS(sXml10StartChars, 0xD2A, 0xD39);
+        SETBITS(sXml10StartChars, 0xD60); SETBITS(sXml10StartChars, 0xD61);
+        SETBITS(sXml10StartChars, 0xE01, 0xE2E);
+        SETBITS(sXml10StartChars, 0xE30);
+        SETBITS(sXml10StartChars, 0xE32); SETBITS(sXml10StartChars, 0xE33);
+        SETBITS(sXml10StartChars, 0xE40, 0xE45);
+        SETBITS(sXml10StartChars, 0xE81); SETBITS(sXml10StartChars, 0xE82);
+        SETBITS(sXml10StartChars, 0xE84);
+        SETBITS(sXml10StartChars, 0xE87); SETBITS(sXml10StartChars, 0xE88);
+        SETBITS(sXml10StartChars, 0xE8A); SETBITS(sXml10StartChars, 0xE8D);
+        SETBITS(sXml10StartChars, 0xE94, 0xE97);
+        SETBITS(sXml10StartChars, 0xE99, 0xE9F);
+        SETBITS(sXml10StartChars, 0xEA1, 0xEA3);
+        SETBITS(sXml10StartChars, 0xEA5); SETBITS(sXml10StartChars, 0xEA7);
+        SETBITS(sXml10StartChars, 0xEAA); SETBITS(sXml10StartChars, 0xEAB);
+        SETBITS(sXml10StartChars, 0xEAD); SETBITS(sXml10StartChars, 0xEAE);
+        SETBITS(sXml10StartChars, 0xEB0);
+        SETBITS(sXml10StartChars, 0xEB2); SETBITS(sXml10StartChars, 0xEB3);
+        SETBITS(sXml10StartChars, 0xEBD);
+
+        SETBITS(sXml10StartChars, 0xEC0, 0xEC4);
+        SETBITS(sXml10StartChars, 0xF40, 0xF47);
+        SETBITS(sXml10StartChars, 0xF49, 0xF69);
+        SETBITS(sXml10StartChars, 0x10a0, 0x10c5);
+        SETBITS(sXml10StartChars, 0x10d0, 0x10f6);
+        SETBITS(sXml10StartChars, 0x1100);
+        SETBITS(sXml10StartChars, 0x1102, 0x1103);
+        SETBITS(sXml10StartChars, 0x1105, 0x1107);
+        SETBITS(sXml10StartChars, 0x1109);
+        SETBITS(sXml10StartChars, 0x110b, 0x110c);
+        SETBITS(sXml10StartChars, 0x110e, 0x1112);
+        SETBITS(sXml10StartChars, 0x113c);
+        SETBITS(sXml10StartChars, 0x113e);
+        SETBITS(sXml10StartChars, 0x1140);
+        SETBITS(sXml10StartChars, 0x114c);
+        SETBITS(sXml10StartChars, 0x114e);
+        SETBITS(sXml10StartChars, 0x1150);
+        SETBITS(sXml10StartChars, 0x1154, 0x1155);
+        SETBITS(sXml10StartChars, 0x1159);
+        SETBITS(sXml10StartChars, 0x115f, 0x1161);
+        SETBITS(sXml10StartChars, 0x1163);
+        SETBITS(sXml10StartChars, 0x1165);
+        SETBITS(sXml10StartChars, 0x1167);
+        SETBITS(sXml10StartChars, 0x1169);
+        SETBITS(sXml10StartChars, 0x116d, 0x116e);
+        SETBITS(sXml10StartChars, 0x1172, 0x1173);
+        SETBITS(sXml10StartChars, 0x1175);
+        SETBITS(sXml10StartChars, 0x119e);
+        SETBITS(sXml10StartChars, 0x11a8);
+        SETBITS(sXml10StartChars, 0x11ab);
+        SETBITS(sXml10StartChars, 0x11ae, 0x11af);
+        SETBITS(sXml10StartChars, 0x11b7, 0x11b8);
+        SETBITS(sXml10StartChars, 0x11ba);
+        SETBITS(sXml10StartChars, 0x11bc, 0x11c2);
+        SETBITS(sXml10StartChars, 0x11eb);
+        SETBITS(sXml10StartChars, 0x11f0);
+        SETBITS(sXml10StartChars, 0x11f9);
+        SETBITS(sXml10StartChars, 0x1e00, 0x1e9b);
+        SETBITS(sXml10StartChars, 0x1ea0, 0x1ef9);
+        SETBITS(sXml10StartChars, 0x1f00, 0x1f15);
+        SETBITS(sXml10StartChars, 0x1f18, 0x1f1d);
+        SETBITS(sXml10StartChars, 0x1f20, 0x1f45);
+        SETBITS(sXml10StartChars, 0x1f48, 0x1f4d);
+        SETBITS(sXml10StartChars, 0x1f50, 0x1f57);
+        SETBITS(sXml10StartChars, 0x1f59);
+        SETBITS(sXml10StartChars, 0x1f5b);
+        SETBITS(sXml10StartChars, 0x1f5d);
+        SETBITS(sXml10StartChars, 0x1f5f, 0x1f7d);
+        SETBITS(sXml10StartChars, 0x1f80, 0x1fb4);
+        SETBITS(sXml10StartChars, 0x1fb6, 0x1fbc);
+        SETBITS(sXml10StartChars, 0x1fbe);
+        SETBITS(sXml10StartChars, 0x1fc2, 0x1fc4);
+        SETBITS(sXml10StartChars, 0x1fc6, 0x1fcc);
+        SETBITS(sXml10StartChars, 0x1fd0, 0x1fd3);
+        SETBITS(sXml10StartChars, 0x1fd6, 0x1fdb);
+        SETBITS(sXml10StartChars, 0x1fe0, 0x1fec);
+        SETBITS(sXml10StartChars, 0x1ff2, 0x1ff4);
+        SETBITS(sXml10StartChars, 0x1ff6, 0x1ffc);
+        SETBITS(sXml10StartChars, 0x2126);
+        SETBITS(sXml10StartChars, 0x212a, 0x212b);
+        SETBITS(sXml10StartChars, 0x212e);
+        SETBITS(sXml10StartChars, 0x2180, 0x2182);
+        SETBITS(sXml10StartChars, 0x3041, 0x3094);
+        SETBITS(sXml10StartChars, 0x30a1, 0x30fa);
+        SETBITS(sXml10StartChars, 0x3105, 0x312c);
+        // note: AC00 - D7A3 handled separately
+
+        // [86] Ideographic (but note: > 0x312c handled separately)
+        SETBITS(sXml10StartChars, 0x3007);
+        SETBITS(sXml10StartChars, 0x3021, 0x3029);
     }
-
-    /*
-
- | [#x0C12-#x0C28] | [#x0C2A-#x0C33] | [#x0C35-#x0C39] | [#x0C60-#x0C61] | 
-[#x0C85-#x0C8C] | [#x0C8E-#x0C90] | [#x0C92-#x0CA8] | [#x0CAA-#x0CB3] | 
-[#x0CB5-#x0CB9] | #x0CDE | [#x0CE0-#x0CE1] | [#x0D05-#x0D0C] | [#x0D0E-#x0D10]
- | [#x0D12-#x0D28] |
-
- [#x0D2A-#x0D39] | [#x0D60-#x0D61] | [#x0E01-#x0E2E] | #x0E30 | 
-[#x0E32-#x0E33] | [#x0E40-#x0E45] | [#x0E81-#x0E82] | #x0E84 | 
-[#x0E87-#x0E88] | #x0E8A | #x0E8D | [#x0E94-#x0E97] | [#x0E99-#x0E9F]
- | [#x0EA1-#x0EA3] | #x0EA5 | #x0EA7 | [#x0EAA-#x0EAB] | [#x0EAD-#x0EAE]
- | #x0EB0 | [#x0EB2-#x0EB3] | #x0EBD 
-
-| [#x0EC0-#x0EC4] | [#x0F40-#x0F47] | [#x0F49-#x0F69] | [#x10A0-#x10C5] 
-| [#x10D0-#x10F6] | #x1100 | [#x1102-#x1103] | [#x1105-#x1107] | #x1109 |
- [#x110B-#x110C] | [#x110E-#x1112] | #x113C | #x113E | #x1140 | #x114C |
- #x114E | #x1150 | [#x1154-#x1155] | #x1159 | [#x115F-#x1161] | #x1163 |
- #x1165 | #x1167 | #x1169 |
-
- [#x116D-#x116E] | [#x1172-#x1173] | #x1175 | #x119E | #x11A8 | #x11AB | 
-[#x11AE-#x11AF] | [#x11B7-#x11B8] | #x11BA | [#x11BC-#x11C2] | #x11EB | 
-#x11F0 | #x11F9 | [#x1E00-#x1E9B] | [#x1EA0-#x1EF9] | [#x1F00-#x1F15] | 
-[#x1F18-#x1F1D]
- | [#x1F20-#x1F45] | [#x1F48-#x1F4D] | [#x1F50-#x1F57] | #x1F59 | #x1F5B 
-| #x1F5D | [#x1F5F-#x1F7D] | [#x1F80-#x1FB4] | [#x1FB6-#x1FBC] | #x1FBE 
-| [#x1FC2-#x1FC4] | [#x1FC6-#x1FCC] | [#x1FD0-#x1FD3] | [#x1FD6-#x1FDB]
- | [#x1FE0-#x1FEC]
- | [#x1FF2-#x1FF4] | [#x1FF6-#x1FFC] | #x2126 | [#x212A-#x212B] | #x212E 
-| [#x2180-#x2182] | [#x3041-#x3094] | [#x30A1-#x30FA] | [#x3105-#x312C] 
-| [#xAC00-#xD7A3]
-
-[86]   	Ideographic	   ::=   	[#x4E00-#x9FA5] | #x3007 | [#x3021-#x3029]
-*/
 
     final static int[] sXml10Chars = new int[SIZE];
     static {
         // Let's start with all valid start chars:
         System.arraycopy(sXml10StartChars, 0, sXml10Chars, 0, SIZE);
 
-        FILL(sXml10StartChars, 0x300, 0x345);
-        FILL(sXml10StartChars, 0x360, 0x361);
-        FILL(sXml10StartChars, 0x483, 0x486);
-        FILL(sXml10StartChars, 0x591, 0x5a1);
-        FILL(sXml10StartChars, 0x5a3, 0x5b9);
-        FILL(sXml10StartChars, 0x5bb, 0x5bd);
-        FILL(sXml10StartChars, 0x5bf);
+        // [87] CombiningChar	   ::=
+        SETBITS(sXml10Chars, 0x300, 0x345);
+        SETBITS(sXml10Chars, 0x360, 0x361);
+        SETBITS(sXml10Chars, 0x483, 0x486);
+        SETBITS(sXml10Chars, 0x591, 0x5a1);
+        SETBITS(sXml10Chars, 0x5a3, 0x5b9);
+        SETBITS(sXml10Chars, 0x5bb, 0x5bd);
+        SETBITS(sXml10Chars, 0x5bf);
 
-        FILL(sXml10StartChars, 0x5c1, 0x5c2);
-        FILL(sXml10StartChars, 0x5c4);
-        FILL(sXml10StartChars, 0x64b, 0x652);
-        FILL(sXml10StartChars, 0x670);
-        FILL(sXml10StartChars, 0x6d6, 0x6dc);
-        FILL(sXml10StartChars, 0x6dd, 0x6df);
-        FILL(sXml10StartChars, 0x6e0, 0x6e4);
-        FILL(sXml10StartChars, 0x6e7, 0x6e8);
-        FILL(sXml10StartChars, 0x6ea, 0x6ed);
+        SETBITS(sXml10Chars, 0x5c1, 0x5c2);
+        SETBITS(sXml10Chars, 0x5c4);
+        SETBITS(sXml10Chars, 0x64b, 0x652);
+        SETBITS(sXml10Chars, 0x670);
+        SETBITS(sXml10Chars, 0x6d6, 0x6dc);
+        SETBITS(sXml10Chars, 0x6dd, 0x6df);
+        SETBITS(sXml10Chars, 0x6e0, 0x6e4);
+        SETBITS(sXml10Chars, 0x6e7, 0x6e8);
+        SETBITS(sXml10Chars, 0x6ea, 0x6ed);
 
-        //FILL(sXml10StartChars, 0x0, 0x0);
-
-       /*
-[87]   	CombiningChar	   ::=
-
-[#x0901-#x0903] | #x093C | [#x093E-#x094C] | #x094D | [#x0951-#x0954] | 
-[#x0962-#x0963] | [#x0981-#x0983] | #x09BC | #x09BE | #x09BF | [#x09C0-#x09C4] | [#x09C7-#x09C8] | [#x09CB-#x09CD] | #x09D7 | [#x09E2-#x09E3] | #x0A02 |
- #x0A3C | #x0A3E | #x0A3F | [#x0A40-#x0A42] | [#x0A47-#x0A48] | [#x0A4B-#x0A4D] | [#x0A70-#x0A71] | [#x0A81-#x0A83] | #x0ABC | [#x0ABE-#x0AC5] | [#x0AC7-#x0AC9] | [#x0ACB-#x0ACD] | [#x0B01-#x0B03] | #x0B3C | [#x0B3E-#x0B43] | [#x0B47-#x0B48] | [#x0B4B-#x0B4D] | [#x0B56-#x0B57] | [#x0B82-#x0B83] | [#x0BBE-#x0BC2]
- | [#x0BC6-#x0BC8] | [#x0BCA-#x0BCD] | #x0BD7 | [#x0C01-#x0C03] | [#x0C3E-#x0C44] | [#x0C46-#x0C48] | [#x0C4A-#x0C4D] | [#x0C55-#x0C56] | [#x0C82-#x0C83] | [#x0CBE-#x0CC4] | [#x0CC6-#x0CC8] | [#x0CCA-#x0CCD] | [#x0CD5-#x0CD6] |
- [#x0D02-#x0D03] | [#x0D3E-#x0D43] | [#x0D46-#x0D48] | [#x0D4A-#x0D4D] | #x0D57 | #x0E31 | [#x0E34-#x0E3A] | [#x0E47-#x0E4E] | #x0EB1 | [#x0EB4-#x0EB9] |
- [#x0EBB-#x0EBC] | [#x0EC8-#x0ECD] | [#x0F18-#x0F19] | #x0F35 | #x0F37 | #x0F39 | #x0F3E | #x0F3F | [#x0F71-#x0F84] | [#x0F86-#x0F8B] | [#x0F90-#x0F95]
- | #x0F97 | [#x0F99-#x0FAD] | [#x0FB1-#x0FB7] | #x0FB9 | [#x20D0-#x20DC] | #x20E1 | [#x302A-#x302F] | #x3099 | #x309A
-       */
-            // Digits:
-        FILL(sXml10StartChars, 0x660, 0x669);
-        FILL(sXml10StartChars, 0x6f0, 0x6f9);
-        FILL(sXml10StartChars, 0x966, 0x96f);
-        FILL(sXml10StartChars, 0x9e6, 0x9ef);
-        FILL(sXml10StartChars, 0xa66, 0xa6f);
-        FILL(sXml10StartChars, 0xae6, 0xaef);
-        FILL(sXml10StartChars, 0xb66, 0xb6f);
-        FILL(sXml10StartChars, 0xbe7, 0xbef);
-        FILL(sXml10StartChars, 0xc66, 0xc6f);
-        FILL(sXml10StartChars, 0xce6, 0xcef);
-        FILL(sXml10StartChars, 0xd66, 0xd6f);
-        FILL(sXml10StartChars, 0xe50, 0xe59);
-        FILL(sXml10StartChars, 0xed0, 0xed9);
-        FILL(sXml10StartChars, 0xf20, 0xf29);
+        SETBITS(sXml10Chars, 0x901, 0x903);
+        SETBITS(sXml10Chars, 0x93c);
+        SETBITS(sXml10Chars, 0x93e, 0x94c);
+        SETBITS(sXml10Chars, 0x94d);
+        SETBITS(sXml10Chars, 0x951, 0x954);
+        SETBITS(sXml10Chars, 0x962); SETBITS(sXml10Chars, 0x963);
+        SETBITS(sXml10Chars, 0x981, 0x983);
+        SETBITS(sXml10Chars, 0x9bc);
+        SETBITS(sXml10Chars, 0x9be); SETBITS(sXml10Chars, 0x9bf);
+        SETBITS(sXml10Chars, 0x9c0, 0x9c4);
+        SETBITS(sXml10Chars, 0x9c7); SETBITS(sXml10Chars, 0x9c8);
+        SETBITS(sXml10Chars, 0x9cb, 0x9cd);
+        SETBITS(sXml10Chars, 0x9d7);
+        SETBITS(sXml10Chars, 0x9e2); SETBITS(sXml10Chars, 0x9e3);
+        SETBITS(sXml10Chars, 0xA02);
+        SETBITS(sXml10Chars, 0xA3C);
+        SETBITS(sXml10Chars, 0xA3E); SETBITS(sXml10Chars, 0xA3F);
+        SETBITS(sXml10Chars, 0xA40, 0xA42);
+        SETBITS(sXml10Chars, 0xA47); SETBITS(sXml10Chars, 0xA48);
+        SETBITS(sXml10Chars, 0xA4B, 0xA4D);
+        SETBITS(sXml10Chars, 0xA70); SETBITS(sXml10Chars, 0xA71);
+        SETBITS(sXml10Chars, 0xA81, 0xA83);
+        SETBITS(sXml10Chars, 0xABC);
+        SETBITS(sXml10Chars, 0xABE, 0xAC5);
+        SETBITS(sXml10Chars, 0xAC7, 0xAC9);
+        SETBITS(sXml10Chars, 0xACB, 0xACD);
+        SETBITS(sXml10Chars, 0xB01, 0xB03);
+        SETBITS(sXml10Chars, 0xB3C);
+        SETBITS(sXml10Chars, 0xB3E, 0xB43);
+        SETBITS(sXml10Chars, 0xB47); SETBITS(sXml10Chars, 0xB48);
+        SETBITS(sXml10Chars, 0xB4B, 0xB4D);
+        SETBITS(sXml10Chars, 0xB56); SETBITS(sXml10Chars, 0xB57);
+        SETBITS(sXml10Chars, 0xB82); SETBITS(sXml10Chars, 0xB83);
+        SETBITS(sXml10Chars, 0xBBE, 0xBC2);
+        SETBITS(sXml10Chars, 0xBC6, 0xBC8);
+        SETBITS(sXml10Chars, 0xBCA, 0xBCD);
+        SETBITS(sXml10Chars, 0xBD7);
+        SETBITS(sXml10Chars, 0xC01, 0xC03);
+        SETBITS(sXml10Chars, 0xC3E, 0xC44);
+        SETBITS(sXml10Chars, 0xC46, 0xC48);
+        SETBITS(sXml10Chars, 0xC4A, 0xC4D);
+        SETBITS(sXml10Chars, 0xC55, 0xC56);
+        SETBITS(sXml10Chars, 0xC82, 0xC83);
+        SETBITS(sXml10Chars, 0xCBE, 0xCC4);
+        SETBITS(sXml10Chars, 0xCC6, 0xCC8);
+        SETBITS(sXml10Chars, 0xCCA, 0xCCD);
+        SETBITS(sXml10Chars, 0xCD5, 0xCD6);
+        SETBITS(sXml10Chars, 0xD02, 0xD03);
+        SETBITS(sXml10Chars, 0xD3E, 0xD43);
+        SETBITS(sXml10Chars, 0xD46, 0xD48);
+        SETBITS(sXml10Chars, 0xD4A, 0xD4D);
+        SETBITS(sXml10Chars, 0xD57);
+        SETBITS(sXml10Chars, 0xE31);
+        SETBITS(sXml10Chars, 0xE34, 0xE3A);
+        SETBITS(sXml10Chars, 0xE47, 0xE4E);
+        SETBITS(sXml10Chars, 0xEB1);
+        SETBITS(sXml10Chars, 0xEB4, 0xEB9);
+        SETBITS(sXml10Chars, 0xEBB, 0xEBC);
+        SETBITS(sXml10Chars, 0xEC8, 0xECD);
+        SETBITS(sXml10Chars, 0xF18, 0xF19);
+        SETBITS(sXml10Chars, 0xF35); SETBITS(sXml10Chars, 0xF37);
+        SETBITS(sXml10Chars, 0xF39);
+        SETBITS(sXml10Chars, 0xF3E); SETBITS(sXml10Chars, 0xF3F);
+        SETBITS(sXml10Chars, 0xF71, 0xF84);
+        SETBITS(sXml10Chars, 0xF86, 0xF8B);
+        SETBITS(sXml10Chars, 0xF90, 0xF95);
+        SETBITS(sXml10Chars, 0xF97);
+        SETBITS(sXml10Chars, 0xF99, 0xFAD);
+        SETBITS(sXml10Chars, 0xFB1, 0xFB7);
+        SETBITS(sXml10Chars, 0xFB9);
+        SETBITS(sXml10Chars, 0x20D0, 0x20DC);
+        SETBITS(sXml10Chars, 0x20E1);
+        SETBITS(sXml10Chars, 0x302A, 0x302F);
+        SETBITS(sXml10Chars, 0x3099); SETBITS(sXml10Chars, 0x309A);
+        // [88] Digit:
+        SETBITS(sXml10Chars, 0x660, 0x669);
+        SETBITS(sXml10Chars, 0x6f0, 0x6f9);
+        SETBITS(sXml10Chars, 0x966, 0x96f);
+        SETBITS(sXml10Chars, 0x9e6, 0x9ef);
+        SETBITS(sXml10Chars, 0xa66, 0xa6f);
+        SETBITS(sXml10Chars, 0xae6, 0xaef);
+        SETBITS(sXml10Chars, 0xb66, 0xb6f);
+        SETBITS(sXml10Chars, 0xbe7, 0xbef);
+        SETBITS(sXml10Chars, 0xc66, 0xc6f);
+        SETBITS(sXml10Chars, 0xce6, 0xcef);
+        SETBITS(sXml10Chars, 0xd66, 0xd6f);
+        SETBITS(sXml10Chars, 0xe50, 0xe59);
+        SETBITS(sXml10Chars, 0xed0, 0xed9);
+        SETBITS(sXml10Chars, 0xf20, 0xf29);
         
-        // Extenders:
-        FILL(sXml10StartChars, 0xb7);
-        FILL(sXml10StartChars, 0x2d0);
-        FILL(sXml10StartChars, 0x2d1);
-        FILL(sXml10StartChars, 0x387);
-        FILL(sXml10StartChars, 0x640);
-        FILL(sXml10StartChars, 0xE46);
-        FILL(sXml10StartChars, 0xEC6);
-        FILL(sXml10StartChars, 0x3005);
-        FILL(sXml10StartChars, 0x3031, 0x3035);
-        FILL(sXml10StartChars, 0x309d, 0x309e);
-        FILL(sXml10StartChars, 0x30fc, 0x30fe);
+        // [89] Extender:
+        SETBITS(sXml10Chars, 0xb7);
+        SETBITS(sXml10Chars, 0x2d0);
+        SETBITS(sXml10Chars, 0x2d1);
+        SETBITS(sXml10Chars, 0x387);
+        SETBITS(sXml10Chars, 0x640);
+        SETBITS(sXml10Chars, 0xE46);
+        SETBITS(sXml10Chars, 0xEC6);
+        SETBITS(sXml10Chars, 0x3005);
+        SETBITS(sXml10Chars, 0x3031, 0x3035);
+        SETBITS(sXml10Chars, 0x309d, 0x309e);
+        SETBITS(sXml10Chars, 0x30fc, 0x30fe);
     }
-
-
     
     private XmlChars() { }
 
@@ -363,15 +492,34 @@ public final class XmlChars
         return false;
     }
 
-    private static void FILL(int[] array, int start, int end)
+    private static void SETBITS(int[] array, int start, int end)
     {
-        for (; start < end; ++start) {
-            FILL(array, start);
+        int bit1 = (start & 31);
+        int bit2 = (end & 31);
+        start >>= 5;
+        end >>= 5;
+
+        /* Ok; this is not perfectly optimal, but should be good enough...
+         * we'll only do one-by-one at the ends.
+         */
+        if (start == end) {
+            for (; bit1 <= bit2; ++bit1) {
+                array[start] |= (1 << bit1);
+            }
+        } else {
+            for (int bit = bit1; bit <= 31; ++bit) {
+                array[start] |= (1 << bit);
+            }
+            while (++start < end) {
+                array[start] = -1;
+            }
+            for (int bit = 0; bit <= bit2; ++bit) {
+                array[end] |= (1 << bit);
+            }
         }
-        // !!! TBI: optimize
     }
 
-    private static void FILL(int[] array, int point) {
+    private static void SETBITS(int[] array, int point) {
         int ix = (point >> 5);
         int bit = (point & 31);
 

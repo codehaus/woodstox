@@ -140,10 +140,12 @@ public final class StreamBootstrapper
 
         // Normalized, can thus use straight equality checks now
         if (normEnc == CharsetNames.CS_UTF8) {
-            return new UTF8Reader(mIn, mByteBuffer, mInputPtr, mInputLen);
+            return new UTF8Reader(mIn, mXml11Handling,
+                                  mByteBuffer, mInputPtr, mInputLen);
         }
         if (normEnc == CharsetNames.CS_ISO_LATIN1) {
-            return new ISOLatinReader(mIn, mByteBuffer, mInputPtr, mInputLen);
+            return new ISOLatinReader(mIn, mXml11Handling,
+                                      mByteBuffer, mInputPtr, mInputLen);
         }
         if (normEnc == CharsetNames.CS_US_ASCII) {
             return new AsciiReader(mIn, mByteBuffer, mInputPtr, mInputLen);
@@ -153,7 +155,8 @@ public final class StreamBootstrapper
             if (normEnc == CharsetNames.CS_UTF32) {
                 mInputEncoding = mBigEndian ? CharsetNames.CS_UTF32BE : CharsetNames.CS_UTF32LE;
             }
-            return new UTF32Reader(mIn, mByteBuffer, mInputPtr, mInputLen,
+            return new UTF32Reader(mIn, mXml11Handling,
+                                   mByteBuffer, mInputPtr, mInputLen,
                                    mBigEndian);
         }
 

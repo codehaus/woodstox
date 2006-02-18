@@ -124,7 +124,7 @@ public class ValidatingStreamReader
         throws IOException, XMLStreamException
     {
         ValidatingStreamReader sr = new ValidatingStreamReader
-            (bs, input, owner, cfg, createElementStack(cfg, bs.isXml11()), forER);
+            (bs, input, owner, cfg, createElementStack(cfg, bs.declaredXml11()), forER);
         return sr;
     }
 

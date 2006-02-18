@@ -105,6 +105,14 @@ public abstract class InputBootstrapper
 
     String mStandalone;
 
+    /**
+     * Flag that indicates whether input read from this input source
+     * needs to be xml 1.1 compliant or not; if not, xml 1.0 is assumed.
+     * State of this flag depends on parent context (if one existed), or if
+     * not, on xml declaration of this input source.
+     */
+    boolean mXml11Handling = false;
+
     /*
     ////////////////////////////////////////
     // Temporary data
@@ -160,7 +168,11 @@ public abstract class InputBootstrapper
         return mVersion;
     }
 
-    public boolean isXml11() {
+    /**
+     * @return True, if the input bootstrapped declared that it conforms
+     *   to xml 1.1 (independent of where it was included from)
+     */
+    public boolean declaredXml11() {
         return (mVersion != null) && XmlConsts.XML_V_11.equals(mVersion);
     }
 
@@ -234,16 +246,21 @@ public abstract class InputBootstrapper
             c = getWsOrChar('?');
         }
 
-        /* 05-Feb-2006, TSa: May need to check that XML 1.0 document does
-         *    not include XML 1.1 external entities...
+        /* 17-Feb-2006, TSa: Whether we are to be xml 1.1 compliant or not
+         *   depends on parent context, if any; and if not, on actual
+         *   xml declaration. But in former case, it is illegal to include
+         *   xml 1.1 declared entities from xml 1.0 context.
          */
-            if (xmlVersion != null) {
-                // did we have 1.0, and now refer to 1.1?
-                if (XmlConsts.XML_V_10.equals(xmlVersion) &&
-                    XmlConsts.XML_V_11.equals(mVersion)) {
-                    reportXmlProblem(ErrorConsts.ERR_XML_10_VS_11);
-                }
+        boolean thisIs11 = XmlConsts.XML_V_11.equals(mVersion);
+        if (xmlVersion != null) { // null when reading main doc
+            mXml11Handling = XmlConsts.XML_V_11.equals(xmlVersion);
+            // Can not refer to xml 1.1 entities from 1.0 doc:
+            if (thisIs11 && !mXml11Handling) {
+                reportXmlProblem(ErrorConsts.ERR_XML_10_VS_11);
             }
+        } else {
+            mXml11Handling = thisIs11;
+        }
 
         // Then, 'encoding'
         if (c != 'e') { // obligatory for external entities

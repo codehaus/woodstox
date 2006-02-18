@@ -2578,9 +2578,7 @@ public class FullDTDReader
         if (type == DTDAttribute.TYPE_ID) {
             if (defType == DTDAttribute.DEF_DEFAULT
                 || defType == DTDAttribute.DEF_FIXED) {
-                /* 03-Feb-2006, TSa: Hmmh. Apparently all other XML parsers
-                 *    consider it's ok in non-validating mode. All right.
-                 */
+                // Just a VC, not WFC... so:
                 if (mCfgFullyValidating) {
                     throwDTDAttrError("has type ID; can not have a default (or #FIXED) value (XML 1.0/#3.3.1)",
                                       elem, attrName);
@@ -2588,19 +2586,26 @@ public class FullDTDReader
             }
         }
 
-        /* 21-Jan-2006, TSa: Hmmh. Apparently some legacy documents also
-         *   define namespace declarations. Fools. Assuming they were to
-         *   be fully supported, more work would be needed: for now just
-         *   ignoring them should work 95% ok (since docs really should
-         *   never count on these defaults; non-dtd-aware parsers will
-         *   not see them, thus they have to be explicitly added too).
+        /* 17-Feb-2006, TSa: Ok. So some (legacy?) DTDs do declare namespace
+         *    declarations too... sometimes including default values.
          */
         if (mCfgNsEnabled && attrName.isaNsDeclaration()) { // only check in ns mode
+            /* Ok: just declaring them is unnecessary, and can be safely
+             * ignored. It's only the default values that matter (and yes,
+             * let's not worry about #REQUIRED for now)
+             */
+            if (defType != DTDAttribute.DEF_DEFAULT
+                && defType != DTDAttribute.DEF_FIXED) {
+                return;
+            }
+            // But defaulting... Hmmh.
+
+            elem.addNsDefault(this, attrName, type, defType,
+                              defVal, mCfgFullyValidating);
+            // !!! TBI
             XMLReporter rep = mConfig.getXMLReporter();
             if (rep != null) {
-                String extra = (defVal == null) ? "" : " (with default value '"+defVal+"')";
-                String msg = MessageFormat.format(ErrorConsts.W_DTD_NS_ATTR, new Object[] { attrName, extra });
-                reportProblem(rep, ErrorConsts.WT_ATTR_DECL, msg, loc, elem);
+                reportProblem(rep, ErrorConsts.WT_ATTR_DECL, "Attribute default for namespace declaration '"+attrName+"': not yet implemented", loc, elem);
             }
             return;
         }

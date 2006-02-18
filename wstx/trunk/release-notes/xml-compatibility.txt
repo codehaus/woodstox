@@ -1,23 +1,18 @@
-Current version is close to XML 1.0/1.1 compliance, but there are some
-features not (yet) fully supported. The main goal of StAX is to make
-sure all well-formed documents are parsed succesfully; whether all
-problems in other documents are caught is more of nice-to-have
-feature.
+Version: 3.0
+
+Current version is very close to complete XML 1.0 compliance; and also
+mostly XML 1.1 compliant.
 
 Known issues regarding strict XML-conformance checking are:
 
-* XML character validity checking:
-   * Text content is not checked (except for simple check on NULL char);
-     all characters are valid (except for markup).
-     Goal will be to do XML 1.1 checking; XML 1.0 character ranges are
-     too complicated, without any real benefit. 1.1 fixed most problems.
-   * Identifiers are fully checked against XML 1.1 rules; there are no
-     plans for strict 1.0 compatibility
-   * Additional 2 new XML 1.1 linefeed characters are not recognized as
-     linefeeds (and quite likely will not be)
-* No verification is done to make sure expanded entities have correct
-  nesting; nesting problems will obviously be caught later on if they
-  exist after expansion, but strict check to prevent use of "unbalanced"
-  elements from entities is not done.
-* Checking for recursive entities is done on expansion, not on declaration:
-  whether this is allowed by XML specs is not clear.
+XML 1.0:
+
+* Validity checking for DTD element content groups wrt. PE expansion
+  nesting is not complete.
+
+XML 1.1:
+
+* New linefeeds are not recognized as such
+* Checking for high-range control characters (0x80 - 0x9F, 0x7F) is
+  not done for all input sources.
+

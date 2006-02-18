@@ -33,9 +33,16 @@ public final class ISOLatinReader
     ////////////////////////////////////////
     */
 
-    public ISOLatinReader(InputStream in, byte[] buf, int ptr, int len)
+    /**
+     * @param xml11mode If true, character validity is done in xml1.1
+     *   compliant way, and we should check for high-order control chars
+     *   here; if false, those are ok
+     */
+    public ISOLatinReader(InputStream in, boolean xml11mode,
+                          byte[] buf, int ptr, int len)
     {
         super(in, buf, ptr, len);
+        // !!! 17-Feb-2006, TSa: Not yet checking 0x80-0x9F ctrl chars
     }
 
     /*

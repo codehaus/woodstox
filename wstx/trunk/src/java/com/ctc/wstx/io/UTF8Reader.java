@@ -28,6 +28,8 @@ import com.ctc.wstx.cfg.XmlConsts;
 public final class UTF8Reader
     extends BaseReader
 {
+    final boolean mXml11;
+
     char mSurrogate = NULL_CHAR;
 
     /**
@@ -46,9 +48,16 @@ public final class UTF8Reader
     ////////////////////////////////////////
     */
 
-    public UTF8Reader(InputStream in, byte[] buf, int ptr, int len)
+    /**
+     * @param xml11mode If true, character validity is done in xml1.1
+     *   compliant way, and we should check for high-order control chars
+     *   here; if false, those are ok
+     */
+    public UTF8Reader(InputStream in, boolean xml11mode,
+                      byte[] buf, int ptr, int len)
     {
         super(in, buf, ptr, len);
+        mXml11 = xml11mode;
     }
 
     /*
@@ -81,16 +90,9 @@ public final class UTF8Reader
             mSurrogate = NULL_CHAR;
             // No need to load more, already got one char
         } else {
-            /* 04-Dec-2004, TSa: Ok; now, a change was needed so that we
-             *   would only try to read more stuff from the input stream
-             *   when we absolutely have to. If not, we might be blocking
-             *   "too early", possibly without higher-level functionality
-             *   having had a chance to parse and return something that
-             *   could be parsed from what was already decoded. To change
-             *   this, need to only load things before looping. This will
-             *   also slightly simplify loop itself, for multi-byte chars.
+            /* To prevent unnecessary blocking (esp. with network streams),
+             * we'll only require decoding of a single char
              */
-
             int left = (mLength - mPtr);
 
             /* So; only need to load more if we can't provide at least
@@ -214,6 +216,12 @@ public final class UTF8Reader
                         } else if (c >= 0xFFFE) {
                             reportInvalid(c, outPtr-start, "");
                         }
+                    }
+                }
+            } else { // (needed == 1)
+                if (mXml11) { // high-order ctrl char detection...
+                    if (c <= 0x9F && c >= 0x7F && c != 0x85) {
+                        reportInvalid(c, outPtr-start, "(can only be included via entity in xml 1.1)");
                     }
                 }
             }

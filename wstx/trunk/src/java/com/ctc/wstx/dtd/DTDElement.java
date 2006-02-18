@@ -107,6 +107,18 @@ public final class DTDElement
 
     /*
     ///////////////////////////////////////////////////
+    // Namespace declaration defaulting...
+    ///////////////////////////////////////////////////
+     */
+
+    /**
+     * Set of namespace declarations with default values, if any
+     * (regular ns pseudo-attr declarations are just ignored)
+     */
+    HashMap mNsMap = null; // [String : DTDAttribute]
+
+    /*
+    ///////////////////////////////////////////////////
     // Life-cycle
     ///////////////////////////////////////////////////
      */
@@ -165,6 +177,7 @@ public final class DTDElement
         elem.mAnyDefaults = mAnyDefaults;
         elem.mIdAttr = mIdAttr;
         elem.mNotationAttr = mNotationAttr;
+        elem.mNsMap = mNsMap;
 
         return elem;
     }
@@ -275,8 +288,55 @@ public final class DTDElement
             attr = null; // unreachable, but compiler wants it
         }
 
-        doAddAttribute(m, rep, attr, specList, fullyValidate);
-        return attr;
+        DTDAttribute old = doAddAttribute(m, rep, attr, specList, fullyValidate);
+        return (old == null) ? attr : null;
+    }
+
+    /**
+     * Method called to add a definition of a namespace-declaration
+     * pseudo-attribute with a default value.
+     *
+     * @return True if the declaration was added; false to indicate it
+     *   was a dup (there was an earlier declaration)
+     */
+    public boolean addNsDefault(InputProblemReporter rep,
+                                NameKey attrName, int valueType, int defValueType,
+                                String defValue,
+                                boolean fullyValidate)
+        throws WstxException
+    {
+        /* Let's simplify handling a bit: although theoretically all
+         * combinations of value can be used, let's really only differentiate
+         * between CDATA and 'other' (for which let's use NMTOKEN)
+         */
+        DTDAttribute nsAttr;
+
+        switch (valueType) {
+        case DTDAttribute.TYPE_CDATA:
+            nsAttr = new DTDCdataAttr(attrName, defValueType, defValue, -1);
+            break;
+        default: // something else, default to NMTOKEN then
+            nsAttr = new DTDNmTokenAttr(attrName, defValueType, defValue, -1);
+            break;
+        }
+
+        // Ok. So which prefix are we to bind? Need to access by prefix...
+        String prefix = attrName.getPrefix();
+        if (prefix == null || prefix.length() == 0) { // defult NS -> ""
+            prefix = "";
+        } else { // non-default, use the local name
+            prefix = attrName.getLocalName();
+        }
+
+        if (mNsMap == null) {
+            mNsMap = new HashMap();
+        } else {
+            if (mNsMap.containsKey(prefix)) {
+                return false;
+            }
+        }
+        mNsMap.put(prefix, nsAttr);
+        return true;
     }
 
     public void mergeMissingAttributesFrom(InputProblemReporter rep, DTDElement other,
@@ -312,20 +372,41 @@ public final class DTDElement
                 }
             }
         }
+
+        HashMap otherNs = other.mNsMap;
+        if (otherNs != null) {
+            if (mNsMap == null) {
+                mNsMap = new HashMap();
+            }
+            Iterator it = otherNs.entrySet().iterator();
+            while (it.hasNext()) {
+                Map.Entry me = (Map.Entry) it.next();
+                Object key = me.getKey();
+                // Should only add if no such attribute exists...
+                if (!mNsMap.containsKey(key)) {
+                    mNsMap.put(key, me.getValue());
+                }
+            }
+        }
     }
 
-    private void doAddAttribute(Map attrMap, InputProblemReporter rep,
-                                DTDAttribute attr, List specList,
-                                boolean fullyValidate)
+    /**
+     * @return Earlier declaration of the attribute, if any; null if
+     *    this was a new attribute
+     */
+    private DTDAttribute doAddAttribute(Map attrMap, InputProblemReporter rep,
+                                        DTDAttribute attr, List specList,
+                                        boolean fullyValidate)
         throws WstxException
     {
         NameKey attrName = attr.getName();
 
         // Maybe we already have it? If so, need to ignore
-        if (attrMap.containsKey(attrName)) {
+        DTDAttribute old = (DTDAttribute) attrMap.get(attrName);
+        if (old != null) {
             rep.reportProblem(ErrorConsts.WT_ATTR_DECL, ErrorConsts.W_DTD_DUP_ATTR,
                               attrName, mName);
-            return;
+            return old;
         }
 
         switch (attr.getValueType()) {
@@ -359,6 +440,8 @@ public final class DTDElement
         if (!mAnyDefaults) {
             mAnyDefaults = attr.hasDefaultValue();
         }
+
+        return null;
     }
 
     /*
@@ -425,6 +508,10 @@ public final class DTDElement
 
     public DTDAttribute getNotationAttribute() {
         return mNotationAttr;
+    }
+
+    public boolean hasNsDefaults() {
+        return (mNsMap != null);
     }
 
     /*

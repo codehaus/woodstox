@@ -156,25 +156,32 @@ public final class DefaultInputResolver
         throw new IllegalArgumentException("Unrecognized input argument type for sourceFrom(): "+o.getClass());
     }
 
-    public static Reader constructOptimizedReader(InputStream in, String encoding, int inputBufLen)
+    public static Reader constructOptimizedReader(InputStream in, boolean isXml11, String encoding, int inputBufLen)
         throws XMLStreamException
     {
         /* 03-Jul-2005, TSa: Since Woodstox' implementations of specialized
          *   readers are faster than default JDK ones (at least for 1.4, UTF-8
          *   reader is especially fast...), let's use them if possible
          */
-        char c = encoding.charAt(0);
-        if (c == 'u' || c == 'U') {
-            if (StringUtil.equalEncodings(encoding, "UTF-8")) {
-                return new UTF8Reader(in, new byte[inputBufLen], 0, 0);
-            }
-            if (StringUtil.equalEncodings(encoding, "US-ASCII")) {
-                return new AsciiReader(in, new byte[inputBufLen], 0, 0);
-            }
-        } else if (c == 'i' || c== 'I') {
-            if (StringUtil.equalEncodings(encoding, "ISO-8859-1")) {
-                return new ISOLatinReader(in, new byte[inputBufLen], 0, 0);
-            }
+        /* 17-Feb-2006, TSa: These should actually go via InputBootstrapper,
+         *   since BOM may need to be skipped; xml 1.0 vs. 1.1 should be
+         *   checked, and so on. Given encoding could be just verified
+         *   against suggested one.
+         */
+        String normEnc = CharsetNames.normalize(encoding);
+        if (normEnc == CharsetNames.CS_UTF8) {
+            return new UTF8Reader(in, isXml11, new byte[inputBufLen], 0, 0);
+        }
+        if (normEnc == CharsetNames.CS_ISO_LATIN1) {
+            return new ISOLatinReader(in, isXml11, new byte[inputBufLen], 0, 0);
+        }
+        if (normEnc == CharsetNames.CS_US_ASCII) {
+            return new AsciiReader(in, new byte[inputBufLen], 0, 0);
+        }
+        if (normEnc.startsWith(CharsetNames.CS_UTF32)) {
+            boolean isBE = (normEnc == CharsetNames.CS_UTF32BE);
+            return new UTF32Reader(in, isXml11, new byte[inputBufLen], 0, 0,
+                                   isBE);
         }
 
         try {

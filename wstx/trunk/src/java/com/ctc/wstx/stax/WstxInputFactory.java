@@ -570,7 +570,12 @@ public final class WstxInputFactory
         }
 
         int inputBufLen = mConfig.getInputBufferLength();
-        Reader r = DefaultInputResolver.constructOptimizedReader(in, enc, inputBufLen);
+        /* !!! 17-Feb-2006, TSa: We don't yet know if it's xml 1.0 or 1.1;
+         *   so have to specify 1.0 (which is less restrictive WRT input
+         *   streams). Would be better to let bootstrapper deal with it
+         *   though:
+         */
+        Reader r = DefaultInputResolver.constructOptimizedReader(in, false, enc, inputBufLen);
         return createSR(systemId, ReaderBootstrapper.getInstance
                         (r, null, systemId, enc), forER, autoCloseInput);
     }

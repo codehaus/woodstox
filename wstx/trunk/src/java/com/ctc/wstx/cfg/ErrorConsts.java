@@ -36,8 +36,6 @@ public class ErrorConsts
     public static String W_DTD_DUP_ATTR = "Attribute \"{0}\" (for element <{1}>) declared multiple times";
     public static String W_DTD_ATTR_REDECL = "Attribute \"{0}\" already declared for element <{1}>; ignoring re-declaration";
 
-    public static String W_DTD_NS_ATTR = "Declaring namespace attribute \"{0}\"{1}, ignoring";
-
     // // // Generic errors:
 
     public static String ERR_INTERNAL = "Internal error";
