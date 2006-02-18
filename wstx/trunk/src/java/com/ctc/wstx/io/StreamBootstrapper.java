@@ -7,6 +7,7 @@ import javax.xml.stream.XMLReporter;
 import javax.xml.stream.XMLStreamException;
 
 import com.ctc.wstx.cfg.ParsingErrorMsgs;
+import com.ctc.wstx.cfg.XmlConsts;
 import com.ctc.wstx.exc.*;
 import com.ctc.wstx.util.StringUtil;
 
@@ -112,7 +113,11 @@ public final class StreamBootstrapper
             if (mFoundEncoding != null) {
                 normEnc = verifyXmlEncoding(mFoundEncoding);
             }
+        } else {
+            // We'll actually then just inherit whatever main doc had...
+            mXml11Handling = XmlConsts.XML_V_11.equals(xmlVersion);
         }
+
         // Now, have we figured out the encoding?
 
         if (normEnc == null) { // not via xml declaration

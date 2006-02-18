@@ -282,7 +282,7 @@ public final class UTF8Reader
         int bytePos = mByteCount + mPtr - 1;
         int charPos = mCharCount + offset;
 
-        throw new CharConversionException("Invalid 4-byte UTF-8 character 0x"
+        throw new CharConversionException("Invalid UTF-8 character 0x"
                                           +Integer.toHexString(value)+msg
                                           +" at char #"+charPos+", byte #"+bytePos+")");
     }
