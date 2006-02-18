@@ -2082,25 +2082,29 @@ public abstract class StreamScanner
             if (c == '\n') {
                 markLF();
                 if (normalize) {
-                    c = CHAR_SPACE;
                     spaceToAdd = true;
+                    continue;
                 }
             } else if (c == '\r') {
                 if (peekNext() == '\n') {
                     ++mInputPtr;
                     if (normalize) {
-                        c = CHAR_SPACE;
                         spaceToAdd = true;
-                    } else {
-                        if (ptr >= buf.length) {
-                            buf = expandBy50Pct(buf);
-                        }
-                        buf[ptr++] = '\r';
-                        c = '\n';
+                        continue;
                     }
+                    if (ptr >= buf.length) {
+                        buf = expandBy50Pct(buf);
+                    }
+                    buf[ptr++] = '\r';
+                    c = '\n';
                 } else if (normalize) {
-                    c = CHAR_SPACE;
                     spaceToAdd = true;
+                    continue;
+                }
+            } else if (c == CHAR_SPACE) {
+                if (normalize) {
+                    spaceToAdd = true;
+                    continue;
                 }
             } else {
                 // Verify it's a legal pubid char (see XML spec, #13, from 2.3)
