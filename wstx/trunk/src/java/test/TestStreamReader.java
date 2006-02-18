@@ -239,6 +239,7 @@ public class TestStreamReader
                     System.out.print(':');
                 }
                 System.out.print(sr.getLocalName());
+                //System.out.println("[first char 0x"+Integer.toHexString(sr.getLocalName().charAt(0))+"]");
                 System.out.print(" {ns '");
                 System.out.print(sr.getNamespaceURI());
                 System.out.print("'}> ");

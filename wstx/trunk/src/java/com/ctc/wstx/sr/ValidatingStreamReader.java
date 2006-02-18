@@ -250,7 +250,8 @@ public class ValidatingStreamReader
 
             try {
                 intSubset = FullDTDReader.readInternalSubset(this, mInput, mConfig,
-                                                             hasConfigFlags(CFG_VALIDATE_AGAINST_DTD));
+                                                             hasConfigFlags(CFG_VALIDATE_AGAINST_DTD),
+                                                             mXml11);
             } finally {
                 /* Let's close branching in any and every case (may allow
                  * graceful recovery in error cases in future
@@ -399,7 +400,8 @@ public class ValidatingStreamReader
         }
 
         DTDSubset extSubset = FullDTDReader.readExternalSubset(src, mConfig, intSubset,
-                                                               hasConfigFlags(CFG_VALIDATE_AGAINST_DTD));
+                                                               hasConfigFlags(CFG_VALIDATE_AGAINST_DTD),
+                                                               mXml11);
         
         if (cache) {
             /* Ok; can be cached, but only if it does NOT refer to

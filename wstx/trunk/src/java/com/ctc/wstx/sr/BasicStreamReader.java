@@ -417,6 +417,7 @@ public class BasicStreamReader
         // // // Then handling of xml declaration data:
 
         mDocXmlVersion = bs.getVersion();
+        mXml11 = XmlConsts.XML_V_11.equals(mDocXmlVersion);
         mDocInputEncoding = bs.getInputEncoding();
         mDocXmlEncoding = bs.getDeclaredEncoding();
 
@@ -2084,10 +2085,13 @@ public class BasicStreamReader
         
         if (tb.equalsString(XmlConsts.XML_V_10)) {
             mDocXmlVersion = XmlConsts.XML_V_10;
+            mXml11 = false;
         } else if (tb.equalsString(XmlConsts.XML_V_11)) {
             mDocXmlVersion = XmlConsts.XML_V_11;
+            mXml11 = true;
         } else {
             mDocXmlVersion = null;
+            mXml11 = false;
             throwParseError("Unexpected xml version '"+tb.toString()+"'; expected '"+XmlConsts.XML_V_10+"' or '"+XmlConsts.XML_V_11+"'");
         }
         

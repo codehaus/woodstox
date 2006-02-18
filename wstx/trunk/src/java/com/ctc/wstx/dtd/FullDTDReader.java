@@ -299,9 +299,9 @@ public class FullDTDReader
      * Constructor used for reading/skipping internal subset.
      */
     private FullDTDReader(WstxInputSource input, ReaderConfig cfg,
-                          boolean constructFully)
+                          boolean constructFully, boolean xml11)
     {
-        this(input, cfg, false, null, constructFully);
+        this(input, cfg, false, null, constructFully, xml11);
     }
 
     /**
@@ -309,9 +309,9 @@ public class FullDTDReader
      */
     private FullDTDReader(WstxInputSource input, ReaderConfig cfg, 
                           DTDSubset intSubset,
-                          boolean constructFully)
+                          boolean constructFully, boolean xml11)
     {
-        this(input, cfg, true, intSubset, constructFully);
+        this(input, cfg, true, intSubset, constructFully, xml11);
 
         // Let's make sure line/col offsets are correct...
         input.initInputLocation(this, mCurrDepth);
@@ -322,9 +322,10 @@ public class FullDTDReader
      */
     private FullDTDReader(WstxInputSource input, ReaderConfig cfg,
                           boolean isExt, DTDSubset intSubset,
-                          boolean constructFully)
+                          boolean constructFully, boolean xml11)
     {
         super(input, cfg, isExt);
+        mXml11 = xml11;
         int cfgFlags = cfg.getConfigFlags();
         mConfigFlags = cfgFlags;
         mCfgNormalizeLFs = (cfgFlags & CFG_NORMALIZE_LFS) != 0;
@@ -372,10 +373,11 @@ public class FullDTDReader
     public static DTDSubset readInternalSubset(WstxInputData srcData,
                                                WstxInputSource input,
                                                ReaderConfig cfg,
-                                               boolean constructFully)
+                                               boolean constructFully,
+                                               boolean xml11)
         throws IOException, XMLStreamException
     {
-        FullDTDReader r = new FullDTDReader(input, cfg, constructFully);
+        FullDTDReader r = new FullDTDReader(input, cfg, constructFully, xml11);
         /* Need to read using same low-level reader interface:
          */
         r.copyBufferStateFrom(srcData);
@@ -398,10 +400,10 @@ public class FullDTDReader
      */
     public static DTDSubset readExternalSubset
         (WstxInputSource src, ReaderConfig cfg, DTDSubset intSubset, 
-         boolean constructFully)
+         boolean constructFully, boolean xml11)
         throws IOException, XMLStreamException
     {
-        FullDTDReader r = new FullDTDReader(src, cfg, intSubset, constructFully);
+        FullDTDReader r = new FullDTDReader(src, cfg, intSubset, constructFully, xml11);
         return r.parseDTD();
     }
 
@@ -437,7 +439,10 @@ public class FullDTDReader
         cfg.clearConfigFlag(CFG_NORMALIZE_LFS);
         cfg.clearConfigFlag(CFG_NORMALIZE_ATTR_VALUES);
 
-        FullDTDReader r = new FullDTDReader(src, cfg, null, true);
+        /* Let's assume xml 1.0... can be taken as an arg later on, if we
+         * truly care.
+         */
+        FullDTDReader r = new FullDTDReader(src, cfg, null, true, false);
         r.setFlattenWriter(flattenWriter, inclComments, inclConditionals,
                            inclPEs);
         DTDSubset ss = r.parseDTD();

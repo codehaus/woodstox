@@ -343,7 +343,7 @@ public abstract class StreamScanner
      * in future, if new versions get supported above). Needed to
      * distinguish some of the features used.
      */
-    boolean mXml11 = false;
+    protected boolean mXml11 = false;
 
     /*
     ////////////////////////////////////////////////////

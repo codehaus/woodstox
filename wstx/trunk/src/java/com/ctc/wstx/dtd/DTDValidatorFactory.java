@@ -176,11 +176,11 @@ public class DTDValidatorFactory
             WstxInputSource src = InputSourceFactory.constructEntitySource
                 (null, null, bs, publicId, systemId, /*(String)*/null, ctxt, r);
 
-            /* last true -> yes, fully construct for validation
+            /* true -> yes, fully construct for validation
              * (does not mean it has to be used for validation, but required
              * if it is to be used for that purpose)
              */
-            return FullDTDReader.readExternalSubset(src, cfg, /*int.subset*/null, true);
+            return FullDTDReader.readExternalSubset(src, cfg, /*int.subset*/null, true, bs.declaredXml11());
         } catch (IOException ioe) {
             throw new WstxIOException(ioe);
         }
