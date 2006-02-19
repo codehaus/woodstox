@@ -95,7 +95,10 @@ public abstract class InputBootstrapper
 
     //boolean mHadDeclaration = false;
 
-    String mVersion;
+    /**
+     * XML declaration from the input (1.0, 1.1 or 'unknown')
+     */
+    int mDeclaredXmlVersion = XmlConsts.XML_V_UNKNOWN;
 
     /**
      * Value of encoding pseudo-attribute from xml declaration, if
@@ -154,7 +157,7 @@ public abstract class InputBootstrapper
      *   main document, null should be passed for this argument.
      */
     public abstract Reader bootstrapInput(boolean mainDoc, XMLReporter rep,
-                                          String xmlVersion)
+                                          int xmlVersion)
         throws IOException, XMLStreamException;
 
     // // // Source information:
@@ -164,8 +167,9 @@ public abstract class InputBootstrapper
 
     // // // XML declaration data:
 
-    public String getVersion() {
-        return mVersion;
+    public int getDeclaredVersion()
+    {
+        return mDeclaredXmlVersion;
     }
 
     /**
@@ -173,7 +177,7 @@ public abstract class InputBootstrapper
      *   to xml 1.1 (independent of where it was included from)
      */
     public boolean declaredXml11() {
-        return (mVersion != null) && XmlConsts.XML_V_11.equals(mVersion);
+        return (mDeclaredXmlVersion == XmlConsts.XML_V_11);
     }
 
     public String getStandalone() {
@@ -230,7 +234,7 @@ public abstract class InputBootstrapper
      *   If null, no checks will be done; when bootstrapping parsing of the
      *   main document, null should be passed for this argument.
      */
-    protected void readXmlDecl(boolean isMainDoc, String xmlVersion)
+    protected void readXmlDecl(boolean isMainDoc, int xmlVersion)
         throws IOException, WstxException
     {
         int c = getNextAfterWs(false);
@@ -242,7 +246,7 @@ public abstract class InputBootstrapper
                 reportUnexpectedChar(c, ERR_XMLDECL_KW_VERSION);
             }
         } else { // ok, should be version
-            mVersion = readXmlVersion();
+            mDeclaredXmlVersion = readXmlVersion();
             c = getWsOrChar('?');
         }
 
@@ -251,9 +255,9 @@ public abstract class InputBootstrapper
          *   xml declaration. But in former case, it is illegal to include
          *   xml 1.1 declared entities from xml 1.0 context.
          */
-        boolean thisIs11 = XmlConsts.XML_V_11.equals(mVersion);
-        if (xmlVersion != null) { // null when reading main doc
-            mXml11Handling = XmlConsts.XML_V_11.equals(xmlVersion);
+        boolean thisIs11 = (mDeclaredXmlVersion == XmlConsts.XML_V_11);
+        if (xmlVersion != XmlConsts.XML_V_UNKNOWN) { // happens when reading main doc
+            mXml11Handling = (XmlConsts.XML_V_11 == xmlVersion);
             // Can not refer to xml 1.1 entities from 1.0 doc:
             if (thisIs11 && !mXml11Handling) {
                 reportXmlProblem(ErrorConsts.ERR_XML_10_VS_11);
@@ -289,7 +293,10 @@ public abstract class InputBootstrapper
         }
     }
 
-    private final String readXmlVersion()
+    /**
+     * @return Xml version declaration read
+     */
+    private final int readXmlVersion()
         throws IOException, WstxException
     {
         int c = checkKeyword(XmlConsts.XML_DECL_KW_VERSION);
@@ -322,8 +329,8 @@ public abstract class InputBootstrapper
             got = "'"+new String(mKeyword, 0, len)+"'";
         }
         reportPseudoAttrProblem(XmlConsts.XML_DECL_KW_VERSION, got,
-                                XmlConsts.XML_V_10, XmlConsts.XML_V_11);
-        return got; // never gets here, but compiler needs it
+                                XmlConsts.XML_V_10_STR, XmlConsts.XML_V_11_STR);
+        return XmlConsts.XML_V_UNKNOWN; // never gets here, but compiler needs it
     }
 
     private final String readXmlEncoding()
@@ -507,5 +514,3 @@ public abstract class InputBootstrapper
                                        getLocation());
     }
 }
-
-

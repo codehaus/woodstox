@@ -4,6 +4,7 @@ import java.io.*;
 
 import javax.xml.stream.*;
 
+import com.ctc.wstx.cfg.XmlConsts;
 import com.ctc.wstx.dtd.DTDSubset;
 import com.ctc.wstx.dtd.FullDTDReader;
 import com.ctc.wstx.io.DefaultInputResolver;
@@ -49,7 +50,8 @@ public class TestFlattening
             boolean inclComments = (i & 4) != 0;
             boolean inclConditionals = (i & 2) != 0;
             boolean inclPEs = (i & 1) != 0;
-            WstxInputSource input = DefaultInputResolver.sourceFromString(null, null, "[dtd]", /*xml version for compatibility checks*/ null, DTD);
+            WstxInputSource input = DefaultInputResolver.sourceFromString
+                (null, null, "[dtd]", /*xml version for compat checks*/ XmlConsts.XML_V_UNKNOWN, DTD);
             StringWriter strw = new StringWriter();
             DTDSubset ss = FullDTDReader.flattenExternalSubset
                 (input, strw,
@@ -61,11 +63,12 @@ public class TestFlattening
              * just re-parse it to ensure it seems valid? And let's also
              * compare second-time output.
              */
-            input = DefaultInputResolver.sourceFromString(null, null, "[dtd]", /*xml version for compatibility checks*/ null, output);
+            input = DefaultInputResolver.sourceFromString
+                (null, null, "[dtd]", /*xml version for compatibility checks*/ XmlConsts.XML_V_UNKNOWN, output);
+
             strw = new StringWriter();
             ss = FullDTDReader.flattenExternalSubset
-                (input, strw,
-                 inclComments, inclConditionals, inclPEs);
+                (input, strw, inclComments, inclConditionals, inclPEs);
             strw.flush();
             String output2 = strw.toString();
 

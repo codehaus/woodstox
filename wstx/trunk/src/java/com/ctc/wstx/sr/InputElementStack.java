@@ -204,7 +204,7 @@ public abstract class InputElementStack
      */
 
     public final String getXmlVersion() {
-        return mXml11 ? XmlConsts.XML_V_11 : XmlConsts.XML_V_10;
+        return mXml11 ? XmlConsts.XML_V_11_STR : XmlConsts.XML_V_10_STR;
     }
 
     public abstract QName getCurrentElementName();

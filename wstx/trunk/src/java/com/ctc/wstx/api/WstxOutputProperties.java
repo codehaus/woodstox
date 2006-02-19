@@ -10,8 +10,8 @@ public final class WstxOutputProperties
 {
     /**
      * Default xml version number output, if none was specified by
-     * application. Version 1.0 is used (even though 1.1 is clearly better as
-     * a standard) to try to maximize compatibility (some older parsers
+     * application. Version 1.0 is used 
+     * to try to maximize compatibility (some older parsers
      * may barf on 1.1 and later...)
      */
     public final static String DEFAULT_XML_VERSION = "1.0";

@@ -123,7 +123,7 @@ public class IntEntity
     
     public WstxInputSource expand(WstxInputSource parent,
                                   XMLResolver res, XMLReporter rep,
-                                  String xmlVersion)
+                                  int xmlVersion)
     {
         return InputSourceFactory.constructCharArraySource
             (parent, mName, mRepl, 0, mRepl.length, mContentLocation, getSource());

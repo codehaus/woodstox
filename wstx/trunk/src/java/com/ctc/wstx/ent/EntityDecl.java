@@ -120,6 +120,6 @@ public abstract class EntityDecl
      */
     public abstract WstxInputSource expand(WstxInputSource parent, 
                                            XMLResolver res, XMLReporter rep,
-                                           String xmlVersion)
+                                           int xmlVersion)
         throws IOException, XMLStreamException;
 }

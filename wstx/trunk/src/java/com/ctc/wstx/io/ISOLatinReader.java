@@ -17,6 +17,8 @@ package com.ctc.wstx.io;
 
 import java.io.*;
 
+import com.ctc.wstx.cfg.XmlConsts;
+
 /**
  * Optimized Reader that reads ISO-Latin (aka ISO-8859-1) content from an
  * input stream.
@@ -27,22 +29,27 @@ import java.io.*;
 public final class ISOLatinReader
     extends BaseReader
 {
+    boolean mXml11 = false;
+
+    /**
+     * Total read byte (and char) count; used for error reporting purposes
+     */
+    int mByteCount = 0;
+
     /*
     ////////////////////////////////////////
     // Life-cycle
     ////////////////////////////////////////
     */
 
-    /**
-     * @param xml11mode If true, character validity is done in xml1.1
-     *   compliant way, and we should check for high-order control chars
-     *   here; if false, those are ok
-     */
-    public ISOLatinReader(InputStream in, boolean xml11mode,
-                          byte[] buf, int ptr, int len)
+    public ISOLatinReader(InputStream in, byte[] buf, int ptr, int len)
     {
         super(in, buf, ptr, len);
-        // !!! 17-Feb-2006, TSa: Not yet checking 0x80-0x9F ctrl chars
+    }
+
+    public void setXmlCompliancy(int xmlVersion)
+    {
+        mXml11 = (xmlVersion == XmlConsts.XML_V_11);
     }
 
     /*
@@ -66,6 +73,7 @@ public final class ISOLatinReader
         // Need to load more data?
         int avail = mLength - mPtr;
         if (avail <= 0) {
+            mByteCount += mLength;
             // Let's always (try to) read full buffers
             int count = mIn.read(mBuffer);
             if (count <= 0) {
@@ -92,8 +100,27 @@ public final class ISOLatinReader
         int i = mPtr;
         int last = i + len;
 
-        for (; i < last; ) {
-            cbuf[start++] = (char) (mBuffer[i++] & 0xFF);
+        if (mXml11) {
+            for (; i < last; ) {
+                char c = (char) (mBuffer[i++] & 0xFF);
+                if (c >= CHAR_DEL) {
+                    if (c <= 0x9F) {
+                        if (c == 0x85) { // NEL, let's convert?
+                            c = '\r';
+                        } else if (c >= 0x7F) { // DEL, ctrl chars
+                            int pos = mByteCount + mPtr;
+                            reportInvalidXml11(c, pos, pos);
+                        }
+                    }
+
+                }
+                cbuf[start++] = c;
+
+            }
+        } else {
+            for (; i < last; ) {
+                cbuf[start++] = (char) (mBuffer[i++] & 0xFF);
+            }
         }
 
         mPtr = last;

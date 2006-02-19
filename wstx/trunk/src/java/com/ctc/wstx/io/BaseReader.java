@@ -12,6 +12,11 @@ abstract class BaseReader
     protected final static char NULL_CHAR = (char) 0;
     protected final static char NULL_BYTE = (byte) 0;
 
+    /**
+     * DEL character is both the last ascii char, and illegal in xml 1.1.
+     */
+    final static char CHAR_DEL = (char) 127;
+
     protected InputStream mIn;
 
     protected byte[] mBuffer;
@@ -32,6 +37,21 @@ abstract class BaseReader
         mPtr = ptr;
         mLength = len;
     }
+
+    /*
+    ////////////////////////////////////////
+    // Configuration
+    ////////////////////////////////////////
+    */
+
+    /**
+     * Method that can be called to indicate the xml conformance used
+     * when reading content using this reader. Some of the character
+     * validity checks need to be done at reader level, and sometimes
+     * they depend on xml level (for example, xml 1.1 has new linefeeds
+     * and both more and less restricted characters).
+     */
+    public abstract void setXmlCompliancy(int xmlVersion);
 
     /*
     ////////////////////////////////////////
@@ -87,6 +107,13 @@ abstract class BaseReader
     {
         throw new IOException("Strange I/O stream, returned 0 bytes on read");
     }
-}
 
+    protected void reportInvalidXml11(int value, int bytePos, int charPos)
+        throws IOException
+    {
+        throw new CharConversionException("Invalid character 0x"
+                                          +Integer.toHexString(value)
+                                          +", can only be included in xml 1.1 using character entities (at char #"+charPos+", byte #"+bytePos+")");
+    }
+}
 

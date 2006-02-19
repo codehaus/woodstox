@@ -25,6 +25,7 @@ import org.codehaus.stax2.*;
 import org.codehaus.stax2.validation.*;
 
 import com.ctc.wstx.api.ReaderConfig;
+import com.ctc.wstx.cfg.XmlConsts;
 import com.ctc.wstx.exc.WstxIOException;
 import com.ctc.wstx.io.*;
 import com.ctc.wstx.util.DefaultXmlSymbolTable;
@@ -164,17 +165,17 @@ public class DTDValidatorFactory
         ReaderConfig cfg = mConfig.createNonShared(mRootSymbols.makeChild());
 
         try {
-            Reader r = bs.bootstrapInput(false, cfg.getXMLReporter(), null);
+            Reader r = bs.bootstrapInput(false, cfg.getXMLReporter(), XmlConsts.XML_V_UNKNOWN);
             if (ctxt == null) { // this is just needed as context for param entity expansion
                 ctxt = URLUtil.urlFromCurrentDir();
             }
-            /* Note: need to pass null for 'xmlVersion' here (as well as
+            /* Note: need to pass unknown for 'xmlVersion' here (as well as
              * above for bootstrapping), since this is assumed to be the main
              * level parsed document and no xml version compatibility checks
              * should be done.
              */
             WstxInputSource src = InputSourceFactory.constructEntitySource
-                (null, null, bs, publicId, systemId, /*(String)*/null, ctxt, r);
+                (null, null, bs, publicId, systemId, XmlConsts.XML_V_UNKNOWN, ctxt, r);
 
             /* true -> yes, fully construct for validation
              * (does not mean it has to be used for validation, but required

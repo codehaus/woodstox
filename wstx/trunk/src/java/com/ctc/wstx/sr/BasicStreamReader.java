@@ -416,8 +416,8 @@ public class BasicStreamReader
 
         // // // Then handling of xml declaration data:
 
-        mDocXmlVersion = bs.getVersion();
-        mXml11 = XmlConsts.XML_V_11.equals(mDocXmlVersion);
+        mDocXmlVersion = bs.getDeclaredVersion();
+        mXml11 = (XmlConsts.XML_V_11 == mDocXmlVersion);
         mDocInputEncoding = bs.getInputEncoding();
         mDocXmlEncoding = bs.getDeclaredEncoding();
 
@@ -511,8 +511,15 @@ public class BasicStreamReader
         return mDocInputEncoding;
     }
 
-    public String getVersion() {
-        return mDocXmlVersion;
+    public String getVersion()
+    {
+        if (mDocXmlVersion == XmlConsts.XML_V_10) {
+            return XmlConsts.XML_V_10_STR;
+        }
+        if (mDocXmlVersion == XmlConsts.XML_V_11) {
+            return XmlConsts.XML_V_11_STR;
+        }
+        return null; // unknown
     }
 
     public boolean isStandalone() {
@@ -2038,7 +2045,7 @@ public class BasicStreamReader
                 handleMultiDocXmlDecl();
             } else { // Nah, DOCTYPE or start element... just need to clear decl info:
                 mDocXmlEncoding = null;
-                mDocXmlVersion = null;
+                mDocXmlVersion = XmlConsts.XML_V_UNKNOWN;
                 mDocStandalone = DOC_STANDALONE_UNKNOWN;
             }
             return START_DOCUMENT;
@@ -2083,16 +2090,16 @@ public class BasicStreamReader
         tb.resetInitialized();
         parseQuoted(XmlConsts.XML_DECL_KW_VERSION, c, tb);
         
-        if (tb.equalsString(XmlConsts.XML_V_10)) {
+        if (tb.equalsString(XmlConsts.XML_V_10_STR)) {
             mDocXmlVersion = XmlConsts.XML_V_10;
             mXml11 = false;
-        } else if (tb.equalsString(XmlConsts.XML_V_11)) {
+        } else if (tb.equalsString(XmlConsts.XML_V_11_STR)) {
             mDocXmlVersion = XmlConsts.XML_V_11;
             mXml11 = true;
         } else {
-            mDocXmlVersion = null;
+            mDocXmlVersion = XmlConsts.XML_V_UNKNOWN;
             mXml11 = false;
-            throwParseError("Unexpected xml version '"+tb.toString()+"'; expected '"+XmlConsts.XML_V_10+"' or '"+XmlConsts.XML_V_11+"'");
+            throwParseError("Unexpected xml version '"+tb.toString()+"'; expected '"+XmlConsts.XML_V_10_STR+"' or '"+XmlConsts.XML_V_11_STR+"'");
         }
         
         c = getNextInCurrAfterWS(SUFFIX_IN_XML_DECL);

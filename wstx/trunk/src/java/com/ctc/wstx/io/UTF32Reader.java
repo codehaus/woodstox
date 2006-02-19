@@ -26,9 +26,9 @@ import com.ctc.wstx.cfg.XmlConsts;
 public final class UTF32Reader
     extends BaseReader
 {
-    final boolean mXml11;
-
     final boolean mBigEndian;
+
+    boolean mXml11;
 
     /**
      * Although input is fine with full Unicode set, Java still uses
@@ -58,13 +58,16 @@ public final class UTF32Reader
      *   compliant way, and we should check for high-order control chars
      *   here; if false, those are ok
      */
-    public UTF32Reader(InputStream in, boolean xml11mode,
-                       byte[] buf, int ptr, int len,
+    public UTF32Reader(InputStream in, byte[] buf, int ptr, int len,
                        boolean isBigEndian)
     {
         super(in, buf, ptr, len);
-        mXml11 = xml11mode;
         mBigEndian = isBigEndian;
+    }
+
+    public void setXmlCompliancy(int xmlVersion)
+    {
+        mXml11 = (xmlVersion == XmlConsts.XML_V_11);
     }
 
     /*

@@ -35,6 +35,7 @@ import org.codehaus.stax2.XMLStreamReader2;
 import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.api.WstxInputProperties;
 import com.ctc.wstx.cfg.InputConfigFlags;
+import com.ctc.wstx.cfg.XmlConsts;
 import com.ctc.wstx.dtd.DTDId;
 import com.ctc.wstx.dtd.DTDSubset;
 import com.ctc.wstx.evt.DefaultEventAllocator;
@@ -495,7 +496,7 @@ public final class WstxInputFactory
 
         Reader r;
         try {
-            r = bs.bootstrapInput(true, getXMLReporter(), null);
+            r = bs.bootstrapInput(true, getXMLReporter(), XmlConsts.XML_V_UNKNOWN);
         } catch (IOException ie) {
             throw new WstxIOException(ie);
         }

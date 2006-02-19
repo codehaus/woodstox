@@ -9,6 +9,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 
+import com.ctc.wstx.cfg.XmlConsts;
 import com.ctc.wstx.util.StringUtil;
 import com.ctc.wstx.util.URLUtil;
 
@@ -47,10 +48,10 @@ public final class DefaultInputResolver
      *   otherwise. Default implementation just ignores the identifier.
      * @param systemId System identifier of the resource. Although interface
      *   allows null/empty, default implementation considers this an error.
-     * @param xmlVersion Optional xml version identifier of the main parsed
+     * @param xmlVersion Xml version as declared by the main parsed
      *   document. Currently only relevant for checking that XML 1.0 document
      *   does not include XML 1.1 external parsed entities.
-     *   If null, no checks will be done.
+     *   If XML_V_UNKNOWN, no checks will be done.
      * @param customResolver Custom resolver to use first for resolution,
      *   if any (may be null).
      * @param rep Report object that can be used to report non-fatal problems
@@ -63,7 +64,7 @@ public final class DefaultInputResolver
     public static WstxInputSource resolveEntity
         (WstxInputSource refCtxt, String entityName,
          String publicId, String systemId,
-         XMLResolver customResolver, XMLReporter rep, String xmlVersion)
+         XMLResolver customResolver, XMLReporter rep, int xmlVersion)
         throws IOException, XMLStreamException
     {
         URL ctxt = (refCtxt == null) ? null : refCtxt.getSource();
@@ -97,7 +98,7 @@ public final class DefaultInputResolver
     public static WstxInputSource resolveEntityUsing
         (WstxInputSource refCtxt, String entityName,
          String publicId, String systemId,
-         XMLResolver resolver, XMLReporter rep, String xmlVersion)
+         XMLResolver resolver, XMLReporter rep, int xmlVersion)
         throws IOException, XMLStreamException
     {
         URL ctxt = (refCtxt == null) ? null : refCtxt.getSource();
@@ -123,7 +124,7 @@ public final class DefaultInputResolver
      */
     protected static WstxInputSource sourceFrom(WstxInputSource parent,
                                                 XMLReporter rep, String refName,
-                                                String xmlVersion,
+                                                int xmlVersion,
                                                 Object o)
         throws IllegalArgumentException, IOException, XMLStreamException
     {
@@ -169,26 +170,30 @@ public final class DefaultInputResolver
          *   against suggested one.
          */
         String normEnc = CharsetNames.normalize(encoding);
+        BaseReader r;
+
         if (normEnc == CharsetNames.CS_UTF8) {
-            return new UTF8Reader(in, isXml11, new byte[inputBufLen], 0, 0);
-        }
-        if (normEnc == CharsetNames.CS_ISO_LATIN1) {
-            return new ISOLatinReader(in, isXml11, new byte[inputBufLen], 0, 0);
-        }
-        if (normEnc == CharsetNames.CS_US_ASCII) {
-            return new AsciiReader(in, new byte[inputBufLen], 0, 0);
-        }
-        if (normEnc.startsWith(CharsetNames.CS_UTF32)) {
+            r = new UTF8Reader(in, new byte[inputBufLen], 0, 0);
+        } else if (normEnc == CharsetNames.CS_ISO_LATIN1) {
+            r = new ISOLatinReader(in, new byte[inputBufLen], 0, 0);
+        } else if (normEnc == CharsetNames.CS_US_ASCII) {
+            r = new AsciiReader(in, new byte[inputBufLen], 0, 0);
+        } else if (normEnc.startsWith(CharsetNames.CS_UTF32)) {
             boolean isBE = (normEnc == CharsetNames.CS_UTF32BE);
-            return new UTF32Reader(in, isXml11, new byte[inputBufLen], 0, 0,
-                                   isBE);
+            r = new UTF32Reader(in, new byte[inputBufLen], 0, 0, isBE);
+        } else {
+            try {
+                return new InputStreamReader(in, encoding);
+            } catch (UnsupportedEncodingException ex) {
+                throw new XMLStreamException("[unsupported encoding]: "+ex);
+            }
         }
 
-        try {
-            return new InputStreamReader(in, encoding);
-        } catch (UnsupportedEncodingException ex) {
-            throw new XMLStreamException("[unsupported encoding]: "+ex);
+        if (isXml11) { // only need to set if we are xml 1.1 compliant (1.0 is the default)
+            r.setXmlCompliancy(XmlConsts.XML_V_11);
         }
+
+        return r;
     }
 
     /*
@@ -198,7 +203,7 @@ public final class DefaultInputResolver
     */
 
     private static WstxInputSource sourceFromSS(WstxInputSource parent, XMLReporter rep,
-                                                String refName, String xmlVersion,
+                                                String refName, int xmlVersion,
                                                 StreamSource ssrc)
         throws IOException, XMLStreamException
     {
@@ -230,7 +235,7 @@ public final class DefaultInputResolver
     }
 
     private static WstxInputSource sourceFromURL(WstxInputSource parent, XMLReporter rep,
-                                                 String refName, String xmlVersion,
+                                                 String refName, int xmlVersion,
                                                  URL url,
                                                  String pubId, String sysId)
         throws IOException, XMLStreamException
@@ -262,7 +267,7 @@ public final class DefaultInputResolver
      * Note: public to give access for unit tests that need it...
      */
     public static WstxInputSource sourceFromString(WstxInputSource parent, XMLReporter rep, 
-                                                    String refName, String xmlVersion,
+                                                    String refName, int xmlVersion,
                                                    String refContent)
         throws IOException, XMLStreamException
     {
@@ -276,7 +281,7 @@ public final class DefaultInputResolver
 
     private static WstxInputSource sourceFromIS(WstxInputSource parent,
                                                 XMLReporter rep,
-                                                String refName, String xmlVersion,
+                                                String refName, int xmlVersion,
                                                 InputStream is,
                                                 String pubId, String sysId)
         throws IOException, XMLStreamException
@@ -294,7 +299,7 @@ public final class DefaultInputResolver
     }
 
     private static WstxInputSource sourceFromR(WstxInputSource parent, XMLReporter rep,
-                                               String refName, String xmlVersion,
+                                               String refName, int xmlVersion,
                                                Reader r,
                                                String pubId, String sysId)
         throws IOException, XMLStreamException

@@ -333,10 +333,10 @@ public abstract class StreamScanner
     String mDocXmlEncoding = null;
 
     /**
-     * XML version used by document, from XML declaration; null if no
-     * XML declaration found.
+     * XML version as declared by the document; one of constants
+     * from {@link XmlConsts} (like {@like XmlConsts#XML_V_10}).
      */
-    String mDocXmlVersion = null;
+    int mDocXmlVersion = XmlConsts.XML_V_UNKNOWN;
 
     /**
      * Flag that indicates whether XML version was declared as "1.1" (or
@@ -1610,11 +1610,9 @@ public abstract class StreamScanner
             WstxInputSource oldInput = mInput;
             oldInput.saveContext(this);
             // null, null -> no public or system ids
-            String xmlVersion = mDocXmlVersion;
-            /* 05-Feb-2006, TSa: If xmlVersion not explicitly known,
-             *    it defaults to 1.0
-             */
-            if (xmlVersion == null) {
+            int xmlVersion = mDocXmlVersion;
+            // 05-Feb-2006, TSa: If xmlVersion not explicitly known, defaults to 1.0
+            if (xmlVersion == XmlConsts.XML_V_UNKNOWN) {
                 xmlVersion = XmlConsts.XML_V_10;
             }
             WstxInputSource newInput = DefaultInputResolver.resolveEntityUsing

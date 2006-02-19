@@ -24,11 +24,11 @@ public final class InputSourceFactory
      * @param xmlVersion Optional xml version identifier of the main parsed
      *   document. Currently only relevant for checking that XML 1.0 document
      *   does not include XML 1.1 external parsed entities.
-     *   If null, no checks will be done.
+     *   If unknown, no checks will be done.
      */
     public static ReaderSource constructEntitySource
         (WstxInputSource parent, String entityName, InputBootstrapper bs,
-         String pubId, String sysId, String xmlVersion,
+         String pubId, String sysId, int xmlVersion,
          URL src, Reader r)
     {
         // true -> do close the underlying Reader at EOF

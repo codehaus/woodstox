@@ -102,20 +102,23 @@ public final class StreamBootstrapper
         return new StreamBootstrapper(in, pubId, sysId, bufSize);
     }
 
-    public Reader bootstrapInput(boolean mainDoc, XMLReporter rep, String xmlVersion)
+    public Reader bootstrapInput(boolean mainDoc, XMLReporter rep, int xmlVersion)
         throws IOException, XMLStreamException
     {
         String normEnc = null;
 
         resolveStreamEncoding();
         if (hasXmlDecl()) {
+            // note: readXmlDecl will set mXml11Handling too
             readXmlDecl(mainDoc, xmlVersion);
             if (mFoundEncoding != null) {
                 normEnc = verifyXmlEncoding(mFoundEncoding);
             }
         } else {
-            // We'll actually then just inherit whatever main doc had...
-            mXml11Handling = XmlConsts.XML_V_11.equals(xmlVersion);
+            /* We'll actually then just inherit whatever main doc had...
+             * (or in case there was no parent, just copy the 'unknown')
+             */
+            mXml11Handling = (XmlConsts.XML_V_11 == xmlVersion);
         }
 
         // Now, have we figured out the encoding?
@@ -141,48 +144,48 @@ public final class StreamBootstrapper
         /* And then the reader. Let's figure out if we can use our own fast
          * implementations first:
          */
-        Reader r = null;
+        BaseReader r;
 
         // Normalized, can thus use straight equality checks now
         if (normEnc == CharsetNames.CS_UTF8) {
-            return new UTF8Reader(mIn, mXml11Handling,
-                                  mByteBuffer, mInputPtr, mInputLen);
-        }
-        if (normEnc == CharsetNames.CS_ISO_LATIN1) {
-            return new ISOLatinReader(mIn, mXml11Handling,
-                                      mByteBuffer, mInputPtr, mInputLen);
-        }
-        if (normEnc == CharsetNames.CS_US_ASCII) {
-            return new AsciiReader(mIn, mByteBuffer, mInputPtr, mInputLen);
-        }
-        if (normEnc.startsWith(CharsetNames.CS_UTF32)) {
+            r = new UTF8Reader(mIn, mByteBuffer, mInputPtr, mInputLen);
+        } else if (normEnc == CharsetNames.CS_ISO_LATIN1) {
+            r = new ISOLatinReader(mIn, mByteBuffer, mInputPtr, mInputLen);
+        } else if (normEnc == CharsetNames.CS_US_ASCII) {
+            r = new AsciiReader(mIn, mByteBuffer, mInputPtr, mInputLen);
+        } else if (normEnc.startsWith(CharsetNames.CS_UTF32)) {
             // let's augment with actual endianness info
             if (normEnc == CharsetNames.CS_UTF32) {
                 mInputEncoding = mBigEndian ? CharsetNames.CS_UTF32BE : CharsetNames.CS_UTF32LE;
             }
-            return new UTF32Reader(mIn, mXml11Handling,
-                                   mByteBuffer, mInputPtr, mInputLen,
-                                   mBigEndian);
+            r = new UTF32Reader(mIn, mByteBuffer, mInputPtr, mInputLen,
+                                mBigEndian);
+        } else {
+            // Nah, JDK needs to try it
+            // Ok; first, do we need to merge stuff back?
+            InputStream in = mIn;
+            if (mInputPtr < mInputLen) {
+                in = new MergedStream(in, mByteBuffer, mInputPtr, mInputLen);
+            }
+            /* 20-Jan-2006, TSa: Ok; although it is possible to declare
+             *   stream as 'UTF-16', JDK may need help in figuring out
+             *   the right order, so let's be explicit:
+             */
+            if (normEnc == CharsetNames.CS_UTF16) {
+                mInputEncoding = normEnc = mBigEndian ? CharsetNames.CS_UTF16BE : CharsetNames.CS_UTF16LE;
+            }
+            try {
+                return new InputStreamReader(in, normEnc);
+            } catch (UnsupportedEncodingException usex) {
+                throw new WstxIOException("Unsupported encoding: "+usex.getMessage());
+            }
         }
 
-        // Nah, JDK needs to try it
-        // Ok; first, do we need to merge stuff back?
-        InputStream in = mIn;
-        if (mInputPtr < mInputLen) {
-            in = new MergedStream(in, mByteBuffer, mInputPtr, mInputLen);
+        if (mXml11Handling) {
+            r.setXmlCompliancy(XmlConsts.XML_V_11);
         }
-        /* 20-Jan-2006, TSa: Ok; although it is possible to declare
-         *   stream as 'UTF-16', JDK may need help in figuring out
-         *   the right order, so let's be explicit:
-         */
-        if (normEnc == CharsetNames.CS_UTF16) {
-            mInputEncoding = normEnc = mBigEndian ? CharsetNames.CS_UTF16BE : CharsetNames.CS_UTF16LE;
-        }
-        try {
-            return new InputStreamReader(in, normEnc);
-        } catch (UnsupportedEncodingException usex) {
-            throw new WstxIOException("Unsupported encoding: "+usex.getMessage());
-        }
+
+        return r;
     }
     
     /**

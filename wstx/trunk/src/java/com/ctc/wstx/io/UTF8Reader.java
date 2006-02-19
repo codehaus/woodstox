@@ -28,7 +28,7 @@ import com.ctc.wstx.cfg.XmlConsts;
 public final class UTF8Reader
     extends BaseReader
 {
-    final boolean mXml11;
+    boolean mXml11 = false;
 
     char mSurrogate = NULL_CHAR;
 
@@ -48,16 +48,14 @@ public final class UTF8Reader
     ////////////////////////////////////////
     */
 
-    /**
-     * @param xml11mode If true, character validity is done in xml1.1
-     *   compliant way, and we should check for high-order control chars
-     *   here; if false, those are ok
-     */
-    public UTF8Reader(InputStream in, boolean xml11mode,
-                      byte[] buf, int ptr, int len)
+    public UTF8Reader(InputStream in, byte[] buf, int ptr, int len)
     {
         super(in, buf, ptr, len);
-        mXml11 = xml11mode;
+    }
+
+    public void setXmlCompliancy(int xmlVersion)
+    {
+        mXml11 = (xmlVersion == XmlConsts.XML_V_11);
     }
 
     /*
@@ -220,8 +218,14 @@ public final class UTF8Reader
                 }
             } else { // (needed == 1)
                 if (mXml11) { // high-order ctrl char detection...
-                    if (c <= 0x9F && c >= 0x7F && c != 0x85) {
-                        reportInvalid(c, outPtr-start, "(can only be included via entity in xml 1.1)");
+                    if (c <= 0x9F) {
+                        if (c == 0x85) { // NEL, let's convert?
+                            c = '\r';
+                        } else if (c >= 0x7F) { // DEL, ctrl chars
+                            int bytePos = mByteCount + mPtr - 1;
+                            int charPos = mCharCount + (outPtr-start);
+                            reportInvalidXml11(c, bytePos, charPos);
+                        }
                     }
                 }
             }

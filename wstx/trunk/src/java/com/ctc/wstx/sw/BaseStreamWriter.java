@@ -727,11 +727,11 @@ public abstract class BaseStreamWriter
             /*if (encoding != null) {
             }*/
             if (version != null && version.length() > 0) {
-                if (!(version.equals(XmlConsts.XML_V_10)
-                      || version.equals(XmlConsts.XML_V_11))) {
+                if (!(version.equals(XmlConsts.XML_V_10_STR)
+                      || version.equals(XmlConsts.XML_V_11_STR))) {
                     throwIllegalArg("Illegal version argument ('"+version
-                                    +"'); should only use '"+XmlConsts.XML_V_10
-                                    +"' or '"+XmlConsts.XML_V_11+"'");
+                                    +"'); should only use '"+XmlConsts.XML_V_10_STR
+                                    +"' or '"+XmlConsts.XML_V_11_STR+"'");
                 }
             }
         }
@@ -743,7 +743,7 @@ public abstract class BaseStreamWriter
         /* 04-Feb-2006, TSa: Need to know if we are writing XML 1.1
          *   document...
          */
-        mXml11 = XmlConsts.XML_V_11.equals(version);
+        mXml11 = XmlConsts.XML_V_11_STR.equals(version);
 
         if (encoding != null && encoding.length() > 0) {
             /* 03-May-2005, TSa: But what about conflicting encoding? Let's
@@ -1235,7 +1235,7 @@ public abstract class BaseStreamWriter
      */
 
     public String getXmlVersion() {
-        return mXml11 ? XmlConsts.XML_V_11 : XmlConsts.XML_V_10;
+        return mXml11 ? XmlConsts.XML_V_11_STR : XmlConsts.XML_V_10_STR;
     }
 
     public abstract QName getCurrentElementName();

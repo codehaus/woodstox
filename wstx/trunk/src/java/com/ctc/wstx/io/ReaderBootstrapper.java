@@ -116,7 +116,7 @@ public final class ReaderBootstrapper
      *
      * @return Actual reader to use for reading xml content
      */
-    public Reader bootstrapInput(boolean mainDoc, XMLReporter rep, String xmlVersion)
+    public Reader bootstrapInput(boolean mainDoc, XMLReporter rep, int xmlVersion)
         throws IOException, XMLStreamException
     {
         initialLoad(7);

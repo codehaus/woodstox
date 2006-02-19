@@ -64,13 +64,13 @@ public class ParsedExtEntity
     
     public WstxInputSource expand(WstxInputSource parent,
                                   XMLResolver res, XMLReporter rep,
-                                  String xmlVersion)
+                                  int xmlVersion)
         throws IOException, XMLStreamException
     {
         /* 05-Feb-2006, TSa: If xmlVersion not explicitly known, it defaults
          *    to 1.0
          */
-        if (xmlVersion == null) {
+        if (xmlVersion == XmlConsts.XML_V_UNKNOWN) {
             xmlVersion = XmlConsts.XML_V_10;
         }
         return DefaultInputResolver.resolveEntity

@@ -68,7 +68,7 @@ public class UnparsedExtEntity
     
     public WstxInputSource expand(WstxInputSource parent,
                                   XMLResolver res, XMLReporter rep,
-                                  String xmlVersion)
+                                  int xmlVersion)
     {
         // Should never get called, actually...
         throw new Error("Internal error: createInputSource() called for unparsed (external) entity.");

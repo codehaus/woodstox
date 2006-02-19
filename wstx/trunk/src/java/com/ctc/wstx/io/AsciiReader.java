@@ -17,6 +17,8 @@ package com.ctc.wstx.io;
 
 import java.io.*;
 
+import com.ctc.wstx.cfg.XmlConsts;
+
 /**
  * Optimized Reader that reads ascii content from an input stream.
  * In addition to doing (hopefully) optimal conversion, it can also take
@@ -26,7 +28,7 @@ import java.io.*;
 public final class AsciiReader
     extends BaseReader
 {
-    final static char HIGH_ASCII = (char) 127;
+    boolean mXml11 = false;
 
    /**
      * Total read character count; used for error reporting purposes
@@ -43,6 +45,11 @@ public final class AsciiReader
     public AsciiReader(InputStream in, byte[] buf, int ptr, int len)
     {
         super(in, buf, ptr, len);
+    }
+
+    public void setXmlCompliancy(int xmlVersion)
+    {
+        mXml11 = (xmlVersion == XmlConsts.XML_V_11);
     }
 
     /*
@@ -93,8 +100,15 @@ public final class AsciiReader
 
         for (; i < last; ) {
             char c = (char) mBuffer[i++];
-            if (c > HIGH_ASCII) {
-                reportInvalidAscii(c);
+            if (c >= CHAR_DEL) {
+                if (c > CHAR_DEL) {
+                    reportInvalidAscii(c);
+                } else {
+                    if (mXml11) {
+                        int pos = mCharCount + mPtr;
+                        reportInvalidXml11(c, pos, pos);
+                    }
+                }
             }
             cbuf[start++] = c;
         }
