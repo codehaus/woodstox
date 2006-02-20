@@ -66,6 +66,12 @@ public abstract class DTDValidatorBase
     */
 
     /**
+     * Flag that indicates whether any of the elements declared has default
+     * attribute values for namespace declaration pseudo-attributes.
+     */
+    final boolean mHasNsDefaults;
+
+    /**
      * DTD schema ({@link DTDSubsetImpl}) object that created this validator
      * instance.
      */
@@ -169,11 +175,12 @@ public abstract class DTDValidatorBase
     ///////////////////////////////////////
     */
 
-    public DTDValidatorBase(DTDSubset schema, ValidationContext ctxt,
+    public DTDValidatorBase(DTDSubset schema, ValidationContext ctxt, boolean hasNsDefaults,
                             Map elemSpecs, Map genEntities)
     {
         mSchema = schema;
         mContext = ctxt;
+        mHasNsDefaults = hasNsDefaults;
         mElemSpecs = (elemSpecs == null || elemSpecs.size() == 0) ?
             Collections.EMPTY_MAP : elemSpecs;
         mGeneralEntities = genEntities;
@@ -362,6 +369,10 @@ public abstract class DTDValidatorBase
             mTmpAttrValueBuffer = new char[size];
         }
         return mTmpAttrValueBuffer;
+    }
+
+    public boolean hasNsDefaults() {
+        return mHasNsDefaults;
     }
 
     /*

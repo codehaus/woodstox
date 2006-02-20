@@ -52,6 +52,12 @@ public final class DTDSubsetImpl
      */
     final boolean mFullyValidating;
 
+    /**
+     * Flag that indicates whether any of the elements declarared
+     * has any attribute default values for namespace pseudo-attributes.
+     */
+    final boolean mHasNsDefaults;
+
     /*
     //////////////////////////////////////////////////////
     // Entity information
@@ -160,6 +166,19 @@ public final class DTDSubsetImpl
         mNotations = notations;
         mElements = elements;
         mFullyValidating = fullyValidating;
+
+        boolean anyNsDefs = false;
+        if (elements != null) {
+            Iterator it = elements.values().iterator();
+            while (it.hasNext()) {
+                DTDElement elem = (DTDElement) it.next();
+                if (elem.hasNsDefaults()) {
+                    anyNsDefs = true;
+                    break;
+                }
+            }
+        }
+        mHasNsDefaults = anyNsDefs;
     }
 
     public static DTDSubsetImpl constructInstance(boolean cachable,
@@ -251,10 +270,10 @@ public final class DTDSubsetImpl
         throws XMLStreamException
     {
         if (mFullyValidating) {
-            return new DTDValidator(this, ctxt, 
+            return new DTDValidator(this, ctxt, mHasNsDefaults,
                                     getElementMap(), getGeneralEntityMap());
         }
-        return new DTDTypingNonValidator(this, ctxt, 
+        return new DTDTypingNonValidator(this, ctxt, mHasNsDefaults,
                                          getElementMap(), getGeneralEntityMap());
 
     }

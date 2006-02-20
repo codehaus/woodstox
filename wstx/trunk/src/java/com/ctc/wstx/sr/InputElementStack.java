@@ -100,6 +100,15 @@ public abstract class InputElementStack
         mValidator = validator;
     }
 
+    /**
+     * Method called by the (validating) stream reader, to indicate that
+     * this input element stack needs to co-operate with an object
+     * that can provide default namespace declarations. While messy, this
+     * is needed to let DTDs work well with legacy handling of namespace
+     * declarations for some standard DTDs.
+     */
+    protected abstract void connectNsDefaultProvider(Object provider);
+
     protected boolean hasDTDValidator() {
         /* !!! 26-Nov-2005, TSa: Should be fixed once other pluggable
          *   validators are allowed

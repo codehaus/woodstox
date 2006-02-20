@@ -103,10 +103,10 @@ public class DTDValidator
     ///////////////////////////////////////
     */
 
-    public DTDValidator(DTDSubset schema, ValidationContext ctxt,
+    public DTDValidator(DTDSubset schema, ValidationContext ctxt, boolean hasNsDefaults,
                         Map elemSpecs, Map genEntities)
     {
-        super(schema, ctxt, elemSpecs, genEntities);
+        super(schema, ctxt, hasNsDefaults, elemSpecs, genEntities);
         mValidators = new StructValidator[DEFAULT_STACK_SIZE];
     }
 

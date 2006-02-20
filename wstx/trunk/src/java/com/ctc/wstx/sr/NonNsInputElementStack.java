@@ -26,6 +26,8 @@ import com.ctc.wstx.util.TextBuilder;
 public final class NonNsInputElementStack
     extends InputElementStack
 {
+    final static String INT_ERR_UNEXPECTED_CALL = "Internal error: method should never be called for non-namespace element stack.";
+
     /*
     //////////////////////////////////////////////////
     // Configuration
@@ -81,9 +83,19 @@ public final class NonNsInputElementStack
         mAttrCollector = new NonNsAttributeCollector(normAttrs);
     }
 
+    /**
+     * This method should never be called in non-ns-aware mode. However,
+     * it was defined in the base class to avoid caller having to do
+     * a cast (it can determine ns-awareness mode without casts).
+     */
+    protected void connectNsDefaultProvider(Object provider)
+    {
+        throw new Error(INT_ERR_UNEXPECTED_CALL);
+    }
+
     public final void push(String prefix, String localName)
     {
-        throw new Error("Internal error: push(prefix, localName) shouldn't be called for non-namespace element stack.");
+        throw new Error(INT_ERR_UNEXPECTED_CALL);
     }
 
     public final void push(String fullName)

@@ -75,10 +75,10 @@ public class DTDTypingNonValidator
     ///////////////////////////////////////////
     */
 
-    public DTDTypingNonValidator(DTDSubset schema, ValidationContext ctxt,
+    public DTDTypingNonValidator(DTDSubset schema, ValidationContext ctxt, boolean hasNsDefaults,
                                  Map elemSpecs, Map genEntities)
     {
-        super(schema, ctxt, elemSpecs, genEntities);
+        super(schema, ctxt, hasNsDefaults, elemSpecs, genEntities);
     }
 
     /*

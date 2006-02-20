@@ -82,6 +82,15 @@ public final class NsInputElementStack
 
     protected final NsAttributeCollector mAttrCollector;
 
+    /**
+     * Object that will need to be consulted about namespace bindings,
+     * since it has some knowledge about default namespace declarations
+     * (has default attribute value expansion).
+     *<p>
+     * !!! Need to determine real type.
+     */
+    protected Object mNsDefaultProvider;
+
     /*
     //////////////////////////////////////////////////
     // Element stack state information
@@ -164,6 +173,13 @@ public final class NsInputElementStack
         mElements = new String[initialSize << 2];
         mNsCounts = new int[initialSize];
         mAttrCollector = new NsAttributeCollector(normAttrs, prefixXml);
+    }
+
+    protected void connectNsDefaultProvider(Object provider)
+    {
+        mNsDefaultProvider = provider;
+
+        // !!! TBI: implement...
     }
 
     public final void push(String prefix, String localName)

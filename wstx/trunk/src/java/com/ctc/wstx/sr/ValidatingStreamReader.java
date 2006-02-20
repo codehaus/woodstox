@@ -38,7 +38,7 @@ import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.io.*;
 import com.ctc.wstx.dtd.DTDId;
 import com.ctc.wstx.dtd.DTDSubset;
-import com.ctc.wstx.dtd.DTDValidator;
+import com.ctc.wstx.dtd.DTDValidatorBase;
 import com.ctc.wstx.dtd.FullDTDReader;
 import com.ctc.wstx.util.ExceptionUtil;
 import com.ctc.wstx.util.URLUtil;
@@ -171,8 +171,8 @@ public class ValidatingStreamReader
         if (name.equals(FEATURE_DTD_OVERRIDE)) {
             mDTDOverridden = true;
             // null is ok, basically means "never use a DTD"...
-            if (value != null && !(value instanceof XMLValidationSchema)) {
-                throw new IllegalArgumentException("Value to set for feature "+name+" not of type XMLValidationSchema");
+            if (value != null && !(value instanceof DTDValidationSchema)) {
+                throw new IllegalArgumentException("Value to set for feature "+name+" not of type DTDValidationSchema");
             }
             mDTD = (DTDValidationSchema) value;
         } else {
@@ -313,10 +313,18 @@ public class ValidatingStreamReader
              *   still need to add a validator, but just to get type info
              *   and to add attribute default values if necessary.
              */
-            //if (hasConfigFlags(CFG_VALIDATE_AGAINST_DTD))
             XMLValidator vld = mDTD.createValidator(/*(ValidationContext)*/ mElementStack);
-            if (vld instanceof DTDValidator) {
-                ((DTDValidator) vld).setAttrValueNormalization(mCfgNormalizeAttrs);
+            if (vld instanceof DTDValidatorBase) {
+                DTDValidatorBase dtdv = (DTDValidatorBase) vld;
+                dtdv.setAttrValueNormalization(mCfgNormalizeAttrs);
+                /* 19-Feb-2006, TSa: This is messy, but we need to find a way
+                 *   to indicate namespaced input element stack that it may
+                 *   to co-operate with DTD validator with respect to default
+                 *   attribute values for namespace declarations...
+                 */
+                if (mCfgNsEnabled && dtdv.hasNsDefaults()) {
+                    mElementStack.connectNsDefaultProvider(dtdv);
+                }
             }
             mElementStack.setValidator(vld);
         }
