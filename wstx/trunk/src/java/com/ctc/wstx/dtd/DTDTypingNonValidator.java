@@ -109,7 +109,7 @@ public class DTDTypingNonValidator
         // Ok, can we find the element definition?
         mTmpKey.reset(prefix, localName);
         DTDElement elem = (DTDElement) mElemSpecs.get(mTmpKey);
-        // whether it's found, let's add a stack frame:
+        // whether it's found or not, let's add a stack frame:
         int elemCount = mElemCount++;
         if (elemCount >= mElems.length) {
             mElems = (DTDElement[]) DataUtil.growArrayBy50Pct(mElems);

@@ -24,6 +24,8 @@ import org.codehaus.stax2.validation.*;
 
 import com.ctc.wstx.api.WstxInputProperties;
 import com.ctc.wstx.exc.WstxValidationException;
+import com.ctc.wstx.sr.NsDefaultProvider;
+import com.ctc.wstx.sr.InputElementStack;
 import com.ctc.wstx.util.DataUtil;
 import com.ctc.wstx.util.ExceptionUtil;
 
@@ -36,6 +38,7 @@ import com.ctc.wstx.util.ExceptionUtil;
  */
 public abstract class DTDValidatorBase
     extends XMLValidator
+    implements NsDefaultProvider // for namespace attr defaults
 {
     /*
     /////////////////////////////////////////////////////
@@ -335,6 +338,45 @@ public abstract class DTDValidatorBase
             }
         }
         return -1;
+    }
+
+    /*
+    /////////////////////////////////////////////////////
+    // NsDefaultProvider interface
+    /////////////////////////////////////////////////////
+     */
+
+    /**
+     * Calling this method before {@link #checkNsDefaults} is necessary
+     * to pass information regarding the current element; although
+     * it will become available later on (via normal XMLValidator interface),
+     * that's too late (after namespace binding and resolving).
+     */
+    public boolean mayHaveNsDefaults(String elemPrefix, String elemLN)
+    {
+        mTmpKey.reset(elemPrefix, elemLN);
+        DTDElement elem = (DTDElement) mElemSpecs.get(mTmpKey);
+        mCurrElem = elem;
+        return (elem != null) && elem.hasNsDefaults();
+    }
+
+    public void checkNsDefaults(InputElementStack nsStack)
+    {
+        // We only get called if mCurrElem != null, and has defaults
+        HashMap m = mCurrElem.getNsDefaults();
+        if (m != null) {
+            Iterator it = m.entrySet().iterator();
+            while (it.hasNext()) {
+                Map.Entry me = (Map.Entry) it.next();
+                String prefix = (String) me.getKey();
+                String localURI = nsStack.getLocalNsURI(prefix);
+                if (localURI == null) {
+                    DTDAttribute attr = (DTDAttribute) me.getValue();
+                    String uri = attr.getDefaultValue();
+                    nsStack.addNsBinding(prefix, uri);
+                }
+            }
+        }
     }
 
     /*

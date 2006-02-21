@@ -86,10 +86,8 @@ public final class NsInputElementStack
      * Object that will need to be consulted about namespace bindings,
      * since it has some knowledge about default namespace declarations
      * (has default attribute value expansion).
-     *<p>
-     * !!! Need to determine real type.
      */
-    protected Object mNsDefaultProvider;
+    protected NsDefaultProvider mNsDefaultProvider;
 
     /*
     //////////////////////////////////////////////////
@@ -123,6 +121,8 @@ public final class NsInputElementStack
      * <code>mCurrNsCount - mNsCounts[mSize-1]</code>
      */
     protected int[] mNsCounts;
+
+    protected boolean mMayHaveNsDefaults = false;
 
     /*
     //////////////////////////////////////////////////
@@ -175,11 +175,9 @@ public final class NsInputElementStack
         mAttrCollector = new NsAttributeCollector(normAttrs, prefixXml);
     }
 
-    protected void connectNsDefaultProvider(Object provider)
+    protected void connectNsDefaultProvider(NsDefaultProvider provider)
     {
         mNsDefaultProvider = provider;
-
-        // !!! TBI: implement...
     }
 
     public final void push(String prefix, String localName)
@@ -210,6 +208,13 @@ public final class NsInputElementStack
         }
         mNsCounts[index] = mNamespaces.size();
         mAttrCollector.reset();
+
+        /* 20-Feb-2006, TSa: Hmmh. Namespace default provider unfortunately
+         *   needs an advance warning...
+         */
+        if (mNsDefaultProvider != null) {
+            mMayHaveNsDefaults = mNsDefaultProvider.mayHaveNsDefaults(prefix, localName);
+        }
     }
 
     public final void push(String fullName) {
@@ -217,6 +222,8 @@ public final class NsInputElementStack
     }
 
     /**
+     * Method called by the stream reader when encountering an end tag.
+     *
      * @return Validation state that should be effective for the parent
      *   element state
      */
@@ -347,6 +354,13 @@ public final class NsInputElementStack
                     }
                 }
             }
+        }
+
+        /* 20-Feb-2006, TSa: Any attribute defaults for namespace declaration
+         *   pseudo-attributes?
+         */
+        if (mMayHaveNsDefaults) {
+            mNsDefaultProvider.checkNsDefaults(this);
         }
 
         // Then, let's set element's namespace, if any:
@@ -658,6 +672,42 @@ public final class NsInputElementStack
 
     /*
     ///////////////////////////////////////////////////
+    // Support for NsDefaultProvider
+    ///////////////////////////////////////////////////
+     */
+
+    public final String getLocalNsURI(String internedPrefix)
+    {
+        int offset = mNsCounts[(mSize-1) >> 2];
+        for (int len = mNamespaces.size(); offset < len; offset += 2) {
+            // both interned, can use identity comparison
+            String thisPrefix = mNamespaces.getString(offset);
+            if (thisPrefix == internedPrefix) {
+                return mNamespaces.getString(offset+1);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Callback method called by the namespace default provider. At
+     * this point we can trust it to only call this method with valid
+     * arguments, so no checking is done.
+     */
+    public void addNsBinding(String prefix, String uri)
+    {
+        if (mInternNsURIs && uri.length() > 0) {
+            uri = sInternCache.intern(uri);
+        }
+
+        if (prefix == null || prefix.length() == 0) { // default NS
+            mElements[mSize-(ENTRY_SIZE - IX_DEFAULT_NS)] = uri;
+        }
+        mNamespaces.addStrings(prefix, uri);
+    }
+
+    /*
+    ///////////////////////////////////////////////////
     // Accessors:
     ///////////////////////////////////////////////////
      */
@@ -753,26 +803,28 @@ public final class NsInputElementStack
         int localCount = (mNamespaces.size() - offset);
         index <<= 1; // 2 entries, prefix/URI for each NS
         if (index < 0 || index >= localCount) {
-            throw new IllegalArgumentException("Illegal namespace index "
-                                           +(index >> 1)
-                                           +"; current scope only has "
-                                           +(localCount >> 1)
-                                           +" namespace declarations.");
+            throwIllegalIndex(index >> 1, localCount >> 1);
         }
         return mNamespaces.getString(offset + index);
     }
 
-    public final String getLocalNsURI(int index) {
+    public final String getLocalNsURI(int index)
+    {
         int offset = mNsCounts[(mSize-1) >> 2];
         int localCount = (mNamespaces.size() - offset);
         index <<= 1; // 2 entries, prefix/URI for each NS
         if (index < 0 || index >= localCount) {
-            throw new IllegalArgumentException("Illegal namespace index "
+            throwIllegalIndex(index >> 1, localCount >> 1);
+        }
+        return mNamespaces.getString(offset + index + 1);
+    }
+
+    private void throwIllegalIndex(int index, int localCount)
+    {
+        throw new IllegalArgumentException("Illegal namespace index "
                                            +(index >> 1)
                                            +"; current scope only has "
                                            +(localCount >> 1)
                                            +" namespace declarations.");
-        }
-        return mNamespaces.getString(offset + index + 1);
     }
 }

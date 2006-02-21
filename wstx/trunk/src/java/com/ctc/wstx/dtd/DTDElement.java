@@ -115,7 +115,7 @@ public final class DTDElement
      * Set of namespace declarations with default values, if any
      * (regular ns pseudo-attr declarations are just ignored)
      */
-    HashMap mNsMap = null; // [String : DTDAttribute]
+    HashMap mNsDefaults = null; // [String : DTDAttribute]
 
     /*
     ///////////////////////////////////////////////////
@@ -177,7 +177,7 @@ public final class DTDElement
         elem.mAnyDefaults = mAnyDefaults;
         elem.mIdAttr = mIdAttr;
         elem.mNotationAttr = mNotationAttr;
-        elem.mNsMap = mNsMap;
+        elem.mNsDefaults = mNsDefaults;
 
         return elem;
     }
@@ -296,13 +296,13 @@ public final class DTDElement
      * Method called to add a definition of a namespace-declaration
      * pseudo-attribute with a default value.
      *
-     * @return True if the declaration was added; false to indicate it
+     * @return Attribute that acts as the placeholder, if the declaration
+     *   was added; null to indicate it
      *   was a dup (there was an earlier declaration)
      */
-    public boolean addNsDefault(InputProblemReporter rep,
-                                NameKey attrName, int valueType, int defValueType,
-                                String defValue,
-                                boolean fullyValidate)
+    public DTDAttribute addNsDefault
+        (InputProblemReporter rep, NameKey attrName, int valueType, int defValueType,
+         String defValue, boolean fullyValidate)
         throws WstxException
     {
         /* Let's simplify handling a bit: although theoretically all
@@ -328,15 +328,15 @@ public final class DTDElement
             prefix = attrName.getLocalName();
         }
 
-        if (mNsMap == null) {
-            mNsMap = new HashMap();
+        if (mNsDefaults == null) {
+            mNsDefaults = new HashMap();
         } else {
-            if (mNsMap.containsKey(prefix)) {
-                return false;
+            if (mNsDefaults.containsKey(prefix)) {
+                return null;
             }
         }
-        mNsMap.put(prefix, nsAttr);
-        return true;
+        mNsDefaults.put(prefix, nsAttr);
+        return nsAttr;
     }
 
     public void mergeMissingAttributesFrom(InputProblemReporter rep, DTDElement other,
@@ -373,18 +373,18 @@ public final class DTDElement
             }
         }
 
-        HashMap otherNs = other.mNsMap;
+        HashMap otherNs = other.mNsDefaults;
         if (otherNs != null) {
-            if (mNsMap == null) {
-                mNsMap = new HashMap();
+            if (mNsDefaults == null) {
+                mNsDefaults = new HashMap();
             }
             Iterator it = otherNs.entrySet().iterator();
             while (it.hasNext()) {
                 Map.Entry me = (Map.Entry) it.next();
                 Object key = me.getKey();
                 // Should only add if no such attribute exists...
-                if (!mNsMap.containsKey(key)) {
-                    mNsMap.put(key, me.getValue());
+                if (!mNsDefaults.containsKey(key)) {
+                    mNsDefaults.put(key, me.getValue());
                 }
             }
         }
@@ -511,7 +511,7 @@ public final class DTDElement
     }
 
     public boolean hasNsDefaults() {
-        return (mNsMap != null);
+        return (mNsDefaults != null);
     }
 
     /*
@@ -523,6 +523,10 @@ public final class DTDElement
     public StructValidator getValidator()
     {
         return (mValidator == null) ? null : mValidator.newInstance();
+    }
+
+    protected HashMap getNsDefaults() {
+        return mNsDefaults;
     }
 
     /*

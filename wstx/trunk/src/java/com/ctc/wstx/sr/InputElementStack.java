@@ -107,7 +107,7 @@ public abstract class InputElementStack
      * is needed to let DTDs work well with legacy handling of namespace
      * declarations for some standard DTDs.
      */
-    protected abstract void connectNsDefaultProvider(Object provider);
+    protected abstract void connectNsDefaultProvider(NsDefaultProvider provider);
 
     protected boolean hasDTDValidator() {
         /* !!! 26-Nov-2005, TSa: Should be fixed once other pluggable
@@ -240,6 +240,15 @@ public abstract class InputElementStack
      */
     public abstract int addDefaultAttribute(String localName, String uri, String prefix,
                                             String value);
+    /*
+    ///////////////////////////////////////////////////
+    // Support for NsDefaultProvider
+    ///////////////////////////////////////////////////
+     */
+
+    public abstract String getLocalNsURI(String internedPrefix);
+
+    public abstract void addNsBinding(String prefix, String uri);
 
     /*
     ///////////////////////////////////////////////////

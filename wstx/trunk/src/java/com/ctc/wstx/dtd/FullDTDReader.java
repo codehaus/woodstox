@@ -2591,6 +2591,8 @@ public class FullDTDReader
             }
         }
 
+        DTDAttribute attr;
+
         /* 17-Feb-2006, TSa: Ok. So some (legacy?) DTDs do declare namespace
          *    declarations too... sometimes including default values.
          */
@@ -2605,19 +2607,15 @@ public class FullDTDReader
             }
             // But defaulting... Hmmh.
 
-            elem.addNsDefault(this, attrName, type, defType,
-                              defVal, mCfgFullyValidating);
-            // !!! TBI
-            XMLReporter rep = mConfig.getXMLReporter();
-            if (rep != null) {
-                reportProblem(rep, ErrorConsts.WT_ATTR_DECL, "Attribute default for namespace declaration '"+attrName+"': not yet implemented", loc, elem);
-            }
-            return;
+            attr = elem.addNsDefault(this, attrName, type, defType,
+                                     defVal, mCfgFullyValidating);
+        } else {
+            attr = elem.addAttribute(this, attrName, type, defType,
+                                     defVal, enumValues,
+                                     mCfgFullyValidating);
         }
+
         // getting null means this is a dup...
-        DTDAttribute attr = elem.addAttribute(this, attrName, type, defType,
-                                              defVal, enumValues,
-                                              mCfgFullyValidating);
         if (attr == null) {
             // anyone interested in knowing about possible problem?
             XMLReporter rep = mConfig.getXMLReporter();
@@ -2626,11 +2624,10 @@ public class FullDTDReader
                 reportProblem(rep, ErrorConsts.WT_ATTR_DECL, msg, loc, elem);
             }
         } else {
-            /* 21-Jan-2006, TSa: Should only validate in fully validating
-             *   mode.
-             */
             if (defVal != null) {
+                // always normalize
                 attr.normalizeDefault();
+                // but only validate in validating mode:
                 if (mCfgFullyValidating) {
                     attr.validateDefault(this, mCfgNormAttrs);
                 }

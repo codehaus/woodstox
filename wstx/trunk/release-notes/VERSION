@@ -1,11 +1,34 @@
-Version: 2.9
+Version: 2.9.1
 
-Release date: 22-Jan-2006
+Release date: 21-Feb-2006
 
 Description:
-  One more important pre-3.0 release that fixes lots of various compatibility
-  issues, as well as a few bugs especially in the areas of encodings and
-  handling of various DTD problems.
+  One more important pre-3.0 release that fixes most of remaining XML
+  conformance issues (and is, as a by-product, much more similar in
+  behavior to SAX parsers like Xerces).
+
+  Problems fixed:
+
+  * Numerous fixes to XML conformance; especially in areas of:
+     * Valid xml character (for xml 1.0 as well as 1.1) checks
+     * XML 1.1 vs 1.0 handling
+     * Distinction between Well-Formedness Constraints (WFC, fatal)
+       and Validation Constraints (VC); latter only thrown in validating
+       mode.
+     * Input nesting checks for Parameter and General Entity expansions
+       (elements and GE expansions have to nest properly; similarly
+       PE and DTD declarations have to properly nest).
+
+  Improvements:
+
+  * Woodstox now handles gracefully namespaces that are declared using
+    default attribute declarations (as well as basic namespace declaration
+    entries in DTDs -- while unnecessary, some legacy DTDs use these).
+  * Added UTF-32 reader since JDK does not come with one.
+
+== History: ==
+
+2.9 [22-Jan-2006]
 
   Problems fixed:
 
@@ -30,8 +53,6 @@ Description:
   * [WSTX-30] Non-validating-but-DTD-aware mode now works better: attribute
     type information as well as attribute default values will now work, so
     validation only needs to be enabled for actual validation features.
-
-== History: ==
 
 2.8.2 [31-Dec-2005]
 

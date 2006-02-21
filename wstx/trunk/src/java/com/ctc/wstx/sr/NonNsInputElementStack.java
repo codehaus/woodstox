@@ -88,7 +88,7 @@ public final class NonNsInputElementStack
      * it was defined in the base class to avoid caller having to do
      * a cast (it can determine ns-awareness mode without casts).
      */
-    protected void connectNsDefaultProvider(Object provider)
+    protected void connectNsDefaultProvider(NsDefaultProvider provider)
     {
         throw new Error(INT_ERR_UNEXPECTED_CALL);
     }
@@ -317,6 +317,20 @@ public final class NonNsInputElementStack
 
     /*
     ///////////////////////////////////////////////////
+    // Support for NsDefaultProvider
+    ///////////////////////////////////////////////////
+     */
+
+    public final String getLocalNsURI(String internedPrefix) {
+        return null;
+    }
+
+    public void addNsBinding(String prefix, String uri) {
+        // should never be called... but let's just ignore it.
+    }
+
+    /*
+    ///////////////////////////////////////////////////
     // Accessors:
     ///////////////////////////////////////////////////
      */
@@ -382,11 +396,16 @@ public final class NonNsInputElementStack
     }
 
     public final String getLocalNsPrefix(int index) { 
-        throw new IllegalArgumentException("Illegal namespace index "+index
-                                           +"; current scope has no namespace declarations.");
+        throwIllegalIndex(index);
+        return null;
     }
 
     public final String getLocalNsURI(int index) { 
+        throwIllegalIndex(index);
+        return null;
+    }
+
+    private static void throwIllegalIndex(int index) {
         throw new IllegalArgumentException("Illegal namespace index "+index
                                            +"; current scope has no namespace declarations.");
     }
