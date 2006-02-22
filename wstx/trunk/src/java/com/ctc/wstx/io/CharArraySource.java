@@ -39,6 +39,14 @@ public final class CharArraySource
         mContentStart = loc;
     }
 
+    /**
+     * This is a hard-coded assumption, but yes, for now this source is
+     * only created from internal entities.
+     */
+    public boolean fromInternalEntity() {
+        return true;
+    }
+
     public int getInputBufferLength() {
         return (mParent == null) ? DEFAULT_BUFFER_SIZE
             : mParent.getInputBufferLength();

@@ -130,17 +130,20 @@ public final class UTF32Reader
             // Does it need to be split to surrogates?
             // (also, we can and need to verify illegal chars)
             if (ch >= 0x7F) {
-                if (mXml11) { // high-order ctrl char detection...
-                    if (ch <= 0x9F && ch != 0x85) {
-                        reportInvalid(ch, outPtr-start, "(can only be included via entity in xml 1.1)");
+                if (ch <= 0x9F) {
+                    if (mXml11) { // high-order ctrl char detection...
+                        if (ch != 0x85) {
+                            reportInvalid(ch, outPtr-start, "(can only be included via entity in xml 1.1)");
+                        }
+                        ch = CONVERT_NEL_TO;
                     }
                 } else if (ch >= 0xD800) {
-                    if (ch <= 0xFFFF) { // need to split into surrogates?
-                        // Illegal?
-                        if (ch > XmlConsts.MAX_UNICODE_CHAR) {
-                            reportInvalid(ch, outPtr-start,
-                                          "(above "+Integer.toHexString(XmlConsts.MAX_UNICODE_CHAR)+") ");
-                        }
+                    // Illegal?
+                    if (ch > XmlConsts.MAX_UNICODE_CHAR) {
+                        reportInvalid(ch, outPtr-start,
+                                      "(above "+Integer.toHexString(XmlConsts.MAX_UNICODE_CHAR)+") ");
+                    }
+                    if (ch > 0xFFFF) { // need to split into surrogates?
                         ch -= 0x10000; // to normalize it starting with 0x0
                         cbuf[outPtr++] = (char) (0xD800 + (ch >> 10));
                         // hmmh. can this ever be 0? (not legal, at least?)
@@ -152,12 +155,13 @@ public final class UTF32Reader
                         }
                     } else { // in 16-bit range... just need validity checks
                         if (ch < 0xE000) {
-                            reportInvalid(ch, outPtr-start,
-                                          "(a surrogate char) ");
+                            reportInvalid(ch, outPtr-start, "(a surrogate char) ");
                         } else if (ch >= 0xFFFE) {
                             reportInvalid(ch, outPtr-start, "");
                         }
                     }
+                } else if (ch == 0x2028 && mXml11) { // LSEP
+                    ch = CONVERT_LSEP_TO;
                 }
             }
             cbuf[outPtr++] = (char) ch;

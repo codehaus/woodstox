@@ -328,7 +328,6 @@ public class BasicStreamReader
 
     protected final boolean mCfgCoalesceText;
 
-    protected final boolean mCfgNormalizeLFs;
     protected final boolean mCfgNormalizeAttrs;
     protected final boolean mCfgReportTextAsChars;
     protected final boolean mCfgLazyParsing;
@@ -378,7 +377,6 @@ public class BasicStreamReader
 
         mConfigFlags = cfg.getConfigFlags();
 
-        mCfgNormalizeLFs = (mConfigFlags & CFG_NORMALIZE_LFS) != 0;
         mCfgNormalizeAttrs = (mConfigFlags & CFG_NORMALIZE_ATTR_VALUES) != 0;
         mCfgCoalesceText = (mConfigFlags & CFG_COALESCE_TEXT) != 0;
         mCfgReportTextAsChars = (mConfigFlags & CFG_REPORT_ALL_TEXT_AS_CHARACTERS) != 0;

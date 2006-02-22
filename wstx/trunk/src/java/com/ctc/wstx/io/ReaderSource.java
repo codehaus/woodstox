@@ -59,6 +59,14 @@ public class ReaderSource
     }
 
     /**
+     * This is a hard-coded assumption, for now this source is
+     * only created from external entities
+     */
+    public boolean fromInternalEntity() {
+        return false;
+    }
+
+    /**
      * Note: only used to carry forward the configuration value for
      * the input buffer size; it has no additional semantics.
      */

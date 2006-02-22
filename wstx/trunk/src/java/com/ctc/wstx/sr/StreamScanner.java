@@ -204,6 +204,17 @@ public abstract class StreamScanner
      */
     protected boolean mCfgReplaceEntities;
 
+    /**
+     * Flag that indicates whether linefeeds in the input data are to
+     * be normalized or not.
+     *<p>
+     * Note: xml specs mandate that the line feeds are only normalized
+     * when they are from the external entities (main doc, external
+     * general/parsed entities), meaning that normalization has to be
+     * suppressed when expanding internal general/parsed entities.
+     */
+    protected boolean mCfgNormalizeLFs;
+
     /*
     ////////////////////////////////////////////////////
     // Symbol handling, if applicable
@@ -336,12 +347,11 @@ public abstract class StreamScanner
      * XML version as declared by the document; one of constants
      * from {@link XmlConsts} (like {@like XmlConsts#XML_V_10}).
      */
-    int mDocXmlVersion = XmlConsts.XML_V_UNKNOWN;
+    protected int mDocXmlVersion = XmlConsts.XML_V_UNKNOWN;
 
     /**
-     * Flag that indicates whether XML version was declared as "1.1" (or
-     * in future, if new versions get supported above). Needed to
-     * distinguish some of the features used.
+     * Flag that indicates whether XML content is to be treated as per
+     * XML 1.1 specification or not (if not, it'll use xml 1.0).
      */
     protected boolean mXml11 = false;
 
@@ -368,6 +378,7 @@ public abstract class StreamScanner
         int cf = cfg.getConfigFlags();
         mCfgNsEnabled = (cf & CFG_NAMESPACE_AWARE) != 0;
         mCfgReplaceEntities = (cf & CFG_REPLACE_ENTITY_REFS) != 0;
+        mCfgNormalizeLFs = (cf & CFG_NORMALIZE_LFS) != 0;
 
         mInputBuffer = null;
         mInputPtr = mInputLen = 0;
@@ -898,6 +909,14 @@ public abstract class StreamScanner
          */
         mInputTopDepth = mCurrDepth;
         mInput.initInputLocation(this, mCurrDepth);
+        /* 21-Feb-2006, TSa: Linefeeds are NOT normalized when expanding
+         *   internal entities (XML, 2.11)
+         */
+        if (isExt) {
+            mCfgNormalizeLFs = mConfig.willNormalizeLFs();
+        } else {
+            mCfgNormalizeLFs = false;
+        }
     }
 
     /**
@@ -944,6 +963,13 @@ public abstract class StreamScanner
             mInput = input = parent;
             input.restoreContext(this);
             mInputTopDepth = input.getScopeId();
+            /* 21-Feb-2006, TSa: Since linefeed normalization needs to be
+             *   suppressed for internal entity expansion, we may need to
+             *   change the state...
+             */
+            if (mCfgNormalizeLFs != mConfig.willNormalizeLFs()) {
+                mCfgNormalizeLFs = !input.fromInternalEntity();
+            }
             // Maybe there are leftovers from that input in buffer now?
         } while (mInputPtr >= mInputLen);
 
@@ -1999,7 +2025,7 @@ public abstract class StreamScanner
      * likely to be a bottleneck for parsing.
      */
     protected final String parseSystemId(char quoteChar, boolean convertLFs,
-					 String errorMsg)
+                                         String errorMsg)
         throws IOException, XMLStreamException
     {
         char[] buf = getNameBuffer(-1);

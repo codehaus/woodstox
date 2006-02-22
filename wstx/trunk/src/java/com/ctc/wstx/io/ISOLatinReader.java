@@ -1,6 +1,6 @@
 /* Woodstox XML processor
  *
- * Copyright (c) 2004 Tatu Saloranta, tatu.saloranta@iki.fi
+ * Copyright (c) 2004- Tatu Saloranta, tatu.saloranta@iki.fi
  *
  * Licensed under the License specified in file LICENSE, included with
  * the source code.
@@ -106,7 +106,7 @@ public final class ISOLatinReader
                 if (c >= CHAR_DEL) {
                     if (c <= 0x9F) {
                         if (c == 0x85) { // NEL, let's convert?
-                            c = '\r';
+                            c = CONVERT_NEL_TO;
                         } else if (c >= 0x7F) { // DEL, ctrl chars
                             int pos = mByteCount + mPtr;
                             reportInvalidXml11(c, pos, pos);

@@ -214,13 +214,15 @@ public final class UTF8Reader
                         } else if (c >= 0xFFFE) {
                             reportInvalid(c, outPtr-start, "");
                         }
+                    } else if (mXml11 && c == 0x2028) { // LSEP?
+                        c = CONVERT_LSEP_TO;
                     }
                 }
             } else { // (needed == 1)
                 if (mXml11) { // high-order ctrl char detection...
                     if (c <= 0x9F) {
                         if (c == 0x85) { // NEL, let's convert?
-                            c = '\r';
+                            c = CONVERT_NEL_TO;
                         } else if (c >= 0x7F) { // DEL, ctrl chars
                             int bytePos = mByteCount + mPtr - 1;
                             int charPos = mCharCount + (outPtr-start);

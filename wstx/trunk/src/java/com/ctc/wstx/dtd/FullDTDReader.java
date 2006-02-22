@@ -30,16 +30,13 @@ import org.codehaus.stax2.validation.XMLValidator;
 
 import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.cfg.ErrorConsts;
+import com.ctc.wstx.cfg.XmlConsts;
 import com.ctc.wstx.compat.JdkFeatures;
 import com.ctc.wstx.ent.*;
 import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.io.WstxInputData;
 import com.ctc.wstx.io.WstxInputSource;
-import com.ctc.wstx.util.InternCache;
-import com.ctc.wstx.util.StringVector;
-import com.ctc.wstx.util.SymbolTable;
-import com.ctc.wstx.util.TextBuffer;
-import com.ctc.wstx.util.WordResolver;
+import com.ctc.wstx.util.*;
 
 /**
  * Reader that reads in DTD information from internal or external subset.
@@ -62,6 +59,13 @@ import com.ctc.wstx.util.WordResolver;
 public class FullDTDReader
     extends MinimalDTDReader
 {
+    /* These settings toggle on some SAX compatibility features...
+     */
+    final static boolean RESOLVE_NOTATION_SYSID = false;
+    //final static boolean RESOLVE_NOTATION_SYSID = true;
+    final static boolean RESOLVE_UNPARSED_ENTITY_SYSID = false;
+    //final static boolean RESOLVE_UNPARSED_ENTITY_SYSID = true;
+
     /**
      * Flag that can be changed to enable or disable interning of shared
      * names; shared names are used for enumerated values to reduce
@@ -85,8 +89,6 @@ public class FullDTDReader
     final int mConfigFlags;
 
     // Extracted wstx-specific settings:
-
-    final boolean mCfgNormalizeLFs;
 
     final boolean mCfgNormAttrs;
 
@@ -299,9 +301,9 @@ public class FullDTDReader
      * Constructor used for reading/skipping internal subset.
      */
     private FullDTDReader(WstxInputSource input, ReaderConfig cfg,
-                          boolean constructFully, boolean xml11)
+                          boolean constructFully, int xmlVersion)
     {
-        this(input, cfg, false, null, constructFully, xml11);
+        this(input, cfg, false, null, constructFully, xmlVersion);
     }
 
     /**
@@ -309,9 +311,9 @@ public class FullDTDReader
      */
     private FullDTDReader(WstxInputSource input, ReaderConfig cfg, 
                           DTDSubset intSubset,
-                          boolean constructFully, boolean xml11)
+                          boolean constructFully, int xmlVersion)
     {
-        this(input, cfg, true, intSubset, constructFully, xml11);
+        this(input, cfg, true, intSubset, constructFully, xmlVersion);
 
         // Let's make sure line/col offsets are correct...
         input.initInputLocation(this, mCurrDepth);
@@ -322,13 +324,16 @@ public class FullDTDReader
      */
     private FullDTDReader(WstxInputSource input, ReaderConfig cfg,
                           boolean isExt, DTDSubset intSubset,
-                          boolean constructFully, boolean xml11)
+                          boolean constructFully, int xmlVersion)
     {
         super(input, cfg, isExt);
-        mXml11 = xml11;
+        /* What matters here is what the main xml doc had; that determines
+         * xml conformance level to use.
+         */
+        mDocXmlVersion = xmlVersion;
+        mXml11 = (xmlVersion == XmlConsts.XML_V_11);
         int cfgFlags = cfg.getConfigFlags();
         mConfigFlags = cfgFlags;
-        mCfgNormalizeLFs = (cfgFlags & CFG_NORMALIZE_LFS) != 0;
         mCfgNormAttrs = (cfgFlags & CFG_NORMALIZE_ATTR_VALUES) != 0;
         mCfgSupportDTDPP = (cfgFlags & CFG_SUPPORT_DTDPP) != 0;
         mCfgFullyValidating = constructFully;
@@ -374,12 +379,11 @@ public class FullDTDReader
                                                WstxInputSource input,
                                                ReaderConfig cfg,
                                                boolean constructFully,
-                                               boolean xml11)
+                                               int xmlVersion)
         throws IOException, XMLStreamException
     {
-        FullDTDReader r = new FullDTDReader(input, cfg, constructFully, xml11);
-        /* Need to read using same low-level reader interface:
-         */
+        FullDTDReader r = new FullDTDReader(input, cfg, constructFully, xmlVersion);
+        // Need to read using the same low-level reader interface:
         r.copyBufferStateFrom(srcData);
         DTDSubset ss;
 
@@ -400,10 +404,10 @@ public class FullDTDReader
      */
     public static DTDSubset readExternalSubset
         (WstxInputSource src, ReaderConfig cfg, DTDSubset intSubset, 
-         boolean constructFully, boolean xml11)
+         boolean constructFully, int xmlVersion)
         throws IOException, XMLStreamException
     {
-        FullDTDReader r = new FullDTDReader(src, cfg, intSubset, constructFully, xml11);
+        FullDTDReader r = new FullDTDReader(src, cfg, intSubset, constructFully, xmlVersion);
         return r.parseDTD();
     }
 
@@ -442,7 +446,7 @@ public class FullDTDReader
         /* Let's assume xml 1.0... can be taken as an arg later on, if we
          * truly care.
          */
-        FullDTDReader r = new FullDTDReader(src, cfg, null, true, false);
+        FullDTDReader r = new FullDTDReader(src, cfg, null, true, XmlConsts.XML_V_UNKNOWN);
         r.setFlattenWriter(flattenWriter, inclComments, inclConditionals,
                            inclPEs);
         DTDSubset ss = r.parseDTD();
@@ -2359,6 +2363,14 @@ public class FullDTDReader
          */
         if (c == '"' || c == '\'') {
             sysId = parseSystemId(c, mCfgNormalizeLFs, getErrorMsg());
+
+            /* 21-Feb-2006, TSa: For SAX compatibility, we should resolve
+             *   system identifier for notations...
+             */
+            if (RESOLVE_NOTATION_SYSID) {
+                URL u = URLUtil.urlFromSystemId(sysId, mInput.getSource());
+                sysId = u.toExternalForm();
+            }
             c = skipDtdWs(true);
         } else {
             if (!isPublic) {
@@ -3049,6 +3061,10 @@ public class FullDTDReader
         }
 
         // unparsed entity
+        if (RESOLVE_UNPARSED_ENTITY_SYSID) { // SAX compatibility?
+            URL u = URLUtil.urlFromSystemId(sysId, mInput.getSource());
+            sysId = u.toExternalForm();
+        }
         return new UnparsedExtEntity(evtLoc, id, getSource(),
                                      pubId, sysId, notationId);
     }

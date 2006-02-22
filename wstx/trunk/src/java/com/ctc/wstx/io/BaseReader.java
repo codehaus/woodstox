@@ -13,6 +13,18 @@ abstract class BaseReader
     protected final static char NULL_BYTE = (byte) 0;
 
     /**
+     * In xml 1.1, NEL (0x85) behaves much the way \n does (can
+     * be follow \r as part of the linefeed
+     */
+    protected final static char CONVERT_NEL_TO = '\n';
+
+    /**
+     * In xml 1.1, LSEP bit like \n, or \r. Need to choose one as the
+     * result. Let's use \n, for simplicity
+     */
+    protected final static char CONVERT_LSEP_TO = '\n';
+
+    /**
      * DEL character is both the last ascii char, and illegal in xml 1.1.
      */
     final static char CHAR_DEL = (char) 127;

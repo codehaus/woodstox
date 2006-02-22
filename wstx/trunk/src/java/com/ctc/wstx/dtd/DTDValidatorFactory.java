@@ -181,7 +181,7 @@ public class DTDValidatorFactory
              * (does not mean it has to be used for validation, but required
              * if it is to be used for that purpose)
              */
-            return FullDTDReader.readExternalSubset(src, cfg, /*int.subset*/null, true, bs.declaredXml11());
+            return FullDTDReader.readExternalSubset(src, cfg, /*int.subset*/null, true, bs.getDeclaredVersion());
         } catch (IOException ioe) {
             throw new WstxIOException(ioe);
         }

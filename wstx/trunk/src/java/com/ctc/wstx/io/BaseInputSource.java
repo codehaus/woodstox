@@ -82,6 +82,8 @@ public abstract class BaseInputSource
      */
     public abstract int getInputBufferLength();
 
+    public abstract boolean fromInternalEntity();
+
     public URL getSource() {
         return mSource;
     }

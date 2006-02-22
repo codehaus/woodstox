@@ -95,6 +95,13 @@ public abstract class WstxInputSource
         return false;
     }
 
+    /**
+     * @return True, if this input source was directly expanded from an
+     *   internal entity (general, parsed); false if not (from external
+     *   entity, DTD ext. subset, main document) 
+     */
+    public abstract boolean fromInternalEntity();
+
     /*
     //////////////////////////////////////////////////////////
     // Location info:
