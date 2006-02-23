@@ -5,6 +5,14 @@ mostly XML 1.1 compliant.
 
 Known issues regarding strict XML-conformance checking are:
 
+XML:
+
+* Checking in 'standalone="yes"' mode, for externally declared entities
+  is not done.
+* Whether undeclared PEs are considered WFC or VC violation -- currently
+  they are all WFC, but this is apparently not always the case (esp.
+  for 'standalone="yes"' case)
+
 XML 1.0:
 
 * Validity checking for DTD element content groups wrt. PE expansion
@@ -12,7 +20,7 @@ XML 1.0:
 
 XML 1.1:
 
-* New linefeeds are not recognized as such
+* Handling of LSEP (0x2028) is only partially correct -- combinations with
+  other linefeed characters are not 100% compliant
 * Checking for high-range control characters (0x80 - 0x9F, 0x7F) is
-  not done for all input sources.
-
+  not done for all input sources; specifically 0x7F is problematic.

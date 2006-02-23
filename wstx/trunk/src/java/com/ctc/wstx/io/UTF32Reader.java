@@ -53,11 +53,6 @@ public final class UTF32Reader
     ////////////////////////////////////////
     */
 
-    /**
-     * @param xml11mode If true, character validity is done in xml1.1
-     *   compliant way, and we should check for high-order control chars
-     *   here; if false, those are ok
-     */
     public UTF32Reader(InputStream in, byte[] buf, int ptr, int len,
                        boolean isBigEndian)
     {

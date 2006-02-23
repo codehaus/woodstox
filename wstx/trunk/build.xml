@@ -393,10 +393,10 @@
        </copy>
        <!-- Then let's create the source distribution tar package
           -->
-       <tar basedir="${basedir}" destfile="${DistDir}/wstx-src.tar">
+       <tar basedir="${basedir}" destfile="${DistDir}/wstx-src-${WSTX_VERSION}.tar">
           <patternset refid="wstx-dist-src-files" />
        </tar>
-       <gzip zipfile="${DistDir}/wstx-src.tar.gz" src="${DistDir}/wstx-src.tar" />
+       <gzip zipfile="${DistDir}/wstx-src.tar.gz" src="${DistDir}/wstx-src-${WSTX_VERSION}.tar" />
        <delete file="${DistDir}/wstx-src.tar" />
 
        <!-- as well as zip

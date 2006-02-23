@@ -345,7 +345,7 @@ public abstract class StreamScanner
 
     /**
      * XML version as declared by the document; one of constants
-     * from {@link XmlConsts} (like {@like XmlConsts#XML_V_10}).
+     * from {@link XmlConsts} (like {@link XmlConsts#XML_V_10}).
      */
     protected int mDocXmlVersion = XmlConsts.XML_V_UNKNOWN;
 

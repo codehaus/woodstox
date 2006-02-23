@@ -7,7 +7,7 @@ Planned stuff for 3.0 (or later)
     catching ]]>s in textual content is only 98% reliable (won't match
     ones that are split by input buffer boundary).
   * Namespace handling:
-    * (Check that URIs that match 'xml' and 'xmlns' are not redefined?
+[DONE] * (Check that URIs that match 'xml' and 'xmlns' are not redefined?
       This is done by Xerces; not sure if namespace specs dictate this?
 
 * Functionality that didn't quite make it to 2.0:
@@ -32,7 +32,8 @@ Planned stuff for 3.0 (or later)
      uses StreamSources?
    * Implement missing JAXP Targets (SAXTarget, DOMTarget); now only uses
      StreamSources?
-   * Native SAX(2?) wrappers?
+[defer] * Native SAX(2?) wrappers? (this goal might not make sense -- basic
+  wrapper exists, from Stax-utils, hard to cleanly implement natively)
 
 * DTD-validation, handling:
 [DONE] * Allow validating output!

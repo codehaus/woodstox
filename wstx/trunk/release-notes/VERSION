@@ -1,6 +1,6 @@
 Version: 2.9.1
 
-Release date: 21-Feb-2006
+Release date: 22-Feb-2006
 
 Description:
   One more important pre-3.0 release that fixes most of remaining XML
@@ -10,8 +10,10 @@ Description:
   Problems fixed:
 
   * Numerous fixes to XML conformance; especially in areas of:
-     * Valid xml character (for xml 1.0 as well as 1.1) checks
-     * XML 1.1 vs 1.0 handling
+     * Valid xml character (for xml 1.0 as well as 1.1) checks, including
+       checks for expanded character entities.
+     * XML 1.1 vs 1.0 handling (including proper cascading to the
+       external parsed entities)
      * Distinction between Well-Formedness Constraints (WFC, fatal)
        and Validation Constraints (VC); latter only thrown in validating
        mode.
