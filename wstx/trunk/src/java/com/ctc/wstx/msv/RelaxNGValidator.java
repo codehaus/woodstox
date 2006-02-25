@@ -17,6 +17,7 @@ package com.ctc.wstx.msv;
 
 import java.io.*;
 import java.net.URL;
+import java.util.*;
 
 import javax.xml.parsers.SAXParserFactory;
 import javax.xml.stream.*;
@@ -24,11 +25,12 @@ import javax.xml.stream.*;
 import org.codehaus.stax2.*;
 import org.codehaus.stax2.validation.*;
 
-import com.sun.msv.grammar.Grammar;
-import com.sun.msv.grammar.trex.TREXGrammar;
+import com.sun.msv.util.StartTagInfo;
+import com.sun.msv.util.StringRef;
+import com.sun.msv.verifier.Acceptor;
+import com.sun.msv.verifier.regexp.REDocumentDeclaration;
 
 import com.ctc.wstx.exc.WstxIOException;
-
 /**
  * Actual non-shareable validator instance, that is bound to an XML
  * document, or document subset.
@@ -36,11 +38,56 @@ import com.ctc.wstx.exc.WstxIOException;
 public class RelaxNGValidator
     extends XMLValidator
 {
+    /*
+    ////////////////////////////////////
+    // Configuration
+    ////////////////////////////////////
+    */
+
     final XMLValidationSchema mParentSchema;
 
-    public RelaxNGValidator(XMLValidationSchema parent)
+    final ValidationContext mContext;
+
+    final REDocumentDeclaration mVGM;
+
+    /*
+    ////////////////////////////////////
+    // State
+    ////////////////////////////////////
+    */
+
+    final ArrayList mAcceptors = new ArrayList();
+
+    Acceptor mCurrAcceptor = null;
+
+    /*
+    ////////////////////////////////////
+    // Helper objects
+    ////////////////////////////////////
+    */
+
+    final StringRef mErrorRef = new StringRef();
+
+    /**
+     * StartTagInfo instance need not be thread-safe, and it is not immutable
+     * so let's reuse one instance during a single validation.
+     */
+    final StartTagInfo mStartTag = new StartTagInfo("", "", "", null, null);
+
+    /*
+    ////////////////////////////////////
+    // Construction, configuration
+    ////////////////////////////////////
+    */
+
+    public RelaxNGValidator(XMLValidationSchema parent, ValidationContext ctxt,
+                            REDocumentDeclaration vgm)
     {
         mParentSchema = parent;
+        mContext = ctxt;
+        mVGM = vgm;
+
+        mCurrAcceptor = mVGM.createAcceptor();
     }
 
     /*
@@ -62,7 +109,21 @@ public class RelaxNGValidator
     public void validateElementStart(String localName, String uri, String prefix)
         throws XMLValidationException
     {
-        // !!! TBI
+        // Do we need to properly fill it? Or could we just put local name?
+        String qname = (prefix == null || prefix.length() == 0) ?
+            localName : (prefix + ":" +localName);
+        mStartTag.reinit(uri, localName, qname, null, null);
+        mCurrAcceptor = mCurrAcceptor.createChildAcceptor(mStartTag, mErrorRef);
+        mAcceptors.add(mCurrAcceptor);
+        if (mCurrAcceptor == null || mErrorRef.str != null) {
+            String msg = mErrorRef.str;
+            mErrorRef.str = null;
+            if (msg == null) {
+                msg = "Unknown reason";
+            }
+            mContext.reportProblem(new XMLValidationProblem
+                                   (mContext.getValidationLocation(), msg, XMLValidationProblem.SEVERITY_ERROR));
+        }
     }
 
     public String validateAttribute(String localName, String uri,
@@ -97,8 +158,41 @@ public class RelaxNGValidator
     public int validateElementEnd(String localName, String uri, String prefix)
         throws XMLValidationException
     {
-        // !!! TBI
-        return CONTENT_ALLOW_ANY_TEXT;
+        Acceptor acc = (Acceptor)mAcceptors.remove(mAcceptors.size()-1);
+        if (acc != null) { // may be null during error recovery
+            if (!acc.isAcceptState(mErrorRef) || mErrorRef.str != null) {
+                String msg = mErrorRef.str;
+                mErrorRef.str = null;
+                if (msg == null) {
+                    String qname = (prefix == null || prefix.length() == 0) ?
+                        localName : (prefix + ":" +localName);
+                    msg = "Not in accepting state when </"+qname+"> encountered";
+                }
+                mContext.reportProblem(new XMLValidationProblem
+                                       (mContext.getValidationLocation(), msg, XMLValidationProblem.SEVERITY_ERROR));
+            }
+        }
+        int len = mAcceptors.size();
+        if (len == 0) { // root closed
+            mCurrAcceptor = null;
+        } else {
+            mCurrAcceptor = (Acceptor) mAcceptors.get(len-1);
+        }
+        if (mCurrAcceptor != null && acc != null) {
+            if (!mCurrAcceptor.stepForward(acc, mErrorRef)
+                || mErrorRef.str != null) {
+                String msg = mErrorRef.str;
+                mErrorRef.str = null;
+                if (msg == null) {
+                    String qname = (prefix == null || prefix.length() == 0) ?
+                        localName : (prefix + ":" +localName);
+                    msg = "Parent.stepForward failed on </"+qname+">";
+                }
+                mContext.reportProblem(new XMLValidationProblem
+                                       (mContext.getValidationLocation(), msg, XMLValidationProblem.SEVERITY_ERROR));
+            }
+        }
+        return XMLValidator.CONTENT_ALLOW_ANY_TEXT;
     }
 
     public void validateText(String text, boolean lastTextSegment)

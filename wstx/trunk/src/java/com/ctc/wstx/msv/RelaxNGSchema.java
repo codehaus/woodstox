@@ -24,8 +24,8 @@ import javax.xml.stream.*;
 import org.codehaus.stax2.*;
 import org.codehaus.stax2.validation.*;
 
-import com.sun.msv.grammar.Grammar;
 import com.sun.msv.grammar.trex.TREXGrammar;
+import com.sun.msv.verifier.regexp.REDocumentDeclaration;
 
 import com.ctc.wstx.exc.WstxIOException;
 
@@ -36,6 +36,11 @@ import com.ctc.wstx.exc.WstxIOException;
 public class RelaxNGSchema
     implements XMLValidationSchema
 {
+    /**
+     * This is VGM (in MSV lingo); shareable schema blueprint, basically
+     * peer of this schema object. It will be used for creating actual
+     * validator peer, root Acceptor.
+     */
     protected final TREXGrammar mGrammar;
 
     public RelaxNGSchema(TREXGrammar grammar)
@@ -50,6 +55,7 @@ public class RelaxNGSchema
     public XMLValidator createValidator(ValidationContext ctxt)
         throws XMLStreamException
     {
-        return new RelaxNGValidator(this);
+        REDocumentDeclaration dd = new REDocumentDeclaration(mGrammar);
+        return new RelaxNGValidator(this, ctxt, dd);
     }
 }

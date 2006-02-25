@@ -396,12 +396,12 @@
        <tar basedir="${basedir}" destfile="${DistDir}/wstx-src-${WSTX_VERSION}.tar">
           <patternset refid="wstx-dist-src-files" />
        </tar>
-       <gzip zipfile="${DistDir}/wstx-src.tar.gz" src="${DistDir}/wstx-src-${WSTX_VERSION}.tar" />
-       <delete file="${DistDir}/wstx-src.tar" />
+       <gzip zipfile="${DistDir}/wstx-src-${WSTX_VERSION}.tar.gz" src="${DistDir}/wstx-src-${WSTX_VERSION}.tar" />
+       <delete file="${DistDir}/wstx-src-${WSTX_VERSION}.tar" />
 
        <!-- as well as zip
           -->
-       <zip basedir="${basedir}" destfile="${DistDir}/wstx-src.zip">
+       <zip basedir="${basedir}" destfile="${DistDir}/wstx-src-${WSTX_VERSION}.zip">
           <patternset refid="wstx-dist-src-files" />
        </zip>
 

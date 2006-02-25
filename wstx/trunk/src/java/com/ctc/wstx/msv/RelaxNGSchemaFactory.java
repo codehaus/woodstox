@@ -26,10 +26,10 @@ import org.xml.sax.InputSource;
 import org.codehaus.stax2.*;
 import org.codehaus.stax2.validation.*;
 
-import com.sun.msv.grammar.Grammar;
 import com.sun.msv.grammar.trex.TREXGrammar;
 import com.sun.msv.reader.GrammarReaderController;
 import com.sun.msv.reader.trex.ng.RELAXNGReader;
+import com.sun.msv.verifier.regexp.REDocumentDeclaration;
 
 import com.ctc.wstx.exc.WstxIOException;
 import com.ctc.wstx.util.URLUtil;
@@ -158,7 +158,6 @@ public class RelaxNGSchemaFactory
         
         TREXGrammar grammar = RELAXNGReader.parse
             (src, mSaxFactory, mDummyController);
-
         return new RelaxNGSchema(grammar);
     }
 }

@@ -96,7 +96,7 @@ public abstract class InputElementStack
         mReporter = rep;
     }
 
-    protected void setValidator(XMLValidator validator) {
+    public void setValidator(XMLValidator validator) {
         mValidator = validator;
     }
 
