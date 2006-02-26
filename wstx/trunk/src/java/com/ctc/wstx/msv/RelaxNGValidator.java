@@ -25,15 +25,28 @@ import javax.xml.stream.*;
 import org.codehaus.stax2.*;
 import org.codehaus.stax2.validation.*;
 
+import com.sun.msv.grammar.IDContextProvider;
+import com.sun.msv.util.DatatypeRef;
 import com.sun.msv.util.StartTagInfo;
 import com.sun.msv.util.StringRef;
 import com.sun.msv.verifier.Acceptor;
 import com.sun.msv.verifier.regexp.REDocumentDeclaration;
 
 import com.ctc.wstx.exc.WstxIOException;
+import com.ctc.wstx.util.TextAccumulator;
+
 /**
  * Actual non-shareable validator instance, that is bound to an XML
  * document, or document subset.
+ *<p>
+ * Some notes about implementation:
+ *
+ * (a) Some properties of RelaxNG model are used for optimization: for
+ *   example, since text content in mixed-content models is not really
+ *   validated for content, we only combine text segments between start
+ *   and end tags (in any combination) -- full textual content between
+ *   matching start and end tags is not necessarily collected (or rather,
+ *   if there are child elements, is NEVER collected).
  */
 public class RelaxNGValidator
     extends XMLValidator
@@ -60,6 +73,8 @@ public class RelaxNGValidator
 
     Acceptor mCurrAcceptor = null;
 
+    final TextAccumulator mTextAccumulator = new TextAccumulator();
+    
     /*
     ////////////////////////////////////
     // Helper objects
@@ -73,6 +88,16 @@ public class RelaxNGValidator
      * so let's reuse one instance during a single validation.
      */
     final StartTagInfo mStartTag = new StartTagInfo("", "", "", null, null);
+
+    /**
+     * Since RelaxNG never has to look into attributes during element
+     * processing (start/end) -- unlike W3C schema, which may need to
+     * access xsi:type and xsi:nillable -- we can just use an empty
+     * shared instance.
+     */
+    final static DummyAttributes sNoAttributes = DummyAttributes.getInstance();
+
+    final IDContextProvider mMsvContext;
 
     /*
     ////////////////////////////////////
@@ -88,6 +113,7 @@ public class RelaxNGValidator
         mVGM = vgm;
 
         mCurrAcceptor = mVGM.createAcceptor();
+        mMsvContext = new MSVContextProvider(ctxt);
     }
 
     /*
@@ -109,28 +135,46 @@ public class RelaxNGValidator
     public void validateElementStart(String localName, String uri, String prefix)
         throws XMLValidationException
     {
-        // Do we need to properly fill it? Or could we just put local name?
-        String qname = (prefix == null || prefix.length() == 0) ?
-            localName : (prefix + ":" +localName);
-        mStartTag.reinit(uri, localName, qname, null, null);
-        mCurrAcceptor = mCurrAcceptor.createChildAcceptor(mStartTag, mErrorRef);
-        mAcceptors.add(mCurrAcceptor);
-        if (mCurrAcceptor == null || mErrorRef.str != null) {
-            String msg = mErrorRef.str;
-            mErrorRef.str = null;
-            if (msg == null) {
-                msg = "Unknown reason";
-            }
-            mContext.reportProblem(new XMLValidationProblem
-                                   (mContext.getValidationLocation(), msg, XMLValidationProblem.SEVERITY_ERROR));
+        // Very first thing: do we have text collected?
+        if (mTextAccumulator.hasText()) {
+            doValidateText(mTextAccumulator);
         }
+
+        /* Do we need to properly fill it? Or could we just put local name?
+         * Looking at code, I do believe it's only used for error reporting
+         * purposes...
+         */
+        //String qname = (prefix == null || prefix.length() == 0) ? localName : (prefix + ":" +localName);
+        String qname = localName;
+        mStartTag.reinit(uri, localName, qname, sNoAttributes, mMsvContext);
+
+        mCurrAcceptor = mCurrAcceptor.createChildAcceptor(mStartTag, mErrorRef);
+        /* As per documentation, the side-effect of getting the error message
+         * is that we also get a recoverable non-null acceptor... thus, should
+         * never (?) see null acceptor being returned
+         */
+        if (mErrorRef.str != null) {
+            reportError(mErrorRef);
+        }
+        mAcceptors.add(mCurrAcceptor);
     }
 
     public String validateAttribute(String localName, String uri,
                                     String prefix, String value)
         throws XMLValidationException
     {
-        // !!! TBI
+        if (mCurrAcceptor != null) {
+            String qname = localName; // for now, let's assume we don't need prefixed version
+            DatatypeRef typeRef = null; // for now, let's not care
+
+            if (!mCurrAcceptor.onAttribute(uri, localName, qname, value, mMsvContext, mErrorRef, typeRef)
+                || mErrorRef.str != null) {
+                reportError(mErrorRef);
+            }
+        }
+        /* No normalization done by RelaxNG, is there? (at least nothing
+         * visible to callers that is)
+         */
         return null;
     }
 
@@ -140,14 +184,39 @@ public class RelaxNGValidator
                                     int valueEnd)
         throws XMLValidationException
     {
-        // !!! TBI
-        return null;
+        /* This is very sub-optimal... but MSV doesn't deal with char
+         * arrays.
+         */
+        return validateAttribute(localName, uri, prefix,
+                                 new String(valueChars, valueStart, valueEnd));
     }
     
     public int validateElementAndAttributes()
         throws XMLValidationException
     {
-        // !!! TBI
+        if (mCurrAcceptor != null) {
+            /* start tag info is still intact here (only attributes sent
+             * since child acceptor was created)
+             */
+            if (!mCurrAcceptor.onEndAttributes(mStartTag, mErrorRef)
+                || mErrorRef.str != null) {
+                reportError(mErrorRef);
+            }
+
+            int stringChecks = mCurrAcceptor.getStringCareLevel();
+            switch (stringChecks) {
+            case Acceptor.STRING_PROHIBITED: // only WS
+                return XMLValidator.CONTENT_ALLOW_WS;
+            case Acceptor.STRING_IGNORE: // anything (mixed content models)
+                return XMLValidator.CONTENT_ALLOW_ANY_TEXT;
+            case Acceptor.STRING_STRICT: // validatable (data-oriented)
+                return XMLValidator.CONTENT_ALLOW_VALIDATABLE_TEXT;
+            default:
+                throw new IllegalArgumentException("Internal error: unexpected string care level value return by MSV: "+stringChecks);
+            }
+        }
+
+        // If no acceptor, we are recovering, no need or use to validate text
         return CONTENT_ALLOW_ANY_TEXT;
     }
 
@@ -158,18 +227,15 @@ public class RelaxNGValidator
     public int validateElementEnd(String localName, String uri, String prefix)
         throws XMLValidationException
     {
+        // Very first thing: do we have text collected?
+        if (mTextAccumulator.hasText()) {
+            doValidateText(mTextAccumulator);
+        }
+
         Acceptor acc = (Acceptor)mAcceptors.remove(mAcceptors.size()-1);
-        if (acc != null) { // may be null during error recovery
+        if (acc != null) { // may be null during error recovery? or not?
             if (!acc.isAcceptState(mErrorRef) || mErrorRef.str != null) {
-                String msg = mErrorRef.str;
-                mErrorRef.str = null;
-                if (msg == null) {
-                    String qname = (prefix == null || prefix.length() == 0) ?
-                        localName : (prefix + ":" +localName);
-                    msg = "Not in accepting state when </"+qname+"> encountered";
-                }
-                mContext.reportProblem(new XMLValidationProblem
-                                       (mContext.getValidationLocation(), msg, XMLValidationProblem.SEVERITY_ERROR));
+                reportError(mErrorRef);
             }
         }
         int len = mAcceptors.size();
@@ -181,15 +247,7 @@ public class RelaxNGValidator
         if (mCurrAcceptor != null && acc != null) {
             if (!mCurrAcceptor.stepForward(acc, mErrorRef)
                 || mErrorRef.str != null) {
-                String msg = mErrorRef.str;
-                mErrorRef.str = null;
-                if (msg == null) {
-                    String qname = (prefix == null || prefix.length() == 0) ?
-                        localName : (prefix + ":" +localName);
-                    msg = "Parent.stepForward failed on </"+qname+">";
-                }
-                mContext.reportProblem(new XMLValidationProblem
-                                       (mContext.getValidationLocation(), msg, XMLValidationProblem.SEVERITY_ERROR));
+                reportError(mErrorRef);
             }
         }
         return XMLValidator.CONTENT_ALLOW_ANY_TEXT;
@@ -198,14 +256,28 @@ public class RelaxNGValidator
     public void validateText(String text, boolean lastTextSegment)
         throws XMLValidationException
     {
-        // !!! TBI
+        /* If we got here, then it's likely we do need to call onText().
+         * (not guaranteed, though; in case of multiple parallel validators,
+         * only one of them may actually be interested)
+         */
+        mTextAccumulator.addText(text);
+        if (lastTextSegment) {
+            doValidateText(mTextAccumulator);
+        }
     }
 
     public void validateText(char[] cbuf, int textStart, int textEnd,
                              boolean lastTextSegment)
         throws XMLValidationException
     {
-        // !!! TBI
+        /* If we got here, then it's likely we do need to call onText().
+         * (not guaranteed, though; in case of multiple parallel validators,
+         * only one of them may actually be interested)
+         */
+        mTextAccumulator.addText(cbuf, textStart, textEnd);
+        if (lastTextSegment) {
+            doValidateText(mTextAccumulator);
+        }
     }
 
     public void validationCompleted(boolean eod)
@@ -240,4 +312,34 @@ public class RelaxNGValidator
         return -1;
     }
 
+    /*
+    ///////////////////////////////////////
+    // Internal methods
+    ///////////////////////////////////////
+    */
+
+    private void doValidateText(TextAccumulator textAcc)
+        throws XMLValidationException
+    {
+        if (mCurrAcceptor != null) {
+            String str = textAcc.getAndClear();
+            DatatypeRef typeRef = null;
+            if (!mCurrAcceptor.onText(str, mMsvContext, mErrorRef, typeRef)
+                || mErrorRef.str != null) {
+                reportError(mErrorRef);
+            }
+        }
+    }
+
+    private void reportError(StringRef errorRef)
+        throws XMLValidationException
+    {
+        String msg = errorRef.str;
+        errorRef.str = null;
+        if (msg == null) {
+            msg = "Unknown reason";
+        }
+        mContext.reportProblem(new XMLValidationProblem
+                               (mContext.getValidationLocation(), msg, XMLValidationProblem.SEVERITY_ERROR));
+    }
 }
