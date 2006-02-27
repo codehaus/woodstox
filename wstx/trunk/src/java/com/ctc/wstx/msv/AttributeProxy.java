@@ -15,26 +15,29 @@
 
 package com.ctc.wstx.msv;
 
+import org.codehaus.stax2.validation.ValidationContext;
+
 /**
- * This is a NOP implementation of SAX Attributes interface. It is used
- * in places where a placeholder is needed, but where no actual calls
- * are expected (which is the case with most of usage by MSV it seems).
+ * This is an implementation of SAX Attributes interface, that proxies
+ * requests to the {@link ValidationContext}.
+ * It is needed by some MSV components (specifically, W3C Schema Validator)
+ * for limited access to attribute values during start element validation.
  */
-public class DummyAttributes
+public final class AttributeProxy
     implements org.xml.sax.Attributes
 {
     /**
-     * In paranoid mode, we'll throw RuntimeException if access methods
-     * are actually called. This may be necessary to verify actual usage
-     * of the singleton instance
+     * Static flag used to compile in/remove checks for calls that
+     * are unimplemented (on assumption they are not needed)
      */
-    final static boolean PARANOID = true;
+    private final static boolean PARANOID = true;
 
-    private final static DummyAttributes sInstance = new DummyAttributes();
+    private final ValidationContext mContext;
 
-    private DummyAttributes() { }
-
-    public static DummyAttributes getInstance() { return sInstance; }
+    public AttributeProxy(ValidationContext ctxt)
+    {
+        mContext = ctxt;
+    }
 
     /*
     ///////////////////////////////////////////////
@@ -50,68 +53,69 @@ public class DummyAttributes
 
     public int getIndex(String uri, String localName)
     {
-        if (PARANOID) { illegalAccess(); }
-        return -1;
+        return mContext.findAttributeIndex(uri, localName);
     }
 
     public int getLength()
     {
-        if (PARANOID) { illegalAccess(); }
-        return 0;
+        return mContext.getAttributeCount();
     }
 
     public String getLocalName(int index)
     {
-        // No exceptions thrown; null to be returned for illegal indexes
-        return null;
+        return mContext.getAttributeLocalName(index);
     }
 
     public String getQName(int index)
     {
-        // No exceptions thrown; null to be returned for illegal indexes
+        /* Shouldn't be called; could be implemented although
+         * inefficiently (since StAX does not use such prefixed names)
+         */
+        if (PARANOID) { illegalAccess(); }
         return null;
     }
 
     public String getType(int index)
     {
-        // No exceptions thrown; null to be returned for illegal indexes
+        // Shouldn't be needed...
+        if (PARANOID) { illegalAccess(); }
         return null;
     }
 
     public String getType(String qName)
     {
-        // No exceptions thrown; null to be returned for illegal indexes
+        // Shouldn't be needed...
+        if (PARANOID) { illegalAccess(); }
         return null;
     }
 
     public String getType(String uri, String localName)
     {
-        // No exceptions thrown; null to be returned for illegal indexes
+        // Shouldn't be needed...
+        if (PARANOID) { illegalAccess(); }
         return null;
     }
 
     public String getURI(int index)
     {
-        // No exceptions thrown; null to be returned for illegal indexes
-        return null;
+        return mContext.getAttributeNamespace(index);
     }
 
     public String getValue(int index)
     {
-        // No exceptions thrown; null to be returned for illegal indexes
-        return null;
+        return mContext.getAttributeValue(index);
     }
 
     public String getValue(String qName)
     {
-        // No exceptions thrown; null to be returned for illegal indexes
+        // Shouldn't be needed...
+        if (PARANOID) { illegalAccess(); }
         return null;
     }
 
     public String getValue(String uri, String localName)     
     {
-        // No exceptions thrown; null to be returned for illegal indexes
-        return null;
+        return mContext.getAttributeValue(uri, localName);
     }
 
     /*
@@ -122,7 +126,7 @@ public class DummyAttributes
 
     private void illegalAccess()
     {
-        throw new IllegalStateException("Unexpected call to DummyAttributes -- should not occur");
+        throw new IllegalStateException("Unexpected call to AttributeProxy method that was assumed not to be needed");
     }
 }
 

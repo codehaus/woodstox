@@ -1242,6 +1242,14 @@ public abstract class BaseStreamWriter
 
     public abstract String getNamespaceURI(String prefix);
 
+    /**
+     * As of now, there is no way to specify the base URI. Could be improved
+     * in future, if xml:base is supported.
+     */
+    public String getBaseUri() {
+        return null;
+    }
+
     public Location getValidationLocation() {
         return getLocation();
     }
@@ -1273,6 +1281,33 @@ public abstract class BaseStreamWriter
                                    String value)
     {
         // nothing to do, but to indicate we didn't add it...
+        return -1;
+    }
+
+    // // // Notation/entity access: not (yet?) implemented
+
+    public boolean isNotationDeclared(String name) { return false; }
+
+    public boolean isUnparsedEntityDeclared(String name) { return false; }
+
+
+    // // // Attribute access: not yet implemented:
+
+    public int getAttributeCount() { return 0; }
+
+    public String getAttributeLocalName(int index) { return null; }
+
+    public String getAttributeNamespace(int index) { return null; }
+
+    public String getAttributePrefix(int index) { return null; }
+
+    public String getAttributeValue(int index) { return null; }
+
+    public String getAttributeValue(String nsURI, String localName) {
+        return null;
+    }
+
+    public int findAttributeIndex(String nsURI, String localName) {
         return -1;
     }
 

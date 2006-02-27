@@ -95,7 +95,7 @@ public class RelaxNGValidator
      * access xsi:type and xsi:nillable -- we can just use an empty
      * shared instance.
      */
-    final static DummyAttributes sNoAttributes = DummyAttributes.getInstance();
+    final AttributeProxy mAttributeProxy;
 
     final IDContextProvider mMsvContext;
 
@@ -114,6 +114,7 @@ public class RelaxNGValidator
 
         mCurrAcceptor = mVGM.createAcceptor();
         mMsvContext = new MSVContextProvider(ctxt);
+        mAttributeProxy = new AttributeProxy(ctxt);
     }
 
     /*
@@ -146,7 +147,7 @@ public class RelaxNGValidator
          */
         //String qname = (prefix == null || prefix.length() == 0) ? localName : (prefix + ":" +localName);
         String qname = localName;
-        mStartTag.reinit(uri, localName, qname, sNoAttributes, mMsvContext);
+        mStartTag.reinit(uri, localName, qname, mAttributeProxy, mMsvContext);
 
         mCurrAcceptor = mCurrAcceptor.createChildAcceptor(mStartTag, mErrorRef);
         /* As per documentation, the side-effect of getting the error message

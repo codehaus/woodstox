@@ -8,6 +8,10 @@ import javax.xml.stream.Location;
  * content to validate (usually a stream reader or stream writer) to
  * validators. Some of functionality is optional (for example, writer
  * may not have any useful location information).
+ *<p>
+ * The functionality included is close to the minimal subset of
+ * functionality needed to support 3 main streamable schema languages
+ * (DTD, W3C Schema, Relax NG).
  */
 public interface ValidationContext
 {
@@ -54,11 +58,76 @@ public interface ValidationContext
      */
     public String getNamespaceURI(String prefix);
 
+    /**
+     * This method returns number of attributes accessible from within
+     * currently active start element.
+     *<p>
+     * Note: this method is only guaranteed to be callable during execution
+     * of {@link XMLValidator} methods
+     * {@link XMLValidator#validateElemenStart},
+     * {@link XMLValidator#validateAttribute} and
+     * {@link XMLValidator#validateElemenAndAttributes}. At other times
+     * implementations may choose to allow it to be called (for example,
+     * with information regarding last start element processed), to throw
+     * a {@link IllegalArgumentException}, or to return 0 to indicate no
+     * attribute information is available.
+     *<p>
+     * Also note that whether defaulted attributes (attributes for which
+     * values are only available via attribute defaulting) are accessible
+     * depends on exact time when this method is called, and in general
+     * can not be assumed to function reliably.
+     *
+     * @return Number of attributes accessible for the currently active
+     *   start element.
+     */
+    public int getAttributeCount();
+
+    public String getAttributeLocalName(int index);
+
+    public String getAttributeNamespace(int index);
+
+    public String getAttributePrefix(int index);
+
+    public String getAttributeValue(int index);
+
+    public String getAttributeValue(String nsURI, String localName);
+
+    /**
+     * @return Index of the specified attribute, if one present;
+     *   -1 otherwise.
+     */
+    public int findAttributeIndex(String nsURI, String localName);
+
+    /*
+    //////////////////////////////////////////////////////
+    // Access to notation and unparsed entity information
+    //////////////////////////////////////////////////////
+     */
+
+    /**
+     * @return True, if a notation with specified name has been declared
+     *   in the document being validated; false if not.
+     */
+    public boolean isNotationDeclared(String name);
+
+    /**
+     * @return True, if an unparsed entity with specified name has
+     *   been declared
+     *   in the document being validated; false if not.
+     */
+    public boolean isUnparsedEntityDeclared(String name);
+
     /*
     //////////////////////////////////////////////////////
     // Location information, error reporting
     //////////////////////////////////////////////////////
      */
+
+    /**
+     * @return Base URI active in the current location of the document
+     *   being validated, if known; null to indicate no base URI known.
+     */
+    public String getBaseUri();
 
     /**
      * Method that will return the location that best represents current

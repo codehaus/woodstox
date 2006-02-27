@@ -208,12 +208,58 @@ public abstract class InputElementStack
 
     /*
     ///////////////////////////////////////////////////
-    // Implementation of ValidationContext:
+    // ValidationContext
     ///////////////////////////////////////////////////
      */
 
     public final String getXmlVersion() {
         return mXml11 ? XmlConsts.XML_V_11_STR : XmlConsts.XML_V_10_STR;
+    }
+
+    // Part of Stax2, see above:
+    //public int getAttributeCount();
+
+    public String getAttributeLocalName(int index) {
+        return getAttrCollector().getLocalName(index);
+    }
+
+    public String getAttributeNamespace(int index) {
+        return getAttrCollector().getURI(index);
+    }
+
+    public String getAttributePrefix(int index) {
+        return getAttrCollector().getPrefix(index);
+    }
+
+    public String getAttributeValue(int index) {
+        return getAttrCollector().getValue(index);
+    }
+
+    public String getAttributeValue(String nsURI, String localName)
+    {
+        int ix = findAttributeIndex(nsURI, localName);
+        return (ix < 0) ? null : getAttributeValue(ix);
+    }
+
+    // Part of Stax2, see above:
+    //public int findAttributeIndex(String nsURI, String localName);
+
+    public boolean isNotationDeclared(String name)
+    {
+        // !!! TBI
+        return false;
+    }
+
+    public boolean isUnparsedEntityDeclared(String name)
+    {
+        // !!! TBI
+        return false;
+    }
+
+    public String getBaseUri()
+    {
+        // !!! TBI
+        return null;
     }
 
     public abstract QName getCurrentElementName();
