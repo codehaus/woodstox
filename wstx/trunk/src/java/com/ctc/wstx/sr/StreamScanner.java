@@ -976,9 +976,6 @@ public abstract class StreamScanner
         return true;
     }
 
-    protected abstract void handleIncompleteEntityProblem(WstxInputSource closing)
-        throws XMLStreamException;
-
     protected final boolean loadMore(String errorMsg)
         throws IOException, XMLStreamException
     {
@@ -1649,15 +1646,31 @@ public abstract class StreamScanner
                 return;
             }
         }
-        throwParseError("Undeclared entity '"+id+"'.");
+        handleUndeclaredEntity(id);
     }
-  
+
+    /*
+    ////////////////////////////////////////////////////
+    // Abstract methods for sub-classes to implement
+    ////////////////////////////////////////////////////
+     */
+
+    /**
+     * This method gets called if a declaration for an entity was not
+     * found in entity expanding mode (enabled by default for xml reader,
+     * always enabled for dtd reader).
+     */
+    protected abstract void handleUndeclaredEntity(String id)
+        throws XMLStreamException;
+
+    protected abstract void handleIncompleteEntityProblem(WstxInputSource closing)
+        throws XMLStreamException;
+
     /*
     ////////////////////////////////////////////////////
     // Basic tokenization
     ////////////////////////////////////////////////////
      */
-
 
     /**
      * Method that will parse name token (roughly equivalent to XML specs;

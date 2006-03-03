@@ -894,9 +894,9 @@ public class FullDTDReader
         loadMore(getErrorMsg());
         // Did we get out of the scope?
         if (check && (mInput != currScope)) {
-            throwParseError("Unterminated entity value for entity '"
-                            +entityName+"' (definition started at "
-                            +loc+")");
+            reportWFCViolation("Unterminated entity value for entity '"
+                               +entityName+"' (definition started at "
+                               +loc+")");
         }
     }
         
@@ -1249,7 +1249,7 @@ public class FullDTDReader
             errId = readDTDKeyword(String.valueOf(c));
         }
 
-        throwParseError("Unrecognized keyword '"+errId+"'; expected 'PUBLIC' or 'SYSTEM'");
+        reportWFCViolation("Unrecognized keyword '"+errId+"'; expected 'PUBLIC' or 'SYSTEM'");
         return false; // never gets here
     }
 
@@ -1568,7 +1568,7 @@ public class FullDTDReader
                 loadMore(getErrorMsg());
                 // Did we get out of the scope?
                 if (check && (mInput != currScope)) {
-                    throwParseError("Unterminated attribute default value for attribute '"
+                    reportWFCViolation("Unterminated attribute default value for attribute '"
                                     +attrName+"' (definition started at "
                                     +loc+")");
                 }
@@ -1688,10 +1688,10 @@ public class FullDTDReader
     {
         String target = parseFullName();
         if (target.length() == 0) {
-            throwParseError(ErrorConsts.ERR_WF_PI_MISSING_TARGET);
+            reportWFCViolation(ErrorConsts.ERR_WF_PI_MISSING_TARGET);
         }
         if (target.equalsIgnoreCase("xml")) {
-            throwParseError(ErrorConsts.ERR_WF_PI_MISSING_TARGET, target);
+            reportWFCViolation(ErrorConsts.ERR_WF_PI_XML_TARGET, target);
         }
 
         char c = dtdNextFromCurr();
@@ -1743,7 +1743,7 @@ public class FullDTDReader
          *   entity...
          */
         if (!mIsExternal && mInput == mRootInput) {
-            throwParseError("Internal DTD subset can not use (INCLUDE/IGNORE) directives (except via external entities)");
+            reportWFCViolation("Internal DTD subset can not use (INCLUDE/IGNORE) directives (except via external entities)");
         }
 
         char c = skipDtdWs(true);
@@ -1773,7 +1773,7 @@ public class FullDTDReader
         }
 
         // If we get here, it was an error...
-        throwParseError("Unrecognized directive '"+keyword+"'; expected either 'IGNORE' or 'INCLUDE'");
+        reportWFCViolation("Unrecognized directive '"+keyword+"'; expected either 'IGNORE' or 'INCLUDE'");
     }
 
     private void handleIncluded()
@@ -1837,36 +1837,47 @@ public class FullDTDReader
      */
 
     private void reportBadDirective(String dir)
-        throws WstxException
+        throws XMLStreamException
     {
         String msg = "Unrecognized DTD directive '<!"+dir+" >'; expected ATTLIST, ELEMENT, ENTITY or NOTATION";
         if (mCfgSupportDTDPP) {
             msg += " (or, for DTD++, TARGETNS)";
         }
-        throwDTDError(msg);
+        reportWFCViolation(msg);
     }
 
-    private void throwDTDError(String msg)
-        throws WstxException
+    private void reportVCViolation(String msg)
+        throws XMLStreamException
     {
-        // !!! TBI: separate type for these exceptions?
+        reportValidationProblem(msg);
+    }
+
+    private void reportWFCViolation(String msg)
+        throws XMLStreamException
+    {
         throwParseError(msg);
     }
 
-    private void throwDTDElemError(String msg, Object elem)
-        throws WstxException
+    private void reportWFCViolation(String format, Object arg)
+        throws XMLStreamException
     {
-        throwDTDError(elemDesc(elem) + ": " + msg);
+        throwParseError(format, arg);
+    }
+
+    private void throwDTDElemError(String msg, Object elem)
+        throws XMLStreamException
+    {
+        reportWFCViolation(elemDesc(elem) + ": " + msg);
     }
 
     private void throwDTDAttrError(String msg, DTDElement elem, NameKey attrName)
-        throws WstxException
+        throws XMLStreamException
     {
-        throwDTDError(attrDesc(elem, attrName) + ": " + msg);
+        reportWFCViolation(attrDesc(elem, attrName) + ": " + msg);
     }
 
     private void throwDTDUnexpectedChar(int i, String extraMsg)
-        throws WstxException
+        throws XMLStreamException
     {
         if (extraMsg == null) {
             throwUnexpectedChar(i, getErrorMsg());
@@ -1875,9 +1886,9 @@ public class FullDTDReader
     }
 
     private void throwForbiddenPE()
-        throws WstxException
+        throws XMLStreamException
     {
-        throwParseError("Can not have parameter entities in the internal subset, except for defining complete declarations (XML 1.0, #2.8, WFC 'PEs In Internal Subset')");
+        reportWFCViolation("Can not have parameter entities in the internal subset, except for defining complete declarations (XML 1.0, #2.8, WFC 'PEs In Internal Subset')");
     }
 
     private String elemDesc(Object elem) {
@@ -2146,7 +2157,7 @@ public class FullDTDReader
                     --mInputPtr;
                     keyw = readDTDKeyword(String.valueOf(c));
                 }
-                throwParseError("Unrecognized DTD content spec keyword '"
+                reportWFCViolation("Unrecognized DTD content spec keyword '"
                                 +keyw+"' (for element <"+elemName+">); expected ANY or EMPTY");
              } while (false);
         } else {
@@ -2324,7 +2335,7 @@ public class FullDTDReader
                 } else {
                     str = "General" + str;
                 }
-                reportProblem(rep, ErrorConsts.WT_ENT_DECL, str, evtLoc, oldED);
+                reportWarning(rep, ErrorConsts.WT_ENT_DECL, str, evtLoc, oldED);
             }
         } else {
             m.put(id, ent);
@@ -2441,7 +2452,7 @@ public class FullDTDReader
         // Either way, should now get a quote:
         if (c != '"' && c != '\'') {
             if (c == '>') { // slightly more accurate error
-                throwDTDError("Missing namespace URI for TARGETNS directive");
+                reportWFCViolation("Missing namespace URI for TARGETNS directive");
             }
             throwDTDUnexpectedChar(c, "; expected a single or double quote to enclose the namespace URI");
         }
@@ -2633,7 +2644,7 @@ public class FullDTDReader
             XMLReporter rep = mConfig.getXMLReporter();
             if (rep != null) {
                 String msg = MessageFormat.format(ErrorConsts.W_DTD_ATTR_REDECL, new Object[] { attrName, elem });
-                reportProblem(rep, ErrorConsts.WT_ATTR_DECL, msg, loc, elem);
+                reportWarning(rep, ErrorConsts.WT_ATTR_DECL, msg, loc, elem);
             }
         } else {
             if (defVal != null) {
@@ -2736,10 +2747,10 @@ public class FullDTDReader
             if (mCfgFullyValidating) {
                 String msg = "Notation '"+id+"' not defined; ";
                 if (attrName == null) { // reference from entity
-                    throwDTDError(msg+"can not refer to from an entity");
+                    reportVCViolation(msg+"can not refer to from an entity");
                 }
                 // reference from attribute
-                throwDTDError(msg+"can not be used as value for attribute list of '"+attrName+"'");
+                reportVCViolation(msg+"can not be used as value for attribute list of '"+attrName+"'");
             } else { // but in non-validating, it is not...
                 return id;
             }
@@ -2784,7 +2795,7 @@ public class FullDTDReader
     {
         String keyw = checkDTDKeyword("PCDATA");
         if (keyw != null) {
-            throwParseError("Unrecognized directive #"+keyw+"'; expected #PCDATA (or element name)");
+            reportWFCViolation("Unrecognized directive #"+keyw+"'; expected #PCDATA (or element name)");
         }
 
         HashMap m = JdkFeatures.getInstance().getInsertOrderedMap();
@@ -2822,7 +2833,7 @@ public class FullDTDReader
             mInputBuffer[mInputPtr++] : getNextChar(getErrorMsg());
         if (c != '*') {
             if (m.size() > 0) {
-                throwParseError("Missing trailing '*' after a non-empty mixed content specification");
+                reportWFCViolation("Missing trailing '*' after a non-empty mixed content specification");
             }
             --mInputPtr; // need to push it back
         }
@@ -2858,7 +2869,7 @@ public class FullDTDReader
             if (c == ')') {
                 // Need to have had at least one entry...
                 if (subSpecs.isEmpty()) {
-                    throwParseError("Empty content specification for '"+elemName+"' (need at least one entry)");
+                    reportWFCViolation("Empty content specification for '"+elemName+"' (need at least one entry)");
                 }
                 break;
             }
@@ -2869,7 +2880,7 @@ public class FullDTDReader
                     choiceSet = true;
                 } else {
                     if (isChoice != newChoice) {
-                        throwParseError("Can not mix content spec separators ('|' and ','); need to use parenthesis groups");
+                        reportWFCViolation("Can not mix content spec separators ('|' and ','); need to use parenthesis groups");
                     }
                 }
                 c = skipDtdWs(true);
@@ -2995,7 +3006,7 @@ public class FullDTDReader
              * SGML does NOT require system id after public one...
              */
             if (c == '>') {
-                throwDTDError("Unexpected end of ENTITY declaration (expected a system id after public id): trying to use an SGML DTD instead of XML one?");
+                reportWFCViolation("Unexpected end of ENTITY declaration (expected a system id after public id): trying to use an SGML DTD instead of XML one?");
             }
         } else {
             // Just need some white space here
@@ -3042,7 +3053,7 @@ public class FullDTDReader
                 }
                 String keyw = checkDTDKeyword("DATA");
                 if (keyw != null) {
-                    throwParseError("Unrecognized keyword '"+keyw+"'; expected NOTATION (or closing '>')");
+                    reportWFCViolation("Unrecognized keyword '"+keyw+"'; expected NOTATION (or closing '>')");
                 }
                 c = skipObligatoryDtdWs();
                 notationId = readNotationEntry(c, null);
@@ -3056,8 +3067,7 @@ public class FullDTDReader
         }
 
         if (notationId == null) { // parsed entity:
-            return new ParsedExtEntity(evtLoc, id, getSource(),
-                                       pubId, sysId);
+            return new ParsedExtEntity(evtLoc, id, getSource(), pubId, sysId);
         }
 
         // unparsed entity
@@ -3128,12 +3138,15 @@ public class FullDTDReader
     ///////////////////////////////////////////////////////
      */
 
-    private void reportProblem(XMLReporter rep, String probType, String msg,
-                               Location loc, Object extraArg)
+    // @Override
+    /**
+     * Undeclared parameter entity is a VC, not WFC...
+     */
+    protected void handleUndeclaredEntity(String id)
         throws XMLStreamException
     {
-        if (rep != null) {
-            rep.report(msg, probType, extraArg, loc);
+        if (mCfgFullyValidating) {
+            reportValidationProblem("Undeclared parameter entity '"+id+"'.");
         }
     }
 
@@ -3151,12 +3164,12 @@ public class FullDTDReader
         // Did it start outside of declaration?
         if (closing.getScopeId() == 0) { // yup
             // and being WFC, need not be validating
-            throwDTDError(entityDesc(closing) + ": "
+            reportWFCViolation(entityDesc(closing) + ": "
                           +"Incomplete PE: has to fully contain a declaration (as per xml 1.0.3, section 2.8, WFC 'PE Between Declarations')");
         } else {
             // whereas the other one is only sent in validating mode..
             if (mCfgFullyValidating) {
-                throwDTDError(entityDesc(closing) + ": "
+                reportVCViolation(entityDesc(closing) + ": "
                               +"Incomplete PE: has to be fully contained in a declaration (as per xml 1.0.3, section 2.8, VC 'Proper Declaration/PE Nesting')");
             }
         }
@@ -3167,9 +3180,17 @@ public class FullDTDReader
     {
         // Here it can only be of VC kind...
         if (mCfgFullyValidating) { // since it's a VC, not WFC
-            throwDTDError(entityDesc(input) + ": " + 
-                          "Unbalanced PE: has to be fully contained in a declaration (as per xml 1.0.3, section 2.8, VC 'Proper Declaration/PE Nesting')");
+            reportWFCViolation(entityDesc(input) + ": " + 
+                              "Unbalanced PE: has to be fully contained in a declaration (as per xml 1.0.3, section 2.8, VC 'Proper Declaration/PE Nesting')");
+        }
+    }
+
+    private void reportWarning(XMLReporter rep, String probType, String msg,
+                               Location loc, Object extraArg)
+        throws XMLStreamException
+    {
+        if (rep != null) {
+            rep.report(msg, probType, extraArg, loc);
         }
     }
 }
-

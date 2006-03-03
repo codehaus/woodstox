@@ -117,6 +117,16 @@ public class MinimalDTDReader
     }
 
     /**
+     * This is a VC, not WFC, nothing to do when skipping through
+     * DTD in non-supporting mode.
+     */
+    protected void handleUndeclaredEntity(String id)
+        throws XMLStreamException
+    {
+        // nothing to do...
+    }
+
+    /**
      * Since improper entity/PE nesting is VC, not WFC, let's not
      * react to this failure at all when only skipping the DTD subset.
      */

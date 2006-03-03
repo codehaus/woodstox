@@ -4984,6 +4984,12 @@ public class BasicStreamReader
     ////////////////////////////////////////////////////
      */
 
+    protected void handleUndeclaredEntity(String id)
+        throws XMLStreamException
+    {
+       throwParseError("Undeclared general entity '"+id+"'.");
+    }
+
     protected void handleIncompleteEntityProblem(WstxInputSource closing)
         throws XMLStreamException
     {
