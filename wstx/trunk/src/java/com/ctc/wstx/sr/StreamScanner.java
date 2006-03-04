@@ -909,6 +909,7 @@ public abstract class StreamScanner
          */
         mInputTopDepth = mCurrDepth;
         mInput.initInputLocation(this, mCurrDepth);
+
         /* 21-Feb-2006, TSa: Linefeeds are NOT normalized when expanding
          *   internal entities (XML, 2.11)
          */

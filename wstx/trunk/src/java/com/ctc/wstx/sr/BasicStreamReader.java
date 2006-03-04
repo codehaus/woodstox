@@ -1811,9 +1811,19 @@ public class BasicStreamReader
                     if (c == '\n') {
                         markLF();
                     } else if (c == '\r') {
-                        c = getNextChar(SUFFIX_IN_ATTR_VALUE);
-                        if (c != '\n') { // nope, not 2-char lf (Mac?)
-                            --mInputPtr;
+                        /* 04-Mar-2006, TSa: Linefeed normalization only
+                         *   done if enabled -- specifically, 2-char lfs
+                         *   from int. entities are not coalesced. Now...
+                         *   whether to try to count them as one or not...
+                         *   easier not to; esp. since we may not be able to
+                         *   distinguish char entity originated ones from
+                         *   real ones.
+                         */
+                        if (mCfgNormalizeLFs) {
+                            c = getNextChar(SUFFIX_IN_ATTR_VALUE);
+                            if (c != '\n') { // nope, not 2-char lf (Mac?)
+                                --mInputPtr;
+                            }
                         }
                         markLF();
                     } else if (c != '\t') {
