@@ -3,6 +3,9 @@ package com.ctc.wstx.util;
 import java.io.*;
 import java.util.ArrayList;
 
+import org.codehaus.stax2.validation.XMLValidationException;
+import org.codehaus.stax2.validation.XMLValidator;
+
 /**
  * TextBuffer is a class similar to {@link StringBuffer}, with
  * following differences:
@@ -519,43 +522,65 @@ public final class TextBuffer
      */
     public boolean equalsString(String str)
     {
-	int expLen = str.length();
+        int expLen = str.length();
+        
+        // First the easy check; if we have a shared buf:
+        if (mInputStart >= 0) {
+            if (mInputLen != expLen) {
+                return false;
+            }
+            for (int i = 0; i < expLen; ++i) {
+                if (str.charAt(i) != mInputBuffer[mInputStart+i]) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        
+        // Otherwise, segments:
+        if (expLen != size()) {
+            return false;
+        }
+        char[] seg;
+        if (mSegments == null || mSegments.size() == 0) {
+            // just one segment, still easy
+            seg = mCurrentSegment;
+        } else {
+            /* Ok; this is the sub-optimal case. Could obviously juggle through
+             * segments, but probably not worth the hassle, we seldom if ever
+             * get here...
+             */
+            seg = contentsAsArray();
+        }
+        
+        for (int i = 0; i < expLen; ++i) {
+            if (seg[i] != str.charAt(i)) {
+                return false;
+            }
+        }
+        return true;
+    }
 
-	// First the easy check; if we have a shared buf:
-	if (mInputStart >= 0) {
-	    if (mInputLen != expLen) {
-		return false;
-	    }
-	    for (int i = 0; i < expLen; ++i) {
-		if (str.charAt(i) != mInputBuffer[mInputStart+i]) {
-		    return false;
-		}
-	    }
-	    return true;
-	}
+    /*
+    //////////////////////////////////////////////
+    // Support for validation
+    //////////////////////////////////////////////
+     */
 
-	// Otherwise, segments:
-	if (expLen != size()) {
-	    return false;
-	}
-	char[] seg;
-	if (mSegments == null || mSegments.size() == 0) {
-	    // just one segment, still easy
-	    seg = mCurrentSegment;
-	} else {
-	    /* Ok; this is the sub-optimal case. Could obviously juggle through
-	     * segments, but probably not worth the hassle, we seldom if ever
-	     * get here...
-	     */
-	    seg = contentsAsArray();
-	}
-
-	for (int i = 0; i < expLen; ++i) {
-	    if (seg[i] != str.charAt(i)) {
-		return false;
-	    }
-	}
-	return true;
+    public void validateText(XMLValidator vld, boolean lastSegment)
+        throws XMLValidationException
+    {
+        // Shared buffer? Let's just pass that
+        if (mInputStart >= 0) {
+            vld.validateText(mInputBuffer, mInputStart, mInputStart + mInputLen, lastSegment);
+        } else {
+            /* Otherwise, can either create a combine buffer, or construct
+             * a String. While former could be more efficient, let's do latter
+             * for now since current validator implementations work better
+             * with Strings.
+             */
+            vld.validateText(contentsAsString(), lastSegment);
+        }
     }
 
     /*

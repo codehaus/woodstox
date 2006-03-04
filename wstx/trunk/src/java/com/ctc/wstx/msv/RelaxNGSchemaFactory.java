@@ -102,7 +102,7 @@ public class RelaxNGSchemaFactory
         src.setEncoding(encoding);
         src.setPublicId(publicId);
         src.setSystemId(systemId);
-        return loadSchema(src);
+        return loadSchema(src, systemId);
     }
 
     public XMLValidationSchema createSchema(Reader r, String publicId,
@@ -112,7 +112,7 @@ public class RelaxNGSchemaFactory
         InputSource src = new InputSource(r);
         src.setPublicId(publicId);
         src.setSystemId(systemId);
-        return loadSchema(src);
+        return loadSchema(src, systemId);
     }
 
     public XMLValidationSchema createSchema(URL url)
@@ -122,7 +122,7 @@ public class RelaxNGSchemaFactory
             InputStream in = URLUtil.optimizedStreamFromURL(url);
             InputSource src = new InputSource(in);
             src.setSystemId(url.toExternalForm());
-            return loadSchema(src);
+            return loadSchema(src, url);
         } catch (IOException ioe) {
             throw new WstxIOException(ioe);
         }
@@ -144,7 +144,7 @@ public class RelaxNGSchemaFactory
     ////////////////////////////////////////////////////////////
      */
 
-    protected XMLValidationSchema loadSchema(InputSource src)
+    protected XMLValidationSchema loadSchema(InputSource src, Object sysRef)
         throws XMLStreamException
     {
         /* !!! 28-Dec-2005, TSa: Sax factory is not guaranteed to be
@@ -156,8 +156,10 @@ public class RelaxNGSchemaFactory
          * errors in parsing?
          */
         
-        TREXGrammar grammar = RELAXNGReader.parse
-            (src, mSaxFactory, mDummyController);
+        TREXGrammar grammar = RELAXNGReader.parse(src, mSaxFactory, mDummyController);
+        if (grammar == null) {
+            throw new XMLStreamException("Failed to load RelaxNG from "+sysRef);
+        }
         return new RelaxNGSchema(grammar);
     }
 }

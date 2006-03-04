@@ -37,6 +37,7 @@ import com.ctc.wstx.exc.WstxValidationException;
 import com.ctc.wstx.util.BaseNsContext;
 import com.ctc.wstx.util.SingletonIterator;
 import com.ctc.wstx.util.StringVector;
+import com.ctc.wstx.util.TextBuffer;
 import com.ctc.wstx.util.TextBuilder;
 
 /**
@@ -295,6 +296,18 @@ public abstract class InputElementStack
     public abstract String getLocalNsURI(String internedPrefix);
 
     public abstract void addNsBinding(String prefix, String uri);
+
+    /*
+    ///////////////////////////////////////////////////
+    // Support for validation:
+    ///////////////////////////////////////////////////
+     */
+
+    public final void validateText(TextBuffer tb, boolean lastTextSegment)
+        throws XMLValidationException
+    {
+        tb.validateText(mValidator, lastTextSegment);
+    }
 
     /*
     ///////////////////////////////////////////////////

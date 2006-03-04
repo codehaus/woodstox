@@ -279,6 +279,14 @@ public class BasicStreamReader
      */
     int mWsStatus;
 
+    /**
+     * Flag that indicates that textual content (CDATA, CHARACTERS) is to
+     * be validated within current element's scope. Enabled if one of
+     * validators returns {@link XMLValidator#CONTENT_ALLOW_VALIDATABLE_TEXT},
+     * and will prevent lazy parsing of text.
+     */
+    protected boolean mValidateText = false;
+
     /*
     ////////////////////////////////////////////////////
     // DTD information (entities, content spec stub)
@@ -1030,17 +1038,47 @@ public class BasicStreamReader
                 if (!mCfgLazyParsing && (mTokenState < mStTextThreshold)) {
                     finishToken();
                 }
-                /* Special case -- when coalescing text, CDATA is
-                 * reported as CHARACTERS, although we still need to know
-                 * it really is (starts with as) CDATA.
+                /* Special cases -- sometimes (when coalescing text, or
+                 * when specifically configured to do so), CDATA and SPACE are
+                 * to be reported as CHARACTERS, although we still will
+                 * internally keep track of the real type.
                  */
                 if (type == CDATA) {
+                    if (mValidateText) {
+                        if (mTokenState < mStTextThreshold) {
+                            finishToken();
+                        }
+                        mElementStack.validateText(mTextBuffer, false);
+                    }
                     if (mCfgCoalesceText || mCfgReportTextAsChars) {
                         return CHARACTERS;
                     }
                 } else if (type == SPACE) {
+                    // !!! 03-Mar-2006, Tsa: Sanity check: should never need to validate text
+                    if (mValidateText) { throw new IllegalStateException("Internal error: trying to validate SPACE event"); }
                     if (mCfgReportTextAsChars) {
                         return CHARACTERS;
+                    }
+                } else if (type == CHARACTERS) {
+                    if (mValidateText) {
+                        if (mTokenState < mStTextThreshold) {
+                            finishToken();
+                        }
+                        /* We may be able to determine that there will be
+                         * no more text coming for this element: but only
+                         * seeing the end tag marker ("</") is certain
+                         * (PIs and comments won't do, nor CDATA; start
+                         * element possibly... but that indicates mixed
+                         * content that's generally non-validatable)
+                         */
+                        if ((mInputPtr+1) < mInputLen
+                            && mInputBuffer[mInputPtr] == '<'
+                            && mInputBuffer[mInputPtr+1] == '/') {
+                            // yup, it's all there is
+                            mElementStack.validateText(mTextBuffer, true);
+                        } else {
+                            mElementStack.validateText(mTextBuffer, false);
+                        }
                     }
                 }
                 return type;
@@ -2449,7 +2487,11 @@ public class BasicStreamReader
     ////////////////////////////////////////////////////
      */
 
-    private int nextFromTree()
+    /**
+     * Method called to parse beginning of the next event within
+     * document tree, and return its type.
+     */
+    private final int nextFromTree()
         throws IOException, XMLStreamException
     {
         int i;
@@ -2457,6 +2499,15 @@ public class BasicStreamReader
         // First, do we need to finish currently open token?
         if (mTokenState < mStTextThreshold) {
             // No need to update state... will get taken care of
+            /* 03-Mar-2006, TSa: Let's add a sanity check here, temporarily,
+             *   to ensure we never skip any textual content when it is
+             *   to be validated
+             */
+            if (mVldContent == XMLValidator.CONTENT_ALLOW_VALIDATABLE_TEXT) {
+                if (mCurrToken == CHARACTERS || mCurrToken == CDATA) { // should never happen
+                    throwParseError("Internal error: skipping validatable text");
+                }
+            }
             i = skipToken();
             // note: skipToken() updates the start location
         } else {
@@ -2473,8 +2524,9 @@ public class BasicStreamReader
                 }
             } else if (mCurrToken == END_ELEMENT) {
                 // Close tag removes current element from stack
-                mVldContent = mElementStack.pop();
-
+                int vld = mElementStack.pop();
+                mVldContent = vld;
+                mValidateText = (vld == XMLValidator.CONTENT_ALLOW_VALIDATABLE_TEXT);
                 // ... which may be the root element?
                 if (mElementStack.isEmpty()) {
                     // if so, we'll get to epilog, unless in fragment mode
@@ -2537,7 +2589,6 @@ public class BasicStreamReader
                  * any more text inside CDATA, so let's just continue
                  */
             }
-
             // Once again, need to update the start location info:
             mTokenInputTotal = mCurrInputProcessed + mInputPtr;
             mTokenInputRow = mCurrInputRow;
@@ -2761,7 +2812,9 @@ public class BasicStreamReader
             ++mCurrDepth; // needed to match nesting with entity expansion
         }
         mStEmptyElem = empty;
-        mVldContent = mElementStack.resolveAndValidateElement();
+        int vld = mElementStack.resolveAndValidateElement();
+        mVldContent = vld;
+        mValidateText = (vld == XMLValidator.CONTENT_ALLOW_VALIDATABLE_TEXT);
     }
 
     /**
@@ -4422,7 +4475,7 @@ public class BasicStreamReader
                     } else {
                         /* !!! 21-Apr-2005, TSa: No good way to verify it,
                          *   at this point. Should come back and think of how
-                         *   to properly handle this possibility.
+                         *   to properly handle this (rare) possibility.
                          */
                         ;
                     }

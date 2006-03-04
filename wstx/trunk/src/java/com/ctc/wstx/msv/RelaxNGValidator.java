@@ -250,6 +250,17 @@ public class RelaxNGValidator
                 || mErrorRef.str != null) {
                 reportError(mErrorRef);
             }
+            int stringChecks = mCurrAcceptor.getStringCareLevel();
+            switch (stringChecks) {
+            case Acceptor.STRING_PROHIBITED: // only WS
+                return XMLValidator.CONTENT_ALLOW_WS;
+            case Acceptor.STRING_IGNORE: // anything (mixed content models)
+                return XMLValidator.CONTENT_ALLOW_ANY_TEXT;
+            case Acceptor.STRING_STRICT: // validatable (data-oriented)
+                return XMLValidator.CONTENT_ALLOW_VALIDATABLE_TEXT;
+            default:
+                throw new IllegalArgumentException("Internal error: unexpected string care level value return by MSV: "+stringChecks);
+            }
         }
         return XMLValidator.CONTENT_ALLOW_ANY_TEXT;
     }
