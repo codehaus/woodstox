@@ -1924,7 +1924,7 @@ public class BasicStreamReader
                 return;
             }
             // If not, can skip it right away
-            i = getNextAfterWS();
+            i = getNextInCurrAfterWS((isProlog ? SUFFIX_IN_PROLOG : SUFFIX_IN_EPILOG), (char) i);
             if (i >= 0) {
                 // ... after which location has to be reset properly:
                 /* 11-Apr-2005, TSa: But note that we need to "move back"
