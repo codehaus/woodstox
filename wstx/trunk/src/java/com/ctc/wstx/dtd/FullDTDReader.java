@@ -832,6 +832,13 @@ public class FullDTDReader
                 mFlattenWriter.setFlattenStart(mInputPtr);
             }
             mInputTopDepth = input.getScopeId();
+            /* 21-Feb-2006, TSa: Since linefeed normalization needs to be
+             *   suppressed for internal entity expansion, we may need to
+             *   change the state...
+             */
+            if (mCfgNormalizeLFs != mConfig.willNormalizeLFs()) {
+                mCfgNormalizeLFs = !input.fromInternalEntity();
+            }
             // Maybe there are leftovers from that input in buffer now?
         } while (mInputPtr >= mInputLen);
 
@@ -1494,8 +1501,10 @@ public class FullDTDReader
                             // No need to use default output
                             continue;
                         }
-                    } else if (mCfgNormalizeLFs) {
-                        c = '\n'; // For Mac text
+                    } else {
+                        if (mCfgNormalizeLFs) {
+                            c = '\n'; // For Mac text
+                        }
                     }
                 } else if (c != '\t') {
                     throwInvalidSpace(c);
