@@ -59,12 +59,9 @@ import com.ctc.wstx.util.*;
 public class FullDTDReader
     extends MinimalDTDReader
 {
-    /* These settings toggle on some SAX compatibility features...
-     */
-    final static boolean RESOLVE_NOTATION_SYSID = false;
-    //final static boolean RESOLVE_NOTATION_SYSID = true;
-    final static boolean RESOLVE_UNPARSED_ENTITY_SYSID = false;
-    //final static boolean RESOLVE_UNPARSED_ENTITY_SYSID = true;
+    final static boolean RESOLVE_NOTATION_SYSID = STAX_COMPAT_MODE;
+
+    final static boolean RESOLVE_UNPARSED_ENTITY_SYSID = STAX_COMPAT_MODE;
 
     /**
      * Flag that can be changed to enable or disable interning of shared
@@ -79,6 +76,12 @@ public class FullDTDReader
      * big chunks.
      */
     final static int EXP_ENTITY_VALUE_LEN = 500;
+
+    // // // Entity expansion types:
+
+    final static Boolean ENTITY_EXP_GE = Boolean.FALSE;
+
+    final static Boolean ENTITY_EXP_PE = Boolean.TRUE;
 
     /*
     //////////////////////////////////////////////////
@@ -1105,34 +1108,7 @@ public class FullDTDReader
         if (c != ';') {
             throwDTDUnexpectedChar(c, "; expected ';' to end parameter entity name");
         }
-
-        if (mIsExternal) {
-            /* Need more checking when expanding PEs for external subsets;
-             * need to see if definition was pre-defined or locally
-             * defined (to know if subset will be cacheable)
-             */
-            int setId = expandEntity(id, mPredefdPEs, mParamEntities, true);
-            if (setId == 1) { // came from internal subset...
-                mUsesPredefdEntities = true;
-                /* No need to further keep track of internal references,
-                 * since this subset can not be cached, so let's just free
-                 * up Map if it has been created
-                 */
-                mRefdPEs = null;
-            } else {
-                // Ok, just need to mark reference, if we still care:
-                if (!mUsesPredefdEntities) {
-                    // Let's also mark down the fact we referenced the entity:
-                    Set used = mRefdPEs;
-                    if (used == null) {
-                        mRefdPEs = used = new HashSet();
-                    }
-                    used.add(id);
-                }
-            }
-        } else {
-            expandEntity(id, mParamEntities, null, true);
-        }
+        expandEntity(id, true, ENTITY_EXP_PE);
     }
 
     /*
@@ -1638,34 +1614,7 @@ public class FullDTDReader
                     if (c == CHAR_NULL) {
                         c = getNextChar(SUFFIX_IN_ENTITY_REF);
                         String id = parseEntityName(c);
-                        
-                        /* This is only complicated for external subsets, since
-                         * they may 'inherit' entity definitions from preceding
-                         * internal subset...
-                         */
-                        if (mIsExternal) {
-                            int setId = expandEntity
-                                (id, mPredefdGEs, mGeneralEntities, false);
-                            if (setId == 1) { // came from internal subset...
-                                mUsesPredefdEntities = true;
-                                /* No need to further keep track of references,
-                                 * as this means this subset is not cachable...
-                                 * so let's just free up Map if it has been created
-                                 */
-                                mRefdGEs = null;
-                            } else {
-                                // Ok, just need to mark reference, if we still care:
-                                if (!mUsesPredefdEntities) {
-                                    // Let's also mark down the fact we referenced the entity:
-                                    if (mRefdGEs == null) {
-                                        mRefdGEs = new HashSet();
-                                    }
-                                    mRefdGEs.add(id);
-                                }
-                            }
-                        } else { // internal subset, let's just expand it
-                            expandEntity(id, null, mGeneralEntities, false);
-                        }
+                        expandEntity(id, false, ENTITY_EXP_GE);
                         // Ok, should have updated the input source by now
                         continue main_loop;
                     }
@@ -2303,6 +2252,14 @@ public class FullDTDReader
                 }
                 ent = handleExternalEntityDecl(isParam, id, c, evtLoc);
             }
+
+            /* 05-Mar-2006, TSa: Need to know which entities came from the
+             *    external subset; these can not be used if the xml document
+             *    is declared as "standalone='yes'".
+             */
+            if (mIsExternal) {
+                ent.markAsExternallyDeclared();
+            }
         } finally {
             /* Ok; one way or the other, entity declaration contents have now
              * been read in.
@@ -2388,8 +2345,10 @@ public class FullDTDReader
              *   system identifier for notations...
              */
             if (RESOLVE_NOTATION_SYSID) {
-                URL u = URLUtil.urlFromSystemId(sysId, mInput.getSource());
-                sysId = u.toExternalForm();
+                if (sysId.indexOf(':') < 0) { // relative path
+                    URL u = URLUtil.urlFromSystemId(sysId, mInput.getSource());
+                    sysId = u.toExternalForm();
+                }
             }
             c = skipDtdWs(true);
         } else {
@@ -3081,8 +3040,10 @@ public class FullDTDReader
 
         // unparsed entity
         if (RESOLVE_UNPARSED_ENTITY_SYSID) { // SAX compatibility?
-            URL u = URLUtil.urlFromSystemId(sysId, mInput.getSource());
-            sysId = u.toExternalForm();
+            if (sysId.indexOf(':') < 0) { // relative path...
+                URL u = URLUtil.urlFromSystemId(sysId, mInput.getSource());
+                sysId = u.toExternalForm();
+            }
         }
         return new UnparsedExtEntity(evtLoc, id, getSource(),
                                      pubId, sysId, notationId);
@@ -3146,6 +3107,72 @@ public class FullDTDReader
     // Error handling
     ///////////////////////////////////////////////////////
      */
+
+    // @Override
+    /**
+     * @param arg If Boolean.TRUE, we are expanding a general entity
+     *   
+     */
+    protected EntityDecl findEntity(String id, Object arg)
+    {
+        // Expand a Parameter Entity?
+        if (arg == ENTITY_EXP_PE) { // for attribute default
+            EntityDecl ed = (mPredefdPEs == null) ? null : (EntityDecl) mPredefdPEs.get(id);
+            if (ed != null) { // Entity from int. subset...
+                mUsesPredefdEntities = true;
+                /* No need to further keep track of internal references,
+                 * since this subset can not be cached, so let's just free
+                 * up Map if it has been created
+                 */
+                mRefdPEs = null;
+            } else if (mParamEntities != null) {
+                ed = (EntityDecl) mParamEntities.get(id);
+                if (ed != null) {
+                    if (!mUsesPredefdEntities) {
+                        // Let's also mark down the fact we referenced the entity:
+                        Set used = mRefdPEs;
+                        if (used == null) {
+                            mRefdPEs = used = new HashSet();
+                        }
+                        used.add(id);
+                    }
+                }
+            }
+            return ed;
+        }
+
+        // Nope, General Entity (within attribute default value)?
+        if (arg == ENTITY_EXP_GE) {
+            /* This is only complicated for external subsets, since
+             * they may 'inherit' entity definitions from preceding
+             * internal subset...
+             */
+            EntityDecl ed = (mPredefdGEs == null) ? null : (EntityDecl) mPredefdGEs.get(id);
+            if (ed != null) {
+                mUsesPredefdEntities = true;
+                /* No need to further keep track of references,
+                 * as this means this subset is not cachable...
+                 * so let's just free up Map if it has been created
+                 */
+                mRefdGEs = null;
+            } else if (mGeneralEntities != null) {
+                ed = (EntityDecl) mGeneralEntities.get(id);
+                if (ed != null) {
+                    // Ok, just need to mark reference, if we still care:
+                    if (!mUsesPredefdEntities) {
+                        // Let's also mark down the fact we referenced the entity:
+                        if (mRefdGEs == null) {
+                            mRefdGEs = new HashSet();
+                        }
+                        mRefdGEs.add(id);
+                    }
+                }
+            }
+            return ed;
+        }
+
+        throw new Error(ErrorConsts.ERR_INTERNAL);
+    }
 
     // @Override
     /**

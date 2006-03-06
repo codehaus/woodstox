@@ -70,6 +70,14 @@ public class ErrorConsts
     public static String ERR_WF_PI_XML_TARGET = "Illegal processing instruction target (\"{0}\"); 'xml' (case insensitive) is reserved by the specs.";
     public static String ERR_WF_PI_XML_MISSING_SPACE = "excepted either space or \"?>\" after PI target";
 
+    // // // Entity problems:
+
+    public static String ERR_WF_ENTITY_EXT_DECLARED = "Entity \"{0}\" declared externally, but referenced from a document declared 'standalone=\"yes\"'";
+
+    public static String ERR_WF_GE_UNDECLARED = "Undeclared general entity \"{0}\"";
+
+    public static String ERR_WF_GE_UNDECLARED_SA = "Undeclared general entity \"{0}\" (document in stand-alone mode; perhaps declared externally?)";
+
     // // // Namespace problems:
 
     public static String ERR_NS_UNDECLARED = "Undeclared namespace prefix \"{0}\"";

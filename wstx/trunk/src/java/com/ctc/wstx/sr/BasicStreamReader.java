@@ -87,7 +87,6 @@ public class BasicStreamReader
     extends StreamScanner
     implements StreamReaderImpl, DTDInfo, LocationInfo
 {
-
     /**
      * StAX API expects null to indicate "no prefix", not an empty String...
      */
@@ -1761,7 +1760,7 @@ public class BasicStreamReader
                         && (c = resolveSimpleEntity(true)) != CHAR_NULL) {
                         // Ok, fine, c is whatever it is
                     } else { // full entity just changes buffer...
-                        c = fullyResolveEntity(mCustomEntities, mGeneralEntities, false);
+                        c = fullyResolveEntity(false);
                         // need to skip output, thusly
                         if (c == CHAR_NULL) {
                             continue;
@@ -1846,7 +1845,7 @@ public class BasicStreamReader
                         // Ok, fine, c is whatever it is
                         ;
                     } else { // full entity just changes buffer...
-                        c = fullyResolveEntity(mCustomEntities, mGeneralEntities, false);
+                        c = fullyResolveEntity(false);
                         if (c == CHAR_NULL) {
                             // need to skip output, thusly (expanded to new input source)
                             continue;
@@ -2639,8 +2638,7 @@ public class BasicStreamReader
              * automatic entity expansion or not:
              */
             char c = mCfgReplaceEntities ?
-                fullyResolveEntity(mCustomEntities, mGeneralEntities, true)
-                : resolveCharOnlyEntity(true);
+                fullyResolveEntity(true) : resolveCharOnlyEntity(true);
 
             if (c != CHAR_NULL) {
                 /* Char-entity... need to initialize text output buffer, then;
@@ -2672,7 +2670,7 @@ public class BasicStreamReader
              * expanded; in non-auto, need to figure out entity itself.
              */
             if (!mCfgReplaceEntities) {
-                EntityDecl ed = resolveNonCharEntity(mCustomEntities, mGeneralEntities);
+                EntityDecl ed = resolveNonCharEntity();
                 // Note: ed may still be null at this point
                 mTokenState = TOKEN_FULL_COALESCED;
                 mCurrEntity = ed;
@@ -3444,7 +3442,7 @@ public class BasicStreamReader
                         && resolveSimpleEntity(true) != CHAR_NULL) {
                         ;
                     } else {
-                        i = fullyResolveEntity(mCustomEntities, mGeneralEntities, true);
+                        i = fullyResolveEntity(true);
                         /* Either way, it's just fine; we don't care about
                          * returned single-char value.
                          */
@@ -4450,7 +4448,7 @@ public class BasicStreamReader
                             && (c = resolveSimpleEntity(true)) != CHAR_NULL) {
                             // Ok, it's fine, c will get output
                         } else {
-                            c = fullyResolveEntity(mCustomEntities, mGeneralEntities, true);
+                            c = fullyResolveEntity(true);
                             if (c == CHAR_NULL) {
                                 // Output buffer changed, nothing to output quite yet:
                                 continue;
@@ -4752,7 +4750,7 @@ public class BasicStreamReader
                     if (mCfgReplaceEntities) { // can we expand all entities?
                         if ((mInputLen - mInputPtr) < 3
                             || (c = resolveSimpleEntity(true)) == CHAR_NULL) {
-                            c = fullyResolveEntity(mCustomEntities, mGeneralEntities, true);
+                            c = fullyResolveEntity(true);
                         }
                     } else {
                         c = resolveCharOnlyEntity(true);
@@ -5043,15 +5041,41 @@ public class BasicStreamReader
 
     /*
     ////////////////////////////////////////////////////
-    // Internal methods, validation, error handling and
-    // reporting
+    // Abstract method implementations
     ////////////////////////////////////////////////////
      */
+
+    // @Override
+    protected EntityDecl findEntity(String id, Object arg)
+        throws XMLStreamException
+    {
+        EntityDecl ed = null;
+
+        if (mCustomEntities != null) {
+            ed = (EntityDecl) mCustomEntities.get(id);
+        }
+        if (ed == null && mGeneralEntities != null) {
+            ed = (EntityDecl) mGeneralEntities.get(id);
+        }
+        /* 05-Mar-2006, TSa: Externally declared entities are illegal
+         *   if we were declared as "standalone='yes'"...
+         */
+        if (mDocStandalone == DOC_STANDALONE_YES) {
+            if (ed != null && ed.wasDeclaredExternally()) {
+                throwParseError(ErrorConsts.ERR_WF_ENTITY_EXT_DECLARED, ed.getName());
+            }
+        }
+
+        return ed;
+    }
 
     protected void handleUndeclaredEntity(String id)
         throws XMLStreamException
     {
-       throwParseError("Undeclared general entity '"+id+"'.");
+        throwParseError(((mDocStandalone == DOC_STANDALONE_YES) ?
+                        ErrorConsts.ERR_WF_GE_UNDECLARED_SA :
+                        ErrorConsts.ERR_WF_GE_UNDECLARED),
+                        id);
     }
 
     protected void handleIncompleteEntityProblem(WstxInputSource closing)
@@ -5061,6 +5085,13 @@ public class BasicStreamReader
         throwParseError("Unexpected end of entity expansion for entity &"
                         +closing.getEntityId()+"; was expecting a close tag for element <"+top+">");
     } 
+
+    /*
+    ////////////////////////////////////////////////////
+    // Internal methods, validation, error handling and
+    // reporting
+    ////////////////////////////////////////////////////
+     */
 
     /**
      * This problem gets reported if an entity tries to expand to

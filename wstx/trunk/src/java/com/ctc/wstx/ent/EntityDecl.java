@@ -47,11 +47,21 @@ public abstract class EntityDecl
      */
     final URL mContext;
 
+    /**
+     * Flag that can be set to indicate that the declaration was in the
+     * external DTD subset. Default is false.
+     */
+    protected boolean mDeclaredExternally  = false;
+
     public EntityDecl(Location loc, String name, URL ctxt)
     {
         mLocation = loc;
         mName = name;
         mContext = ctxt;
+    }
+
+    public void markAsExternallyDeclared() {
+        mDeclaredExternally = true;
     }
 
     public final String getBaseURI() {
@@ -76,6 +86,14 @@ public abstract class EntityDecl
         throws IOException;
 
     public abstract String getSystemId();
+
+    /**
+     * @return True, if the declaration occured in the external DTD
+     *   subset; false if not (internal subset, custom declaration)
+     */
+    public boolean wasDeclaredExternally() {
+        return mDeclaredExternally;
+    }
 
     /*
     ///////////////////////////////////////////

@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.io.Reader;
 import java.net.URL;
 import java.text.MessageFormat;
-import java.util.Map;
 
 import javax.xml.stream.Location;
 import javax.xml.stream.XMLInputFactory;
@@ -55,7 +54,14 @@ public abstract class StreamScanner
     implements InputProblemReporter,
         InputConfigFlags, ParsingErrorMsgs
 {
-    final static char sSingleSpaceBuffer[] = new char[] { ' ' };
+    /**
+     * In case we want better compatibility with SAX parsers (like Xerces),
+     * this flag can be turned on.
+     *<p>
+     * Perhaps this should be a property that could be enabled dynamically?
+     */
+    //protected final static boolean STAX_COMPAT_MODE = true;
+    protected final static boolean STAX_COMPAT_MODE = false;
 
     // // // Some well-known chars:
 
@@ -1329,7 +1335,7 @@ public abstract class StreamScanner
      * are to be separately returned unexpanded (in non-entity-replacing
      * mode); which means it's never called from dtd handler.
      */
-    protected EntityDecl resolveNonCharEntity(Map ent1, Map ent2)
+    protected EntityDecl resolveNonCharEntity()
         throws IOException, XMLStreamException
     {
         //int avail = inputInBuffer();
@@ -1361,8 +1367,6 @@ public abstract class StreamScanner
         if (c == '#') {
             return null;
         }
-
-        EntityDecl ed;
 
         /* 19-Aug-2004, TSa: Need special handling for pre-defined
          *   entities; they are not counted as 'real' general parsed
@@ -1416,21 +1420,7 @@ public abstract class StreamScanner
         String id = parseEntityName(c);
         mCurrName = id;
 
-        if (ent1 != null) {
-            ed = (EntityDecl) ent1.get(id);
-        } else {
-            ed = null;
-        }
-        if (ed == null) {
-            if (ent2 != null) {
-                ed = (EntityDecl) ent2.get(id);
-            }
-        }
-        /* No need for null checks -- only called in non-expanding mode,
-         * when it's ok to return null to signal an undeclared entity
-         */
-
-        return ed;
+        return findEntity(id, null);
     }
 
     /**
@@ -1441,8 +1431,6 @@ public abstract class StreamScanner
      * char in question, or null character (code 0) to indicate it had
      * to change input source.
      *
-     * @param ent1
-     * @param ent2
      * @param allowExt If true, is allowed to expand external entities
      *   (expanding text); if false, is not (expanding attribute value).
      *
@@ -1450,7 +1438,7 @@ public abstract class StreamScanner
      *    reparsed), or null char (0) to indicate expansion is done via
      *    input source.
      */
-    protected char fullyResolveEntity(Map ent1, Map ent2, boolean allowExt)
+    protected char fullyResolveEntity(boolean allowExt)
         throws IOException, XMLStreamException
     {
         char c = getNextCharFromCurrent(SUFFIX_IN_ENTITY_REF);
@@ -1487,7 +1475,7 @@ public abstract class StreamScanner
                 return '"';
             }
         }
-        expandEntity(id, ent1, ent2, allowExt);
+        expandEntity(id, allowExt, null);
         return CHAR_NULL;
     }
 
@@ -1498,38 +1486,17 @@ public abstract class StreamScanner
      * note: called by sub-classes (dtd parser), needs to be protected.
      *
      * @param id Name of the entity being expanded 
-     * @param ent1 Primary set of entities to expand from (can not be null)
-     * @param ent2 (optional) Secondary set of entities to expand from;
-     *   may be null
      * @param allowExt Whether external entities can be expanded or not; if
      *   not, and the entity to expand would be external one, an exception
      *   will be thrown
-     *
-     * @return 1, if entity was found from the first Map passed in; 2,
-     *   if from second, 0 if neither (only for non-entity-replacing mode)
      */
-    protected int expandEntity(String id, Map ent1, Map ent2, boolean allowExt)
+    protected EntityDecl expandEntity(String id, boolean allowExt,
+                                      Object extraArg)
         throws IOException, XMLStreamException
     {
-        EntityDecl ed;
-        
         mCurrName = id;
 
-        if (ent1 == null) {
-            ed = null;
-        } else {
-            ed = (EntityDecl) ent1.get(id);
-        }
-
-        int result;
-        if (ed == null) {
-            result = 2;
-            if (ent2 != null) {
-                ed = (EntityDecl) ent2.get(id);
-            }
-        } else {
-            result = 1;
-        }
+        EntityDecl ed = findEntity(id, extraArg);
 
         if (ed == null) {
             /* 30-Sep-2005, TSa: As per [WSTX-5], let's only throw exception
@@ -1542,10 +1509,10 @@ public abstract class StreamScanner
             if (mCfgReplaceEntities) {
                 expandUnresolvedEntity(id);
             }
-            return 0;
+            return null;
         }
         expandEntity(ed, allowExt);
-        return result;
+        return ed;
     }
 
     /**
@@ -1655,6 +1622,17 @@ public abstract class StreamScanner
     // Abstract methods for sub-classes to implement
     ////////////////////////////////////////////////////
      */
+
+    /**
+     * Abstract method for sub-classes to implement, for finding
+     * a declared general or parsed entity.
+     *
+     * @param id Identifier of the entity to find
+     * @param arg Optional argument passed from caller; needed by DTD
+     *    reader.
+     */
+    protected abstract EntityDecl findEntity(String id, Object arg)
+        throws XMLStreamException;
 
     /**
      * This method gets called if a declaration for an entity was not
@@ -2404,5 +2382,11 @@ public abstract class StreamScanner
         throws WstxException
     {
         throwParseError("Illegal character entity: expansion character (code 0x"+Integer.toHexString(value)+") not a valid XML character");
+    }
+
+    protected void throwIllegalCall()
+        throws Error
+    {
+        throw new Error("Internal error: this method should never be called");
     }
 }

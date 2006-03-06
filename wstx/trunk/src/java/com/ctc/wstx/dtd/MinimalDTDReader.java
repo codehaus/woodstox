@@ -116,6 +116,12 @@ public class MinimalDTDReader
         return getStartLocation();
     }
 
+    // @Override
+    protected EntityDecl findEntity(String id, Object arg) {
+        throwIllegalCall();
+        return null; // never gets here but javac needs it
+    }
+
     /**
      * This is a VC, not WFC, nothing to do when skipping through
      * DTD in non-supporting mode.
