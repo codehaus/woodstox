@@ -102,19 +102,8 @@ public class WstxEventReader
     public void close()
         throws XMLStreamException
     {
-        /* Nothing much we can do -- sure, could make factory and reader
-         * non-final, clear them up, but what's the point?
-         */
-        /*
-        try { // Stupid StAX 1.0 incompatibilities
-            mReader.close();
-        } catch (XMLStreamException sex) {
-            throwFromSex(sex); 
-        }
-        */
-
         /* 05-Dec-2004, TSa: Actually, looks like we can just throw
-         *   the XMLStreamReader ok?
+         *   the XMLStreamException ok?
          */
         mReader.close();
     }
@@ -152,7 +141,8 @@ public class WstxEventReader
             }
             int type = evt.getEventType();
             if (type == COMMENT || type == PROCESSING_INSTRUCTION) {
-                ; // can/should just ignore them
+                // can/should just ignore them
+                continue;
             }
             if (!evt.isCharacters()) {
                 throw new WstxParsingException("Expected a text token, got "
@@ -298,7 +288,9 @@ public class WstxEventReader
     {
         if (mPeekedEvent == null) {
             if (mState == STATE_EOD) {
-                throwEOD();
+                // 06-Mar-2006, TSa: Fixed as per Arjen's suggestion:
+                //throwEOD();
+                return null;
             }
             if (mState == STATE_INITIAL) {
                 // Not sure what it should be... but this should do:

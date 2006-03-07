@@ -11,7 +11,10 @@ Description:
     that causing an error from sanity check)
   * Fixed a bug in XML name parsing -- was not acception some valid
     (albeit seldom used) name characters (0xF6 for example)
-
+  * [WSTX-45] WstxEventReader threw an exception at EOF, instead of returning
+    null (as per specs)
+    [Reported by Arjen P]
+ 
 == History: ==
 
 2.0.5: [22-Jan-2006]
