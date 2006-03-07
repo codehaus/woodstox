@@ -283,16 +283,19 @@ public class ValidatingStreamReader
         if (mDTDOverridden) {
             // We have earlier override that's already parsed
         } else { // Nope, no override
+            DTDSubset extSubset = null;
+
             /* 05-Mar-2006, TSa: If standalone was specified as "yes", we
              *   should not rely on any external declarations, so shouldn't
              *   we really just skip the external subset?
              */
             /* Alas: SAX (Xerces) still tries to read it... should we
-             * do the Right Thing, or follow the leader?
+             * do the Right Thing, or follow the leader? For now, let's
+             * just follow the wrong example.
              */
-            DTDSubset extSubset = null;
 
-            if ((mDocStandalone != DOC_STANDALONE_YES) || STAX_COMPAT_MODE) {
+            //if ((mDocStandalone != DOC_STANDALONE_YES) || STAX_COMPAT_MODE) {
+            if (true) {
                 if (mDtdPublicId != null || mDtdSystemId != null) {
                     extSubset =  findDtdExtSubset(mDtdPublicId, mDtdSystemId, intSubset);
                 }

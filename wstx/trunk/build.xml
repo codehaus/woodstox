@@ -81,6 +81,7 @@
                too. This way src packages are proper subsets of binary ones
             -->
           <include name="lib/*.jar" />
+          <include name="lib/msv/*.jar" />
     </patternset>
 
     <!-- Core Woodstox class files common to all license flavours: -->

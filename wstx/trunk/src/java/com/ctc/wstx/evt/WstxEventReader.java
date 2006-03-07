@@ -289,7 +289,9 @@ public class WstxEventReader
     {
         if (mPeekedEvent == null) {
             if (mState == STATE_EOD) {
-                throwEOD();
+                // 06-Mar-2006, TSa: Fixed as per Arjen's suggestion:
+                //throwEOD();
+                return null;
             }
             if (mState == STATE_INITIAL) {
                 // Not sure what it should be... but this should do:

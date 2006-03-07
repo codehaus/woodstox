@@ -140,3 +140,8 @@ Bartlomiej Rymkowski:
   * Reported [WSTX-28] (broken handling of property
     (WstxInputProperties.P_CUSTOM_INTERNAL_ENTITIES)
     [2.0.5/2.8.2]
+
+Arjen Poutsma:
+  * Reported [WSTX-45] (WstxEventReader#peek() throwing EOF instead
+    of returning null), pointed out fix.
+    [2.0.6/2.9.2]

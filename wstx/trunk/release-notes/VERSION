@@ -1,11 +1,22 @@
-Version: 2.9.1
+Version: 2.9.2
 
-Release date: 22-Feb-2006
+Release date: xx-Feb-2006
 
 Description:
   One more important pre-3.0 release that fixes most of remaining XML
   conformance issues (and is, as a by-product, much more similar in
   behavior to SAX parsers like Xerces).
+
+  Problems fixed:
+
+  Improvements:
+
+  * Added pluggable XMLValidator instance (and factory, schema) for
+    RelaxNG, based on Sun Multi-Schema Validator.
+
+== History: ==
+
+2.9.1 [22-Feb-2006]
 
   Problems fixed:
 
@@ -20,15 +31,13 @@ Description:
      * Input nesting checks for Parameter and General Entity expansions
        (elements and GE expansions have to nest properly; similarly
        PE and DTD declarations have to properly nest).
-
-  Improvements:
-
   * Woodstox now handles gracefully namespaces that are declared using
     default attribute declarations (as well as basic namespace declaration
     entries in DTDs -- while unnecessary, some legacy DTDs use these).
-  * Added UTF-32 reader since JDK does not come with one.
 
-== History: ==
+  Improvements:
+
+  * Added UTF-32 reader since JDK does not come with one.
 
 2.9 [22-Jan-2006]
 
