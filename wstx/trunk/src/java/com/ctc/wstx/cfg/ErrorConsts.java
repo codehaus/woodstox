@@ -46,6 +46,7 @@ public class ErrorConsts
 
     public static String ERR_STATE_NOT_STELEM = "Current state not START_ELEMENT";
     public static String ERR_STATE_NOT_ELEM = "Current state not START_ELEMENT or END_ELEMENT";
+    public static String ERR_STATE_NOT_PI = "Current state not PROCESSING_INSTRUCTION";
 
     // // // XML declaration related problems
 

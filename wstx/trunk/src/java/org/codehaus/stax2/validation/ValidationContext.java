@@ -64,9 +64,9 @@ public interface ValidationContext
      *<p>
      * Note: this method is only guaranteed to be callable during execution
      * of {@link XMLValidator} methods
-     * {@link XMLValidator#validateElemenStart},
+     * {@link XMLValidator#validateElementStart},
      * {@link XMLValidator#validateAttribute} and
-     * {@link XMLValidator#validateElemenAndAttributes}. At other times
+     * {@link XMLValidator#validateElementAndAttributes}. At other times
      * implementations may choose to allow it to be called (for example,
      * with information regarding last start element processed), to throw
      * a {@link IllegalArgumentException}, or to return 0 to indicate no

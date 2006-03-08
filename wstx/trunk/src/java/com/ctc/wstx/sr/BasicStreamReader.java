@@ -57,27 +57,6 @@ import com.ctc.wstx.util.URLUtil;
  * This class is also the lowest common denominator for all actual
  * {@link XMLStreamReader2} implementations Woodstox will ever create.
  *<p>
- * Some notes about non-conformancy with XML specs:
- * <ul>
- *  <li>White space recognition is simplified; everything below unicode
- *     0x0020 (including 0x0020, space itself), is considered valid
- *     whitespace, except for null char.
- *     Extra linefeed chars XML 1.1 adds are not recognized.
- *   </li>
- *  <li>Content characters are not restricted to only legal XML 1.0 characters;
- *    all Unicode chars except for markup (and null char) is passed through.
- *   </li>
- *  <li>Entity expansions are not fully checked for scope nesting: that is,
- *     although it is illegal for start and element to be expanded from
- *     separate entities (or, start from an entity, end from the main
- *     document etc), this is not fully checked.
- *   </li>
- * </ul>
- * What this means is that while all well-formed documents should be 
- * considered such, a small subset of non-well-formed documents can also
- * be considered well-formed. In future, more checks may be added to
- * further remove (and eventually eliminate) such subset.
- *<p>
  * About interfaces implemented: {@link XMLStreamReader2} is part of StAX2,
  * and implemented as the "main" interface. Implementing {@link DTDInfo} is
  * just an implementation detail; it could be implemented as a separate
@@ -741,7 +720,7 @@ public class BasicStreamReader
 
     public String getNamespaceURI() {
         if (mCurrToken != START_ELEMENT && mCurrToken != END_ELEMENT) {
-            return null;
+            throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_ELEM);
         }
         return mElementStack.getNsURI();
     }
@@ -762,7 +741,7 @@ public class BasicStreamReader
 
     public String getPIData() {
         if (mCurrToken != PROCESSING_INSTRUCTION) {
-            return null;
+            throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_PI);
         }
         if (mTokenState <= TOKEN_STARTED) {
             safeFinishToken();
@@ -772,7 +751,7 @@ public class BasicStreamReader
 
     public String getPITarget() {
         if (mCurrToken != PROCESSING_INSTRUCTION) {
-            return null;
+            throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_PI);
         }
         // Target is always parsed automatically, not lazily...
         return mCurrName;
@@ -780,7 +759,7 @@ public class BasicStreamReader
 
     public String getPrefix() {
         if (mCurrToken != START_ELEMENT && mCurrToken != END_ELEMENT) {
-            return null;
+            throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_ELEM);
         }
         return mElementStack.getPrefix();
     }

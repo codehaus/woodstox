@@ -73,7 +73,7 @@ public final class AsciiReader
         // Need to load more data?
         int avail = mLength - mPtr;
         if (avail <= 0) {
-            // Let's always read full buffers, actually...
+            // Let's always try to read full buffers, actually...
             int count = mIn.read(mBuffer);
             if (count <= 0) {
                 if (count == 0) {
