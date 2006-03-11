@@ -29,6 +29,8 @@ import org.codehaus.stax2.validation.ValidationContext;
 import org.codehaus.stax2.validation.XMLValidator;
 import org.codehaus.stax2.validation.XMLValidationException;
 import org.codehaus.stax2.validation.XMLValidationProblem;
+import org.codehaus.stax2.validation.XMLValidationSchema;
+import org.codehaus.stax2.validation.XMLValidatorPair;
 
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.cfg.XmlConsts;
@@ -97,24 +99,48 @@ public abstract class InputElementStack
         mReporter = rep;
     }
 
-    public void setValidator(XMLValidator validator) {
-        mValidator = validator;
+    protected XMLValidator addValidator(XMLValidator vld)
+    {
+        if (mValidator == null) {
+            mValidator = vld;
+        } else {
+            mValidator = new XMLValidatorPair(mValidator, vld);
+        }
+        return vld;
     }
 
     /**
-     * Method called by the (validating) stream reader, to indicate that
-     * this input element stack needs to co-operate with an object
-     * that can provide default namespace declarations. While messy, this
-     * is needed to let DTDs work well with legacy handling of namespace
-     * declarations for some standard DTDs.
+     * Method called to connect the automatically handled DTD validator
+     * (one detected from DOCTYPE, loaded and completely handled by
+     * the stream reader without application calling validation methods).
+     * Handled separately, since its behaviour is potentially different
+     * from that f
      */
-    protected abstract void connectNsDefaultProvider(NsDefaultProvider provider);
+    protected abstract void setAutomaticDTDValidator(XMLValidator validator, NsDefaultProvider nsDefs);
 
-    protected boolean hasDTDValidator() {
-        /* !!! 26-Nov-2005, TSa: Should be fixed once other pluggable
-         *   validators are allowed
+    public XMLValidator validateAgainst(XMLValidationSchema schema)
+        throws XMLStreamException
+    {
+        /* Should we first check if we maybe already have a validator
+         * for the schema?
          */
-        return (mValidator != null);
+        return addValidator(schema.createValidator(this));
+    }
+
+
+
+    public XMLValidator stopValidatingAgainst(XMLValidationSchema schema)
+        throws XMLStreamException
+    {
+        // !!! TBI
+        return null;
+    }
+
+    public XMLValidator stopValidatingAgainst(XMLValidator validator)
+        throws XMLStreamException
+    {
+        // !!! TBI
+        return null;
     }
 
     /**

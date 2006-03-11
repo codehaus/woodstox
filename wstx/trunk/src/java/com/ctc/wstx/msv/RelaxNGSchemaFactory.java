@@ -22,6 +22,7 @@ import javax.xml.parsers.SAXParserFactory;
 import javax.xml.stream.*;
 
 import org.xml.sax.InputSource;
+import org.xml.sax.Locator;
 
 import org.codehaus.stax2.*;
 import org.codehaus.stax2.validation.*;
@@ -155,11 +156,35 @@ public class RelaxNGSchemaFactory
         /* Another thing; should we use a controller to get notified about
          * errors in parsing?
          */
-        
-        TREXGrammar grammar = RELAXNGReader.parse(src, mSaxFactory, mDummyController);
+        MyGrammarController ctrl = new MyGrammarController();
+        TREXGrammar grammar = RELAXNGReader.parse(src, mSaxFactory, ctrl);
         if (grammar == null) {
-            throw new XMLStreamException("Failed to load RelaxNG from "+sysRef);
+            String msg = "Failed to load RelaxNG from '"+sysRef+"'";
+            String emsg = ctrl.mErrorMsg;
+            if (emsg != null) {
+                msg = msg + ": "+emsg;
+            }
+            throw new XMLStreamException(msg);
         }
         return new RelaxNGSchema(grammar);
+    }
+
+    final static class MyGrammarController
+        extends com.sun.msv.reader.util.IgnoreController
+    {
+        public String mErrorMsg = null;
+
+        public MyGrammarController() { }
+
+        //public void warning(Locator[] locs, String errorMessage) { }
+
+        public void error(Locator[] locs, String msg, Exception nestedException )
+        {
+            if (mErrorMsg == null) {
+                mErrorMsg = msg;
+            } else {
+                mErrorMsg = mErrorMsg + "; " + msg;
+            }
+        }
     }
 }

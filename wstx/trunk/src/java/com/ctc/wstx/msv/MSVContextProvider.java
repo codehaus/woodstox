@@ -16,6 +16,7 @@
 package com.ctc.wstx.msv;
 
 import org.relaxng.datatype.Datatype;
+import com.sun.msv.verifier.regexp.StringToken;
 
 import org.codehaus.stax2.validation.*;
 
@@ -25,7 +26,7 @@ import org.codehaus.stax2.validation.*;
  * by MSV are very similar, there is no extensive logic involved.
  */
 public class MSVContextProvider
-    implements com.sun.msv.grammar.IDContextProvider
+    implements com.sun.msv.grammar.IDContextProvider2
 {
     /**
      * Stax validation context accessed to provide functionality MSV requires.
@@ -75,7 +76,7 @@ public class MSVContextProvider
     ///////////////////////////////////////////////////////////
     */
 
-	public void onID(Datatype datatype, String literal)
+	public void onID(Datatype datatype, StringToken literal)
     {
         // !!! TBI
     }

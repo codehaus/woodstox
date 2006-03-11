@@ -31,6 +31,7 @@ import org.codehaus.stax2.LocationInfo;
 import org.codehaus.stax2.XMLStreamLocation2;
 import org.codehaus.stax2.XMLStreamReader2;
 import org.codehaus.stax2.validation.DTDValidationSchema;
+import org.codehaus.stax2.validation.XMLValidationSchema;
 import org.codehaus.stax2.validation.XMLValidator;
 
 import com.ctc.wstx.api.ReaderConfig;
@@ -1542,6 +1543,33 @@ public class BasicStreamReader
         }
         // And then we just need the current location!
         return getCurrentLocation();
+    }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Stax2 validation
+    ////////////////////////////////////////////////////
+     */
+
+    public XMLValidator validateAgainst(XMLValidationSchema schema)
+        throws XMLStreamException
+    {
+        // Not implemented by the basic reader:
+        return null;
+    }
+
+    public XMLValidator stopValidatingAgainst(XMLValidationSchema schema)
+        throws XMLStreamException
+    {
+        // Not implemented by the basic reader:
+        return null;
+    }
+
+    public XMLValidator stopValidatingAgainst(XMLValidator validator)
+        throws XMLStreamException
+    {
+        // Not implemented by the basic reader:
+        return null;
     }
 
     /*

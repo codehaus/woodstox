@@ -4,8 +4,7 @@ import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
-import org.codehaus.stax2.validation.XMLValidationSchema;
-import org.codehaus.stax2.validation.XMLValidator;
+import org.codehaus.stax2.validation.Validatable;
 
 /**
  * Extended interface that implements functionality that is necessary
@@ -16,7 +15,7 @@ import org.codehaus.stax2.validation.XMLValidator;
  * SOAP-messages).
  */
 public interface XMLStreamWriter2
-    extends XMLStreamWriter
+    extends XMLStreamWriter, Validatable
 {
     /*
     ///////////////////////////
@@ -52,45 +51,6 @@ public interface XMLStreamWriter2
      *   (or recognized) by the stream writer implementation
      */
     public boolean setProperty(String name, Object value);
-
-    /**
-     * Method that will construct a {@link XMLValidator} instance from the
-     * given schema (unless a validator for that schema has already been
-     * added),
-     * initialize it if necessary, and make stream writer
-     * call appropriate validation methods from this point on until the
-     * end of the document (that is, it's not scoped with sub-trees), or until
-     * validator is removed by an explicit call to
-     * {@link #stopValidatingAgainst}.
-     *<p>
-     * Note that while this method can be called at any point in output
-     * processing, validator instances are not required to be able to handle
-     * addition at other points than right before outputting the root element.
-     *
-     * @return Validator instance constructed, if validator was added, or null
-     *   if a validator for the schema has already been constructed.
-     */
-    public XMLValidator validateAgainst(XMLValidationSchema schema)
-        throws XMLStreamException;
-
-    /**
-     * Method that can be called by application to stop validating
-     * output against a schema, for which {@link #validateAgainst}
-     * was called earlier.
-     */
-    public XMLValidator stopValidatingAgainst(XMLValidationSchema schema)
-        throws XMLStreamException;
-
-    /**
-     * Method that can be called by application to stop validating
-     * output using specified validator. The validator passed should be
-     * an earlier return value for a call to {@link #validateAgainst}.
-     *<p>
-     * Note: the specified validator is compared for identity with validators
-     * in use, not for equality.
-     */
-    public XMLValidator stopValidatingAgainst(XMLValidator validator)
-        throws XMLStreamException;
 
     /*
     //////////////////////////////////////////

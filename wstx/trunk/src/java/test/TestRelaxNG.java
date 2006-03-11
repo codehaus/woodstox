@@ -37,18 +37,16 @@ public class TestRelaxNG
         f.setProperty(XMLInputFactory.IS_COALESCING, Boolean.TRUE);
         f.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.TRUE);
         //f.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.FALSE);
-        f.setProperty(XMLInputFactory.IS_VALIDATING, Boolean.TRUE);
+
+        // Can DTD validate... or not:
+        //f.setProperty(XMLInputFactory.IS_VALIDATING, Boolean.TRUE);
+
         f.setProperty(XMLInputFactory.REPORTER, new TestReporter());
 
         InputStream in = new FileInputStream(xmlFile);
-        XMLStreamReader streamReader = f.createXMLStreamReader(xmlFile.toURL().toString(), in);
+        XMLStreamReader2 streamReader = (XMLStreamReader2) f.createXMLStreamReader(xmlFile.toURL().toString(), in);
 
-        // !!! 24-Feb-2006, TSa: Temporary hack to get things testable:
-        {
-            BasicStreamReader bs = (BasicStreamReader) streamReader;
-            InputElementStack is = bs.getInputElementStack();
-            is.setValidator(schema.createValidator(is));
-        }
+        streamReader.validateAgainst(schema);
 
         int total = 0;
         while (streamReader.hasNext()) {

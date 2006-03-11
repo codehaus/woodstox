@@ -175,9 +175,10 @@ public final class NsInputElementStack
         mAttrCollector = new NsAttributeCollector(normAttrs, prefixXml);
     }
 
-    protected void connectNsDefaultProvider(NsDefaultProvider provider)
+    protected void setAutomaticDTDValidator(XMLValidator validator, NsDefaultProvider nsDefs)
     {
-        mNsDefaultProvider = provider;
+        mNsDefaultProvider = nsDefs;
+        addValidator(validator);
     }
 
     public final void push(String prefix, String localName)

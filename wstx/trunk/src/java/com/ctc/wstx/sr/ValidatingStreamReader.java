@@ -77,12 +77,25 @@ public class ValidatingStreamReader
     DTDValidationSchema mDTD = null;
 
     /**
+     * Validating reader keeps of automatically created DTD-based
+     * validator, since its handling may differ from that of application
+     * managed validators.
+     */
+    XMLValidator mAutoDtdValidator = null;
+
+    /**
      * Flag to indicate that the DOCTYPE declaration is to be
      * overridden by value of {@link #mDTD}. Mostly needed to signal
      * "significant null" value, which means "just discard DOCTYPE if one
      * gotten from the document".
      */
     boolean mDTDOverridden = false;
+
+    /**
+     * Flag that indicates whether a DTD validator has been automatically
+     * set (as per DOCTYPE declaration or override)
+     */
+    boolean mDtdValidatorSet = false;
 
     /*
     ////////////////////////////////////////////////////
@@ -207,6 +220,33 @@ public class ValidatingStreamReader
 
     /*
     ////////////////////////////////////////////////////
+    // Stax2 validation
+    ////////////////////////////////////////////////////
+     */
+
+    // @Override
+    public XMLValidator validateAgainst(XMLValidationSchema schema)
+        throws XMLStreamException
+    {
+        return mElementStack.validateAgainst(schema);
+    }
+
+    // @Override
+    public XMLValidator stopValidatingAgainst(XMLValidationSchema schema)
+        throws XMLStreamException
+    {
+        return mElementStack.stopValidatingAgainst(schema);
+    }
+
+    // @Override
+    public XMLValidator stopValidatingAgainst(XMLValidator validator)
+        throws XMLStreamException
+    {
+        return mElementStack.stopValidatingAgainst(validator);
+    }
+
+    /*
+    ////////////////////////////////////////////////////
     // Private methods, DOCTYPE handling
     ////////////////////////////////////////////////////
      */
@@ -326,20 +366,18 @@ public class ValidatingStreamReader
              *   still need to add a validator, but just to get type info
              *   and to add attribute default values if necessary.
              */
-            XMLValidator vld = mDTD.createValidator(/*(ValidationContext)*/ mElementStack);
-            if (vld instanceof DTDValidatorBase) {
-                DTDValidatorBase dtdv = (DTDValidatorBase) vld;
+            mAutoDtdValidator = mDTD.createValidator(/*(ValidationContext)*/ mElementStack);
+            mDtdValidatorSet = true; // so we won't get nags
+            NsDefaultProvider nsDefs = null;
+            if (mAutoDtdValidator instanceof DTDValidatorBase) {
+                DTDValidatorBase dtdv = (DTDValidatorBase) mAutoDtdValidator;
                 dtdv.setAttrValueNormalization(mCfgNormalizeAttrs);
-                /* 19-Feb-2006, TSa: This is messy, but we need to find a way
-                 *   to indicate namespaced input element stack that it may
-                 *   to co-operate with DTD validator with respect to default
-                 *   attribute values for namespace declarations...
-                 */
-                if (mCfgNsEnabled && dtdv.hasNsDefaults()) {
-                    mElementStack.connectNsDefaultProvider(dtdv);
+                // Do we have any attribute defaults for 'xmlns' or 'xmlns:*'?
+                if (dtdv.hasNsDefaults()) {
+                    nsDefs = dtdv;
                 }
             }
-            mElementStack.setValidator(vld);
+            mElementStack.setAutomaticDTDValidator(mAutoDtdValidator, nsDefs);
         }
     }
 
@@ -352,7 +390,7 @@ public class ValidatingStreamReader
         throws XMLStreamException
     {
         if (hasConfigFlags(CFG_VALIDATE_AGAINST_DTD)
-            && !mElementStack.hasDTDValidator()) {
+            && !mDtdValidatorSet) {
             /* It's ok to miss it, but it may not be what caller wants. Either
              * way, let's pass the info and continue
              */

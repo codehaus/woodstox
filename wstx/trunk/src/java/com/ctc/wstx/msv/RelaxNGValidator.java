@@ -25,7 +25,7 @@ import javax.xml.stream.*;
 import org.codehaus.stax2.*;
 import org.codehaus.stax2.validation.*;
 
-import com.sun.msv.grammar.IDContextProvider;
+import com.sun.msv.grammar.IDContextProvider2;
 import com.sun.msv.util.DatatypeRef;
 import com.sun.msv.util.StartTagInfo;
 import com.sun.msv.util.StringRef;
@@ -87,7 +87,7 @@ public class RelaxNGValidator
      * StartTagInfo instance need not be thread-safe, and it is not immutable
      * so let's reuse one instance during a single validation.
      */
-    final StartTagInfo mStartTag = new StartTagInfo("", "", "", null, null);
+    final StartTagInfo mStartTag = new StartTagInfo("", "", "", null, (IDContextProvider2) null);
 
     /**
      * Since RelaxNG never has to look into attributes during element
@@ -97,7 +97,7 @@ public class RelaxNGValidator
      */
     final AttributeProxy mAttributeProxy;
 
-    final IDContextProvider mMsvContext;
+    final IDContextProvider2 mMsvContext;
 
     /*
     ////////////////////////////////////
@@ -164,11 +164,12 @@ public class RelaxNGValidator
                                     String prefix, String value)
         throws XMLValidationException
     {
+//System.err.println("DEBUG: attr ln = '"+localName+"', value = '"+value+"' ("+value.length()+")");
         if (mCurrAcceptor != null) {
             String qname = localName; // for now, let's assume we don't need prefixed version
             DatatypeRef typeRef = null; // for now, let's not care
 
-            if (!mCurrAcceptor.onAttribute(uri, localName, qname, value, mMsvContext, mErrorRef, typeRef)
+            if (!mCurrAcceptor.onAttribute2(uri, localName, qname, value, mMsvContext, mErrorRef, typeRef)
                 || mErrorRef.str != null) {
                 reportError(mErrorRef);
             }
@@ -268,7 +269,7 @@ public class RelaxNGValidator
     public void validateText(String text, boolean lastTextSegment)
         throws XMLValidationException
     {
-        /* If we got here, then it's likely we do need to call onText().
+        /* If we got here, then it's likely we do need to call onText2().
          * (not guaranteed, though; in case of multiple parallel validators,
          * only one of them may actually be interested)
          */
@@ -336,7 +337,7 @@ public class RelaxNGValidator
         if (mCurrAcceptor != null) {
             String str = textAcc.getAndClear();
             DatatypeRef typeRef = null;
-            if (!mCurrAcceptor.onText(str, mMsvContext, mErrorRef, typeRef)
+            if (!mCurrAcceptor.onText2(str, mMsvContext, mErrorRef, typeRef)
                 || mErrorRef.str != null) {
                 reportError(mErrorRef);
             }

@@ -23,6 +23,8 @@ import javax.xml.namespace.NamespaceContext;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
+import org.codehaus.stax2.validation.Validatable;
+
 /**
  * Extended interface that implements functionality that is necessary
  * to properly build event API on top of {@link XMLStreamReader}.
@@ -45,7 +47,7 @@ import javax.xml.stream.XMLStreamReader;
  *</dt>
  */
 public interface XMLStreamReader2
-    extends XMLStreamReader
+    extends XMLStreamReader, Validatable
 {
     /**
      * Feature used to specify the source for DTD external subset to use

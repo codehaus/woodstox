@@ -83,14 +83,9 @@ public final class NonNsInputElementStack
         mAttrCollector = new NonNsAttributeCollector(normAttrs);
     }
 
-    /**
-     * This method should never be called in non-ns-aware mode. However,
-     * it was defined in the base class to avoid caller having to do
-     * a cast (it can determine ns-awareness mode without casts).
-     */
-    protected void connectNsDefaultProvider(NsDefaultProvider provider)
+    protected void setAutomaticDTDValidator(XMLValidator validator, NsDefaultProvider nsDefs)
     {
-        throw new Error(INT_ERR_UNEXPECTED_CALL);
+        addValidator(validator);
     }
 
     public final void push(String prefix, String localName)

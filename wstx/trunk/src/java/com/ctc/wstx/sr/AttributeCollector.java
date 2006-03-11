@@ -169,6 +169,8 @@ public abstract class AttributeCollector
     ///////////////////////////////////////////////
      */
 
+    //public boolean normalizesAttrs() { return mNormAttrs; }
+
     /**
      * @return Number of namespace declarations collected, including
      *   possible default namespace declaration
