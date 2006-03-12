@@ -13,7 +13,7 @@ package org.codehaus.stax2.validation;
  * It is expected that this class is mostly used by actual stream reader
  * and writer implementations; not so much by validator implementations.
  */
-public class XMLValidatorPair
+public class ValidatorPair
     extends XMLValidator
 {
     public final static String ATTR_TYPE_DEFAULT = "CDATA";
@@ -26,7 +26,7 @@ public class XMLValidatorPair
     ////////////////////////////////////////////////////
      */
 
-    public XMLValidatorPair(XMLValidator first, XMLValidator second)
+    public ValidatorPair(XMLValidator first, XMLValidator second)
     {
         mFirst = first;
         mSecond = second;
@@ -178,32 +178,81 @@ public class XMLValidatorPair
     ////////////////////////////////////////////////////
      */
 
-    /**
-     * Returns the first validator created by specified schema, from
-     * the child validators of this pair, and returns the result
-     * root validator or pair, if such validator found. If no such
-     * validator is part of the chain of validators, returns null.
-     *<p>
-     * Note: if there are more than one such validator instance, only
-     * the first one is removed.
-     *
-     * @return New validator (either a single remaining validator, or
-     *   the new root pair), if the validator found; null otherwise.
-     */
-    //public XMLValidator createValidatorWithout(XMLValidationSchema schema)
-    // !!! TBI
+    public static boolean removeValidator(XMLValidator root, XMLValidationSchema schema, XMLValidator[] results)
+    {
+        if (root instanceof ValidatorPair) {
+            return ((ValidatorPair) root).doRemoveValidator(schema, results);
+        } else {
+            if (root.getSchema() == schema) {
+                results[0] = root;
+                results[1] = null;
+                return true;
+            }
+        }
+        return false;
+    }
 
-    /**
-     * Returns the validator passed in, from
-     * the child validators of this pair, and returns the result
-     * root validator or pair, if such validator found. If no such
-     * validator is part of the chain of validators, returns null.
-     *
-     * @return New validator (either a single remaining validator, or
-     *   the new root pair), if the validator found; null otherwise.
-     */
-    //public XMLValidator createValidatorWithout(XMLValidator vld)
-    // !!! TBI
+    public static boolean removeValidator(XMLValidator root, XMLValidator vld, XMLValidator[] results)
+    {
+        if (root == vld) { // single validator?
+            results[0] = root;
+            results[1] = null;
+            return true;
+        } else if (root instanceof ValidatorPair) {
+            return ((ValidatorPair) root).doRemoveValidator(vld, results);
+        }
+        return false;
+    }
+
+    private boolean doRemoveValidator(XMLValidationSchema schema, XMLValidator[] results)
+    {
+        if (removeValidator(mFirst, schema, results)) {
+            XMLValidator newFirst = results[1];
+            if (newFirst == null) { // removed first (was leaf) -> remove this pair
+                results[1] = mSecond;
+            } else {
+                mFirst = newFirst; // two may be the same, need not be
+                results[1] = this;
+            }
+            return true;
+        }
+        if (removeValidator(mSecond, schema, results)) {
+            XMLValidator newSecond = results[1];
+            if (newSecond == null) { // removed second (was leaf) -> remove this pair
+                results[1] = mFirst;
+            } else {
+                mSecond = newSecond; // two may be the same, need not be
+                results[1] = this; // will still have this pair
+            }
+            return true;
+        }
+        return false;
+    }
+
+    private boolean doRemoveValidator(XMLValidator vld, XMLValidator[] results)
+    {
+        if (removeValidator(mFirst, vld, results)) {
+            XMLValidator newFirst = results[1];
+            if (newFirst == null) { // removed first (was leaf) -> remove this pair
+                results[1] = mSecond;
+            } else {
+                mFirst = newFirst; // two may be the same, need not be
+                results[1] = this;
+            }
+            return true;
+        }
+        if (removeValidator(mSecond, vld, results)) {
+            XMLValidator newSecond = results[1];
+            if (newSecond == null) { // removed second (was leaf) -> remove this pair
+                results[1] = mFirst;
+            } else {
+                mSecond = newSecond; // two may be the same, need not be
+                results[1] = this; // will still have this pair
+            }
+            return true;
+        }
+        return false;
+    }
 
     /*
     ////////////////////////////////////////////////////

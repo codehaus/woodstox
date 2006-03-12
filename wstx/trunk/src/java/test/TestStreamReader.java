@@ -253,11 +253,12 @@ public class TestStreamReader
                                      +"'");
                 }
                 for (int i = 0; i < count; ++i) {
+                    String val = sr.getAttributeValue(i);
                     System.out.print(" attr#"+i+": "+sr.getAttributePrefix(i)
                                      +":"+sr.getAttributeLocalName(i)
                                      +" ("+sr.getAttributeNamespace(i)
-                                     +") -> '"+sr.getAttributeValue(i)
-                                     +"'");
+                                     +") -> '"+val
+                                     +"' ["+(val.length())+"]");
                     System.out.println(sr.isAttributeSpecified(i) ?
                                        "[specified]" : "[Default]");
                 }

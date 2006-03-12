@@ -30,7 +30,7 @@ import org.codehaus.stax2.validation.XMLValidator;
 import org.codehaus.stax2.validation.XMLValidationException;
 import org.codehaus.stax2.validation.XMLValidationProblem;
 import org.codehaus.stax2.validation.XMLValidationSchema;
-import org.codehaus.stax2.validation.XMLValidatorPair;
+import org.codehaus.stax2.validation.ValidatorPair;
 
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.cfg.XmlConsts;
@@ -104,7 +104,7 @@ public abstract class InputElementStack
         if (mValidator == null) {
             mValidator = vld;
         } else {
-            mValidator = new XMLValidatorPair(mValidator, vld);
+            mValidator = new ValidatorPair(mValidator, vld);
         }
         return vld;
     }
@@ -132,14 +132,26 @@ public abstract class InputElementStack
     public XMLValidator stopValidatingAgainst(XMLValidationSchema schema)
         throws XMLStreamException
     {
-        // !!! TBI
+        XMLValidator[] results = new XMLValidator[2];
+        if (ValidatorPair.removeValidator(mValidator, schema, results)) { // found
+            XMLValidator found = results[0];
+            mValidator = results[1];
+            found.validationCompleted(false);
+            return found;
+        }
         return null;
     }
 
     public XMLValidator stopValidatingAgainst(XMLValidator validator)
         throws XMLStreamException
     {
-        // !!! TBI
+        XMLValidator[] results = new XMLValidator[2];
+        if (ValidatorPair.removeValidator(mValidator, validator, results)) { // found
+            XMLValidator found = results[0];
+            mValidator = results[1];
+            found.validationCompleted(false);
+            return found;
+        }
         return null;
     }
 

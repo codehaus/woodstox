@@ -18,6 +18,7 @@ import com.ctc.wstx.api.WstxOutputProperties;
  */
 public class TestStreamCopier
 {
+    //final static boolean ENABLE_DTD_VALIDATION = true;
     final static boolean ENABLE_DTD_VALIDATION = true;
 
     protected TestStreamCopier() { }
@@ -35,7 +36,7 @@ public class TestStreamCopier
         f.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.TRUE);
 
         f.setProperty(XMLInputFactory.SUPPORT_DTD, Boolean.TRUE);
-        f.setProperty(XMLInputFactory.IS_VALIDATING, Boolean.TRUE);
+        f.setProperty(XMLInputFactory.IS_VALIDATING, Boolean.FALSE);
 
         f.setProperty(XMLInputFactory2.P_REPORT_PROLOG_WHITESPACE,
                       Boolean.TRUE);

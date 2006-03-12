@@ -164,7 +164,6 @@ public class RelaxNGValidator
                                     String prefix, String value)
         throws XMLValidationException
     {
-//System.err.println("DEBUG: attr ln = '"+localName+"', value = '"+value+"' ("+value.length()+")");
         if (mCurrAcceptor != null) {
             String qname = localName; // for now, let's assume we don't need prefixed version
             DatatypeRef typeRef = null; // for now, let's not care
@@ -186,11 +185,12 @@ public class RelaxNGValidator
                                     int valueEnd)
         throws XMLValidationException
     {
+        int len = valueEnd - valueStart;
         /* This is very sub-optimal... but MSV doesn't deal with char
          * arrays.
          */
         return validateAttribute(localName, uri, prefix,
-                                 new String(valueChars, valueStart, valueEnd));
+                                 new String(valueChars, valueStart, len));
     }
     
     public int validateElementAndAttributes()

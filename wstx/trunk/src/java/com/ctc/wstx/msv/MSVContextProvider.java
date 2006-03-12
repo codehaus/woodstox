@@ -48,31 +48,27 @@ public class MSVContextProvider
 
     public String getBaseUri()
     {
-        // !!! TBI
-        return null;
+        return mContext.getBaseUri();
     }
 
     public boolean isNotation(String notationName)
     {
-        // !!! TBI
-        return false;
+        return mContext.isNotationDeclared(notationName);
     }
 
     public boolean isUnparsedEntity(String entityName)
     {
-        // !!! TBI
-        return false;
+        return mContext.isUnparsedEntityDeclared(entityName);
     }
 
     public String resolveNamespacePrefix(String prefix) 
     {
-        // !!! TBI
-        return null;
+        return mContext.getNamespaceURI(prefix);
     }
 
     /*
     ///////////////////////////////////////////////////////////
-    // IdProviderContext extension implementation
+    // IdProviderContext2 extension implementation
     ///////////////////////////////////////////////////////////
     */
 

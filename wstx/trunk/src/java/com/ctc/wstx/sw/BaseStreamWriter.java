@@ -833,7 +833,7 @@ public abstract class BaseStreamWriter
             mCheckAttrs = true;
             mValidator = vld;
         } else {
-            mValidator = new XMLValidatorPair(mValidator, vld);
+            mValidator = new ValidatorPair(mValidator, vld);
         }
         return vld;
     }
@@ -841,25 +841,33 @@ public abstract class BaseStreamWriter
     public XMLValidator stopValidatingAgainst(XMLValidationSchema schema)
         throws XMLStreamException
     {
-        // If it was the last validator:
-        if (mValidator == null) {
-            resetValidationFlags();
-        }        
-
-        // !!! TBI
-        return null;
+        XMLValidator[] results = new XMLValidator[2];
+        XMLValidator found = null;
+        if (ValidatorPair.removeValidator(mValidator, schema, results)) { // found
+            found = results[0];
+            mValidator = results[1];
+            found.validationCompleted(false);
+            if (mValidator == null) {
+                resetValidationFlags();
+            }
+        }
+        return found;
     }
 
     public XMLValidator stopValidatingAgainst(XMLValidator validator)
         throws XMLStreamException
     {
-        // !!! TBI
-
-        // If it was the last validator:
-        if (mValidator == null) {
-            resetValidationFlags();
-        }        
-        return null;
+        XMLValidator[] results = new XMLValidator[2];
+        XMLValidator found = null;
+        if (ValidatorPair.removeValidator(mValidator, validator, results)) { // found
+            found = results[0];
+            mValidator = results[1];
+            found.validationCompleted(false);
+            if (mValidator == null) {
+                resetValidationFlags();
+            }
+        }
+        return found;
     }
 
     private void resetValidationFlags()
