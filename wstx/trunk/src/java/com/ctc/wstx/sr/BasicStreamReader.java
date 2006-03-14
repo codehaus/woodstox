@@ -1422,6 +1422,35 @@ public class BasicStreamReader
         return mElementStack.createNonTransientNsContext(null);
     }
 
+    public String getPrefixedName()
+    {
+        switch (mCurrToken) {
+        case START_ELEMENT:
+        case END_ELEMENT:
+            {
+                String prefix = mElementStack.getPrefix();
+                String ln = mElementStack.getLocalName();
+
+                if (prefix == null) {
+                    return ln;
+                }
+                StringBuffer sb = new StringBuffer(ln.length() + 1 + prefix.length());
+                sb.append(prefix);
+                sb.append(':');
+                sb.append(ln);
+                return sb.toString();
+            }
+        case ENTITY_REFERENCE:
+            return getLocalName();
+        case PROCESSING_INSTRUCTION:
+            return getPITarget();
+        case DTD:
+            return getDTDRootName();
+
+        }
+        throw new IllegalStateException("Current state not START_ELEMENT, END_ELEMENT, ENTITY_REFERENCE, PROCESSING_INSTRUCTION or DTD");
+    }
+
     public void closeCompletely() throws XMLStreamException
     {
         closeAllInput(true);

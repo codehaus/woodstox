@@ -178,7 +178,7 @@ public interface XMLStreamReader2
 
     /*
     /////////////////////////////////////////
-    // Additional location information access
+    // Extended location information access
     /////////////////////////////////////////
     */
 
@@ -297,6 +297,25 @@ public interface XMLStreamReader2
      * @return Non-transient namespace context as explained above.
      */
     public NamespaceContext getNonTransientNamespaceContext();
+
+    /**
+     * This method returns "prefix-qualified" name of the current
+     * element. In general, this means character-by-character exact
+     * name of the element in XML content, and may be useful in informational
+     * purposes, as well as when interacting with packages and APIs that
+     * use such names (such as what SAX may use as qnames).
+     *<p>
+     * Note: implementations are encouraged to provide an implementation
+     * that would be more efficient than calling <code>getLocalName</code>
+     * and <code>getPrefix</code> separately, but are not required to do
+     * so. Nonetheless it is usually at least as efficient (if not more)
+     * to call this method as to do it fully in calling code.
+     *
+     * @return Prefix-qualified name of the current element; essentially
+     *   'prefix:localName' if the element has a prefix, or 'localName'
+     *   if it does not have one (belongs to the default namespace)
+     */
+    public String getPrefixedName();
 
     /*
     ///////////////////////////

@@ -689,7 +689,7 @@ public final class WstxInputFactory
                     return createSR(sysId, bs, forER, autoCloseInput);
                 }
             }
-            throw new XMLStreamException("Can only create STaX reader for a SAXSource if Reader or InputStream exposed via getSource(); can not use -- not implemented.");
+            throw new XMLStreamException("Can only create STaX reader for a SAXSource if Reader or InputStream exposed via getSource(); can not use other sources (like embedded SAX readers)");
         }
 
         if (src instanceof DOMSource) {
