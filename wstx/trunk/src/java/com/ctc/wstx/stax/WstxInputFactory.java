@@ -479,9 +479,9 @@ public final class WstxInputFactory
      *   configuration settings indicate auto-closing is to be enabled
      *   (the default value is false as per Stax 1.0 specs).
      */
-    private ValidatingStreamReader createSR(String systemId, InputBootstrapper bs, 
-                                            URL src, boolean forER,
-                                            boolean autoCloseInput)
+    private XMLStreamReader2 createSR(String systemId, InputBootstrapper bs, 
+                                     URL src, boolean forER,
+                                     boolean autoCloseInput)
         throws XMLStreamException
     {
         ReaderConfig cfg = mConfig.createNonShared(mSymbols.makeChild());
@@ -535,9 +535,9 @@ public final class WstxInputFactory
      *   configuration settings indicate auto-closing is to be enabled
      *   (the default value is false as per Stax 1.0 specs).
      */
-    private ValidatingStreamReader createSR(String systemId, InputBootstrapper bs,
-                                            boolean forER,
-                                            boolean autoCloseInput)
+    private XMLStreamReader2 createSR(String systemId, InputBootstrapper bs,
+                                     boolean forER,
+                                     boolean autoCloseInput)
         throws XMLStreamException
     {
         // 16-Aug-2004, TSa: Maybe we have a context?
@@ -554,9 +554,9 @@ public final class WstxInputFactory
         return createSR(systemId, bs, src, forER, autoCloseInput);
     }
 
-    protected ValidatingStreamReader createSR(String systemId, InputStream in, String enc,
-                                              boolean forER,
-                                              boolean autoCloseInput)
+    protected XMLStreamReader2 createSR(String systemId, InputStream in, String enc,
+                                       boolean forER,
+                                       boolean autoCloseInput)
         throws XMLStreamException
     {
         // sanity check:
@@ -581,8 +581,8 @@ public final class WstxInputFactory
                         (r, null, systemId, enc), forER, autoCloseInput);
     }
 
-    protected ValidatingStreamReader createSR(URL src, boolean forER,
-                                              boolean autoCloseInput)
+    protected XMLStreamReader2 createSR(URL src, boolean forER,
+                                       boolean autoCloseInput)
         throws XMLStreamException
     {
         try {
@@ -593,9 +593,9 @@ public final class WstxInputFactory
         }
     }
 
-    private ValidatingStreamReader createSR(URL src, InputStream in,
-                                            boolean forER,
-                                            boolean autoCloseInput)
+    private XMLStreamReader2 createSR(URL src, InputStream in,
+                                     boolean forER,
+                                     boolean autoCloseInput)
         throws XMLStreamException
     {
         String sysId = src.toExternalForm();
@@ -605,9 +605,9 @@ public final class WstxInputFactory
                         forER, autoCloseInput);
     }
 
-    protected ValidatingStreamReader createSR(String systemId, Reader r,
-                                              boolean forER,
-                                              boolean autoCloseInput)
+    protected XMLStreamReader2 createSR(String systemId, Reader r,
+                                       boolean forER,
+                                       boolean autoCloseInput)
         throws XMLStreamException
     {
         return createSR(systemId,
@@ -615,8 +615,8 @@ public final class WstxInputFactory
                         (r, null, systemId, null), forER, autoCloseInput);
     }
 
-    protected ValidatingStreamReader createSR(File f, boolean forER,
-                                              boolean autoCloseInput)
+    protected XMLStreamReader2 createSR(File f, boolean forER,
+                                       boolean autoCloseInput)
         throws XMLStreamException
     {
         try {
@@ -627,9 +627,9 @@ public final class WstxInputFactory
         }
     }
 
-    protected ValidatingStreamReader createSR(javax.xml.transform.Source src,
-                                              boolean forER,
-                                              boolean autoCloseInput)
+    protected XMLStreamReader2 createSR(javax.xml.transform.Source src,
+                                       boolean forER,
+                                       boolean autoCloseInput)
         throws XMLStreamException
     {
         if (src instanceof StreamSource) {
@@ -693,9 +693,10 @@ public final class WstxInputFactory
         }
 
         if (src instanceof DOMSource) {
-            // !!! TBI
-            //DOMSource sr = (DOMSource) src;
-            throw new XMLStreamException("Can not create a STaX reader for a DOMSource -- not (yet) implemented.");
+            DOMSource domSrc = (DOMSource) src;
+            // SymbolTable not used by the DOM-based 'reader':
+            ReaderConfig cfg = mConfig.createNonShared(null);
+            return DOMWrappingReader.createFrom(cfg, domSrc);
         }
 
         throw new IllegalArgumentException("Can not instantiate StAX reader for XML source type "+src.getClass()+" (unknown type)");

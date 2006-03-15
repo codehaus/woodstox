@@ -44,6 +44,7 @@ import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.io.*;
 import com.ctc.wstx.util.DefaultXmlSymbolTable;
 import com.ctc.wstx.util.SymbolTable;
+import com.ctc.wstx.util.TextAccumulator;
 import com.ctc.wstx.util.TextBuffer;
 import com.ctc.wstx.util.TextBuilder;
 import com.ctc.wstx.util.URLUtil;
@@ -612,8 +613,7 @@ public class BasicStreamReader
         if (mCurrToken != START_ELEMENT) {
             throwParseError(ErrorConsts.ERR_STATE_NOT_STELEM);
         }
-        String text = null;
-        StringBuffer sb = null;
+        TextAccumulator acc = new TextAccumulator();
 
         /**
          * Need to loop to get rid of PIs, comments
@@ -629,22 +629,9 @@ public class BasicStreamReader
             if (((1 << type) & MASK_GET_ELEMENT_TEXT) == 0) {
                 throwParseError("Expected a text token, got "+tokenTypeDesc(type)+".");
             }
-            String nextText = getText();
-            if (sb != null) {
-                sb.append(nextText);
-            } else if (text != null) {
-                sb = new StringBuffer(text.length() + nextText.length());
-                sb.append(text);
-                sb.append(nextText);
-                text = null;
-            } else {
-                text = nextText;
-            }
+            acc.addText(getText());
         }
-        if (sb != null) {
-            return sb.toString();
-        }
-        return (text == null) ? "" : text;
+        return acc.getAndClear();
     }
 
     /**
