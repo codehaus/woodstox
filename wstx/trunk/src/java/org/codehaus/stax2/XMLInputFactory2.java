@@ -21,7 +21,17 @@ import javax.xml.stream.XMLStreamReader;
  */
 public abstract class XMLInputFactory2
     extends XMLInputFactory
+    implements XMLStreamProperties
 {
+    /*
+    ////////////////////////////////////////////////////
+    // We share some options with other factories
+    ////////////////////////////////////////////////////
+     */
+
+    //public final static String XSP_IMPLEMENTATION_NAME
+    //public final static String XSP_IMPLEMENTATION_VERSION
+
     /*
     ////////////////////////////////////////////////////
     // Additional standard configuration properties
@@ -56,7 +66,7 @@ public abstract class XMLInputFactory2
      *<p>
      * Default value for this setting is implementation dependant.
      */
-    public final static String P_REPORT_ALL_TEXT_AS_CHARACTERS = "org.codehaus.stax2.reportAllTextAsCharacters";
+    public final static String P_REPORT_CDATA = "http://java.sun.com/xml/stream/properties/report-cdata-event";
 
 
     // // // Optimization settings

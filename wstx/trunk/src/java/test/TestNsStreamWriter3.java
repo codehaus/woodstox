@@ -6,6 +6,7 @@ import javax.xml.stream.*;
 
 import org.codehaus.stax2.XMLOutputFactory2;
 import org.codehaus.stax2.XMLStreamWriter2;
+import org.codehaus.stax2.XMLStreamProperties;
 import org.codehaus.stax2.validation.*;
 
 import com.ctc.wstx.api.WstxOutputProperties;
@@ -40,8 +41,8 @@ public class TestNsStreamWriter3
                       Boolean.TRUE);
         //Boolean.FALSE);
 
-        f.setProperty(XMLOutputFactory2.P_NAMESPACE_AWARE, Boolean.TRUE);
-        //f.setProperty(XMLOutputFactory2.P_NAMESPACE_AWARE, Boolean.FALSE);
+        f.setProperty(XMLStreamProperties.XSP_NAMESPACE_AWARE, Boolean.TRUE);
+        //f.setProperty(XMLStreamProperties.XSP_NAMESPACE_AWARE, Boolean.FALSE);
         Writer w = new PrintWriter(System.out);
         XMLStreamWriter2 sw = (XMLStreamWriter2)f.createXMLStreamWriter(w);
 

@@ -75,10 +75,11 @@ public interface InputConfigFlags
 
 
     /**
-     * If true, parser will report CDATA and SPACE events as CHARACTERS,
+     * If true, parser will accurately report CDATA event as such (unless
+     * coalescing); otherwise will always report them as CHARACTERS
      * independent of coalescing settings.
      */
-    final static int CFG_REPORT_ALL_TEXT_AS_CHARACTERS = 0x0200;
+    final static int CFG_REPORT_CDATA = 0x0200;
 
     // // // String interning:
 

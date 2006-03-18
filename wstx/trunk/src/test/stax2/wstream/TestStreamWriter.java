@@ -166,7 +166,7 @@ public class TestStreamWriter
         throws XMLStreamException
     {
         XMLOutputFactory2 f = getOutputFactory();
-        f.setProperty(XMLOutputFactory2.P_NAMESPACE_AWARE,
+        f.setProperty(XMLStreamProperties.XSP_NAMESPACE_AWARE,
                       Boolean.valueOf(nsAware));
         f.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES,
                       Boolean.valueOf(repairing));

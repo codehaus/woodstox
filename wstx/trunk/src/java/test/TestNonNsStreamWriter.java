@@ -5,6 +5,7 @@ import java.io.*;
 import javax.xml.stream.*;
 
 import org.codehaus.stax2.XMLOutputFactory2;
+import org.codehaus.stax2.XMLStreamProperties;
 import org.codehaus.stax2.XMLStreamWriter2;
 import org.codehaus.stax2.validation.*;
 
@@ -31,7 +32,7 @@ public class TestNonNsStreamWriter
         throws Exception
     {
         XMLOutputFactory f = getFactory();
-        f.setProperty(XMLOutputFactory2.P_NAMESPACE_AWARE,
+        f.setProperty(XMLStreamProperties.XSP_NAMESPACE_AWARE,
                       Boolean.FALSE);
         f.setProperty(XMLOutputFactory2.P_AUTOMATIC_EMPTY_ELEMENTS,
                       Boolean.TRUE);

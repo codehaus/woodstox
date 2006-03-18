@@ -30,7 +30,7 @@ public class TestConfig
         assertEquals(Boolean.TRUE, ifact.getProperty(XMLInputFactory.IS_COALESCING));
         assertEquals(Boolean.TRUE, ifact.getProperty(XMLInputFactory.IS_REPLACING_ENTITY_REFERENCES));
         assertEquals(Boolean.FALSE, ifact.getProperty(XMLInputFactory2.P_REPORT_PROLOG_WHITESPACE));
-        assertEquals(Boolean.TRUE, ifact.getProperty(XMLInputFactory2.P_REPORT_ALL_TEXT_AS_CHARACTERS));
+        assertEquals(Boolean.FALSE, ifact.getProperty(XMLInputFactory2.P_REPORT_CDATA));
         assertEquals(Boolean.TRUE, ifact.getProperty(XMLInputFactory2.P_PRESERVE_LOCATION));
 
         // configureForSpeed
@@ -53,7 +53,7 @@ public class TestConfig
         ifact.configureForRoundTripping();
         assertEquals(Boolean.FALSE, ifact.getProperty(XMLInputFactory.IS_COALESCING));
         assertEquals(Boolean.FALSE, ifact.getProperty(XMLInputFactory.IS_REPLACING_ENTITY_REFERENCES));
-        assertEquals(Boolean.FALSE, ifact.getProperty(XMLInputFactory2.P_REPORT_ALL_TEXT_AS_CHARACTERS));
+        assertEquals(Boolean.TRUE, ifact.getProperty(XMLInputFactory2.P_REPORT_CDATA));
         assertEquals(Boolean.TRUE, ifact.getProperty(XMLInputFactory2.P_REPORT_PROLOG_WHITESPACE));
     }
 }

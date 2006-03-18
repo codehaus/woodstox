@@ -9,9 +9,11 @@ import javax.xml.stream.*;
 
 import org.codehaus.stax2.EscapingWriterFactory;
 import org.codehaus.stax2.XMLOutputFactory2; // for property consts
+import org.codehaus.stax2.XMLStreamProperties;
 
 import com.ctc.wstx.api.WstxOutputProperties;
 import com.ctc.wstx.cfg.OutputConfigFlags;
+import com.ctc.wstx.stax.ImplInfo;
 import com.ctc.wstx.util.ArgUtil;
 
 /**
@@ -41,6 +43,9 @@ public final class WriterConfig
     final static int PROP_ATTR_VALUE_ESCAPER = 6;
     // Problem checking/reporting options
     final static int PROP_PROBLEM_REPORTER = 7;
+
+    final static int PROP_IMPL_NAME = 8;
+    final static int PROP_IMPL_VERSION = 9;
 
     // // // And then custom Wstx properties:
 
@@ -119,17 +124,21 @@ public final class WriterConfig
      */
     final static HashMap sProperties = new HashMap(8);
     static {
-        // Standard ones; support for features
+        // // StAX (1.0) standard ones:
         sProperties.put(XMLOutputFactory.IS_REPAIRING_NAMESPACES,
                         new Integer(PROP_AUTOMATIC_NS));
 
-        // // StAX (1.0) standard ones:
+        // // StAX2 standard ones:
+
+        // Impl. details
+        sProperties.put(XMLStreamProperties.XSP_IMPLEMENTATION_NAME,
+                        new Integer(PROP_IMPL_NAME));
+        sProperties.put(XMLStreamProperties.XSP_IMPLEMENTATION_VERSION,
+                        new Integer(PROP_IMPL_VERSION));
 
         // Namespace support
-        sProperties.put(XMLOutputFactory2.P_NAMESPACE_AWARE,
+        sProperties.put(XMLStreamProperties.XSP_NAMESPACE_AWARE,
                         new Integer(PROP_ENABLE_NS));
-
-        // // StAX2 standard ones:
 
         // Generic output
         sProperties.put(XMLOutputFactory2.P_AUTOMATIC_EMPTY_ELEMENTS,
@@ -143,7 +152,7 @@ public final class WriterConfig
         sProperties.put(XMLOutputFactory2.P_ATTR_VALUE_ESCAPER,
                         new Integer(PROP_ATTR_VALUE_ESCAPER));
         // Problem checking/reporting options
-        sProperties.put(XMLOutputFactory2.P_PROBLEM_REPORTER,
+        sProperties.put(XMLStreamProperties.XSP_PROBLEM_REPORTER,
                         new Integer(PROP_PROBLEM_REPORTER));
 
         // // Woodstox-specifics:
@@ -245,20 +254,37 @@ public final class WriterConfig
         int id = getPropertyId(name);
 
         switch (id) {
-            // First, standard properties:
+
+        // First, Stax 1.0 properties:
 
         case PROP_AUTOMATIC_NS:
             return automaticNamespacesEnabled() ? Boolean.TRUE : Boolean.FALSE;
 
-            // // // Then custom ones:
+        // Then Stax2 properties:
 
-            // First, true/false ones:
+            // First, properties common to input/output factories:
 
+        case PROP_IMPL_NAME:
+            return ImplInfo.getImplName();
+        case PROP_IMPL_VERSION:
+            return ImplInfo.getImplVersion();
         case PROP_ENABLE_NS:
             return willSupportNamespaces() ? Boolean.TRUE : Boolean.FALSE;
+        case PROP_PROBLEM_REPORTER:
+            return getProblemReporter();
 
+            // Then output-specific properties:
         case PROP_AUTOMATIC_EMPTY_ELEMS:
             return automaticEmptyElementsEnabled() ? Boolean.TRUE : Boolean.FALSE;
+        case PROP_AUTOMATIC_NS_PREFIX:
+            return getAutomaticNsPrefix();
+        case PROP_TEXT_ESCAPER:
+            return getTextEscaperFactory();
+        case PROP_ATTR_VALUE_ESCAPER:
+            return getAttrValueEscaperFactory();
+
+        // // // Then Woodstox-specific properties:
+
         case PROP_OUTPUT_CDATA_AS_TEXT:
             return willOutputCDataAsText() ? Boolean.TRUE : Boolean.FALSE;
         case PROP_COPY_DEFAULT_ATTRS:
@@ -274,17 +300,6 @@ public final class WriterConfig
             return willValidateNames() ? Boolean.TRUE : Boolean.FALSE;
         case PROP_FIX_CONTENT:
             return willFixContent() ? Boolean.TRUE : Boolean.FALSE;
-
-            // // // Object valued ones:
-
-        case PROP_AUTOMATIC_NS_PREFIX:
-            return getAutomaticNsPrefix();
-        case PROP_TEXT_ESCAPER:
-            return getTextEscaperFactory();
-        case PROP_ATTR_VALUE_ESCAPER:
-            return getAttrValueEscaperFactory();
-        case PROP_PROBLEM_REPORTER:
-            return getProblemReporter();
         }
 
         throw new Error("Internal error: no handler for property with internal id "+id+".");
@@ -299,21 +314,44 @@ public final class WriterConfig
         int id = getPropertyId(name);
 
         switch (id) {
-            // First, standard properties:
+        // First, Stax 1.0 properties:
 
         case PROP_AUTOMATIC_NS:
             enableAutomaticNamespaces(ArgUtil.convertToBoolean(name, value));
             break;
 
-            // // // Then custom ones:
+       // // // Then Stax2 ones:
+
+            // these are read-only
+        case PROP_IMPL_NAME:
+        case PROP_IMPL_VERSION:
+            return false;
 
         case PROP_ENABLE_NS:
             doSupportNamespaces(ArgUtil.convertToBoolean(name, value));
+            break;
+        case PROP_PROBLEM_REPORTER:
+            setProblemReporter((XMLReporter) value);
             break;
 
         case PROP_AUTOMATIC_EMPTY_ELEMS:
             enableAutomaticEmptyElements(ArgUtil.convertToBoolean(name, value));
             break;
+        case PROP_AUTOMATIC_NS_PREFIX:
+            // value should be a String, but let's verify that:
+            setAutomaticNsPrefix(value.toString());
+            break;
+
+        case PROP_TEXT_ESCAPER:
+            setTextEscaperFactory((EscapingWriterFactory) value);
+            break;
+
+        case PROP_ATTR_VALUE_ESCAPER:
+            setAttrValueEscaperFactory((EscapingWriterFactory) value);
+            break;
+
+            // // // Then Woodstox-specific ones:
+
         case PROP_OUTPUT_CDATA_AS_TEXT:
             doOutputCDataAsText(ArgUtil.convertToBoolean(name, value));
             break;
@@ -335,24 +373,6 @@ public final class WriterConfig
             break;
         case PROP_FIX_CONTENT:
             doFixContent(ArgUtil.convertToBoolean(name, value));
-            break;
-
-
-        case PROP_AUTOMATIC_NS_PREFIX:
-            // value should be a String, but let's verify that:
-            setAutomaticNsPrefix(value.toString());
-            break;
-
-        case PROP_TEXT_ESCAPER:
-            setTextEscaperFactory((EscapingWriterFactory) value);
-            break;
-
-        case PROP_ATTR_VALUE_ESCAPER:
-            setAttrValueEscaperFactory((EscapingWriterFactory) value);
-            break;
-
-        case PROP_PROBLEM_REPORTER:
-            setProblemReporter((XMLReporter) value);
             break;
 
         default:

@@ -229,7 +229,7 @@ public class BaseWstxTest
 
     protected static void setNamespaceAware(XMLOutputFactory f, boolean state)
     {
-        f.setProperty(XMLOutputFactory2.P_NAMESPACE_AWARE, Boolean.valueOf(state));
+        f.setProperty(XMLStreamProperties.XSP_NAMESPACE_AWARE, Boolean.valueOf(state));
     }
 
     protected static void setValidateContent(XMLOutputFactory f, boolean state)

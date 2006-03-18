@@ -20,7 +20,7 @@ public class BaseOutputTest
         throws XMLStreamException
     {
         XMLOutputFactory2 outf = getOutputFactory();
-        outf.setProperty(XMLOutputFactory2.P_NAMESPACE_AWARE, new Boolean(nsAware));
+        outf.setProperty(XMLStreamProperties.XSP_NAMESPACE_AWARE, new Boolean(nsAware));
         outf.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES, new Boolean(repairing));
 
         XMLStreamWriter2 strw = (XMLStreamWriter2)outf.createXMLStreamWriter(w);

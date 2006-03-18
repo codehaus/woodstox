@@ -18,10 +18,44 @@ import javax.xml.stream.XMLStreamWriter; // only for javadoc
  * NOTE: although actual values for the property names are
  * visible, implementations should try to use the symbolic constants
  * defined here instead, to avoid typos.
+ *<p>
+ * Notes about properties that output factories should support:
+ *<ul>
+ * <li>{@link XMLStreamProperties#XSP_NAMESPACE_AWARE}: 
+ * Whether output classes should keep track of and output namespace
+ * information provided via write methods.
+ * When enabled (set to Boolean.TRUE), will use all namespace information
+ * provided, and does not allow colons in names (local name, prefix).<br />
+ * What exactly is kept track
+ * of depends on other settings, specifically whether
+ * writer is in "repairing" mode or not.
+ * When disabled, will only make use of local name part, which
+ * may contain colons, and ignore prefix and namespace URI if any
+ * are passed.<br />
+ * Turning this option off may improve performance if no namespace
+ * handling is needed.<br />
+ * Default value for implementations should be 'true'; implementations
+ * are not required to implement 'false'.
+ *  </li>
+ * <li>{@link XMLStreamProperties#XSP_PROBLEM_REPORTER}: 
+ *  </li>
+ * </ul>
  */
 public abstract class XMLOutputFactory2
     extends XMLOutputFactory
+    implements XMLStreamProperties
 { 
+    /*
+    ////////////////////////////////////////////////////
+    // We share some options with other factories
+    ////////////////////////////////////////////////////
+     */
+
+    //public final static String XSP_IMPLEMENTATION_NAME
+    //public final static String XSP_IMPLEMENTATION_VERSION
+    //public final static String XSP_NAMESPACE_AWARE
+    //public final static String XSP_PROBLEM_REPORTER
+
     /*
     ////////////////////////////////////////////////////
     // Additional standard configuration properties
@@ -47,28 +81,6 @@ public abstract class XMLOutputFactory2
 
 
     // // Namespace options:
-
-    /**
-     * Whether output classes should keep track of and output namespace
-     * information provided via write methods.
-     *<p>
-     * When enabled (set to Boolean.TRUE), will use all namespace information
-     * provided, and does not allow colons in names (local name, prefix).
-     * What exactly is kept track
-     * of depends on other settings, specifically whether
-     * writer is in "repairing" mode or not.
-     *<p>
-     * When disabled, will only make use of local name part, which
-     * may contain colons, and ignore prefix and namespace URI if any
-     * are passed.
-     *<p>
-     * Turning this option off may improve performance if no namespace
-     * handling is needed.
-     *<p>
-     * Default value for implementations should be 'true'; implementations
-     * are not required to implement 'false'.
-     */
-    public final static String P_NAMESPACE_AWARE = "org.codehaus.stax2.namespaceAware";
 
     /**
      * Prefix to use for automatically created namespace prefixes, when
@@ -104,16 +116,6 @@ public abstract class XMLOutputFactory2
      * and via copy methods ({@link XMLStreamWriter2#copyEventFromReader}).
      */
     public final static String P_ATTR_VALUE_ESCAPER = "org.codehaus.stax2.attrValueEscaper";
-
-    // // Error checking/reporting options
-
-    /**
-     * Property that allows for definining a problem reporter (of type
-     * {@link javax.xml.stream.XMLReporter}), to be used by writers to
-     * report non-fatal problems.
-     */
-    public final static String P_PROBLEM_REPORTER = "org.codehaus.stax2.reporter";
-
 
     /*
     ////////////////////////////////////////////////////

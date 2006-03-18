@@ -28,6 +28,7 @@ import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.cfg.XmlConsts;
 import com.ctc.wstx.exc.WstxIOException;
 import com.ctc.wstx.io.*;
+import com.ctc.wstx.stax.ImplInfo;
 import com.ctc.wstx.util.DefaultXmlSymbolTable;
 import com.ctc.wstx.util.SymbolTable;
 import com.ctc.wstx.util.URLUtil;
@@ -77,19 +78,24 @@ public class DTDValidatorFactory
 
     public boolean isPropertySupported(String propName)
     {
-        // !!! TBI
-        return false;
+        return propName.equals(XMLStreamProperties.XSP_IMPLEMENTATION_NAME)
+            || propName.equals(XMLStreamProperties.XSP_IMPLEMENTATION_VERSION);
     }
 
     public boolean setProperty(String propName, Object value)
     {
-        // !!! TBI
+        // Nothing to set, yet?
         return false;
     }
 
     public Object getProperty(String propName)
     {
-        // !!! TBI
+        if (propName.equals(XMLStreamProperties.XSP_IMPLEMENTATION_NAME)) {
+            return ImplInfo.getImplName();
+        }
+        if (propName.equals(XMLStreamProperties.XSP_IMPLEMENTATION_VERSION)) {
+            return ImplInfo.getImplVersion();
+        }
         return null;
     }
 

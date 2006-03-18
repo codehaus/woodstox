@@ -6,6 +6,7 @@ import javax.xml.XMLConstants;
 import javax.xml.stream.*;
 
 import org.codehaus.stax2.XMLOutputFactory2;
+import org.codehaus.stax2.XMLStreamProperties;
 import org.codehaus.stax2.validation.*;
 
 import com.ctc.wstx.api.WstxOutputProperties;
@@ -36,7 +37,7 @@ public class TestNsStreamWriter2
         f.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES,
                       //Boolean.FALSE);
                       Boolean.TRUE);
-        f.setProperty(XMLOutputFactory2.P_NAMESPACE_AWARE,
+        f.setProperty(XMLStreamProperties.XSP_NAMESPACE_AWARE,
                       Boolean.TRUE);
         f.setProperty(XMLOutputFactory2.P_AUTOMATIC_EMPTY_ELEMENTS,
                       Boolean.TRUE);

@@ -67,9 +67,9 @@ public class TestOutputFactory
         assertEquals(Boolean.FALSE, f.getProperty(WstxOutputProperties.P_COPY_DEFAULT_ATTRS));
         assertEquals(Boolean.TRUE, f.getProperty(WstxOutputProperties.P_OUTPUT_FIX_CONTENT));
         assertEquals(Boolean.TRUE, f.getProperty(XMLOutputFactory2.P_AUTOMATIC_EMPTY_ELEMENTS));
-        assertEquals(Boolean.TRUE, f.getProperty(XMLOutputFactory2.P_NAMESPACE_AWARE));
+        assertEquals(Boolean.TRUE, f.getProperty(XMLStreamProperties.XSP_NAMESPACE_AWARE));
 
-        assertNull(f.getProperty(XMLOutputFactory2.P_PROBLEM_REPORTER));
+        assertNull(f.getProperty(XMLStreamProperties.XSP_PROBLEM_REPORTER));
         assertNull(f.getProperty(XMLOutputFactory2.P_TEXT_ESCAPER));
         assertNull(f.getProperty(XMLOutputFactory2.P_ATTR_VALUE_ESCAPER));
 

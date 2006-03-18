@@ -8,12 +8,14 @@ import java.util.Map;
 import javax.xml.stream.*;
 
 import org.codehaus.stax2.XMLInputFactory2; // for property consts
+import org.codehaus.stax2.XMLStreamProperties; // for property consts
 
 import com.ctc.wstx.api.WstxInputProperties;
 import com.ctc.wstx.cfg.InputConfigFlags;
 import com.ctc.wstx.compat.JdkFeatures;
 import com.ctc.wstx.ent.IntEntity;
 import com.ctc.wstx.ent.EntityDecl;
+import com.ctc.wstx.stax.ImplInfo;
 import com.ctc.wstx.util.ArgUtil;
 import com.ctc.wstx.util.EmptyIterator;
 import com.ctc.wstx.util.SymbolTable;
@@ -34,49 +36,51 @@ public final class ReaderConfig
     // // First, standard StAX properties:
 
     // Simple flags:
-    public final static int PROP_COALESCE_TEXT = 1;
-    public final static int PROP_NAMESPACE_AWARE = 2;
-    public final static int PROP_REPLACE_ENTITY_REFS = 3;
-    public final static int PROP_SUPPORT_EXTERNAL_ENTITIES = 4;
-    public final static int PROP_VALIDATE_AGAINST_DTD = 5;
-    public final static int PROP_SUPPORT_DTD = 6;
+    final static int PROP_COALESCE_TEXT = 1;
+    final static int PROP_NAMESPACE_AWARE = 2;
+    final static int PROP_REPLACE_ENTITY_REFS = 3;
+    final static int PROP_SUPPORT_EXTERNAL_ENTITIES = 4;
+    final static int PROP_VALIDATE_AGAINST_DTD = 5;
+    final static int PROP_SUPPORT_DTD = 6;
 
     // Object type properties
     public final static int PROP_EVENT_ALLOCATOR = 7;
-    public final static int PROP_WARNING_REPORTER = 8;
-    public final static int PROP_XML_RESOLVER = 9;
+    final static int PROP_WARNING_REPORTER = 8;
+    final static int PROP_XML_RESOLVER = 9;
 
     // // Then StAX2 standard properties:
 
     // Simple flags:
-    public final static int PROP_INTERN_NS_URIS = 20;
-    public final static int PROP_INTERN_NAMES = 21;
-    public final static int PROP_REPORT_ALL_TEXT_AS_CHARACTERS = 22;
-    public final static int PROP_REPORT_PROLOG_WS = 23;
-    public final static int PROP_PRESERVE_LOCATION = 24;
-    public final static int PROP_AUTO_CLOSE_INPUT = 25;
+    final static int PROP_INTERN_NS_URIS = 20;
+    final static int PROP_INTERN_NAMES = 21;
+    final static int PROP_REPORT_CDATA = 22;
+    final static int PROP_REPORT_PROLOG_WS = 23;
+    final static int PROP_PRESERVE_LOCATION = 24;
+    final static int PROP_AUTO_CLOSE_INPUT = 25;
+    final static int PROP_IMPL_NAME = 26;
+    final static int PROP_IMPL_VERSION = 27;
 
     // // // Constants for additional Wstx properties:
 
     // Simple flags:
 
-    public final static int PROP_NORMALIZE_LFS = 40;
-    public final static int PROP_NORMALIZE_ATTR_VALUES = 41;
-    public final static int PROP_CACHE_DTDS = 42;
-    public final static int PROP_LAZY_PARSING = 43;
-    public final static int PROP_SUPPORT_DTDPP = 44;
+    final static int PROP_NORMALIZE_LFS = 40;
+    final static int PROP_NORMALIZE_ATTR_VALUES = 41;
+    final static int PROP_CACHE_DTDS = 42;
+    final static int PROP_LAZY_PARSING = 43;
+    final static int PROP_SUPPORT_DTDPP = 44;
 
     // Object type properties:
 
-    public final static int PROP_INPUT_BUFFER_LENGTH = 50;
-    public final static int PROP_TEXT_BUFFER_LENGTH = 51;
-    public final static int PROP_MIN_TEXT_SEGMENT = 52;
-    public final static int PROP_CUSTOM_INTERNAL_ENTITIES = 53;
-    public final static int PROP_DTD_RESOLVER = 54;
-    public final static int PROP_ENTITY_RESOLVER = 55;
-    public final static int PROP_UNDECLARED_ENTITY_RESOLVER = 56;
-    public final static int PROP_BASE_URL = 57;
-    public final static int PROP_INPUT_PARSING_MODE = 58;
+    final static int PROP_INPUT_BUFFER_LENGTH = 50;
+    final static int PROP_TEXT_BUFFER_LENGTH = 51;
+    final static int PROP_MIN_TEXT_SEGMENT = 52;
+    final static int PROP_CUSTOM_INTERNAL_ENTITIES = 53;
+    final static int PROP_DTD_RESOLVER = 54;
+    final static int PROP_ENTITY_RESOLVER = 55;
+    final static int PROP_UNDECLARED_ENTITY_RESOLVER = 56;
+    final static int PROP_BASE_URL = 57;
+    final static int PROP_INPUT_PARSING_MODE = 58;
 
     /*
     ////////////////////////////////////////////////
@@ -116,7 +120,7 @@ public final class ReaderConfig
      * same for both J2ME subset and full readers. Prevents tiniest
      * runts from getting passed
      */
-    public final static int DEFAULT_SHORTEST_TEXT_SEGMENT = 64;
+    final static int DEFAULT_SHORTEST_TEXT_SEGMENT = 64;
 
     /**
      * Default config flags are converted from individual settings,
@@ -138,6 +142,9 @@ public final class ReaderConfig
 
         // and namespace URI interning
         | CFG_INTERN_NS_URIS
+
+        // we will also accurately report CDATA, by default
+        | CFG_REPORT_CDATA
 
         /* 30-Sep-2005, TSa: Change from 2.0.x (released in 2.8+);
          *   let's by default report these white spaces, since that's
@@ -204,13 +211,19 @@ public final class ReaderConfig
         sProperties.put(XMLInputFactory.RESOLVER,
                         new Integer(PROP_XML_RESOLVER));
 
+        // StAX2-introduced properties, impl:
+        sProperties.put(XMLStreamProperties.XSP_IMPLEMENTATION_NAME,
+                        new Integer(PROP_IMPL_NAME));
+        sProperties.put(XMLStreamProperties.XSP_IMPLEMENTATION_VERSION,
+                        new Integer(PROP_IMPL_VERSION));
+
         // StAX2-introduced flags:
         sProperties.put(XMLInputFactory2.P_INTERN_NAMES,
                         new Integer(PROP_INTERN_NAMES));
         sProperties.put(XMLInputFactory2.P_INTERN_NS_URIS,
                         new Integer(PROP_INTERN_NS_URIS));
-        sProperties.put(XMLInputFactory2.P_REPORT_ALL_TEXT_AS_CHARACTERS,
-                        new Integer(PROP_REPORT_ALL_TEXT_AS_CHARACTERS));
+        sProperties.put(XMLInputFactory2.P_REPORT_CDATA,
+                        new Integer(PROP_REPORT_CDATA));
         sProperties.put(XMLInputFactory2.P_REPORT_PROLOG_WHITESPACE,
                         new Integer(PROP_REPORT_PROLOG_WS));
         sProperties.put(XMLInputFactory2.P_PRESERVE_LOCATION,
@@ -459,8 +472,8 @@ public final class ReaderConfig
         return hasConfigFlags(CFG_INTERN_NS_URIS);
     }
 
-    public boolean willReportAllTextAsCharacters() {
-        return hasConfigFlags(CFG_REPORT_ALL_TEXT_AS_CHARACTERS);
+    public boolean willReportCData() {
+        return hasConfigFlags(CFG_REPORT_CDATA);
     }
 
     public boolean willReportPrologWhitespace() {
@@ -600,8 +613,8 @@ public final class ReaderConfig
         setConfigFlag(CFG_REPORT_PROLOG_WS, state);
     }
 
-    public void doReportAllTextAsCharacters(boolean state) {
-        setConfigFlag(CFG_REPORT_ALL_TEXT_AS_CHARACTERS, state);
+    public void doReportCData(boolean state) {
+        setConfigFlag(CFG_REPORT_CDATA, state);
     }
 
     public void doCacheDTDs(boolean state) {
@@ -776,7 +789,7 @@ public final class ReaderConfig
         doReplaceEntityRefs(true);
 
         // StAX2: 
-        doReportAllTextAsCharacters(true);
+        doReportCData(false);
         doReportPrologWhitespace(false);
         /* Also, knowing exact locations is nice esp. for error
 	 * reporting purposes
@@ -919,15 +932,15 @@ public final class ReaderConfig
      */
     public void configureForRoundTripping()
     {
-	// StAX (1.0)
+        // StAX (1.0)
         doCoalesceText(false);
         doReplaceEntityRefs(false);
-
+        
         // StAX2:
-        doReportAllTextAsCharacters(false);
+        doReportCData(true);
         doReportPrologWhitespace(true);
-
-	// Woodstox specific settings
+        
+        // Woodstox specific settings
         doNormalizeLFs(false);
         doNormalizeAttrValues(false);
         // effectively prevents from reporting partial segments:
@@ -963,7 +976,7 @@ public final class ReaderConfig
         */
 
         switch (id) {
-            // First, standard properties:
+            // First, standard Stax 1.0 properties:
 
         case PROP_COALESCE_TEXT:
             return willCoalesceText() ? Boolean.TRUE : Boolean.FALSE;
@@ -973,6 +986,7 @@ public final class ReaderConfig
             return willReplaceEntityRefs() ? Boolean.TRUE : Boolean.FALSE;
         case PROP_SUPPORT_EXTERNAL_ENTITIES:
             return willSupportExternalEntities() ? Boolean.TRUE : Boolean.FALSE;
+
         case PROP_VALIDATE_AGAINST_DTD:
             return willValidateWithDTD() ? Boolean.TRUE : Boolean.FALSE;
         case PROP_SUPPORT_DTD:
@@ -983,32 +997,41 @@ public final class ReaderConfig
             return getXMLResolver();
 
 
-            // // // Then custom ones; flags:
+        // Then Stax2 properties:
 
-        case PROP_NORMALIZE_LFS:
-            return willNormalizeLFs() ? Boolean.TRUE : Boolean.FALSE;
-        case PROP_NORMALIZE_ATTR_VALUES:
-            return willNormalizeAttrValues() ? Boolean.TRUE : Boolean.FALSE;
+        case PROP_IMPL_NAME:
+            return ImplInfo.getImplName();
+        case PROP_IMPL_VERSION:
+            return ImplInfo.getImplVersion();
+
+        case PROP_REPORT_PROLOG_WS:
+            return willReportPrologWhitespace() ? Boolean.TRUE : Boolean.FALSE;
+        case PROP_REPORT_CDATA:
+            return willReportCData() ? Boolean.TRUE : Boolean.FALSE;
+
         case PROP_INTERN_NAMES:
             return willInternNames() ? Boolean.TRUE : Boolean.FALSE;
         case PROP_INTERN_NS_URIS:
             return willInternNsURIs() ? Boolean.TRUE : Boolean.FALSE;
-        case PROP_REPORT_ALL_TEXT_AS_CHARACTERS:
-            return willReportAllTextAsCharacters() ? Boolean.TRUE : Boolean.FALSE;
-        case PROP_REPORT_PROLOG_WS:
-            return willReportPrologWhitespace() ? Boolean.TRUE : Boolean.FALSE;
-        case PROP_CACHE_DTDS:
-            return willCacheDTDs() ? Boolean.TRUE : Boolean.FALSE;
-        case PROP_LAZY_PARSING:
-            return willParseLazily() ? Boolean.TRUE : Boolean.FALSE;
+
         case PROP_PRESERVE_LOCATION:
             return willPreserveLocation() ? Boolean.TRUE : Boolean.FALSE;
         case PROP_AUTO_CLOSE_INPUT:
             return willAutoCloseInput() ? Boolean.TRUE : Boolean.FALSE;
 
+        // // // Then Woodstox custom properties:
 
-            // // // Custom ones; Object properties:
+            // first, flags:
+        case PROP_NORMALIZE_LFS:
+            return willNormalizeLFs() ? Boolean.TRUE : Boolean.FALSE;
+        case PROP_NORMALIZE_ATTR_VALUES:
+            return willNormalizeAttrValues() ? Boolean.TRUE : Boolean.FALSE;
+        case PROP_CACHE_DTDS:
+            return willCacheDTDs() ? Boolean.TRUE : Boolean.FALSE;
+        case PROP_LAZY_PARSING:
+            return willParseLazily() ? Boolean.TRUE : Boolean.FALSE;
 
+            // then object values:
         case PROP_INPUT_BUFFER_LENGTH:
             return new Integer(getInputBufferLength());
         case PROP_TEXT_BUFFER_LENGTH:
@@ -1098,6 +1121,11 @@ public final class ReaderConfig
             doReportPrologWhitespace(ArgUtil.convertToBoolean(propName, value));
             break;
 
+            // these are read-only
+        case PROP_IMPL_NAME:
+        case PROP_IMPL_VERSION:
+            return false;
+
         case PROP_CACHE_DTDS:
             doCacheDTDs(ArgUtil.convertToBoolean(propName, value));
             break;
@@ -1114,8 +1142,8 @@ public final class ReaderConfig
             doAutoCloseInput(ArgUtil.convertToBoolean(propName, value));
             break;
 
-        case PROP_REPORT_ALL_TEXT_AS_CHARACTERS:
-            doReportAllTextAsCharacters(ArgUtil.convertToBoolean(propName, value));
+        case PROP_REPORT_CDATA:
+            doReportCData(ArgUtil.convertToBoolean(propName, value));
             break;
 
             // // // Custom settings, Object properties:

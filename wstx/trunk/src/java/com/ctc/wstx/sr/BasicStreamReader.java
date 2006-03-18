@@ -367,7 +367,7 @@ public class BasicStreamReader
 
         mCfgNormalizeAttrs = (mConfigFlags & CFG_NORMALIZE_ATTR_VALUES) != 0;
         mCfgCoalesceText = (mConfigFlags & CFG_COALESCE_TEXT) != 0;
-        mCfgReportTextAsChars = (mConfigFlags & CFG_REPORT_ALL_TEXT_AS_CHARACTERS) != 0;
+        mCfgReportTextAsChars = (mConfigFlags & CFG_REPORT_CDATA) == 0;
 
         /* 30-Sep-2005, TSa: Let's not do lazy parsing when access is via
          *   Event API. Reason is that there will be no performance benefit
@@ -645,10 +645,6 @@ public class BasicStreamReader
          */
         if (mCurrToken == CDATA) {
             if (mCfgCoalesceText || mCfgReportTextAsChars) {
-                return CHARACTERS;
-            }
-        } else if (mCurrToken == SPACE) {
-            if (mCfgReportTextAsChars) {
                 return CHARACTERS;
             }
         }
@@ -932,8 +928,8 @@ public class BasicStreamReader
     {
         int curr = mCurrToken;
 
-        /* There are some special cases; specifically, SPACE and CDATA
-         * are sometimes reported as CHARACTERS. Let's be lenient by
+        /* There are some special cases; specifically, CDATA
+         * is sometimes reported as CHARACTERS. Let's be lenient by
          * allowing both 'real' and reported types, for now.
          */
         if (curr != type) {
@@ -942,9 +938,9 @@ public class BasicStreamReader
                     curr = CHARACTERS;
                 }
             } else if (curr == SPACE) {
-                if (mCfgReportTextAsChars) {
-                    curr = CHARACTERS;
-                }
+                // Hmmh. Should we require it to be empty or something?
+                //curr = CHARACTERS;
+                // For now, let's not change the check
             }
         }
 
@@ -1019,12 +1015,10 @@ public class BasicStreamReader
                     if (mCfgCoalesceText || mCfgReportTextAsChars) {
                         return CHARACTERS;
                     }
+                    /*
                 } else if (type == SPACE) {
-                    // !!! 03-Mar-2006, Tsa: Sanity check: should never need to validate text
-                    if (mValidateText) { throw new IllegalStateException("Internal error: trying to validate SPACE event"); }
-                    if (mCfgReportTextAsChars) {
-                        return CHARACTERS;
-                    }
+                    //if (mValidateText) { throw new IllegalStateException("Internal error: trying to validate SPACE event"); }
+                    */
                 } else if (type == CHARACTERS) {
                     if (mValidateText) {
                         if (mTokenState < mStTextThreshold) {
@@ -1061,14 +1055,6 @@ public class BasicStreamReader
         } catch (IOException ie) {
             throwFromIOE(ie);
         }
-
-        /* Special case: may want to 'convert' type for ignorable
-         * white space:
-         */
-        if (mCurrToken == SPACE && mCfgReportTextAsChars) {
-            return CHARACTERS;
-        }
-
         return mCurrToken;
     }
 
