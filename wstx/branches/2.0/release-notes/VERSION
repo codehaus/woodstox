@@ -1,6 +1,6 @@
 Version: 2.0.6
 
-Release date: xx-Feb-2006
+Release date: xx-Mar-2006
 
 Description:
   A maintenance release for 2.0, including some critical fixes.
@@ -13,7 +13,10 @@ Description:
     (albeit seldom used) name characters (0xF6 for example)
   * [WSTX-45] WstxEventReader threw an exception at EOF, instead of returning
     null (as per specs)
-    [Reported by Arjen P]
+     (Reported by Arjen P)
+  * [WSTX-46]: Trying to write another root element produced an incorrect
+      error message
+     (reported by John K)
  
 == History: ==
 

@@ -29,8 +29,8 @@ public class TestNsStreamWriter
     {
         XMLOutputFactory f = getFactory();
         f.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES,
-                      //Boolean.TRUE);
-                      Boolean.FALSE);
+                      Boolean.TRUE);
+        //Boolean.FALSE);
         f.setProperty(XMLOutputFactory2.P_NAMESPACE_AWARE,
                       Boolean.TRUE);
         //Boolean.FALSE);
@@ -40,13 +40,14 @@ public class TestNsStreamWriter
         Writer w = new PrintWriter(System.out);
         XMLStreamWriter sw = f.createXMLStreamWriter(w);
 
-        sw.writeStartDocument();
+        //sw.writeStartElement("root");
 
-        sw.writeEmptyElement("foo");
-        //sw.writeStartElement("foo");
-        //sw.writeEndElement();
-        sw.writeCharacters("\n");
+        sw.writeEmptyElement("alpha");
 
+        sw.writeStartElement("bravo");
+        sw.writeEndElement(); // exception here
+
+        //sw.writeStartDocument();
         /*
         sw.writeComment("Comment!");
         sw.writeCharacters("\n");
@@ -88,6 +89,7 @@ public class TestNsStreamWriter
         sw.writeCharacters("\n"); // white space in epilog
         */
 
+        sw.writeCharacters("\n"); // to get linefeed
         sw.writeEndDocument();
 
         sw.flush();

@@ -132,6 +132,8 @@ public class ErrorConsts
         "Trying to output a CDATA block outside main element tree (in prolog or epilog)";
     public static String WERR_PROLOG_NONWS_TEXT =
         "Trying to output non-whitespace characters outside main element tree (in prolog or epilog)";
+    public static String WERR_PROLOG_SECOND_ROOT =
+        "Trying to output second root, <{0}>";
 
     public static String WERR_CDATA_CONTENT =
         "Illegal input: CDATA block has embedded ']]>' in it (index {0})";

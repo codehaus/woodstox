@@ -437,8 +437,7 @@ public class NonNsStreamWriter
             // 20-Dec-2005, TSa: Does this match DOCTYPE declaration?
             verifyRootElement(localName, null);
         } else if (mCheckStructure && mState == STATE_EPILOG) {
-            throw new IllegalStateException("Trying to output second root ('"
-                                            +localName+"').");
+            throwOutputError(ErrorConsts.WERR_PROLOG_SECOND_ROOT, localName);
         }
 
         /* Note: need not check for CONTENT_ALLOW_NONE here, since the

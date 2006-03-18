@@ -1272,7 +1272,9 @@ public abstract class BaseStreamWriter
          * immediate exceptions.
          */
         if (prob.getSeverity() >= XMLValidationProblem.SEVERITY_ERROR) {
-            throw WstxValidationException.create(prob);
+            if (isValidating()) {
+                throw WstxValidationException.create(prob);
+            }
         }
         XMLReporter rep = mConfig.getProblemReporter();
         if (rep != null) {
@@ -1324,6 +1326,18 @@ public abstract class BaseStreamWriter
     // Package methods (ie not part of public API)
     ////////////////////////////////////////////////////
      */
+
+    /**
+     * Method that is used by output classes to determine whether we
+     * are in validating mode.
+     *<p>
+     * Note: current implementation of this method is not perfect; it
+     * may be possible it can return true even if we are only using a DTD
+     * to get some limited info, without validating?
+     */
+    protected boolean isValidating() {
+        return (mValidator != null);
+    }
 
     /**
      * Method needed by {@link com.ctc.wstx.evt.WstxEventWriter}, when it
@@ -1570,35 +1584,40 @@ public abstract class BaseStreamWriter
         /* Note: this check is bit lame, due to DOCTYPE declaration (and DTD
          * in general) being namespace-ignorant...
          */
-        if (mDtdRootElem != null && mDtdRootElem.length() > 0) {
-            String wrongElem = null;
-
-            /* Ugh. It is possible that we just don't know the prefix --
-             * in repairing mode it's assigned after this check. So for
-             * now, let's only verify the local name
+        if (isValidating()) {
+            /* 17-Mar-2006, TSa: Ideally, this should be a validity
+             *   problem?
              */
-            if (localName.equals(mDtdRootElem)) {
-                // good
-            } else {
-                int lnLen = localName.length();
-                int oldLen = mDtdRootElem.length();
-
-                if (oldLen > lnLen
-                    && mDtdRootElem.endsWith(localName)
-                    && mDtdRootElem.charAt(oldLen - lnLen - 1) == ':') {
-                    // good also
+            if (mDtdRootElem != null && mDtdRootElem.length() > 0) {
+                String wrongElem = null;
+                
+                /* Ugh. It is possible that we just don't know the prefix --
+                 * in repairing mode it's assigned after this check. So for
+                 * now, let's only verify the local name
+                 */
+                if (localName.equals(mDtdRootElem)) {
+                    // good
                 } else {
-                    if (prefix == null) { // doesn't and won't have one
-                        wrongElem = localName;
-                    } else if (prefix.length() == 0) { // don't know what it'd be
-                        wrongElem = "[unknown]:"+localName;
+                    int lnLen = localName.length();
+                    int oldLen = mDtdRootElem.length();
+                    
+                    if (oldLen > lnLen
+                        && mDtdRootElem.endsWith(localName)
+                        && mDtdRootElem.charAt(oldLen - lnLen - 1) == ':') {
+                        // good also
                     } else {
-                        wrongElem = prefix + ":" + localName;
+                        if (prefix == null) { // doesn't and won't have one
+                            wrongElem = localName;
+                        } else if (prefix.length() == 0) { // don't know what it'd be
+                            wrongElem = "[unknown]:"+localName;
+                        } else {
+                            wrongElem = prefix + ":" + localName;
+                        }
                     }
                 }
-            }
-            if (wrongElem != null) {
-                reportValidationProblem(ErrorConsts.ERR_VLD_WRONG_ROOT, wrongElem, mDtdRootElem);
+                if (wrongElem != null) {
+                    reportValidationProblem(ErrorConsts.ERR_VLD_WRONG_ROOT, wrongElem, mDtdRootElem);
+                }
             }
         }
         mState = STATE_TREE;

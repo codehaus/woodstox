@@ -30,15 +30,25 @@ public class TestNsStreamWriter
         XMLOutputFactory f = getFactory();
         f.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES,
                       Boolean.TRUE);
+        //Boolean.FALSE);
         f.setProperty(XMLOutputFactory2.P_NAMESPACE_AWARE,
                       Boolean.TRUE);
+        //Boolean.FALSE);
         f.setProperty(XMLOutputFactory2.P_AUTOMATIC_EMPTY_ELEMENTS,
                       //Boolean.TRUE);
                       Boolean.FALSE);
         Writer w = new PrintWriter(System.out);
         XMLStreamWriter sw = f.createXMLStreamWriter(w);
 
-        sw.writeStartDocument();
+        //sw.writeStartElement("root");
+
+        sw.writeEmptyElement("alpha");
+
+        sw.writeStartElement("bravo");
+        sw.writeEndElement(); // exception here
+
+        //sw.writeStartDocument();
+        /*
         sw.writeComment("Comment!");
         sw.writeCharacters("\n");
         sw.writeStartElement("root");
@@ -62,7 +72,8 @@ public class TestNsStreamWriter
         //sw.writeCharacters("");
         w.flush();
         //sw.flush();
-        try { Thread.sleep(60000L); } catch (Exception e) { }
+
+        //try { Thread.sleep(60000L); } catch (Exception e) { }
 
         sw.writeEndElement();
         sw.writeCharacters("\n");
@@ -76,6 +87,9 @@ public class TestNsStreamWriter
         sw.writeCharacters("\n"); // white space in epilog
         sw.writeProcessingInstruction("target", "some data");
         sw.writeCharacters("\n"); // white space in epilog
+        */
+
+        sw.writeCharacters("\n"); // to get linefeed
         sw.writeEndDocument();
 
         sw.flush();

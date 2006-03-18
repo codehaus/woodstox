@@ -390,9 +390,11 @@ public abstract class BaseNsStreamWriter
         // Need to finish an open start element?
         if (mStartElementOpen) {
             closeStartElement(mEmptyElement);
-        } else if (mCheckStructure && mState == STATE_EPILOG) {
-            throw new IllegalStateException("Trying to output second root ('"
-                                            +localName+"').");
+        }
+        if (mCheckStructure && mState == STATE_EPILOG) {
+            String name = (prefix == null || prefix.length() == 0) ?
+                localName : (prefix + ":" + localName);
+            throwOutputError(ErrorConsts.WERR_PROLOG_SECOND_ROOT, name);
         }
 
         if (mCheckContent) {

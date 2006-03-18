@@ -1,6 +1,6 @@
 /* Woodstox XML processor
  *
- * Copyright (c) 2004 Tatu Saloranta, tatu.saloranta@iki.fi
+ * Copyright (c) 2004- Tatu Saloranta, tatu.saloranta@iki.fi
  *
  * Licensed under the License specified in the file LICENSE,
  * included with the source code.
@@ -356,7 +356,8 @@ public abstract class BaseNsStreamWriter
         // Need to finish an open start element?
         if (mStartElementOpen) {
             closeStartElement(mEmptyElement);
-        } else if (mCheckStructure && mState == STATE_EPILOG) {
+        }
+        if (mCheckStructure && mState == STATE_EPILOG) {
             throw new IllegalStateException("Trying to output second root ('"
                                             +localName+"').");
         }
