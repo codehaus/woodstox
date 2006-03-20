@@ -31,6 +31,9 @@ public class MergedNsContext
 {
     final NamespaceContext mParentCtxt;
 
+    /**
+     * List of {@link Namespace} instances.
+     */
     final List mNamespaces;
 
     Map mNsByPrefix = null;

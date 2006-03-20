@@ -28,7 +28,9 @@ public class WNamespace
      */
     public WNamespace(Location loc, String nsURI)
     {
-        super(loc, XMLConstants.XML_NS_PREFIX, "", "", nsURI, true);
+        super(loc, XMLConstants.XML_NS_PREFIX, XMLConstants.XMLNS_ATTRIBUTE_NS_URI,
+              null,
+              nsURI, true);
         mPrefix = "";
         mURI = nsURI;
     }
@@ -39,10 +41,19 @@ public class WNamespace
      */
     public WNamespace(Location loc, String nsPrefix, String nsURI)
     {
-        super(loc, nsPrefix, XMLConstants.XML_NS_URI,
-              XMLConstants.XML_NS_PREFIX, nsURI, true);
+        super(loc, nsPrefix,  XMLConstants.XMLNS_ATTRIBUTE_NS_URI,
+              XMLConstants.XMLNS_ATTRIBUTE,
+              nsURI, true);
         mPrefix = nsPrefix;
         mURI = nsURI;
+    }
+
+    public static WNamespace constructFor(Location loc, String nsPrefix, String nsURI)
+    {
+        if (nsPrefix == null || nsPrefix.length() == 0) { // default NS:
+            return new WNamespace(loc, nsURI);
+        }
+        return new WNamespace(loc, nsPrefix, nsURI);
     }
 
     public String getNamespaceURI() {

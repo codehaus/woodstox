@@ -47,11 +47,12 @@ public final class NsInputElementStack
     extends InputElementStack
 {
     /**
-     * Topmost namespace URI assigned for root element, if not specifically
-     * defined. Could either be null, or empty String; seems like most
-     * xml processors prefer latter.
+     * Top-most namespace URI assigned for root element, if not specifically
+     * defined (default namespace unbound).
+     * As per Stax specs (and related clarifying discussion on
+     * the mailing list), null should consistently be used.
      */
-    final static String DEFAULT_NAMESPACE_URI = "";
+    final static String DEFAULT_NAMESPACE_URI = null;
 
     final static int IX_PREFIX = 0;
     final static int IX_LOCALNAME = 1;
@@ -303,9 +304,7 @@ public final class NsInputElementStack
                     if (mInternNsURIs && nsUri.length() > 0) {
                         nsUri = sInternCache.intern(nsUri);
                     }
-                    /* 28-Jul-2004, TSa: Now we will have default namespaces
-                     *   in there too; they have empty String as prefix
-                     */
+                    // will have defaul ns's too; have null prefix
                     String prefix = nsPrefixes[i];
                     /* 18-Jul-2004, TSa: Need to check that 'xml' and 'xmlns'
                      *   prefixes are not re-defined (and 'xmlns' not even
@@ -328,7 +327,12 @@ public final class NsInputElementStack
                     } else { // ok, valid prefix, so far
                         // The default ns binding needs special handling:
                         if (prefix == null) {
-                            prefix = "";
+                            /* 17-Mar-2006, TSa: Unbinding default NS needs to
+                             *    result in null being added:
+                             */
+                            if (nsUri == null || nsUri.length() == 0) {
+                                nsUri = DEFAULT_NAMESPACE_URI;
+                            }
                             mElements[mSize-(ENTRY_SIZE - IX_DEFAULT_NS)] = nsUri;
                         }
 
@@ -377,7 +381,6 @@ public final class NsInputElementStack
             ns = mNamespaces.findLastFromMap(prefix);
             if (ns == null) {
                 mReporter.throwParseError(ErrorConsts.ERR_NS_UNDECLARED, prefix);
-                ns = ""; // will never get here, for now
             }
         }
         mElements[mSize-(ENTRY_SIZE - IX_URI)] = ns;
@@ -543,6 +546,10 @@ public final class NsInputElementStack
                     }
                 }
                 // nah, it's good
+                // 17-Mar-2006, TSa: ... but default NS has prefix null...
+                if (prefix == null) {
+                    prefix = "";
+                }
                 break main_loop;
             }
         }
@@ -634,6 +641,10 @@ public final class NsInputElementStack
             return null;
         }
         String prefix = mElements[mSize-(ENTRY_SIZE - IX_PREFIX)];
+        /* 17-Mar-2006, TSa: We only map prefix to empty String because
+         *   some QName impls barf on nulls. Otherwise we will always
+         *   use null to indicate missing prefixes.
+         */
         if (prefix == null) {
             prefix = "";
         }

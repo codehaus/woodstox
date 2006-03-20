@@ -35,7 +35,7 @@ public final class NsAttributeCollector
     /**
      * Default URI that root element has, if none is explicitly defined.
      */
-    protected final static String DEFAULT_NS_URI = "";
+    protected final static String DEFAULT_NS_URI = null;
 
     /**
      * Initial size for attribute NS URI buffer
@@ -238,7 +238,7 @@ public final class NsAttributeCollector
                 String uri = attrURIs[i];
                 String name = attrNames[i+i+1];
                 int hash = name.hashCode();
-                if (uri.length() > 0) {
+                if (uri != null) {
                     hash ^= uri.hashCode();
                 }
                 int index = hash & mask;
@@ -326,9 +326,8 @@ public final class NsAttributeCollector
             return null;
         }
         int hash = localName.hashCode();
-        if (nsURI == null) {
-            nsURI = DEFAULT_NS_URI;
-        } else if (nsURI.length() > 0) {
+        boolean hasURI = (nsURI != null) && (nsURI.length() > 0);
+        if (hasURI) {
             hash ^= nsURI.hashCode();
         }
         int ix = mAttrMap[hash & (hashSize-1)];
@@ -345,8 +344,14 @@ public final class NsAttributeCollector
          */
         if (thisName == localName || thisName.equals(localName)) {
             String thisURI = mAttrURIs[ix];
-            if (thisURI == nsURI || thisURI.equals(nsURI)) {
-                return getValue(ix);
+            if (hasURI) {
+                if (nsURI == thisURI || nsURI.equals(thisURI)) {
+                    return getValue(ix);
+                }
+            } else {
+                if (thisURI == null) {
+                    return getValue(ix);
+                }
             }
         }
 
@@ -364,8 +369,14 @@ public final class NsAttributeCollector
             thisName = mAttrNames.getString(ix+ix+1);
             if (thisName == localName || thisName.equals(localName)) {
                 String thisURI = mAttrURIs[ix];
-                if (thisURI == nsURI || thisURI.equals(nsURI)) {
-                    return getValue(ix);
+                if (hasURI) {
+                    if (nsURI == thisURI || nsURI.equals(thisURI)) {
+                        return getValue(ix);
+                    }
+                } else {
+                    if (thisURI == null) {
+                        return getValue(ix);
+                    }
                 }
             }
         }
@@ -387,9 +398,8 @@ public final class NsAttributeCollector
             return -1;
         }
         int hash = localName.hashCode();
-        if (nsURI == null) {
-            nsURI = DEFAULT_NS_URI;
-        } else if (nsURI.length() > 0) {
+        boolean hasURI = (nsURI != null) && (nsURI.length() > 0);
+        if (hasURI) {
             hash ^= nsURI.hashCode();
         }
         int ix = mAttrMap[hash & (hashSize-1)];
@@ -402,8 +412,14 @@ public final class NsAttributeCollector
         String thisName = mAttrNames.getString(ix+ix+1);
         if (thisName == localName || thisName.equals(localName)) {
             String thisURI = mAttrURIs[ix];
-            if (thisURI == nsURI || thisURI.equals(nsURI)) {
-                return ix;
+            if (hasURI) {
+                if (nsURI == thisURI || nsURI.equals(thisURI)) {
+                    return ix;
+                }
+            } else {
+                if (thisURI == null) {
+                    return ix;
+                }
             }
         }
 
@@ -421,8 +437,14 @@ public final class NsAttributeCollector
             thisName = mAttrNames.getString(ix+ix+1);
             if (thisName == localName || thisName.equals(localName)) {
                 String thisURI = mAttrURIs[ix];
-                if (thisURI == nsURI || thisURI.equals(nsURI)) {
-                    return ix;
+                if (hasURI) {
+                    if (nsURI == thisURI || nsURI.equals(thisURI)) {
+                        return ix;
+                    }
+                } else {
+                    if (thisURI == null) {
+                        return ix;
+                    }
                 }
             }
         }

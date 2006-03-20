@@ -31,6 +31,9 @@ public class WAttribute
                 mName = new QName(uri, localName);
             }
         } else {
+            if (uri == null) {
+                uri = ""; // only because QName will barf otherwise...
+            }
             mName = new QName(uri, localName, prefix);
         }
         mWasSpecified = wasSpec;

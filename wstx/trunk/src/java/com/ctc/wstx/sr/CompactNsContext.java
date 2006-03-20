@@ -75,11 +75,11 @@ public final class CompactNsContext
         String[] ns = mNamespaces;
         if (prefix == null || prefix.length() == 0) {
             for (int i = mNsLength-2; i >= 0; i -= 2) {
-                if (ns[i].length() == 0) {
+                if (ns[i] == null) {
                     return ns[i+1];
                 }
             }
-            return "";
+            return null; // default ns not bound
         }
         for (int i = mNsLength-2; i >= 0; i -= 2) {
             if (prefix.equals(ns[i])) {
@@ -111,7 +111,12 @@ public final class CompactNsContext
                         continue main_loop; // was masked!
                     }
                 }
-                return mNamespaces[i-1];
+                String uri = mNamespaces[i-1];
+                /* 19-Mar-2006, TSa: Empty namespaces are represented by
+                 *    null prefixes; but need to be represented as empty
+                 *    strings (to distinguish from unbound URIs).
+                 */
+                return (uri == null) ? "" : uri;
             }
         }
         return null;
@@ -139,6 +144,13 @@ public final class CompactNsContext
                     if (ns[j] == prefix) {
                         continue main_loop; // was masked, need to ignore
                     }
+                }
+                /* 19-Mar-2006, TSa: Empty namespaces are represented by
+                 *    null prefixes; but need to be represented as empty
+                 *    strings (to distinguish from unbound URIs).
+                 */
+                if (prefix == null) {
+                    prefix = "";
                 }
                 if (first == null) {
                     first = prefix;
@@ -175,7 +187,7 @@ public final class CompactNsContext
                 return EmptyIterator.getInstance();
             }
             if (len == 2) { // only one NS
-                return new SingletonIterator(new WNamespace
+                return new SingletonIterator(WNamespace.constructFor
                                              (mLocation,
                                               mNamespaces[firstLocal],
                                               mNamespaces[firstLocal+1]));
@@ -184,8 +196,8 @@ public final class CompactNsContext
             String[] ns = mNamespaces;
             for (len = mNsLength; firstLocal < len;
                  firstLocal += 2) {
-                l.add(new WNamespace(mLocation, ns[firstLocal],
-                                     ns[firstLocal+1]));
+                l.add(WNamespace.constructFor(mLocation, ns[firstLocal],
+                                              ns[firstLocal+1]));
             }
             mNsList = l;
         }
