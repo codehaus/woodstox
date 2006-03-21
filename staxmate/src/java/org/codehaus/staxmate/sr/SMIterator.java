@@ -1,9 +1,15 @@
 package org.codehaus.staxmate.sr;
 
+import java.io.IOException;
+import java.io.Writer;
+
 import javax.xml.namespace.QName;
+import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
+
+import org.codehaus.stax2.XMLStreamReader2;
 
 /**
  * Base class for iterators for StaxMate.
@@ -24,7 +30,7 @@ public abstract class SMIterator
      * Constant that indicates that iterator has no more nodes to iterate
      * over
      */
-    public final static int SM_NODE_NONE = -1;
+    public final static int SM_EVENT_NONE = -1;
 
     // // // Constants for element tracking:
 
@@ -146,7 +152,7 @@ public abstract class SMIterator
     ////////////////////////////////////////////
      */
 
-    protected int mCurrEvent = SM_NODE_NONE;
+    protected int mCurrEvent = SM_EVENT_NONE;
 
     protected int mState = STATE_INITIAL;
 
@@ -318,7 +324,7 @@ public abstract class SMIterator
      * @return Type of event this iterator points to (if it currently points
      *   to one), or last pointed to (if not).
      */
-    public int getCurrentEventType() {
+    public int getEventType() {
         return mCurrEvent;
     }
 
@@ -346,9 +352,9 @@ public abstract class SMIterator
     }
 
     /*
-    ////////////////////////////////////////////
-    // Public API, accessing data via reader
-    ////////////////////////////////////////////
+    ////////////////////////////////////////////////
+    // Public API, accessing current document state
+    ////////////////////////////////////////////////
      */
 
     public boolean readerAccessible() {
@@ -364,7 +370,7 @@ public abstract class SMIterator
         return mStreamReader.hasText();
     }
 
-    public boolean hasCurrentName()
+    public boolean hasCurrName()
         throws XMLStreamException
     {
         if (!readerAccessible()) {
@@ -385,50 +391,332 @@ public abstract class SMIterator
         return mStreamReader;
     }
 
-    public String getCurrentText()
+    public Location getLocation()
         throws XMLStreamException
     {
         if (!readerAccessible()) {
-            return notAccessible("getCurrentText");
+            notAccessible("getLocation");
+            return null;
+        }
+        return mStreamReader.getLocation();
+    }
+
+    /*
+    ////////////////////////////////////////////////
+    // Public API, accessing document text content
+    ////////////////////////////////////////////////
+     */
+
+    /**
+     * Method that can be used when this iterator points to a textual
+     * event; something for which {@link XMLStreamReader#getText} can
+     * be called. Note that it does not advance the iterator, or combine
+     * multiple textual events.
+     *
+     * @return Textual content of the current event that this iterator
+     *   points to, if any
+     *
+     * @throws XMLStreamException if either the underlying parser has
+     *   problems (possibly including event type not being of textual
+     *   type, see Stax 1.0 specs for details); or if this iterator does
+     *   not currently point to an event.
+     */
+    public String getText()
+        throws XMLStreamException
+    {
+        if (!readerAccessible()) {
+            return notAccessible("getText");
         }
         return mStreamReader.getText();
     }
 
-    public QName getCurrentName()
+    /**
+     * Method that can collect all text contained within START_ELEMENT
+     * currently pointed by this iterator. Collection is done recursively
+     * through all descendant text (CHARACTER, CDATA; optionally SPACE) nodes,
+     * ignoring nodes of other types. After collecting text, iterator
+     * will be positioned at the END_ELEMENT matching initial START_ELEMENT
+     * and thus needs to be advanced to access the next sibling event.
+     *
+     * @param includeIgnorable Whether text for events of type SPACE should
+     *   be ignored in the results or not. If false, SPACE events will be
+     *   skipped; if true, white space will be included in results.
+     */
+    public String collectDescendantText(boolean includeIgnorable)
         throws XMLStreamException
     {
         if (!readerAccessible()) {
-            notAccessible("getCurrentName");
+            return notAccessible("getText");
+        }
+        if (getEventType() != XMLStreamConstants.START_ELEMENT) {
+            throwXsEx("Can not call 'getText()' when iterator is not positioned over START_ELEMENT (current event "+currentEventStr()+")"); 
+        }
+
+        SMFilter f = includeIgnorable
+            ? SMFilterFactory.getTextOnlyFilter()
+            : SMFilterFactory.getNonIgnorableTextFilter();
+        SMIterator childIt = descendantIterator(f);
+
+        /* Iterator should only return actual text nodes, so no type
+         * checks are needed, except for checks for EOF. But we can
+         * also slightly optimize things, by avoiding StringBuilder
+         * construction if there's just one node.
+         */
+        if (childIt.getNext() == SMIterator.SM_EVENT_NONE) {
+            return "";
+        }
+        String text = childIt.getText(); // has to be a text event
+        if ((childIt.getNext()) == SMIterator.SM_EVENT_NONE) {
+            return text;
+        }
+
+        int size = text.length();
+        StringBuffer sb = new StringBuffer((size < 500) ? 500 : size);
+        sb.append(text);
+        XMLStreamReader sr = childIt.getStreamReader();
+        do {
+            // Let's assume char array access is more efficient...
+            sb.append(sr.getTextCharacters(), sr.getTextStart(),
+                      sr.getTextLength());
+        } while (childIt.getNext() != SMIterator.SM_EVENT_NONE);
+
+        return sb.toString();
+    }
+
+    /**
+     * Method similar to {@link #collectDescendantText}, but will write
+     * the text to specified Writer instead of collecting it into a
+     * String.
+     *
+     * @param w Writer to use for outputting text found
+     * @param includeIgnorable Whether text for events of type SPACE should
+     *   be ignored in the results or not. If false, SPACE events will be
+     *   skipped; if true, white space will be included in results.
+     */
+    public void processDescendantText(Writer w, boolean includeIgnorable)
+        throws IOException, XMLStreamException
+    {
+        SMFilter f = includeIgnorable
+            ? SMFilterFactory.getTextOnlyFilter()
+            : SMFilterFactory.getNonIgnorableTextFilter();
+        SMIterator childIt = descendantIterator(f);
+
+        // Any text in there?
+        XMLStreamReader sr = childIt.getStreamReader();
+        while (childIt.getNext() != SMIterator.SM_EVENT_NONE) {
+            // Let's assume char array access is more efficient...
+            /* !!! 24-Jan-2006, TSa: Could/should use Stax2 accessor?
+             */
+            w.write(sr.getTextCharacters(), sr.getTextStart(),
+                    sr.getTextLength());
+        }
+    }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Public API, accessing current element information
+    ////////////////////////////////////////////////////
+     */
+
+    public QName getElemName()
+        throws XMLStreamException
+    {
+        if (!readerAccessible()) {
+            notAccessible("getElemName");
             return null; // probably never gets here
         }
         return mStreamReader.getName();
     }
 
-    public String getCurrentLocalName()
+    public String getElemLocalName()
         throws XMLStreamException
     {
         if (!readerAccessible()) {
-            return notAccessible("getCurrentLocalName");
+            return notAccessible("getElemLocalName");
         }
         return mStreamReader.getLocalName();
     }
 
-    public String getCurrentPrefix()
+    public String getElemPrefix()
         throws XMLStreamException
     {
         if (!readerAccessible()) {
-            return notAccessible("getCurrentPrefix");
+            return notAccessible("getElemPrefix");
         }
         return mStreamReader.getPrefix();
     }
 
-    public String getCurrentNamespaceURI()
+    public String getElemNsUri()
         throws XMLStreamException
     {
         if (!readerAccessible()) {
-            return notAccessible("getCurrentNamespaceURI");
+            return notAccessible("getElemNsUri");
         }
         return mStreamReader.getNamespaceURI();
+    }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Public API, accessing current element's attribute
+    // information
+    ////////////////////////////////////////////////////
+     */
+
+    public int getAttrCount()
+        throws XMLStreamException
+    {
+        if (!readerAccessible()) {
+            notAccessible("getAttrCount");
+            return 0; // never gets here
+        }
+        return mStreamReader.getAttributeCount();
+    }
+
+    public int findAttrIndex(String uri, String localName)
+        throws XMLStreamException
+    {
+        if (!readerAccessible()) {
+            notAccessible("getAttrCount");
+            return -1; // never gets here
+        }
+
+        // Stax2 has an efficient method for this:
+        if (mStreamReader instanceof XMLStreamReader2) {
+            return ((XMLStreamReader2) mStreamReader).getAttributeInfo().findAttributeIndex(uri, localName);
+        }
+        if (uri == null) {
+            uri = "";
+        }
+
+        // Otherwise need to iterate over it...
+        for (int i = 0, len = mStreamReader.getAttributeCount(); i < len; ++i) {
+            if (mStreamReader.getAttributeLocalName(i).equals(localName)) {
+                if (uri.equals(mStreamReader.getAttributeNamespace(i))) {
+                    return i;
+                }
+            }
+        }
+        return -1;
+    }
+
+    public QName getAttrName(int index)
+        throws XMLStreamException
+    {
+        if (!readerAccessible()) {
+            notAccessible("getAttrName");
+            return null; // never gets here
+        }
+        return mStreamReader.getAttributeName(index);
+    }
+
+    public String getAttrLocalName(int index)
+        throws XMLStreamException
+    {
+        if (!readerAccessible()) {
+            return notAccessible("getAttrLocalName");
+        }
+        return mStreamReader.getAttributeLocalName(index);
+    }
+
+    public String getAttrPrefix(int index)
+        throws XMLStreamException
+    {
+        if (!readerAccessible()) {
+            return notAccessible("getAttrPrefix");
+        }
+        return mStreamReader.getAttributePrefix(index);
+    }
+
+    public String getAttrNsUri(int index)
+        throws XMLStreamException
+    {
+        if (!readerAccessible()) {
+            return notAccessible("getAttrNsUri");
+        }
+        return mStreamReader.getAttributeNamespace(index);
+    }
+
+    public String getAttrValue(int index)
+        throws XMLStreamException
+    {
+        if (!readerAccessible()) {
+            return notAccessible("getAttributeValue");
+        }
+        return mStreamReader.getAttributeValue(index);
+    }
+
+    public String getAttrValue(String uri, String localName)
+        throws XMLStreamException
+    {
+        if (!readerAccessible()) {
+            return notAccessible("getAttrValue");
+        }
+        return mStreamReader.getAttributeValue(uri, localName);
+    }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Public API, accessing typed attribute value
+    // information
+    ////////////////////////////////////////////////////
+     */
+
+    public int getAttrIntValue(int index)
+        throws NumberFormatException, XMLStreamException
+    {
+        if (!readerAccessible()) {
+            notAccessible("getAttrIntValue");
+            return -1; // never gets here
+        }
+        /* For now, let's just get it as String and convert: in future,
+         * may be able to use more efficient access method(s)
+         */
+        String value = mStreamReader.getAttributeValue(index);
+        return doParseInt(value);
+    }
+
+    public int getAttrIntValue(String uri, String localName)
+        throws XMLStreamException
+    {
+        if (!readerAccessible()) {
+            notAccessible("getAttrIntValue");
+            return -1; // never gets here
+        }
+        /* For now, let's just get it as String and convert: in future,
+         * may be able to use more efficient access method(s)
+         */
+        String value = mStreamReader.getAttributeValue(uri, localName);
+        return doParseInt(value);
+    }
+
+    public int getAttrIntValue(int index, int defValue)
+        throws NumberFormatException, XMLStreamException
+    {
+        if (!readerAccessible()) {
+            notAccessible("getAttrIntValue");
+            return -1; // never gets here
+        }
+        /* For now, let's just get it as String and convert: in future,
+         * may be able to use more efficient access method(s)
+         */
+        String valueStr = mStreamReader.getAttributeValue(index);
+        return doParseInt(valueStr, defValue);
+    }
+
+    public int getAttrIntValue(String uri, String localName, int defValue)
+        throws XMLStreamException
+    {
+        if (!readerAccessible()) {
+            notAccessible("getAttrIntValue");
+            return -1; // never gets here
+        }
+        /* For now, let's just get it as String and convert: in future,
+         * may be able to use more efficient access method(s)
+         */
+        String valueStr = mStreamReader.getAttributeValue(uri, localName);
+        /* Also: conversion itself should be trivial to handle faster...
+         */
+        return doParseInt(valueStr, defValue);
     }
 
     /*
@@ -456,7 +744,7 @@ public abstract class SMIterator
      *
      * @return Type of event (from {@link XMLStreamConstants}, such as
      *   {@link XMLStreamConstants#START_ELEMENT}, if a new node was
-     *   iterated over; {@link #SM_NODE_NONE} when there are no more
+     *   iterated over; {@link #SM_EVENT_NONE} when there are no more
      *   nodes this iterator can iterate over.
      */
     public abstract int getNext()
@@ -630,6 +918,33 @@ public abstract class SMIterator
 
     /*
     ////////////////////////////////////////////
+    // Internal parsing methods
+    ////////////////////////////////////////////
+     */
+
+    protected int doParseInt(String valueStr)
+        throws NumberFormatException
+    {
+        // !!! Let's optimize once time allows it...
+        return Integer.parseInt(valueStr);
+    }
+
+    protected int doParseInt(String valueStr, int defValue)
+    {
+        if (valueStr == null || valueStr.length() == 0) {
+            return defValue;
+        }
+
+        // !!! Let's optimize once time allows it...
+        try {
+            return Integer.parseInt(valueStr);
+        } catch (NumberFormatException nex) {
+            return defValue;
+        }
+    }
+
+    /*
+    ////////////////////////////////////////////
     // Package methods
     ////////////////////////////////////////////
      */
@@ -642,10 +957,11 @@ public abstract class SMIterator
         throws XMLStreamException
     {
         if (mChildIterator != null) {
-            throw new XMLStreamException("Can not call '"+method+"(): iterator does not point to a valid node, as it has an active open child iterator.");
+            throwXsEx("Can not call '"+method+"(): iterator does not point to a valid node, as it has an active open child iterator.");
         }
-        throw new XMLStreamException("Can not call '"+method+"(): iterator does not point to a valid node (type "+getCurrentEventType()+"; iterator state "
-                                     +getStateDesc());
+        throwXsEx("Can not call '"+method+"(): iterator does not point to a valid node (type "+getEventType()+"; iterator state "
+                  +getStateDesc());
+        return null;
     }
 
     protected String getStateDesc() {
@@ -653,5 +969,56 @@ public abstract class SMIterator
             return "[Unknown]";
         }
         return STATE_DESCS[mState];
+    }
+
+    /**
+     * @return Human-readable description of the underlying Stax event
+     *   this iterator points to.
+     */
+    protected String currentEventStr()
+    {
+        return eventTypeDesc(mCurrEvent);
+    }
+
+    protected void throwXsEx(String msg)
+        throws XMLStreamException
+    {
+        // !!! TODO: use StaxMate-specific sub-classes of XMLStreamException?
+        throw new XMLStreamException(msg, mStreamReader.getLocation());
+    }
+
+    public static String eventTypeDesc(int type)
+    {
+        switch (type) {
+        case XMLStreamConstants.START_ELEMENT:
+            return "START_ELEMENT";
+        case XMLStreamConstants.END_ELEMENT:
+            return "END_ELEMENT";
+        case XMLStreamConstants.START_DOCUMENT:
+            return "START_DOCUMENT";
+        case XMLStreamConstants.END_DOCUMENT:
+            return "END_DOCUMENT";
+
+        case XMLStreamConstants.CHARACTERS:
+            return "CHARACTERS";
+        case XMLStreamConstants.CDATA:
+            return "CDATA";
+        case XMLStreamConstants.SPACE:
+            return "SPACE";
+
+        case XMLStreamConstants.COMMENT:
+            return "COMMENT";
+        case XMLStreamConstants.PROCESSING_INSTRUCTION:
+            return "PROCESSING_INSTRUCTION";
+        case XMLStreamConstants.DTD:
+            return "DTD";
+        case XMLStreamConstants.ENTITY_REFERENCE:
+            return "ENTITY_REFERENCE";
+
+            // StaxMate - specific marker...
+        case SM_EVENT_NONE:
+            return "[NONE]";
+        }
+        return "["+type+"]";
     }
 }

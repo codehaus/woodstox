@@ -103,8 +103,7 @@ public class SMOutputElement
     ///////////////////////////////////////////////////////////
      */
 
-    public void addAttribute(String localName, SMNamespace ns,
-			     String value)
+    public void addAttribute(String localName, SMNamespace ns, String value)
         throws XMLStreamException
     {
         final SMOutputContext ctxt = mContext;
@@ -130,6 +129,17 @@ public class SMOutputElement
         default:
             throwClosedForAttrs();
         } 
+    }
+
+    /**
+     * Convenience method to use for adding attributes with integer
+     * values
+     */
+    public void addAttribute(String localName, SMNamespace ns, int value)
+        throws XMLStreamException
+    {
+        // !!! Should optimize (use local or shared char array buffer etc)
+        addAttribute(localName, ns, String.valueOf(value));
     }
 
     /*

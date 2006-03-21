@@ -116,6 +116,19 @@ public abstract class SMOutputContainer
         }
     }
 
+    /**
+     * Convenience method for adding value of an int as text
+     */
+    public void addCharacters(int value)
+        throws XMLStreamException
+    {
+        /* Should/could optimize (use local char array etc), for
+         * performance boost...
+         */
+        String strValue = String.valueOf(value);
+        addCharacters(strValue);
+    }
+
     public void addCData(String text)
         throws XMLStreamException
     {

@@ -77,7 +77,7 @@ public final class HTMLConverter
     {
         it.getNext(); // has to be of type element now...
 
-        String origName = it.getCurrentLocalName();
+        String origName = it.getElemLocalName();
         String name = origName.toLowerCase();
 
         /* It _should_ be HTML... but let's also allow lone 'body'
@@ -93,8 +93,8 @@ public final class HTMLConverter
         SMIterator mainIt = it.childElementIterator();
         int type;
 
-        while ((type = mainIt.getNext()) != SMIterator.SM_NODE_NONE) {
-            origName = mainIt.getCurrentLocalName();
+        while ((type = mainIt.getNext()) != SMIterator.SM_EVENT_NONE) {
+            origName = mainIt.getElemLocalName();
             name = origName.toLowerCase();
 
             // Should be 'head' or 'body'
@@ -118,11 +118,11 @@ public final class HTMLConverter
     {
         SMIterator headIt = parentIt.childElementIterator();
         int type;
-        while ((type = headIt.getNext()) != SMIterator.SM_NODE_NONE) {
-            if (headIt.getCurrentLocalName().toLowerCase().equals("title")) {
+        while ((type = headIt.getNext()) != SMIterator.SM_EVENT_NONE) {
+            if (headIt.getElemLocalName().toLowerCase().equals("title")) {
                 // Could capitalize it too...
                 out.write("== ");
-                String str = SMIteratorFactory.collectDescendantText(headIt, true);
+                String str = headIt.collectDescendantText(true);
                 // Let's remove linefeeds if there was any
                 addSingleLine(out, str);
                 out.write(" ==\n\n");
@@ -149,7 +149,7 @@ public final class HTMLConverter
         int type;
         StringBuffer text = null; // for collected 'loose' text
 
-        while ((type = bodyIt.getNext()) != SMIterator.SM_NODE_NONE) {
+        while ((type = bodyIt.getNext()) != SMIterator.SM_EVENT_NONE) {
             // Let's weed out end elements right away...
             if (type == XMLStreamConstants.END_ELEMENT) {
                 continue;
@@ -157,7 +157,7 @@ public final class HTMLConverter
             // And straight text as well:
             String inline;
             if (type == XMLStreamConstants.START_ELEMENT) {
-                String tag = bodyIt.getCurrentLocalName().toLowerCase();
+                String tag = bodyIt.getElemLocalName().toLowerCase();
                 if (processBlockElement(bodyIt, out, tag, text)) {
                     // true -> was succesfully handled
                     text = null;
@@ -168,7 +168,7 @@ public final class HTMLConverter
                  */
                 inline = checkInlineMarkup(bodyIt, tag);
             } else {
-                inline = bodyIt.getCurrentText();
+                inline = bodyIt.getText();
             }
 
             if (inline != null) {
@@ -224,7 +224,7 @@ public final class HTMLConverter
         if (tag.equals("pre")) {
             addPara(out, text);
             // Can't have any markup in there...
-            String str = SMIteratorFactory.collectDescendantText(it, true);
+            String str = it.collectDescendantText(true);
             if (str.length() > 0) {
                 addPara(out, str);
             }
@@ -255,7 +255,7 @@ public final class HTMLConverter
         String prefix = "=====".substring(0, depth);
         out.write(prefix);
         out.write(' ');
-        SMIteratorFactory.processDescendantText(it, out, true);
+        it.processDescendantText(out, true);
         out.write(' ');
         out.write(prefix);
         out.write("\n\n");
@@ -270,8 +270,8 @@ public final class HTMLConverter
         SMIterator listIt = it.childElementIterator();
 
         // We'll only get START_ELEMENTs here except for EOF:
-        while (listIt.getNext() != SMIterator.SM_NODE_NONE) {
-            String tag = listIt.getCurrentLocalName().toLowerCase();
+        while (listIt.getNext() != SMIterator.SM_EVENT_NONE) {
+            String tag = listIt.getElemLocalName().toLowerCase();
             if (tag.equals("li")) {
                 processListItem(listIt, out, type, depth);
             } else if (tag.equals("ul")) {
@@ -307,9 +307,9 @@ public final class HTMLConverter
         SMIterator itemIt = it.childMixedIterator();
         int type;
 
-        while ((type = itemIt.getNext()) != SMIterator.SM_NODE_NONE) {
+        while ((type = itemIt.getNext()) != SMIterator.SM_EVENT_NONE) {
             if (type == XMLStreamConstants.START_ELEMENT) {
-                String tag = itemIt.getCurrentLocalName().toLowerCase();
+                String tag = itemIt.getElemLocalName().toLowerCase();
                 // only care about sub-lists:
                 if (tag.equals("ul") || tag.equals("ol")) {
                     out.write('\n'); // to finish off the current line
@@ -330,9 +330,9 @@ public final class HTMLConverter
                     }
                 }
                 // Otherwise, let's just collect and output text:
-                addSingleLine(out, SMIteratorFactory.collectDescendantText(itemIt, true));
+                addSingleLine(out, itemIt.collectDescendantText(true));
             } else {
-                addSingleLine(out, itemIt.getCurrentText());
+                addSingleLine(out, itemIt.getText());
             }
         }
         out.write('\n');
@@ -346,8 +346,8 @@ public final class HTMLConverter
          */
         SMIterator tableIt = it.childElementIterator();
         // We'll only get START_ELEMENTs here except for EOF:
-        while (tableIt.getNext() != SMIterator.SM_NODE_NONE) {
-            String tag = tableIt.getCurrentLocalName().toLowerCase();
+        while (tableIt.getNext() != SMIterator.SM_EVENT_NONE) {
+            String tag = tableIt.getElemLocalName().toLowerCase();
             if (tag.equals("thead") || tag.equals("tfoot")
                 || tag.equals("tbody")) {
                 /* Let's just recursively call this method, should be
@@ -370,8 +370,8 @@ public final class HTMLConverter
         SMIterator rowIt = it.childElementIterator();
         out.write("|");
         // We'll only get START_ELEMENTs here except for EOF:
-        while (rowIt.getNext() != SMIterator.SM_NODE_NONE) {
-            String tag = rowIt.getCurrentLocalName().toLowerCase();
+        while (rowIt.getNext() != SMIterator.SM_EVENT_NONE) {
+            String tag = rowIt.getElemLocalName().toLowerCase();
             if (tag.equals("td")) {
                 processTableCell(rowIt, out, headerRow);
             } else if (tag.equals("th")) {
@@ -393,9 +393,9 @@ public final class HTMLConverter
          */
         SMIterator cellIt = it.childMixedIterator();
         int type;
-        while ((type = cellIt.getNext()) != SMIterator.SM_NODE_NONE) {
+        while ((type = cellIt.getNext()) != SMIterator.SM_EVENT_NONE) {
             if (type == XMLStreamConstants.START_ELEMENT) {
-                String tag = cellIt.getCurrentLocalName().toLowerCase();
+                String tag = cellIt.getElemLocalName().toLowerCase();
                 // No sub-tables or lists allowed... just inline markup
                 String str = checkInlineMarkup(cellIt, tag);
                 if (str != null) {
@@ -403,9 +403,9 @@ public final class HTMLConverter
                     continue;
                 }
                 // Otherwise, let's just collect and output text:
-                addSingleLine(out, SMIteratorFactory.collectDescendantText(cellIt, true));
+                addSingleLine(out, cellIt.collectDescendantText(true));
             } else { // just plain text
-                addSingleLine(out, cellIt.getCurrentText());
+                addSingleLine(out, cellIt.getText());
             }
         }
     }
@@ -414,21 +414,20 @@ public final class HTMLConverter
         throws IOException, XMLStreamException
     {
         if (tag.equals("a")) {
-            XMLStreamReader sr = it.getStreamReader();
-            String url = sr.getAttributeValue(null, "href");
-            String str = SMIteratorFactory.collectDescendantText(it, true);
+            String url = it.getAttrValue(null, "href");
+            String str = it.collectDescendantText(true);
             return "[["+url+" | "+str+" ]]";
         }
         if (tag.equals("b")) {
-            String str = SMIteratorFactory.collectDescendantText(it, true);
+            String str = it.collectDescendantText(true);
             return "'''"+str+"'''";
         }
         if (tag.equals("i")) {
-            String str = SMIteratorFactory.collectDescendantText(it, true);
+            String str = it.collectDescendantText(true);
             return "'''"+str+"'''";
         }
         if (tag.equals("u")) {
-            String str = SMIteratorFactory.collectDescendantText(it, true);
+            String str = it.collectDescendantText(true);
             return "___"+str+"___";
         }
         if (tag.equals("hr")) {

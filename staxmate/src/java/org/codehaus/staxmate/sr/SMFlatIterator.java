@@ -70,7 +70,7 @@ public class SMFlatIterator
         throws XMLStreamException
     {
         if (mState == STATE_CLOSED) {
-            return SM_NODE_NONE;
+            return SM_EVENT_NONE;
         }
 
         /* If there is a child iterator, it has to be traversed
@@ -155,9 +155,9 @@ public class SMFlatIterator
         }
 
         // Ok, no more events
-        mCurrEvent = SM_NODE_NONE;
+        mCurrEvent = SM_EVENT_NONE;
         mState = STATE_CLOSED;
-        return SM_NODE_NONE;
+        return SM_EVENT_NONE;
     }
 
     public SMIterator constructChildIterator(SMFilter f) {

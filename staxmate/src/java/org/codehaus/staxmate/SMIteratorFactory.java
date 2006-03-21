@@ -47,79 +47,6 @@ public final class SMIteratorFactory
 
     /*
     /////////////////////////////////////////////////
-    // Text collection functionality
-    /////////////////////////////////////////////////
-     */
-
-    /**
-     * Method that will traverse through all the descendant nodes of the
-     * start element
-     * pointed to by the specified iterator, collects all text from text
-     * nodes, and returns the text as String. After traversing specified
-     * iterator needs to be advanced to point to the node that comes
-     * after end element.
-     *
-     * @param it Iterator that points to a start element of which descendant
-     *    text nodes to process.
-     */
-    public static String collectDescendantText(SMIterator it, boolean includeIgnorable)
-        throws XMLStreamException
-    {
-        SMFilter f = includeIgnorable
-            ? SMFilterFactory.getTextOnlyFilter()
-            : SMFilterFactory.getNonIgnorableTextFilter();
-        SMIterator childIt = it.descendantIterator(f);
-
-        // Any text in there?
-        if (childIt.getNext() == SMIterator.SM_NODE_NONE) {
-            return "";
-        }
-
-        String text = childIt.getCurrentText();
-        if ((childIt.getNext()) == SMIterator.SM_NODE_NONE) {
-            return text;
-        }
-
-        int size = text.length();
-        StringBuffer sb = new StringBuffer((size < 500) ? 500 : size);
-        sb.append(text);
-        XMLStreamReader sr = childIt.getStreamReader();
-        do {
-            // Let's assume char array access is more efficient...
-            sb.append(sr.getTextCharacters(), sr.getTextStart(),
-                      sr.getTextLength());
-        } while (childIt.getNext() != SMIterator.SM_NODE_NONE);
-
-        return sb.toString();
-    }
-
-    /**
-     * Method similar to {@link #collectDescendantText}, but will write
-     * the text to specified Writer instead of collecting it into a
-     * String.
-     *
-     * @param it Iterator that points to a start element of which descendant
-     *    text nodes to process.
-     */
-    public static void processDescendantText(SMIterator it, Writer w, boolean includeIgnorable)
-        throws IOException, XMLStreamException
-    {
-        SMFilter f = includeIgnorable
-            ? SMFilterFactory.getTextOnlyFilter()
-            : SMFilterFactory.getNonIgnorableTextFilter();
-        SMIterator childIt = it.descendantIterator(f);
-
-        // Any text in there?
-        XMLStreamReader sr = childIt.getStreamReader();
-        while (childIt.getNext() != SMIterator.SM_NODE_NONE) {
-            // Let's assume char array access is more efficient...
-            w.write(sr.getTextCharacters(), sr.getTextStart(),
-                    sr.getTextLength());
-        }
-    }
-
-    /*
-    /////////////////////////////////////////////////
     // Simple test driver functionality
     /////////////////////////////////////////////////
      */
@@ -132,7 +59,9 @@ public final class SMIteratorFactory
             System.exit(1);
         }
         XMLInputFactory f = XMLInputFactory.newInstance();
-        XMLStreamReader r = f.createXMLStreamReader(new java.io.FileInputStream(args[0]));
+        java.io.File file = new java.io.File(args[0]);
+        XMLStreamReader r = f.createXMLStreamReader(file.toURL().toExternalForm(),
+                                                    new java.io.FileInputStream(file));
 
         ///*
         SMIterator it = nestedIterator(r, null);
@@ -154,20 +83,19 @@ public final class SMIteratorFactory
     {
         int type;
 
-        while ((type = it.getNext()) != SMIterator.SM_NODE_NONE) {
+        while ((type = it.getNext()) != SMIterator.SM_EVENT_NONE) {
             System.out.print("["+it.getDepth()+"] -> "+type);
             if (type == XMLStreamConstants.START_ELEMENT) {
-                XMLStreamReader sr = it.getStreamReader();
-                System.out.print(" <"+sr.getPrefix()+":"+sr.getLocalName()+">");
+                //XMLStreamReader sr = it.getStreamReader();
+                System.out.print(" <"+it.getElemPrefix()+":"+it.getElemLocalName()+">");
                 System.out.println(" Path: "+getPath(it));
                 System.out.println(" Prev: "+getSiblings(it));
 
                 traverseNested(it.childIterator(null));
             } else if (type == XMLStreamConstants.END_ELEMENT) {
-                XMLStreamReader sr = it.getStreamReader();
-                System.out.println(" </"+sr.getPrefix()+":"+sr.getLocalName()+">");
+                System.out.println(" </"+it.getElemPrefix()+":"+it.getElemLocalName()+">");
             } else if (it.isCurrentText()) {
-                System.out.println(" Text (trim): '"+it.getCurrentText().trim()+"'");
+                System.out.println(" Text (trim): '"+it.getText().trim()+"'");
             } else {
                 System.out.println();
             }
@@ -181,7 +109,7 @@ public final class SMIteratorFactory
     {
         int type;
 
-        while ((type = it.getNext()) != SMIterator.SM_NODE_NONE) {
+        while ((type = it.getNext()) != SMIterator.SM_EVENT_NONE) {
             System.out.print("["+it.getDepth()+"] -> "+type);
             if (type == XMLStreamConstants.START_ELEMENT) {
                 XMLStreamReader sr = it.getStreamReader();
@@ -195,7 +123,7 @@ public final class SMIteratorFactory
                 System.out.println(" Path: "+getPath(it));
                 System.out.println(" Prev: "+getSiblings(it));
             } else if (it.isCurrentText()) {
-                System.out.println(" Text (trim): '"+it.getCurrentText().trim()+"'");
+                System.out.println(" Text (trim): '"+it.getText().trim()+"'");
             } else {
                 System.out.println();
             }
