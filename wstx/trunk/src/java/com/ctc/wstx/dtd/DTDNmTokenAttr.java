@@ -25,7 +25,7 @@ public final class DTDNmTokenAttr
     /**
      * Main constructor.
      */
-    public DTDNmTokenAttr(NameKey name, int defValueType, String defValue,
+    public DTDNmTokenAttr(NameKey name, int defValueType, DefaultAttrValue defValue,
                           int specIndex)
     {
         super(name, defValueType, defValue, specIndex);
@@ -103,6 +103,6 @@ public final class DTDNmTokenAttr
     public void validateDefault(InputProblemReporter rep, boolean normalize)
         throws XMLValidationException
     {
-        mDefValue = validateDefaultNmToken(rep, normalize);
+        mDefValue.setValue(validateDefaultNmToken(rep, normalize));
     }
 }

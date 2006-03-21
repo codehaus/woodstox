@@ -157,6 +157,7 @@ public class BaseWstxTest
     {
         return (XMLEventReader2) f.createXMLEventReader(new StringReader(content));
     }
+
     /*
     //////////////////////////////////////////////////
     // Configuring input factory

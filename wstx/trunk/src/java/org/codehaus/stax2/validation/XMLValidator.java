@@ -93,7 +93,7 @@ public abstract class XMLValidator
     /**
      * Returns the schema instance that created this validator
      * object, if known (and applicable). May return null for
-     * some instances: specifically, {@link XMLValidatorPair}
+     * some instances: specifically, {@link ValidatorPair}
      * will return null since it 'contains' multiple validators
      * and generally does not have just one parent or owner schema.
      */

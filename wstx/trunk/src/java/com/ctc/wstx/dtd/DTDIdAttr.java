@@ -31,7 +31,7 @@ public final class DTDIdAttr
      * not-validating mode it is apparently 'legal' to add default
      * values. Bleech.
      */
-    public DTDIdAttr(NameKey name, int defValueType, String defValue,
+    public DTDIdAttr(NameKey name, int defValueType, DefaultAttrValue defValue,
                      int specIndex)
     {
         super(name, defValueType, defValue, specIndex);

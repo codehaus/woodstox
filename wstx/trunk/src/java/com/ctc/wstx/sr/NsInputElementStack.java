@@ -325,14 +325,14 @@ public final class NsInputElementStack
                          */
                         //mNamespaces.addStrings(prefix, nsUri);
                     } else { // ok, valid prefix, so far
+                        /* 17-Mar-2006, TSa: Unbinding default NS needs to
+                         *    result in null being added:
+                         */
+                        if (nsUri == null || nsUri.length() == 0) {
+                                nsUri = DEFAULT_NAMESPACE_URI;
+                        }
                         // The default ns binding needs special handling:
                         if (prefix == null) {
-                            /* 17-Mar-2006, TSa: Unbinding default NS needs to
-                             *    result in null being added:
-                             */
-                            if (nsUri == null || nsUri.length() == 0) {
-                                nsUri = DEFAULT_NAMESPACE_URI;
-                            }
                             mElements[mSize-(ENTRY_SIZE - IX_DEFAULT_NS)] = nsUri;
                         }
 
@@ -493,7 +493,7 @@ public final class NsInputElementStack
             throw new IllegalArgumentException(ErrorConsts.ERR_NULL_ARG);
         }
         if (prefix.length() == 0) {
-            if (mSize == 0) { // could signal an error too
+            if (mSize == 0) { // unexpected... but let's not err at this point
                 return null;
             }
             return mElements[mSize-(ENTRY_SIZE - IX_DEFAULT_NS)];

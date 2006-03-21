@@ -18,7 +18,8 @@ import com.ctc.wstx.util.WordResolver;
 public final class DTDCdataAttr
     extends DTDAttribute
 {
-    public DTDCdataAttr(NameKey name, int defValueType, String defValue, int specIndex)
+    public DTDCdataAttr(NameKey name, int defValueType, DefaultAttrValue defValue,
+                        int specIndex)
     {
         super(name, defValueType, defValue, specIndex);
     }

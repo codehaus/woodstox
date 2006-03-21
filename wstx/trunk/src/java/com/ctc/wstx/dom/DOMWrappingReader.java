@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-package com.ctc.wstx.stax;
+package com.ctc.wstx.dom;
 
 import java.io.IOException;
 import java.io.Writer;

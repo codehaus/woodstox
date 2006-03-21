@@ -25,7 +25,7 @@ public final class DTDIdRefAttr
     /**
      * Main constructor.
      */
-    public DTDIdRefAttr(NameKey name, int defValueType, String defValue,
+    public DTDIdRefAttr(NameKey name, int defValueType, DefaultAttrValue defValue,
                         int specIndex)
     {
         super(name, defValueType, defValue, specIndex);
@@ -108,7 +108,7 @@ public final class DTDIdRefAttr
     public void validateDefault(InputProblemReporter rep, boolean normalize)
         throws XMLValidationException
     {
-        mDefValue = validateDefaultName(rep, normalize);
+        mDefValue.setValue(validateDefaultName(rep, normalize));
     }
 
     /*

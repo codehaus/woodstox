@@ -19,7 +19,7 @@ public final class DTDEnumAttr
     ///////////////////////////////////////////////////
      */
 
-    public DTDEnumAttr(NameKey name, int defValueType, String defValue,
+    public DTDEnumAttr(NameKey name, int defValueType, DefaultAttrValue defValue,
                        int specIndex, WordResolver enumValues)
     {
         super(name, defValueType, defValue, specIndex);
@@ -85,7 +85,7 @@ public final class DTDEnumAttr
 
         // Ok, cool it's ok...
         if (normalize) {
-            mDefValue = shared;
+            mDefValue.setValue(shared);
         }
     }
 }

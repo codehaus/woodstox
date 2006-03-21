@@ -38,6 +38,7 @@ import com.ctc.wstx.cfg.InputConfigFlags;
 import com.ctc.wstx.cfg.XmlConsts;
 import com.ctc.wstx.dtd.DTDId;
 import com.ctc.wstx.dtd.DTDSubset;
+import com.ctc.wstx.dom.DOMWrappingReader;
 import com.ctc.wstx.evt.DefaultEventAllocator;
 import com.ctc.wstx.evt.FilteredEventReader;
 import com.ctc.wstx.evt.WstxEventReader;

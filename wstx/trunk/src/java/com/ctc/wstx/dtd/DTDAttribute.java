@@ -109,7 +109,7 @@ public abstract class DTDAttribute
      * Note: Can not be made final since validation code may want to trim
      * it down a bit...
      */
-    protected String mDefValue;
+    protected DefaultAttrValue mDefValue;
 
     /*
     ///////////////////////////////////////////////////
@@ -118,7 +118,7 @@ public abstract class DTDAttribute
      */
 
     public DTDAttribute(NameKey name, int defValueType,
-                        String defValue, int specIndex)
+                        DefaultAttrValue defValue, int specIndex)
     {
         mName = name;
         mDefValueType = defValueType;
@@ -145,7 +145,7 @@ public abstract class DTDAttribute
     }
 
     public final String getDefaultValue() {
-        return mDefValue;
+        return mDefValue.getValue();
     }
 
     /**
@@ -274,11 +274,14 @@ public abstract class DTDAttribute
      */
     public void normalizeDefault()
     {
-        if (mDefValue != null && mDefValue.length() > 0) {
-            char[] cbuf = mDefValue.toCharArray();
-            String str = StringUtil.normalizeSpaces(cbuf, 0, cbuf.length);
-            if (str != null) {
-                mDefValue = str;
+        if (mDefValue != null) {
+            String val = mDefValue.getValue();
+            if (val.length() > 0) {
+                char[] cbuf = val.toCharArray();
+                String str = StringUtil.normalizeSpaces(cbuf, 0, cbuf.length);
+                if (str != null) {
+                    mDefValue.setValue(str);
+                }
             }
         }
     }
@@ -292,7 +295,8 @@ public abstract class DTDAttribute
     protected String validateDefaultName(InputProblemReporter rep, boolean normalize)
         throws XMLValidationException
     {
-        String defValue = mDefValue.trim();
+        String origDefValue = mDefValue.getValue();
+        String defValue = origDefValue.trim();
 
         if (defValue.length() == 0) {
             reportValidationProblem(rep, "Invalid default value '"+defValue
@@ -316,13 +320,13 @@ public abstract class DTDAttribute
         }
 
         // Ok, cool it's ok...
-        return normalize ? defValue : mDefValue;
+        return normalize ? defValue : origDefValue;
     }
 
     protected String validateDefaultNames(InputProblemReporter rep, boolean normalize)
         throws XMLValidationException
     {
-        String defValue = mDefValue;
+        String defValue = mDefValue.getValue().trim();
         int len = defValue.length();
 
         // Then code similar to actual value validation:
@@ -383,13 +387,14 @@ public abstract class DTDAttribute
                              +"'; empty String is not a valid name value");
         }
 
-        return normalize ? sb.toString() : mDefValue;
+        return normalize ? sb.toString() : defValue;
     }
 
     protected String validateDefaultNmToken(InputProblemReporter rep, boolean normalize)
         throws XMLValidationException
     {
-        String defValue = mDefValue.trim();
+        String origDefValue = mDefValue.getValue();
+        String defValue = origDefValue.trim();
 
         if (defValue.length() == 0) {
             reportValidationProblem(rep, "Invalid default value '"+defValue+"'; empty String is not a valid NMTOKEN");
@@ -405,7 +410,7 @@ public abstract class DTDAttribute
             }
         }
         // Ok, cool it's ok...
-        return normalize ? defValue : mDefValue;
+        return normalize ? defValue : origDefValue;
     }
 
     /**

@@ -59,9 +59,9 @@ import com.ctc.wstx.util.*;
 public class FullDTDReader
     extends MinimalDTDReader
 {
-    final static boolean RESOLVE_NOTATION_SYSID = STAX_COMPAT_MODE;
+    final static boolean RESOLVE_NOTATION_SYSID = SAX_COMPAT_MODE;
 
-    final static boolean RESOLVE_UNPARSED_ENTITY_SYSID = STAX_COMPAT_MODE;
+    final static boolean RESOLVE_UNPARSED_ENTITY_SYSID = SAX_COMPAT_MODE;
 
     /**
      * Flag that can be changed to enable or disable interning of shared
@@ -1515,8 +1515,8 @@ public class FullDTDReader
      * Whether forward references are allowed or not is an open question
      * right now.
      */
-    private String parseAttrDefaultValue(char quoteChar, NameKey attrName,
-                                         Location loc, boolean gotFixed)
+    private DefaultAttrValue parseAttrDefaultValue(char quoteChar, NameKey attrName,
+                                                   Location loc, boolean gotFixed)
         throws IOException, XMLStreamException
     {
         if (quoteChar != '"' && quoteChar != '\'') { // caller doesn't test it
@@ -1527,6 +1527,8 @@ public class FullDTDReader
             msg += " (for attribute '"+attrName+"')";
             throwDTDUnexpectedChar(quoteChar, msg);
         }
+
+        DefaultAttrValue attrValue = new DefaultAttrValue(attrName);
 
         /* Let's mark the current input source as the scope, so we can both
          * make sure it ends in this input context (DTD subset), and that
@@ -1601,16 +1603,16 @@ public class FullDTDReader
                         break;
                     }
                 } else if (c == '&') { // an entity of some sort...
+                    /* Will need to expand char entities and pre-defd
+                     * int. entities (amp, lt, apos, gt): first method
+                     * is just more optimized than the second
+                     */
                     if (inputInBuffer() >= 3) {
                         c = resolveSimpleEntity(true);
                     } else {
-                        /* 06-Sep-2004, TSa: Unlike with entity values, here
-                         *   we DO NEED TO expand standard pre-defined
-                         *   entities too...
-                         */
                         c = resolveCharOnlyEntity(true);
                     }
-                    // Only get null if it's a 'real' external entity...
+                    // Only get null if it's a 'real' general entity...
                     if (c == CHAR_NULL) {
                         c = getNextChar(SUFFIX_IN_ENTITY_REF);
                         String id = parseEntityName(c);
@@ -1634,7 +1636,8 @@ public class FullDTDReader
 
         // Fine; let's tell TextBuild we're done:
         tb.setCurrentLength(outPtr);
-        return tb.contentsAsString();
+        attrValue.setValue(tb.contentsAsString());
+        return attrValue;
     }
 
     /**
@@ -2543,7 +2546,7 @@ public class FullDTDReader
         }
 
         int defType = DTDAttribute.DEF_DEFAULT;
-        String defVal = null;
+        DefaultAttrValue defVal = null;
 
         // Ok, and how about the default declaration?
         c = skipObligatoryDtdWs();

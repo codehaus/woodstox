@@ -165,10 +165,7 @@ public final class NsAttributeCollector
         for (int i = 0; i < attrCount; ++i) {
             String prefix = attrNames[i+i];
             // Attributes do NOT use default namespace:
-            /* (note: should never have empty string, ie. second check
-             * should not be needed!)
-             */
-            if (prefix == null || prefix.length() == 0) {
+            if (prefix == null) {
                 attrURIs[i] = DEFAULT_NS_URI;
                 // xml:lang etc? no need for mapping
             } else if (prefix == mXmlPrefix) {

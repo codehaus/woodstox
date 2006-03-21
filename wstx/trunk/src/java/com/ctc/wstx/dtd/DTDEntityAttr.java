@@ -30,7 +30,7 @@ public final class DTDEntityAttr
      * Main constructor. Note that id attributes can never have
      * default values.
      */
-    public DTDEntityAttr(NameKey name, int defValueType, String defValue,
+    public DTDEntityAttr(NameKey name, int defValueType, DefaultAttrValue defValue,
                          int specIndex)
     {
         super(name, defValueType, defValue, specIndex);
@@ -109,7 +109,7 @@ public final class DTDEntityAttr
     {
         String normStr = validateDefaultName(rep, normalize);
         if (normalize) {
-            mDefValue = normStr;
+            mDefValue.setValue(normStr);
         }
 
         // Ok, but was it declared?

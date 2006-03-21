@@ -215,7 +215,7 @@ public final class DTDElement
      */
     public DTDAttribute addAttribute(InputProblemReporter rep,
                                      NameKey attrName, int valueType, int defValueType,
-                                     String defValue, WordResolver enumValues,
+                                     DefaultAttrValue defValue, WordResolver enumValues,
                                      boolean fullyValidate)
         throws WstxException
     {
@@ -302,7 +302,7 @@ public final class DTDElement
      */
     public DTDAttribute addNsDefault
         (InputProblemReporter rep, NameKey attrName, int valueType, int defValueType,
-         String defValue, boolean fullyValidate)
+         DefaultAttrValue defValue, boolean fullyValidate)
         throws WstxException
     {
         /* Let's simplify handling a bit: although theoretically all

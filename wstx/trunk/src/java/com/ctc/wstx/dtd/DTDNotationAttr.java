@@ -20,7 +20,7 @@ public final class DTDNotationAttr
     ///////////////////////////////////////////////////
      */
 
-    public DTDNotationAttr(NameKey name, int defValueType, String defValue,
+    public DTDNotationAttr(NameKey name, int defValueType, DefaultAttrValue defValue,
                            int specIndex, WordResolver enumValues)
     {
         super(name, defValueType, defValue, specIndex);
@@ -92,7 +92,7 @@ public final class DTDNotationAttr
 
         // Ok, cool it's ok...
         if (normalize) {
-            mDefValue = shared;
+            mDefValue.setValue(shared);
         }
     }
 }

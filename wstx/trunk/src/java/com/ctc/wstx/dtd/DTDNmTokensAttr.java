@@ -24,7 +24,7 @@ public final class DTDNmTokensAttr
     /**
      * Main constructor.
      */
-    public DTDNmTokensAttr(NameKey name, int defValueType, String defValue,
+    public DTDNmTokensAttr(NameKey name, int defValueType, DefaultAttrValue defValue,
                           int specIndex)
     {
         super(name, defValueType, defValue, specIndex);
@@ -142,7 +142,7 @@ public final class DTDNmTokensAttr
     public void validateDefault(InputProblemReporter rep, boolean normalize)
         throws XMLValidationException
     {
-        String defValue = mDefValue;
+        String defValue = mDefValue.getValue();
         int len = defValue.length();
 
         // Then code similar to actual value validation:
@@ -200,7 +200,7 @@ public final class DTDNmTokensAttr
         }
 
         if (normalize) {
-            mDefValue = sb.toString();
+            mDefValue.setValue(sb.toString());
         }
     }
 }

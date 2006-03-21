@@ -334,7 +334,7 @@ public class ValidatingStreamReader
              * just follow the wrong example.
              */
 
-            //if ((mDocStandalone != DOC_STANDALONE_YES) || STAX_COMPAT_MODE) {
+            //if ((mDocStandalone != DOC_STANDALONE_YES) || SAX_COMPAT_MODE) {
             if (true) {
                 if (mDtdPublicId != null || mDtdSystemId != null) {
                     extSubset =  findDtdExtSubset(mDtdPublicId, mDtdSystemId, intSubset);
