@@ -369,8 +369,7 @@ public abstract class DTDValidatorBase
             while (it.hasNext()) {
                 Map.Entry me = (Map.Entry) it.next();
                 String prefix = (String) me.getKey();
-                String localURI = nsStack.getLocalNsURI(prefix);
-                if (localURI == null) {
+                if (!nsStack.isPrefixLocallyDeclared(prefix)) {
                     DTDAttribute attr = (DTDAttribute) me.getValue();
                     String uri = attr.getDefaultValue();
                     nsStack.addNsBinding(prefix, uri);

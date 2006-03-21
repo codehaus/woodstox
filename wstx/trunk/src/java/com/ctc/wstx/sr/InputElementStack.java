@@ -331,7 +331,12 @@ public abstract class InputElementStack
     ///////////////////////////////////////////////////
      */
 
-    public abstract String getLocalNsURI(String internedPrefix);
+    /**
+     * @return True, if the given prefix ("" for default namespace) was
+     *   bound/unbound in the current element (one at the top of the
+     *   stack); false if not.
+     */
+    public abstract boolean isPrefixLocallyDeclared(String internedPrefix);
 
     public abstract void addNsBinding(String prefix, String uri);
 

@@ -9,10 +9,6 @@ import stax2.BaseStax2Test;
 public class TestXMLStreamReader2
     extends BaseStax2Test
 {
-    public TestXMLStreamReader2(String name) {
-        super(name);
-    }
-
     public void testProperties()
         throws XMLStreamException
     {
@@ -154,7 +150,6 @@ public class TestXMLStreamReader2
         XMLInputFactory2 f = getInputFactory();
         setCoalescing(f, true);
         setSupportDTD(f, true);
-        setNamespaceAware(f, nsAware);
         setNamespaceAware(f, nsAware);
         setValidating(f, false);
         return constructStreamReader(f, contents);

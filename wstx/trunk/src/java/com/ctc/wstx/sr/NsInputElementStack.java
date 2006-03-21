@@ -329,7 +329,7 @@ public final class NsInputElementStack
                          *    result in null being added:
                          */
                         if (nsUri == null || nsUri.length() == 0) {
-                                nsUri = DEFAULT_NAMESPACE_URI;
+                            nsUri = DEFAULT_NAMESPACE_URI;
                         }
                         // The default ns binding needs special handling:
                         if (prefix == null) {
@@ -688,17 +688,21 @@ public final class NsInputElementStack
     ///////////////////////////////////////////////////
      */
 
-    public final String getLocalNsURI(String internedPrefix)
+    public boolean isPrefixLocallyDeclared(String internedPrefix)
     {
+        if (internedPrefix != null && internedPrefix.length() == 0) { // default ns
+            internedPrefix = null;
+        }
+
         int offset = mNsCounts[(mSize-1) >> 2];
         for (int len = mNamespaces.size(); offset < len; offset += 2) {
             // both interned, can use identity comparison
             String thisPrefix = mNamespaces.getString(offset);
             if (thisPrefix == internedPrefix) {
-                return mNamespaces.getString(offset+1);
+                return true;
             }
         }
-        return null;
+        return false;
     }
 
     /**

@@ -316,8 +316,9 @@ public final class NonNsInputElementStack
     ///////////////////////////////////////////////////
      */
 
-    public final String getLocalNsURI(String internedPrefix) {
-        return null;
+    public boolean isPrefixLocallyDeclared(String internedPrefix) {
+        // should never be called... but let's not care if it is
+        return false;
     }
 
     public void addNsBinding(String prefix, String uri) {
