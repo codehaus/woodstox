@@ -26,8 +26,45 @@ import javax.xml.stream.Location;
  */
 public final class DefaultAttrValue
 {
-    private final NameKey mAttrName;
+    /*
+    ////////////////////////////////////////////////////
+    // Constants
+    ////////////////////////////////////////////////////
+     */
 
+    // // // Default value types
+
+    public final static int DEF_DEFAULT = 1;
+    public final static int DEF_IMPLIED = 2;
+    public final static int DEF_REQUIRED = 3;
+    public final static int DEF_FIXED = 4;
+
+    /*
+    ////////////////////////////////////////////////////
+    // Singleton instances
+    ////////////////////////////////////////////////////
+     */
+
+    final static DefaultAttrValue sImplied = new DefaultAttrValue(DEF_IMPLIED);
+
+    final static DefaultAttrValue sRequired = new DefaultAttrValue(DEF_REQUIRED);
+
+    /*
+    ////////////////////////////////////////////////////
+    // State
+    ////////////////////////////////////////////////////
+     */
+
+    final int mDefValueType;
+
+    /**
+     * Actual expanded textual content of the default attribute value;
+     * normalized if appropriate in this mode.
+     * Note that all entities have been expanded: if a GE/PE was undefined,
+     * and no fatal errors were reported (non-validating mode), the
+     * references were just silently removed, and matching entries added
+     * to <code>mUndeclaredEntity</code>
+     */
     private String mValue = null;
 
     /**
@@ -42,9 +79,20 @@ public final class DefaultAttrValue
     ////////////////////////////////////////////////////
      */
 
-    public DefaultAttrValue(NameKey attrName)
+    private DefaultAttrValue(int defValueType)
     {
-        mAttrName = attrName;
+        mDefValueType = defValueType;
+    }
+
+    public static DefaultAttrValue constructImplied() { return sImplied; }
+    public static DefaultAttrValue constructRequired() { return sRequired; }
+
+    public static DefaultAttrValue constructFixed() {
+        return new DefaultAttrValue(DEF_FIXED);
+    }
+
+    public static DefaultAttrValue constructOptional() {
+        return new DefaultAttrValue(DEF_DEFAULT);
     }
 
     public void setValue(String v) {
@@ -73,6 +121,30 @@ public final class DefaultAttrValue
 
     public String getValue() {
         return mValue;
+    }
+
+    public boolean isRequired() {
+        return (this == sRequired);
+    }
+
+    public boolean isFixed() {
+        return (mDefValueType == DEF_FIXED);
+    }
+
+    public boolean hasDefaultValue() {
+        return (mDefValueType == DEF_DEFAULT)
+            || (mDefValueType == DEF_FIXED);
+    }
+
+    /**
+     * Method used by the element to figure out if attribute needs "special"
+     * checking; basically if it's required, and/or has a default value.
+     * In both cases missing the attribute has specific consequences, either
+     * exception or addition of a default value.
+     */
+    public boolean isSpecial() {
+        // Only non-special if #IMPLIED
+        return (this != sImplied);
     }
 
     /*

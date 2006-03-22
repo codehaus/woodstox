@@ -31,15 +31,14 @@ public final class DTDIdAttr
      * not-validating mode it is apparently 'legal' to add default
      * values. Bleech.
      */
-    public DTDIdAttr(NameKey name, int defValueType, DefaultAttrValue defValue,
-                     int specIndex)
+    public DTDIdAttr(NameKey name, DefaultAttrValue defValue, int specIndex)
     {
-        super(name, defValueType, defValue, specIndex);
+        super(name, defValue, specIndex);
     }
 
     public DTDAttribute cloneWith(int specIndex)
     {
-        return new DTDIdAttr(mName, mDefValueType, mDefValue, specIndex);
+        return new DTDIdAttr(mName, mDefValue, specIndex);
     }
 
     /*

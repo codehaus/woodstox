@@ -25,15 +25,14 @@ public final class DTDNmTokenAttr
     /**
      * Main constructor.
      */
-    public DTDNmTokenAttr(NameKey name, int defValueType, DefaultAttrValue defValue,
-                          int specIndex)
+    public DTDNmTokenAttr(NameKey name, DefaultAttrValue defValue, int specIndex)
     {
-        super(name, defValueType, defValue, specIndex);
+        super(name, defValue, specIndex);
     }
 
     public DTDAttribute cloneWith(int specIndex)
     {
-        return new DTDNmTokenAttr(mName, mDefValueType, mDefValue, specIndex);
+        return new DTDNmTokenAttr(mName, mDefValue, specIndex);
     }
 
     /*

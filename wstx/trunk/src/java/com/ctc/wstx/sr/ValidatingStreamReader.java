@@ -484,6 +484,15 @@ public class ValidatingStreamReader
          */
         if (extSubset != null) {
             if (intSubset == null || extSubset.isReusableWith(intSubset)) {
+                // !!! 21-Mar-2006, TSa: Only to test an obscure bug!!!
+                /*
+                if (intSubset != null) {
+                    System.err.println("D-BUG: found a cached copy; key = '"+id+"': NOT using since int. subset != null");
+                    if (true) { return null; }
+                }
+                System.err.println("D-BUG: found a cached copy; key = '"+id+"': using since int. subset == null");
+                */
+
                 return extSubset;
             }
         }

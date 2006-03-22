@@ -214,7 +214,7 @@ public final class DTDElement
      *   case original definition sticks.
      */
     public DTDAttribute addAttribute(InputProblemReporter rep,
-                                     NameKey attrName, int valueType, int defValueType,
+                                     NameKey attrName, int valueType,
                                      DefaultAttrValue defValue, WordResolver enumValues,
                                      boolean fullyValidate)
         throws WstxException
@@ -224,20 +224,18 @@ public final class DTDElement
             mAttrMap = m = new HashMap();
         }
 
-        List specList = DTDAttribute.isSpecial(defValueType) ?
-            getSpecialList() : null;
+        List specList = defValue.isSpecial() ? getSpecialList() : null;
 
         DTDAttribute attr;
         int specIndex = (specList == null) ? -1 : specList.size();
 
         switch (valueType) {
         case DTDAttribute.TYPE_CDATA:
-            attr = new DTDCdataAttr(attrName, defValueType, defValue, specIndex);
+            attr = new DTDCdataAttr(attrName, defValue, specIndex);
             break;
 
         case DTDAttribute.TYPE_ENUMERATED:
-            attr = new DTDEnumAttr(attrName, defValueType, defValue,
-                                   specIndex, enumValues);
+            attr = new DTDEnumAttr(attrName, defValue, specIndex, enumValues);
             break;
 
         case DTDAttribute.TYPE_ID:
@@ -246,40 +244,35 @@ public final class DTDElement
              * not-validating mode it is apparently 'legal' to add default
              * values. Bleech.
              */
-            attr = new DTDIdAttr(attrName, defValueType, defValue, specIndex);
+            attr = new DTDIdAttr(attrName, defValue, specIndex);
             break;
 
         case DTDAttribute.TYPE_IDREF:
-            attr = new DTDIdRefAttr(attrName, defValueType, defValue,
-                                    specIndex);
+            attr = new DTDIdRefAttr(attrName, defValue, specIndex);
             break;
 
         case DTDAttribute.TYPE_IDREFS:
-            attr = new DTDIdRefsAttr(attrName, defValueType, defValue,
-                                     specIndex);
+            attr = new DTDIdRefsAttr(attrName, defValue, specIndex);
             break;
 
         case DTDAttribute.TYPE_ENTITY:
-            attr = new DTDEntityAttr(attrName, defValueType, defValue, specIndex);
+            attr = new DTDEntityAttr(attrName, defValue, specIndex);
             break;
 
         case DTDAttribute.TYPE_ENTITIES:
-            attr = new DTDEntitiesAttr(attrName, defValueType, defValue, specIndex);
+            attr = new DTDEntitiesAttr(attrName, defValue, specIndex);
             break;
 
         case DTDAttribute.TYPE_NOTATION:
-            attr = new DTDNotationAttr(attrName, defValueType, defValue,
-                                       specIndex, enumValues);
+            attr = new DTDNotationAttr(attrName, defValue, specIndex, enumValues);
             break;
         
         case DTDAttribute.TYPE_NMTOKEN:
-            attr = new DTDNmTokenAttr(attrName, defValueType, defValue,
-                                      specIndex);
+            attr = new DTDNmTokenAttr(attrName, defValue, specIndex);
             break;
 
         case DTDAttribute.TYPE_NMTOKENS:
-            attr = new DTDNmTokensAttr(attrName, defValueType, defValue,
-                                       specIndex);
+            attr = new DTDNmTokensAttr(attrName, defValue, specIndex);
             break;
 
         default:
@@ -301,7 +294,7 @@ public final class DTDElement
      *   was a dup (there was an earlier declaration)
      */
     public DTDAttribute addNsDefault
-        (InputProblemReporter rep, NameKey attrName, int valueType, int defValueType,
+        (InputProblemReporter rep, NameKey attrName, int valueType,
          DefaultAttrValue defValue, boolean fullyValidate)
         throws WstxException
     {
@@ -313,10 +306,10 @@ public final class DTDElement
 
         switch (valueType) {
         case DTDAttribute.TYPE_CDATA:
-            nsAttr = new DTDCdataAttr(attrName, defValueType, defValue, -1);
+            nsAttr = new DTDCdataAttr(attrName, defValue, -1);
             break;
         default: // something else, default to NMTOKEN then
-            nsAttr = new DTDNmTokenAttr(attrName, defValueType, defValue, -1);
+            nsAttr = new DTDNmTokenAttr(attrName, defValue, -1);
             break;
         }
 

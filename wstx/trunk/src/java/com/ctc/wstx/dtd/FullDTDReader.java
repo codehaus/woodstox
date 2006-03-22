@@ -239,6 +239,26 @@ public class FullDTDReader
 
     /*
     //////////////////////////////////////////////////
+    // Entity expansion state:
+    //////////////////////////////////////////////////
+     */
+
+    /**
+     * This is the attribute default value that is currently being parsed.
+     * Needs to be a global member due to the way entity expansion failures
+     * are reported: problems need to be attached to this object, even
+     * thought the default value itself will not be passed through.
+     */
+    DefaultAttrValue mCurrAttrDefault = null;
+
+    /**
+     * Flag that indicates if the currently expanding (or last expanded)
+     * entity is a Parameter Entity or General Entity.
+     */
+    boolean mExpandingPE = false;
+
+    /*
+    //////////////////////////////////////////////////
     // Reader state
     //////////////////////////////////////////////////
      */
@@ -1108,6 +1128,7 @@ public class FullDTDReader
         if (c != ';') {
             throwDTDUnexpectedChar(c, "; expected ';' to end parameter entity name");
         }
+        mExpandingPE = true;
         expandEntity(id, true, ENTITY_EXP_PE);
     }
 
@@ -1515,8 +1536,8 @@ public class FullDTDReader
      * Whether forward references are allowed or not is an open question
      * right now.
      */
-    private DefaultAttrValue parseAttrDefaultValue(char quoteChar, NameKey attrName,
-                                                   Location loc, boolean gotFixed)
+    private void parseAttrDefaultValue(DefaultAttrValue defVal, char quoteChar, NameKey attrName,
+                                       Location loc, boolean gotFixed)
         throws IOException, XMLStreamException
     {
         if (quoteChar != '"' && quoteChar != '\'') { // caller doesn't test it
@@ -1527,8 +1548,6 @@ public class FullDTDReader
             msg += " (for attribute '"+attrName+"')";
             throwDTDUnexpectedChar(quoteChar, msg);
         }
-
-        DefaultAttrValue attrValue = new DefaultAttrValue(attrName);
 
         /* Let's mark the current input source as the scope, so we can both
          * make sure it ends in this input context (DTD subset), and that
@@ -1616,7 +1635,13 @@ public class FullDTDReader
                     if (c == CHAR_NULL) {
                         c = getNextChar(SUFFIX_IN_ENTITY_REF);
                         String id = parseEntityName(c);
-                        expandEntity(id, false, ENTITY_EXP_GE);
+                        try {
+                            mCurrAttrDefault = defVal;
+                            mExpandingPE = false;
+                            expandEntity(id, false, ENTITY_EXP_GE);
+                        } finally {
+                            mCurrAttrDefault = null;
+                        }
                         // Ok, should have updated the input source by now
                         continue main_loop;
                     }
@@ -1636,8 +1661,7 @@ public class FullDTDReader
 
         // Fine; let's tell TextBuild we're done:
         tb.setCurrentLength(outPtr);
-        attrValue.setValue(tb.contentsAsString());
-        return attrValue;
+        defVal.setValue(tb.contentsAsString());
     }
 
     /**
@@ -2544,29 +2568,29 @@ public class FullDTDReader
                                    elem, attrName);
             } while (false);
         }
-
-        int defType = DTDAttribute.DEF_DEFAULT;
-        DefaultAttrValue defVal = null;
+        DefaultAttrValue defVal;
 
         // Ok, and how about the default declaration?
         c = skipObligatoryDtdWs();
         if (c == '#') {
             String defTypeStr = readDTDName(getNextExpanded());
             if (defTypeStr == "REQUIRED") {
-                defType = DTDAttribute.DEF_REQUIRED;
+                defVal = DefaultAttrValue.constructRequired();
             } else if (defTypeStr == "IMPLIED") {
-                defType = DTDAttribute.DEF_IMPLIED;
+                defVal = DefaultAttrValue.constructImplied();
             } else if (defTypeStr == "FIXED") {
-                defType = DTDAttribute.DEF_FIXED;
+                defVal = DefaultAttrValue.constructFixed();
                 c = skipObligatoryDtdWs();
-                defVal = parseAttrDefaultValue(c, attrName, loc, true);
+                parseAttrDefaultValue(defVal, c, attrName, loc, true);
             } else {
                 throwDTDAttrError("Unrecognized attribute default value directive #"+defTypeStr
                                    +ErrorConsts.ERR_DTD_DEFAULT_TYPE,
                                    elem, attrName);
+                defVal = null; // never gets here...
             }
         } else {
-            defVal = parseAttrDefaultValue(c, attrName, loc, false);
+            defVal = DefaultAttrValue.constructOptional();
+            parseAttrDefaultValue(defVal, c, attrName, loc, false);
         }
 
         /* There are some checks that can/need to be done now, such as:
@@ -2574,14 +2598,11 @@ public class FullDTDReader
          * - [#3.3.1/VC: ID Attribute default] def. value type can not
          *   be #FIXED
          */
-        if (type == DTDAttribute.TYPE_ID) {
-            if (defType == DTDAttribute.DEF_DEFAULT
-                || defType == DTDAttribute.DEF_FIXED) {
-                // Just a VC, not WFC... so:
-                if (mCfgFullyValidating) {
-                    throwDTDAttrError("has type ID; can not have a default (or #FIXED) value (XML 1.0/#3.3.1)",
-                                      elem, attrName);
-                }
+        if (type == DTDAttribute.TYPE_ID && defVal.hasDefaultValue()) {
+            // Just a VC, not WFC... so:
+            if (mCfgFullyValidating) {
+                throwDTDAttrError("has type ID; can not have a default (or #FIXED) value (XML 1.0/#3.3.1)",
+                                  elem, attrName);
             }
         }
 
@@ -2595,16 +2616,14 @@ public class FullDTDReader
              * ignored. It's only the default values that matter (and yes,
              * let's not worry about #REQUIRED for now)
              */
-            if (defType != DTDAttribute.DEF_DEFAULT
-                && defType != DTDAttribute.DEF_FIXED) {
+            if (!defVal.hasDefaultValue()) {
                 return;
             }
             // But defaulting... Hmmh.
-
-            attr = elem.addNsDefault(this, attrName, type, defType,
+            attr = elem.addNsDefault(this, attrName, type,
                                      defVal, mCfgFullyValidating);
         } else {
-            attr = elem.addAttribute(this, attrName, type, defType,
+            attr = elem.addAttribute(this, attrName, type,
                                      defVal, enumValues,
                                      mCfgFullyValidating);
         }
@@ -2618,7 +2637,7 @@ public class FullDTDReader
                 reportWarning(rep, ErrorConsts.WT_ATTR_DECL, msg, loc, elem);
             }
         } else {
-            if (defVal != null) {
+            if (defVal.hasDefaultValue()) {
                 // always normalize
                 attr.normalizeDefault();
                 // but only validate in validating mode:
@@ -3186,6 +3205,14 @@ public class FullDTDReader
     {
         if (mCfgFullyValidating) {
             reportValidationProblem("Undeclared parameter entity '"+id+"'.");
+        }
+        if (mCurrAttrDefault != null) {
+            Location loc = getLastCharLocation();
+            if (mExpandingPE) {
+                mCurrAttrDefault.addUndeclaredPE(id, loc);
+            } else {
+                mCurrAttrDefault.addUndeclaredGE(id, loc);
+            }
         }
     }
 

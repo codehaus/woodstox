@@ -134,7 +134,7 @@ public final class DTDSubsetImpl
      * on whether platform, ie. JDK version, has insertion-ordered
      * Maps available), used by DTD event Objects.
      */
-    volatile transient List mNotationList = null;
+    transient List mNotationList = null;
 
 
     /*
@@ -142,7 +142,6 @@ public final class DTDSubsetImpl
     // Element definitions:
     //////////////////////////////////////////////////////
      */
-
 
     final HashMap mElements;
 
@@ -329,7 +328,7 @@ public final class DTDSubsetImpl
         return mNotations;
     }
 
-    public List getNotationList()
+    public synchronized List getNotationList()
     {
         List l = mNotationList;
         if (l == null) {
@@ -432,6 +431,11 @@ public final class DTDSubsetImpl
     //////////////////////////////////////////////////////
      */
 
+    /**
+     *<p>
+     * Note: The first Map argument WILL be modified; second one
+     * not. Caller needs to ensure this is acceptable.
+     */
     private static void combineMaps(HashMap m1, HashMap m2)
     {
         Iterator it = m2.entrySet().iterator();

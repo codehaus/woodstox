@@ -30,15 +30,14 @@ public final class DTDEntityAttr
      * Main constructor. Note that id attributes can never have
      * default values.
      */
-    public DTDEntityAttr(NameKey name, int defValueType, DefaultAttrValue defValue,
-                         int specIndex)
+    public DTDEntityAttr(NameKey name, DefaultAttrValue defValue, int specIndex)
     {
-        super(name, defValueType, defValue, specIndex);
+        super(name, defValue, specIndex);
     }
 
     public DTDAttribute cloneWith(int specIndex)
     {
-        return new DTDEntityAttr(mName, mDefValueType, mDefValue, specIndex);
+        return new DTDEntityAttr(mName, mDefValue, specIndex);
     }
 
     /*

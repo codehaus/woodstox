@@ -707,16 +707,19 @@ public final class NsInputElementStack
 
     /**
      * Callback method called by the namespace default provider. At
-     * this point we can trust it to only call this method with valid
-     * arguments, so no checking is done.
+     * this point we can trust it to only call this method with somewhat
+     * valid arguments (no dups etc).
      */
     public void addNsBinding(String prefix, String uri)
     {
-        if (mInternNsURIs && uri.length() > 0) {
-            uri = sInternCache.intern(uri);
+        // Unbind? (xml 1.1...)
+        if ((uri == null) || (uri.length() == 0)) {
+            uri = null;
         }
 
-        if (prefix == null || prefix.length() == 0) { // default NS
+        // Default ns declaration?
+        if ((prefix == null) || (prefix.length() == 0)) {
+            prefix = null;
             mElements[mSize-(ENTRY_SIZE - IX_DEFAULT_NS)] = uri;
         }
         mNamespaces.addStrings(prefix, uri);

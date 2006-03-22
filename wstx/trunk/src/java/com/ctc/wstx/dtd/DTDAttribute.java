@@ -58,13 +58,6 @@ public abstract class DTDAttribute
     public final static int TYPE_NMTOKEN = 8;
     public final static int TYPE_NMTOKENS = 9;
 
-    // // // Default value types
-
-    public final static int DEF_DEFAULT = 1;
-    public final static int DEF_IMPLIED = 2;
-    public final static int DEF_REQUIRED = 3;
-    public final static int DEF_FIXED = 4;
-
     /**
      * Array that has String constants matching above mentioned
      * value types
@@ -102,14 +95,7 @@ public abstract class DTDAttribute
      */
     protected final int mSpecialIndex;
 
-    protected final int mDefValueType;
-
-    /**
-     *<p>
-     * Note: Can not be made final since validation code may want to trim
-     * it down a bit...
-     */
-    protected DefaultAttrValue mDefValue;
+    protected final DefaultAttrValue mDefValue;
 
     /*
     ///////////////////////////////////////////////////
@@ -117,11 +103,9 @@ public abstract class DTDAttribute
     ///////////////////////////////////////////////////
      */
 
-    public DTDAttribute(NameKey name, int defValueType,
-                        DefaultAttrValue defValue, int specIndex)
+    public DTDAttribute(NameKey name, DefaultAttrValue defValue, int specIndex)
     {
         mName = name;
-        mDefValueType = defValueType;
         mDefValue = defValue;
         mSpecialIndex = specIndex;
     }
@@ -140,12 +124,24 @@ public abstract class DTDAttribute
         return mName.toString();
     }
 
-    public final int getDefaultType() {
-        return mDefValueType;
-    }
-
     public final String getDefaultValue() {
         return mDefValue.getValue();
+    }
+
+    public final int getSpecialIndex() {
+        return mSpecialIndex;
+    }
+
+    public final boolean needsValidation() {
+        return (getValueType() != TYPE_CDATA);
+    }
+
+    public final boolean isFixed() {
+        return mDefValue.isFixed();
+    }
+
+    public final boolean isRequired() {
+        return mDefValue.isRequired();
     }
 
     /**
@@ -155,34 +151,11 @@ public abstract class DTDAttribute
      * exception or addition of a default value.
      */
     public final boolean isSpecial() {
-        return isSpecial(mDefValueType);
-    }
-
-    public static boolean isSpecial(int defValueType) {
-        return (defValueType == DEF_DEFAULT)
-            || (defValueType == DEF_FIXED)
-            || (defValueType == DEF_REQUIRED);
+        return mDefValue.isSpecial();
     }
 
     public final boolean hasDefaultValue() {
-        return (mDefValueType == DEF_DEFAULT)
-            || (mDefValueType == DEF_FIXED);
-    }
-
-    public final boolean isRequired() {
-        return (mDefValueType == DEF_REQUIRED);
-    }
-
-    public final boolean isFixed() {
-        return (mDefValueType == DEF_FIXED);
-    }
-
-    public final int getSpecialIndex() {
-        return mSpecialIndex;
-    }
-
-    public final boolean needsValidation() {
-        return (getValueType() != TYPE_CDATA);
+        return mDefValue.hasDefaultValue();
     }
 
     /**
@@ -274,14 +247,12 @@ public abstract class DTDAttribute
      */
     public void normalizeDefault()
     {
-        if (mDefValue != null) {
-            String val = mDefValue.getValue();
-            if (val.length() > 0) {
-                char[] cbuf = val.toCharArray();
-                String str = StringUtil.normalizeSpaces(cbuf, 0, cbuf.length);
-                if (str != null) {
-                    mDefValue.setValue(str);
-                }
+        String val = mDefValue.getValue();
+        if (val.length() > 0) {
+            char[] cbuf = val.toCharArray();
+            String str = StringUtil.normalizeSpaces(cbuf, 0, cbuf.length);
+            if (str != null) {
+                mDefValue.setValue(str);
             }
         }
     }

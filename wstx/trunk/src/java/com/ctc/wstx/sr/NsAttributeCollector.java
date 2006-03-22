@@ -664,7 +664,7 @@ public final class NsAttributeCollector
         if (mAttrNames.getString(currIndex+currIndex+1) == name) {
             // URIs may or may not be interned though:
             String currURI = mAttrURIs[currIndex];
-            if (currURI == uri || currURI.equals(uri)) {
+            if (currURI == uri || (currURI != null && currURI.equals(uri))) {
                 return null;
             }
         }
@@ -682,7 +682,7 @@ public final class NsAttributeCollector
                 currIndex = map[j+1];
                 if (mAttrNames.getString(currIndex+currIndex+1) == name) {
                     String currURI = mAttrURIs[currIndex];
-                    if (currURI == uri || currURI.equals(uri)) {
+                    if (currURI == uri || (currURI != null && currURI.equals(uri))) {
                         return null;
                     }
                 }

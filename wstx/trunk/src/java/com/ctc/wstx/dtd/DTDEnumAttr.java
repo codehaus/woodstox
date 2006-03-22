@@ -19,17 +19,16 @@ public final class DTDEnumAttr
     ///////////////////////////////////////////////////
      */
 
-    public DTDEnumAttr(NameKey name, int defValueType, DefaultAttrValue defValue,
+    public DTDEnumAttr(NameKey name, DefaultAttrValue defValue,
                        int specIndex, WordResolver enumValues)
     {
-        super(name, defValueType, defValue, specIndex);
+        super(name, defValue, specIndex);
         mEnumValues = enumValues;
     }
 
     public DTDAttribute cloneWith(int specIndex)
     {
-        return new DTDEnumAttr(mName, mDefValueType, mDefValue,
-                               specIndex, mEnumValues);
+        return new DTDEnumAttr(mName, mDefValue, specIndex, mEnumValues);
     }
 
     /*

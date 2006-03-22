@@ -138,7 +138,7 @@ public class DOMWrappingReader
      * As per Stax (1.0) specs, needs to return whatever parser determined
      * the encoding was, if it was able to figure it out. If not (there are
      * cases where this can not be found; specifically when being passed a
-     * {@link Reader}), it should return null.
+     * {@link java.io.Reader}), it should return null.
      */
     public String getEncoding() {
         // !!! TBI:

@@ -25,15 +25,14 @@ public final class DTDIdRefAttr
     /**
      * Main constructor.
      */
-    public DTDIdRefAttr(NameKey name, int defValueType, DefaultAttrValue defValue,
-                        int specIndex)
+    public DTDIdRefAttr(NameKey name, DefaultAttrValue defValue, int specIndex)
     {
-        super(name, defValueType, defValue, specIndex);
+        super(name, defValue, specIndex);
     }
 
     public DTDAttribute cloneWith(int specIndex)
     {
-        return new DTDIdRefAttr(mName, mDefValueType, mDefValue, specIndex);
+        return new DTDIdRefAttr(mName, mDefValue, specIndex);
     }
 
     /*
