@@ -60,8 +60,8 @@ public abstract class StreamScanner
      *<p>
      * Perhaps this should be a property that could be enabled dynamically?
      */
-    //protected final static boolean SAX_COMPAT_MODE = true;
-    protected final static boolean SAX_COMPAT_MODE = false;
+    //public final static boolean SAX_COMPAT_MODE = true;
+    public final static boolean SAX_COMPAT_MODE = false;
 
     // // // Some well-known chars:
 

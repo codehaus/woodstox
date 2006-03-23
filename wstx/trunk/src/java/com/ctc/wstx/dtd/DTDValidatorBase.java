@@ -361,6 +361,7 @@ public abstract class DTDValidatorBase
     }
 
     public void checkNsDefaults(InputElementStack nsStack)
+        throws XMLValidationException
     {
         // We only get called if mCurrElem != null, and has defaults
         HashMap m = mCurrElem.getNsDefaults();
@@ -371,7 +372,7 @@ public abstract class DTDValidatorBase
                 String prefix = (String) me.getKey();
                 if (!nsStack.isPrefixLocallyDeclared(prefix)) {
                     DTDAttribute attr = (DTDAttribute) me.getValue();
-                    String uri = attr.getDefaultValue();
+                    String uri = attr.getDefaultValue(mContext);
                     nsStack.addNsBinding(prefix, uri);
                 }
             }
@@ -474,7 +475,7 @@ public abstract class DTDValidatorBase
         /* If we get here, we should have a non-null (possibly empty) default
          * value:
          */
-        String def = attr.getDefaultValue();
+        String def = attr.getDefaultValue(mContext);
         if (def == null) {
             ExceptionUtil.throwInternal("null default attribute value");
         }

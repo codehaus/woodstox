@@ -15,7 +15,15 @@
 
 package com.ctc.wstx.dtd;
 
+import java.text.MessageFormat;
+
 import javax.xml.stream.Location;
+
+import org.codehaus.stax2.validation.ValidationContext;
+import org.codehaus.stax2.validation.XMLValidationException;
+import org.codehaus.stax2.validation.XMLValidationProblem;
+
+import com.ctc.wstx.cfg.ErrorConsts;
 
 /**
  * Simple container class used to contain information about the default
@@ -109,6 +117,12 @@ public final class DefaultAttrValue
         addUndeclaredEntity(name, loc, false);
     }
 
+    public void reportUndeclared(ValidationContext ctxt)
+        throws XMLValidationException
+    {
+        mUndeclaredEntity.reportUndeclared(ctxt);
+    }
+
     /*
     ////////////////////////////////////////////////////
     // Accessors:
@@ -121,6 +135,17 @@ public final class DefaultAttrValue
 
     public String getValue() {
         return mValue;
+    }
+
+    /**
+     * @return Expanded default value String, if there were no problems
+     *   (no undeclared entities), or null to indicate there were problems.
+     *   In latter case, caller is to figure out exact type of the problem
+     *   and report this appropriately to the application.
+     */
+    public String getValueIfOk()
+    {
+        return (mUndeclaredEntity == null) ? mValue : null;
     }
 
     public boolean isRequired() {
@@ -177,6 +202,15 @@ public final class DefaultAttrValue
             mName = name;
             mIsPe = isPe;
             mLocation = loc;
+        }
+
+        public void reportUndeclared(ValidationContext ctxt)
+            throws XMLValidationException
+        {
+            String msg = MessageFormat.format(ErrorConsts.ERR_DTD_UNDECLARED_ENTITY, new Object[] { (mIsPe ? "parsed" : "general"), mName });
+            ctxt.reportProblem(new XMLValidationProblem
+                               (mLocation, msg,
+                                XMLValidationProblem.SEVERITY_FATAL));
         }
     }
 }

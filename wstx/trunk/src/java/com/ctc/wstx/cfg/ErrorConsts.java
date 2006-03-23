@@ -110,6 +110,9 @@ public class ErrorConsts
     public static String ERR_DTD_NOTATION_REDEFD =
         "Trying to redefine notation \"{0}\" (originally defined at {1})";
 
+    public static String ERR_DTD_UNDECLARED_ENTITY =
+        "Undeclared {0} entity \"{1}\"";
+
 
     // // // DTD-validation:
 

@@ -18,6 +18,7 @@ package com.ctc.wstx.dtd;
 import java.util.Map;
 
 import org.codehaus.stax2.validation.XMLValidationException;
+import org.codehaus.stax2.validation.ValidationContext;
 
 import com.ctc.wstx.ent.EntityDecl;
 import com.ctc.wstx.exc.*;
@@ -69,8 +70,9 @@ public abstract class DTDAttribute
          *   SAX parsers use ENUMERATED, plus this way application can
          *   distinguish real NMTOKEN from enumerated type.
          */
-        //"NMTOKEN",
-        "ENUMERATED",
+        com.ctc.wstx.sr.StreamScanner.SAX_COMPAT_MODE
+        ? "NMTOKEN" : "ENUMERATED",
+
         "ID",
         "IDREF",
         "IDREFS",
@@ -124,8 +126,19 @@ public abstract class DTDAttribute
         return mName.toString();
     }
 
-    public final String getDefaultValue() {
-        return mDefValue.getValue();
+    public final String getDefaultValue(ValidationContext ctxt)
+        throws XMLValidationException
+    {
+        String val = mDefValue.getValueIfOk();
+        if (val == null) {
+            mDefValue.reportUndeclared(ctxt);
+            /* should never get here, but just to be safe, let's use
+             * the 'raw' value (one that does not have undeclared entities
+             * included, most likely)
+             */
+            val = mDefValue.getValue();
+        }
+        return val;
     }
 
     public final int getSpecialIndex() {

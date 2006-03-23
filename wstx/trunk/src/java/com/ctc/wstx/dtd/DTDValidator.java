@@ -224,7 +224,7 @@ public class DTDValidator
         String result = attr.validate(this, value, mNormAttrs);
         if (mCurrHasAnyFixed && attr.isFixed()) {
             String act = (result == null) ? value : result;
-            String exp = attr.getDefaultValue();
+            String exp = attr.getDefaultValue(mContext);
             if (!act.equals(exp)) {
                 reportValidationProblem("Value of attribute \""+attr+"\" (element <"+mCurrElem+">) not \""+exp+"\" as expected, but \""+act+"\"");
             }
@@ -260,7 +260,7 @@ public class DTDValidator
         }
         String result = attr.validate(this, valueChars, valueStart, valueEnd, mNormAttrs);
         if (mCurrHasAnyFixed && attr.isFixed()) {
-            String exp = attr.getDefaultValue();
+            String exp = attr.getDefaultValue(mContext);
             boolean match;
             if (result == null) {
                 match = StringUtil.matches(exp, valueChars, valueStart, valueEnd);

@@ -17,6 +17,8 @@ package com.ctc.wstx.sr;
 
 import java.util.*;
 
+import org.codehaus.stax2.validation.XMLValidationException;
+
 /**
  * Interface only used by Woodstox core. The main reason for the interface
  * is to reduce coupling with the input element stack and dtd validator
@@ -39,5 +41,6 @@ public interface NsDefaultProvider
      * to add namespace declarations from attribute defaults, if
      * any, using callbacks to the input element stack.
      */
-    public void checkNsDefaults(InputElementStack nsStack);
+    public void checkNsDefaults(InputElementStack nsStack)
+        throws XMLValidationException;
 }
