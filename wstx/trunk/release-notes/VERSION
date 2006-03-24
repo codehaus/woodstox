@@ -1,6 +1,6 @@
 Version: 2.9.2
 
-Release date: xx-Mar-2006
+Release date: 23-Mar-2006
 
 Description:
   One more important pre-3.0 release that fixes most of remaining XML
@@ -15,10 +15,13 @@ Description:
       error message
      (reported by John K)
 
+  New functionality:
+
+  * Implemented (pluggable) XMLValidator for RelaxNG, based on
+    Sun Multi-Schema Validator!
+
   Improvements:
 
-  * Added pluggable XMLValidator instance (and factory, schema) for
-    RelaxNG, based on Sun Multi-Schema Validator.
   * Added some more necessary methods to Stax2 XMLStreamReader2, to
     allow adding custom validators.
 

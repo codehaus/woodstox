@@ -27,7 +27,18 @@ import org.codehaus.stax2.validation.XMLValidator;
  */
 public final class TextBuffer
 {
-    final static int DEF_INITIAL_BUFFER_SIZE = 4000; // 8k
+    /* 23-Mar-2006, TSa: After realizing that memory buffer clearing
+     *   is a significant overhead for small documents, it occured to
+     *   me that default size for this buffer was too big (4000 chars);
+     *   no need to be that big.
+     */
+    /**
+     * Size of the first text segment buffer to allocate; need not contain
+     * the biggest segment, since new ones will get allocated as needed.
+     * However, it's sensible to use something that often is big enough
+     * to contain segments.
+     */
+    final static int DEF_INITIAL_BUFFER_SIZE = 500; // 1k
 
     // // // Configuration:
 
@@ -92,14 +103,19 @@ public final class TextBuffer
     //////////////////////////////////////////////
      */
 
-    public TextBuffer()
-    {
-        this(DEF_INITIAL_BUFFER_SIZE);
-    }
-
-    public TextBuffer(int initialSize)
+    private TextBuffer(int initialSize)
     {
         mInitialBufSize = initialSize;
+    }
+
+    public static TextBuffer createRecyclableBuffer()
+    {
+        return new TextBuffer(DEF_INITIAL_BUFFER_SIZE);
+    }
+
+    public static TextBuffer createTemporaryBuffer(int initialSize)
+    {
+        return new TextBuffer(initialSize);
     }
 
     /**

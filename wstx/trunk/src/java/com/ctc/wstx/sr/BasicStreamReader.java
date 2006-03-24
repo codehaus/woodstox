@@ -359,7 +359,7 @@ public class BasicStreamReader
 
         mOwner = owner;
 
-        mTextBuffer = new TextBuffer(cfg.getTextBufferLength());
+        mTextBuffer = TextBuffer.createRecyclableBuffer();
 
         // // // First, configuration settings:
 

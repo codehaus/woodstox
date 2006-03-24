@@ -12,6 +12,9 @@
   instead of CHARACTERS, CDATA and SPACE (as in 1.0 and 2.0). Change was
   done for interoperatibility -- the StAX reference implementation
   behaves like 3.0.
+* Removed property P_TEXT_BUFFER_LENGTH, since there is no real benefit
+  from changing this setting -- text buffer is resized dynamically as
+  needed, and initial value is largely irrelevant.
 
 === Event reader ===
 

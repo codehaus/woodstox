@@ -77,6 +77,8 @@ public class FullDTDReader
      */
     final static int EXP_ENTITY_VALUE_LEN = 500;
 
+    final static int EXP_ATTR_VALUE_LEN = 200;
+
     // // // Entity expansion types:
 
     final static Boolean ENTITY_EXP_GE = Boolean.FALSE;
@@ -1403,7 +1405,7 @@ public class FullDTDReader
          */
         boolean allowPEs = mIsExternal || (mInput != mRootInput);
 
-        TextBuffer tb = new TextBuffer(EXP_ENTITY_VALUE_LEN);
+        TextBuffer tb = TextBuffer.createTemporaryBuffer(EXP_ENTITY_VALUE_LEN);
         tb.resetInitialized();
 
         char[] outBuf = tb.getCurrentSegment();
@@ -1556,7 +1558,7 @@ public class FullDTDReader
          */
         WstxInputSource currScope = mInput;
 
-        TextBuffer tb = new TextBuffer(200);
+        TextBuffer tb = TextBuffer.createTemporaryBuffer(EXP_ATTR_VALUE_LEN);
         tb.resetInitialized();
 
         int outPtr = 0;

@@ -73,7 +73,7 @@ public final class ReaderConfig
     // Object type properties:
 
     final static int PROP_INPUT_BUFFER_LENGTH = 50;
-    final static int PROP_TEXT_BUFFER_LENGTH = 51;
+    //final static int PROP_TEXT_BUFFER_LENGTH = 51;
     final static int PROP_MIN_TEXT_SEGMENT = 52;
     final static int PROP_CUSTOM_INTERNAL_ENTITIES = 53;
     final static int PROP_DTD_RESOLVER = 54;
@@ -93,12 +93,6 @@ public final class ReaderConfig
      * smallest consequtive block that can be used.
      */
     final static int MIN_INPUT_BUFFER_LENGTH = 8; // 16 bytes
-
-    /**
-     * Let's just avoid worst performance bottlenecks... not a big deal,
-     * since it gets dynamically increased
-     */
-    final static int MIN_TEXT_BUFFER_LENGTH = 32; // 64 bytes
 
     /**
      * Let's allow caching of few dozens of DTDs... shouldn't really
@@ -248,8 +242,6 @@ public final class ReaderConfig
 
         sProperties.put(WstxInputProperties.P_INPUT_BUFFER_LENGTH,
                         new Integer(PROP_INPUT_BUFFER_LENGTH));
-        sProperties.put(WstxInputProperties.P_TEXT_BUFFER_LENGTH,
-                        new Integer(PROP_TEXT_BUFFER_LENGTH));
         sProperties.put(WstxInputProperties.P_MIN_TEXT_SEGMENT,
                         new Integer(PROP_MIN_TEXT_SEGMENT));
         sProperties.put(WstxInputProperties.P_CUSTOM_INTERNAL_ENTITIES,
@@ -279,7 +271,6 @@ public final class ReaderConfig
     int mConfigFlags;
 
     int mInputBufferLen;
-    int mTextBufferLen;
     int mMinTextSegmentLen;
 
     Map mCustomEntities;
@@ -307,7 +298,7 @@ public final class ReaderConfig
 
     private ReaderConfig(boolean j2meSubset, SymbolTable symbols,
                          int configFlags,
-                         int inputBufLen, int textBufLen,
+                         int inputBufLen,
                          int minTextSegmentLen)
     {
         mIsJ2MESubset = j2meSubset;
@@ -316,7 +307,6 @@ public final class ReaderConfig
         mConfigFlags = configFlags;
 
         mInputBufferLen = inputBufLen;
-        mTextBufferLen = textBufLen;
         mMinTextSegmentLen = minTextSegmentLen;
     }
 
@@ -329,10 +319,6 @@ public final class ReaderConfig
             (true, null, DEFAULT_FLAGS_J2ME,
              // 4k input buffer (2000 chars):
              2000,
-             /* 2k initial temp buffer for storing text; defines the
-              * optimal non-coalesced text segment length
-              */
-             1000,
              DEFAULT_SHORTEST_TEXT_SEGMENT);
         return rc;
     }
@@ -346,10 +332,6 @@ public final class ReaderConfig
             (false, null, DEFAULT_FLAGS_FULL,
              // 8k input buffer (4000 chars):
              4000,
-             /* 4k initial temp buffer for storing text; defines the
-              * optimal non-coalesced text segment length
-              */
-             2000,
              DEFAULT_SHORTEST_TEXT_SEGMENT);
         return rc;
     }
@@ -360,7 +342,7 @@ public final class ReaderConfig
         //if (sym == null) { }
         ReaderConfig rc = new ReaderConfig(mIsJ2MESubset, sym,
                                            mConfigFlags,
-                                           mInputBufferLen, mTextBufferLen,
+                                           mInputBufferLen,
                                            mMinTextSegmentLen);
         rc.mCustomEntities = mCustomEntities;
         rc.mReporter = mReporter;
@@ -501,7 +483,6 @@ public final class ReaderConfig
     }
 
     public int getInputBufferLength() { return mInputBufferLen; }
-    public int getTextBufferLength() { return mTextBufferLen; }
 
     public int getShortestReportedTextSegment() { return mMinTextSegmentLen; }
 
@@ -646,15 +627,6 @@ public final class ReaderConfig
             value = MIN_INPUT_BUFFER_LENGTH;
         }
         mInputBufferLen = value;
-    }
-
-    public void setTextBufferLength(int value)
-    {
-        // Let's just do sanity checks, to avoid worst performance
-        if (value < MIN_TEXT_BUFFER_LENGTH) {
-            value = MIN_TEXT_BUFFER_LENGTH;
-        }
-        mTextBufferLen = value;
     }
 
     public void setShortestReportedTextSegment(int value) {
@@ -832,9 +804,6 @@ public final class ReaderConfig
      *   to allow for longer consequtive read operations; also reduces cases
      *   where partial text segments are on input buffer boundaries.
      *  </li>
-     * <li>Increase <code>P_TEXT_BUFFER_LENGTH</code> a bit from default;
-     *    will reduce the likelihood of having to expand it during parsing.
-     *  </li>
      *</ul>
      */
     public void configureForSpeed()
@@ -861,8 +830,6 @@ public final class ReaderConfig
          */
         setShortestReportedTextSegment(16);
         setInputBufferLength(8000); // 16k input buffer
-        // Text buffer need not be huge, as we do not coalesce
-        setTextBufferLength(4000); // 8K
     }
 
     /**
@@ -887,8 +854,6 @@ public final class ReaderConfig
      *  <li>
      * <li>Reduces <code>P_INPUT_BUFFER_LENGTH</code> a bit from the default
      *  <li>
-     * <li>Reduces <code>P_TEXT_BUFFER_LENGTH</code> a bit from the default
-     *  <li>
      *</ul>
      */
     public void configureForLowMemUsage()
@@ -906,7 +871,6 @@ public final class ReaderConfig
         setShortestReportedTextSegment(ReaderConfig.DEFAULT_SHORTEST_TEXT_SEGMENT);
         setInputBufferLength(512); // 1k input buffer
         // Text buffer need not be huge, as we do not coalesce
-        setTextBufferLength(512); // 1k, to match input buffer size
     }
     
     /**
@@ -1034,8 +998,6 @@ public final class ReaderConfig
             // then object values:
         case PROP_INPUT_BUFFER_LENGTH:
             return new Integer(getInputBufferLength());
-        case PROP_TEXT_BUFFER_LENGTH:
-            return new Integer(getTextBufferLength());
         case PROP_MIN_TEXT_SEGMENT:
             return new Integer(getShortestReportedTextSegment());
         case PROP_CUSTOM_INTERNAL_ENTITIES:
@@ -1150,10 +1112,6 @@ public final class ReaderConfig
 
         case PROP_INPUT_BUFFER_LENGTH:
             setInputBufferLength(ArgUtil.convertToInt(propName, value, 1));
-            break;
-        
-        case PROP_TEXT_BUFFER_LENGTH:
-            setTextBufferLength(ArgUtil.convertToInt(propName, value, 1));
             break;
             
         case PROP_MIN_TEXT_SEGMENT:

@@ -107,16 +107,6 @@ public final class WstxInputProperties
      */
     public final static String P_INPUT_BUFFER_LENGTH = "com.ctc.wstx.inputBufferLength";
 
-    /**
-     * Initial/default size of output buffer used for temporarily storing
-     * parsed textual content. Note that this effects size of text segments
-     * returned if no coalescing is enforced. When coalescing, only
-     * determines initial buffer allocation; more (or bigger) buffers are
-     * allocated as needed when coalescing text.
-     */
-    public final static String P_TEXT_BUFFER_LENGTH = "com.ctc.wstx.textBufferLength";
-
-
     // // // Constraints on sizes of text segments parsed:
 
 
