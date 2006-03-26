@@ -247,15 +247,26 @@ public class MinimalInputFactory
     /////////////////////////////////////////////////////
      */
 
-    public Object getProperty(String name) {
-        int id = mConfig.getPropertyId(name);
+    public Object getProperty(String name)
+    {
+        Object ob = mConfig.getProperty(name);
 
-        // Event allocator not available via J2ME subset...
-        if (id == ReaderConfig.PROP_EVENT_ALLOCATOR) {
-            throw new IllegalArgumentException("Event allocator not usable with J2ME subset.");
+        if (ob == null) {
+            if (name.equals(XMLInputFactory.ALLOCATOR)) {
+                throw new IllegalArgumentException("Event allocator not usable with J2ME subset.");
+            }
         }
-        return mConfig.getProperty(id);
+        return ob;
     }
+
+    public void setProperty(String propName, Object value)
+    {
+        if (!mConfig.setProperty(propName, value)) {
+            if (XMLInputFactory.ALLOCATOR.equals(propName)) {
+                throw new IllegalArgumentException("Event allocator not usable with J2ME subset.");
+            }
+        }
+    } 
 
     //public XMLEventAllocator getEventAllocator();
     
@@ -290,18 +301,6 @@ public class MinimalInputFactory
     {
         mConfig.setXMLResolver(r);
     }
-
-    public void setProperty(String propName, Object value)
-    {
-        int id = mConfig.getPropertyId(propName);
-
-        // Event allocator not available via J2ME subset...
-        if (id == ReaderConfig.PROP_EVENT_ALLOCATOR) {
-            throw new IllegalArgumentException("Event allocator not usable with J2ME subset.");
-        }
-
-        mConfig.setProperty(propName, id, value);
-    } 
 
     /*
     /////////////////////////////////////////

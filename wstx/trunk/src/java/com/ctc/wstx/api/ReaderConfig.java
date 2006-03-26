@@ -15,7 +15,6 @@ import com.ctc.wstx.cfg.InputConfigFlags;
 import com.ctc.wstx.compat.JdkFeatures;
 import com.ctc.wstx.ent.IntEntity;
 import com.ctc.wstx.ent.EntityDecl;
-import com.ctc.wstx.stax.ImplInfo;
 import com.ctc.wstx.util.ArgUtil;
 import com.ctc.wstx.util.EmptyIterator;
 import com.ctc.wstx.util.SymbolTable;
@@ -25,6 +24,7 @@ import com.ctc.wstx.util.SymbolTable;
  * instance created.
  */
 public final class ReaderConfig
+    extends CommonConfig
     implements InputConfigFlags
 {
     /*
@@ -57,8 +57,6 @@ public final class ReaderConfig
     final static int PROP_REPORT_PROLOG_WS = 23;
     final static int PROP_PRESERVE_LOCATION = 24;
     final static int PROP_AUTO_CLOSE_INPUT = 25;
-    final static int PROP_IMPL_NAME = 26;
-    final static int PROP_IMPL_VERSION = 27;
 
     // // // Constants for additional Wstx properties:
 
@@ -204,12 +202,6 @@ public final class ReaderConfig
                         new Integer(PROP_WARNING_REPORTER));
         sProperties.put(XMLInputFactory.RESOLVER,
                         new Integer(PROP_XML_RESOLVER));
-
-        // StAX2-introduced properties, impl:
-        sProperties.put(XMLStreamProperties.XSP_IMPLEMENTATION_NAME,
-                        new Integer(PROP_IMPL_NAME));
-        sProperties.put(XMLStreamProperties.XSP_IMPLEMENTATION_VERSION,
-                        new Integer(PROP_IMPL_VERSION));
 
         // StAX2-introduced flags:
         sProperties.put(XMLInputFactory2.P_INTERN_NAMES,
@@ -357,32 +349,14 @@ public final class ReaderConfig
 
     /*
     //////////////////////////////////////////////////////////
-    // Public API, generic StAX config methods
+    // Implementation of abstract methods
     //////////////////////////////////////////////////////////
      */
 
-    public Object getProperty(String propName)
+    protected int findPropertyId(String propName)
     {
-        return getProperty(getPropertyId(propName));
-    }
-
-    public boolean isPropertySupported(String name) {
-        boolean b = sProperties.containsKey(name);
-
-        /* ??? Less support in J2ME subset? Or is that support not really
-         * needed here, but in the matching input factory?
-         */
-
-        return b;
-    }
-
-    /**
-     * @return True, if the specified property was <b>succesfully</b>
-     *    set to specified value; false if its value was not changed
-     */
-    public boolean setProperty(String propName, Object value)
-    {
-        return setProperty(propName, getPropertyId(propName), value);
+        Integer I = (Integer) sProperties.get(propName);
+        return (I == null) ? -1 : I.intValue();
     }
  
     /*
@@ -925,20 +899,8 @@ public final class ReaderConfig
         }
     }
 
-    public int getPropertyId(String id) {
-        Integer I = (Integer) sProperties.get(id);
-        if (I == null) {
-            throw new IllegalArgumentException("Unrecognized property '"+id+"'");
-        }
-        return I.intValue();
-    }
-
     public Object getProperty(int id)
     {
-        /* Properties NOT supported here:
-             PROP_EVENT_ALLOCATOR
-        */
-
         switch (id) {
             // First, standard Stax 1.0 properties:
 
@@ -959,14 +921,13 @@ public final class ReaderConfig
             return getXMLReporter();
         case PROP_XML_RESOLVER:
             return getXMLResolver();
-
+        case PROP_EVENT_ALLOCATOR:
+            /* 25-Mar-2006, TSa: Not really supported here, so let's
+             *   return null
+             */
+            return null;
 
         // Then Stax2 properties:
-
-        case PROP_IMPL_NAME:
-            return ImplInfo.getImplName();
-        case PROP_IMPL_VERSION:
-            return ImplInfo.getImplVersion();
 
         case PROP_REPORT_PROLOG_WS:
             return willReportPrologWhitespace() ? Boolean.TRUE : Boolean.FALSE;
@@ -1020,10 +981,6 @@ public final class ReaderConfig
 
     public boolean setProperty(String propName, int id, Object value)
     {
-        /* Properties NOT supported here:
-             PROP_EVENT_ALLOCATOR
-        */
-
         switch (id) {
             // First, standard properties:
 
@@ -1061,6 +1018,12 @@ public final class ReaderConfig
             setXMLResolver((XMLResolver) value);
             break;
 
+        case PROP_EVENT_ALLOCATOR:
+            /* 25-Mar-2006, TSa: Not really supported here, so let's
+             *   return false to let caller deal with it
+             */
+            return false;
+
             // // // Custom settings, flags:
 
         case PROP_NORMALIZE_LFS:
@@ -1082,11 +1045,6 @@ public final class ReaderConfig
         case PROP_REPORT_PROLOG_WS:
             doReportPrologWhitespace(ArgUtil.convertToBoolean(propName, value));
             break;
-
-            // these are read-only
-        case PROP_IMPL_NAME:
-        case PROP_IMPL_VERSION:
-            return false;
 
         case PROP_CACHE_DTDS:
             doCacheDTDs(ArgUtil.convertToBoolean(propName, value));

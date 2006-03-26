@@ -32,8 +32,8 @@ import com.sun.msv.reader.GrammarReaderController;
 import com.sun.msv.reader.trex.ng.RELAXNGReader;
 import com.sun.msv.verifier.regexp.REDocumentDeclaration;
 
+import com.ctc.wstx.api.ValidatorConfig;
 import com.ctc.wstx.exc.WstxIOException;
-import com.ctc.wstx.stax.ImplInfo;
 import com.ctc.wstx.util.URLUtil;
 
 /**
@@ -51,6 +51,11 @@ public class RelaxNGSchemaFactory
     protected final SAXParserFactory mSaxFactory;
 
     /**
+     * Current configurations for this factory
+     */
+    protected final ValidatorConfig mConfig;
+
+    /**
      * For now, there's no need for fine-grained error/problem reporting
      * infrastructure, so let's just use a dummy controller.
      */
@@ -63,7 +68,8 @@ public class RelaxNGSchemaFactory
          * SAX parsers that the grammar reader needs
          */
         mSaxFactory = SAXParserFactory.newInstance();
-        mSaxFactory.setNamespaceAware(true);    
+        mSaxFactory.setNamespaceAware(true); 
+        mConfig = ValidatorConfig.createDefaults();
     }
 
     /*
@@ -74,25 +80,17 @@ public class RelaxNGSchemaFactory
 
     public boolean isPropertySupported(String propName)
     {
-        return propName.equals(XMLStreamProperties.XSP_IMPLEMENTATION_NAME)
-            || propName.equals(XMLStreamProperties.XSP_IMPLEMENTATION_VERSION);
+        return mConfig.isPropertySupported(propName);
     }
 
     public boolean setProperty(String propName, Object value)
     {
-        // Nothing to set, yet?
-        return false;
+        return mConfig.setProperty(propName, value);
     }
 
     public Object getProperty(String propName)
     {
-        if (propName.equals(XMLStreamProperties.XSP_IMPLEMENTATION_NAME)) {
-            return ImplInfo.getImplName();
-        }
-        if (propName.equals(XMLStreamProperties.XSP_IMPLEMENTATION_VERSION)) {
-            return ImplInfo.getImplVersion();
-        }
-        return null;
+        return mConfig.getProperty(propName);
     }
 
     /*

@@ -87,6 +87,9 @@ public final class WstxInputFactory
     /////////////////////////////////////////////////////
      */
 
+    /**
+     * Current configurations for this factory
+     */
     protected final ReaderConfig mConfig;
 
     // // // StAX - mandated objects:
@@ -320,14 +323,25 @@ public final class WstxInputFactory
 
     public Object getProperty(String name)
     {
-        int id = mConfig.getPropertyId(name);
+        Object ob = mConfig.getProperty(name);
 
-        // Event allocator not available via J2ME subset...
-        if (id == ReaderConfig.PROP_EVENT_ALLOCATOR) {
-            return getEventAllocator();
+        if (ob == null) {
+            if (name.equals(XMLInputFactory.ALLOCATOR)) {
+                // Event allocator not available via J2ME subset...
+                return getEventAllocator();
+            }
         }
-        return mConfig.getProperty(id);
+        return ob;
     }
+
+    public void setProperty(String propName, Object value)
+    {
+        if (!mConfig.setProperty(propName, value)) {
+            if (XMLInputFactory.ALLOCATOR.equals(propName)) {
+                setEventAllocator((XMLEventAllocator) value);
+            }
+        }
+    } 
 
     public XMLEventAllocator getEventAllocator() {
         return mAllocator;
@@ -362,15 +376,6 @@ public final class WstxInputFactory
     {
         mConfig.setXMLResolver(r);
     }
-
-    public void setProperty(String propName, Object value)
-    {
-        if (XMLInputFactory.ALLOCATOR.equals(propName)) {
-            setEventAllocator((XMLEventAllocator) value);
-        } else {
-            mConfig.setProperty(propName, value);
-        }
-    } 
 
     /*
     /////////////////////////////////////////////////////

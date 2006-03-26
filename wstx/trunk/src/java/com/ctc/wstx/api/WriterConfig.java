@@ -13,7 +13,6 @@ import org.codehaus.stax2.XMLStreamProperties;
 
 import com.ctc.wstx.api.WstxOutputProperties;
 import com.ctc.wstx.cfg.OutputConfigFlags;
-import com.ctc.wstx.stax.ImplInfo;
 import com.ctc.wstx.util.ArgUtil;
 
 /**
@@ -21,6 +20,7 @@ import com.ctc.wstx.util.ArgUtil;
  * instance created.
  */
 public final class WriterConfig
+    extends CommonConfig
     implements OutputConfigFlags
 {
     // // // Constants for standard StAX properties:
@@ -43,9 +43,6 @@ public final class WriterConfig
     final static int PROP_ATTR_VALUE_ESCAPER = 6;
     // Problem checking/reporting options
     final static int PROP_PROBLEM_REPORTER = 7;
-
-    final static int PROP_IMPL_NAME = 8;
-    final static int PROP_IMPL_VERSION = 9;
 
     // // // And then custom Wstx properties:
 
@@ -129,12 +126,6 @@ public final class WriterConfig
                         new Integer(PROP_AUTOMATIC_NS));
 
         // // StAX2 standard ones:
-
-        // Impl. details
-        sProperties.put(XMLStreamProperties.XSP_IMPLEMENTATION_NAME,
-                        new Integer(PROP_IMPL_NAME));
-        sProperties.put(XMLStreamProperties.XSP_IMPLEMENTATION_VERSION,
-                        new Integer(PROP_IMPL_VERSION));
 
         // Namespace support
         sProperties.put(XMLStreamProperties.XSP_NAMESPACE_AWARE,
@@ -241,18 +232,24 @@ public final class WriterConfig
 
     /*
     //////////////////////////////////////////////////////////
+    // Implementation of abstract methods
+    //////////////////////////////////////////////////////////
+     */
+
+    protected int findPropertyId(String propName)
+    {
+        Integer I = (Integer) sProperties.get(propName);
+        return (I == null) ? -1 : I.intValue();
+    }
+
+    /*
+    //////////////////////////////////////////////////////////
     // Public API
     //////////////////////////////////////////////////////////
      */
 
-    public boolean isPropertySupported(String name) {
-        return sProperties.containsKey(name);
-    }
-
-    public Object getProperty(String name)
+    public Object getProperty(int id)
     {
-        int id = getPropertyId(name);
-
         switch (id) {
 
         // First, Stax 1.0 properties:
@@ -264,10 +261,6 @@ public final class WriterConfig
 
             // First, properties common to input/output factories:
 
-        case PROP_IMPL_NAME:
-            return ImplInfo.getImplName();
-        case PROP_IMPL_VERSION:
-            return ImplInfo.getImplVersion();
         case PROP_ENABLE_NS:
             return willSupportNamespaces() ? Boolean.TRUE : Boolean.FALSE;
         case PROP_PROBLEM_REPORTER:
@@ -309,10 +302,8 @@ public final class WriterConfig
      * @return True, if the specified property was <b>succesfully</b>
      *    set to specified value; false if its value was not changed
      */
-    public boolean setProperty(String name, Object value)
+    public boolean setProperty(String name, int id, Object value)
     {
-        int id = getPropertyId(name);
-
         switch (id) {
         // First, Stax 1.0 properties:
 
@@ -321,11 +312,6 @@ public final class WriterConfig
             break;
 
        // // // Then Stax2 ones:
-
-            // these are read-only
-        case PROP_IMPL_NAME:
-        case PROP_IMPL_VERSION:
-            return false;
 
         case PROP_ENABLE_NS:
             doSupportNamespaces(ArgUtil.convertToBoolean(name, value));
@@ -590,15 +576,7 @@ public final class WriterConfig
         }
     }
 
-    private boolean hasConfigFlag(int flag) {
+    private final boolean hasConfigFlag(int flag) {
         return ((mConfigFlags & flag) == flag);
     } 
-
-    private int getPropertyId(String id) {
-        Integer I = (Integer) sProperties.get(id);
-        if (I == null) {
-            throw new IllegalArgumentException("Property '"+id+"' not supported.");
-        }
-        return I.intValue();
-    }
 }

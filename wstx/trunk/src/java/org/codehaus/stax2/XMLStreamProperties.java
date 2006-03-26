@@ -31,6 +31,13 @@ public interface XMLStreamProperties
      */
     public final static String XSP_IMPLEMENTATION_VERSION = "org.codehaus.stax2.implVersion";
 
+    /**
+     * This read-only property indicates whether the implementation
+     * supports xml 1.1 content; Boolean.TRUE indicates it does,
+     * Boolean.FALSE that it does not.
+     */
+    public final static String XSP_SUPPORTS_XML11 = "org.codehaus.stax2.supportsXml11";
+
     // // // Re-declared properties from XMLInputFactory
 
     /**

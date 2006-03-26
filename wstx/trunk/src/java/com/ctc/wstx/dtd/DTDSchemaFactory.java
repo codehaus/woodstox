@@ -25,10 +25,10 @@ import org.codehaus.stax2.*;
 import org.codehaus.stax2.validation.*;
 
 import com.ctc.wstx.api.ReaderConfig;
+import com.ctc.wstx.api.ValidatorConfig;
 import com.ctc.wstx.cfg.XmlConsts;
 import com.ctc.wstx.exc.WstxIOException;
 import com.ctc.wstx.io.*;
-import com.ctc.wstx.stax.ImplInfo;
 import com.ctc.wstx.util.DefaultXmlSymbolTable;
 import com.ctc.wstx.util.SymbolTable;
 import com.ctc.wstx.util.URLUtil;
@@ -42,7 +42,7 @@ import com.ctc.wstx.util.URLUtil;
  * documents) is only accessible by core Woodstox. The externally
  * accessible
  */
-public class DTDValidatorFactory
+public class DTDSchemaFactory
     extends XMLValidationSchemaFactory
 {
     /*
@@ -61,13 +61,19 @@ public class DTDValidatorFactory
     }
 
     /**
+     * Current configurations for this factory
+     */
+    protected final ValidatorConfig mSchemaConfig;
+
+    /**
      * This configuration object is used (instead of a more specific one)
      * since the actual DTD reader uses such configuration object.
      */
-    protected final ReaderConfig mConfig;
+    protected final ReaderConfig mReaderConfig;
 
-    public DTDValidatorFactory() {
-        mConfig = ReaderConfig.createFullDefaults();
+    public DTDSchemaFactory() {
+        mReaderConfig = ReaderConfig.createFullDefaults();
+        mSchemaConfig = ValidatorConfig.createDefaults();
     }
 
     /*
@@ -78,25 +84,17 @@ public class DTDValidatorFactory
 
     public boolean isPropertySupported(String propName)
     {
-        return propName.equals(XMLStreamProperties.XSP_IMPLEMENTATION_NAME)
-            || propName.equals(XMLStreamProperties.XSP_IMPLEMENTATION_VERSION);
+        return mSchemaConfig.isPropertySupported(propName);
     }
 
     public boolean setProperty(String propName, Object value)
     {
-        // Nothing to set, yet?
-        return false;
+        return mSchemaConfig.setProperty(propName, value);
     }
 
     public Object getProperty(String propName)
     {
-        if (propName.equals(XMLStreamProperties.XSP_IMPLEMENTATION_NAME)) {
-            return ImplInfo.getImplName();
-        }
-        if (propName.equals(XMLStreamProperties.XSP_IMPLEMENTATION_VERSION)) {
-            return ImplInfo.getImplVersion();
-        }
-        return null;
+        return mSchemaConfig.getProperty(propName);
     }
 
     /*
@@ -110,7 +108,7 @@ public class DTDValidatorFactory
         throws XMLStreamException
     {
         return doCreateSchema(StreamBootstrapper.getInstance
-                              (in, publicId, systemId, mConfig.getInputBufferLength()),
+                              (in, publicId, systemId, mReaderConfig.getInputBufferLength()),
                               publicId, systemId, null);
     }
 
@@ -128,7 +126,7 @@ public class DTDValidatorFactory
         try {
             InputStream in = URLUtil.optimizedStreamFromURL(url);
             return doCreateSchema(StreamBootstrapper.getInstance
-                                  (in, null, null, mConfig.getInputBufferLength()),
+                                  (in, null, null, mReaderConfig.getInputBufferLength()),
                                   null, url.toExternalForm(), url);
         } catch (IOException ioe) {
             throw new WstxIOException(ioe);
@@ -141,7 +139,7 @@ public class DTDValidatorFactory
         try {
             URL url = f.toURL();
             return doCreateSchema(StreamBootstrapper.getInstance
-                                  (new FileInputStream(f), null, null, mConfig.getInputBufferLength()),
+                                  (new FileInputStream(f), null, null, mReaderConfig.getInputBufferLength()),
                                   null, url.toExternalForm(), url);
         } catch (IOException ioe) {
             throw new WstxIOException(ioe);
@@ -168,7 +166,7 @@ public class DTDValidatorFactory
         (InputBootstrapper bs, String publicId, String systemId, URL ctxt)
         throws XMLStreamException
     {
-        ReaderConfig cfg = mConfig.createNonShared(mRootSymbols.makeChild());
+        ReaderConfig cfg = mReaderConfig.createNonShared(mRootSymbols.makeChild());
 
         try {
             Reader r = bs.bootstrapInput(false, cfg.getXMLReporter(), XmlConsts.XML_V_UNKNOWN);

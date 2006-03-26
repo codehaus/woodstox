@@ -5,6 +5,7 @@ import java.io.*;
 import javax.xml.stream.*;
 
 import org.codehaus.stax2.XMLStreamReader2;
+import org.codehaus.stax2.XMLStreamProperties;
 
 import com.ctc.wstx.api.WstxInputProperties;
 
@@ -19,6 +20,9 @@ import com.ctc.wstx.api.ReaderConfig;
 public class TestConfig
     extends BaseStreamTest
 {
+    final static String WSTX_NAME = "woodstox";
+    final static String WSTX_VERSION = "2.9.2";
+
     public void testSettingResolvers()
         throws XMLStreamException
     {
@@ -70,6 +74,26 @@ public class TestConfig
         throws XMLStreamException
     {
         // !!! TBI
+    }
+
+    public void testReaderProperties()
+        throws XMLStreamException
+    {
+        XMLInputFactory ifact = getNewInputFactory();
+        assertEquals(WSTX_NAME, ifact.getProperty(XMLStreamProperties.XSP_IMPLEMENTATION_NAME));
+        assertEquals(WSTX_VERSION, ifact.getProperty(XMLStreamProperties.XSP_IMPLEMENTATION_VERSION));
+        assertEquals(Boolean.TRUE,
+                     ifact.getProperty(XMLStreamProperties.XSP_SUPPORTS_XML11));
+    }
+
+    public void testWriterProperties()
+        throws XMLStreamException
+    {
+        XMLOutputFactory ofact = getNewOutputFactory();
+        assertEquals(WSTX_NAME, ofact.getProperty(XMLStreamProperties.XSP_IMPLEMENTATION_NAME));
+        assertEquals(WSTX_VERSION, ofact.getProperty(XMLStreamProperties.XSP_IMPLEMENTATION_VERSION));
+        assertEquals(Boolean.TRUE,
+                     ofact.getProperty(XMLStreamProperties.XSP_SUPPORTS_XML11));
     }
 
     /*
