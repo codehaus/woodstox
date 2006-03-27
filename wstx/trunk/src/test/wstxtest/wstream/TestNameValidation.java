@@ -149,7 +149,7 @@ public class TestNameValidation
                 sw.writeEndElement();
                 closeDoc(sw);
                 
-            } catch (IllegalArgumentException iae) {
+            } catch (XMLStreamException iae) {
                 continue; // good
             }
 
@@ -217,18 +217,17 @@ public class TestNameValidation
     private void doTestInvalidAttrName(boolean ns, String prefix, String name)
         throws XMLStreamException
     {
+        XMLStreamWriter sw = startDoc(true, ns);
+        sw.writeStartElement("dummy");
         try {
-            XMLStreamWriter sw = startDoc(true, ns);
-            sw.writeStartElement("dummy");
-            
             if (prefix == null) {
                 sw.writeAttribute(name, ATTR_VALUE);
             } else {
                 sw.writeAttribute(prefix, DUMMY_URL, name, ATTR_VALUE);
             }
+        } catch (XMLStreamException sex) {
             sw.writeEndElement();
             closeDoc(sw);
-        } catch (IllegalArgumentException iae) {
             return; // good
         }
 
@@ -276,19 +275,19 @@ public class TestNameValidation
 
             for (int i = 0; i < strs.length; ++i) {
                 String name = strs[i];
+                XMLStreamWriter sw = startDoc(true, ns);
+                sw.writeStartElement("dummy");
+
 
                 try {
-                    XMLStreamWriter sw = startDoc(true, ns);
-                    sw.writeStartElement("dummy");
-
                     if (empty) {
                         sw.writeProcessingInstruction(name);
                     } else {
                         sw.writeProcessingInstruction(name, PI_DATA);
                     }
+                } catch (XMLStreamException sex) {
                     sw.writeEndElement();
                     closeDoc(sw);
-                } catch (IllegalArgumentException iae) {
                     continue; // good
                 }
 
@@ -343,13 +342,12 @@ public class TestNameValidation
 
             for (int i = 0; i < strs.length; ++i) {
                 String rootName = strs[i];
+                XMLStreamWriter2 sw = (XMLStreamWriter2)startDoc(true, ns);
                 try {
-                    XMLStreamWriter2 sw = (XMLStreamWriter2)startDoc(true, ns);
                     // only root name is mandatory, others are optional
                     sw.writeDTD(rootName, null, null, null);
                     sw.writeEmptyElement(rootName); // need a root...and should match too
-                    closeDoc(sw);
-                } catch (IllegalArgumentException iae) {
+                } catch (XMLStreamException sex) {
                     continue; // good
                 }
 
@@ -392,7 +390,7 @@ public class TestNameValidation
     }
 
     public void testInvalidEntityNames()
-        throws Exception
+        throws XMLStreamException
     {
         for (int n = 0; n < 2; ++n) {
             boolean ns = ((n & 1) == 0);
@@ -405,9 +403,9 @@ public class TestNameValidation
                 try {
                     // only root name is mandatory, others are optional
                     sw.writeEntityRef(name);
+                } catch (XMLStreamException sex) {
                     sw.writeEndElement();
                     closeDoc(sw);
-                } catch (IllegalArgumentException iae) {
                     continue; // good
                 }
 

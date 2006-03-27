@@ -121,10 +121,11 @@ public abstract class BaseNsStreamWriter
      * creationg ("namespace/prefix repairing" in StAX lingo) is enabled.
      */
     public void setNamespaceContext(NamespaceContext ctxt)
+        throws XMLStreamException
     {
         // This is only allowed before root element output:
         if (mState != STATE_PROLOG) {
-            throw new IllegalStateException("Called setNamespaceContext() after having already output root element.");
+            throwOutputError("Called setNamespaceContext() after having already output root element.");
         }
 
         mRootNsContext = ctxt;
@@ -153,6 +154,7 @@ public abstract class BaseNsStreamWriter
         /* 01-Apr-2005, TSa: And let's not leave it optional: such
          *   bindings should never succeed.
          */
+        // ... perhaps it really should be optional though?
         {
             if (prefix.equals(sPrefixXml)) { // prefix "xml"
                 if (!uri.equals(XMLConstants.XML_NS_URI)) {
@@ -197,8 +199,8 @@ public abstract class BaseNsStreamWriter
         throws XMLStreamException
     {
         // No need to set mAnyOutput, nor close the element
-        if (!mStartElementOpen) {
-            throw new IllegalStateException(ErrorConsts.WERR_ATTR_NO_ELEM);
+        if (!mStartElementOpen && mCheckStructure) {
+            reportNwfStructure(ErrorConsts.WERR_ATTR_NO_ELEM);
         }
         doWriteAttr(localName, null, null, value);
     }
@@ -394,7 +396,7 @@ public abstract class BaseNsStreamWriter
         if (mCheckStructure && mState == STATE_EPILOG) {
             String name = (prefix == null || prefix.length() == 0) ?
                 localName : (prefix + ":" + localName);
-            throwOutputError(ErrorConsts.WERR_PROLOG_SECOND_ROOT, name);
+            reportNwfStructure(ErrorConsts.WERR_PROLOG_SECOND_ROOT, name);
         }
 
         if (mCheckContent) {
@@ -506,7 +508,8 @@ public abstract class BaseNsStreamWriter
 
         // Better have something to close... (to figure out what to close)
         if (mState != STATE_TREE) {
-            throwOutputError("No open start element, when trying to write end element");
+            // Have to always throw exception... don't necessarily know the name
+            reportNwfStructure("No open start element, when trying to write end element");
         }
 
         SimpleOutputElement thisElem = mCurrElem;
@@ -516,13 +519,15 @@ public abstract class BaseNsStreamWriter
         // Ok, and then let's pop that element from the stack
         mCurrElem = thisElem.getParent();
 
-        if (expName != null) {
-            // Let's only check the local name, for now...
-            if (!localName.equals(expName.getLocalPart())) {
-                /* Only gets called when trying to output an XMLEvent... in
-                 * which case names can actually be compared
-                 */
-                throw new IllegalArgumentException("Mismatching close element local name, '"+localName+"'; expected '"+expName.getLocalPart()+"'.");
+        if (mCheckStructure) {
+            if (expName != null) {
+                // Let's only check the local name, for now...
+                if (!localName.equals(expName.getLocalPart())) {
+                    /* Only gets called when trying to output an XMLEvent... in
+                     * which case names can actually be compared
+                     */
+                    reportNwfStructure("Mismatching close element local name, '"+localName+"'; expected '"+expName.getLocalPart()+"'.");
+                }
             }
         }
 

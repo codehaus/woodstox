@@ -108,27 +108,26 @@ public class NonNsStreamWriter
     public void setDefaultNamespace(String uri)
         throws XMLStreamException
     {
-        throw new IllegalArgumentException("Can not set default namespace for non-namespace writer.");
+        reportIllegalArg("Can not set default namespace for non-namespace writer.");
     }
 
     public void setNamespaceContext(NamespaceContext context)
     {
-        throw new IllegalArgumentException("Can not set NamespaceContext for non-namespace writer.");
+        reportIllegalArg("Can not set NamespaceContext for non-namespace writer.");
     }
 
     public void setPrefix(String prefix, String uri)
         throws XMLStreamException
     {
-        throw new IllegalArgumentException("Can not set namespace prefix for non-namespace writer.");
+        reportIllegalArg("Can not set namespace prefix for non-namespace writer.");
     }
 
     public void writeAttribute(String localName, String value)
         throws XMLStreamException
     {
         // No need to set mAnyOutput, nor close the element
-        if (!mStartElementOpen) {
-            throw new IllegalStateException(ErrorConsts.WERR_ATTR_NO_ELEM);
-
+        if (!mStartElementOpen && mCheckStructure) {
+            reportNwfStructure(ErrorConsts.WERR_ATTR_NO_ELEM);
         }
         // May need to check uniqueness?
         if (mCheckNames) {
@@ -144,7 +143,7 @@ public class NonNsStreamWriter
             } else {
                 Object old = mAttrNames.put(localName, value);
                 if (old != null) {
-                    throw new IllegalArgumentException("Trying to write attribute '"+localName+"' twice (first value '"+old+"'; second '"+value+"').");
+                    reportNwfAttr("Trying to write attribute '"+localName+"' twice (first value '"+old+"'; second '"+value+"').");
                 }
             }
         }
@@ -165,7 +164,7 @@ public class NonNsStreamWriter
             mAttrValueWriter.write(value);
             mWriter.write('"');
         } catch (IOException ioe) {
-            throw new XMLStreamException(ioe);
+            throwFromIOE(ioe);
         }
     }
 
@@ -185,7 +184,7 @@ public class NonNsStreamWriter
     public void writeDefaultNamespace(String nsURI)
         throws XMLStreamException
     {
-        throw new IllegalArgumentException("Can not set write namespaces with non-namespace writer.");
+        reportIllegalMethod("Can not call writeDefaultNamespace namespaces with non-namespace writer.");
     }
 
     public void writeEmptyElement(String localName)
@@ -210,13 +209,13 @@ public class NonNsStreamWriter
     public void writeEndElement()
         throws XMLStreamException
     {
-        doWriteEndElement(null, mCfgAutomaticEmptyElems);
+        doWriteEndTag(null, mCfgAutomaticEmptyElems);
     }
 
     public void writeNamespace(String prefix, String nsURI)
         throws XMLStreamException
     {
-        throw new IllegalArgumentException("Can not set write namespaces with non-namespace writer.");
+        reportIllegalMethod("Can not set write namespaces with non-namespace writer.");
     }
 
     public void writeStartElement(String localName)
@@ -251,7 +250,7 @@ public class NonNsStreamWriter
     public void writeFullEndElement()
         throws XMLStreamException
     {
-        doWriteEndElement(null, false);
+        doWriteEndTag(null, false);
     }
     
     /*
@@ -298,8 +297,8 @@ public class NonNsStreamWriter
     public void writeEndElement(QName name)
         throws XMLStreamException
     {
-        doWriteEndElement(mCheckStructure ? name.getLocalPart() : null,
-                          mCfgAutomaticEmptyElems);
+        doWriteEndTag(mCheckStructure ? name.getLocalPart() : null,
+                      mCfgAutomaticEmptyElems);
     }
 
     /**
@@ -324,7 +323,7 @@ public class NonNsStreamWriter
                 mWriter.write('>');
             }
         } catch (IOException ioe) {
-            throw new XMLStreamException(ioe);
+            throwFromIOE(ioe);
         }
 
         if (mValidator != null) {
@@ -437,7 +436,7 @@ public class NonNsStreamWriter
             // 20-Dec-2005, TSa: Does this match DOCTYPE declaration?
             verifyRootElement(localName, null);
         } else if (mCheckStructure && mState == STATE_EPILOG) {
-            throwOutputError(ErrorConsts.WERR_PROLOG_SECOND_ROOT, localName);
+            reportNwfStructure(ErrorConsts.WERR_PROLOG_SECOND_ROOT, localName);
         }
 
         /* Note: need not check for CONTENT_ALLOW_NONE here, since the
@@ -456,7 +455,7 @@ public class NonNsStreamWriter
             mWriter.write('<');
             mWriter.write(localName);
         } catch (IOException ioe) {
-            throw new XMLStreamException(ioe);
+            throwFromIOE(ioe);
         }
     }
 
@@ -471,7 +470,7 @@ public class NonNsStreamWriter
      *   if the closing element was truly empty; if false, has to write
      *   the full empty element no matter what
      */
-    private void doWriteEndElement(String expName, boolean allowEmpty)
+    private void doWriteEndTag(String expName, boolean allowEmpty)
         throws XMLStreamException
     {
         /* First of all, do we need to close up an earlier empty element?
@@ -486,18 +485,21 @@ public class NonNsStreamWriter
 
         // Better have something to close... (to figure out what to close)
         if (mState != STATE_TREE) {
-            throwOutputError("No open start element, when trying to write end element");
+            // Have to throw an exception always, don't know elem name
+            reportNwfStructure("No open start element, when trying to write end element");
         }
 
         /* Now, do we have an unfinished start element (created via
          * writeStartElement() earlier)?
          */
         String localName = mElements.removeLast();
-        if (expName != null && !localName.equals(expName)) {
-            /* Only gets called when trying to output an XMLEvent... in
-             * which case names can actually be compared
-             */
-            throw new IllegalArgumentException("Mismatching close element name, '"+localName+"'; expected '"+expName+"'.");
+        if (mCheckStructure) {
+            if (expName != null && !localName.equals(expName)) {
+                /* Only gets called when trying to output an XMLEvent... in
+                 * which case names can actually be compared
+                 */
+                reportNwfStructure("Mismatching close element name, '"+localName+"'; expected '"+expName+"'.");
+            }
         }
 
         /* Can't yet validate, since we have two paths; one for empty
@@ -535,7 +537,7 @@ public class NonNsStreamWriter
                 // Nah, need to close open elem, and then output close elem
                 mWriter.write('>');
             } catch (IOException ioe) {
-                throw new XMLStreamException(ioe);
+                throwFromIOE(ioe);
             }
         }
 
@@ -544,7 +546,7 @@ public class NonNsStreamWriter
             mWriter.write(localName);
             mWriter.write('>');
         } catch (IOException ioe) {
-            throw new XMLStreamException(ioe);
+            throwFromIOE(ioe);
         }
 
         if (mElements.isEmpty()) {

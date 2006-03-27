@@ -209,7 +209,9 @@ public class WstxEventWriter
         mWriter.setDefaultNamespace(uri);
     }
 
-    public void setNamespaceContext(NamespaceContext ctxt) {
+    public void setNamespaceContext(NamespaceContext ctxt)
+        throws XMLStreamException
+    {
         mWriter.setNamespaceContext(ctxt);
     }
 

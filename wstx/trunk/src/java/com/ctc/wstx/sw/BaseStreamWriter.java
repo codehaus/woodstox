@@ -324,7 +324,8 @@ public abstract class BaseStreamWriter
     public abstract void setDefaultNamespace(String uri)
         throws XMLStreamException;
 
-    public abstract void setNamespaceContext(NamespaceContext context);
+    public abstract void setNamespaceContext(NamespaceContext context)
+        throws XMLStreamException;
 
     public abstract void setPrefix(String prefix, String uri)
         throws XMLStreamException;
@@ -375,7 +376,7 @@ public abstract class BaseStreamWriter
                         return;
                     }
                     // nope, let's err out
-                    throwCheckError(ErrorConsts.WERR_CDATA_CONTENT, new Integer(ix));
+                    reportNwfContent(ErrorConsts.WERR_CDATA_CONTENT, new Integer(ix));
                 }
             }
             mWriter.write("<![CDATA[");
@@ -406,7 +407,7 @@ public abstract class BaseStreamWriter
         if (mCheckStructure) {
             if (inPrologOrEpilog()) {
                 if (!StringUtil.isAllWhitespace(text, start, len)) {
-                    throwIllegalState(ErrorConsts.WERR_PROLOG_NONWS_TEXT);
+                    reportNwfStructure(ErrorConsts.WERR_PROLOG_NONWS_TEXT);
                 }
             }
         }
@@ -454,7 +455,7 @@ public abstract class BaseStreamWriter
             // Not valid in prolog/epilog, except if it's all white space:
             if (inPrologOrEpilog()) {
                 if (!StringUtil.isAllWhitespace(text)) {
-                    throwIllegalState(ErrorConsts.WERR_PROLOG_NONWS_TEXT);
+                    reportNwfStructure(ErrorConsts.WERR_PROLOG_NONWS_TEXT);
                 }
             }
         }
@@ -520,7 +521,7 @@ public abstract class BaseStreamWriter
                         return;
                     }
                     // nope, let's err out
-                    throwOutputError(ErrorConsts.WERR_COMMENT_CONTENT, new Integer(ix));
+                    reportNwfContent(ErrorConsts.WERR_COMMENT_CONTENT, new Integer(ix));
                 }
             }
             mWriter.write("<!--");
@@ -564,7 +565,7 @@ public abstract class BaseStreamWriter
         // Is tree still open?
         if (mState != STATE_EPILOG) {
             if (mCheckStructure  && mState == STATE_PROLOG) {
-                throwIllegalState("Trying to write END_DOCUMENT when document has no root (ie. trying to output empty document).");
+                reportNwfStructure("Trying to write END_DOCUMENT when document has no root (ie. trying to output empty document).");
             }
             // 20-Jul-2004, TSa: Need to close the open sub-tree, if it exists...
             // First, do we have an open start element?
@@ -592,7 +593,7 @@ public abstract class BaseStreamWriter
         // Structurally, need to check we are not in prolog/epilog.
         if (mCheckStructure) {
             if (inPrologOrEpilog()) {
-                throwIllegalState("Trying to output an entity reference outside main element tree (in prolog or epilog)");
+                reportNwfStructure("Trying to output an entity reference outside main element tree (in prolog or epilog)");
             }
         }
         // 08-Dec-2005, TSa: validator-based validation?
@@ -716,7 +717,7 @@ public abstract class BaseStreamWriter
          */
         if (mCheckStructure) {
             if (mAnyOutput) {
-                throwIllegalState("Can not output XML declaration, after other output has already been done.");
+                reportNwfStructure("Can not output XML declaration, after other output has already been done.");
             }
         }
 
@@ -729,8 +730,8 @@ public abstract class BaseStreamWriter
             if (version != null && version.length() > 0) {
                 if (!(version.equals(XmlConsts.XML_V_10_STR)
                       || version.equals(XmlConsts.XML_V_11_STR))) {
-                    throwIllegalArg("Illegal version argument ('"+version
-                                    +"'); should only use '"+XmlConsts.XML_V_10_STR
+                    reportNwfContent("Illegal version argument ('"+version
+                                     +"'); should only use '"+XmlConsts.XML_V_10_STR
                                     +"' or '"+XmlConsts.XML_V_11_STR+"'");
                 }
             }
@@ -1114,7 +1115,7 @@ public abstract class BaseStreamWriter
                     // Not legal outside main element tree:
                     if (mCheckStructure) {
                         if (inPrologOrEpilog()) {
-                            throwIllegalState(ErrorConsts.WERR_PROLOG_CDATA);
+                            reportNwfStructure(ErrorConsts.WERR_PROLOG_CDATA);
                         }
                     }
                     /* Note: no need to check content, since reader is assumed
@@ -1205,7 +1206,7 @@ public abstract class BaseStreamWriter
                          * it, there's no way to write a valid thing.
                          * So, let's just throw an exception.
                          */
-                        throwIllegalArg("Current state DOCTYPE, but not DTDInfo Object returned -- reader doesn't support DTDs?");
+                        throwOutputError("Current state DOCTYPE, but not DTDInfo Object returned -- reader doesn't support DTDs?");
                     }
                     /* Could optimize this a bit (stream the int. subset
                      * possible), but it's never going to occur more than
@@ -1382,7 +1383,7 @@ public abstract class BaseStreamWriter
         if (mCheckStructure) {
             if (inPrologOrEpilog()) {
                 if (!ch.isIgnorableWhiteSpace() && !ch.isWhiteSpace()) {
-                    throwIllegalState(ErrorConsts.WERR_PROLOG_NONWS_TEXT);
+                    reportNwfStructure(ErrorConsts.WERR_PROLOG_NONWS_TEXT);
                 }
             }
         }
@@ -1449,12 +1450,13 @@ public abstract class BaseStreamWriter
      * Method called to verify that the name is a legal XML name.
      */
     public final void verifyNameValidity(String name, boolean nsAware)
+        throws XMLStreamException
     {
         /* No empty names... caller must have dealt with optional arguments
          * prior to calling this method
          */
         if (name == null || name.length() == 0) {
-            throwIllegalArg(ErrorConsts.WERR_NAME_EMPTY);
+            reportNwfName(ErrorConsts.WERR_NAME_EMPTY);
         }
         char c = name.charAt(0);
 
@@ -1462,32 +1464,32 @@ public abstract class BaseStreamWriter
             if (c == ':' && !nsAware) { // ok, but only in non-ns mode
                 ;
             } else if (!WstxInputData.is11NameStartChar(c)) {		
-                throwIllegalArg(ErrorConsts.WERR_NAME_ILLEGAL_FIRST_CHAR,
-                                WstxInputData.getCharDesc(c));
+                reportNwfName(ErrorConsts.WERR_NAME_ILLEGAL_FIRST_CHAR,
+                              WstxInputData.getCharDesc(c));
             }
             for (int i = 1, len = name.length(); i < len; ++i) {
                 c = name.charAt(i);
                 if (c == ':' && !nsAware) {
                     ; // is ok, but has to be explicitly checked...
                 } else if (!WstxInputData.is11NameChar(c)) {
-                    throwIllegalArg(ErrorConsts.WERR_NAME_ILLEGAL_CHAR,
-                                    WstxInputData.getCharDesc(c));
+                    reportNwfName(ErrorConsts.WERR_NAME_ILLEGAL_CHAR,
+                                  WstxInputData.getCharDesc(c));
                 }
             }
         } else {
             if (c == ':' && !nsAware) { // ok, but only in non-ns mode
                 ;
             } else if (!WstxInputData.is10NameStartChar(c)) {		
-                throwIllegalArg(ErrorConsts.WERR_NAME_ILLEGAL_FIRST_CHAR,
-                                WstxInputData.getCharDesc(c));
+                reportNwfName(ErrorConsts.WERR_NAME_ILLEGAL_FIRST_CHAR,
+                                  WstxInputData.getCharDesc(c));
             }
             for (int i = 1, len = name.length(); i < len; ++i) {
                 c = name.charAt(i);
                 if (c == ':' && !nsAware) {
                     ; // is ok, but has to be explicitly checked...
                 } else if (!WstxInputData.is10NameChar(c)) {
-                    throwIllegalArg(ErrorConsts.WERR_NAME_ILLEGAL_CHAR,
-                                    WstxInputData.getCharDesc(c));
+                    reportNwfName(ErrorConsts.WERR_NAME_ILLEGAL_CHAR,
+                                      WstxInputData.getCharDesc(c));
                 }
             }
         }
@@ -1499,7 +1501,7 @@ public abstract class BaseStreamWriter
         // Not legal outside main element tree:
         if (mCheckStructure) {
             if (inPrologOrEpilog()) {
-                throwIllegalState(ErrorConsts.WERR_PROLOG_CDATA);
+                reportNwfStructure(ErrorConsts.WERR_PROLOG_CDATA);
             }
         }
         // 08-Dec-2005, TSa: validator-based validation?
@@ -1723,20 +1725,85 @@ public abstract class BaseStreamWriter
     }
 
     /**
-     * This method is (to be) used when a well-formedness error is found
-     * when additional validation is to be performed.
+     * Method called when an illegal method (namespace-specific method
+     * on non-ns writer) is called by the application.
      */
-    protected static void throwCheckError(String msg)
+    protected static void reportIllegalMethod(String msg)
         throws XMLStreamException
     {
-        throw new XMLStreamException(msg);
+        throwOutputError(msg);
     }
 
-    protected static void throwCheckError(String format, Object arg)
+    /**
+     * This is the method called when an output method call violates
+     * structural well-formedness checks
+     * and {@link WstxOutputProperties.P_OUTPUT_VALIDATE_STRUCTURE} is
+     * is enabled.
+     */
+    protected static void reportNwfStructure(String msg)
         throws XMLStreamException
     {
-        String msg = MessageFormat.format(format, new Object[] { arg });
-        throwCheckError(msg);
+        throwOutputError(msg);
+    }
+
+    protected static void reportNwfStructure(String msg, Object arg)
+        throws XMLStreamException
+    {
+        throwOutputError(msg, arg);
+    }
+
+    /**
+     * This is the method called when an output method call violates
+     * content well-formedness checks
+     * and {@link WstxOutputProperties.P_OUTPUT_VALIDATE_CONTENT} is
+     * is enabled.
+     */
+    protected static void reportNwfContent(String msg)
+        throws XMLStreamException
+    {
+        throwOutputError(msg);
+    }
+
+    protected static void reportNwfContent(String msg, Object arg)
+        throws XMLStreamException
+    {
+        throwOutputError(msg, arg);
+    }
+
+    /**
+     * This is the method called when an output method call violates
+     * name well-formedness checks
+     * and {@link WstxOutputProperties.P_OUTPUT_VALIDATE_NAMES} is
+     * is enabled.
+     */
+    protected static void reportNwfName(String msg)
+        throws XMLStreamException
+    {
+        throwOutputError(msg);
+    }
+
+    protected static void reportNwfName(String msg, Object arg)
+        throws XMLStreamException
+    {
+        throwOutputError(msg, arg);
+    }
+
+    /**
+     * This is the method called when an output method call violates
+     * attribute well-formedness checks (trying to output dup attrs)
+     * and {@link WstxOutputProperties.P_OUTPUT_VALIDATE_NAMES} is
+     * is enabled.
+     */
+    protected static void reportNwfAttr(String msg)
+        throws XMLStreamException
+    {
+        throwOutputError(msg);
+    }
+
+    protected static void reportNwfAttr(String msg, Object arg)
+        throws XMLStreamException
+    {
+        throwOutputError(msg, arg);
     }
 
     protected static void throwFromIOE(IOException ioe)
@@ -1745,24 +1812,19 @@ public abstract class BaseStreamWriter
         throw new WstxIOException(ioe);
     }
 
-    protected static void throwIllegalArg(String msg)
+    protected static void reportIllegalArg(String msg)
         throws IllegalArgumentException
     {
         throw new IllegalArgumentException(msg);
     }
 
-    protected static void throwIllegalArg(String format, Object arg)
-        throws IllegalArgumentException
-    {
-        String msg = MessageFormat.format(format, new Object[] { arg });
-        throwIllegalArg(msg);
-    }
-
+    /*
     protected static void throwIllegalState(String msg)
         throws IllegalArgumentException
     {
         throw new IllegalStateException(msg);
     }
+    */
 
     /*
     ///////////////////////////////////////////////////////

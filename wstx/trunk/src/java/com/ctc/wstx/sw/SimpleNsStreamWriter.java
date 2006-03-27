@@ -77,11 +77,11 @@ public class SimpleNsStreamWriter
     {
         // No need to set mAnyOutput, nor close the element
         if (!mStartElementOpen) {
-            throw new IllegalStateException(ErrorConsts.WERR_ATTR_NO_ELEM);
+            throwOutputError(ErrorConsts.WERR_ATTR_NO_ELEM);
         }
         String prefix = mCurrElem.getExplicitPrefix(nsURI);
         if (prefix == null) {
-            throw new XMLStreamException("Unbound namespace URI '"+nsURI+"'");
+            throwOutputError("Unbound namespace URI '"+nsURI+"'");
         }
         doWriteAttr(localName, nsURI, prefix, value);
     }
@@ -91,7 +91,7 @@ public class SimpleNsStreamWriter
         throws XMLStreamException
     {
         if (!mStartElementOpen) {
-            throw new IllegalStateException(ErrorConsts.WERR_ATTR_NO_ELEM);
+            throwOutputError(ErrorConsts.WERR_ATTR_NO_ELEM);
         }
         doWriteAttr(localName, nsURI, prefix, value);
     }
@@ -106,7 +106,7 @@ public class SimpleNsStreamWriter
         throws XMLStreamException
     {
         if (!mStartElementOpen) {
-            throw new IllegalStateException(ERR_NSDECL_WRONG_STATE);
+            throwOutputError(ERR_NSDECL_WRONG_STATE);
         }
 
         // 01-Apr-2005, TSa: Can we (and do we want to) verify NS consistency?
@@ -126,7 +126,7 @@ public class SimpleNsStreamWriter
         // No need to set mAnyOutput, and shouldn't close the element.
         // But element needs to be open, obviously.
         if (!mStartElementOpen) {
-            throw new IllegalStateException(ERR_NSDECL_WRONG_STATE);
+            throwOutputError(ERR_NSDECL_WRONG_STATE);
         }
         /* 05-Feb-2005, TSa: Also, as per namespace specs; the 'empty'
          *   namespace URI can not be bound as a non-default namespace

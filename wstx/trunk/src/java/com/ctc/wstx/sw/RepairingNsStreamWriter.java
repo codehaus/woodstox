@@ -123,7 +123,7 @@ public class RepairingNsStreamWriter
     {
         // No need to set mAnyOutput, nor close the element
         if (!mStartElementOpen) {
-            throw new IllegalStateException(ErrorConsts.WERR_ATTR_NO_ELEM);
+            throwOutputError(ErrorConsts.WERR_ATTR_NO_ELEM);
         }
         doWriteAttr(localName, nsURI, findOrCreateAttrPrefix(null, nsURI, mCurrElem),
                     value);
@@ -134,7 +134,7 @@ public class RepairingNsStreamWriter
         throws XMLStreamException
     {
         if (!mStartElementOpen) {
-            throw new IllegalStateException(ErrorConsts.WERR_ATTR_NO_ELEM);
+            throwOutputError(ErrorConsts.WERR_ATTR_NO_ELEM);
         }
 
         doWriteAttr(localName, nsURI, findOrCreateAttrPrefix(prefix, nsURI, mCurrElem),
@@ -154,7 +154,7 @@ public class RepairingNsStreamWriter
          */
         // ... still, shouldn't get called in the wrong time, ever:
         if (!mStartElementOpen) {
-            throw new IllegalStateException(ERR_NSDECL_WRONG_STATE);
+            throwOutputError(ERR_NSDECL_WRONG_STATE);
         }
         /* 11-Oct-2005, TSa: How about we report the problem instead? But
          *   only once per instance.
@@ -179,7 +179,7 @@ public class RepairingNsStreamWriter
          *    mode; see discussion in 'writeDefaultNamespace()' for details.
          */
         if (!mStartElementOpen) {
-            throw new IllegalStateException(ERR_NSDECL_WRONG_STATE);
+            throwOutputError(ERR_NSDECL_WRONG_STATE);
         }
         
         if (!hasReportedProblem(PROB_NS_WRITE)) {

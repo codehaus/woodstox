@@ -6,6 +6,10 @@ import javax.xml.stream.*;
 
 import org.codehaus.stax2.*;
 
+/**
+ * This unit test suite verifies that output-side content validation
+ * works as expected, when enabled.
+ */
 public class TestContentValidation
     extends BaseWriterTest
 {
@@ -25,7 +29,7 @@ public class TestContentValidation
      */
 
     public void testCommentChecking()
-        throws Exception
+        throws XMLStreamException
     {
         for (int i = 0; i <= 2; ++i) {
             XMLOutputFactory2 f = getFactory(i, true, false);

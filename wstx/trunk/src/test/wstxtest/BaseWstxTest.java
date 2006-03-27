@@ -233,6 +233,12 @@ public class BaseWstxTest
         f.setProperty(XMLStreamProperties.XSP_NAMESPACE_AWARE, Boolean.valueOf(state));
     }
 
+    protected static void setValidateStructure(XMLOutputFactory f, boolean state)
+    {
+        f.setProperty(WstxOutputProperties.P_OUTPUT_VALIDATE_STRUCTURE,
+                      Boolean.valueOf(state));
+    }
+
     protected static void setValidateContent(XMLOutputFactory f, boolean state)
     {
         f.setProperty(WstxOutputProperties.P_OUTPUT_VALIDATE_CONTENT,
@@ -247,6 +253,7 @@ public class BaseWstxTest
 
     protected static void setValidateAll(XMLOutputFactory f, boolean state)
     {
+        setValidateStructure(f, state);
         setValidateContent(f, state);
         setValidateNames(f, state);
     }

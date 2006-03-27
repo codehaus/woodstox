@@ -1,6 +1,6 @@
 Version: 2.9.2
 
-Release date: 23-Mar-2006
+Release date: xx-Mar-2006
 
 Description:
   One more important pre-3.0 release that fixes most of remaining XML
@@ -14,6 +14,9 @@ Description:
   * [WSTX-46]: Trying to write another root element produced an incorrect
       error message
      (reported by John K)
+  * [WSTX-20], [WSTX-47]: XMLStreamWriter throwing IllegalStateExceptions
+     instead of XMLStreamExcpetions.
+     (reported by Dims, John K)
 
   New functionality:
 
