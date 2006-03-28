@@ -166,6 +166,8 @@ public interface InputConfigFlags
      */
     final static int CFG_CACHE_DTDS = 0x00010000;
 
+    final static int CFG_CACHE_BASED_ON_PUBLIC_ID = 0x00020000;
+
     // // // Lazy/incomplete parsing
 
     /**
@@ -178,7 +180,7 @@ public interface InputConfigFlags
      * reporting is also done 'lazily'; not right away when getting the next
      * even type but when either accessing data, or skipping it.
      */
-    final static int CFG_LAZY_PARSING = 0x00020000;
+    final static int CFG_LAZY_PARSING = 0x00040000;
 
     // // // Validation support
 
@@ -189,9 +191,9 @@ public interface InputConfigFlags
      * will also use any such information found from DTD when DTD validation
      * is enabled.
      */
-    final static int CFG_SUPPORT_DTDPP = 0x00040000;
+    final static int CFG_SUPPORT_DTDPP = 0x00080000;
 
     // Automatic W3C Schema support?
-    //final static int CFG_AUTOMATIC_W3C_SCHEMA = 0x00080000;
+    //final static int CFG_AUTOMATIC_W3C_SCHEMA = 0x00100000;
 }
 

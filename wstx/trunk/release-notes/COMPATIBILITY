@@ -1,5 +1,12 @@
 == Changes from 2.0.x to 3.0.x ==
 
+=== XML compatibility ===
+
+* 3.0 now support xml 1.1 cleanly (is aware of differences between 1.0,
+  uses separate well-formedness checks where necessary)
+* XML conformance significantly improved, to pass XMLTest test suite
+  (with 99%+ pass rate).
+
 === Stream reader ===
 
 * Default setting for P_REPORT_PROLOG_WHITESPACE is
@@ -15,6 +22,12 @@
 * Removed property P_TEXT_BUFFER_LENGTH, since there is no real benefit
   from changing this setting -- text buffer is resized dynamically as
   needed, and initial value is largely irrelevant.
+
+=== Stream writer ===
+
+* In 2.0.x most well-formedness checks (P_CHECK_xxx) resulted in
+  unchecked IllegalStateException. Due to requests by developers, who
+  found this unintuitive, these were replaced by checked XMLStreamExceptions.
 
 === Event reader ===
 

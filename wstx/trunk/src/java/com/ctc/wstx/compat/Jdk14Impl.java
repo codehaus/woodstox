@@ -30,6 +30,17 @@ public class Jdk14Impl
     /////////////////////////////////////////
      */
 
+    // // // Simple accessors
+
+    /**
+     * 1.4 finally has correct AND fast ThreadLocal implementation
+     * (see http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4414045
+     * for details); and following versions should be fine.
+     */
+    public final boolean leakingThreadLocal() {
+        return false;
+    }
+
     // // // Methods for accessing dummy data structures
 
     // 1.3 had them right already

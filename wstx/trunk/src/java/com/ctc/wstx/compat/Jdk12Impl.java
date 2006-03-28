@@ -40,6 +40,16 @@ public class Jdk12Impl
     /////////////////////////////////////////
      */
 
+    // // // Simple accessors
+
+    /**
+     * For 1.2, ThreadLocal actually does work correctly, although
+     * slowly (slow due to extra locking).
+     */
+    public boolean leakingThreadLocal() {
+        return false;
+    }
+
     // // // Methods for accessing dummy data structures
 
     public List getEmptyList() {

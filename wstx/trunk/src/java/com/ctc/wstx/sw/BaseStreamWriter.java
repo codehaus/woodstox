@@ -1737,7 +1737,7 @@ public abstract class BaseStreamWriter
     /**
      * This is the method called when an output method call violates
      * structural well-formedness checks
-     * and {@link WstxOutputProperties.P_OUTPUT_VALIDATE_STRUCTURE} is
+     * and {@link WstxOutputProperties#P_OUTPUT_VALIDATE_STRUCTURE} is
      * is enabled.
      */
     protected static void reportNwfStructure(String msg)
@@ -1755,7 +1755,7 @@ public abstract class BaseStreamWriter
     /**
      * This is the method called when an output method call violates
      * content well-formedness checks
-     * and {@link WstxOutputProperties.P_OUTPUT_VALIDATE_CONTENT} is
+     * and {@link WstxOutputProperties#P_OUTPUT_VALIDATE_CONTENT} is
      * is enabled.
      */
     protected static void reportNwfContent(String msg)
@@ -1773,7 +1773,7 @@ public abstract class BaseStreamWriter
     /**
      * This is the method called when an output method call violates
      * name well-formedness checks
-     * and {@link WstxOutputProperties.P_OUTPUT_VALIDATE_NAMES} is
+     * and {@link WstxOutputProperties#P_OUTPUT_VALIDATE_NAMES} is
      * is enabled.
      */
     protected static void reportNwfName(String msg)
@@ -1791,7 +1791,7 @@ public abstract class BaseStreamWriter
     /**
      * This is the method called when an output method call violates
      * attribute well-formedness checks (trying to output dup attrs)
-     * and {@link WstxOutputProperties.P_OUTPUT_VALIDATE_NAMES} is
+     * and {@link WstxOutputProperties#P_OUTPUT_VALIDATE_NAMES} is
      * is enabled.
      */
     protected static void reportNwfAttr(String msg)

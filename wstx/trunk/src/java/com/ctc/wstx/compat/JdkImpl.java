@@ -32,6 +32,19 @@ public abstract class JdkImpl
     /////////////////////////////////////////
      */
 
+    // // // Properties
+
+    /**
+     * This method is used to check whether GC-friendly caching can be
+     * implemented using {@link java.lang.ThreadLocal}. Some JDKs (notably,
+     * JDK 1.3.x) have possibility for memory leaks, and when running on
+     * them, such caching should not be used.
+     *
+     * @return True if using ThreadLocal is safe, and should not (in itself)
+     *   be able to cause memory leaks; false if it is possible
+     */
+    public abstract boolean leakingThreadLocal();
+
     // // // Methods for accessing dummy data structures
 
     public abstract List getEmptyList();

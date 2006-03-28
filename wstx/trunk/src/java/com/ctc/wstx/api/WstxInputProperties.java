@@ -51,8 +51,6 @@ public final class WstxInputProperties
 
     // // // XML character validation:
 
-    // // !!! TBI (feature)
-
     /**
      * Whether readers will verify that characters in text content are fully
      * valid XML characters (not just Unicode). If true, will check
@@ -74,6 +72,15 @@ public final class WstxInputProperties
 
     public final static String P_CACHE_DTDS = "com.ctc.wstx.cacheDTDs";
 
+    /**
+     * Whether reader is to cache DTDs (when caching enabled) based on public id
+     * or not: if not, system id will be primarily used. Although theoretically
+     * public IDs should be unique, and should be good caching keys, sometimes
+     * broken documents use 'wrong' public IDs, and such by default caching keys
+     * are based on system id only.
+     */
+    public final static String P_CACHE_BASED_ON_PUBLIC_IDS = "com.ctc.wstx.cacheBasedOnPublicIds";
+
 
     // // // Enabling/disabling lazy/incomplete parsing
 
@@ -92,6 +99,13 @@ public final class WstxInputProperties
 
     // // // Enabling alternate mode for parsing XML fragments instead
     // // // of full documents
+
+    // Automatic W3C Schema support?
+    /*
+     * Whether W3C Schema hint attributes are recognized within document,
+     * and used to locate Schema to use for validation.
+     */
+    //public final static String P_AUTOMATIC_W3C_SCHEMA = 0x00100000;
 
     /*
     ///////////////////////////////////////////////////////
@@ -187,22 +201,6 @@ public final class WstxInputProperties
     public final static String P_INPUT_PARSING_MODE = "com.ctc.wstx.fragmentMode";
 
     // // // DTD defaulting, overriding
-
-    // TO BE IMPLEMENTED:
-
-    /**
-     * If defined, the (DTD) validator instance that should be used for
-     * validation, if no DOCTYPE declaration (or DTD override setting)
-     * exists for the document.
-     */
-    public final static String P_DEFAULT_DTD =  "com.ctc.wstx.defaultDTD";
-
-    /**
-     * If defined, the (DTD) validator instance that should always be used for
-     * validation, independent of any default DTD setting, or DOCTYPE
-     * declaration.
-     */
-    public final static String P_OVERRIDE_DTD =  "com.ctc.wstx.overrideDTD";
 
     /*
     ////////////////////////////////////////////////////////////////////
