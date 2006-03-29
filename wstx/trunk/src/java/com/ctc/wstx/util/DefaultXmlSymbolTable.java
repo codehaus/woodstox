@@ -19,30 +19,50 @@ public final class DefaultXmlSymbolTable
     final static String mNsPrefixXml;
     final static String mNsPrefixXmlns;
 
-    final static String mRefAmp;
-    final static String mRefGt;
-    final static String mRefLt;
-    final static String mRefApos;
-    final static String mRefQuot;
-
+    /* Although theoretically there'd be no strict need to pre-populate
+     * the default table, if all access was done using suggested usage
+     * patterns (reuse input factories consistently, esp. for same types
+     * of documents), it is possible some developers just use each factory
+     * just once. As such, it does matter how tables are pre-populated.
+     * Thus, let's use limited sensible set of predefined prefixes and
+     * names.
+     */
     static {
         /* 128 means it's ok without resize up to ~96 symbols; true that
          * default symbols added will be interned.
          */
         sInstance = new SymbolTable(true, 128);
-        // Let's add default namespace identifiers
-        mNsPrefixXml = sInstance.findSymbol(XMLConstants.XML_NS_PREFIX); // "xml"
-        mNsPrefixXmlns = sInstance.findSymbol(XMLConstants.XMLNS_ATTRIBUTE); // "xmlns"
 
-        mRefAmp = sInstance.findSymbol("amp");
-        mRefGt = sInstance.findSymbol("gt");
-        mRefLt = sInstance.findSymbol("lt");
-        mRefApos = sInstance.findSymbol("apos");
-        mRefQuot = sInstance.findSymbol("quot");
+        // Let's add default namespace binding prefixes
+        mNsPrefixXml = sInstance.findSymbol("xml");
+        mNsPrefixXmlns = sInstance.findSymbol("xmlns");
 
         /* No need to add keywords, as they are checked directly by
          * Reader, without constructing Strings.
          */
+
+        // Ok, any common prefixes?
+        sInstance.findSymbol("ns");
+
+        // or local names (element, attribute)?
+        sInstance.findSymbol("id");
+        sInstance.findSymbol("name");
+
+        // XML Schema?
+        // prefixes:
+        sInstance.findSymbol("xsd");
+        sInstance.findSymbol("xsi");
+        // local names:
+        sInstance.findSymbol("type");
+
+        // How about some common prefixes and names for Soap?
+        // commonly used prefixes:
+        sInstance.findSymbol("soap");
+        sInstance.findSymbol("SOAP-ENC");
+        sInstance.findSymbol("SOAP-ENV");
+        // local names:
+        sInstance.findSymbol("Body");
+        sInstance.findSymbol("Envelope");
     }
 
     /*
@@ -72,24 +92,5 @@ public final class DefaultXmlSymbolTable
 
     public static String getXmlnsSymbol() {
         return mNsPrefixXmlns;
-    }
-
-    public static char getDefaultCharEntity(String ent) {
-        if (ent == mRefAmp) {
-            return '&';
-        }
-        if (ent == mRefLt) {
-            return '<';
-        }
-        if (ent == mRefQuot) {
-            return '"';
-        }
-        if (ent == mRefApos) {
-            return '\'';
-        }
-        if (ent == mRefGt) {
-            return '>';
-        }
-        return '\0';
     }
 }

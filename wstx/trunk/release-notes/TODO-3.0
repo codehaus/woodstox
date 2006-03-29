@@ -40,8 +40,7 @@ Planned stuff for 3.0 (or later)
    * (pretty-printing using DTD, see below)
 
 * Other validation (RelaxNG, W3C Schema):
-   * Connect Multi-Schema Validator using its native interface?
-   * Would it make sense to use JARV instead of/in addition to?
+[DONE] * Connect Multi-Schema Validator using its native interface?
    * How about DTD++? Data types should be reasonably easy...?
      Would also allow partial W3C Schema and RelaxNG implementations
      natively?
@@ -63,7 +62,7 @@ Planned stuff for 3.0 (or later)
 * Exception-handling:
 [DONE] * Add a WstxOutputException?
 [DONE] * Separate exception class for DTD-parsing problems?
-   * Perhaps add formal numeric (integer) error codes, to allow other code
+[Defer] * Perhaps add formal numeric (integer) error codes, to allow other code
      to more reliably determine problem type?
 
 * Caching:

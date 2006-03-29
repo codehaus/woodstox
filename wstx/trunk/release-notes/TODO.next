@@ -1,35 +1,3 @@
-== Immediate plans ==
-
-1.(a) Add setProperty() to reader/writer instances
-     * What features to add?
-
-2. Finish configuration documents at http://woodstox.codehaus.org; need
-   to have complete coverage of all config options available for 3.0.
-
-3. Improve output character encoding: characters below 32 (except for
-   tab, cr and lf) should always be encoded as entities. This also allows
-   for barfing on null chars, should someone try to output them?
-
 4. Optimized reader for UTF-8, which will initially assume US-Ascii contents;
   thus allowing for tighter initial decode loop (will then transfer to
   full version upon encountering first non-ascii char)
-
-5. Implement native SAX interface(s).
-
-6. Refactor validator API, to:
-  (a) Allow dynamic adding/removal of validators for reader
-  (b) Connect Multi-Schema Validator using its native API.
-  (c) Allow smart indenting
-
-7. Indentation:
-   (a) DTD/Schema based
-   (b) heuristic
-
-8. Xml:id support
-
-9. Testing, add:
-
-   * Test event writer
-   * Test pass-through modes
-   * Test filtered readers (event, stream)
-   * Event objects; test isXxx()
