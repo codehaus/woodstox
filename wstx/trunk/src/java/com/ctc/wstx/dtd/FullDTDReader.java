@@ -957,40 +957,6 @@ public class FullDTDReader
     }
 
     /**
-     * @return Number of white space characters skipped
-     */
-    private int dtdSkipCurrWs()
-        throws IOException, XMLStreamException
-    {
-        int count = 0;
-
-        while (true) {
-            char c;
-            if (mInputPtr < mInputLen) {
-                c = mInputBuffer[mInputPtr];
-            } else {
-                int i = peekNext();
-                if (i < 0) {
-                    break;
-                }
-                c = (char) i;
-            }
-            if (!isSpaceChar(c)) {
-                break;
-            }
-            ++mInputPtr;
-            if (c == '\n' || c == '\r') {
-                skipCRLF(c);
-            } else if (c != CHAR_SPACE && c != '\t') {
-                throwInvalidSpace(c);
-            }
-
-            ++count;
-        }
-        return count;
-    }
-
-    /**
      * Method that will get next character, and either return it as is (for
      * normal chars), or expand parameter entity that starts with next
      * character (which has to be '%').
@@ -2205,8 +2171,9 @@ public class FullDTDReader
 
         while (true) {
             if (c == '%') { // reference?
-                char d = dtdNextFromCurr();
-                if (isSpaceChar(d)) { // ok, PE declaration
+                // note: end-of-block acceptable, same as space
+                char d = dtdNextIfAvailable();
+                if (d == CHAR_NULL || isSpaceChar(d)) { // ok, PE declaration
                     isParam = true;
                     if (d == '\n' || c == '\r') {
                         skipCRLF(d);
@@ -2217,6 +2184,7 @@ public class FullDTDReader
                 if (!is11NameStartChar(d)) {
                     throwDTDUnexpectedChar(d, "; expected a space (for PE declaration) or PE reference name");
                 }
+                --mInputPtr; // need to push the first char back, then
                 gotSeparator = true;
                 expandPE();
                 // need the next char, from the new scope... or if it gets closed, this one
@@ -2238,10 +2206,11 @@ public class FullDTDReader
          */
         if (isParam) {
             /* PE definition: at this point we already know that there must
-             * have been a space... just need to skip the rest, if any
+             * have been a space... just need to skip the rest, if any.
+             * Also, can still get a PE to expand (name of a PE to define
+             * from a PE reference)
              */
-            dtdSkipCurrWs();
-            c = dtdNextChar();
+            c = skipDtdWs(true);
         }
 
         if (suppressPEDecl) { // only if mFlattenWriter != null
