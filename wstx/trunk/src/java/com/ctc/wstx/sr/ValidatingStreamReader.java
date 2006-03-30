@@ -543,8 +543,14 @@ public class ValidatingStreamReader
              );
         URL sysRef = (sysId == null || sysId.length() == 0) ? null :
             resolveExtSubsetPath(sysId);
-        
-        if (pubId != null && pubId.length() > 0) {
+
+        /* 29-Mar-2006, TSa: Apparently public ids are not always very
+         *   unique and/or can be mismatched with system ids, resulting
+         *   in false matches if using public ids. As a result, by default
+         *   Woodstox does NOT rely on public ids, when matching.
+         */
+        boolean usePublicId = (mConfigFlags & CFG_CACHE_DTDS_BY_PUBLIC_ID) != 0;
+        if (usePublicId && pubId != null && pubId.length() > 0) {
             return DTDId.construct(pubId, sysRef, significantFlags);
         }
         if (sysRef == null) {

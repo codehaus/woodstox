@@ -65,8 +65,9 @@ public final class ReaderConfig
     final static int PROP_NORMALIZE_LFS = 40;
     final static int PROP_NORMALIZE_ATTR_VALUES = 41;
     final static int PROP_CACHE_DTDS = 42;
-    final static int PROP_LAZY_PARSING = 43;
-    final static int PROP_SUPPORT_DTDPP = 44;
+    final static int PROP_CACHE_DTDS_BY_PUBLIC_ID = 43;
+    final static int PROP_LAZY_PARSING = 44;
+    final static int PROP_SUPPORT_DTDPP = 45;
 
     // Object type properties:
 
@@ -93,12 +94,12 @@ public final class ReaderConfig
     final static int MIN_INPUT_BUFFER_LENGTH = 8; // 16 bytes
 
     /**
-     * Let's allow caching of few dozens of DTDs... shouldn't really
+     * Let's allow caching of just a dozen DTDs... shouldn't really
      * matter, how many DTDs does one really use?
      */
-    final static int DTD_CACHE_SIZE_J2SE = 30;
+    final static int DTD_CACHE_SIZE_J2SE = 12;
 
-    final static int DTD_CACHE_SIZE_J2ME = 10;
+    final static int DTD_CACHE_SIZE_J2ME = 5;
 
     /*
     ////////////////////////////////////////////////
@@ -150,6 +151,10 @@ public final class ReaderConfig
          * (... maybe J2ME subset shouldn't do it?)
          */
         | CFG_CACHE_DTDS
+        /* 29-Mar-2006, TSa: But note, no caching by public-id, due
+         *   to problems with cases where public-id/system-id were
+         *   inconsistently used, leading to problems.
+         */
 
         /* by default, let's also allow lazy parsing, since it tends
          * to improve performance
@@ -225,6 +230,8 @@ public final class ReaderConfig
                         new Integer(PROP_NORMALIZE_ATTR_VALUES)); 
         sProperties.put(WstxInputProperties.P_CACHE_DTDS,
                         new Integer(PROP_CACHE_DTDS));
+        sProperties.put(WstxInputProperties.P_CACHE_DTDS_BY_PUBLIC_ID,
+                        new Integer(PROP_CACHE_DTDS_BY_PUBLIC_ID));
         sProperties.put(WstxInputProperties.P_LAZY_PARSING,
                         new Integer(PROP_LAZY_PARSING));
         sProperties.put(WstxInputProperties.P_SUPPORT_DTDPP,
@@ -440,6 +447,10 @@ public final class ReaderConfig
         return hasConfigFlags(CFG_CACHE_DTDS);
     }
 
+    public boolean willCacheDTDsByPublicId() {
+        return hasConfigFlags(CFG_CACHE_DTDS_BY_PUBLIC_ID);
+    }
+
     public boolean willParseLazily() {
         return hasConfigFlags(CFG_LAZY_PARSING);
     }
@@ -574,6 +585,10 @@ public final class ReaderConfig
 
     public void doCacheDTDs(boolean state) {
         setConfigFlag(CFG_CACHE_DTDS, state);
+    }
+
+    public void doCacheDTDsByPublicId(boolean state) {
+        setConfigFlag(CFG_CACHE_DTDS_BY_PUBLIC_ID, state);
     }
 
     public void doParseLazily(boolean state) {
@@ -953,6 +968,8 @@ public final class ReaderConfig
             return willNormalizeAttrValues() ? Boolean.TRUE : Boolean.FALSE;
         case PROP_CACHE_DTDS:
             return willCacheDTDs() ? Boolean.TRUE : Boolean.FALSE;
+        case PROP_CACHE_DTDS_BY_PUBLIC_ID:
+            return willCacheDTDsByPublicId() ? Boolean.TRUE : Boolean.FALSE;
         case PROP_LAZY_PARSING:
             return willParseLazily() ? Boolean.TRUE : Boolean.FALSE;
 
@@ -1048,6 +1065,10 @@ public final class ReaderConfig
 
         case PROP_CACHE_DTDS:
             doCacheDTDs(ArgUtil.convertToBoolean(propName, value));
+            break;
+
+        case PROP_CACHE_DTDS_BY_PUBLIC_ID:
+            doCacheDTDsByPublicId(ArgUtil.convertToBoolean(propName, value));
             break;
 
         case PROP_LAZY_PARSING:

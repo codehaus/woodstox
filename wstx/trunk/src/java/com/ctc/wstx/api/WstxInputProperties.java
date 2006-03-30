@@ -79,7 +79,7 @@ public final class WstxInputProperties
      * broken documents use 'wrong' public IDs, and such by default caching keys
      * are based on system id only.
      */
-    public final static String P_CACHE_BASED_ON_PUBLIC_IDS = "com.ctc.wstx.cacheBasedOnPublicIds";
+    public final static String P_CACHE_DTDS_BY_PUBLIC_ID = "com.ctc.wstx.cacheDTDsByPublicId";
 
 
     // // // Enabling/disabling lazy/incomplete parsing

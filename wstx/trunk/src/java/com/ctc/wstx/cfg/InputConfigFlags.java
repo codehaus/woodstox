@@ -166,7 +166,11 @@ public interface InputConfigFlags
      */
     final static int CFG_CACHE_DTDS = 0x00010000;
 
-    final static int CFG_CACHE_BASED_ON_PUBLIC_ID = 0x00020000;
+    /**
+     * If true, key used for matching DTD subsets can be the public id,
+     * if false, only system id can be used.
+     */
+    final static int CFG_CACHE_DTDS_BY_PUBLIC_ID = 0x00020000;
 
     // // // Lazy/incomplete parsing
 

@@ -37,7 +37,6 @@ import com.ctc.wstx.dtd.DTDSubset;
 import com.ctc.wstx.exc.WstxIOException;
 import com.ctc.wstx.io.*;
 import com.ctc.wstx.util.DefaultXmlSymbolTable;
-import com.ctc.wstx.util.SimpleCache;
 import com.ctc.wstx.util.SymbolTable;
 import com.ctc.wstx.util.TextBuilder;
 import com.ctc.wstx.util.URLUtil;
