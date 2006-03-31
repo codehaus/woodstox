@@ -2,7 +2,8 @@ package org.codehaus.staxmate.sr;
 
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
+
+import org.codehaus.stax2.XMLStreamReader2;
 
 /**
  * Default implementation of generic nested (scoped) iterator; iterator
@@ -19,7 +20,7 @@ public class SMNestedIterator
     ////////////////////////////////////////////
      */
 
-    public SMNestedIterator(SMIterator parent, XMLStreamReader sr, SMFilter f)
+    public SMNestedIterator(SMIterator parent, XMLStreamReader2 sr, SMFilter f)
     {
         super(parent, sr, f);
     }
@@ -40,24 +41,24 @@ public class SMNestedIterator
     ////////////////////////////////////////////
      */
 
-    public int getNext()
+    public SMEvent getNext()
         throws XMLStreamException
     {
-        if (mState == STATE_CLOSED) {
-            return SM_EVENT_NONE;
+        if (mState == State.CLOSED) {
+            return null;
         }
         /* If there is a child iterator, it has to be traversed
          * through
          */
-        if (mState == STATE_HAS_CHILD) {
+        if (mState == State.HAS_CHILD) {
             mChildIterator.skipTree();
             mChildIterator = null;
-            mState = STATE_ACTIVE;
-        } else if (mState == STATE_INITIAL) {
-            mState = STATE_ACTIVE;
+            mState = State.ACTIVE;
+        } else if (mState == State.INITIAL) {
+            mState = State.ACTIVE;
         } else { // active
             // If we had a start element, need to skip the subtree...
-            if (mCurrEvent == XMLStreamConstants.START_ELEMENT) {
+            if (mCurrEvent == SMEvent.START_ELEMENT) {
                 skipSubTree();
             }
         }
@@ -92,15 +93,16 @@ public class SMNestedIterator
                 throw new IllegalStateException("Unexpected END_DOCUMENT encountered (root = "+isRootIterator()+")");
             }
 
-            mCurrEvent = type;
+            SMEvent evt = sEventsByIds[type];
+            mCurrEvent = evt;
 
             // Ok, are we interested in this event?
-            if (mFilter != null && !mFilter.accept(type, this)) {
+            if (mFilter != null && !mFilter.accept(evt, this)) {
                 /* Nope, let's just skip over; but we may still need to
                  * create the tracked element?
                  */
                 if (type == XMLStreamConstants.START_ELEMENT) { 
-                    if (mElemTracking == TRACK_ELEM_ALL_SIBLINGS) {
+                    if (mElemTracking == Tracking.ALL_SIBLINGS) {
                         mTrackedElement = constructElementInfo
                             (mParentTrackedElement, mTrackedElement);
                     }
@@ -113,18 +115,18 @@ public class SMNestedIterator
 
             // Need to update tracked element?
             if (type == XMLStreamConstants.START_ELEMENT
-                && mElemTracking != TRACK_ELEM_NONE) {
-                SMElementInfo prev = (mElemTracking == TRACK_ELEM_PARENTS) ?
+                && mElemTracking != Tracking.NONE) {
+                SMElementInfo prev = (mElemTracking == Tracking.PARENTS) ?
                     null : mTrackedElement;
                 mTrackedElement = constructElementInfo(mParentTrackedElement, prev);
             }
-            return type;
+            return evt;
         }
 
         // Ok, no more events
-        mCurrEvent = SM_EVENT_NONE;
-        mState = STATE_CLOSED;
-        return SM_EVENT_NONE;
+        mState = State.CLOSED;
+        mCurrEvent = null;
+        return null;
     }
 
     public SMIterator constructChildIterator(SMFilter f) {
@@ -138,14 +140,14 @@ public class SMNestedIterator
     protected void skipTree()
         throws XMLStreamException
     {
-        if (mState == STATE_CLOSED) { // already finished?
+        if (mState == State.CLOSED) { // already finished?
             return;
         }
-        mCurrEvent = SM_EVENT_NONE;
-        mState = STATE_CLOSED;
+        mCurrEvent = null;
+        mState = State.CLOSED;
 
         // child iterator(s) to delegate skipping to?
-        if (mState == STATE_HAS_CHILD) {
+        if (mState == State.HAS_CHILD) {
             mChildIterator.skipTree();
             mChildIterator = null;
         }

@@ -36,10 +36,10 @@ public class SimpleFilter
     /////////////////////////////////////////////////////
      */
 
-    public boolean accept(int type, SMIterator caller)
+    public boolean accept(SMEvent evt, SMIterator caller)
         throws XMLStreamException
     {
-        return (mAllowedTypes & (1 << type)) != 0;
+        return (mAllowedTypes & (1 << evt.getEventCode())) != 0;
     }
 }
 

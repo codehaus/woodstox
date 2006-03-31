@@ -186,7 +186,7 @@ public abstract class SMOutputContainer
     ////////////////////////////////////////////////////////
     */
 
-    public SMOutputElement addElement(String localName, SMNamespace ns)
+    public SMOutputElement addElement(SMNamespace ns, String localName)
         throws XMLStreamException
     {
         final SMOutputContext ctxt = mContext;
@@ -215,7 +215,22 @@ public abstract class SMOutputContainer
 
         return newElem;
     }
-    
+
+    /**
+     * Convenience method (equivalent to
+     * <code>addElement(null, localName);</code>) for adding an element
+     * that is not in a namespace.
+     *<p>
+     * Note: this is NOT the same as outputting an element that simply
+     * has no prefix (ie. one that would belong to whatever is the
+     * current default namespace).
+     */
+    public SMOutputElement addElement(String localName)
+        throws XMLStreamException
+    {
+        return addElement(null, localName);
+    }
+
     public SMBufferable addBuffered(SMBufferable buffered)
         throws XMLStreamException
     {
@@ -251,7 +266,7 @@ public abstract class SMOutputContainer
         return new SMBufferedFragment(getContext());
     }
 
-    public SMBufferedElement createBufferedElement(String localName, SMNamespace ns)
+    public SMBufferedElement createBufferedElement(SMNamespace ns, String localName)
     {
         return new SMBufferedElement(getContext(), localName, ns);
     }

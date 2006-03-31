@@ -7,12 +7,17 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamReader; // for javadocs
 
 import org.codehaus.stax2.XMLStreamReader2;
 
 /**
- * Base class for iterators for StaxMate.
+ * Base class for reader-side iterators that form the main input-side
+ * abstraction offered by StaxMate.
+ *<p>
+ * Note: since iterators are thin wrappers around {@link XMLStreamReader2},
+ * and since not all Stax implementations implement
+ * {@link XMLStreamReader2}, some wrapping may be involved.
  *
  * @author Tatu Saloranta
  */
@@ -20,98 +25,120 @@ public abstract class SMIterator
 {
     /*
     ////////////////////////////////////////////
-    // Constants
+    // Constants, tracking
     ////////////////////////////////////////////
      */
-
-    // // // Additional dummy event value(s)
-
-    /**
-     * Constant that indicates that iterator has no more nodes to iterate
-     * over
-     */
-    public final static int SM_EVENT_NONE = -1;
 
     // // // Constants for element tracking:
 
     /**
-     * Value that indicates that no element state information should
-     * be tracked. This means that {@link #getTrackedElement} will always
-     * return null for this element, as well as that if immediate child
-     * iterators do have tracking enabled, element states it saves have
-     * no parent element information available.
+     * This enumeration lists different tracking behaviors available
+     * for iterators. Tracking is a feature that can be used to store
+     * information about traversed sub-trees, to allow for a limited
+     * access to information that is not limited to ancestor stack.
+     * Using tracking will consume more memory, but generally less
+     * than constructing a full in-memory tree object model (such
+     * as DOM), since it the represenation is compact, read-only,
+     * and only subset of a full tree (depending on tracking setting).
      */
-    public final static int TRACK_ELEM_NONE = 0;
+    public enum Tracking
+    {
+        /**
+         * Value that indicates that no element state information should
+         * be tracked. This means that {@link #getTrackedElement} will always
+         * return null for this element, as well as that if immediate child
+         * iterators do have tracking enabled, element states it saves have
+         * no parent element information available.
+         */
+        NONE,
 
-    /**
-     * Value that indicates that basic element state information should
-     * be tracked, including linkage to the parent element (but only
-     * if the parent iterator was tracking elements).
-     * This means that {@link #getTrackedElement} will return non-null
-     * values, as soon as this iterator has been advanced over its first
-     * element node. However, element will return null from its
-     * {@link SMElementInfo#getPreviousSibling} since sibling information
-     * is not tracked.
+        /**
+         * Value that indicates that element basic state information should
+         * be tracked, including linkage to the parent element (but only
+         * if the parent iterator was tracking elements).
+         * This means that {@link #getTrackedElement} will return non-null
+         * values, as soon as this iterator has been advanced over its first
+         * element node. However, element will return null from its
+         * {@link SMElementInfo#getPreviousSibling} since sibling information
+         * is not tracked.
+         */
+        PARENTS,
+
+        /**
+         * Value that indicates full element state information should
+         * be tracked for all "visible" elements: visible meaning that element
+         * node was accepted by the filter this iterator uses.
+         * This means that {@link #getTrackedElement} will return non-null
+         * values, as soon as this iterator has been advanced over its first
+         * element node, and that element will return non-null from its
+         * {@link SMElementInfo#getPreviousSibling} unless it's the first element
+         * iterated by this iterator.
+         */
+        VISIBLE_SIBLINGS,
+
+        /**
+         * Value that indicates full element state information should
+         * be tracked for ALL elements (including ones not visible to the
+         * caller via {@link #getNext} method).
+         * This means that {@link #getTrackedElement} will return non-null
+         * values, as soon as this iterator has been advanced over its first
+         * element node, and that element will return non-null from its
+         * {@link SMElementInfo#getPreviousSibling} unless it's the first element
+         * iterated by this iterator.
+         */
+        ALL_SIBLINGS
+    }
+
+    /*
+    ////////////////////////////////////////////
+    // Constants, initial iterator state
+    ////////////////////////////////////////////
      */
-    public final static int TRACK_ELEM_PARENTS = 1;
-
-    /**
-     * Value that indicates full element state information should
-     * be tracked for all "visible" elements: visible meaning that element
-     * node was accepted by the filter this iterator uses.
-     * This means that {@link #getTrackedElement} will return non-null
-     * values, as soon as this iterator has been advanced over its first
-     * element node, and that element will return non-null from its
-     * {@link SMElementInfo#getPreviousSibling} unless it's the first element
-     * iterated by this iterator.
-     */
-    public final static int TRACK_ELEM_VISIBLE_SIBLINGS = 2;
-
-    /**
-     * Value that indicates full element state information should
-     * be tracked for ALL elements (including ones not visible to the
-     * caller via {@link #getNext} method).
-     * This means that {@link #getTrackedElement} will return non-null
-     * values, as soon as this iterator has been advanced over its first
-     * element node, and that element will return non-null from its
-     * {@link SMElementInfo#getPreviousSibling} unless it's the first element
-     * iterated by this iterator.
-     */
-    public final static int TRACK_ELEM_ALL_SIBLINGS = 3;
-
 
     // // // Constants for the iterator state
 
-    /**
-     * Initial means that the iterator has been constructed, but hasn't
-     * yet been advanced. No data can be accessed yet, but the iterator
-     * can be advanced.
+    protected enum State {
+        /**
+         * Initial means that the iterator has been constructed, but hasn't
+         * yet been advanced. No data can be accessed yet, but the iterator
+         * can be advanced.
+         */
+        INITIAL,
+
+        /**
+         * Active means that iterator's data is valid and can be accessed;
+         * plus it can be advanced as well.
+         */
+        ACTIVE,
+
+        /**
+         * Status that indicates that although iterator would be active, there
+         * is a child iterator active which means that this iterator can not
+         * be used to access data: only the innermost child iterator can.
+         * It can still be advanced, however.
+         */
+        HAS_CHILD,
+
+        /**
+         * Closed iterators are ones that do not point to accessible data, nor
+         * can be advanced any further.
+         */
+        CLOSED
+    }
+
+    /*
+    ////////////////////////////////////////////
+    // Constants, other
+    ////////////////////////////////////////////
      */
-    public final static int STATE_INITIAL = 0;
 
     /**
-     * Active means that iterator's data is valid and can be accessed;
-     * plus it can be advanced as well.
+     * This is the mapping array, indexed by Stax 1.0 event type integer
+     * code, value being matching {@link SMEvent} enumeration value.
      */
-    public final static int STATE_ACTIVE = 1;
+    protected final static SMEvent[] sEventsByIds =
+        SMEvent.constructIdToEventMapping();
 
-    /**
-     * Status that indicates that although iterator would be active, there
-     * is a child iterator active which means that this iterator can not
-     * be used to access data: only the innermost child iterator can.
-     * It can still be advanced, however.
-     */
-    public final static int STATE_HAS_CHILD = 2;
-
-    /**
-     * Closed iterators are ones that do not point to accessible data, nor
-     * can be advanced any further.
-     */
-    public final static int STATE_CLOSED = 3;
-
-    protected final static String[] STATE_DESCS = new String[] {
-        "[INITIAL]", "[ACTIVE]", "[HAS_CHILD]", "[CLOSED]"
-    };
 
     /*
     ////////////////////////////////////////////
@@ -119,7 +146,13 @@ public abstract class SMIterator
     ////////////////////////////////////////////
      */
 
-    protected final XMLStreamReader mStreamReader;
+    /**
+     * Underlying stream reader used. It will either be a native
+     * {@link XMLStreamReader2} instance, or a regular (Stax 1.0)
+     * {@link javax.xml.stream.XMLStreamReader} wrapped in an
+     * adapter.
+     */
+    protected final XMLStreamReader2 mStreamReader;
 
     /**
      * Optional filter object that can be used to filter out events of
@@ -129,11 +162,9 @@ public abstract class SMIterator
 
     /**
      * Whether element information is to be tracked or not, and if it is,
-     * how much of it will be stored. See <code>TRACK_ELEM_xxx</code>
-     * constants (like {@link #TRACK_ELEM_NONE}
-     * {@link #TRACK_ELEM_PARENTS}.
+     * how much of it will be stored. See {@link Tracking} for details.
      */
-    protected int mElemTracking;
+    protected Tracking mElemTracking = Tracking.NONE;
 
     /**
      * Optional factory instance that is used to create element info
@@ -152,9 +183,12 @@ public abstract class SMIterator
     ////////////////////////////////////////////
      */
 
-    protected int mCurrEvent = SM_EVENT_NONE;
+    protected SMEvent mCurrEvent = null;
 
-    protected int mState = STATE_INITIAL;
+    /**
+     * Current state of the iterator.
+     */
+    protected State mState = State.INITIAL;
 
     /**
      * Number of nodes iterated over by this iterator, including the
@@ -217,7 +251,7 @@ public abstract class SMIterator
     ////////////////////////////////////////////
      */
 
-    public SMIterator(SMIterator parent, XMLStreamReader sr, SMFilter filter)
+    public SMIterator(SMIterator parent, XMLStreamReader2 sr, SMFilter filter)
     {
         mStreamReader = sr;
         mFilter = filter;
@@ -225,7 +259,7 @@ public abstract class SMIterator
          * or "no tracking" if we have no parent
          */
         if (parent == null) {
-            mElemTracking = TRACK_ELEM_NONE;
+            mElemTracking = Tracking.NONE;
             mParentTrackedElement = null;
             mParentCount = 0;
             mElemInfoFactory = null;
@@ -244,13 +278,13 @@ public abstract class SMIterator
     /**
      * Changes tracking mode of this iterator to the new specified
      * mode. Default mode for iterators is the one their parent uses;
-     * {@link #TRACK_ELEM_NONE} for root iterators with no parent.
+     * {@link Tracking#NONE} for root iterators with no parent.
      */
-    public final void setElementTracking(int tracking) {
+    public final void setElementTracking(Tracking tracking) {
         mElemTracking = tracking;
     }
 
-    public final int getElementTracking() {
+    public final Tracking getElementTracking() {
         return mElemTracking;
     }
 
@@ -321,11 +355,23 @@ public abstract class SMIterator
     public abstract int getDepth();
 
     /**
-     * @return Type of event this iterator points to (if it currently points
-     *   to one), or last pointed to (if not).
+     * Returns the type of event this iterator either currently points to
+     * (if in valid state), or pointed to (if ever iterated forward), or
+     * null if just created.
+     *
+     * @return Type of event this iterator points to, if it currently points
+     *   to one, or last one it pointed to otherwise (if ever pointed to
+     *   a valid event), or null if neither.
      */
-    public int getEventType() {
+    public SMEvent getCurrEvent() {
         return mCurrEvent;
+    }
+
+    /**
+     * Convenience method doing 
+     */
+    public int getCurrEventCode() {
+        return (mCurrEvent == null) ? 0 : mCurrEvent.getEventCode();
     }
 
     /*
@@ -357,26 +403,8 @@ public abstract class SMIterator
     ////////////////////////////////////////////////
      */
 
-    public boolean readerAccessible() {
-        return (mState == STATE_ACTIVE);
-    }
-
-    public boolean isCurrentText()
-        throws XMLStreamException
-    {
-        if (!readerAccessible()) {
-            return false;
-        }
-        return mStreamReader.hasText();
-    }
-
-    public boolean hasCurrName()
-        throws XMLStreamException
-    {
-        if (!readerAccessible()) {
-            return false;
-        }
-        return mStreamReader.hasName();
+    public final boolean readerAccessible() {
+        return (mState == State.ACTIVE);
     }
 
     /**
@@ -387,7 +415,7 @@ public abstract class SMIterator
      *
      * @return Stream reader the iterator uses for getting XML events
      */
-    public XMLStreamReader getStreamReader() {
+    public final XMLStreamReader2 getStreamReader() {
         return mStreamReader;
     }
 
@@ -448,7 +476,7 @@ public abstract class SMIterator
         if (!readerAccessible()) {
             return notAccessible("getText");
         }
-        if (getEventType() != XMLStreamConstants.START_ELEMENT) {
+        if (getCurrEvent() != SMEvent.START_ELEMENT) {
             throwXsEx("Can not call 'getText()' when iterator is not positioned over START_ELEMENT (current event "+currentEventStr()+")"); 
         }
 
@@ -462,23 +490,23 @@ public abstract class SMIterator
          * also slightly optimize things, by avoiding StringBuilder
          * construction if there's just one node.
          */
-        if (childIt.getNext() == SMIterator.SM_EVENT_NONE) {
+        if (childIt.getNext() == null) {
             return "";
         }
         String text = childIt.getText(); // has to be a text event
-        if ((childIt.getNext()) == SMIterator.SM_EVENT_NONE) {
+        if (childIt.getNext() == null) {
             return text;
         }
 
         int size = text.length();
         StringBuffer sb = new StringBuffer((size < 500) ? 500 : size);
         sb.append(text);
-        XMLStreamReader sr = childIt.getStreamReader();
+        XMLStreamReader2 sr = childIt.getStreamReader();
         do {
             // Let's assume char array access is more efficient...
             sb.append(sr.getTextCharacters(), sr.getTextStart(),
                       sr.getTextLength());
-        } while (childIt.getNext() != SMIterator.SM_EVENT_NONE);
+        } while (childIt.getNext() != null);
 
         return sb.toString();
     }
@@ -502,13 +530,15 @@ public abstract class SMIterator
         SMIterator childIt = descendantIterator(f);
 
         // Any text in there?
-        XMLStreamReader sr = childIt.getStreamReader();
-        while (childIt.getNext() != SMIterator.SM_EVENT_NONE) {
-            // Let's assume char array access is more efficient...
-            /* !!! 24-Jan-2006, TSa: Could/should use Stax2 accessor?
+        XMLStreamReader2 sr = childIt.getStreamReader();
+        while (childIt.getNext() != null) {
+            /* 'true' indicates that we are not to lose the text contained
+             * (can call getText() multiple times, idempotency). While this
+             * may not be as efficient as allowing content to be discarded,
+             * let's play it safe. Another method could be added for
+             * the alternative (fast but dangerous) behaviour as needed.
              */
-            w.write(sr.getTextCharacters(), sr.getTextStart(),
-                    sr.getTextLength());
+            sr.getText(w, true);
         }
     }
 
@@ -518,41 +548,65 @@ public abstract class SMIterator
     ////////////////////////////////////////////////////
      */
 
-    public QName getElemName()
+    public QName getQName()
         throws XMLStreamException
     {
         if (!readerAccessible()) {
-            notAccessible("getElemName");
-            return null; // probably never gets here
+            notAccessible("getName");
+            return null; // never gets here
         }
         return mStreamReader.getName();
     }
 
-    public String getElemLocalName()
+    /**
+     * For events with fully qualified names (START_ELEMENT, END_ELEMENT,
+     * ATTRIBUTE, NAMESPACE), returns the local component of the full
+     * name. For events with only non-qualified name (PROCESSING_INSTRUCTION,
+     * entity and notation declarations, references), returns the name.
+     * For other events, returns null.
+     *
+     * @return Local component of the name
+     */
+    public String getLocalName()
         throws XMLStreamException
     {
         if (!readerAccessible()) {
-            return notAccessible("getElemLocalName");
+            return notAccessible("getLocalName");
         }
         return mStreamReader.getLocalName();
     }
 
-    public String getElemPrefix()
+    public String getPrefix()
         throws XMLStreamException
     {
         if (!readerAccessible()) {
-            return notAccessible("getElemPrefix");
+            return notAccessible("getPrefix");
         }
         return mStreamReader.getPrefix();
     }
 
-    public String getElemNsUri()
+    public String getNsUri()
         throws XMLStreamException
     {
         if (!readerAccessible()) {
-            return notAccessible("getElemNsUri");
+            return notAccessible("getNsUri");
         }
         return mStreamReader.getNamespaceURI();
+    }
+
+    /**
+     * Returns a String representation of either the fully-qualified name
+     * (if the event has full name) or the local name (if event does not
+     * have full name but has local name); or if no name available, throws
+     * stream exception.
+     */
+    public String getPrefixedName()
+        throws XMLStreamException
+    {
+        if (!readerAccessible()) {
+            return notAccessible("getPrefixedName");
+        }
+        return mStreamReader.getPrefixedName();
     }
 
     /*
@@ -580,23 +634,7 @@ public abstract class SMIterator
             return -1; // never gets here
         }
 
-        // Stax2 has an efficient method for this:
-        if (mStreamReader instanceof XMLStreamReader2) {
-            return ((XMLStreamReader2) mStreamReader).getAttributeInfo().findAttributeIndex(uri, localName);
-        }
-        if (uri == null) {
-            uri = "";
-        }
-
-        // Otherwise need to iterate over it...
-        for (int i = 0, len = mStreamReader.getAttributeCount(); i < len; ++i) {
-            if (mStreamReader.getAttributeLocalName(i).equals(localName)) {
-                if (uri.equals(mStreamReader.getAttributeNamespace(i))) {
-                    return i;
-                }
-            }
-        }
-        return -1;
+        return mStreamReader.getAttributeInfo().findAttributeIndex(uri, localName);
     }
 
     public QName getAttrName(int index)
@@ -643,6 +681,24 @@ public abstract class SMIterator
             return notAccessible("getAttributeValue");
         }
         return mStreamReader.getAttributeValue(index);
+    }
+
+    /**
+     * Convenience accessor method to access an attribute that is
+     * not in a namespace (has no prefix).
+     */
+    public String getAttrValue(String localName)
+        throws XMLStreamException
+    {
+        if (!readerAccessible()) {
+            return notAccessible("getAttributeValue");
+        }
+        /* If we are to believe StAX specs, null would mean "do not
+         * check namespace" -- that's pretty much never what anyone
+         * really wants (or, at least should use), so let's pass
+         * "" to indicate "no namespace"
+         */
+        return mStreamReader.getAttributeValue("", localName);
     }
 
     public String getAttrValue(String uri, String localName)
@@ -744,10 +800,10 @@ public abstract class SMIterator
      *
      * @return Type of event (from {@link XMLStreamConstants}, such as
      *   {@link XMLStreamConstants#START_ELEMENT}, if a new node was
-     *   iterated over; {@link #SM_EVENT_NONE} when there are no more
+     *   iterated over; <code>null</code> when there are no more
      *   nodes this iterator can iterate over.
      */
-    public abstract int getNext()
+    public abstract SMEvent getNext()
         throws XMLStreamException;
 
     /**
@@ -770,18 +826,18 @@ public abstract class SMIterator
     public SMIterator childIterator(SMFilter f)
         throws XMLStreamException
     {
-        if (mState != STATE_ACTIVE) {
-            if (mState == STATE_HAS_CHILD) {
+        if (mState != State.ACTIVE) {
+            if (mState == State.HAS_CHILD) {
                 throw new IllegalStateException("Child iterator already requested.");
             }
             throw new IllegalStateException("Can not iterate children: iterator does not point to a start element (state "+getStateDesc()+")");
         }
-        if (mCurrEvent != XMLStreamConstants.START_ELEMENT) {
+        if (mCurrEvent != SMEvent.START_ELEMENT) {
             throw new IllegalStateException("Can not iterate children: iterator does not point to a start element (pointing to "+mCurrEvent+")");
         }
 
         mChildIterator = constructChildIterator(f);
-        mState = STATE_HAS_CHILD;
+        mState = State.HAS_CHILD;
         return mChildIterator;
     }
 
@@ -809,18 +865,18 @@ public abstract class SMIterator
     public SMIterator descendantIterator(SMFilter f)
         throws XMLStreamException
     {
-        if (mState != STATE_ACTIVE) {
-            if (mState == STATE_HAS_CHILD) {
+        if (mState != State.ACTIVE) {
+            if (mState == State.HAS_CHILD) {
                 throw new IllegalStateException("Child iterator already requested.");
             }
             throw new IllegalStateException("Can not iterate children: iterator does not point to a start element (state "+getStateDesc()+")");
         }
-        if (mCurrEvent != XMLStreamConstants.START_ELEMENT) {
+        if (mCurrEvent != SMEvent.START_ELEMENT) {
             throw new IllegalStateException("Can not iterate children: iterator does not point to a start element (pointing to "+mCurrEvent+")");
         }
 
         mChildIterator = constructDescendantIterator(f);
-        mState = STATE_HAS_CHILD;
+        mState = State.HAS_CHILD;
         return mChildIterator;
     }
 
@@ -904,7 +960,7 @@ public abstract class SMIterator
         if (mElemInfoFactory != null) {
             return mElemInfoFactory.constructElementInfo(this, parent, prevSibling);
         }
-        XMLStreamReader sr = mStreamReader;
+        XMLStreamReader2 sr = mStreamReader;
         return new DefaultElementInfo(parent, prevSibling,
                                       sr.getPrefix(), sr.getNamespaceURI(), sr.getLocalName(),
                                       mNodeCount-1, mElemCount-1, getDepth());
@@ -959,16 +1015,13 @@ public abstract class SMIterator
         if (mChildIterator != null) {
             throwXsEx("Can not call '"+method+"(): iterator does not point to a valid node, as it has an active open child iterator.");
         }
-        throwXsEx("Can not call '"+method+"(): iterator does not point to a valid node (type "+getEventType()+"; iterator state "
+        throwXsEx("Can not call '"+method+"(): iterator does not point to a valid node (curr event "+getCurrEvent()+"; iterator state "
                   +getStateDesc());
         return null;
     }
 
     protected String getStateDesc() {
-        if (mState < 0 || mState >= STATE_DESCS.length) {
-            return "[Unknown]";
-        }
-        return STATE_DESCS[mState];
+        return mState.toString();
     }
 
     /**
@@ -977,7 +1030,7 @@ public abstract class SMIterator
      */
     protected String currentEventStr()
     {
-        return eventTypeDesc(mCurrEvent);
+        return (mCurrEvent == null) ? "null" : mCurrEvent.toString();
     }
 
     protected void throwXsEx(String msg)
@@ -985,40 +1038,5 @@ public abstract class SMIterator
     {
         // !!! TODO: use StaxMate-specific sub-classes of XMLStreamException?
         throw new XMLStreamException(msg, mStreamReader.getLocation());
-    }
-
-    public static String eventTypeDesc(int type)
-    {
-        switch (type) {
-        case XMLStreamConstants.START_ELEMENT:
-            return "START_ELEMENT";
-        case XMLStreamConstants.END_ELEMENT:
-            return "END_ELEMENT";
-        case XMLStreamConstants.START_DOCUMENT:
-            return "START_DOCUMENT";
-        case XMLStreamConstants.END_DOCUMENT:
-            return "END_DOCUMENT";
-
-        case XMLStreamConstants.CHARACTERS:
-            return "CHARACTERS";
-        case XMLStreamConstants.CDATA:
-            return "CDATA";
-        case XMLStreamConstants.SPACE:
-            return "SPACE";
-
-        case XMLStreamConstants.COMMENT:
-            return "COMMENT";
-        case XMLStreamConstants.PROCESSING_INSTRUCTION:
-            return "PROCESSING_INSTRUCTION";
-        case XMLStreamConstants.DTD:
-            return "DTD";
-        case XMLStreamConstants.ENTITY_REFERENCE:
-            return "ENTITY_REFERENCE";
-
-            // StaxMate - specific marker...
-        case SM_EVENT_NONE:
-            return "[NONE]";
-        }
-        return "["+type+"]";
     }
 }

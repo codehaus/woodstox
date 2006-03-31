@@ -19,7 +19,7 @@ public abstract class SMFilter
      * Methods iterators call to check whether specified event should
      * be return, or filtered out.
      *
-     * @param type Type of the event that would be passed/filtered.
+     * @param evt Enumerated (type of the) event that would be passed/filtered
      * @param caller Iterator that is calling this filter. Note that at
      *   this point it is possible that not all state information
      *   of iterator have been updated; however, its stream reader
@@ -29,6 +29,6 @@ public abstract class SMFilter
      * @return If true, event is to be returned; if false, it should be
      *    filtered out.
      */
-    public abstract boolean accept(int type, SMIterator caller)
+    public abstract boolean accept(SMEvent evt, SMIterator caller)
         throws XMLStreamException;
 }

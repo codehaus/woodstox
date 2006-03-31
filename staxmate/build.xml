@@ -6,7 +6,7 @@
 
     <!-- Woodstox version -->
     <property name="STAXMATE_TITLE" value="StaxMate" />
-    <property name="STAXMATE_VERSION" value="0.7" />
+    <property name="STAXMATE_VERSION" value="0.9" />
     <property name="STAXMATE_VENDOR" value="http://woodstox.codehaus.org" />
 
     <property name="ProjectName" value="StaxMate library" />
@@ -98,15 +98,23 @@
         <mkdir dir="${DistDir}" />
     </target>
 
-    <!--*********************************************************************-->
-    <!-- clean - Removes all generated files/directories.                    -->
-    <!--*********************************************************************-->
+    <target name="all" depends="clean,javadoc,test,dist">
+        <!-- This target simply depends on others to do its job -->
+    </target>
+
+    <!--*********************************************************-->
+    <!-- clean - Removes all generated files/directories.        -->
+    <!--*********************************************************-->
     <target name="clean">
         <delete dir="${BuildDir}"/>
         <delete dir="${DocDir}"/>
         <delete dir="${TestDir}"/>
         <delete dir="${DistDir}"/>
     </target>
+
+    <!--*********************************************************-->
+    <!-- Compilation -->
+    <!--*********************************************************-->
 
     <target name="compile" depends="prepare">
         <javac SrcDir="${JavaSrcDir}" destdir="${BuildClassesDir}"
@@ -115,6 +123,41 @@
             <include name="org/codehaus/staxmate/**/*.java" />
             <classpath refid="compile-classpath" />
         </javac>
+    </target>
+
+    <!--*********************************************************-->
+    <!-- Packaging... -->
+    <!--*********************************************************-->
+
+    <target name="dist" depends="compile,jar,src-dist,javadoc">
+       <!-- First, let's copy the binary jars to dist -->
+       <copy todir="${DistDir}">
+           <fileset dir="${BuildDir}">
+             <include name="staxmate-*.jar" />
+           </fileset>
+       </copy>
+       <!-- Then copy javadocs -->
+       <copy todir="${DistDir}">
+         <fileset dir="${BuildDir}" includes="javadoc/**/*" />
+       </copy>
+       <!-- Plus, let's also just copy README and compatibility files, in
+            addition to being included in source package
+         -->
+       <copy todir="${DistDir}" >
+            <fileset dir="." includes="release-notes/*" />
+       </copy>
+    </target>
+
+    <target name="src-dist">
+       <tar basedir="${basedir}" destfile="${DistDir}/staxmate-src-${STAXMATE_VERSION}.tar">
+         <patternset refid="dist-src-files" />
+       </tar>
+       <gzip zipfile="${DistDir}/staxmate-src-${STAXMATE_VERSION}.tar.gz"
+         src="${DistDir}/staxmate-src-${STAXMATE_VERSION}.tar" />
+       <delete file="${DistDir}/staxmate-src.tar" />
+       <zip basedir="${basedir}" destfile="${DistDir}/staxmate-src-${STAXMATE_VERSION}.zip">
+         <patternset refid="dist-src-files" />
+       </zip>
     </target>
 
     <target name="jar" depends="compile">
@@ -144,10 +187,6 @@
             <classpath refid="compile-classpath" />
         </javadoc>
     </target> 
- 
-    <target name="all" depends="clean,javadoc,test,dist">
-        <!-- This target simply depends on others to do its job -->
-    </target>
 
     <!--*********************************************************************-->
     <!-- Tasks from here down are in support of junit tests.                 -->
@@ -194,35 +233,4 @@
             <report todir="${TestResultsDir}" />
         </junitreport>
    </target>
-
-    <target name="dist" depends="compile,jar,javadoc"
-    >
-       <!-- First, let's copy the binary jars to dist -->
-       <copy todir="${DistDir}">
-           <fileset dir="${BuildDir}">
-             <include name="staxmate-*.jar" />
-           </fileset>
-       </copy>
-
-       <!-- Then let's create the source distribution package -->
-       <tar basedir="${basedir}" destfile="${DistDir}/staxmate-src.tar">
-         <patternset refid="dist-src-files" />
-       </tar>
-       <gzip zipfile="${DistDir}/staxmate-src.tar.gz" src="${DistDir}/staxmate-src.tar" />
-       <delete file="${DistDir}/staxmate-src.tar" />
-       <zip basedir="${basedir}" destfile="${DistDir}/staxmate-src.zip">
-         <patternset refid="dist-src-files" />
-       </zip>
-
-       <!-- Then copy javadocs -->
-       <copy todir="${DistDir}">
-         <fileset dir="${BuildDir}" includes="javadoc/**/*" />
-       </copy>
-       <!-- Plus, let's also just copy README and compatibility files, in
-            addition to being included in source package
-         -->
-       <copy todir="${DistDir}" >
-            <fileset dir="." includes="release-notes/*" />
-       </copy>
-    </target>
 </project>

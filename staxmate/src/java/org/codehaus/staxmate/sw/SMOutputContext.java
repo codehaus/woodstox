@@ -59,7 +59,7 @@ public final class SMOutputContext
     //////////////////////////////////////////////////////
     */
 
-    final XMLStreamWriter mStreamWriter;
+    final XMLStreamWriter2 mStreamWriter;
     final NamespaceContext mRootNsContext;
     final boolean mRepairing;
 
@@ -117,7 +117,7 @@ public final class SMOutputContext
     //////////////////////////////////////////////////////
     */
 
-    protected SMOutputContext(XMLStreamWriter sw, NamespaceContext rootNsCtxt)
+    protected SMOutputContext(XMLStreamWriter2 sw, NamespaceContext rootNsCtxt)
     {
         mStreamWriter = sw;
         mRootNsContext = rootNsCtxt;
@@ -131,13 +131,13 @@ public final class SMOutputContext
     //////////////////////////////////////////////////////
     */
 
-    public static SMOutputContext createInstance(XMLStreamWriter sw, NamespaceContext rootNsCtxt)
+    public static SMOutputContext createInstance(XMLStreamWriter2 sw, NamespaceContext rootNsCtxt)
         throws XMLStreamException
     {
         return new SMOutputContext(sw, rootNsCtxt);
     }
 
-    public static SMOutputContext createInstance(XMLStreamWriter sw)
+    public static SMOutputContext createInstance(XMLStreamWriter2 sw)
         throws XMLStreamException
     {
         return createInstance(sw, sw.getNamespaceContext());
@@ -334,7 +334,7 @@ public final class SMOutputContext
     //////////////////////////////////////////////////////
     */
 
-    public final XMLStreamWriter getWriter() {
+    public final XMLStreamWriter2 getWriter() {
         return mStreamWriter;
     }
     
@@ -376,12 +376,7 @@ public final class SMOutputContext
     public void writeCData(char[] buf, int offset, int len)
         throws XMLStreamException
     {
-        // Can we use StAX2?
-        if (mStreamWriter instanceof XMLStreamWriter2) {
-            ((XMLStreamWriter2) mStreamWriter).writeCData(buf, offset, len);
-        } else {
-            mStreamWriter.writeCData(new String(buf, offset, len));
-        }
+        mStreamWriter.writeCData(buf, offset, len);
     }
     
     public void writeComment(String text)
@@ -594,15 +589,7 @@ public final class SMOutputContext
                                    boolean standalone)
         throws XMLStreamException
     {
-        XMLStreamWriter w = mStreamWriter;
-
-        // Can we use StAX2?
-        if (w instanceof XMLStreamWriter2) {
-            ((XMLStreamWriter2) w).writeStartDocument(version, encoding, standalone);
-        } else {
-            // note: Stax 1.0 has weird ordering for the args...
-            w.writeStartDocument(encoding, version);
-        }
+        mStreamWriter.writeStartDocument(version, encoding, standalone);
     }
 
     public void writeEndDocument()
@@ -613,34 +600,12 @@ public final class SMOutputContext
         mStreamWriter.close();
     }
 
-    public void writeDoctypeDeclaration(String rootName,
-                                        String systemId, String publicId,
-                                        String intSubset)
+    public void writeDoctypeDecl(String rootName,
+                                 String systemId, String publicId,
+                                 String intSubset)
         throws XMLStreamException
     {
-        XMLStreamWriter w = mStreamWriter;
-        if (w instanceof XMLStreamWriter2) {
-            ((XMLStreamWriter2) w).writeDTD
-                (rootName, systemId, publicId, intSubset);
-        } else {
-            // Damn this is ugly, with stax1.0...
-            String dtd = "<!DOCTYPE "+rootName;
-            if (publicId == null) {
-                if (systemId != null) {
-                    dtd += " SYSTEM";
-                }
-            } else {
-                dtd += " PUBLIC '"+publicId+"'";
-            }
-            if (systemId != null) {
-                dtd += " '"+systemId+"'";
-            }
-            if (intSubset != null) {
-                dtd += " ["+intSubset+"]";
-            }
-            dtd += ">";
-            w.writeDTD(dtd);
-        }
+        mStreamWriter.writeDTD(rootName, systemId, publicId, intSubset);
     }
 
     /*

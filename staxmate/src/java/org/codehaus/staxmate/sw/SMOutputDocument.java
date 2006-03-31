@@ -47,20 +47,17 @@ public class SMOutputDocument
     ///////////////////////////////////////////////////////////
     */
 
-    public void addDoctypeDeclaration(String rootName,
-                                      String systemId, String publicId)
+    public void addDoctypeDecl(String rootName, String systemId, String publicId)
         throws XMLStreamException
     {
-        addDoctypeDeclaration(rootName, systemId, publicId, null);
+        addDoctypeDecl(rootName, systemId, publicId, null);
     }
 
-    public void addDoctypeDeclaration(String rootName,
-                                      String systemId, String publicId,
-                                      String intSubset)
+    public void addDoctypeDecl(String rootName, String systemId, String publicId,
+                               String intSubset)
         throws XMLStreamException
     {
-        getContext().writeDoctypeDeclaration(rootName, systemId, publicId,
-                                             intSubset);
+        getContext().writeDoctypeDecl(rootName, systemId, publicId, intSubset);
     }
 
     /*

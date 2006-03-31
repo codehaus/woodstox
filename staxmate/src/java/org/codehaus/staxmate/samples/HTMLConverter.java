@@ -5,6 +5,7 @@ import java.io.*;
 import javax.xml.stream.*;
 
 import org.codehaus.staxmate.SMIteratorFactory;
+import org.codehaus.staxmate.sr.SMEvent;
 import org.codehaus.staxmate.sr.SMIterator;
 
 
@@ -55,7 +56,10 @@ public final class HTMLConverter
         XMLStreamReader sr = f.createXMLStreamReader(in);
 
         SMIterator it = SMIteratorFactory.rootElementIterator(sr);
-        it.setElementTracking(SMIterator.TRACK_ELEM_VISIBLE_SIBLINGS);
+        /* Need to store some information about preceding siblings,
+         * so let's enable tracking.
+         */
+        it.setElementTracking(SMIterator.Tracking.VISIBLE_SIBLINGS);
 
         Writer out = new PrintWriter(System.out);
 
@@ -77,7 +81,7 @@ public final class HTMLConverter
     {
         it.getNext(); // has to be of type element now...
 
-        String origName = it.getElemLocalName();
+        String origName = it.getLocalName();
         String name = origName.toLowerCase();
 
         /* It _should_ be HTML... but let's also allow lone 'body'
@@ -91,10 +95,10 @@ public final class HTMLConverter
         }
 
         SMIterator mainIt = it.childElementIterator();
-        int type;
+        SMEvent evt;
 
-        while ((type = mainIt.getNext()) != SMIterator.SM_EVENT_NONE) {
-            origName = mainIt.getElemLocalName();
+        while (mainIt.getNext() != null) {
+            origName = mainIt.getLocalName();
             name = origName.toLowerCase();
 
             // Should be 'head' or 'body'
@@ -117,9 +121,8 @@ public final class HTMLConverter
         throws IOException, XMLStreamException
     {
         SMIterator headIt = parentIt.childElementIterator();
-        int type;
-        while ((type = headIt.getNext()) != SMIterator.SM_EVENT_NONE) {
-            if (headIt.getElemLocalName().toLowerCase().equals("title")) {
+        while (headIt.getNext() != null) {
+            if (headIt.getLocalName().toLowerCase().equals("title")) {
                 // Could capitalize it too...
                 out.write("== ");
                 String str = headIt.collectDescendantText(true);
@@ -146,18 +149,18 @@ public final class HTMLConverter
          * specific elements (tables etc)
          */
         SMIterator bodyIt = parentIt.descendantMixedIterator();
-        int type;
         StringBuffer text = null; // for collected 'loose' text
+        SMEvent evt;
 
-        while ((type = bodyIt.getNext()) != SMIterator.SM_EVENT_NONE) {
+        while ((evt = bodyIt.getNext()) != null) {
             // Let's weed out end elements right away...
-            if (type == XMLStreamConstants.END_ELEMENT) {
+            if (evt == SMEvent.END_ELEMENT) {
                 continue;
             }
             // And straight text as well:
             String inline;
-            if (type == XMLStreamConstants.START_ELEMENT) {
-                String tag = bodyIt.getElemLocalName().toLowerCase();
+            if (evt == SMEvent.START_ELEMENT) {
+                String tag = bodyIt.getLocalName().toLowerCase();
                 if (processBlockElement(bodyIt, out, tag, text)) {
                     // true -> was succesfully handled
                     text = null;
@@ -270,8 +273,8 @@ public final class HTMLConverter
         SMIterator listIt = it.childElementIterator();
 
         // We'll only get START_ELEMENTs here except for EOF:
-        while (listIt.getNext() != SMIterator.SM_EVENT_NONE) {
-            String tag = listIt.getElemLocalName().toLowerCase();
+        while (listIt.getNext() != null) {
+            String tag = listIt.getLocalName().toLowerCase();
             if (tag.equals("li")) {
                 processListItem(listIt, out, type, depth);
             } else if (tag.equals("ul")) {
@@ -305,11 +308,11 @@ public final class HTMLConverter
          * even sublists.
          */
         SMIterator itemIt = it.childMixedIterator();
-        int type;
+        SMEvent evt;
 
-        while ((type = itemIt.getNext()) != SMIterator.SM_EVENT_NONE) {
-            if (type == XMLStreamConstants.START_ELEMENT) {
-                String tag = itemIt.getElemLocalName().toLowerCase();
+        while ((evt = itemIt.getNext()) != null) {
+            if (evt == SMEvent.START_ELEMENT) {
+                String tag = itemIt.getLocalName().toLowerCase();
                 // only care about sub-lists:
                 if (tag.equals("ul") || tag.equals("ol")) {
                     out.write('\n'); // to finish off the current line
@@ -346,8 +349,8 @@ public final class HTMLConverter
          */
         SMIterator tableIt = it.childElementIterator();
         // We'll only get START_ELEMENTs here except for EOF:
-        while (tableIt.getNext() != SMIterator.SM_EVENT_NONE) {
-            String tag = tableIt.getElemLocalName().toLowerCase();
+        while (tableIt.getNext() != null) {
+            String tag = tableIt.getLocalName().toLowerCase();
             if (tag.equals("thead") || tag.equals("tfoot")
                 || tag.equals("tbody")) {
                 /* Let's just recursively call this method, should be
@@ -370,8 +373,8 @@ public final class HTMLConverter
         SMIterator rowIt = it.childElementIterator();
         out.write("|");
         // We'll only get START_ELEMENTs here except for EOF:
-        while (rowIt.getNext() != SMIterator.SM_EVENT_NONE) {
-            String tag = rowIt.getElemLocalName().toLowerCase();
+        while (rowIt.getNext() != null) {
+            String tag = rowIt.getLocalName().toLowerCase();
             if (tag.equals("td")) {
                 processTableCell(rowIt, out, headerRow);
             } else if (tag.equals("th")) {
@@ -392,10 +395,10 @@ public final class HTMLConverter
          * about text and inline markup, though.
          */
         SMIterator cellIt = it.childMixedIterator();
-        int type;
-        while ((type = cellIt.getNext()) != SMIterator.SM_EVENT_NONE) {
-            if (type == XMLStreamConstants.START_ELEMENT) {
-                String tag = cellIt.getElemLocalName().toLowerCase();
+        SMEvent evt;
+        while ((evt = cellIt.getNext()) != null) {
+            if (evt == SMEvent.START_ELEMENT) {
+                String tag = cellIt.getLocalName().toLowerCase();
                 // No sub-tables or lists allowed... just inline markup
                 String str = checkInlineMarkup(cellIt, tag);
                 if (str != null) {

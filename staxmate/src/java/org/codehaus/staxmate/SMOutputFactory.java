@@ -6,6 +6,7 @@ import javax.xml.stream.XMLStreamWriter;
 import org.codehaus.staxmate.sw.SMOutputContext;
 import org.codehaus.staxmate.sw.SMOutputDocument;
 import org.codehaus.staxmate.sw.SMRootFragment;
+import org.codehaus.staxmate.util.Stax2WriterAdapter;
 
 /**
  * Factory class used to create various outputter (like
@@ -28,7 +29,8 @@ public final class SMOutputFactory
     public static SMOutputDocument createOutputDocument(XMLStreamWriter sw)
         throws XMLStreamException
     {
-        SMOutputContext ctxt = SMOutputContext.createInstance(sw);
+        SMOutputContext ctxt = SMOutputContext.createInstance
+            (Stax2WriterAdapter.wrapIfNecessary(sw));
         return ctxt.createDocument();
     }
 
@@ -38,7 +40,8 @@ public final class SMOutputFactory
 							boolean standAlone)
         throws XMLStreamException
     {
-        SMOutputContext ctxt = SMOutputContext.createInstance(sw);
+        SMOutputContext ctxt = SMOutputContext.createInstance
+            (Stax2WriterAdapter.wrapIfNecessary(sw));
         return ctxt.createDocument(version, encoding, standAlone);
     }
 
@@ -54,7 +57,8 @@ public final class SMOutputFactory
     public static SMRootFragment createOutputFragment(XMLStreamWriter sw)
         throws XMLStreamException
     {
-        SMOutputContext ctxt = SMOutputContext.createInstance(sw);
+        SMOutputContext ctxt = SMOutputContext.createInstance
+            (Stax2WriterAdapter.wrapIfNecessary(sw));
         return ctxt.createRootFragment();
     }
 }
