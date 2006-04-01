@@ -385,20 +385,22 @@ public class NonNsStreamWriter
     private void doWriteStartElement(String localName)
         throws XMLStreamException
     {
+        if (mCheckNames) {
+            verifyNameValidity(localName, false);
+        }
         mAnyOutput = true;
         // Need to finish an open start element?
         if (mStartElementOpen) {
             closeStartElement(mEmptyElement);
-        }
-        if (mCheckNames) {
-            verifyNameValidity(localName, false);
-        }
-
-        if (mState == STATE_PROLOG) {
+        } else if (mState == STATE_PROLOG) {
             mState = STATE_TREE;
-        } else if (mCheckStructure && mState == STATE_EPILOG) {
-            throw new IllegalStateException("Trying to output second root ('"
-                                            +localName+"').");
+        } else if (mState == STATE_EPILOG) {
+            if (mCheckStructure) {
+                throw new IllegalStateException("Trying to output second root ('"
+                                                +localName+"').");
+            }
+            // Outputting fragment? Better reset to tree, then...
+            mState = STATE_TREE;
         }
 
         mStartElementOpen = true;

@@ -1,14 +1,20 @@
-Version: 2.0.6
+Version: 2.0.7
 
-Release date: xx-Mar-2006
+Release date: xx-Apr-2006
 
 Description:
   A maintenance release for 2.0, including some critical fixes.
 
   Problems fixed:
+ 
+== History: ==
+
+2.0.6: [31-Mar-2006]
+
+  Problems fixed:
 
   * Fixed a bug in dtd.ElementIdMap; was missing entries on rehash() (and
-    that causing an error from sanity check)
+    that was causing an error from sanity check)
   * Fixed a bug in XML name parsing -- was not acception some valid
     (albeit seldom used) name characters (0xF6 for example)
   * [WSTX-45] WstxEventReader threw an exception at EOF, instead of returning
@@ -17,8 +23,11 @@ Description:
   * [WSTX-46]: Trying to write another root element produced an incorrect
       error message
      (reported by John K)
- 
-== History: ==
+  * Fixed a problem with P_OUTPUT_VALIDATE_STRUCTURE; setProperty() was
+    setting property
+     (reported by Steve Y)
+  * Improved handling of output with multiple roots: if not checking
+    structure, should not throw an exception.
 
 2.0.5: [22-Jan-2006]
 

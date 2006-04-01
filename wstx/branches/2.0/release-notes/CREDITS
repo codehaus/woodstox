@@ -149,3 +149,11 @@ John Kristian:
   * Reported [WSTX-46] Trying to write another root element produced an
     incorrect error message
     [2.0.6]
+
+Steve Yost:
+  * Reported a problem with setting P_VALIDATE_STRUCTURE
+    [2.0.6]
+  * Reported a problem with stream writer when trying to output
+    non-wellformed (multiple root elements) content even when
+    structural well-formedness checks are disabled.
+

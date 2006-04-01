@@ -353,21 +353,20 @@ public abstract class BaseNsStreamWriter
     protected void checkStartElement(String localName)
         throws XMLStreamException
     {
-        // Need to finish an open start element?
-        if (mStartElementOpen) {
-            closeStartElement(mEmptyElement);
-        }
-        if (mCheckStructure && mState == STATE_EPILOG) {
-            throw new IllegalStateException("Trying to output second root ('"
-                                            +localName+"').");
-        }
-
-        if (mCheckContent) {
+        if (mCheckNames) {
             verifyNameValidity(localName, mNsAware);
         }
 
-        if (mState == STATE_PROLOG) {
+        // Need to finish an open start element?
+        if (mStartElementOpen) {
+            closeStartElement(mEmptyElement);
+        } else if (mState == STATE_PROLOG) {
             mState = STATE_TREE;
+        } else if (mState == STATE_EPILOG) {
+            if (mCheckStructure) {
+                throw new IllegalStateException("Trying to output second root ('"
+                                                +localName+"').");
+            }
         }
     }
 

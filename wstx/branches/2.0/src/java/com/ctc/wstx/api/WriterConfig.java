@@ -317,7 +317,7 @@ public final class WriterConfig
             */
 
         case PROP_VALIDATE_STRUCTURE:
-            doValidateContent(ArgUtil.convertToBoolean(name, value));
+            doValidateStructure(ArgUtil.convertToBoolean(name, value));
             break;
 
         case PROP_VALIDATE_CONTENT:
