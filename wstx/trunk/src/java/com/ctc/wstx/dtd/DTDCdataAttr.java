@@ -36,9 +36,6 @@ public final class DTDCdataAttr
      */
 
     // @Override
-    /**
-     * 
-     */
     public String validate(DTDValidatorBase v, char[] cbuf, int start, int end, boolean normalize)
         throws XMLValidationException
     {
@@ -47,9 +44,6 @@ public final class DTDCdataAttr
     }
 
     // @Override
-    /**
-     * 
-     */
     public void validateDefault(InputProblemReporter rep, boolean normalize)
         throws javax.xml.stream.XMLStreamException
     {
@@ -57,9 +51,6 @@ public final class DTDCdataAttr
     }
 
     // @Override
-    /**
-     * 
-     */
     public String normalize(DTDValidatorBase v, char[] cbuf, int start, int end)
     {
         // Nothing to do for pure CDATA attributes...
@@ -67,9 +58,6 @@ public final class DTDCdataAttr
     }
 
     // @Override
-    /**
-     * 
-     */
     public void normalizeDefault()
     {
         // Nothing to do for pure CDATA attributes...

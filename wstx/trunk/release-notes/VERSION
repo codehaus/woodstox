@@ -1,11 +1,15 @@
-Version: 2.9.2
+Version: 2.9.3
 
-Release date: xx-Mar-2006
+Release date: xx-Apr-2006
 
 Description:
-  One more important pre-3.0 release that fixes most of remaining XML
-  conformance issues (and is, as a by-product, much more similar in
-  behavior to SAX parsers like Xerces).
+  Last pre-3.0 release?
+
+  Problems fixed:
+
+== History: ==
+
+2.9.2 [31-Mar-2006]
 
   Problems fixed:
 
@@ -18,17 +22,16 @@ Description:
      instead of XMLStreamExcpetions.
      (reported by Dims, John K)
 
-  New functionality:
-
-  * Implemented (pluggable) XMLValidator for RelaxNG, based on
-    Sun Multi-Schema Validator!
-
   Improvements:
 
   * Added some more necessary methods to Stax2 XMLStreamReader2, to
     allow adding custom validators.
 
-== History: ==
+  New functionality:
+
+  * Implemented (pluggable) XMLValidator for RelaxNG, based on
+    Sun Multi-Schema Validator!
+
 
 2.9.1 [22-Feb-2006]
 
@@ -107,6 +110,16 @@ Description:
 
 2.8.1 [20-Dec-2005]
 
+  Problems fixed:
+
+  * Various fixes from 2.0.4 release.
+
+  Improvements:
+
+  * Improved performance of handling of elements that do not have any
+    attributes: results in up to 5% speed increase for documents that
+    are element-heavy but attribute poor.
+
   New functionality:
 
   * Full validator support on writer side: the existing Woodstox DTD
@@ -119,16 +132,6 @@ Description:
 
   * DTD validation completely rewritten, to use the next StAX2 validation
     interfaces; some minor problems fixed.
-
-  Problems fixed:
-
-  * Various fixes from 2.0.4 release.
-
-  Improvements:
-
-  * Improved performance of handling of elements that do not have any
-    attributes: results in up to 5% speed increase for documents that
-    are element-heavy but attribute poor.
 
 2.8 [11-Oct-2005]
 

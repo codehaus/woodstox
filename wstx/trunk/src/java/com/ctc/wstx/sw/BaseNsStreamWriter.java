@@ -389,22 +389,25 @@ public abstract class BaseNsStreamWriter
     protected void checkStartElement(String localName, String prefix)
         throws XMLStreamException
     {
-        // Need to finish an open start element?
-        if (mStartElementOpen) {
-            closeStartElement(mEmptyElement);
-        }
-        if (mCheckStructure && mState == STATE_EPILOG) {
-            String name = (prefix == null || prefix.length() == 0) ?
-                localName : (prefix + ":" + localName);
-            reportNwfStructure(ErrorConsts.WERR_PROLOG_SECOND_ROOT, name);
-        }
-
-        if (mCheckContent) {
+        if (mCheckNames) {
             verifyNameValidity(localName, mNsAware);
         }
 
-        if (mState == STATE_PROLOG) {
+        // Need to finish an open start element?
+        if (mStartElementOpen) {
+            closeStartElement(mEmptyElement);
+        } else if (mState == STATE_PROLOG) {
             verifyRootElement(localName, prefix);
+        } else if (mState == STATE_EPILOG) {
+            if (mCheckStructure) {
+                String name = (prefix == null || prefix.length() == 0) ?
+                    localName : (prefix + ":" + localName);
+                reportNwfStructure(ErrorConsts.WERR_PROLOG_SECOND_ROOT, name);
+            }
+            /* When outputting a fragment, need to reset this to the
+             * tree. No point in trying to verify the root element?
+             */
+            mState = STATE_TREE;
         }
     }
 

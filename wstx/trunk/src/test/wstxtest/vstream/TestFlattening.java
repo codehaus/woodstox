@@ -42,6 +42,7 @@ public class TestFlattening
             +"]]>\n"
             +"<!NOTATION myNot SYSTEM 'foobar:xyz'>\n"
             +"%pe;\n"
+            +"<!ENTITY a '&#65;'>\n"
             +"<?proc instr?>\r\n"
             ;
         StringReader strr = new StringReader(DTD);

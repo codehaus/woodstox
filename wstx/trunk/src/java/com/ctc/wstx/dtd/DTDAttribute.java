@@ -255,7 +255,7 @@ public abstract class DTDAttribute
 
     /**
      * Method called to do initial normalization of the default attribute
-     * value, without trying to (fully?) verify its validity. Thus, it's
+     * value, without trying to verify its validity. Thus, it's
      * called independent of whether we are fully validating the document.
      */
     public void normalizeDefault()

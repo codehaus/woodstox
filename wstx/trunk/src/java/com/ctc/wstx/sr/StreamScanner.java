@@ -1645,6 +1645,14 @@ public abstract class StreamScanner
     protected abstract void handleIncompleteEntityProblem(WstxInputSource closing)
         throws XMLStreamException;
 
+    /**
+     * Method called when a character entity needs to expand to a pair
+     * of 16-bit surrogate characters. The exact mechanism to relay
+     * this information back is different for some use cases (specifically,
+     * when dealing with internal entity expansion).
+     */
+    protected abstract char handleExpandedSurrogate(char first, char second);
+
     /*
     ////////////////////////////////////////////////////
     // Basic tokenization
@@ -2306,23 +2314,15 @@ public abstract class StreamScanner
                 value -= 0x10000;
                 char first = (char) ((value >> 10)  + 0xD800);
                 char second = (char) ((value & 0x3FF)  + 0xDC00);
-                
-                /* Ok, so; need to push back second, return first:
-                 * (we know buffer has room for at least one char at this point)
-                 */
-                /* !!! 11-Feb-2006, TSa: But is this safe with internal entities?
-                 *   It probably is (since char entities are expanded within
-                 *   those values...? but there may be secondary expansions?)
-                 */
-                mInputBuffer[--mInputPtr] = second;
-                return first;
+
+                return handleExpandedSurrogate(first, second);
             } else if (value >= 0xFFFE) { // 0xFFFE and 0xFFFF are illegal too
                 reportIllegalChar(value);
             }
             // Ok, fine as is
         } else if (value < 32) {
             if (value == 0) {
-                throwParseError("Invalid character reference -- null character not allowed in XML content.");
+                throwParseError("Invalid character reference: null character not allowed in XML content.");
             }
             // XML 1.1 allows most other chars; 1.0 does not:
             if (!mXml11 &&

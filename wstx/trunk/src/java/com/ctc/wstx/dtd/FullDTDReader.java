@@ -259,6 +259,18 @@ public class FullDTDReader
      */
     boolean mExpandingPE = false;
 
+    /**
+     * Text buffer used for constructing expansion value of the internal
+     * entities. Lazily constructed when needed, reused.
+     */
+    TextBuffer mEntValBuffer = null;
+
+    /**
+     * Second character of a surrogate pair returned, if any; CHAR_NULL
+     * to indicate none.
+     */
+    char mSurrogateSecond = CHAR_NULL;
+
     /*
     //////////////////////////////////////////////////
     // Reader state
@@ -1353,7 +1365,7 @@ public class FullDTDReader
      * Method that reads and pre-processes replacement text for an internal
      * entity (parameter or generic).
      */
-    private TextBuffer parseEntityValue(String id, Location loc, char quoteChar)
+    private char[] parseEntityValue(String id, Location loc, char quoteChar)
         throws IOException, XMLStreamException
     {
         /* 25-Jun-2004, TSa: Let's first mark current input source as the
@@ -1371,7 +1383,10 @@ public class FullDTDReader
          */
         boolean allowPEs = mIsExternal || (mInput != mRootInput);
 
-        TextBuffer tb = TextBuffer.createTemporaryBuffer(EXP_ENTITY_VALUE_LEN);
+        TextBuffer tb = mEntValBuffer;
+        if (tb == null) {
+            tb = TextBuffer.createTemporaryBuffer(EXP_ENTITY_VALUE_LEN);
+        }
         tb.resetInitialized();
 
         char[] outBuf = tb.getCurrentSegment();
@@ -1392,7 +1407,7 @@ public class FullDTDReader
                     break;
                 }
             } else if (c == '&') { // char entity that needs to be replaced?
-                /* 06-Sep-2004, TSa: We can NOT expand char entities, as
+                /* 06-Sep-2004, TSa: We can NOT expand pre-defined entities, as
                  *   XML specs consider them 'real' (non-char) entities.
                  *   And expanding them would cause problems with entities
                  *   that have such entities.
@@ -1401,6 +1416,16 @@ public class FullDTDReader
                 // Did we get a real char entity?
                 if (d != CHAR_NULL) {
                     c = d;
+                    if (mSurrogateSecond != CHAR_NULL) { // surrogate pair?
+                        // Need more room?
+                        if (outPtr >= outBuf.length) {
+                            outBuf = tb.finishCurrentSegment();
+                            outPtr = 0;
+                        }
+                        outBuf[outPtr++] = c;
+                        c = mSurrogateSecond;
+                        mSurrogateSecond = CHAR_NULL;
+                    }
                 } else {
                     /* 11-Feb-2006, TSa: Even so, must verify that the
                      *   entity reference is well-formed.
@@ -1449,50 +1474,43 @@ public class FullDTDReader
                     markLF();
                 } else if (c == '\r') {
                     if (skipCRLF(c)) {
-                        if (mCfgNormalizeLFs) {
-                            c = '\n';
-                        } else {
+                        if (!mCfgNormalizeLFs) {
                             // Special handling, to output 2 chars at a time:
-                            outBuf[outPtr++] = c;
                             if (outPtr >= outBuf.length) { // need more room?
                                 outBuf = tb.finishCurrentSegment();
                                 outPtr = 0;
                             }
-                            outBuf[outPtr++] = '\n';
-                            if (outPtr >= outBuf.length) {
-                                outBuf = tb.finishCurrentSegment();
-                                outPtr = 0;
-                            }
-                            // No need to use default output
-                            continue;
+                            outBuf[outPtr++] = c;
                         }
+                        c = '\n';
                     } else {
-                        if (mCfgNormalizeLFs) {
-                            c = '\n'; // For Mac text
+                        if (mCfgNormalizeLFs) { // Mac LF
+                            c = '\n';
                         }
                     }
                 } else if (c != '\t') {
                     throwInvalidSpace(c);
                 }
             }
-                
-            // Ok, let's add char to output:
-            outBuf[outPtr++] = c;
-
+            
             // Need more room?
             if (outPtr >= outBuf.length) {
                 outBuf = tb.finishCurrentSegment();
                 outPtr = 0;
             }
+            // Ok, let's add char to output:
+            outBuf[outPtr++] = c;
         }
         tb.setCurrentLength(outPtr);
-
+        
         // Ok, now need the closing '>':
         char c = skipDtdWs(true);
         if (c != '>') {
             throwDTDUnexpectedChar(c, "; expected closing '>' after ENTITY declaration");
         }
-        return tb;
+        char[] result = tb.contentsAsArray();
+        mEntValBuffer = tb; // recycle, if needed later on
+        return result;
     }
 
     /**
@@ -1504,7 +1522,7 @@ public class FullDTDReader
      * Whether forward references are allowed or not is an open question
      * right now.
      */
-    private void parseAttrDefaultValue(DefaultAttrValue defVal, char quoteChar, NameKey attrName,
+        private void parseAttrDefaultValue(DefaultAttrValue defVal, char quoteChar, NameKey attrName,
                                        Location loc, boolean gotFixed)
         throws IOException, XMLStreamException
     {
@@ -1612,6 +1630,16 @@ public class FullDTDReader
                         }
                         // Ok, should have updated the input source by now
                         continue main_loop;
+                    }
+                    if (mSurrogateSecond != CHAR_NULL) { // surrogate pair?
+                        if (outPtr >= outLen) { // need more room?
+                            outBuf = mTextBuffer.finishCurrentSegment();
+                            outPtr = 0;
+                            outLen = outBuf.length;
+                        }
+                        outBuf[outPtr++] = c;
+                        c = mSurrogateSecond;
+                        mSurrogateSecond = CHAR_NULL;
                     }
                 } else if (c == '<') {
                     throwDTDUnexpectedChar(c, SUFFIX_IN_DEF_ATTR_VALUE);
@@ -2241,9 +2269,9 @@ public class FullDTDReader
                 char foo = dtdNextFromCurr();
                 Location contentLoc = getLastCharLocation();
                 --mInputPtr; // pushback
-                TextBuffer contents = parseEntityValue(id, contentLoc, c);
-                ent = new IntEntity(evtLoc, id, getSource(),
-                                    contents.contentsAsArray(), contentLoc);
+                char[] contents = parseEntityValue(id, contentLoc, c);
+                ent = new IntEntity(evtLoc, id, getSource(), contents,
+                                    contentLoc);
             } else {
                 if (!is11NameStartChar(c)) {
                     throwDTDUnexpectedChar(c, "; expected either quoted value, or keyword 'PUBLIC' or 'SYSTEM'");
@@ -3096,9 +3124,9 @@ public class FullDTDReader
     }
 
     /*
-    ///////////////////////////////////////////////////////
-    // Error handling
-    ///////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////
+    // Implementations of abstract methods from StreamScanner
+    //////////////////////////////////////////////////////////
      */
 
     // @Override
@@ -3221,6 +3249,30 @@ public class FullDTDReader
                               "Unbalanced PE: has to be fully contained in a declaration (as per xml 1.0.3, section 2.8, VC 'Proper Declaration/PE Nesting')");
         }
     }
+
+    /**
+     * In most cases, surrogate pair can be expanded in-situ (like done
+     * with regular xml reader), but there are cases where this can not
+     * be done. Specifically, when expanding internal entities from the
+     * internal subset (or when flattening DTDs) this would lead to
+     * problems.
+     */
+    protected char handleExpandedSurrogate(char first, char second)
+    {
+        /* With normal XML textual content we should be safe by just
+         * directly modifying input buffer, essentially injecting
+         * second character back into input buffer (which is known
+         * to have room for at least one char at this point).
+         */
+        mSurrogateSecond = second;
+        return first;
+    }
+
+    /*
+    ///////////////////////////////////////////////////////
+    // Error handling
+    ///////////////////////////////////////////////////////
+     */
 
     private void reportWarning(XMLReporter rep, String probType, String msg,
                                Location loc, Object extraArg)

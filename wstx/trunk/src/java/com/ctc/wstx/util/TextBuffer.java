@@ -707,10 +707,14 @@ public final class TextBuffer
          */
         if (mInputStart >= 0) {
             unshare(1);
-        } else if (mCurrentSize >= mCurrentSegment.length) {
-            /* Plus, we better have room for at least one more char
-             */
-            expand(1);
+        } else {
+            char[] curr = mCurrentSegment;
+            if (curr == null) {
+                mCurrentSegment = new char[mInitialBufSize];
+            } else if (mCurrentSize >= curr.length) {
+                // Plus, we better have room for at least one more char
+                expand(1);
+            }
         }
         return mCurrentSegment;
     }

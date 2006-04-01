@@ -5095,6 +5095,17 @@ public class BasicStreamReader
                         +closing.getEntityId()+"; was expecting a close tag for element <"+top+">");
     } 
 
+    protected char handleExpandedSurrogate(char first, char second)
+    {
+        /* With normal XML textual content we should be safe by just
+         * directly modifying input buffer, essentially injecting
+         * second character back into input buffer (which is known
+         * to have room for at least one char at this point).
+         */
+        mInputBuffer[--mInputPtr] = second;
+        return first;
+    }
+
     /*
     ////////////////////////////////////////////////////
     // Internal methods, validation, error handling and

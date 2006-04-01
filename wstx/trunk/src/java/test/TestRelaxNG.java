@@ -19,8 +19,7 @@ import com.ctc.wstx.sr.InputElementStack;
 public class TestRelaxNG
     implements XMLStreamConstants
 {
-    private TestRelaxNG() {
-    }
+    private TestRelaxNG() { }
 
     protected int test(File schemaFile, File xmlFile)
         throws Exception

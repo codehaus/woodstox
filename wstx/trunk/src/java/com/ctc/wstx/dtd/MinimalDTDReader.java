@@ -142,6 +142,12 @@ public class MinimalDTDReader
         // nothing to do...
     }
 
+    protected char handleExpandedSurrogate(char first, char second)
+    {
+        // should we throw an exception?
+        return first;
+    }
+
     /*
     //////////////////////////////////////////////////
     // Internal API

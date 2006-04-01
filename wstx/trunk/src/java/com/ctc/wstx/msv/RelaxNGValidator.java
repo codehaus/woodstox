@@ -141,6 +141,13 @@ public class RelaxNGValidator
             doValidateText(mTextAccumulator);
         }
 
+        /* 31-Mar-2006, TSa: MSV seems to require empty String for empty/no
+         *   namespace, not null.
+         */
+        if (uri == null) {
+            uri = "";
+        }
+
         /* Do we need to properly fill it? Or could we just put local name?
          * Looking at code, I do believe it's only used for error reporting
          * purposes...
@@ -167,6 +174,13 @@ public class RelaxNGValidator
         if (mCurrAcceptor != null) {
             String qname = localName; // for now, let's assume we don't need prefixed version
             DatatypeRef typeRef = null; // for now, let's not care
+
+            /* 31-Mar-2006, TSa: MSV seems to require empty String for empty/no
+             *   namespace, not null.
+             */
+            if (uri == null) {
+                uri = "";
+            }
 
             if (!mCurrAcceptor.onAttribute2(uri, localName, qname, value, mMsvContext, mErrorRef, typeRef)
                 || mErrorRef.str != null) {

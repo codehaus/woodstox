@@ -423,20 +423,22 @@ public class NonNsStreamWriter
     private void doWriteStartElement(String localName)
         throws XMLStreamException
     {
+        if (mCheckNames) {
+            verifyNameValidity(localName, false);
+        }
         mAnyOutput = true;
         // Need to finish an open start element?
         if (mStartElementOpen) {
             closeStartElement(mEmptyElement);
-        }
-        if (mCheckNames) {
-            verifyNameValidity(localName, false);
-        }
-
-        if (mState == STATE_PROLOG) {
+        } else if (mState == STATE_PROLOG) {
             // 20-Dec-2005, TSa: Does this match DOCTYPE declaration?
             verifyRootElement(localName, null);
-        } else if (mCheckStructure && mState == STATE_EPILOG) {
-            reportNwfStructure(ErrorConsts.WERR_PROLOG_SECOND_ROOT, localName);
+        } else if (mState == STATE_EPILOG) {
+            if (mCheckStructure) {
+                reportNwfStructure(ErrorConsts.WERR_PROLOG_SECOND_ROOT, localName);
+            }
+            // Outputting fragment? Better reset to tree, then...
+            mState = STATE_TREE;
         }
 
         /* Note: need not check for CONTENT_ALLOW_NONE here, since the

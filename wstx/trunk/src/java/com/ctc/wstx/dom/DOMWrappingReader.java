@@ -44,7 +44,7 @@ import com.ctc.wstx.util.TextAccumulator;
 
 /**
  * This is an adapter class that presents a DOM document as if it was
- * a regular {@link XMLStreamReader}
+ * a regular {@link XMLStreamReader}.
  *<p>
  * Note that the implementation is only to be used for use with
  * <code>javax.xml.transform.dom.DOMSource</code>. It can however be

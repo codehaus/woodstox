@@ -33,9 +33,10 @@ public class Jdk13Impl
     // // // Simple accessors
 
     /**
-     * For 1.3, ThreadLocal has problems, and can leak memory (check
+     * For 1.3, ThreadLocal has problems, and can leak memory.
+     * (check
      * http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4414045
-     * for details, or google for 'ThreadLocal "memory leaks"')
+     * for details, or google for "ThreadLocal memory leaks")
      */
     public boolean leakingThreadLocal() {
         return true;
