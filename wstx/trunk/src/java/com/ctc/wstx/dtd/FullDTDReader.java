@@ -261,9 +261,10 @@ public class FullDTDReader
 
     /**
      * Text buffer used for constructing expansion value of the internal
-     * entities. Lazily constructed when needed, reused.
+     * entities, and for default attribute values.
+     * Lazily constructed when needed, reused.
      */
-    TextBuffer mEntValBuffer = null;
+    TextBuffer mValueBuffer = null;
 
     /**
      * Second character of a surrogate pair returned, if any; CHAR_NULL
@@ -1383,7 +1384,7 @@ public class FullDTDReader
          */
         boolean allowPEs = mIsExternal || (mInput != mRootInput);
 
-        TextBuffer tb = mEntValBuffer;
+        TextBuffer tb = mValueBuffer;
         if (tb == null) {
             tb = TextBuffer.createTemporaryBuffer(EXP_ENTITY_VALUE_LEN);
         }
@@ -1509,7 +1510,8 @@ public class FullDTDReader
             throwDTDUnexpectedChar(c, "; expected closing '>' after ENTITY declaration");
         }
         char[] result = tb.contentsAsArray();
-        mEntValBuffer = tb; // recycle, if needed later on
+        mValueBuffer = tb; // recycle, if needed later on
+
         return result;
     }
 
@@ -1522,7 +1524,7 @@ public class FullDTDReader
      * Whether forward references are allowed or not is an open question
      * right now.
      */
-        private void parseAttrDefaultValue(DefaultAttrValue defVal, char quoteChar, NameKey attrName,
+    private void parseAttrDefaultValue(DefaultAttrValue defVal, char quoteChar, NameKey attrName,
                                        Location loc, boolean gotFixed)
         throws IOException, XMLStreamException
     {
@@ -1542,7 +1544,10 @@ public class FullDTDReader
          */
         WstxInputSource currScope = mInput;
 
-        TextBuffer tb = TextBuffer.createTemporaryBuffer(EXP_ATTR_VALUE_LEN);
+        TextBuffer tb = mValueBuffer;
+        if (tb == null) {
+            tb = TextBuffer.createTemporaryBuffer(EXP_ENTITY_VALUE_LEN);
+        }
         tb.resetInitialized();
 
         int outPtr = 0;
@@ -1583,7 +1588,7 @@ public class FullDTDReader
                                 // Ok, except need to add leading '\r' first
                                 if (!mCfgNormAttrs) {
                                     if (outPtr >= outLen) { // need more room?
-                                        outBuf = mTextBuffer.finishCurrentSegment();
+                                        outBuf = tb.finishCurrentSegment();
                                         outPtr = 0;
                                         outLen = outBuf.length;
                                     }
@@ -1633,7 +1638,7 @@ public class FullDTDReader
                     }
                     if (mSurrogateSecond != CHAR_NULL) { // surrogate pair?
                         if (outPtr >= outLen) { // need more room?
-                            outBuf = mTextBuffer.finishCurrentSegment();
+                            outBuf = tb.finishCurrentSegment();
                             outPtr = 0;
                             outLen = outBuf.length;
                         }
@@ -1648,16 +1653,16 @@ public class FullDTDReader
                 
             // Ok, let's just add char in, whatever it was
             if (outPtr >= outLen) { // need more room?
-                outBuf = mTextBuffer.finishCurrentSegment();
+                outBuf = tb.finishCurrentSegment();
                 outPtr = 0;
                 outLen = outBuf.length;
             }
             outBuf[outPtr++] = c;
         }
 
-        // Fine; let's tell TextBuild we're done:
         tb.setCurrentLength(outPtr);
         defVal.setValue(tb.contentsAsString());
+        mValueBuffer = tb;
     }
 
     /**

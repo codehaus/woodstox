@@ -295,13 +295,6 @@ public abstract class StreamScanner
      */
     protected char[] mNameBuffer = null;
 
-    /**
-     * TextBuffer mostly used to collect non-element text content; needs
-     * to be accessible here to make sure synchronized sharing with input
-     * is safe.
-     */
-    protected TextBuffer mTextBuffer;
-
     /*
     ////////////////////////////////////////////////////
     // Information about starting location of event
@@ -2341,7 +2334,7 @@ public abstract class StreamScanner
             mNameBuffer = buf = new char[(minSize > 48) ? (minSize+16) : 64];
         } else if (minSize >= buf.length) { // let's allow one char extra...
             int len = buf.length;
-            len += (len >> 1);
+            len += (len >> 1); // grow by 50%
             mNameBuffer = buf = new char[(minSize >= len) ? (minSize+16) : len];
         }
         return buf;

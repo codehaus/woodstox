@@ -116,13 +116,62 @@ public class BasicStreamReader
 
     // // // Bit masks used for quick type comparisons
 
+    /**
+     * This mask covers all types for which basic {@link #getText} method
+     * can be called.
+     */
     final private static int MASK_GET_TEXT = 
         (1 << CHARACTERS) | (1 << CDATA) | (1 << SPACE)
         | (1 << COMMENT) | (1 << DTD) | (1 << ENTITY_REFERENCE);
 
+    /**
+     * This mask covers all types for which extends <code>getTextXxx</code>
+     * methods can be called; which is less than those for which 
+     * {@link #getText} can be called. Specifically, <code>DTD</code> and
+     * <code>ENTITY_REFERENCE</code> types do not support these extended
+     */
+    final private static int MASK_GET_TEXT_XXX =
+        (1 << CHARACTERS) | (1 << CDATA) | (1 << SPACE) | (1 << COMMENT);
+
     final private static int MASK_GET_ELEMENT_TEXT = 
         (1 << CHARACTERS) | (1 << CDATA) | (1 << SPACE)
         | (1 << ENTITY_REFERENCE);
+
+    /*
+    ////////////////////////////////////////////////////
+    // Configuration
+    ////////////////////////////////////////////////////
+     */
+
+    // note: mConfig defined in base class
+
+    /**
+     * Set of locally stored configuration flags
+     */
+    protected final int mConfigFlags;
+
+    // // // Various extracted settings:
+
+    protected final boolean mCfgCoalesceText;
+
+    protected final boolean mCfgNormalizeAttrs;
+    protected final boolean mCfgReportTextAsChars;
+    protected final boolean mCfgLazyParsing;
+
+    /**
+     * Minimum number of characters parser can return as partial text
+     * segment, IF it's not required to coalesce adjacent text
+     * segments.
+     */
+    protected final int mShortestTextSegment;
+
+    /**
+     * Map that contains entity id - to - entity declaration entries for
+     * any entities caller wants to prepopulate for the document. Note that
+     * such entities will override any entities read from DTD (both internal
+     * and external subsets).
+     */
+    final Map mCustomEntities;
 
     /*
     ////////////////////////////////////////////////////
@@ -188,6 +237,12 @@ public class BasicStreamReader
     // Information about currently open subtree:
     ////////////////////////////////////////////////////
      */
+
+    /**
+     * TextBuffer mostly used to collect non-element textual content
+     * (text, CDATA, comment content, pi data)
+     */
+    protected TextBuffer mTextBuffer;
 
     /**
      * Currently open element tree
@@ -298,42 +353,6 @@ public class BasicStreamReader
      * have straight-forward static rules).
      */
     protected int mVldContent = XMLValidator.CONTENT_ALLOW_ANY_TEXT;
-
-    /*
-    ////////////////////////////////////////////////////
-    // Configuration
-    ////////////////////////////////////////////////////
-     */
-
-    // note: mConfig defined in base class
-
-    /**
-     * Set of locally stored configuration flags
-     */
-    protected final int mConfigFlags;
-
-    // // // Various extracted settings:
-
-    protected final boolean mCfgCoalesceText;
-
-    protected final boolean mCfgNormalizeAttrs;
-    protected final boolean mCfgReportTextAsChars;
-    protected final boolean mCfgLazyParsing;
-
-    /**
-     * Minimum number of characters parser can return as partial text
-     * segment, IF it's not required to coalesce adjacent text
-     * segments.
-     */
-    protected final int mShortestTextSegment;
-
-    /**
-     * Map that contains entity id - to - entity declaration entries for
-     * any entities caller wants to prepopulate for the document. Note that
-     * such entities will override any entities read from DTD (both internal
-     * and external subsets).
-     */
-    final Map mCustomEntities;
 
     /*
     ////////////////////////////////////////////////////
@@ -771,8 +790,8 @@ public class BasicStreamReader
 
     public char[] getTextCharacters()
     {
-        if (((1 << mCurrToken) & MASK_GET_TEXT) == 0) {
-            throwNotTextual(mCurrToken);
+        if (((1 << mCurrToken) & MASK_GET_TEXT_XXX) == 0) {
+            throwNotTextXxx(mCurrToken);
         }
         if (mTokenState < mStTextThreshold) {
             safeFinishToken();
@@ -788,73 +807,33 @@ public class BasicStreamReader
 
     public int getTextCharacters(int sourceStart, char[] target, int targetStart, int len)
     {
-        if (((1 << mCurrToken) & MASK_GET_TEXT) == 0) {
-            throwNotTextual(mCurrToken);
+        if (((1 << mCurrToken) & MASK_GET_TEXT_XXX) == 0) {
+            throwNotTextXxx(mCurrToken);
         }
         if (mTokenState < mStTextThreshold) {
             safeFinishToken();
-        }
-        if (mCurrToken == ENTITY_REFERENCE) {
-            char[] c = mCurrEntity.getReplacementChars();
-            if (c == null) {
-                // Is this the right marker? Or should it be 0?
-                return -1;
-            }
-            int max = c.length - sourceStart;
-            if (max < len) {
-                len = max;
-            }
-            if (len > 0) {
-                System.arraycopy(c, sourceStart, target, targetStart, len);
-            }
-            return len;
-        }
-        if (mCurrToken == DTD) {
-            /* Note: not really optimal; could get the char array instead
-             * of the String
-             */
-            String str = getDTDInternalSubset();
-            if (str == null) {
-                return 0;
-            }
-            int max = str.length() - sourceStart;
-            if (max < len) {
-                len = max;
-            }
-            str.getChars(sourceStart, sourceStart+len, target, targetStart);
-            return len;
         }
         return mTextBuffer.contentsToArray(sourceStart, target, targetStart, len);
     }
 
     public int getTextLength()
     {
-        if (((1 << mCurrToken) & MASK_GET_TEXT) == 0) {
-            throwNotTextual(mCurrToken);
+        if (((1 << mCurrToken) & MASK_GET_TEXT_XXX) == 0) {
+            throwNotTextXxx(mCurrToken);
         }
         if (mTokenState < mStTextThreshold) {
             safeFinishToken();
-        }
-        if (mCurrToken == ENTITY_REFERENCE) {
-            return mCurrEntity.getReplacementTextLength();
-        }
-        if (mCurrToken == DTD) {
-            char[] ch = getDTDInternalSubsetArray();
-            return (ch == null) ? 0 : ch.length;
         }
         return mTextBuffer.size();
     }
 
     public int getTextStart()
     {
-        if (((1 << mCurrToken) & MASK_GET_TEXT) == 0) {
-            throwNotTextual(mCurrToken);
+        if (((1 << mCurrToken) & MASK_GET_TEXT_XXX) == 0) {
+            throwNotTextXxx(mCurrToken);
         }
         if (mTokenState < mStTextThreshold) {
             safeFinishToken();
-        }
-        if (mCurrToken == ENTITY_REFERENCE || mCurrToken == DTD) {
-            return 0;
         }
         return mTextBuffer.getTextStart();
     }
@@ -5130,6 +5109,12 @@ public class BasicStreamReader
     {
         throw new IllegalStateException("Not a textual event ("
                                         +tokenTypeDesc(mCurrToken)+")");
+    }
+
+    private void throwNotTextXxx(int type)
+    {
+        throw new IllegalStateException("getTextXxx() methods can not be called on "
+                                        +tokenTypeDesc(mCurrToken));
     }
 
     private void throwNotWS(char c)
