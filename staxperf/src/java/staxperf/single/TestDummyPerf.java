@@ -2,7 +2,7 @@ package staxperf.single;
 
 import javax.xml.stream.XMLInputFactory;
 
-import java.io.Reader;
+import java.io.*;
 
 public class TestDummyPerf
     extends BasePerfTest
@@ -14,6 +14,22 @@ public class TestDummyPerf
     protected XMLInputFactory getFactory()
     {
         return null;
+    }
+
+    protected int testExec(File f, String path) throws Exception
+    {
+        InputStream in = null;
+
+        try {
+            in = createStream(f);
+            //Reader r = new InputStreamReader(in, "ISO-8859-1");
+            Reader r = new InputStreamReader(in, "UTF-8");
+            return testExec(r);
+        } finally {
+            if (in != null) {
+                in.close();
+            }
+        }
     }
 
     protected int testExec(Reader r) throws Exception
