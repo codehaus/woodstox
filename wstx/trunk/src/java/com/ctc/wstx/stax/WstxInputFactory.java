@@ -81,6 +81,21 @@ public final class WstxInputFactory
     implements ReaderCreator,
                InputConfigFlags
 {
+    /**
+     * Let's limit max size to 3/4 of 16k, since this corresponds
+     * to 64k main hash index. This should not be too low, but could
+     * perhaps be further lowered?
+     */
+    final static int MAX_SYMBOL_TABLE_SIZE = 12000;
+
+    /**
+     * Number of generations should not matter as much as raw
+     * size... but let's still cap it at some number. 500 generations
+     * seems reasonable for flushing (note: does not count uses
+     * where no new symbols were added).
+     */
+    final static int MAX_SYMBOL_TABLE_GENERATIONS = 500;
+
     /*
     /////////////////////////////////////////////////////
     // Actual storage of configuration settings
@@ -178,7 +193,22 @@ public final class WstxInputFactory
          * children have additional symbols added)
          */
         if (t.isDirectChildOf(curr)) {
-            mSymbols = t;
+            /* 07-Apr-2006, TSa: Actually, since huge symbol tables
+             *    might become hindrance more than benefit (either in
+             *    pathological cases with random names; or with very
+             *    long running processes), let's actually limit both
+             *    number of generations, and, more imporantly, maximum
+             *    size of the symbol table
+             */
+            if (t.size() > MAX_SYMBOL_TABLE_SIZE || 
+                t.version() > MAX_SYMBOL_TABLE_GENERATIONS) {
+                // If so, we'll reset from bare defaults
+                mSymbols = mRootSymbols;
+//System.err.println("DEBUG: !!!! XXXXX Symbol Table Flush: size: "+t.size()+"; version: "+t.version());
+            } else {
+                mSymbols = t;
+//System.err.println("Debug: new symbol table: size: "+t.size()+"; version: "+t.version());
+            }
         }
     }
 

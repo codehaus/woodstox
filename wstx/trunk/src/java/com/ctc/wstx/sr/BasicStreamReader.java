@@ -1082,6 +1082,7 @@ public class BasicStreamReader
              */
             if (mCurrToken != END_DOCUMENT) {
                 mCurrToken = END_DOCUMENT;
+//System.err.println("DEBUG: close, symbols: "+mSymbols.size());
                 if (mSymbols.isDirty()) {
                     mOwner.updateSymbolTable(mSymbols);
                 }
@@ -2012,6 +2013,7 @@ public class BasicStreamReader
          * most documents have same names, and having them pre-allocated
          * is more efficient than re-creating over and over again.
          */
+//System.err.println("DEBUG: EOF, symbols: "+mSymbols.size());
         if (mSymbols.isDirty()) {
             mOwner.updateSymbolTable(mSymbols);
         }

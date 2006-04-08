@@ -42,7 +42,6 @@ public final class DefaultXmlSymbolTable
          */
 
         // Ok, any common prefixes?
-        sInstance.findSymbol("ns");
 
         // or local names (element, attribute)?
         sInstance.findSymbol("id");

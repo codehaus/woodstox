@@ -55,10 +55,14 @@ public class SymbolTable {
 
     /**
      * Default initial table size; no need to make it miniscule, due
-     * to couple of things: first, overhead of array is is significant,
+     * to couple of things: first, overhead of array reallocation
+     * is significant,
      * and second, overhead of rehashing is also non-negligible.
+     *<p>
+     * Let's use 128 as the default; it allows for up to 96 symbols,
+     * and uses about 512 bytes on 32-bit machines.
      */
-    protected static final int DEFAULT_TABLE_SIZE = 64;
+    protected static final int DEFAULT_TABLE_SIZE = 128;
 
     protected static final float DEFAULT_FILL_FACTOR = 0.75f;
 
@@ -312,7 +316,8 @@ public class SymbolTable {
 
     public boolean isDirty() { return mDirty; }
 
-    public boolean isDirectChildOf(SymbolTable t) {
+    public boolean isDirectChildOf(SymbolTable t)
+    {
         /* Actually, this doesn't really prove it is a child (would have to
          * use sequence number, or identityHash to really prove it), but
          * it's good enough if relationship is known to exist.
