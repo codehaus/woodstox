@@ -206,10 +206,11 @@ public final class WstxInputFactory
                 mSymbols = mRootSymbols;
 //System.err.println("DEBUG: !!!! XXXXX Symbol Table Flush: size: "+t.size()+"; version: "+t.version());
             } else {
-                mSymbols = t;
+                mSymbols.mergeChild(t);
 //System.err.println("Debug: new symbol table: size: "+t.size()+"; version: "+t.version());
             }
         }
+//else System.err.println("Debug: skipping symbol table update");
     }
 
     public synchronized void addCachedDTD(DTDId id, DTDSubset extSubset)

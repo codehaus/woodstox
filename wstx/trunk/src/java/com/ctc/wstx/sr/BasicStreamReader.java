@@ -1082,7 +1082,6 @@ public class BasicStreamReader
              */
             if (mCurrToken != END_DOCUMENT) {
                 mCurrToken = END_DOCUMENT;
-//System.err.println("DEBUG: close, symbols: "+mSymbols.size());
                 if (mSymbols.isDirty()) {
                     mOwner.updateSymbolTable(mSymbols);
                 }
@@ -1292,56 +1291,6 @@ public class BasicStreamReader
         }
         return mTextBuffer.rawContentsTo(w);
     }
-
-    /** 
-     * Method similar to {@link #getText()}, except
-     * that onlt a {@link Reader} is returned, which may then be used
-     * by the caller to read all the text.
-     * For further optimization, it may also be allowed to do true
-     * pass-through, thus possibly avoiding one temporary copy of the
-     * data (without allowing that to be done, stream reader still needs
-     * to create a copy of data read, thus negating benefits of using
-     * a simple Reader).
-     *<p>
-     * TODO: try to optimize to allow completely streaming pass-through:
-     * currently will still read all data in memory buffers before
-     * outputting
-     * 
-     * @param preserveContents If true, reader has to preserve contents
-     *   so that further calls to <code>getText</code> will return
-     *   proper conntets. If false, reader is allowed to skip creation
-     *   of such copies: this can improve performance, but it also means
-     *   that further calls to <code>getText</code> is not guaranteed to
-     *   return meaningful data.
-     *
-     * @return Reader through which textual contents of the current event
-     *    can be read.
-     */
-    /*
-      // 19-Apr-2005, TSa: This method was left out of StAX2 v1.0...
-    public Reader getTextReader(boolean preserveContents)
-        throws IOException, XMLStreamException
-    {
-        if (((1 << mCurrToken) & MASK_GET_TEXT) == 0) {
-            throwNotTextual(mCurrToken);
-        }
-        if (mTokenState < mStTextThreshold) {
-            finishToken();
-        }
-        if (mCurrToken == ENTITY_REFERENCE) {
-	    String text = mCurrEntity.getReplacementText();
-	    return new StringReader(text);
-        }
-        if (mCurrToken == DTD) {
-            char[] ch = getDTDInternalSubsetArray();
-            if (ch != null) {
-		return new CharArrayReader(ch);
-            }
-            return new StringReader("");
-        }
-        return mTextBuffer.rawContentsViaReader();
-    }
-    */
 
     // // // StAX 2, Other accessors
 
@@ -2008,15 +1957,6 @@ public class BasicStreamReader
     protected int handleEOF(boolean isProlog)
         throws XMLStreamException
     {
-        /* Let's give the factory a chance to update basic symbol table
-         * information now (if we got any new symbols) -- chances are,
-         * most documents have same names, and having them pre-allocated
-         * is more efficient than re-creating over and over again.
-         */
-//System.err.println("DEBUG: EOF, symbols: "+mSymbols.size());
-        if (mSymbols.isDirty()) {
-            mOwner.updateSymbolTable(mSymbols);
-        }
         mCurrToken = END_DOCUMENT;
         // It's ok to get EOF from epilog but not from prolog
         if (isProlog) {
@@ -2534,6 +2474,13 @@ public class BasicStreamReader
                         mParseState = STATE_EPILOG;
                         // this call will update the location too...
                         nextFromProlog(false);
+                        /* 10-Apr-2006, TSa: Let's actually try to update
+                         *   SymbolTable here (after main xml tree); caller
+                         *   may not continue parsing after this.
+                         */
+                        if (mSymbols.isDirty()) {
+                            mOwner.updateSymbolTable(mSymbols);
+                        }
                         return mCurrToken;
                     }
                     // in fragment mode, fine, we'll just continue

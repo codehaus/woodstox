@@ -66,7 +66,7 @@ public class SymbolTable {
 
     protected static final float DEFAULT_FILL_FACTOR = 0.75f;
 
-    public static final String EMPTY_STRING = "";
+    protected static final String EMPTY_STRING = "";
 
     /*
     ////////////////////////////////////////
@@ -269,18 +269,14 @@ public class SymbolTable {
      * Note that caller has to make sure symbol table passed in is
      * really a child or sibling of this symbol table.
      */
-    // 30-Sep-2004, TSa: Not really used currently...
-    /*
-    public synchronized void mergeChild(SymbolTable child) {
-        if (child.version() != (version() + 1)) { // not a direct child
-            return;
-        }
+    public synchronized void mergeChild(SymbolTable child)
+    {
+        // Let's do a basic sanity check first:
         if (child.size() <= size()) { // nothing to add
             return;
         }
 
         // Okie dokie, let's get the data in!
-
         mSymbols = child.mSymbols;
         mBuckets = child.mBuckets;
         mSize = child.mSize;
@@ -291,8 +287,15 @@ public class SymbolTable {
         // Dirty flag... well, let's just clear it, to force copying just
         // in case. Shouldn't really matter, for master tables.
         mDirty = false;
+
+        /* However, we have to mark child as dirty, so that it will not
+         * be modifying arrays we "took over" (since child may have
+         * returned an updated table before it stopped fully using
+         * the SymbolTable: for example, it may still use it for
+         * parsing PI targets in epilog)
+         */
+        child.mDirty = false;
     }
-    */
 
     /*
     ////////////////////////////////////////////////////
