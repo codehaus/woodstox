@@ -9,6 +9,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 
+import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.cfg.XmlConsts;
 import com.ctc.wstx.util.StringUtil;
 import com.ctc.wstx.util.URLUtil;
@@ -54,8 +55,8 @@ public final class DefaultInputResolver
      *   If XML_V_UNKNOWN, no checks will be done.
      * @param customResolver Custom resolver to use first for resolution,
      *   if any (may be null).
-     * @param rep Report object that can be used to report non-fatal problems
-     *   that occur during entity source resolution
+     * @param cfg Reader configuration object used by the parser that is
+     *   resolving the entity
      *
      * @return Input source, if entity could be resolved; null if it could
      *   not be resolved. In latter case processor may use its own default
@@ -64,7 +65,7 @@ public final class DefaultInputResolver
     public static WstxInputSource resolveEntity
         (WstxInputSource refCtxt, String entityName,
          String publicId, String systemId,
-         XMLResolver customResolver, XMLReporter rep, int xmlVersion)
+         XMLResolver customResolver, ReaderConfig cfg, int xmlVersion)
         throws IOException, XMLStreamException
     {
         URL ctxt = (refCtxt == null) ? null : refCtxt.getSource();
@@ -76,7 +77,7 @@ public final class DefaultInputResolver
         if (customResolver != null) {
             Object source = customResolver.resolveEntity(publicId, systemId, ctxt.toExternalForm(), entityName);
             if (source != null) {
-                return sourceFrom(refCtxt, rep, entityName, xmlVersion, source);
+                return sourceFrom(refCtxt, cfg, entityName, xmlVersion, source);
             }
         }
             
@@ -87,7 +88,7 @@ public final class DefaultInputResolver
                                          +publicId+"')");
         }
         URL url = URLUtil.urlFromSystemId(systemId, ctxt);
-        return sourceFromURL(refCtxt, rep, entityName, xmlVersion, url, publicId, systemId);
+        return sourceFromURL(refCtxt, cfg, entityName, xmlVersion, url, publicId, systemId);
     }
 
     /**
@@ -98,7 +99,7 @@ public final class DefaultInputResolver
     public static WstxInputSource resolveEntityUsing
         (WstxInputSource refCtxt, String entityName,
          String publicId, String systemId,
-         XMLResolver resolver, XMLReporter rep, int xmlVersion)
+         XMLResolver resolver, ReaderConfig cfg, int xmlVersion)
         throws IOException, XMLStreamException
     {
         URL ctxt = (refCtxt == null) ? null : refCtxt.getSource();
@@ -106,7 +107,7 @@ public final class DefaultInputResolver
             ctxt = URLUtil.urlFromCurrentDir();
         }
         Object source = resolver.resolveEntity(publicId, systemId, ctxt.toExternalForm(), entityName);
-        return (source == null) ? null : sourceFrom(refCtxt, rep, entityName, xmlVersion, source);
+        return (source == null) ? null : sourceFrom(refCtxt, cfg, entityName, xmlVersion, source);
     }
 
     /**
@@ -123,14 +124,14 @@ public final class DefaultInputResolver
      * @param o Object that should provide the new input source; non-type safe
      */
     protected static WstxInputSource sourceFrom(WstxInputSource parent,
-                                                XMLReporter rep, String refName,
+                                                ReaderConfig cfg, String refName,
                                                 int xmlVersion,
                                                 Object o)
         throws IllegalArgumentException, IOException, XMLStreamException
     {
         if (o instanceof Source) {
             if (o instanceof StreamSource) {
-                return sourceFromSS(parent, rep, refName, xmlVersion, (StreamSource) o);
+                return sourceFromSS(parent, cfg, refName, xmlVersion, (StreamSource) o);
             }
             /* !!! 05-Feb-2006, TSa: Could check if SAXSource actually has
              *    stream/reader available... ?
@@ -138,26 +139,26 @@ public final class DefaultInputResolver
             throw new IllegalArgumentException("Can not use other Source objects than StreamSource: got "+o.getClass());
         }
         if (o instanceof URL) {
-            return sourceFromURL(parent, rep, refName, xmlVersion, (URL) o, null, null);
+            return sourceFromURL(parent, cfg, refName, xmlVersion, (URL) o, null, null);
         }
         if (o instanceof InputStream) {
-            return sourceFromIS(parent, rep, refName, xmlVersion, (InputStream) o, null, null);
+            return sourceFromIS(parent, cfg, refName, xmlVersion, (InputStream) o, null, null);
         }
         if (o instanceof Reader) {
-            return sourceFromR(parent, rep, refName, xmlVersion, (Reader) o, null, null);
+            return sourceFromR(parent, cfg, refName, xmlVersion, (Reader) o, null, null);
         }
         if (o instanceof String) {
-            return sourceFromString(parent, rep, refName, xmlVersion, (String) o);
+            return sourceFromString(parent, cfg, refName, xmlVersion, (String) o);
         }
         if (o instanceof File) {
             URL u = ((File) o).toURL();
-            return sourceFromURL(parent, rep, refName, xmlVersion, u, null, null);
+            return sourceFromURL(parent, cfg, refName, xmlVersion, u, null, null);
         }
 
         throw new IllegalArgumentException("Unrecognized input argument type for sourceFrom(): "+o.getClass());
     }
 
-    public static Reader constructOptimizedReader(InputStream in, boolean isXml11, String encoding, int inputBufLen)
+    public static Reader constructOptimizedReader(ReaderConfig cfg, InputStream in, boolean isXml11, String encoding)
         throws XMLStreamException
     {
         /* 03-Jul-2005, TSa: Since Woodstox' implementations of specialized
@@ -169,18 +170,19 @@ public final class DefaultInputResolver
          *   checked, and so on. Given encoding could be just verified
          *   against suggested one.
          */
+        int inputBufLen = cfg.getInputBufferLength();
         String normEnc = CharsetNames.normalize(encoding);
         BaseReader r;
 
         if (normEnc == CharsetNames.CS_UTF8) {
-            r = new UTF8Reader(in, new byte[inputBufLen], 0, 0);
+            r = new UTF8Reader(cfg, in, cfg.allocFullBBuffer(inputBufLen), 0, 0);
         } else if (normEnc == CharsetNames.CS_ISO_LATIN1) {
-            r = new ISOLatinReader(in, new byte[inputBufLen], 0, 0);
+            r = new ISOLatinReader(cfg, in, cfg.allocFullBBuffer(inputBufLen), 0, 0);
         } else if (normEnc == CharsetNames.CS_US_ASCII) {
-            r = new AsciiReader(in, new byte[inputBufLen], 0, 0);
+            r = new AsciiReader(cfg, in, cfg.allocFullBBuffer(inputBufLen), 0, 0);
         } else if (normEnc.startsWith(CharsetNames.CS_UTF32)) {
             boolean isBE = (normEnc == CharsetNames.CS_UTF32BE);
-            r = new UTF32Reader(in, new byte[inputBufLen], 0, 0, isBE);
+            r = new UTF32Reader(cfg, in, cfg.allocFullBBuffer(inputBufLen), 0, 0, isBE);
         } else {
             try {
                 return new InputStreamReader(in, encoding);
@@ -202,7 +204,7 @@ public final class DefaultInputResolver
     ////////////////////////////
     */
 
-    private static WstxInputSource sourceFromSS(WstxInputSource parent, XMLReporter rep,
+    private static WstxInputSource sourceFromSS(WstxInputSource parent, ReaderConfig cfg,
                                                 String refName, int xmlVersion,
                                                 StreamSource ssrc)
         throws IOException, XMLStreamException
@@ -223,18 +225,18 @@ public final class DefaultInputResolver
                 }
                 in = URLUtil.optimizedStreamFromURL(url);
             }
-            bs = StreamBootstrapper.getInstance(in, pubId, sysId, getInputBufferLength(parent));
+            bs = StreamBootstrapper.getInstance(in, pubId, sysId);
         } else {
             bs = ReaderBootstrapper.getInstance(r, pubId, sysId, null);
         }
         
-        Reader r2 = bs.bootstrapInput(false, rep, xmlVersion);
+        Reader r2 = bs.bootstrapInput(cfg, false, xmlVersion);
         return InputSourceFactory.constructEntitySource
-            (parent, refName, bs, pubId, sysId, xmlVersion,
+            (cfg, parent, refName, bs, pubId, sysId, xmlVersion,
              ((url == null) ? ctxt : url), r2);
     }
 
-    private static WstxInputSource sourceFromURL(WstxInputSource parent, XMLReporter rep,
+    private static WstxInputSource sourceFromURL(WstxInputSource parent, ReaderConfig cfg,
                                                  String refName, int xmlVersion,
                                                  URL url,
                                                  String pubId, String sysId)
@@ -250,10 +252,10 @@ public final class DefaultInputResolver
         if (sysId == null) {
             sysId = url.toExternalForm();
         }
-        StreamBootstrapper bs = StreamBootstrapper.getInstance(in, pubId, sysId, getInputBufferLength(parent));
-        Reader r = bs.bootstrapInput(false, rep, xmlVersion);
+        StreamBootstrapper bs = StreamBootstrapper.getInstance(in, pubId, sysId);
+        Reader r = bs.bootstrapInput(cfg, false, xmlVersion);
         return InputSourceFactory.constructEntitySource
-            (parent, refName, bs, pubId, sysId, xmlVersion, url, r);
+            (cfg, parent, refName, bs, pubId, sysId, xmlVersion, url, r);
     }
 
     /**
@@ -266,7 +268,7 @@ public final class DefaultInputResolver
      *<p>
      * Note: public to give access for unit tests that need it...
      */
-    public static WstxInputSource sourceFromString(WstxInputSource parent, XMLReporter rep, 
+    public static WstxInputSource sourceFromString(WstxInputSource parent, ReaderConfig cfg, 
                                                     String refName, int xmlVersion,
                                                    String refContent)
         throws IOException, XMLStreamException
@@ -274,20 +276,20 @@ public final class DefaultInputResolver
         /* Last null -> no app-provided encoding (doesn't matter for non-
          * main-level handling)
          */
-        return sourceFromR(parent, rep, refName, xmlVersion,
+        return sourceFromR(parent, cfg, refName, xmlVersion,
                            new StringReader(refContent),
                            null, refName);
     }
 
     private static WstxInputSource sourceFromIS(WstxInputSource parent,
-                                                XMLReporter rep,
+                                                ReaderConfig cfg,
                                                 String refName, int xmlVersion,
                                                 InputStream is,
                                                 String pubId, String sysId)
         throws IOException, XMLStreamException
     {
-        StreamBootstrapper bs = StreamBootstrapper.getInstance(is, pubId, sysId, getInputBufferLength(parent));
-        Reader r = bs.bootstrapInput(false, rep, xmlVersion);
+        StreamBootstrapper bs = StreamBootstrapper.getInstance(is, pubId, sysId);
+        Reader r = bs.bootstrapInput(cfg, false, xmlVersion);
         URL ctxt = parent.getSource();
 
         // If we got a real sys id, we do know the source...
@@ -295,10 +297,10 @@ public final class DefaultInputResolver
             ctxt = URLUtil.urlFromSystemId(sysId, ctxt);
         }
         return InputSourceFactory.constructEntitySource
-            (parent, refName, bs, pubId, sysId, xmlVersion, ctxt, r);
+            (cfg, parent, refName, bs, pubId, sysId, xmlVersion, ctxt, r);
     }
 
-    private static WstxInputSource sourceFromR(WstxInputSource parent, XMLReporter rep,
+    private static WstxInputSource sourceFromR(WstxInputSource parent, ReaderConfig cfg,
                                                String refName, int xmlVersion,
                                                Reader r,
                                                String pubId, String sysId)
@@ -309,18 +311,12 @@ public final class DefaultInputResolver
          */
         ReaderBootstrapper rbs = ReaderBootstrapper.getInstance(r, pubId, sysId, null);
         // null -> no xml reporter... should have one?
-        Reader r2 = rbs.bootstrapInput(false, rep, xmlVersion);
+        Reader r2 = rbs.bootstrapInput(cfg, false, xmlVersion);
         URL ctxt = (parent == null) ? null : parent.getSource();
         if (sysId != null && sysId.length() > 0) {
             ctxt = URLUtil.urlFromSystemId(sysId, ctxt);
         }
         return InputSourceFactory.constructEntitySource
-            (parent, refName, rbs, pubId, sysId, xmlVersion, ctxt, r2);
-    }
-
-    private static int getInputBufferLength(WstxInputSource parent)
-    {
-        return (parent == null) ?
-            DEFAULT_BUFFER_LENGTH : parent.getInputBufferLength();
+            (cfg, parent, refName, rbs, pubId, sysId, xmlVersion, ctxt, r2);
     }
 }

@@ -17,6 +17,7 @@ package com.ctc.wstx.io;
 
 import java.io.*;
 
+import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.cfg.XmlConsts;
 
 /**
@@ -53,10 +54,10 @@ public final class UTF32Reader
     ////////////////////////////////////////
     */
 
-    public UTF32Reader(InputStream in, byte[] buf, int ptr, int len,
+    public UTF32Reader(ReaderConfig cfg, InputStream in, byte[] buf, int ptr, int len,
                        boolean isBigEndian)
     {
-        super(in, buf, ptr, len);
+        super(cfg, in, buf, ptr, len);
         mBigEndian = isBigEndian;
     }
 
@@ -227,7 +228,7 @@ public final class UTF32Reader
             if (count < 1) {
                 mLength = 0;
                 if (count < 0) { // -1
-                    mBuffer = null; // to help GC?
+                    freeBuffers(); // to help GC?
                     return false;
                 }
                 // 0 count is no good; let's err out
@@ -243,7 +244,7 @@ public final class UTF32Reader
             int count = mIn.read(mBuffer, mLength, mBuffer.length - mLength);
             if (count < 1) {
                 if (count < 0) { // -1, EOF... no good!
-                    mBuffer = null; // to help GC?
+                    freeBuffers(); // to help GC?
                     reportUnexpectedEOF(mLength, 4);
                 }
                 // 0 count is no good; let's err out

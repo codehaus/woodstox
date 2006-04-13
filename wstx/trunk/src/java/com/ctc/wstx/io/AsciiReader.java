@@ -17,6 +17,7 @@ package com.ctc.wstx.io;
 
 import java.io.*;
 
+import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.cfg.XmlConsts;
 
 /**
@@ -42,9 +43,9 @@ public final class AsciiReader
     ////////////////////////////////////////
     */
 
-    public AsciiReader(InputStream in, byte[] buf, int ptr, int len)
+    public AsciiReader(ReaderConfig cfg, InputStream in, byte[] buf, int ptr, int len)
     {
-        super(in, buf, ptr, len);
+        super(cfg, in, buf, ptr, len);
     }
 
     public void setXmlCompliancy(int xmlVersion)
@@ -82,7 +83,7 @@ public final class AsciiReader
                 /* Let's actually then free the buffer right away; shouldn't
                  * yet close the underlying stream though?
                  */
-                mBuffer = null;
+                freeBuffers(); // to help GC?
                 return -1;
             }
             mLength = avail = count;

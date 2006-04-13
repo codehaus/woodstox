@@ -4,12 +4,16 @@ import java.io.IOException;
 import java.io.Reader;
 import java.net.URL;
 
+import com.ctc.wstx.api.ReaderConfig;
+
 /**
  * Input source that reads input via a Reader.
  */
 public class ReaderSource
     extends BaseInputSource
 {
+    final ReaderConfig mConfig;
+
     /**
      * Underlying Reader to read character data from
      */
@@ -25,14 +29,16 @@ public class ReaderSource
     int mInputRow = 1;
     int mInputRowStart = 0;
 
-    public ReaderSource(WstxInputSource parent, String fromEntity,
+    public ReaderSource(ReaderConfig cfg, WstxInputSource parent, String fromEntity,
                         String pubId, String sysId, URL src,
-                        Reader r, boolean realClose, int bufSize)
+                        Reader r, boolean realClose)
     {
         super(parent, fromEntity, pubId, sysId, src);
+        mConfig = cfg;
         mReader = r;
         mDoRealClose = realClose;
-        mBuffer = new char[bufSize];
+        int bufSize = cfg.getInputBufferLength();
+        mBuffer = cfg.allocFullCBuffer(bufSize);
     }
 
     /**
@@ -154,28 +160,42 @@ public class ReaderSource
     public void close()
         throws IOException
     {
+        /* Buffer gets nullified by call to close() or closeCompletely(),
+         * no need to call second time
+         */
         if (mBuffer != null) { // so that it's ok to call multiple times
-            /* Let's help GC a bit, in case there might be back references
-             * to this Object from somewhere...
-             */
-            mBuffer = null;
-            /* Can't yet clear Reader; caller may need to call forcing
-             * close at a later point
-             */
-            if (mDoRealClose && mReader != null) {
-                Reader r = mReader;
-                mReader = null;
-                r.close();
-            }
+            closeAndRecycle(mDoRealClose);
         }
     }
 
     public void closeCompletely()
         throws IOException
     {
+        /* Only need to call if the Reader is not yet null... since
+         * buffer may have been cleaned by a call to close()
+         */
         if (mReader != null) { // so that it's ok to call multiple times
-            mBuffer = null; // may have been cleared already...
-            if (mReader != null) {
+            closeAndRecycle(true);
+        }
+    }
+
+    private void closeAndRecycle(boolean fullClose)
+        throws IOException
+    {
+        char[] buf = mBuffer;
+
+        // Can we recycle buffers?
+        if (buf != null) {
+            mBuffer = null;
+            mConfig.freeFullCBuffer(buf);
+        }
+
+        // How about Reader; close and/or recycle its buffers?
+        if (mReader != null) {
+            if (mReader instanceof BaseReader) {
+                ((BaseReader) mReader).freeBuffers();
+            }
+            if (fullClose) {
                 Reader r = mReader;
                 mReader = null;
                 r.close();

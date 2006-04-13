@@ -107,26 +107,28 @@ public class DTDSchemaFactory
                                            String publicId, String systemId)
         throws XMLStreamException
     {
-        return doCreateSchema(StreamBootstrapper.getInstance
-                              (in, publicId, systemId, mReaderConfig.getInputBufferLength()),
-                              publicId, systemId, null);
+        ReaderConfig rcfg = createPrivateReaderConfig();
+        return doCreateSchema(rcfg, StreamBootstrapper.getInstance
+                              (in, publicId, systemId), publicId, systemId, null);
     }
 
     public XMLValidationSchema createSchema(Reader r, String publicId,
                                            String systemId)
         throws XMLStreamException
     {
-        return doCreateSchema(ReaderBootstrapper.getInstance(r, publicId, systemId, null),
-                              publicId, systemId, null);
+        ReaderConfig rcfg = createPrivateReaderConfig();
+        return doCreateSchema(rcfg, ReaderBootstrapper.getInstance
+                              (r, publicId, systemId, null), publicId, systemId, null);
     }
 
     public XMLValidationSchema createSchema(URL url)
         throws XMLStreamException
     {
+        ReaderConfig rcfg = createPrivateReaderConfig();
         try {
             InputStream in = URLUtil.optimizedStreamFromURL(url);
-            return doCreateSchema(StreamBootstrapper.getInstance
-                                  (in, null, null, mReaderConfig.getInputBufferLength()),
+            return doCreateSchema(rcfg, StreamBootstrapper.getInstance
+                                  (in, null, null),
                                   null, url.toExternalForm(), url);
         } catch (IOException ioe) {
             throw new WstxIOException(ioe);
@@ -136,10 +138,11 @@ public class DTDSchemaFactory
     public XMLValidationSchema createSchema(File f)
         throws XMLStreamException
     {
+        ReaderConfig rcfg = createPrivateReaderConfig();
         try {
             URL url = f.toURL();
-            return doCreateSchema(StreamBootstrapper.getInstance
-                                  (new FileInputStream(f), null, null, mReaderConfig.getInputBufferLength()),
+            return doCreateSchema(rcfg, StreamBootstrapper.getInstance
+                                  (new FileInputStream(f), null, null),
                                   null, url.toExternalForm(), url);
         } catch (IOException ioe) {
             throw new WstxIOException(ioe);
@@ -163,13 +166,11 @@ public class DTDSchemaFactory
      * visible methods.
      */
     protected XMLValidationSchema doCreateSchema
-        (InputBootstrapper bs, String publicId, String systemId, URL ctxt)
+        (ReaderConfig rcfg, InputBootstrapper bs, String publicId, String systemId, URL ctxt)
         throws XMLStreamException
     {
-        ReaderConfig cfg = mReaderConfig.createNonShared(mRootSymbols.makeChild());
-
         try {
-            Reader r = bs.bootstrapInput(false, cfg.getXMLReporter(), XmlConsts.XML_V_UNKNOWN);
+            Reader r = bs.bootstrapInput(rcfg, false, XmlConsts.XML_V_UNKNOWN);
             if (ctxt == null) { // this is just needed as context for param entity expansion
                 ctxt = URLUtil.urlFromCurrentDir();
             }
@@ -179,15 +180,20 @@ public class DTDSchemaFactory
              * should be done.
              */
             WstxInputSource src = InputSourceFactory.constructEntitySource
-                (null, null, bs, publicId, systemId, XmlConsts.XML_V_UNKNOWN, ctxt, r);
+                (rcfg, null, null, bs, publicId, systemId, XmlConsts.XML_V_UNKNOWN, ctxt, r);
 
             /* true -> yes, fully construct for validation
              * (does not mean it has to be used for validation, but required
              * if it is to be used for that purpose)
              */
-            return FullDTDReader.readExternalSubset(src, cfg, /*int.subset*/null, true, bs.getDeclaredVersion());
+            return FullDTDReader.readExternalSubset(src, rcfg, /*int.subset*/null, true, bs.getDeclaredVersion());
         } catch (IOException ioe) {
             throw new WstxIOException(ioe);
         }
+    }
+
+    private ReaderConfig createPrivateReaderConfig()
+    {
+        return mReaderConfig.createNonShared(mRootSymbols.makeChild());
     }
 }

@@ -6,6 +6,7 @@ import java.net.URL;
 
 import javax.xml.stream.Location;
 
+import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.util.TextBuffer;
 
 /**
@@ -34,13 +35,13 @@ public final class BranchingReaderSource
      */
     boolean mGotCR = false;
 
-    public BranchingReaderSource(String pubId, String sysId, URL src,
-                                 Reader r, boolean realClose, int bufSize)
+    public BranchingReaderSource(ReaderConfig cfg, String pubId, String sysId, URL src,
+                                 Reader r, boolean realClose)
     {
         /* null -> no parent,
          * null -> not from explicit entity (no id/name)
          */
-        super(null, null, pubId, sysId, src, r, realClose, bufSize);
+        super(cfg, null, null, pubId, sysId, src, r, realClose);
     }
 
     public int readInto(WstxInputData reader)

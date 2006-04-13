@@ -1,5 +1,6 @@
 package com.ctc.wstx.ent;
 
+import com.ctc.wstx.api.ReaderConfig;
 import java.io.IOException;
 import java.io.Writer;
 import java.net.URL;
@@ -74,7 +75,7 @@ public abstract class ExtEntity
     public abstract boolean isParsed();
     
     public abstract WstxInputSource expand(WstxInputSource parent,
-                                           XMLResolver res, XMLReporter rep,
+                                           XMLResolver res, ReaderConfig cfg,
                                            int xmlVersion)
         throws IOException, XMLStreamException;
 }

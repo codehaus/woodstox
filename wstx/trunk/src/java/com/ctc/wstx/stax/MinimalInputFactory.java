@@ -195,8 +195,7 @@ public class MinimalInputFactory
     public XMLStreamReader createXMLStreamReader(InputStream in)
         throws XMLStreamException
     {
-        return createSR(null, StreamBootstrapper.getInstance(in, null, null,
-                                                             mConfig.getInputBufferLength()));
+        return createSR(null, StreamBootstrapper.getInstance(in, null, null));
     }
 
     public XMLStreamReader createXMLStreamReader(InputStream in, String enc)
@@ -229,8 +228,7 @@ public class MinimalInputFactory
     public XMLStreamReader createXMLStreamReader(String systemId, InputStream in)
         throws XMLStreamException
     {
-        return createSR(systemId, StreamBootstrapper.getInstance
-                        (in, null, systemId, mConfig.getInputBufferLength()));
+        return createSR(systemId, StreamBootstrapper.getInstance(in, null, systemId));
     }
 
     public XMLStreamReader createXMLStreamReader(String systemId, Reader r)
@@ -348,9 +346,10 @@ public class MinimalInputFactory
             }
         }
 
+        ReaderConfig cfg = mConfig.createNonShared(mSymbols.makeChild());
         Reader r;
         try {
-            r = bs.bootstrapInput(true, getXMLReporter(), XmlConsts.XML_V_UNKNOWN);
+            r = bs.bootstrapInput(cfg, true, XmlConsts.XML_V_UNKNOWN);
         } catch (IOException ie) {
             throw new WstxIOException(ie);
         }
@@ -358,10 +357,9 @@ public class MinimalInputFactory
         /* null -> no public id available
          * false -> don't close the reader when scope is closed.
          */
-        ReaderConfig cfg = mConfig.createNonShared(mSymbols.makeChild());
         BranchingReaderSource input = InputSourceFactory.constructDocumentSource
-            (bs, // no parent, not from entity
-             null, systemId, src, r, false, cfg.getInputBufferLength());
+            (cfg, bs, // no parent, not from entity
+             null, systemId, src, r, false);
 
       
         try {
@@ -390,8 +388,7 @@ public class MinimalInputFactory
                     throw new XMLStreamException("Can not create StAX reader for a StreamSource -- neither reader nor input stream was set.");
                 }
                 bs = StreamBootstrapper.getInstance
-                    (in, ss.getPublicId(), ss.getSystemId(),
-                     mConfig.getInputBufferLength());
+                    (in, ss.getPublicId(), ss.getSystemId());
             } else {
                 bs = ReaderBootstrapper.getInstance
                     (r, ss.getPublicId(), ss.getSystemId(), null);

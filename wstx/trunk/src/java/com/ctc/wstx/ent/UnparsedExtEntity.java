@@ -11,6 +11,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.EntityReference;
 import javax.xml.stream.events.EntityDeclaration;
 
+import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.io.WstxInputSource;
 import com.ctc.wstx.util.URLUtil;
 
@@ -67,7 +68,7 @@ public class UnparsedExtEntity
     public boolean isParsed() { return false; }
     
     public WstxInputSource expand(WstxInputSource parent,
-                                  XMLResolver res, XMLReporter rep,
+                                  XMLResolver res, ReaderConfig cfg,
                                   int xmlVersion)
     {
         // Should never get called, actually...

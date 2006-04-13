@@ -6,6 +6,7 @@ import java.net.URL;
 
 import javax.xml.stream.Location;
 
+import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.util.TextBuffer;
 
 /**
@@ -14,7 +15,7 @@ import com.ctc.wstx.util.TextBuffer;
  */
 public final class InputSourceFactory
 {
-    final static int DEFAULT_BUFFER_LENGTH = 4000;
+    //final static int DEFAULT_BUFFER_LENGTH = 4000;
 
     /**
      * @param parent
@@ -27,14 +28,13 @@ public final class InputSourceFactory
      *   If unknown, no checks will be done.
      */
     public static ReaderSource constructEntitySource
-        (WstxInputSource parent, String entityName, InputBootstrapper bs,
+        (ReaderConfig cfg, WstxInputSource parent, String entityName, InputBootstrapper bs,
          String pubId, String sysId, int xmlVersion,
          URL src, Reader r)
     {
         // true -> do close the underlying Reader at EOF
-        int bufLen = (parent == null) ? DEFAULT_BUFFER_LENGTH : parent.getInputBufferLength();
         ReaderSource rs = new ReaderSource
-            (parent, entityName, pubId, sysId, src, r, true, bufLen);
+            (cfg, parent, entityName, pubId, sysId, src, r, true);
         if (bs != null) {
             rs.setInputOffsets(bs.getInputTotal(), bs.getInputRow(),
                                -bs.getInputColumn());
@@ -47,11 +47,11 @@ public final class InputSourceFactory
      * source.
      */
     public static BranchingReaderSource constructDocumentSource
-        (InputBootstrapper bs, String pubId, String sysId, URL src,
-         Reader r, boolean realClose, int bufSize) 
+        (ReaderConfig cfg, InputBootstrapper bs, String pubId, String sysId, URL src,
+         Reader r, boolean realClose) 
     {
         BranchingReaderSource rs = new BranchingReaderSource
-            (pubId, sysId, src, r, realClose, bufSize);
+            (cfg, pubId, sysId, src, r, realClose);
         if (bs != null) {
             rs.setInputOffsets(bs.getInputTotal(), bs.getInputRow(),
                                -bs.getInputColumn());

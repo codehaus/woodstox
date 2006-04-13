@@ -3,9 +3,9 @@ package com.ctc.wstx.io;
 import java.io.*;
 
 import javax.xml.stream.Location;
-import javax.xml.stream.XMLReporter;
 import javax.xml.stream.XMLStreamException;
 
+import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.cfg.ParsingErrorMsgs;
 import com.ctc.wstx.cfg.XmlConsts;
 import com.ctc.wstx.exc.*;
@@ -50,7 +50,7 @@ public final class StreamBootstrapper
     ///////////////////////////////////////////////////////////////
     */
 
-    final byte[] mByteBuffer;
+    private byte[] mByteBuffer;
 
     private int mInputPtr;
 
@@ -78,15 +78,10 @@ public final class StreamBootstrapper
     ////////////////////////////////////////
     */
 
-    private StreamBootstrapper(InputStream in, String pubId, String sysId,
-                               int bufSize)
+    private StreamBootstrapper(InputStream in, String pubId, String sysId)
     {
         super(pubId, sysId);
         mIn = in;
-        if (bufSize < MIN_BUF_SIZE) {
-            bufSize = MIN_BUF_SIZE;
-        }
-        mByteBuffer = new byte[bufSize];
         mInputPtr = mInputLen = 0;
     }
 
@@ -96,16 +91,22 @@ public final class StreamBootstrapper
     ////////////////////////////////////////
     */
 
-    public static StreamBootstrapper getInstance(InputStream in, String pubId, String sysId,
-                                                 int bufSize)
+    public static StreamBootstrapper getInstance(InputStream in, String pubId, String sysId)
     {
-        return new StreamBootstrapper(in, pubId, sysId, bufSize);
+        return new StreamBootstrapper(in, pubId, sysId);
     }
 
-    public Reader bootstrapInput(boolean mainDoc, XMLReporter rep, int xmlVersion)
+    public Reader bootstrapInput(ReaderConfig cfg, boolean mainDoc, int xmlVersion)
         throws IOException, XMLStreamException
     {
         String normEnc = null;
+
+        // First, let's get the buffers...
+        int bufSize = cfg.getInputBufferLength();
+        if (bufSize < MIN_BUF_SIZE) {
+            bufSize = MIN_BUF_SIZE;
+        }
+        mByteBuffer = cfg.allocFullBBuffer(bufSize);
 
         resolveStreamEncoding();
         if (hasXmlDecl()) {
@@ -148,24 +149,24 @@ public final class StreamBootstrapper
 
         // Normalized, can thus use straight equality checks now
         if (normEnc == CharsetNames.CS_UTF8) {
-            r = new UTF8Reader(mIn, mByteBuffer, mInputPtr, mInputLen);
+            r = new UTF8Reader(cfg, mIn, mByteBuffer, mInputPtr, mInputLen);
         } else if (normEnc == CharsetNames.CS_ISO_LATIN1) {
-            r = new ISOLatinReader(mIn, mByteBuffer, mInputPtr, mInputLen);
+            r = new ISOLatinReader(cfg, mIn, mByteBuffer, mInputPtr, mInputLen);
         } else if (normEnc == CharsetNames.CS_US_ASCII) {
-            r = new AsciiReader(mIn, mByteBuffer, mInputPtr, mInputLen);
+            r = new AsciiReader(cfg, mIn, mByteBuffer, mInputPtr, mInputLen);
         } else if (normEnc.startsWith(CharsetNames.CS_UTF32)) {
             // let's augment with actual endianness info
             if (normEnc == CharsetNames.CS_UTF32) {
                 mInputEncoding = mBigEndian ? CharsetNames.CS_UTF32BE : CharsetNames.CS_UTF32LE;
             }
-            r = new UTF32Reader(mIn, mByteBuffer, mInputPtr, mInputLen,
+            r = new UTF32Reader(cfg, mIn, mByteBuffer, mInputPtr, mInputLen,
                                 mBigEndian);
         } else {
             // Nah, JDK needs to try it
             // Ok; first, do we need to merge stuff back?
             InputStream in = mIn;
             if (mInputPtr < mInputLen) {
-                in = new MergedStream(in, mByteBuffer, mInputPtr, mInputLen);
+                in = new MergedStream(cfg, in, mByteBuffer, mInputPtr, mInputLen);
             }
             /* 20-Jan-2006, TSa: Ok; although it is possible to declare
              *   stream as 'UTF-16', JDK may need help in figuring out

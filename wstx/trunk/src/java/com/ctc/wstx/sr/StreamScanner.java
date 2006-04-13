@@ -1559,8 +1559,7 @@ public abstract class StreamScanner
         oldInput.saveContext(this);
         WstxInputSource newInput = null;
         try {
-            newInput = ed.expand(oldInput, mEntityResolver,
-                                 mConfig.getXMLReporter(), mDocXmlVersion);
+            newInput = ed.expand(oldInput, mEntityResolver, mConfig, mDocXmlVersion);
         } catch (FileNotFoundException fex) {
             /* Let's catch and rethrow this just so we get more meaningful
              * description (with input source position etc)
@@ -1600,7 +1599,7 @@ public abstract class StreamScanner
                 xmlVersion = XmlConsts.XML_V_10;
             }
             WstxInputSource newInput = DefaultInputResolver.resolveEntityUsing
-                (oldInput, id, null, null, resolver, mConfig.getXMLReporter(), xmlVersion);
+                (oldInput, id, null, null, resolver, mConfig, xmlVersion);
             if (newInput != null) {
                 // true -> is external
                 initInputSource(newInput, true);

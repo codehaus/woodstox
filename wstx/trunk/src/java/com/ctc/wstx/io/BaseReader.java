@@ -2,6 +2,8 @@ package com.ctc.wstx.io;
 
 import java.io.*;
 
+import com.ctc.wstx.api.ReaderConfig;
+
 /**
  * Simple basic class for optimized Readers Woodstox has; implements
  * "cookie-cutter" methods that are used by all actual implementations.
@@ -29,6 +31,8 @@ abstract class BaseReader
      */
     final static char CHAR_DEL = (char) 127;
 
+    private final ReaderConfig mConfig;
+
     protected InputStream mIn;
 
     protected byte[] mBuffer;
@@ -42,8 +46,9 @@ abstract class BaseReader
     ////////////////////////////////////////
     */
 
-    protected BaseReader(InputStream in, byte[] buf, int ptr, int len)
+    protected BaseReader(ReaderConfig cfg, InputStream in, byte[] buf, int ptr, int len)
     {
+        mConfig = cfg;
         mIn = in;
         mBuffer = buf;
         mPtr = ptr;
@@ -74,11 +79,12 @@ abstract class BaseReader
     public void close()
         throws IOException
     {
+//System.err.println("DEBUG: BaseReader, close");
         InputStream in = mIn;
 
         if (in != null) {
             mIn = null;
-            mBuffer = null;
+            freeBuffers();
             in.close();
         }
     }
@@ -107,6 +113,28 @@ abstract class BaseReader
     // Internal/package methods:
     ////////////////////////////////////////
     */
+
+    /**
+     * This method should be called along with (or instead of) normal
+     * close. After calling this method, no further reads should be tried.
+     * Method will try to recycle read buffers (if any).
+     */
+    public final void freeBuffers()
+    {
+//System.err.println("DEBUG: BaseReader, freeBuffers");
+        /* 11-Apr-2005, TSa: Ok, we can release the buffer now, to be
+         *   recycled by the next stream reader instantiated by this
+         *   thread (if any).
+         */
+        byte[] buf = mBuffer;
+//System.err.println("DEBUG: buf: "+buf+", cfg: "+mConfig);
+        if (buf != null) {
+            mBuffer = null;
+            if (mConfig != null) {
+                mConfig.freeFullBBuffer(buf);
+            }
+        }
+    }
 
     protected void reportBounds(char[] cbuf, int start, int len)
         throws IOException

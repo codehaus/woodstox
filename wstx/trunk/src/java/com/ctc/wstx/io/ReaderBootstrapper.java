@@ -22,6 +22,7 @@ import javax.xml.stream.Location;
 import javax.xml.stream.XMLReporter;
 import javax.xml.stream.XMLStreamException;
 
+import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.cfg.ParsingErrorMsgs;
 import com.ctc.wstx.exc.*;
@@ -64,7 +65,7 @@ public final class ReaderBootstrapper
     ///////////////////////////////////////////////////////////////
     */
 
-    final char[] mCharBuffer;
+    private char[] mCharBuffer;
 
     private int mInputPtr;
 
@@ -81,13 +82,6 @@ public final class ReaderBootstrapper
     {
         super(pubId, sysId);
         mIn = r;
-
-        /* Let's make sure buffer is at least 6 chars (to know '<?xml '
-         * prefix), and preferably big enough to contain the whole declaration,
-         *  but not too long to waste space -- it won't be reused
-         * by the real input reader.
-         */
-        mCharBuffer = new char[128]; // 128 chars should be enough
         mInputEncoding = appEncoding;
     }
 
@@ -116,9 +110,20 @@ public final class ReaderBootstrapper
      *
      * @return Actual reader to use for reading xml content
      */
-    public Reader bootstrapInput(boolean mainDoc, XMLReporter rep, int xmlVersion)
+    public Reader bootstrapInput(ReaderConfig cfg, boolean mainDoc, int xmlVersion)
         throws IOException, XMLStreamException
     {
+        /* First order of business: allocate input buffer. Not done during
+         * construction for simplicity; that way config object need not be
+         * passed before actual bootstrap method is called
+         */
+        /* Let's make sure buffer is at least 6 chars (to know '<?xml '
+         * prefix), and preferably big enough to contain the whole declaration,
+         *  but not too long to waste space -- it won't be reused
+         * by the real input reader.
+         */
+        mCharBuffer = (cfg == null) ? new char[128] : cfg.allocSmallCBuffer(128); // 128 chars should be enough
+
         initialLoad(7);
 
         /* Only need 6 for signature ("<?xml\s"), but there may be a leading
@@ -144,7 +149,7 @@ public final class ReaderBootstrapper
                     readXmlDecl(mainDoc, xmlVersion);
                     
                     if (mFoundEncoding != null && mInputEncoding != null) {
-                        verifyXmlEncoding(rep);
+                        verifyXmlEncoding(cfg);
                     }
                 }
             } else {
@@ -169,7 +174,7 @@ public final class ReaderBootstrapper
          * be merged in?
          */
         if (mInputPtr < mInputLen) {
-            return new MergedReader(mIn, mCharBuffer, mInputPtr, mInputLen);
+            return new MergedReader(cfg, mIn, mCharBuffer, mInputPtr, mInputLen);
         }
 
         return mIn;
@@ -193,7 +198,7 @@ public final class ReaderBootstrapper
     ////////////////////////////////////////
     */
 
-    protected void verifyXmlEncoding(XMLReporter rep)
+    protected void verifyXmlEncoding(ReaderConfig cfg)
         throws XMLStreamException
     {
         String inputEnc = mInputEncoding;
@@ -208,12 +213,15 @@ public final class ReaderBootstrapper
          */
         // !!! TBI
 
-        Location loc = getLocation();
-        rep.report(MessageFormat.format(ErrorConsts.W_MIXED_ENCODINGS,
-                                        new Object[] { mFoundEncoding,
-                                                       inputEnc }),
-                   ErrorConsts.WT_XML_DECL,
-                   this, loc);
+        XMLReporter rep = cfg.getXMLReporter();
+        if (rep != null) {
+            Location loc = getLocation();
+            rep.report(MessageFormat.format(ErrorConsts.W_MIXED_ENCODINGS,
+                                            new Object[] { mFoundEncoding,
+                                                           inputEnc }),
+                       ErrorConsts.WT_XML_DECL,
+                       this, loc);
+        }
     }
 
     /*

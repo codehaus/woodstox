@@ -11,6 +11,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.EntityReference;
 import javax.xml.stream.events.EntityDeclaration;
 
+import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.io.InputSourceFactory;
 import com.ctc.wstx.io.TextEscaper;
 import com.ctc.wstx.io.WstxInputLocation;
@@ -122,7 +123,7 @@ public class IntEntity
     public boolean isParsed() { return true; }
     
     public WstxInputSource expand(WstxInputSource parent,
-                                  XMLResolver res, XMLReporter rep,
+                                  XMLResolver res, ReaderConfig cfg,
                                   int xmlVersion)
     {
         return InputSourceFactory.constructCharArraySource

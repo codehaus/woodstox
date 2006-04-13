@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import org.codehaus.stax2.validation.XMLValidationException;
 import org.codehaus.stax2.validation.XMLValidator;
 
+import com.ctc.wstx.api.ReaderConfig;
+
 /**
  * TextBuffer is a class similar to {@link StringBuffer}, with
  * following differences:
@@ -41,6 +43,8 @@ public final class TextBuffer
     final static int DEF_INITIAL_BUFFER_SIZE = 500; // 1k
 
     // // // Configuration:
+
+    private final ReaderConfig mConfig;
 
     /**
      * Initial allocation size to use, if/when temporary output buffer
@@ -103,40 +107,59 @@ public final class TextBuffer
     //////////////////////////////////////////////
      */
 
-    private TextBuffer(int initialSize)
+    private TextBuffer(int initialSize, ReaderConfig cfg)
     {
         mInitialBufSize = initialSize;
+        mConfig = cfg;
     }
 
-    public static TextBuffer createRecyclableBuffer()
+    public static TextBuffer createRecyclableBuffer(ReaderConfig cfg)
     {
-        return new TextBuffer(DEF_INITIAL_BUFFER_SIZE);
+        return new TextBuffer(DEF_INITIAL_BUFFER_SIZE, cfg);
     }
 
     public static TextBuffer createTemporaryBuffer(int initialSize)
     {
-        return new TextBuffer(initialSize);
+        return new TextBuffer(initialSize, null);
     }
 
     /**
-     * Method that can be called to clear all data; makes sure that all
-     * referenced Objects can be GC'ed.
+     * Method called to indicate that the underlying buffers should now
+     * be recycled if they haven't yet been recycled. Although caller
+     * can still use this text buffer, it is not advisable to call this
+     * method if that is likely, since next time a buffer is needed,
+     * buffers need to reallocated.
+     * Note: calling this method automatically also clears contents
+     * of the buffer.
      */
-    public void clear() {
-        // Temp results:
-        mResultString = null;
-        mResultArray = null;
+    public void recycle(boolean force)
+    {
+        if (mConfig != null && mCurrentSegment != null) {
+            if (force) {
+                /* If we are allowed to wipe out all existing data, it's
+                 * quite easy; we'll just wipe out contents, and return
+                 * biggest buffer:
+                 */
+                resetWithEmpty();
+            } else {
+                /* But if there's non-shared data (ie. buffer is still
+                 * in use), can't return it yet:
+                 */
+                if (mInputStart < 0 && (mSegmentSize + mCurrentSize) > 0) {
+                    return;
+                }
+                // If no data (or only shared data), can continue
+                if (mSegments != null && mSegments.size() > 0) {
+                    // No need to use anything from list, curr segment not null
+                    mSegments.clear();
+                    mSegmentSize = 0;
+                }
+            }
 
-        // Shared buffer stuff
-        mInputBuffer = null;
-        mInputStart = -1;
-        mInputLen = 0;
-
-        // Internal segments:
-        mSegments = null;
-        mSegmentSize = 0;
-        mCurrentSegment = null;
-        mCurrentSize = 0;
+            char[] buf = mCurrentSegment;
+            mCurrentSegment = null;
+            mConfig.freeMediumCBuffer(buf);
+        }
     }
 
     /**
@@ -213,23 +236,35 @@ public final class TextBuffer
             mSegments.clear();
         } else {
             if (mCurrentSegment == null) {
-                mCurrentSegment = new char[mInitialBufSize];
+                mCurrentSegment = allocBuffer(mInitialBufSize);
             }
         }
         mCurrentSize = mSegmentSize = 0;
         append(buf, start, len);
     }
 
-  /**
-   * Method called to make sure there is a non-shared segment to use, without
-   * appending any content yet.
-   */
+    /**
+     * Method called to make sure there is a non-shared segment to use, without
+     * appending any content yet.
+     */
     public void resetInitialized()
     {
-      resetWithEmpty();
-      if (mCurrentSegment == null) {
-          mCurrentSegment = new char[mInitialBufSize];
-      }
+        resetWithEmpty();
+        if (mCurrentSegment == null) {
+            mCurrentSegment = allocBuffer(mInitialBufSize);
+        }
+    }
+
+    private final char[] allocBuffer(int needed)
+    {
+        char[] buf = null;
+        if (mConfig != null) {
+            buf = mConfig.allocMediumCBuffer(needed);
+            if (buf != null) {
+                return buf;
+            }
+        }
+        return new char[needed];
     }
 
     /*
@@ -710,7 +745,7 @@ public final class TextBuffer
         } else {
             char[] curr = mCurrentSegment;
             if (curr == null) {
-                mCurrentSegment = new char[mInitialBufSize];
+                mCurrentSegment = allocBuffer(mInitialBufSize);
             } else if (mCurrentSize >= curr.length) {
                 // Plus, we better have room for at least one more char
                 expand(1);
@@ -779,12 +814,9 @@ public final class TextBuffer
 
         // Is buffer big enough, or do we need to reallocate?
         int needed = len+needExtra;
-        if (mCurrentSegment == null || (needed > mCurrentSegment.length)) {
-            if (needed > mInitialBufSize) {
-                mCurrentSegment = new char[needed];
-            } else {
-                mCurrentSegment = new char[mInitialBufSize];
-            }
+        if (mCurrentSegment == null || needed > mCurrentSegment.length) {
+            mCurrentSegment = allocBuffer((needed > mInitialBufSize) ?
+                                          needed : mInitialBufSize);
         }
         if (len > 0) {
             System.arraycopy(inputBuf, start, mCurrentSegment, 0, len);
@@ -853,139 +885,139 @@ public final class TextBuffer
     }
 
     private final static class BufferReader
-	extends Reader
+        extends Reader
     {
-	ArrayList mSegments;
-	char[] mCurrentSegment;
-	final int mCurrentLength;
+        ArrayList _Segments;
+        char[] _CurrentSegment;
+        final int _CurrentLength;
+        
+        int _SegmentIndex;
+        int _SegmentOffset;
+        int _CurrentOffset;
+        
+        public BufferReader(ArrayList segs, char[] currSeg, int currSegLen)
+        {
+            _Segments = segs;
+            _CurrentSegment = currSeg;
+            _CurrentLength = currSegLen;
+            
+            _SegmentIndex = 0;
+            _SegmentOffset = _CurrentOffset = 0;
+        }
+        
+        public void close() {
+            _Segments = null;
+            _CurrentSegment = null;
+        }
+        
+        public void mark(int x)
+            throws IOException
+        {      
+            throw new IOException("mark() not supported");
+        }
+        
+        public boolean markSupported() {
+            return false;
+        }
 
-	int mSegmentIndex;
-	int mSegmentOffset;
-	int mCurrentOffset;
+        public int read(char[] cbuf, int offset, int len)
+        {
+            if (len < 1) {
+                return 0;
+            }
+            
+            int origOffset = offset;
+            // First need to copy stuff from previous segments
+            while (_Segments != null) {
+                char[] curr = (char[]) _Segments.get(_SegmentIndex);
+                int max = curr.length - _SegmentOffset;
+                if (len <= max) { // this is enough
+                    System.arraycopy(curr, _SegmentOffset, cbuf, offset, len);
+                    _SegmentOffset += len;
+                    offset += len;
+                    return (offset - origOffset);
+                }
+                // Not enough, but helps...
+                if (max > 0) {
+                    System.arraycopy(curr, _SegmentOffset, cbuf, offset, max);
+                    offset += max;
+                }
+                if (++_SegmentIndex >= _Segments.size()) { // last one
+                    _Segments = null;
+                } else {
+                    _SegmentOffset = 0;
+                }
+            }
+            
+            // ok, anything to copy from the active segment?
+            if (len > 0 && _CurrentSegment != null) {
+                int max = _CurrentLength - _CurrentOffset;
+                if (len >= max) { // reading it all
+                    len = max;
+                    System.arraycopy(_CurrentSegment, _CurrentOffset,
+                                     cbuf, offset, len);
+                    _CurrentSegment = null;
+                } else {
+                    System.arraycopy(_CurrentSegment, _CurrentOffset,
+                                     cbuf, offset, len);
+                    _CurrentOffset += len;
+                }
+                offset += len;
+            }
 
-	public BufferReader(ArrayList segs, char[] currSeg, int currSegLen)
-	{
-	    mSegments = segs;
-	    mCurrentSegment = currSeg;
-	    mCurrentLength = currSegLen;
-
-	    mSegmentIndex = 0;
-	    mSegmentOffset = mCurrentOffset = 0;
-	}
-
-	public void close() {
-	    mSegments = null;
-	    mCurrentSegment = null;
-	}
-
-	public void mark(int x)
-	    throws IOException
-	{      
-	    throw new IOException("mark() not supported");
-	}
-
-	public boolean markSupported() {
-	    return false;
-	}
-
-	public int read(char[] cbuf, int offset, int len)
-	{
-	    if (len < 1) {
-		return 0;
-	    }
-
-	    int origOffset = offset;
-	    // First need to copy stuff from previous segments
-	    while (mSegments != null) {
-		char[] curr = (char[]) mSegments.get(mSegmentIndex);
-		int max = curr.length - mSegmentOffset;
-		if (len <= max) { // this is enough
-		    System.arraycopy(curr, mSegmentOffset, cbuf, offset, len);
-		    mSegmentOffset += len;
-		    offset += len;
-		    return (offset - origOffset);
-		}
+            return (origOffset == offset) ? -1 : (offset - origOffset);
+        }
+        
+        public boolean ready() {
+            return true;
+        }
+        
+        public void reset()
+            throws IOException
+        {	
+            throw new IOException("reset() not supported");
+        }
+        
+        public long skip(long amount)
+        {
+            /* Note: implementation is almost identical to that of read();
+             * difference being that no data is copied.
+             */
+            if (amount < 0) {
+                return 0L;
+            }
+            
+            long origAmount= amount;
+            
+            while (_Segments != null) {
+                char[] curr = (char[]) _Segments.get(_SegmentIndex);
+                int max = curr.length - _SegmentOffset;
+                if (max >= amount) { // this is enough
+                    _SegmentOffset += (int) amount;
+                    return origAmount;
+                }
 		// Not enough, but helps...
-		if (max > 0) {
-		    System.arraycopy(curr, mSegmentOffset, cbuf, offset, max);
-		    offset += max;
-		}
-		if (++mSegmentIndex >= mSegments.size()) { // last one
-		    mSegments = null;
-		} else {
-		    mSegmentOffset = 0;
-		}
-	    }
-
-	    // ok, anything to copy from the active segment?
-	    if (len > 0 && mCurrentSegment != null) {
-		int max = mCurrentLength - mCurrentOffset;
-		if (len >= max) { // reading it all
-		    len = max;
-		    System.arraycopy(mCurrentSegment, mCurrentOffset,
-				     cbuf, offset, len);
-		    mCurrentSegment = null;
-		} else {
-		    System.arraycopy(mCurrentSegment, mCurrentOffset,
-				     cbuf, offset, len);
-		    mCurrentOffset += len;
-		}
-		offset += len;
-	    }
-
-	    return (origOffset == offset) ? -1 : (offset - origOffset);
-	}
-
-	public boolean ready() {
-	    return true;
-	}
-
-	public void reset()
-	    throws IOException
-	{	
-	    throw new IOException("reset() not supported");
-	}
-
-	public long skip(long amount)
-	{
-	    /* Note: implementation is almost identical to that of read();
-	     * difference being that no data is copied.
-	     */
-	    if (amount < 0) {
-		return 0L;
-	    }
-
-	    long origAmount= amount;
-
-	    while (mSegments != null) {
-		char[] curr = (char[]) mSegments.get(mSegmentIndex);
-		int max = curr.length - mSegmentOffset;
-		if (max >= amount) { // this is enough
-		    mSegmentOffset += (int) amount;
-		    return origAmount;
-		}
-		// Not enough, but helps...
-		amount -= max;
-		if (++mSegmentIndex >= mSegments.size()) { // last one
-		    mSegments = null;
-		} else {
-		    mSegmentOffset = 0;
-		}
-	    }
-
-	    // ok, anything left in the active segment?
-	    if (amount > 0 && mCurrentSegment != null) {
-		int max = mCurrentLength - mCurrentOffset;
-		if (amount >= max) { // reading it all
-		    amount -= max;
-		    mCurrentSegment = null;
-		} else {
-		    amount = 0L;
-		    mCurrentOffset += (int) amount;
-		}
-	    }
-
-	    return (amount == origAmount) ? -1L : (origAmount - amount);
-	}
+                amount -= max;
+                if (++_SegmentIndex >= _Segments.size()) { // last one
+                    _Segments = null;
+                } else {
+                    _SegmentOffset = 0;
+                }
+            }
+            
+            // ok, anything left in the active segment?
+            if (amount > 0 && _CurrentSegment != null) {
+                int max = _CurrentLength - _CurrentOffset;
+                if (amount >= max) { // reading it all
+                    amount -= max;
+                    _CurrentSegment = null;
+                } else {
+                    amount = 0L;
+                    _CurrentOffset += (int) amount;
+                }
+            }
+            
+            return (amount == origAmount) ? -1L : (origAmount - amount);
+        }
     }
 }

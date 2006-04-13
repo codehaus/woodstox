@@ -4,6 +4,7 @@ import java.io.*;
 
 import javax.xml.stream.*;
 
+import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.cfg.XmlConsts;
 import com.ctc.wstx.dtd.DTDSubset;
 import com.ctc.wstx.dtd.FullDTDReader;
@@ -46,13 +47,13 @@ public class TestFlattening
             +"<?proc instr?>\r\n"
             ;
         StringReader strr = new StringReader(DTD);
- 
+        ReaderConfig cfg = ReaderConfig.createFullDefaults();
         for (int i = 0; i < 8; ++i) {
             boolean inclComments = (i & 4) != 0;
             boolean inclConditionals = (i & 2) != 0;
             boolean inclPEs = (i & 1) != 0;
             WstxInputSource input = DefaultInputResolver.sourceFromString
-                (null, null, "[dtd]", /*xml version for compat checks*/ XmlConsts.XML_V_UNKNOWN, DTD);
+                (null, cfg, "[dtd]", /*xml version for compat checks*/ XmlConsts.XML_V_UNKNOWN, DTD);
             StringWriter strw = new StringWriter();
             DTDSubset ss = FullDTDReader.flattenExternalSubset
                 (input, strw,
@@ -65,7 +66,7 @@ public class TestFlattening
              * compare second-time output.
              */
             input = DefaultInputResolver.sourceFromString
-                (null, null, "[dtd]", /*xml version for compatibility checks*/ XmlConsts.XML_V_UNKNOWN, output);
+                (null, cfg, "[dtd]", /*xml version for compatibility checks*/ XmlConsts.XML_V_UNKNOWN, output);
 
             strw = new StringWriter();
             ss = FullDTDReader.flattenExternalSubset

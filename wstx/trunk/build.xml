@@ -432,9 +432,9 @@
     <!-- Running generic StAX tests -->
     <target name="staxtest" depends="prepare-staxtest">
        <!-- showoutput 'yes' to allow outputting debug msgs... -->
-        <junit fork="no" printsummary="yes" haltonfailure="no"
-         showoutput="yes">
-            <batchtest fork="no" todir="${TestXmlResultsDir}">
+        <junit fork="yes" forkmode="once" maxmemory="128M"
+          printsummary="yes" haltonfailure="no" showoutput="yes">
+            <batchtest fork="yes" todir="${TestXmlResultsDir}">
                 <fileset dir="${StaxTestClassesDir}">
                     <!-- Need to exclude inner classes... -->
                     <exclude name="**/*$*.class"/>
@@ -497,9 +497,9 @@
 
     <target name="test" depends="test.compile">
        <!-- showoutput 'yes' to allow outputting debug msgs... -->
-        <junit fork="no" printsummary="yes" haltonfailure="no"
-         showoutput="yes">
-            <batchtest fork="no" todir="${TestXmlResultsDir}">
+        <junit fork="yes" forkmode="once" maxmemory="128M"
+         printsummary="yes" haltonfailure="no" showoutput="yes">
+            <batchtest fork="yes" todir="${TestXmlResultsDir}">
                 <fileset dir="${TestClassesDir}">
                     <!-- Need to exclude inner classes... -->
                     <exclude name="**/*$*.class"/>

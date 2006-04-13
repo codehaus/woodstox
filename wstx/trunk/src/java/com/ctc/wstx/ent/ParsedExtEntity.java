@@ -11,6 +11,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.EntityReference;
 import javax.xml.stream.events.EntityDeclaration;
 
+import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.cfg.XmlConsts;
 import com.ctc.wstx.io.DefaultInputResolver;
 import com.ctc.wstx.io.WstxInputSource;
@@ -63,7 +64,7 @@ public class ParsedExtEntity
     public boolean isParsed() { return true; }
     
     public WstxInputSource expand(WstxInputSource parent,
-                                  XMLResolver res, XMLReporter rep,
+                                  XMLResolver res, ReaderConfig cfg,
                                   int xmlVersion)
         throws IOException, XMLStreamException
     {
@@ -74,6 +75,6 @@ public class ParsedExtEntity
             xmlVersion = XmlConsts.XML_V_10;
         }
         return DefaultInputResolver.resolveEntity
-            (parent, mName, getPublicId(), getSystemId(), res, rep, xmlVersion);
+            (parent, mName, getPublicId(), getSystemId(), res, cfg, xmlVersion);
     }
 }

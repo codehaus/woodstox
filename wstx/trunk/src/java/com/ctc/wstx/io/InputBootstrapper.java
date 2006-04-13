@@ -3,9 +3,9 @@ package com.ctc.wstx.io;
 import java.io.*;
 
 import javax.xml.stream.Location;
-import javax.xml.stream.XMLReporter;
 import javax.xml.stream.XMLStreamException;
 
+import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.cfg.XmlConsts;
 import com.ctc.wstx.exc.*;
@@ -156,7 +156,7 @@ public abstract class InputBootstrapper
      *   If null, no checks will be done; when bootstrapping parsing of the
      *   main document, null should be passed for this argument.
      */
-    public abstract Reader bootstrapInput(boolean mainDoc, XMLReporter rep,
+    public abstract Reader bootstrapInput(ReaderConfig cfg, boolean mainDoc,
                                           int xmlVersion)
         throws IOException, XMLStreamException;
 

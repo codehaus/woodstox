@@ -2,6 +2,8 @@ package com.ctc.wstx.io;
 
 import java.io.*;
 
+import com.ctc.wstx.api.ReaderConfig;
+
 /**
  * Simple {@link Reader} implementation that is used to "unwind" some
  * data previously read from a Reader; so that as long as some of
@@ -14,16 +16,25 @@ import java.io.*;
 public final class MergedReader
     extends Reader
 {
+    final ReaderConfig mConfig;
+
     final Reader mIn;
 
+    /**
+     * This buffer contains the partially read remains left over after
+     * bootstrapper has consumed xml declaration (if one found).
+     * It is generally recycled and can be returned after having been
+     * read.
+     */
     char[] mData;
 
     int mPtr;
 
     final int mEnd;
 
-    public MergedReader(Reader in, char[] buf, int start, int end)
+    public MergedReader(ReaderConfig cfg, Reader in, char[] buf, int start, int end)
     {
+        mConfig = cfg;
         mIn = in;
         mData = buf;
         mPtr = start;
@@ -33,7 +44,7 @@ public final class MergedReader
     public void close()
         throws IOException
     {
-        mData = null;
+        freeMergedBuffer();
         mIn.close();
     }
 
@@ -58,7 +69,7 @@ public final class MergedReader
         if (mData != null) {
             int c = mData[mPtr++] & 0xFF;
             if (mPtr >= mEnd) {
-                mData = null;
+                freeMergedBuffer();
             }
             return c;
         }
@@ -82,7 +93,7 @@ public final class MergedReader
             System.arraycopy(mData, mPtr, cbuf, off, len);
             mPtr += len;
             if (mPtr >= mEnd) {
-                mData = null;
+                freeMergedBuffer();
             }
             return len;
         }
@@ -116,7 +127,7 @@ public final class MergedReader
                 mPtr += (int) n;
                 return amount;
             }
-            mData = null;
+            freeMergedBuffer();
             count += amount;
             n -= amount;
         }
@@ -127,4 +138,14 @@ public final class MergedReader
         return count;
     }
 
+    private void freeMergedBuffer()
+    {
+        if (mData != null) {
+            char[] data = mData;
+            mData = null;
+            if (mConfig != null) {
+                mConfig.freeSmallCBuffer(data);
+            }
+        }
+    }
 }

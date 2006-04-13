@@ -2,6 +2,8 @@ package com.ctc.wstx.io;
 
 import java.io.*;
 
+import com.ctc.wstx.api.ReaderConfig;
+
 /**
  * Simple {@link InputStream} implementation that is used to "unwind" some
  * data previously read from an input stream; so that as long as some of
@@ -13,6 +15,8 @@ import java.io.*;
 public final class MergedStream
     extends InputStream
 {
+    final ReaderConfig mConfig;
+
     final InputStream mIn;
 
     byte[] mData;
@@ -21,8 +25,10 @@ public final class MergedStream
 
     final int mEnd;
 
-    public MergedStream(InputStream in, byte[] buf, int start, int end)
+    public MergedStream(ReaderConfig cfg,
+                        InputStream in, byte[] buf, int start, int end)
     {
+        mConfig = cfg;
         mIn = in;
         mData = buf;
         mPtr = start;
@@ -41,7 +47,7 @@ public final class MergedStream
     public void close()
         throws IOException
     {
-        mData = null;
+        freeMergedBuffer();
         mIn.close();
     }
 
@@ -65,7 +71,7 @@ public final class MergedStream
         if (mData != null) {
             int c = mData[mPtr++] & 0xFF;
             if (mPtr >= mEnd) {
-                mData = null;
+                freeMergedBuffer();
             }
             return c;
         }
@@ -89,7 +95,7 @@ public final class MergedStream
             System.arraycopy(mData, mPtr, b, off, len);
             mPtr += len;
             if (mPtr >= mEnd) {
-                mData = null;
+                freeMergedBuffer();
             }
             return len;
         }
@@ -116,7 +122,7 @@ public final class MergedStream
                 mPtr += (int) n;
                 return amount;
             }
-            mData = null;
+            freeMergedBuffer();
             count += amount;
             n -= amount;
         }
@@ -127,4 +133,14 @@ public final class MergedStream
         return count;
     }
 
+    private void freeMergedBuffer()
+    {
+        if (mData != null) {
+            byte[] data = mData;
+            mData = null;
+            if (mConfig != null) {
+                mConfig.freeFullBBuffer(data);
+            }
+        }
+    }
 }

@@ -24,6 +24,7 @@ import javax.xml.stream.XMLReporter;
 import javax.xml.stream.XMLResolver;
 import javax.xml.stream.XMLStreamException;
 
+import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.io.WstxInputLocation;
 import com.ctc.wstx.io.WstxInputSource;
@@ -137,7 +138,7 @@ public abstract class EntityDecl
      * value of the entity can be read.
      */
     public abstract WstxInputSource expand(WstxInputSource parent, 
-                                           XMLResolver res, XMLReporter rep,
+                                           XMLResolver res, ReaderConfig cfg,
                                            int xmlVersion)
         throws IOException, XMLStreamException;
 }

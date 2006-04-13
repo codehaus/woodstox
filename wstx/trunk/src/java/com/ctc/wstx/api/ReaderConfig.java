@@ -1,5 +1,6 @@
 package com.ctc.wstx.api;
 
+import java.lang.ref.SoftReference;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -15,6 +16,7 @@ import com.ctc.wstx.cfg.InputConfigFlags;
 import com.ctc.wstx.compat.JdkFeatures;
 import com.ctc.wstx.ent.IntEntity;
 import com.ctc.wstx.ent.EntityDecl;
+import com.ctc.wstx.io.BufferRecycler;
 import com.ctc.wstx.util.ArgUtil;
 import com.ctc.wstx.util.EmptyIterator;
 import com.ctc.wstx.util.SymbolTable;
@@ -22,6 +24,14 @@ import com.ctc.wstx.util.SymbolTable;
 /**
  * Simple configuration container class; passed by reader factory to reader
  * instance created.
+ *<p>
+ * In addition to its main task as a configuration container, this class
+ * also acts as a wrapper around simple buffer recycling functionality.
+ * The reason is that while conceptually this is a separate concern,
+ * there are enough commonalities with the life-cycle of this object to
+ * make this a very convenience place to add that functionality...
+ * (that is: conceptually this is not right, but from pragmatic viewpoint
+ * it just makes sense)
  */
 public final class ReaderConfig
     extends CommonConfig
@@ -291,6 +301,27 @@ public final class ReaderConfig
 
     /*
     //////////////////////////////////////////////////////////
+    // Buffer recycling:
+    //////////////////////////////////////////////////////////
+     */
+
+    /**
+     * This <code>ThreadLocal</code> contains a {@link SoftRerefence}
+     * to a {@link BufferRecycler} used to provide a low-cost
+     * buffer recycling between Reader instances.
+     */
+    final static ThreadLocal mRecyclerRef = new ThreadLocal();
+
+    /**
+     * This is the actually container of the recyclable buffers. It
+     * is obtained via ThreadLocal/SoftReference combination, if one
+     * exists, when Config instance is created. If one does not
+     * exists, it will created first time a buffer is returned.
+     */
+    BufferRecycler mCurrRecycler = null;
+
+    /*
+    //////////////////////////////////////////////////////////
     // Life-cycle
     //////////////////////////////////////////////////////////
      */
@@ -307,6 +338,17 @@ public final class ReaderConfig
 
         mInputBufferLen = inputBufLen;
         mMinTextSegmentLen = minTextSegmentLen;
+
+        /* Ok, let's then see if we can find a buffer recycler. Since they
+         * are lazily constructed, and since GC may just flush them out
+         * on its whims, it's possible we might not find one. That's ok;
+         * we can reconstruct one if and when we are to return one or more
+         * buffers.
+         */
+        SoftReference ref = (SoftReference) mRecyclerRef.get();
+        if (ref != null) {
+            mCurrRecycler = (BufferRecycler) ref.get();
+        }
     }
 
     public static ReaderConfig createJ2MEDefaults()
@@ -898,6 +940,111 @@ public final class ReaderConfig
         doNormalizeAttrValues(false);
         // effectively prevents from reporting partial segments:
         setShortestReportedTextSegment(Integer.MAX_VALUE);
+    }
+
+    /*
+    /////////////////////////////////////////////////////
+    // Buffer recycling:
+    /////////////////////////////////////////////////////
+     */
+
+    public char[] allocSmallCBuffer(int minSize)
+    {
+//System.err.println("DEBUG: cfg, allocCSmall: "+mCurrRecycler);
+        if (mCurrRecycler != null) {
+            char[] result = mCurrRecycler.getSmallCBuffer(minSize);
+            if (result != null) {
+                return result;
+            }
+        }
+        // Nope; no recycler, or it has no suitable buffers, let's create:
+        return new char[minSize];
+    }
+
+    public void freeSmallCBuffer(char[] buffer)
+    {
+//System.err.println("DEBUG: cfg, freeCSmall: "+buffer);
+        // Need to create (and assign) the buffer?
+        if (mCurrRecycler == null) {
+            mCurrRecycler = createRecycler();
+        }
+        mCurrRecycler.returnSmallCBuffer(buffer);
+    }
+
+    public char[] allocMediumCBuffer(int minSize)
+    {
+//System.err.println("DEBUG: cfg, allocCMed: "+mCurrRecycler);
+        if (mCurrRecycler != null) {
+            char[] result = mCurrRecycler.getMediumCBuffer(minSize);
+            if (result != null) {
+                return result;
+            }
+        }
+        return new char[minSize];
+    }
+
+    public void freeMediumCBuffer(char[] buffer)
+    {
+//System.err.println("DEBUG: cfg, freeCMed: "+buffer);
+        if (mCurrRecycler == null) {
+            mCurrRecycler = createRecycler();
+        }
+        mCurrRecycler.returnMediumCBuffer(buffer);
+    }
+
+    public char[] allocFullCBuffer(int minSize)
+    {
+//System.err.println("DEBUG: cfg, allocCFull: "+mCurrRecycler);
+        if (mCurrRecycler != null) {
+            char[] result = mCurrRecycler.getFullCBuffer(minSize);
+            if (result != null) {
+                return result;
+            }
+        }
+        return new char[minSize];
+    }
+
+    public void freeFullCBuffer(char[] buffer)
+    {
+//System.err.println("DEBUG: cfg, freeCFull: "+buffer);
+        // Need to create (and assign) the buffer?
+        if (mCurrRecycler == null) {
+            mCurrRecycler = createRecycler();
+        }
+        mCurrRecycler.returnFullCBuffer(buffer);
+    }
+
+    public byte[] allocFullBBuffer(int minSize)
+    {
+//System.err.println("DEBUG: cfg, allocBFull: "+mCurrRecycler);
+        if (mCurrRecycler != null) {
+            byte[] result = mCurrRecycler.getFullBBuffer(minSize);
+            if (result != null) {
+                return result;
+            }
+        }
+        return new byte[minSize];
+    }
+
+    public void freeFullBBuffer(byte[] buffer)
+    {
+//System.err.println("DEBUG: cfg, freeBFull: "+buffer);
+        // Need to create (and assign) the buffer?
+        if (mCurrRecycler == null) {
+            mCurrRecycler = createRecycler();
+        }
+        mCurrRecycler.returnFullBBuffer(buffer);
+    }
+
+    static int Counter = 0;
+
+    private BufferRecycler createRecycler()
+    {
+        BufferRecycler recycler = new BufferRecycler();
+        // No way to reuse/reset SoftReference, have to create new always:
+//System.err.println("DEBUG: RefCount: "+(++Counter));
+        mRecyclerRef.set(new SoftReference(recycler));
+        return recycler;
     }
 
     /*

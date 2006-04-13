@@ -421,6 +421,15 @@ public class BaseWstxTest
     protected static String getAndVerifyText(XMLStreamReader sr)
         throws XMLStreamException
     {
+        /* 05-Apr-2006, TSa: Although getText() is available for DTD
+         *   and ENTITY_REFERENCE, getTextXxx() are not. Thus, can not
+         *   do more checks for those types.
+         */
+        int type = sr.getEventType();
+        if (type == ENTITY_REFERENCE || type == DTD) {
+            return sr.getText();
+        }
+
         int expLen = sr.getTextLength();
         /* Hmmh. It's only ok to return empty text for DTD event... well,
          * maybe also for CDATA, since empty CDATA blocks are legal?
@@ -431,7 +440,7 @@ public class BaseWstxTest
          *  which would be empty... may need to enhance this to check that
          *  mode is not coalescing? Or something
          */
-        if (sr.getEventType() == CHARACTERS) {
+        if (type == CHARACTERS) {
             assertTrue("Stream reader should never return empty Strings.",  (expLen > 0));
         }
         String text = sr.getText();

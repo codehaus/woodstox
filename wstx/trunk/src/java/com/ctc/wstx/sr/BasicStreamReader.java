@@ -378,7 +378,7 @@ public class BasicStreamReader
 
         mOwner = owner;
 
-        mTextBuffer = TextBuffer.createRecyclableBuffer();
+        mTextBuffer = TextBuffer.createRecyclableBuffer(cfg);
 
         // // // First, configuration settings:
 
@@ -1087,13 +1087,15 @@ public class BasicStreamReader
                 }
             }
             /* Hmmh. Actually, we need to close all the dependant input
-             * sources, first, and then also call clsoe() 
+             * sources, first, and then also call close() 
              * on the root input source object; it
              * will only do real close if that was enabled earlier.
              * The root input source also prevents multiple close() calls
              * for the underlying source, so we need not check that here.
              */
             closeAllInput(false);
+            // And finally, can now recycle low-level (text) buffers
+            mTextBuffer.recycle(true);
         }
     }
 
@@ -1958,6 +1960,11 @@ public class BasicStreamReader
         throws XMLStreamException
     {
         mCurrToken = END_DOCUMENT;
+        /* Although buffers have most likely already been recycled,
+         * let's call this again just in case. At this point we can
+         * safely discard any contents
+         */
+        mTextBuffer.recycle(true); // true -> clean'n recycle
         // It's ok to get EOF from epilog but not from prolog
         if (isProlog) {
             throwUnexpectedEOF(SUFFIX_IN_PROLOG);
@@ -2481,6 +2488,11 @@ public class BasicStreamReader
                         if (mSymbols.isDirty()) {
                             mOwner.updateSymbolTable(mSymbols);
                         }
+                        /* May be able to recycle, but not certain; and
+                         * definitely can not just clean contents (may
+                         * contain space(s) read)
+                         */
+                        mTextBuffer.recycle(false);
                         return mCurrToken;
                     }
                     // in fragment mode, fine, we'll just continue

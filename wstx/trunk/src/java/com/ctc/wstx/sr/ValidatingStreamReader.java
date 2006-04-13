@@ -448,7 +448,7 @@ public class ValidatingStreamReader
             }
             src = DefaultInputResolver.resolveEntity
                 (mInput, null, pubId, sysId, mConfig.getDtdResolver(),
-                 mConfig.getXMLReporter(), xmlVersion);
+                 mConfig, xmlVersion);
         } catch (FileNotFoundException fex) {
             /* Let's catch and rethrow this just so we get more meaningful
              * description (with input source position etc)
