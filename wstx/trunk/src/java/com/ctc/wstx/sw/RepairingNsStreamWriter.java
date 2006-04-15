@@ -558,7 +558,7 @@ public class RepairingNsStreamWriter
          *   "empty" (or missing) namespace:
          *   (see comments from findOrCreatePrefix())
          */
-        if (nsURI.length() == 0) {
+        if (nsURI == null || nsURI.length() == 0) {
             String currURL = elem.getDefaultNsUri();
             if (currURL == null || currURL.length() == 0) {
                 // Ok, good:

@@ -7,6 +7,14 @@ Description:
 
   Problems fixed:
 
+  Improvements:
+
+  * [WSTX-53]: Implemented a simple byte/char buffer recycling system,
+    using ThreadLocal and SoftReferences. Improves parsing speed of small
+    (<4kB or so) documents by 15-20%.
+  * Minor improvements to UTF-8 decoding speed (decoding part maybe 5%
+    faster).
+
 == History: ==
 
 2.9.2 [31-Mar-2006]
@@ -31,7 +39,6 @@ Description:
 
   * Implemented (pluggable) XMLValidator for RelaxNG, based on
     Sun Multi-Schema Validator!
-
 
 2.9.1 [22-Feb-2006]
 

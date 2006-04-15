@@ -114,12 +114,17 @@ public final class UTF8Reader
             }
         }
 
+        /* This may look silly, but using a local var is indeed faster
+         * (if and when HotSpot properly gets things running) than
+         * member variable...
+         */
         byte[] buf = mBuffer;
+        int inPtr = mPtr; // making it a loc
 
         main_loop:
         while (outPtr < len) {
             // At this point we have at least one byte available
-            byte b = buf[mPtr++];
+            byte b = buf[inPtr++];
 
             /* Let's first do the quickie loop for common case; 7-bit
              * ascii:
@@ -130,10 +135,10 @@ public final class UTF8Reader
                 if (++outPtr >= len) { // output buffer full, let's leave
                     break main_loop;
                 }
-                if (mPtr >= mLength) { // out of input, let's quit as well
+                if (inPtr >= mLength) { // out of input, let's quit as well
                     break main_loop;
                 }
-                b = buf[mPtr++];
+                b = buf[inPtr++];
             }
 
             int c = (int) b; // it's ok to get sign extension
@@ -161,25 +166,25 @@ public final class UTF8Reader
              * char decoded. This way we will only block (with read from
              * input stream) when absolutely necessary.
              */
-            if ((mLength - mPtr) < needed) {
-                --mPtr;
+            if ((mLength - inPtr) < needed) {
+                --inPtr;
                 break main_loop;
             }
 
-            int d = buf[mPtr++];
+            int d = buf[inPtr++];
             if ((d & 0xC0) != 0x080) {
                 reportInvalidOther(d & 0xFF, outPtr-start);
             }
             c = (c << 6) | (d & 0x3F);
 
             if (needed > 1) { // needed == 1 means 2 bytes total
-                d = buf[mPtr++]; // 3rd byte
+                d = buf[inPtr++]; // 3rd byte
                 if ((d & 0xC0) != 0x080) {
                     reportInvalidOther(d & 0xFF, outPtr-start);
                 }
                 c = (c << 6) | (d & 0x3F);
                 if (needed > 2) { // 4 bytes? (need surrogates)
-                    d = buf[mPtr++];
+                    d = buf[inPtr++];
                     if ((d & 0xC0) != 0x080) {
                         reportInvalidOther(d & 0xFF, outPtr-start);
                     }
@@ -225,7 +230,7 @@ public final class UTF8Reader
                         if (c == 0x85) { // NEL, let's convert?
                             c = CONVERT_NEL_TO;
                         } else if (c >= 0x7F) { // DEL, ctrl chars
-                            int bytePos = mByteCount + mPtr - 1;
+                            int bytePos = mByteCount + inPtr - 1;
                             int charPos = mCharCount + (outPtr-start);
                             reportInvalidXml11(c, bytePos, charPos);
                         }
@@ -233,11 +238,12 @@ public final class UTF8Reader
                 }
             }
             cbuf[outPtr++] = (char) c;
-            if (mPtr >= mLength) {
+            if (inPtr >= mLength) {
                 break main_loop;
             }
         }
 
+        mPtr = inPtr;
         len = outPtr - start;
         mCharCount += len;
         return len;
