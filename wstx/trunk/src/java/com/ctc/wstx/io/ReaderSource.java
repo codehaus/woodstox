@@ -72,14 +72,6 @@ public class ReaderSource
         return false;
     }
 
-    /**
-     * Note: only used to carry forward the configuration value for
-     * the input buffer size; it has no additional semantics.
-     */
-    public int getInputBufferLength() {
-        return mBuffer.length;
-    }
-
     public int readInto(WstxInputData reader)
         throws IOException
     {

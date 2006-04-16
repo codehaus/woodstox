@@ -7,6 +7,8 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter; // only for javadoc
 
+import org.codehaus.stax2.io.EscapingWriterFactory;
+
 /**
  * Extension of {@link javax.xml.stream.XMLInputFactory} to add missing functionality
  * (which currently means 'nothing'...)

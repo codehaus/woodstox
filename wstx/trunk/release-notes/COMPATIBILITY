@@ -7,6 +7,11 @@
 * XML conformance significantly improved, to pass XMLTest test suite
   (with 99%+ pass rate).
 
+=== Packaging ===
+
+* EscapingWriterFactory moved from main org.codehaus.stax2 package
+  to the new org.codehaus.stax.io sub-package.
+
 === Stream reader ===
 
 * Default setting for P_REPORT_PROLOG_WHITESPACE is
@@ -36,5 +41,4 @@
   runtime exceptions, with no performance difference).
   Also, P_MIN_TEXT_SEGMENT will be set to maximum value, to avoid
   ever splitting a CHARACTERS or CDATA segment (to minimize number
-  of event objects).
-
+  of event objects created).

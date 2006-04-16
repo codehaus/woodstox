@@ -34,9 +34,9 @@ import javax.xml.stream.events.Characters;
 import javax.xml.stream.events.StartElement;
 
 import org.codehaus.stax2.DTDInfo;
-import org.codehaus.stax2.EscapingWriterFactory;
 import org.codehaus.stax2.XMLStreamReader2;
 import org.codehaus.stax2.XMLStreamWriter2;
+import org.codehaus.stax2.io.EscapingWriterFactory;
 import org.codehaus.stax2.validation.*;
 
 import com.ctc.wstx.api.WriterConfig;

@@ -6,18 +6,12 @@ import java.net.URL;
 
 /**
  * Input source that reads input from a static char array, usually used
- * when expanding internal entities.
+ * when expanding internal entities. It can also be used if the input
+ * given is a raw character array.
  */
 public final class CharArraySource
     extends BaseInputSource
 {
-    /**
-     * Default buffer size should never really be needed, when input
-     * sources are properly chained, but let's have some sane default
-     * for weird cases. 1000k chars means 2Kbyte buffer.
-     */
-    final static int DEFAULT_BUFFER_SIZE = 1000;
-
     int mOffset;
 
     // // // Context info we may have to save
@@ -45,11 +39,6 @@ public final class CharArraySource
      */
     public boolean fromInternalEntity() {
         return true;
-    }
-
-    public int getInputBufferLength() {
-        return (mParent == null) ? DEFAULT_BUFFER_SIZE
-            : mParent.getInputBufferLength();
     }
 
     /**
@@ -119,11 +108,4 @@ public final class CharArraySource
     public void closeCompletely() {
         close();
     }
-
-    /*
-    public String toString() {
-        return "[CharArraySource #"+Integer.toHexString(System.identityHashCode(this))
-            +", start: "+mOffset+" < ptr: "+mInputPtr+" < last: "+mInputLen+"]";
-    }
-    */
 }

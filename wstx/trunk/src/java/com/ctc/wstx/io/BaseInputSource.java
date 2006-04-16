@@ -76,12 +76,6 @@ public abstract class BaseInputSource
         mSource = src;
     }
 
-    /**
-     * @return Length of suggested input buffer (if source needs one); used
-     *   for passing default buffer size down the input source line.
-     */
-    public abstract int getInputBufferLength();
-
     public abstract boolean fromInternalEntity();
 
     public URL getSource() {

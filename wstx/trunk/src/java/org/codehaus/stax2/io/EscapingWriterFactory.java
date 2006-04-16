@@ -1,4 +1,4 @@
-package org.codehaus.stax2;
+package org.codehaus.stax2.io;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -39,8 +39,7 @@ public interface EscapingWriterFactory
      *    (based on information application has passed)
      */
     public Writer createEscapingWriterFor(Writer w, String enc)
-	throws UnsupportedEncodingException
-	;
+        throws UnsupportedEncodingException;
 
     /**
      * Method called to create an instance of escaping writer that
@@ -55,6 +54,5 @@ public interface EscapingWriterFactory
      *    (based on information application has passed)
      */
     public Writer createEscapingWriterFor(OutputStream out, String enc)
-	throws UnsupportedEncodingException
-;
+        throws UnsupportedEncodingException;
 }

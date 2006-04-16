@@ -120,6 +120,7 @@ public final class UTF8Reader
          */
         byte[] buf = mBuffer;
         int inPtr = mPtr; // making it a loc
+        int inBufLen = mLength;
 
         main_loop:
         while (outPtr < len) {
@@ -135,7 +136,7 @@ public final class UTF8Reader
                 if (++outPtr >= len) { // output buffer full, let's leave
                     break main_loop;
                 }
-                if (inPtr >= mLength) { // out of input, let's quit as well
+                if (inPtr >= inBufLen) { // out of input, let's quit as well
                     break main_loop;
                 }
                 b = buf[inPtr++];
@@ -146,14 +147,14 @@ public final class UTF8Reader
 
             // Ok; if we end here, we got multi-byte combination
             if ((c & 0xE0) == 0xC0) { // 2 bytes (0x0080 - 0x07FF)
-                c = (b & 0x1F);
+                c = (c & 0x1F);
                 needed = 1;
             } else if ((c & 0xF0) == 0xE0) { // 3 bytes (0x0800 - 0xFFFF)
-                c = (b & 0x0F);
+                c = (c & 0x0F);
                 needed = 2;
             } else if ((c & 0xF8) == 0xF0) {
                 // 4 bytes; double-char BS, with surrogates and all...
-                c = (b & 0x0F);
+                c = (c & 0x0F);
                 needed = 3;
             } else {
                 reportInvalidInitial(c & 0xFF, outPtr-start);
@@ -166,12 +167,12 @@ public final class UTF8Reader
              * char decoded. This way we will only block (with read from
              * input stream) when absolutely necessary.
              */
-            if ((mLength - inPtr) < needed) {
+            if ((inBufLen - inPtr) < needed) {
                 --inPtr;
                 break main_loop;
             }
 
-            int d = buf[inPtr++];
+            int d = (int) buf[inPtr++];
             if ((d & 0xC0) != 0x080) {
                 reportInvalidOther(d & 0xFF, outPtr-start);
             }
@@ -238,7 +239,7 @@ public final class UTF8Reader
                 }
             }
             cbuf[outPtr++] = (char) c;
-            if (inPtr >= mLength) {
+            if (inPtr >= inBufLen) {
                 break main_loop;
             }
         }

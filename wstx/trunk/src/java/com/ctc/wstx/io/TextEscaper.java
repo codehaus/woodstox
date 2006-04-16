@@ -2,7 +2,7 @@ package com.ctc.wstx.io;
 
 import java.io.*;
 
-import org.codehaus.stax2.EscapingWriterFactory;
+import org.codehaus.stax2.io.EscapingWriterFactory;
 
 import com.ctc.wstx.util.StringUtil;
 

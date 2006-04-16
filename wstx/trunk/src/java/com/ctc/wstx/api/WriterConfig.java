@@ -7,9 +7,9 @@ import java.util.Map;
 
 import javax.xml.stream.*;
 
-import org.codehaus.stax2.EscapingWriterFactory;
 import org.codehaus.stax2.XMLOutputFactory2; // for property consts
 import org.codehaus.stax2.XMLStreamProperties;
+import org.codehaus.stax2.io.EscapingWriterFactory;
 
 import com.ctc.wstx.api.WstxOutputProperties;
 import com.ctc.wstx.cfg.OutputConfigFlags;
