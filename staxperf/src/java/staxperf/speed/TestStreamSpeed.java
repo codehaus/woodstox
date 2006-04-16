@@ -43,14 +43,14 @@ public class TestStreamSpeed
                Reader r;
                InputStream in = new FileInputStream(f);
 
-               //switch (round % 6) {
-               switch (3 + (round % 3)) {
+               switch (round % 6) {
+               //switch (3 + (round % 3)) {
                case 0:
                    r = new InputStreamReader(in, "ISO-8859-1");
                    msg = "[JDK, ISO-Latin1]";
                    break;
                case 1:
-                   r = new ISOLatinReader(in, new byte[WSTX_LEN], 0, 0);
+                   r = new ISOLatinReader(null, in, new byte[WSTX_LEN], 0, 0);
                    msg = "[Custom, ISO-Latin1]";
                    break;
                case 2:
@@ -62,7 +62,7 @@ public class TestStreamSpeed
                    msg = "[JDK, UTF-8]";
                    break;
                case 4:
-                   r = new UTF8Reader(in, new byte[WSTX_LEN], 0, 0);
+                   r = new UTF8Reader(null, in, new byte[WSTX_LEN], 0, 0);
                    msg = "[Custom, UTF-8]";
                    break;
                default:

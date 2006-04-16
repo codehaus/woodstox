@@ -1,14 +1,13 @@
-package staxperf.single;
+package staxperf.staxcopy;
 
 import java.io.*;
 
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamConstants;
-import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.*;
+import org.codehaus.stax2.*;
 
 /**
- * Base class for testing sustainable performance of various StAX
- * implementations. Basic operation is as follows:
+ * Base class for testing sustainable copy (read-plus-write) performance of
+ * StAX implementations. Basic operation is as follows:
  *<ul>
  * <li>First implementation is set up, and then <b>warmed up</b>, by doing
  *   couple (30) of repetitions over test document. This ensures JIT has
@@ -20,33 +19,47 @@ import javax.xml.stream.XMLStreamReader;
  *  </li>
  *</ul>
  */
-abstract class BasePerfTest
+abstract class BaseCopyTest
     implements XMLStreamConstants
 {
     private final int DEFAULT_TEST_SECS = 30;
 
-    XMLInputFactory mFactory;
-    XMLStreamReader mStreamReader;
+    XMLInputFactory mInFactory;
+    XMLOutputFactory mOutFactory;
+    XMLStreamReader2 mStreamReader;
+    XMLStreamWriter2 mStreamWriter;
 
-    protected abstract XMLInputFactory getFactory();
+    protected abstract XMLInputFactory2 getInputFactory();
+    protected abstract XMLOutputFactory2 getOutputFactory();
+
+    byte[] mOutputBytes = null;
 
     protected void init()
     {
-        mFactory = getFactory();
-        if (mFactory != null) {
-            System.out.println("Factory instance: "+mFactory.getClass());
-            mFactory.setProperty(XMLInputFactory.IS_COALESCING, Boolean.FALSE);
-            //mFactory.setProperty(XMLInputFactory.IS_COALESCING, Boolean.TRUE);
+        mInFactory = getInputFactory();
+        if (mInFactory != null) {
+            System.out.println("In factory instance: "+mInFactory.getClass());
+            mInFactory.setProperty(XMLInputFactory.IS_COALESCING, Boolean.FALSE);
 
             // Default is ns-aware, no need to re-set:
-            //mFactory.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.TRUE);
-            //mFactory.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.FALSE);
-            mFactory.setProperty(XMLInputFactory.IS_VALIDATING, Boolean.FALSE);
-            System.out.print("  coalescing: "+mFactory.getProperty(XMLInputFactory.IS_COALESCING));
-            System.out.println(";  ns-aware: "+mFactory.getProperty(XMLInputFactory.IS_NAMESPACE_AWARE));
-            System.out.println("  validating: "+mFactory.getProperty(XMLInputFactory.IS_VALIDATING));
+            //mInFactory.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.TRUE);
+            //mInFactory.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.FALSE);
+            mInFactory.setProperty(XMLInputFactory.IS_VALIDATING, Boolean.FALSE);
+            System.out.print("  coalescing: "+mInFactory.getProperty(XMLInputFactory.IS_COALESCING));
+            System.out.println(";  ns-aware: "+mInFactory.getProperty(XMLInputFactory.IS_NAMESPACE_AWARE));
+            System.out.println("  validating: "+mInFactory.getProperty(XMLInputFactory.IS_VALIDATING));
         } else {
-            System.out.println("Factory instance: <null>");
+            System.out.println("In factory instance: <null>");
+        }
+
+        mOutFactory = getOutputFactory();
+        if (mOutFactory != null) {
+            System.out.println("Out factory instance: "+mOutFactory.getClass());
+            //mOutFactory.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES, Boolean.FALSE);
+            mOutFactory.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES, Boolean.TRUE);
+            System.out.println("  repairing: "+mOutFactory.getProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES));
+        } else {
+            System.out.println("Out factory instance: <null>");
         }
     }
 
@@ -66,43 +79,22 @@ abstract class BasePerfTest
 
     protected int testExec2(InputStream in, String path) throws Exception
     {
-        //mStreamReader = mFactory.createXMLStreamReader(r);
-        mStreamReader = mFactory.createXMLStreamReader(path, in);
+        mStreamReader = (XMLStreamReader2)mInFactory.createXMLStreamReader(path, in);
+        ByteArrayOutputStream bos = new ByteArrayOutputStream(1000);
+        mStreamWriter = (XMLStreamWriter2)mOutFactory.createXMLStreamWriter(bos, "UTF-8");
 
         int total = 0;
         while (mStreamReader.hasNext()) {
             int type = mStreamReader.next();
             total += type; // so it won't be optimized out...
 
-            //if (mStreamReader.hasText()) {
-            if (type == CHARACTERS || type == CDATA) {
-                // Test (a): just check length (no buffer copy)
-
-                /*
-                int textLen = mStreamReader.getTextLength();
-                total += textLen;
-                */
-
-                // Test (b): access internal read buffer
-
-                char[] text = mStreamReader.getTextCharacters();
-                int start = mStreamReader.getTextStart();
-                int len = mStreamReader.getTextLength();
-                if (text != null) { // Ref. impl. returns nulls sometimes
-                    total += text.length; // to prevent dead code elimination
-                }
-
-                // Test (c): Access internal buffer (medium)
-
-                /*
-                if (type == CHARACTERS || type == CDATA) {
-                    System.out.println("Text (ws = "+mStreamReader.isWhiteSpace()+") = '"+text+"'.");
-                } else {
-                    System.out.println("Text = '"+text+"'.");
-                }
-                */
-            }
+            // Let's do a full copy, simplest:
+            mStreamWriter.copyEventFromReader(mStreamReader, false);
         }
+        mStreamWriter.close();
+        byte[] outb = bos.toByteArray();
+        total += outb.length;
+        mOutputBytes = outb;
         return total;
     }
 
@@ -110,6 +102,13 @@ abstract class BasePerfTest
         throws IOException
     {
         return new FileInputStream(f);
+    }
+
+    protected void printInitial()
+        throws IOException
+    {
+        int len = mOutputBytes.length;
+        System.out.println("Output document: ("+len+")["+new String(mOutputBytes, "UTF-8")+"]");
     }
 
     public void test(String[] args)
@@ -138,6 +137,9 @@ abstract class BasePerfTest
         int total = 0; // to prevent any dead code optimizations
         for (int i = 0; i < WARMUP_ROUNDS; ++i) {
             total = testExec(f, path);
+            if (i == 0) {
+                printInitial();
+            }
             //testFinish();
             System.out.print(".");
             // Let's allow some slack time between iterations

@@ -7,6 +7,9 @@ import java.io.*;
 public class TestDummyPerf
     extends BasePerfTest
 {
+    final char[] inc = new char[2000];
+    final char[] outc = new char[2000];
+
     private TestDummyPerf() {
         super();
     }
@@ -24,7 +27,7 @@ public class TestDummyPerf
             in = createStream(f);
             //Reader r = new InputStreamReader(in, "ISO-8859-1");
             Reader r = new InputStreamReader(in, "UTF-8");
-            return testExec(r);
+            return testExec(r, inc, outc);
         } finally {
             if (in != null) {
                 in.close();
@@ -32,10 +35,8 @@ public class TestDummyPerf
         }
     }
 
-    protected int testExec(Reader r) throws Exception
+    protected int testExec(Reader r, char[] in, char[] out) throws Exception
     {
-        char[] in = new char[2000];
-        char[] out = new char[2000];
         int sum = 0;
 
         while (true) {
