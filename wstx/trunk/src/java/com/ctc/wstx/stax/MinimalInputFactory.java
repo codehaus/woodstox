@@ -350,6 +350,9 @@ public class MinimalInputFactory
         Reader r;
         try {
             r = bs.bootstrapInput(cfg, true, XmlConsts.XML_V_UNKNOWN);
+            if (bs.declaredXml11()) {
+                cfg.enableXml11(true);
+            }
         } catch (IOException ie) {
             throw new WstxIOException(ie);
         }

@@ -21,6 +21,7 @@ import javax.xml.stream.Location;
 
 import org.codehaus.stax2.validation.XMLValidator;
 
+import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.sr.InputProblemReporter;
@@ -59,6 +60,20 @@ public final class DTDElement
     StructValidator mValidator;
 
     int mAllowedContent;
+
+    /**
+     * True if the DTD was parsed (and is to be used) in namespace-aware
+     * mode.
+     * Affects (name) validation amongst other things.
+     */
+    final boolean mNsAware;
+
+    /**
+     * True if the DTD was parsed in xml1.1 compliant mode (referenced to
+     * from an xml 1.1 document).
+     * Affects (name) validation amongst other things.
+     */
+    final boolean mXml11;
 
     /*
     ///////////////////////////////////////////////////
@@ -124,34 +139,39 @@ public final class DTDElement
      */
 
     private DTDElement(Location loc, NameKey name,
-                       StructValidator val, int allowedContent)
+                       StructValidator val, int allowedContent,
+                       boolean nsAware, boolean xml11)
     {
         mName = name;
         mLocation = loc;
         mValidator = val;
         mAllowedContent = allowedContent;
+        mNsAware = nsAware;
+        mXml11 = xml11;
     }
 
     /**
      * Method called to create an actual element definition, matching
      * an ELEMENT directive in a DTD subset.
      */
-    public static DTDElement createDefined(Location loc, NameKey name,
+    public static DTDElement createDefined(ReaderConfig cfg, Location loc, NameKey name,
                                            StructValidator val, int allowedContent)
     {
         if (allowedContent == XMLValidator.CONTENT_ALLOW_UNDEFINED) { // sanity check
             ExceptionUtil.throwInternal("trying to use XMLValidator.CONTENT_ALLOW_UNDEFINED via createDefined()");
         }
-        return new DTDElement(loc, name, val, allowedContent);
+        return new DTDElement(loc, name, val, allowedContent,
+                              cfg.willSupportNamespaces(), cfg.isXml11());
     }
 
     /**
      * Method called to create a "placeholder" element definition, needed to
      * contain attribute definitions.
      */
-    public static DTDElement createPlaceholder(Location loc, NameKey name)
+    public static DTDElement createPlaceholder(ReaderConfig cfg, Location loc, NameKey name)
     {
-        return new DTDElement(loc, name, null, XMLValidator.CONTENT_ALLOW_UNDEFINED);
+        return new DTDElement(loc, name, null, XMLValidator.CONTENT_ALLOW_UNDEFINED,
+                              cfg.willSupportNamespaces(), cfg.isXml11());
     }
         
     /**
@@ -167,7 +187,8 @@ public final class DTDElement
             ExceptionUtil.throwInternal("trying to use CONTENT_ALLOW_UNDEFINED via define()");
         }
 
-        DTDElement elem = new DTDElement(loc, mName, val, allowedContent);
+        DTDElement elem = new DTDElement(loc, mName, val, allowedContent,
+                                         mNsAware, mXml11);
 
         // Ok, need to copy state collected so far:
         elem.mAttrMap = mAttrMap;
@@ -231,11 +252,11 @@ public final class DTDElement
 
         switch (valueType) {
         case DTDAttribute.TYPE_CDATA:
-            attr = new DTDCdataAttr(attrName, defValue, specIndex);
+            attr = new DTDCdataAttr(attrName, defValue, specIndex, mNsAware, mXml11);
             break;
 
         case DTDAttribute.TYPE_ENUMERATED:
-            attr = new DTDEnumAttr(attrName, defValue, specIndex, enumValues);
+            attr = new DTDEnumAttr(attrName, defValue, specIndex, mNsAware, mXml11, enumValues);
             break;
 
         case DTDAttribute.TYPE_ID:
@@ -244,35 +265,35 @@ public final class DTDElement
              * not-validating mode it is apparently 'legal' to add default
              * values. Bleech.
              */
-            attr = new DTDIdAttr(attrName, defValue, specIndex);
+            attr = new DTDIdAttr(attrName, defValue, specIndex, mNsAware, mXml11);
             break;
 
         case DTDAttribute.TYPE_IDREF:
-            attr = new DTDIdRefAttr(attrName, defValue, specIndex);
+            attr = new DTDIdRefAttr(attrName, defValue, specIndex, mNsAware, mXml11);
             break;
 
         case DTDAttribute.TYPE_IDREFS:
-            attr = new DTDIdRefsAttr(attrName, defValue, specIndex);
+            attr = new DTDIdRefsAttr(attrName, defValue, specIndex, mNsAware, mXml11);
             break;
 
         case DTDAttribute.TYPE_ENTITY:
-            attr = new DTDEntityAttr(attrName, defValue, specIndex);
+            attr = new DTDEntityAttr(attrName, defValue, specIndex, mNsAware, mXml11);
             break;
 
         case DTDAttribute.TYPE_ENTITIES:
-            attr = new DTDEntitiesAttr(attrName, defValue, specIndex);
+            attr = new DTDEntitiesAttr(attrName, defValue, specIndex, mNsAware, mXml11);
             break;
 
         case DTDAttribute.TYPE_NOTATION:
-            attr = new DTDNotationAttr(attrName, defValue, specIndex, enumValues);
+            attr = new DTDNotationAttr(attrName, defValue, specIndex, mNsAware, mXml11, enumValues);
             break;
         
         case DTDAttribute.TYPE_NMTOKEN:
-            attr = new DTDNmTokenAttr(attrName, defValue, specIndex);
+            attr = new DTDNmTokenAttr(attrName, defValue, specIndex, mNsAware, mXml11);
             break;
 
         case DTDAttribute.TYPE_NMTOKENS:
-            attr = new DTDNmTokensAttr(attrName, defValue, specIndex);
+            attr = new DTDNmTokensAttr(attrName, defValue, specIndex, mNsAware, mXml11);
             break;
 
         default:
@@ -306,10 +327,10 @@ public final class DTDElement
 
         switch (valueType) {
         case DTDAttribute.TYPE_CDATA:
-            nsAttr = new DTDCdataAttr(attrName, defValue, -1);
+            nsAttr = new DTDCdataAttr(attrName, defValue, -1, mNsAware, mXml11);
             break;
         default: // something else, default to NMTOKEN then
-            nsAttr = new DTDNmTokenAttr(attrName, defValue, -1);
+            nsAttr = new DTDNmTokenAttr(attrName, defValue, -1, mNsAware, mXml11);
             break;
         }
 

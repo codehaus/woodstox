@@ -149,6 +149,18 @@ public class WstxInputData
 
     /*
     ////////////////////////////////////////////////////
+    // Configuration
+    ////////////////////////////////////////////////////
+     */
+
+    /**
+     * Flag that indicates whether XML content is to be treated as per
+     * XML 1.1 specification or not (if not, it'll use xml 1.0).
+     */
+    protected boolean mXml11 = false;
+
+    /*
+    ////////////////////////////////////////////////////
     // Current input data
     ////////////////////////////////////////////////////
      */
@@ -228,14 +240,16 @@ public class WstxInputData
 
     /**
      * Method that can be used to check whether specified character
-     * is a valid first character of an XML 1.0 name; except that
+     * is a valid first character of an XML 1.0/1.1 name; except that
      * colon (:) is not recognized as a start char here: caller has
      * to verify it separately (since it generally affects namespace
      * mapping of a qualified name).
      */
-    public final static boolean is10NameStartChar(char c)
+    protected final boolean isNameStartChar(char c)
     {
-        // First, let's handle 7-bit ascii range (identical to xml 1.1)
+        /* First, let's handle 7-bit ascii range (identical between xml
+         * 1.0 and 1.1)
+         */
         if (c <= 0x7A) { // 'z' or earlier
             if (c >= 0x61) { // 'a' - 'z' are ok
                 return true;
@@ -245,42 +259,64 @@ public class WstxInputData
             }
             return (c <= 0x5A) || (c == '_'); // 'A' - 'Z' and '_' are ok
         }
-        // Ok, otherwise need to use a big honking bit set...
-        return XmlChars.is10NameStartChar(c);
+        /* Ok, otherwise need to use a big honking bit sets... which
+         * differ between 1.0 and 1.1
+         */
+        return mXml11 ? XmlChars.is11NameStartChar(c) : XmlChars.is10NameStartChar(c);
     }
 
     /**
      * Method that can be used to check whether specified character
-     * is a valid first character of an XML 1.1 name; except that
-     * colon (:) is not recognized as a start char here: caller has
-     * to verify it separately (since it generally affects namespace
+     * is a valid character of an XML 1.0/1.1 name as any other char than
+     * the first one; except that colon (:) is not recognized as valid here:
+     * caller has to verify it separately (since it generally affects namespace
      * mapping of a qualified name).
      */
-    public final static boolean is11NameStartChar(char c)
+    protected final boolean isNameChar(char c)
     {
-        // First, let's handle 7-bit ascii range (identical to xml 1.0)
+        // First, let's handle 7-bit ascii range
         if (c <= 0x7A) { // 'z' or earlier
             if (c >= 0x61) { // 'a' - 'z' are ok
                 return true;
             }
-            if (c < 0x41) { // before 'A' just white space
+            if (c <= 0x5A) {
+                if (c >= 0x41) { // 'A' - 'Z' ok too
+                    return true;
+                }
+                // As are 0-9, '.' and '-'
+                return (c >= 0x30 && c <= 0x39) || (c == '.') || (c == '-');
+            }
+            return (c == 0x5F); // '_' is ok too
+        }
+        return mXml11 ? XmlChars.is11NameChar(c) : XmlChars.is10NameChar(c);
+    }
+
+    public final static boolean isNameStartChar(char c, boolean nsAware, boolean xml11)
+    {
+        /* First, let's handle 7-bit ascii range (identical between xml
+         * 1.0 and 1.1)
+         */
+        if (c <= 0x7A) { // 'z' or earlier
+            if (c >= 0x61) { // 'a' - 'z' are ok
+                return true;
+            }
+            if (c < 0x41) { // before 'A' just white space (and colon)
+                if (c == ':' && !nsAware) {
+                    return true;
+                }
                 return false;
             }
             return (c <= 0x5A) || (c == '_'); // 'A' - 'Z' and '_' are ok
         }
-        return XmlChars.is11NameStartChar(c);
+        /* Ok, otherwise need to use a big honking bit sets... which
+         * differ between 1.0 and 1.1
+         */
+        return xml11 ? XmlChars.is11NameStartChar(c) : XmlChars.is10NameStartChar(c);
     }
 
-    /**
-     * Method that can be used to check whether specified character
-     * is a valid character of an XML 1.0 name as any other char than
-     * the first one; except that colon (:) is not recognized as valid here:
-     * caller has to verify it separately (since it generally affects namespace
-     * mapping of a qualified name).
-     */
-    public final static boolean is10NameChar(char c)
+    public final static boolean isNameChar(char c, boolean nsAware, boolean xml11)
     {
-        // First, let's handle 7-bit ascii range (identical to xml 1.1)
+        // First, let's handle 7-bit ascii range
         if (c <= 0x7A) { // 'z' or earlier
             if (c >= 0x61) { // 'a' - 'z' are ok
                 return true;
@@ -290,37 +326,131 @@ public class WstxInputData
                     return true;
                 }
                 // As are 0-9, '.' and '-'
-                return (c >= 0x30 && c <= 0x39) || (c == '.') || c == '-';
+                return (c >= 0x30 && c <= 0x39) || (c == '.') || (c == '-')
+                    || (c == ':' && !nsAware);
             }
             return (c == 0x5F); // '_' is ok too
         }
-        return XmlChars.is10NameChar(c);
+        return xml11 ? XmlChars.is11NameChar(c) : XmlChars.is10NameChar(c);
     }
 
     /**
-     * Method that can be used to check whether specified character
-     * is a valid character of an XML 1.1 name as any other char than
-     * the first one; except that colon (:) is not recognized as valid here:
-     * caller has to verify it separately (since it generally affects namespace
-     * mapping of a qualified name).
+     * Method that can be called to check whether given String contains
+     * any characters that are not legal XML names.
+     *
+     * @return Index of the first illegal xml name characters, if any;
+     *   -1 if the name is completely legal
      */
-    public final static boolean is11NameChar(char c)
+    public final static int findIllegalNameChar(String name, boolean nsAware, boolean xml11)
     {
-        // First, let's handle 7-bit ascii range (identical to xml 1.0)
-        if (c <= 0x7A) { // 'z' or earlier
-            if (c >= 0x61) { // 'a' - 'z' are ok
-                return true;
-            }
-            if (c <= 0x5A) {
-                if (c >= 0x41) { // 'A' - 'Z' ok too
-                    return true;
-                }
-                // As are 0-9, '.' and '-'
-                return (c >= 0x30 && c <= 0x39) || (c == '.') || c == '-';
-            }
-            return (c == 0x5F); // '_' is ok too
+        int len = name.length();
+        if (len < 1) {
+            return -1;
         }
-        return XmlChars.is11NameChar(c);
+
+        char c = name.charAt(0);
+        
+        // First char legal?
+        if (c <= 0x7A) { // 'z' or earlier
+            if (c < 0x61) { // 'a' - 'z' (0x61 - 0x7A) are ok
+                if (c < 0x41) { // before 'A' just white space (except colon)
+                    if (c != ':' || nsAware) { // ':' == 0x3A
+                        return 0;
+                    }
+                } else if ((c > 0x5A) && (c != '_')) {
+                    // 'A' - 'Z' and '_' are ok
+                    return 0;
+                }
+            }
+        } else { 
+            if (xml11) {
+                if (!XmlChars.is11NameStartChar(c)) {
+                    return 0;
+                }
+            } else {
+                if (!XmlChars.is10NameStartChar(c)) {
+                    return 0;
+                }
+            }
+        }
+        
+        for (int i = 1; i < len; ++i) {
+            c = name.charAt(i);
+            if (c <= 0x7A) { // 'z' or earlier
+                if (c >= 0x61) { // 'a' - 'z' are ok
+                    continue;
+                }
+                if (c <= 0x5A) {
+                    if (c >= 0x41) { // 'A' - 'Z' ok too
+                        continue;
+                    }
+                    // As are 0-9, '.' and '-'
+                    if ((c >= 0x30 && c <= 0x39) || (c == '.') || (c == '-')) {
+                        continue;
+                    }
+                    // And finally, colon, in non-ns-aware mode
+                    if (c == ':' && !nsAware) { // ':' == 0x3A
+                        continue;
+                    }
+                } else if (c == 0x5F) { // '_' is ok too
+                    continue;
+                }
+            } else {
+                if (xml11) {
+                    if (XmlChars.is11NameChar(c)) {
+                        continue;
+                    }
+                } else {
+                    if (XmlChars.is10NameChar(c)) {
+                        continue;
+                    }
+                }
+            }
+            return i;
+        }
+
+        return -1;
+    }
+
+    public final static int findIllegalNmtokenChar(String nmtoken, boolean nsAware, boolean xml11)
+    {
+        int len = nmtoken.length();
+        // No special handling for the first char, just the loop
+        for (int i = 1; i < len; ++i) {
+            char c = nmtoken.charAt(i);
+            if (c <= 0x7A) { // 'z' or earlier
+                if (c >= 0x61) { // 'a' - 'z' are ok
+                    continue;
+                }
+                if (c <= 0x5A) {
+                    if (c >= 0x41) { // 'A' - 'Z' ok too
+                        continue;
+                    }
+                    // As are 0-9, '.' and '-'
+                    if ((c >= 0x30 && c <= 0x39) || (c == '.') || (c == '-')) {
+                        continue;
+                    }
+                    // And finally, colon, in non-ns-aware mode
+                    if (c == ':' && !nsAware) { // ':' == 0x3A
+                        continue;
+                    }
+                } else if (c == 0x5F) { // '_' is ok too
+                    continue;
+                }
+            } else {
+                if (xml11) {
+                    if (XmlChars.is11NameChar(c)) {
+                        continue;
+                    }
+                } else {
+                    if (XmlChars.is10NameChar(c)) {
+                        continue;
+                    }
+                }
+            }
+            return i;
+        }
+        return -1;
     }
 
     public final static boolean isSpaceChar(char c)

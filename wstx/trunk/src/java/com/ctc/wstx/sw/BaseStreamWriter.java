@@ -1458,40 +1458,14 @@ public abstract class BaseStreamWriter
         if (name == null || name.length() == 0) {
             reportNwfName(ErrorConsts.WERR_NAME_EMPTY);
         }
-        char c = name.charAt(0);
-
-        if (mXml11) {
-            if (c == ':' && !nsAware) { // ok, but only in non-ns mode
-                ;
-            } else if (!WstxInputData.is11NameStartChar(c)) {		
+        int illegalIx = WstxInputData.findIllegalNameChar(name, nsAware, mXml11);
+        if (illegalIx >= 0) {
+            if (illegalIx == 0) {
                 reportNwfName(ErrorConsts.WERR_NAME_ILLEGAL_FIRST_CHAR,
-                              WstxInputData.getCharDesc(c));
+                              WstxInputData.getCharDesc(name.charAt(0)));
             }
-            for (int i = 1, len = name.length(); i < len; ++i) {
-                c = name.charAt(i);
-                if (c == ':' && !nsAware) {
-                    ; // is ok, but has to be explicitly checked...
-                } else if (!WstxInputData.is11NameChar(c)) {
-                    reportNwfName(ErrorConsts.WERR_NAME_ILLEGAL_CHAR,
-                                  WstxInputData.getCharDesc(c));
-                }
-            }
-        } else {
-            if (c == ':' && !nsAware) { // ok, but only in non-ns mode
-                ;
-            } else if (!WstxInputData.is10NameStartChar(c)) {		
-                reportNwfName(ErrorConsts.WERR_NAME_ILLEGAL_FIRST_CHAR,
-                                  WstxInputData.getCharDesc(c));
-            }
-            for (int i = 1, len = name.length(); i < len; ++i) {
-                c = name.charAt(i);
-                if (c == ':' && !nsAware) {
-                    ; // is ok, but has to be explicitly checked...
-                } else if (!WstxInputData.is10NameChar(c)) {
-                    reportNwfName(ErrorConsts.WERR_NAME_ILLEGAL_CHAR,
-                                      WstxInputData.getCharDesc(c));
-                }
-            }
+            reportNwfName(ErrorConsts.WERR_NAME_ILLEGAL_CHAR,
+                          WstxInputData.getCharDesc(name.charAt(illegalIx)));
         }
     }
     

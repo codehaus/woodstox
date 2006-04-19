@@ -30,15 +30,16 @@ public final class DTDEntitiesAttr
      * Main constructor. Note that id attributes can never have
      * default values.
      */
-    public DTDEntitiesAttr(NameKey name, DefaultAttrValue defValue,
-                           int specIndex)
+    public DTDEntitiesAttr(NameKey name, DefaultAttrValue defValue, int specIndex,
+                           boolean nsAware, boolean xml11)
+
     {
-        super(name, defValue, specIndex);
+        super(name, defValue, specIndex, nsAware, xml11);
     }
 
     public DTDAttribute cloneWith(int specIndex)
     {
-        return new DTDEntitiesAttr(mName, mDefValue, specIndex);
+        return new DTDEntitiesAttr(mName, mDefValue, specIndex, mCfgNsAware, mCfgXml11);
     }
 
     /*
@@ -91,7 +92,7 @@ public final class DTDEntitiesAttr
         while (start <= end) {
             // Ok, need to check char validity, and also calc hash code:
             char c = cbuf[start];
-            if (!WstxInputData.is11NameStartChar(c) && c != ':') {
+            if (!WstxInputData.isNameStartChar(c, mCfgNsAware, mCfgXml11)) {
                 return reportInvalidChar(v, c, "not valid as the first ENTITIES character");
             }
             int hash = (int) c;
@@ -101,7 +102,7 @@ public final class DTDEntitiesAttr
                 if (WstxInputData.isSpaceChar(c)) {
                     break;
                 }
-                if (!WstxInputData.is11NameChar(c)) {
+                if (!WstxInputData.isNameChar(c, mCfgNsAware, mCfgXml11)) {
                     return reportInvalidChar(v, c, "not valid as an ENTITIES character");
                 }
                 hash = (hash * 31) + (int) c;

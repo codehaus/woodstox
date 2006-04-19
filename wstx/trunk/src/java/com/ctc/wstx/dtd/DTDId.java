@@ -38,6 +38,8 @@ public final class DTDId
 
     final int mConfigFlags;
 
+    final boolean mXml11;
+
     int mHashCode = 0;
 
     /*
@@ -46,38 +48,41 @@ public final class DTDId
     ///////////////////////////////////////////////
      */
 
-    private DTDId(String publicId, URL systemId, int configFlags)
+    private DTDId(String publicId, URL systemId, int configFlags, boolean xml11)
     {
         mPublicId = publicId;
         mSystemId = systemId;
         mConfigFlags = configFlags;
+        mXml11 = xml11;
     }
 
-    public static DTDId constructFromPublicId(String publicId, int configFlags)
+    public static DTDId constructFromPublicId(String publicId, int configFlags,
+                                              boolean xml11)
     {
         if (publicId == null || publicId.length() == 0) {
             throw new IllegalArgumentException("Empty/null public id.");
         }
-        return new DTDId(publicId, null, configFlags);
+        return new DTDId(publicId, null, configFlags, xml11);
     }
 
-    public static DTDId constructFromSystemId(URL systemId, int configFlags)
+    public static DTDId constructFromSystemId(URL systemId, int configFlags,
+                                              boolean xml11)
     {
         if (systemId == null) {
             throw new IllegalArgumentException("Null system id.");
         }
-        return new DTDId(null, systemId, configFlags);
+        return new DTDId(null, systemId, configFlags, xml11);
     }
 
-    public static DTDId construct(String publicId, URL systemId, int configFlags)
+    public static DTDId construct(String publicId, URL systemId, int configFlags, boolean xml11)
     {
         if (publicId != null && publicId.length() > 0) {
-            return new DTDId(publicId, null, configFlags);
+            return new DTDId(publicId, null, configFlags, xml11);
         }
         if (systemId == null) {
             throw new IllegalArgumentException("Illegal arguments; both public and system id null/empty.");
         }
-        return new DTDId(null, systemId, configFlags);
+        return new DTDId(null, systemId, configFlags, xml11);
     }
 
     /*
@@ -95,6 +100,9 @@ public final class DTDId
             } else {
                 hash ^= mSystemId.hashCode();
             }
+            if (mXml11) {
+                hash ^= 1;
+            }
             mHashCode = hash;
         }
         return hash;
@@ -108,7 +116,8 @@ public final class DTDId
         sb.append(mSystemId);
         sb.append(" [config flags: 0x");
         sb.append(Integer.toHexString(mConfigFlags));
-        sb.append(']');
+        sb.append("], xml11: ");
+        sb.append(mXml11);
         return sb.toString();
     }
 
@@ -117,7 +126,8 @@ public final class DTDId
             return false;
         }
         DTDId other = (DTDId) o;
-        if (other.mConfigFlags != mConfigFlags) {
+        if (other.mConfigFlags != mConfigFlags
+            || other.mXml11 != mXml11) {
             return false;
         }
         if (mPublicId != null) {

@@ -36,6 +36,8 @@ public class TestNonNsStreamWriter
                       Boolean.FALSE);
         f.setProperty(XMLOutputFactory2.P_AUTOMATIC_EMPTY_ELEMENTS,
                       Boolean.TRUE);
+        f.setProperty(WstxOutputProperties.P_OUTPUT_VALIDATE_NAMES,
+                      Boolean.TRUE);
         Writer w = new PrintWriter(System.out);
         XMLStreamWriter2 sw = (XMLStreamWriter2) f.createXMLStreamWriter(w);
 
@@ -51,12 +53,12 @@ public class TestNonNsStreamWriter
 
         XMLValidationSchema schema = vd.createSchema(new StringReader(dtdStr));
 
-        sw.validateAgainst(schema);
+        //sw.validateAgainst(schema);
 
         sw.writeStartDocument();
         sw.writeComment("Comment!");
         sw.writeCharacters("\r");
-        sw.writeStartElement("root");
+        sw.writeStartElement("root?");
         sw.writeAttribute("attr", "value");
         sw.writeAttribute("another", "this & that");
         //sw.writeAttribute("attr", "whatever"); // error!

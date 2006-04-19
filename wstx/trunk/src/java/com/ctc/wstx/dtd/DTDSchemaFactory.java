@@ -171,6 +171,9 @@ public class DTDSchemaFactory
     {
         try {
             Reader r = bs.bootstrapInput(rcfg, false, XmlConsts.XML_V_UNKNOWN);
+            if (bs.declaredXml11()) {
+                rcfg.enableXml11(true);
+            }
             if (ctxt == null) { // this is just needed as context for param entity expansion
                 ctxt = URLUtil.urlFromCurrentDir();
             }

@@ -137,7 +137,7 @@ public class ValidatingStreamReader
         throws IOException, XMLStreamException
     {
         ValidatingStreamReader sr = new ValidatingStreamReader
-            (bs, input, owner, cfg, createElementStack(cfg, bs.declaredXml11()), forER);
+            (bs, input, owner, cfg, createElementStack(cfg), forER);
         return sr;
     }
 
@@ -551,12 +551,12 @@ public class ValidatingStreamReader
          */
         boolean usePublicId = (mConfigFlags & CFG_CACHE_DTDS_BY_PUBLIC_ID) != 0;
         if (usePublicId && pubId != null && pubId.length() > 0) {
-            return DTDId.construct(pubId, sysRef, significantFlags);
+            return DTDId.construct(pubId, sysRef, significantFlags, mXml11);
         }
         if (sysRef == null) {
             return null;
         }
-        return DTDId.constructFromSystemId(sysRef, significantFlags);
+        return DTDId.constructFromSystemId(sysRef, significantFlags, mXml11);
     }
 
     protected DTDId constructDtdId(URL sysId)
@@ -574,7 +574,7 @@ public class ValidatingStreamReader
               */
              | CFG_SUPPORT_DTDPP
              );
-        return DTDId.constructFromSystemId(sysId, significantFlags);
+        return DTDId.constructFromSystemId(sysId, significantFlags, mXml11);
     }
 
     /*

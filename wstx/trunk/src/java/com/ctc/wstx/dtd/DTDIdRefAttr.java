@@ -25,14 +25,15 @@ public final class DTDIdRefAttr
     /**
      * Main constructor.
      */
-    public DTDIdRefAttr(NameKey name, DefaultAttrValue defValue, int specIndex)
+    public DTDIdRefAttr(NameKey name, DefaultAttrValue defValue, int specIndex,
+                        boolean nsAware, boolean xml11)
     {
-        super(name, defValue, specIndex);
+        super(name, defValue, specIndex, nsAware, xml11);
     }
 
     public DTDAttribute cloneWith(int specIndex)
     {
-        return new DTDIdRefAttr(mName, mDefValue, specIndex);
+        return new DTDIdRefAttr(mName, mDefValue, specIndex, mCfgNsAware, mCfgXml11);
     }
 
     /*
@@ -78,13 +79,13 @@ public final class DTDIdRefAttr
 
         // Ok, need to check char validity, and also calc hash code:
         char c = cbuf[start];
-        if (!WstxInputData.is11NameStartChar(c) && c != ':') {
+        if (!WstxInputData.isNameStartChar(c, mCfgNsAware, mCfgXml11)) {
             return reportInvalidChar(v, c, "not valid as the first IDREF character");
         }
         int hash = (int) c;
         for (int i = start+1; i <= end; ++i) {
             c = cbuf[i];
-            if (!WstxInputData.is11NameChar(c)) {
+            if (!WstxInputData.isNameChar(c, mCfgNsAware, mCfgXml11)) {
                 return reportInvalidChar(v, c, "not valid as an IDREF character");
             }
             hash = (hash * 31) + (int) c;
@@ -107,7 +108,10 @@ public final class DTDIdRefAttr
     public void validateDefault(InputProblemReporter rep, boolean normalize)
         throws XMLValidationException
     {
-        mDefValue.setValue(validateDefaultName(rep, normalize));
+        String def = validateDefaultName(rep, normalize);
+        if (normalize) {
+            mDefValue.setValue(def);
+        }
     }
 
     /*

@@ -369,7 +369,7 @@ public class FullDTDReader
          * xml conformance level to use.
          */
         mDocXmlVersion = xmlVersion;
-        mXml11 = (xmlVersion == XmlConsts.XML_V_11);
+        mXml11 = cfg.isXml11();
         int cfgFlags = cfg.getConfigFlags();
         mConfigFlags = cfgFlags;
         mCfgNormAttrs = (cfgFlags & CFG_NORMALIZE_ATTR_VALUES) != 0;
@@ -1152,7 +1152,7 @@ public class FullDTDReader
             if (c == CHAR_NULL) { // EOB, fine
                 return null;
             }
-            if (!is11NameChar(c)) {
+            if (!isNameChar(c)) {
                 --mInputPtr; // to push it back
                 return null;
             }
@@ -1164,7 +1164,7 @@ public class FullDTDReader
             if (c == CHAR_NULL) { // EOB, fine
                 break;
             }
-            if (!is11NameChar(c) && c != ':') {
+            if (!isNameChar(c) && c != ':') {
                 --mInputPtr; // to push it back
                 break;
             }
@@ -1197,7 +1197,7 @@ public class FullDTDReader
                     break; // end-of-block
                 }
             }
-            if (!is11NameChar(c) && c != ':') {
+            if (!isNameChar(c) && c != ':') {
                 --mInputPtr;
                 break;
             }
@@ -1228,7 +1228,7 @@ public class FullDTDReader
             }
             errId = "S" + errId;
         } else {
-            if (!is11NameStartChar(c)) {
+            if (!isNameStartChar(c)) {
                 throwDTDUnexpectedChar(c, "; expected 'PUBLIC' or 'SYSTEM' keyword");
             }
             errId = readDTDKeyword(String.valueOf(c));
@@ -1242,7 +1242,7 @@ public class FullDTDReader
         throws IOException, XMLStreamException
     {
         // Let's just check this before trying to parse the id...
-        if (!is11NameStartChar(c)) {
+        if (!isNameStartChar(c)) {
             throwDTDUnexpectedChar(c, "; expected an identifier");
         }
         return parseFullName(c);
@@ -1254,7 +1254,7 @@ public class FullDTDReader
         /* Let's just check this first, to get better error msg
          * (parseLocalName() will double-check it too)
          */
-        if (checkChar && !is11NameStartChar(c)) {
+        if (checkChar && !isNameStartChar(c)) {
             throwDTDUnexpectedChar(c, "; expected an identifier");
         }
         return parseLocalName(c);
@@ -1275,7 +1275,7 @@ public class FullDTDReader
             /* Note: colon not included in name char array, since it has
              * special meaning WRT QNames, need to add into account here:
              */
-            if (!is11NameChar(c)  && c != ':') {
+            if (!isNameChar(c)  && c != ':') {
                 // Need to get at least one char
                 if (outPtr == 0) {
                     throwDTDUnexpectedChar(c, "; expected a NMTOKEN character to start a NMTOKEN");
@@ -1447,11 +1447,11 @@ public class FullDTDReader
                         }
                         if (first) {
                             first = false;
-                            if (is11NameStartChar(c)) {
+                            if (isNameStartChar(c)) {
                                 continue;
                             }
                         } else {
-                            if (is11NameChar(c)) {
+                            if (isNameChar(c)) {
                                 continue;
                             }
                         }
@@ -2049,7 +2049,7 @@ public class FullDTDReader
 
         if (elem == null) { // ok, need a placeholder
             // Let's add ATTLIST location as the temporary location too
-            elem = DTDElement.createPlaceholder(loc, elemName);
+            elem = DTDElement.createPlaceholder(mConfig, loc, elemName);
             m.put(elemName, elem);
         }
 
@@ -2120,7 +2120,7 @@ public class FullDTDReader
                 }
                 vldContent = XMLValidator.CONTENT_ALLOW_WS; // checked against DTD
             }
-        } else if (is11NameStartChar(c)) {
+        } else if (isNameStartChar(c)) {
             do { // dummy loop to allow break:
                 String keyw = null;
                 if (c == 'A') {
@@ -2179,7 +2179,7 @@ public class FullDTDReader
             oldElem = oldElem.define(loc, val, vldContent);
         } else {
             // Sweet, let's then add the definition:
-            oldElem = DTDElement.createDefined(loc, elemName, val, vldContent);
+            oldElem = DTDElement.createDefined(mConfig, loc, elemName, val, vldContent);
         }
         m.put(elemName, oldElem);
     }
@@ -2214,7 +2214,7 @@ public class FullDTDReader
                     break;
                 }
                 // Reference?
-                if (!is11NameStartChar(d)) {
+                if (!isNameStartChar(d)) {
                     throwDTDUnexpectedChar(d, "; expected a space (for PE declaration) or PE reference name");
                 }
                 --mInputPtr; // need to push the first char back, then
@@ -2278,7 +2278,7 @@ public class FullDTDReader
                 ent = new IntEntity(evtLoc, id, getSource(), contents,
                                     contentLoc);
             } else {
-                if (!is11NameStartChar(c)) {
+                if (!isNameStartChar(c)) {
                     throwDTDUnexpectedChar(c, "; expected either quoted value, or keyword 'PUBLIC' or 'SYSTEM'");
                 }
                 ent = handleExternalEntityDecl(isParam, id, c, evtLoc);
@@ -2441,7 +2441,7 @@ public class FullDTDReader
         String name;
         
         // Explicit namespace name?
-        if (is11NameStartChar(c)) {
+        if (isNameStartChar(c)) {
             name = readDTDLocalName(c, false);
             c = skipObligatoryDtdWs();
         } else { // no, default namespace (or error)
@@ -3042,7 +3042,7 @@ public class FullDTDReader
             }
 
             if (c != '>') {
-                if (!is11NameStartChar(c)) {
+                if (!isNameStartChar(c)) {
                     throwDTDUnexpectedChar(c, "; expected either NDATA keyword, or closing '>'");
                 }
                 String keyw = checkDTDKeyword("DATA");

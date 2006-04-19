@@ -24,14 +24,15 @@ public final class DTDNmTokensAttr
     /**
      * Main constructor.
      */
-    public DTDNmTokensAttr(NameKey name, DefaultAttrValue defValue, int specIndex)
+    public DTDNmTokensAttr(NameKey name, DefaultAttrValue defValue, int specIndex,
+                           boolean nsAware, boolean xml11)
     {
-        super(name, defValue, specIndex);
+        super(name, defValue, specIndex, nsAware, xml11);
     }
 
     public DTDAttribute cloneWith(int specIndex)
     {
-        return new DTDNmTokensAttr(mName, mDefValue, specIndex);
+        return new DTDNmTokensAttr(mName, mDefValue, specIndex, mCfgNsAware, mCfgXml11);
     }
 
     /*
@@ -78,7 +79,7 @@ public final class DTDNmTokensAttr
             for (; start < end; ++start) {
                 char c = cbuf[start];
                 if (!WstxInputData.isSpaceChar(c) 
-                    && !WstxInputData.is11NameChar(c)) {
+                    && !WstxInputData.isNameChar(c, mCfgNsAware, mCfgXml11)) {
                     return reportInvalidChar(v, c, "not valid as NMTOKENS character");
                 }
             }
@@ -107,7 +108,7 @@ public final class DTDNmTokensAttr
                 if (WstxInputData.isSpaceChar(c)) {
                     break;
                 }
-                if (!WstxInputData.is11NameChar(c)) {
+                if (!WstxInputData.isNameChar(c, mCfgNsAware, mCfgXml11)) {
                     return reportInvalidChar(v, c, "not valid as an NMTOKENS character");
                 }
             }
@@ -167,19 +168,20 @@ public final class DTDNmTokensAttr
             int i = start+1;
 
             do {
-                if (!WstxInputData.is11NameChar(c)) {
-                    reportValidationProblem(rep, "Invalid default value '"+defValue
-                                            +"'; character #"+i+" ("
-                                            +WstxInputData.getCharDesc(c)
-                                            +") not a valid NMTOKENS character");
-                    return;
-                }
                 if (++i >= len) {
                     break;
                 }
                 c = defValue.charAt(i);
             } while (!WstxInputData.isSpaceChar(c));
             ++count;
+            String token = defValue.substring(start, i);
+            int illegalIx = WstxInputData.findIllegalNmtokenChar(token, mCfgNsAware, mCfgXml11);
+            if (illegalIx >= 0) {
+                reportValidationProblem(rep, "Invalid default value '"+defValue
+                                        +"'; character #"+illegalIx+" ("
+                                        +WstxInputData.getCharDesc(defValue.charAt(illegalIx))
+                                        +") not a valid NMTOKENS character");
+            }
 
             if (normalize) {
                 if (sb == null) {
@@ -187,7 +189,7 @@ public final class DTDNmTokensAttr
                 } else {
                     sb.append(' ');
                 }
-                sb.append(defValue.substring(start, i));
+                sb.append(token);
             }
             start = i+1;
         }

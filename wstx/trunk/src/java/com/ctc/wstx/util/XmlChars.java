@@ -364,9 +364,11 @@ public final class XmlChars
             if (c <= 0xD7A3) { // 0xAC00 - 0xD7A3, valid base chars
                 return true;
             }
-            // As to surrogate pairs... let's do the bare minimum;
-            // 0xD800 - 0xDFFF (high, low surrogate) are ok
-            return (c >= 0xD800 && c <= 0xDFFF);
+            /* As to surrogate pairs... let's do the bare minimum;
+             * 0xD800 - 0xDBFF (high surrogate) are ok; low surrogates
+             * can only follow high one
+             */
+            return (c <= 0xDBFF && c >= 0xD800);
         }
         // but then we'll just need to use the table...
         int ix = (int) c;
@@ -383,8 +385,10 @@ public final class XmlChars
             if (c <= 0xD7A3) { // 0xAC00 - 0xD7A3, valid base chars
                 return true;
             }
-            // As to surrogate pairs... let's do the bare minimum;
-            // 0xD800 - 0xDFFF (high, low surrogate) are ok
+            /* As to surrogate pairs... let's do the bare minimum;
+             * 0xD800 - 0xDFFF (high, low surrogate) are ok (need to
+             * check pairing in future)
+             */
             return (c >= 0xD800 && c <= 0xDFFF);
         }
         // but then we'll just need to use the table...
@@ -427,11 +431,11 @@ public final class XmlChars
         if (c >= 0x3001) {
             /* Hmmh, let's allow high surrogates here, without checking
              * that they are properly followed... crude basic support,
-             * I know, but allow valid combinations, just doesn't catch
+             * I know, but allows valid combinations, just doesn't catch
              * invalid ones
              */
             if (c <= 0xDBFF) { // 0x3001 - 0xD7FF (chars),
-                // 0xD800 - 0xDBFF (high surrogate) are ok:
+                // 0xD800 - 0xDBFF (high surrogate) are ok (unlike DC00-DFFF)
                 return true;
             }
             if (c >= 0xF900 && c <= 0xFFFD) {

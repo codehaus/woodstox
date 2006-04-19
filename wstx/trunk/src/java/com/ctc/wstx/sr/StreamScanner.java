@@ -348,12 +348,6 @@ public abstract class StreamScanner
      */
     protected int mDocXmlVersion = XmlConsts.XML_V_UNKNOWN;
 
-    /**
-     * Flag that indicates whether XML content is to be treated as per
-     * XML 1.1 specification or not (if not, it'll use xml 1.0).
-     */
-    protected boolean mXml11 = false;
-
     /*
     ////////////////////////////////////////////////////
     // Life-cycle
@@ -1678,8 +1672,7 @@ public abstract class StreamScanner
          * is taken as namespace separator; no use trying to optimize
          * heavily as it's 98% likely it is a valid char...
          */
-        if ((mXml11 && !is11NameStartChar(c))
-            || (!mXml11 && !is10NameStartChar(c))) {
+        if (!isNameStartChar(c)) {
             if (c == ':') {
                 throwUnexpectedChar(c, " (missing namespace prefix?)");
             }
@@ -1688,8 +1681,9 @@ public abstract class StreamScanner
 
         int ptr = mInputPtr;
         int hash = (int) c;
-        int inputLen = mInputLen;
+        final int inputLen = mInputLen;
         int startPtr = ptr-1; // already read previous char
+        final char[] inputBuf = mInputBuffer;
 
         /* After which there may be zero or more name chars
          * we have to consider
@@ -1704,18 +1698,12 @@ public abstract class StreamScanner
                 return parseLocalName2(startPtr, hash);
             }
             // Ok, we have the char... is it a name char?
-            c = mInputBuffer[ptr];
+            c = inputBuf[ptr];
             if (c < CHAR_LOWEST_LEGAL_LOCALNAME_CHAR) {
                 break;
             }
-            if (mXml11) {
-                if (!is11NameChar(c)) {
-                    break;
-                }
-            } else {
-                if (!is10NameChar(c)) {
-                    break;
-                }
+            if (!isNameChar(c)) {
+                break;
             }
             hash = (hash * 31) + (int) c;
             ++ptr;
@@ -1755,16 +1743,9 @@ public abstract class StreamScanner
             if (c < CHAR_LOWEST_LEGAL_LOCALNAME_CHAR) {
                 break;
             }
-            if (mXml11) {
-                if (!is11NameChar(c)) {
-                    break;
-                }
-            } else {
-                if (!is10NameChar(c)) {
-                    break;
-                }
+            if (!isNameChar(c)) {
+                break;
             }
-
             ++mInputPtr;
             if (ptr >= outLen) {
                 mNameBuffer = outBuf = expandBy50Pct(outBuf);
@@ -1809,8 +1790,7 @@ public abstract class StreamScanner
         throws IOException, XMLStreamException
     {
         // First char has special handling:
-        if ((mXml11 && !is11NameStartChar(c)) ||
-            (!mXml11 && !is10NameStartChar(c))) {
+        if (!isNameStartChar(c)) {
             if (c == ':') { // no name.... generally an error:
                 if (mCfgNsEnabled) {
                     throwNsColonException(parseFNameForError());
@@ -1851,14 +1831,8 @@ public abstract class StreamScanner
                 if (c < CHAR_LOWEST_LEGAL_LOCALNAME_CHAR) {
                     break;
                 }
-                if (mXml11) {
-                    if (!is11NameChar(c)) {
-                        break;
-                    }
-                } else {
-                    if (!is10NameChar(c)) {
-                        break;
-                    }
+                if (!isNameChar(c)) {
+                    break;
                 }
             }
             hash = (hash * 31) + (int) c;
@@ -1898,14 +1872,8 @@ public abstract class StreamScanner
                 }
             } else if (c < CHAR_LOWEST_LEGAL_LOCALNAME_CHAR) {
                 break;
-            } else if (mXml11) {
-                if (!is11NameChar(c)) {
-                    break;
-                }
-            } else {
-                if (!is10NameChar(c)) {
-                    break;
-                }
+            } else if (!isNameChar(c)) {
+                break;
             }
             ++mInputPtr;
 
@@ -1944,8 +1912,7 @@ public abstract class StreamScanner
                 }
                 c = (char) i;
             }
-            // note: xml 1.0/1.1 doesn't matter here... it's just an error msg
-            if (c != ':' && !is11NameChar(c)) {
+            if (c != ':' && !isNameChar(c)) {
                 --mInputPtr;
                 break;
             }
@@ -1983,8 +1950,7 @@ public abstract class StreamScanner
     protected int skipFullName(char c)
         throws IOException, XMLStreamException
     {
-        // Note; xml1.1 is bit simpler/faster to check, thus we'll 1.1 methods
-        if (!is11NameStartChar(c)) {
+        if (!isNameStartChar(c)) {
             --mInputPtr;
             return 0;
         }
@@ -1996,7 +1962,7 @@ public abstract class StreamScanner
         while (true) {
             c = (mInputPtr < mInputLen) ?
                 mInputBuffer[mInputPtr++] : getNextChar(SUFFIX_EOF_EXP_NAME);
-            if (c != ':' && !is11NameChar(c)) {
+            if (c != ':' && !isNameChar(c)) {
                 break;
             }
             ++count;

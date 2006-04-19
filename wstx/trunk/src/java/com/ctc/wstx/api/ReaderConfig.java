@@ -296,8 +296,22 @@ public final class ReaderConfig
      */
     URL mBaseURL = null;
 
+    /**
+     * Parsing mode can be changed from the default xml compliant
+     * behavior to one of alternate modes (fragment processing,
+     * multiple document processing).
+     */
     WstxInputProperties.ParsingMode mParsingMode =
         WstxInputProperties.PARSING_MODE_DOCUMENT;
+
+    /**
+     * This boolean flag is set if the input document requires
+     * xml 1.1 (or above) compliant processing: default is xml 1.0
+     * compliant. Note that unlike most other properties, this
+     * does not come from configuration settings, but from processed
+     * document itself.
+     */
+    boolean mXml11 = false;
 
     /*
     //////////////////////////////////////////////////////////
@@ -554,6 +568,15 @@ public final class ReaderConfig
         return mParsingMode == WstxInputProperties.PARSING_MODE_FRAGMENT;
     }
 
+    /**
+     * @return True if the input well-formedness and validation checks
+     *    should be done according to xml 1.1 specification; false if
+     *    xml 1.0 specification.
+     */
+    public boolean isXml11() {
+        return mXml11;
+    }
+
     /*
     //////////////////////////////////////////////////////////
     // Simple mutators
@@ -609,8 +632,7 @@ public final class ReaderConfig
     }
 
     public void doInternNames(boolean state) {
-	// 17-Apr-2005, TSa: NOP, we'll always intern them...
-	;
+        // 17-Apr-2005, TSa: NOP, we'll always intern them...
     }
 
     public void doInternNsURIs(boolean state) {
@@ -722,6 +744,14 @@ public final class ReaderConfig
 
     public void setInputParsingMode(WstxInputProperties.ParsingMode mode) {
         mParsingMode = mode;
+    }
+
+    /**
+     * Method called to enable or disable 1.1 compliant processing; if
+     * disabled, defaults to xml 1.0 compliant processing.
+     */
+    public void enableXml11(boolean state) {
+        mXml11 = state;
     }
 
     /*

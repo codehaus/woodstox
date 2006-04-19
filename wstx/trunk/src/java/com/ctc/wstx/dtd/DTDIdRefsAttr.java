@@ -25,14 +25,15 @@ public final class DTDIdRefsAttr
     /**
      * Main constructor.
      */
-    public DTDIdRefsAttr(NameKey name, DefaultAttrValue defValue, int specIndex)
+    public DTDIdRefsAttr(NameKey name, DefaultAttrValue defValue, int specIndex,
+                         boolean nsAware, boolean xml11)
     {
-        super(name, defValue, specIndex);
+        super(name, defValue, specIndex, nsAware, xml11);
     }
 
     public DTDAttribute cloneWith(int specIndex)
     {
-        return new DTDIdRefsAttr(mName, mDefValue, specIndex);
+        return new DTDIdRefsAttr(mName, mDefValue, specIndex, mCfgNsAware, mCfgXml11);
     }
 
     /*
@@ -83,7 +84,7 @@ public final class DTDIdRefsAttr
         while (start <= end) {
             // Ok, need to check char validity, and also calc hash code:
             char c = cbuf[start];
-            if (!WstxInputData.is11NameStartChar(c) && c != ':') {
+            if (!WstxInputData.isNameStartChar(c, mCfgNsAware, mCfgXml11)) {
                 return reportInvalidChar(v, c, "not valid as the first IDREFS character");
             }
             int hash = (int) c;
@@ -93,7 +94,7 @@ public final class DTDIdRefsAttr
                 if (WstxInputData.isSpaceChar(c)) {
                     break;
                 }
-                if (!WstxInputData.is11NameChar(c)) {
+                if (!WstxInputData.isNameChar(c, mCfgNsAware, mCfgXml11)) {
                     return reportInvalidChar(v, c, "not valid as an IDREFS character");
                 }
                 hash = (hash * 31) + (int) c;
@@ -149,6 +150,9 @@ public final class DTDIdRefsAttr
     public void validateDefault(InputProblemReporter rep, boolean normalize)
         throws XMLValidationException
     {
-        mDefValue.setValue(validateDefaultNames(rep, normalize));
+        String def = validateDefaultNames(rep, normalize);
+        if (normalize) {
+            mDefValue.setValue(def);
+        }
     }
 }

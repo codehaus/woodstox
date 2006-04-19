@@ -21,15 +21,17 @@ public final class DTDNotationAttr
      */
 
     public DTDNotationAttr(NameKey name, DefaultAttrValue defValue,
-                           int specIndex, WordResolver enumValues)
+                           int specIndex, boolean nsAware, boolean xml11,
+                           WordResolver enumValues)
     {
-        super(name, defValue, specIndex);
+        super(name, defValue, specIndex, nsAware, xml11);
         mEnumValues = enumValues;
     }
 
     public DTDAttribute cloneWith(int specIndex)
     {
-        return new DTDNotationAttr(mName, mDefValue, specIndex, mEnumValues);
+        return new DTDNotationAttr(mName, mDefValue, specIndex,
+                                   mCfgNsAware, mCfgXml11, mEnumValues);
     }
 
     /*

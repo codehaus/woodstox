@@ -387,6 +387,7 @@ public class BasicStreamReader
         mCfgNormalizeAttrs = (mConfigFlags & CFG_NORMALIZE_ATTR_VALUES) != 0;
         mCfgCoalesceText = (mConfigFlags & CFG_COALESCE_TEXT) != 0;
         mCfgReportTextAsChars = (mConfigFlags & CFG_REPORT_CDATA) == 0;
+        mXml11 = cfg.isXml11();
 
         /* 30-Sep-2005, TSa: Let's not do lazy parsing when access is via
          *   Event API. Reason is that there will be no performance benefit
@@ -422,7 +423,6 @@ public class BasicStreamReader
         // // // Then handling of xml declaration data:
 
         mDocXmlVersion = bs.getDeclaredVersion();
-        mXml11 = (XmlConsts.XML_V_11 == mDocXmlVersion);
         mDocInputEncoding = bs.getInputEncoding();
         mDocXmlEncoding = bs.getDeclaredEncoding();
 
@@ -473,15 +473,15 @@ public class BasicStreamReader
     {
 
         BasicStreamReader sr = new BasicStreamReader
-            (bs, input, owner, cfg, createElementStack(cfg, bs.declaredXml11()), forER);
+            (bs, input, owner, cfg, createElementStack(cfg), forER);
         return sr;
     }
 
-    protected static InputElementStack createElementStack(ReaderConfig cfg, boolean xml11)
+    protected static InputElementStack createElementStack(ReaderConfig cfg)
     {
-        InputElementStack es;
         boolean normAttrs = cfg.willNormalizeAttrValues();
         boolean internNsURIs = cfg.willInternNsURIs();
+        boolean xml11 = cfg.isXml11();
 
         if (cfg.willSupportNamespaces()) {
             return new NsInputElementStack(16, normAttrs, internNsURIs, xml11,
@@ -1597,7 +1597,7 @@ public class BasicStreamReader
       if (ptr == len) {
           // Probable match... but let's make sure keyword is finished:
           int i = peekNext();
-          if (i < 0 || (!is11NameChar((char) i) && i != ':')) {
+          if (i < 0 || (!isNameChar((char) i) && i != ':')) {
               return null;
           }
           // Nope, continues, need to find the rest:
@@ -1617,7 +1617,7 @@ public class BasicStreamReader
               }
               c = (char) ci;
           }
-          if (!is11NameChar(c)) {
+          if (!isNameChar(c)) {
               // Let's push it back then
               --mInputPtr;
               break;
@@ -1903,7 +1903,7 @@ public class BasicStreamReader
                 throwParseError("Unexpected character combination '</' in prolog.");
             }
             throwParseError("Unexpected character combination '</' in epilog (extra close tag?).");
-        } else if (c == ':' || is11NameStartChar(c)) {
+        } else if (c == ':' || isNameStartChar(c)) {
             // Root element, only allowed after prolog
             if (!isProlog) {
                 /* This call will throw an exception if there's a problem;
@@ -2345,7 +2345,7 @@ public class BasicStreamReader
                     }
                 }
             } else {
-                if (!is11NameStartChar(c)) {
+                if (!isNameStartChar(c)) {
                     throwUnexpectedChar(c, SUFFIX_IN_DTD+"; expected keywords 'PUBLIC' or 'SYSTEM'.");
                 } else {
                     --mInputPtr;
@@ -2669,7 +2669,7 @@ public class BasicStreamReader
                 return END_ELEMENT;
             }
 
-            if (c == ':' || is11NameStartChar(c)) {
+            if (c == ':' || isNameStartChar(c)) {
                 // 30-Aug-2004, TSa: Not legal for EMPTY elements
                 /* 20-Dec-2005, TSa: No need to check here any more; validator
                  *   now takes care of this (to consolidate all elem/attr
@@ -2967,7 +2967,7 @@ public class BasicStreamReader
         char c = (mInputPtr < mInputLen) ? mInputBuffer[mInputPtr++]
             : getNextCharFromCurrent(SUFFIX_IN_CLOSE_ELEMENT);
         // Quick check first; missing name?
-        if  (!is11NameStartChar(c) && c != ':') {
+        if  (!isNameStartChar(c) && c != ':') {
             if (c <= CHAR_SPACE) { // space
                 throwUnexpectedChar(c, "; missing element name?");
             }
@@ -3040,7 +3040,7 @@ public class BasicStreamReader
             c = getNextInCurrAfterWS(SUFFIX_IN_CLOSE_ELEMENT, c);
         } else if (c == '>') {
             ;
-        } else if (c == ':' || is11NameChar(c)) {
+        } else if (c == ':' || isNameChar(c)) {
             reportWrongEndElem(expPrefix, expLocalName, len);
         }
 

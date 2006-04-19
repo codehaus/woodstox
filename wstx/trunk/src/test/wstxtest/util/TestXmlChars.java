@@ -17,60 +17,60 @@ public class TestXmlChars
     public void testXml10Chars()
     {
         // First, 8-bit range:
-        assertTrue(WstxInputData.is10NameStartChar('F'));
-        assertTrue(WstxInputData.is10NameChar('F'));
-        assertTrue(WstxInputData.is10NameStartChar('_'));
-        assertTrue(WstxInputData.is10NameChar('_'));
-        assertTrue(WstxInputData.is10NameChar('x'));
-        assertFalse(WstxInputData.is10NameStartChar('-'));
-        assertTrue(WstxInputData.is10NameChar('-'));
-        assertFalse(WstxInputData.is10NameStartChar('.'));
-        assertTrue(WstxInputData.is10NameChar('.'));
+        assertTrue(WstxInputData.isNameStartChar('F', true, false));
+        assertTrue(WstxInputData.isNameChar('F', true, false));
+        assertTrue(WstxInputData.isNameStartChar('_', true, false));
+        assertTrue(WstxInputData.isNameChar('_', true, false));
+        assertTrue(WstxInputData.isNameChar('x', true, false));
+        assertFalse(WstxInputData.isNameStartChar('-', true, false));
+        assertTrue(WstxInputData.isNameChar('-', true, false));
+        assertFalse(WstxInputData.isNameStartChar('.', true, false));
+        assertTrue(WstxInputData.isNameChar('.', true, false));
 
         // Then more exotic chars:
 
-        assertTrue(WstxInputData.is10NameStartChar((char) 0x03ce));
-        assertTrue(WstxInputData.is10NameChar((char) 0x03ce));
-        assertTrue(WstxInputData.is10NameStartChar((char) 0x0e21));
-        assertTrue(WstxInputData.is10NameChar((char) 0x0e21));
-        assertTrue(WstxInputData.is10NameStartChar((char) 0x3007));
-        assertFalse(WstxInputData.is10NameStartChar(' '));
+        assertTrue(WstxInputData.isNameStartChar((char) 0x03ce, true, false));
+        assertTrue(WstxInputData.isNameChar((char) 0x03ce, true, false));
+        assertTrue(WstxInputData.isNameStartChar((char) 0x0e21, true, false));
+        assertTrue(WstxInputData.isNameChar((char) 0x0e21, true, false));
+        assertTrue(WstxInputData.isNameStartChar((char) 0x3007, true, false));
+        assertFalse(WstxInputData.isNameStartChar(' ', true, false));
         /* colon is NOT a start char for this method; although it is
          * in xml specs -- reason has to do with namespace handling
          */
-        assertFalse(WstxInputData.is10NameStartChar(':'));
+        assertFalse(WstxInputData.isNameStartChar(':', true, false));
 
-        assertFalse(WstxInputData.is10NameStartChar((char) 0x3008));
-        assertFalse(WstxInputData.is10NameChar((char) 0x3008));
-        assertTrue(WstxInputData.is10NameStartChar((char) 0x30ea));
-        assertTrue(WstxInputData.is10NameChar((char) 0x30ea));
+        assertFalse(WstxInputData.isNameStartChar((char) 0x3008, true, false));
+        assertFalse(WstxInputData.isNameChar((char) 0x3008, true, false));
+        assertTrue(WstxInputData.isNameStartChar((char) 0x30ea, true, false));
+        assertTrue(WstxInputData.isNameChar((char) 0x30ea, true, false));
     }
 
     public void testXml11NameStartChars()
     {
         // First, 8-bit range:
-        assertTrue(WstxInputData.is11NameStartChar('F'));
-        assertTrue(WstxInputData.is11NameChar('F'));
-        assertTrue(WstxInputData.is11NameStartChar('_'));
-        assertTrue(WstxInputData.is11NameChar('_'));
-        assertTrue(WstxInputData.is11NameChar('x'));
-        assertFalse(WstxInputData.is11NameStartChar('-'));
-        assertTrue(WstxInputData.is11NameChar('-'));
-        assertFalse(WstxInputData.is11NameStartChar('.'));
-        assertTrue(WstxInputData.is11NameChar('.'));
+        assertTrue(WstxInputData.isNameStartChar('F', true, true));
+        assertTrue(WstxInputData.isNameChar('F', true, true));
+        assertTrue(WstxInputData.isNameStartChar('_', true, true));
+        assertTrue(WstxInputData.isNameChar('_', true, true));
+        assertTrue(WstxInputData.isNameChar('x', true, true));
+        assertFalse(WstxInputData.isNameStartChar('-', true, true));
+        assertTrue(WstxInputData.isNameChar('-', true, true));
+        assertFalse(WstxInputData.isNameStartChar('.', true, true));
+        assertTrue(WstxInputData.isNameChar('.', true, true));
 
         // Then more exotic chars:
 
-        assertTrue(WstxInputData.is11NameStartChar((char) 0x03ce));
-        assertTrue(WstxInputData.is11NameChar((char) 0x03ce));
-        assertTrue(WstxInputData.is11NameStartChar((char) 0x0e21));
-        assertTrue(WstxInputData.is11NameChar((char) 0x0e21));
-        assertTrue(WstxInputData.is11NameStartChar((char) 0x3007));
-        assertFalse(WstxInputData.is11NameStartChar(' '));
+        assertTrue(WstxInputData.isNameStartChar((char) 0x03ce, true, true));
+        assertTrue(WstxInputData.isNameChar((char) 0x03ce, true, true));
+        assertTrue(WstxInputData.isNameStartChar((char) 0x0e21, true, true));
+        assertTrue(WstxInputData.isNameChar((char) 0x0e21, true, true));
+        assertTrue(WstxInputData.isNameStartChar((char) 0x3007, true, true));
+        assertFalse(WstxInputData.isNameStartChar(' ', true, true));
         /* colon is NOT a start char for this method; although it is
          * in xml specs -- reason has to do with namespace handling
          */
-        assertFalse(WstxInputData.is11NameStartChar(':'));
-        assertFalse(WstxInputData.is11NameStartChar((char) 0x3000));
+        assertFalse(WstxInputData.isNameStartChar(':', true, true));
+        assertFalse(WstxInputData.isNameStartChar((char) 0x3000, true, true));
     }
 }

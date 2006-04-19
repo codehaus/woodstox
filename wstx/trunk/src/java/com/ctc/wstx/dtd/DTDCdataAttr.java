@@ -18,15 +18,15 @@ import com.ctc.wstx.util.WordResolver;
 public final class DTDCdataAttr
     extends DTDAttribute
 {
-    public DTDCdataAttr(NameKey name, DefaultAttrValue defValue,
-                        int specIndex)
+    public DTDCdataAttr(NameKey name, DefaultAttrValue defValue, int specIndex,
+                        boolean nsAware, boolean xml11)
     {
-        super(name, defValue, specIndex);
+        super(name, defValue, specIndex, nsAware, xml11);
     }
 
     public DTDAttribute cloneWith(int specIndex)
     {
-        return new DTDCdataAttr(mName, mDefValue, specIndex);
+        return new DTDCdataAttr(mName, mDefValue, specIndex, mCfgNsAware, mCfgXml11);
     }
 
     /*

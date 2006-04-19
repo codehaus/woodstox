@@ -29,16 +29,17 @@ public final class DTDIdAttr
      * note: although ID attributes are not to have default value,
      * this is 'only' a validity constraint, and in dtd-aware-but-
      * not-validating mode it is apparently 'legal' to add default
-     * values. Bleech.
+     * values.
      */
-    public DTDIdAttr(NameKey name, DefaultAttrValue defValue, int specIndex)
+    public DTDIdAttr(NameKey name, DefaultAttrValue defValue, int specIndex,
+                     boolean nsAware, boolean xml11)
     {
-        super(name, defValue, specIndex);
+        super(name, defValue, specIndex, nsAware, xml11);
     }
 
     public DTDAttribute cloneWith(int specIndex)
     {
-        return new DTDIdAttr(mName, mDefValue, specIndex);
+        return new DTDIdAttr(mName, mDefValue, specIndex, mCfgNsAware, mCfgXml11);
     }
 
     /*
@@ -85,13 +86,13 @@ public final class DTDIdAttr
 
         // Ok, need to check char validity, and also calc hash code:
         char c = cbuf[start];
-        if (!WstxInputData.is11NameStartChar(c) && c != ':') {
+        if (!WstxInputData.isNameStartChar(c, mCfgNsAware, mCfgXml11)) {
             return reportInvalidChar(v, c, "not valid as the first ID character");
         }
         int hash = (int) c;
         for (int i = start+1; i <= end; ++i) {
             c = cbuf[i];
-            if (!WstxInputData.is11NameChar(c)) {
+            if (!WstxInputData.isNameChar(c, mCfgNsAware, mCfgXml11)) {
                 return reportInvalidChar(v, c, "not valid as an ID character");
             }
             hash = (hash * 31) + (int) c;

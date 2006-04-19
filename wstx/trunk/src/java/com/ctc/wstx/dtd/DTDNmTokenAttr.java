@@ -25,14 +25,15 @@ public final class DTDNmTokenAttr
     /**
      * Main constructor.
      */
-    public DTDNmTokenAttr(NameKey name, DefaultAttrValue defValue, int specIndex)
+    public DTDNmTokenAttr(NameKey name, DefaultAttrValue defValue, int specIndex,
+                          boolean nsAware, boolean xml11)
     {
-        super(name, defValue, specIndex);
+        super(name, defValue, specIndex, nsAware, xml11);
     }
 
     public DTDAttribute cloneWith(int specIndex)
     {
-        return new DTDNmTokenAttr(mName, mDefValue, specIndex);
+        return new DTDNmTokenAttr(mName, mDefValue, specIndex, mCfgNsAware, mCfgXml11);
     }
 
     /*
@@ -79,7 +80,7 @@ public final class DTDNmTokenAttr
         // Ok, need to check char validity
         for (int i = start; i <= end; ++i) {
             char c = cbuf[i];
-            if (!WstxInputData.is11NameChar(c)) {
+            if (!WstxInputData.isNameChar(c, mCfgNsAware, mCfgXml11)) {
                 return reportInvalidChar(v, c, "not valid NMTOKEN character");
             }
         }
@@ -102,6 +103,9 @@ public final class DTDNmTokenAttr
     public void validateDefault(InputProblemReporter rep, boolean normalize)
         throws XMLValidationException
     {
-        mDefValue.setValue(validateDefaultNmToken(rep, normalize));
+        String def = validateDefaultNmToken(rep, normalize);
+        if (normalize) {
+            mDefValue.setValue(def);
+        }
     }
 }

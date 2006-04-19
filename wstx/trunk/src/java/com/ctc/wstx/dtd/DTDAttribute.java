@@ -99,17 +99,23 @@ public abstract class DTDAttribute
 
     protected final DefaultAttrValue mDefValue;
 
+    protected final boolean mCfgNsAware;
+    protected final boolean mCfgXml11;
+
     /*
     ///////////////////////////////////////////////////
     // Life-cycle
     ///////////////////////////////////////////////////
      */
 
-    public DTDAttribute(NameKey name, DefaultAttrValue defValue, int specIndex)
+    public DTDAttribute(NameKey name, DefaultAttrValue defValue, int specIndex,
+                        boolean nsAware, boolean xml11)
     {
         mName = name;
         mDefValue = defValue;
         mSpecialIndex = specIndex;
+        mCfgNsAware = nsAware;
+        mCfgXml11 = xml11;
     }
 
     public abstract DTDAttribute cloneWith(int specIndex);
@@ -288,18 +294,16 @@ public abstract class DTDAttribute
         }
 
         // Ok, needs to be a valid XML name:
-        char c = defValue.charAt(0);
-        if (!WstxInputData.is11NameStartChar(c) && c != ':') {
-            reportValidationProblem(rep, "Invalid default value '"+defValue+"'; character "
-                                +WstxInputData.getCharDesc(c)
-                                +") not valid first character of a name");
-        }
-
-        for (int i = 1, len = defValue.length(); i < len; ++i) {
-            if (!WstxInputData.is11NameChar(defValue.charAt(i))) {
-                reportValidationProblem(rep, "Invalid default value '"+defValue+"'; character #"+i+" ("
-                                    +WstxInputData.getCharDesc(defValue.charAt(i))
-                                   +") not valid name character");
+        int illegalIx = WstxInputData.findIllegalNameChar(defValue, mCfgNsAware, mCfgXml11);
+        if (illegalIx >= 0) {
+            if (illegalIx == 0) {
+                reportValidationProblem(rep, "Invalid default value '"+defValue+"'; character "
+                                        +WstxInputData.getCharDesc(defValue.charAt(0))
+                                        +") not valid first character of a name");
+            } else {
+                reportValidationProblem(rep, "Invalid default value '"+defValue+"'; character #"+illegalIx+" ("
+                                        +WstxInputData.getCharDesc(defValue.charAt(illegalIx))
+                                        +") not valid name character");
             }
         }
 
@@ -333,35 +337,37 @@ public abstract class DTDAttribute
                 c = defValue.charAt(start);
             }
 
-            if (!WstxInputData.is11NameStartChar(c) && c != ':') {
-                reportValidationProblem(rep, "Invalid default value '"+defValue
-                                 +"'; character "
-                                 +WstxInputData.getCharDesc(c)
-                                 +") not valid first character of a name token");
-            }
+            // Then need to find the token itself:
             int i = start+1;
+
             for (; i < len; ++i) {
-                c = defValue.charAt(i);
-                if (WstxInputData.isSpaceChar(c)) {
+                if (WstxInputData.isSpaceChar(defValue.charAt(i))) {
                     break;
                 }
-                if (!WstxInputData.is11NameChar(c)) {
+            }
+            String token = defValue.substring(start, i);
+            int illegalIx = WstxInputData.findIllegalNameChar(token, mCfgNsAware, mCfgXml11);
+            if (illegalIx >= 0) {
+                if (illegalIx == 0) {
                     reportValidationProblem(rep, "Invalid default value '"+defValue
-                                     +"'; character "
-                                     +WstxInputData.getCharDesc(c)
-                                     +") not a valid name character");
+                                            +"'; character "
+                                            +WstxInputData.getCharDesc(defValue.charAt(start))
+                                            +") not valid first character of a name token");
+                } else {
+                    reportValidationProblem(rep, "Invalid default value '"+defValue
+                                            +"'; character "
+                                            +WstxInputData.getCharDesc(c)
+                                            +") not a valid name character");
                 }
             }
-
             ++count;
-
             if (normalize) {
                 if (sb == null) {
                     sb = new StringBuffer(i - start + 32);
                 } else {
                     sb.append(' ');
                 }
-                sb.append(defValue.substring(start, i));
+                sb.append(token);
             }
             start = i+1;
         }
@@ -383,15 +389,12 @@ public abstract class DTDAttribute
         if (defValue.length() == 0) {
             reportValidationProblem(rep, "Invalid default value '"+defValue+"'; empty String is not a valid NMTOKEN");
         }
-
-        // Ok, needs to be a valid NMTOKEN:
-        for (int i = 0, len = defValue.length(); i < len; ++i) {
-            if (!WstxInputData.is11NameChar(defValue.charAt(i))) {
-                reportValidationProblem(rep, "Invalid default value '"+defValue
-                                    +"'; character #"+i+" ("
-                                   +WstxInputData.getCharDesc(defValue.charAt(i))
-                                   +") not valid NMTOKEN character");
-            }
+        int illegalIx = WstxInputData.findIllegalNmtokenChar(defValue, mCfgNsAware, mCfgXml11);
+        if (illegalIx >= 0) {
+            reportValidationProblem(rep, "Invalid default value '"+defValue
+                                    +"'; character #"+illegalIx+" ("
+                                    +WstxInputData.getCharDesc(defValue.charAt(illegalIx))
+                                    +") not valid NMTOKEN character");
         }
         // Ok, cool it's ok...
         return normalize ? defValue : origDefValue;
