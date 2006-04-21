@@ -454,7 +454,7 @@ public final class XmlChars
         // Others are checked block-by-block:
         if (c <= 0x2FEF) {
             if (c < 0x2000) { // only 8-bit ctrl chars and 0x37E to filter out
-                return (c >= 0x00C0 && c != 0x37E);
+                return (c >= 0x00C0 && c != 0x37E) || (c == 0xB7);
             }
             if (c >= 0x2C00) {
                 // 0x100 - 0x1FFF, 0x2C00 - 0x2FEF are ok
