@@ -47,8 +47,6 @@ public class TestEscaping
 
         String input = strw.toString();
 
-        System.out.println("DBUG: xml = '"+input+"'");
-
         XMLStreamReader sr = constructNsStreamReader(input, true);
         assertTokenType(START_DOCUMENT, sr.getEventType());
         

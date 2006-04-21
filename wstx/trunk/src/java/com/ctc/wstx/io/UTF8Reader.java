@@ -119,30 +119,51 @@ public final class UTF8Reader
          * member variable...
          */
         byte[] buf = mBuffer;
-        int inPtr = mPtr; // making it a loc
+        int inPtr = mPtr;
         int inBufLen = mLength;
 
         main_loop:
         while (outPtr < len) {
             // At this point we have at least one byte available
-            byte b = buf[inPtr++];
+            int c = (int) buf[inPtr++];
 
             /* Let's first do the quickie loop for common case; 7-bit
              * ascii:
              */
-            //while (b >= NULL_BYTE) { // still 7-bit?
-            while (b >= 0) { // still 7-bit?
-                cbuf[outPtr] = (char) b; // ok since MSB is never on
-                if (++outPtr >= len) { // output buffer full, let's leave
-                    break main_loop;
+            if (c >= 0) { // ascii? can probably loop, then
+                if (c == 0x7F && mXml11) { // DEL illegal in xml1.1
+                    int bytePos = mByteCount + inPtr - 1;
+                    int charPos = mCharCount + (outPtr-start);
+                    reportInvalidXml11(c, bytePos, charPos);
                 }
-                if (inPtr >= inBufLen) { // out of input, let's quit as well
-                    break main_loop;
+                cbuf[outPtr++] = (char) c; // ok since MSB is never on
+
+                /* Ok, how many such chars could we safely process
+                 * without overruns? (will combine 2 in-loop comparisons
+                 * into just one)
+                 */
+                int outMax = (len - outPtr); // max output
+                int inMax = (inBufLen - inPtr); // max input
+                int inEnd = inPtr + ((inMax < outMax) ? inMax : outMax);
+
+                ascii_loop:
+                while (true) {
+                    if (inPtr >= inEnd) {
+                        break main_loop;
+                    }
+                    c = ((int) buf[inPtr++]) & 0xFF;
+                    if (c >= 0x7F) {
+                        break ascii_loop;
+                    }
+                    cbuf[outPtr++] = (char) c;
                 }
-                b = buf[inPtr++];
+                if (c == 0x7F && mXml11) { // DEL illegal in xml1.1
+                    int bytePos = mByteCount + inPtr - 1;
+                    int charPos = mCharCount + (outPtr-start);
+                    reportInvalidXml11(c, bytePos, charPos);
+                }
             }
 
-            int c = (int) b; // it's ok to get sign extension
             int needed;
 
             // Ok; if we end here, we got multi-byte combination
