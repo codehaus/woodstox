@@ -78,6 +78,12 @@ public class DOMWrappingReader
 
     protected int mCurrEvent = START_DOCUMENT;
 
+    /**
+     * Current node is the DOM node that contains information
+     * regarding the current event.
+     */
+    protected Node mCurrNode;
+
     /*
     ////////////////////////////////////////////////////
     // Construction
@@ -100,7 +106,11 @@ public class DOMWrappingReader
          */
 
         if (treeRoot instanceof Document) {
-        } else if (treeRoot instanceof Document) {
+            /* Should try to find encoding, version and stand-alone
+             * settings... but is there a standard way of doing that?
+             */
+            // Need to 
+        } else if (treeRoot instanceof Element) {
         } else if (treeRoot instanceof DocumentFragment) {
         } else {
             if (treeRoot == null) {
@@ -108,7 +118,7 @@ public class DOMWrappingReader
             }
             throw new XMLStreamException("Can not create an XMLStreamReader for a DOM node of type "+treeRoot.getClass());
         }
-        mRootNode = treeRoot;
+        mRootNode = mCurrNode = treeRoot;
     }
 
     public static DOMWrappingReader createFrom(ReaderConfig cfg, DOMSource src)
@@ -130,7 +140,9 @@ public class DOMWrappingReader
      * claimed encoding is, if any; or null if no xml declaration found.
      */
     public String getCharacterEncodingScheme() {
-        // !!! TBI:
+        /* No standard way to figure it out from a DOM Document node;
+         * have to return null
+         */
         return null;
     }
 
@@ -141,23 +153,31 @@ public class DOMWrappingReader
      * {@link java.io.Reader}), it should return null.
      */
     public String getEncoding() {
-        // !!! TBI:
-        return null;
+        /* We have no information regarding underlying stream/Reader, so
+         * best we can do is to see if we know xml declaration encoding.
+         */
+        return getCharacterEncodingScheme();
     }
 
     public String getVersion()
     {
-        // !!! TBI:
+        /* No standard way to figure it out from a DOM Document node;
+         * have to return null
+         */
         return null;
     }
 
     public boolean isStandalone() {
-        // !!! TBI:
+        /* No standard way to figure it out from a DOM Document node;
+         * have to return false
+         */
         return false;
     }
 
     public boolean standaloneSet() {
-        // !!! TBI:
+        /* No standard way to figure it out from a DOM Document node;
+         * have to return false
+         */
         return false;
     }
 
@@ -180,27 +200,41 @@ public class DOMWrappingReader
 
     // // // Attribute access:
 
-    public int getAttributeCount() {
+    public int getAttributeCount()
+    {
         if (mCurrEvent != START_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
         }
-        // !!! TBI
-        return 0;
+        Element elem = (Element) mCurrNode;
+        return elem.getAttributes().getLength();
     }
 
-	public String getAttributeLocalName(int index) {
+	public String getAttributeLocalName(int index)
+    {
         if (mCurrEvent != START_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
         }
-        // !!! TBI
-        return null;
+        Element elem = (Element) mCurrNode;
+        Attr attr = (Attr) elem.getAttributes().item(index);
+        if (attr == null) {
+            handleIllegalAttrIndex(index);
+            return null;
+        }
+        return attr.getLocalName();
     }
 
-    public QName getAttributeName(int index) {
+    public QName getAttributeName(int index)
+    {
         if (mCurrEvent != START_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
         }
-        // !!! TBI
+        Element elem = (Element) mCurrNode;
+        Attr attr = (Attr) elem.getAttributes().item(index);
+        if (attr == null) {
+            handleIllegalAttrIndex(index);
+            return null;
+        }
+        //return attr.getLocalName();
         return null;
     }
 
@@ -208,21 +242,41 @@ public class DOMWrappingReader
         if (mCurrEvent != START_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
         }
-        // !!! TBI
-        return null;
-    }
-
-    public String getAttributePrefix(int index) {
-        if (mCurrEvent != START_ELEMENT) {
-            throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
+        Element elem = (Element) mCurrNode;
+        Attr attr = (Attr) elem.getAttributes().item(index);
+        if (attr == null) {
+            handleIllegalAttrIndex(index);
+            return null;
         }
         // !!! TBI
         return null;
     }
 
-    public String getAttributeType(int index) {
+    public String getAttributePrefix(int index)
+    {
         if (mCurrEvent != START_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
+        }
+        Element elem = (Element) mCurrNode;
+        Attr attr = (Attr) elem.getAttributes().item(index);
+        if (attr == null) {
+            handleIllegalAttrIndex(index);
+            return null;
+        }
+        // !!! TBI
+        return null;
+    }
+
+    public String getAttributeType(int index)
+    {
+        if (mCurrEvent != START_ELEMENT) {
+            throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
+        }
+        Element elem = (Element) mCurrNode;
+        Attr attr = (Attr) elem.getAttributes().item(index);
+        if (attr == null) {
+            handleIllegalAttrIndex(index);
+            return null;
         }
         // !!! TBI
         return null;
@@ -232,6 +286,12 @@ public class DOMWrappingReader
         if (mCurrEvent != START_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
         }
+        Element elem = (Element) mCurrNode;
+        Attr attr = (Attr) elem.getAttributes().item(index);
+        if (attr == null) {
+            handleIllegalAttrIndex(index);
+            return null;
+        }
         // !!! TBI
         return null;
     }
@@ -240,6 +300,8 @@ public class DOMWrappingReader
         if (mCurrEvent != START_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
         }
+        Element elem = (Element) mCurrNode;
+
         // !!! TBI
         return null;
     }
@@ -946,5 +1008,13 @@ public class DOMWrappingReader
         throw new WstxParsingException(msg, getLastCharLocation());
     }
 
+    public void handleIllegalAttrIndex(int index)
+    {
+        Element elem = (Element) mCurrNode;
+        NamedNodeMap attrs = elem.getAttributes();
+        int len = attrs.getLength();
+        String msg = "Illegal attribute index "+index+"; element <"+elem.getNodeName()+"> has "+((len == 0) ? "no" : String.valueOf(len))+" attributes";
+        throw new IllegalArgumentException(msg);
+    }
 }
 

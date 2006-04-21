@@ -1,4 +1,4 @@
-package org.codehaus2.stax2.io;
+package org.codehaus.stax2.io;
 
 import java.io.*;
 

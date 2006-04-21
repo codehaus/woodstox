@@ -458,7 +458,14 @@ public abstract class BaseNsStreamWriter
             }
             mWriter.write("=\"");
             if (nsURI != null && nsURI.length() > 0) {
-                mWriter.write(nsURI);
+                /* 19-Apr-2006, TSa: Since it's not a fatal error to
+                 *   write 'garbage' ns URIs (including using chars
+                 *   that need escaping), need to check escaping:
+                 */
+                if (mAttrValueWriter == null) {
+                    mAttrValueWriter = constructAttributeValueWriter();
+                }
+                mAttrValueWriter.write(nsURI);
             }
             mWriter.write('"');
         } catch (IOException ioe) {
@@ -601,6 +608,7 @@ public abstract class BaseNsStreamWriter
 
     public abstract void writeDefaultNamespace(String nsURI)
         throws XMLStreamException;
+
     public abstract void writeNamespace(String prefix, String nsURI)
         throws XMLStreamException;
 
