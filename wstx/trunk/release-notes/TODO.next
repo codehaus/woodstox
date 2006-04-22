@@ -1,3 +1,0 @@
-4. Optimized reader for UTF-8, which will initially assume US-Ascii contents;
-  thus allowing for tighter initial decode loop (will then transfer to
-  full version upon encountering first non-ascii char)

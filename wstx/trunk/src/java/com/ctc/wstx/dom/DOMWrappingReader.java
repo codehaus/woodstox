@@ -234,8 +234,8 @@ public class DOMWrappingReader
             handleIllegalAttrIndex(index);
             return null;
         }
-        //return attr.getLocalName();
-        return null;
+        return new QName(attr.getNamespaceURI(), attr.getLocalName(),
+                         attr.getPrefix());
     }
 
     public String getAttributeNamespace(int index) {
@@ -248,8 +248,7 @@ public class DOMWrappingReader
             handleIllegalAttrIndex(index);
             return null;
         }
-        // !!! TBI
-        return null;
+        return attr.getNamespaceURI();
     }
 
     public String getAttributePrefix(int index)
@@ -263,8 +262,7 @@ public class DOMWrappingReader
             handleIllegalAttrIndex(index);
             return null;
         }
-        // !!! TBI
-        return null;
+        return attr.getPrefix();
     }
 
     public String getAttributeType(int index)
@@ -278,8 +276,12 @@ public class DOMWrappingReader
             handleIllegalAttrIndex(index);
             return null;
         }
-        // !!! TBI
-        return null;
+        // First, a special case, ID... since it's potentially most useful
+        if (attr.isId()) {
+            return "ID";
+        }
+        TypeInfo schemaType = attr.getSchemaTypeInfo();
+        return (schemaType == null) ? "CDATA" : schemaType.getTypeName();
     }
 
     public String getAttributeValue(int index) {
@@ -292,8 +294,7 @@ public class DOMWrappingReader
             handleIllegalAttrIndex(index);
             return null;
         }
-        // !!! TBI
-        return null;
+        return attr.getValue();
     }
 
     public String getAttributeValue(String nsURI, String localName) {
@@ -301,9 +302,17 @@ public class DOMWrappingReader
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
         }
         Element elem = (Element) mCurrNode;
-
-        // !!! TBI
-        return null;
+        NamedNodeMap attrs = elem.getAttributes();
+        /* Hmmh. DOM javadocs claim "Per [XML Namespaces], applications
+         * must use the value null as the namespaceURI parameter for methods
+         * if they wish to have no namespace.".
+         * Not sure how true that is, but:
+         */
+        if (nsURI != null && nsURI.length() == 0) {
+            nsURI = null;
+        }
+        Attr attr = (Attr) attrs.getNamedItemNS(nsURI, localName);
+        return (attr == null) ? null : attr.getValue();
     }
 
     /**
@@ -355,13 +364,10 @@ public class DOMWrappingReader
     
     public String getLocalName()
     {
-        // Note: for this we need not (yet) finish reading element
         if (mCurrEvent == START_ELEMENT || mCurrEvent == END_ELEMENT) {
-            // !!! TBI
-            return null;
+            return mCurrNode.getLocalName();
         } else if (mCurrEvent == ENTITY_REFERENCE) {
-            // !!! TBI
-            return null;
+            return mCurrNode.getNodeName();
         } else {
             throw new IllegalStateException("Current state not START_ELEMENT, END_ELEMENT or ENTITY_REFERENCE");
         }
@@ -374,8 +380,8 @@ public class DOMWrappingReader
         if (mCurrEvent != START_ELEMENT && mCurrEvent != END_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_ELEM);
         }
-        // !!! TBI
-        return null;
+        return new QName(mCurrNode.getNamespaceURI(), mCurrNode.getLocalName(),
+                         mCurrNode.getPrefix());
     }
 
     // // // Namespace access
@@ -429,24 +435,21 @@ public class DOMWrappingReader
         if (mCurrEvent != PROCESSING_INSTRUCTION) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_PI);
         }
-        // !!! TBI
-        return null;
+        return mCurrNode.getNodeValue();
     }
 
     public String getPITarget() {
         if (mCurrEvent != PROCESSING_INSTRUCTION) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_PI);
         }
-        // !!! TBI
-        return null;
+        return mCurrNode.getNodeName();
     }
 
     public String getPrefix() {
         if (mCurrEvent != START_ELEMENT && mCurrEvent != END_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_ELEM);
         }
-        // !!! TBI
-        return null;
+        return mCurrNode.getPrefix();
     }
 
     public String getText()
@@ -454,17 +457,13 @@ public class DOMWrappingReader
         if (((1 << mCurrEvent) & MASK_GET_TEXT) == 0) {
             throwNotTextual(mCurrEvent);
         }
-        // !!! TBI
-        return null;
+        return mCurrNode.getNodeValue();
     }
 
     public char[] getTextCharacters()
     {
-        if (((1 << mCurrEvent) & MASK_GET_TEXT) == 0) {
-            throwNotTextual(mCurrEvent);
-        }
-        // !!! TBI
-        return null;
+        String text = getText();
+        return text.toCharArray();
     }
 
     public int getTextCharacters(int sourceStart, char[] target, int targetStart, int len)
@@ -472,8 +471,12 @@ public class DOMWrappingReader
         if (((1 << mCurrEvent) & MASK_GET_TEXT) == 0) {
             throwNotTextual(mCurrEvent);
         }
-        // !!! TBI
-        return -1;
+        String text = getText();
+        if (len > text.length()) {
+            len = text.length();
+        }
+        text.getChars(sourceStart, sourceStart+len, target, targetStart);
+        return len;
     }
 
     public int getTextLength()
@@ -481,8 +484,7 @@ public class DOMWrappingReader
         if (((1 << mCurrEvent) & MASK_GET_TEXT) == 0) {
             throwNotTextual(mCurrEvent);
         }
-        // !!! TBI
-        return 0;
+        return getText().length();
     }
 
     public int getTextStart()
@@ -490,7 +492,6 @@ public class DOMWrappingReader
         if (((1 << mCurrEvent) & MASK_GET_TEXT) == 0) {
             throwNotTextual(mCurrEvent);
         }
-        // !!! TBI
         return 0;
     }
 
@@ -508,8 +509,16 @@ public class DOMWrappingReader
 
     public boolean isAttributeSpecified(int index)
     {
-        // !!! TBI
-        return true;
+        if (mCurrEvent != START_ELEMENT) {
+            throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
+        }
+        Element elem = (Element) mCurrNode;
+        Attr attr = (Attr) elem.getAttributes().item(index);
+        if (attr == null) {
+            handleIllegalAttrIndex(index);
+            return false;
+        }
+        return attr.getSpecified();
     }
 
     public boolean isCharacters()
@@ -534,8 +543,16 @@ public class DOMWrappingReader
     public boolean isWhiteSpace()
     {
         if (mCurrEvent == CHARACTERS || mCurrEvent == CDATA) {
-            // !!! TBI
-            return false;
+            String text = getText();
+            for (int i = 0, len = text.length(); i < len; ++i) {
+                /* !!! If xml 1.1 was to be handled, should check for
+                 *   LSEP and NEL too
+                 */
+                if (text.charAt(i) <= 0x0020) {
+                    return false;
+                }
+            }
+            return true;
         }
         return (mCurrEvent == SPACE);
     }
@@ -579,8 +596,7 @@ public class DOMWrappingReader
             }
 
             // !!! TBI
-            /*
-            String uri = mElementStack.getNsURI();
+            String uri = getNamespaceURI();
             // No namespace?
             if (nsUri.length() == 0) {
                 if (uri != null && uri.length() > 0) {
@@ -592,7 +608,6 @@ public class DOMWrappingReader
                                     +uri+"'.");
                 }
             }
-            */
         }
         // Ok, fine, all's good
     }
@@ -780,8 +795,9 @@ public class DOMWrappingReader
         if (((1 << mCurrEvent) & MASK_GET_TEXT) == 0) {
             throwNotTextual(mCurrEvent);
         }
-        // !!! TBI
-        return -1;
+        String text = getText();
+        w.write(text);
+        return text.length();
     }
 
     // // // StAX 2, Other accessors
@@ -802,7 +818,7 @@ public class DOMWrappingReader
      */
     public boolean isEmptyElement() throws XMLStreamException
     {
-        // !!! TBI
+        // No way to really figure it out via DOM is there?
         return false;
     }
 
@@ -843,7 +859,7 @@ public class DOMWrappingReader
 
     public void closeCompletely() throws XMLStreamException
     {
-        // !!! TBI
+        // Nothing special to do...
     }
 
     /*
