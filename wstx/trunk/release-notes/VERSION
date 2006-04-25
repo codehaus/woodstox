@@ -15,6 +15,13 @@ Description:
   * Minor improvements to UTF-8 decoding speed (decoding part maybe 5%
     faster).
 
+  New features:
+
+  * javax.xml.transform.dom.DOMSource can now be used for constructing
+    stream and event readers, i.e. it is possible to traverse DOM
+    documents (and document fragments, sub-trees for given Element)
+    using Stax API.
+
 == History: ==
 
 2.9.2 [31-Mar-2006]

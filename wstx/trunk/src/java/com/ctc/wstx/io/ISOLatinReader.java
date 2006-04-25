@@ -113,7 +113,6 @@ public final class ISOLatinReader
                             reportInvalidXml11(c, pos, pos);
                         }
                     }
-
                 }
                 cbuf[start++] = c;
 

@@ -152,15 +152,19 @@ public final class UTF8Reader
                         break main_loop;
                     }
                     c = ((int) buf[inPtr++]) & 0xFF;
-                    if (c >= 0x7F) {
+                    if (c >= 0x7F) { // DEL, or multi-byte
                         break ascii_loop;
                     }
                     cbuf[outPtr++] = (char) c;
                 }
-                if (c == 0x7F && mXml11) { // DEL illegal in xml1.1
-                    int bytePos = mByteCount + inPtr - 1;
-                    int charPos = mCharCount + (outPtr-start);
-                    reportInvalidXml11(c, bytePos, charPos);
+                if (c == 0x7F) { 
+                    if (mXml11) { // DEL illegal in xml1.1
+                        int bytePos = mByteCount + inPtr - 1;
+                        int charPos = mCharCount + (outPtr-start);
+                        reportInvalidXml11(c, bytePos, charPos);
+                    } // but not in xml 1.0
+                    cbuf[outPtr++] = (char) c;
+                    continue main_loop;
                 }
             }
 

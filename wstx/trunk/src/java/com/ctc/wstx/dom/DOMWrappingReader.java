@@ -18,6 +18,7 @@ package com.ctc.wstx.dom;
 import java.io.IOException;
 import java.io.Writer;
 import java.text.MessageFormat;
+import java.util.*;
 
 import javax.xml.transform.dom.DOMSource;
 
@@ -40,6 +41,9 @@ import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.exc.WstxParsingException;
 import com.ctc.wstx.io.WstxInputLocation;
+import com.ctc.wstx.util.EmptyIterator;
+import com.ctc.wstx.util.EmptyNamespaceContext;
+import com.ctc.wstx.util.SingletonIterator;
 import com.ctc.wstx.util.TextAccumulator;
 
 /**
@@ -50,10 +54,22 @@ import com.ctc.wstx.util.TextAccumulator;
  * <code>javax.xml.transform.dom.DOMSource</code>. It can however be
  * used for both full documents, and single element root fragments,
  * depending on what node is passed as the argument.
+ *<p>
+ * Some notes regarding missing/incomplete functionality:
+ * <ul>
+ *  <li>DOM does not seem to have access to information from the XML
+ *    declaration (although Document node can be viewed as representing
+ *    it). Consequently, all accessors return no information (version,
+ *    encoding, standalone).
+ *   </li>
+ *  <li>No location info is provided, since (you guessed it!) DOM
+ *    does not provide that info.
+ *   </li>
+ *  </ul>
  */
 public class DOMWrappingReader
     implements XMLStreamReader2,
-               DTDInfo, LocationInfo,
+               DTDInfo, LocationInfo, NamespaceContext,
                XMLStreamConstants
 {
     // // // Bit masks used for quick type comparisons
@@ -84,6 +100,33 @@ public class DOMWrappingReader
      */
     protected Node mCurrNode;
 
+    protected int mDepth = 0;
+
+    // // // Attribute/namespace declaration state
+
+    /* DOM, alas, does not distinguish between namespace declarations
+     * and attributes (due to its roots prior to XML namespaces?).
+     * Because of this, two lists need to be separated. Since this
+     * information is often not needed, it will be lazily generated.
+     */
+
+    /**
+     * Lazily instantiated List of all actual attributes for the
+     * current (start) element, NOT including namespace declarations.
+     * As such, elements are {@link org.w3c.dom.Attr} instances.
+     *<p>
+     */
+    protected List mAttrList = null;
+
+    /**
+     * Lazily instantiated String pairs of all namespace declarations for the
+     * current (start/end) element. String pair means that for each
+     * declarations there are two Strings in the list: first one is prefix
+     * (empty String for the default namespace declaration), and second
+     * URI it is bound to.
+     */
+    protected List mNsDeclList = null;
+
     /*
     ////////////////////////////////////////////////////
     // Construction
@@ -98,24 +141,30 @@ public class DOMWrappingReader
     private DOMWrappingReader(ReaderConfig cfg, Node treeRoot, String sysId)
         throws XMLStreamException
     {
+        if (treeRoot == null) {
+            throw new IllegalArgumentException("Can not pass null Node for constructing a DOM-based XMLStreamReader");
+        }
+
         mConfig = cfg;
         mSystemId = sysId;
-
+        
         /* Ok; we need a document node; or an element node; or a document
          * fragment node.
          */
-
-        if (treeRoot instanceof Document) {
+        switch (treeRoot.getNodeType()) {
+        case Node.DOCUMENT_NODE: // fine
             /* Should try to find encoding, version and stand-alone
              * settings... but is there a standard way of doing that?
              */
-            // Need to 
-        } else if (treeRoot instanceof Element) {
-        } else if (treeRoot instanceof DocumentFragment) {
-        } else {
-            if (treeRoot == null) {
-                throw new IllegalArgumentException("Can not pass null Node for constructing a DOM-based XMLStreamReader");
-            }
+        case Node.ELEMENT_NODE: // can make sub-tree... ok
+            // But should we skip START/END_DOCUMENT? For now, let's not
+
+        case Node.DOCUMENT_FRAGMENT_NODE: // as with element...
+
+            // Above types are fine
+            break;
+
+        default: // other Nodes not usable
             throw new XMLStreamException("Can not create an XMLStreamReader for a DOM node of type "+treeRoot.getClass());
         }
         mRootNode = mCurrNode = treeRoot;
@@ -205,8 +254,10 @@ public class DOMWrappingReader
         if (mCurrEvent != START_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
         }
-        Element elem = (Element) mCurrNode;
-        return elem.getAttributes().getLength();
+        if (mAttrList == null) {
+            calcNsAndAttrLists(true);
+        }
+        return mAttrList.size();
     }
 
 	public String getAttributeLocalName(int index)
@@ -214,12 +265,14 @@ public class DOMWrappingReader
         if (mCurrEvent != START_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
         }
-        Element elem = (Element) mCurrNode;
-        Attr attr = (Attr) elem.getAttributes().item(index);
-        if (attr == null) {
+        if (mAttrList == null) {
+            calcNsAndAttrLists(true);
+        }
+        if (index >= mAttrList.size() || index < 0) {
             handleIllegalAttrIndex(index);
             return null;
         }
+        Attr attr = (Attr) mAttrList.get(index);
         return attr.getLocalName();
     }
 
@@ -228,26 +281,31 @@ public class DOMWrappingReader
         if (mCurrEvent != START_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
         }
-        Element elem = (Element) mCurrNode;
-        Attr attr = (Attr) elem.getAttributes().item(index);
-        if (attr == null) {
+        if (mAttrList == null) {
+            calcNsAndAttrLists(true);
+        }
+        if (index >= mAttrList.size() || index < 0) {
             handleIllegalAttrIndex(index);
             return null;
         }
-        return new QName(attr.getNamespaceURI(), attr.getLocalName(),
-                         attr.getPrefix());
+        Attr attr = (Attr) mAttrList.get(index);
+        return constructQName(attr.getNamespaceURI(), attr.getLocalName(),
+                              attr.getPrefix());
     }
 
-    public String getAttributeNamespace(int index) {
+    public String getAttributeNamespace(int index)
+    {
         if (mCurrEvent != START_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
         }
-        Element elem = (Element) mCurrNode;
-        Attr attr = (Attr) elem.getAttributes().item(index);
-        if (attr == null) {
+        if (mAttrList == null) {
+            calcNsAndAttrLists(true);
+        }
+        if (index >= mAttrList.size() || index < 0) {
             handleIllegalAttrIndex(index);
             return null;
         }
+        Attr attr = (Attr) mAttrList.get(index);
         return attr.getNamespaceURI();
     }
 
@@ -256,12 +314,14 @@ public class DOMWrappingReader
         if (mCurrEvent != START_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
         }
-        Element elem = (Element) mCurrNode;
-        Attr attr = (Attr) elem.getAttributes().item(index);
-        if (attr == null) {
+        if (mAttrList == null) {
+            calcNsAndAttrLists(true);
+        }
+        if (index >= mAttrList.size() || index < 0) {
             handleIllegalAttrIndex(index);
             return null;
         }
+        Attr attr = (Attr) mAttrList.get(index);
         return attr.getPrefix();
     }
 
@@ -270,12 +330,14 @@ public class DOMWrappingReader
         if (mCurrEvent != START_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
         }
-        Element elem = (Element) mCurrNode;
-        Attr attr = (Attr) elem.getAttributes().item(index);
-        if (attr == null) {
+        if (mAttrList == null) {
+            calcNsAndAttrLists(true);
+        }
+        if (index >= mAttrList.size() || index < 0) {
             handleIllegalAttrIndex(index);
             return null;
         }
+        Attr attr = (Attr) mAttrList.get(index);
         // First, a special case, ID... since it's potentially most useful
         if (attr.isId()) {
             return "ID";
@@ -284,20 +346,24 @@ public class DOMWrappingReader
         return (schemaType == null) ? "CDATA" : schemaType.getTypeName();
     }
 
-    public String getAttributeValue(int index) {
+    public String getAttributeValue(int index)
+    {
         if (mCurrEvent != START_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
         }
-        Element elem = (Element) mCurrNode;
-        Attr attr = (Attr) elem.getAttributes().item(index);
-        if (attr == null) {
+        if (mAttrList == null) {
+            calcNsAndAttrLists(true);
+        }
+        if (index >= mAttrList.size() || index < 0) {
             handleIllegalAttrIndex(index);
             return null;
         }
+        Attr attr = (Attr) mAttrList.get(index);
         return attr.getValue();
     }
 
-    public String getAttributeValue(String nsURI, String localName) {
+    public String getAttributeValue(String nsURI, String localName)
+    {
         if (mCurrEvent != START_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
         }
@@ -366,11 +432,11 @@ public class DOMWrappingReader
     {
         if (mCurrEvent == START_ELEMENT || mCurrEvent == END_ELEMENT) {
             return mCurrNode.getLocalName();
-        } else if (mCurrEvent == ENTITY_REFERENCE) {
-            return mCurrNode.getNodeName();
-        } else {
-            throw new IllegalStateException("Current state not START_ELEMENT, END_ELEMENT or ENTITY_REFERENCE");
         }
+        if (mCurrEvent == ENTITY_REFERENCE) {
+            return mCurrNode.getNodeName();
+        }
+        throw new IllegalStateException("Current state ("+ErrorConsts.tokenTypeDesc(mCurrEvent)+") not START_ELEMENT, END_ELEMENT or ENTITY_REFERENCE");
     }
 
     // // // getLocation() defined in StreamScanner
@@ -380,56 +446,71 @@ public class DOMWrappingReader
         if (mCurrEvent != START_ELEMENT && mCurrEvent != END_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_ELEM);
         }
-        return new QName(mCurrNode.getNamespaceURI(), mCurrNode.getLocalName(),
-                         mCurrNode.getPrefix());
+        return constructQName(mCurrNode.getNamespaceURI(), mCurrNode.getLocalName(),
+                              mCurrNode.getPrefix());
     }
 
     // // // Namespace access
 
     public NamespaceContext getNamespaceContext() {
-        // !!! TBI
-        return null;
+        return this;
     }
 
+    /**
+     * Alas, DOM does not expose any of information necessary for
+     * determining actual declarations. Thus, have to indicate that
+     * there are no declarations.
+     */
     public int getNamespaceCount() {
         if (mCurrEvent != START_ELEMENT && mCurrEvent != END_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_ELEM);
         }
-        // !!! TBI
-        return 0;
+        if (mNsDeclList == null) {
+            calcNsAndAttrLists(mCurrEvent == START_ELEMENT);
+        }
+        return mNsDeclList.size() / 2;
     }
 
+    /**
+     * Alas, DOM does not expose any of information necessary for
+     * determining actual declarations. Thus, have to indicate that
+     * there are no declarations.
+     */
     public String getNamespacePrefix(int index) {
         if (mCurrEvent != START_ELEMENT && mCurrEvent != END_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_ELEM);
         }
-        // !!! TBI
-        return null;
+        if (mNsDeclList == null) {
+            calcNsAndAttrLists(mCurrEvent == START_ELEMENT);
+        }
+        if (index < 0 || (index + index) >= mNsDeclList.size()) {
+            handleIllegalNsIndex(index);
+        }
+        return (String) mNsDeclList.get(index + index);
     }
 
     public String getNamespaceURI() {
         if (mCurrEvent != START_ELEMENT && mCurrEvent != END_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_ELEM);
         }
-        // !!! TBI
-        return null;
+        return mCurrNode.getNamespaceURI();
     }
 
     public String getNamespaceURI(int index) {
         if (mCurrEvent != START_ELEMENT && mCurrEvent != END_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_ELEM);
         }
-        // !!! TBI
-        return null;
+        if (mNsDeclList == null) {
+            calcNsAndAttrLists(mCurrEvent == START_ELEMENT);
+        }
+        if (index < 0 || (index + index) >= mNsDeclList.size()) {
+            handleIllegalNsIndex(index);
+        }
+        return (String) mNsDeclList.get(index + index + 1);
     }
 
-    public String getNamespaceURI(String prefix) {
-        if (mCurrEvent != START_ELEMENT && mCurrEvent != END_ELEMENT) {
-            throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_ELEM);
-        }
-        // !!! TBI
-        return null;
-    }
+    // Note: implemented as part of NamespaceContext
+    //public String getNamespaceURI(String prefix)
 
     public String getPIData() {
         if (mCurrEvent != PROCESSING_INSTRUCTION) {
@@ -595,7 +676,6 @@ public class DOMWrappingReader
                 throwParseError("Expected non-null NS URI, but current token not a START_ELEMENT or END_ELEMENT (was "+ErrorConsts.tokenTypeDesc(curr)+")");
             }
 
-            // !!! TBI
             String uri = getNamespaceURI();
             // No namespace?
             if (nsUri.length() == 0) {
@@ -621,7 +701,135 @@ public class DOMWrappingReader
     public int next()
         throws XMLStreamException
     {
-        // !!! TBI
+        /* For most events, we just need to find the next sibling; and
+         * that failing, close the parent element. But there are couple
+         * of special cases, which are handled first:
+         */
+        switch (mCurrEvent) {
+
+        case START_DOCUMENT: // initial state
+            /* What to do here depends on what kind of node we started
+             * with...
+             */
+            switch (mCurrNode.getNodeType()) {
+            case Node.DOCUMENT_NODE:
+            case Node.DOCUMENT_FRAGMENT_NODE:
+                // For doc, fragment, need to find first child
+                mCurrNode = mCurrNode.getFirstChild();
+                break;
+
+            case Node.ELEMENT_NODE:
+                // For element, curr node is fine:
+                return (mCurrEvent = START_ELEMENT);
+
+            default:
+                throw new XMLStreamException("Internal error: unexpected DOM root node type "+mCurrNode.getNodeType()+" for node '"+mCurrNode+"'");
+            }
+            break;
+
+        case END_DOCUMENT: // end reached: should not call!
+            throw new java.util.NoSuchElementException("Can not call next() after receiving END_DOCUMENT");
+
+        case START_ELEMENT: // element returned, need to traverse children, if any
+            ++mDepth;
+            mAttrList = null; // so it will not get reused accidentally
+            {
+                Node firstChild = mCurrNode.getFirstChild();
+                if (firstChild == null) { // empty? need to return virtual END_ELEMENT
+                    /* Note: need not clear namespace declarations, because
+                     * it'll be the same as for the start elem!
+                     */
+                    return (mCurrEvent = END_ELEMENT);
+                }
+                mNsDeclList = null;
+
+                /* non-empty is easy: let's just swap curr node, and
+                 * fall through to regular handling
+                 */
+                mCurrNode = firstChild;
+                break;
+            }
+
+        case END_ELEMENT:
+
+            --mDepth;
+            // Need to clear these lists
+            mAttrList = null;
+            mNsDeclList = null;
+
+            /* One special case: if we hit the end of children of
+             * the root element (when tree constructed with Element,
+             * instead of Document or DocumentFragment). If so, it'll
+             * be END_DOCUMENT:
+             */
+            if (mCurrNode == mRootNode) {
+                return (mCurrEvent = END_DOCUMENT);
+            }
+            // Otherwise need to fall through to default handling:
+
+        default:
+            /* For anything else, we can and should just get the
+             * following sibling.
+             */
+            {
+                Node next = mCurrNode.getNextSibling();
+                // If sibling, let's just assign and fall through
+                if (next != null) {
+                    mCurrNode = next;
+                    break;
+                }
+                /* Otherwise, need to climb up the stack and either
+                 * return END_ELEMENT (if parent is element) or
+                 * END_DOCUMENT (if not; needs to be root, then)
+                 */
+                mCurrNode = mCurrNode.getParentNode();
+                int type = mCurrNode.getNodeType();
+                if (type == Node.ELEMENT_NODE) {
+                    return (mCurrEvent = END_ELEMENT);
+                }
+                // Let's do sanity check; should really be Doc/DocFragment
+                if (mCurrNode != mRootNode ||
+                    (type != Node.DOCUMENT_NODE && type != Node.DOCUMENT_FRAGMENT_NODE)) {
+                    throw new XMLStreamException("Internal error: non-element parent node ("+type+") that is not the initial root node");
+                }
+                return (mCurrEvent = END_DOCUMENT);
+            }
+        }
+
+        // Ok, need to determine current node type:
+        switch (mCurrNode.getNodeType()) {
+        case Node.CDATA_SECTION_NODE:
+            mCurrEvent = CDATA;
+            break;
+        case Node.COMMENT_NODE:
+            mCurrEvent = COMMENT;
+            break;
+        case Node.DOCUMENT_TYPE_NODE:
+            mCurrEvent = DTD;
+            break;
+        case Node.ELEMENT_NODE:
+            mCurrEvent = START_ELEMENT;
+            break;
+        case Node.ENTITY_REFERENCE_NODE:
+            mCurrEvent = ENTITY_REFERENCE;
+            break;
+        case Node.PROCESSING_INSTRUCTION_NODE:
+            mCurrEvent = PROCESSING_INSTRUCTION;
+            break;
+        case Node.TEXT_NODE:
+            mCurrEvent = CHARACTERS;
+            break;
+
+            // Should not get other nodes (notation/entity decl., attr)
+        case Node.ATTRIBUTE_NODE:
+        case Node.ENTITY_NODE:
+        case Node.NOTATION_NODE:
+            throw new XMLStreamException("Internal error: unexpected DOM node type "+mCurrNode.getNodeType()+" (attr/entity/notation?), for node '"+mCurrNode+"'");
+
+        default:
+            throw new XMLStreamException("Internal error: unrecognized DOM node type "+mCurrNode.getNodeType()+", for node '"+mCurrNode+"'");
+        }
+
         return mCurrEvent;
     }
 
@@ -663,6 +871,42 @@ public class DOMWrappingReader
         throws XMLStreamException
     {
         // Since DOM tree has no real input source, nothing to do
+    }
+
+
+    /*
+    ////////////////////////////////////////////////////
+    // NamespaceContext
+    ////////////////////////////////////////////////////
+     */
+
+    public String getNamespaceURI(String prefix)
+    {
+        if (prefix.length() == 0) { // def NS
+            return mCurrNode.lookupNamespaceURI(null);
+        }
+        return mCurrNode.lookupNamespaceURI(prefix);
+    }
+
+    public String getPrefix(String namespaceURI)
+    {
+        String prefix = mCurrNode.lookupPrefix(namespaceURI);
+        if (prefix == null) { // maybe default NS?
+            String defURI = mCurrNode.lookupNamespaceURI(null);
+            if (defURI != null && defURI.equals(namespaceURI)) {
+                return "";
+            }
+        }
+        return prefix;
+    }
+
+    public Iterator getPrefixes(String namespaceURI) 
+    {
+        String prefix = getPrefix(namespaceURI);
+        if (prefix == null) {
+            return EmptyIterator.getInstance();
+        }
+        return new SingletonIterator(prefix);
     }
 
     /*
@@ -807,8 +1051,7 @@ public class DOMWrappingReader
      *  prolog/epilog, 1 inside root element and so on.
      */
     public int getDepth() {
-        // !!! TBI
-        return -1;
+        return mDepth;
     }
 
     /**
@@ -824,8 +1067,12 @@ public class DOMWrappingReader
 
     public NamespaceContext getNonTransientNamespaceContext()
     {
-        // !!! TBI
-        return null;
+        /* Since DOM does not expose enough functionality to figure
+         * out complete declaration stack, can not implement.
+         * Can either return null, or a dummy instance. For now, let's
+         * do latter:
+         */
+        return EmptyNamespaceContext.getInstance();
     }
 
     public String getPrefixedName()
@@ -854,7 +1101,7 @@ public class DOMWrappingReader
             return getDTDRootName();
 
         }
-        throw new IllegalStateException("Current state not START_ELEMENT, END_ELEMENT, ENTITY_REFERENCE, PROCESSING_INSTRUCTION or DTD");
+        throw new IllegalStateException("Current state ("+ErrorConsts.tokenTypeDesc(mCurrEvent)+") not START_ELEMENT, END_ELEMENT, ENTITY_REFERENCE, PROCESSING_INSTRUCTION or DTD");
     }
 
     public void closeCompletely() throws XMLStreamException
@@ -869,22 +1116,27 @@ public class DOMWrappingReader
      */
 
     public Object getProcessedDTD() {
-        // !!! TBI
         return null;
     }
 
     public String getDTDRootName() {
-        // !!! TBI
+        if (mCurrEvent == DTD) {
+            return ((DocumentType) mCurrNode).getName();
+        }
         return null;
     }
 
     public String getDTDPublicId() {
-        // !!! TBI
+        if (mCurrEvent == DTD) {
+            return ((DocumentType) mCurrNode).getPublicId();
+        }
         return null;
     }
 
     public String getDTDSystemId() {
-        // !!! TBI
+        if (mCurrEvent == DTD) {
+            return ((DocumentType) mCurrNode).getSystemId();
+        }
         return null;
     }
 
@@ -893,15 +1145,15 @@ public class DOMWrappingReader
      *   empty String if none
      */
     public String getDTDInternalSubset() {
-        // !!! TBI
+        /* DOM (level 3) doesn't expose anything extra; would need to
+         * synthetize subset... which would only contain some of the
+         * entity and notation declarations.
+         */
         return null;
     }
 
     // // StAX2, v2.0
 
-    /**
-     * Sub-class will override this method
-     */
     public DTDValidationSchema getProcessedDTDSchema() {
         return null;
     }
@@ -994,6 +1246,72 @@ public class DOMWrappingReader
     ////////////////////////////////////////////
      */
 
+    private QName constructQName(String uri, String ln, String prefix)
+    {
+        // Stupid QName impls barf on nulls...
+        return new QName((uri == null) ? "" : uri, ln,
+                         (prefix == null) ? "" : prefix);
+    }
+
+    /**
+     * @param attrsToo Whether to include actual attributes too, or
+     *   just namespace declarations
+     */
+    private void calcNsAndAttrLists(boolean attrsToo)
+    {
+        NamedNodeMap attrsIn = mCurrNode.getAttributes();
+
+        // A common case: neither attrs nor ns decls, can use short-cut
+        int len = attrsIn.getLength();
+        if (len == 0) {
+            mAttrList = mNsDeclList = Collections.EMPTY_LIST;
+            return;
+        }
+
+        // most should be attributes... and possibly no ns decls:
+        ArrayList attrsOut = null;
+        ArrayList nsOut = null;
+
+        for (int i = 0; i < len; ++i) {
+            Node attr = attrsIn.item(i);
+            String prefix = attr.getPrefix();
+
+            // Prefix?
+            if (prefix == null || prefix.length() == 0) { // nope
+                // default ns decl?
+                if (!"xmlns".equals(attr.getLocalName())) { // nope
+                    if (attrsToo) {
+                        if (attrsOut == null) {
+                            attrsOut = new ArrayList(len - i);
+                        }
+                        attrsOut.add(attr);
+                    }
+                    continue;
+                }
+                prefix = "";
+            } else { // explicit ns decl?
+                if (!"xmlns".equals(prefix)) { // nope
+                    if (attrsToo) {
+                        if (attrsOut == null) {
+                            attrsOut = new ArrayList(len - i);
+                        }
+                        attrsOut.add(attr);
+                    }
+                    continue;
+                }
+                prefix = attr.getLocalName();
+            }
+            if (nsOut == null) {
+                nsOut = new ArrayList((len - i) * 2);
+            }
+            nsOut.add(prefix);
+            nsOut.add(attr.getNodeValue());
+        }
+
+        mAttrList = attrsOut;
+        mNsDeclList = (nsOut == null) ? Collections.EMPTY_LIST : nsOut;
+    }
+
     /**
      * Method that returns location of the last character returned by this
      * reader; that is, location "one less" than the currently pointed to
@@ -1030,6 +1348,13 @@ public class DOMWrappingReader
         NamedNodeMap attrs = elem.getAttributes();
         int len = attrs.getLength();
         String msg = "Illegal attribute index "+index+"; element <"+elem.getNodeName()+"> has "+((len == 0) ? "no" : String.valueOf(len))+" attributes";
+        throw new IllegalArgumentException(msg);
+    }
+
+    public void handleIllegalNsIndex(int index)
+    {
+        Element elem = (Element) mCurrNode;
+        String msg = "Illegal namespace declaration index "+index+" (DOM does not expose namespace declarations, so all elements have 0 declarations)";
         throw new IllegalArgumentException(msg);
     }
 }
