@@ -90,6 +90,8 @@ public class DOMWrappingReader
 
     protected final Node mRootNode;
 
+    protected final boolean mNsAware;
+
     // // // State:
 
     protected int mCurrEvent = START_DOCUMENT;
@@ -146,6 +148,7 @@ public class DOMWrappingReader
         }
 
         mConfig = cfg;
+        mNsAware = cfg.willSupportNamespaces();
         mSystemId = sysId;
         
         /* Ok; we need a document node; or an element node; or a document
@@ -339,11 +342,19 @@ public class DOMWrappingReader
         }
         Attr attr = (Attr) mAttrList.get(index);
         // First, a special case, ID... since it's potentially most useful
+        /* 26-Apr-2006, TSa: Turns out that following methods are
+         *    DOM Level3, and as such not available in JDK 1.4 and prior.
+         *    Thus, let's not yet use them (could use dynamic discovery
+         *    for graceful downgrade)
+         */
+        /*
         if (attr.isId()) {
             return "ID";
         }
         TypeInfo schemaType = attr.getSchemaTypeInfo();
         return (schemaType == null) ? "CDATA" : schemaType.getTypeName();
+        */
+        return "CDATA";
     }
 
     public String getAttributeValue(int index)
@@ -466,6 +477,9 @@ public class DOMWrappingReader
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_ELEM);
         }
         if (mNsDeclList == null) {
+            if (!mNsAware) {
+                return 0;
+            }
             calcNsAndAttrLists(mCurrEvent == START_ELEMENT);
         }
         return mNsDeclList.size() / 2;
@@ -481,6 +495,9 @@ public class DOMWrappingReader
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_ELEM);
         }
         if (mNsDeclList == null) {
+            if (!mNsAware) {
+                handleIllegalNsIndex(index);
+            }
             calcNsAndAttrLists(mCurrEvent == START_ELEMENT);
         }
         if (index < 0 || (index + index) >= mNsDeclList.size()) {
@@ -501,6 +518,9 @@ public class DOMWrappingReader
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_ELEM);
         }
         if (mNsDeclList == null) {
+            if (!mNsAware) {
+                handleIllegalNsIndex(index);
+            }
             calcNsAndAttrLists(mCurrEvent == START_ELEMENT);
         }
         if (index < 0 || (index + index) >= mNsDeclList.size()) {
@@ -882,14 +902,24 @@ public class DOMWrappingReader
 
     public String getNamespaceURI(String prefix)
     {
+        /* 26-Apr-2006, TSa: Alas, these methods are DOM Level 3,
+         *   i.e. require JDK 1.5 or higher
+         */
+        /*
         if (prefix.length() == 0) { // def NS
             return mCurrNode.lookupNamespaceURI(null);
         }
         return mCurrNode.lookupNamespaceURI(prefix);
+        */
+        return null;
     }
 
     public String getPrefix(String namespaceURI)
     {
+        /* 26-Apr-2006, TSa: Alas, these methods are DOM Level 3,
+         *   i.e. require JDK 1.5 or higher
+         */
+        /*
         String prefix = mCurrNode.lookupPrefix(namespaceURI);
         if (prefix == null) { // maybe default NS?
             String defURI = mCurrNode.lookupNamespaceURI(null);
@@ -898,6 +928,8 @@ public class DOMWrappingReader
             }
         }
         return prefix;
+        */
+        return null;
     }
 
     public Iterator getPrefixes(String namespaceURI) 
@@ -1268,6 +1300,15 @@ public class DOMWrappingReader
             return;
         }
 
+        if (!mNsAware) {
+            mAttrList = new ArrayList(len);
+            for (int i = 0; i < len; ++i) {
+                mAttrList.add(attrsIn.item(i));
+            }
+            mNsDeclList = Collections.EMPTY_LIST;
+            return;
+        }
+
         // most should be attributes... and possibly no ns decls:
         ArrayList attrsOut = null;
         ArrayList nsOut = null;
@@ -1354,7 +1395,7 @@ public class DOMWrappingReader
     public void handleIllegalNsIndex(int index)
     {
         Element elem = (Element) mCurrNode;
-        String msg = "Illegal namespace declaration index "+index+" (DOM does not expose namespace declarations, so all elements have 0 declarations)";
+        String msg = "Illegal namespace declaration index "+index+" (has "+getNamespaceCount()+" ns declarations)";
         throw new IllegalArgumentException(msg);
     }
 }

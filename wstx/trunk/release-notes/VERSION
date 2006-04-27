@@ -1,11 +1,21 @@
-Version: 2.9.3
+Version: 2.9.4
 
-Release date: xx-Apr-2006
+Release date: 
 
 Description:
-  Last pre-3.0 release?
+  Last pre-3.0 release? Trying to finish remaining odds and ends for the
+  first 3.0 release candidate; found couple of good optimizations along
+  the way.
 
   Problems fixed:
+
+  Improvements:
+
+  New features:
+
+== History: ==
+
+2.9.3 [26-Apr-2006]
 
   Improvements:
 
@@ -21,8 +31,6 @@ Description:
     stream and event readers, i.e. it is possible to traverse DOM
     documents (and document fragments, sub-trees for given Element)
     using Stax API.
-
-== History: ==
 
 2.9.2 [31-Mar-2006]
 

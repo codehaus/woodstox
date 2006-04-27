@@ -7,7 +7,7 @@ import javax.xml.transform.Source;
 /**
  * This is the base class for additional input sources (implementations
  * of {@link javax.xml.transform.Source}) that Stax2
- * {@link XMLInputFactory2} implementations should support.
+ * {@link org.codehaus.stax2.XMLInputFactory2} implementations should support.
  */
 public abstract class Stax2Source
     implements Source
@@ -62,7 +62,7 @@ public abstract class Stax2Source
         throws IOException;
 
     /**
-     * This method creates an {@link InputSource} via which underlying input
+     * This method creates an {@link InputStream} via which underlying input
      * source can be accessed. Note that caller is responsible for
      * closing that InputSource when it is done reading it
      */
