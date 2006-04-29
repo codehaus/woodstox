@@ -69,10 +69,15 @@ public class TestDomCompat
 
         NamespaceContext nsCtxt = sr.getNamespaceContext();
         assertNotNull(nsCtxt);
+        /* 28-Apr-2006, TSa: Alas, namespace access is only fully
+         *   implemented in DOM Level 3... thus, can't check:
+         */
+        /*
         assertEquals("ns", nsCtxt.getPrefix("http://foo"));
         assertEquals("http://foo", nsCtxt.getNamespaceURI("ns"));
         assertNull(nsCtxt.getPrefix("http://whatever"));
         assertNull(nsCtxt.getNamespaceURI("nsX"));
+        */
 
         assertTokenType(START_ELEMENT, sr.next());
         assertEquals("leaf", sr.getLocalName());

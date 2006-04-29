@@ -1745,7 +1745,7 @@ public class BasicStreamReader
             char c = (mInputPtr < mInputLen) ? mInputBuffer[mInputPtr++]
                 : getNextChar(SUFFIX_IN_ATTR_VALUE);
             // Let's do a quick for most attribute content chars:
-            if (c < CHAR_FIRST_PURE_TEXT) {
+            if (c <= '\'') {
                 if (c < CHAR_SPACE) {
                     if (c == '\n') {
                         markLF();
@@ -1791,10 +1791,10 @@ public class BasicStreamReader
                             continue;
                         }
                     }
-                } else if (c == '<') {
-                    throwParseError("Unexpected '<' "+SUFFIX_IN_ATTR_VALUE);
                 }
-            } // if (c < CHAR_FIRST_PURE_TEXT)
+            } else if (c == '<') {
+                throwParseError("Unexpected '<' "+SUFFIX_IN_ATTR_VALUE);
+            }
 
             // Ok, let's just add char in, whatever it was
             if (outPtr >= outLen) {
@@ -4307,7 +4307,7 @@ public class BasicStreamReader
                 } else if (c == '&') {
                     // Let's push it back and break
                     --ptr;
-                    break;
+                   break;
                 } else if (c == '>') {
                     // Let's see if we got ']]>'?
                     if ((ptr - start) >= 3) {
