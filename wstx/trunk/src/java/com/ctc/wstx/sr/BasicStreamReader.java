@@ -4351,26 +4351,34 @@ public class BasicStreamReader
          */
         char[] outBuf = mTextBuffer.getCurrentSegment();
         int outPtr = mTextBuffer.getCurrentSegmentSize();
+        int inputPtr = mInputPtr;
+        char[] inputBuffer = mInputBuffer;
+        int inputLen = mInputLen;
 
         while (true) {
-            if (mInputPtr >= mInputLen) {
+            if (inputPtr >= inputLen) {
                 /* 07-Oct-2005, TSa: Let's not throw an exception for EOF from
                  *   here -- in fragment mode, it shouldn't be thrown, and in
                  *   other modes we might as well first return text, and only
                  *   then throw an exception: no need to do that yet.
                  */
+                mInputPtr = inputPtr;
                 if (!loadMore()) {
                     break;
                 }
+                inputPtr = mInputPtr;
+                inputBuffer = mInputBuffer;
+                inputLen = mInputLen;
             }
-            char c = mInputBuffer[mInputPtr++];
+            char c = inputBuffer[inputPtr++];
 
             // Most common case is we don't have special char, thus:
             if (c < CHAR_FIRST_PURE_TEXT) {
                 if (c < CHAR_SPACE) {
                     if (c == '\n') {
-                        markLF();
+                        markLF(inputPtr);
                     } else if (c == '\r') {
+                        mInputPtr = inputPtr;
                         if (skipCRLF(c)) { // got 2 char LF
                             if (!mCfgNormalizeLFs) {
                                 // Special handling, to output 2 chars at a time:
@@ -4385,37 +4393,53 @@ public class BasicStreamReader
                         } else if (mCfgNormalizeLFs) { // just \r, but need to convert
                             c = '\n'; // For Mac text
                         }
+                        /* note: skipCRLF() may change ptr and len, but since
+                         * it does not close input source, it won't change
+                         * actual buffer object:
+                         */
+                        //inputBuffer = mInputBuffer;
+                        inputLen = mInputLen;
+                        inputPtr = mInputPtr;
                     } else if (c != '\t') {
                         throwInvalidSpace(c);
                     }
                 } else if (c == '<') { // end is nigh!
-                    --mInputPtr;
+                    mInputPtr = inputPtr-1;
                     break;
                 } else if (c == '&') {
+                    mInputPtr = inputPtr;
                     if (mCfgReplaceEntities) { // can we expand all entities?
-                        if ((mInputLen - mInputPtr) >= 3
+                        if ((inputLen - inputPtr) >= 3
                             && (c = resolveSimpleEntity(true)) != CHAR_NULL) {
                             // Ok, it's fine, c will get output
                         } else {
                             c = fullyResolveEntity(true);
                             if (c == CHAR_NULL) {
-                                // Output buffer changed, nothing to output quite yet:
+                                // Input buffer changed, nothing to output quite yet:
+                                inputBuffer = mInputBuffer;
+                                inputLen = mInputLen;
+                                inputPtr = mInputPtr;
                                 continue;
                             }
                             // otherwise char is now fine...
                         }
                     } else {
-                        /* Nope, can only return char entities; others need
+                        /* Nope, can only expand char entities; others need
                          * to be separately handled.
                          */
                         c = resolveCharOnlyEntity(true);
                         if (c == CHAR_NULL) { // some other entity...
-                            // can't expand, so:
-                            --mInputPtr; // push back ampersand
+                            /* can't expand; underlying pointer now points to
+                             * char after ampersand, need to rewind
+                             */
+                            --mInputPtr;
                             break;
                         }
                         // .. otherwise we got char we needed
                     }
+                    inputPtr = mInputPtr;
+                    // not quite sure why this is needed... but it is:
+                    inputLen = mInputLen;
                 } else if (c == '>') {
                     // Let's see if we got ']]>'?
                     /* 21-Apr-2005, TSa: But we can NOT check the output buffer
@@ -4424,14 +4448,14 @@ public class BasicStreamReader
                      *  to access previous buffer's contents. But at least we
                      *  won't produce false positives from entity expansion
                      */
-                    if (mInputPtr > 2) { // can we do it here?
+                    if (inputPtr > 2) { // can we do it here?
                         // Since mInputPtr has been advanced, -1 refers to '>'
-                        if (mInputBuffer[mInputPtr-3] == ']'
-                            && mInputBuffer[mInputPtr-2] == ']') {
+                        if (inputBuffer[inputPtr-3] == ']'
+                            && inputBuffer[inputPtr-2] == ']') {
                             throwParseError(ErrorConsts.ERR_BRACKET_IN_TEXT);
                         }
                     } else {
-                        /* !!! 21-Apr-2005, TSa: No good way to verify it,
+                        /* 21-Apr-2005, TSa: No good way to verify it,
                          *   at this point. Should come back and think of how
                          *   to properly handle this (rare) possibility.
                          */
@@ -4439,7 +4463,6 @@ public class BasicStreamReader
                     }
                 }
             }
-                
             // Ok, let's add char to output:
             outBuf[outPtr++] = c;
 
@@ -4449,6 +4472,7 @@ public class BasicStreamReader
                 // Perhaps we have now enough to return?
                 tb.setCurrentLength(outBuf.length);
                 if (tb.size() >= shortestSegment) {
+                    mInputPtr = inputPtr;
                     return false;
                 }
                 // If not, need more buffer space:

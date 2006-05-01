@@ -33,8 +33,8 @@ public class TestStreamReader
         XMLInputFactory2 f =  (XMLInputFactory2) XMLInputFactory.newInstance();
         System.out.println("Factory instance: "+f.getClass());
 
-        f.setProperty(XMLInputFactory.IS_COALESCING, Boolean.FALSE);
-        //f.setProperty(XMLInputFactory.IS_COALESCING, Boolean.TRUE);
+        //f.setProperty(XMLInputFactory.IS_COALESCING, Boolean.FALSE);
+        f.setProperty(XMLInputFactory.IS_COALESCING, Boolean.TRUE);
         f.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.TRUE);
         //f.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.FALSE);
         f.setProperty(XMLInputFactory.IS_REPLACING_ENTITY_REFERENCES,

@@ -186,7 +186,6 @@ public final class UTF8Reader
                 // never gets here...
                 needed = 1;
             }
-
             /* Do we have enough bytes? If not, let's just push back the
              * byte and leave, since we have already gotten at least one
              * char decoded. This way we will only block (with read from
