@@ -15,10 +15,7 @@
 
 package com.ctc.wstx.stax;
 
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
-import java.io.Writer;
+import java.io.*;
 import java.util.HashMap;
 
 import javax.xml.transform.Result;
@@ -222,15 +219,20 @@ public final class WstxOutputFactory
         if (w == null) {
             try {
                 if (enc == null) {
+                    
                     /* 11-Jan-2006, TSa: Fixing [WSTX-18], we really should
                      *   use UTF-8 as per xml specs, not the default platform
                      *   encoding (which often would be ISO-8859-1 or some
                      *   other single char 8-bit encoding scheme)
                      */
-                    w = new OutputStreamWriter(out, WstxOutputProperties.DEFAULT_OUTPUT_ENCODING);
-                } else {
-                    w = new OutputStreamWriter(out, enc);
+                    enc = WstxOutputProperties.DEFAULT_OUTPUT_ENCODING;
                 }
+                /* 05-May-2006, TSa: Unbuffered writes are cryptonite for
+                 *    basic encoders; must use buffered versions (2x
+                 *    speed or more!). Can use modest buffer size though;
+                 *    since bigger writes will just not be or need be buffered
+                 */
+                w = new BufferedWriter(new OutputStreamWriter(out, enc), 500);
             } catch (UnsupportedEncodingException ex) {
                 throw new XMLStreamException(ex);
             }
