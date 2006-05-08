@@ -101,6 +101,24 @@ public final class TextBuffer
 
     private char[] mResultArray;
 
+    // // // Canonical indentation objects (up to 32 spaces, 8 tabs)
+
+    public final static int MAX_INDENT_SPACES = 32;
+    public final static int MAX_INDENT_TABS = 8;
+
+    // Let's add one more space at the end, for safety...
+    private final static String sIndSpaces =
+        // 123456789012345678901234567890123
+        "\n                                 ";
+    private final static char[] sIndSpacesArray = sIndSpaces.toCharArray();
+    private final static String[] sIndSpacesStrings = new String[sIndSpacesArray.length];
+
+    private final static String sIndTabs =
+        // 1 2 3 4 5 6 7 8 9
+        "\n\t\t\t\t\t\t\t\t\t";
+    private final static char[] sIndTabsArray = sIndTabs.toCharArray();
+    private final static String[] sIndTabsStrings = new String[sIndTabsArray.length];
+
     /*
     //////////////////////////////////////////////
     // Life-cycle
@@ -197,7 +215,7 @@ public final class TextBuffer
     public void resetWithShared(char[] buf, int start, int len)
     {
 //System.out.println("[DEBUG] resetWithShared, "+len+" chars ("+new String(buf, start, len)+")");
-        // Let's for mark things we need about input buffer
+        // Let's first mark things we need about input buffer
         mInputBuffer = buf;
         mInputStart = start;
         mInputLen = len;
@@ -265,6 +283,39 @@ public final class TextBuffer
             }
         }
         return new char[needed];
+    }
+
+    public void resetWithIndentation(int indCharCount, char indChar)
+    {
+        mInputStart = 0;
+        mInputLen = indCharCount+1;
+        String text;
+        if (indChar == '\t') { // tabs?
+            mInputBuffer = sIndTabsArray;
+            text = sIndTabsStrings[indCharCount];
+            if (text == null) {
+                sIndTabsStrings[indCharCount] = text = sIndTabs.substring(0, mInputLen);
+            }
+        } else { // nope, spaces (should assert indChar?)
+            mInputBuffer = sIndSpacesArray;
+            text = sIndSpacesStrings[indCharCount];
+            if (text == null) {
+                sIndSpacesStrings[indCharCount] = text = sIndSpaces.substring(0, mInputLen);
+            }
+        }
+        mResultString = text;
+
+        /* Should not need the explicit non-shared array; no point in
+         * pre-populating it (can be changed if this is not true)
+         */
+        mResultArray = null;
+
+        // And then reset internal input buffers, if necessary:
+        if (mSegments != null && mSegments.size() > 0) {
+            mCurrentSegment = (char[]) mSegments.get(mSegments.size() - 1);
+            mSegments.clear();
+            mCurrentSize = mSegmentSize = 0;
+        }
     }
 
     /*

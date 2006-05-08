@@ -322,6 +322,18 @@ public class BasicStreamReader
      */
     protected boolean mValidateText = false;
 
+    // 2 magic constants used for enabling/disabling indentation checks:
+
+    private final static int INDENT_CHECK_START = 16;
+
+    private final static int INDENT_CHECK_MAX = 40;
+
+    /**
+     * Counter used for determining whether we are to try to heuristically
+     * "intern" white space that seems to be used for indentation purposes
+     */
+    int mCheckIndentation;
+
     /*
     ////////////////////////////////////////////////////
     // DTD information (entities, content spec stub)
@@ -388,6 +400,9 @@ public class BasicStreamReader
         mCfgCoalesceText = (mConfigFlags & CFG_COALESCE_TEXT) != 0;
         mCfgReportTextAsChars = (mConfigFlags & CFG_REPORT_CDATA) == 0;
         mXml11 = cfg.isXml11();
+
+        // Can only use canonical white space if we are normalizing lfs
+        mCheckIndentation = mCfgNormalizeLFs ? 16 : 0;
 
         /* 30-Sep-2005, TSa: Let's not do lazy parsing when access is via
          *   Event API. Reason is that there will be no performance benefit
@@ -965,7 +980,7 @@ public class BasicStreamReader
     ////////////////////////////////////////////////////
      */
 
-    public int next()
+    public final int next()
         throws XMLStreamException
     {
         /* Note: can not yet accurately record the location, since the
@@ -2713,6 +2728,7 @@ public class BasicStreamReader
         // Further, when coalescing, can not be sure if we REALLY got it all
         if (readTextPrimary((char) i)) { // reached following markup
             mTokenState = TOKEN_FULL_SINGLE;
+//System.err.println("DEBUG: primary -> '"+mTextBuffer.toString()+"'");
         } else {
             // If not coalescing, this may be enough for current event
             if (!mCfgCoalesceText
@@ -3709,7 +3725,7 @@ public class BasicStreamReader
      *    different in multi-doc mode, if we actually hit a secondary
      *    xml declaration.
      */
-    private int readPIPrimary()
+    private final int readPIPrimary()
         throws IOException, XMLStreamException
     {
         // Ok, first we need the name:
@@ -4007,7 +4023,7 @@ public class BasicStreamReader
      *   happens only if lt-char is hit; false if it's possible that
      *   it wasn't read (ie. end-of-buffer or entity encountered).
      */
-    private boolean readCDataPrimary(char c)
+    private final boolean readCDataPrimary(char c)
         throws IOException, XMLStreamException
     {
         mWsStatus = (c <= CHAR_SPACE) ? ALL_WS_UNKNOWN : ALL_WS_NO;
@@ -4256,15 +4272,50 @@ public class BasicStreamReader
      *   happens only if lt-char is hit; false if it's possible that
      *   it wasn't read (ie. end-of-buffer or entity encountered).
      */
-    private boolean readTextPrimary(char c)
+    private final boolean readTextPrimary(char c)
         throws IOException, XMLStreamException
     {
-        mWsStatus = (c <= CHAR_SPACE) ? ALL_WS_UNKNOWN : ALL_WS_NO;
-        
         int ptr = mInputPtr;
+        int start = ptr-1;
+
+        // First: can we heuristically canonicalize ws used for indentation?
+        if (c <= CHAR_SPACE) {
+            int len = mInputLen;
+
+            /* Even without indentation removal, it's good idea to
+             * 'convert' \r\n into \n (by simply skipping first char):
+             * this may allow reusing the buffer. 
+             */
+            if (c == '\r' && ptr < len && mInputBuffer[ptr] == '\n') {
+                c = '\n';
+                ++ptr;
+                ++start;
+            }
+            if (mCheckIndentation > 0 && (c == '\n' || c == '\r')) {
+                /* Need at least 1 more char for determination; but for
+                 * convenience (see called method), let's actually require
+                 * at least 2
+                 */
+                if ((mInputLen - ptr) > 1) {
+                    int ptr2 = readIndentation(c, ptr);
+                    if (ptr2 < 0) { // success!
+                        return true;
+                    }
+                    /* Start may have changed, to skip \r; and mInputPtr
+                     * may have changed when leading white space was
+                     * skipped
+                     */
+                    c = mInputBuffer[ptr++];
+                }
+            }
+            // can we figure out indentation?
+            mWsStatus = ALL_WS_UNKNOWN;
+        } else {
+            mWsStatus = ALL_WS_NO;
+        }
+        
         char[] inputBuf = mInputBuffer;
         int inputLen = mInputLen;
-        int start = ptr-1;
 
         // Let's first see if we can just share input buffer:
         while (true) {
@@ -4343,7 +4394,7 @@ public class BasicStreamReader
      *   or in non-entity-expanding mode, a non-char entity); false if
      *   it may still continue
      */
-    private boolean readTextSecondary(int shortestSegment)
+    private final boolean readTextSecondary(int shortestSegment)
         throws IOException, XMLStreamException
     {
         /* Output pointers; calls will also ensure that the buffer is
@@ -4485,6 +4536,105 @@ public class BasicStreamReader
     }
 
     /**
+     * Method called to try to parse and canonicalize white space that
+     * has a good chance of being white space with somewhat regular
+     * structure; specifically, something that looks like typical
+     * indentation.
+     *<p>
+     * Note: Caller guarantees that there will be at least 2 characters
+     * available in the input buffer. And method has to ensure that if
+     * it does not find a match, it will return pointer value such
+     * that there is at least one valid character remaining.
+     *
+     * @return -1, if the content was determined to be canonicalizable
+     *    (indentation) white space; and thus fully parsed. Otherwise
+     *    pointer (value to set to mInputPtr) to the next character
+     *    to process (not processed by this method)
+     */
+    private final int readIndentation(char c, int ptr)
+        throws IOException, XMLStreamException
+    {
+        /* We need to verify that:
+         * (a) we can read enough contiguous data to do determination
+         * (b) sequence is a linefeed, with either zero or more following
+         *    spaces, or zero or more tabs; and followed by non-directive
+         *    tag (start/end tag)
+         * and if so, we can use a canonical shared representation of
+         * this even.
+         */
+        final int inputLen = mInputLen;
+        final char[] inputBuf = mInputBuffer;
+        int start = ptr-1;
+        final char lf = c;
+
+        markLF(ptr); // caller just handled LF
+
+        // Note: caller guarantees at least 2 more chars in the input buffer
+        ws_loop:
+        do { // dummy loop to allow for break (which indicates failure)
+            markLF(ptr);
+            c = inputBuf[ptr++];
+            if (c == ' ' || c == '\t') { // indentation?
+                // Need to limit to maximum
+                int lastIndCharPos = (c == ' ') ? TextBuffer.MAX_INDENT_SPACES : TextBuffer.MAX_INDENT_TABS;
+                lastIndCharPos += ptr;
+                if (lastIndCharPos > inputLen) {
+                    lastIndCharPos = inputLen;
+                }
+
+                inner_loop:
+                while (true) {
+                    char d = inputBuf[ptr++];
+                    if (d != c) {
+                        if (d == '<') { // yup, got it!
+                            break inner_loop;
+                        }
+                        --ptr; // caller needs to reprocess it
+                        break ws_loop; // nope, blew it
+                    }
+                    if (ptr >= lastIndCharPos) { // overflow; let's backtrack
+                        --ptr;
+                        break ws_loop;
+                    }
+                }
+                // This means we had success case; let's fall through
+            } else if (c != '<') { // nope, can not be
+                --ptr; // simpler if we just push it back; needs to be processed later on
+                break ws_loop;
+            }
+            // Ok; we got '<'... just need any other char than '!'...
+            if (ptr < inputLen && inputBuf[ptr] != '!') {
+                // Voila!
+                mInputPtr = --ptr; // need to push back that '<' too
+                mTextBuffer.resetWithIndentation(ptr - start - 1, c);
+                // One more thing: had a positive match, need to note it
+                if (mCheckIndentation < INDENT_CHECK_MAX) {
+                    mCheckIndentation += INDENT_CHECK_START;
+                }
+                mWsStatus = ALL_WS_YES;
+                return -1;
+            }
+            // Nope: need to push '<' back, then
+            --ptr;
+        } while (false);
+
+        // Ok, nope... caller can/need to take care of it:
+        /* Also, we may need to subtract indentation check count to possibly
+         * disable this check if it doesn't seem to work.
+         */
+        --mCheckIndentation;
+        /* Also; if lf we got was \r, need to conver it now (this
+         * method only gets called in lf converting mode)
+         * (and yes, it is safe to modify input buffer at this point;
+         * see calling method for details)
+         */
+        if (lf == '\r') {
+            inputBuf[start] = '\n';
+        }
+        return ptr;
+    }
+
+    /**
      * Reading whitespace should be very similar to reading normal text;
      * although couple of simplifications can be made. Further, since this
      * method is very unlikely to be of much performance concern, some
@@ -4499,7 +4649,7 @@ public class BasicStreamReader
      * @return True if the whole white space segment was read; false if
      *   something prevented that (end of buffer, replaceable 2-char lf)
      */
-    private boolean readSpacePrimary(char c, boolean prologWS)
+    private final boolean readSpacePrimary(char c, boolean prologWS)
         throws IOException, XMLStreamException
     {
         int ptr = mInputPtr;

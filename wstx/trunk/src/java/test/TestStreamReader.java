@@ -226,6 +226,33 @@ public class TestStreamReader
                 } else { // PI?
                     ;
                 }
+
+                if (type == CHARACTERS) {
+                    boolean isSpace = sr.isWhiteSpace();
+                    int len = sr.getTextLength();
+
+                    if (isSpace) {
+                        text = sr.getText();
+                        StringBuffer sb = new StringBuffer();
+                        for (int i = 0; i < len; ++i) {
+                            char c = text.charAt(i);
+                            if (c == ' ') {
+                                sb.append("\\s");
+                            } else if (c == '\t') {
+//if(true) throw new Error("TAB!");
+                                sb.append("\\t");
+                            } else if (c == '\r') {
+                                sb.append("\\r");
+                            } else if (c == '\n') {
+                                sb.append("\\n");
+                            } else {
+                                sb.append("?");
+                            }
+                        }
+                        text = sb.toString();
+                        System.err.println("[S:"+text+"]");
+                    }
+                }
             }
 
             if (type == PROCESSING_INSTRUCTION) {
