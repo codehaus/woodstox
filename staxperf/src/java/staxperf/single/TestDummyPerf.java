@@ -19,14 +19,13 @@ public class TestDummyPerf
         return null;
     }
 
-    protected int testExec(File f, String path) throws Exception
+    protected int testExec(byte[] data, String path) throws Exception
     {
         InputStream in = null;
 
         try {
-            in = createStream(f);
-            //Reader r = new InputStreamReader(in, "ISO-8859-1");
-            Reader r = new InputStreamReader(in, "UTF-8");
+            Reader r = new InputStreamReader(new ByteArrayInputStream(data), "UTF-8");
+            //Reader r = new InputStreamReader(new ByteArrayInputStream(data), "ISO-8859-1");
             return testExec(r, inc, outc);
         } finally {
             if (in != null) {

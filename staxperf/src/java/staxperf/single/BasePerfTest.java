@@ -50,18 +50,29 @@ abstract class BasePerfTest
         }
     }
 
-    protected int testExec(File f, String path) throws Exception
+    private final byte[] readData(File f)
+        throws IOException
     {
-        InputStream in = null;
-
-        try {
-            in = createStream(f);
-            return testExec2(in, path);
-        } finally {
-            if (in != null) {
-                in.close();
-            }
+        int len = (int) f.length();
+        byte[] data = new byte[len];
+        int offset = 0;
+        FileInputStream fis = new FileInputStream(f);
+        
+        while (len > 0) {
+            int count = fis.read(data, offset, len-offset);
+            offset += count;
+            len -= count;
         }
+
+        return data;
+    }
+
+    protected int testExec(byte[] data, String path) throws Exception
+    {
+        InputStream in = new ByteArrayInputStream(data);
+        int ret = testExec2(in, path);
+        in.close();
+        return ret;
     }
 
     protected int testExec2(InputStream in, String path) throws Exception
@@ -106,12 +117,6 @@ abstract class BasePerfTest
         return total;
     }
 
-    public InputStream createStream(File f)
-        throws IOException
-    {
-        return new FileInputStream(f);
-    }
-
     public void test(String[] args)
         throws Exception
     {
@@ -133,11 +138,13 @@ abstract class BasePerfTest
         // First, warm up:
         final int WARMUP_ROUNDS = 30;
 
+        byte[] data = readData(f);
+
         System.out.println("Warming up; doing  "+WARMUP_ROUNDS+" iterations (real test will run for "+SECS+" seconds): ");
 
         int total = 0; // to prevent any dead code optimizations
         for (int i = 0; i < WARMUP_ROUNDS; ++i) {
-            total = testExec(f, path);
+            total = testExec(data, path);
             //testFinish();
             System.out.print(".");
             // Let's allow some slack time between iterations
@@ -170,8 +177,8 @@ abstract class BasePerfTest
          * big docs/slow readers... but otherwise not.
          */
         while (true) {
-            total += testExec(f, path);
-            total += testExec(f, path);
+            total += testExec(data, path);
+            total += testExec(data, path);
             //testFinish();
             long now = System.currentTimeMillis();
             if (now > endTime) {
@@ -184,6 +191,7 @@ abstract class BasePerfTest
             subtotal += 2;
             if (now > nextTime) {
                 char c;
+                subtotal = (subtotal >> 1) - 1;
                 if (subtotal > 35) {
                     c = '+';
                 } else if (subtotal > 9) {

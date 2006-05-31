@@ -26,13 +26,9 @@ abstract class BaseCopyTest
 
     XMLInputFactory mInFactory;
     XMLOutputFactory mOutFactory;
-    XMLStreamReader2 mStreamReader;
-    XMLStreamWriter2 mStreamWriter;
 
-    protected abstract XMLInputFactory2 getInputFactory();
-    protected abstract XMLOutputFactory2 getOutputFactory();
-
-    byte[] mOutputBytes = null;
+    protected abstract XMLInputFactory getInputFactory();
+    protected abstract XMLOutputFactory getOutputFactory();
 
     protected void init()
     {
@@ -63,25 +59,10 @@ abstract class BaseCopyTest
         }
     }
 
-    protected int testExec(File f, String path) throws Exception
+    protected int testExec(CharArrayReader in, ByteArrayOutputStream out) throws Exception
     {
-        InputStream in = null;
-
-        try {
-            in = createStream(f);
-            return testExec2(in, path);
-        } finally {
-            if (in != null) {
-                in.close();
-            }
-        }
-    }
-
-    protected int testExec2(InputStream in, String path) throws Exception
-    {
-        mStreamReader = (XMLStreamReader2)mInFactory.createXMLStreamReader(path, in);
-        ByteArrayOutputStream bos = new ByteArrayOutputStream(1000);
-        mStreamWriter = (XMLStreamWriter2)mOutFactory.createXMLStreamWriter(bos, "UTF-8");
+        XMLStreamReader2 mStreamReader = (XMLStreamReader2)mInFactory.createXMLStreamReader(in);
+        XMLStreamWriter2 mStreamWriter = (XMLStreamWriter2)mOutFactory.createXMLStreamWriter(out, "UTF-8");
 
         int total = 0;
         while (mStreamReader.hasNext()) {
@@ -91,24 +72,37 @@ abstract class BaseCopyTest
             // Let's do a full copy, simplest:
             mStreamWriter.copyEventFromReader(mStreamReader, false);
         }
+        mStreamReader.close();
         mStreamWriter.close();
-        byte[] outb = bos.toByteArray();
-        total += outb.length;
-        mOutputBytes = outb;
+        total += out.size();
         return total;
     }
 
-    public InputStream createStream(File f)
+    protected void printInitial(char[] data)
         throws IOException
     {
-        return new FileInputStream(f);
+        int len = data.length;
+        String doc = new String(data);
+        if (len > 500) {
+            doc = doc.substring(0, 248) + "]...["+doc.substring(len-248);
+        }
+        System.out.println("Output document: ("+len+"; condensed if above 500 chars)["+doc+"]");
     }
 
-    protected void printInitial()
+    private final int readData(File f, CharArrayWriter w)
         throws IOException
     {
-        int len = mOutputBytes.length;
-        System.out.println("Output document: ("+len+")["+new String(mOutputBytes, "UTF-8")+"]");
+        Reader r = new InputStreamReader(new FileInputStream(f), "UTF-8");
+        char[] buf = new char[8000];
+        int count;
+
+        while ((count = r.read(buf)) > 0) {
+            w.write(buf, 0, count);
+        }
+        w.flush();
+        w.close();
+        r.close();
+        return (int) f.length();
     }
 
     public void test(String[] args)
@@ -134,11 +128,20 @@ abstract class BaseCopyTest
 
         System.out.println("Warming up; doing  "+WARMUP_ROUNDS+" iterations (real test will run for "+SECS+" seconds): ");
 
+        CharArrayWriter cw = new CharArrayWriter();
+        int len = readData(f, cw);
+        char[] data = cw.toCharArray();
+        System.out.println("Read in data; "+len+" bytes, "+data.length+" chars.");
+        ByteArrayOutputStream out = new ByteArrayOutputStream(len);
+
         int total = 0; // to prevent any dead code optimizations
         for (int i = 0; i < WARMUP_ROUNDS; ++i) {
-            total = testExec(f, path);
+            CharArrayReader in = new CharArrayReader(data);
+            total = testExec(in, out);
+            in.close();
+            out.reset();
             if (i == 0) {
-                printInitial();
+                printInitial(data);
             }
             //testFinish();
             System.out.print(".");
@@ -172,8 +175,14 @@ abstract class BaseCopyTest
          * big docs/slow readers... but otherwise not.
          */
         while (true) {
-            total += testExec(f, path);
-            total += testExec(f, path);
+            CharArrayReader in = new CharArrayReader(data);
+            total = testExec(in, out);
+            in.close();
+            out.reset();
+            in = new CharArrayReader(data);
+            total = testExec(in, out);
+            in.close();
+            out.reset();
             //testFinish();
             long now = System.currentTimeMillis();
             if (now > endTime) {
@@ -186,12 +195,13 @@ abstract class BaseCopyTest
             subtotal += 2;
             if (now > nextTime) {
                 char c;
-                if (subtotal > 35) {
+                int ch = (subtotal >> 1) - 1;
+                if (ch > 35) {
                     c = '+';
-                } else if (subtotal > 9) {
-                    c = (char) ('a' + (subtotal-10));
+                } else if (ch > 9) {
+                    c = (char) ('a' + (ch-10));
                 } else {
-                    c = (char) ('0' + subtotal);
+                    c = (char) ('0' + ch);
                 }
                 System.out.print(c);
                 nextTime += SUB_PERIOD;
