@@ -5,7 +5,7 @@ import java.io.*;
 import javax.xml.stream.*;
 
 import org.codehaus.staxmate.SMOutputFactory;
-import org.codehaus.staxmate.sw.*;
+import org.codehaus.staxmate.out.*;
 
 public class TestSimple
     extends BaseWriterTest
@@ -24,21 +24,22 @@ public class TestSimple
         doc.addComment("Comment!");
         */
 
-        SMOutputElement elem = doc.addElement("root", ns);
+        SMOutputElement elem = doc.addElement(ns, "root");
         elem.addCharacters("Rock & Roll");
         SMBufferedFragment frag = elem.createBufferedFragment();
         elem.addBuffered(frag);
         frag.addCharacters("[FRAG");
         frag.addComment("!!!");
-        frag.addElement("tag", ns);
-        SMOutputElement elem2 = elem.addElement("branch", null);
-        elem2.addElement("leaf", ns2);
+        frag.addElement(ns, "tag");
+        SMOutputElement elem2 = elem.addElement("branch");
+        elem2.addElement(ns2, "leaf");
         frag.addCharacters("ment!]");
         frag.release();
-        elem.addElement("leaf2", ns2);
+        elem.addElement(ns2, "leaf2");
         //doc.closeRoot();
 
-        System.out.println("Result:");
-        System.out.println(sw.toString());
+        // Uncomment for debugging:
+        //System.out.println("Result:");
+        //System.out.println(sw.toString());
     }
 }

@@ -121,6 +121,7 @@
             debug="true"
         >
             <include name="org/codehaus/staxmate/**/*.java" />
+            <include name="test/**/*.java" />
             <classpath refid="compile-classpath" />
         </javac>
     </target>

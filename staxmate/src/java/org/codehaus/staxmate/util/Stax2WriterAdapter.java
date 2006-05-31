@@ -1,13 +1,9 @@
 package org.codehaus.staxmate.util;
 
-import java.io.IOException;
-import java.io.Writer;
-
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.stream.*;
 
 import org.codehaus.stax2.*;
-import org.codehaus.stax2.validation.DTDValidationSchema;
 import org.codehaus.stax2.validation.XMLValidationSchema;
 import org.codehaus.stax2.validation.XMLValidator;
 

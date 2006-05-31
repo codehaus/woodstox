@@ -4,9 +4,9 @@ import java.io.*;
 
 import javax.xml.stream.*;
 
-import org.codehaus.staxmate.SMIteratorFactory;
-import org.codehaus.staxmate.sr.SMEvent;
-import org.codehaus.staxmate.sr.SMIterator;
+import org.codehaus.staxmate.SMInputFactory;
+import org.codehaus.staxmate.in.SMEvent;
+import org.codehaus.staxmate.in.SMInputCursor;
 
 
 /**
@@ -55,11 +55,11 @@ public final class HTMLConverter
         InputStream in = new java.io.FileInputStream(filename);
         XMLStreamReader sr = f.createXMLStreamReader(in);
 
-        SMIterator it = SMIteratorFactory.rootElementIterator(sr);
+        SMInputCursor it = SMInputFactory.rootElementCursor(sr);
         /* Need to store some information about preceding siblings,
          * so let's enable tracking.
          */
-        it.setElementTracking(SMIterator.Tracking.VISIBLE_SIBLINGS);
+        it.setElementTracking(SMInputCursor.Tracking.VISIBLE_SIBLINGS);
 
         Writer out = new PrintWriter(System.out);
 
@@ -76,7 +76,7 @@ public final class HTMLConverter
         }
     }
 
-    private void processHTML(SMIterator it, Writer out)
+    private void processHTML(SMInputCursor it, Writer out)
         throws IOException, XMLStreamException
     {
         it.getNext(); // has to be of type element now...
@@ -94,8 +94,7 @@ public final class HTMLConverter
                                          +origName+"'; excepted <HTML> or <html>");
         }
 
-        SMIterator mainIt = it.childElementIterator();
-        SMEvent evt;
+        SMInputCursor mainIt = it.childElementCursor();
 
         while (mainIt.getNext() != null) {
             origName = mainIt.getLocalName();
@@ -117,10 +116,10 @@ public final class HTMLConverter
      * Simple handler for HEAD section of a html document. Only looks for
      * title element (for now); returns as soon as that's gotten.
      */
-    private void processHead(SMIterator parentIt, Writer out)
+    private void processHead(SMInputCursor parentIt, Writer out)
         throws IOException, XMLStreamException
     {
-        SMIterator headIt = parentIt.childElementIterator();
+        SMInputCursor headIt = parentIt.childElementCursor();
         while (headIt.getNext() != null) {
             if (headIt.getLocalName().toLowerCase().equals("title")) {
                 // Could capitalize it too...
@@ -140,7 +139,7 @@ public final class HTMLConverter
      * Has special handling for some elements (paragraphs, lists,
      * tables, links).
      */
-    private void processBody(SMIterator parentIt, Writer out)
+    private void processBody(SMInputCursor parentIt, Writer out)
         throws IOException, XMLStreamException
     {
         /* We need both elements and text content (but not comments etc);
@@ -148,7 +147,7 @@ public final class HTMLConverter
          * iteration in general, as we can still do sub-scoping for
          * specific elements (tables etc)
          */
-        SMIterator bodyIt = parentIt.descendantMixedIterator();
+        SMInputCursor bodyIt = parentIt.descendantMixedCursor();
         StringBuffer text = null; // for collected 'loose' text
         SMEvent evt;
 
@@ -193,7 +192,7 @@ public final class HTMLConverter
      * Method that is used to figure out type and handling of a node,
      * at block level scope (but not from inside tables and lists)
      */
-    private boolean processBlockElement(SMIterator it, Writer out, String tag,
+    private boolean processBlockElement(SMInputCursor it, Writer out, String tag,
                                         StringBuffer text)
         throws IOException, XMLStreamException
     {
@@ -248,7 +247,7 @@ public final class HTMLConverter
         return false;
     }
 
-    private void processHeading(SMIterator it, Writer out, int depth)
+    private void processHeading(SMInputCursor it, Writer out, int depth)
         throws IOException, XMLStreamException
     {
         depth += 2;
@@ -264,13 +263,13 @@ public final class HTMLConverter
         out.write("\n\n");
     }
 
-    private void processList(SMIterator it, Writer out, char type, int depth)
+    private void processList(SMInputCursor it, Writer out, char type, int depth)
         throws IOException, XMLStreamException
     {
         /* Let's assume child elements have to be 'li' elements or
          * sublists ('ul', 'ol'); and ignore everything else.
          */
-        SMIterator listIt = it.childElementIterator();
+        SMInputCursor listIt = it.childElementCursor();
 
         // We'll only get START_ELEMENTs here except for EOF:
         while (listIt.getNext() != null) {
@@ -294,7 +293,7 @@ public final class HTMLConverter
         }
     }
 
-    private void processListItem(SMIterator it, Writer out, char listType, int depth)
+    private void processListItem(SMInputCursor it, Writer out, char listType, int depth)
         throws IOException, XMLStreamException
     {
         // Ok, list item marker:
@@ -307,7 +306,7 @@ public final class HTMLConverter
         /* List item contents are more varied; text, inline markup; maybe
          * even sublists.
          */
-        SMIterator itemIt = it.childMixedIterator();
+        SMInputCursor itemIt = it.childMixedCursor();
         SMEvent evt;
 
         while ((evt = itemIt.getNext()) != null) {
@@ -341,13 +340,13 @@ public final class HTMLConverter
         out.write('\n');
     }
 
-    private void processTable(SMIterator it, Writer out, boolean header)
+    private void processTable(SMInputCursor it, Writer out, boolean header)
         throws IOException, XMLStreamException
     {
         /* Let's assume child elements have to be 'tr', or one of grouping
          * elements ('thead', 'tfoot' or 'tbody'), and ignore everything else.
          */
-        SMIterator tableIt = it.childElementIterator();
+        SMInputCursor tableIt = it.childElementCursor();
         // We'll only get START_ELEMENTs here except for EOF:
         while (tableIt.getNext() != null) {
             String tag = tableIt.getLocalName().toLowerCase();
@@ -366,11 +365,11 @@ public final class HTMLConverter
         out.write("\n");
     }
 
-    private void processTableRow(SMIterator it, Writer out, boolean headerRow)
+    private void processTableRow(SMInputCursor it, Writer out, boolean headerRow)
         throws IOException, XMLStreamException
     {
         // Let's assume only 'tr' elements are encountered...
-        SMIterator rowIt = it.childElementIterator();
+        SMInputCursor rowIt = it.childElementCursor();
         out.write("|");
         // We'll only get START_ELEMENTs here except for EOF:
         while (rowIt.getNext() != null) {
@@ -388,13 +387,13 @@ public final class HTMLConverter
         out.write("\n");
     }
 
-    private void processTableCell(SMIterator it, Writer out, boolean headerCell)
+    private void processTableCell(SMInputCursor it, Writer out, boolean headerCell)
         throws IOException, XMLStreamException
     {
         /* Cells can have varied content, though... generally we only care
          * about text and inline markup, though.
          */
-        SMIterator cellIt = it.childMixedIterator();
+        SMInputCursor cellIt = it.childMixedCursor();
         SMEvent evt;
         while ((evt = cellIt.getNext()) != null) {
             if (evt == SMEvent.START_ELEMENT) {
@@ -413,7 +412,7 @@ public final class HTMLConverter
         }
     }
 
-    private String checkInlineMarkup(SMIterator it, String tag)
+    private String checkInlineMarkup(SMInputCursor it, String tag)
         throws IOException, XMLStreamException
     {
         if (tag.equals("a")) {
@@ -519,7 +518,7 @@ public final class HTMLConverter
         throws Exception
     {
         if (args.length != 1) {
-            System.err.println("Usage: java "+SMIteratorFactory.class+" [input file]");
+            System.err.println("Usage: java "+SMInputFactory.class+" [input file]");
             System.exit(1);
         }
         new HTMLConverter().convert(args[0]);
