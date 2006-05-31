@@ -31,6 +31,7 @@ import org.xml.sax.InputSource;
 import org.codehaus.stax2.XMLEventReader2;
 import org.codehaus.stax2.XMLInputFactory2;
 import org.codehaus.stax2.XMLStreamReader2;
+import org.codehaus.stax2.io.Stax2Source;
 
 import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.api.WstxInputProperties;
@@ -668,74 +669,73 @@ public final class WstxInputFactory
         throws XMLStreamException
     {
         ReaderConfig cfg = createPrivateConfig();
+        Reader r = null;
+        InputStream in = null;
+        String pubId = null;
+        String sysId = null;
+        String encoding = null;
 
-        if (src instanceof StreamSource) {
-            StreamSource ss = (StreamSource) src;
-            InputBootstrapper bs;
-            Reader r = ss.getReader();
-            String sysId = ss.getSystemId();
-
-            if (r == null) {
-                InputStream in = ss.getInputStream();
-                if (in == null) { // can try just resolving the system id then
-                    if (sysId == null) {
-                        throw new XMLStreamException("Can not create StAX reader for a StreamSource -- neither reader, input stream nor system id was set.");
-                    }
-                    try {
-                        return createSR(cfg, URLUtil.urlFromSystemId(sysId),
-                                        forER, autoCloseInput);
-                    } catch (IOException ioe) {
-                        throw new WstxIOException(ioe);
-                    }
+        if (src instanceof Stax2Source) {
+            Stax2Source ss = (Stax2Source) src;
+            sysId = ss.getSystemId();
+            pubId = ss.getPublicId();
+            encoding = ss.getEncoding();
+            try {
+                in = ss.constructInputStream();
+                if (in == null) {
+                    r = ss.constructReader();
                 }
-                bs = StreamBootstrapper.getInstance(in, ss.getPublicId(), sysId);
-            } else {
-                bs = ReaderBootstrapper.getInstance
-                    (r, ss.getPublicId(), sysId, null);
+            } catch (IOException ioe) {
+                throw new WstxIOException(ioe);
             }
-            return createSR(cfg, sysId, bs, forER, autoCloseInput);
-        }
-
-        if (src instanceof SAXSource) {
+        } else  if (src instanceof StreamSource) {
+            StreamSource ss = (StreamSource) src;
+            sysId = ss.getSystemId();
+            pubId = ss.getPublicId();
+            in = ss.getInputStream();
+            if (in == null) {
+                r = ss.getReader();
+            }
+        } else if (src instanceof SAXSource) {
             SAXSource ss = (SAXSource) src;
             /* 28-Jan-2006, TSa: Not a complete implementation, but maybe
              *   even this might help...
              */
             InputSource isrc = ss.getInputSource();
             if (isrc != null) {
-                InputBootstrapper bs = null;
-                Reader r = isrc.getCharacterStream();
-                String sysId = isrc.getSystemId();
-                if (r != null) {
-                    bs = ReaderBootstrapper.getInstance
-                        (r, isrc.getPublicId(), sysId, null);
-                } else {
-                    InputStream in = isrc.getByteStream();
-                    if (in != null) {
-                        bs = StreamBootstrapper.getInstance(in, isrc.getPublicId(), sysId);
-                    } else if (sysId != null) { // can try just resolving the system id then
-                        try {
-                            return createSR(cfg, URLUtil.urlFromSystemId(sysId),
-                                            forER, autoCloseInput);
-                        } catch (IOException ioe) {
-                            throw new WstxIOException(ioe);
-                        }
-                    }
-                }
-                if (bs != null) {
-                    return createSR(cfg, sysId, bs, forER, autoCloseInput);
+                sysId = isrc.getSystemId();
+                pubId = isrc.getPublicId();
+                encoding = isrc.getEncoding();
+                in = isrc.getByteStream();
+                if (in == null) {
+                    r = isrc.getCharacterStream();
                 }
             }
-            throw new XMLStreamException("Can only create STaX reader for a SAXSource if Reader or InputStream exposed via getSource(); can not use other sources (like embedded SAX readers)");
-        }
-
-        if (src instanceof DOMSource) {
+        } else if (src instanceof DOMSource) {
             DOMSource domSrc = (DOMSource) src;
             // SymbolTable not used by the DOM-based 'reader':
             return DOMWrappingReader.createFrom(cfg, domSrc);
+        } else {
+            throw new IllegalArgumentException("Can not instantiate StAX reader for XML source type "+src.getClass()+" (unrecognized type)");
         }
 
-        throw new IllegalArgumentException("Can not instantiate StAX reader for XML source type "+src.getClass()+" (unknown type)");
+        InputBootstrapper bs;
+
+        if (r != null) { 
+            bs = ReaderBootstrapper.getInstance(r, pubId, sysId, encoding);
+        } else if (in != null) {
+            bs = StreamBootstrapper.getInstance(in, pubId, sysId);
+        } else if (sysId != null) {
+            try {
+                return createSR(cfg, URLUtil.urlFromSystemId(sysId),
+                                forER, autoCloseInput);
+            } catch (IOException ioe) {
+                throw new WstxIOException(ioe);
+            }
+        } else {
+            throw new XMLStreamException("Can not create StAX reader for the Source passed -- neither reader, input stream nor system id was accessible; can not use other types of sources (like embedded SAX streams)");
+        }
+        return createSR(cfg, sysId, bs, forER, autoCloseInput);
     }
 
     protected XMLEventAllocator createEventAllocator() 

@@ -87,14 +87,38 @@ public abstract class BaseNsStreamWriter
 
     /*
     ////////////////////////////////////////////////////
+    // Pool for recycling SimpleOutputElement instances
+    ////////////////////////////////////////////////////
+     */
+
+    /* Note: although pooling of cheap objects like SimpleOutputElement
+     * is usually not a good idea, here profiling showed it to be a
+     * significant improvement. As long as instances are ONLY reused
+     * within context of a single writer, they stay in cheap ("Eden")
+     * GC area, and thus it should be a win.
+     */
+    protected SimpleOutputElement mOutputElemPool = null;
+
+    /**
+     * Although pooled objects are small, let's limit the pool size
+     * nonetheless, to optimize memory usage for deeply nested
+     * documents. In general, even just low number like 4 levels gets
+     * decent return, but 8 should get 99% hit rate.
+     */
+    final static int MAX_POOL_SIZE = 8;
+
+    protected int mPoolSize = 0;
+
+    /*
+    ////////////////////////////////////////////////////
     // Life-cycle (ctors)
     ////////////////////////////////////////////////////
      */
 
-    public BaseNsStreamWriter(Writer w, String enc, WriterConfig cfg,
+    public BaseNsStreamWriter(XmlWriter xw, String enc, WriterConfig cfg,
                               boolean repairing)
     {
-        super(w, enc, cfg);
+        super(xw, enc, cfg);
         mAutomaticNS = repairing;
     }
 
@@ -118,7 +142,7 @@ public abstract class BaseNsStreamWriter
     /**
      *<p>
      * Note: Root namespace context works best if automatic prefix
-     * creationg ("namespace/prefix repairing" in StAX lingo) is enabled.
+     * creation ("namespace/prefix repairing" in StAX lingo) is enabled.
      */
     public void setNamespaceContext(NamespaceContext ctxt)
         throws XMLStreamException
@@ -225,7 +249,14 @@ public abstract class BaseNsStreamWriter
             mValidator.validateElementStart(localName, NO_NS_URI, NO_PREFIX);
         }
         mEmptyElement = true;
-        mCurrElem = mCurrElem.createChild(localName);
+        if (mOutputElemPool != null) {
+            SimpleOutputElement newCurr = mOutputElemPool;
+            mOutputElemPool = newCurr.reuseAsChild(mCurrElem, localName);
+            --mPoolSize;
+            mCurrElem = newCurr;
+        } else {
+            mCurrElem = mCurrElem.createChild(localName);
+        }
         doWriteStartTag(NO_PREFIX, localName);
 
     }
@@ -262,7 +293,14 @@ public abstract class BaseNsStreamWriter
             mValidator.validateElementStart(localName, NO_NS_URI, NO_PREFIX);
         }
         mEmptyElement = false;
-        mCurrElem = mCurrElem.createChild(localName);
+        if (mOutputElemPool != null) {
+            SimpleOutputElement newCurr = mOutputElemPool;
+            mOutputElemPool = newCurr.reuseAsChild(mCurrElem, localName);
+            --mPoolSize;
+            mCurrElem = newCurr;
+        } else {
+            mCurrElem = mCurrElem.createChild(localName);
+        }
 
         doWriteStartTag(NO_PREFIX, localName);
     }
@@ -344,10 +382,9 @@ public abstract class BaseNsStreamWriter
 
         try {
             if (emptyElem) {
-                // Extra space for readability (plus, browsers like it if using XHTML)
-                mWriter.write(" />");
+                mWriter.writeStartTagEmptyEnd();
             } else {
-                mWriter.write('>');
+                mWriter.writeStartTagEnd();
             }
         } catch (IOException ioe) {
             throw new XMLStreamException(ioe);
@@ -367,6 +404,11 @@ public abstract class BaseNsStreamWriter
             if (mValidator != null) {
                 mVldContent = mValidator.validateElementEnd
                     (curr.getLocalName(), curr.getNamespaceURI(), curr.getPrefix());
+            }
+            if (mPoolSize < MAX_POOL_SIZE) {
+                curr.addToPool(mOutputElemPool);
+                mOutputElemPool = curr;
+                ++mPoolSize;
             }
         }
     }
@@ -389,10 +431,6 @@ public abstract class BaseNsStreamWriter
     protected void checkStartElement(String localName, String prefix)
         throws XMLStreamException
     {
-        if (mCheckNames) {
-            verifyNameValidity(localName, mNsAware);
-        }
-
         // Need to finish an open start element?
         if (mStartElementOpen) {
             closeStartElement(mEmptyElement);
@@ -415,9 +453,6 @@ public abstract class BaseNsStreamWriter
                                String value)
         throws XMLStreamException
     {
-        if (mCheckNames) {
-            verifyNameValidity(localName, true);
-        }
         if (mCheckAttrs) { // still need to ensure no duplicate attrs?
             mCurrElem.checkAttrWrite(nsURI, localName, value);
         }
@@ -429,18 +464,7 @@ public abstract class BaseNsStreamWriter
             mValidator.validateAttribute(localName, nsURI, prefix, value);
         }
         try {
-            if (mAttrValueWriter == null) {
-                mAttrValueWriter = constructAttributeValueWriter();
-            }
-            mWriter.write(' ');
-            if (prefix != null && prefix.length() > 0) {
-                mWriter.write(prefix);
-                mWriter.write(':');
-            }
-            mWriter.write(localName);
-            mWriter.write("=\"");
-            mAttrValueWriter.write(value);
-            mWriter.write('"');
+            mWriter.writeAttribute(prefix, localName, value);
         } catch (IOException ioe) {
             throw new XMLStreamException(ioe);
         }
@@ -450,24 +474,17 @@ public abstract class BaseNsStreamWriter
         throws XMLStreamException
     {
         try {
-            mWriter.write(' ');
-            mWriter.write(XMLConstants.XMLNS_ATTRIBUTE);
-            if (prefix != null && prefix.length() > 0) {
-                mWriter.write(':');
-                mWriter.write(prefix);
-            }
-            mWriter.write("=\"");
-            if (nsURI != null && nsURI.length() > 0) {
-                /* 19-Apr-2006, TSa: Since it's not a fatal error to
-                 *   write 'garbage' ns URIs (including using chars
-                 *   that need escaping), need to check escaping:
-                 */
-                if (mAttrValueWriter == null) {
-                    mAttrValueWriter = constructAttributeValueWriter();
-                }
-                mAttrValueWriter.write(nsURI);
-            }
-            mWriter.write('"');
+            mWriter.writeAttribute(XMLConstants.XMLNS_ATTRIBUTE, prefix, nsURI);
+        } catch (IOException ioe) {
+            throw new XMLStreamException(ioe);
+        }
+    }
+
+    protected void doWriteDefaultNs(String uri)
+        throws XMLStreamException
+    {
+        try {
+            mWriter.writeAttribute(null, XMLConstants.XMLNS_ATTRIBUTE, uri);
         } catch (IOException ioe) {
             throw new XMLStreamException(ioe);
         }
@@ -476,21 +493,10 @@ public abstract class BaseNsStreamWriter
     protected void doWriteStartTag(String prefix, String localName)
         throws XMLStreamException
     {
-        if (mCheckNames) {
-            if (prefix != null && prefix.length() > 0) {
-                verifyNameValidity(prefix, true);
-            }
-            verifyNameValidity(localName, true);
-        }
         mAnyOutput = true;
         mStartElementOpen = true;
         try {
-            mWriter.write('<');
-            if (prefix != null && prefix.length() > 0) {
-                mWriter.write(prefix);
-                mWriter.write(':');
-            }
-            mWriter.write(localName);
+            mWriter.writeStartTagStart(prefix, localName);
         } catch (IOException ioe) {
             throw new XMLStreamException(ioe);
         }
@@ -525,9 +531,16 @@ public abstract class BaseNsStreamWriter
         SimpleOutputElement thisElem = mCurrElem;
         String prefix = thisElem.getPrefix();
         String localName = thisElem.getLocalName();
+        String nsURI = thisElem.getNamespaceURI();
 
         // Ok, and then let's pop that element from the stack
         mCurrElem = thisElem.getParent();
+        // Need to return the instance to pool?
+        if (mPoolSize < MAX_POOL_SIZE) {
+            thisElem.addToPool(mOutputElemPool);
+            mOutputElemPool = thisElem;
+            ++mPoolSize;
+        }
 
         if (mCheckStructure) {
             if (expName != null) {
@@ -558,31 +571,24 @@ public abstract class BaseNsStreamWriter
             try {
                 // We could write an empty element, implicitly?
                 if (allowEmpty) {
-                    // Extra space for readability
-                    mWriter.write(" />");
+                    mWriter.writeStartTagEmptyEnd();
                     if (mCurrElem.isRoot()) {
                         mState = STATE_EPILOG;
                     }
                     if (mValidator != null) {
-                        mVldContent = mValidator.validateElementEnd(localName, thisElem.getNamespaceURI(), prefix);
+                        mVldContent = mValidator.validateElementEnd(localName, nsURI, prefix);
                     }
                     return;
                 }
                 // Nah, need to close open elem, and then output close elem
-                mWriter.write('>');
+                mWriter.writeStartTagEnd();
             } catch (IOException ioe) {
                 throw new XMLStreamException(ioe);
             }
         }
 
         try {
-            mWriter.write("</");
-            if (prefix != null && prefix.length() > 0) {
-                mWriter.write(prefix);
-                mWriter.write(':');
-            }
-            mWriter.write(localName);
-            mWriter.write('>');
+            mWriter.writeEndTag(prefix, localName);
         } catch (IOException ioe) {
             throw new XMLStreamException(ioe);
         }
@@ -593,7 +599,7 @@ public abstract class BaseNsStreamWriter
 
         // Ok, time to validate...
         if (mValidator != null) {
-            mVldContent = mValidator.validateElementEnd(localName, thisElem.getNamespaceURI(), prefix);
+            mVldContent = mValidator.validateElementEnd(localName, nsURI, prefix);
         }
     }
 

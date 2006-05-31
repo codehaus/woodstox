@@ -29,28 +29,35 @@ public class TestNsStreamWriter
         throws Exception
     {
         XMLOutputFactory f = getFactory();
-        f.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES,
-                      Boolean.TRUE);
-        //Boolean.FALSE);
         f.setProperty(XMLStreamProperties.XSP_NAMESPACE_AWARE,
                       Boolean.TRUE);
         //Boolean.FALSE);
+        f.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES,
+                      //Boolean.TRUE);
+                      Boolean.FALSE);
         f.setProperty(XMLOutputFactory2.P_AUTOMATIC_EMPTY_ELEMENTS,
                       //Boolean.TRUE);
                       Boolean.FALSE);
         Writer w = new PrintWriter(System.out);
         XMLStreamWriter sw = f.createXMLStreamWriter(w);
 
-        //sw.writeStartElement("root");
+        sw.writeStartElement("root");
 
         sw.writeEmptyElement("alpha");
+        sw.writeNamespace("ns", "uri:foo");
+        sw.writeAttribute("atpr", "http://attr-prefix", "attr", "a<b");
 
         sw.writeStartElement("bravo");
+
+        sw.writeCharacters("Text: & ");
+
+        sw.writeComment("Com--ment");
+        sw.writeProcessingInstruction("p", "i");
+
         sw.writeEndElement(); // exception here
 
         //sw.writeStartDocument();
         /*
-        sw.writeComment("Comment!");
         sw.writeCharacters("\n");
         sw.writeStartElement("root");
         sw.writeAttribute("attr", "value");

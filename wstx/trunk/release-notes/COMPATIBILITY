@@ -33,6 +33,12 @@
 * In 2.0.x most well-formedness checks (P_CHECK_xxx) resulted in
   unchecked IllegalStateException. Due to requests by developers, who
   found this unintuitive, these were replaced by checked XMLStreamExceptions.
+* In 2.0.x, WstxOutputProperties.P_OUTPUT_VALIDATE_CONTENT was false
+  by default: in 3.0 it is true. Change was due to more efficient checking
+  of the content, made possible by integrated transcoding. As such, it seems
+  useful to have more rigorous checks enabled by default. Also, since
+  WstxOutputProperties.P_OUTPUT_FIX_CONTENT was and is true by default,
+  CDATA and COMMENT sections will be automatically "fixed" now.
 
 === Event reader ===
 

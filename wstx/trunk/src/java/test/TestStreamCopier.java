@@ -18,8 +18,8 @@ import com.ctc.wstx.api.WstxOutputProperties;
  */
 public class TestStreamCopier
 {
+    final static boolean ENABLE_DTD_VALIDATION = false;
     //final static boolean ENABLE_DTD_VALIDATION = true;
-    final static boolean ENABLE_DTD_VALIDATION = true;
 
     protected TestStreamCopier() { }
 
@@ -31,7 +31,8 @@ public class TestStreamCopier
         XMLInputFactory f =  XMLInputFactory.newInstance();
         //System.out.println("Factory instance: "+f.getClass());
 
-        f.setProperty(XMLInputFactory.IS_COALESCING, Boolean.FALSE);
+        //f.setProperty(XMLInputFactory.IS_COALESCING, Boolean.FALSE);
+        f.setProperty(XMLInputFactory.IS_COALESCING, Boolean.TRUE);
         //f.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.FALSE);
         f.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.TRUE);
 
@@ -68,6 +69,10 @@ public class TestStreamCopier
                            "com.ctc.wstx.stax.WstxOutputFactory");
 
         XMLOutputFactory f =  XMLOutputFactory.newInstance();
+        f.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES,
+                      Boolean.TRUE
+                      //Boolean.FALSE
+                      );
         return (XMLOutputFactory2) f;
     }
 
@@ -108,9 +113,11 @@ public class TestStreamCopier
                 }
             }
             sw.copyEventFromReader(sr, false);
+            /*
             if (++count % 1000 == 100) {
                 System.err.println("#"+count);
             }
+            */
         }
 
         /*

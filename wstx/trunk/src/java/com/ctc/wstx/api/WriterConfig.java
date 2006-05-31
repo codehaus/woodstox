@@ -1,5 +1,6 @@
 package com.ctc.wstx.api;
 
+import java.lang.ref.SoftReference;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -13,6 +14,7 @@ import org.codehaus.stax2.io.EscapingWriterFactory;
 
 import com.ctc.wstx.api.WstxOutputProperties;
 import com.ctc.wstx.cfg.OutputConfigFlags;
+import com.ctc.wstx.io.BufferRecycler;
 import com.ctc.wstx.util.ArgUtil;
 
 /**
@@ -80,12 +82,16 @@ public final class WriterConfig
 
     // Structural checks are easy, cheap and useful...
     final static boolean DEFAULT_VALIDATE_STRUCTURE = true;
-    final static boolean DEFAULT_VALIDATE_CONTENT = false;
+
+    /* 17-May-2006, TSa: Since content validation is now much cheaper
+     *   (due to integrated transcoders) than it used to be, let's
+     *   just enabled content validation too.
+     */
+    final static boolean DEFAULT_VALIDATE_CONTENT = true;
     final static boolean DEFAULT_VALIDATE_ATTR = false;
     final static boolean DEFAULT_VALIDATE_NAMES = false;
-    /* In a way it doesn't matter; if validation is not enabled, neither
-     * is fixing... but let's set it on, so that enabling checking also
-     * enables fixing
+
+    /* This only matters if content validation is enabled...
      */
     final static boolean DEFAULT_FIX_CONTENT = true;
 
@@ -187,6 +193,27 @@ public final class WriterConfig
 
     /*
     //////////////////////////////////////////////////////////
+    // Buffer recycling:
+    //////////////////////////////////////////////////////////
+     */
+
+    /**
+     * This <code>ThreadLocal</code> contains a {@link SoftRerefence}
+     * to a {@link BufferRecycler} used to provide a low-cost
+     * buffer recycling between Reader instances.
+     */
+    final static ThreadLocal mRecyclerRef = new ThreadLocal();
+
+    /**
+     * This is the actually container of the recyclable buffers. It
+     * is obtained via ThreadLocal/SoftReference combination, if one
+     * exists, when Config instance is created. If one does not
+     * exists, it will created first time a buffer is returned.
+     */
+    BufferRecycler mCurrRecycler = null;
+
+    /*
+    //////////////////////////////////////////////////////////
     // Life-cycle:
     //////////////////////////////////////////////////////////
      */
@@ -202,6 +229,16 @@ public final class WriterConfig
         mTextEscaperFactory = textEscaperF;
         mAttrValueEscaperFactory = attrValueEscaperF;
         mProblemReporter = problemReporter;
+        /* Ok, let's then see if we can find a buffer recycler. Since they
+         * are lazily constructed, and since GC may just flush them out
+         * on its whims, it's possible we might not find one. That's ok;
+         * we can reconstruct one if and when we are to return one or more
+         * buffers.
+         */
+        SoftReference ref = (SoftReference) mRecyclerRef.get();
+        if (ref != null) {
+            mCurrRecycler = (BufferRecycler) ref.get();
+        }
     }
 
     public static WriterConfig createJ2MEDefaults()
@@ -560,6 +597,67 @@ public final class WriterConfig
 
         // Structural validation is cheap: can be left enabled (if already so)
         //doValidateStructure(false);
+    }
+
+    /*
+    /////////////////////////////////////////////////////
+    // Buffer recycling:
+    /////////////////////////////////////////////////////
+     */
+
+    public char[] allocFullCBuffer(int minSize)
+    {
+//System.err.println("DEBUG: cfg, allocCFull: "+mCurrRecycler);
+        if (mCurrRecycler != null) {
+            char[] result = mCurrRecycler.getFullCBuffer(minSize);
+            if (result != null) {
+                return result;
+            }
+        }
+        return new char[minSize];
+    }
+
+    public void freeFullCBuffer(char[] buffer)
+    {
+//System.err.println("DEBUG: cfg, freeCFull: "+buffer);
+        // Need to create (and assign) the buffer?
+        if (mCurrRecycler == null) {
+            mCurrRecycler = createRecycler();
+        }
+        mCurrRecycler.returnFullCBuffer(buffer);
+    }
+
+    public byte[] allocFullBBuffer(int minSize)
+    {
+//System.err.println("DEBUG: cfg, allocBFull: "+mCurrRecycler);
+        if (mCurrRecycler != null) {
+            byte[] result = mCurrRecycler.getFullBBuffer(minSize);
+            if (result != null) {
+                return result;
+            }
+        }
+        return new byte[minSize];
+    }
+
+    public void freeFullBBuffer(byte[] buffer)
+    {
+//System.err.println("DEBUG: cfg, freeBFull: "+buffer);
+        // Need to create (and assign) the buffer?
+        if (mCurrRecycler == null) {
+            mCurrRecycler = createRecycler();
+        }
+        mCurrRecycler.returnFullBBuffer(buffer);
+    }
+
+    static int Counter = 0;
+
+    private BufferRecycler createRecycler()
+    {
+        BufferRecycler recycler = new BufferRecycler();
+        // No way to reuse/reset SoftReference, have to create new always:
+//System.err.println("DEBUG: RefCount: "+(++Counter));
+        mRecyclerRef.set(new SoftReference(recycler));
+        return recycler;
     }
 
     /*

@@ -59,7 +59,7 @@ public class TestOutputFactory
 
         // And their default values?
         assertEquals(Boolean.TRUE, f.getProperty(WstxOutputProperties.P_OUTPUT_VALIDATE_STRUCTURE));
-        assertEquals(Boolean.FALSE, f.getProperty(WstxOutputProperties.P_OUTPUT_VALIDATE_CONTENT));
+        assertEquals(Boolean.TRUE, f.getProperty(WstxOutputProperties.P_OUTPUT_VALIDATE_CONTENT));
 
         assertEquals(Boolean.FALSE, f.getProperty(WstxOutputProperties.P_OUTPUT_VALIDATE_ATTR));
         assertEquals(Boolean.FALSE, f.getProperty(WstxOutputProperties.P_OUTPUT_VALIDATE_NAMES));
@@ -77,8 +77,8 @@ public class TestOutputFactory
         f.setProperty(WstxOutputProperties.P_OUTPUT_VALIDATE_STRUCTURE, Boolean.FALSE);
         assertEquals(Boolean.FALSE, f.getProperty(WstxOutputProperties.P_OUTPUT_VALIDATE_STRUCTURE));
 
-        f.setProperty(WstxOutputProperties.P_OUTPUT_VALIDATE_CONTENT, Boolean.TRUE);
-        assertEquals(Boolean.TRUE, f.getProperty(WstxOutputProperties.P_OUTPUT_VALIDATE_CONTENT));
+        f.setProperty(WstxOutputProperties.P_OUTPUT_VALIDATE_CONTENT, Boolean.FALSE);
+        assertEquals(Boolean.FALSE, f.getProperty(WstxOutputProperties.P_OUTPUT_VALIDATE_CONTENT));
 
         f.setProperty(WstxOutputProperties.P_OUTPUT_VALIDATE_CONTENT, Boolean.FALSE);
         assertEquals(Boolean.FALSE, f.getProperty(WstxOutputProperties.P_OUTPUT_VALIDATE_CONTENT));

@@ -28,6 +28,20 @@ public class TestLocationInfo
 
     final static String TEST_SHORT_DOC = "<root />";
 
+    /**
+     * This document fragment tries ensure that linefeed handling works ok
+     * as well.
+     */
+    final static String TEST_LF_DOC =
+        "<root>\n" // row 1
+        +"<branch>\r\n" // row 2
+        +" <branch2>\r" // row 3
+        +"\t\t<leaf />\n" // row 4
+        +" </branch2>\r\n" // row 5
+        +"\t </branch> "// row 6
+        +"</root>"; // row6
+        ;
+
     public TestLocationInfo(String name) {
         super(name);
     }
@@ -99,6 +113,75 @@ public class TestLocationInfo
         sr.close();
     }
 
+    public void testRowAccuracy()
+        throws XMLStreamException
+    {
+        XMLStreamReader2 sr = getReader(TEST_LF_DOC);
+
+        assertRow(sr, 1, 1); // (missing) xml decl
+
+        assertTokenType(START_ELEMENT, sr.next());
+        assertEquals("root", sr.getLocalName());
+        assertRow(sr, 1, 1);
+        assertTokenType(CHARACTERS, sr.next());
+        assertRow(sr, 1, 2); // lf
+
+        assertTokenType(START_ELEMENT, sr.next());
+        assertEquals("branch", sr.getLocalName());
+        assertRow(sr, 2, 2);
+        assertTokenType(CHARACTERS, sr.next());
+        assertRow(sr, 2, 3); // lf
+
+        assertTokenType(START_ELEMENT, sr.next());
+        assertEquals("branch2", sr.getLocalName());
+        assertRow(sr, 3, 3);
+        assertTokenType(CHARACTERS, sr.next());
+        assertRow(sr, 3, 4); // lf
+
+        assertTokenType(START_ELEMENT, sr.next());
+        assertEquals("leaf", sr.getLocalName());
+        assertRow(sr, 4, 4);
+        assertTokenType(END_ELEMENT, sr.next());
+        assertEquals("leaf", sr.getLocalName());
+        assertRow(sr, 4, 4);
+        assertTokenType(CHARACTERS, sr.next());
+        assertRow(sr, 4, 5); // lf
+
+        assertTokenType(END_ELEMENT, sr.next());
+        assertEquals("branch2", sr.getLocalName());
+        assertRow(sr, 5, 5);
+        assertTokenType(CHARACTERS, sr.next());
+        assertRow(sr, 5, 6);
+
+        assertTokenType(END_ELEMENT, sr.next());
+        assertEquals("branch", sr.getLocalName());
+        assertRow(sr, 6, 6);
+        assertTokenType(CHARACTERS, sr.next());
+        assertRow(sr, 6, 6);
+
+        assertTokenType(END_ELEMENT, sr.next());
+        assertEquals("root", sr.getLocalName());
+        assertRow(sr, 6, 6);
+
+        sr.close();
+    }
+
+    /*
+    ////////////////////////////////////////
+    // Private methods
+    ////////////////////////////////////////
+     */
+
+    private void assertRow(XMLStreamReader2 sr, int startRow, int endRow)
+        throws XMLStreamException
+    {
+        LocationInfo li = sr.getLocationInfo();
+        Location startLoc = li.getStartLocation();
+        assertEquals("Incorrect starting row for event "+tokenTypeDesc(sr.getEventType()), startRow, startLoc.getLineNumber());
+        Location endLoc = li.getEndLocation();
+        assertEquals("Incorrect ending row for event "+tokenTypeDesc(sr.getEventType()), endRow, endLoc.getLineNumber());
+    }
+
     private void assertLocation(XMLStreamReader sr, XMLStreamLocation2 loc,
                                 int expCol, int expRow,
                                 int expByteOffset, long actByteOffset,
@@ -120,12 +203,6 @@ public class TestLocationInfo
             assertEquals(expCharOffset, actCharOffset);
         }
     }
-
-    /*
-    ////////////////////////////////////////
-    // Private methods
-    ////////////////////////////////////////
-     */
 
     private XMLStreamReader2 getReader(String contents)
         throws XMLStreamException

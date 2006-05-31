@@ -29,7 +29,7 @@ public final class URLUtil
              * Not sure if Mac might be a problem? (it uses ':' as file path
              * separator, alas, at least prior to MacOS X)
              */
-            int ix = sysId.indexOf(':');
+            int ix = sysId.indexOf(':', 0);
             /* Also, protocols are generally fairly short, usually 3 or 4
              * chars (http, ftp, urn); so let's put upper limit of 8 chars too
              */
@@ -37,7 +37,26 @@ public final class URLUtil
                 return new URL(sysId);
             }
             // Ok, let's just assume it's local file reference...
-            return new java.io.File(sysId).toURL();
+            /* 24-May-2006, TSa: Amazingly, this single call does show in
+             *   profiling, for small docs. The problem is that deep down it
+             *   tries to check physical file system, to check if the File
+             *   pointed to is a directory: and that is (relatively speaking)
+             *   a very expensive call. Since in this particular case it
+             *   should never be a dir (and/or doesn't matter), let's just
+             *   implement conversion locally
+             */
+            String absPath = new java.io.File(sysId).getAbsolutePath();
+            // Need to convert colons/backslashes to regular slashes?
+            {
+                char sep = File.separatorChar;
+                if (sep != '/') {
+                    absPath = absPath.replace(sep, '/');
+                }
+            }
+            if (absPath.length() > 0 && absPath.charAt(0) != '/') {
+                absPath = "/" + absPath;
+            }
+            return new URL("file", "", absPath);
         } catch (MalformedURLException e) {
             throwIOException(e, sysId);
             return null; // never gets here

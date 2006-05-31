@@ -330,7 +330,7 @@ public final class ReaderConfig
      * This is the actually container of the recyclable buffers. It
      * is obtained via ThreadLocal/SoftReference combination, if one
      * exists, when Config instance is created. If one does not
-     * exists, it will created first time a buffer is returned.
+     * exist, it will created first time a buffer is returned.
      */
     BufferRecycler mCurrRecycler = null;
 

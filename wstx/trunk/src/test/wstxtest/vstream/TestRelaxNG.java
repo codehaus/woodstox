@@ -213,6 +213,82 @@ public class TestRelaxNG
         verifyRngFailure(XML, schema, "wrong attribute namespace");
     }
 
+    /**
+     * This unit test verifies that the validation can be stopped
+     * half-way through processing, so that sub-trees (for example)
+     * can be validated. In this case, we will verify this functionality
+     * by trying to validate invalid document up to the point where it
+     * is (or may) still be valid, stop validation, and then continue
+     * reading. This should not result in an exception.
+     */
+    public void testSimplePartialNonNs()
+        throws XMLStreamException
+    {
+        String XML =
+            "<?xml version='1.0'?>"
+            +"<dict>"
+            +"<term type='name'><invalid />"
+            +"</term>"
+            +"</dict>"
+            ;
+
+        XMLValidationSchema schema = parseRngSchema(SIMPLE_RNG_SCHEMA);
+
+        XMLStreamReader2 sr = getReader(XML);
+        XMLValidator vtor = sr.validateAgainst(schema);
+
+        assertTokenType(START_ELEMENT, sr.next());
+        assertEquals("dict", sr.getLocalName());
+        assertTokenType(START_ELEMENT, sr.next());
+        assertEquals("term", sr.getLocalName());
+
+        /* So far so good; but here we'd get an exception... so
+         * let's stop validating
+         */
+        assertSame(vtor, sr.stopValidatingAgainst(schema));
+        try {
+            // And should be good to go
+            assertTokenType(START_ELEMENT, sr.next());
+            assertEquals("invalid", sr.getLocalName());
+            assertTokenType(END_ELEMENT, sr.next());
+            assertEquals("invalid", sr.getLocalName());
+            assertTokenType(END_ELEMENT, sr.next());
+            assertEquals("term", sr.getLocalName());
+            assertTokenType(END_ELEMENT, sr.next());
+            assertEquals("dict", sr.getLocalName());
+            assertTokenType(END_DOCUMENT, sr.next());
+        } catch (XMLValidationException vex) {
+            fail("Did not expect validation exception after stopping validation, got: "+vex);
+        }
+        sr.close();
+
+        // And let's do the same, just using the other stopValidatingAgainst method
+        sr = getReader(XML);
+        vtor = sr.validateAgainst(schema);
+
+        assertTokenType(START_ELEMENT, sr.next());
+        assertEquals("dict", sr.getLocalName());
+        assertTokenType(START_ELEMENT, sr.next());
+        assertEquals("term", sr.getLocalName());
+
+        assertSame(vtor, sr.stopValidatingAgainst(vtor));
+        try {
+            // And should be good to go
+            assertTokenType(START_ELEMENT, sr.next());
+            assertEquals("invalid", sr.getLocalName());
+            assertTokenType(END_ELEMENT, sr.next());
+            assertEquals("invalid", sr.getLocalName());
+            assertTokenType(END_ELEMENT, sr.next());
+            assertEquals("term", sr.getLocalName());
+            assertTokenType(END_ELEMENT, sr.next());
+            assertEquals("dict", sr.getLocalName());
+            assertTokenType(END_DOCUMENT, sr.next());
+        } catch (XMLValidationException vex) {
+            fail("Did not expect validation exception after stopping validation, got: "+vex);
+        }
+        sr.close();
+    }
+
     /*
     //////////////////////////////////////////////////////////////
     // Helper methods

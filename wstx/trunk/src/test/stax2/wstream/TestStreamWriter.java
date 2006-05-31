@@ -13,6 +13,85 @@ import org.codehaus.stax2.*;
 public class TestStreamWriter
     extends BaseWriterTest
 {
+    /*
+    //////////////////////////////////////////////////////////
+    // First tests for simple accessors
+    //////////////////////////////////////////////////////////
+     */
+
+    public void testGetEncoding()
+        throws XMLStreamException
+    {
+        // Let's test with US-ASCII for fun
+        final String ENC = "US-ASCII";
+
+        for (int isWriter = 0; isWriter < 2; ++isWriter) {
+            for (int i = 0; i < 3; ++i) {
+                boolean ns = (i > 0);
+                boolean repairing = (i == 2);
+                XMLOutputFactory2 of = getFactory(ns, repairing);
+                XMLStreamWriter2 w;
+
+                if (isWriter > 0) {
+                    StringWriter strw = new StringWriter();
+                    w = (XMLStreamWriter2)of.createXMLStreamWriter(strw, ENC);
+                } else {
+                    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                    w = (XMLStreamWriter2)of.createXMLStreamWriter(bos, ENC);
+                }
+                assertEquals(ENC, w.getEncoding());
+                // Need to output something, otherwise it'll be empty doc
+                w.writeEmptyElement("root");
+                w.close();
+
+                /* Ok good, but how about the case where it's only
+                 * passed for writeStartDocument()? Note: when wrapping
+                 * a stream, factory has to use default (UTF-8).
+                 */
+                if (isWriter > 0) {
+                    StringWriter strw = new StringWriter();
+                    w = (XMLStreamWriter2)of.createXMLStreamWriter(strw);
+                    w.writeStartDocument(ENC, "1.0");
+                    assertEquals(ENC, w.getEncoding());
+                } else {
+                    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                    w = (XMLStreamWriter2)of.createXMLStreamWriter(bos);
+                    w.writeStartDocument(ENC, "1.0");
+                    assertEquals("UTF-8", w.getEncoding());
+                }
+                w.writeEmptyElement("root");
+                w.close();
+            }
+        }
+    }
+
+    /**
+     * Since Woodstox doesn't yet actually implement the method, we'll
+     * just call the method and do not expect and exception. Returned
+     * object (or lack thereof) is not inspected
+     */
+    public void testGetLocation()
+        throws XMLStreamException
+    {
+        for (int i = 0; i < 3; ++i) {
+            boolean ns = (i > 0);
+            boolean repairing = (i == 2);
+            XMLOutputFactory2 of = getFactory(ns, repairing);
+            StringWriter strw = new StringWriter();
+            XMLStreamWriter2 w = (XMLStreamWriter2)of.createXMLStreamWriter(strw);
+            XMLStreamLocation2 loc = w.getLocation();
+            // Need to output something, otherwise it'll be empty doc
+            w.writeEmptyElement("root");
+            w.close();
+        }
+    }
+        
+    /*
+    //////////////////////////////////////////////////////////
+    // Then new output methods as is
+    //////////////////////////////////////////////////////////
+     */
+
     public void testCData()
         throws XMLStreamException
     {
@@ -66,17 +145,28 @@ public class TestStreamWriter
 
         for (int i = 0; i < 2; ++i) {
             boolean ns = (i > 0);
+            //boolean repairing = (i == 2);
+            boolean repairing = (i == 1);
             XMLStreamReader2 sr = constructNsStreamReader(XML, ns);
             StringWriter strw = new StringWriter();
-            XMLStreamWriter2 w = getNonRepairingWriter(strw, ns);
+            XMLStreamWriter2 w;
+
+            if (repairing) {
+                w = getRepairingWriter(strw);
+            } else {
+                w = getNonRepairingWriter(strw, ns);
+            }
+
             while (sr.hasNext()) {
                 sr.next();
                 w.copyEventFromReader(sr, false);
             }
             sr.close();
+            w.close();
             String xmlOut = strw.toString();
 
-            // And let's parse it to verify it's still valid...
+            // And let's parse it to verify it's still well-formed...
+            // (should also verify its accuracy...)
             sr = constructNsStreamReader(xmlOut, ns);
             streamThrough(sr);
         }
@@ -127,6 +217,12 @@ public class TestStreamWriter
             assertTokenType(END_DOCUMENT, sr.next());
         }
     }
+
+    /*
+    //////////////////////////////////////////////////////////
+    // Then custom quoting/escaping writers
+    //////////////////////////////////////////////////////////
+     */
 
     /**
      * First a simplish testing of how exotic characters are escaped

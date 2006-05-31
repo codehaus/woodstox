@@ -24,6 +24,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.namespace.QName;
 
 import com.ctc.wstx.exc.WstxException;
+import com.ctc.wstx.sw.XmlWriter;
 import com.ctc.wstx.util.StringVector;
 import com.ctc.wstx.util.TextBuilder;
 import com.ctc.wstx.util.WordResolver;
@@ -305,33 +306,34 @@ public abstract class AttributeCollector
     }
 
     /**
-     * Method that can be used to get the specified attribute value,
-     * by getting it written using Writer passed in. Can potentially
-     * save one String allocation, since no (temporary) Strings need
-     * to be created.
-     */
-    public final void writeValue(int index, Writer w)
-        throws IOException
-    {
-        mValueBuffer.getEntry(index, w);
-    }
-
-
-    /**
      * Method that basically serializes the specified (read-in) attribute
      * using Writers provided. Serialization is done by
      * writing out (fully-qualified) name
      * of the attribute, followed by the equals sign and quoted value.
      */
-    public abstract void writeAttribute(int index, char quoteChar,
-                                        Writer mainWriter, Writer attrValueWriter)
-        throws IOException;
+    public abstract void writeAttribute(int index, XmlWriter xw)
+        throws IOException, XMLStreamException;
 
     /*
     ///////////////////////////////////////////////
     // Internal methods:
     ///////////////////////////////////////////////
      */
+
+
+    /**
+     * Method that can be used to get the specified attribute value,
+     * by getting it written using Writer passed in. Can potentially
+     * save one String allocation, since no (temporary) Strings need
+     * to be created.
+     */
+    /*
+    protected final void writeValue(int index, Writer w)
+        throws IOException
+    {
+        mValueBuffer.getEntry(index, w);
+    }
+    */
 
     protected static String[] resize(String[] old) {
         int len = old.length;

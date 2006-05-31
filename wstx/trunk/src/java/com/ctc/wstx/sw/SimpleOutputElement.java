@@ -55,8 +55,10 @@ public final class SimpleOutputElement
     /**
      * Reference to the parent element, element enclosing this element.
      * Null for root element.
+     * Non-final only to allow temporary pooling
+     * (on per-writer basis, to keep these short-lived).
      */
-    final SimpleOutputElement mParent;
+    SimpleOutputElement mParent;
 
     /**
      * Prefix that is used for the element. Can not be final, since sometimes
@@ -66,14 +68,16 @@ public final class SimpleOutputElement
     String mPrefix;
 
     /**
-     * Local name of the element
+     * Local name of the element.
+     * Non-final only to allow reuse.
      */
-    final String mLocalName;
+    String mLocalName;
 
     /**
      * Namespace of the element, whatever {@link #mPrefix} maps to.
+     * Non-final only to allow reuse.
      */
-    final String mURI;
+    String mURI;
 
     /*
     ////////////////////////////////////////////
@@ -126,6 +130,22 @@ public final class SimpleOutputElement
     ////////////////////////////////////////////
      */
 
+    /**
+     * Constructor for the virtual root element
+     */
+    private SimpleOutputElement()
+    {
+        mParent = null;
+        mPrefix = null;
+        mLocalName = "";
+        mURI = null;
+        mNsMapping = null;
+        mNsMapShared = false;
+        mDefaultNsURI = "";
+        mRootNsContext = null;
+        mDefaultNsSet = false;
+    }
+
     private SimpleOutputElement(SimpleOutputElement parent,
                                 String prefix, String localName, String uri,
                                 BijectiveNsMap ns)
@@ -136,19 +156,35 @@ public final class SimpleOutputElement
         mURI = uri;
         mNsMapping = ns;
         mNsMapShared = (ns != null);
-        if (parent == null) {
-            mDefaultNsURI = "";
-            mRootNsContext = null;
-        } else {
-            mDefaultNsURI = parent.mDefaultNsURI;
-            mRootNsContext = parent.mRootNsContext;
-        }
+        mDefaultNsURI = parent.mDefaultNsURI;
+        mRootNsContext = parent.mRootNsContext;
+        mDefaultNsSet = false;
+    }
+
+    /**
+     * Method called to reuse a pooled instance.
+     *
+     * @return Chained pooled instance that should now be head of the
+     *   reuse chain
+     */
+    private void relink(SimpleOutputElement parent,
+                        String prefix, String localName, String uri,
+                        BijectiveNsMap ns)
+    {
+        mParent = parent;
+        mPrefix = prefix;
+        mLocalName = localName;
+        mURI = uri;
+        mNsMapping = ns;
+        mNsMapShared = (ns != null);
+        mDefaultNsURI = parent.mDefaultNsURI;
+        mRootNsContext = parent.mRootNsContext;
         mDefaultNsSet = false;
     }
 
     public static SimpleOutputElement createRoot()
     {
-        return new SimpleOutputElement(null, "", "", "", null);
+        return new SimpleOutputElement();
     }
 
     /**
@@ -156,38 +192,56 @@ public final class SimpleOutputElement
      * element output method is called. It is, then, assumed to
      * use the default namespce.
      */
-    public SimpleOutputElement createChild(String localName)
+    protected SimpleOutputElement createChild(String localName)
     {
-        SimpleOutputElement elem = new SimpleOutputElement(this, "", localName,
-                                                           mDefaultNsURI,
-                                                           mNsMapping);
         /* At this point we can also discard attribute Map; it is assumed
          * that when a child element has been opened, no more attributes
          * can be output.
          */
         mAttrMap = null;
-        return elem;
+        return new SimpleOutputElement(this, null, localName,
+                                       mDefaultNsURI, mNsMapping);
+    }
+
+    /**
+     * @return New head of the recycle pool
+     */
+    protected SimpleOutputElement reuseAsChild(SimpleOutputElement parent,
+                                               String localName)
+    {
+        mAttrMap = null;
+        SimpleOutputElement poolHead = mParent;
+        relink(parent, null, localName, mDefaultNsURI, mNsMapping);
+        return poolHead;
     }
 
     /**
      * Full factory method, used for 'normal' namespace qualified output
      * methods.
      */
-    public SimpleOutputElement createChild(String prefix, String localName,
-                                           String uri)
+    protected SimpleOutputElement createChild(String prefix, String localName,
+                                              String uri)
     {
-        SimpleOutputElement elem = new SimpleOutputElement(this,
-                                                           prefix, localName, uri,
-                                                           mNsMapping);
         /* At this point we can also discard attribute Map; it is assumed
          * that when a child element has been opened, no more attributes
          * can be output.
          */
         mAttrMap = null;
-        return elem;
+        return new SimpleOutputElement(this, prefix, localName, uri, mNsMapping);
     }
 
-    public void setRootNsContext(NamespaceContext ctxt) {
+    protected SimpleOutputElement reuseAsChild(SimpleOutputElement parent,
+                                               String prefix, String localName,
+                                               String uri)
+    {
+        mAttrMap = null;
+        SimpleOutputElement poolHead = mParent;
+        relink(parent, prefix, localName, uri, mNsMapping);
+        return poolHead;
+    }
+
+    protected void setRootNsContext(NamespaceContext ctxt)
+    {
         mRootNsContext = ctxt;
         /* Let's also see if we have an active default ns mapping:
          * (provided it hasn't yet explicitly been set for this element)
@@ -198,6 +252,15 @@ public final class SimpleOutputElement
                 mDefaultNsURI = defURI;
             }
         }
+    }
+
+    /**
+     * Method called to temporarily link this instance to a pool, to
+     * allow reusing of instances with the same reader.
+     */
+    protected void addToPool(SimpleOutputElement poolHead)
+    {
+        mParent = poolHead;
     }
 
     /*

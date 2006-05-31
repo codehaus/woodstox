@@ -2,16 +2,7 @@
 
 === 1. Low-level parsing ===
 
-==== 1.0.1 Handle \r\n and \r at decoder level ====
-
-Although without closer integration we can not fully replace
-\r / \r\n decoding at parser level, with one at Reader/Source
-level, we can optimize UTF-8 case speculatively.
-But is that worth the effort? Could be heuristically enabled
-after N (like, 5, within first couple of Ks of input?) as
-needed, to minimize effect in tight decoding loop.
-
-==== 1.0.2 Check name validity only once? ====
+==== 1.0.1 Check name validity only once? ====
 
 Perhaps we can combine SymbolTable, and name validation access
 such that we only store valid names in SymbolTable. As such,

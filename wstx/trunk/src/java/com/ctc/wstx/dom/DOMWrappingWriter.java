@@ -8,12 +8,14 @@ import javax.xml.transform.dom.DOMResult;
 
 import org.w3c.dom.*;
 
+import org.codehaus.stax2.XMLStreamLocation2;
 import org.codehaus.stax2.XMLStreamReader2;
 import org.codehaus.stax2.XMLStreamWriter2;
 import org.codehaus.stax2.validation.XMLValidationSchema;
 import org.codehaus.stax2.validation.XMLValidator;
 
 import com.ctc.wstx.api.WriterConfig;
+import com.ctc.wstx.api.WstxOutputProperties;
 
 /**
  * This is an adapter class that allows building a DOM tree using
@@ -39,6 +41,13 @@ public class DOMWrappingWriter
     protected final WriterConfig mConfig;
 
     protected final boolean mNsAware;
+
+    /**
+     * This member variable is to keep information about encoding
+     * that seems to be used for the document (or fragment) to output,
+     * if known.
+     */
+    protected String mEncoding = null;
 
     /*
     ////////////////////////////////////////////////////
@@ -139,9 +148,20 @@ public class DOMWrappingWriter
     public void writeNamespace(String prefix, String namespaceURI) {}
     public void writeProcessingInstruction(String target) {}
     public void writeProcessingInstruction(String target, String data) {}
-    public void writeStartDocument() {}
+
+    public void writeStartDocument()
+    {
+        writeStartDocument(WstxOutputProperties.DEFAULT_OUTPUT_ENCODING,
+                           WstxOutputProperties.DEFAULT_XML_VERSION);
+    }
+
     public void writeStartDocument(String version) {}
-    public void writeStartDocument(String encoding, String version) {}
+
+    public void writeStartDocument(String encoding, String version)
+    {
+        mEncoding = encoding;
+    }
+
     public void writeStartElement(String localName) {}
     public void writeStartElement(String namespaceURI, String localName) {}
     public void writeStartElement(String prefix, String localName, String namespaceURI) {
@@ -188,8 +208,12 @@ public class DOMWrappingWriter
         return null;
     }
 
-    public Location getLocation() {
+    public XMLStreamLocation2 getLocation() {
         return null;
+    }
+
+    public String getEncoding() {
+        return mEncoding;
     }
 
     public void writeCData(char[] text, int start, int len)
@@ -224,6 +248,12 @@ public class DOMWrappingWriter
     */
 
     public void writeRaw(String text)
+        throws XMLStreamException
+    {
+        // !!! TBI: Can it be implemented at all?
+    }
+
+    public void writeRaw(String text, int start, int offset)
         throws XMLStreamException
     {
         // !!! TBI: Can it be implemented at all?

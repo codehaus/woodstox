@@ -85,9 +85,9 @@ public class NonNsStreamWriter
     ////////////////////////////////////////////////////
      */
 
-    public NonNsStreamWriter(Writer w, String enc, WriterConfig cfg)
+    public NonNsStreamWriter(XmlWriter xw, String enc, WriterConfig cfg)
     {
-        super(w, enc, cfg);
+        super(xw, enc, cfg);
         mElements = new StringVector(32);
     }
 
@@ -129,10 +129,6 @@ public class NonNsStreamWriter
         if (!mStartElementOpen && mCheckStructure) {
             reportNwfStructure(ErrorConsts.WERR_ATTR_NO_ELEM);
         }
-        // May need to check uniqueness?
-        if (mCheckNames) {
-            verifyNameValidity(localName, false);
-        }
         if (mCheckAttrs) {
             /* 11-Dec-2005, TSa: Should use a more efficient Set/Map value
              *   for this in future.
@@ -155,14 +151,7 @@ public class NonNsStreamWriter
         }
         
         try {
-            if (mAttrValueWriter == null) {
-                mAttrValueWriter = constructAttributeValueWriter();
-            }
-            mWriter.write(' ');
-            mWriter.write(localName);
-            mWriter.write("=\"");
-            mAttrValueWriter.write(value);
-            mWriter.write('"');
+            mWriter.writeAttribute(null, localName, value);
         } catch (IOException ioe) {
             throwFromIOE(ioe);
         }
@@ -317,10 +306,9 @@ public class NonNsStreamWriter
 
         try {
             if (emptyElem) {
-                // Extra space for readability (plus, browsers like it if using XHTML)
-                mWriter.write(" />");
+                mWriter.writeStartTagEmptyEnd();
             } else {
-                mWriter.write('>');
+                mWriter.writeStartTagEnd();
             }
         } catch (IOException ioe) {
             throwFromIOE(ioe);
@@ -392,19 +380,8 @@ public class NonNsStreamWriter
             attrCollector.getSpecifiedCount();
 
         if (attrCount > 0) {
-            Writer aw = mAttrValueWriter;
-            if (aw == null) {
-                mAttrValueWriter = aw = constructAttributeValueWriter();
-            }
             for (int i = 0; i < attrCount; ++i) {
-                /* There's nothing special about writeAttribute() (except for
-                 * checks we should NOT need -- reader is assumed to have verified
-                 * well-formedness of the input document)... it just calls
-                 * doWriteAttr (of the base class)... so what we have here is
-                 * just a raw output method:
-                 */
-                mWriter.write(' ');
-                attrCollector.writeAttribute(i, DEFAULT_QUOTE_CHAR, mWriter, aw);
+                attrCollector.writeAttribute(i, mWriter);
             }
         }
     }
@@ -423,9 +400,6 @@ public class NonNsStreamWriter
     private void doWriteStartElement(String localName)
         throws XMLStreamException
     {
-        if (mCheckNames) {
-            verifyNameValidity(localName, false);
-        }
         mAnyOutput = true;
         // Need to finish an open start element?
         if (mStartElementOpen) {
@@ -454,8 +428,7 @@ public class NonNsStreamWriter
         mStartElementOpen = true;
         mElements.addString(localName);
         try {
-            mWriter.write('<');
-            mWriter.write(localName);
+            mWriter.writeStartTagStart(null, localName);
         } catch (IOException ioe) {
             throwFromIOE(ioe);
         }
@@ -526,8 +499,7 @@ public class NonNsStreamWriter
             try {
                 // We could write an empty element, implicitly?
                 if (allowEmpty) {
-                    // Extra space for readability
-                    mWriter.write(" />");
+                    mWriter.writeStartTagEmptyEnd();
                     if (mElements.isEmpty()) {
                         mState = STATE_EPILOG;
                     }
@@ -537,16 +509,14 @@ public class NonNsStreamWriter
                     return;
                 }
                 // Nah, need to close open elem, and then output close elem
-                mWriter.write('>');
+                mWriter.writeStartTagEnd();
             } catch (IOException ioe) {
                 throwFromIOE(ioe);
             }
         }
 
         try {
-            mWriter.write("</");
-            mWriter.write(localName);
-            mWriter.write('>');
+            mWriter.writeEndTag(null, localName);
         } catch (IOException ioe) {
             throwFromIOE(ioe);
         }

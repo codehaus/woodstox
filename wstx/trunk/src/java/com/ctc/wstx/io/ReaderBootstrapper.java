@@ -82,6 +82,11 @@ public final class ReaderBootstrapper
     {
         super(pubId, sysId);
         mIn = r;
+        if (appEncoding == null) { // may still be able to figure it out
+            if (r instanceof InputStreamReader) {
+                appEncoding = ((InputStreamReader) r).getEncoding();
+            }
+        }
         mInputEncoding = appEncoding;
     }
 

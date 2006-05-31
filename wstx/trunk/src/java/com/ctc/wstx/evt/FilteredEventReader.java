@@ -8,6 +8,7 @@ import javax.xml.stream.*;
 import javax.xml.stream.events.*;
 import javax.xml.stream.util.XMLEventAllocator;
 
+import com.ctc.wstx.exc.WstxLazyException;
 import com.ctc.wstx.util.ExceptionUtil;
 
 /**
@@ -26,7 +27,14 @@ public class FilteredEventReader
     final XMLEventReader mReader;
     final EventFilter mFilter;
 
-    public FilteredEventReader(XMLEventReader r, EventFilter f) {
+    /**
+     * Actually, we need to do local buffering; that's the only way
+     * to reliably implement filtering with peeking.
+     */
+    XMLEvent mNextEvent;
+
+    public FilteredEventReader(XMLEventReader r, EventFilter f)
+    {
         mReader = r;
         mFilter = f;
     }
@@ -46,7 +54,9 @@ public class FilteredEventReader
     public String getElementText()
         throws XMLStreamException
     {
-        // Should be ok to forward, does not iterate
+        /* 09-May-2006, TSa: Not sure if this is good enough: might
+         *   need to improve.
+         */
         return mReader.getElementText();
     }
 
@@ -54,8 +64,14 @@ public class FilteredEventReader
         return mReader.getProperty(name);
     }
 
-    public boolean hasNext() {
-        return mReader.hasNext();
+    public boolean hasNext()
+    {
+        try {
+            return (peek() != null);
+        } catch (XMLStreamException sex) { // shouldn't happen, but...
+            WstxLazyException.throwLazily(sex);
+            return false; // never gets this far
+        }
     }
 
     public XMLEvent nextEvent()
@@ -64,11 +80,9 @@ public class FilteredEventReader
         while (true) {
             XMLEvent evt = mReader.nextEvent();
             if (evt == null || mFilter.accept(evt)) {
+                // should never get null, actually, but...
                 return evt;
             }
-            /* ??? 11-May-2004, TSa: Should we take some precautions for
-             *   END_DOCUMENT event? Or is above null check enough.
-             */
         }
     }
 
@@ -96,13 +110,20 @@ public class FilteredEventReader
     }
 
     /**
-     * Note: there is no way to do any filtering here; will simply dispatch
-     * the call to the underlying reader.
+     * This is bit tricky to implement, but it should filter out
+     * events just as nextEvent() would.
      */
     public XMLEvent peek()
         throws XMLStreamException
     {
-        return mReader.peek();
+        while (true) {
+            XMLEvent evt = mReader.peek();
+            if (evt == null || mFilter.accept(evt)) {
+                return evt;
+            }
+            // Need to discard as long as we have events:
+            mReader.nextEvent();
+        }
     }
 
     /**

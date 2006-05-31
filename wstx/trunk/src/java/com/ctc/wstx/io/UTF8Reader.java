@@ -246,6 +246,15 @@ public final class UTF8Reader
                             reportInvalid(c, outPtr-start, "");
                         }
                     } else if (mXml11 && c == 0x2028) { // LSEP?
+                        /* 10-May-2006, TSa: Since LSEP is "non-associative",
+                         *    it needs additional handling. One way to do
+                         *    this is to convert preceding \r to \n. This
+                         *    should be implemented better when integrating
+                         *    decoder and tokenizer.
+                         */
+                        if (outPtr > start && cbuf[outPtr-1] == '\r') {
+                            cbuf[outPtr-1] = '\n';
+                        }
                         c = CONVERT_LSEP_TO;
                     }
                 }

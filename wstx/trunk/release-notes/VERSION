@@ -9,7 +9,19 @@ Description:
 
   Problems fixed:
 
+  * [WSTX-54]: Added method XMLStreamWriter2.getEncoding, which allows for
+    accessing encoding of the underlying output stream/writer (if such
+    info available to the stream writer).
+  * [WSTX-56]: Filtered event reader was not filtering events correctly.
+     Now should work much better.
+
   Improvements:
+
+  * More significant parsing speed improvements, related to white space and
+    linefeed handling.
+  * First optimizations to the output side: adding BufferedWriter increases
+    output speed very significantly (i.e. non-buffering basic
+    OutputStreamWriter was dead slow for almost all use cases)
 
   New features:
 

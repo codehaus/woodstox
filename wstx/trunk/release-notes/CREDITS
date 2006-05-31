@@ -137,6 +137,10 @@ Wolfgang Hoschek:
     [2.0.4/2.8.1]
   * Pointed out countless other bugs based on extensive Nux and Xom
     xml compatibility suites (and w3c compatibility suite as well).
+  * Pointed out multiple optimization possibilities (both on reader and
+    writer side), esp. via performance
+    test suite Nux has: this helped performance tuning of 3.0 release
+    significantly.
 
 Bartlomiej Rymkowski:
   * Reported [WSTX-28] (broken handling of property

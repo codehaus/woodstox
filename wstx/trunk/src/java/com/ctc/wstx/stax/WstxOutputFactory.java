@@ -27,15 +27,16 @@ import javax.xml.stream.*;
 
 import org.codehaus.stax2.XMLOutputFactory2;
 import org.codehaus.stax2.XMLStreamWriter2;
+import org.codehaus.stax2.io.Stax2Result;
 
 import com.ctc.wstx.api.WriterConfig;
 import com.ctc.wstx.api.WstxOutputProperties;
 import com.ctc.wstx.cfg.OutputConfigFlags;
 import com.ctc.wstx.evt.WstxEventWriter;
-import com.ctc.wstx.sw.BaseStreamWriter;
-import com.ctc.wstx.sw.NonNsStreamWriter;
-import com.ctc.wstx.sw.RepairingNsStreamWriter;
-import com.ctc.wstx.sw.SimpleNsStreamWriter;
+import com.ctc.wstx.exc.WstxIOException;
+import com.ctc.wstx.io.CharsetNames;
+import com.ctc.wstx.io.UTF8Writer;
+import com.ctc.wstx.sw.*;
 import com.ctc.wstx.util.ArgUtil;
 
 /**
@@ -211,77 +212,102 @@ public final class WstxOutputFactory
     private BaseStreamWriter createSW(OutputStream out, Writer w, String enc)
         throws XMLStreamException
     {
-        /* 03-May-2005, TSa: For now, let's just use JDK-provided encoders...
-         *   for 3.x, maybe we can try to provide optimized ones -- these
-         *   would mostly help with quoted content (can do quoting along
-         *   with encoding).
-         */
-        if (w == null) {
-            try {
-                if (enc == null) {
-                    
-                    /* 11-Jan-2006, TSa: Fixing [WSTX-18], we really should
-                     *   use UTF-8 as per xml specs, not the default platform
-                     *   encoding (which often would be ISO-8859-1 or some
-                     *   other single char 8-bit encoding scheme)
-                     */
-                    enc = WstxOutputProperties.DEFAULT_OUTPUT_ENCODING;
-                }
-                /* 05-May-2006, TSa: Unbuffered writes are cryptonite for
-                 *    basic encoders; must use buffered versions (2x
-                 *    speed or more!). Can use modest buffer size though;
-                 *    since bigger writes will just not be or need be buffered
-                 */
-                w = new BufferedWriter(new OutputStreamWriter(out, enc), 500);
-            } catch (UnsupportedEncodingException ex) {
-                throw new XMLStreamException(ex);
-            }
-        }
-
         /* Need to ensure that the configuration object is not shared
          * any more; otherwise later changes via factory could be
          * visible half-way through output...
          */
         WriterConfig cfg = mConfig.createNonShared();
+        XmlWriter xw;
+
+        if (w == null) {
+            if (enc == null) {
+                enc = WstxOutputProperties.DEFAULT_OUTPUT_ENCODING;
+            } else {
+                enc = CharsetNames.normalize(enc);
+            }
+
+            try {
+                if (enc == CharsetNames.CS_UTF8) {
+                    w = new UTF8Writer(cfg, out);
+                    xw = new BufferingXmlWriter(w, cfg, enc);
+                    //xw = new ISOLatin1XmlWriter(out, cfg);
+                } else if (enc == CharsetNames.CS_ISO_LATIN1) {
+                    xw = new ISOLatin1XmlWriter(out, cfg);
+                } else if (enc == CharsetNames.CS_US_ASCII) {
+                    // !!! TBI
+                    xw = new ISOLatin1XmlWriter(out, cfg);
+                } else {
+                    w = new OutputStreamWriter(out, enc);
+                    xw = new BufferingXmlWriter(w, cfg, enc);
+                }
+            } catch (IOException ex) {
+                throw new XMLStreamException(ex);
+            }
+        } else {
+            // we may still be able to figure out the encoding:
+            if (enc == null) {
+                if (w instanceof OutputStreamWriter) {
+                    enc = ((OutputStreamWriter) w).getEncoding();
+                }
+            }
+            try {
+                xw = new BufferingXmlWriter(w, cfg, enc);
+            } catch (IOException ex) {
+                throw new XMLStreamException(ex);
+            }
+        }
+
         if (cfg.willSupportNamespaces()) {
             if (cfg.automaticNamespacesEnabled()) {
-                return new RepairingNsStreamWriter(w, enc, cfg);
+                return new RepairingNsStreamWriter(xw, enc, cfg);
             }
-            return new SimpleNsStreamWriter(w, enc, cfg);
+            return new SimpleNsStreamWriter(xw, enc, cfg);
         }
-        return new NonNsStreamWriter(w, enc, cfg);
+        return new NonNsStreamWriter(xw, enc, cfg);
     }
 
     private BaseStreamWriter createSW(Result res)
         throws XMLStreamException
     {
-        if (res instanceof StreamResult) {
-            StreamResult sr = (StreamResult) res;
-            Writer w = sr.getWriter();
-            if (w == null) {
-                OutputStream out = sr.getOutputStream();
-                if (out == null) {
-                    throw new XMLStreamException("Can not create StAX writer for a StreamResult -- neither writer nor output stream was set.");
-                }
-                // ... any way to define encoding?
-                return createSW(out, null, null);
-            }
-            return createSW(null, w, null);
-        }
+        OutputStream out = null;
+        Writer w = null;
+        String encoding = null;
 
-        if (res instanceof SAXResult) {
+        if (res instanceof Stax2Result) {
+            Stax2Result sr = (Stax2Result) res;
+            try {
+                out = sr.constructOutputStream();
+                if (out == null) {
+                    w = sr.constructWriter();
+                }
+            } catch (IOException ioe) {
+                throw new WstxIOException(ioe);
+            }
+        } else if (res instanceof StreamResult) {
+            StreamResult sr = (StreamResult) res;
+            out = sr.getOutputStream();
+            if (out == null) {
+                w = sr.getWriter();
+            }
+        } else if (res instanceof SAXResult) {
             //SAXResult sr = (SAXResult) res;
             // !!! TBI
-            throw new XMLStreamException("Can not create a STaX writer for a SAXResult -- not (yet) implemented.");
-        }
-
-        if (res instanceof DOMResult) {
+            throw new XMLStreamException("Can not create a STaX writer for a SAXResult -- not (yet?) implemented.");
+        } else if (res instanceof DOMResult) {
             //DOMResult sr = (DOMResult) res;
             // !!! TBI
             throw new XMLStreamException("Can not create a STaX writer for a DOMResult -- not (yet) implemented.");
+        } else {
+            throw new IllegalArgumentException("Can not instantiate a writer for XML result type "+res.getClass()+" (unrecognized type)");
         }
 
-        throw new IllegalArgumentException("Can not instantiate a writer for XML result type "+res.getClass()+" (unknown type)");
+        if (out != null) {
+            return createSW(out, null, encoding);
+        }
+        if (w != null) {
+            return createSW(null, w, encoding);
+        }
+        throw new XMLStreamException("Can not create StAX writer for passed-in Result -- neither writer nor output stream was accessible");
     }
 
     /*

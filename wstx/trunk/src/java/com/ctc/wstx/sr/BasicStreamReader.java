@@ -133,6 +133,15 @@ public class BasicStreamReader
     final private static int MASK_GET_TEXT_XXX =
         (1 << CHARACTERS) | (1 << CDATA) | (1 << SPACE) | (1 << COMMENT);
 
+    /**
+     * This mask is used with Stax2 getText() method (one that takes
+     * Writer as an argument): accepts even wider range of event types.
+     */
+    final private static int MASK_GET_TEXT_WITH_WRITER = 
+        (1 << CHARACTERS) | (1 << CDATA) | (1 << SPACE)
+        | (1 << COMMENT) | (1 << DTD) | (1 << ENTITY_REFERENCE)
+        | (1 << PROCESSING_INSTRUCTION);
+
     final private static int MASK_GET_ELEMENT_TEXT = 
         (1 << CHARACTERS) | (1 << CDATA) | (1 << SPACE)
         | (1 << ENTITY_REFERENCE);
@@ -1247,7 +1256,7 @@ public class BasicStreamReader
     public int getText(Writer w, boolean preserveContents)
         throws IOException, XMLStreamException
     {
-        if (((1 << mCurrToken) & MASK_GET_TEXT) == 0) {
+        if (((1 << mCurrToken) & MASK_GET_TEXT_WITH_WRITER) == 0) {
             throwNotTextual(mCurrToken);
         }
         /* May need to be able to do fully streaming... but only for
@@ -2728,7 +2737,6 @@ public class BasicStreamReader
         // Further, when coalescing, can not be sure if we REALLY got it all
         if (readTextPrimary((char) i)) { // reached following markup
             mTokenState = TOKEN_FULL_SINGLE;
-//System.err.println("DEBUG: primary -> '"+mTextBuffer.toString()+"'");
         } else {
             // If not coalescing, this may be enough for current event
             if (!mCfgCoalesceText
@@ -4283,31 +4291,42 @@ public class BasicStreamReader
             int len = mInputLen;
 
             /* Even without indentation removal, it's good idea to
-             * 'convert' \r\n into \n (by simply skipping first char):
-             * this may allow reusing the buffer. 
+             * 'convert' \r or \r\n into \n (by replacing or skipping first
+             * char): this may allow reusing the buffer. 
+             * But note that conversion MUST be enabled -- this is toggled
+             * by code that includes internal entities, to prevent replacement
+             * of CRs from int. general entities, as applicable.
              */
-            if (c == '\r' && ptr < len && mInputBuffer[ptr] == '\n') {
-                c = '\n';
-                ++ptr;
-                ++start;
-            }
-            if (mCheckIndentation > 0 && (c == '\n' || c == '\r')) {
-                /* Need at least 1 more char for determination; but for
-                 * convenience (see called method), let's actually require
-                 * at least 2
-                 */
-                if ((mInputLen - ptr) > 1) {
-                    int ptr2 = readIndentation(c, ptr);
-                    if (ptr2 < 0) { // success!
-                        return true;
+            do {
+                // We'll need at least one char, no matter what:
+                if (ptr < len && mCfgNormalizeLFs) {
+                    if (c == '\r') {
+                        c = '\n';
+                        if (mInputBuffer[ptr] == c) {
+                            ++start;
+                            ++ptr;
+                            if (ptr >= len) { // can't do much more
+                                markLF(ptr);
+                                break;
+                            }
+                        } else {
+                            mInputBuffer[start] = '\n';
+                        }
+                    } else if (c != '\n') {
+                        break;
                     }
-                    /* Start may have changed, to skip \r; and mInputPtr
-                     * may have changed when leading white space was
-                     * skipped
-                     */
-                    c = mInputBuffer[ptr++];
+                    markLF(ptr);
+                    if (mCheckIndentation > 0) {
+                        ptr = readIndentation(c, ptr);
+                        if (ptr < 0) { // success!
+                            return true;
+                        }
+                        // It's likely skipped a char or two, so that:
+                        c = mInputBuffer[ptr++];
+                    }
                 }
-            }
+            } while (false);
+
             // can we figure out indentation?
             mWsStatus = ALL_WS_UNKNOWN;
         } else {
@@ -4567,12 +4586,9 @@ public class BasicStreamReader
         int start = ptr-1;
         final char lf = c;
 
-        markLF(ptr); // caller just handled LF
-
-        // Note: caller guarantees at least 2 more chars in the input buffer
+        // Note: caller guarantees at least one more char in the input buffer
         ws_loop:
         do { // dummy loop to allow for break (which indicates failure)
-            markLF(ptr);
             c = inputBuf[ptr++];
             if (c == ' ' || c == '\t') { // indentation?
                 // Need to limit to maximum
@@ -4584,6 +4600,10 @@ public class BasicStreamReader
 
                 inner_loop:
                 while (true) {
+                    if (ptr >= lastIndCharPos) { // overflow; let's backtrack
+                        --ptr;
+                        break ws_loop;
+                    }
                     char d = inputBuf[ptr++];
                     if (d != c) {
                         if (d == '<') { // yup, got it!
@@ -4592,16 +4612,13 @@ public class BasicStreamReader
                         --ptr; // caller needs to reprocess it
                         break ws_loop; // nope, blew it
                     }
-                    if (ptr >= lastIndCharPos) { // overflow; let's backtrack
-                        --ptr;
-                        break ws_loop;
-                    }
                 }
                 // This means we had success case; let's fall through
             } else if (c != '<') { // nope, can not be
                 --ptr; // simpler if we just push it back; needs to be processed later on
                 break ws_loop;
             }
+
             // Ok; we got '<'... just need any other char than '!'...
             if (ptr < inputLen && inputBuf[ptr] != '!') {
                 // Voila!

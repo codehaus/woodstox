@@ -1,8 +1,5 @@
 package com.ctc.wstx.util;
 
-import java.io.IOException;
-import java.io.Writer;
-
 /**
  * Class similar to {@link StringBuffer}, except that it can be used to
  * construct multiple Strings, that will share same underlying character
@@ -34,7 +31,7 @@ public final class TextBuilder
     public TextBuilder(int initialSize)
     {
         mBufferOffsets = new int[initialSize];
-        int charSize = (initialSize << 4);
+        int charSize = (initialSize << 4); // multiply by 16 (-> def. 192 chars)
         if (charSize < 64) {
             charSize = 64;
         } else if (charSize > 240) {
@@ -70,9 +67,14 @@ public final class TextBuilder
     public String getEntry(int index)
     {
         int len = mEntryCount;
+        /* Note: no checks, caller is to ensure index is ok. Acceptable
+         * since it's not externally exposed (only used by woodstox core)
+         */
+        /*
         if (index < 0 || index >= len) {
             throw new IllegalArgumentException("Invalid index, "+index+"; current size: "+len+".");
         }
+        */
         if (mResultString == null) {
             mResultString = new String(mBuffer, 0, mBufferLen);
         }
@@ -87,8 +89,10 @@ public final class TextBuilder
                                        mBufferOffsets[index+1]);
     }
 
-    public void getEntry(int index, Writer w)
-        throws IOException
+    // 16-May-2006, TSa: Not needed any more
+    /*
+    public void getEntry(int index, java.io.Writer w)
+        throws java.io.IOException
     {
         // Note: caller is assumed to have verified the index
         int offset = mBufferOffsets[index];
@@ -103,6 +107,7 @@ public final class TextBuilder
             w.write(mBuffer, offset, offset2);
         }
     }
+    */
 
     public int getOffset(int index) {
         if (index >= mEntryCount) { // last entry

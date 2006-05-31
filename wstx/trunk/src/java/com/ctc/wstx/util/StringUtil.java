@@ -6,6 +6,7 @@ import java.util.Iterator;
 public final class StringUtil
 {
     final static char CHAR_SPACE = ' '; // 0x0020
+    private final static char INT_SPACE = 0x0020;
 
     static String sLF = null;
 
@@ -180,13 +181,11 @@ public final class StringUtil
      */
     public static boolean equalEncodings(String str1, String str2)
     {
-        int len1 = str1.length();
-        int len2 = str2.length();
-
-        int i1 = 0, i2 = 0;
+        final int len1 = str1.length();
+        final int len2 = str2.length();
 
         // Need to loop completely over both Strings
-        while (i1 < len1 || i2 < len2) {
+        for (int i1 = 0, i2 = 0; i1 < len1 || i2 < len2; ) {
             int c1 = (i1 >= len1) ?  EOS : str1.charAt(i1++);
             int c2 = (i2 >= len2) ?  EOS : str2.charAt(i2++);
 
@@ -196,10 +195,10 @@ public final class StringUtil
             }
 
             // if not equal, maybe there are WS/hyphen/underscores to skip
-            while (c1 <= CHAR_SPACE || c1 == '_' || c1 == '-') {
+            while (c1 <= INT_SPACE || c1 == '_' || c1 == '-') {
                 c1 = (i1 >= len1) ?  EOS : str1.charAt(i1++);
             }
-            while (c2 <= CHAR_SPACE || c2 == '_' || c2 == '-') {
+            while (c2 <= INT_SPACE || c2 == '_' || c2 == '-') {
                 c2 = (i2 >= len2) ?  EOS : str2.charAt(i2++);
             }
             // Ok, how about case differences, then?
@@ -208,7 +207,21 @@ public final class StringUtil
                 if (c1 == EOS || c2 == EOS) {
                     return false;
                 }
-                if (Character.toLowerCase((char)c1) != Character.toLowerCase((char)c2)) {
+                if (c1 < 127) { // ascii is easy...
+                    if (c1 <= 'Z' && c1 >= 'A') {
+                        c1 = c1 + ('a' - 'A');
+                    }
+                } else {
+                    c1 = Character.toLowerCase((char)c1);
+                }
+                if (c2 < 127) { // ascii is easy...
+                    if (c2 <= 'Z' && c2 >= 'A') {
+                        c2 = c2 + ('a' - 'A');
+                    }
+                } else {
+                    c2 = Character.toLowerCase((char)c2);
+                }
+                if (c1 != c2) {
                     return false;
                 }
             }

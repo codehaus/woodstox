@@ -10,6 +10,7 @@ import javax.xml.stream.XMLStreamException;
 
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.exc.WstxException;
+import com.ctc.wstx.sw.XmlWriter;
 import com.ctc.wstx.util.DataUtil;
 import com.ctc.wstx.util.StringVector;
 import com.ctc.wstx.util.TextBuilder;
@@ -625,22 +626,14 @@ public final class NsAttributeCollector
      * Method that basically serializes the specified (read-in) attribute
      * using Writers provided
      */
-    public void writeAttribute(int index, char quoteChar, Writer mainWriter,
-                               Writer attrValueWriter)
-        throws IOException
+    public void writeAttribute(int index, XmlWriter xw)
+        throws IOException, XMLStreamException
     {
         // Note: here we assume index checks have been done by caller
         int offset = (index << 1);
         String prefix = mAttrNames.getString(offset);
-        if (prefix != null && prefix.length() > 0) {
-            mainWriter.write(prefix);
-            mainWriter.write(':');
-        }
-        mainWriter.write(mAttrNames.getString(offset + 1));
-        mainWriter.write('=');
-        mainWriter.write(quoteChar);
-        writeValue(index, attrValueWriter);
-        mainWriter.write(quoteChar);
+        String ln = mAttrNames.getString(offset + 1);
+        xw.writeAttribute(prefix, ln, getValue(index));
     }
 
     /*

@@ -171,7 +171,7 @@ public class WstxEventWriter
              * event types... if so, let's just by-pass any checks, and
              * let event output itself.
              */
-            event.writeAsEncodedUnicode(mWriter.getWriter());
+            event.writeAsEncodedUnicode(mWriter.wrapAsRawWriter());
         }
     }
 

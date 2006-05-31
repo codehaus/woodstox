@@ -192,7 +192,8 @@ public interface XMLStreamReader2
 
     /**
      * Method similar to {@link #getText()}, except
-     * that it just uses provided Writer to write all textual content.
+     * that it just uses provided Writer to write all textual content,
+     * and that it works for wider range of event types.
      * For further optimization, it may also be allowed to do true
      * pass-through, thus possibly avoiding one temporary copy of the
      * data. Finally, note that this method is also guaranteed NOT
@@ -203,7 +204,8 @@ public interface XMLStreamReader2
      * honored normally.
      *<p>
      * Method can only be called on states CDATA, CHARACTERS, COMMENT,
-     * DTD, ENTITY_REFERENCE; if called when reader is in another state,
+     * DTD, ENTITY_REFERENCE, SPACE and PROCESSING_INSTRUCTION; if called
+     * when reader is in another state,
      * {@link IllegalStateException} will be thrown. Content written
      * for elements is same as with {@link #getText()}.
      *

@@ -34,6 +34,7 @@ import javax.xml.stream.events.Characters;
 import javax.xml.stream.events.StartElement;
 
 import org.codehaus.stax2.DTDInfo;
+import org.codehaus.stax2.XMLStreamLocation2;
 import org.codehaus.stax2.XMLStreamReader2;
 import org.codehaus.stax2.XMLStreamWriter2;
 import org.codehaus.stax2.io.EscapingWriterFactory;
@@ -45,8 +46,7 @@ import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.cfg.OutputConfigFlags;
 import com.ctc.wstx.cfg.XmlConsts;
 import com.ctc.wstx.exc.*;
-import com.ctc.wstx.io.TextEscaper;
-import com.ctc.wstx.io.WstxInputData;
+import com.ctc.wstx.io.WstxInputLocation;
 import com.ctc.wstx.sr.StreamReaderImpl;
 import com.ctc.wstx.sr.AttributeCollector;
 import com.ctc.wstx.sr.InputElementStack;
@@ -69,8 +69,6 @@ public abstract class BaseStreamWriter
 
     protected final static char CHAR_SPACE = ' ';
 
-    protected final static char DEFAULT_QUOTE_CHAR = '"';
-
     protected final static String NO_NS_URI = "";
     protected final static String NO_PREFIX = null;
 
@@ -83,26 +81,7 @@ public abstract class BaseStreamWriter
     /**
      * Actual physical writer to output serialized XML content to
      */
-    protected final Writer mWriter;
-
-    /**
-     * Lazy-constructed writer that will properly escape characters of text
-     * content that need escaping ('&lt;', '&amp;' etc).
-     * It will be created
-     * when needed for the first time. Instances are usually chained to use
-     * {@link #mWriter} for actual outputting.
-     */
-    protected Writer mTextWriter;
-
-    /**
-     * Lazy-constructed writer that will properly escape characters of
-     * attribute values
-     * that need escaping ('&lt;', '&amp;', '&quot;').
-     * It will be created
-     * when needed for the first time. Instances are usually chained to use
-     * {@link #mWriter} for actual outputting.
-     */
-    protected Writer mAttrValueWriter;
+    protected final XmlWriter mWriter;
     
     /*
     ////////////////////////////////////////////////////
@@ -112,22 +91,16 @@ public abstract class BaseStreamWriter
 
     protected final WriterConfig mConfig;
 
-    // // // Operating mode: base class needs to know whether
-    // // // namespaces are support (for entity/PI target validation)
-
-    protected final boolean mNsAware;
-
     // // // Specialized configuration flags, extracted from config flags:
 
-    protected final boolean mCfgAutomaticEmptyElems;
     protected final boolean mCfgCDataAsText;
     protected final boolean mCfgCopyDefaultAttrs;
+    protected final boolean mCfgAutomaticEmptyElems;
+
+    // NOTE: can not be final, may be enabled when schema (etc) validation enabled
 
     protected boolean mCheckStructure;
     protected boolean mCheckAttrs;
-    protected final boolean mCheckContent;
-    protected final boolean mCheckNames;
-    protected final boolean mFixContent;
 
     /*
     ////////////////////////////////////////////////////
@@ -208,6 +181,7 @@ public abstract class BaseStreamWriter
      */
     protected String mDtdRootElem = null;
 
+
     /*
     ////////////////////////////////////////////////////
     // State needed for efficient copy-through output
@@ -234,48 +208,20 @@ public abstract class BaseStreamWriter
     ////////////////////////////////////////////////////
      */
 
-    protected BaseStreamWriter(Writer w, String enc, WriterConfig cfg)
+    protected BaseStreamWriter(XmlWriter xw, String enc, WriterConfig cfg)
     {
-        mWriter = w;
+        mWriter = xw;
         mEncoding = enc;
         mConfig = cfg;
 
         int flags = cfg.getConfigFlags();
-        mNsAware = (flags & CFG_ENABLE_NS) != 0;
 
-        mCheckStructure = (flags & CFG_VALIDATE_STRUCTURE) != 0;
-        mCheckAttrs = (flags & CFG_VALIDATE_ATTR) != 0;
-        mCheckContent = (flags & CFG_VALIDATE_CONTENT) != 0;
-        mCheckNames = (flags & CFG_VALIDATE_NAMES) != 0;
-        mFixContent = (flags & CFG_FIX_CONTENT) != 0;
+        mCheckStructure = (flags & OutputConfigFlags.CFG_VALIDATE_STRUCTURE) != 0;
+        mCheckAttrs = (flags & OutputConfigFlags.CFG_VALIDATE_ATTR) != 0;
 
-        mCfgAutomaticEmptyElems = (flags & CFG_AUTOMATIC_EMPTY_ELEMS) != 0;
-        mCfgCDataAsText = (flags & CFG_OUTPUT_CDATA_AS_TEXT) != 0;
-        mCfgCopyDefaultAttrs = (flags & CFG_COPY_DEFAULT_ATTRS) != 0;
-    }
-
-    protected Writer constructAttributeValueWriter()
-        throws UnsupportedEncodingException
-    {
-        EscapingWriterFactory f = mConfig.getAttrValueEscaperFactory();
-        String enc = (mEncoding == null || mEncoding.length() == 0) ?
-            WstxOutputProperties.DEFAULT_OUTPUT_ENCODING : mEncoding;
-        if (f == null) {
-            return TextEscaper.constructAttrValueWriter(mWriter, enc, '"');
-        }
-        return f.createEscapingWriterFor(mWriter, enc);
-    }
-
-    protected Writer constructTextWriter()
-        throws UnsupportedEncodingException
-    {
-        EscapingWriterFactory f = mConfig.getTextEscaperFactory();
-        String enc = (mEncoding == null || mEncoding.length() == 0) ?
-            WstxOutputProperties.DEFAULT_OUTPUT_ENCODING : mEncoding;
-        if (f == null) {
-            return TextEscaper.constructTextWriter(mWriter, enc);
-        }
-        return f.createEscapingWriterFor(mWriter, enc);
+        mCfgAutomaticEmptyElems = (flags & OutputConfigFlags.CFG_AUTOMATIC_EMPTY_ELEMS) != 0;
+        mCfgCDataAsText = (flags & OutputConfigFlags.CFG_OUTPUT_CDATA_AS_TEXT) != 0;
+        mCfgCopyDefaultAttrs = (flags & OutputConfigFlags.CFG_COPY_DEFAULT_ATTRS) != 0;
     }
 
     /*
@@ -307,9 +253,16 @@ public abstract class BaseStreamWriter
          *   a state change, meaning no 'writeAttribute' calls can be
          *   made for the element.
          */
-        if (mStartElementOpen) {
-            closeStartElement(mEmptyElement);
-        }
+        /* 25-May-2006, TSa: On further though, above-mentioned changed
+         *   (which was include in 2.0.x) is wrong: although it may be
+         *   useful for some cases, it is also non-intuitive for most
+         *   developers, who find the new side effect surprising.
+         *   As thus, the behavior is reverted back to only flush buffers,
+         *   and NOT to change output state in any way.
+         */
+        //if (mStartElementOpen) {
+        //    closeStartElement(mEmptyElement);
+        //}
         safeFlushStream();
     }
 
@@ -366,29 +319,14 @@ public abstract class BaseStreamWriter
              */
             mValidator.validateText(data, false);
         }
+        int ix;
         try {
-            if (mCheckContent) {
-                int ix = verifyCDataContent(data);
-                if (ix >= 0) {
-                    // Can we fix it?
-                    if (mFixContent) { // Yes we can! (...Bob the Builder...)
-                        writeSegmentedCData(data, ix);
-                        return;
-                    }
-                    // nope, let's err out
-                    reportNwfContent(ErrorConsts.WERR_CDATA_CONTENT, new Integer(ix));
-                }
-            }
-            mWriter.write("<![CDATA[");
-            if (data != null) {
-                /* 20-Nov-2004, TSa: Should we try to validate content,
-                 *   and/or handle embedded end marker?
-                 */
-                mWriter.write(data);
-            }
-            mWriter.write("]]>");
+            ix = mWriter.writeCData(data);
         } catch (IOException ioe) {
             throw new WstxIOException(ioe);
+        }
+        if (ix >= 0) { // unfixable problems?
+            reportNwfContent(ErrorConsts.WERR_CDATA_CONTENT, new Integer(ix));
         }
     }
 
@@ -431,10 +369,7 @@ public abstract class BaseStreamWriter
 
         if (len > 0) { // minor optimization
             try {
-                if (mTextWriter == null) {
-                    mTextWriter = constructTextWriter();
-                }
-                mTextWriter.write(text, start, len);
+                mWriter.writeCharacters(text, start, len);
             } catch (IOException ioe) {
                 throw new WstxIOException(ioe);
             }
@@ -482,12 +417,9 @@ public abstract class BaseStreamWriter
             }
         }
 
-        // Ok, let's just write it out (if there's any text)
+        // Ok, let's just write it out
         try {
-            if (mTextWriter == null) {
-                mTextWriter = constructTextWriter();
-            }
-            mTextWriter.write(text);
+            mWriter.writeCharacters(text);
         } catch (IOException ioe) {
             throw new WstxIOException(ioe);
         }
@@ -507,28 +439,19 @@ public abstract class BaseStreamWriter
             reportInvalidContent(COMMENT);
         }
 
+        /* No structural validation needed per se, for comments; they are
+         * allowed anywhere in XML content. However, content may need to
+         * be checked (by XmlWriter)
+         */
+        int ix;
         try {
-            /* No structural validation needed per se, for comments; they are
-             * allowed anywhere in XML content. However, content may need to
-             * be checked, to see it has no embedded '--'s.
-             */
-            if (mCheckContent) {
-                int ix = verifyCommentContent(data);
-                if (ix >= 0) {
-                    // Can we fix it?
-                    if (mFixContent) { // Yes we can! (...Bob the Builder...)
-                        writeSegmentedComment(data, ix);
-                        return;
-                    }
-                    // nope, let's err out
-                    reportNwfContent(ErrorConsts.WERR_COMMENT_CONTENT, new Integer(ix));
-                }
-            }
-            mWriter.write("<!--");
-            mWriter.write(data);
-            mWriter.write("-->");
+            ix = mWriter.writeComment(data);
         } catch (IOException ioe) {
             throw new WstxIOException(ioe);
+        }
+
+        if (ix >= 0) {
+            reportNwfContent(ErrorConsts.WERR_COMMENT_CONTENT, new Integer(ix));
         }
     }
 
@@ -541,7 +464,7 @@ public abstract class BaseStreamWriter
         verifyWriteDTD();
         mDtdRootElem = ""; // marker to verify only one is output
         try {
-            mWriter.write(dtd);
+            mWriter.writeDTD(dtd);
         } catch (IOException ioe) {
             throw new WstxIOException(ioe);
         }
@@ -603,10 +526,6 @@ public abstract class BaseStreamWriter
              */
             reportInvalidContent(ENTITY_REFERENCE);
         }
-        
-        if (mCheckNames) {
-            verifyNameValidity(name, mNsAware);
-        }
 
         //if (mValidator != null) {
             /* !!! 11-Dec-2005, TSa: Should be able to use DTD based validators
@@ -615,9 +534,7 @@ public abstract class BaseStreamWriter
         //}
 
         try {
-            mWriter.write('&');
-            mWriter.write(name);
-            mWriter.write(';');
+            mWriter.writeEntityReference(name);
         } catch (IOException ioe) {
             throw new WstxIOException(ioe);
         }
@@ -641,42 +558,19 @@ public abstract class BaseStreamWriter
             closeStartElement(mEmptyElement);
         }
 
-        // Structurally, PIs are always ok. But content may need to be checked.
-        if (mCheckNames) {
-            // As per namespace specs, can not have colon(s)
-            verifyNameValidity(target, mNsAware);
-        }
+        // Structurally, PIs are always ok (content might not be)
         // 08-Dec-2005, TSa: validator-based validation?
         if (mVldContent == XMLValidator.CONTENT_ALLOW_NONE) {
             reportInvalidContent(PROCESSING_INSTRUCTION);
         }
-        if (mCheckContent) {
-            if (data != null && data.length() > 1) {
-                int ix = data.indexOf('?');
-                if (ix >= 0) {
-                    ix = data.indexOf("?>", ix);
-                    if (ix >= 0) {
-                        throw new XMLStreamException("Illegal input: processing instruction content has embedded '?>' in it (index "+ix+")");
-                    }
-                }
-            }
-        }
-
+        int ix;
         try {
-            mWriter.write("<?");
-            mWriter.write(target);
-            if (data != null && data.length() > 0) {
-                /* 11-Nov-2004, TSa: Let's see if it starts with a space:
-                 *  if so, no need to add extra space(s).
-                 */
-                if (data.charAt(0) > CHAR_SPACE) {
-                    mWriter.write(' ');
-                }
-                mWriter.write(data);
-            }
-            mWriter.write("?>");
+            ix = mWriter.writePI(target, data);
         } catch (IOException ioe) {
             throw new WstxIOException(ioe);
+        }
+        if (ix >= 0) {
+            throw new XMLStreamException("Illegal input: processing instruction content has embedded '?>' in it (index "+ix+")");
         }
     }
 
@@ -692,8 +586,10 @@ public abstract class BaseStreamWriter
          *   Plus, what the heck; let's use properly capitalized value
          *   too (and ignore faulty def in stax specs).
          */
-        String enc = (mEncoding == null) ? WstxOutputProperties.DEFAULT_OUTPUT_ENCODING : mEncoding;
-        writeStartDocument(enc, WstxOutputProperties.DEFAULT_XML_VERSION);
+        if (mEncoding == null) {
+            mEncoding = WstxOutputProperties.DEFAULT_OUTPUT_ENCODING;
+        }
+        writeStartDocument(mEncoding, WstxOutputProperties.DEFAULT_XML_VERSION);
     }
 
     public void writeStartDocument(String version)
@@ -723,7 +619,7 @@ public abstract class BaseStreamWriter
 
         mAnyOutput = true;
 
-        if (mCheckContent) {
+        if (mConfig.willValidateContent()) {
             // !!! 06-May-2004, TSa: Should validate encoding?
             /*if (encoding != null) {
             }*/
@@ -745,32 +641,20 @@ public abstract class BaseStreamWriter
          *   document...
          */
         mXml11 = XmlConsts.XML_V_11_STR.equals(version);
+        if (mXml11) {
+            mWriter.enableXml11();
+        }
 
         if (encoding != null && encoding.length() > 0) {
             /* 03-May-2005, TSa: But what about conflicting encoding? Let's
-             *   just update encoding, if it wasn't set.
+             *   only update encoding, if it wasn't set.
              */
             if (mEncoding == null || mEncoding.length() == 0) {
                 mEncoding = encoding;
             }
         }
-
         try {
-            mWriter.write("<?xml version='");
-            mWriter.write(version);
-            mWriter.write('\'');
-
-            if (encoding != null && encoding.length() > 0) {
-                mWriter.write(" encoding='");
-                mWriter.write(encoding);
-                mWriter.write('\'');
-            }
-            if (standAlone != null) {
-                mWriter.write(" standalone='");
-                mWriter.write(standAlone);
-                mWriter.write('\'');
-            }
-            mWriter.write("?>");
+            mWriter.writeXmlDeclaration(version, encoding, standAlone);
         } catch (IOException ioe) {
             throw new WstxIOException(ioe);
         }
@@ -791,6 +675,184 @@ public abstract class BaseStreamWriter
     // XMLStreamWriter2 methods (StAX2)
     ////////////////////////////////////////////////////
      */
+
+    /**
+     * Method that essentially copies event that the specified reader has
+     * just read.
+     *
+     * @param sr Stream reader to use for accessing event to copy
+     * @param preserveEventData If true, writer is not allowed to change
+     *   the state of the reader (so that all the data associated with the
+     *   current event has to be preserved); if false, writer is allowed
+     *   to use methods that may cause some data to be discarded. Setting
+     *   this to false may improve the performance, since it may allow
+     *   full no-copy streaming of data, especially textual contents.
+     */
+    public void copyEventFromReader(XMLStreamReader2 sr, boolean preserveEventData)
+        throws XMLStreamException
+    {
+        try {
+            switch (sr.getEventType()) {
+            case START_DOCUMENT:
+                {
+                    String version = sr.getVersion();
+                    /* No real declaration? If so, we don't want to output
+                     * anything, to replicate as closely as possible the
+                     * source document
+                     */
+                    if (version == null || version.length() == 0) {
+                        ; // no output if no real input
+                    } else {
+                        if (sr.standaloneSet()) {
+                            writeStartDocument(sr.getVersion(),
+                                               sr.getCharacterEncodingScheme(),
+                                               sr.isStandalone());
+                        } else {
+                            writeStartDocument(sr.getCharacterEncodingScheme(),
+                                               sr.getVersion());
+                        }
+                    }
+                }
+                return;
+                
+            case END_DOCUMENT:
+                writeEndDocument();
+                return;
+                
+                // Element start/end events:
+            case START_ELEMENT:
+                {
+                    if (sr != mLastReader) {
+                        mLastReader = sr;
+                        // Should probably work with non-Woodstox stream
+                        // readers too... but that's not implemented yet
+                        if (!(sr instanceof StreamReaderImpl)) {
+                            throw new XMLStreamException("Can not yet copy START_ELEMENT events from non-Woodstox stream readers (class "+sr.getClass()+")");
+                        }
+                        mLastReaderImpl = (StreamReaderImpl) sr;
+                        mAttrCollector = mLastReaderImpl.getAttributeCollector();
+                        mInputElemStack = mLastReaderImpl.getInputElementStack();
+                    }
+                    copyStartElement(mInputElemStack, mAttrCollector);
+                }
+                return;
+
+            case END_ELEMENT:
+                writeEndElement();
+                return;
+                
+            case SPACE:
+                {
+                    mAnyOutput = true;
+                    // Need to finish an open start element?
+                    if (mStartElementOpen) {
+                        closeStartElement(mEmptyElement);
+                    }
+                    /* No need to write as chars, should be pure space
+                     * (caller should have verified); also, no escaping
+                     * necessary.
+                     */
+                    sr.getText(wrapAsRawWriter(), preserveEventData);
+                }
+                return;
+
+            case CDATA:
+
+                // First; is this to be changed to 'normal' text output?
+                if (!mCfgCDataAsText) {
+                    mAnyOutput = true;
+                    // Need to finish an open start element?
+                    if (mStartElementOpen) {
+                        closeStartElement(mEmptyElement);
+                    }
+
+                    // Not legal outside main element tree:
+                    if (mCheckStructure) {
+                        if (inPrologOrEpilog()) {
+                            reportNwfStructure(ErrorConsts.WERR_PROLOG_CDATA);
+                        }
+                    }
+                    /* Note: no need to check content, since reader is assumed
+                     * to have verified it to be valid XML.
+                     */
+                    mWriter.writeCDataStart();
+                    sr.getText(wrapAsRawWriter(), preserveEventData);
+                    mWriter.writeCDataEnd();
+                    return;
+                }
+                // fall down if it is to be converted...
+
+            case CHARACTERS:
+                {
+                    // Let's just assume content is fine... not 100% reliably
+                    // true, but usually is (not true if input had a root
+                    // element surrounding text, but omitted for output)
+                    mAnyOutput = true;
+                    // Need to finish an open start element?
+                    if (mStartElementOpen) {
+                        closeStartElement(mEmptyElement);
+                    }
+                    sr.getText(wrapAsTextWriter(), preserveEventData);
+                }
+                return;
+                
+            case COMMENT:
+                {
+                    mAnyOutput = true;
+                    if (mStartElementOpen) {
+                        closeStartElement(mEmptyElement);
+                    }
+                    // No need to check for content (embedded '--'); reader
+                    // is assumed to have verified it's ok (otherwise should
+                    // have thrown an exception for non-well-formed XML)
+                    mWriter.writeCommentStart();
+                    sr.getText(wrapAsRawWriter(), preserveEventData);
+                    mWriter.writeCommentEnd();
+                }
+                return;
+
+            case PROCESSING_INSTRUCTION:
+                {
+                    mWriter.writePIStart(sr.getPITarget(), true);
+                    sr.getText(wrapAsRawWriter(), preserveEventData);
+                    mWriter.writePIEnd();
+                }
+                return;
+                
+            case DTD:
+                {
+                    DTDInfo info = sr.getDTDInfo();
+                    if (info == null) {
+                        // Hmmmh. It is legal for this to happen, for
+                        // non-DTD-aware readers. But what is the right
+                        // thing to do here?
+                        throwOutputError("Current state DOCTYPE, but not DTDInfo Object returned -- reader doesn't support DTDs?");
+                    }
+                    // Could optimize this a bit (stream the int. subset
+                    // possible), but it's never going to occur more than
+                    // once per document, so it's probably not much of a
+                    // bottleneck, ever
+                    writeDTD(info);
+                }
+                return;
+                
+            case ENTITY_REFERENCE:
+                writeEntityRef(sr.getLocalName());
+                return;
+
+            case ATTRIBUTE:
+            case NAMESPACE:
+            case ENTITY_DECLARATION:
+            case NOTATION_DECLARATION:
+                // Let's just fall back to throw the exception
+            }
+        } catch (IOException ioe) {
+            throw new WstxIOException(ioe);
+        }
+
+        throw new XMLStreamException("Unrecognized event type ("
+                                     +sr.getEventType()+"); not sure how to copy");
+    }
 
     /*
     ////////////////////////////////////////////////////
@@ -884,13 +946,16 @@ public abstract class BaseStreamWriter
     ////////////////////////////////////////////////////
      */
 
-    public Location getLocation()
+    public XMLStreamLocation2 getLocation()
     {
-        /* !!! 08-Dec-2005, TSa: Should implement a mode in which writer does
-         *   keep track of the output location. Would be useful when debugging
-         *   problems, especially regarding output validation problem.
-         */
-        return null;
+        return new WstxInputLocation(null, // no parent
+                                     null, null, // pub/sys ids not yet known
+                                     mWriter.getAbsOffset(),
+                                     mWriter.getRow(), mWriter.getColumn());
+    }
+
+    public String getEncoding() {
+        return mEncoding;
     }
 
     /*
@@ -899,7 +964,7 @@ public abstract class BaseStreamWriter
     ////////////////////////////////////////////////////
      */
 
-    public void writeCData(char[] c, int start, int len)
+    public void writeCData(char[] cbuf, int start, int len)
         throws XMLStreamException
     {
         /* 02-Dec-2004, TSa: Maybe the writer is to "re-direct" these
@@ -907,9 +972,10 @@ public abstract class BaseStreamWriter
          *   XML parsers, for example)
          */
         if (mCfgCDataAsText) {
-            writeCharacters(c, start, len);
+            writeCharacters(cbuf, start, len);
             return;
         }
+
         mAnyOutput = true;
         // Need to finish an open start element?
         if (mStartElementOpen) {
@@ -921,27 +987,16 @@ public abstract class BaseStreamWriter
             /* Last arg is false, since we do not know if more text
              * may be added with additional calls
              */
-            mValidator.validateText(c, start, len, false);
+            mValidator.validateText(cbuf, start, len, false);
         }
+        int ix;
         try {
-            if (mCheckContent && c != null) {
-                int ix = verifyCDataContent(c, start, len);
-                if (ix >= 0) { // problem?
-                    if (mFixContent) { // can we fix it?
-                        writeSegmentedCData(c, start, len, ix);
-                        return;
-                    }
-                    // nope, let's err out
-                    throwOutputError(ErrorConsts.WERR_CDATA_CONTENT, new Integer(ix));
-                }
-            }
-            mWriter.write("<![CDATA[");
-            if (c != null) {
-                mWriter.write(c, start, len);
-            }
-            mWriter.write("]]>");
+            ix = mWriter.writeCData(cbuf, start, len);
         } catch (IOException ioe) {
             throw new WstxIOException(ioe);
+        }
+        if (ix >= 0) { // problems that could not to be fixed?
+            throwOutputError(ErrorConsts.WERR_CDATA_CONTENT, new Integer(ix));
         }
     }
 
@@ -957,36 +1012,9 @@ public abstract class BaseStreamWriter
         throws XMLStreamException
     {
         verifyWriteDTD();
-        if (mCheckNames) {
-            /* 20-Apr-2005, TSa: Can only really verify that it has at most
-             *    one colon in ns-aware mode (and not even that in non-ns
-             *    mode)... so let's just ignore colon count, and check
-             *    that other chars are valid at least
-             */
-            verifyNameValidity(rootName, false);
-        }
         mDtdRootElem = rootName;
         try {
-            mWriter.write("<!DOCTYPE ");
-            mWriter.write(rootName);
-            if (systemId != null) {
-                if (publicId != null) {
-                    mWriter.write(" PUBLIC \"");
-                    mWriter.write(publicId);
-                    mWriter.write("\" \"");
-                } else {
-                    mWriter.write(" SYSTEM \"");
-                }
-                mWriter.write(systemId);
-                mWriter.write('"');
-            }
-            // Hmmh. Should we out empty internal subset?
-            if (internalSubset != null && internalSubset.length() > 0) {
-                mWriter.write(" [");
-                mWriter.write(internalSubset);
-                mWriter.write(']');
-            }
-            mWriter.write('>');
+            mWriter.writeDTD(rootName, systemId, publicId, internalSubset);
         } catch (IOException ioe) {
             throw new WstxIOException(ioe);
         }
@@ -1009,7 +1037,21 @@ public abstract class BaseStreamWriter
             closeStartElement(mEmptyElement);
         }
         try {
-            mWriter.write(text);
+            mWriter.writeRaw(text, 0, text.length());
+        } catch (IOException ioe) {
+            throw new WstxIOException(ioe);
+        }
+    }
+
+    public void writeRaw(String text, int start, int offset)
+        throws XMLStreamException
+    {
+        mAnyOutput = true;
+        if (mStartElementOpen) {
+            closeStartElement(mEmptyElement);
+        }
+        try {
+            mWriter.writeRaw(text, start, offset);
         } catch (IOException ioe) {
             throw new WstxIOException(ioe);
         }
@@ -1023,218 +1065,10 @@ public abstract class BaseStreamWriter
             closeStartElement(mEmptyElement);
         }
         try {
-            mWriter.write(text, offset, length);
+            mWriter.writeRaw(text, offset, length);
         } catch (IOException ioe) {
             throw new WstxIOException(ioe);
         }
-    }
-
-    /**
-     * Method that essentially copies event that the specified reader has
-     * just read.
-     *
-     * @param sr Stream reader to use for accessing event to copy
-     * @param preserveEventData If true, writer is not allowed to change
-     *   the state of the reader (so that all the data associated with the
-     *   current event has to be preserved); if false, writer is allowed
-     *   to use methods that may cause some data to be discarded. Setting
-     *   this to false may improve the performance, since it may allow
-     *   full no-copy streaming of data, especially textual contents.
-     */
-    public void copyEventFromReader(XMLStreamReader2 sr, boolean preserveEventData)
-        throws XMLStreamException
-    {
-        try {
-
-// Uncomment for debugging:
-//System.err.println("EVENT -> "+sr.getEventType());
-            switch (sr.getEventType()) {
-                /* Document start/end events:
-                 */
-            case START_DOCUMENT:
-                {
-                    String version = sr.getVersion();
-                    /* No real declaration? If so, we don't want to output
-                     * anything, to replicate as closely as possible the
-                     * source document
-                     */
-                    if (version == null || version.length() == 0) {
-                        ; // no output if no real input
-                    } else {
-                        if (sr.standaloneSet()) {
-                            writeStartDocument(sr.getVersion(),
-                                               sr.getCharacterEncodingScheme(),
-                                               sr.isStandalone());
-                        } else {
-                            writeStartDocument(sr.getCharacterEncodingScheme(),
-                                               sr.getVersion());
-                        }
-                    }
-                }
-                return;
-                
-            case END_DOCUMENT:
-                writeEndDocument();
-                return;
-                
-                // Element start/end events:
-            case START_ELEMENT:
-                {
-                    if (sr != mLastReader) {
-                        mLastReader = sr;
-                        /* !!! Should probably work with non-Woodstox stream
-                         * readers too... but that's not implemented yet
-                         */
-                        if (!(sr instanceof StreamReaderImpl)) {
-                            throw new XMLStreamException("Can not yet copy START_ELEMENT events from non-Woodstox stream readers (class "+sr.getClass()+")");
-                        }
-                        mLastReaderImpl = (StreamReaderImpl) sr;
-                        mAttrCollector = mLastReaderImpl.getAttributeCollector();
-                        mInputElemStack = mLastReaderImpl.getInputElementStack();
-                    }
-                    copyStartElement(mInputElemStack, mAttrCollector);
-                }
-                return;
-
-            case END_ELEMENT:
-                writeEndElement();
-                return;
-                
-                /* Textual events:
-                 */
-                
-            case CDATA:
-                // First; is this to be changed to 'normal' text output?
-                if (!mCfgCDataAsText) {
-                    mAnyOutput = true;
-                    // Need to finish an open start element?
-                    if (mStartElementOpen) {
-                        closeStartElement(mEmptyElement);
-                    }
-
-                    // Not legal outside main element tree:
-                    if (mCheckStructure) {
-                        if (inPrologOrEpilog()) {
-                            reportNwfStructure(ErrorConsts.WERR_PROLOG_CDATA);
-                        }
-                    }
-                    /* Note: no need to check content, since reader is assumed
-                     * to have verified it to be valid XML.
-                     */
-
-                    /* No encoding necessary for CDATA... but we do need start
-                     * and end markers
-                     */
-                    mWriter.write("<![CDATA[");
-                    sr.getText(mWriter, preserveEventData);
-                    mWriter.write("]]>");
-                    return;
-                }
-                // fall down if it is to be converted...
-                
-            case SPACE:
-                {
-                    mAnyOutput = true;
-                    // Need to finish an open start element?
-                    if (mStartElementOpen) {
-                        closeStartElement(mEmptyElement);
-                    }
-                    // No need to use mTextWriter, should be pure space
-                    sr.getText(mWriter, preserveEventData);
-                }
-                return;
-
-            case CHARACTERS:
-                {
-                    /* Let's just assume content is fine... not 100% reliably
-                     * true, but usually is (not true if input had a root
-                     * element surrounding text, but omitted for output)
-                     */
-                    mAnyOutput = true;
-                    // Need to finish an open start element?
-                    if (mStartElementOpen) {
-                        closeStartElement(mEmptyElement);
-                    }
-
-                    /* Need to pass mTextWriter, to make sure encoding is done
-                     * properly; but no start/end markers are needed
-                     */
-                    if (mTextWriter == null) {
-                        mTextWriter = constructTextWriter();
-                    }
-                    sr.getText(mTextWriter, preserveEventData);
-                }
-                return;
-                
-            case COMMENT:
-                {
-                    mAnyOutput = true;
-                    if (mStartElementOpen) {
-                        closeStartElement(mEmptyElement);
-                    }
-                    /* No need to check for content (embedded '--'); reader
-                     * is assumed to have verified it's ok (otherwise should
-                     * have thrown an exception for non-well-formed XML)
-                     */
-                    mWriter.write("<!--");
-                    sr.getText(mWriter, preserveEventData);
-                    mWriter.write("-->");
-                }
-                return;
-
-            case PROCESSING_INSTRUCTION:
-                {
-                    // No streaming alternative for PI (yet)?
-                    String target = sr.getPITarget();
-                    String data = sr.getPIData();
-                    if (data == null) {
-                        writeProcessingInstruction(target);
-                    } else {
-                        writeProcessingInstruction(target, data);
-                    }
-                }
-                return;
-                
-            case DTD:
-                {
-                    DTDInfo info = sr.getDTDInfo();
-                    if (info == null) {
-                        /* Hmmmh. It is legal for this to happen, for
-                         * non-DTD-aware readers. But what is the right
-                         * thing to do here? DOCTYPE can not be output
-                         * without the root name, and if we can not access
-                         * it, there's no way to write a valid thing.
-                         * So, let's just throw an exception.
-                         */
-                        throwOutputError("Current state DOCTYPE, but not DTDInfo Object returned -- reader doesn't support DTDs?");
-                    }
-                    /* Could optimize this a bit (stream the int. subset
-                     * possible), but it's never going to occur more than
-                     * once per document, so it's probably not much of a
-                     * bottleneck, ever
-                     */
-                    writeDTD(info);
-                }
-                return;
-                
-            case ENTITY_REFERENCE:
-                writeEntityRef(sr.getLocalName());
-                return;
-                
-                /* Weird ones..
-                 */
-            case ATTRIBUTE:
-            case NAMESPACE:
-            case ENTITY_DECLARATION:
-            case NOTATION_DECLARATION:
-                // Let's just fall back to throw the exception
-            }
-        } catch (IOException ioe) {
-            throw new WstxIOException(ioe);
-        }
-
-        throw new XMLStreamException("Unrecognized event type ("
-                                     +sr.getEventType()+"); not sure how to copy");
     }
 
     /*
@@ -1329,6 +1163,26 @@ public abstract class BaseStreamWriter
      */
 
     /**
+     * Method that can be called to get a wrapper instance that
+     * can be used to essentially call the <code>writeRaw</code>
+     * method via regular <code>Writer</code> interface.
+     */
+    public final Writer wrapAsRawWriter()
+    {
+        return mWriter.wrapAsRawWriter();
+    }
+
+    /**
+     * Method that can be called to get a wrapper instance that
+     * can be used to essentially call the <code>writeCharacters</code>
+     * method via regular <code>Writer</code> interface.
+     */
+    public final Writer wrapAsTextWriter()
+    {
+        return mWriter.wrapAsTextWriter();
+    }
+
+    /**
      * Method that is used by output classes to determine whether we
      * are in validating mode.
      *<p>
@@ -1338,15 +1192,6 @@ public abstract class BaseStreamWriter
      */
     protected boolean isValidating() {
         return (mValidator != null);
-    }
-
-    /**
-     * Method needed by {@link com.ctc.wstx.evt.WstxEventWriter}, when it
-     * needs/wants to
-     * do direct output, without calling methods in this class (not often).
-     */
-    public Writer getWriter() {
-        return mWriter;
     }
 
     /**
@@ -1372,11 +1217,18 @@ public abstract class BaseStreamWriter
      * this character output type is legal in this context. Specifically,
      * it's not acceptable to add non-whitespace content outside root
      * element (in prolog/epilog).
+     *<p>
+     * Note: cut'n pasted from the main <code>writeCharacters</code>; not
+     * good... but done to optimize white-space cases.
      */
-
     public void writeCharacters(Characters ch)
         throws XMLStreamException
     {
+        // Need to finish an open start element?
+        if (mStartElementOpen) {
+            closeStartElement(mEmptyElement);
+        }
+
         /* Not legal outside main element tree, except if it's all
          * white space
          */
@@ -1388,17 +1240,26 @@ public abstract class BaseStreamWriter
             }
         }
 
-        // Need to finish an open start element?
-        if (mStartElementOpen) {
-            closeStartElement(mEmptyElement);
+        if (mVldContent <= XMLValidator.CONTENT_ALLOW_WS) {
+            if (mVldContent == XMLValidator.CONTENT_ALLOW_NONE) { // never ok
+                reportInvalidContent(CHARACTERS);
+            } else { // all-ws is ok...
+                if (!ch.isIgnorableWhiteSpace() && !ch.isWhiteSpace()) {
+                    reportInvalidContent(CHARACTERS);
+                }
+            }
+        } else if (mVldContent == XMLValidator.CONTENT_ALLOW_VALIDATABLE_TEXT) {
+            if (mValidator != null) {
+                /* Last arg is false, since we do not know if more text
+                 * may be added with additional calls
+                 */
+                mValidator.validateText(ch.getData(), false);
+            }
         }
 
         // Ok, let's just write it out:
         try {
-            if (mTextWriter == null) {
-                mTextWriter = constructTextWriter();
-            }
-            mTextWriter.write(ch.getData());
+            mWriter.writeCharacters(ch.getData());
         } catch (IOException ioe) {
             throw new WstxIOException(ioe);
         }
@@ -1412,7 +1273,7 @@ public abstract class BaseStreamWriter
     protected abstract void closeStartElement(boolean emptyElem)
         throws XMLStreamException;
 
-    public boolean inPrologOrEpilog() {
+    protected final boolean inPrologOrEpilog() {
         return (mState != STATE_TREE);
     }
 
@@ -1424,17 +1285,11 @@ public abstract class BaseStreamWriter
                                           AttributeCollector attrCollector)
         throws IOException, XMLStreamException;
 
-    public void flushStream()
-        throws IOException
-    {
-        mWriter.flush();
-    }
-
-    public void safeFlushStream()
+    protected final void safeFlushStream()
         throws XMLStreamException
     {
         try {
-            flushStream();
+            mWriter.flush();
         } catch (IOException ie) {
             throw new WstxIOException(ie);
         }
@@ -1446,29 +1301,6 @@ public abstract class BaseStreamWriter
     ////////////////////////////////////////////////////
      */
 
-    /**
-     * Method called to verify that the name is a legal XML name.
-     */
-    public final void verifyNameValidity(String name, boolean nsAware)
-        throws XMLStreamException
-    {
-        /* No empty names... caller must have dealt with optional arguments
-         * prior to calling this method
-         */
-        if (name == null || name.length() == 0) {
-            reportNwfName(ErrorConsts.WERR_NAME_EMPTY);
-        }
-        int illegalIx = WstxInputData.findIllegalNameChar(name, nsAware, mXml11);
-        if (illegalIx >= 0) {
-            if (illegalIx == 0) {
-                reportNwfName(ErrorConsts.WERR_NAME_ILLEGAL_FIRST_CHAR,
-                              WstxInputData.getCharDesc(name.charAt(0)));
-            }
-            reportNwfName(ErrorConsts.WERR_NAME_ILLEGAL_CHAR,
-                          WstxInputData.getCharDesc(name.charAt(illegalIx)));
-        }
-    }
-    
     protected void verifyWriteCData()
         throws XMLStreamException
     {
@@ -1498,60 +1330,6 @@ public abstract class BaseStreamWriter
                 throw new XMLStreamException("Trying to write multiple DOCTYPE declarations");
             }
         }
-    }
-
-    /**
-     * @return Index at which a problem was found, if any; -1 if there's
-     *   no problem.
-     */
-    protected int verifyCDataContent(String content)
-    {
-        if (content != null && content.length() >= 3) {
-            int ix = content.indexOf(']');
-            if (ix >= 0) {
-                return content.indexOf("]]>", ix);
-            }
-        }
-        return -1;
-    }
-
-    protected int verifyCDataContent(char[] c, int start, int end)
-    {
-        if (c != null) {
-            start += 2;
-            /* Let's do simple optimization for search...
-             * (bayer-moore search algorithm)
-             */
-            while (start < end) {
-                char ch = c[start];
-                if (ch == ']') {
-                    ++start; // let's just move by one in this case
-                    continue;
-                }
-                if (ch == '>') { // match?
-                    if (c[start-1] == ']' 
-                        && c[start-2] == ']') {
-                        return start-2;
-                    }
-                }
-                start += 2;
-            }
-        }
-        return -1;
-    }
-    
-    protected int verifyCommentContent(String content)
-    {
-        int ix = content.indexOf('-');
-        if (ix >= 0) {
-            /* actually, it's illegal to just end with '-' too, since 
-             * that would cause invalid end marker '--->'
-             */
-            if (ix < (content.length() - 1)) {
-                ix = content.indexOf("--", ix);
-            }
-        }
-        return ix;
     }
 
     protected void verifyRootElement(String localName, String prefix)
@@ -1597,86 +1375,6 @@ public abstract class BaseStreamWriter
             }
         }
         mState = STATE_TREE;
-    }
-
-    protected void writeSegmentedCData(String content, int index)
-        throws IOException
-    {
-        /* It's actually fairly easy, just split "]]>" into 2 pieces;
-         * for each ']]>'; first one containing "]]", second one ">"
-         * (as long as necessary)
-         */
-        int start = 0;
-        while (index >= 0) {
-            mWriter.write("<![CDATA[");
-            mWriter.write(content, start, (index+2) - start);
-            mWriter.write("]]>");
-            start = index+2;
-            index = content.indexOf("]]>", start);
-        }
-        // Ok, then the last segment
-        mWriter.write("<![CDATA[");
-        mWriter.write(content, start, content.length()-start);
-        mWriter.write("]]>");
-    }
-
-    protected void writeSegmentedCData(char[] c, int start, int len, int index)
-        throws IOException
-    {
-        int end = start + len;
-        while (index >= 0) {
-            mWriter.write("<![CDATA[");
-            mWriter.write(c, start, (index+2) - start);
-            mWriter.write("]]>");
-            start = index+2;
-            index = verifyCDataContent(c, start, end);
-        }
-        // Ok, then the last segment
-        mWriter.write("<![CDATA[");
-        mWriter.write(c, start, end-start);
-        mWriter.write("]]>");
-    }
-
-    protected void writeSegmentedComment(String content, int index)
-        throws IOException
-    {
-        int len = content.length();
-        // First the special case (last char is hyphen):
-        if (index == (len-1)) {
-            mWriter.write("<!--");
-            mWriter.write(content);
-            // we just need to inject one space in there
-            mWriter.write(" -->");
-            return;
-        }
-        
-        /* Fixing comments is more difficult than that of CDATA segments';
-         * this because CDATA can still contain embedded ']]'s, but
-         * comment neither allows '--' nor ending with '-->'; which means
-         * that it's impossible to just split segments. Instead we'll do
-         * something more intrusive, and embed single spaces between all
-         * '--' character pairs... it's intrusive, but comments are not
-         * supposed to contain any data, so that should be fine (plus
-         * at least result is valid, unlike contents as is)
-         */
-        int start = 0;
-        while (index >= 0) {
-            mWriter.write("<!--");
-            // first, content prior to '--' and the first hyphen
-            mWriter.write(content, start, (index+1) - start);
-            // and an obligatory trailing space to split double-hyphen
-            mWriter.write(' ');
-            // still need to handle rest of consequtive double'-'s if any
-            start = index+1;
-            index = content.indexOf("--", start);
-        }
-        // Ok, then the last segment
-        mWriter.write(content, start, len-start);
-        // ends with a hyphen? that needs to be fixed, too
-        if (content.charAt(len-1) == '-') {
-            mWriter.write(' ');
-        }
-        mWriter.write("-->");
     }
 
     /*
@@ -1739,24 +1437,6 @@ public abstract class BaseStreamWriter
     }
 
     protected static void reportNwfContent(String msg, Object arg)
-        throws XMLStreamException
-    {
-        throwOutputError(msg, arg);
-    }
-
-    /**
-     * This is the method called when an output method call violates
-     * name well-formedness checks
-     * and {@link WstxOutputProperties#P_OUTPUT_VALIDATE_NAMES} is
-     * is enabled.
-     */
-    protected static void reportNwfName(String msg)
-        throws XMLStreamException
-    {
-        throwOutputError(msg);
-    }
-
-    protected static void reportNwfName(String msg, Object arg)
         throws XMLStreamException
     {
         throwOutputError(msg, arg);

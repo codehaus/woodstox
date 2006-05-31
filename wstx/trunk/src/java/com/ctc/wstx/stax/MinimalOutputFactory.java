@@ -15,10 +15,7 @@
 
 package com.ctc.wstx.stax;
 
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
-import java.io.Writer;
+import java.io.*;
 import java.util.HashMap;
 
 import javax.xml.transform.Result;
@@ -29,11 +26,10 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.stream.*;
 
 import com.ctc.wstx.api.WriterConfig;
+import com.ctc.wstx.api.WstxOutputProperties;
 import com.ctc.wstx.cfg.OutputConfigFlags;
-import com.ctc.wstx.sw.BaseStreamWriter;
-import com.ctc.wstx.sw.NonNsStreamWriter;
-import com.ctc.wstx.sw.RepairingNsStreamWriter;
-import com.ctc.wstx.sw.SimpleNsStreamWriter;
+import com.ctc.wstx.io.CharsetNames;
+import com.ctc.wstx.sw.*;
 import com.ctc.wstx.util.ArgUtil;
 
 /**
@@ -160,30 +156,49 @@ public final class MinimalOutputFactory
     private BaseStreamWriter createSW(OutputStream out, Writer w, String enc)
         throws XMLStreamException
     {
-        /* 03-May-2005, TSa: For now, let's just use JDK-provided encoders...
-         *   for 3.x, maybe we can try to provide optimized ones -- these
-         *   would mostly help with quoted content (can do quoting along
-         *   with encoding).
+        /* Need to ensure that the configuration object is not shared
+         * any more; otherwise later changes via factory could be
+         * visible half-way through output...
          */
+        WriterConfig cfg = mConfig.createNonShared();
+        XmlWriter xw;
+
         if (w == null) {
+            if (enc == null) {
+                enc = WstxOutputProperties.DEFAULT_OUTPUT_ENCODING;
+            } else {
+                enc = CharsetNames.normalize(enc);
+            }
+            /* !!! 15-May-2006, TSa: Need to use stream-based XmlWriter
+             *   soon, but let's first try out writer-based one
+             */
             try {
-                if (enc == null) {
-                    w = new OutputStreamWriter(out);
-                } else {
-                    w = new OutputStreamWriter(out, enc);
+                w = new OutputStreamWriter(out, enc);
+                xw = new BufferingXmlWriter(w, cfg, enc);
+            } catch (IOException ex) {
+                throw new XMLStreamException(ex);
+            }
+        } else {
+            // we may still be able to figure out the encoding:
+            if (enc == null) {
+                if (w instanceof OutputStreamWriter) {
+                    enc = ((OutputStreamWriter) w).getEncoding();
                 }
-            } catch (UnsupportedEncodingException ex) {
+            }
+            try {
+                xw = new BufferingXmlWriter(w, cfg, enc);
+            } catch (IOException ex) {
                 throw new XMLStreamException(ex);
             }
         }
 
-        if (mConfig.willSupportNamespaces()) {
-            if (mConfig.automaticNamespacesEnabled()) {
-                return new RepairingNsStreamWriter(w, enc, mConfig);
+        if (cfg.willSupportNamespaces()) {
+            if (cfg.automaticNamespacesEnabled()) {
+                return new RepairingNsStreamWriter(xw, enc, cfg);
             }
-            return new SimpleNsStreamWriter(w, enc, mConfig);
+            return new SimpleNsStreamWriter(xw, enc, cfg);
         }
-        return new NonNsStreamWriter(w, enc, mConfig);
+        return new NonNsStreamWriter(xw, enc, cfg);
     }
 
     private BaseStreamWriter createSW(Result res)

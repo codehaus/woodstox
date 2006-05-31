@@ -16,32 +16,32 @@ public final class CharsetNames
 
     // // // Unicode variants:
 
-    final static String CS_US_ASCII = "US-ASCII";
-    final static String CS_UTF8 = "UTF-8";
+    public final static String CS_US_ASCII = "US-ASCII";
+    public final static String CS_UTF8 = "UTF-8";
 
     /**
      * This constants is intentionally vague, so that some other information
      * will be needed to determine the endianness.
      */
-    final static String CS_UTF16 = "UTF-16";
+    public final static String CS_UTF16 = "UTF-16";
 
-    final static String CS_UTF16BE = "UTF-16BE";
-    final static String CS_UTF16LE = "UTF-16LE";
-    final static String CS_UTF32 = "UTF-32";
-    final static String CS_UTF32BE = "UTF-32BE";
-    final static String CS_UTF32LE = "UTF-32LE";
+    public final static String CS_UTF16BE = "UTF-16BE";
+    public final static String CS_UTF16LE = "UTF-16LE";
+    public final static String CS_UTF32 = "UTF-32";
+    public final static String CS_UTF32BE = "UTF-32BE";
+    public final static String CS_UTF32LE = "UTF-32LE";
 
     // // // 8-bit ISO encodings:
 
-    final static String CS_ISO_LATIN1 = "ISO-8859-1";
+    public final static String CS_ISO_LATIN1 = "ISO-8859-1";
 
     // // // Japanese non-unicode encodings:
 
-    final static String CS_SHIFT_JIS = "Shift_JIS";
+    public final static String CS_SHIFT_JIS = "Shift_JIS";
 
     // // // Other oddities:
 
-    final static String CS_EBCDIC = "EBCDIC";
+    public final static String CS_EBCDIC = "EBCDIC";
 
     /*
     //////////////////////////////////////////////////

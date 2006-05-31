@@ -98,9 +98,9 @@ public class RepairingNsStreamWriter
     ////////////////////////////////////////////////////
      */
 
-    public RepairingNsStreamWriter(Writer w, String enc, WriterConfig cfg)
+    public RepairingNsStreamWriter(XmlWriter xw, String enc, WriterConfig cfg)
     {
-        super(w, enc, cfg, true);
+        super(xw, enc, cfg, true);
         mAutomaticNsPrefix = cfg.getAutomaticNsPrefix();
     }
 
@@ -266,19 +266,33 @@ public class RepairingNsStreamWriter
             if (mValidator != null) {
                 mValidator.validateElementStart(localName, nsURI, prefix);
             }
-            mCurrElem = mCurrElem.createChild(prefix, localName, nsURI);
+            if (mOutputElemPool != null) {
+                SimpleOutputElement newCurr = mOutputElemPool;
+                mOutputElemPool = newCurr.reuseAsChild(mCurrElem, localName, localName, nsURI);
+                --mPoolSize;
+                mCurrElem = newCurr;
+            } else {
+                mCurrElem = mCurrElem.createChild(prefix, localName, nsURI);
+            }
             doWriteStartTag(prefix, localName);
         } else { // no prefix, more work
             prefix = generateElemPrefix(null, nsURI, mCurrElem);
             if (mValidator != null) {
                 mValidator.validateElementStart(localName, nsURI, prefix);
             }
-            mCurrElem = mCurrElem.createChild(prefix, localName, nsURI);
+            if (mOutputElemPool != null) {
+                SimpleOutputElement newCurr = mOutputElemPool;
+                mOutputElemPool = newCurr.reuseAsChild(mCurrElem, localName, localName, nsURI);
+                --mPoolSize;
+                mCurrElem = newCurr;
+            } else {
+                mCurrElem = mCurrElem.createChild(prefix, localName, nsURI);
+            }
             mCurrElem.setPrefix(prefix);
             doWriteStartTag(prefix, localName);
             if (prefix == null || prefix.length() == 0) { // def NS
                 mCurrElem.setDefaultNsUri(nsURI);
-                doWriteNamespace(null, nsURI);
+                doWriteDefaultNs(nsURI);
             } else { // explicit NS
                 mCurrElem.addPrefix(prefix, nsURI);
                 doWriteNamespace(prefix, nsURI);
@@ -297,19 +311,33 @@ public class RepairingNsStreamWriter
             if (mValidator != null) {
                 mValidator.validateElementStart(localName, nsURI, actPrefix);
             }
-            mCurrElem = mCurrElem.createChild(actPrefix, localName, nsURI);
+            if (mOutputElemPool != null) {
+                SimpleOutputElement newCurr = mOutputElemPool;
+                mOutputElemPool = newCurr.reuseAsChild(mCurrElem, actPrefix, localName, nsURI);
+                --mPoolSize;
+                mCurrElem = newCurr;
+            } else {
+                mCurrElem = mCurrElem.createChild(actPrefix, localName, nsURI);
+            }
             doWriteStartTag(actPrefix, localName);
         } else { // nah, need to create a new binding...
             actPrefix = generateElemPrefix(suggPrefix, nsURI, mCurrElem);
             if (mValidator != null) {
                 mValidator.validateElementStart(localName, nsURI, actPrefix);
             }
-            mCurrElem = mCurrElem.createChild(actPrefix, localName, nsURI);
+            if (mOutputElemPool != null) {
+                SimpleOutputElement newCurr = mOutputElemPool;
+                mOutputElemPool = newCurr.reuseAsChild(mCurrElem, actPrefix, localName, nsURI);
+                --mPoolSize;
+                mCurrElem = newCurr;
+            } else {
+                mCurrElem = mCurrElem.createChild(actPrefix, localName, nsURI);
+            }
             mCurrElem.setPrefix(actPrefix);
             doWriteStartTag(actPrefix, localName);
             if (actPrefix == null || actPrefix.length() == 0) { // def NS
                 mCurrElem.setDefaultNsUri(nsURI);
-                doWriteNamespace(null, nsURI);
+                doWriteDefaultNs(nsURI);
             } else { // explicit NS
                 mCurrElem.addPrefix(actPrefix, nsURI);
                 doWriteNamespace(actPrefix, nsURI);
@@ -360,37 +388,29 @@ public class RepairingNsStreamWriter
          * prefixes have been remapped... so need to be bit more careful.
          */
         if (attrCount > 0) {
-            Writer aw = mAttrValueWriter;
-            if (aw == null) {
-                mAttrValueWriter = aw = constructAttributeValueWriter();
-            }
             for (int i = 0; i < attrCount; ++i) {
-                /* First; need to make sure that the prefix-to-ns mapping
-                 * attribute has is valid... and can not output anything
-                 * before that's done (since remapping will output a namespace
-                 * declaration!)
-                 */
-                String uri = attrCollector.getNsURI(i);
+                // First; need to make sure that the prefix-to-ns mapping
+                // attribute has is valid... and can not output anything
+                // before that's done (since remapping will output a namespace
+                // declaration!)
+                String uri = attrCollector.getURI(i);
                 String prefix = attrCollector.getPrefix(i);
                 
-                mWriter.write(' ');
-                /* With attributes, missing/empty prefix always means 'no
-                 * namespace', can take a shortcut:
-                 */
+                // With attributes, missing/empty prefix always means 'no
+                // namespace', can take a shortcut:
                 if (prefix == null || prefix.length() == 0) {
                     ;
                 } else {
-                    /* and otherwise we'll always have a prefix as attributes
-                     * can not make use of the def. namespace...
-                     */
-                    mWriter.write(findOrCreateAttrPrefix(prefix, uri, mCurrElem));
-                    mWriter.write(':');
+                    // and otherwise we'll always have a prefix as attributes
+                    // can not make use of the def. namespace...
+                    prefix = findOrCreateAttrPrefix(prefix, uri, mCurrElem);
                 }
-                mWriter.write(attrCollector.getLocalName(i));
-                mWriter.write('=');
-                mWriter.write(DEFAULT_QUOTE_CHAR);
-                attrCollector.writeValue(i, aw);
-                mWriter.write(DEFAULT_QUOTE_CHAR);
+                /* Hmmh. Since the prefix we use may be different from what
+                 * collector has, we can not use pass-through method of
+                 * the collector, but need to call XmlWriter directly:
+                 */
+                mWriter.writeAttribute(prefix, attrCollector.getLocalName(i),
+                                       attrCollector.getValue(i));
             }
         }
     }

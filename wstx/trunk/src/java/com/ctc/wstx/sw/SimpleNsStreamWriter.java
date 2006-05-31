@@ -54,9 +54,9 @@ public class SimpleNsStreamWriter
     ////////////////////////////////////////////////////
      */
 
-    public SimpleNsStreamWriter(Writer w, String enc, WriterConfig cfg)
+    public SimpleNsStreamWriter(XmlWriter xw, String enc, WriterConfig cfg)
     {
-        super(w, enc, cfg, false);
+        super(xw, enc, cfg, false);
     }
 
     /*
@@ -108,10 +108,7 @@ public class SimpleNsStreamWriter
         if (!mStartElementOpen) {
             throwOutputError(ERR_NSDECL_WRONG_STATE);
         }
-
-        // 01-Apr-2005, TSa: Can we (and do we want to) verify NS consistency?
-
-        doWriteNamespace(null, nsURI);
+        doWriteDefaultNs(nsURI);
     }
 
     public void writeNamespace(String prefix, String nsURI)
@@ -243,7 +240,14 @@ public class SimpleNsStreamWriter
             mValidator.validateElementStart(localName, nsURI, prefix);
         }
 
-        mCurrElem = mCurrElem.createChild(prefix, localName, nsURI);
+        if (mOutputElemPool != null) {
+            SimpleOutputElement newCurr = mOutputElemPool;
+            mOutputElemPool = newCurr.reuseAsChild(mCurrElem, prefix, localName, nsURI);
+            --mPoolSize;
+            mCurrElem = newCurr;
+        } else {
+            mCurrElem = mCurrElem.createChild(prefix, localName, nsURI);
+        }
         doWriteStartTag(prefix, localName);
     }
 
@@ -255,7 +259,14 @@ public class SimpleNsStreamWriter
             mValidator.validateElementStart(localName, nsURI, prefix);
         }
 
-        mCurrElem = mCurrElem.createChild(prefix, localName, nsURI);
+        if (mOutputElemPool != null) {
+            SimpleOutputElement newCurr = mOutputElemPool;
+            mOutputElemPool = newCurr.reuseAsChild(mCurrElem, prefix, localName, nsURI);
+            --mPoolSize;
+            mCurrElem = newCurr;
+        } else {
+            mCurrElem = mCurrElem.createChild(prefix, localName, nsURI);
+        }
         doWriteStartTag(prefix, localName);
     }
 
@@ -317,19 +328,8 @@ public class SimpleNsStreamWriter
             attrCollector.getSpecifiedCount();
 
         if (attrCount > 0) {
-            Writer aw = mAttrValueWriter;
-            if (aw == null) {
-                mAttrValueWriter = aw = constructAttributeValueWriter();
-            }
             for (int i = 0; i < attrCount; ++i) {
-                /* There's nothing special about writeAttribute() (except for
-                 * checks we should NOT need -- reader is assumed to have verified
-                 * well-formedness of the input document)... it just calls
-                 * doWriteAttr (of the base class)... so what we have here is
-                 * just a raw output method:
-                 */
-                mWriter.write(' ');
-                attrCollector.writeAttribute(i, DEFAULT_QUOTE_CHAR, mWriter, aw);
+                attrCollector.writeAttribute(i, mWriter);
             }
         }
     }

@@ -62,7 +62,23 @@ public interface XMLStreamWriter2
      * Method that should return current output location, if the writer
      * keeps track of it; null if it does not.
      */
-    public Location getLocation();
+    public XMLStreamLocation2 getLocation();
+
+    /**
+     * Method that can be called to get information about encoding that
+     * this writer is using (or at least claims is using). That is,
+     * it returns name of encoding specified when (in order of priority):
+     *<ul>
+     * <li>Passed to one of factory methods of
+     *    {@link javax.xml.stream.XMLOutputFactory}
+     *  </li>
+     * <li>Passed to <code>writeStartDocument</code> method (explicitly
+     *   or implicity; latter in cases where defaults are imposed
+     *   by Stax specification)
+     *  </li>
+     * </ul>
+     */
+    public String getEncoding();
 
     /*
     //////////////////////////////////////////
@@ -108,6 +124,9 @@ public interface XMLStreamWriter2
      * as a sub-tree, or when passing through XML fragments.
      */
     public void writeRaw(String text)
+        throws XMLStreamException;
+
+    public void writeRaw(String text, int offset, int length)
         throws XMLStreamException;
 
     /**
