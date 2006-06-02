@@ -8,6 +8,9 @@ package com.ctc.wstx.util;
  */
 public final class TextBuilder
 {
+    private final static int MIN_LEN = 64;
+    private final static int MAX_LEN = 120;
+
     private char[] mBuffer;
 
     private int[] mBufferOffsets;
@@ -32,10 +35,10 @@ public final class TextBuilder
     {
         mBufferOffsets = new int[initialSize];
         int charSize = (initialSize << 4); // multiply by 16 (-> def. 192 chars)
-        if (charSize < 64) {
-            charSize = 64;
-        } else if (charSize > 240) {
-            charSize = 240;
+        if (charSize < MIN_LEN) {
+            charSize = MIN_LEN;
+        } else if (charSize > MAX_LEN) {
+            charSize = MAX_LEN;
         }
         mBuffer = new char[charSize];
     }

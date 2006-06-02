@@ -12,9 +12,11 @@ public final class UTF8Writer
     final static int SURR2_FIRST = 0xDC00;
     final static int SURR2_LAST = 0xDFFF;
 
-    final OutputStream mOut;
+    final WriterConfig mConfig;
 
-    final byte[] mOutBuffer;
+    OutputStream mOut;
+
+    byte[] mOutBuffer;
 
     final int mOutBufferLast;
 
@@ -29,8 +31,8 @@ public final class UTF8Writer
 
     public UTF8Writer(WriterConfig cfg, OutputStream out)
     {
+        mConfig = cfg;
         mOut = out;
-        //mOutBuffer = new byte[4000];
         mOutBuffer = cfg.allocFullBBuffer(4000);
         /* Max. expansion for a single char (in unmodified UTF-8) is
          * 4 bytes (or 3 depending on how you view it -- 4 when recombining
@@ -51,16 +53,27 @@ public final class UTF8Writer
     public void close()
         throws IOException
     {
-        if (mOutPtr > 0) {
-            mOut.write(mOutBuffer, 0, mOutPtr);
-            mOutPtr = 0;
-        }
-        // Let's 'flush' orphan surrogate, no matter what:
-        int code = mSurrogate;
-        mSurrogate = 0;
-        mOut.close();
-        if (code > 0) {
-            throwIllegal(code);
+        if (mOut != null) {
+            if (mOutPtr > 0) {
+                mOut.write(mOutBuffer, 0, mOutPtr);
+                mOutPtr = 0;
+            }
+            OutputStream out = mOut;
+            mOut = null;
+            byte[] buf = mOutBuffer;
+            mOutBuffer = null;
+
+            out.close();
+            mConfig.freeFullBBuffer(buf);
+
+            /* Let's 'flush' orphan surrogate, no matter what; but only
+             * after cleanly closing everything else.
+             */
+            int code = mSurrogate;
+            mSurrogate = 0;
+            if (code > 0) {
+                throwIllegal(code);
+            }
         }
     }
 
