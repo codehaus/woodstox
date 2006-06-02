@@ -53,8 +53,10 @@ public abstract class AttributeCollector
     /**
      * Expected typical maximum number of attributes for any element;
      * chosen to minimize need to resize, while trying not to waste space.
+     * Dynamically grown; better not to set too high to avoid excessive
+     * overhead for small attribute-less documents.
      */
-    protected final static int EXP_ATTR_COUNT = 32;
+    protected final static int EXP_ATTR_COUNT = 16;
     
     /*
     //////////////////////////////////////////
@@ -86,17 +88,21 @@ public abstract class AttributeCollector
     /**
      * TextBuilder into which values of all attributes are appended
      * to, including default valued ones (defaults are added after
-     * explicit ones)
+     * explicit ones).
+     * Constructed lazily, if and when needed (not needed
+     * for short attribute-less docs)
      */
-    protected final TextBuilder mValueBuffer = new TextBuilder(EXP_ATTR_COUNT);
+    protected TextBuilder mValueBuffer = null;
 
     /**
      * Vector in which attribute names are added; exact number of elements
      * per attribute depends on whether namespace support is enabled or
      * not (non-namespace mode only needs one entry; namespace mode two,
      * one for prefix, one for local name).
+     * Constructed lazily, if and when needed (not needed
+     * for short attribute-less docs)
      */
-    protected final StringVector mAttrNames = new StringVector(EXP_ATTR_COUNT);
+    protected StringVector mAttrNames = null;
 
     /*
     //////////////////////////////////////////
@@ -269,7 +275,8 @@ public abstract class AttributeCollector
      * attributes. It returns the underlying 'raw' attribute value buffer
      * for direct access.
      */
-    public final TextBuilder getAttrBuilder() {
+    public final TextBuilder getAttrBuilder()
+    {
         return mValueBuffer;
     }
 
@@ -313,6 +320,20 @@ public abstract class AttributeCollector
      */
     public abstract void writeAttribute(int index, XmlWriter xw)
         throws IOException, XMLStreamException;
+
+    /**
+     * Method called to initialize buffers that need not be immediately
+     * initialized
+     */
+    protected final void allocBuffers()
+    {
+        if (mValueBuffer == null) {
+            mValueBuffer = new TextBuilder(EXP_ATTR_COUNT);
+        }
+        if (mAttrNames == null) {
+            mAttrNames = new StringVector(EXP_ATTR_COUNT);
+        }
+    }
 
     /*
     ///////////////////////////////////////////////

@@ -48,14 +48,11 @@ public final class NonNsAttributeCollector
      */
     public void reset()
     {
-        mValueBuffer.reset();
-        /* No need to clear attr name, or NS prefix Strings; they are
-         * canonicalized and will be referenced by symbol table in any
-         * case... so we can save trouble of cleaning them up. This Object
-         * will get GC'ed soon enough, after parser itself gets disposed of.
-         */
-        mAttrNames.clear(false);
-        mAttrCount = 0;
+        if (mAttrCount > 0) { // anything to clean up?
+            mAttrNames.clear(false);
+            mValueBuffer.reset();
+            mAttrCount = 0;
+        }
 
         /* Note: attribute values will be cleared later on, when validating
          * namespaces. This so that we know how much to clean up; and
@@ -319,7 +316,14 @@ public final class NonNsAttributeCollector
     public TextBuilder getAttrBuilder(String attrPrefix, String attrLocalName)
     {
         // 'normal' attribute:
-        ++mAttrCount;
+        if (mAttrCount == 0) {
+            if (mValueBuffer == null) {
+                allocBuffers();
+            }
+            mAttrCount = 1;
+        } else {
+            ++mAttrCount;
+        }
         mAttrNames.addString(attrLocalName);
         return mValueBuffer;
     }
@@ -493,5 +497,6 @@ public final class NonNsAttributeCollector
             mAttrMap = new int[mAttrHashSize+1];
         }
         mAttrMap[0] =  mAttrMap[1] = mAttrMap[2] = mAttrMap[3] = 0;
+        allocBuffers();
     }
 }

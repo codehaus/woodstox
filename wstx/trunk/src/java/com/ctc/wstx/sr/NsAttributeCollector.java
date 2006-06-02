@@ -48,7 +48,7 @@ public final class NsAttributeCollector
      * elmement;
      * chosen to minimize need to resize, while trying not to waste space.
      */
-    final static int EXP_NS_COUNT = 12;
+    final static int EXP_NS_COUNT = 8;
 
     /**
      * Canonicalized prefix string "xml"
@@ -111,18 +111,20 @@ public final class NsAttributeCollector
      */
     public void reset()
     {
-        mValueBuffer.reset();
         mNamespaceURIs.reset();
         mDefaultNsDeclared = false;
+        mNsPrefixes.clear(false);
 
         /* No need to clear attr name, or NS prefix Strings; they are
          * canonicalized and will be referenced by symbol table in any
          * case... so we can save trouble of cleaning them up. This Object
          * will get GC'ed soon enough, after parser itself gets disposed of.
          */
-        mAttrNames.clear(false);
-        mNsPrefixes.clear(false);
-        mAttrCount = 0;
+        if (mAttrCount > 0) {
+            mAttrNames.clear(false);
+            mValueBuffer.reset();
+            mAttrCount = 0;
+        }
 
         /* Note: attribute values will be cleared later on, when validating
          * namespaces. This so that we know how much to clean up; and
@@ -490,7 +492,14 @@ public final class NsAttributeCollector
     public TextBuilder getAttrBuilder(String attrPrefix, String attrLocalName)
     {
         // 'normal' attribute:
-        ++mAttrCount;
+        if (mAttrCount == 0) {
+            if (mValueBuffer == null) {
+                allocBuffers();
+            }
+            mAttrCount = 1;
+        } else {
+            ++mAttrCount;
+        }
         mAttrNames.addStrings(attrPrefix, attrLocalName);
         /* Can't yet create attribute map by name, since we only know
          * name prefix, not necessarily matching URI.
@@ -701,5 +710,6 @@ public final class NsAttributeCollector
             mAttrMap = new int[mAttrHashSize+1];
         }
         mAttrMap[0] =  mAttrMap[1] = mAttrMap[2] = mAttrMap[3] = 0;
+        allocBuffers();
     }
 }

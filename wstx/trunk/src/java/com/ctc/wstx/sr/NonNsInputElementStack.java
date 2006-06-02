@@ -167,9 +167,9 @@ public final class NonNsInputElementStack
         mValidator.validateElementStart(mElements[mSize-1], null,null);
 
         // Then attributes, if any:
-        StringVector attrNames = ac.getNameList();
-        int attrLen = attrNames.size();
+        int attrLen = ac.getCount();
         if (attrLen > 0) {
+            StringVector attrNames = ac.getNameList();
             String[] nameData = attrNames.getInternalArray();
             TextBuilder attrBuilder = ac.getAttrBuilder();
             char[] attrCB = attrBuilder.getCharBuffer();

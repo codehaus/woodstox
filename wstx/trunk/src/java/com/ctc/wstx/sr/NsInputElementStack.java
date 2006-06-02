@@ -406,8 +406,9 @@ public final class NsInputElementStack
 
         // Then attributes, if any:
         StringVector attrNames = ac.getNameList();
-        int attrLen = attrNames.size();
+        int attrLen = ac.getCount();
         if (attrLen > 0) {
+            attrLen += attrLen; // 2 entries per name (prefix + ln)
             String[] attrURIs = ac.getAttrURIs();
             String[] nameData = attrNames.getInternalArray();
             TextBuilder attrBuilder = ac.getAttrBuilder();

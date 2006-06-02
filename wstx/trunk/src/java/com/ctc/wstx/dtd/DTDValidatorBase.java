@@ -50,12 +50,12 @@ public abstract class DTDValidatorBase
      * Estimated maximum depth of typical documents; used to allocate
      * the array for element stack
      */
-    final static int DEFAULT_STACK_SIZE = 32;
+    final static int DEFAULT_STACK_SIZE = 16;
 
     /**
      * Estimated maximum number of attributes for a single element
      */
-    final static int EXP_MAX_ATTRS = 32;
+    final static int EXP_MAX_ATTRS = 16;
 
     /**
      * Let's actually just reuse a local Map...
@@ -141,14 +141,14 @@ public abstract class DTDValidatorBase
      * attribute of the current element, for which there is a matching
      * value (either explicitly defined, or assigned via defaulting).
      */
-    protected DTDAttribute[] mAttrSpecs = null;
+    protected DTDAttribute[] mAttrSpecs = new DTDAttribute[EXP_MAX_ATTRS];
 
     /**
      * Number of attribute specification Objects in
      * {@link #mAttrSpecs}; needed to store in case type information
      * is requested later on.
      */
-    protected int mAttrCount = 1;
+    protected int mAttrCount = 0;
 
     /**
      * Index of the attribute of type ID, within current element's
@@ -190,7 +190,6 @@ public abstract class DTDValidatorBase
         // By default, let's assume attrs are to be normalized (fully xml compliant)
         mNormAttrs = true;
         mElems = new DTDElement[DEFAULT_STACK_SIZE];
-        mAttrSpecs = new DTDAttribute[EXP_MAX_ATTRS];
     }
 
     /*
@@ -305,10 +304,10 @@ public abstract class DTDValidatorBase
                 if (idAttr != null) {
                     DTDAttribute[] attrs = mAttrSpecs;
                     for (int i = 0, len = attrs.length; i < len; ++i) {
-                    if (attrs[i] == idAttr) {
-                        ix = i;
-                        break;
-                    }
+                        if (attrs[i] == idAttr) {
+                            ix = i;
+                            break;
+                        }
                     }
                 }
             }
