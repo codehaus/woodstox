@@ -238,10 +238,7 @@ public abstract class BaseStreamWriter
          *    element, if one exists, and then closing scopes by adding
          *    matching end elements.
          */
-        if (mState != STATE_EPILOG) {
-            writeEndDocument();
-        }
-        safeFlushStream();
+        finishDocument();
     }
 
     public void flush()
@@ -263,7 +260,11 @@ public abstract class BaseStreamWriter
         //if (mStartElementOpen) {
         //    closeStartElement(mEmptyElement);
         //}
-        safeFlushStream();
+        try {
+            mWriter.flush();
+        } catch (IOException ie) {
+            throw new WstxIOException(ie);
+        }
     }
 
     public abstract NamespaceContext getNamespaceContext();
@@ -485,21 +486,7 @@ public abstract class BaseStreamWriter
 
     public void writeEndDocument() throws XMLStreamException
     {
-        // Is tree still open?
-        if (mState != STATE_EPILOG) {
-            if (mCheckStructure  && mState == STATE_PROLOG) {
-                reportNwfStructure("Trying to write END_DOCUMENT when document has no root (ie. trying to output empty document).");
-            }
-            // 20-Jul-2004, TSa: Need to close the open sub-tree, if it exists...
-            // First, do we have an open start element?
-            if (mStartElementOpen) {
-                closeStartElement(mEmptyElement);
-            }
-            // Then, one by one, need to close open scopes:
-            while (mState != STATE_EPILOG) {
-                writeEndElement();
-            }
-        }
+        finishDocument();
     }
 
     public abstract void writeEndElement() throws XMLStreamException;
@@ -1285,16 +1272,6 @@ public abstract class BaseStreamWriter
                                           AttributeCollector attrCollector)
         throws IOException, XMLStreamException;
 
-    protected final void safeFlushStream()
-        throws XMLStreamException
-    {
-        try {
-            mWriter.flush();
-        } catch (IOException ie) {
-            throw new WstxIOException(ie);
-        }
-    }
-
     /*
     ////////////////////////////////////////////////////
     // Package methods, validation
@@ -1570,4 +1547,32 @@ public abstract class BaseStreamWriter
     }
 
     protected abstract String getTopElementDesc();
+
+    private final void finishDocument() throws XMLStreamException
+    {
+        // Is tree still open?
+        if (mState != STATE_EPILOG) {
+            if (mCheckStructure  && mState == STATE_PROLOG) {
+                reportNwfStructure("Trying to write END_DOCUMENT when document has no root (ie. trying to output empty document).");
+            }
+            // 20-Jul-2004, TSa: Need to close the open sub-tree, if it exists...
+            // First, do we have an open start element?
+            if (mStartElementOpen) {
+                closeStartElement(mEmptyElement);
+            }
+            // Then, one by one, need to close open scopes:
+            while (mState != STATE_EPILOG) {
+                writeEndElement();
+            }
+        }
+
+        /* And finally, inform the underlying writer that it should flush
+         * and release its buffers, and close components it uses if any.
+         */
+        try {
+            mWriter.close();
+        } catch (IOException ie) {
+            throw new WstxIOException(ie);
+        }
+    }
 }

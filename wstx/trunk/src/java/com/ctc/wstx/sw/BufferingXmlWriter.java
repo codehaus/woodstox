@@ -79,10 +79,12 @@ public final class BufferingXmlWriter
 
     /**
      * Actual Writer to use for outputting buffered data as appropriate.
+     * During active usage, remains as the writer initially set; set to
+     * null when this writer is closed.
      */
-    protected final Writer mOut;
+    protected Writer mOut;
 
-    protected final char[] mOutputBuffer;
+    protected char[] mOutputBuffer;
 
     /**
      * This is the threshold used to check what is considered a "small"
@@ -92,6 +94,8 @@ public final class BufferingXmlWriter
     protected final int mSmallWriteSize;
 
     protected int mOutputPtr;
+
+    protected int mOutputBufLen;
 
     /*
     ////////////////////////////////////////////////
@@ -127,8 +131,8 @@ public final class BufferingXmlWriter
     {
         super(cfg, enc);
         mOut = out;
-        //mOutputBuffer = new char[DEFAULT_BUFFER_SIZE];
         mOutputBuffer = cfg.allocFullCBuffer(DEFAULT_BUFFER_SIZE);
+        mOutputBufLen = mOutputBuffer.length;
         mSmallWriteSize = DEFAULT_SMALL_SIZE;
         mOutputPtr = 0;
 
@@ -156,23 +160,39 @@ public final class BufferingXmlWriter
     public void close()
         throws IOException
     {
-        mOut.close();
+        if (mOut != null) { // just in case it's called multiple times
+            flush();
+            Writer w = mOut;
+            mOut = null;
+            mTextWriter = null;
+            mAttrValueWriter = null;
+            char[] buf = mOutputBuffer;
+            mOutputBuffer = null;
+            mConfig.freeFullCBuffer(buf);
+            w.close();
+        }
     }
 
     public final void flush()
         throws IOException
     {
-        flushBuffer();
-        mOut.flush();
+        if (mOut != null) {
+            flushBuffer();
+            mOut.flush();
+        }
     }
 
     public void writeRaw(char[] cbuf, int offset, int len)
         throws IOException
     {
+        if (mOut == null) {
+            return;
+        }
+
         // First; is the new request small or not? If yes, needs to be buffered
         if (len < mSmallWriteSize) { // yup
             // Does it fit in with current buffer? If not, need to flush first
-            if ((mOutputPtr + len) > mOutputBuffer.length) {
+            if ((mOutputPtr + len) > mOutputBufLen) {
                 flushBuffer();
             }
             int ptr = mOutputPtr;
@@ -228,10 +248,14 @@ public final class BufferingXmlWriter
     public void writeRaw(String str, int offset, int len)
         throws IOException
     {
+        if (mOut == null) {
+            return;
+        }
+
         // First; is the new request small or not? If yes, needs to be buffered
         if (len < mSmallWriteSize) { // yup
             // Does it fit in with current buffer? If not, need to flush first
-            if ((mOutputPtr + len) >= mOutputBuffer.length) {
+            if ((mOutputPtr + len) >= mOutputBufLen) {
                 flushBuffer();
             }
             int ptr = mOutputPtr;
@@ -379,6 +403,10 @@ public final class BufferingXmlWriter
     public void writeCharacters(String text)
         throws IOException
     {
+        if (mOut == null) {
+            return;
+        }
+
         if (mTextWriter != null) { // custom escaping?
             mTextWriter.write(text);
         } else { // nope, default:
@@ -439,6 +467,10 @@ public final class BufferingXmlWriter
     public void writeCharacters(char[] cbuf, int offset, int len)
         throws IOException
     {
+        if (mOut == null) {
+            return;
+        }
+
         if (mTextWriter != null) { // custom escaping?
             mTextWriter.write(cbuf, offset, len);
         } else { // nope, default:
@@ -680,6 +712,10 @@ public final class BufferingXmlWriter
     public void writeAttribute(String prefix, String localName, String value)
         throws IOException, XMLStreamException
     {
+        if (mOut == null) {
+            return;
+        }
+
         fastWriteRaw(' ');
         if (prefix != null && prefix.length() > 0) {
             if (mCheckNames) {
@@ -759,7 +795,7 @@ public final class BufferingXmlWriter
     private final void flushBuffer()
         throws IOException
     {
-        if (mOutputPtr > 0) {
+        if (mOutputPtr > 0 && mOut != null) {
             int ptr = mOutputPtr;
             // Need to update location info, to keep it in sync
             mLocPastChars += ptr;
@@ -772,7 +808,10 @@ public final class BufferingXmlWriter
     private final void fastWriteRaw(char c)
         throws IOException
     {
-        if (mOutputPtr >= mOutputBuffer.length) {
+        if (mOutputPtr >= mOutputBufLen) {
+            if (mOut == null) {
+                return;
+            }
             flushBuffer();
         }
         mOutputBuffer[mOutputPtr++] = c;
@@ -781,7 +820,10 @@ public final class BufferingXmlWriter
     private final void fastWriteRaw(char c1, char c2)
         throws IOException
     {
-        if ((mOutputPtr + 1) >= mOutputBuffer.length) {
+        if ((mOutputPtr + 1) >= mOutputBufLen) {
+            if (mOut == null) {
+                return;
+            }
             flushBuffer();
         }
         mOutputBuffer[mOutputPtr++] = c1;
@@ -793,13 +835,16 @@ public final class BufferingXmlWriter
     {
         int len = str.length();
         int ptr = mOutputPtr;
-        char[] buf = mOutputBuffer;
-        if ((ptr + len) >= buf.length) {
+        if ((ptr + len) >= mOutputBufLen) {
+            if (mOut == null) {
+                return;
+            }
+            
             /* It's even possible that String is longer than the buffer (not
              * likely, possible). If so, let's just call the full
              * method:
              */
-            if (len > buf.length) {
+            if (len > mOutputBufLen) {
                 writeRaw(str, 0, len);
                 return;
             }
@@ -807,6 +852,7 @@ public final class BufferingXmlWriter
             ptr = mOutputPtr;
         }
         mOutputPtr += len;
+        char[] buf = mOutputBuffer;
         for (int i = 0; i < len; ++i) {
             buf[ptr++] = str.charAt(i);
         }

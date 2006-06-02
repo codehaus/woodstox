@@ -91,7 +91,7 @@ public abstract class XmlWriter
      * installed a special escaping writer factory for text content.
      * Null if the default escaper is to be used.
      */
-    protected final Writer mTextWriter;
+    protected Writer mTextWriter;
 
     /**
      * Optional escaping writer used for escaping characters like '&quot;'
@@ -100,7 +100,7 @@ public abstract class XmlWriter
      * installed a special escaping writer factory for text content.
      * Null if the default escaper is to be used.
      */
-    protected final Writer mAttrValueWriter;
+    protected Writer mAttrValueWriter;
 
     /**
      * Indicates whether output is to be compliant; if false, is to be
@@ -197,8 +197,11 @@ public abstract class XmlWriter
     ////////////////////////////////////////////////////
      */
 
-    public abstract void close()
-        throws IOException;
+    /**
+     * Method called to flush the buffer(s), and close the output
+     * sink (stream or writer).
+     */
+    public abstract void close() throws IOException;
 
     public abstract void flush()
         throws IOException;
