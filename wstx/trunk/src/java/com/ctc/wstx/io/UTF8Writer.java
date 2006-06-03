@@ -171,7 +171,7 @@ public final class UTF8Writer
                     throwIllegal(c);
                 }
                 // and if so, followed by another from next range
-                if (len >= off) { // unless we hit the end?
+                if (off >= len) { // unless we hit the end?
                     mSurrogate = c;
                     break;
                 }
@@ -319,7 +319,7 @@ public final class UTF8Writer
                     throwIllegal(c);
                 }
                 // and if so, followed by another from next range
-                if (len >= off) { // unless we hit the end?
+                if (off >= len) { // unless we hit the end?
                     mSurrogate = c;
                     break;
                 }
