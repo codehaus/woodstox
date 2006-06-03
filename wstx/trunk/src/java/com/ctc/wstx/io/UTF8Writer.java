@@ -170,9 +170,9 @@ public final class UTF8Writer
                     mOutPtr = outPtr;
                     throwIllegal(c);
                 }
+                mSurrogate = c;
                 // and if so, followed by another from next range
                 if (off >= len) { // unless we hit the end?
-                    mSurrogate = c;
                     break;
                 }
                 c = convertSurrogate(cbuf[off++]);
@@ -318,9 +318,9 @@ public final class UTF8Writer
                     mOutPtr = outPtr;
                     throwIllegal(c);
                 }
+                mSurrogate = c;
                 // and if so, followed by another from next range
                 if (off >= len) { // unless we hit the end?
-                    mSurrogate = c;
                     break;
                 }
                 c = convertSurrogate(str.charAt(off++));
