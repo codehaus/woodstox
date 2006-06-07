@@ -502,6 +502,22 @@ public abstract class StreamScanner
         }
     }
 
+    protected final void doReportProblem(XMLReporter rep, String probType,
+                                         String msg, Location loc)
+    {
+        if (rep != null) {
+            if (loc == null) {
+                loc = getLastCharLocation();
+            }
+            try {
+                rep.report(msg, probType, null, loc);
+            } catch (XMLStreamException e) {
+                // Hmmh. Weird that a reporter is allowed to do this...
+                System.err.println("Internal error - problem reporting a problem: "+e);
+            }
+        }
+    }
+
     /**
      *<p>
      * Note: this is the base implementation used for implementing
@@ -568,22 +584,6 @@ public abstract class StreamScanner
         String msg = MessageFormat.format(format, new Object[] { arg, arg2 });
         reportValidationProblem(new XMLValidationProblem(getLastCharLocation(),
                                                          msg));
-    }
-
-    protected final void doReportProblem(XMLReporter rep, String probType,
-                                         String msg, Location loc)
-    {
-        if (rep != null) {
-            if (loc == null) {
-                loc = getLastCharLocation();
-            }
-            try {
-                rep.report(msg, probType, null, loc);
-            } catch (XMLStreamException e) {
-                // Hmmh. Weird that a reporter is allowed to do this...
-                System.err.println("Internal error - problem reporting a problem: "+e);
-            }
-        }
     }
 
     /*

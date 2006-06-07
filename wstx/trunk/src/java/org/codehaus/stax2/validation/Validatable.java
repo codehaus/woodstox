@@ -6,8 +6,12 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.Location;
 
 /**
- * Interface that defines validation interface used by both stream readers
- * and writers.
+ * Interface that defines API that Stax2 validation system exposes to the
+ * applications. It is implemented by stream readers and writers.
+ *<p>
+ * Interface defines methods for starting and stopping
+ * validation against specific schemas, or validator instances, as well
+ * as method(s) for adding an optional custom problem handler.
  */
 public interface Validatable
 {
@@ -57,4 +61,15 @@ public interface Validatable
     public XMLValidator stopValidatingAgainst(XMLValidator validator)
         throws XMLStreamException;
 
+    /**
+     * Method that application can call to define a custom handler for
+     * validation problems encountered during validation process.
+     *
+     * @param h Handler to install, if non null; if null, indicates that
+     *   the default (implementation-specific) handling should be used
+     *
+     * @return Previously set validation problem handler, if any; null
+     *   if none was set
+     */
+    public ValidationProblemHandler setValidationProblemHandler(ValidationProblemHandler h);
 }

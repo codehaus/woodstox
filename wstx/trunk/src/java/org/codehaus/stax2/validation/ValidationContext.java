@@ -6,7 +6,11 @@ import javax.xml.stream.Location;
 /**
  * Interface that defines functionality exposed by the "owner" of the
  * content to validate (usually a stream reader or stream writer) to
- * validators. Some of functionality is optional (for example, writer
+ * validators, needed in addition to actually validatable content, for
+ * succesful validation. It also defines methods needed for infoset
+ * augmentation some validators do, such as adding default values
+ * to attributes.
+ * Some of functionality is optional (for example, writer
  * may not have any useful location information).
  *<p>
  * The functionality included is close to the minimal subset of
@@ -142,10 +146,10 @@ public interface ValidationContext
     public Location getValidationLocation();
 
     /**
-     * Method called to report a problem. This call may result
-     * in a validation exception thrown (in fast-failing mode), or
-     * something else, such as logging a message, or collecting set
-     * of validation problems (in non-intrusive mode).
+     * Method called by the validator, upon encountering a validation
+     * problem. Implementations are encouraged to allow an optional
+     * {@link ValidationProblemHandler} be set by the application,
+     * to define handling.
      */
     public void reportProblem(XMLValidationProblem problem)
         throws XMLValidationException;

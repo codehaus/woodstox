@@ -12,18 +12,27 @@ Description:
   * [WSTX-54]: Added method XMLStreamWriter2.getEncoding, which allows for
     accessing encoding of the underlying output stream/writer (if such
     info available to the stream writer).
-  * [WSTX-56]: Filtered event reader was not filtering events correctly.
-     Now should work much better.
+  * [WSTX-55]: XMLStreamWriter.flush() is now once again side-effect
+    free (rule of minimal surprise)
+  * [WTSX-38], [WSTX-56]: Filtered event reader was not filtering events
+    correctly. Now should work much better.
 
   Improvements:
 
   * More significant parsing speed improvements, related to white space and
     linefeed handling.
-  * First optimizations to the output side: adding BufferedWriter increases
-    output speed very significantly (i.e. non-buffering basic
-    OutputStreamWriter was dead slow for almost all use cases)
+  * Significant optimizations on the output side: adding BufferedWriter
+    increases output speed very significantly (i.e. non-buffering basic
+    OutputStreamWriter was dead slow for almost all use cases).
 
   New features:
+
+  * [WSTX-52]: Added a set of basic Stax2Source and Stax2Result
+    implementations: these allow for more efficient and accurate source/result
+    identification, and possible later optimizations.
+  * [WSTX-25]: Added Stax2 interface ValidationProblemHandler, and associated
+    methods to XMLStreamReader2 and XMLStreamWriter2: this allows for
+    custom validation error handling, overriding default logic.
 
 == History: ==
 

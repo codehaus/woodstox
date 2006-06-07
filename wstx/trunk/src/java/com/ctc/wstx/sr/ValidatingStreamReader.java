@@ -26,10 +26,7 @@ import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.transform.stream.StreamSource;
 
-import org.codehaus.stax2.validation.DTDValidationSchema;
-import org.codehaus.stax2.validation.ValidationContext;
-import org.codehaus.stax2.validation.XMLValidationSchema;
-import org.codehaus.stax2.validation.XMLValidator;
+import org.codehaus.stax2.validation.*;
 
 import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.cfg.ErrorConsts;
@@ -63,7 +60,7 @@ public class ValidatingStreamReader
 
     /*
     ////////////////////////////////////////////////////
-    // DTD information (entities, ...)
+    // Validation (DTD) information (entities, ...)
     ////////////////////////////////////////////////////
      */
 
@@ -96,6 +93,11 @@ public class ValidatingStreamReader
      * set (as per DOCTYPE declaration or override)
      */
     boolean mDtdValidatorSet = false;
+
+    /**
+     * Custom validation problem handler, if any.
+     */
+    protected ValidationProblemHandler mVldProbHandler = null;
 
     /*
     ////////////////////////////////////////////////////
@@ -243,6 +245,14 @@ public class ValidatingStreamReader
         throws XMLStreamException
     {
         return mElementStack.stopValidatingAgainst(validator);
+    }
+
+    // @Override
+    public ValidationProblemHandler setValidationProblemHandler(ValidationProblemHandler h)
+    {
+        ValidationProblemHandler oldH = mVldProbHandler;
+        mVldProbHandler = h;
+        return oldH;
     }
 
     /*

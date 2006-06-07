@@ -131,6 +131,11 @@ public abstract class BaseStreamWriter
      */
     protected boolean mXml11 = false;
 
+    /**
+     * Custom validation problem handler, if any.
+     */
+    protected ValidationProblemHandler mVldProbHandler = null;
+
     /*
     ////////////////////////////////////////////////////
     // State information
@@ -920,6 +925,13 @@ public abstract class BaseStreamWriter
         return found;
     }
 
+    public ValidationProblemHandler setValidationProblemHandler(ValidationProblemHandler h)
+    {
+        ValidationProblemHandler oldH = mVldProbHandler;
+        mVldProbHandler = h;
+        return oldH;
+    }
+
     private void resetValidationFlags()
     {
         int flags = mConfig.getConfigFlags();
@@ -1087,7 +1099,11 @@ public abstract class BaseStreamWriter
     public void reportProblem(XMLValidationProblem prob)
         throws XMLValidationException
     {
-        // !!! TBI: Fail-fast vs. deferred modes
+        // Custom handler set? If so, it'll take care of it:
+        if (mVldProbHandler != null) {
+            mVldProbHandler.reportProblem(prob);
+            return;
+        }
 
         /* For now let's implement basic functionality: warnings get
          * reported via XMLReporter, errors and fatal errors result in

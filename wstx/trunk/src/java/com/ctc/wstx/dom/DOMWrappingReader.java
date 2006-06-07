@@ -34,6 +34,7 @@ import org.codehaus.stax2.LocationInfo;
 import org.codehaus.stax2.XMLStreamLocation2;
 import org.codehaus.stax2.XMLStreamReader2;
 import org.codehaus.stax2.validation.DTDValidationSchema;
+import org.codehaus.stax2.validation.ValidationProblemHandler;
 import org.codehaus.stax2.validation.XMLValidationSchema;
 import org.codehaus.stax2.validation.XMLValidator;
 
@@ -1269,6 +1270,12 @@ public class DOMWrappingReader
         throws XMLStreamException
     {
         // Not implemented by the basic reader:
+        return null;
+    }
+
+    public ValidationProblemHandler setValidationProblemHandler(ValidationProblemHandler h)
+    {
+        // Not implemented by the basic reader
         return null;
     }
 
