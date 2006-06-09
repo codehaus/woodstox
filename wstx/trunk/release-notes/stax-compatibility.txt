@@ -7,10 +7,9 @@ Having said that, there are some features where implementation could
 arguably be improved, to bring it to closer to the spirit of
 the specification:
 
-* SAX and DOM input sources can not be used with XMLInputFactory (stream
-  source can be).
-* SAX and DOM output result objects can not be used XMLOutputFactory (stream
-  result can be).
+* SAX input (source) and output (result) objects can not be used with
+  XMLInputFactory and XMLOutputFactory.
+* DOM (output) result objects can not be used XMLOutputFactory.
 
 Some of open questions regarding exact meaning of the specification
 include:

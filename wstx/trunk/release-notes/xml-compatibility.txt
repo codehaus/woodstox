@@ -5,22 +5,23 @@ mostly XML 1.1 compliant.
 
 Known issues regarding strict XML-conformance checking are:
 
-XML:
+XML 1.0:
 
-* Checking in 'standalone="yes"' mode, for externally declared entities
-  is not done.
-* Whether undeclared PEs are considered WFC or VC violation -- currently
-  they are all WFC, but this is apparently not always the case (esp.
-  for 'standalone="yes"' case)
+* Surrogate pairing checks for identifiers (element and attribute names,
+  PI targets) is slightly incomplete, resulting in 4 failing XMLTest test
+  cases.
+* Validity checks for characters 0xFFFE and 0xFFFF does not work for
+  UTF-16 encoding (need to implement custom reader). Results in 2 failing
+  XMLTest test cases.
+* Namespace declaration pseudo-attributes are always dealt as being
+  type CDATA, even if DTD declares otherwise: this means that the white
+  space included will not be normalized (one failing XMLTest test cases)
 
 XML 1.0:
 
-* Validity checking for DTD element content groups wrt. PE expansion
-  nesting is not complete.
+[no known 1.0 specific additional problems]
 
 XML 1.1:
 
-* Handling of LSEP (0x2028) is only partially correct -- combinations with
-  other linefeed characters are not 100% compliant
-* Checking for high-range control characters (0x80 - 0x9F, 0x7F) is
-  not done for all input sources; specifically 0x7F is problematic.
+[no known 1.1 specific additional problems]
+

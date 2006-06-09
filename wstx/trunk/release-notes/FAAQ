@@ -1,8 +1,8 @@
-== Woodstox XML-parser Frequently Asked/Anticipated Questions ==
+h1. Woodstox XML-parser Frequently Asked/Anticipated Questions
 
-=== 1. General ===
+h2. 1. General
 
-==== 1.1 What is Woodstox?
+h3. 1.1 What is Woodstox?
 
 Woodstox is a high-performance XML processor that implements StAX API,
 specified by JSR-173. XML processor means that it can read (parse,
@@ -14,7 +14,7 @@ Open Source/Free Software licenses: Free Software Foundataion's LGPL 2.1
 and Apache Foundation's ASL 2.0.
 
 
-==== 1.2 Where can I find Woodstox?
+h3. 1.2 Where can I find Woodstox?
 
 Woodstox project home page is at Codehaus:
 
@@ -23,9 +23,9 @@ Woodstox project home page is at Codehaus:
 The home page contains most up-to-date information regarding current
 status of the project, and contact information 
 
-==== 1.3 Standard compliancy
+h3. 1.3 Standard compliancy
 
-==== 1.3.1 Which XML technologies does Woodstox support?
+h4. 1.3.1 Which XML technologies does Woodstox support?
 
 Currently supported specifications are:
 
@@ -33,15 +33,15 @@ Currently supported specifications are:
   types (internal, external; parsed, unparsed) and full DTD validation.
   (DTD validation from Woodstox 2.0 on; entities from 1.0)
 * XML Namespaces 1.0 (Woodstox 1.0 and above)
+* RelaxNG (using external validation component) (Woodstox 3.0 and above)
 
 And ones planned for future:
 
-* XML Id (Woodstox 3.0 and above)
-* RelaxNG (using external validation component) (Woodstox 3.0 and above)
-* XML Schema (using external validation component) (Woodstox 3.0 and above)
-* XML Include (Woodstox 4.0 and above)
+* XML Id (planned for Woodstox 4.0)
+* XML Schema (using external validation component) (planned for Woodstox 4.0)
+* XML Include (planned for Woodstox 4.0 or later)
 
-==== 1.3.2 Which Java API does Woodstox implement?
+h4. 1.3.2 Which Java API does Woodstox implement?
 
 Currently Woodstox implements following standard APIs:
 
@@ -54,7 +54,7 @@ Additionally, Woodstox also implements:
   not proprietary to Woodstox implementation (although at present
   Woodstox is the only implementation of this API).
 
-==== 1.4 How do I report bugs and request new features? ====
+h3. 1.4 How do I report bugs and request new features? 
 
 Woodstox development team uses Jira bug tracking system at codehaus:
 
@@ -88,7 +88,7 @@ Woodstox) usually happens at Stax builders list:
 which is open for anyone (not just stax implementation developers) to join.
 
 
-==== 1.5 What are the design goals of Woodstox? ====
+h3. 1.5 What are the design goals of Woodstox? 
 
 Main goals are, in rough order:
 
@@ -100,13 +100,15 @@ Main goals are, in rough order:
   its maintainability (code clarity, simplicity). Efficiency is meant
   to encompass both time AND space constraints, ie. not only should it be
   fast, but also try to use memory sparingly.
-* Implement as much of XML (1.1) as possible; specifically make sure all
+* Implement full XML (1.1) functionality; specifically make sure all
   well-formed/valid documents are properly handled. Secondary goal is to
-  gracefully handle other documents (and to catch problems).
+  gracefully handle non-wellformed documents (and to catch problems).
 * Make features that can have significant impact on performance
   configurable; use reasonably defaults for settings. It should be easy
   to just plug-in and use, but also allow "power coders" to configure it
   optimally for specific use cases.
+* Sensible default values, so that Woodstox functions adequately with
+  the default settings, with no need for extensive tweaking of settings.
 * Modularity; try to implement only features that can not be implement
   efficiently or reliably on top of StAX interface: other features should be
   implemented as separate add-on packages, to be usable with other StAX
@@ -120,7 +122,7 @@ Main goals are, in rough order:
   them in, efficiently chaining multiple validators if necessary.
 
 
-==== 1.6 What's in the Name? ====
+h3. 1.6 What's in the Name? 
 
 Name Woodstox is just a silly combination of various motifs; mainly
 mutation of "STaX" part (from the Java API it implements), and then
@@ -129,9 +131,9 @@ location. There is no real reason for it -- it just sounded like a good
 idea at the time. :-)
 
 
-=== 2. StAX API features ===
+h2. 2. StAX API features 
 
-==== 2.1. How do I use XMLStreamWriter?!? This API is a mess!
+h3. 2.1. How do I use XMLStreamWriter?!? This API is a mess!
 
 Yes, it indeed is bit of a mess. Unfortunately Stax 1.0 specification
 underspecifies writer side, leading to lots of confusion, not only for
@@ -167,7 +169,7 @@ between these modes
   prefix mapping is not used, practically none), but it can lead
   to invalid output.
 
-==== 2.1.1. XMLStreamWriter in non-repairing (manual namespaces) mode
+h4. 2.1.1. XMLStreamWriter in non-repairing (manual namespaces) mode
 
 In this mode, application has to output all namespace declarations similar
 to the way regular attributes are added:
@@ -198,7 +200,7 @@ to the way regular attributes are added:
   will be in the currently bound default namespace, if any, and attributes
   will not be in any namespace.
 
-==== 2.1.2. XMLStreamWriter in repairing (automatic namespaces) mode
+h4. 2.1.2. XMLStreamWriter in repairing (automatic namespaces) mode
 
 In repairing mode, application does not have to do anything to manage
 namespace bindings and mappings. It can, if it wants to, indicate prefix
@@ -227,7 +229,7 @@ prefix is already output for the current element), stream writer will
 generate an implementation dependant prefix to bind (and ensure it
 does not collide with other bindings).
 
-==== 2.2. Text handling: Why do I get these short partial segments? ====
+h3. 2.2. Text handling: Why do I get these short partial segments? 
 
 By default StAX readers are allowed to return text and CDATA segments in
 parts, ie. more than one event per physical segment. This is usually done
@@ -253,7 +255,7 @@ you can modify (check documentation for details):
   changing this value is unlikely to have big performance impact.
 
 
-=== 3 Deployment/packaging ====
+h2. 3 Deployment/packaging 
 
 Basic distributable jars that one needs to use Woodstox are:
 
@@ -273,7 +275,7 @@ In addition, it is possible use following optional jars:
   Note that the full woodstox jar does contains these API classes by
   default, for convenience.
 
-=== 3.1 Licensing ====
+h3. 3.1 Licensing 
 
 Currently (Woodstox 2.0 and above), you can choose to use Woodstox either
 according to terms of LGPL (2.1) or ASL (2.0) licenses. The choice is made
@@ -292,7 +294,7 @@ that you have to use ASL version. This is the main reason Woodstox is
 dual-licensed: to offer the choice, while maintaining some basic
 Open Source restrictions on redistribution.
 
-==== 3.2 Functionality subsets (alternate jars) ====
+h3. 3.2 Functionality subsets (alternate jars) 
 
 Although it is most common to use one of 2 full standard implementation
 jars, there are situations where application only needs to use subset
@@ -337,9 +339,9 @@ both of which have subset of methods from XMLInputFactory and
 XMLOutputFactory, respectively.
 
 
-=== 4. Implementation details ===
+h2. 4. Implementation details
 
-=== 4.1 String interning ===
+h3. 4.1 String interning
 
 Which Strings and when does Woodstox intern?
 
@@ -355,4 +357,17 @@ Which Strings and when does Woodstox intern?
   URIs CAN always be compared for String identity (nsUri1 == nsUri2 is true
   if and only if they contain same String).
 
-=== 3. Implementation details ===
+h2. 5. Performance
+
+h3. 5.1. How can I make Woodstox work as fast as possible?
+
+Although default settings of Woodstox are chosen to allow efficient operation, there are things that application needs to do, to help.
+Here are some of more important things to do:
+
+* Reuse factories (XMLInputFactory, XMLOutputFactory, validation schema factories). This important, because:
+** Instantiation factories through Stax API is costly (although actual construction of Woodstox factories is less so)
+** Most caches are per-factory: symbol (element, attribute name) caching, DTD caching.
+* Let Woodstox take care of character encoding: pass InputStreams and OutputStreams as is, without trying to help by creating Writers. Similarly, if you have a File or URL, consider using these (via Stax2 create methods), instead of constructing InputStreams.
+* Close XMLStreamReader and XMLStreamWriter instances when you are done with them: this allows Woodstox to possibly reuse underlying buffers.
+
+So how significant are these simple rules? They are most important when dealing with small documents: in these cases difference can be an order of magnitude. For bigger documents effects are more limited, but still significant.

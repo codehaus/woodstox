@@ -1,3 +1,7 @@
+This document groups functionality offered by the Stax2 interface
+(packages under org.codehaus.stax2) above and beyond basic Stax 1.0
+API.
+
 == Access to formerly missing information ==
 
 * DOCTYPE declaration: can access root name, public/system identifiers,
@@ -38,4 +42,16 @@
 * XMLStreamReader: allow overriding of external DTD subset.
 * XMLStreamWriter: (no options yet)
 
+== Fully pluggable bi-directional validation framework ==
 
+(for Stax2 v2.0 and above, i.e. Woodstox 3.0)
+
+* Extensible: easy to add custom validators, and infoset augmenters (for
+  example, DTD validator adds default attribute values).
+* Support for multiple chainable validators (for example: can do both
+  DTD validation and RelaxNG validation simultaneously).
+* Fully bi-directional: can not only validate when parsing, but
+  when outputting as well.
+* Configurable problem (validation error) handling: can collect all
+  validation problems, or do fail-fast validation (exception on encountering
+  the first problem).
