@@ -468,11 +468,6 @@ public class DOMWrappingReader
         return this;
     }
 
-    /**
-     * Alas, DOM does not expose any of information necessary for
-     * determining actual declarations. Thus, have to indicate that
-     * there are no declarations.
-     */
     public int getNamespaceCount() {
         if (mCurrEvent != START_ELEMENT && mCurrEvent != END_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_ELEM);
@@ -1356,7 +1351,7 @@ public class DOMWrappingReader
             nsOut.add(attr.getNodeValue());
         }
 
-        mAttrList = attrsOut;
+        mAttrList = (attrsOut == null) ? Collections.EMPTY_LIST : attrsOut;
         mNsDeclList = (nsOut == null) ? Collections.EMPTY_LIST : nsOut;
     }
 
