@@ -72,7 +72,7 @@ public class TestWriterSpeed
                Writer w = null;
                bout.reset(); // can reuse its buffers this way
 
-               switch (round % 3) {
+               switch (round % 2) {
                case 1:
                    //w = new OutputStreamWriter(bout, "UTF-8");
                    w = new BufferedWriter(new OutputStreamWriter(bout, "UTF-8"), 1000);
@@ -82,11 +82,11 @@ public class TestWriterSpeed
                    w = new Utf8Writer(bout);
                    msg = "[Custom, UTF-8]";
                    break;
+                   /*
                case 2:
                    w = new JavolutionUtf8Writer(bout);
                    msg = "[Javolution, UTF-8]";
                    break;
-                   /*
                case 3:
                    r = new InputStreamReader(in, "UTF-8");
                    msg = "[JDK, UTF-8]";

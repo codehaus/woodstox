@@ -8,9 +8,7 @@ import javax.xml.stream.*;
 import javax.xml.stream.util.StreamReaderDelegate;
 
 import org.codehaus.stax2.*;
-import org.codehaus.stax2.validation.DTDValidationSchema;
-import org.codehaus.stax2.validation.XMLValidationSchema;
-import org.codehaus.stax2.validation.XMLValidator;
+import org.codehaus.stax2.validation.*;
 
 /**
  * This adapter implements parts of {@link XMLStreamReader2}, the
@@ -369,6 +367,11 @@ public final class Stax2ReaderAdapter
         throws XMLStreamException
     {
         throwUnsupported();
+        return null;
+    }
+
+    public ValidationProblemHandler setValidationProblemHandler(ValidationProblemHandler h)
+    {
         return null;
     }
 
