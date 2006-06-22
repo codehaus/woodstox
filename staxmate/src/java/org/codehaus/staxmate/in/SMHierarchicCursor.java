@@ -142,7 +142,6 @@ public class SMHierarchicCursor
         throws XMLStreamException
     {
         if (mState == State.CLOSED) { // already finished?
-System.err.println("DEBUG: skipTree() on closed: "+this);
             return;
         }
         mCurrEvent = null;
@@ -150,11 +149,9 @@ System.err.println("DEBUG: skipTree() on closed: "+this);
 
         // child cursor(s) to delegate skipping to?
         if (mState == State.HAS_CHILD) {
-System.err.println("DEBUG: skipTree(), calling child's skip from "+this);
             mChildCursor.skipTree();
             mChildCursor = null;
         }
-System.err.println("DEBUG: skipTree(), skipping this level from "+this);
         skipSubTree();
     }
 
@@ -171,7 +168,6 @@ System.err.println("DEBUG: skipTree(), skipping this level from "+this);
 
         while (true) {
             int type = mStreamReader.next();
-System.err.println("DEBUG: skipSubTree(), got "+type+" (depth "+depth+" before) ,from "+this);
             if (type == XMLStreamConstants.START_ELEMENT) {
                 ++depth;
             } else if (type == XMLStreamConstants.END_ELEMENT) {
@@ -183,6 +179,5 @@ System.err.println("DEBUG: skipSubTree(), got "+type+" (depth "+depth+" before) 
                 throw new IllegalStateException("Unexpected END_DOCUMENT encountered when skipping a sub-tree.");
             }
         }
-System.err.println("DEBUG: skipSubTree() done, from "+this);
     }
 }

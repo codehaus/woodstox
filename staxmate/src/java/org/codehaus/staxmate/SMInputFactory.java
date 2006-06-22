@@ -69,7 +69,9 @@ public final class SMInputFactory
         try {
             return XmlFactoryAccessor.getInstance().getFactory();
         } catch (FactoryConfigurationError err) {
-            throw new XMLStreamException(err);
+            // Can we do anything about this? It's an error, need not really catch?
+            //throw new XMLStreamException(err);
+            throw err;
         }
     }
 
