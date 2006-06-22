@@ -11,6 +11,7 @@ Description:
 
   * [WSTX-58]: a problem with DOMWrappingReader throwing an NPE, when
     accessing attribute properties of an element with only ns declarations.
+  * [WSTX-59]: Stream writer trying to quote \r and \t in prolog/epilog.
 
 == History: ==
 

@@ -375,7 +375,14 @@ public abstract class BaseStreamWriter
 
         if (len > 0) { // minor optimization
             try {
-                mWriter.writeCharacters(text, start, len);
+                /* 21-Jun-2006, TSa: Fixing [WSTX-59]: no quoting can be done
+                 *   outside of element tree.
+                 */
+                if (inPrologOrEpilog()) {
+                    mWriter.writeRaw(text, start, len);
+                } else {
+                    mWriter.writeCharacters(text, start, len);
+                }
             } catch (IOException ioe) {
                 throw new WstxIOException(ioe);
             }
@@ -425,7 +432,14 @@ public abstract class BaseStreamWriter
 
         // Ok, let's just write it out
         try {
-            mWriter.writeCharacters(text);
+            /* 21-Jun-2006, TSa: Fixing [WSTX-59]: no quoting can be done
+             *   outside of element tree.
+             */
+            if (inPrologOrEpilog()) {
+                mWriter.writeRaw(text);
+            } else {
+                mWriter.writeCharacters(text);
+            }
         } catch (IOException ioe) {
             throw new WstxIOException(ioe);
         }

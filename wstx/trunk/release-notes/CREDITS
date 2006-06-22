@@ -135,6 +135,8 @@ Heinz Drews:
 Wolfgang Hoschek:
   * Reported [WSTX-27] (incorrect handling of #FIXED attribute defaults)
     [2.0.4/2.8.1]
+  * Reported [WTSX-59]: Stream writer tries to quote \r and \t in
+    prolog and epilog.
   * Pointed out countless other bugs based on extensive Nux and Xom
     xml compatibility suites (and w3c compatibility suite as well).
   * Pointed out multiple optimization possibilities (both on reader and
