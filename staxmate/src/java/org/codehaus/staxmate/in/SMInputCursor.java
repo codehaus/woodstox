@@ -1039,4 +1039,9 @@ public abstract class SMInputCursor
         // !!! TODO: use StaxMate-specific sub-classes of XMLStreamException?
         throw new XMLStreamException(msg, mStreamReader.getLocation());
     }
+
+    public String toString() {
+        return "{" + getClass().getName()+": "+mState+", curr evt: "
+            +mCurrEvent+"}";
+    }
 }

@@ -37,6 +37,11 @@ public final class SMInputFactory
         return hierarchicCursor(sr, SMFilterFactory.getElementOnlyFilter());
     }
 
+    public static SMHierarchicCursor rootCursor(XMLStreamReader sr)
+    {
+        return hierarchicCursor(sr, null);
+    }
+
     /*
     ///////////////////////////////////////////////////////
     // Convenience methods
