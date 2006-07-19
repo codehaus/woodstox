@@ -2,9 +2,7 @@ package com.ctc.wstx.evt;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
@@ -41,6 +39,18 @@ public class SimpleStartElement
     {
         super(loc, name, nsCtxt);
         mAttrs = attr;
+    }
+
+    /**
+     * Factory method called when a start element needs to be constructed
+     * from an external source (most likely, non-woodstox stream reader).
+     */
+    public static SimpleStartElement construct(Location loc, QName name,
+                                               Map attrs, List ns,
+                                               NamespaceContext nsCtxt)
+    {
+        BaseNsContext myCtxt = MergedNsContext.construct(nsCtxt, ns);
+        return new SimpleStartElement(loc, name, myCtxt, attrs);
     }
 
     public static SimpleStartElement construct(Location loc, QName name,

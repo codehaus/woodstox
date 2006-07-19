@@ -15,7 +15,10 @@
 
 package com.ctc.wstx.evt;
 
+import java.util.*;
+
 import javax.xml.namespace.QName;
+import javax.xml.namespace.NamespaceContext;
 import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
@@ -29,6 +32,7 @@ import org.codehaus.stax2.DTDInfo;
 import org.codehaus.stax2.XMLStreamReader2;
 
 import com.ctc.wstx.cfg.ErrorConsts;
+import com.ctc.wstx.compat.JdkFeatures;
 import com.ctc.wstx.dtd.DTDSubset;
 import com.ctc.wstx.ent.EntityDecl;
 import com.ctc.wstx.exc.WstxException;
@@ -175,24 +179,70 @@ public class DefaultEventAllocator
                  * To do this, we do double-indirection, which means that
                  * this object actually gets a callback:
                  */
-                StreamReaderImpl sr = (StreamReaderImpl) r;
-                BaseStartElement be = (BaseStartElement) sr.withStartElement(this, loc);
-                if (be == null) { // incorrect state
-                    throw new WstxException("Trying to create START_ELEMENT when current event is "
-                                            +ErrorConsts.tokenTypeDesc(sr.getEventType()),
-                                            loc);
+                /* 19-Jul-2006, TSa: WSTX-61 points out that the code was
+                 *   assuming it's always Woodstox reader we had... not
+                 *   necessarily so.
+                 */
+                if (r instanceof StreamReaderImpl) {
+                    StreamReaderImpl sr = (StreamReaderImpl) r;
+                    BaseStartElement be = (BaseStartElement) sr.withStartElement(this, loc);
+                    if (be == null) { // incorrect state
+                        throw new WstxException("Trying to create START_ELEMENT when current event is "
+                                                +ErrorConsts.tokenTypeDesc(sr.getEventType()),
+                                                loc);
+                    }
+                    return be;
                 }
-                return be;
+                /* Ok, not woodstox impl, will be bit more work (plus less
+                 * efficient, and may miss some info)... but can be done.
+                 */
+                NamespaceContext nsCtxt = null;
+                if (r instanceof XMLStreamReader2) {
+                    nsCtxt = ((XMLStreamReader2) r).getNonTransientNamespaceContext();
+                }
+                Map attrs;
+                {
+                    int attrCount = r.getAttributeCount();
+                    if (attrCount < 1) {
+                        attrs = null;
+                    } else {
+                        attrs = JdkFeatures.getInstance().getInsertOrderedMap();
+                        for (int i = 0; i < attrCount; ++i) {
+                            QName aname = r.getAttributeName(i);
+                            attrs.put(aname, new WAttribute(loc, aname, r.getAttributeValue(i), r.isAttributeSpecified(i)));
+                        }
+                    }
+                }
+                List ns;
+                {
+                    int nsCount = r.getNamespaceCount();
+                    if (nsCount < 1) {
+                        ns = null;
+                    } else {
+                        ns = new ArrayList(nsCount);
+                        for (int i = 0; i < nsCount; ++i) {
+                            ns.add(WNamespace.constructFor(loc, r.getNamespacePrefix(i), r.getNamespaceURI(i)));
+                        }
+                    }
+                }
+                
+                return SimpleStartElement.construct(loc, r.getName(), attrs, ns, nsCtxt);
             }
 
         case ENTITY_REFERENCE:
             {
-                EntityDecl ed = ((StreamReaderImpl) r).getCurrentEntityDecl();
-		if (ed == null) { // undefined?
-		    // We'll still know the name though...
-		    return new WEntityReference(loc, r.getLocalName());
-		}
-                return new WEntityReference(loc, ed);
+                /* 19-Jul-2006, TSa: Let's also allow other impls, although
+                 *   we can't get actual declaration if so...
+                 */
+                if (r instanceof StreamReaderImpl) {
+                    EntityDecl ed = ((StreamReaderImpl) r).getCurrentEntityDecl();
+                    if (ed == null) { // undefined?
+                    // We'll still know the name though...
+                        return new WEntityReference(loc, r.getLocalName());
+                    }
+                    return new WEntityReference(loc, ed);
+                }
+                return new WEntityReference(loc, r.getLocalName());
             }
 
 
