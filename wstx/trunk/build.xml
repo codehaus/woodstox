@@ -418,6 +418,14 @@
             <fileset dir="." includes="release-notes/asl/*" />
             <fileset dir="." includes="release-notes/lgpl/*" />
        </copy>
+       <!-- And also additional Maven stuff -->
+       <copy todir="${DistDir}">
+            <fileset dir="${SrcDir}/maven" includes="*.pom" />
+            <globmapper from="*.pom" to="*-${WSTX_VERSION}.pom" />
+            <filterset>
+              <filter token="VERSION" value="${WSTX_VERSION}" />
+            </filterset>
+       </copy>
     </target>
 
     <target name="all" depends="clean,javadoc,test,dist">

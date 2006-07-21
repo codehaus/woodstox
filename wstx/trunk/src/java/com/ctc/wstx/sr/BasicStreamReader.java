@@ -1677,7 +1677,7 @@ public class BasicStreamReader
      * an {@link TextBuilder} instance. Will not normalize white space inside
      * attribute value.
      */
-    protected void parseNonNormalizedAttrValue(char openingQuote, TextBuilder tb)
+    private final void parseNonNormalizedAttrValue(char openingQuote, TextBuilder tb)
         throws IOException, XMLStreamException
     {
         char[] outBuf = tb.getCharBuffer();
@@ -1762,7 +1762,7 @@ public class BasicStreamReader
      *   this attribute value
      * @param tb TextBuilder into which attribute value will be added
      */
-    protected void parseNormalizedAttrValue(char openingQuote, TextBuilder tb)
+    private final void parseNormalizedAttrValue(char openingQuote, TextBuilder tb)
         throws IOException, XMLStreamException
     {
         char[] outBuf = tb.getCharBuffer();
@@ -2759,7 +2759,7 @@ public class BasicStreamReader
      * full parsing of namespace declarations and attributes, as well as
      * namespace resolution.
      */
-    private void handleStartElem(char c)
+    private final void handleStartElem(char c)
         throws IOException, XMLStreamException
     {
         mTokenState = TOKEN_FULL_COALESCED;
@@ -2807,7 +2807,7 @@ public class BasicStreamReader
     /**
      * @return True if this is an empty element; false if not
      */
-    private boolean handleNsAttrs(char c)
+    private final boolean handleNsAttrs(char c)
         throws IOException, XMLStreamException
     {
         AttributeCollector ac = mAttrCollector;
@@ -2920,7 +2920,7 @@ public class BasicStreamReader
     /**
      * @return True if this is an empty element; false if not
      */
-    private boolean handleNonNsAttrs(char c)
+    private final boolean handleNonNsAttrs(char c)
         throws IOException, XMLStreamException
     {
         AttributeCollector ac = mAttrCollector;
@@ -2983,7 +2983,7 @@ public class BasicStreamReader
      * Method called to completely read a close tag, and update element
      * stack appropriately (including checking that tag matches etc).
      */
-    private void readEndElem()
+    private final void readEndElem()
         throws IOException, XMLStreamException
     {
         mTokenState = TOKEN_FULL_COALESCED; // will be read completely

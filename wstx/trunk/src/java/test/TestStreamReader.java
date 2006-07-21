@@ -250,7 +250,7 @@ public class TestStreamReader
                             }
                         }
                         text = sb.toString();
-                        System.err.println("[S:"+text+"]");
+                        System.out.println("[S:"+text+"]");
                     }
                 }
             }
