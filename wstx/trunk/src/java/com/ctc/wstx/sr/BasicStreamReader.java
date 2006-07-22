@@ -751,14 +751,19 @@ public class BasicStreamReader
         return mElementStack.getNsURI();
     }
 
-    public String getNamespaceURI(int index) {
+    public String getNamespaceURI(int index)
+    {
         if (mCurrToken != START_ELEMENT && mCurrToken != END_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_ELEM);
         }
-        return mElementStack.getLocalNsURI(index);
+        /* WSTX-57: Should return "" for ns unbinding declaration:
+         */
+        String uri = mElementStack.getLocalNsURI(index);
+        return (uri == null) ? "" : uri;
     }
 
-    public String getNamespaceURI(String prefix) {
+    public String getNamespaceURI(String prefix)
+    {
         if (mCurrToken != START_ELEMENT && mCurrToken != END_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_ELEM);
         }
