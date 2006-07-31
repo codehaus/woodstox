@@ -7,6 +7,9 @@ Description:
 
   Problems fixed:
 
+  * A NullPointerException with StartElement.getAttributeByName() (apparently
+    only happening when creating Attributes via Event Factory)
+
 == History: ==
 
 3.0rc2 [21-Jul-2006]

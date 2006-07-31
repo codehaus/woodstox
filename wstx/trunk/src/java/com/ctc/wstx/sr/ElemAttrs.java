@@ -206,7 +206,14 @@ public final class ElemAttrs
             thisName = raw[ix];
             if (thisName == localName || thisName.equals(localName)) {
                 String thisURI = raw[ix+1];
-                if (thisURI == nsURI || thisURI.equals(nsURI)) {
+                if (thisURI == nsURI) {
+                    return ix;
+                }
+                if (thisURI == null) {
+                    if (nsURI.length() == 0) {
+                        return ix;
+                    }
+                } else if (thisURI.equals(nsURI)) {            
                     return ix;
                 }
             }
