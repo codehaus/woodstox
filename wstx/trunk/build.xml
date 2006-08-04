@@ -14,6 +14,7 @@
     <!-- Source directories -->
     <property name="SrcDir" location="${basedir}/src" />
     <property name="JavaSrcDir" location="${SrcDir}/java" />
+    <property name="JavaSamplesDir" location="${SrcDir}/samples" />
     <property name="TestSrcDir" location="${SrcDir}/test" />
     <property name="ResourcesDir" location="${SrcDir}/resources" />
     <property name="RelNotesDir" location="${basedir}/release-notes" />
@@ -222,6 +223,13 @@
             <include name="test/**/*.java" />
             <classpath refid="compile-classpath" />
         </javac>
+        <!-- 03-Aug-2006, TSa: Let's also compile samples, to ensure they
+               won't get obsolete with impl/api changes
+          -->
+        <javac SrcDir="${JavaSamplesDir}" destdir="${BuildClassesDir}">
+            <include name="*.java" />
+            <classpath refid="compile-classpath" />
+        </javac>
     </target>
 
     <target name="copy-resources" depends="prepare">
@@ -391,6 +399,11 @@
        <copy todir="${DistDir}">
           <fileset dir="${BuildDir}" includes="wstx*.jar" />
           <fileset dir="${BuildDir}" includes="stax2*.jar" />
+       </copy>
+       <!-- Including MSV jars?
+         -->
+       <copy todir="${DistDir}">
+          <fileset dir="${LibDir}" includes="msv/*.jar" />
        </copy>
        <!-- Then let's create the source distribution tar package
           -->
