@@ -28,6 +28,8 @@ abstract class BasePerfTest
     XMLInputFactory mFactory;
     XMLStreamReader mStreamReader;
 
+    protected int mBatchSize;
+
     protected abstract XMLInputFactory getFactory();
 
     protected void init()
@@ -86,7 +88,7 @@ abstract class BasePerfTest
             total += type; // so it won't be optimized out...
 
             //if (mStreamReader.hasText()) {
-            if (type == CHARACTERS || type == CDATA) {
+            if (type == CHARACTERS || type == CDATA || type == COMMENT) {
                 // Test (a): just check length (no buffer copy)
 
                 /*
@@ -114,6 +116,7 @@ abstract class BasePerfTest
                 */
             }
         }
+        //mStreamReader.close();
         return total;
     }
 
@@ -143,13 +146,36 @@ abstract class BasePerfTest
         System.out.println("Warming up; doing  "+WARMUP_ROUNDS+" iterations (real test will run for "+SECS+" seconds): ");
 
         int total = 0; // to prevent any dead code optimizations
-        for (int i = 0; i < WARMUP_ROUNDS; ++i) {
-            total = testExec(data, path);
+        for (int i = 0; i < WARMUP_ROUNDS; ) {
+            // Let's estimate speed from the last warmup...
+            if (++i == WARMUP_ROUNDS) {
+                long now = System.currentTimeMillis();
+                total = testExec(data, path);
+                now = System.currentTimeMillis() - now;
+                // Let's try to get at least 10 rounds per 1 sec, ie. max. length of 100 ms
+                if (now <= 1) {
+                    mBatchSize = 100;
+                } else if (now <= 2) {
+                    mBatchSize = 50;
+                } else if (now <= 5) {
+                    mBatchSize = 20;
+                } else if (now <= 10) {
+                    mBatchSize = 10;
+                } else if (now <= 50) {
+                    mBatchSize = 2;
+                } else {
+                    mBatchSize = 2;
+                }
+            } else {
+                total = testExec(data, path);
+            }
             //testFinish();
             System.out.print(".");
             // Let's allow some slack time between iterations
             try {  Thread.sleep(100L); } catch (InterruptedException ie) { }
         }
+
+        System.out.println(" (batch size "+mBatchSize+")");
 
         //System.out.println(" [total: "+total+"]");
 
@@ -171,27 +197,28 @@ abstract class BasePerfTest
         int subtotal = 0;
         final long SUB_PERIOD = 1000L; // print once a second
         nextTime += SUB_PERIOD;
+        final int REPS = mBatchSize;
 
         /* Let's try to reduce overhead of System.currentTimeMillis()
          * by calling test method twice each round. May be a problem for
          * big docs/slow readers... but otherwise not.
          */
         while (true) {
-            total += testExec(data, path);
-            total += testExec(data, path);
-            //testFinish();
+            for (int i = 0; i < REPS; ++i) {
+                total += testExec(data, path);
+            }
+            count += REPS;
             long now = System.currentTimeMillis();
             if (now > endTime) {
                 break;
             }
-            count += 2;
             /* let's only print once a second... limits console overhead,
              * but still informs about progress.
              */
-            subtotal += 2;
+            ++subtotal;
             if (now > nextTime) {
                 char c;
-                subtotal = (subtotal >> 1) - 1;
+                subtotal -= 1;
                 if (subtotal > 35) {
                     c = '+';
                 } else if (subtotal > 9) {
