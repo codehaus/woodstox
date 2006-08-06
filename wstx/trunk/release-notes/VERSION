@@ -9,6 +9,7 @@ Description:
 
   * A NullPointerException with StartElement.getAttributeByName() (apparently
     only happening when creating Attributes via Event Factory)
+  * [WSTX-64]: CompactNsContext.outputNamespaceDeclarations NPE.
 
 == History: ==
 

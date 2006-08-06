@@ -217,7 +217,7 @@ public final class CompactNsContext
             w.write(' ');
             w.write(XMLConstants.XMLNS_ATTRIBUTE);
             String prefix = ns[i];
-            if (prefix.length() > 0) {
+            if (prefix != null && prefix.length() > 0) {
                 w.write(':');
                 w.write(prefix);
             }

@@ -239,7 +239,7 @@ public final class BijectiveNsMap
             }
         }
         // no previous binding, let's just add it at the end
-        if (strs.length <= mScopeEnd) {
+        if (mScopeEnd >= strs.length) {
             // let's just double the array sizes...
             strs = DataUtil.growArrayBy(strs, strs.length);
             mNsStrings = strs;
@@ -263,7 +263,9 @@ public final class BijectiveNsMap
 
         main_loop:
         while (true) {
-            // We better intern the resulting prefix...
+            /* We better intern the resulting prefix? Or not?
+             * TODO: maybe soft cache these for other docs?
+             */
             prefix = (prefixBase + seqNr).intern();
             ++seqNr;
 
@@ -293,7 +295,7 @@ public final class BijectiveNsMap
         seqArr[0] = seqNr;
 
         // Ok, good; then let's just add it in...
-        if (strs.length < mScopeEnd) {
+        if (mScopeEnd >= strs.length) {
             // let's just double the array sizes...
             strs = DataUtil.growArrayBy(strs, strs.length);
             mNsStrings = strs;
