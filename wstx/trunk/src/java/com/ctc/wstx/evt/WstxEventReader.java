@@ -215,6 +215,9 @@ public class WstxEventReader
             switch (evt.getEventType()) {
             case END_DOCUMENT:
                 return null;
+            case START_DOCUMENT:
+                // Need to skip START_DOCUMENT to get the root elem
+                break;
             case SPACE:
                 /* !!! 07-Dec-2004, TSa: Specs are mum about Comments and PIs.
                  *  But why would they not be skipped just like what

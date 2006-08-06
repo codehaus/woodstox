@@ -10,6 +10,13 @@ Description:
   * A NullPointerException with StartElement.getAttributeByName() (apparently
     only happening when creating Attributes via Event Factory)
   * [WSTX-64]: CompactNsContext.outputNamespaceDeclarations NPE.
+     (reported by Wolfgang H)
+  * Fixed a problem with XMLEventReader.nextTag(), when peek() was called
+    to access StartDocument event first.
+     (reported by Lucien H)
+  * Fixed a minor non-conformance issue with StartDocument, was not defaulting
+    version pseudo-attribute to '1.0' (returned null if no xml declaration,
+    ie. same as what XMLStreamReader returns).
 
 == History: ==
 

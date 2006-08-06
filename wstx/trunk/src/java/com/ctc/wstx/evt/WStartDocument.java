@@ -27,7 +27,18 @@ public class WStartDocument
         super(loc);
         mStandaloneSet = r.standaloneSet();
         mIsStandalone = r.isStandalone();
-        mVersion = r.getVersion();
+        /* 06-Aug-2006, TSa: Specs (class javadoc) actually specify that
+         *   the default should be "1.0", as opposed to stream reader that
+         *   should return null if no declaration exists. So, let's do
+         *   defaulting here if needed
+         */
+        {
+            String version = r.getVersion();
+            if (version == null || version.length() == 0) {
+                version = "1.0";
+            }
+            mVersion = version;
+        }
         mEncodingScheme = r.getCharacterEncodingScheme();
         mEncodingSet = (mEncodingScheme != null && mEncodingScheme.length() > 0);
         mSystemId = loc.getSystemId();
