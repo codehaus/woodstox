@@ -46,18 +46,21 @@ public class TestNsStreamWriter3
         Writer w = new PrintWriter(System.out);
         XMLStreamWriter2 sw = (XMLStreamWriter2)f.createXMLStreamWriter(w);
 
-        XMLValidationSchemaFactory vd = XMLValidationSchemaFactory.newInstance(XMLValidationSchema.SCHEMA_ID_DTD);
+        //XMLValidationSchemaFactory vd = XMLValidationSchemaFactory.newInstance(XMLValidationSchema.SCHEMA_ID_DTD);
 
-        XMLValidationSchema schema = vd.createSchema(new StringReader(dtdStr));
+        //XMLValidationSchema schema = vd.createSchema(new StringReader(dtdStr));
 
-        sw.validateAgainst(schema);
+        //sw.validateAgainst(schema);
+
+        final String URI = "http://foo";
 
         sw.writeStartDocument();
-        sw.writeStartElement("", "root", "");
+        sw.writeStartElement("", "root", URI);
         //sw.writeAttribute("attr", "value");
         //sw.writeAttribute("", "", "attr2", "value2");
         sw.writeCharacters("Illegal text!");
-        sw.writeStartElement("", "branch", "uri:some");
+        //sw.writeStartElement("", "branch", URI);
+        sw.writeStartElement(URI, "branch");
         sw.writeAttribute("", "", "foop", "value2");
         sw.writeStartElement("", "leaf", "");
         sw.writeEndElement();

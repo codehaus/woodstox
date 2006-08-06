@@ -321,6 +321,13 @@ public class RepairingNsStreamWriter
             }
             doWriteStartTag(actPrefix, localName);
         } else { // nah, need to create a new binding...
+            /* Need to ensure that we'll pass "" as prefix, not null, so
+             * that it is understood as "I want to use the default NS", not
+             * as "whatever prefix, I don't care"
+             */
+            if (suggPrefix == null) {
+                suggPrefix = "";
+            }
             actPrefix = generateElemPrefix(suggPrefix, nsURI, mCurrElem);
             if (mValidator != null) {
                 mValidator.validateElementStart(localName, nsURI, actPrefix);
@@ -466,7 +473,7 @@ public class RepairingNsStreamWriter
         /* Ok; with elements this is easy: the preferred prefix can
          * ALWAYS be used, since it can mask preceding bindings:
          */
-        if (suggPrefix == null || suggPrefix.length() == 0) {
+        if (suggPrefix == null) {
             // caller wants this URI to map as the default namespace?
             if (mSuggestedDefNs != null && mSuggestedDefNs.equals(nsURI)) {
                 suggPrefix = "";
