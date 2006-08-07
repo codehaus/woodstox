@@ -35,6 +35,13 @@ import com.ctc.wstx.util.EmptyIterator;
  * mapping and writing guidance. It does, however, provide rudimentary
  * URI-to-prefix mappings, for those StAX methods that only take local
  * name and URI arguments.
+ *<p>
+ * One noteworthy feature of the class is that it is designed to allow
+ * "short-term recycling", ie. instances can be reused within context
+ * of a simple document output. While reuse/recycling of such lightweight
+ * object is often useless or even counter productive, here it may
+ * be worth using, due to simplicity of the scheme (basically using
+ * a very simple free-elements linked list).
  */
 public final class SimpleOutputElement
     implements NamespaceContext
@@ -168,15 +175,14 @@ public final class SimpleOutputElement
      *   reuse chain
      */
     private void relink(SimpleOutputElement parent,
-                        String prefix, String localName, String uri,
-                        BijectiveNsMap ns)
+                        String prefix, String localName, String uri)
     {
         mParent = parent;
         mPrefix = prefix;
         mLocalName = localName;
         mURI = uri;
-        mNsMapping = ns;
-        mNsMapShared = (ns != null);
+        mNsMapping = parent.mNsMapping;
+        mNsMapShared = (mNsMapping != null);
         mDefaultNsURI = parent.mDefaultNsURI;
         mRootNsContext = parent.mRootNsContext;
         mDefaultNsSet = false;
@@ -211,7 +217,17 @@ public final class SimpleOutputElement
     {
         mAttrMap = null;
         SimpleOutputElement poolHead = mParent;
-        relink(parent, null, localName, mDefaultNsURI, mNsMapping);
+        relink(parent, null, localName, mDefaultNsURI);
+        return poolHead;
+    }
+
+    protected SimpleOutputElement reuseAsChild(SimpleOutputElement parent,
+                                               String prefix, String localName,
+                                               String uri)
+    {
+        mAttrMap = null;
+        SimpleOutputElement poolHead = mParent;
+        relink(parent, prefix, localName, uri);
         return poolHead;
     }
 
@@ -228,16 +244,6 @@ public final class SimpleOutputElement
          */
         mAttrMap = null;
         return new SimpleOutputElement(this, prefix, localName, uri, mNsMapping);
-    }
-
-    protected SimpleOutputElement reuseAsChild(SimpleOutputElement parent,
-                                               String prefix, String localName,
-                                               String uri)
-    {
-        mAttrMap = null;
-        SimpleOutputElement poolHead = mParent;
-        relink(parent, prefix, localName, uri, mNsMapping);
-        return poolHead;
     }
 
     protected void setRootNsContext(NamespaceContext ctxt)
@@ -371,22 +377,25 @@ public final class SimpleOutputElement
 
         // Checking default namespace?
         if (prefix == null || prefix.length() == 0) {
-            /* This basically means caller wants to use "no namespace" for
-             * an attribute... which is fine
-             */
-            if (!isElement) {
-                return PREFIX_OK;
-            }
-            // It's fine for elements only if the URI actually matches:
-            if (nsURI == mDefaultNsURI || nsURI.equals(mDefaultNsURI)) {
-                return PREFIX_OK;
+            if (isElement) {
+                // It's fine for elements only if the URI actually matches:
+                if (nsURI == mDefaultNsURI || nsURI.equals(mDefaultNsURI)) {
+                    return PREFIX_OK;
+                }
+            } else {
+                /* Attributes never use the default namespace: "no prefix"
+                 * can only mean "no namespace"
+                 */
+                if (nsURI.length() == 0) {
+                    return PREFIX_OK;
+                }
             }
             return PREFIX_MISBOUND;
         }
 
-        /* 26-Sep-2004, TSa: Need to handle 'xml' prefix and its associated
-         *   URI; they are always declared by default
-         */
+            /* Need to handle 'xml' prefix and its associated
+             *   URI; they are always declared by default
+             */
         if (prefix.equals(sXmlNsPrefix)) {
             // Should we thoroughly verify its namespace matches...?
             // 01-Apr-2005, TSa: Yes, let's always check this

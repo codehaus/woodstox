@@ -58,19 +58,35 @@ public class TestNsStreamWriter3
         sw.writeStartElement("", "root", URI);
         //sw.writeAttribute("attr", "value");
         //sw.writeAttribute("", "", "attr2", "value2");
-        sw.writeCharacters("Illegal text!");
+
+        //sw.writeCharacters("Illegal text!");
         //sw.writeStartElement("", "branch", URI);
-        sw.writeStartElement(URI, "branch");
+
+        sw.writeStartElement("branch1");
+        sw.writeAttribute("xlink", "http://xlink", "href", "VALUE");
+        sw.writeEndElement();
+
+        sw.writeStartElement("branch2");
+        sw.writeAttribute("", "http://xlink", "foop", "VALUE2");
+        sw.writeEndElement();
+
+        /*
         sw.writeAttribute("", "", "foop", "value2");
         sw.writeStartElement("", "leaf", "");
         sw.writeEndElement();
+
+        sw.writeStartElement("nons-branch");
+        sw.writeAttribute("xlink", "http://xlink", "href", "VALUE2");
         sw.writeEndElement();
+        */
+
         /*
         sw.writeAttribute("atpr", "http://attr-prefix", "attr", "value");
         sw.writeAttribute("http://attr-prefix", "attr3", "value!");
         sw.writeAttribute("another", "this & that");
         */
-        sw.writeCharacters("Sub-text\n");
+        //sw.writeCharacters("Sub-text\n");
+
         sw.writeEndElement();
         w.flush();
         sw.writeEndDocument();
