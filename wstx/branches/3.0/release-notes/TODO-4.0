@@ -1,0 +1,44 @@
+------------------------------------
+Planned stuff for 3.0 (or later)
+------------------------------------
+
+* Bugs / incomplete handling:
+  * More optimal check for "]]>" in content. Now over 99% reliable, but
+    theoretically could miss if combination on input buffer boundary.
+  * XMLTest failures:
+    * UTF-16, checks for 0xFFFE, 0xFFFF (2 failures)
+    * Names, surrogate pairing (4 failures)
+    * xmlns pseudo-attributes, non-CDATA type (1 failure)
+
+* Interoperability:
+   * Implement SAXSource, if possible?
+   * Implement DOMTarget, and perhaps SAXTarget, if feasible.
+[defer] * Native SAX(2?) wrappers? (this goal might not make sense -- basic
+  wrapper exists, from Stax-utils, hard to cleanly implement natively)
+
+* XML validation:
+   * Integrate Multi-Schema Validator's W3C Schema validator using its
+     native interface (RNG already integrated)
+   * How about DTD++? Data types should be reasonably easy...?
+     Would also allow partial W3C Schema and RelaxNG implementations
+     natively?
+
+* Indentation/Pretty-printing:
+   * Using DTD
+   * Heuristically
+
+* Documentation:
+   * Impl. details, like: always interns names, preserves attribute value
+     orders.
+   * Requirements for compiling, running:
+      * Ant 1.5? (rootfileset)
+      * Jars: for 1.3/1.2 SAX and DOM API jars?
+      * How to build for 1.2, 1.3?
+   * FAQ:
+      * Output streaming; use of 'writeCharacters("");', flush()
+
+* XML standards:
+  * Xml:id support (is there need to disable it?)
+  * XInclude
+  * XML Catalog support
+

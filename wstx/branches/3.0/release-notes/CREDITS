@@ -1,0 +1,180 @@
+Here are people who have contributed to Woodstox development:
+(version numbers in brackets indicate release in which the problem was fixed)
+
+Tatu Saloranta, tatu.saloranta@iki.fi: Author
+
+Christian Niles:
+  * Pointed out the improvement to wstx.jar, that will set system properties
+    necessary to automatically make Woodstox the default StAX implementation
+    to use
+    [0.8.3]
+
+James Fogarty:
+  * Found 3 bugs (getElementText() not working, incorrect index offset
+    for non-ns getAttributeLocalName(), index-out-of-bounds when there
+    were lots of attribute names whose hashes collide)
+    [1.0-RC1, 1.0-RC2]
+
+James Strachan:
+  * Found problems with stream writer; namespace repairing mode was not
+    working as expected
+    [1.0-RC5]
+
+Stepan Koltsov:
+  * Found problems with event reader: was setting peeked event to null, yet
+    trying to de-reference it
+    [1.0-RC7]
+
+Mat Gessel:
+  * Pointed out a problem with XMLStreamReader.nextTag() implementation;
+    was not skipping comments and PIs
+    [1.0-final]
+
+Dan Diephouse:
+  * Reported problems with QName construction (null prefix causes
+    exception on some QName implementations)
+    [1.0.1]
+  * Reported [WSTX-9] (sr.getTextCharacters() problems)
+    [2.0.3/2.7]
+  * Pointed out code that could be used to resolve [WSTX-26].
+
+Sven Köhler:
+  * Reported the problem with blocking input streams, and behaviour of
+    the UTF8 decoder Woodstox uses: this could cause "too early" blocking
+    of readers, in cases where event(s) could be returned before needing
+    to read more from underlying input stream.
+    [1.0.4/1.7]
+  * Reported a bug in stream writer; a call to writeEmptyElement() followed
+    by a call to writeEndElement() ignored latter call.
+    [1.0.5/1.8.2]
+
+Casey Bowman:
+  * Pointed out the (potential) problem with javax.xml.stream.Location;
+    return values are ints, and may thus overflow for BIG documents.
+    StAX2 extensions (XMLStreamLocation2) added to properly deal with
+    the problem.
+    [1.8]
+
+Stefan Wachter:
+  * Reported a problem with handling of large documents; was sometimes
+    throwing an ArrayIndexOutOfBounds exception (mostly when dealing
+    with gzipped streams).
+    [1.0.3/1.8.1]
+
+Eric Jain:
+  * Reported a bug in default namespace handling; was reporting a bogus
+    problem when declaring an explicit namespace before the default one
+    on a start element
+    [1.0.3/1.8.1]
+  * Re-reported the problem with UTF-8 streams and array bounds (originally
+    reported by Stefan Wachter), and provided unit test to reproduce it.
+    [1.0.4/1.8.1]
+
+Marius Raschip:
+  * Reported a problem with handling of UTF-16 (and in general all non-UTF-8
+    multi-byte encodings): wasn't handling xml declaration correctly.
+    [1.0.5/1.8.2]
+
+Olivier Potonniee:
+  * Reported compilation problems (incorrect package name for one class,
+    conflicting method name for LineSuppressWriter)
+    [1.0.6/1.9]
+
+Ron Yang:
+  * Reported an intermittent problem caused by broken handling of SymbolTable
+    sharing, and also pointed out a potential solution (had been fixed for
+    2.0 branch earlier, but not for 1.0.x).
+    [1.0.7]
+
+Ulrich Callmeier:
+  * Reported a bug with START_DOCUMENT handling of XMLStreamWriter
+    implementation
+    [1.0.7/2.0-final]
+  * Reported a bug with the input factory: entity and dtd resolvers were
+    not being properly passed to instances
+    [1.0.7/2.0-final]
+  * Report a bug with WriterBase, base class for all encoding writers
+    (attribute, element text): an NPE was thrown when trying to output
+    encoded characters.
+    [2.0.1/2.5]
+  * Reported a bug in DTD-handling; DTDs that had enumerated value "-"
+    (or "--"), were throwing an exception.
+    [2.0.1/2.5]
+
+Peter Tauter:
+  * Reported a bug with WriterBase; see the entry next to Ulrich for details.
+
+Linus Ericson:
+  * Reported bugs:
+    * [WSTX-3]: WDTD.java was missing one double quote from output
+      [2.0.2/2.6]
+    * [WSTX-7] SimpleNsStreamWriter was stripping out attribute namespaces
+      [2.0.3/2.7]
+
+Patrick D'Cruze:
+  * Reported [WSTX-8]; nextTag() followed by peek() at the start of a
+    document did not work.
+    [2.0.3/2.7]
+
+Erik Smith:
+  * Reported [WSTX-9] (sr.getTextCharacters() problems)
+    [2.0.3/2.7]
+
+Kevin Vargo:
+  * Reported [WSTX-9] (sr.getTextCharacters() problems)
+    [2.0.3/2.7]
+
+Heinz Drews:
+  * Reported [WSTX-10] (handling of 3-byte UTF-8 Byte Order Marker did
+    not work properly when XMLStreamReader was constructed for a Reader)
+    [2.0.3/2.7]
+  * Reported [WSTX-19] (unnecessary default namespace declarations written
+    in repairing mode)
+    [2.0.4/2.8.1]
+
+Wolfgang Hoschek:
+  * Reported [WSTX-27] (incorrect handling of #FIXED attribute defaults)
+    [2.0.4/2.8.1]
+  * Reported [WTSX-59]: Stream writer tries to quote \r and \t in
+    prolog and epilog.
+  * Pointed out countless other bugs based on extensive Nux and Xom
+    xml compatibility suites (and w3c compatibility suite as well).
+  * Pointed out multiple optimization possibilities (both on reader and
+    writer side), esp. via performance
+    test suite Nux has: this helped performance tuning of 3.0 release
+    significantly.
+  * Reported [WSTX-65], [WSTX-66] and [WSTX-67], regarding event handling
+    problems.
+    [3.0-final]
+
+Bartlomiej Rymkowski:
+  * Reported [WSTX-28] (broken handling of property
+    (WstxInputProperties.P_CUSTOM_INTERNAL_ENTITIES)
+    [2.0.5/2.8.2]
+
+Arjen Poutsma:
+  * Reported [WSTX-45] (WstxEventReader#peek() throwing EOF instead
+    of returning null), pointed out fix.
+    [2.0.6/2.9.2]
+
+John Kristian:
+  * Reported [WSTX-46]: Trying to write another root element produced an
+    incorrect error message
+    [2.0.6/2.9.2]
+
+Steve Yost:
+  * Reported a problem with setting P_VALIDATE_STRUCTURE
+    [2.0.6]
+  * Reported a problem with stream writer when trying to output
+    non-wellformed (multiple root elements) content even when
+    structural well-formedness checks are disabled.
+
+Anli Shundi:
+  * Reported [WTSX-58]: a problem with DOMWrappingReader throwing an NPE, when
+    accessing attribute properties of an element with only ns declarations.
+    [3.0-final]
+
+Lucian Holland:
+  * Reported a bug in handling of StartDocument event, peeking and
+    XMLEventReader.nextTag().
+    [3.0-final]
