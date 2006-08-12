@@ -15,7 +15,7 @@ public class TestWstxPerf
         super();
     }
 
-    protected XMLInputFactory2 getInputFactory()
+    protected XMLInputFactory getInputFactory()
     {
         System.setProperty("javax.xml.stream.XMLInputFactory",
                            "com.ctc.wstx.stax.WstxInputFactory");
@@ -29,7 +29,7 @@ public class TestWstxPerf
         return (XMLInputFactory2) f;
     }
 
-    protected XMLOutputFactory2 getOutputFactory()
+    protected XMLOutputFactory getOutputFactory()
     {
         System.setProperty("javax.xml.stream.XMLOutputFactory",
                            "com.ctc.wstx.stax.WstxOutputFactory");

@@ -211,7 +211,7 @@ public final class Stax2ReaderAdapter
                 if (prefix == null) {
                     return ln;
                 }
-                StringBuilder sb = new StringBuilder(ln.length() + 1 + prefix.length());
+                StringBuffer sb = new StringBuffer(ln.length() + 1 + prefix.length());
                 sb.append(prefix);
                 sb.append(':');
                 sb.append(ln);
