@@ -126,10 +126,11 @@ public final class BufferingXmlWriter
     ////////////////////////////////////////////////
      */
 
-    public BufferingXmlWriter(Writer out, WriterConfig cfg, String enc)
+    public BufferingXmlWriter(Writer out, WriterConfig cfg, String enc,
+                              boolean autoclose)
         throws IOException
     {
-        super(cfg, enc);
+        super(cfg, enc, autoclose);
         mOut = out;
         mOutputBuffer = cfg.allocFullCBuffer(DEFAULT_BUFFER_SIZE);
         mOutputBufLen = mOutputBuffer.length;
@@ -169,7 +170,9 @@ public final class BufferingXmlWriter
             char[] buf = mOutputBuffer;
             mOutputBuffer = null;
             mConfig.freeFullCBuffer(buf);
-            w.close();
+            if (mAutoCloseOutput) {
+                w.close();
+            }
         }
     }
 

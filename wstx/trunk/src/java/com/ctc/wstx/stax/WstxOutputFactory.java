@@ -90,7 +90,7 @@ public final class WstxOutputFactory
        if (out == null) {
            throw new IllegalArgumentException("Null OutputStream is not a valid argument");
        }
-       return new WstxEventWriter(createSW(out, null, enc));
+       return new WstxEventWriter(createSW(out, null, enc, false));
     }
 
     public XMLEventWriter createXMLEventWriter(javax.xml.transform.Result result)
@@ -105,7 +105,7 @@ public final class WstxOutputFactory
         if (w == null) {
             throw new IllegalArgumentException("Null Writer is not a valid argument");
         }
-        return new WstxEventWriter(createSW(null, w, null));
+        return new WstxEventWriter(createSW(null, w, null, false));
     }
 
     public XMLStreamWriter createXMLStreamWriter(OutputStream out)
@@ -120,7 +120,7 @@ public final class WstxOutputFactory
         if (out == null) {
             throw new IllegalArgumentException("Null OutputStream is not a valid argument");
         }
-        return createSW(out, null, enc);
+        return createSW(out, null, enc, false);
     }
 
     public XMLStreamWriter createXMLStreamWriter(javax.xml.transform.Result result)
@@ -135,7 +135,7 @@ public final class WstxOutputFactory
         if (w == null) {
             throw new IllegalArgumentException("Null Writer is not a valid argument");
         }
-        return createSW(null, w, null);
+        return createSW(null, w, null, false);
     }
     
     public Object getProperty(String name)
@@ -163,7 +163,7 @@ public final class WstxOutputFactory
     public XMLEventWriter createXMLEventWriter(Writer w, String enc)
         throws XMLStreamException
     {
-        return new WstxEventWriter(createSW(null, w, enc));
+        return new WstxEventWriter(createSW(null, w, enc, false));
     }
 
     public XMLEventWriter createXMLEventWriter(XMLStreamWriter sw)
@@ -175,7 +175,7 @@ public final class WstxOutputFactory
     public XMLStreamWriter2 createXMLStreamWriter(Writer w, String enc)
         throws XMLStreamException
     {
-        return createSW(null, w, enc);
+        return createSW(null, w, enc, false);
     }
 
     // // // StAX2 "Profile" mutators
@@ -214,8 +214,12 @@ public final class WstxOutputFactory
     /**
      * Bottleneck factory method used internally; needs to take care of passing
      * proper settings to stream writer.
+     *
+     * @param autoCloseOutput Whether writer should automatically close the
+     *   output stream or Writer, when close() is called on stream writer.
      */
-    private BaseStreamWriter createSW(OutputStream out, Writer w, String enc)
+    private BaseStreamWriter createSW(OutputStream out, Writer w, String enc,
+                                      boolean autoCloseOutput)
         throws XMLStreamException
     {
         /* Need to ensure that the configuration object is not shared
@@ -234,17 +238,21 @@ public final class WstxOutputFactory
 
             try {
                 if (enc == CharsetNames.CS_UTF8) {
-                    w = new UTF8Writer(cfg, out);
-                    xw = new BufferingXmlWriter(w, cfg, enc);
+                    /* 16-Aug-2006, TSa: Note: utf8 writer may or may not
+                     *   need to close the stream it has, but buffering
+                     *   xml writer must call close on utf8 writer. Thus:
+                     */
+                    w = new UTF8Writer(cfg, out, autoCloseOutput);
+                    xw = new BufferingXmlWriter(w, cfg, enc, true);
                     //xw = new ISOLatin1XmlWriter(out, cfg);
                 } else if (enc == CharsetNames.CS_ISO_LATIN1) {
-                    xw = new ISOLatin1XmlWriter(out, cfg);
+                    xw = new ISOLatin1XmlWriter(out, cfg, autoCloseOutput);
                 } else if (enc == CharsetNames.CS_US_ASCII) {
                     // !!! TBI
-                    xw = new ISOLatin1XmlWriter(out, cfg);
+                    xw = new ISOLatin1XmlWriter(out, cfg, autoCloseOutput);
                 } else {
                     w = new OutputStreamWriter(out, enc);
-                    xw = new BufferingXmlWriter(w, cfg, enc);
+                    xw = new BufferingXmlWriter(w, cfg, enc, autoCloseOutput);
                 }
             } catch (IOException ex) {
                 throw new XMLStreamException(ex);
@@ -257,7 +265,7 @@ public final class WstxOutputFactory
                 }
             }
             try {
-                xw = new BufferingXmlWriter(w, cfg, enc);
+                xw = new BufferingXmlWriter(w, cfg, enc, autoCloseOutput);
             } catch (IOException ex) {
                 throw new XMLStreamException(ex);
             }
@@ -278,6 +286,7 @@ public final class WstxOutputFactory
         OutputStream out = null;
         Writer w = null;
         String encoding = null;
+        boolean autoclose;
 
         if (res instanceof Stax2Result) {
             Stax2Result sr = (Stax2Result) res;
@@ -289,29 +298,31 @@ public final class WstxOutputFactory
             } catch (IOException ioe) {
                 throw new WstxIOException(ioe);
             }
+            autoclose = true;
         } else if (res instanceof StreamResult) {
             StreamResult sr = (StreamResult) res;
             out = sr.getOutputStream();
             if (out == null) {
                 w = sr.getWriter();
             }
+            autoclose = false; // caller still owns it, no automatic close
         } else if (res instanceof SAXResult) {
             //SAXResult sr = (SAXResult) res;
             // !!! TBI
-            throw new XMLStreamException("Can not create a STaX writer for a SAXResult -- not (yet?) implemented.");
+            throw new XMLStreamException("Can not create a STaX writer for a SAXResult -- not implemented.");
         } else if (res instanceof DOMResult) {
             //DOMResult sr = (DOMResult) res;
             // !!! TBI
-            throw new XMLStreamException("Can not create a STaX writer for a DOMResult -- not (yet) implemented.");
+            throw new XMLStreamException("Can not create a STaX writer for a DOMResult -- not (yet?) implemented.");
         } else {
             throw new IllegalArgumentException("Can not instantiate a writer for XML result type "+res.getClass()+" (unrecognized type)");
         }
 
         if (out != null) {
-            return createSW(out, null, encoding);
+            return createSW(out, null, encoding, autoclose);
         }
         if (w != null) {
-            return createSW(null, w, encoding);
+            return createSW(null, w, encoding, autoclose);
         }
         throw new XMLStreamException("Can not create StAX writer for passed-in Result -- neither writer nor output stream was accessible");
     }

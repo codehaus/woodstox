@@ -97,10 +97,11 @@ public abstract class EncodingXmlWriter
     ////////////////////////////////////////////////
      */
 
-    public EncodingXmlWriter(OutputStream out, WriterConfig cfg, String encoding)
+    public EncodingXmlWriter(OutputStream out, WriterConfig cfg, String encoding,
+                             boolean autoclose)
         throws IOException
     {
-        super(cfg, encoding);
+        super(cfg, encoding, autoclose);
         mOut = out;
         mOutputBuffer = new byte[DEFAULT_BUFFER_SIZE];
         mOutputPtr = 0;
@@ -123,7 +124,9 @@ public abstract class EncodingXmlWriter
     public void close()
         throws IOException
     {
-        mOut.close();
+        if (mAutoCloseOutput) {
+            mOut.close();
+        }
     }
 
     public final void flush()

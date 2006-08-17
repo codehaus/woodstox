@@ -28,10 +28,11 @@ import com.ctc.wstx.api.WriterConfig;
 public final class AsciiXmlWriter
     extends EncodingXmlWriter
 {
-    public AsciiXmlWriter(OutputStream out, WriterConfig cfg, String encoding)
+    public AsciiXmlWriter(OutputStream out, WriterConfig cfg, String encoding,
+                          boolean autoclose)
         throws IOException
     {
-        super(out, cfg, encoding);
+        super(out, cfg, encoding, autoclose);
     }
 
     public void writeRaw(char[] cbuf, int offset, int len)

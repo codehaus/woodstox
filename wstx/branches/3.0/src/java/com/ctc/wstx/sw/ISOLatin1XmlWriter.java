@@ -33,10 +33,10 @@ import com.ctc.wstx.io.CharsetNames;
 public final class ISOLatin1XmlWriter
     extends EncodingXmlWriter
 {
-    public ISOLatin1XmlWriter(OutputStream out, WriterConfig cfg)
+    public ISOLatin1XmlWriter(OutputStream out, WriterConfig cfg, boolean autoclose)
         throws IOException
     {
-        super(out, cfg, CharsetNames.CS_ISO_LATIN1);
+        super(out, cfg, CharsetNames.CS_ISO_LATIN1, autoclose);
     }
 
     public void writeRaw(char[] cbuf, int offset, int len)

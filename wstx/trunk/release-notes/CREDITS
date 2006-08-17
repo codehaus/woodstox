@@ -172,9 +172,20 @@ Steve Yost:
 Anli Shundi:
   * Reported [WTSX-58]: a problem with DOMWrappingReader throwing an NPE, when
     accessing attribute properties of an element with only ns declarations.
-    [3.0-final]
+    [3.0.0]
 
 Lucian Holland:
   * Reported a bug in handling of StartDocument event, peeking and
     XMLEventReader.nextTag().
-    [3.0-final]
+    [3.0.0]
+
+Matt Solnit:
+  * Reported [WSTX-72]: Output streams/writers sometimes closed when they
+    should not be.
+    [3.0.1/3.1.0]
+
+Michael Kay:
+  * Reported [WSTX-69]: Incorrect types returned by XMLStreamReader, when
+    notations/entities are requested.
+  * Reported [WSTX-71]: Use of unchecked exceptions sub-optimal, for cases
+    where it would be possible to just defer throwing of checked ones

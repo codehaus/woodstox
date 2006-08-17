@@ -1,10 +1,19 @@
-Version: 3.0.0 (3.0 final)
+Version: 3.0.1
 
-Release date: 07-Aug-2006
+Release date: xx-xxx-2006
 
 Description:
-  The official 3.0 release. Contains last critical fixes on the second
-  release candidate, mostly relating to event API implementation.
+  The first patch for 3.0.0. Contains critical fixes to the stable branch.
+
+  Problems fixed:
+
+  * [WSTX-72] Closing of output streams/writers in cases where that should
+    not be done (plus similar problems on input side)
+    (reported by Matt S)
+
+== History: ==
+
+3.0.0 [07-Aug-2006]
 
   Problems fixed:
 
@@ -20,8 +29,6 @@ Description:
     ie. same as what XMLStreamReader returns).
   * [WSTX-65]: Fixed multiple problems with repairing stream writer, and
     the handling of automatic namespace declarations.
-
-== History: ==
 
 3.0rc2 [21-Jul-2006]
 

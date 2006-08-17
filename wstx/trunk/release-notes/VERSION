@@ -1,12 +1,15 @@
-Version: 3.0.0 (3.0 final)
+Version: 3.1rc1
 
-Release date: 07-Aug-2006
+Release date: xx-Sep-2006
 
 Description:
-  The official 3.0 release. Contains last critical fixes on the second
-  release candidate, mostly relating to event API implementation.
+  First release candidate for 3.1.
 
   Problems fixed:
+
+  * [WSTX-72] Closing of output streams/writers in cases where that should
+    not be done (plus similar problems on input side)
+    (reported by Matt S)
 
 == History: ==
 

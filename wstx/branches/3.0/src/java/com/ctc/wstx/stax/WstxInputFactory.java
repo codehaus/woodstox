@@ -270,12 +270,8 @@ public final class WstxInputFactory
     public XMLEventReader createXMLEventReader(javax.xml.transform.Source source)
         throws XMLStreamException
     {
-        /* true for auto-close, since caller has no (guaranteed) access to
-         * the underlying input stream/reader (source object may hand
-         * different readers for each call)
-         */
         return new WstxEventReader(createEventAllocator(),
-                                   createSR(source, true, true));
+                                   createSR(source, true));
     }
 
     public XMLEventReader createXMLEventReader(String systemId, InputStream in)
@@ -330,7 +326,7 @@ public final class WstxInputFactory
          * the underlying input stream/reader (source object may hand
          * different readers for each call)
          */
-        return createSR(src, false, true);
+        return createSR(src, false);
     }
 
     public XMLStreamReader createXMLStreamReader(String systemId, InputStream in)
@@ -663,9 +659,14 @@ public final class WstxInputFactory
         }
     }
 
+    /**
+     * Another internal factory method, used when dealing with a generic
+     * Source base type. One thing worth noting is that 'auto-closing'
+     * will be enabled if the input source or Reader is constructed (and
+     * thus owned) by Woodstox.
+     */
     protected XMLStreamReader2 createSR(javax.xml.transform.Source src,
-                                        boolean forER,
-                                        boolean autoCloseInput)
+                                        boolean forER)
         throws XMLStreamException
     {
         ReaderConfig cfg = createPrivateConfig();
@@ -674,8 +675,12 @@ public final class WstxInputFactory
         String pubId = null;
         String sysId = null;
         String encoding = null;
+        boolean autoCloseInput;
 
         if (src instanceof Stax2Source) {
+            /* 16-Aug-2006, TSa: Should have more optimized handling
+             *   for specific types
+             */
             Stax2Source ss = (Stax2Source) src;
             sysId = ss.getSystemId();
             pubId = ss.getPublicId();
@@ -688,6 +693,10 @@ public final class WstxInputFactory
             } catch (IOException ioe) {
                 throw new WstxIOException(ioe);
             }
+            /* Caller has no direct access to stream/reader, Woodstox
+             * owns it and thus has to close too
+             */
+            autoCloseInput = true;
         } else  if (src instanceof StreamSource) {
             StreamSource ss = (StreamSource) src;
             sysId = ss.getSystemId();
@@ -696,6 +705,10 @@ public final class WstxInputFactory
             if (in == null) {
                 r = ss.getReader();
             }
+            /* Caller still has access to stream/reader; no need to
+             * force auto-close-input
+             */
+            autoCloseInput = cfg.willAutoCloseInput();
         } else if (src instanceof SAXSource) {
             SAXSource ss = (SAXSource) src;
             /* 28-Jan-2006, TSa: Not a complete implementation, but maybe
@@ -711,6 +724,10 @@ public final class WstxInputFactory
                     r = isrc.getCharacterStream();
                 }
             }
+            /* Caller still has access to stream/reader; no need to
+             * force auto-close-input
+             */
+            autoCloseInput = cfg.willAutoCloseInput();
         } else if (src instanceof DOMSource) {
             DOMSource domSrc = (DOMSource) src;
             // SymbolTable not used by the DOM-based 'reader':

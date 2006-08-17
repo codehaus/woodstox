@@ -85,6 +85,12 @@ public abstract class XmlWriter
     protected final boolean mFixContent;
 
     /**
+     * Flag that defines whether close() on this writer should call
+     * close on the underlying output object (stream, writer)
+     */
+    protected final boolean mAutoCloseOutput;
+
+    /**
      * Optional escaping writer used for escaping characters like '&lt;'
      * '&amp;' and '&gt;' in textual content.
      * Constructed if calling code has
@@ -147,11 +153,12 @@ public abstract class XmlWriter
     ///////////////////////////////////////////////////////
      */
 
-    protected XmlWriter(WriterConfig cfg, String encoding)
+    protected XmlWriter(WriterConfig cfg, String encoding, boolean autoclose)
         throws IOException
     {
         mConfig = cfg;
         mEncoding = encoding;
+        mAutoCloseOutput = autoclose;
         int flags = cfg.getConfigFlags();
         mNsAware = (flags & OutputConfigFlags.CFG_ENABLE_NS) != 0;
         mCheckStructure = (flags & OutputConfigFlags.CFG_VALIDATE_STRUCTURE) != 0;

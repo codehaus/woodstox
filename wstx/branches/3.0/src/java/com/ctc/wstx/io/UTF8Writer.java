@@ -14,6 +14,8 @@ public final class UTF8Writer
 
     final WriterConfig mConfig;
 
+    final boolean mAutoCloseOutput;
+
     OutputStream mOut;
 
     byte[] mOutBuffer;
@@ -29,9 +31,10 @@ public final class UTF8Writer
      */
     int mSurrogate = 0;
 
-    public UTF8Writer(WriterConfig cfg, OutputStream out)
+    public UTF8Writer(WriterConfig cfg, OutputStream out, boolean autoclose)
     {
         mConfig = cfg;
+        mAutoCloseOutput = autoclose;
         mOut = out;
         mOutBuffer = cfg.allocFullBBuffer(4000);
         /* Max. expansion for a single char (in unmodified UTF-8) is
@@ -63,7 +66,9 @@ public final class UTF8Writer
             byte[] buf = mOutBuffer;
             mOutBuffer = null;
 
-            out.close();
+            if (mAutoCloseOutput) {
+                out.close();
+            }
             mConfig.freeFullBBuffer(buf);
 
             /* Let's 'flush' orphan surrogate, no matter what; but only
