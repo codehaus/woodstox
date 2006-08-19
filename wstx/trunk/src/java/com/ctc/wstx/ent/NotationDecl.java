@@ -5,15 +5,16 @@ import java.io.Writer;
 
 import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.events.NotationDeclaration;
 
 import com.ctc.wstx.io.WstxInputSource;
+import com.ctc.wstx.evt.WNotationDeclaration;
 
 /**
  * Object that represents notation declarations DTD reader
  * has parsed from DTD subsets.
  */
 public class NotationDecl
+    extends WNotationDeclaration
 {
     final Location mLocation;
 
@@ -28,6 +29,7 @@ public class NotationDecl
 
     public NotationDecl(Location loc, String name, String pubId, String sysId)
     {
+        super(loc);
         mLocation = loc;
         mName = name;
         mPublicId = pubId;

@@ -7,6 +7,9 @@ Description:
 
   Problems fixed:
 
+  * [WSTX-69] Incorrect types returned by XMLStreamReader, when
+    notations/entities are requested.
+    (report by Michael K)
   * [WSTX-72] Closing of output streams/writers in cases where that should
     not be done (plus similar problems on input side)
     (reported by Matt S)

@@ -26,6 +26,7 @@ import javax.xml.stream.XMLStreamException;
 
 import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.exc.WstxException;
+import com.ctc.wstx.evt.WEntityDeclaration;
 import com.ctc.wstx.io.WstxInputLocation;
 import com.ctc.wstx.io.WstxInputSource;
 
@@ -34,9 +35,8 @@ import com.ctc.wstx.io.WstxInputSource;
  * has parsed from DTD subsets.
  */
 public abstract class EntityDecl
+    extends WEntityDeclaration
 {
-    final Location mLocation;
-
     /**
      * Name/id of the entity used to reference it.
      */
@@ -56,7 +56,7 @@ public abstract class EntityDecl
 
     public EntityDecl(Location loc, String name, URL ctxt)
     {
-        mLocation = loc;
+        super(loc);
         mName = name;
         mContext = ctxt;
     }

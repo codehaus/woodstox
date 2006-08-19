@@ -19,7 +19,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Reader;
 import java.net.URL;
-import java.util.Map;
+import java.util.*;
 
 import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamReader;
@@ -31,7 +31,11 @@ import org.codehaus.stax2.validation.*;
 import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.cfg.XmlConsts;
+import com.ctc.wstx.ent.EntityDecl;
+import com.ctc.wstx.ent.NotationDecl;
 import com.ctc.wstx.exc.WstxException;
+import com.ctc.wstx.evt.WEntityDeclaration;
+import com.ctc.wstx.evt.WNotationDeclaration;
 import com.ctc.wstx.io.*;
 import com.ctc.wstx.dtd.DTDId;
 import com.ctc.wstx.dtd.DTDSubset;
@@ -157,14 +161,27 @@ public class ValidatingStreamReader
             if (mDTD == null || !(mDTD instanceof DTDSubset)) {
                 return null;
             }
-            return ((DTDSubset) mDTD).getGeneralEntityList();
+            // 18-Aug-2006, TSa: Need to convert types
+            List l = ((DTDSubset) mDTD).getGeneralEntityList();
+            ArrayList result = new ArrayList(l.size());
+            Iterator it = l.iterator();
+            while (it.hasNext()) {
+                result.add(new WEntityDeclaration((EntityDecl) it.next()));
+            }
+            return result;
         }
         if (name.equals(STAX_PROP_NOTATIONS)) {
             safeEnsureFinishToken();
             if (mDTD == null || !(mDTD instanceof DTDSubset)) {
                 return null;
             }
-            return ((DTDSubset) mDTD).getNotationList();
+            List l = ((DTDSubset) mDTD).getNotationList();
+            ArrayList result = new ArrayList(l.size());
+            Iterator it = l.iterator();
+            while (it.hasNext()) {
+                result.add(new WNotationDeclaration((NotationDecl) it.next()));
+            }
+            return result;
         }
         return super.getProperty(name);
     }

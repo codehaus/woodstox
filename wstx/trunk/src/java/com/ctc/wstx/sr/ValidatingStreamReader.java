@@ -19,7 +19,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Reader;
 import java.net.URL;
-import java.util.Map;
+import java.util.*;
 
 import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamReader;
@@ -157,14 +157,22 @@ public class ValidatingStreamReader
             if (mDTD == null || !(mDTD instanceof DTDSubset)) {
                 return null;
             }
-            return ((DTDSubset) mDTD).getGeneralEntityList();
+            List l = ((DTDSubset) mDTD).getGeneralEntityList();
+            /* Let's make a copy, so that caller can not modify
+             * DTD's internal list instance
+             */
+            return new ArrayList(l);
         }
         if (name.equals(STAX_PROP_NOTATIONS)) {
             safeEnsureFinishToken();
             if (mDTD == null || !(mDTD instanceof DTDSubset)) {
                 return null;
             }
-            return ((DTDSubset) mDTD).getNotationList();
+            /* Let's make a copy, so that caller can not modify
+             * DTD's internal list instance
+             */
+            List l = ((DTDSubset) mDTD).getNotationList();
+            return new ArrayList(l);
         }
         return super.getProperty(name);
     }

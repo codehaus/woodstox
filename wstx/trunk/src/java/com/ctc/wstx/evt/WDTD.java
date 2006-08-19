@@ -126,26 +126,18 @@ public class WDTD
     public List getEntities()
     {
         if (mEntities == null && (mDTD != null)) {
-            List in = mDTD.getGeneralEntityList();
-            int len = in.size();
-            ArrayList out = new ArrayList(len);
-            for (int i = 0; i < len; ++i) {
-                out.add(new WEntityDeclaration((EntityDecl) in.get(i)));
-            }
-            mEntities = out;
+            /* Better make a copy, so that caller can not modify list
+             * DTD has, which may be shared (since DTD subset instances
+             * are cached and reused)
+             */
+            mEntities = new ArrayList(mDTD.getGeneralEntityList());
         }
         return mEntities;
     }
 
     public List getNotations() {
         if (mNotations == null && (mDTD != null)) {
-            List in = mDTD.getNotationList();
-            int len = in.size();
-            ArrayList out = new ArrayList(len);
-            for (int i = 0; i < len; ++i) {
-                out.add(new WNotationDeclaration((NotationDecl) in.get(i)));
-            }
-            mNotations = out;
+            mNotations = new ArrayList(mDTD.getNotationList());
         }
         return mNotations;
     }

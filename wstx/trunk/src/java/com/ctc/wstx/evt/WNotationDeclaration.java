@@ -15,29 +15,20 @@ import com.ctc.wstx.io.WstxInputSource;
  * Woodstox implementation of StAX {@link NotationDeclaration}; basically
  * just wraps the internal notation declaration object woodstox uses
  */
-public class WNotationDeclaration
+public abstract class WNotationDeclaration
     extends WEvent
     implements NotationDeclaration
 {
-    final NotationDecl mDecl;
-
-    public WNotationDeclaration(NotationDecl decl)
+    public WNotationDeclaration(Location loc)
     {
-        super(decl.getLocation());
-        mDecl = decl;
+        super(loc);
     }
 
-    public String getName() {
-        return mDecl.getName();
-    }
+    public abstract String getName();
 
-    public String getPublicId() {
-        return mDecl.getPublicId();
-    }
+    public abstract String getPublicId();
 
-    public String getSystemId() {
-        return mDecl.getSystemId();
-    }
+    public abstract String getSystemId();
 
     /*
     ///////////////////////////////////////////
@@ -49,11 +40,14 @@ public class WNotationDeclaration
         return NOTATION_DECLARATION;
     }
 
+    public abstract void writeEnc(Writer w)
+        throws IOException;
+
     public void writeAsEncodedUnicode(Writer w)
         throws XMLStreamException
     {
         try {
-            mDecl.writeEnc(w);
+            writeEnc(w);
         } catch (IOException ie) {
             throwFromIOE(ie);
         }

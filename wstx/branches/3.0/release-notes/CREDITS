@@ -183,3 +183,8 @@ Matt Solnit:
   * Reported [WSTX-72]: Output streams/writers sometimes closed when they
     should not be.
     [3.0.1]
+
+Michael Kay:
+  * Reported [WSTX-69]: Incorrect types returned by XMLStreamReader, when
+    notations/entities are requested.
+    [3.0.1]

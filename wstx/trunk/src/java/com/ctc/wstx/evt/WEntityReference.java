@@ -15,25 +15,14 @@ public class WEntityReference
     extends WEvent
     implements EntityReference
 {
-    final EntityDecl mDecl;
-
-    EntityDeclaration mDeclEvt;
+    final EntityDeclaration mDecl;
 
     final String mName;
 
-    public WEntityReference(Location loc, com.ctc.wstx.ent.EntityDecl decl)
+    public WEntityReference(Location loc, EntityDeclaration decl)
     {
         super(loc);
         mDecl = decl;
-        mDeclEvt = null;
-        mName = null;
-    }
-
-    public WEntityReference(Location loc, javax.xml.stream.events.EntityDeclaration decl)
-    {
-        super(loc);
-        mDecl = null;
-        mDeclEvt = decl;
         mName = null;
     }
 
@@ -44,26 +33,21 @@ public class WEntityReference
      */
     public WEntityReference(Location loc, String name)
     {
-	super(loc);
-	mDecl = null;
-	mDeclEvt = null;
-	mName = name;
+        super(loc);
+        mDecl = null;
+        mName = name;
     }
 
     public EntityDeclaration getDeclaration() {
-        if (mDeclEvt == null) {
-	    if (mDecl != null) {
-		mDeclEvt = new WEntityDeclaration(mDecl);
-	    }
-        }
-        return mDeclEvt;
+        return mDecl;
     }
 
-    public String getName() {
-	if (mName != null) {
-	    return mName;
-	}
-        return (mDecl == null) ? mDeclEvt.getName() : mDecl.getName();
+    public String getName()
+    {
+        if (mName != null) {
+            return mName;
+        }
+        return mDecl.getName();
     }
 
     /*

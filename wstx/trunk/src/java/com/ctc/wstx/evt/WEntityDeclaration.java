@@ -15,45 +15,26 @@ import com.ctc.wstx.io.WstxInputSource;
  * Simple implementation of StAX entity declaration events; for the
  * most just wraps a {@link EntityDecl} instance.
  */
-public final class WEntityDeclaration
+public abstract class WEntityDeclaration
     extends WEvent
     implements EntityDeclaration
 {
-    /**
-     * Woodstox object that actually contains all information
-     * about this event
-     */
-    final EntityDecl mDecl;
-
-    public WEntityDeclaration(EntityDecl decl)
+    public WEntityDeclaration(Location loc)
     {
-        super(decl.getLocation());
-        mDecl = decl;
+        super(loc);
     }
 
-    public String getBaseURI() {
-        return mDecl.getBaseURI();
-    }
+    public abstract String getBaseURI();
 
-    public String getName() {
-        return mDecl.getName();
-    }
+    public abstract String getName();
 
-    public String getNotationName() {
-        return mDecl.getNotationName();
-    }
+    public abstract String getNotationName();
 
-    public String getPublicId() {
-        return mDecl.getPublicId();
-    }
+    public abstract String getPublicId();
 
-    public String getReplacementText() {
-        return mDecl.getReplacementText();
-    }
+    public abstract String getReplacementText();
 
-    public String getSystemId() {
-        return mDecl.getSystemId();
-    }
+    public abstract String getSystemId();
 
     /*
     ///////////////////////////////////////////
@@ -65,11 +46,13 @@ public final class WEntityDeclaration
         return ENTITY_DECLARATION;
     }
 
+    public abstract void writeEnc(Writer w) throws IOException;
+
     public void writeAsEncodedUnicode(Writer w)
         throws XMLStreamException
     {
         try {
-            mDecl.writeEnc(w);
+            writeEnc(w);
         } catch (IOException ie) {
             throw new XMLStreamException(ie);
         }
