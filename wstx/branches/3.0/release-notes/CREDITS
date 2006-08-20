@@ -178,6 +178,9 @@ Lucian Holland:
   * Reported a bug in handling of StartDocument event, peeking and
     XMLEventReader.nextTag().
     [3.0.0]
+  * Reported a stax incompliancy wrt. XMLStreamReader.next() not throwing
+    NoSuchElementException after END_DOCUMENT event.
+    [3.0.1]
 
 Matt Solnit:
   * Reported [WSTX-72]: Output streams/writers sometimes closed when they

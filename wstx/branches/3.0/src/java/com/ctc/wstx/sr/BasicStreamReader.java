@@ -250,7 +250,7 @@ public class BasicStreamReader
      * TextBuffer mostly used to collect non-element textual content
      * (text, CDATA, comment content, pi data)
      */
-    protected TextBuffer mTextBuffer;
+    final protected TextBuffer mTextBuffer;
 
     /**
      * Currently open element tree
@@ -1053,11 +1053,19 @@ public class BasicStreamReader
             if (mParseState == STATE_PROLOG) {
                 nextFromProlog(true);
             } else if (mParseState == STATE_EPILOG) {
-                nextFromProlog(false);
+                if (nextFromProlog(false)) {
+                    // We'll return END_DOCUMENT, need to mark it 'as consumed'
+                    mSecondaryToken = 0;
+
+                }
             } else if (mParseState == STATE_MULTIDOC_HACK) {
                 mCurrToken = nextFromMultiDocState();
             } else { // == STATE_CLOSED
-                return END_DOCUMENT;
+                if (mSecondaryToken == END_DOCUMENT) { // marker
+                    mSecondaryToken = 0; // mark end doc as consumed
+                    return END_DOCUMENT;
+                }
+                throw new java.util.NoSuchElementException();
             }
         } catch (IOException ie) {
             throwFromIOE(ie);
@@ -1109,7 +1117,7 @@ public class BasicStreamReader
              * instead of current root.
              */
             if (mCurrToken != END_DOCUMENT) {
-                mCurrToken = END_DOCUMENT;
+                mCurrToken = mSecondaryToken = END_DOCUMENT;
                 if (mSymbols.isDirty()) {
                     mOwner.updateSymbolTable(mSymbols);
                 }
@@ -1853,8 +1861,10 @@ public class BasicStreamReader
      * Method called to find type of next token in prolog; either reading
      * just enough information to know the type (lazy parsing), or the
      * full contents (non-lazy)
+     *
+     * @return True if we hit EOI, false otherwise
      */
-    private void nextFromProlog(boolean isProlog)
+    private boolean nextFromProlog(boolean isProlog)
         throws IOException, XMLStreamException
     {
         int i;
@@ -1894,7 +1904,7 @@ public class BasicStreamReader
                         mTokenState = TOKEN_FULL_COALESCED;
                     }
                 }
-                return;
+                return false;
             }
             // If not, can skip it right away
             --mInputPtr; // to handle linefeeds gracefully
@@ -1912,10 +1922,11 @@ public class BasicStreamReader
             }
         }
 
-        // Did we hit EOF?
+        // Did we hit EOI?
         if (i < 0) {
             handleEOF(isProlog);
-            return;
+            mParseState = STATE_CLOSED;
+            return true;
         }
 
         // Now we better have a lt...
@@ -1944,7 +1955,7 @@ public class BasicStreamReader
                  * otherwise set up everything properly
                  */
                 mCurrToken = handleExtraRoot(c); // will check input parsing mode...
-                return;
+                return false;
             }
             handleRootElem(c);
             mCurrToken = START_ELEMENT;
@@ -1957,6 +1968,8 @@ public class BasicStreamReader
         if (!mCfgLazyParsing && mTokenState < mStTextThreshold) {
             finishToken();
         }
+
+        return false;
     }
 
     protected void handleRootElem(char c)
@@ -1993,7 +2006,11 @@ public class BasicStreamReader
     protected int handleEOF(boolean isProlog)
         throws XMLStreamException
     {
-        mCurrToken = END_DOCUMENT;
+        /* 19-Aug-2006, TSa: mSecondaryToken needs to be initialized to
+         *   END_DOCUMENT so we'll know it hasn't been yet accessed.
+         */
+        mCurrToken = mSecondaryToken = END_DOCUMENT;
+
         /* Although buffers have most likely already been recycled,
          * let's call this again just in case. At this point we can
          * safely discard any contents
@@ -2230,10 +2247,10 @@ public class BasicStreamReader
     }
 
     /**
-     * Called after characters '&lt;!' have been found; expectation is that
-     * it'll either be DOCTYPE declaration (if we are in prolog and haven't
-     * yet seen one), or a comment. CDATA is not legal here; it would start
-     * same way otherwise.
+     * Called after character sequence '&lt;!' has been found; expectation is
+     * that it'll either be DOCTYPE declaration (if we are in prolog and
+     * haven't yet seen one), or a comment. CDATA is not legal here;
+     * it would start same way otherwise.
      */
     private void nextFromPrologBang(boolean isProlog)
         throws IOException, XMLStreamException
@@ -2514,7 +2531,9 @@ public class BasicStreamReader
                     if (!mConfig.inputParsingModeFragment()) {
                         mParseState = STATE_EPILOG;
                         // this call will update the location too...
-                        nextFromProlog(false);
+                        if (nextFromProlog(false)) {
+                            mSecondaryToken = 0;
+                        }
                         /* 10-Apr-2006, TSa: Let's actually try to update
                          *   SymbolTable here (after main xml tree); caller
                          *   may not continue parsing after this.

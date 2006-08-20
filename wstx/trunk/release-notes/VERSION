@@ -13,6 +13,7 @@ Description:
   * [WSTX-72] Closing of output streams/writers in cases where that should
     not be done (plus similar problems on input side)
     (reported by Matt S)
+  * [WSTX-74] Woodstox wasn't throwing NoSuchElementException at the end
 
 == History: ==
 
@@ -26,7 +27,7 @@ Description:
      (reported by Wolfgang H)
   * Fixed a problem with XMLEventReader.nextTag(), when peek() was called
     to access StartDocument event first.
-     (reported by Lucien H)
+     (reported by Lucian H)
   * Fixed a minor non-conformance issue with StartDocument, was not defaulting
     version pseudo-attribute to '1.0' (returned null if no xml declaration,
     ie. same as what XMLStreamReader returns).
