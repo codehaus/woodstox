@@ -10,7 +10,7 @@ public final class TextAccumulator
 
     private StringBuffer mBuilder = null;
 
-    public void TextAccumulator() { }
+    public TextAccumulator() { }
 
     public boolean hasText() {
         return (mBuilder != null) || (mText != null);

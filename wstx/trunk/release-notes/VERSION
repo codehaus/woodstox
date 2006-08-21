@@ -14,6 +14,7 @@ Description:
     not be done (plus similar problems on input side)
     (reported by Matt S)
   * [WSTX-74] Woodstox wasn't throwing NoSuchElementException at the end
+    (reported by Lucian H)
 
 == History: ==
 
