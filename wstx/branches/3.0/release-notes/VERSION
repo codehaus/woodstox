@@ -15,6 +15,9 @@ Description:
     (reported by Matt S)
   * [WSTX-74] Woodstox wasn't throwing NoSuchElementException at the end
     (reported by Lucian H)
+  * [WSTX-77] Bug in DTDValidator.validateAttribute() passing wrong args
+    to StringUtil.matches()
+    (reported by Vim D R)
 
 == History: ==
 

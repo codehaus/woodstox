@@ -263,7 +263,7 @@ public class DTDValidator
             String exp = attr.getDefaultValue(mContext);
             boolean match;
             if (result == null) {
-                match = StringUtil.matches(exp, valueChars, valueStart, valueEnd);
+                match = StringUtil.matches(exp, valueChars, valueStart, valueEnd - valueStart);
             } else {
                 match = exp.equals(result);
             }

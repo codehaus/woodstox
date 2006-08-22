@@ -193,3 +193,8 @@ Michael Kay:
     [3.0.1/3.1]
   * Reported [WSTX-71]: Use of unchecked exceptions sub-optimal, for cases
     where it would be possible to just defer throwing of checked ones
+
+Vim de Rammelaere:
+  * Reported [WSTX-77]: Bug in DTDValidator.validateAttribute() -- wrong
+    arguments passed to StringUtil.matches()
+    [3.0.1/3.1] 

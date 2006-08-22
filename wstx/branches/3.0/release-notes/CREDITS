@@ -191,3 +191,8 @@ Michael Kay:
   * Reported [WSTX-69]: Incorrect types returned by XMLStreamReader, when
     notations/entities are requested.
     [3.0.1]
+
+Vim de Rammelaere:
+  * Reported [WSTX-77]: Bug in DTDValidator.validateAttribute() -- wrong
+    arguments passed to StringUtil.matches()
+    [3.0.1] 
