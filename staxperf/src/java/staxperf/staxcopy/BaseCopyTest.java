@@ -83,10 +83,10 @@ abstract class BaseCopyTest
     {
         int len = data.length;
         String doc = new String(data);
-        if (len > 500) {
-            doc = doc.substring(0, 248) + "]...["+doc.substring(len-248);
+        if (len > 200) {
+            doc = doc.substring(0, 98) + "]...["+doc.substring(len-98);
         }
-        System.out.println("Output document: ("+len+"; condensed if above 500 chars)["+doc+"]");
+        System.out.println("Output document: ("+len+"; condensed if above 200 chars)["+doc+"]");
     }
 
     private final int readData(File f, CharArrayWriter w)
@@ -124,7 +124,7 @@ abstract class BaseCopyTest
         String path = f.getAbsolutePath();
 
         // First, warm up:
-        final int WARMUP_ROUNDS = 30;
+        int WARMUP_ROUNDS = 30;
 
         System.out.println("Warming up; doing  "+WARMUP_ROUNDS+" iterations (real test will run for "+SECS+" seconds): ");
 
@@ -135,19 +135,47 @@ abstract class BaseCopyTest
         ByteArrayOutputStream out = new ByteArrayOutputStream(len);
 
         int total = 0; // to prevent any dead code optimizations
-        for (int i = 0; i < WARMUP_ROUNDS; ++i) {
+        int batchSize = 0;
+
+        for (int i = 0; i < WARMUP_ROUNDS; ) {
             CharArrayReader in = new CharArrayReader(data);
+            long now = System.currentTimeMillis();
             total = testExec(in, out);
+            now = System.currentTimeMillis() - now;
             in.close();
             out.reset();
-            if (i == 0) {
+            ++i;
+            if (i == 1) {
                 printInitial(data);
+            } else if (i == WARMUP_ROUNDS && batchSize == 0) {
+                // Let's try to get at least 10 rounds per 1 sec, ie. max. length of 100 ms
+                if (now <= 1) {
+                    batchSize = 100;
+                } else if (now <= 2) {
+                    batchSize = 50;
+                } else if (now <= 5) {
+                    batchSize = 20;
+                } else if (now <= 10) {
+                    batchSize = 10;
+                } else if (now <= 50) {
+                    batchSize = 2;
+                } else {
+                    batchSize = 2;
+                }
+                // Ok: let's then do one full batch!
+                WARMUP_ROUNDS += batchSize;
             }
             //testFinish();
-            System.out.print(".");
-            // Let's allow some slack time between iterations
-            try {  Thread.sleep(100L); } catch (InterruptedException ie) { }
+
+            /* Let's allow some slack time between iterations (before
+             * the full batch at least, that is)
+             */
+            if (batchSize == 0) {
+                System.out.print(".");
+                try {  Thread.sleep(50L); } catch (InterruptedException ie) { }
+            }
         }
+        System.out.println(" (batch size "+batchSize+")");
 
         //System.out.println(" [total: "+total+"]");
 
@@ -156,7 +184,7 @@ abstract class BaseCopyTest
          */
         try {  Thread.sleep(100L); } catch (InterruptedException ie) { }
         System.gc();
-        try {  Thread.sleep(100L); } catch (InterruptedException ie) { }
+        try {  Thread.sleep(200L); } catch (InterruptedException ie) { }
         System.gc();
         try {  Thread.sleep(100L); } catch (InterruptedException ie) { }
 
@@ -175,27 +203,29 @@ abstract class BaseCopyTest
          * big docs/slow readers... but otherwise not.
          */
         while (true) {
-            CharArrayReader in = new CharArrayReader(data);
-            total = testExec(in, out);
-            in.close();
-            out.reset();
-            in = new CharArrayReader(data);
-            total = testExec(in, out);
-            in.close();
-            out.reset();
-            //testFinish();
+            for (int i = 0; i < batchSize; ++i) {
+                CharArrayReader in = new CharArrayReader(data);
+                total += testExec(in, out);
+                in.close();
+                out.reset();
+                in = new CharArrayReader(data);
+                total = testExec(in, out);
+                in.close();
+                out.reset();
+                //testFinish();
+            }
+            count += batchSize;
             long now = System.currentTimeMillis();
             if (now > endTime) {
                 break;
             }
-            count += 2;
             /* let's only print once a second... limits console overhead,
              * but still informs about progress.
              */
-            subtotal += 2;
+            ++subtotal;
             if (now > nextTime) {
                 char c;
-                int ch = (subtotal >> 1) - 1;
+                int ch = subtotal - 1;
                 if (ch > 35) {
                     c = '+';
                 } else if (ch > 9) {

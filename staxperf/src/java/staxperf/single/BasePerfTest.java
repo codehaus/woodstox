@@ -97,15 +97,20 @@ abstract class BasePerfTest
                 */
 
                 // Test (b): access internal read buffer
-
+                /*
                 char[] text = mStreamReader.getTextCharacters();
                 int start = mStreamReader.getTextStart();
                 int len = mStreamReader.getTextLength();
                 if (text != null) { // Ref. impl. returns nulls sometimes
                     total += text.length; // to prevent dead code elimination
                 }
+                */
 
                 // Test (c): Access internal buffer (medium)
+                String text = mStreamReader.getText();
+                total += text.length();
+                
+//System.err.println("Text = '"+text+"'");
 
                 /*
                 if (type == CHARACTERS || type == CDATA) {
@@ -174,7 +179,6 @@ abstract class BasePerfTest
             // Let's allow some slack time between iterations
             try {  Thread.sleep(100L); } catch (InterruptedException ie) { }
         }
-
         System.out.println(" (batch size "+mBatchSize+")");
 
         //System.out.println(" [total: "+total+"]");
