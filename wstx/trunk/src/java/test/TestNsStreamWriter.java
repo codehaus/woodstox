@@ -25,6 +25,9 @@ public class TestNsStreamWriter
         return XMLOutputFactory.newInstance();
     }
 
+    //final String ENCODING = "ISO-8859-1";
+    final String ENCODING = "UTF-8";
+
     protected void test()
         throws Exception
     {
@@ -38,8 +41,17 @@ public class TestNsStreamWriter
         f.setProperty(XMLOutputFactory2.P_AUTOMATIC_EMPTY_ELEMENTS,
                       //Boolean.TRUE);
                       Boolean.FALSE);
-        Writer w = new PrintWriter(System.out);
-        XMLStreamWriter sw = f.createXMLStreamWriter(w);
+
+        f.setProperty(WstxOutputProperties.P_OUTPUT_VALIDATE_CONTENT,
+                      Boolean.TRUE);
+        f.setProperty(WstxOutputProperties.P_OUTPUT_FIX_CONTENT,
+                      Boolean.TRUE);
+
+        //Writer w = new PrintWriter(System.out);
+        //XMLStreamWriter sw = f.createXMLStreamWriter(w);
+
+	ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        XMLStreamWriter sw = f.createXMLStreamWriter(bos, ENCODING);
 
         sw.writeStartElement("root");
 
@@ -49,7 +61,7 @@ public class TestNsStreamWriter
 
         sw.writeStartElement("bravo");
 
-        sw.writeCharacters("Text: & ");
+        sw.writeCharacters("Text: & \n");
 
         sw.writeComment("Com--ment");
         sw.writeProcessingInstruction("p", "i");
@@ -103,7 +115,9 @@ public class TestNsStreamWriter
         sw.flush();
         sw.close();
 
-        w.close();
+        //w.close();
+
+	System.err.println("DOC -> '"+new String(bos.toByteArray(), ENCODING);
     }
 
     public static void main(String[] args)

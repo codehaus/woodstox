@@ -204,7 +204,7 @@ public abstract class EncodingXmlWriter
             return ix;
         }
         writeAscii("]]>");
-        return 0;
+        return -1;
     }
 
     public int writeCData(char[] cbuf, int offset, int len)
@@ -216,7 +216,7 @@ public abstract class EncodingXmlWriter
             return ix;
         }
         writeAscii("]]>");
-        return 0;
+        return -1;
     }    
 
     public final void writeCharacters(String data)
@@ -257,7 +257,7 @@ public abstract class EncodingXmlWriter
             return ix; 
         }
         writeAscii("-->");
-        return 0;
+        return -1;
     }    
 
     public void writeDTD(String data)
@@ -348,7 +348,7 @@ public abstract class EncodingXmlWriter
             }
         }
         writeAscii(BYTE_QMARK, BYTE_GT);
-        return 0;
+        return -1;
     }    
 
     /*

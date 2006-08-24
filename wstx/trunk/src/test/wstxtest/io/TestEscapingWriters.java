@@ -53,12 +53,6 @@ public class TestEscapingWriters
         doTestSBText(true, true, "rock & roll>", "rock &amp; roll>");
         doTestSBText(true, true, "ab&cd", "ab&amp;cd");
         doTestSBText(true, true, "Hah&", "Hah&amp;");
-
-        // then ascii:
-        //doTestSBText(true, false, "הצו", "");
-
-        // and iso-latin:
-        //doTestSBText(true, false, "הצו", "הצצ");
     }
 
     private void doTestSBText(boolean doAscii, boolean doISOLatin,

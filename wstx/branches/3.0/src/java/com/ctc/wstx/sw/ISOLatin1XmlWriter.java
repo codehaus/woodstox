@@ -345,10 +345,10 @@ public final class ISOLatin1XmlWriter
                         }
                     }
                 } else if (c == '>') { // embedded "]]>"?
-                    if (offset > (start+1) && cbuf[offset-1] == ']'
-                        && cbuf[offset-2] == ']') {
+                    if (offset > (start+2) && cbuf[offset-2] == ']'
+                        && cbuf[offset-3] == ']') {
                         if (!mFixContent) {
-                            return offset-2;
+                            return offset-3;
                         }
                         /* Relatively easy fix; just need to close this
                          * section, and open a new one...
@@ -375,6 +375,7 @@ public final class ISOLatin1XmlWriter
     protected int writeCommentContent(String data)
         throws IOException
     {
+
         // Note: mSurrogate can not be non-zero at this point, no need to check
 
         int offset = 0;
@@ -420,9 +421,9 @@ public final class ISOLatin1XmlWriter
                         }
                     }
                 } else if (c == '-') { // embedded "--"?
-                    if (offset > 0 && data.charAt(offset-1) == '-') {
+                    if (offset > 1 && data.charAt(offset-2) == '-') {
                         if (!mFixContent) {
-                                return offset-1;
+			    return offset-2;
                         }
                         /* Quite easy to fix: just add an extra space
                          * in front. There will be room for that char;
@@ -498,8 +499,8 @@ public final class ISOLatin1XmlWriter
                         }
                     }
                 } else if (c == '>') { // enclosed end marker ("?>")?
-                    if (offset > 0 && data.charAt(offset-1) == '?') {
-                        return offset-1;
+                    if (offset > 1 && data.charAt(offset-2) == '?') {
+                        return offset-2;
                     }
                 }
                 outBuf[ptr++] = (byte) c;
