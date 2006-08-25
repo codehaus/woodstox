@@ -668,8 +668,8 @@ public final class SMOutputContext
     {
         // Indentation?
         if (mIndentSuppress >= 0) {
+	    mIndentOffset -= mIndentStep;
             if (mIndentSuppress == 0) {
-                mIndentOffset -= mIndentStep;
                 if (!mIndentLevelEmpty) {
                     outputIndentation();
                 }
