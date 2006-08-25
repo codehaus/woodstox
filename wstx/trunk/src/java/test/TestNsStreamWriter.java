@@ -25,8 +25,8 @@ public class TestNsStreamWriter
         return XMLOutputFactory.newInstance();
     }
 
-    //final String ENCODING = "ISO-8859-1";
-    final String ENCODING = "UTF-8";
+    final String ENCODING = "ISO-8859-1";
+    //final String ENCODING = "UTF-8";
 
     protected void test()
         throws Exception
@@ -46,15 +46,17 @@ public class TestNsStreamWriter
                       Boolean.TRUE);
         f.setProperty(WstxOutputProperties.P_OUTPUT_FIX_CONTENT,
                       Boolean.TRUE);
+                      //Boolean.FALSE);
 
         //Writer w = new PrintWriter(System.out);
         //XMLStreamWriter sw = f.createXMLStreamWriter(w);
 
-	ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
         XMLStreamWriter sw = f.createXMLStreamWriter(bos, ENCODING);
 
         sw.writeStartElement("root");
 
+        /*
         sw.writeEmptyElement("alpha");
         sw.writeNamespace("ns", "uri:foo");
         sw.writeAttribute("atpr", "http://attr-prefix", "attr", "a<b");
@@ -62,52 +64,12 @@ public class TestNsStreamWriter
         sw.writeStartElement("bravo");
 
         sw.writeCharacters("Text: & \n");
+        */
 
-        sw.writeComment("Com--ment");
+        sw.writeCData("Test: ]]>x");
         sw.writeProcessingInstruction("p", "i");
 
         sw.writeEndElement(); // exception here
-
-        //sw.writeStartDocument();
-        /*
-        sw.writeCharacters("\n");
-        sw.writeStartElement("root");
-        sw.writeAttribute("attr", "value");
-        sw.writeAttribute("atpr", "http://attr-prefix", "attr", "value");
-        sw.writeAttribute("http://attr-prefix", "attr3", "value!");
-        sw.writeAttribute("another", "this & that");
-        //sw.writeAttribute("attr", "whatever"); // error!
-
-        sw.setDefaultNamespace("http://default"); // error if not output
-        sw.setPrefix("myprefix", "http://mydotcom"); // - "" -
-        sw.writeStartElement(null, "elem");
-        //sw.writeNamespace("myprefix", "http://mydotcom");
-        //sw.writeDefaultNamespace("http://default");
-        sw.writeCharacters("Sub-text\n");
-
-        sw.writeStartElement("http://mydotcom", "ns-elem");
-        //sw.writeCharacters("");
-        sw.writeEndElement();
-
-        //sw.writeCharacters("");
-        w.flush();
-        //sw.flush();
-
-        //try { Thread.sleep(60000L); } catch (Exception e) { }
-
-        sw.writeEndElement();
-        sw.writeCharacters("\n");
-        //sw.writeStartElement("elem3:foo"); // error, colon inside local name
-        sw.writeStartElement("elem3");
-        sw.writeEndElement();
-        sw.writeCharacters("Root text <> ]]>\n");
-        sw.writeEndElement();
-
-        //sw.writeEmptyElement("secondRoot"); // error!
-        sw.writeCharacters("\n"); // white space in epilog
-        sw.writeProcessingInstruction("target", "some data");
-        sw.writeCharacters("\n"); // white space in epilog
-        */
 
         sw.writeCharacters("\n"); // to get linefeed
         sw.writeEndDocument();
@@ -117,7 +79,7 @@ public class TestNsStreamWriter
 
         //w.close();
 
-	System.err.println("DOC -> '"+new String(bos.toByteArray(), ENCODING);
+        System.err.println("DOC -> '"+new String(bos.toByteArray(), ENCODING));
     }
 
     public static void main(String[] args)

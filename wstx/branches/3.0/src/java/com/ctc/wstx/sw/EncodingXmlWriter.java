@@ -124,6 +124,7 @@ public abstract class EncodingXmlWriter
     public void close()
         throws IOException
     {
+        flush();
         if (mAutoCloseOutput) {
             mOut.close();
         }

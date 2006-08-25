@@ -271,10 +271,10 @@ public final class ISOLatin1XmlWriter
                         }
                     }
                 } else if (c == '>') { // embedded "]]>"?
-                    if (offset > 1 && data.charAt(offset-1) == ']'
-                        && data.charAt(offset-2) == ']') {
+                    if (offset > 2 && data.charAt(offset-2) == ']'
+                        && data.charAt(offset-3) == ']') {
                         if (!mFixContent) {
-                            return offset-2;
+                            return offset-3;
                         }
                         /* Relatively easy fix; just need to close this
                          * section, and open a new one...
@@ -283,6 +283,7 @@ public final class ISOLatin1XmlWriter
                         writeCDataEnd();
                         writeCDataStart();
                         writeAscii(BYTE_GT);
+                        ptr = mOutputPtr;
                         /* No guarantees there's as much free room in the
                          * output buffer, thus, need to restart loop:
                          */
@@ -345,7 +346,7 @@ public final class ISOLatin1XmlWriter
                         }
                     }
                 } else if (c == '>') { // embedded "]]>"?
-                    if (offset > (start+2) && cbuf[offset-2] == ']'
+                    if (offset >= (start+3) && cbuf[offset-2] == ']'
                         && cbuf[offset-3] == ']') {
                         if (!mFixContent) {
                             return offset-3;
@@ -357,6 +358,7 @@ public final class ISOLatin1XmlWriter
                         writeCDataEnd();
                         writeCDataStart();
                         writeAscii(BYTE_GT);
+                        ptr = mOutputPtr;
                         /* No guarantees there's as much free room in the
                          * output buffer, thus, need to restart loop:
                          */
@@ -423,7 +425,7 @@ public final class ISOLatin1XmlWriter
                 } else if (c == '-') { // embedded "--"?
                     if (offset > 1 && data.charAt(offset-2) == '-') {
                         if (!mFixContent) {
-			    return offset-2;
+                            return offset-2;
                         }
                         /* Quite easy to fix: just add an extra space
                          * in front. There will be room for that char;
@@ -486,7 +488,7 @@ public final class ISOLatin1XmlWriter
                     } else if (c == '\r') {
                         // !!! TBI: line nr (and skipping \n that may follow)
                     } else if (c != '\t') {
-                            throwInvalidChar(c);
+                        throwInvalidChar(c);
                     }
                 } else if (c > 0x7E) {
                     if (c > 0xFF) {
@@ -499,7 +501,7 @@ public final class ISOLatin1XmlWriter
                         }
                     }
                 } else if (c == '>') { // enclosed end marker ("?>")?
-                    if (offset > 1 && data.charAt(offset-2) == '?') {
+                    if (offset > 0 && data.charAt(offset-1) == '?') {
                         return offset-2;
                     }
                 }

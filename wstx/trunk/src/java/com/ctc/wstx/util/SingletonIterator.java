@@ -34,4 +34,3 @@ public final class SingletonIterator
         throw new UnsupportedOperationException("Can not remove item from SingletonIterator.");
     }
 }
-
