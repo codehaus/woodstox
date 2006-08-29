@@ -981,9 +981,9 @@ public final class BufferingXmlWriter
          * supposed to contain any data, so that should be fine (plus
          * at least result is valid, unlike contents as is)
          */
+	fastWriteRaw("<!--");
         int start = 0;
         while (index >= 0) {
-            fastWriteRaw("<!--");
             // first, content prior to '--' and the first hyphen
             writeRaw(content, start, (index+1) - start);
             // and an obligatory trailing space to split double-hyphen
