@@ -1,9 +1,16 @@
-Version: 3.0.1
+Version: 3.0.2
 
-Release date: xx-Aug-2006
+Release date: xx-Sep-2006
 
 Description:
-  The first patch for 3.0.0. Contains critical fixes to the stable branch.
+
+== History: ==
+
+3.0.1 [29-Aug-2006]
+
+Description:
+  The first patch for 3.0.0. Contains critical fixes to the stable branch,
+  as reported by users.
 
   Problems fixed:
 
@@ -18,8 +25,6 @@ Description:
   * [WSTX-77] Bug in DTDValidator.validateAttribute() passing wrong args
     to StringUtil.matches()
     (reported by Vim D R)
-
-== History: ==
 
 3.0.0 [07-Aug-2006]
 
@@ -560,52 +565,3 @@ Description:
     mixed up.
   * Stream reader's nextTag() was not properly skipping comments
     and processing instructions.
-
-1.0-RCx - 1.0-final: [28-Aug-2004 - 11-Oct-2004]
-
-  Problems fixed:
-
-  * A problem with reading CDATA section that could lead to infinite loop
-    fixed.
-  * Changed default setting of CHECK_NS for output factory to false, to
-    be closer to what StAX API expects
-  * Pre-defined entities in general internal entities were not properly
-    handled; were expanded when reading the entity definition, which is
-    incorrect (this was a regression bug somewhere before 1.0-RC series)
-  * WstxEventFactory.createAttribute() didn't properly pass prefix.
-  * Fixed a problem in default entity value parsing (ClassCastException).
-  * Problem with stream writer (required WriteNamespace in namespace-repairing
-    mode), now fixed.
-  * XMLStreamReader.getElementText() didn't behave as specified by StAX
-    specs, for empty elements (was throwing an exception; should return
-    empty String).
-  * Fixed problem of default "xml" namespace prefix not being recognized
-    by the stream writer.
-  * NullPointerException in event reader: was clearing out peeked event,
-    but then trying to de-reference it (instead of temp variable that had
-    that value copied from peeked event).
-  * There was a bug in accessing local name of an attribute by index in
-    non-namespace mode.
-  * Another attribute name resolution bug; occured when there were lots of
-    spills in the internal attribute map structure, array index exception
-    was thrown (specific case with 11 attributes was found and reported by
-    a user)
-  * A subtle bug in entity handling; if an entity starts a segment,
-    but expanded to content not starting with text, a "ghost" text
-    segment with length 0 was returned.
-  * Problem with stream writer (required WriteNamespace in namespace-repairing
-    mode), now fixed.
-  * A problem with reading CDATA section that could lead to infinite loop
-    fixed.
-  * Changed default setting of CHECK_NS for output factory to false, to
-    be closer to what StAX API expects
-
-  Refactoring:
-
-  * Rewrote output factory code to use WriterConfig objects, just like
-    input factories have done.
-  * Made parsing somewhat "less lazy" in lazy mode; now reads in the
-    "cheap" parts right away, in the hopes this may read the whole (text)
-    segments, and also allows for slightly better error reporting.
-    This also simplified entity handling a bit, as text segments that
-    begin with an entity are now handled more reliably.

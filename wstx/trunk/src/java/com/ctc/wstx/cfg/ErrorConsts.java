@@ -26,7 +26,7 @@ public class ErrorConsts
      * This is the generic type for warnings based on XMLValidationProblem
      * objects.
      */
-    public static String WT_VALIDATION = "namespace declaration";
+    public static String WT_VALIDATION = "schema validation";
 
     // // And then warning strings
 
