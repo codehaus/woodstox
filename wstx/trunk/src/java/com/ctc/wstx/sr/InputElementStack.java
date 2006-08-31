@@ -34,6 +34,7 @@ import org.codehaus.stax2.validation.ValidatorPair;
 
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.cfg.XmlConsts;
+import com.ctc.wstx.dtd.DTDValidatorBase; // unfortunate dependency
 import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.exc.WstxValidationException;
 import com.ctc.wstx.util.BaseNsContext;
@@ -114,9 +115,15 @@ public abstract class InputElementStack
      * (one detected from DOCTYPE, loaded and completely handled by
      * the stream reader without application calling validation methods).
      * Handled separately, since its behaviour is potentially different
-     * from that f
+     * from that of explicitly added validators.
      */
     protected abstract void setAutomaticDTDValidator(XMLValidator validator, NsDefaultProvider nsDefs);
+
+    /*
+    //////////////////////////////////////////////////
+    // Start/stop validation
+    //////////////////////////////////////////////////
+     */
 
     public XMLValidator validateAgainst(XMLValidationSchema schema)
         throws XMLStreamException
@@ -153,6 +160,36 @@ public abstract class InputElementStack
             return found;
         }
         return null;
+    }
+
+    /*
+    //////////////////////////////////////////////////
+    // Accessors:
+    //////////////////////////////////////////////////
+     */
+
+    /**
+     * This is a method called by the reader to ensure that we have at
+     * least one 'real' validator. This is only needed to ensure that
+     * validation problems that the reader can detect (illegal textual
+     * content) can be reported as validity errors. Since the validator
+     * API does not have a good way to cleanly deal with such a possibility,
+     * the check is rather fragile, but should work for now: essentially
+     * we need at least one validator object that either is not a sub-class
+     * of <code>DTDValidatorBase</code> or returns true for
+     * <code>reallyValidating</code>.
+     */
+    protected boolean reallyValidating()
+    {
+        if (mValidator == null) { // no validators, no validation
+            // (although, should never get called if no validators)
+            return false;
+        }
+        if (!(mValidator instanceof DTDValidatorBase)) {
+            // note: happens for validator pair, for one
+            return true;
+        }
+        return ((DTDValidatorBase) mValidator).reallyValidating();
     }
 
     /**

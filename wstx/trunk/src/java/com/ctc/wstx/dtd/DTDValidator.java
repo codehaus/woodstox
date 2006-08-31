@@ -110,6 +110,8 @@ public class DTDValidator
         mValidators = new StructValidator[DEFAULT_STACK_SIZE];
     }
 
+    public final boolean reallyValidating() { return true; }
+
     /*
     ///////////////////////////////////////
     // XMLValidator implementation

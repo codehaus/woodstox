@@ -210,6 +210,12 @@ public abstract class DTDValidatorBase
         mNormAttrs = state;
     }
 
+    /**
+     * @return True for validator object that actually do validate
+     *   content; false for objects that only use DTD type information.
+     */
+    public abstract boolean reallyValidating();
+
     /*
     ///////////////////////////////////////
     // XMLValidator implementation

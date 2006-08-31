@@ -2751,16 +2751,26 @@ public class BasicStreamReader
          * in validating mode)? If so, needs bit different handling:
          */
         if (mVldContent <= XMLValidator.CONTENT_ALLOW_WS) {
-            if (mVldContent == XMLValidator.CONTENT_ALLOW_NONE
-                || (i > CHAR_SPACE)) {
+            if (mVldContent == XMLValidator.CONTENT_ALLOW_NONE) {
+                if (mElementStack.reallyValidating()) {
+                    reportInvalidContent(CHARACTERS);
+                }
+            }
+            if (i <= CHAR_SPACE) {
+                /* Note: need not worry about coalescing, since non-whitespace
+                 * text is illegal (ie. can not have CDATA)
+                 */
+                mTokenState = (readSpacePrimary((char) i, false)) ?
+                    TOKEN_FULL_COALESCED : TOKEN_STARTED;
+                return SPACE;
+            }
+            // Problem if we are really validating; otherwise not
+            if (mElementStack.reallyValidating()) {
                 reportInvalidContent(CHARACTERS);
             }
-            /* Note: need not worry about coalescing, since non-whitespace
-             * text is illegal (ie. can not have CDATA)
+            /* otherwise, we know it's supposed to contain just space (or
+             * be empty), but we are not validating
              */
-            mTokenState = (readSpacePrimary((char) i, false)) ?
-                TOKEN_FULL_COALESCED : TOKEN_STARTED;
-            return SPACE;
         }
 
         // Further, when coalescing, can not be sure if we REALLY got it all
@@ -4705,11 +4715,14 @@ public class BasicStreamReader
 
         // Let's first see if we can just share input buffer:
         while (true) {
-            // End of whitespace? May or may not need to check it...
+            /* 30-Aug-2006, TSa: Let's not check for validity errors yet,
+             * even if we could detect problems at this point.
+             * This because it's not always
+             * an error (in dtd-aware, non-validating mode); but also since
+             * that way we can first return all space we got, and only
+             * indicate error when next token is to be accessed.
+             */
             if (c > CHAR_SPACE) { // End of whitespace
-                if (!prologWS && c != '<') {
-                    throwNotWS(c);
-                }
                 mInputPtr = --ptr;
                 mTextBuffer.resetWithShared(mInputBuffer, start, ptr-start);
                 return true;
@@ -4772,8 +4785,8 @@ public class BasicStreamReader
 
         while (true) {
             if (mInputPtr >= mInputLen) {
-                /* 07-Oct-2005, TSa: Let's not throw an exception in any
-                 *   case -- can return SPACE, and let exception be thrown
+                /* 07-Oct-2005, TSa: Let's not throw an exception yet --
+                 *   can return SPACE, and let exception be thrown
                  *   when trying to fetch next event.
                  */
                 if (!loadMore()) {
@@ -4782,9 +4795,14 @@ public class BasicStreamReader
             }
             char c = mInputBuffer[mInputPtr];
             if (c > CHAR_SPACE) { // end of WS?
-                if (!prologWS && c != '<') {
-                    throwNotWS(c);
-                }
+                /* 30-Aug-2006, TSa: Let's not indicate an error quite yet:
+                 *    it'll be reported in due time, later on, if necessary.
+                 *    Here we can just return whatever we have collected
+                 *    so far.
+                 */
+                //if (!prologWS && c != '<') {
+                //    throwNotWS(c);
+                //}
                 break;
             }
             ++mInputPtr;

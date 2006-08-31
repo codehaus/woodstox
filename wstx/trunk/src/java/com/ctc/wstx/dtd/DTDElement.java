@@ -488,6 +488,21 @@ public final class DTDElement
         return mAllowedContent;
     }
 
+    /**
+     * Specialized accessor used by non-validating but typing 'validator':
+     * essentially, used to figure out whether #PCDATA is allowed or not;
+     * and based on that, return one of 2 allowable text values (only
+     * space, or anything). This is the relevant subset in non-validating
+     * modes, needed to properly type resulting character events.
+     */
+    public int getAllowedContentIfSpace()
+    {
+        int vld = mAllowedContent;
+        return (vld <= XMLValidator.CONTENT_ALLOW_WS) ?
+            XMLValidator.CONTENT_ALLOW_WS :
+            XMLValidator.CONTENT_ALLOW_ANY_TEXT;
+    }
+
     public HashMap getAttributes() {
         return mAttrMap;
     }

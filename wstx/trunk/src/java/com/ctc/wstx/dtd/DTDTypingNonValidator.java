@@ -81,6 +81,11 @@ public class DTDTypingNonValidator
         super(schema, ctxt, hasNsDefaults, elemSpecs, genEntities);
     }
 
+    /**
+     * @return False, since this is not a real validator
+     */
+    public final boolean reallyValidating() { return false; }
+
     /*
     ///////////////////////////////////////
     // Configuration
@@ -237,8 +242,8 @@ public class DTDTypingNonValidator
          * attribute default values, and return "anything goes"
          * as the allowable content:
          */
+        DTDElement elem = mCurrElem;
         if (mHasAttrDefaults) {
-            DTDElement elem = mCurrElem;
             BitSet specBits = mCurrDefaultAttrs;
             int specCount = elem.getSpecialCount();
             int ix = specBits.nextClearBit(0);
@@ -251,7 +256,15 @@ public class DTDTypingNonValidator
                 ix = specBits.nextClearBit(ix+1);
             }
         }
-        return CONTENT_ALLOW_ANY_TEXT;
+        /* However: we should indicate cases where PCDATA is not supposed
+         * to occur -- although it won't be considered an error, when not
+         * validating, info is needed to determine type of SPACE instead
+         * of CHARACTERS. Other validation types are not to be returned,
+         * however, since caller doesn't know how to deal with such
+         * cases.
+         */
+        return (elem == null) ? XMLValidator.CONTENT_ALLOW_ANY_TEXT :
+            elem.getAllowedContentIfSpace();
     }
 
     public int validateElementEnd(String localName, String uri, String prefix)
@@ -260,8 +273,14 @@ public class DTDTypingNonValidator
         /* Since we are not really validating, only need to maintain
          * the element stack, and return "anything goes" as allowable content:
          */
-        mElems[--mElemCount] = null;
-        return CONTENT_ALLOW_ANY_TEXT;
+        int ix = --mElemCount;
+        mElems[ix] = null;
+        if (ix < 1) {
+            return XMLValidator.CONTENT_ALLOW_ANY_TEXT;
+        }
+        DTDElement elem = mElems[ix-1];
+        return (elem == null) ? XMLValidator.CONTENT_ALLOW_ANY_TEXT :
+            mElems[ix-1].getAllowedContentIfSpace();
     }
 
     // base class implements these ok:
