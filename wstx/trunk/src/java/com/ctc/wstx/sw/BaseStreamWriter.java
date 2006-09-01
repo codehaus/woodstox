@@ -186,6 +186,23 @@ public abstract class BaseStreamWriter
      */
     protected String mDtdRootElem = null;
 
+    /*
+    ////////////////////////////////////////////////////
+    // Problem reporting state
+    ////////////////////////////////////////////////////
+     */
+
+    // // These are bit masks used for ensuring only one of each problem
+    // // type is reported via a single stream writer instance
+
+    //final static int PROB_NS_WRITE = 0x0001;
+
+    /**
+     * Bit mask used to ensure certain problems are only reported the
+     * first time they occur
+     */
+    //int mReportedProblems = 0;
+
 
     /*
     ////////////////////////////////////////////////////
@@ -1605,4 +1622,22 @@ public abstract class BaseStreamWriter
             throw new WstxIOException(ie);
         }
     }
+
+    /**
+     * Helper method used for ensuring that each type of a problem is only
+     * reported once per instance. Will be called to see if the specific
+     * type of a problem should be reported; the first time will mark
+     * the problem as being reported, and return true; afterwards, will
+     * return false for the type of the problem
+     */
+    /*
+    private boolean needToReportProblem(int problem)
+    {
+        if ((mReportedProblems & problem) != 0) {
+            mReportedProblems |= problem;
+            return true;
+        }
+        return false;
+    }
+    */
 }

@@ -31,6 +31,11 @@ public abstract class XMLInputFactory2
 
     //public final static String XSP_IMPLEMENTATION_NAME
     //public final static String XSP_IMPLEMENTATION_VERSION
+    //public final static String XSP_SUPPORTS_XML11
+    //public final static String XSP_NAMESPACE_AWARE
+    //public final static String XSP_PROBLEM_REPORTER
+
+    //public final static String XSP_SUPPORT_XMLID
 
     /*
     ////////////////////////////////////////////////////

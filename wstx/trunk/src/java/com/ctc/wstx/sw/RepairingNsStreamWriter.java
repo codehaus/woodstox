@@ -51,10 +51,6 @@ import com.ctc.wstx.util.DefaultXmlSymbolTable;
 public class RepairingNsStreamWriter
     extends BaseNsStreamWriter
 {
-    // // These are bit masks used for ensuring only one of each problem
-    // // type is reported via a single stream writer instance
-
-    final static int PROB_NS_WRITE = 0x0001;
 
     /*
     ////////////////////////////////////////////////////
@@ -89,8 +85,6 @@ public class RepairingNsStreamWriter
      * prefix.
      */
     HashMap mSuggestedPrefixes = null;
-
-    int mReportedProblems = 0;
 
     /*
     ////////////////////////////////////////////////////
@@ -145,29 +139,29 @@ public class RepairingNsStreamWriter
         throws XMLStreamException
     {
         /* 21-Sep-2004, TSa: Should not call this in "namespace repairing"
-         *    mode. However, if it is called, what should be done? There
+         *    mode? However, if it is called, what should be done? There
          *    are multiple possibilities; like:
          *   (a) Throw an exception
          *   (b) Ignore the call
          *   (c) Check potential validity; ignore if it matched a declaration,
          *     throw an exception if it didn't.
          */
-        // ... still, shouldn't get called in the wrong time, ever:
+	/* 01-Sep-2006, TSa: Actually, there is one use case for calling
+	 *   this method. Specifically, caller may want to 'suggest' that
+	 *   such a namespace should indeed be bound at this level. This
+	 *   may be necessary for canonicalization, or for minimizing number
+	 *   of binding declarations (all children need the ns, but root
+	 *   itself not).
+	 /*
         if (!mStartElementOpen) {
             throwOutputError(ERR_NSDECL_WRONG_STATE);
         }
-        /* 11-Oct-2005, TSa: How about we report the problem instead? But
-         *   only once per instance.
-         */
-        if (!hasReportedProblem(PROB_NS_WRITE)) {
-            XMLReporter rep = mConfig.getProblemReporter();
-            if (rep != null) {
-                rep.report("writeDefaultNamespace('"+nsURI+"') called in repairing mode, ignored",
-                           ErrorConsts.WT_NS_DECL,
-                           nsURI,
-                           null); // null -> no location
-            }
-        }
+	/*
+	 * However, wrt ns decl: while this makes sense for an explicit
+	 * prefix, it doesn't for the default namespace: this because the
+	 * element is already output.
+	 * So, basically, we can't do much anything here. ;-)
+	 */
     }
 
     //public void writeEmptyElement(String localName) throws XMLStreamException
@@ -175,22 +169,25 @@ public class RepairingNsStreamWriter
     public void writeNamespace(String prefix, String nsURI)
         throws XMLStreamException
     {
-        /* 21-Sep-2004, TSa: Shouldn't get called in namespace-repairing
-         *    mode; see discussion in 'writeDefaultNamespace()' for details.
+	/* (see discussion in 'writeDefaultNamespace()' for details on
+	 * if and how this method may get called in repairing mode)
          */
+	if (prefix == null || prefix.length() == 0) {
+	    writeDefaultNamespace(nsURI);
+	    return;
+	}
         if (!mStartElementOpen) {
             throwOutputError(ERR_NSDECL_WRONG_STATE);
         }
-        
-        if (!hasReportedProblem(PROB_NS_WRITE)) {
-            XMLReporter rep = mConfig.getProblemReporter();
-            if (rep != null) {
-                rep.report("writeNamespace('"+nsURI+"') called in repairing mode, ignored",
-                           ErrorConsts.WT_NS_DECL,
-                           nsURI,
-                           null); // null -> no location
-            }
-        }
+	/* 01-Sep-2006, TSa: Let's only add the declaration if the prefix
+	 *   is as of yet unbound. If we have to re-bind things in future,
+	 *   so be it -- for now, this should suffice.
+	 */
+	int value = mCurrElem.isPrefixValid(prefix, nsURI, true);
+	if (value == SimpleOutputElement.PREFIX_UNBOUND) {
+	    mCurrElem.addPrefix(prefix, nsURI);
+	    doWriteNamespace(prefix, nsURI);
+	}
     }
 
     /*
@@ -607,19 +604,6 @@ public class RepairingNsStreamWriter
          * caller can then (try to) bind the preferred prefix:
          */
         return null;
-    }
-
-    /**
-     * Helper method used for ensuring that each type of a problem is only
-     * reported once per instance.
-     */
-    private boolean hasReportedProblem(int problem)
-    {
-        if ((mReportedProblems & PROB_NS_WRITE) != 0) {
-            mReportedProblems |= PROB_NS_WRITE;
-            return true;
-        }
-        return false;
     }
 }
 

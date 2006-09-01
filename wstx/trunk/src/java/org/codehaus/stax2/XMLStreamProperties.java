@@ -55,6 +55,56 @@ public interface XMLStreamProperties
      */
     public final static String XSP_PROBLEM_REPORTER = "javax.xml.stream.reporter";
 
+    // // // Generic XML feature support:
+
+    /**
+     * Read/write property that can be set to change the level of xml:id
+     * specification support, if the implementation implements xml:id
+     * specification. Value to set should be one of
+     * <code>XSP_V_XMLID_xxx</code> constants (like
+     * {@link #XSP_V_XMLID_ENABLE_TYPING}).
+     *<p>
+     * Default value is implementation-specific, but recommended default
+     * value is <code>XSP_V_XMLID_ENABLE_TYPING</code>
+     */
+    public final static String XSP_SUPPORT_XMLID = "org.codehaus.stax2.supportXmlId";
+
+    /**
+     * Property value that indicates that no xml:id support should be
+     * enabled.
+     */
+    public final static String XSP_V_XMLID_DISABLE = "disable";
+
+    /**
+     * Property value that indicates that the attribute type assignment
+     * portion of xml:id should be supported (all 'xml:id' attributes
+     * that are not explicitly declared should have attribute type of
+     * ID), but that no xml:id specific validation is to be done.
+     * Due to typing, value normalization should occur.
+     * It is still possible that schema (DTD, RNG, W3C Schema) based
+     * validation is done, including validation of values of xml:id
+     * attributes, but only based on Schema information.
+     *<p>
+     * The main reason for specifying this value (as opposed to the full
+     * enabling) is that there is some overhead associated with
+     * validation (especially uniqueness constraints checking, which means
+     * that all values of xml:id attributes in the input document have to
+     * be kept in memory), whereas typing is a low overhead operation.
+     */
+    public final static String XSP_V_XMLID_ENABLE_TYPING = "enableTyping";
+
+    /**
+     * Property value that indicates that both the attribute type assignment
+     * portion and the validation portion of xml:id should be supported.
+     * This validation is independent of the actual schema (DTD, RNG,
+     * W3C Schema) validation, in the sense that even if no such validation
+     * is enabled, xml:id value validation will still be done if this
+     * property value is used. Conversely, if schema-based validation
+     * is used, both xml:id and schema validation may be done (although
+     * schema validator instances may choose to ignore validity checks
+     * if they know that full xml:id support is enabled).
+     */
+    public final static String XSP_V_XMLID_ENABLE_FULL = "enableFull";
 
 }
 

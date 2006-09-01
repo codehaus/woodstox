@@ -319,6 +319,12 @@ public final class SimpleOutputElement
         return new QName(mURI, mLocalName, mPrefix);
     }
 
+    /*
+    ////////////////////////////////////////////
+    // Public API, ns binding, checking
+    ////////////////////////////////////////////
+     */
+
     /**
      * Method similar to {@link #getPrefix}, but one that will not accept
      * the default namespace, only an explicit one. Usually used when
@@ -393,9 +399,9 @@ public final class SimpleOutputElement
             return PREFIX_MISBOUND;
         }
 
-            /* Need to handle 'xml' prefix and its associated
-             *   URI; they are always declared by default
-             */
+	/* Need to handle 'xml' prefix and its associated
+	 *   URI; they are always declared by default
+	 */
         if (prefix.equals(sXmlNsPrefix)) {
             // Should we thoroughly verify its namespace matches...?
             // 01-Apr-2005, TSa: Yes, let's always check this

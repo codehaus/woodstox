@@ -5,6 +5,8 @@ import java.util.HashMap;
 
 import javax.xml.stream.*;
 
+import org.codehaus.stax2.XMLStreamReader2;
+
 import wstxtest.BaseWstxTest;
 import wstxtest.cfg.*;
 
@@ -19,14 +21,16 @@ public class BaseWriterTest
 
     /*
     //////////////////////////////////////////////////
-    // "Special" accessors
+    // Factory methods
     //////////////////////////////////////////////////
      */
 
-    /*
-    //////////////////////////////////////////////////
-    // Higher-level test methods
-    //////////////////////////////////////////////////
-     */
-
+    protected XMLStreamReader2 constructNsStreamReader(String content, boolean coal)
+        throws XMLStreamException
+    {
+        XMLInputFactory f = getInputFactory();
+        setNamespaceAware(f, true);
+        setCoalescing(f, coal);
+        return (XMLStreamReader2) f.createXMLStreamReader(new StringReader(content));
+    }
 }
