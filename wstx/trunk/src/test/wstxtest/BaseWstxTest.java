@@ -158,6 +158,24 @@ public class BaseWstxTest
         return (XMLEventReader2) f.createXMLEventReader(new StringReader(content));
     }
 
+    protected XMLStreamReader2 constructNsStreamReader(String content, boolean coal)
+        throws XMLStreamException
+    {
+        XMLInputFactory f = getInputFactory();
+        setNamespaceAware(f, true);
+        setCoalescing(f, coal);
+        return (XMLStreamReader2) f.createXMLStreamReader(new StringReader(content));
+    }
+
+    protected XMLStreamReader2 constructNonNsStreamReader(String content, boolean coal)
+        throws XMLStreamException
+    {
+        XMLInputFactory f = getInputFactory();
+        setNamespaceAware(f, false);
+        setCoalescing(f, coal);
+        return (XMLStreamReader2) f.createXMLStreamReader(new StringReader(content));
+    }
+
     /*
     //////////////////////////////////////////////////
     // Configuring input factory

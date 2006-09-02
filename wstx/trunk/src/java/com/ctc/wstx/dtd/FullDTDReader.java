@@ -26,6 +26,7 @@ import javax.xml.stream.Location;
 import javax.xml.stream.XMLReporter;
 import javax.xml.stream.XMLStreamException;
 
+import org.codehaus.stax2.validation.XMLValidationProblem;
 import org.codehaus.stax2.validation.XMLValidator;
 
 import com.ctc.wstx.api.ReaderConfig;
@@ -1835,7 +1836,16 @@ public class FullDTDReader
     private void reportVCViolation(String msg)
         throws XMLStreamException
     {
-        reportValidationProblem(msg);
+	/* 01-Sep-2006, TSa: Not 100% sure what's the right way to do it --
+	 *   they are errors (non-fatal, but not warnings), but the way
+	 *   base class handles things, we probably better 'downgrade'
+	 *   them to warnings in non-validating mode.
+	 */
+	if (mCfgFullyValidating) {
+	    reportValidationProblem(msg, XMLValidationProblem.SEVERITY_ERROR);
+	} else {
+	    reportValidationProblem(msg, XMLValidationProblem.SEVERITY_WARNING);
+	}
     }
 
     private void reportWFCViolation(String msg)
@@ -2610,6 +2620,13 @@ public class FullDTDReader
             }
         }
 
+	/* 01-Sep-2006, TSa: To address [WSTX-23], we should verify declaration
+	 *  of 'xml:space' attribute
+	 */
+	if (attrName.isXmlReservedAttr(mCfgNsEnabled, "space")) {
+	    checkXmlSpaceAttr(type, enumValues);
+	}
+
         DTDAttribute attr;
 
         /* 17-Feb-2006, TSa: Ok. So some (legacy?) DTDs do declare namespace
@@ -3207,9 +3224,7 @@ public class FullDTDReader
     protected void handleUndeclaredEntity(String id)
         throws XMLStreamException
     {
-        if (mCfgFullyValidating) {
-            reportValidationProblem("Undeclared parameter entity '"+id+"'.");
-        }
+	reportVCViolation("Undeclared parameter entity '"+id+"'.");
         if (mCurrAttrDefault != null) {
             Location loc = getLastCharLocation();
             if (mExpandingPE) {
@@ -3271,6 +3286,36 @@ public class FullDTDReader
          */
         mSurrogateSecond = second;
         return first;
+    }
+
+    /*
+    ///////////////////////////////////////////////////////
+    // Additional validity checking
+    ///////////////////////////////////////////////////////
+     */
+
+    protected void checkXmlSpaceAttr(int type, WordResolver enumValues)
+	throws XMLStreamException
+    {
+	boolean ok = (type == DTDAttribute.TYPE_ENUMERATED);
+	if (ok) {
+	    switch (enumValues.size()) {
+	    case 1:
+		ok = (enumValues.find("preserve") != null)
+		    || (enumValues.find("default") != null);
+		break;
+	    case 2:
+		ok = (enumValues.find("preserve") != null)
+		    && (enumValues.find("default") != null);
+		break;
+	    default:
+		ok = false;
+	    }
+	}
+
+	if (!ok) {
+	    reportVCViolation(ErrorConsts.ERR_DTD_XML_SPACE);
+	}
     }
 
     /*

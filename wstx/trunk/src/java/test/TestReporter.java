@@ -10,7 +10,7 @@ public class TestReporter
 {
     public void report(String msg, String errorType, Object info, Location location)
     {
-        System.err.println("WARNING: "+msg+" [at "+location+"]");
+        System.err.println("\nWARNING("+errorType+"): "+msg+" [at "+location+"]");
     }
 }
 

@@ -113,6 +113,8 @@ public class ErrorConsts
     public static String ERR_DTD_UNDECLARED_ENTITY =
         "Undeclared {0} entity \"{1}\"";
 
+    public static String ERR_DTD_XML_SPACE = "Attribute xml:space has to be defined of type enumerated, and have 1 or 2 values, 'default' and/or 'preserve'";
+
 
     // // // DTD-validation:
 

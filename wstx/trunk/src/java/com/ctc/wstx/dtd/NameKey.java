@@ -80,9 +80,31 @@ public final class NameKey
     public boolean isaNsDeclaration()
     {
         if (mPrefix == null) {
-            return mLocalName.equals(XMLConstants.XMLNS_ATTRIBUTE);
+            return mLocalName == "xmlns";
         }
-        return mPrefix.equals(XMLConstants.XMLNS_ATTRIBUTE);
+        return mPrefix == "xmlns";
+    }
+
+    /**
+     * Method used to check for xml reserved attribute names, like
+     * "xml:space" and "xml:id".
+     *<p>
+     * Note: it is assumed that the passed-in localName is also
+     * interned.
+     */
+    boolean isXmlReservedAttr(boolean nsAware, String localName)
+    {
+	if (nsAware) {
+	    if ("xml" == mPrefix) {
+		return mLocalName == localName;
+	    }
+	} else {
+	    if (mLocalName.length() == (4 + localName.length())) {
+		return (mLocalName.startsWith("xml:")
+			&& mLocalName.endsWith(localName));
+	    }
+	}
+	return false;
     }
 
     /*
