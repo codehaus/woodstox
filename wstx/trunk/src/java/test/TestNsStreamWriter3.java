@@ -40,13 +40,16 @@ public class TestNsStreamWriter3
         Writer w = new PrintWriter(System.out);
         XMLStreamWriter2 sw = (XMLStreamWriter2)f.createXMLStreamWriter(w);
 
-        final String URI = "http://foo";
+        final String URI1 = "http://foo";
+        final String URI2 = "http://foo2";
+        final String URI3 = "http://foo3";
 
         sw.writeStartDocument();
-        sw.writeStartElement(null, "root");
-	sw.writeNamespace("foo", URI);
-        sw.writeStartElement(URI, "leaf");
-        sw.writeAttribute(URI, "ns-attr", "1");
+        sw.writeStartElement(URI1, "root");
+        sw.writeNamespace("foo2", URI2);
+        sw.writeDefaultNamespace(URI3);
+        sw.writeStartElement(URI3, "leaf");
+        sw.writeAttribute(URI2, "ns-attr", "1");
         sw.writeAttribute(null, "ns-attr", "2");
         sw.writeEndElement();
         sw.writeEndElement();

@@ -146,22 +146,26 @@ public class RepairingNsStreamWriter
          *   (c) Check potential validity; ignore if it matched a declaration,
          *     throw an exception if it didn't.
          */
-	/* 01-Sep-2006, TSa: Actually, there is one use case for calling
-	 *   this method. Specifically, caller may want to 'suggest' that
-	 *   such a namespace should indeed be bound at this level. This
-	 *   may be necessary for canonicalization, or for minimizing number
-	 *   of binding declarations (all children need the ns, but root
-	 *   itself not).
-	 /*
-        if (!mStartElementOpen) {
-            throwOutputError(ERR_NSDECL_WRONG_STATE);
-        }
-	/*
-	 * However, wrt ns decl: while this makes sense for an explicit
-	 * prefix, it doesn't for the default namespace: this because the
-	 * element is already output.
-	 * So, basically, we can't do much anything here. ;-)
-	 */
+        /* 01-Sep-2006, TSa: Actually, there is one use case for calling
+         *   this method. Specifically, caller may want to 'suggest' that
+         *   such a namespace should indeed be bound at this level. This
+         *   may be necessary for canonicalization, or for minimizing number
+         *   of binding declarations (all children need the ns, but root
+         *   itself not).
+         */
+         if (!mStartElementOpen) {
+             throwOutputError(ERR_NSDECL_WRONG_STATE);
+         }
+         /* ... We have one complication though: if the current element
+          * uses default namespace, can not change it (attributes don't
+          * matter -- they never use the default namespace, but either don't
+          * belong to a namespace, or belong to one using explicit prefix)
+          */
+         String prefix = mCurrElem.getPrefix();
+         if (prefix != null && prefix.length() > 0) { // ok, can change it
+             mCurrElem.setDefaultNsUri(nsURI);
+             doWriteDefaultNs(nsURI);
+         }
     }
 
     //public void writeEmptyElement(String localName) throws XMLStreamException
@@ -169,27 +173,27 @@ public class RepairingNsStreamWriter
     public void writeNamespace(String prefix, String nsURI)
         throws XMLStreamException
     {
-	/* (see discussion in 'writeDefaultNamespace()' for details on
-	 * if and how this method may get called in repairing mode)
+        /* (see discussion in 'writeDefaultNamespace()' for details on
+         * if and how this method may get called in repairing mode)
          */
-	if (prefix == null || prefix.length() == 0) {
-	    writeDefaultNamespace(nsURI);
-	    return;
-	}
+        if (prefix == null || prefix.length() == 0) {
+            writeDefaultNamespace(nsURI);
+            return;
+        }
         if (!mStartElementOpen) {
             throwOutputError(ERR_NSDECL_WRONG_STATE);
         }
-	/* 01-Sep-2006, TSa: Let's only add the declaration if the prefix
-	 *   is as of yet unbound. If we have to re-bind things in future,
-	 *   so be it -- for now, this should suffice.
-	 */
-	int value = mCurrElem.isPrefixValid(prefix, nsURI, true);
-	if (value == SimpleOutputElement.PREFIX_UNBOUND) {
-	    mCurrElem.addPrefix(prefix, nsURI);
-	    doWriteNamespace(prefix, nsURI);
-	}
+        /* 01-Sep-2006, TSa: Let's only add the declaration if the prefix
+         *   is as of yet unbound. If we have to re-bind things in future,
+         *   so be it -- for now, this should suffice.
+         */
+        int value = mCurrElem.isPrefixValid(prefix, nsURI, true);
+        if (value == SimpleOutputElement.PREFIX_UNBOUND) {
+            mCurrElem.addPrefix(prefix, nsURI);
+            doWriteNamespace(prefix, nsURI);
+        }
     }
-
+    
     /*
     ////////////////////////////////////////////////////
     // Package methods:

@@ -54,19 +54,19 @@ public class TestRepairingNsOutput
     public void testExplicitNsWrites()
         throws XMLStreamException
     {
-	final String URI = "http://bar";
+        final String URI = "http://bar";
         XMLOutputFactory f = getFactory();
         StringWriter strw = new StringWriter();
         XMLStreamWriter sw = f.createXMLStreamWriter(strw);
 
         sw.writeStartDocument();
-	/* root in no namespace, no attributes; but want to add
-	 * an 'early' ns declaration for ns prefix 'foo',
-	 * with URI 'http://bar'
-	 */
+        /* root in no namespace, no attributes; but want to add
+         * an 'early' ns declaration for ns prefix 'foo',
+         * with URI 'http://bar'
+         */
         sw.writeStartElement("", "root");
-	sw.writeNamespace("foo", URI);
-	// leaf in that namespace, then:
+        sw.writeNamespace("foo", URI);
+        // leaf in that namespace, then:
         sw.writeStartElement(URI, "leaf");
         sw.writeEndElement();
         sw.writeEndElement();
@@ -75,30 +75,82 @@ public class TestRepairingNsOutput
 
         String result = strw.toString();
 
-	// Ok, so let's parse and verify:
-	XMLStreamReader sr = constructNsStreamReader(result, false);
-	assertTokenType(START_ELEMENT, sr.next());
-	assertEquals("root", sr.getLocalName());
-	// !!! TODO: if/when 'no namespace' URI changes to "", need to fix
-	assertNull(sr.getNamespaceURI());
+        // Ok, so let's parse and verify:
+        XMLStreamReader sr = constructNsStreamReader(result, false);
+        assertTokenType(START_ELEMENT, sr.next());
+        assertEquals("root", sr.getLocalName());
+        // !!! TODO: if/when 'no namespace' URI changes to "", need to fix
+        assertNull(sr.getNamespaceURI());
+        
+        int nsCount = sr.getNamespaceCount();
+        assertEquals("Expected one (and only one) namespace declaration, got "+nsCount, 1, nsCount);
+        assertEquals("foo", sr.getNamespacePrefix(0));
+        assertEquals(URI, sr.getNamespaceURI(0));
+        
+        // And then the branch should have no ns decls:
+        assertTokenType(START_ELEMENT, sr.next());
+        assertEquals("leaf", sr.getLocalName());
+        assertEquals(URI, sr.getNamespaceURI());
+        
+        assertEquals(0, sr.getNamespaceCount());
+        
+        assertTokenType(END_ELEMENT, sr.next());
+        assertEquals("leaf", sr.getLocalName());
+        
+        // fine, rest is ok
+        sr.close();
+    }
 
-	int nsCount = sr.getNamespaceCount();
-	assertEquals("Expected one (and only one) namespace declaration, got "+nsCount, 1, nsCount);
-	assertEquals("foo", sr.getNamespacePrefix(0));
-	assertEquals(URI, sr.getNamespaceURI(0));
+    /**
+     * Similar to {@link #testExplicitNsWrites}, but tests behavior
+     * of calls to <code>XMLStreamWriter.writeDefaultNamespace</code>
+     */
+    public void testExplicitDefaultNsWrite()
+        throws XMLStreamException
+    {
+        final String URI1 = "http://foo";
+        final String URI2 = "http://bar";
+        XMLOutputFactory f = getFactory();
+        StringWriter strw = new StringWriter();
+        XMLStreamWriter sw = f.createXMLStreamWriter(strw);
 
-	// And then the branch should have no ns decls:
-	assertTokenType(START_ELEMENT, sr.next());
-	assertEquals("leaf", sr.getLocalName());
-	assertEquals(URI, sr.getNamespaceURI());
+        sw.writeStartDocument();
+        /* root in explicit namespace, but additionally want to
+         * reserve the default ns:
+         */
+        sw.writeStartElement("myns", "root", URI1);
+        sw.writeDefaultNamespace(URI2);
+        // leaf in that namespace, then:
+        sw.writeStartElement(URI2, "leaf");
+        sw.writeEndElement();
+        sw.writeEndElement();
+        sw.writeEndDocument();
+        sw.close();
 
-	assertEquals(0, sr.getNamespaceCount());
+        String result = strw.toString();
 
-	assertTokenType(END_ELEMENT, sr.next());
-	assertEquals("leaf", sr.getLocalName());
-
-	// fine, rest is ok
-	sr.close();
+        // Ok, so let's parse and verify:
+        XMLStreamReader sr = constructNsStreamReader(result, false);
+        assertTokenType(START_ELEMENT, sr.next());
+        assertEquals("root", sr.getLocalName());
+        assertEquals("myns", sr.getPrefix());
+        assertEquals(URI1, sr.getNamespaceURI());
+        
+        int nsCount = sr.getNamespaceCount();
+        assertEquals("Expected two namespace declarations, got "+nsCount, 2, nsCount);
+        
+        // And then leaf should have no ns decls:
+        assertTokenType(START_ELEMENT, sr.next());
+        assertEquals("leaf", sr.getLocalName());
+        assertNull(sr.getPrefix());
+        assertEquals(URI2, sr.getNamespaceURI());
+        assertEquals(0, sr.getNamespaceCount());
+        
+        assertTokenType(END_ELEMENT, sr.next());
+        assertEquals("leaf", sr.getLocalName());
+        
+        // fine, rest is ok
+        sr.close();
     }
 
     /*
