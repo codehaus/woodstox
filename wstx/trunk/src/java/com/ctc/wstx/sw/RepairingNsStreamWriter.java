@@ -371,19 +371,24 @@ public class RepairingNsStreamWriter
          * be able to resolve namespace mapping for the element
          * automatically, as necessary.
          */
-        writeStartElement(elemStack.getPrefix(),
-                          elemStack.getLocalName(),
-                          elemStack.getNsURI());
+        String prefix = elemStack.getPrefix();
+        String uri = elemStack.getNsURI();
+        writeStartElement(prefix, elemStack.getLocalName(), uri);
         
-        // Any namespace declarations/bindings?
-        int nsCount = elemStack.getCurrentNsCount();
-        
-        /* Since repairing writer will deal with namespace bindings
-         * and declarations automatically, we don't really to do anything
-         * here. Could call setPrefix(), but it really should work out as
-         * well by just calling output methods which will generate necessary
-         * bindings.
+        /* 04-Sep-2006, TSa: Although we could really just ignore all
+         *   namespace declarations, some apps prefer (or even expect...)
+         *   that ns bindings are preserved as much as possible. So, let's
+         *   just try to output them as they are (could optimize and skip
+         *   ones related to the start element [same prefix or URI], but
+         *   for now let's not bother)
          */
+        int nsCount = elemStack.getCurrentNsCount();
+        if (nsCount > 0) { // yup, got some...
+            for (int i = 0; i < nsCount; ++i) {
+                writeNamespace(elemStack.getLocalNsPrefix(i), elemStack.getLocalNsURI(i));
+            }
+        }
+
         /* And then let's just output attributes, if any (whether to copy
          * implicit, aka "default" attributes, is configurable)
          */
@@ -401,8 +406,8 @@ public class RepairingNsStreamWriter
                 // attribute has is valid... and can not output anything
                 // before that's done (since remapping will output a namespace
                 // declaration!)
-                String uri = attrCollector.getURI(i);
-                String prefix = attrCollector.getPrefix(i);
+                uri = attrCollector.getURI(i);
+                prefix = attrCollector.getPrefix(i);
                 
                 // With attributes, missing/empty prefix always means 'no
                 // namespace', can take a shortcut:

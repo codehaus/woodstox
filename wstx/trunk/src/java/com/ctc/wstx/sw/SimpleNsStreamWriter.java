@@ -285,7 +285,6 @@ public class SimpleNsStreamWriter
     {
         // Any namespace declarations/bindings?
         int nsCount = elemStack.getCurrentNsCount();
-        
         if (nsCount > 0) { // yup, got some...
             /* First, need to (or at least, should?) add prefix bindings:
              * (may not be 100% required, but probably a good thing to do,
