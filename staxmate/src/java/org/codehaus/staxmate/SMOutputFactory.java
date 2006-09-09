@@ -76,10 +76,9 @@ public final class SMOutputFactory
     /**
      * Convenience method that will get a lazily constructed shared
      * {@link XMLOutputFactory} instance. Note that this instance
-     * should only be used IFF:
+     * should only be used iff:
      *<ul>
-     * <li>Default settings (non-repairing)
-     *    for the factory are acceptable
+     * <li>Default settings (non-repairing) for the factory are acceptable
      *  </li>
      * <li>Settings of the factory are not modified: thread-safety
      *   of the factory instance is only guaranteed for factory methods,
@@ -103,6 +102,12 @@ public final class SMOutputFactory
     ///////////////////////////////////////////////////////
     */
 
+    /**
+     * Separate helper class is used so that the shared factory instance
+     * is only created if needed: this happens if the accessor class
+     * needs to be instantiate, which in turn happens if the method
+     * for accessing the global output factory is called.
+     */
     private final static class XmlFactoryAccessor
     {
         final static XmlFactoryAccessor sInstance = new XmlFactoryAccessor();
