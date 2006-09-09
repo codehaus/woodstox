@@ -1,15 +1,37 @@
-Version: 0.6
+Version: 0.9.1
 
-Release date: xx-May-2005
+Release date: 10-Sep-2006
 
 Description:
   First complete release; now includes both reader and writer side helpers.
 
   Problems fixed:
 
+  * Nested cursor synchronization problems fixed, unit tests added
+    [contributed by Ed G, David B]
+
   New functionality:
 
 == History: ==
+
+0.9: [11-Aug-2006]
+
+  New functionality:
+
+  * Full writer-side functionality included
+
+  Rewrite:
+
+  * Converted StaxMate to JDK 1.5: now uses Enums as return values, which
+    is nice as Enums can have properties.
+  * Renamed 'iterators' to 'cursors' (input side change); renamed packages
+    to have more meaningful names.
+
+....
+
+0.6: [late 2004]
+
+  Added writer-side functionality
 
 0.5: [mid-2004]:
 
