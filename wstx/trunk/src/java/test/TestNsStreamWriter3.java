@@ -51,6 +51,7 @@ public class TestNsStreamWriter3
         sw.writeStartElement(URI3, "leaf");
         sw.writeAttribute(URI2, "ns-attr", "1");
         sw.writeAttribute(null, "ns-attr", "2");
+        sw.writeAttribute("otherprefix", URI2, "lastAttr", "x");
         sw.writeEndElement();
         sw.writeEndElement();
         sw.writeCharacters("\n"); // to add lf for terminal output

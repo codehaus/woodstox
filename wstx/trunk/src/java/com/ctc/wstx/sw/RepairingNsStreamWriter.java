@@ -119,7 +119,8 @@ public class RepairingNsStreamWriter
         if (!mStartElementOpen) {
             throwOutputError(ErrorConsts.WERR_ATTR_NO_ELEM);
         }
-        doWriteAttr(localName, nsURI, findOrCreateAttrPrefix(null, nsURI, mCurrElem),
+        doWriteAttr(localName, nsURI,
+		    findOrCreateAttrPrefix(null, nsURI, mCurrElem),
                     value);
     }
 
@@ -185,7 +186,9 @@ public class RepairingNsStreamWriter
         }
         /* 01-Sep-2006, TSa: Let's only add the declaration if the prefix
          *   is as of yet unbound. If we have to re-bind things in future,
-         *   so be it -- for now, this should suffice.
+         *   so be it -- for now, this should suffice (and if we have to
+	 *   add re-binding, must verify that no attribute, nor element
+	 *   itself, is using overridden prefix)
          */
         int value = mCurrElem.isPrefixValid(prefix, nsURI, true);
         if (value == SimpleOutputElement.PREFIX_UNBOUND) {
@@ -536,7 +539,18 @@ public class RepairingNsStreamWriter
             if (status == SimpleOutputElement.PREFIX_OK) {
                 return suggPrefix;
             }
-            // Otherwise, 
+            /* Otherwise, if the prefix is unbound, let's just bind
+	     * it -- if caller specified a prefix, it probably prefers
+	     * binding that prefix even if another prefix already existed?
+	     * The remaining case (already bound to another URI) we don't
+	     * want to touch, at least not yet: it may or not be safe
+	     * to change binding, so let's just not try it.
+	     */
+            if (status == SimpleOutputElement.PREFIX_UNBOUND) {
+		elem.addPrefix(suggPrefix, nsURI);
+		doWriteNamespace(suggPrefix, nsURI);
+		return suggPrefix;
+	    }
         }
 
         // If not, perhaps there's another existing binding available?

@@ -153,6 +153,46 @@ public class TestRepairingNsOutput
         sr.close();
     }
 
+    /**
+     * This test further verifies that caller's prefix-preference
+     * has higher priority than that of trying to find an existing
+     * prefix to use.
+     */
+    public void testExplicitDupNsWrite()
+        throws XMLStreamException
+    {
+        final String URI = "http://bar";
+        XMLOutputFactory f = getFactory();
+        StringWriter strw = new StringWriter();
+        XMLStreamWriter sw = f.createXMLStreamWriter(strw);
+
+        sw.writeStartDocument();
+        sw.writeStartElement("ns", "root", URI);
+        sw.writeAttribute("attrns", URI, "attr", "value");
+
+        sw.writeEndElement();
+        sw.writeEndDocument();
+        sw.close();
+
+        String result = strw.toString();
+
+        // Ok, so let's parse and verify:
+        XMLStreamReader sr = constructNsStreamReader(result, false);
+        assertTokenType(START_ELEMENT, sr.next());
+        assertEquals("root", sr.getLocalName());
+	assertEquals(URI, sr.getNamespaceURI());
+	assertEquals(1, sr.getAttributeCount());
+        assertEquals("attr", sr.getAttributeLocalName(0));
+	assertEquals(URI, sr.getAttributeNamespace(0));
+	// so far so good: but let's verify prefix is also what caller specified
+	assertEquals("attrns", sr.getAttributePrefix(0));
+
+	assertEquals(2, sr.getNamespaceCount());
+
+        // fine, rest is ok
+        sr.close();
+    }
+
     /*
     ////////////////////////////////////////////////////
     // Internal methods
