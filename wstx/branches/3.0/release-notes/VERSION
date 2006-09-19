@@ -3,14 +3,20 @@ Version: 3.0.2
 Release date: xx-Sep-2006
 
 Description:
+  The second patch release for 3.0.0.
+  Contains critical fixes to the stable branch as reported by users.
+
+Problems fixed:
+
+  * [WSTX-81] Character/byte offset for Location not correctly calculated
+    (reported by Mickael G)
+  * [WTSX-82] URL handling had problems on Windows platform, with file-based
+    URLs that refer to network drives
+    (reported by Christian B)
 
 == History: ==
 
 3.0.1 [29-Aug-2006]
-
-Description:
-  The first patch for 3.0.0. Contains critical fixes to the stable branch,
-  as reported by users.
 
   Problems fixed:
 

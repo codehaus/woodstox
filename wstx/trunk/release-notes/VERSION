@@ -28,6 +28,11 @@ Description:
   * [WSTX-77] Bug in DTDValidator.validateAttribute() passing wrong args
     to StringUtil.matches()
     (reported by Vim D R)
+  * [WSTX-81] Character/byte offset for Location not correctly calculated
+    (reported by Mickael G)
+  * [WTSX-82] URL handling had problems on Windows platform, with file-based
+    URLs that refer to network drives
+    (reported by Christian B)
 
 3.0.0 (final) [07-Aug-2006]
 

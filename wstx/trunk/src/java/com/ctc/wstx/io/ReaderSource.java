@@ -123,9 +123,13 @@ public class ReaderSource
         // Existing data to move?
         if (currAmount > 0) {
             System.arraycopy(mBuffer, ptr, mBuffer, 0, currAmount);
-            // Let's also offset amount of data that will be remaining
-            reader.mCurrInputProcessed -= currAmount;
-            reader.mCurrInputRowStart += currAmount;
+            /* Since we are essentially removing 'ptr' chars that we
+             * have used already, they count as past chars. Also, since
+             * offsets are reduced by 'ptr', need to adjust linefeed offset
+             * marker as well.
+             */
+            reader.mCurrInputProcessed += ptr;
+            reader.mCurrInputRowStart -= ptr;
             minAmount -= currAmount;
         }
         reader.mInputBuffer = mBuffer;

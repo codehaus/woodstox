@@ -189,8 +189,8 @@ public class WstxInputData
      */
 
     /**
-     * Current number of characters that were processed in previous blocks,
-     * before contents of current input buffer.
+     * Number of characters that were contained in previous blocks
+     * (blocks that were already processed prior to the current buffer).
      */
     protected long mCurrInputProcessed = 0L;
 

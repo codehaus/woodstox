@@ -123,9 +123,13 @@ public class ReaderSource
         // Existing data to move?
         if (currAmount > 0) {
             System.arraycopy(mBuffer, ptr, mBuffer, 0, currAmount);
-            // Let's also offset amount of data that will be remaining
-            reader.mCurrInputProcessed -= currAmount;
-            reader.mCurrInputRowStart += currAmount;
+            /* As per [WSTX-81], offsets were calculated incorrectly;
+             * both offsets were updated incorrectly
+             */
+            //reader.mCurrInputProcessed -= currAmount;
+            //reader.mCurrInputRowStart += currAmount;
+            reader.mCurrInputProcessed += ptr;
+            reader.mCurrInputRowStart -= ptr;
             minAmount -= currAmount;
         }
         reader.mInputBuffer = mBuffer;

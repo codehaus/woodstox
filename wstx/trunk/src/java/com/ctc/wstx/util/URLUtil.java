@@ -100,7 +100,15 @@ public final class URLUtil
         throws IOException
     {
         if ("file".equals(url.getProtocol())) {
-            return new FileInputStream(url.getPath());
+            /* As per [WSTX-82], can not do this if the path refers
+             * to a network drive on windows. This fixes the problem;
+             * might not be needed on all platforms (NFS?), but should not
+             * matter a lot: performance penalty of extra wrapping is more
+             * relevant when accessing local file system.
+             */
+            if (url.getHost() == null) {
+                return new FileInputStream(url.getPath());
+            }
         }
         return url.openStream();
     }

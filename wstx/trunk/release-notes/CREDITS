@@ -198,3 +198,13 @@ Vim de Rammelaere:
   * Reported [WSTX-77]: Bug in DTDValidator.validateAttribute() -- wrong
     arguments passed to StringUtil.matches()
     [3.0.1/3.1] 
+
+Mickael Goujon:
+  * Reported [WSTX-81], contributed a patch for it: Calculation of
+    char/byte offsets was buggy.
+    [3.0.2/3.1]
+
+Christian Bering:
+  * Reported [WSTX-82], contributed a patch for it: URL handling code
+    had problems on Windows, when referring to files on network drives.
+    [3.0.2/3.1]
