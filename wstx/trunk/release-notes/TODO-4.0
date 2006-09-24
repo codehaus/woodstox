@@ -9,7 +9,14 @@ Planned stuff for 3.1 or 4.0
     * UTF-16, checks for 0xFFFE, 0xFFFF (2 failures)
     * Names, surrogate pairing (4 failures)
     * xmlns pseudo-attributes, non-CDATA type (1 failure)
-  * Reporting of SPACE in DTD-aware, non-validating mode
+[DONE, 3.1]  * Reporting of SPACE in DTD-aware, non-validating mode
+
+* Validation interface improvements:
+  * Stax2: add new allowed-content type, CONTENT_ALLOW_WS_NONSTRICT
+    (or such), to cover the case where content _should_ be (ignorable)
+    space (for purposes of distinguishing CHARACTERS and SPACE events),
+    but if not, that's not a validation error. This is needed for
+    DTD-aware (and maybe Schema-aware?) but non-validating mode.
 
 * Removing cruft:
   * Remove support for pre-JDK-1.4

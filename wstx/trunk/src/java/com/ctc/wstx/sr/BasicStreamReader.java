@@ -2657,7 +2657,16 @@ public class BasicStreamReader
                      */
                     // No, as per xml specs, only straight white space is legal
                     if (c > CHAR_SPACE) {
-                        reportInvalidContent(CHARACTERS);
+                        /* 23-Sep-2006, TSa: ... but only if really validating.
+                         *  !!! Should be properly fixed, for 4.0, when we'll
+                         *   have new content allow type (ALLOW_WS_NONSTRICT
+                         *   or so), so as not to need stack.reallyValidating()
+                         *   method, which is a hack.
+                         */
+                        if (mVldContent < XMLValidator.CONTENT_ALLOW_WS
+                            || mElementStack.reallyValidating()) {
+                            reportInvalidContent(CHARACTERS);
+                        }
                     }
                 }
 
@@ -2723,17 +2732,9 @@ public class BasicStreamReader
             }
 
             if (c == ':' || isNameStartChar(c)) {
-                // 30-Aug-2004, TSa: Not legal for EMPTY elements
-                /* 20-Dec-2005, TSa: No need to check here any more; validator
-                 *   now takes care of this (to consolidate all elem/attr
-                 *   validation in validator, and only leave other types
-                 *   here)
+                /* Note: checking for EMPTY content type is done by the
+                 * validator, no need to check here
                  */
-                /*
-                if (mVldContent == XMLValidator.CONTENT_ALLOW_NONE) {
-                    reportInvalidContent(START_ELEMENT);
-                }
-                */
                 handleStartElem(c);
                 return START_ELEMENT;
             }
