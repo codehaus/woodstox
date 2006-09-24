@@ -438,6 +438,16 @@ public abstract class StreamScanner
     ////////////////////////////////////////////////////
      */
 
+    public WstxException throwWfcException(String msg, boolean deferErrors)
+        throws WstxException
+    {
+        WstxException ex = constructWfcException(msg);
+        if (!deferErrors) {
+            throw ex;
+        }
+        return ex;
+    }
+
     /**
      * Throws generic parse error with specified message and current parsing
      * location.
@@ -448,21 +458,19 @@ public abstract class StreamScanner
     public void throwParseError(String msg)
         throws WstxException
     {
-        throw new WstxParsingException(msg, getLastCharLocation());
+        throw constructWfcException(msg);
     }
 
     public void throwParseError(String format, Object arg)
         throws WstxException
     {
-        String msg = MessageFormat.format(format, new Object[] { arg });
-        throw new WstxParsingException(msg, getLastCharLocation());
+        throw constructWfcException(MessageFormat.format(format, new Object[] { arg }));
     }
 
     public void throwParseError(String format, Object arg, Object arg2)
         throws WstxException
     {
-        String msg = MessageFormat.format(format, new Object[] { arg, arg2 });
-        throw new WstxParsingException(msg, getLastCharLocation());
+        throw constructWfcException(MessageFormat.format(format, new Object[] { arg, arg2 }));
     }
 
     public void reportProblem(String probType, String msg)
@@ -592,6 +600,21 @@ public abstract class StreamScanner
     ////////////////////////////////////////////////////
      */
 
+    protected WstxException constructWfcException(String msg)
+    {
+        return new WstxParsingException(msg, getLastCharLocation());
+    }
+
+    protected WstxException constructFromIoe(IOException ioe)
+    {
+        return new WstxIOException(ioe);
+    }
+
+    protected WstxException constructNullCharException()
+    {
+        return new WstxUnexpectedCharException("Illegal character (NULL, unicode 0) encountered: not valid in any content", getLastCharLocation(), CHAR_NULL);
+    }
+
     protected void throwUnexpectedChar(int i, String msg)
         throws WstxException
     {
@@ -603,23 +626,33 @@ public abstract class StreamScanner
     protected void throwNullChar()
         throws WstxException
     {
-        WstxInputLocation loc = getLastCharLocation();
-        throw new WstxUnexpectedCharException("Illegal character (NULL, unicode 0) encountered: not valid in any content", loc, CHAR_NULL);
+        throw constructNullCharException();
     }
 
     protected void throwInvalidSpace(int i)
         throws WstxException
     {
+        throwInvalidSpace(i, false);
+    }
+
+    protected WstxException throwInvalidSpace(int i, boolean deferErrors)
+        throws WstxException
+    {
         char c = (char) i;
+        WstxException ex;
         if (c == CHAR_NULL) {
-            throwNullChar();
+            ex = constructNullCharException();
         } else {
             String msg = "Illegal character ("+getCharDesc(c)+")";
             if (mXml11) {
                 msg += " [note: in XML 1.1, it could be included via entity expansion]";
             }
-            throw new WstxUnexpectedCharException(msg, getLastCharLocation(), c);
+            ex = new WstxUnexpectedCharException(msg, getLastCharLocation(), c);
         }
+        if (!deferErrors) {
+            throw ex;
+        }
+        return ex;
     }
 
     protected void throwUnexpectedEOF(String msg)

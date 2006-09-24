@@ -38,8 +38,8 @@ public class TestStreamReader
         f.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.TRUE);
         //f.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.FALSE);
         f.setProperty(XMLInputFactory.IS_REPLACING_ENTITY_REFERENCES,
-                      Boolean.FALSE
-                      //Boolean.TRUE
+                      //Boolean.FALSE
+                      Boolean.TRUE
                       );
 
         f.setProperty(XMLInputFactory.SUPPORT_DTD, Boolean.TRUE);

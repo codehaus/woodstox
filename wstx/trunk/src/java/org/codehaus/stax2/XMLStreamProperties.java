@@ -62,21 +62,32 @@ public interface XMLStreamProperties
      * specification support, if the implementation implements xml:id
      * specification. Value to set should be one of
      * <code>XSP_V_XMLID_xxx</code> constants (like
-     * {@link #XSP_V_XMLID_ENABLE_TYPING}).
+     * {@link #XSP_V_XMLID_TYPING}).
      *<p>
      * Default value is implementation-specific, but recommended default
-     * value is <code>XSP_V_XMLID_ENABLE_TYPING</code>
+     * value is <code>XSP_V_XMLID_TYPING</code> for implementations
+     * that do support Xml:id specification: those that do not, have to
+     * default to <code>XSP_V_XMLID_NONE.
+     * For Xml:id-enabled implementations, typing support is the most
+     * logical default, since it
+     * provides the intuitive behavior of xml:id functionality, as well
+     * as reasonable performance (very little overhead in non-validating
+     * mode; usual id checking overhead for validating mode).
      */
     public final static String XSP_SUPPORT_XMLID = "org.codehaus.stax2.supportXmlId";
 
     /**
+     * Property value to use with property
+     * {@link #XSP_SUPPORT_XMLID}.
      * Property value that indicates that no xml:id support should be
      * enabled.
      */
-    public final static String XSP_V_XMLID_DISABLE = "disable";
+    public final static String XSP_V_XMLID_NONE = "disable";
 
     /**
-     * Property value that indicates that the attribute type assignment
+     * Property value to use with property
+     * {@link #XSP_SUPPORT_XMLID}.
+     * Value indicates that the attribute type assignment
      * portion of xml:id should be supported (all 'xml:id' attributes
      * that are not explicitly declared should have attribute type of
      * ID), but that no xml:id specific validation is to be done.
@@ -91,10 +102,12 @@ public interface XMLStreamProperties
      * that all values of xml:id attributes in the input document have to
      * be kept in memory), whereas typing is a low overhead operation.
      */
-    public final static String XSP_V_XMLID_ENABLE_TYPING = "enableTyping";
+    public final static String XSP_V_XMLID_TYPING = "xmlidTyping";
 
     /**
-     * Property value that indicates that both the attribute type assignment
+     * Property value to use with property
+     * {@link #XSP_SUPPORT_XMLID}.
+     * Value indicates that both the attribute type assignment
      * portion and the validation portion of xml:id should be supported.
      * This validation is independent of the actual schema (DTD, RNG,
      * W3C Schema) validation, in the sense that even if no such validation
@@ -104,7 +117,7 @@ public interface XMLStreamProperties
      * schema validator instances may choose to ignore validity checks
      * if they know that full xml:id support is enabled).
      */
-    public final static String XSP_V_XMLID_ENABLE_FULL = "enableFull";
+    public final static String XSP_V_XMLID_FULL = "xmlidFull";
 
 }
 

@@ -18,6 +18,12 @@ Planned stuff for 3.1 or 4.0
     but if not, that's not a validation error. This is needed for
     DTD-aware (and maybe Schema-aware?) but non-validating mode.
 
+* Stax2 improvements:
+  * Add getText()-like method that returns CharacterSequence? Could
+    allow zero-copy wrapping of parsed textual content.
+  * XMLStreamReader2.hasPendingException and/or getPendingException
+    (to check for deferred exceptions)
+
 * Removing cruft:
   * Remove support for pre-JDK-1.4
   * Remove non-normalizing (attr, text) modes

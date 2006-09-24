@@ -320,7 +320,7 @@ public class BasicStreamReader
      * Status of current (text) token's "whitespaceness", ie. whether it is
      * or is not all white space.
      */
-    int mWsStatus;
+    protected int mWsStatus;
 
     /**
      * Flag that indicates that textual content (CDATA, CHARACTERS) is to
@@ -340,7 +340,16 @@ public class BasicStreamReader
      * Counter used for determining whether we are to try to heuristically
      * "intern" white space that seems to be used for indentation purposes
      */
-    int mCheckIndentation;
+    protected int mCheckIndentation;
+
+    /**
+     * Due to the way Stax API does not allow throwing stream exceptions
+     * from many methods for which Woodstox would need to throw one
+     * (especially <code>getText</code> and its variations), we may need
+     * to delay throwing an exception until {@link #next} is called next
+     * time. If so, this variable holds the pending stream exception.
+     */
+    protected XMLStreamException mPendingException = null;
 
     /*
     ////////////////////////////////////////////////////
@@ -804,7 +813,7 @@ public class BasicStreamReader
             safeFinishToken();
         }
         if (mCurrToken == ENTITY_REFERENCE) {
-            return mCurrEntity.getReplacementText();
+            return (mCurrEntity == null) ? null : mCurrEntity.getReplacementText();
         }
         if (mCurrToken == DTD) {
             /* 16-Aug-2004, TSa: Hmmh. Specs are bit ambiguous on whether this
@@ -996,6 +1005,16 @@ public class BasicStreamReader
     public final int next()
         throws XMLStreamException
     {
+        /* 24-Sep-2006, TSa: We may deferred an exception that occurred
+         *   during parsing of the previous event. If so, now it needs to
+         *   be thrown.
+         */
+        if (mPendingException != null) {
+            XMLStreamException strEx = mPendingException;
+            mPendingException = null;
+            throw strEx;
+        }
+
         /* Note: can not yet accurately record the location, since the
          * previous event might not yet be completely finished...
          */
@@ -1005,7 +1024,7 @@ public class BasicStreamReader
                 mCurrToken =  type;
                 // Lazy-parsing disabled?
                 if (!mCfgLazyParsing && (mTokenState < mStTextThreshold)) {
-                    finishToken();
+                    finishToken(false);
                 }
                 /* Special cases -- sometimes (when coalescing text, or
                  * when specifically configured to do so), CDATA and SPACE are
@@ -1015,7 +1034,7 @@ public class BasicStreamReader
                 if (type == CDATA) {
                     if (mValidateText) {
                         if (mTokenState < mStTextThreshold) {
-                            finishToken();
+                            finishToken(false);
                         }
                         mElementStack.validateText(mTextBuffer, false);
                     }
@@ -1029,7 +1048,7 @@ public class BasicStreamReader
                 } else if (type == CHARACTERS) {
                     if (mValidateText) {
                         if (mTokenState < mStTextThreshold) {
-                            finishToken();
+                            finishToken(false);
                         }
                         /* We may be able to determine that there will be
                          * no more text coming for this element: but only
@@ -1314,7 +1333,7 @@ public class BasicStreamReader
             /* Otherwise, let's just finish the token; and due to guarantee
              * by streaming method, let's try ensure we get it all.
              */
-            finishToken();
+            finishToken(false); // false -> shouldn't defer errors
         }
         if (mCurrToken == ENTITY_REFERENCE) {
             return mCurrEntity.getReplacementText(w);
@@ -1966,7 +1985,7 @@ public class BasicStreamReader
 
         // Ok; final twist, maybe we do NOT want lazy parsing?
         if (!mCfgLazyParsing && mTokenState < mStTextThreshold) {
-            finishToken();
+            finishToken(false);
         }
 
         return false;
@@ -3521,7 +3540,7 @@ public class BasicStreamReader
         throws XMLStreamException
     {
         try {
-            finishToken();
+            finishToken(false);
         } catch (IOException ie) {
             throwFromIOE(ie);
         }
@@ -3530,9 +3549,23 @@ public class BasicStreamReader
     protected void safeFinishToken()
     {
         try {
-            finishToken();
-        } catch (Exception e) {
-            throwLazyError(e);
+            /* 24-Sep-2006, TSa: Let's try to reduce number of unchecked
+             *   (wrapped) exceptions we throw, and defer some. For now,
+             *   this is only for CHARACTERS (since it's always legal to
+             *   split CHARACTERS segment); could be expanded in future.
+             */
+            boolean deferErrors = (mCurrToken == CHARACTERS);
+            finishToken(deferErrors);
+        } catch (IOException ioe) {
+            /* Hmmh. But how about I/O exceptions: should they be deferred?
+             * Deferring them may lead to confusion, and perhaps incomplete
+             * state before they are delivered (i.e. as a side-effect, some
+             * weird additional problems may be encountered). So let's start
+             * changing things slowly, and not yet defer io exceptions.
+             */
+            throwLazyError(ioe);
+        } catch (XMLStreamException strex) {
+            throwLazyError(strex);
         }
     }
 
@@ -3541,14 +3574,18 @@ public class BasicStreamReader
      * yet read. Generally called when caller needs to access anything
      * other than basic token type (except for elements), text contents
      * or such.
+     *
+     * @param deferErrors Flag to enable storing an exception to a 
+     *   variable, instead of immediately throwing it. If true, will
+     *   just store the exception; if false, will not store, just throw.
      */
-    protected void finishToken()
+    protected void finishToken(boolean deferErrors)
         throws IOException, XMLStreamException
     {
         switch (mCurrToken) {
         case CDATA:
             if (mCfgCoalesceText) {
-                readCoalescedText(mCurrToken);
+                readCoalescedText(mCurrToken, deferErrors);
             } else {
                 if (readCDataSecondary(mShortestTextSegment)) {
                     mTokenState = TOKEN_FULL_SINGLE;
@@ -3570,9 +3607,9 @@ public class BasicStreamReader
                     mTokenState = TOKEN_FULL_COALESCED;
                     return;
                 }
-                readCoalescedText(mCurrToken);
+                readCoalescedText(mCurrToken, deferErrors);
             } else {
-                if (readTextSecondary(mShortestTextSegment)) {
+                if (readTextSecondary(mShortestTextSegment, deferErrors)) {
                     mTokenState = TOKEN_FULL_SINGLE;
                 } else {
                     mTokenState = TOKEN_PARTIAL_SINGLE;
@@ -3983,15 +4020,19 @@ public class BasicStreamReader
      * events, and all following consequtive events into the text buffer.
      * At this point the current type is known, prefix (for CDATA) skipped,
      * and initial consequtive contents (if any) read in.
+     *
+     * @param deferErrors Flag to enable storing an exception to a 
+     *   variable, instead of immediately throwing it. If true, will
+     *   just store the exception; if false, will not store, just throw.
      */
-    private void readCoalescedText(int currType)
+    private void readCoalescedText(int currType, boolean deferErrors)
         throws IOException, XMLStreamException
     {
         boolean wasCData;
 
         // Ok; so we may need to combine adjacent text/CDATA chunks.
         if (currType == CHARACTERS || currType == SPACE) {
-            readTextSecondary(Integer.MAX_VALUE);
+            readTextSecondary(Integer.MAX_VALUE, deferErrors);
             wasCData = false;
         } else if (currType == CDATA) {
             /* We may have actually really finished it, but just left
@@ -4006,7 +4047,7 @@ public class BasicStreamReader
         }
 
         // But how about additional text?
-        while (true) {
+        while (!deferErrors || (mPendingException == null)) {
             if (mInputPtr >= mInputLen) {
                 mTextBuffer.ensureNotShared();
                 if (!loadMore()) {
@@ -4047,7 +4088,7 @@ public class BasicStreamReader
                     break;
                 }
                 // Likewise, can't share buffers, let's call secondary loop:
-                readTextSecondary(Integer.MAX_VALUE);
+                readTextSecondary(Integer.MAX_VALUE, deferErrors);
                 wasCData = false;
             }
         }
@@ -4423,6 +4464,8 @@ public class BasicStreamReader
                     if ((ptr - start) >= 3) {
                         if (inputBuf[ptr-3] == ']' && inputBuf[ptr-2] == ']') {
                             mInputPtr = ptr; // to get error info right
+                            ptr -= 3;
+                            mTextBuffer.resetWithShared(inputBuf, start, ptr-start);
                             throwParseError(ErrorConsts.ERR_BRACKET_IN_TEXT);
                         }
                     }
@@ -4449,11 +4492,15 @@ public class BasicStreamReader
 
     /**
      *
+     * @param deferErrors Flag to enable storing an exception to a 
+     *   variable, instead of immediately throwing it. If true, will
+     *   just store the exception; if false, will not store, just throw.
+     *
      * @return True if the text segment was completely read ('<' was hit,
      *   or in non-entity-expanding mode, a non-char entity); false if
      *   it may still continue
      */
-    private final boolean readTextSecondary(int shortestSegment)
+    private final boolean readTextSecondary(int shortestSegment, boolean deferErrors)
         throws IOException, XMLStreamException
     {
         /* Output pointers; calls will also ensure that the buffer is
@@ -4511,7 +4558,10 @@ public class BasicStreamReader
                         inputLen = mInputLen;
                         inputPtr = mInputPtr;
                     } else if (c != '\t') {
-                        throwInvalidSpace(c);
+                        mTextBuffer.setCurrentLength(outPtr);
+                        mInputPtr = inputPtr;
+                        mPendingException = throwInvalidSpace(c, deferErrors);
+                        break;
                     }
                 } else if (c == '<') { // end is nigh!
                     mInputPtr = inputPtr-1;
@@ -4562,7 +4612,14 @@ public class BasicStreamReader
                         // Since mInputPtr has been advanced, -1 refers to '>'
                         if (inputBuffer[inputPtr-3] == ']'
                             && inputBuffer[inputPtr-2] == ']') {
-                            throwParseError(ErrorConsts.ERR_BRACKET_IN_TEXT);
+                            mInputPtr = inputPtr;
+                            /* We have already added ']]' into output buffer...
+                             * should be ok, since only with '>' does it become
+                             * non-wellformed.
+                             */
+                            mTextBuffer.setCurrentLength(outPtr);
+                            mPendingException = throwWfcException(ErrorConsts.ERR_BRACKET_IN_TEXT, deferErrors);
+                            break;
                         }
                     } else {
                         /* 21-Apr-2005, TSa: No good way to verify it,
@@ -4590,6 +4647,7 @@ public class BasicStreamReader
                 outPtr = 0;
             }
         }
+
         mTextBuffer.setCurrentLength(outPtr);
         return true;
     }
@@ -4964,6 +5022,11 @@ public class BasicStreamReader
                     if (mInputPtr >= 2) { // can we do it here?
                         if (mInputBuffer[mInputPtr-2] == ']'
                             && mInputBuffer[mInputPtr-1] == ']') {
+                            // Anything to flush?
+                            int len = mInputPtr - start;
+                            if (len > 0) {
+                                w.write(mInputBuffer, start, len);
+                            }
                             throwParseError(ErrorConsts.ERR_BRACKET_IN_TEXT);
                         }
                     } else {
