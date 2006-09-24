@@ -206,3 +206,8 @@ Christian Bering:
   * Reported [WSTX-82], contributed a patch for it: URL handling code
     had problems on Windows, when referring to files on network drives.
     [3.0.2]
+
+Oleg Rudenko:
+  * Reported [WSTX-83], contributed a patch for it: NPE in ElemAttrs
+    for namespace URI checks.
+    [3.0.2/3.1]

@@ -167,7 +167,7 @@ public final class ElemAttrs
         // Primary hit?
         int hash = localName.hashCode();
         if (nsURI == null) {
-            nsURI = DEFAULT_NS_URI;
+            nsURI = ""; // just to simplify comparisons -- array contains nulls
         } else if (nsURI.length() > 0) {
             hash ^= nsURI.hashCode();
         }
@@ -187,7 +187,14 @@ public final class ElemAttrs
          */
         if (thisName == localName || thisName.equals(localName)) {
             String thisURI = raw[ix+OFFSET_NS_URI];
-            if (thisURI == nsURI || thisURI.equals(nsURI)) {
+            if (thisURI == nsURI) {
+                return ix;
+            }
+            if (thisURI == null) {
+                if (nsURI.length() == 0) {
+                    return ix;
+                }
+            } else if (thisURI.equals(nsURI)) {            
                 return ix;
             }
         }

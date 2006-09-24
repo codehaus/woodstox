@@ -9,7 +9,8 @@ Description:
 
   * [WSTX-23] xml:space attribute DTD type was not checked
   * [WSTX-42] SPACE events were not returned in DTD-aware non-validating mode.
-  * [WSTX-68] XMLStreamWriter.writeNamespace() ignored in repairing mode.
+  * [WSTX-68] XMLStreamWriter.writeNamespace() ignored in repairing mode (not
+    any more)
 
 == History: ==
 

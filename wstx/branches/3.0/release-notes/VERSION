@@ -13,6 +13,8 @@ Problems fixed:
   * [WTSX-82] URL handling had problems on Windows platform, with file-based
     URLs that refer to network drives
     (reported by Christian B)
+  * [WSTX-83] One more NPE in ElemAttrs for namespace URI checks.
+    (reported by Oleg R)
 
 == History: ==
 
