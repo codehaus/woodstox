@@ -199,5 +199,20 @@ public interface InputConfigFlags
 
     // Automatic W3C Schema support?
     //final static int CFG_AUTOMATIC_W3C_SCHEMA = 0x00100000;
+
+    // // // Xml:id support
+
+    /**
+     * If true, xml:id attribute type assignment and matching checks will
+     * be done as per Xml:id specification. Needs to be enabled for xml:id
+     * uniqueness checks to function properly
+     */
+    final static int CFG_XMLID_TYPING = 0x00200000;
+
+    /**
+     * If true, xml:id attribute uniqueness constraints are enforced, even
+     * if not validating against DTD otherwise.
+     */
+    final static int CFG_XMLID_UNIQ_CHECKS = 0x00200000;
 }
 

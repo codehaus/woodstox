@@ -511,15 +511,10 @@ public class BasicStreamReader
 
     protected static InputElementStack createElementStack(ReaderConfig cfg)
     {
-        boolean normAttrs = cfg.willNormalizeAttrValues();
-        boolean internNsURIs = cfg.willInternNsURIs();
-        boolean xml11 = cfg.isXml11();
-
         if (cfg.willSupportNamespaces()) {
-            return new NsInputElementStack(16, normAttrs, internNsURIs, xml11,
-                                           sPrefixXml, sPrefixXmlns);
+            return new NsInputElementStack(16, cfg, sPrefixXml, sPrefixXmlns);
         }
-        return new NonNsInputElementStack(16, normAttrs, internNsURIs, xml11);
+        return new NonNsInputElementStack(16, cfg);
     }
 
     /*
@@ -4453,7 +4448,16 @@ public class BasicStreamReader
                         }
                         markLF(ptr);
                     } else if (c != '\t') {
-                        throwInvalidSpace(c);
+                        // Should consume invalid char, but not include in result
+                        mInputPtr = ptr;
+                        mTextBuffer.resetWithShared(inputBuf, start, ptr-start-1);
+                        /* Let's defer exception, provided we got at least
+                         * one valid character (if not, better throw
+                         * exception right away)
+                         */
+                        boolean deferErrors = (ptr - start) > 1;
+                        mPendingException = throwInvalidSpace(c, deferErrors);
+                        return true;
                     }
                 } else if (c == '&') {
                     // Let's push it back and break
@@ -4463,10 +4467,14 @@ public class BasicStreamReader
                     // Let's see if we got ']]>'?
                     if ((ptr - start) >= 3) {
                         if (inputBuf[ptr-3] == ']' && inputBuf[ptr-2] == ']') {
-                            mInputPtr = ptr; // to get error info right
-                            ptr -= 3;
-                            mTextBuffer.resetWithShared(inputBuf, start, ptr-start);
-                            throwParseError(ErrorConsts.ERR_BRACKET_IN_TEXT);
+                            /* Let's include ']]' in there, not '>' (since that
+                             * makes it non-wellformed): but need to consume
+                             * that char nonetheless
+                             */
+                            mInputPtr = ptr;
+                            mTextBuffer.resetWithShared(inputBuf, start, ptr-start-1);
+                            mPendingException = throwWfcException(ErrorConsts.ERR_BRACKET_IN_TEXT, true);
+                            return true; // and we are fully done
                         }
                     }
                 }

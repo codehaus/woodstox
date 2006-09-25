@@ -21,7 +21,7 @@ public class TestConfig
     extends BaseStreamTest
 {
     final static String WSTX_NAME = "woodstox";
-    final static String WSTX_VERSION = "2.9.2";
+    final static String WSTX_VERSION = "3.1";
 
     public void testSettingResolvers()
         throws XMLStreamException

@@ -10,7 +10,7 @@ import javax.xml.stream.XMLStreamException;
 
 import org.codehaus.stax2.validation.XMLValidator;
 
-import com.ctc.wstx.api.WstxInputProperties;
+import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.util.BaseNsContext;
 import com.ctc.wstx.util.EmptyIterator;
@@ -71,16 +71,15 @@ public final class NonNsInputElementStack
     //////////////////////////////////////////////////
      */
 
-    public NonNsInputElementStack(int initialSize, boolean normAttrs,
-                                  boolean internNsURIs, boolean xml11)
+    public NonNsInputElementStack(int initialSize, ReaderConfig cfg)
     {
-        super(internNsURIs, xml11);
+        super(cfg);
         mSize = 0;
         if (initialSize < 4) {
             initialSize = 4;
         }
         mElements = new String[initialSize];
-        mAttrCollector = new NonNsAttributeCollector(normAttrs);
+        mAttrCollector = new NonNsAttributeCollector(cfg.willNormalizeAttrValues());
     }
 
     protected void setAutomaticDTDValidator(XMLValidator validator, NsDefaultProvider nsDefs)
@@ -251,26 +250,6 @@ public final class NonNsInputElementStack
             return -1;
         }
         return mAttrCollector.findIndex(localName);
-    }
-
-    /**
-     * Input element stack has to ask validator about this data; validator
-     * keeps track of attribute declarations for the current element
-     */
-    public String getAttributeType(int index)
-    {
-        return (mValidator == null) ? WstxInputProperties.UNKNOWN_ATTR_TYPE : 
-            mValidator.getAttributeType(index);
-    }
-
-    public int getIdAttributeIndex() {
-        return (mValidator == null) ? -1 : 
-            mValidator.getIdAttrIndex();
-    }
-
-    public int getNotationAttributeIndex() {
-        return (mValidator == null) ? -1 :
-            mValidator.getNotationAttrIndex();
     }
 
     /*

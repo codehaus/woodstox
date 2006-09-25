@@ -32,6 +32,8 @@ import org.codehaus.stax2.validation.XMLValidationProblem;
 import org.codehaus.stax2.validation.XMLValidationSchema;
 import org.codehaus.stax2.validation.ValidatorPair;
 
+import com.ctc.wstx.api.ReaderConfig;
+import com.ctc.wstx.api.WstxInputProperties;
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.cfg.XmlConsts;
 import com.ctc.wstx.dtd.DTDValidatorBase; // unfortunate dependency
@@ -59,19 +61,13 @@ import com.ctc.wstx.util.TextBuilder;
 public abstract class InputElementStack
     implements AttributeInfo, NamespaceContext, ValidationContext
 {
+    protected final ReaderConfig mConfig;
+
     protected InputProblemReporter mReporter = null;
-
-    protected final boolean mInternNsURIs;
-
-    /**
-     * State flag that indicates whether we are processing an xml 1.1
-     * document or not.
-     */
-    protected final boolean mXml11;
 
     /*
     //////////////////////////////////////////////////
-    // Element validation (optional)
+    // Element validation (optional), attribute typing
     //////////////////////////////////////////////////
     */
 
@@ -83,16 +79,22 @@ public abstract class InputElementStack
      */
     protected XMLValidator mValidator = null;
 
+    /**
+     * Index of the attribute with type of ID, if known (most likely
+     * due to Xml:id support); -1 if not available, or no ID attribute
+     * for current element.
+     */
+    protected int mIdAttrIndex = -1;
+
     /*
     //////////////////////////////////////////////////
     // Life-cycle (create, update state)
     //////////////////////////////////////////////////
      */
 
-    protected InputElementStack(boolean internNsURIs, boolean xml11)
+    protected InputElementStack(ReaderConfig cfg)
     {
-        mInternNsURIs = internNsURIs;
-        mXml11 = xml11;
+        mConfig = cfg;
     }
 
     protected void connectReporter(InputProblemReporter rep)
@@ -178,6 +180,10 @@ public abstract class InputElementStack
      * we need at least one validator object that either is not a sub-class
      * of <code>DTDValidatorBase</code> or returns true for
      * <code>reallyValidating</code>.
+     *<p>
+     * !!! TODO: remove need for this method (and method itself) with
+     * Woodstox 4.0, by adding necessary support in Stax2 XMLValidator
+     * interface.
      */
     protected boolean reallyValidating()
     {
@@ -261,14 +267,24 @@ public abstract class InputElementStack
      * attributes; this because that requires DTD information that only
      * some implementations have.
      */
-    public abstract int getIdAttributeIndex();
+    public final int getIdAttributeIndex()
+    {
+        if (mIdAttrIndex >= 0) {
+            return mIdAttrIndex;
+        }
+        return (mValidator == null) ? -1 : mValidator.getIdAttrIndex();
+    }
 
     /**
      * Default implementation just indicates it does not know of such
      * attributes; this because that requires DTD information that only
      * some implementations have.
      */
-    public abstract int getNotationAttributeIndex();
+    public final int getNotationAttributeIndex()
+    {
+        return (mValidator == null) ? -1 :
+            mValidator.getNotationAttrIndex();
+    }
 
     /*
     ///////////////////////////////////////////////////
@@ -288,8 +304,9 @@ public abstract class InputElementStack
     ///////////////////////////////////////////////////
      */
 
-    public final String getXmlVersion() {
-        return mXml11 ? XmlConsts.XML_V_11_STR : XmlConsts.XML_V_10_STR;
+    public final String getXmlVersion()
+    {
+        return mConfig.isXml11() ? XmlConsts.XML_V_11_STR : XmlConsts.XML_V_10_STR;
     }
 
     // Part of Stax2, see above:
@@ -441,8 +458,12 @@ public abstract class InputElementStack
     // // // DTD-derived attribute information:
 
     /**
-     * Default implementation just returns the 'unknown' type; validating
-     * sub-classes need to override
+     * @return Schema (DTD, RNG, W3C Schema) based type of the attribute
+     *   in specified index
      */
-    public abstract String getAttributeType(int index);
+    public final String getAttributeType(int index)
+    {
+        return (mValidator == null) ? WstxInputProperties.UNKNOWN_ATTR_TYPE : 
+            mValidator.getAttributeType(index);
+    }
 }

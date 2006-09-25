@@ -25,7 +25,7 @@ import javax.xml.stream.XMLStreamException;
 
 import org.codehaus.stax2.validation.XMLValidator;
 
-import com.ctc.wstx.api.WstxInputProperties;
+import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.util.*;
 
@@ -160,11 +160,10 @@ public final class NsInputElementStack
     //////////////////////////////////////////////////
      */
 
-    public NsInputElementStack(int initialSize, boolean normAttrs,
-                               boolean internNsURIs, boolean xml11,
+    public NsInputElementStack(int initialSize, ReaderConfig cfg,
                                String prefixXml, String prefixXmlns)
     {
-        super(internNsURIs, xml11);
+        super(cfg);
         mPrefixXml = prefixXml;
         mPrefixXmlns = prefixXmlns;
         mSize = 0;
@@ -173,7 +172,7 @@ public final class NsInputElementStack
         }
         mElements = new String[initialSize << 2];
         mNsCounts = new int[initialSize];
-        mAttrCollector = new NsAttributeCollector(normAttrs, prefixXml);
+        mAttrCollector = new NsAttributeCollector(cfg.willNormalizeAttrValues(), prefixXml);
     }
 
     protected void setAutomaticDTDValidator(XMLValidator validator, NsDefaultProvider nsDefs)
@@ -299,9 +298,10 @@ public final class NsInputElementStack
 
                 String [] nsPrefixes = ac.getNsPrefixes();
                 TextBuilder nsURIs = ac.getNsURIs();
+                boolean internNsUris = mConfig.willInternNsURIs();
                 for (int i = 0; i < nsCount; ++i) {
                     String nsUri = nsURIs.getEntry(i);
-                    if (mInternNsURIs && nsUri.length() > 0) {
+                    if (internNsUris && nsUri.length() > 0) {
                         nsUri = sInternCache.intern(nsUri);
                     }
                     // will have defaul ns's too; have null prefix
@@ -339,7 +339,7 @@ public final class NsInputElementStack
                         /* But then let's ensure that URIs matching xml
                          * and xmlns are not being bound to anything else
                          */
-                        if (mInternNsURIs) { // identity comparison is ok:
+                        if (internNsUris) { // identity comparison is ok:
                             if (nsUri == XMLConstants.XML_NS_URI) {
                                 mReporter.throwParseError(ErrorConsts.ERR_NS_REDECL_XML_URI, prefix);
                             } else if (nsUri == XMLConstants.XMLNS_ATTRIBUTE_NS_URI) {
@@ -613,21 +613,6 @@ public final class NsInputElementStack
     public final int findAttributeIndex(String nsURI, String localName)
     {
         return mAttrCollector.findIndex(nsURI, localName);
-    }
-
-    public String getAttributeType(int index) {
-        return (mValidator == null) ? WstxInputProperties.UNKNOWN_ATTR_TYPE : 
-            mValidator.getAttributeType(index);
-    }
-
-    public int getIdAttributeIndex() {
-        return (mValidator == null) ? -1 : 
-            mValidator.getIdAttrIndex();
-    }
-
-    public int getNotationAttributeIndex() {
-        return (mValidator == null) ? -1 :
-            mValidator.getNotationAttrIndex();
     }
 
     /*

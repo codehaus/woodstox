@@ -67,6 +67,7 @@ public final class ReaderConfig
     final static int PROP_REPORT_PROLOG_WS = 23;
     final static int PROP_PRESERVE_LOCATION = 24;
     final static int PROP_AUTO_CLOSE_INPUT = 25;
+    final static int PROP_SUPPORT_XMLID = 26;
 
     // // // Constants for additional Wstx properties:
 
@@ -180,6 +181,14 @@ public final class ReaderConfig
          */
 
         | CFG_SUPPORT_DTDPP
+
+        /* Regarding Xml:id, let's enabled typing by default, but not
+         * uniqueness validity checks: latter will be taken care of
+         * by DTD validation if enabled, otherwise needs to be explicitly
+         * enabled
+         */
+        | CFG_XMLID_TYPING
+        // | CFG_XMLID_UNIQ_CHECKS
         ;
 
     /**
@@ -231,6 +240,8 @@ public final class ReaderConfig
                         new Integer(PROP_PRESERVE_LOCATION));
         sProperties.put(XMLInputFactory2.P_AUTO_CLOSE_INPUT,
                         new Integer(PROP_AUTO_CLOSE_INPUT));
+        sProperties.put(XMLInputFactory2.XSP_SUPPORT_XMLID,
+                        new Integer(PROP_SUPPORT_XMLID));
 
         // Non-standard ones, flags:
 
@@ -511,6 +522,14 @@ public final class ReaderConfig
         return hasConfigFlags(CFG_LAZY_PARSING);
     }
 
+    public boolean willDoXmlIdTyping() {
+        return hasConfigFlags(CFG_XMLID_TYPING);
+    }
+
+    public boolean willDoXmlIdUniqChecks() {
+        return hasConfigFlags(CFG_XMLID_UNIQ_CHECKS);
+    }
+
     public boolean willPreserveLocation() {
         return hasConfigFlags(CFG_PRESERVE_LOCATION);
     }
@@ -659,6 +678,14 @@ public final class ReaderConfig
         setConfigFlag(CFG_LAZY_PARSING, state);
     }
 
+    public void doXmlIdTyping(boolean state) {
+        setConfigFlag(CFG_XMLID_TYPING, state);
+    }
+
+    public void doXmlIdUniqChecks(boolean state) {
+        setConfigFlag(CFG_XMLID_UNIQ_CHECKS, state);
+    }
+
     public void doPreserveLocation(boolean state) {
         setConfigFlag(CFG_PRESERVE_LOCATION, state);
     }
@@ -787,11 +814,17 @@ public final class ReaderConfig
      */
     public void configureForXmlConformance()
     {
-        // StAX 1.0 settings
+        // // StAX 1.0 settings
         doSupportNamespaces(true);
         doSupportDTDs(true);
         doSupportExternalEntities(true);
         doReplaceEntityRefs(true);
+
+        // // Stax2 additional settings
+
+        // Better enable full xml:id checks:
+        doXmlIdTyping(true);
+        doXmlIdUniqChecks(true);
 
         // Woodstox-specific ones:
         doNormalizeLFs(true);
@@ -825,7 +858,7 @@ public final class ReaderConfig
         doReportCData(false);
         doReportPrologWhitespace(false);
         /* Also, knowing exact locations is nice esp. for error
-	 * reporting purposes
+         * reporting purposes
          */
         doPreserveLocation(true);
 
@@ -857,6 +890,8 @@ public final class ReaderConfig
      * <li>Enable <code>P_LAZY_PARSING</code> (can improve performance
      *   especially when skipping text segments)
      *  </li>
+     * <li>Disable Xml:id uniqueness checks (and leave typing as is)
+     *  </li>
      * <li>Set lowish value for <code>P_MIN_TEXT_SEGMENT</code>, to allow
      *   reader to optimize segment length it uses (and possibly avoids
      *   one copy operation in the process)
@@ -877,6 +912,7 @@ public final class ReaderConfig
         doReportPrologWhitespace(false);
         //doInternNames(true); // this is a NOP
         doInternNsURIs(true);
+        doXmlIdUniqChecks(false);
 
         // Woodstox-specific:
         doNormalizeLFs(false);
@@ -929,6 +965,7 @@ public final class ReaderConfig
         // Woodstox-specific:
         doCacheDTDs(false);
         doParseLazily(true); // can reduce temporary mem usage
+        doXmlIdUniqChecks(false); // enabling would increase mem usage
         setShortestReportedTextSegment(ReaderConfig.DEFAULT_SHORTEST_TEXT_SEGMENT);
         setInputBufferLength(512); // 1k input buffer
         // Text buffer need not be huge, as we do not coalesce
@@ -1149,6 +1186,15 @@ public final class ReaderConfig
             return willCacheDTDsByPublicId() ? Boolean.TRUE : Boolean.FALSE;
         case PROP_LAZY_PARSING:
             return willParseLazily() ? Boolean.TRUE : Boolean.FALSE;
+        case PROP_SUPPORT_XMLID:
+            {
+                if (!hasConfigFlags(CFG_XMLID_TYPING)) {
+                    return XMLStreamProperties.XSP_V_XMLID_NONE;
+                }
+                return hasConfigFlags(CFG_XMLID_UNIQ_CHECKS) ?
+                    XMLStreamProperties.XSP_V_XMLID_FULL :
+                    XMLStreamProperties.XSP_V_XMLID_TYPING;
+            }
 
             // then object values:
         case PROP_INPUT_BUFFER_LENGTH:
@@ -1251,6 +1297,31 @@ public final class ReaderConfig
         case PROP_LAZY_PARSING:
             doParseLazily(ArgUtil.convertToBoolean(propName, value));
             break;
+
+        case PROP_SUPPORT_XMLID:
+            {
+                boolean typing, uniq;
+
+                if (XMLStreamProperties.XSP_V_XMLID_NONE.equals(value)) {
+                    typing = uniq = false;
+                } else if (XMLStreamProperties.XSP_V_XMLID_TYPING.equals(value)) {
+                    typing = true;
+                    uniq = false;
+                } else if (XMLStreamProperties.XSP_V_XMLID_FULL.equals(value)) {
+                    typing = uniq = true;
+                } else {
+                    throw new IllegalArgumentException
+                        ("Illegal argument ('"+value+"') to set property "
++XMLStreamProperties.XSP_SUPPORT_XMLID+" to: has to be one of '"
++XMLStreamProperties.XSP_V_XMLID_NONE+"', '"
++XMLStreamProperties.XSP_V_XMLID_TYPING+"' or '"
++XMLStreamProperties.XSP_V_XMLID_FULL+"'"
+                         );
+                }
+                setConfigFlag(CFG_XMLID_TYPING, typing);
+                setConfigFlag(CFG_XMLID_UNIQ_CHECKS, uniq);
+                break;
+            }
 
         case PROP_PRESERVE_LOCATION:
             doPreserveLocation(ArgUtil.convertToBoolean(propName, value));
