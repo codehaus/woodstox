@@ -512,7 +512,7 @@ public class BasicStreamReader
     protected static InputElementStack createElementStack(ReaderConfig cfg)
     {
         if (cfg.willSupportNamespaces()) {
-            return new NsInputElementStack(16, cfg, sPrefixXml, sPrefixXmlns);
+            return new NsInputElementStack(16, cfg);
         }
         return new NonNsInputElementStack(16, cfg);
     }
@@ -620,11 +620,7 @@ public class BasicStreamReader
         if (mCurrToken != START_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
         }
-        /* Although the method conceptually should be part of the attribute
-         * collector, modularity constraints (attr. collector shouldn't need
-         * to know anything about DTDs) mandate it to reside in (or beyond)
-         * the input element stack...
-         */
+        // Attr. collector doesn't know it, elem stack does:
         return mElementStack.getAttributeType(index);
     }
 

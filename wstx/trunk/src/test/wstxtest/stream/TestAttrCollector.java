@@ -38,7 +38,7 @@ public class TestAttrCollector
     public void testNsAttrCollector()
         throws XMLStreamException
     {
-        NsAttributeCollector ac = new NsAttributeCollector(true, "xml");
+        NsAttributeCollector ac = new NsAttributeCollector();
         StringVector attrsIn = new StringVector(8);
 
         // !!! TBI
@@ -47,7 +47,7 @@ public class TestAttrCollector
     public void testNonNsAttrCollector()
         throws XMLStreamException
     {
-        NonNsAttributeCollector ac = new NonNsAttributeCollector(true);
+        NonNsAttributeCollector ac = new NonNsAttributeCollector();
 
         // !!! TBI
     }

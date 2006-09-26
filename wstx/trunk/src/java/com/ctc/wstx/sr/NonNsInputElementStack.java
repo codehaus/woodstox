@@ -79,7 +79,7 @@ public final class NonNsInputElementStack
             initialSize = 4;
         }
         mElements = new String[initialSize];
-        mAttrCollector = new NonNsAttributeCollector(cfg.willNormalizeAttrValues());
+        mAttrCollector = new NonNsAttributeCollector();
     }
 
     protected void setAutomaticDTDValidator(XMLValidator validator, NsDefaultProvider nsDefs)
@@ -151,9 +151,21 @@ public final class NonNsInputElementStack
         /* Attribute collector can now build its accessor data structs
          * as necessary
          */
-        ac.resolveValues(mReporter);
+        int xmlidIx = ac.resolveValues(mReporter);
 
-        // Any validator(s)? If not, we are done
+        // Need to check for xml:id?
+        if (mIdAttrIndex != ID_ATTR_DISABLED) {
+            mIdAttrIndex = xmlidIx;
+            if (xmlidIx >= 0) {
+                /* Although validator would normalize it too, let's do this
+                 * first -- doesn't harm, no big performance difference,
+                 * and is always needed even without a validator
+                 */
+                normalizeXmlIdAttr(ac, xmlidIx);
+            }
+        }
+
+        // Any validator(s)? If not, we are done (except for xml:id check)
         if (mValidator == null) {
             return XMLValidator.CONTENT_ALLOW_ANY_TEXT;
         }

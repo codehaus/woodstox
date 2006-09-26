@@ -61,19 +61,7 @@ public final class NsInputElementStack
 
     final static int ENTRY_SIZE = 4;
 
-    /**
-     * Canonicalized String 'xml'; used to verify that 'xml' namespace
-     * prefix won't be redefined from its default URI.
-     */
-    protected final String mPrefixXml;
-
-    /**
-     * Canonicalized String 'xmlns'; used to verify that 'xmlns' namespace
-     * prefix won't be redefined from its default URI.
-     */
-    protected final String mPrefixXmlns;
-
-    final static InternCache sInternCache = InternCache.getInstance();
+    protected final static InternCache sInternCache = InternCache.getInstance();
 
     /*
     //////////////////////////////////////////////////
@@ -160,19 +148,16 @@ public final class NsInputElementStack
     //////////////////////////////////////////////////
      */
 
-    public NsInputElementStack(int initialSize, ReaderConfig cfg,
-                               String prefixXml, String prefixXmlns)
+    public NsInputElementStack(int initialSize, ReaderConfig cfg)
     {
         super(cfg);
-        mPrefixXml = prefixXml;
-        mPrefixXmlns = prefixXmlns;
         mSize = 0;
         if (initialSize < 4) {
             initialSize = 4;
         }
         mElements = new String[initialSize << 2];
         mNsCounts = new int[initialSize];
-        mAttrCollector = new NsAttributeCollector(cfg.willNormalizeAttrValues(), prefixXml);
+        mAttrCollector = new NsAttributeCollector();
     }
 
     protected void setAutomaticDTDValidator(XMLValidator validator, NsDefaultProvider nsDefs)
@@ -310,10 +295,10 @@ public final class NsInputElementStack
                      *   prefixes are not re-defined (and 'xmlns' not even
                      *   defined to its correct ns).
                      */
-                    if (prefix == mPrefixXmlns) {
+                    if (prefix == "xmlns") {
                         // xmlns can never be declared, even to its correct URI
                         mReporter.throwParseError(ErrorConsts.ERR_NS_REDECL_XMLNS);
-                    } else if (prefix == mPrefixXml) {
+                    } else if (prefix == "xml") {
                         // whereas xml is ok, as long as it's same URI:
                         if (!nsUri.equals(XMLConstants.XML_NS_URI)) {
                             mReporter.throwParseError(ErrorConsts.ERR_NS_REDECL_XML,
@@ -374,7 +359,7 @@ public final class NsInputElementStack
 
         if (prefix == null || prefix.length() == 0) { // use default NS, if any
             ns = mElements[mSize-(ENTRY_SIZE - IX_DEFAULT_NS)];
-        } else if (prefix == mPrefixXml) {
+        } else if (prefix == "xml") {
             ns = XMLConstants.XML_NS_URI;
         } else {
             // Need to find namespace with the prefix:
@@ -386,11 +371,25 @@ public final class NsInputElementStack
         mElements[mSize-(ENTRY_SIZE - IX_URI)] = ns;
 
         // And finally, resolve attributes' namespaces too:
-        ac.resolveNamespaces(mReporter, mNamespaces);
+        int xmlidIx = ac.resolveNamespaces(mReporter, mNamespaces);
 
-        // If we have no validator(s), nothing more to do:
+        // Need to check for xml:id?
+        if (xmlidIx != ID_ATTR_DISABLED) {
+            mIdAttrIndex = xmlidIx;
+            if (xmlidIx >= 0) { // need to normalize?
+                /* Although validator would normalize it too, let's do this
+                 * first -- doesn't harm, no big performance difference,
+                 * and is always needed even without a validator
+                 */
+                normalizeXmlIdAttr(ac, xmlidIx);
+            }
+        }
+
         XMLValidator vld = mValidator;
-        if (vld == null) { // no DTD in use
+        /* If we have no validator(s), nothing more to do,
+         * except perhaps little bit of Xml:id handling:
+         */
+        if (vld == null) { // no validator in use
             return XMLValidator.CONTENT_ALLOW_ANY_TEXT;
         }
 

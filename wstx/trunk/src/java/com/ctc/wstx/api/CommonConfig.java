@@ -39,6 +39,7 @@ abstract class CommonConfig
     final static int PROP_IMPL_VERSION = 2;
 
     final static int PROP_SUPPORTS_XML11 = 3;
+    final static int PROP_SUPPORTS_XMLID = 4;
 
     /**
      * Map to use for converting from String property ids to enumeration
@@ -53,6 +54,10 @@ abstract class CommonConfig
                         new Integer(PROP_IMPL_VERSION));
 
         // XML version support:
+        sStdProperties.put(XMLStreamProperties.XSP_SUPPORTS_XML11,
+                        new Integer(PROP_SUPPORTS_XML11));
+
+        // Xml:id support:
         sStdProperties.put(XMLStreamProperties.XSP_SUPPORTS_XML11,
                         new Integer(PROP_SUPPORTS_XML11));
     }

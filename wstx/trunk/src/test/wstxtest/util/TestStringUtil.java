@@ -51,6 +51,10 @@ public class TestStringUtil
         assertEquals("my my", StringUtil.normalizeSpaces(str.toCharArray(), 0,
                                                          str.length()));
 
+        str = "foo  bar";
+        assertEquals("foo bar", StringUtil.normalizeSpaces(str.toCharArray(), 0,
+                                                           str.length()));
+
         str = "my_my";
         assertFalse("my my".equals(StringUtil.normalizeSpaces(str.toCharArray(),
                                                               0, str.length())));

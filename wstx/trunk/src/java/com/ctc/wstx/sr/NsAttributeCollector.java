@@ -8,6 +8,7 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
 
+import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.sw.XmlWriter;
@@ -49,11 +50,6 @@ public final class NsAttributeCollector
      * chosen to minimize need to resize, while trying not to waste space.
      */
     final static int EXP_NS_COUNT = 8;
-
-    /**
-     * Canonicalized prefix string "xml"
-     */
-    final String mXmlPrefix;
     
     /*
     //////////////////////////////////////////
@@ -97,10 +93,9 @@ public final class NsAttributeCollector
     ///////////////////////////////////////////////
      */
 
-    public NsAttributeCollector(boolean normAttrs, String xmlPrefix)
+    public NsAttributeCollector()
     {
-        super(normAttrs);
-        mXmlPrefix = xmlPrefix;
+        super();
     }
 
     /**
@@ -124,6 +119,7 @@ public final class NsAttributeCollector
             mAttrNames.clear(false);
             mValueBuffer.reset();
             mAttrCount = 0;
+            mXmlIdAttrIndex = XMLID_IX_NONE;
         }
 
         /* Note: attribute values will be cleared later on, when validating
@@ -139,8 +135,10 @@ public final class NsAttributeCollector
      *
      * @param rep Reporter to use for reporting well-formedness problems
      * @param ns Namespace prefix/URI mappings active for this element
+     *
+     * @return Index of xml:id attribute, if any, -1 if not
      */
-    public void resolveNamespaces(InputProblemReporter rep, StringVector ns)
+    public int resolveNamespaces(InputProblemReporter rep, StringVector ns)
         throws WstxException
     {
         int attrCount = mAttrCount;
@@ -154,7 +152,7 @@ public final class NsAttributeCollector
             // Checked if doing access by FQN:
             mAttrHashSize = mAttrSpillEnd = 0;
             // And let's just bail out, too...
-            return;
+            return mXmlIdAttrIndex;
         }
 
         // Need to have room for URIs:
@@ -170,8 +168,8 @@ public final class NsAttributeCollector
             // Attributes do NOT use default namespace:
             if (prefix == null) {
                 attrURIs[i] = DEFAULT_NS_URI;
-                // xml:lang etc? no need for mapping
-            } else if (prefix == mXmlPrefix) {
+                // xml:lang etc? fixed mapping
+            } else if (prefix == "xml") {
                 attrURIs[i] = XMLConstants.XML_NS_URI;
             } else {
                 String uri = ns.findLastFromMap(prefix);
@@ -265,6 +263,7 @@ public final class NsAttributeCollector
             mAttrSpillEnd = spillIndex;
         }
         mAttrMap = map;
+        return mXmlIdAttrIndex;
     }
 
     /*
@@ -501,6 +500,10 @@ public final class NsAttributeCollector
             ++mAttrCount;
         }
         mAttrNames.addStrings(attrPrefix, attrLocalName);
+        // 25-Sep-2006, TSa: Need to keep track of xml:id attribute
+        if (attrPrefix == "xml" && attrLocalName == "id") {
+            mXmlIdAttrIndex = mAttrCount - 1;
+        }
         /* Can't yet create attribute map by name, since we only know
          * name prefix, not necessarily matching URI.
          */ 

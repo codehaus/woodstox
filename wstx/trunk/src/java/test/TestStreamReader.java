@@ -272,7 +272,9 @@ public class TestStreamReader
                 System.out.print("'}> ");
                 int count = sr.getAttributeCount();
                 int nsCount = sr.getNamespaceCount();
-                System.out.println(" ["+nsCount+" ns, "+count+" attrs]");
+                int idIx = sr.getAttributeInfo().getIdAttributeIndex();
+                System.out.println(" ["+nsCount+" ns, "+count+" attrs, id: "
+                                   +((idIx < 0) ? "none" : ("#"+idIx))+"]");
                 // debugging:
                 for (int i = 0; i < nsCount; ++i) {
                     System.out.println(" ns#"+i+": '"+sr.getNamespacePrefix(i)

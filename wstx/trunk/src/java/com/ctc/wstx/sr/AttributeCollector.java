@@ -23,6 +23,7 @@ import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.namespace.QName;
 
+import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.sw.XmlWriter;
 import com.ctc.wstx.util.StringVector;
@@ -36,13 +37,9 @@ import com.ctc.wstx.util.WordResolver;
  * Collector class is used to build up attribute lists; for the most part
  * will just hold references to few specialized {@link TextBuilder}s that
  * are used to create efficient semi-shared value Strings.
- *<p>
- * In addition 
  */
 public abstract class AttributeCollector
 {
-    final static char CHAR_SPACE = (char) 0x0020;
-
     /**
      * Threshold value that indicates minimum length for lists instances
      * that need a Map structure, for fast attribute access by fully-qualified
@@ -57,14 +54,8 @@ public abstract class AttributeCollector
      * overhead for small attribute-less documents.
      */
     protected final static int EXP_ATTR_COUNT = 16;
-    
-    /*
-    //////////////////////////////////////////
-    // Configuration
-    //////////////////////////////////////////
-     */
 
-    protected final boolean mNormAttrs;
+    protected final static int XMLID_IX_NONE = -1;
 
     /*
     //////////////////////////////////////////
@@ -103,6 +94,12 @@ public abstract class AttributeCollector
      * for short attribute-less docs)
      */
     protected StringVector mAttrNames = null;
+
+    /**
+     * Index of "xml:id" attribute, if one exists for the current
+     * element; {@link #XMLID_IX_NONE} if none.
+     */
+    protected int mXmlIdAttrIndex;
 
     /*
     //////////////////////////////////////////
@@ -160,8 +157,9 @@ public abstract class AttributeCollector
     ///////////////////////////////////////////////
      */
 
-    protected AttributeCollector(boolean normAttrs) {
-        mNormAttrs = normAttrs;
+    protected AttributeCollector()
+    {
+        mXmlIdAttrIndex = XMLID_IX_NONE;
     }
 
     /**
@@ -175,8 +173,6 @@ public abstract class AttributeCollector
     // Public accesors (for stream reader)
     ///////////////////////////////////////////////
      */
-
-    //public boolean normalizesAttrs() { return mNormAttrs; }
 
     /**
      * @return Number of namespace declarations collected, including
@@ -241,8 +237,12 @@ public abstract class AttributeCollector
 
     public abstract String getValue(String nsURI, String localName);
 
-    public boolean isSpecified(int index) {
+    public final boolean isSpecified(int index) {
         return (index < mNonDefCount);
+    }
+
+    public final int getXmlIdAttrIndex() {
+        return mXmlIdAttrIndex;
     }
 
     /*
@@ -308,7 +308,7 @@ public abstract class AttributeCollector
      * Method called by {@link InputElementStack} instance that "owns" this
      * attribute collector; 
      */
-    public StringVector getNameList() {
+    public final StringVector getNameList() {
         return mAttrNames;
     }
 

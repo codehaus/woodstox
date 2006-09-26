@@ -37,13 +37,7 @@ import com.ctc.wstx.api.WstxInputProperties;
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.cfg.XmlConsts;
 import com.ctc.wstx.dtd.DTDValidatorBase; // unfortunate dependency
-import com.ctc.wstx.exc.WstxException;
-import com.ctc.wstx.exc.WstxValidationException;
-import com.ctc.wstx.util.BaseNsContext;
-import com.ctc.wstx.util.SingletonIterator;
-import com.ctc.wstx.util.StringVector;
-import com.ctc.wstx.util.TextBuffer;
-import com.ctc.wstx.util.TextBuilder;
+import com.ctc.wstx.util.*;
 
 /**
  * Shared base class that defines API stream reader uses to communicate
@@ -61,6 +55,10 @@ import com.ctc.wstx.util.TextBuilder;
 public abstract class InputElementStack
     implements AttributeInfo, NamespaceContext, ValidationContext
 {
+    final static int ID_ATTR_NONE = -1;
+
+    final static int ID_ATTR_DISABLED = -2;
+
     protected final ReaderConfig mConfig;
 
     protected InputProblemReporter mReporter = null;
@@ -95,6 +93,7 @@ public abstract class InputElementStack
     protected InputElementStack(ReaderConfig cfg)
     {
         mConfig = cfg;
+        mIdAttrIndex = cfg.willDoXmlIdTyping() ? ID_ATTR_NONE : ID_ATTR_DISABLED;
     }
 
     protected void connectReporter(InputProblemReporter rep)
@@ -463,7 +462,33 @@ public abstract class InputElementStack
      */
     public final String getAttributeType(int index)
     {
+        if (index == mIdAttrIndex && index >= 0) { // second check to ensure -1 is not passed
+            return "ID";
+        }
         return (mValidator == null) ? WstxInputProperties.UNKNOWN_ATTR_TYPE : 
             mValidator.getAttributeType(index);
+    }
+
+    /*
+    ///////////////////////////////////////////////////
+    // Internal methods:
+    ///////////////////////////////////////////////////
+     */
+
+    /**
+     * Method called to normalize value of an ID attribute, specified
+     * using name xml:id, when support for Xml:id specification enabled.
+     */
+    protected final void normalizeXmlIdAttr(AttributeCollector ac, int ix)
+    {
+        // StringUtil has a method, but it works on char arrays...
+        TextBuilder attrBuilder = ac.getAttrBuilder();
+        char[] attrCB = attrBuilder.getCharBuffer();
+        String normValue = StringUtil.normalizeSpaces
+            (attrCB, attrBuilder.getOffset(ix),
+             attrBuilder.getOffset(ix+1));
+        if (normValue != null) {
+            ac.setNormalizedValue(ix, normValue);
+        }
     }
 }

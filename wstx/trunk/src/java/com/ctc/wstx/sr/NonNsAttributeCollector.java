@@ -37,9 +37,9 @@ public final class NonNsAttributeCollector
     ///////////////////////////////////////////////
      */
 
-    public NonNsAttributeCollector(boolean normAttrs)
+    public NonNsAttributeCollector()
     {
-        super(normAttrs);
+        super();
     }
 
     /**
@@ -52,6 +52,7 @@ public final class NonNsAttributeCollector
             mAttrNames.clear(false);
             mValueBuffer.reset();
             mAttrCount = 0;
+            mXmlIdAttrIndex = XMLID_IX_NONE;
         }
 
         /* Note: attribute values will be cleared later on, when validating
@@ -64,8 +65,10 @@ public final class NonNsAttributeCollector
      * Method called to by the input element stack when all attributes for
      * the element have been parsed. Now collector can build data structures
      * it needs, if any.
+     *
+     * @return Index of xml:id attribute, if any, -1 if not
      */
-    public void resolveValues(InputProblemReporter rep)
+    public int resolveValues(InputProblemReporter rep)
         throws WstxException
     {
         int attrCount = mAttrCount;
@@ -79,7 +82,7 @@ public final class NonNsAttributeCollector
             // Checked if doing access by FQN:
             mAttrHashSize = 0;
             // And let's just bail out, too...
-            return;
+            return mXmlIdAttrIndex;
         }
         String[] attrNames = mAttrNames.getInternalArray();
 
@@ -156,6 +159,8 @@ public final class NonNsAttributeCollector
             mAttrSpillEnd = spillIndex;
         }
         mAttrMap = map;
+
+        return mXmlIdAttrIndex;
     }
 
     /*
@@ -325,6 +330,10 @@ public final class NonNsAttributeCollector
             ++mAttrCount;
         }
         mAttrNames.addString(attrLocalName);
+        // 25-Sep-2006, TSa: Need to keep track of xml:id attribute
+        if (attrLocalName == "xml:id") {
+            mXmlIdAttrIndex = mAttrCount - 1;
+        }
         return mValueBuffer;
     }
 
