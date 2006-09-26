@@ -1,16 +1,18 @@
 Version: 3.1rc1
 
-Release date: xx-Sep-2006
+Release date: xx-Oct-2006
 
 Description:
   First release candidate for 3.1.
 
   Problems fixed:
 
+  * [WSTX-22] Basic xml:id (typing) support added. Will only validate
+    uniqueness of xml:id attribute values in DTD-validating mode, for now.
   * [WSTX-23] xml:space attribute DTD type was not checked
   * [WSTX-42] SPACE events were not returned in DTD-aware non-validating mode.
-  * [WSTX-68] XMLStreamWriter.writeNamespace() ignored in repairing mode (not
-    any more)
+  * [WSTX-68] XMLStreamWriter.writeNamespace() was ignored in repairing mode
+    (but not any more)
 
 == History: ==
 

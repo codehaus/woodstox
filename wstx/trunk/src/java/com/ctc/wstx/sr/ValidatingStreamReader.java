@@ -549,6 +549,10 @@ public class ValidatingStreamReader
               * of settings... (currently does not, but could)
               */
              | CFG_SUPPORT_DTDPP
+             /* Also, basic xml:id support does matter -- xml:id attribute
+              * type is verified only if it's enabled
+              */
+             | CFG_XMLID_TYPING
              );
         URL sysRef = (sysId == null || sysId.length() == 0) ? null :
             resolveExtSubsetPath(sysId);

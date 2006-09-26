@@ -115,6 +115,8 @@ public class ErrorConsts
 
     public static String ERR_DTD_XML_SPACE = "Attribute xml:space has to be defined of type enumerated, and have 1 or 2 values, 'default' and/or 'preserve'";
 
+    public static String ERR_DTD_XML_ID = "Attribute xml:id has to have attribute type of ID, as per Xml:id specification";
+
 
     // // // DTD-validation:
 

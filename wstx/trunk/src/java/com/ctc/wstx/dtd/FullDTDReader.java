@@ -1836,16 +1836,16 @@ public class FullDTDReader
     private void reportVCViolation(String msg)
         throws XMLStreamException
     {
-	/* 01-Sep-2006, TSa: Not 100% sure what's the right way to do it --
-	 *   they are errors (non-fatal, but not warnings), but the way
-	 *   base class handles things, we probably better 'downgrade'
-	 *   them to warnings in non-validating mode.
-	 */
-	if (mCfgFullyValidating) {
-	    reportValidationProblem(msg, XMLValidationProblem.SEVERITY_ERROR);
-	} else {
-	    reportValidationProblem(msg, XMLValidationProblem.SEVERITY_WARNING);
-	}
+        /* 01-Sep-2006, TSa: Not 100% sure what's the right way to do it --
+         *   they are errors (non-fatal, but not warnings), but the way
+         *   base class handles things, we probably better 'downgrade'
+         *   them to warnings in non-validating mode.
+         */
+        if (mCfgFullyValidating) {
+            reportValidationProblem(msg, XMLValidationProblem.SEVERITY_ERROR);
+        } else {
+            reportValidationProblem(msg, XMLValidationProblem.SEVERITY_WARNING);
+        }
     }
 
     private void reportWFCViolation(String msg)
@@ -2618,14 +2618,21 @@ public class FullDTDReader
                 throwDTDAttrError("has type ID; can not have a default (or #FIXED) value (XML 1.0/#3.3.1)",
                                   elem, attrName);
             }
+        } else { // not an ID... shouldn't be xml:id, then
+            if (mConfig.willDoXmlIdTyping()) {
+                if (attrName.isXmlReservedAttr(mCfgNsEnabled, "id")) {
+                    // 26-Sep-2006, TSa: For [WSTX-22], need to verify 'xml:id'
+                    checkXmlIdAttr(type);
+                }
+            }
         }
 
-	/* 01-Sep-2006, TSa: To address [WSTX-23], we should verify declaration
-	 *  of 'xml:space' attribute
-	 */
-	if (attrName.isXmlReservedAttr(mCfgNsEnabled, "space")) {
-	    checkXmlSpaceAttr(type, enumValues);
-	}
+        /* 01-Sep-2006, TSa: To address [WSTX-23], we should verify declaration
+         *  of 'xml:space' attribute
+         */
+        if (attrName.isXmlReservedAttr(mCfgNsEnabled, "space")) {
+            checkXmlSpaceAttr(type, enumValues);
+        }
 
         DTDAttribute attr;
 
@@ -3295,27 +3302,35 @@ public class FullDTDReader
      */
 
     protected void checkXmlSpaceAttr(int type, WordResolver enumValues)
-	throws XMLStreamException
+        throws XMLStreamException
     {
-	boolean ok = (type == DTDAttribute.TYPE_ENUMERATED);
-	if (ok) {
-	    switch (enumValues.size()) {
-	    case 1:
-		ok = (enumValues.find("preserve") != null)
-		    || (enumValues.find("default") != null);
-		break;
-	    case 2:
-		ok = (enumValues.find("preserve") != null)
-		    && (enumValues.find("default") != null);
-		break;
-	    default:
-		ok = false;
-	    }
-	}
+        boolean ok = (type == DTDAttribute.TYPE_ENUMERATED);
+        if (ok) {
+            switch (enumValues.size()) {
+            case 1:
+                ok = (enumValues.find("preserve") != null)
+                    || (enumValues.find("default") != null);
+                break;
+            case 2:
+                ok = (enumValues.find("preserve") != null)
+                    && (enumValues.find("default") != null);
+                break;
+            default:
+                ok = false;
+            }
+        }
+        
+        if (!ok) {
+            reportVCViolation(ErrorConsts.ERR_DTD_XML_SPACE);
+        }
+    }
 
-	if (!ok) {
-	    reportVCViolation(ErrorConsts.ERR_DTD_XML_SPACE);
-	}
+    protected void checkXmlIdAttr(int type)
+        throws XMLStreamException
+    {
+        if (type != DTDAttribute.TYPE_ID) {
+            reportVCViolation(ErrorConsts.ERR_DTD_XML_ID);
+        }
     }
 
     /*

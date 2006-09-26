@@ -94,17 +94,17 @@ public final class NameKey
      */
     boolean isXmlReservedAttr(boolean nsAware, String localName)
     {
-	if (nsAware) {
-	    if ("xml" == mPrefix) {
-		return mLocalName == localName;
-	    }
-	} else {
-	    if (mLocalName.length() == (4 + localName.length())) {
-		return (mLocalName.startsWith("xml:")
-			&& mLocalName.endsWith(localName));
-	    }
-	}
-	return false;
+        if (nsAware) {
+            if ("xml" == mPrefix) {
+                return mLocalName == localName;
+            }
+        } else {
+            if (mLocalName.length() == (4 + localName.length())) {
+                return (mLocalName.startsWith("xml:")
+                        && mLocalName.endsWith(localName));
+            }
+        }
+        return false;
     }
 
     /*

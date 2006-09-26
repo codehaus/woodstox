@@ -99,7 +99,8 @@
 
 
     <!-- And then something nifty, for creating minimal jars! -->
- 
+
+<!-- 
     <classfileset id="j2meInputMinimal" dir="${BuildClassesDir}">
        <root classname="com.ctc.wstx.stax.MinimalInputFactory" />
        <rootfileset dir="${BuildClassesDir}" includes="com/ctc/wstx/compat/Jdk*Impl.class" />
@@ -114,6 +115,7 @@
        <root classname="com.ctc.wstx.stax.MinimalOutputFactory" />
        <rootfileset dir="${BuildClassesDir}" includes="com/ctc/wstx/compat/Jdk*Impl.class" />
     </classfileset>
+-->
 
     <!-- Enabling support for Emma (http://emma.sourceforge.net) code
        - coverage library
@@ -244,8 +246,12 @@
 
     <!-- Dummy target that just includes all individual jars... --> 
     <target name="jars"
-       depends="jar.stax2, jar.wstx.lgpl, jar.wstx.asl, jars.j2me, jar.resources"
+       depends="jar.stax2, jar.wstx.lgpl, jar.wstx.asl, jar.resources"
     />
+
+<!--
+       depends="jar.stax2, jar.wstx.lgpl, jar.wstx.asl, jars.j2me, jar.resources"
+-->
 
     <target name="jars.j2me"
        depends="jar.j2me_input_min, jar.j2me_output_min, jar.j2me_both_min"
