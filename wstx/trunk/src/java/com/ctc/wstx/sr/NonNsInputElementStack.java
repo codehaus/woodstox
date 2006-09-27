@@ -79,7 +79,7 @@ public final class NonNsInputElementStack
             initialSize = 4;
         }
         mElements = new String[initialSize];
-        mAttrCollector = new NonNsAttributeCollector();
+        mAttrCollector = new NonNsAttributeCollector(cfg);
     }
 
     protected void setAutomaticDTDValidator(XMLValidator validator, NsDefaultProvider nsDefs)
@@ -152,21 +152,13 @@ public final class NonNsInputElementStack
          * as necessary
          */
         int xmlidIx = ac.resolveValues(mReporter);
-
-        // Need to check for xml:id?
-        if (mIdAttrIndex != ID_ATTR_DISABLED) {
-            mIdAttrIndex = xmlidIx;
-            if (xmlidIx >= 0) {
-                /* Although validator would normalize it too, let's do this
-                 * first -- doesn't harm, no big performance difference,
-                 * and is always needed even without a validator
-                 */
-                normalizeXmlIdAttr(ac, xmlidIx);
-            }
-        }
+        mIdAttrIndex = xmlidIx;
 
         // Any validator(s)? If not, we are done (except for xml:id check)
         if (mValidator == null) {
+            if (xmlidIx >= 0) { // need to normalize xml:id, still?
+                normalizeXmlIdAttr(ac, xmlidIx);
+            }
             return XMLValidator.CONTENT_ALLOW_ANY_TEXT;
         }
 

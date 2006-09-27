@@ -55,6 +55,13 @@ public abstract class AttributeCollector
      */
     protected final static int EXP_ATTR_COUNT = 16;
 
+    /**
+     * This value is used to indicate that we shouldn't keep track
+     * of index of xml:id attribute -- generally done when Xml:id
+     * support is disabled
+     */
+    protected final static int XMLID_IX_DISABLED = -2;
+
     protected final static int XMLID_IX_NONE = -1;
 
     /*
@@ -157,9 +164,9 @@ public abstract class AttributeCollector
     ///////////////////////////////////////////////
      */
 
-    protected AttributeCollector()
+    protected AttributeCollector(ReaderConfig cfg)
     {
-        mXmlIdAttrIndex = XMLID_IX_NONE;
+        mXmlIdAttrIndex = cfg.willDoXmlIdTyping() ? XMLID_IX_NONE : XMLID_IX_DISABLED;
     }
 
     /**

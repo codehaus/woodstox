@@ -157,7 +157,7 @@ public final class NsInputElementStack
         }
         mElements = new String[initialSize << 2];
         mNsCounts = new int[initialSize];
-        mAttrCollector = new NsAttributeCollector();
+        mAttrCollector = new NsAttributeCollector(cfg);
     }
 
     protected void setAutomaticDTDValidator(XMLValidator validator, NsDefaultProvider nsDefs)
@@ -372,24 +372,16 @@ public final class NsInputElementStack
 
         // And finally, resolve attributes' namespaces too:
         int xmlidIx = ac.resolveNamespaces(mReporter, mNamespaces);
-
-        // Need to check for xml:id?
-        if (xmlidIx != ID_ATTR_DISABLED) {
-            mIdAttrIndex = xmlidIx;
-            if (xmlidIx >= 0) { // need to normalize?
-                /* Although validator would normalize it too, let's do this
-                 * first -- doesn't harm, no big performance difference,
-                 * and is always needed even without a validator
-                 */
-                normalizeXmlIdAttr(ac, xmlidIx);
-            }
-        }
+        mIdAttrIndex = xmlidIx;
 
         XMLValidator vld = mValidator;
         /* If we have no validator(s), nothing more to do,
          * except perhaps little bit of Xml:id handling:
          */
         if (vld == null) { // no validator in use
+            if (xmlidIx >= 0) { // need to normalize xml:id, still?
+                normalizeXmlIdAttr(ac, xmlidIx);
+            }
             return XMLValidator.CONTENT_ALLOW_ANY_TEXT;
         }
 

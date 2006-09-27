@@ -78,6 +78,20 @@ public class TestXmlId
         doTestInvalid(false, true);
     }
 
+    public void testInvalidXmlIdDisabledNs()
+        throws XMLStreamException
+    {
+        doTestInvalidDisabled(true, false);
+        doTestInvalidDisabled(true, true);
+    }
+
+    public void testInvalidXmlIdDisabledNonNs()
+        throws XMLStreamException
+    {
+        doTestInvalidDisabled(false, false);
+        doTestInvalidDisabled(false, true);
+    }
+
     /*
     /////////////////////////////////////
     //
@@ -102,7 +116,11 @@ public class TestXmlId
         assertTokenType(START_ELEMENT, sr.next());
         assertEquals(1, sr.getAttributeCount());
         assertEquals("abc", sr.getAttributeValue(0));
-        assertEquals(0, sr.getAttributeInfo().getIdAttributeIndex());
+        if (xmlidEnabled) {
+            assertEquals(0, sr.getAttributeInfo().getIdAttributeIndex());
+        } else {
+            assertEquals(-1, sr.getAttributeInfo().getIdAttributeIndex());
+        }
         assertEquals(xmlidType, sr.getAttributeType(0));
         assertTokenType(END_ELEMENT, sr.next());
 
@@ -119,9 +137,18 @@ public class TestXmlId
         assertTokenType(START_ELEMENT, sr.next());
         assertEquals(1, sr.getAttributeCount());
         assertEquals(xmlidType, sr.getAttributeType(0));
-        assertEquals(0, sr.getAttributeInfo().getIdAttributeIndex());
+        if (xmlidEnabled) {
+            assertEquals(0, sr.getAttributeInfo().getIdAttributeIndex());
+        } else {
+            assertEquals(-1, sr.getAttributeInfo().getIdAttributeIndex());
+        }
+
         // also, should be normalized:
-        assertEquals("_otherId", sr.getAttributeValue(0));
+        if (xmlidEnabled) {
+            assertEquals("_otherId", sr.getAttributeValue(0));
+        } else {
+            assertEquals("  _otherId ", sr.getAttributeValue(0));
+        }
         assertTokenType(END_ELEMENT, sr.next());
 
         sr.close();
@@ -136,8 +163,19 @@ public class TestXmlId
             assertTokenType(START_ELEMENT, sr.next());
             fail("Expected a validation exception for invalid Xml:id attribute declaration");
         } catch (XMLValidationException vex) {
-            System.err.println("VLD exc -> "+vex);
+            //System.err.println("VLD exc -> "+vex);
         }
+    }
+
+    private void doTestInvalidDisabled(boolean nsAware, boolean coal)
+        throws XMLStreamException
+    {
+        /* In non-validating mode, shouldn't matter: but just to make sure,
+         * let's also disable xml:id processing
+         */
+        XMLStreamReader2 sr = getReader(XML_WITH_XMLID_INVALID, false, nsAware, coal);
+        assertTokenType(DTD, sr.next());
+        assertTokenType(START_ELEMENT, sr.next());
     }
 
     private XMLStreamReader2 getReader(String contents,

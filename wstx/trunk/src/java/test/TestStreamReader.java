@@ -45,8 +45,8 @@ public class TestStreamReader
         f.setProperty(XMLInputFactory.SUPPORT_DTD, Boolean.TRUE);
         //f.setProperty(XMLInputFactory.SUPPORT_DTD, Boolean.FALSE);
 
-        //f.setProperty(XMLInputFactory.IS_VALIDATING, Boolean.FALSE);
-        f.setProperty(XMLInputFactory.IS_VALIDATING, Boolean.TRUE);
+        f.setProperty(XMLInputFactory.IS_VALIDATING, Boolean.FALSE);
+        //f.setProperty(XMLInputFactory.IS_VALIDATING, Boolean.TRUE);
 
         f.setProperty(XMLInputFactory.REPORTER, new TestReporter());
         f.setProperty(XMLInputFactory.RESOLVER, new TestResolver1());
@@ -58,8 +58,8 @@ public class TestStreamReader
         }
 
         f.setProperty(XMLInputFactory2.XSP_SUPPORT_XMLID,
-                      //XMLInputFactory2.XSP_V_XMLID_TYPING
-                      XMLInputFactory2.XSP_V_XMLID_NONE
+                      XMLInputFactory2.XSP_V_XMLID_TYPING
+                      //XMLInputFactory2.XSP_V_XMLID_NONE
                       );
 
         if (f.isPropertySupported(WstxInputProperties.P_MIN_TEXT_SEGMENT)) {
@@ -130,9 +130,10 @@ public class TestStreamReader
 
 
         System.out.print("Coalesce: "+f.getProperty(XMLInputFactory.IS_COALESCING));
-        System.out.println(", NS-aware: "+f.getProperty(XMLInputFactory.IS_NAMESPACE_AWARE));
+        System.out.println("NS-aware: "+f.getProperty(XMLInputFactory.IS_NAMESPACE_AWARE));
         System.out.print("Entity-expanding: "+f.getProperty(XMLInputFactory.IS_REPLACING_ENTITY_REFERENCES));
-        System.out.println(", validating: "+f.getProperty(XMLInputFactory.IS_VALIDATING));
+        System.out.println("Validating: "+f.getProperty(XMLInputFactory.IS_VALIDATING));
+        System.out.println("Xml-id support: "+f.getProperty(XMLInputFactory2.XSP_SUPPORT_XMLID));
 
         /*
         if (f.isPropertySupported(WstxInputProperties.P_BASE_URL)) {

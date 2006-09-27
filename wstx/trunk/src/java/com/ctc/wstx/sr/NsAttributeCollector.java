@@ -93,9 +93,9 @@ public final class NsAttributeCollector
     ///////////////////////////////////////////////
      */
 
-    public NsAttributeCollector()
+    public NsAttributeCollector(ReaderConfig cfg)
     {
-        super();
+        super(cfg);
     }
 
     /**
@@ -119,7 +119,9 @@ public final class NsAttributeCollector
             mAttrNames.clear(false);
             mValueBuffer.reset();
             mAttrCount = 0;
-            mXmlIdAttrIndex = XMLID_IX_NONE;
+            if (mXmlIdAttrIndex >= 0) {
+                mXmlIdAttrIndex = XMLID_IX_NONE;
+            }
         }
 
         /* Note: attribute values will be cleared later on, when validating
@@ -500,9 +502,11 @@ public final class NsAttributeCollector
             ++mAttrCount;
         }
         mAttrNames.addStrings(attrPrefix, attrLocalName);
-        // 25-Sep-2006, TSa: Need to keep track of xml:id attribute
+        // 25-Sep-2006, TSa: Need to keep track of xml:id attribute?
         if (attrPrefix == "xml" && attrLocalName == "id") {
-            mXmlIdAttrIndex = mAttrCount - 1;
+            if (mXmlIdAttrIndex != XMLID_IX_DISABLED) {
+                mXmlIdAttrIndex = mAttrCount - 1;
+            }
         }
         /* Can't yet create attribute map by name, since we only know
          * name prefix, not necessarily matching URI.

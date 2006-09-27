@@ -15,7 +15,7 @@ public class TestNameValidation
 {
     final static String DUMMY_URL = "http://someurl";
     final static String ATTR_VALUE = "value";
-    final static String PI_DATA = "just some proc.instr. content!!!";
+    final static String PI_DATA = "just some proc.instr. content!!";
 
     /* Notes about validity
      *

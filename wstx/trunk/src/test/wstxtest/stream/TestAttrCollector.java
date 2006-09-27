@@ -4,6 +4,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
 import com.ctc.wstx.sr.*;
+import com.ctc.wstx.stax.WstxInputFactory;
 import com.ctc.wstx.util.StringVector;
 
 /**
@@ -38,7 +39,8 @@ public class TestAttrCollector
     public void testNsAttrCollector()
         throws XMLStreamException
     {
-        NsAttributeCollector ac = new NsAttributeCollector();
+        WstxInputFactory f = getWstxInputFactory();
+        NsAttributeCollector ac = new NsAttributeCollector(f.getConfig());
         StringVector attrsIn = new StringVector(8);
 
         // !!! TBI
@@ -47,7 +49,8 @@ public class TestAttrCollector
     public void testNonNsAttrCollector()
         throws XMLStreamException
     {
-        NonNsAttributeCollector ac = new NonNsAttributeCollector();
+        WstxInputFactory f = getWstxInputFactory();
+        NonNsAttributeCollector ac = new NonNsAttributeCollector(f.getConfig());
 
         // !!! TBI
     }

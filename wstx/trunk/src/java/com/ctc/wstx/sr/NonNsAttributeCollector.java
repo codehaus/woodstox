@@ -8,6 +8,7 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
 
+import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.sw.XmlWriter;
 import com.ctc.wstx.util.DataUtil;
@@ -37,9 +38,9 @@ public final class NonNsAttributeCollector
     ///////////////////////////////////////////////
      */
 
-    public NonNsAttributeCollector()
+    public NonNsAttributeCollector(ReaderConfig cfg)
     {
-        super();
+        super(cfg);
     }
 
     /**
@@ -52,7 +53,9 @@ public final class NonNsAttributeCollector
             mAttrNames.clear(false);
             mValueBuffer.reset();
             mAttrCount = 0;
-            mXmlIdAttrIndex = XMLID_IX_NONE;
+            if (mXmlIdAttrIndex >= 0) {
+                mXmlIdAttrIndex = XMLID_IX_NONE;
+            }
         }
 
         /* Note: attribute values will be cleared later on, when validating
@@ -330,9 +333,11 @@ public final class NonNsAttributeCollector
             ++mAttrCount;
         }
         mAttrNames.addString(attrLocalName);
-        // 25-Sep-2006, TSa: Need to keep track of xml:id attribute
+        // 25-Sep-2006, TSa: Need to keep track of xml:id attribute?
         if (attrLocalName == "xml:id") {
-            mXmlIdAttrIndex = mAttrCount - 1;
+            if (mXmlIdAttrIndex != XMLID_IX_DISABLED) {
+                mXmlIdAttrIndex = mAttrCount - 1;
+            }
         }
         return mValueBuffer;
     }

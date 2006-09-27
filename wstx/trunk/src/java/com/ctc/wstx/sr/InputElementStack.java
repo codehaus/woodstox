@@ -57,8 +57,6 @@ public abstract class InputElementStack
 {
     final static int ID_ATTR_NONE = -1;
 
-    final static int ID_ATTR_DISABLED = -2;
-
     protected final ReaderConfig mConfig;
 
     protected InputProblemReporter mReporter = null;
@@ -82,7 +80,7 @@ public abstract class InputElementStack
      * due to Xml:id support); -1 if not available, or no ID attribute
      * for current element.
      */
-    protected int mIdAttrIndex = -1;
+    protected int mIdAttrIndex = ID_ATTR_NONE;
 
     /*
     //////////////////////////////////////////////////
@@ -93,7 +91,6 @@ public abstract class InputElementStack
     protected InputElementStack(ReaderConfig cfg)
     {
         mConfig = cfg;
-        mIdAttrIndex = cfg.willDoXmlIdTyping() ? ID_ATTR_NONE : ID_ATTR_DISABLED;
     }
 
     protected void connectReporter(InputProblemReporter rep)
