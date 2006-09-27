@@ -213,6 +213,6 @@ public interface InputConfigFlags
      * If true, xml:id attribute uniqueness constraints are enforced, even
      * if not validating against DTD otherwise.
      */
-    final static int CFG_XMLID_UNIQ_CHECKS = 0x00200000;
+    final static int CFG_XMLID_UNIQ_CHECKS = 0x00400000;
 }
 

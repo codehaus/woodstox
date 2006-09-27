@@ -23,10 +23,6 @@ public class TestPrologWS
     final static String XML1 = "<?xml version='1.0'?>   <root />\n";
     final static String XML2 = "\n \n<root />   ";
 
-    public TestPrologWS(String name) {
-        super(name);
-    }
-
     public void testReportPrologWS()
         throws IOException, XMLStreamException
     {
@@ -104,7 +100,7 @@ public class TestPrologWS
         XMLStreamReader sr = constructStreamReader(f, XML);
 
         streamAndCheck(sr, it, XML, XML, false);
-	// Let's also try 'real' streaming...
+        // Let's also try 'real' streaming...
         streamAndCheck(sr, it, XML, XML, true);
     }
 

@@ -57,6 +57,11 @@ public class TestStreamReader
             );
         }
 
+        f.setProperty(XMLInputFactory2.XSP_SUPPORT_XMLID,
+                      //XMLInputFactory2.XSP_V_XMLID_TYPING
+                      XMLInputFactory2.XSP_V_XMLID_NONE
+                      );
+
         if (f.isPropertySupported(WstxInputProperties.P_MIN_TEXT_SEGMENT)) {
             f.setProperty(WstxInputProperties.P_MIN_TEXT_SEGMENT,
                           new Integer(1));
@@ -283,7 +288,7 @@ public class TestStreamReader
                 }
                 for (int i = 0; i < count; ++i) {
                     String val = sr.getAttributeValue(i);
-                    System.out.print(" attr#"+i+": "+sr.getAttributePrefix(i)
+                    System.out.print(" attr#"+i+"("+sr.getAttributeType(i)+"): "+sr.getAttributePrefix(i)
                                      +":"+sr.getAttributeLocalName(i)
                                      +" ("+sr.getAttributeNamespace(i)
                                      +") -> '"+val
