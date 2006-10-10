@@ -30,6 +30,9 @@
     <copy file="${build.dir}/uuid-server.war" todir="${deploy.dir}/webapps" />
   </target>
 
+  <target name="run-webapp" depends="deploy">
+  </target>
+
   <target name="build" depends="init,build-server,build-client" />
 
   <target name="build-client" depends="compile">

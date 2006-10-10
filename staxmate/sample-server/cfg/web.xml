@@ -7,7 +7,7 @@
     </servlet>
     <servlet-mapping>
       <servlet-name>UuidServlet</servlet-name>
-      <url-pattern>/*</url-pattern>
+      <url-pattern>/generate-uuid</url-pattern>
     </servlet-mapping>
     <welcome-file-list>
       <welcome-file>index.html</welcome-file>

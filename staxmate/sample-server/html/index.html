@@ -6,7 +6,34 @@
   <body>
     <h1>StaxMate UUID Generator</h1>
 
-Under Construction!
+How would you like to generate your UUIDs (a.k.a GUIDs) today?
+<form name='inputForm'>
+<table border='1'>
+
+ <tr>
+<td>Method:</td>
+<td><input type='list' name='method'>
+  <option value='RANDOM'>Random</option>
+  <option value='TIME'>Time+Location</option>
+  <option value='NAME'>Name-based (hash)</option>
+</input></td>
+  </tr>
+
+ <tr>
+<td>Count:</td>
+<td><input type='text' size='4' name='count' value='1'></input></td>
+  </tr>
+
+ <tr>
+<td>Name: (for Name-based)</td>
+<td><input type='text' size='60' name='name' enabled='false'></input></td>
+  </tr>
+
+ <tr>
+<td colspan='2'>><input type='button' value='Generate!'></input></td>
+  </tr>
+</table>
+</form>
 
   </body>
 </html>
