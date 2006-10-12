@@ -29,18 +29,18 @@ import org.safehaus.uuid.UUIDGenerator;
  *<p>
  * Here's sample xml request format:
  *<pre>
- *  <request>
- *   <generate-uuid method="random" />
- *   <generate-uuid method="location" count="3" />
- *   <generate-uuid method="name">http://www.cowtowncoder.com/foo</generate-uuid>
- *  </request>
+ *  &lt;request>
+ *   &lt;generate-uuid method="random" />
+ *   &lt;generate-uuid method="location" count="3" />
+ *   &lt;generate-uuid method="name">http://www.cowtowncoder.com/foo&lt;/generate-uuid>
+ *  &lt;/request>
  *</pre>
  *<p>
  * And here's a sample response, for given request:
  *<pre>
- *  <response>
- *   <uuid></uuid>
- *  </respone>
+ *  &lt;response>
+ *   &lt;uuid>&lt;/uuid>
+ *  &lt;/respone>
  *</pre>
  *<p>
  * Additionally, query interface recognizes following parameters:
@@ -55,6 +55,13 @@ import org.safehaus.uuid.UUIDGenerator;
  */
 public class UuidServlet extends HttpServlet
 {
+    /**
+     * Let's limit total number of UUIDs we will return for any
+     * request, just as a simple protection against greedy clients
+     * (and to demonstrate one way to indicate such extra info to caller)
+     */
+    final static int MAX_UUIDS_PER_REQUEST = 100;
+
     /**
      * Could require Ethernet address to be passed, or could use
      * JNI-based access: but for now, let's just generate a
@@ -76,8 +83,12 @@ public class UuidServlet extends HttpServlet
             int count = (str == null || str.length() == 0) ? 1 : determineCount(str);
             String name = req.getParameter("name");
             checkParameters(method, count, name);
+            int origCount = count;
+            if (count > MAX_UUIDS_PER_REQUEST) {
+                count = MAX_UUIDS_PER_REQUEST;
+            }
             List<UUID> uuids = generateUuids(method, count, name);
-            writeResponse(resp, uuids);
+            writeResponse(resp, uuids, origCount);
         } catch (Throwable t) {
             reportProblem(resp, null, t);
         }
@@ -87,10 +98,6 @@ public class UuidServlet extends HttpServlet
         throws IOException
     {
         try {
-            UUIDMethod method = null;
-            int count = 1;
-            String name = null;
-
             // Let's use the global Stax factory for the example
             InputStream in = req.getInputStream();
             SMInputCursor rootc = SMInputFactory.rootElementCursor(SMInputFactory.getGlobalXMLInputFactory().createXMLStreamReader(in));
@@ -103,14 +110,41 @@ public class UuidServlet extends HttpServlet
             }
             // Request has no attributes, but has 0+ methods (batches)
             SMInputCursor requests = rootc.childElementCursor();
+            int totalReq = 0;
 
-            // !!! TBI
+            List<UUID> uuids = new ArrayList<UUID>();
+            while (requests.getNext() != null) {
+                // Can ignore, or signal an error: let's do latter
+                if (!"generate-uuid".equals(requests.getLocalName())) {
+                    reportProblem(resp, "Unrecognized element '"+requests.getLocalName()+"', expected <generate-uuid>", null);
+                    return;
+                }
+                UUIDMethod method = determineMethod(requests.getAttrValue("method"));
+                int count = determineCount(requests.getAttrValue("count"));
+                String name = requests.getAttrValue("name");
+                checkParameters(method, count, name);
+
+                // Need to ensure we won't go beyond max per request
+                totalReq += count;
+                int max = MAX_UUIDS_PER_REQUEST - uuids.size();
+                if (count > max) {
+                    count = max;
+                    if (count < 1) { // already reached max
+                        continue; // continue to calc. max requested, still
+                    }
+                }
+                uuids.addAll(generateUuids(method, count, name));
+            }
+
+            // All right; got them all, let's output
+            writeResponse(resp, uuids, totalReq);
         } catch (Throwable t) {
             reportProblem(resp, "Failed to process POST request", t);
         }
     }
 
-    void writeResponse(HttpServletResponse resp, List<UUID> uuids)
+    void writeResponse(HttpServletResponse resp, List<UUID> uuids,
+                       int totalRequested)
         throws IOException, XMLStreamException
     {
         resp.setContentType("text/xml");
@@ -118,6 +152,12 @@ public class UuidServlet extends HttpServlet
         SMOutputElement rootElem = writeDocWithRoot(out, "response");
         for (UUID uuid : uuids) {
             rootElem.addElement("uuid").addCharacters(uuid.toString());
+        }
+        /* If we had to truncate (caller asked for more uuids than we want
+         * to return for a single call), let's add a comment indicating this:
+         */
+        if (totalRequested > uuids.size()) {
+            rootElem.addComment("had to truncate "+(totalRequested - uuids.size())+" uuids; will only generate up to "+MAX_UUIDS_PER_REQUEST+" UUIDs per call");
         }
         // Need to close the root, to ensure all elements closed, flushed
         ((SMOutputDocument)rootElem.getParent()).closeRoot();
@@ -153,7 +193,7 @@ public class UuidServlet extends HttpServlet
                 msg = "Input argument problem: "+t;
                 t = null;
             } else if (t instanceof XMLStreamException) {
-                msg = "Problem parsing xml request: "+t;
+                msg = "Problem parsing xml request or writing response: "+t;
             } else {
                 if (msg == null) {
                     msg = "Problem processing request";
@@ -242,7 +282,7 @@ public class UuidServlet extends HttpServlet
     }
 
     /**
-     * Enumeration used to define
+     * Enumeration used to define UUID generation types
      */
     enum UUIDMethod {
         RANDOM, TIME, NAME

@@ -1,22 +1,27 @@
 <html>
   <head>
     <title>StaxMate UUID Generator</title>
+<script language="javascript">
+function generate()
+{
+ // Ok, let's make the ajax call
+}
+</script>
   </head>
-
   <body>
     <h1>StaxMate UUID Generator</h1>
 
 How would you like to generate your UUIDs (a.k.a GUIDs) today?
 <form name='inputForm'>
-<table border='1'>
 
+<table border='1' rules='1'>
  <tr>
 <td>Method:</td>
-<td><input type='list' name='method'>
-  <option value='RANDOM'>Random</option>
+<td><select name='method' size='3'>
+  <option value='RANDOM' selected='true'>Random</option>
   <option value='TIME'>Time+Location</option>
   <option value='NAME'>Name-based (hash)</option>
-</input></td>
+</select></td>
   </tr>
 
  <tr>
@@ -29,11 +34,24 @@ How would you like to generate your UUIDs (a.k.a GUIDs) today?
 <td><input type='text' size='60' name='name' enabled='false'></input></td>
   </tr>
 
- <tr>
-<td colspan='2'>><input type='button' value='Generate!'></input></td>
-  </tr>
 </table>
+
+<p>
+<input type='button' name='generate' value='Generate!'
+onclick='window.generate();'
+></input>
+</p>
 </form>
+
+<!-- and then output stuff: -->
+
+<table border='1' rules='1'>
+ <tr>
+<td><div id='output'>
+No UUIDs generated yet!
+</div>
+</td></tr>
+</table>
 
   </body>
 </html>
