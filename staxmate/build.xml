@@ -146,6 +146,8 @@
          -->
        <copy todir="${DistDir}" >
             <fileset dir="." includes="release-notes/*" />
+            <fileset dir="." includes="release-notes/asl/*" />
+            <fileset dir="." includes="release-notes/lgpl/*" />
        </copy>
     </target>
 
@@ -173,6 +175,12 @@
           <fileset dir="${BuildClassesDir}">
              <include name="org/codehaus/staxmate/**/*.class" />
              <exclude name="org/codehaus/staxmate/samples/*.class" />
+          </fileset>
+          <!-- 12-Oct-2006, tatus: for now, let's just default to ASL;
+             -    can have separate targets for lgpl if need be
+            -->
+          <fileset dir="release-notes/asl">
+            <include name="*" />
           </fileset>
         </jar>
     </target> 

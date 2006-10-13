@@ -1,16 +1,15 @@
 Version: 0.9.1
 
-Release date: 10-Sep-2006
+Release date: 12-Sep-2006
 
 Description:
-  First complete release; now includes both reader and writer side helpers.
+  Fixed an important problem, cleaned up some comments, and wanted
+  to release current state to be used for some sample code.
 
   Problems fixed:
 
   * Nested cursor synchronization problems fixed, unit tests added
     [contributed by Ed G, David B]
-
-  New functionality:
 
 == History: ==
 
