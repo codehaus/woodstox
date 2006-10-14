@@ -129,8 +129,8 @@
     <!--*********************************************************-->
     <!-- Packaging... -->
     <!--*********************************************************-->
-
-    <target name="dist" depends="compile,jar,src-dist,javadoc">
+ 
+    <target name="dist" depends="compile,jar,src-dist,sample-dist,javadoc">
        <!-- First, let's copy the binary jars to dist -->
        <copy todir="${DistDir}">
            <fileset dir="${BuildDir}">
@@ -161,6 +161,21 @@
        <zip basedir="${basedir}" destfile="${DistDir}/staxmate-src-${STAXMATE_VERSION}.zip">
          <patternset refid="dist-src-files" />
        </zip>
+    </target>
+
+    <target name="sample-dist">
+       <tar basedir="${basedir}/sample-server" destfile="${DistDir}/sample-webapp-${STAXMATE_VERSION}.tar">
+          <include name="*.sh" />
+          <include name="src/**/*.java" />
+          <include name="html/*.html" />
+          <include name="cfg/*" />
+          <include name="jetty/**/*" />
+          <include name="build.xml" />
+          <include name="lib/*.jar" />
+       </tar>
+       <gzip zipfile="${DistDir}/sample-webapp-${STAXMATE_VERSION}.tar.gz"
+         src="${DistDir}/sample-webapp-${STAXMATE_VERSION}.tar" />
+       <delete file="${DistDir}/sample-webapp-${STAXMATE_VERSION}.tar" />
     </target>
 
     <target name="jar" depends="compile">

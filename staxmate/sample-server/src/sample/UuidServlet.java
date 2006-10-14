@@ -190,10 +190,10 @@ public class UuidServlet extends HttpServlet
             // Let's customize a bit based on type of exception:
             if (t instanceof IllegalArgumentException) {
                 // no need to pass exception, message is all we need
-                msg = "Input argument problem: "+t;
+                msg = "Input argument problem: "+t.getMessage();
                 t = null;
             } else if (t instanceof XMLStreamException) {
-                msg = "Problem parsing xml request or writing response: "+t;
+                msg = "Problem parsing xml request or writing response: "+t.getMessage();
             } else {
                 if (msg == null) {
                     msg = "Problem processing request";
