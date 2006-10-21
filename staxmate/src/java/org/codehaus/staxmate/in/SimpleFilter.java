@@ -45,7 +45,6 @@ public class SimpleFilter
     public boolean accept(SMEvent evt, SMInputCursor caller)
         throws XMLStreamException
     {
-System.err.println("DEBUG: filter("+evt+"), ln '"+caller.getLocalName()+"'");
        return (mAllowedTypes & (1 << evt.getEventCode())) != 0;
     }
 }

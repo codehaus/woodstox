@@ -101,8 +101,8 @@ public class SMHierarchicCursor
                     if (mElemTracking == Tracking.ALL_SIBLINGS) {
                         mTrackedElement = constructElementInfo(mParentTrackedElement, mTrackedElement);
                     }
+                    skipSubTree(0);
                 }
-                // Note: level skipping will be done in the beginning of the loop
                 continue;
             }
             
@@ -153,6 +153,10 @@ public class SMHierarchicCursor
         }
     }
 
+    /**
+     * @param depth Number of enclosing 'extra' START_ELEMENTs to match;
+     *   usually either 0 or 1
+     */
     protected void skipSubTree(int depth)
         throws XMLStreamException
     {
