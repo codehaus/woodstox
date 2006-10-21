@@ -20,8 +20,14 @@ public class SimpleFilter
     /////////////////////////////////////////////////////
      */
 
-    public SimpleFilter(int typeFlags) {
+    public SimpleFilter(int typeFlags)
+    {
         mAllowedTypes = typeFlags;
+    }
+
+    public SimpleFilter(SMEvent eventToMatch)
+    {
+        this(1 << eventToMatch.getEventCode());
     }
 
     public SimpleFilter extend(int additionalFlags, int removeFlags)
@@ -39,7 +45,8 @@ public class SimpleFilter
     public boolean accept(SMEvent evt, SMInputCursor caller)
         throws XMLStreamException
     {
-        return (mAllowedTypes & (1 << evt.getEventCode())) != 0;
+System.err.println("DEBUG: filter("+evt+"), ln '"+caller.getLocalName()+"'");
+       return (mAllowedTypes & (1 << evt.getEventCode())) != 0;
     }
 }
 

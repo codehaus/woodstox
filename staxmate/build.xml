@@ -157,14 +157,14 @@
        </tar>
        <gzip zipfile="${DistDir}/staxmate-src-${STAXMATE_VERSION}.tar.gz"
          src="${DistDir}/staxmate-src-${STAXMATE_VERSION}.tar" />
-       <delete file="${DistDir}/staxmate-src.tar" />
+       <delete file="${DistDir}/staxmate-src-${STAXMATE_VERSION}.tar" />
        <zip basedir="${basedir}" destfile="${DistDir}/staxmate-src-${STAXMATE_VERSION}.zip">
          <patternset refid="dist-src-files" />
        </zip>
     </target>
 
     <target name="sample-dist">
-       <tar basedir="${basedir}/sample-server" destfile="${DistDir}/sample-webapp-${STAXMATE_VERSION}.tar">
+       <tar basedir="${basedir}/sample-webapp" destfile="${DistDir}/sample-webapp-${STAXMATE_VERSION}.tar">
           <include name="*.sh" />
           <include name="src/**/*.java" />
           <include name="html/*.html" />

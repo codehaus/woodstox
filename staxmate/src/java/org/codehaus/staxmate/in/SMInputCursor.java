@@ -9,6 +9,7 @@ import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader; // for javadocs
 
+import org.codehaus.stax2.DTDInfo;
 import org.codehaus.stax2.XMLStreamReader2;
 
 /**
@@ -573,7 +574,22 @@ public abstract class SMInputCursor
         if (!readerAccessible()) {
             return notAccessible("getLocalName");
         }
-        return mStreamReader.getLocalName();
+        int type = getCurrEventCode();
+        switch (type) {
+        case XMLStreamConstants.START_ELEMENT:
+        case XMLStreamConstants.END_ELEMENT:
+        case XMLStreamConstants.ENTITY_REFERENCE:
+            return mStreamReader.getLocalName();
+        case XMLStreamConstants.PROCESSING_INSTRUCTION:
+            return mStreamReader.getPITarget();
+        case XMLStreamConstants.DTD:
+            {
+                DTDInfo dtd = mStreamReader.getDTDInfo();
+                return (dtd == null) ? null : dtd.getDTDRootName();
+            }
+        }
+
+        return null;
     }
 
     public String getPrefix()
@@ -898,12 +914,62 @@ public abstract class SMInputCursor
 
     /**
      * Convenience method; equivalent to 
+     *<code>childCursor(SMFilterFactory.getElementOnlyFilter(elemName));</code>
+     * Will only return START_ELEMENT and END_ELEMENT events, whose element
+     * name matches given qname.
+     */
+    public final SMInputCursor childElementCursor(QName elemName)
+        throws XMLStreamException
+    {
+        return childCursor(SMFilterFactory.getElementOnlyFilter(elemName));
+    }
+
+    /**
+     * Convenience method; equivalent to 
+     *<code>childCursor(SMFilterFactory.getElementOnlyFilter(elemName));</code>
+     * Will only return START_ELEMENT and END_ELEMENT events, whose element's
+     * local name matches given local name, and that does not belong to
+     * a namespace.
+     */
+    public final SMInputCursor childElementCursor(String elemLocalName)
+        throws XMLStreamException
+    {
+        return childCursor(SMFilterFactory.getElementOnlyFilter(elemLocalName));
+    }
+
+    /**
+     * Convenience method; equivalent to 
      *<code>descendantCursor(SMFilterFactory.getElementOnlyFilter());</code>
      */
     public final SMInputCursor descendantElementCursor()
         throws XMLStreamException
     {
         return descendantCursor(SMFilterFactory.getElementOnlyFilter());
+    }
+
+    /**
+     * Convenience method; equivalent to 
+     *<code>descendantCursor(SMFilterFactory.getElementOnlyFilter(elemName));</code>
+     * Will only return START_ELEMENT and END_ELEMENT events, whose element
+     * name matches given qname.
+     */
+    public final SMInputCursor descendantElementCursor(QName elemName)
+        throws XMLStreamException
+    {
+        return descendantCursor(SMFilterFactory.getElementOnlyFilter(elemName));
+    }
+
+    /**
+     * Convenience method; equivalent to 
+     *<code>descendantCursor(SMFilterFactory.getElementOnlyFilter(elemLocalName));</code>.
+     * Will only return START_ELEMENT and END_ELEMENT events, whose element
+     * local name matches given local name, and that do not belong to a
+     * namespace
+     */
+    public final SMInputCursor descendantElementCursor(String elemLocalName)
+        throws XMLStreamException
+    {
+        return descendantCursor(SMFilterFactory.getElementOnlyFilter(elemLocalName));
     }
 
     /**

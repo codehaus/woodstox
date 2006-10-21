@@ -41,7 +41,7 @@ public class TestInput
                 if (kidCrsr.getNext() != null) {
                     readThrough(kidCrsr, indent+1);
                 }
-                System.out.print("[/"+indent+"] START_ELEMENT");
+                System.out.println("[/"+indent+"] END_ELEMENT");
             }
         }
     }

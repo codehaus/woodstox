@@ -1,5 +1,6 @@
 package org.codehaus.staxmate.in;
 
+import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamConstants;
 
 /**
@@ -50,6 +51,14 @@ public final class SMFilterFactory
 
     public final static SMFilter getElementOnlyFilter() {
         return sElementOnlyFilter;
+    }
+
+    public final static SMFilter getElementOnlyFilter(QName elemName) {
+        return new ElementFilter(elemName);
+    }
+
+    public final static SMFilter getElementOnlyFilter(String elemLocalName) {
+        return new ElementFilter(elemLocalName);
     }
 
     /**
