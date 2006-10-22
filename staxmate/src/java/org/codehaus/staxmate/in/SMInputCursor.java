@@ -1075,6 +1075,28 @@ public abstract class SMInputCursor
         return (mParentCount == 0);
     }
 
+    /**
+     * @param depth Number of enclosing 'extra' START_ELEMENTs to match;
+     *   usually either 0 or 1
+     */
+    protected void skipSubTree(int depth)
+        throws XMLStreamException
+    {
+        while (true) {
+            int type = mStreamReader.next();
+            if (type == XMLStreamConstants.START_ELEMENT) {
+                ++depth;
+            } else if (type == XMLStreamConstants.END_ELEMENT) {
+                if (--depth < 0) {
+                    break;
+                }
+            } else if (type == XMLStreamConstants.END_DOCUMENT) {
+                // An error...
+                throw new IllegalStateException("Unexpected END_DOCUMENT encountered when skipping a sub-tree.");
+            }
+        }
+    }
+
     protected String notAccessible(String method)
         throws XMLStreamException
     {

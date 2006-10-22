@@ -122,6 +122,7 @@ public class SMFlatteningCursor
                     break;
                 }
             } else if (type == XMLStreamConstants.START_ELEMENT) {
+                ++mNesting;
                 ++mElemCount;
             }
             // !!! only here temporarily, shouldn't be needed
@@ -174,17 +175,24 @@ public class SMFlatteningCursor
     /**
      * Method called by the parent cursor, to skip over the scope
      * this cursor iterates, and of its sub-scopes if any.
+     *<p>
+     * Note: implementation differs from that of non-flattening cursor
+     * mostly since we may be deeper down in the tree already, and
+     * thus may need to encounter multiple end tags.
      */
+    @Override
     protected void skipTree()
         throws XMLStreamException
     {
         if (mState == State.CLOSED) { // already finished?
             return;
         }
+        State state = mState;
         mState = State.CLOSED;
+        mCurrEvent = null;
 
         // child cursor(s) to delegate skipping to?
-        if (mState == State.HAS_CHILD) {
+        if (state == State.HAS_CHILD) {
             mChildCursor.skipTree();
             mChildCursor = null;
         }

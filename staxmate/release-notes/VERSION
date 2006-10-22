@@ -1,4 +1,4 @@
-Version: 0.9.1
+Version: 0.9.2
 
 Release date: 12-Sep-2006
 
@@ -8,10 +8,23 @@ Description:
 
   Problems fixed:
 
-  * Nested cursor synchronization problems fixed, unit tests added
-    [contributed by Ed G, David B]
+  * Handling of sub-tree skipping when START_ELEMENT were filtered out
+    was not working correctly (either with hierarchic or flat cursors)
+
+  New functionality:
+
+  * Added ElementFilter, for only accessing elements with specified
+    name
+  * Added unit tests for filters
 
 == History: ==
+
+0.9.1: [12-Sep-2006]
+
+  Problems fixed:
+
+  * Nested cursor synchronization problems fixed, unit tests added
+    [contributed by Ed G, David B]
 
 0.9: [11-Aug-2006]
 

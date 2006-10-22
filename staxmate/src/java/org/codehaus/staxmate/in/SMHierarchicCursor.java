@@ -49,9 +49,9 @@ public class SMHierarchicCursor
         }
         // If there is a child cursor, it has to be traversed through
         if (mState == State.HAS_CHILD) {
-                mChildCursor.skipTree();
-                mChildCursor = null;
-                mState = State.ACTIVE;
+            mChildCursor.skipTree();
+            mChildCursor = null;
+            mState = State.ACTIVE;
         } else if (mState == State.INITIAL) {
             mState = State.ACTIVE;
         } else { // active
@@ -130,7 +130,6 @@ public class SMHierarchicCursor
         return new SMFlatteningCursor(this, mStreamReader, f);
     }
 
-    @Override
     protected void skipTree()
         throws XMLStreamException
     {
@@ -150,28 +149,6 @@ public class SMHierarchicCursor
             skipSubTree(0);
         } else {
             skipSubTree(1);
-        }
-    }
-
-    /**
-     * @param depth Number of enclosing 'extra' START_ELEMENTs to match;
-     *   usually either 0 or 1
-     */
-    protected void skipSubTree(int depth)
-        throws XMLStreamException
-    {
-        while (true) {
-            int type = mStreamReader.next();
-            if (type == XMLStreamConstants.START_ELEMENT) {
-                ++depth;
-            } else if (type == XMLStreamConstants.END_ELEMENT) {
-                if (--depth < 0) {
-                    break;
-                }
-            } else if (type == XMLStreamConstants.END_DOCUMENT) {
-                // An error...
-                throw new IllegalStateException("Unexpected END_DOCUMENT encountered when skipping a sub-tree.");
-            }
         }
     }
 }

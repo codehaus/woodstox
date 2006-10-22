@@ -14,7 +14,7 @@ import org.codehaus.staxmate.in.*;
 public class TestFilter
     extends BaseReaderTest
 {
-    public void testElementFilter()
+    public void testChildElementFilter()
         throws Exception
     {
         String XML = "<!-- foo --><root>text<branch /><!-- comment -->  </root>";
@@ -30,7 +30,28 @@ public class TestFilter
         assertNull(rootc.getNext());
     }
 
-    public void testTextFilter()
+    public void testDescendantElementFilter()
+        throws Exception
+    {
+        String XML = "<?pi data?><root>"
+            +"text<branch>2</branch><!-- comment -->123</root>";
+        XMLInputFactory inf = XMLInputFactory.newInstance();
+        inf.setProperty(XMLInputFactory.IS_COALESCING, Boolean.TRUE);
+        XMLStreamReader sr = inf.createXMLStreamReader(new StringReader(XML));
+        SMInputCursor crsr = SMInputFactory.flatteningCursor(sr, SMFilterFactory.getElementOnlyFilter());
+
+        assertEquals(SMEvent.START_ELEMENT, crsr.getNext());
+        assertEquals("root", crsr.getLocalName());
+        assertEquals(SMEvent.START_ELEMENT, crsr.getNext());
+        assertEquals("branch", crsr.getLocalName());
+        assertEquals(SMEvent.END_ELEMENT, crsr.getNext());
+        assertEquals("branch", crsr.getLocalName());
+        assertEquals(SMEvent.END_ELEMENT, crsr.getNext());
+        assertEquals("root", crsr.getLocalName());
+        assertNull(crsr.getNext());
+    }
+
+    public void testChildTextFilter()
         throws Exception
     {
         String XML = "<!-- foo --><root>text<branch /><!-- comment --> x </root>";
@@ -50,6 +71,78 @@ public class TestFilter
         assertNull(leafc.getNext());
 
         assertNull(rootc.getNext());
+    }
+
+    public void testDescendantTextFilter()
+        throws Exception
+    {
+        String XML = "<?pi?><root>"
+            +"ab<branch>c</branch>de<!-- comment -->f<foo />gh</root>";
+        XMLStreamReader sr = XMLInputFactory.newInstance().createXMLStreamReader(new StringReader(XML));
+        SMInputCursor crsr = SMInputFactory.flatteningCursor(sr, SMFilterFactory.getTextOnlyFilter());
+        StringBuilder sb = new StringBuilder();
+        while (crsr.getNext() != null) {
+            sb.append(crsr.getText());
+        }
+        assertEquals("abcdefgh", sb.toString());
+    }
+
+    public void testChildMixedFilter()
+        throws Exception
+    {
+        String XML = "  <?pi data?><root>"
+            +"text<branch>2</branch><!-- comment -->123</root>";
+        XMLInputFactory inf = XMLInputFactory.newInstance();
+        inf.setProperty(XMLInputFactory.IS_COALESCING, Boolean.TRUE);
+        XMLStreamReader sr = inf.createXMLStreamReader(new StringReader(XML));
+        SMInputCursor rootc = SMInputFactory.rootElementCursor(sr);
+        rootc.getNext();
+        SMInputCursor branchc = rootc.childMixedCursor();
+        assertEquals(SMEvent.TEXT, branchc.getNext());
+        assertEquals("text", branchc.getText());
+        assertEquals(SMEvent.START_ELEMENT, branchc.getNext());
+        assertEquals("branch", branchc.getLocalName());
+        SMInputCursor leafc = branchc.childMixedCursor();
+        assertEquals(SMEvent.TEXT, leafc.getNext());
+        assertEquals("2", leafc.getText());
+        assertNull(leafc.getNext());
+
+        assertEquals(SMEvent.TEXT, branchc.getNext());
+        assertEquals("123", branchc.getText());
+        assertNull(branchc.getNext());
+
+        assertNull(rootc.getNext());
+    }
+
+    /**
+     * Simple test for a flattening mixed (text, start/end element)
+     * cursor
+     */
+    public void testDescendantMixedFilter()
+        throws Exception
+    {
+        String XML = "<?pi data?><root>"
+            +"text<branch>2</branch><!-- comment -->123</root>";
+        XMLInputFactory inf = XMLInputFactory.newInstance();
+        inf.setProperty(XMLInputFactory.IS_COALESCING, Boolean.TRUE);
+        XMLStreamReader sr = inf.createXMLStreamReader(new StringReader(XML));
+        SMInputCursor crsr = SMInputFactory.flatteningCursor(sr, SMFilterFactory.getMixedFilter());
+
+        assertEquals(SMEvent.START_ELEMENT, crsr.getNext());
+        assertEquals("root", crsr.getLocalName());
+        assertEquals(SMEvent.TEXT, crsr.getNext());
+        assertEquals("text", crsr.getText());
+        assertEquals(SMEvent.START_ELEMENT, crsr.getNext());
+        assertEquals("branch", crsr.getLocalName());
+        assertEquals(SMEvent.TEXT, crsr.getNext());
+        assertEquals("2", crsr.getText());
+        assertEquals(SMEvent.END_ELEMENT, crsr.getNext());
+        assertEquals("branch", crsr.getLocalName());
+        assertEquals(SMEvent.TEXT, crsr.getNext());
+        assertEquals("123", crsr.getText());
+        assertEquals(SMEvent.END_ELEMENT, crsr.getNext());
+        assertEquals("root", crsr.getLocalName());
+        assertNull(crsr.getNext());
     }
 }
 

@@ -32,7 +32,8 @@ public class TestTextInput
     {
         QName pn = parentCrsr.getQName();
         System.out.println("<"+pn+">");
-        SMInputCursor crsr = parentCrsr.childCursor(SMFilterFactory.getTextOnlyFilter());
+        //SMInputCursor crsr = parentCrsr.childCursor(SMFilterFactory.getTextOnlyFilter());
+        SMInputCursor crsr = parentCrsr.descendantCursor(SMFilterFactory.getTextOnlyFilter());
         SMEvent type;
         while ((type = crsr.getNext()) != null) {
             System.out.print("["+type+"]");
