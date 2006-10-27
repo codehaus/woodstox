@@ -42,8 +42,9 @@
         <attribute name="Implementation-Title"   value="Sample UUID Server"/>
         <attribute name="Implementation-Version" value="1.0"/>
         <attribute name="Implementation-Vendor"  value="www.cowtowncoder.com"/>
+        <attribute name="Main-Class" value="sample.UuidClient"/>
       </manifest>
-      <fileset dir="${build.classes.dir}" includes="**/*.class" />
+      <fileset dir="${build.classes.dir}" includes="**/*Client*.class" />
     </jar>
   </target>
 
@@ -55,7 +56,9 @@
         <lib dir="${basedir}/lib">
 			<include name="*.jar"/>
         </lib>
-        <classes dir="${build.classes.dir}" />
+        <classes dir="${build.classes.dir}">
+			<include name="sample/*Serv*.class"/>
+        </classes>
         <fileset dir="${basedir}/html" />
 	    <exclude name="**/*"/>
 	  </war>
