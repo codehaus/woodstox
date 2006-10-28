@@ -21,14 +21,25 @@ public final class UuidClient
     final static int BUNDLE_SIZE = 10;
 
     /**
+     * Let's spin up new threads 500 msec apart.
+     */
+    final static long THREAD_RAMPUP_DELAY = 1000L;
+
+    /**
      * Available options; key is option name, value default value
      */
     final static Map<String,String> OPTIONS = new HashMap<String,String>();
     static {
+        // First, generic:
         OPTIONS.put("threadCount", "10");
+
+        // Then http options:
         OPTIONS.put("httpMethod", "GET");
-        OPTIONS.put("uuidMethod", "RANDOM");
         OPTIONS.put("pipeline", "true");
+
+        // And then request params;
+        OPTIONS.put("arg-method", "RANDOM");
+        OPTIONS.put("arg-count", "1");
     }
 
     // // // Stats counts, locking
@@ -49,15 +60,15 @@ public final class UuidClient
 
     final boolean mUsePipelining;
 
+    // // // Request, state etc
+
     final String mXmlRequest;
 
-    // // // Request state etc
-
-    final byte[] mInputBuffer = new byte[4000];
+    final byte[] mInputBuffer = new byte[8000];
 
     private UuidClient(URL methodURL, int threadId, boolean isPost,
-                       String uuidMethod,
-                       boolean pipeline)
+                       boolean pipeline,
+                       String paramMethod, String paramCount)
     {
         mMethodURL = methodURL;
         mThreadId = threadId;
@@ -65,7 +76,7 @@ public final class UuidClient
         mUsePipelining = pipeline;
 
         if (mIsPost) {
-            // !!! TBI
+            // !!! TBI: need to build xml doc
             mXmlRequest = "";
         } else {
             mXmlRequest = "";
@@ -76,9 +87,13 @@ public final class UuidClient
     {
         int counter = 0;
         try {
+            // Let's print only first 2 thread's responses, for now:
+            if (mThreadId < 2) {
+                fetchUsingJdk(true);
+            }
             while (true) {
                 for (int i = 0; i < BUNDLE_SIZE; ++i) {
-                    fetchUsingJdk(counter);
+                    fetchUsingJdk(false);
                     ++counter;
                 }
                 synchronized (sStatLock) {
@@ -96,7 +111,7 @@ public final class UuidClient
         }
     }
 
-    private void fetchUsingJdk(int seqNr)
+    private void fetchUsingJdk(boolean printResp)
         throws IOException
     {
         HttpURLConnection conn = (HttpURLConnection) mMethodURL.openConnection();
@@ -126,8 +141,18 @@ public final class UuidClient
                 System.err.println("Warning: got an empty reply");
             }
             
-            if (seqNr == 0) {
-                System.out.println("First request("+mThreadId+"), resp code: "+respCode+"; contents("+count+"): ["+new String(mInputBuffer, 0, count)+"]");
+            if (printResp) {
+                final int MAX_LEN = 500;
+                String str;
+                if (count > MAX_LEN) { // let's truncate
+                    int len2 = MAX_LEN/2;
+                    str = new String(mInputBuffer, 0, len2)
+                        + "]..[" + new String(mInputBuffer, count - len2, len2)
+                        +"(truncated)";
+                } else {
+                    str = new String(mInputBuffer, 0, count);
+                }
+                System.out.println("First request("+mThreadId+"), length "+count+" bytes, resp code: "+respCode+"; contents("+count+"): ["+str+"]");
             }
         } catch (IOException ioe) {
             System.err.println("Warning: i/o error on read: "+ioe);
@@ -209,7 +234,8 @@ public final class UuidClient
 
         // Parsing is not very robust: should improve it in future
         int tc = Integer.parseInt(opts.get("threadCount"));
-        String uuidMethod = opts.get("uuidMethod");
+        String argMethod = opts.get("arg-method");
+        String argCount = opts.get("arg-count");
         // should check that it's valid?
         String httpMethod = opts.get("httpMethod");
         boolean isPost = httpMethod.equals("POST");
@@ -224,7 +250,8 @@ public final class UuidClient
             } else {
                 urlStr += "&";
             }
-            urlStr += "method="+uuidMethod+"&count=1";
+            urlStr += "method="+argMethod;
+            urlStr += "&count="+argCount;
         }
         URL url = null;
         try {
@@ -235,9 +262,14 @@ public final class UuidClient
         }
         System.out.println("Using URL: "+url.toExternalForm());
         boolean enablePipeline = Boolean.valueOf(opts.get("pipeline"));
+        System.out.println();
+
+        System.out.println("Settings:");
+        System.out.println("Use HTTP pipelining: "+enablePipeline);
 
         System.out.println("Starting staggered creation of "+tc+" request threads...");
-        // First, let's create the "prototype" thread, with config
+
+        // First, let's create the metrics/stats thread:
         {
             Thread t = new Thread() {
                     public void run() {
@@ -249,19 +281,19 @@ public final class UuidClient
 
         // And then the actual request threads
         for (int i = 0; i < tc; ++i) {
-            System.out.println("Creating thread #"+i);
-            Thread t = new Thread(new UuidClient(url, i, isPost,
-                                                 uuidMethod, enablePipeline));
-            synchronized (sThreadLock) {
-                ++sThreadCount;
-            }
-            t.start();
-            try { // let's sleep 0.1 secs between rounds...
-                Thread.sleep(100L);
+            try { // let's sleep a bit between adding new threads
+                Thread.sleep(THREAD_RAMPUP_DELAY);
             } catch (InterruptedException ie) {
                 System.err.println("Error: interrupted, need to bail out!");
                 return;
             }
+            System.out.println("Creating thread #"+i);
+            Thread t = new Thread(new UuidClient(url, i, isPost, enablePipeline,
+                                                 argMethod, argCount));
+            synchronized (sThreadLock) {
+                ++sThreadCount;
+            }
+            t.start();
         }
 
         // All started... can exit the main method

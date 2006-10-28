@@ -2,6 +2,7 @@ package sample;
 
 import java.io.*;
 import java.util.*;
+import javax.servlet.*;
 import javax.servlet.http.*;
 // Stax API:
 import javax.xml.stream.XMLStreamException;
@@ -53,8 +54,16 @@ import org.safehaus.uuid.UUIDGenerator;
  *   </li>
  *  </ul>
  */
-public class UuidServlet extends HttpServlet
+public class UuidServlet
+    extends HttpServlet
 {
+    /**
+     * Enumeration used to define UUID generation types
+     */
+    enum UUIDMethod {
+        RANDOM, TIME, NAME
+    }
+
     /**
      * Let's limit total number of UUIDs we will return for any
      * request, just as a simple protection against greedy clients
@@ -69,13 +78,59 @@ public class UuidServlet extends HttpServlet
      */
     final EthernetAddress mMacAddress;
 
+    // // // Statistics:
+
+    /**
+     * Flag to set to enable keeping of metrics
+     */
+    volatile boolean mCfgUpdateMetrics = true;
+
+    /**
+     * Total number of requests served since the server started
+     */
+    int mRequestsServed = 0;
+
+    /**
+     * Total number of requests of which service method is active
+     * (entered, not yet exited)
+     */
+    int mActiveRequests = 0;
+
+    MyMetrics mMetrics = null;
+
     public UuidServlet() {
         mMacAddress = UUIDGenerator.getInstance().getDummyAddress();
     }
 
+    @Override
+    public void init(ServletConfig cfg)
+    {
+        // Independent of whether metrics are enabled, let's start thread
+        mMetrics = new MyMetrics(this);
+        mMetrics.startRunning();
+    }
+
+    @Override
+    public void destroy()
+    {
+        if (mMetrics != null) {
+            MyMetrics mm = mMetrics;
+            mMetrics = null;
+            mm.stopRunning();
+        }
+    }
+
+    @Override
     public void doGet(HttpServletRequest req, HttpServletResponse resp)
         throws IOException
     {
+        final boolean doStats = mCfgUpdateMetrics;
+        if (doStats) {
+            synchronized (this) {
+                ++mActiveRequests;
+            }
+        }
+
         try {
             // First, let's determine the method to use
             UUIDMethod method = determineMethod(req.getParameter("method"));
@@ -91,12 +146,27 @@ public class UuidServlet extends HttpServlet
             writeResponse(resp, uuids, origCount);
         } catch (Throwable t) {
             reportProblem(resp, null, t);
+        } finally {
+            if (doStats) {
+                synchronized (this) {
+                    --mActiveRequests;
+                    ++mRequestsServed;
+                }
+            }
         }
     }
 
+    @Override
     public void doPost(HttpServletRequest req, HttpServletResponse resp)
         throws IOException
     {
+        final boolean doStats = mCfgUpdateMetrics;
+        if (doStats) {
+            synchronized (this) {
+                ++mActiveRequests;
+            }
+        }
+
         try {
             // Let's use the global Stax factory for the example
             InputStream in = req.getInputStream();
@@ -140,6 +210,13 @@ public class UuidServlet extends HttpServlet
             writeResponse(resp, uuids, totalReq);
         } catch (Throwable t) {
             reportProblem(resp, "Failed to process POST request", t);
+        } finally {
+            if (doStats) {
+                synchronized (this) {
+                    --mActiveRequests;
+                    ++mRequestsServed;
+                }
+            }
         }
     }
 
@@ -281,10 +358,87 @@ public class UuidServlet extends HttpServlet
         }
     }
 
-    /**
-     * Enumeration used to define UUID generation types
-     */
-    enum UUIDMethod {
-        RANDOM, TIME, NAME
+    // // // Stats, metrics
+
+    private int printMetrics(int prevReqs, long msecs)
+    {
+        int currReqs = mRequestsServed;
+
+        /* Could (should) sync; but it's only for informational purposes
+         * (human consumption) so let's just display as is
+         */
+        if (mCfgUpdateMetrics) {
+            int done = currReqs - prevReqs;
+            if (msecs == 0) {
+                System.out.println("Warning: zero duration passed in");
+                msecs = 1;
+            }
+            System.out.println("Requests active "+mActiveRequests+", served: "+done+" ("+(done * 1000 / msecs)+" per second)");
+        }
+
+        return currReqs;
+    }
+
+    final class MyMetrics
+        implements Runnable
+    {
+        final static long METRICS_SLEEP = 2000L;
+
+        final UuidServlet mParent;
+
+        Thread mThread;
+
+        boolean mRunning = false;
+
+        int mLastCount = 0;
+
+        public MyMetrics(UuidServlet parent)
+        {
+            mParent = parent;
+        }
+
+        public synchronized void startRunning()
+        {
+            if (!mRunning) {
+                mThread = new Thread(this);
+                mRunning = true;
+                mThread.start();
+            }
+        }
+
+        public synchronized void stopRunning()
+        {
+            if (mRunning) {
+                Thread t = mThread;
+                mThread = null;
+                mRunning = false;
+                this.notify();
+            }
+        }
+
+        public void run()
+        {
+            System.out.println("Starting metrics thread.");
+            int prevReqs = 0;
+            long prevTime = System.currentTimeMillis();
+            while (true) {
+                synchronized (this) {
+                    if (!mRunning) {
+                        break;
+                    }
+                }
+                try {
+                    Thread.sleep(METRICS_SLEEP);
+                } catch (InterruptedException ie) {
+                    System.out.println("Warning: interrupted sleep");
+                    continue; // most likely stopping it for good
+                }
+
+                long now = System.currentTimeMillis();
+                prevReqs = mParent.printMetrics(prevReqs, (now - prevTime));
+                prevTime = now;
+            }
+            System.out.println("Stopping metrics thread.");
+        }
     }
 }
