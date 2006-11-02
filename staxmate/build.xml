@@ -6,7 +6,7 @@
 
     <!-- Woodstox version -->
     <property name="STAXMATE_TITLE" value="StaxMate" />
-    <property name="STAXMATE_VERSION" value="0.9.1" />
+    <property name="STAXMATE_VERSION" value="0.9.2" />
     <property name="STAXMATE_VENDOR" value="http://woodstox.codehaus.org" />
 
     <property name="ProjectName" value="StaxMate library" />
