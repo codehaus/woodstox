@@ -377,22 +377,26 @@ public final class TextBuffer
                         return (mResultString = "");
                     }
                     mResultString = new String(mInputBuffer, mInputStart, mInputLen);
-                } else { // nope 
-                    int size = size();
-                    if (size < 1) {
-                        return (mResultString = "");
-                    }
-                    StringBuffer sb = new StringBuffer(size);
-                    // First stored segments
-                    if (mSegments != null) {
-                        for (int i = 0, len = mSegments.size(); i < len; ++i) {
-                            char[] curr = (char[]) mSegments.get(i);
-                            sb.append(curr, 0, curr.length);
+                } else { // nope... need to copy
+                    // But first, let's see if we have just one buffer
+                    int segLen = mSegmentSize;
+                    int currLen = mCurrentSize;
+                    
+                    if (segLen == 0) { // yup
+                        mResultString = (currLen == 0) ? "" : new String(mCurrentSegment, 0, currLen);
+                    } else { // no, need to combine
+                        StringBuffer sb = new StringBuffer(segLen + currLen);
+                        // First stored segments
+                        if (mSegments != null) {
+                            for (int i = 0, len = mSegments.size(); i < len; ++i) {
+                                char[] curr = (char[]) mSegments.get(i);
+                                sb.append(curr, 0, curr.length);
+                            }
                         }
+                        // And finally, current segment:
+                        sb.append(mCurrentSegment, 0, mCurrentSize);
+                        mResultString = sb.toString();
                     }
-                    // And finally, current segment:
-                    sb.append(mCurrentSegment, 0, mCurrentSize);
-                    mResultString = sb.toString();
                 }
             }
         }
