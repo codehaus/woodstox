@@ -280,7 +280,10 @@ public class UuidServlet
             if (t != null) {
                 SMOutputElement elem = rootElem.addElement("cause");
                 elem.addAttribute("type", t.getClass().toString());
-                elem.addCharacters(t.getMessage());
+                String emsg = t.getMessage();
+                if (emsg != null) {
+                    elem.addCharacters(emsg);
+                }
             }
             ((SMOutputDocument)rootElem.getParent()).closeRoot();
         } catch (XMLStreamException strex) {
