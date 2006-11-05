@@ -88,9 +88,9 @@ public final class ISOLatin1XmlWriter
                     outBuf[ptr++] = (byte) cbuf[offset];
                 }
             }
+            mOutputPtr = ptr;
             len -= max;
         }
-        mOutputPtr = ptr;
     }
 
     public void writeRaw(String str, int offset, int len)
@@ -141,9 +141,9 @@ public final class ISOLatin1XmlWriter
                     outBuf[ptr++] = (byte) str.charAt(offset);
                 }
             }
+            mOutputPtr = ptr;
             len -= max;
         }
-        mOutputPtr = ptr;
     }
 
     protected void writeAttrValue(String data)

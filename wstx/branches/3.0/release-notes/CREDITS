@@ -211,3 +211,10 @@ Oleg Rudenko:
   * Reported [WSTX-83], contributed a patch for it: NPE in ElemAttrs
     for namespace URI checks.
     [3.0.2/3.1]
+
+Pavol Vaskovic:
+  * Reported [WSTX-87], and documented the problem (including a unit test)
+    which allowed otherwise hard-to-track problem to be quite easily
+    resolved. Problem was that event writer could produce non-wellformed
+    output for medium/large-sized content, when using Latin1 encoding.
+    [3.0.3/3.1]

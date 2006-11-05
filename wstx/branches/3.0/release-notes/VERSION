@@ -1,10 +1,19 @@
-Version: 3.0.2
+Version: 3.0.3
 
-Release date: 27-Sep-2006
+Release date: xx-Nov-2006
 
 Description:
-  The second patch release for 3.0.0.
+  The third patch release for 3.0.
   Contains critical fixes to the stable branch as reported by users.
+
+Problems fixed:
+
+  * [WSTX-87] Output done using Latin-1 encoding was sometimes
+    non-wellformed (with truncated element names)
+
+== History: ==
+
+3.0.2 [27-Sep-2006]
 
 Problems fixed:
 
@@ -16,15 +25,13 @@ Problems fixed:
   * [WSTX-83] One more NPE in ElemAttrs for namespace URI checks.
     (reported by Oleg R)
 
-== History: ==
-
 3.0.1 [29-Aug-2006]
 
   Problems fixed:
 
   * [WSTX-69] Incorrect types returned by XMLStreamReader, when
     notations/entities are requested.
-    (report by Michael K)
+    (reported by Michael K)
   * [WSTX-72] Closing of output streams/writers in cases where that should
     not be done (plus similar problems on input side)
     (reported by Matt S)

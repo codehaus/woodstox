@@ -1,14 +1,20 @@
 Version: 3.1.0 (3.1-final)
 
-Release date: 02-Nov-2006
+Release date: 04-Nov-2006
 
 Description:
-  3.1 final release. Due to lack of bug reports, the first release
-  candidate is released as is.
+  3.1 final release. Only one bug was found since the first release
+  candidate, so a release was done after fixing that problem.
+
   3.1 release contains new features and improvements to existing ones
   that were not done for 3.0, due to significant internal changes needed,
   but that do not result in significant API changes. Changes that need
   significant API changes will need to go in 4.0 release.
+
+  Problems fixed:
+
+  * [WSTX-87] Output done using Latin-1 encoding was sometimes
+    non-wellformed (with truncated element names)
 
 == History: ==
 
