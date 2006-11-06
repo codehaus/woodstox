@@ -72,6 +72,15 @@ public class UuidServlet
     final static int MAX_UUIDS_PER_REQUEST = 100;
 
     /**
+     * This constant determines amount of artificial delay (in milliseconds)
+     * to add
+     * before sending the reply. Value of 0 or below denotes "no delay".
+     * Delay can be added to experiment with effects of high latency
+     * requests to the throughput.
+     */
+    final static int REPLY_DELAY = 100;
+
+    /**
      * Could require Ethernet address to be passed, or could use
      * JNI-based access: but for now, let's just generate a
      * dummy (multicast) address.
@@ -143,6 +152,18 @@ public class UuidServlet
                 count = MAX_UUIDS_PER_REQUEST;
             }
             List<UUID> uuids = generateUuids(method, count, name);
+            /* Could choose to add delay after calculating the response,
+             * or before. Shouldn't matter too much.
+             */
+            if (REPLY_DELAY > 0) {
+                try {
+                    Thread.sleep(REPLY_DELAY);
+                } catch (InterruptedException ie) {
+                    System.err.println("Warning: delay sleep interrupted, skipping reply");
+                    // Most likely server shutting down -- let's skip reply
+                    return;
+                }
+            }
             writeResponse(resp, uuids, origCount);
         } catch (Throwable t) {
             reportProblem(resp, null, t);

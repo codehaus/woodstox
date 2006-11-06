@@ -33,6 +33,8 @@
      <!-- Use this connector if NIO is not available
           (or for cases where traditional is likely to outperform it)
      -->
+<!--
+-->
     <Call name="addConnector">
       <Arg>
           <New class="org.mortbay.jetty.bio.SocketConnector">
@@ -42,8 +44,6 @@
           </New>
       </Arg>
     </Call>
-<!--
--->
 
    <!-- =========================================================== -->
     <!-- Set handler Collection Structure                            --> 
