@@ -31,9 +31,9 @@ import org.safehaus.uuid.UUIDGenerator;
  * Here's sample xml request format:
  *<pre>
  *  &lt;request>
- *   &lt;generate-uuid method="random" />
- *   &lt;generate-uuid method="location" count="3" />
- *   &lt;generate-uuid method="name">http://www.cowtowncoder.com/foo&lt;/generate-uuid>
+ *   &lt;generate-uuid method="RANDOM" />
+ *   &lt;generate-uuid method="LOCATION" count="3" />
+ *   &lt;generate-uuid method="NAME">http://www.cowtowncoder.com/foo&lt;/generate-uuid>
  *  &lt;/request>
  *</pre>
  *<p>
@@ -78,7 +78,8 @@ public class UuidServlet
      * Delay can be added to experiment with effects of high latency
      * requests to the throughput.
      */
-    final static int REPLY_DELAY = 100;
+    //final static int REPLY_DELAY = 100;
+    final static int REPLY_DELAY = 0;
 
     /**
      * Could require Ethernet address to be passed, or could use

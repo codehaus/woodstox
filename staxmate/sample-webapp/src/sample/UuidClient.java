@@ -21,9 +21,14 @@ public final class UuidClient
     final static int BUNDLE_SIZE = 10;
 
     /**
-     * Let's spin up new threads 500 msec apart.
+     * Let's spin up new threads 1000 msec apart, at first
      */
     final static long THREAD_RAMPUP_DELAY = 1000L;
+
+    /**
+     * After 10 threads, let's speed up thread ramp up
+     */
+    final static int FAST_THREAD_RAMPUP = 10;
 
     /**
      * Available options; key is option name, value default value
@@ -62,9 +67,9 @@ public final class UuidClient
 
     // // // Request, state etc
 
-    final String mXmlRequest;
-
     final byte[] mInputBuffer = new byte[8000];
+
+    final byte[] mPostRequest;
 
     private UuidClient(URL methodURL, int threadId, boolean isPost,
                        boolean pipeline,
@@ -76,10 +81,17 @@ public final class UuidClient
         mUsePipelining = pipeline;
 
         if (mIsPost) {
-            // !!! TBI: need to build xml doc
-            mXmlRequest = "";
+            try {
+                String xml = "<request>\n"
+                    + "<generate-uuid method='"+paramMethod
+                    +"' count='"+paramCount+"' />\n"
+                    +"</request>";
+                    mPostRequest = xml.getBytes("UTF-8");
+            } catch (IOException ioe) {
+                throw new RuntimeException(ioe);
+            }
         } else {
-            mXmlRequest = "";
+            mPostRequest = null;
         }
     }
 
@@ -122,14 +134,21 @@ public final class UuidClient
         }
         
         conn.setDoInput(true);
-        conn.setDoOutput(mIsPost);
         conn.setUseCaches(false);
-        conn.connect();
 
         if (mIsPost) {
-            // !!! TBI
+            conn.setRequestMethod("POST");
+            conn.setDoOutput(true);
+            OutputStream os = conn.getOutputStream();
+            os.write(mPostRequest);
+            os.close();
+        } else {
+            // default is GET, no need to (re)set
+            conn.setDoOutput(false);
         }
         
+        conn.connect();
+
         int respCode = conn.getResponseCode();
         InputStream in = conn.getInputStream();
         
@@ -152,7 +171,12 @@ public final class UuidClient
                 } else {
                     str = new String(mInputBuffer, 0, count);
                 }
-                System.out.println("First request("+mThreadId+"), length "+count+" bytes, resp code: "+respCode+"; contents("+count+"): ["+str+"]");
+                String msg = "First request(#"+mThreadId;
+                if (mPostRequest != null) {
+                    String pm = new String(mPostRequest, "UTF-8");
+                    msg += ", xml='"+pm+"' ("+pm.length()+" bytes)";
+                }
+                System.out.println(msg+"), length "+count+" bytes, resp code: "+respCode+"; contents("+count+"): ["+str+"]");
             }
         } catch (IOException ioe) {
             System.err.println("Warning: i/o error on read: "+ioe);
@@ -282,7 +306,11 @@ public final class UuidClient
         // And then the actual request threads
         for (int i = 0; i < tc; ++i) {
             try { // let's sleep a bit between adding new threads
-                Thread.sleep(THREAD_RAMPUP_DELAY);
+                long delay = THREAD_RAMPUP_DELAY;
+                if (i >= FAST_THREAD_RAMPUP) { // so 100 threads won't take too long
+                    delay >>= 1;
+                }
+                Thread.sleep(delay);
             } catch (InterruptedException ie) {
                 System.err.println("Error: interrupted, need to bail out!");
                 return;
