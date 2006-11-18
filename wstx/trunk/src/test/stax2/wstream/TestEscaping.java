@@ -76,4 +76,31 @@ public class TestEscaping
         
         sr.close();
     }
+
+    public void testLatin1Quoting()
+        throws XMLStreamException
+    {
+        final String TEXT = "ab\u00A0cd\tef\u00D8gh\u3c00...";
+
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        XMLStreamWriter2 w = getNonRepairingWriter(bos, "ISO-8859-1", true);
+
+        w.writeStartDocument();
+        w.writeStartElement("root");
+        w.writeCharacters(TEXT);
+        w.writeEndElement();
+        w.writeEndDocument();
+        w.close();
+
+        InputStream in = new ByteArrayInputStream(bos.toByteArray());
+        XMLStreamReader sr = constructNsStreamReader(in, true);
+        assertTokenType(START_DOCUMENT, sr.getEventType());
+        assertTokenType(START_ELEMENT, sr.next());
+        assertEquals("root", sr.getLocalName());
+        assertTokenType(CHARACTERS, sr.next());
+
+        assertEquals(TEXT, sr.getText());
+
+        assertTokenType(END_ELEMENT, sr.next());
+    }
 }

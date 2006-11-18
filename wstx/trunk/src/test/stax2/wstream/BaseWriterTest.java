@@ -37,4 +37,26 @@ public class BaseWriterTest
                       Boolean.valueOf(nsAware));
         return (XMLStreamWriter2) f.createXMLStreamWriter(w);
     }
+
+    public XMLStreamWriter2 getNonRepairingWriter(Writer w, String enc, boolean nsAware)
+        throws XMLStreamException
+    {
+        XMLOutputFactory2 f = getOutputFactory();
+        f.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES,
+                      Boolean.FALSE);
+        f.setProperty(XMLStreamProperties.XSP_NAMESPACE_AWARE,
+                      Boolean.valueOf(nsAware));
+        return (XMLStreamWriter2) f.createXMLStreamWriter(w, enc);
+    }
+
+    public XMLStreamWriter2 getNonRepairingWriter(OutputStream os, String enc, boolean nsAware)
+        throws XMLStreamException
+    {
+        XMLOutputFactory2 f = getOutputFactory();
+        f.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES,
+                      Boolean.FALSE);
+        f.setProperty(XMLStreamProperties.XSP_NAMESPACE_AWARE,
+                      Boolean.valueOf(nsAware));
+        return (XMLStreamWriter2) f.createXMLStreamWriter(os, enc);
+    }
 }

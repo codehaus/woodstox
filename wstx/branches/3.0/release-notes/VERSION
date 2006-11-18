@@ -10,6 +10,10 @@ Problems fixed:
 
   * [WSTX-87] Output done using Latin-1 encoding was sometimes
     non-wellformed (with truncated element names)
+    (reported by Pavol V)
+  * [WSTX-88] Quoting of characters in high range (0x80 - 0xFF) was not
+    working correctly for Latin1 output
+    (reported by Michael H)
 
 == History: ==
 

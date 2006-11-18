@@ -1640,4 +1640,10 @@ public abstract class BaseStreamWriter
         return false;
     }
     */
+
+    public String toString()
+    {
+        return "[StreamWriter: "+getClass()+", underlying outputter: "
+            +((mWriter == null) ? "NULL" : mWriter.toString());
+    }
 }

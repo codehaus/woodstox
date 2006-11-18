@@ -198,6 +198,7 @@ public final class ISOLatin1XmlWriter
                     // otherwise fall back on quoting
                 } else if (c > 0x9F && c <= 0xFF) {
                     outBuf[ptr++] = (byte) c;
+                    continue; // [WSTX-88]
                 } else {
                     // Surrogate?
                     if (c >= SURR1_FIRST && c <= SURR2_LAST) {
@@ -566,6 +567,7 @@ public final class ISOLatin1XmlWriter
                     // otherwise fall back on quoting
                 } else if (c > 0x9F && c <= 0xFF) {
                     outBuf[ptr++] = (byte) c;
+                    continue; // [WSTX-88]
                 } else {
                     // Surrogate?
                     if (c >= SURR1_FIRST && c <= SURR2_LAST) {
@@ -645,6 +647,7 @@ public final class ISOLatin1XmlWriter
                     // otherwise fall back on quoting
                 } else if (c > 0x9F && c <= 0xFF) {
                     outBuf[ptr++] = (byte) c;
+                    continue; // [WSTX-88]
                 } else {
                     // Surrogate?
                     if (c >= SURR1_FIRST && c <= SURR2_LAST) {

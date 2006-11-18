@@ -1,6 +1,6 @@
 package stax2;
 
-import java.io.StringReader;
+import java.io.*;
 
 import javax.xml.stream.*;
 
@@ -31,6 +31,15 @@ public class BaseStax2Test
         setNamespaceAware(f, true);
         setCoalescing(f, coal);
         return (XMLStreamReader2) f.createXMLStreamReader(new StringReader(content));
+    }
+
+    protected XMLStreamReader2 constructNsStreamReader(InputStream in, boolean coal)
+        throws XMLStreamException
+    {
+        XMLInputFactory f = getInputFactory();
+        setNamespaceAware(f, true);
+        setCoalescing(f, coal);
+        return (XMLStreamReader2) f.createXMLStreamReader(in);
     }
 }
 
