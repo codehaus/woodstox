@@ -7,6 +7,8 @@ import java.util.*;
 import javax.xml.XMLConstants;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 import javax.xml.stream.events.Namespace;
 
 import com.ctc.wstx.compat.JdkFeatures;
@@ -132,11 +134,6 @@ public class MergedNsContext
         return mNamespaces.iterator();
     }
 
-    /**
-     * Method called by the matching start element class to
-     * output all namespace declarations active in current namespace
-     * scope, if any.
-     */
     public void outputNamespaceDeclarations(Writer w) throws IOException
     {
         for (int i = 0, len = mNamespaces.size(); i < len; ++i) {
@@ -150,6 +147,23 @@ public class MergedNsContext
             w.write("=\"");
             w.write(ns.getNamespaceURI());
             w.write('"');
+        }
+    }
+
+    /**
+     * Method called by the matching start element class to
+     * output all namespace declarations active in current namespace
+     * scope, if any.
+     */
+    public void outputNamespaceDeclarations(XMLStreamWriter w) throws XMLStreamException
+    {
+        for (int i = 0, len = mNamespaces.size(); i < len; ++i) {
+            Namespace ns = (Namespace) mNamespaces.get(i);
+            if (ns.isDefaultNamespaceDeclaration()) {
+                w.writeDefaultNamespace(ns.getNamespaceURI());
+            } else {
+                w.writeNamespace(ns.getPrefix(), ns.getNamespaceURI());
+            }
         }
     }
 

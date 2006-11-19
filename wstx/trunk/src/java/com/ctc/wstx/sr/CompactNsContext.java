@@ -7,6 +7,8 @@ import java.util.Iterator;
 
 import javax.xml.XMLConstants;
 import javax.xml.stream.Location;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 
 import com.ctc.wstx.util.BaseNsContext;
 import com.ctc.wstx.util.EmptyIterator;
@@ -224,6 +226,20 @@ public final class CompactNsContext
             w.write("=\"");
             w.write(ns[i+1]);
             w.write('"');
+        }
+    }
+
+    public void outputNamespaceDeclarations(XMLStreamWriter w) throws XMLStreamException
+    {
+        String[] ns = mNamespaces;
+        for (int i = mFirstLocalNs, len = mNsLength; i < len; i += 2) {
+            String nsURI = ns[i+1];
+            String prefix = ns[i];
+            if (prefix != null && prefix.length() > 0) {
+                w.writeNamespace(prefix, nsURI);
+            } else {
+                w.writeDefaultNamespace(nsURI);
+            }
         }
     }
 }

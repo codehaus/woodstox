@@ -216,7 +216,7 @@ public abstract class XmlWriter
     public abstract void writeRaw(String str, int offset, int len)
         throws IOException;
 
-    public final void writeRaw(String str)
+    public void writeRaw(String str)
         throws IOException
     {
         writeRaw(str, 0, str.length());

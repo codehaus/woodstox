@@ -7,6 +7,8 @@ Description:
 
   Problems fixed:
 
+  * StartElement.writeUsing() was not properly outputting attributes.
+
   New features:
 
 == History: ==

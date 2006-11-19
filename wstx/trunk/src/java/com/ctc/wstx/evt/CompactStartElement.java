@@ -10,6 +10,7 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
 import javax.xml.stream.events.Attribute;
 import javax.xml.stream.events.StartElement;
 
@@ -136,6 +137,22 @@ public class CompactStartElement
                 w.write("=\"");
                 TextEscaper.writeEscapedAttrValue(w, raw[i + OFFSET_VALUE]);
                 w.write('"');
+            }
+        }
+    }
+
+    protected void outputNsAndAttr(XMLStreamWriter w) throws XMLStreamException
+    {
+        if (mNsCtxt != null) {
+            mNsCtxt.outputNamespaceDeclarations(w);
+        }
+        String[] raw = mRawAttrs;
+        if (raw != null) {
+            for (int i = 0, len = raw.length; i < len; i += 4) {
+                String ln = raw[i];
+                String prefix = raw[i + OFFSET_NS_PREFIX];
+                String nsURI = raw[i + OFFSET_NS_URI];
+                w.writeAttribute(prefix, nsURI, ln, raw[i + OFFSET_VALUE]);
             }
         }
     }

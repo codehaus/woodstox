@@ -9,6 +9,7 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
 import javax.xml.stream.events.Attribute;
 import javax.xml.stream.events.Namespace;
 import javax.xml.stream.events.StartElement;
@@ -142,6 +143,30 @@ public class SimpleStartElement
                     TextEscaper.writeEscapedAttrValue(w, val);
                 }
                 w.write('"');
+            }
+        }
+    }
+
+    protected void outputNsAndAttr(XMLStreamWriter w) throws XMLStreamException
+    {
+        // First namespace declarations, if any:
+        if (mNsCtxt != null) {
+            mNsCtxt.outputNamespaceDeclarations(w);
+        }
+        // Then attributes, if any:
+        if (mAttrs != null && mAttrs.size() > 0) {
+            Iterator it = mAttrs.values().iterator();
+            while (it.hasNext()) {
+                Attribute attr = (Attribute) it.next();
+                // Let's only output explicit attribute values:
+                if (!attr.isSpecified()) {
+                    continue;
+                }
+                QName name = attr.getName();
+                String prefix = name.getPrefix();
+                String ln = name.getLocalPart();
+                String nsURI = name.getNamespaceURI();
+                w.writeAttribute(prefix, nsURI, ln, attr.getValue());
             }
         }
     }

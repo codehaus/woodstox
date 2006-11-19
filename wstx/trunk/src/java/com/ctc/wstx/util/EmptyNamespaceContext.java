@@ -4,6 +4,7 @@ import java.io.Writer;
 import java.util.Iterator;
 
 import javax.xml.namespace.NamespaceContext;
+import javax.xml.stream.XMLStreamWriter;
 
 /**
  * Dummy {@link NamespaceContext} (and {@link BaseNsContext})
@@ -35,6 +36,11 @@ public final class EmptyNamespaceContext
      * scope, if any.
      */
     public void outputNamespaceDeclarations(Writer w)
+    {
+        ; // nothing to output
+    }
+
+    public void outputNamespaceDeclarations(XMLStreamWriter w)
     {
         ; // nothing to output
     }

@@ -135,7 +135,10 @@ abstract class BaseStartElement
         QName n = mName;
         w.writeStartElement(n.getPrefix(), n.getLocalPart(),
                             n.getNamespaceURI());
+        outputNsAndAttr(w);
     }
 
     protected abstract void outputNsAndAttr(Writer w) throws IOException;
+
+    protected abstract void outputNsAndAttr(XMLStreamWriter w) throws XMLStreamException;
 }

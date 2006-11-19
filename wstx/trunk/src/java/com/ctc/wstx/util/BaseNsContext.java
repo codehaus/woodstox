@@ -23,6 +23,8 @@ import javax.xml.XMLConstants;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
 import javax.xml.stream.Location;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 
 import com.ctc.wstx.cfg.ErrorConsts;
 
@@ -113,6 +115,8 @@ public abstract class BaseNsContext
      * scope, if any.
      */
     public abstract void outputNamespaceDeclarations(Writer w) throws IOException;
+
+    public abstract void outputNamespaceDeclarations(XMLStreamWriter w) throws XMLStreamException;
 
     /*
     /////////////////////////////////////////////////

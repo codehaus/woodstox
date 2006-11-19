@@ -248,6 +248,35 @@ public final class BufferingXmlWriter
         mOut.write(cbuf, offset, len);
     }
 
+    public void writeRaw(String str)
+        throws IOException
+    {
+        if (mOut == null) {
+            return;
+        }
+        final int len = str.length();
+
+        // First; is the new request small or not? If yes, needs to be buffered
+        if (len < mSmallWriteSize) { // yup
+            // Does it fit in with current buffer? If not, need to flush first
+            if ((mOutputPtr + len) >= mOutputBufLen) {
+                flushBuffer();
+            }
+            int ptr = mOutputPtr;
+            /* Note: since it's a small copy, probably faster to copy without
+             * System.arraycopy (which uses JNI)
+             */
+            char[] outBuf = mOutputBuffer;
+            for (int offset = 0; offset < len; ++offset, ++ptr) {
+                outBuf[ptr] = str.charAt(offset);
+            }
+            mOutputPtr = ptr;
+            return;
+        }
+        // Otherwise, let's just call the main method
+        writeRaw(str, 0, len);
+    }
+
     public void writeRaw(String str, int offset, int len)
         throws IOException
     {
@@ -409,63 +438,68 @@ public final class BufferingXmlWriter
         if (mOut == null) {
             return;
         }
-
         if (mTextWriter != null) { // custom escaping?
             mTextWriter.write(text);
-        } else { // nope, default:
-            int offset = 0;
-            int len = text.length();
-            do {
-                int c = 0;
-                int highChar = mEncHighChar;
-                int start = offset;
-                String ent = null;
-                
-                for (; offset < len; ++offset) {
-                    c = text.charAt(offset); 
-                    if (c <= HIGHEST_ENCODABLE_TEXT_CHAR) {
-                        if (c == '<') {
-                            ent = "&lt;";
-                            break;
-                        } else if (c == '&') {
-                            ent = "&amp;";
-                            break;
-                        } else if (c == '>') {
-                            /* Let's be conservative; and if there's any
-                             * change it might be part of "]]>" quote it
-                             */
-                            if ((offset == start) || text.charAt(offset-1) == ']') {
-                                ent = "&gt;";
-                                break;
-                            }
-                        } else if (c < 0x0020) {
-                            if (c == '\n' || c == '\t') { // fine as is
-                                ;
-                            } else {
-                                if (c != '\r' && (!mXml11 || c == 0)) {
-                                    throwInvalidChar(c);
-                                }
-                                break; // need quoting ok
-                            }
-                        }
-                    } else if (c >= highChar) {
-                        break;
-                    }
-                    // otherwise ok
-                }
-                int outLen = offset - start;
-                if (outLen > 0) {
-                    writeRaw(text, start, outLen);
-                } 
-                if (ent != null) {
-                    writeRaw(ent);
-                    ent = null;
-                } else if (offset < len) {
-                    writeAsEntity(c);
-                }
-            } while (++offset < len);
+            return;
         }
-    }    
+        // nope, default encoding:
+        int offset = 0;
+        final int len = text.length();
+        main_loop:
+        do {
+            int c = 0;
+            int highChar = mEncHighChar;
+            int start = offset;
+            String ent = null;
+            
+            for (; offset < len; ++offset) {
+                c = text.charAt(offset); 
+                if (c <= HIGHEST_ENCODABLE_TEXT_CHAR) {
+                    if (c <= 0x0020) {
+                        if (c == ' ' || c == '\n' || c == '\t') { // fine as is
+                            ;
+                        } else {
+                            if (c != '\r' && (!mXml11 || c == 0)) {
+                                throwInvalidChar(c);
+                            }
+                            break; // need quoting ok
+                        }
+                    } else if (c == '<') {
+                        ent = "&lt;";
+                        break;
+                    } else if (c == '&') {
+                        ent = "&amp;";
+                        break;
+                    } else if (c == '>') {
+                        // Let's be conservative; and if there's any
+                        // change it might be part of "]]>" quote it
+                        if ((offset == start) || text.charAt(offset-1) == ']') {
+                            ent = "&gt;";
+                            break;
+                        }
+                    }
+                } else if (c >= highChar) {
+                    break;
+                }
+                // otherwise ok
+            }
+            int outLen = offset - start;
+            if (outLen > 0) {
+                // The whole string as is?
+                if (start == 0 && outLen == len) {
+                    writeRaw(text);
+                    break main_loop;
+                }
+                writeRaw(text, start, outLen);
+            } 
+            if (ent != null) {
+                writeRaw(ent);
+                    ent = null;
+            } else if (offset < len) {
+                writeAsEntity(c);
+            }
+        } while (++offset < len);
+    }
 
     public void writeCharacters(char[] cbuf, int offset, int len)
         throws IOException
@@ -552,7 +586,7 @@ public final class BufferingXmlWriter
             }
         }
         fastWriteRaw("<!--");
-        writeRaw(data, 0, data.length());
+        writeRaw(data);
         fastWriteRaw("-->");
         return -1;
     }
@@ -560,7 +594,7 @@ public final class BufferingXmlWriter
     public void writeDTD(String data)
         throws IOException
     {
-        writeRaw(data, 0, data.length());
+        writeRaw(data);
     }    
 
     public void writeDTD(String rootName, String systemId, String publicId,
@@ -649,7 +683,7 @@ public final class BufferingXmlWriter
             }
             fastWriteRaw(' ');
             // Data may be longer, let's call regular writeRaw method
-            writeRaw(data, 0, data.length());
+            writeRaw(data);
         }
         fastWriteRaw('?', '>');
         return -1;
@@ -1017,7 +1051,7 @@ public final class BufferingXmlWriter
              * method:
              */
             if (len > mOutputBufLen) {
-                writeRaw(str, 0, len);
+                writeRaw(str);
                 return;
             }
             flushBuffer();
@@ -1135,7 +1169,7 @@ public final class BufferingXmlWriter
         // First the special case (last char is hyphen):
         if (index == (len-1)) {
             fastWriteRaw("<!--");
-            writeRaw(content, 0, len);
+            writeRaw(content);
             // we just need to inject one space in there
             fastWriteRaw(" -->");
             return;
