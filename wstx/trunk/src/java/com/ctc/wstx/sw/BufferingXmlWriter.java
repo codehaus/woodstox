@@ -661,21 +661,54 @@ public final class BufferingXmlWriter
     ////////////////////////////////////////////////////
      */
 
-    public void writeStartTagStart(String prefix, String localName)
-        throws IOException, XMLStreamException
+    public void writeStartTagStart(String localName)
+        throws IOException
     {
-        fastWriteRaw('<');
-        if (prefix != null && prefix.length() > 0) {
-            if (mCheckNames) {
-                verifyNameValidity(prefix, mNsAware);
+        int ptr = mOutputPtr;
+        int extra = (mOutputBufLen - ptr) - (1 + localName.length());
+        if (extra < 0) { // split on boundary, slower
+            fastWriteRaw('<');
+            fastWriteRaw(localName);
+        } else {
+            char[] buf = mOutputBuffer;
+            buf[ptr++] = '<';
+            int len = localName.length();
+            for (int i = 0; i < len; ++i) {
+                buf[ptr++] = localName.charAt(i);
             }
+            mOutputPtr = ptr;
+        }
+    }    
+
+    public void writeStartTagStart(String prefix, String localName)
+        throws IOException
+    {
+        if (prefix == null || prefix.length() == 0) { // shouldn't happen
+            writeStartTagStart(localName);
+            return;
+        }
+
+        int ptr = mOutputPtr;
+        int extra = (mOutputBufLen - ptr) - (2 + localName.length() + prefix.length());
+        if (extra < 0) { // across buffer boundary, slow case
+            fastWriteRaw('<');
             fastWriteRaw(prefix);
             fastWriteRaw(':');
+            fastWriteRaw(localName);
+        } else { // fast case, all inlined
+            char[] buf = mOutputBuffer;
+            buf[ptr++] = '<';
+            int len = prefix.length();
+            for (int i = 0; i < len; ++i) {
+                buf[ptr++] = prefix.charAt(i);
+            }
+            buf[ptr++] = ':';
+            len = localName.length();
+            for (int i = 0; i < len; ++i) {
+                buf[ptr++] = localName.charAt(i);
+            }
+            mOutputPtr = ptr;
         }
-        if (mCheckNames) {
-            verifyNameValidity(localName, mNsAware);
-        }
-        fastWriteRaw(localName);
     }    
 
     public void writeStartTagEnd()
@@ -687,23 +720,78 @@ public final class BufferingXmlWriter
     public void writeStartTagEmptyEnd()
         throws IOException
     {
-        fastWriteRaw(" />");
+        int ptr = mOutputPtr;
+        if ((ptr + 3) >= mOutputBufLen) {
+            if (mOut == null) {
+                return;
+            }
+            flushBuffer();
+            ptr = mOutputPtr;
+        }
+        char[] buf = mOutputBuffer;
+        buf[ptr++] = ' ';
+        buf[ptr++] = '/';
+        buf[ptr++] = '>';
+        mOutputPtr = ptr;
+    }    
+
+    public void writeEndTag(String localName)
+        throws IOException
+    {
+        int ptr = mOutputPtr;
+        int extra = (mOutputBufLen - ptr) - (3 + localName.length());
+        if (extra < 0) {
+            fastWriteRaw('<', '/');
+            fastWriteRaw(localName);
+            fastWriteRaw('>');
+        } else {
+            char[] buf = mOutputBuffer;
+            buf[ptr++] = '<';
+            buf[ptr++] = '/';
+            int len = localName.length();
+            for (int i = 0; i < len; ++i) {
+                buf[ptr++] = localName.charAt(i);
+            }
+            buf[ptr++] = '>';
+            mOutputPtr = ptr;
+        }
     }    
 
     public void writeEndTag(String prefix, String localName)
         throws IOException
     {
-        fastWriteRaw('<', '/');
-        /* At this point, it is assumed caller knows that end tag
-         * matches with start tag, and that it (by extension) has been
-         * validated if and as necessary
-         */
-        if (prefix != null && prefix.length() > 0) {
+        if (prefix == null || prefix.length() == 0) {
+            writeEndTag(localName);
+            return;
+        }
+        int ptr = mOutputPtr;
+        int extra = (mOutputBufLen - ptr) - (4 + localName.length() + prefix.length());
+        if (extra < 0) {
+            fastWriteRaw('<', '/');
+            /* At this point, it is assumed caller knows that end tag
+             * matches with start tag, and that it (by extension) has been
+             * validated if and as necessary
+             */
             fastWriteRaw(prefix);
             fastWriteRaw(':');
+            fastWriteRaw(localName);
+            fastWriteRaw('>');
+        } else {
+            char[] buf = mOutputBuffer;
+            buf[ptr++] = '<';
+            buf[ptr++] = '/';
+            int len = prefix.length();
+            for (int i = 0; i < len; ++i) {
+                buf[ptr++] = prefix.charAt(i);
+            }
+            buf[ptr++] = ':';
+            len = localName.length();
+            for (int i = 0; i < len; ++i) {
+                buf[ptr++] = localName.charAt(i);
+            }
+            buf[ptr++] = '>';
+            mOutputPtr = ptr;
         }
-        fastWriteRaw(localName);
-        fastWriteRaw('>');
     }    
 
     /*
@@ -712,26 +800,108 @@ public final class BufferingXmlWriter
     ////////////////////////////////////////////////////
      */
 
-    public void writeAttribute(String prefix, String localName, String value)
-        throws IOException, XMLStreamException
+    public void writeAttribute(String localName, String value)
+        throws IOException
     {
         if (mOut == null) {
             return;
         }
-
         fastWriteRaw(' ');
-        if (prefix != null && prefix.length() > 0) {
-            if (mCheckNames) {
-                verifyNameValidity(prefix, mNsAware);
-            }
-            fastWriteRaw(prefix);
-            fastWriteRaw(':');
-        }
-        if (mCheckNames) {
-            verifyNameValidity(localName, mNsAware);
-        }
         fastWriteRaw(localName);
         fastWriteRaw('=', '"');
+
+        int len = (value == null) ? 0 : value.length();
+        if (len > 0) {
+            if (mAttrValueWriter != null) { // custom escaping?
+                mAttrValueWriter.write(value, 0, len);
+            } else { // nope, default
+                final char qchar = mEncQuoteChar;
+                int offset = 0;
+                int highChar = mEncHighChar;
+
+                do {
+                    int start = offset;
+                    int c = 0;
+                    String ent = null;
+
+                    for (; offset < len; ++offset) {
+                        c = value.charAt(offset);
+                        if (c <= HIGHEST_ENCODABLE_ATTR_CHAR) { // special char?
+                            if (c == qchar) {
+                                ent = mEncQuoteEntity;
+                                break;
+                            } else if (c == '<') {
+                                ent = "&lt;";
+                                break;
+                            } else if (c == '&') {
+                                ent = "&amp;";
+                                break;
+                            } else if (c < 0x0020) { // tab, cr/lf need encoding too
+                                if (c != '\n' && c != '\r' && c != '\t') {
+                                    if (!mXml11 || c == 0) {
+                                        throwInvalidChar(c);
+                                    }
+                                }
+                                break; // need quoting ok
+                            }
+                        } else if (c >= highChar) { // out of range, have to escape
+                            break;
+                        }
+                    }
+                    // otherwise ok
+                    int outLen = offset - start;
+                    if (outLen > 0) {
+                        writeRaw(value, start, outLen);
+                    }
+                    if (ent != null) {
+                        fastWriteRaw(ent);
+                        ent = null;
+                    } else if (offset < len) {
+                        writeAsEntity(c);
+                    }
+                } while (++offset < len);
+            }
+        }
+
+        fastWriteRaw('"');
+    }
+
+    public void writeAttribute(String prefix, String localName, String value)
+        throws IOException
+    {
+        if (mOut == null) {
+            return;
+        }
+        if (prefix == null || prefix.length() == 0) {
+            writeAttribute(localName, value);
+            return;
+        }
+        int ptr = mOutputPtr;
+        int extra = (mOutputBufLen - ptr) - (4 + localName.length() + prefix.length());
+        if (extra < 0) {
+            fastWriteRaw(' ');
+            if (prefix != null && prefix.length() > 0) {
+                fastWriteRaw(prefix);
+                fastWriteRaw(':');
+            }
+            fastWriteRaw(localName);
+            fastWriteRaw('=', '"');
+        } else {
+            char[] buf = mOutputBuffer;
+            buf[ptr++] = ' ';
+            int len = prefix.length();
+            for (int i = 0; i < len; ++i) {
+                buf[ptr++] = prefix.charAt(i);
+            }
+            buf[ptr++] = ':';
+            len = localName.length();
+            for (int i = 0; i < len; ++i) {
+                buf[ptr++] = localName.charAt(i);
+            }
+            buf[ptr++] = '=';
+            buf[ptr++] = '"';
+            mOutputPtr = ptr;
+        }
 
         int len = (value == null) ? 0 : value.length();
         if (len > 0) {
@@ -842,7 +1012,6 @@ public final class BufferingXmlWriter
             if (mOut == null) {
                 return;
             }
-            
             /* It's even possible that String is longer than the buffer (not
              * likely, possible). If so, let's just call the full
              * method:
@@ -981,7 +1150,7 @@ public final class BufferingXmlWriter
          * supposed to contain any data, so that should be fine (plus
          * at least result is valid, unlike contents as is)
          */
-	fastWriteRaw("<!--");
+        fastWriteRaw("<!--");
         int start = 0;
         while (index >= 0) {
             // first, content prior to '--' and the first hyphen

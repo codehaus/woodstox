@@ -124,7 +124,7 @@ public final class AsciiXmlWriter
     }
 
     protected void writeAttrValue(String data)
-        throws IOException, XMLStreamException
+        throws IOException
     {
         // !!! TBI
     }

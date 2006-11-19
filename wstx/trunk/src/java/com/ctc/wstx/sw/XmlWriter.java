@@ -312,13 +312,19 @@ public abstract class XmlWriter
     ////////////////////////////////////////////////////
      */
 
+    public abstract void writeStartTagStart(String localName)
+        throws IOException;
+               
     public abstract void writeStartTagStart(String prefix, String localName)
-        throws IOException, XMLStreamException;
+        throws IOException;
 
     public abstract void writeStartTagEnd()
         throws IOException;
 
     public abstract void writeStartTagEmptyEnd()
+        throws IOException;
+
+    public abstract void writeEndTag(String localName)
         throws IOException;
 
     public abstract void writeEndTag(String prefix, String localName)
@@ -330,8 +336,11 @@ public abstract class XmlWriter
     ////////////////////////////////////////////////////
      */
 
+    public abstract void writeAttribute(String localName, String value)
+        throws IOException;
+
     public abstract void writeAttribute(String prefix, String localName, String value)
-        throws IOException, XMLStreamException;
+        throws IOException;
 
     /*
     ////////////////////////////////////////////////////
@@ -408,7 +417,6 @@ public abstract class XmlWriter
                           WstxInputData.getCharDesc(name.charAt(illegalIx)));
         }
     }
- 
 
     /**
      * This is the method called when an output method call violates

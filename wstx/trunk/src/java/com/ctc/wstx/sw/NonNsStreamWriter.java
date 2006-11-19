@@ -129,6 +129,9 @@ public class NonNsStreamWriter
         if (!mStartElementOpen && mCheckStructure) {
             reportNwfStructure(ErrorConsts.WERR_ATTR_NO_ELEM);
         }
+        if (mCheckNames) {
+            verifyNameValidity(localName, false);
+        }
         if (mCheckAttrs) {
             /* 11-Dec-2005, TSa: Should use a more efficient Set/Map value
              *   for this in future.
@@ -151,7 +154,7 @@ public class NonNsStreamWriter
         }
         
         try {
-            mWriter.writeAttribute(null, localName, value);
+            mWriter.writeAttribute(localName, value);
         } catch (IOException ioe) {
             throwFromIOE(ioe);
         }
@@ -400,6 +403,9 @@ public class NonNsStreamWriter
     private void doWriteStartElement(String localName)
         throws XMLStreamException
     {
+        if (mCheckNames) {
+            verifyNameValidity(localName, false);
+        }
         mAnyOutput = true;
         // Need to finish an open start element?
         if (mStartElementOpen) {
@@ -428,7 +434,7 @@ public class NonNsStreamWriter
         mStartElementOpen = true;
         mElements.addString(localName);
         try {
-            mWriter.writeStartTagStart(null, localName);
+            mWriter.writeStartTagStart(localName);
         } catch (IOException ioe) {
             throwFromIOE(ioe);
         }
@@ -516,7 +522,7 @@ public class NonNsStreamWriter
         }
 
         try {
-            mWriter.writeEndTag(null, localName);
+            mWriter.writeEndTag(localName);
         } catch (IOException ioe) {
             throwFromIOE(ioe);
         }

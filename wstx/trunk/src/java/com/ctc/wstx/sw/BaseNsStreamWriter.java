@@ -257,7 +257,7 @@ public abstract class BaseNsStreamWriter
         } else {
             mCurrElem = mCurrElem.createChild(localName);
         }
-        doWriteStartTag(NO_PREFIX, localName);
+        doWriteStartTag(localName);
 
     }
 
@@ -302,7 +302,7 @@ public abstract class BaseNsStreamWriter
             mCurrElem = mCurrElem.createChild(localName);
         }
 
-        doWriteStartTag(NO_PREFIX, localName);
+        doWriteStartTag(localName);
     }
 
     public void writeStartElement(String nsURI, String localName)
@@ -453,6 +453,13 @@ public abstract class BaseNsStreamWriter
                                String value)
         throws XMLStreamException
     {
+        boolean hasPrefix = (prefix != null && prefix.length() > 0);
+        if (mCheckNames) {
+            verifyNameValidity(localName, true);
+            if (hasPrefix) {
+                verifyNameValidity(prefix, true);
+            }
+        }
         if (mCheckAttrs) { // still need to ensure no duplicate attrs?
             mCurrElem.checkAttrWrite(nsURI, localName, value);
         }
@@ -464,7 +471,11 @@ public abstract class BaseNsStreamWriter
             mValidator.validateAttribute(localName, nsURI, prefix, value);
         }
         try {
-            mWriter.writeAttribute(prefix, localName, value);
+            if (hasPrefix) {
+                mWriter.writeAttribute(prefix, localName, value);
+            } else {
+                mWriter.writeAttribute(localName, value);
+            }
         } catch (IOException ioe) {
             throw new XMLStreamException(ioe);
         }
@@ -490,13 +501,39 @@ public abstract class BaseNsStreamWriter
         }
     }
 
-    protected void doWriteStartTag(String prefix, String localName)
+    protected final void doWriteStartTag(String localName)
         throws XMLStreamException
     {
+        if (mCheckNames) {
+            verifyNameValidity(localName, true);
+        }
         mAnyOutput = true;
         mStartElementOpen = true;
         try {
-            mWriter.writeStartTagStart(prefix, localName);
+            mWriter.writeStartTagStart(localName);
+        } catch (IOException ioe) {
+            throw new XMLStreamException(ioe);
+        }
+    }
+
+    protected final void doWriteStartTag(String prefix, String localName)
+        throws XMLStreamException
+    {
+        boolean hasPrefix = (prefix != null && prefix.length() > 0);
+        if (mCheckNames) {
+            verifyNameValidity(localName, true);
+            if (hasPrefix) {
+                verifyNameValidity(prefix, true);
+            }
+        }
+        mAnyOutput = true;
+        mStartElementOpen = true;
+        try {
+            if (hasPrefix) {
+                mWriter.writeStartTagStart(prefix, localName);
+            } else {
+                mWriter.writeStartTagStart(localName);
+            }
         } catch (IOException ioe) {
             throw new XMLStreamException(ioe);
         }

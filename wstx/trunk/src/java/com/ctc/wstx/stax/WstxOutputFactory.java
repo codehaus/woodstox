@@ -244,11 +244,10 @@ public final class WstxOutputFactory
                      */
                     w = new UTF8Writer(cfg, out, autoCloseOutput);
                     xw = new BufferingXmlWriter(w, cfg, enc, true);
-                    //xw = new ISOLatin1XmlWriter(out, cfg);
                 } else if (enc == CharsetNames.CS_ISO_LATIN1) {
                     xw = new ISOLatin1XmlWriter(out, cfg, autoCloseOutput);
                 } else if (enc == CharsetNames.CS_US_ASCII) {
-                    // !!! TBI
+                    // !!! TBI: won't do proper quoting, need to finish ascii writer
                     xw = new ISOLatin1XmlWriter(out, cfg, autoCloseOutput);
                 } else {
                     w = new OutputStreamWriter(out, enc);

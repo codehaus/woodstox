@@ -147,7 +147,7 @@ public final class ISOLatin1XmlWriter
     }
 
     protected void writeAttrValue(String data)
-        throws IOException, XMLStreamException
+        throws IOException
     {
         int offset = 0;
         int len = data.length();

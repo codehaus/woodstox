@@ -46,6 +46,7 @@ import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.cfg.OutputConfigFlags;
 import com.ctc.wstx.cfg.XmlConsts;
 import com.ctc.wstx.exc.*;
+import com.ctc.wstx.io.WstxInputData;
 import com.ctc.wstx.io.WstxInputLocation;
 import com.ctc.wstx.sr.StreamReaderImpl;
 import com.ctc.wstx.sr.AttributeCollector;
@@ -101,6 +102,7 @@ public abstract class BaseStreamWriter
 
     protected boolean mCheckStructure;
     protected boolean mCheckAttrs;
+    protected boolean mCheckNames;
 
     /*
     ////////////////////////////////////////////////////
@@ -240,6 +242,7 @@ public abstract class BaseStreamWriter
 
         mCheckStructure = (flags & OutputConfigFlags.CFG_VALIDATE_STRUCTURE) != 0;
         mCheckAttrs = (flags & OutputConfigFlags.CFG_VALIDATE_ATTR) != 0;
+        mCheckNames = (flags & OutputConfigFlags.CFG_VALIDATE_NAMES) != 0;
 
         mCfgAutomaticEmptyElems = (flags & OutputConfigFlags.CFG_AUTOMATIC_EMPTY_ELEMS) != 0;
         mCfgCDataAsText = (flags & OutputConfigFlags.CFG_OUTPUT_CDATA_AS_TEXT) != 0;
@@ -1325,7 +1328,30 @@ public abstract class BaseStreamWriter
     ////////////////////////////////////////////////////
      */
 
-    protected void verifyWriteCData()
+    /**
+     * Method called to verify that the name is a legal XML name.
+     */
+    protected final void verifyNameValidity(String name, boolean checkNs)
+        throws XMLStreamException
+    {
+        /* No empty names... caller must have dealt with optional arguments
+         * prior to calling this method
+         */
+        if (name == null || name.length() == 0) {
+            reportNwfName(ErrorConsts.WERR_NAME_EMPTY);
+        }
+        int illegalIx = WstxInputData.findIllegalNameChar(name, checkNs, mXml11);
+        if (illegalIx >= 0) {
+            if (illegalIx == 0) {
+                reportNwfName(ErrorConsts.WERR_NAME_ILLEGAL_FIRST_CHAR,
+                              WstxInputData.getCharDesc(name.charAt(0)));
+            }
+            reportNwfName(ErrorConsts.WERR_NAME_ILLEGAL_CHAR,
+                          WstxInputData.getCharDesc(name.charAt(illegalIx)));
+        }
+    }
+
+    protected final void verifyWriteCData()
         throws XMLStreamException
     {
         // Not legal outside main element tree:
@@ -1341,7 +1367,7 @@ public abstract class BaseStreamWriter
         }
     }
 
-    protected void verifyWriteDTD()
+    protected final void verifyWriteDTD()
         throws XMLStreamException
     {
         // 20-Nov-2004, TSa: can check that we are in prolog
@@ -1443,6 +1469,18 @@ public abstract class BaseStreamWriter
     }
 
     protected static void reportNwfStructure(String msg, Object arg)
+        throws XMLStreamException
+    {
+        throwOutputError(msg, arg);
+    }
+
+    protected void reportNwfName(String msg)
+        throws XMLStreamException
+    {
+        throwOutputError(msg);
+    }
+
+    protected void reportNwfName(String msg, Object arg)
         throws XMLStreamException
     {
         throwOutputError(msg, arg);

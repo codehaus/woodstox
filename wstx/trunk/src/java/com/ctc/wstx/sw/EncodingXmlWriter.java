@@ -358,19 +358,20 @@ public abstract class EncodingXmlWriter
     ////////////////////////////////////////////////////
      */
 
+    public void writeStartTagStart(String localName)
+        throws IOException
+    {
+        writeAscii(BYTE_LT);
+        writeName(localName);
+    }    
+
     public void writeStartTagStart(String prefix, String localName)
-        throws IOException, XMLStreamException
+        throws IOException
     {
         writeAscii(BYTE_LT);
         if (prefix != null && prefix.length() > 0) {
-            if (mCheckNames) {
-                verifyNameValidity(prefix, mNsAware);
-            }
             writeName(prefix);
             writeAscii(BYTE_COLON);
-        }
-        if (mCheckNames) {
-            verifyNameValidity(localName, mNsAware);
         }
         writeName(localName);
     }    
@@ -385,6 +386,18 @@ public abstract class EncodingXmlWriter
         throws IOException
     {
         writeAscii(" />");
+    }    
+
+    public void writeEndTag(String localName)
+        throws IOException
+    {
+        writeAscii(BYTE_LT, BYTE_SLASH);
+        /* At this point, it is assumed caller knows that end tag
+         * matches with start tag, and that it (by extension) has been
+         * validated if and as necessary
+         */
+        writeName(localName);
+        writeAscii(BYTE_GT);
     }    
 
     public void writeEndTag(String prefix, String localName)
@@ -409,20 +422,10 @@ public abstract class EncodingXmlWriter
     ////////////////////////////////////////////////////
      */
 
-    public void writeAttribute(String prefix, String localName, String value)
-        throws IOException, XMLStreamException
+    public void writeAttribute(String localName, String value)
+        throws IOException
     {
         writeAscii(BYTE_SPACE);
-        if (prefix != null && prefix.length() > 0) {
-            if (mCheckNames) {
-                verifyNameValidity(prefix, mNsAware);
-            }
-            writeName(prefix);
-            writeAscii(BYTE_COLON);
-        }
-        if (mCheckNames) {
-            verifyNameValidity(localName, mNsAware);
-        }
         writeName(localName);
         writeAscii(BYTE_EQ, BYTE_QUOT);
 
@@ -435,6 +438,28 @@ public abstract class EncodingXmlWriter
             }
         }
 
+        writeAscii(BYTE_QUOT);
+    }    
+
+    public void writeAttribute(String prefix, String localName, String value)
+        throws IOException
+    {
+        writeAscii(BYTE_SPACE);
+        if (prefix != null && prefix.length() > 0) {
+            writeName(prefix);
+            writeAscii(BYTE_COLON);
+        }
+        writeName(localName);
+        writeAscii(BYTE_EQ, BYTE_QUOT);
+
+        int len = value.length();
+        if (len > 0) {
+            if (mAttrValueWriter != null) { // custom escaping?
+                mAttrValueWriter.write(value, 0, len);
+            } else { // nope, default
+                writeAttrValue(value);
+            }
+        }
         writeAscii(BYTE_QUOT);
     }    
 
@@ -594,7 +619,7 @@ public abstract class EncodingXmlWriter
      */
 
     protected abstract void writeAttrValue(String data)
-        throws IOException, XMLStreamException;
+        throws IOException;
 
     protected abstract int writeCDataContent(String data)
         throws IOException;
