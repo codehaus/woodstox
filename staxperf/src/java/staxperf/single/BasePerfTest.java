@@ -6,6 +6,8 @@ import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamReader;
 
+import staxperf.TestUtil;
+
 /**
  * Base class for testing sustainable performance of various StAX
  * implementations. Basic operation is as follows:
@@ -21,9 +23,11 @@ import javax.xml.stream.XMLStreamReader;
  *</ul>
  */
 abstract class BasePerfTest
+    extends TestUtil
     implements XMLStreamConstants
 {
-    private final int DEFAULT_TEST_SECS = 30;
+    private final static int DEFAULT_TEST_SECS = 30;
+    private final static int WARMUP_ROUNDS = 50;
 
     XMLInputFactory mFactory;
     XMLStreamReader mStreamReader;
@@ -91,10 +95,8 @@ abstract class BasePerfTest
             if (type == CHARACTERS || type == CDATA || type == COMMENT) {
                 // Test (a): just check length (no buffer copy)
 
-                /*
                 int textLen = mStreamReader.getTextLength();
                 total += textLen;
-                */
 
                 // Test (b): access internal read buffer
                 /*
@@ -106,18 +108,10 @@ abstract class BasePerfTest
                 }
                 */
 
-                // Test (c): Access internal buffer (medium)
+                // Test (c): construct string (slowest)
+                /*
                 String text = mStreamReader.getText();
                 total += text.length();
-                
-//System.err.println("Text = '"+text+"'");
-
-                /*
-                if (type == CHARACTERS || type == CDATA) {
-                    System.out.println("Text (ws = "+mStreamReader.isWhiteSpace()+") = '"+text+"'.");
-                } else {
-                    System.out.println("Text = '"+text+"'.");
-                }
                 */
             }
         }
@@ -144,7 +138,6 @@ abstract class BasePerfTest
         String path = f.getAbsolutePath();
 
         // First, warm up:
-        final int WARMUP_ROUNDS = 30;
 
         byte[] data = readData(f);
 
@@ -156,21 +149,7 @@ abstract class BasePerfTest
             if (++i == WARMUP_ROUNDS) {
                 long now = System.currentTimeMillis();
                 total = testExec(data, path);
-                now = System.currentTimeMillis() - now;
-                // Let's try to get at least 10 rounds per 1 sec, ie. max. length of 100 ms
-                if (now <= 1) {
-                    mBatchSize = 100;
-                } else if (now <= 2) {
-                    mBatchSize = 50;
-                } else if (now <= 5) {
-                    mBatchSize = 20;
-                } else if (now <= 10) {
-                    mBatchSize = 10;
-                } else if (now <= 50) {
-                    mBatchSize = 2;
-                } else {
-                    mBatchSize = 2;
-                }
+                mBatchSize = calcBatchSize(System.currentTimeMillis() - now);
             } else {
                 total = testExec(data, path);
             }
@@ -180,8 +159,6 @@ abstract class BasePerfTest
             try {  Thread.sleep(100L); } catch (InterruptedException ie) { }
         }
         System.out.println(" (batch size "+mBatchSize+")");
-
-        //System.out.println(" [total: "+total+"]");
 
         /* Let's try to ensure GC is done so that real test can start from
          * a clean state.
