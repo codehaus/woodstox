@@ -691,8 +691,12 @@ public final class BufferingXmlWriter
      */
 
     public void writeStartTagStart(String localName)
-        throws IOException
+        throws IOException, XMLStreamException
     {
+        if (mCheckNames) {
+            verifyNameValidity(localName, mNsAware);
+        }
+
         int ptr = mOutputPtr;
         int extra = (mOutputBufLen - ptr) - (1 + localName.length());
         if (extra < 0) { // split on boundary, slower
@@ -710,11 +714,16 @@ public final class BufferingXmlWriter
     }    
 
     public void writeStartTagStart(String prefix, String localName)
-        throws IOException
+        throws IOException, XMLStreamException
     {
         if (prefix == null || prefix.length() == 0) { // shouldn't happen
             writeStartTagStart(localName);
             return;
+        }
+
+        if (mCheckNames) {
+            verifyNameValidity(prefix, mNsAware);
+            verifyNameValidity(localName, mNsAware);
         }
 
         int ptr = mOutputPtr;
@@ -830,73 +839,44 @@ public final class BufferingXmlWriter
      */
 
     public void writeAttribute(String localName, String value)
-        throws IOException
+        throws IOException, XMLStreamException
     {
         if (mOut == null) {
             return;
         }
-        fastWriteRaw(' ');
-        fastWriteRaw(localName);
-        fastWriteRaw('=', '"');
+        if (mCheckNames) {
+            verifyNameValidity(localName, mNsAware);
+        }
+        if (((mOutputBufLen - mOutputPtr) - (3 + localName.length())) < 0) {
+            fastWriteRaw(' ');
+            fastWriteRaw(localName);
+            fastWriteRaw('=', '"');
+        } else {
+            int ptr = mOutputPtr;
+            char[] buf = mOutputBuffer;
+            buf[ptr++] = ' ';
+            int len = localName.length();
+            for (int i = 0; i < len; ++i) {
+                buf[ptr++] = localName.charAt(i);
+            }
+            buf[ptr++] = '=';
+            buf[ptr++] = '"';
+            mOutputPtr = ptr;
+        }
 
-        int len = (value == null) ? 0 : value.length();
+        final int len = (value == null) ? 0 : value.length();
         if (len > 0) {
             if (mAttrValueWriter != null) { // custom escaping?
                 mAttrValueWriter.write(value, 0, len);
             } else { // nope, default
-                final char qchar = mEncQuoteChar;
-                int offset = 0;
-                int highChar = mEncHighChar;
-
-                do {
-                    int start = offset;
-                    int c = 0;
-                    String ent = null;
-
-                    for (; offset < len; ++offset) {
-                        c = value.charAt(offset);
-                        if (c <= HIGHEST_ENCODABLE_ATTR_CHAR) { // special char?
-                            if (c == qchar) {
-                                ent = mEncQuoteEntity;
-                                break;
-                            } else if (c == '<') {
-                                ent = "&lt;";
-                                break;
-                            } else if (c == '&') {
-                                ent = "&amp;";
-                                break;
-                            } else if (c < 0x0020) { // tab, cr/lf need encoding too
-                                if (c != '\n' && c != '\r' && c != '\t') {
-                                    if (!mXml11 || c == 0) {
-                                        throwInvalidChar(c);
-                                    }
-                                }
-                                break; // need quoting ok
-                            }
-                        } else if (c >= highChar) { // out of range, have to escape
-                            break;
-                        }
-                    }
-                    // otherwise ok
-                    int outLen = offset - start;
-                    if (outLen > 0) {
-                        writeRaw(value, start, outLen);
-                    }
-                    if (ent != null) {
-                        fastWriteRaw(ent);
-                        ent = null;
-                    } else if (offset < len) {
-                        writeAsEntity(c);
-                    }
-                } while (++offset < len);
+                writeAttrValue(value, len);
             }
         }
-
         fastWriteRaw('"');
     }
 
     public void writeAttribute(String prefix, String localName, String value)
-        throws IOException
+        throws IOException, XMLStreamException
     {
         if (mOut == null) {
             return;
@@ -904,6 +884,10 @@ public final class BufferingXmlWriter
         if (prefix == null || prefix.length() == 0) {
             writeAttribute(localName, value);
             return;
+        }
+        if (mCheckNames) {
+            verifyNameValidity(prefix, mNsAware);
+            verifyNameValidity(localName, mNsAware);
         }
         if (((mOutputBufLen - mOutputPtr) - (4 + localName.length() + prefix.length())) < 0) {
             fastWriteRaw(' ');
@@ -932,61 +916,65 @@ public final class BufferingXmlWriter
         }
 
         final int len = (value == null) ? 0 : value.length();
-        if (len == 0) {
-            fastWriteRaw('"');
-            return;
-        }
-        if (mAttrValueWriter != null) { // custom escaping?
-            mAttrValueWriter.write(value, 0, len);
-        } else { // nope, default
-            int inPtr = 0;
-            final char qchar = mEncQuoteChar;
-            int highChar = mEncHighChar;
-            
-            main_loop:
-            while (true) { // main_loop
-                String ent = null;
-                
-                inner_loop:
-                while (true) {
-                    if (inPtr >= len) {
-                        break main_loop;
-                    }
-                    char c = value.charAt(inPtr++);
-                    if (c <= HIGHEST_ENCODABLE_ATTR_CHAR) { // special char?
-                        if (c < 0x0020) { // tab, cr/lf need encoding too
-                            if (c != '\n' && c != '\r' && c != '\t') {
-                                if (!mXml11 || c == 0) {
-                                    throwInvalidChar(c);
-                                }
-                            }
-                            break inner_loop; // need quoting ok
-                        } else if (c == qchar) {
-                            ent = mEncQuoteEntity;
-                            break inner_loop;
-                        } else if (c == '<') {
-                            ent = "&lt;";
-                            break inner_loop;
-                        } else if (c == '&') {
-                            ent = "&amp;";
-                            break inner_loop;
-                        }
-                    } else if (c >= highChar) { // out of range, have to escape
-                        break inner_loop;
-                    }
-                    if (mOutputPtr >= mOutputBufLen) {
-                        flushBuffer();
-                    }
-                    mOutputBuffer[mOutputPtr++] = c;
-                }
-                if (ent != null) {
-                    writeRaw(ent);
-                } else {
-                    writeAsEntity(value.charAt(inPtr-1));
-                }
+        if (len > 0) {
+            if (mAttrValueWriter != null) { // custom escaping?
+                mAttrValueWriter.write(value, 0, len);
+            } else { // nope, default
+                writeAttrValue(value, len);
             }
         }
         fastWriteRaw('"');
+    }
+
+    private final void writeAttrValue(String value, int len)
+        throws IOException
+    {
+        int inPtr = 0;
+        final char qchar = mEncQuoteChar;
+        int highChar = mEncHighChar;
+        
+        main_loop:
+        while (true) { // main_loop
+            String ent = null;
+            
+            inner_loop:
+            while (true) {
+                if (inPtr >= len) {
+                    break main_loop;
+                }
+                char c = value.charAt(inPtr++);
+                if (c <= HIGHEST_ENCODABLE_ATTR_CHAR) { // special char?
+                    if (c < 0x0020) { // tab, cr/lf need encoding too
+                        if (c != '\n' && c != '\r' && c != '\t') {
+                            if (!mXml11 || c == 0) {
+                                throwInvalidChar(c);
+                            }
+                        }
+                        break inner_loop; // need quoting ok
+                    } else if (c == qchar) {
+                        ent = mEncQuoteEntity;
+                        break inner_loop;
+                    } else if (c == '<') {
+                        ent = "&lt;";
+                        break inner_loop;
+                    } else if (c == '&') {
+                        ent = "&amp;";
+                        break inner_loop;
+                    }
+                } else if (c >= highChar) { // out of range, have to escape
+                    break inner_loop;
+                }
+                if (mOutputPtr >= mOutputBufLen) {
+                    flushBuffer();
+                }
+                mOutputBuffer[mOutputPtr++] = c;
+            }
+            if (ent != null) {
+                writeRaw(ent);
+            } else {
+                writeAsEntity(value.charAt(inPtr-1));
+            }
+        }
     }
 
     /*

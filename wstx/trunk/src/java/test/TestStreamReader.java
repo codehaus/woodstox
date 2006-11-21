@@ -95,12 +95,10 @@ public class TestStreamReader
         /* Uncomment for boundary-condition stress tests; should be ok to 
          * use some fairly small (but not tiny) number...
          */
-        /*
         if (f.isPropertySupported(WstxInputProperties.P_INPUT_BUFFER_LENGTH)) {
             f.setProperty(WstxInputProperties.P_INPUT_BUFFER_LENGTH,
-                          new Integer(50));
+                          new Integer(32));
         }
-        */
 
         /*
         if (f.isPropertySupported(WstxInputProperties.P_TEXT_BUFFER_LENGTH)) {
@@ -309,7 +307,9 @@ public class TestStreamReader
                 System.out.print(sr.getNamespaceURI());
                 System.out.print("'}> ");
                 int nsCount = sr.getNamespaceCount();
-                System.out.println(" ["+nsCount+" ns unbound]");
+                System.out.print(" ["+nsCount+" ns unbound]");
+                System.out.print(" [Loc -> "+sr.getLocation()+"]");
+                System.out.println();
             } else if (type == START_DOCUMENT) { // only for multi-doc mode
                 System.out.print("XML-DECL: version = '"+sr.getVersion()
                                  +"', xml-decl-encoding = '"+sr.getCharacterEncodingScheme()

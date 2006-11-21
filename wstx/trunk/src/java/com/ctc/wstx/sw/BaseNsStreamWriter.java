@@ -453,13 +453,6 @@ public abstract class BaseNsStreamWriter
                                String value)
         throws XMLStreamException
     {
-        boolean hasPrefix = (prefix != null && prefix.length() > 0);
-        if (mCheckNames) {
-            verifyNameValidity(localName, true);
-            if (hasPrefix) {
-                verifyNameValidity(prefix, true);
-            }
-        }
         if (mCheckAttrs) { // still need to ensure no duplicate attrs?
             mCurrElem.checkAttrWrite(nsURI, localName, value);
         }
@@ -471,6 +464,7 @@ public abstract class BaseNsStreamWriter
             mValidator.validateAttribute(localName, nsURI, prefix, value);
         }
         try {
+            boolean hasPrefix = (prefix != null && prefix.length() > 0);
             if (hasPrefix) {
                 mWriter.writeAttribute(prefix, localName, value);
             } else {
@@ -504,9 +498,6 @@ public abstract class BaseNsStreamWriter
     protected final void doWriteStartTag(String localName)
         throws XMLStreamException
     {
-        if (mCheckNames) {
-            verifyNameValidity(localName, true);
-        }
         mAnyOutput = true;
         mStartElementOpen = true;
         try {
@@ -519,16 +510,10 @@ public abstract class BaseNsStreamWriter
     protected final void doWriteStartTag(String prefix, String localName)
         throws XMLStreamException
     {
-        boolean hasPrefix = (prefix != null && prefix.length() > 0);
-        if (mCheckNames) {
-            verifyNameValidity(localName, true);
-            if (hasPrefix) {
-                verifyNameValidity(prefix, true);
-            }
-        }
         mAnyOutput = true;
         mStartElementOpen = true;
         try {
+            boolean hasPrefix = (prefix != null && prefix.length() > 0);
             if (hasPrefix) {
                 mWriter.writeStartTagStart(prefix, localName);
             } else {

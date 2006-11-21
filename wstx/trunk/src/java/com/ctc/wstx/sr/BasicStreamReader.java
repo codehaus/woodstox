@@ -2660,12 +2660,7 @@ public class BasicStreamReader
                  *   accepted...
                  */
                 if (mVldContent <= XMLValidator.CONTENT_ALLOW_WS) {
-                    /* !!! 06-Sep-2004, TSa: Is white space even allowed
-                     *   via (char) entity expansion? If it is, we should
-                     *   try to read primary white space; if not, throw
-                     *   an exception.
-                     */
-                    // No, as per xml specs, only straight white space is legal
+                    // As per xml specs, only straight white space is legal
                     if (c > CHAR_SPACE) {
                         /* 23-Sep-2006, TSa: ... but only if really validating.
                          *  !!! Should be properly fixed, for 4.0, when we'll
@@ -4361,7 +4356,6 @@ public class BasicStreamReader
         // First: can we heuristically canonicalize ws used for indentation?
         if (c <= CHAR_SPACE) {
             int len = mInputLen;
-
             /* Even without indentation removal, it's good idea to
              * 'convert' \r or \r\n into \n (by replacing or skipping first
              * char): this may allow reusing the buffer. 

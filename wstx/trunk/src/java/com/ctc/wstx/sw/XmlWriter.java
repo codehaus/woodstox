@@ -282,7 +282,7 @@ public abstract class XmlWriter
      * multi-hyphen sequence.
      */
     public abstract int writeComment(String data)
-        throws IOException;
+        throws IOException, XMLStreamException;
 
     /**
      * Older "legacy" output method for outputting DOCTYPE declaration.
@@ -312,11 +312,25 @@ public abstract class XmlWriter
     ////////////////////////////////////////////////////
      */
 
+    /**
+     *<p>
+     * Note: can throw XMLStreamException, if name checking is enabled,
+     * and name is invalid (name check has to be in this writer, not
+     * caller, since it depends not only on xml limitations, but also
+     * on encoding limitations)
+     */
     public abstract void writeStartTagStart(String localName)
-        throws IOException;
+        throws IOException, XMLStreamException;
                
+    /**
+     *<p>
+     * Note: can throw XMLStreamException, if name checking is enabled,
+     * and name is invalid (name check has to be in this writer, not
+     * caller, since it depends not only on xml limitations, but also
+     * on encoding limitations)
+     */
     public abstract void writeStartTagStart(String prefix, String localName)
-        throws IOException;
+        throws IOException, XMLStreamException;
 
     public abstract void writeStartTagEnd()
         throws IOException;
@@ -336,11 +350,25 @@ public abstract class XmlWriter
     ////////////////////////////////////////////////////
      */
 
+    /**
+     *<p>
+     * Note: can throw XMLStreamException, if name checking is enabled,
+     * and name is invalid (name check has to be in this writer, not
+     * caller, since it depends not only on xml limitations, but also
+     * on encoding limitations)
+     */
     public abstract void writeAttribute(String localName, String value)
-        throws IOException;
+        throws IOException, XMLStreamException;
 
+    /**
+     *<p>
+     * Note: can throw XMLStreamException, if name checking is enabled,
+     * and name is invalid (name check has to be in this writer, not
+     * caller, since it depends not only on xml limitations, but also
+     * on encoding limitations)
+     */
     public abstract void writeAttribute(String prefix, String localName, String value)
-        throws IOException;
+        throws IOException, XMLStreamException;
 
     /*
     ////////////////////////////////////////////////////

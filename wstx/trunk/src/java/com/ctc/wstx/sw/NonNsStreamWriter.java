@@ -129,9 +129,6 @@ public class NonNsStreamWriter
         if (!mStartElementOpen && mCheckStructure) {
             reportNwfStructure(ErrorConsts.WERR_ATTR_NO_ELEM);
         }
-        if (mCheckNames) {
-            verifyNameValidity(localName, false);
-        }
         if (mCheckAttrs) {
             /* 11-Dec-2005, TSa: Should use a more efficient Set/Map value
              *   for this in future.
@@ -403,9 +400,6 @@ public class NonNsStreamWriter
     private void doWriteStartElement(String localName)
         throws XMLStreamException
     {
-        if (mCheckNames) {
-            verifyNameValidity(localName, false);
-        }
         mAnyOutput = true;
         // Need to finish an open start element?
         if (mStartElementOpen) {

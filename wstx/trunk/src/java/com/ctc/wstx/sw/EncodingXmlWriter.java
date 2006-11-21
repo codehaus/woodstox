@@ -359,20 +359,29 @@ public abstract class EncodingXmlWriter
      */
 
     public void writeStartTagStart(String localName)
-        throws IOException
+        throws IOException, XMLStreamException
     {
+        if (mCheckNames) {
+            verifyNameValidity(localName, mNsAware);
+        }
         writeAscii(BYTE_LT);
         writeName(localName);
     }    
 
     public void writeStartTagStart(String prefix, String localName)
-        throws IOException
+        throws IOException, XMLStreamException
     {
-        writeAscii(BYTE_LT);
-        if (prefix != null && prefix.length() > 0) {
-            writeName(prefix);
-            writeAscii(BYTE_COLON);
+        if (prefix == null || prefix.length() == 0) {
+            writeStartTagStart(localName);
+            return;
         }
+        if (mCheckNames) {
+            verifyNameValidity(localName, mNsAware);
+            verifyNameValidity(prefix, mNsAware);
+        }
+        writeAscii(BYTE_LT);
+        writeName(prefix);
+        writeAscii(BYTE_COLON);
         writeName(localName);
     }    
 
@@ -423,8 +432,11 @@ public abstract class EncodingXmlWriter
      */
 
     public void writeAttribute(String localName, String value)
-        throws IOException
+        throws IOException, XMLStreamException
     {
+        if (mCheckNames) {
+            verifyNameValidity(localName, mNsAware);
+        }
         writeAscii(BYTE_SPACE);
         writeName(localName);
         writeAscii(BYTE_EQ, BYTE_QUOT);
@@ -442,13 +454,19 @@ public abstract class EncodingXmlWriter
     }    
 
     public void writeAttribute(String prefix, String localName, String value)
-        throws IOException
+        throws IOException, XMLStreamException
     {
-        writeAscii(BYTE_SPACE);
-        if (prefix != null && prefix.length() > 0) {
-            writeName(prefix);
-            writeAscii(BYTE_COLON);
+        if (prefix == null || prefix.length() == 0) {
+            writeAttribute(localName, value);
+            return;
         }
+        if (mCheckNames) {
+            verifyNameValidity(localName, mNsAware);
+            verifyNameValidity(prefix, mNsAware);
+        }
+        writeAscii(BYTE_SPACE);
+        writeName(prefix);
+        writeAscii(BYTE_COLON);
         writeName(localName);
         writeAscii(BYTE_EQ, BYTE_QUOT);
 
