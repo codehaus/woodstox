@@ -4369,14 +4369,16 @@ public class BasicStreamReader
                     if (c == '\r') {
                         c = '\n';
                         if (mInputBuffer[ptr] == c) {
+                            /* Ok, whatever happens, can 'skip' \r, to
+                             * point to following \n:
+                             */
                             ++start;
-                            ++ptr;
-                            if (ptr >= len) { // can't do much more
-                                markLF(ptr);
+                            // But if that's buffer end, can't skip that
+                            if (++ptr >= len) {
                                 break;
                             }
                         } else {
-                            mInputBuffer[start] = '\n';
+                            mInputBuffer[start] = c;
                         }
                     } else if (c != '\n') {
                         break;
@@ -4387,9 +4389,9 @@ public class BasicStreamReader
                         if (ptr < 0) { // success!
                             return true;
                         }
-                        // It's likely skipped a char or two, so that:
-                        c = mInputBuffer[ptr++];
                     }
+                    // If we got this far, we skipped a lf, need to read next char
+                    c = mInputBuffer[ptr++];
                 }
             } while (false);
 
@@ -4736,7 +4738,7 @@ public class BasicStreamReader
          * disable this check if it doesn't seem to work.
          */
         --mCheckIndentation;
-        /* Also; if lf we got was \r, need to conver it now (this
+        /* Also; if lf we got was \r, need to convert it now (this
          * method only gets called in lf converting mode)
          * (and yes, it is safe to modify input buffer at this point;
          * see calling method for details)
