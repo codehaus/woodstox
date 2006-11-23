@@ -1,6 +1,6 @@
-Version: 3.1.1 (3.1-final)
+Version: 3.1.1
 
-Release date: 04-Nov-2006
+Release date: xx-Nov-2006
 
 Description:
   First patch release for 3.1
@@ -10,6 +10,9 @@ Description:
   * [WSTX-88] Quoting of characters in high range (0x80 - 0xFF) was not
     working correctly for Latin1 output
     (reported by Michael H)
+  * [WSTX-89] Line number information was not properly updated in
+    some cases (boundary condition with Windows, \r\n, linefeeds)
+    (reported by Frank B)
 
 == History: ==
 

@@ -226,3 +226,10 @@ Michael Haeusler:
     correctly: some characters in range 0x80 - 0xFF were output both
     as is, and as character entities
     [3.0.3/3.1]
+
+Frank Baxter:
+  * Reported [WSTX-89], with sample document that exhibits the problem:
+    line number information was not properly updated in
+    some cases (boundary condition with Windows, \r\n, linefeeds)
+    (reported by Frank B)
+    [3.1.1]

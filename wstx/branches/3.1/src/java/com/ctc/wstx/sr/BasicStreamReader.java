@@ -4375,10 +4375,12 @@ public class BasicStreamReader
                     if (c == '\r') {
                         c = '\n';
                         if (mInputBuffer[ptr] == c) {
+                            /* Ok, whatever happens, can 'skip' \r, to
+                             * point to following \n:
+                             */
                             ++start;
-                            ++ptr;
-                            if (ptr >= len) { // can't do much more
-                                markLF(ptr);
+                            // But if that's buffer end, can't skip that
+                            if (++ptr >= len) {
                                 break;
                             }
                         } else {
@@ -4393,9 +4395,9 @@ public class BasicStreamReader
                         if (ptr < 0) { // success!
                             return true;
                         }
-                        // It's likely skipped a char or two, so that:
-                        c = mInputBuffer[ptr++];
                     }
+                    // If we got this far, we skipped a lf, need to read next char
+                    c = mInputBuffer[ptr++];
                 }
             } while (false);
 
