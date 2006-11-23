@@ -559,7 +559,7 @@ public final class ISOLatin1XmlWriter
                     // \r, or xml1.1 + other whitespace, need to escape
                 } else if (c < 0x7F) {
                     if (c !='<' && c != '&') {
-                        if (c != '>' || (offset > 0 && data.charAt(offset-1) != ']')) {
+                        if (c != '>' || (offset > 1 && data.charAt(offset-2) != ']')) {
                             outBuf[ptr++] = (byte) c;
                             continue;
                         }
@@ -639,7 +639,7 @@ public final class ISOLatin1XmlWriter
                         /* Since we can be conservative, it doesn't matter
                          * if second check is not exact
                          */
-                        if (c != '>' || (offset > 0 && cbuf[offset-1] != ']')) {
+                        if (c != '>' || (offset > 1 && cbuf[offset-2] != ']')) {
                             outBuf[ptr++] = (byte) c;
                             continue;
                         }

@@ -25,8 +25,8 @@ public class TestNsStreamWriter
         return XMLOutputFactory.newInstance();
     }
 
-    final String ENCODING = "ISO-8859-1";
-    //final String ENCODING = "UTF-8";
+    //final String ENCODING = "ISO-8859-1";
+    final String ENCODING = "UTF-8";
 
     protected void test()
         throws Exception
@@ -56,6 +56,7 @@ public class TestNsStreamWriter
 
         sw.writeStartElement("root");
 
+        sw.writeCharacters("Need to quote this too: ]]>");
         /*
         sw.writeEmptyElement("alpha");
         sw.writeNamespace("ns", "uri:foo");
@@ -79,7 +80,7 @@ public class TestNsStreamWriter
 
         //w.close();
 
-        System.err.println("DOC -> '"+new String(bos.toByteArray(), ENCODING));
+        System.err.println("DOC -> '"+new String(bos.toByteArray(), ENCODING)+"'");
     }
 
     public static void main(String[] args)

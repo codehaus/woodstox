@@ -475,7 +475,7 @@ public final class BufferingXmlWriter
                     } else if (c == '>') {
                         // Let's be conservative; and if there's any
                         // change it might be part of "]]>" quote it
-                        if (inPtr == 0 || text.charAt(inPtr-1) == ']') {
+                        if (inPtr < 2 || text.charAt(inPtr-2) == ']') {
                             ent = "&gt;";
                             break inner_loop;
                         }
