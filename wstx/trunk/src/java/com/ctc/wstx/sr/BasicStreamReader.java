@@ -20,6 +20,11 @@ import java.net.URL;
 import java.text.MessageFormat;
 import java.util.Map;
 
+import org.xml.sax.Attributes;
+import org.xml.sax.ContentHandler;
+import org.xml.sax.SAXException;
+import org.xml.sax.ext.LexicalHandler;
+
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
 import javax.xml.stream.Location;
@@ -1606,6 +1611,104 @@ public class BasicStreamReader
      */
     public AttributeCollector getAttributeCollector() {
         return mAttrCollector;
+    }
+
+    /*
+    //////////////////////////////////////////////////////
+    // Support for SAX XMLReader implementation
+    //////////////////////////////////////////////////////
+     */
+    public void fireSaxStartElement(ContentHandler h, Attributes attrs)
+        throws SAXException
+    {
+        if (h != null) {
+            // First; any ns declarations?
+            int nsCount = mElementStack.getCurrentNsCount();
+            for (int i = 0; i < nsCount; ++i) {
+                String prefix = mElementStack.getLocalNsPrefix(i);
+                String uri = mElementStack.getLocalNsURI(i);
+                h.startPrefixMapping((prefix == null) ? "" : prefix, uri);
+            }
+
+            // Then start-elem event itself:
+            String uri = mElementStack.getNsURI();
+            // Sax requires "" (not null) for ns uris...
+            h.startElement((uri == null) ? "" : uri,
+                           mElementStack.getLocalName(), getPrefixedName(), attrs);
+        }
+    }
+
+    public void fireSaxEndElement(ContentHandler h)
+        throws SAXException
+    {
+        if (h != null) {
+            /* Order of events is reversed (wrt. start-element): first
+             * the end tag event, then unbound prefixes
+             */
+            String uri = mElementStack.getNsURI();
+            // Sax requires "" (not null) for ns uris...
+            h.endElement((uri == null) ? "" : uri,
+                         mElementStack.getLocalName(), getPrefixedName());
+            // Any expiring ns declarations?
+            int nsCount = mElementStack.getCurrentNsCount();
+            for (int i = 0; i < nsCount; ++i) {
+                String prefix = mElementStack.getLocalNsPrefix(i);
+                String nsUri = mElementStack.getLocalNsURI(i);
+                h.endPrefixMapping((prefix == null) ? "" : prefix);
+            }
+        }
+    }
+
+    public void fireSaxCharacterEvents(ContentHandler h)
+        throws IOException, XMLStreamException, SAXException
+    {
+        if (h != null) {
+            if (mPendingException != null) {
+                XMLStreamException sex = mPendingException;
+                mPendingException = null;
+                throw sex;
+            }
+            /* Let's not defer errors; SAXTest implies
+             * it's expected errors are thrown right away
+             */
+            if (mTokenState < mStTextThreshold) {
+                finishToken(false);
+            }
+            mTextBuffer.fireSaxCharacterEvents(h);
+        }
+    }
+
+    public void fireSaxSpaceEvents(ContentHandler h)
+        throws IOException, XMLStreamException, SAXException
+    {
+        if (h != null) {
+            if (mTokenState < mStTextThreshold) {
+                finishToken(false); // no error deferring
+            }
+            mTextBuffer.fireSaxSpaceEvents(h);
+        }
+    }
+
+    public void fireSaxCommentEvent(LexicalHandler h)
+        throws IOException, XMLStreamException, SAXException
+    {
+        if (h != null) {
+            if (mTokenState < mStTextThreshold) {
+                finishToken(false); // no error deferring
+            }
+            mTextBuffer.fireSaxCommentEvent(h);
+        }
+    }
+
+    public void fireSaxPIEvent(ContentHandler h)
+        throws IOException, XMLStreamException, SAXException
+    {
+        if (h != null) {
+            if (mTokenState < mStTextThreshold) {
+                finishToken(false); // no error deferring
+            }
+            h.processingInstruction(mCurrName, mTextBuffer.contentsAsString());
+        }
     }
 
     /*

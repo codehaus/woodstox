@@ -555,6 +555,9 @@ public final class WstxInputFactory
     /**
      * Method that is eventually called to create a (full) stream read
      * instance.
+     *<p>
+     * Note: defined as public method because it needs to be called by
+     * SAX implementation.
      *
      * @param systemId System id used for this reader (if any)
      * @param bs Bootstrapper to use for creating actual underlying
@@ -570,9 +573,9 @@ public final class WstxInputFactory
      *   configuration settings indicate auto-closing is to be enabled
      *   (the default value is false as per Stax 1.0 specs).
      */
-    private XMLStreamReader2 createSR(ReaderConfig cfg, String systemId, InputBootstrapper bs,
-                                      boolean forER,
-                                      boolean autoCloseInput)
+    public XMLStreamReader2 createSR(ReaderConfig cfg, String systemId, InputBootstrapper bs,
+                                     boolean forER,
+                                     boolean autoCloseInput)
         throws XMLStreamException
     {
         // 16-Aug-2004, TSa: Maybe we have a context?
@@ -638,8 +641,8 @@ public final class WstxInputFactory
     }
 
     protected XMLStreamReader2 createSR(String systemId, Reader r,
-                                       boolean forER,
-                                       boolean autoCloseInput)
+                                        boolean forER,
+                                        boolean autoCloseInput)
         throws XMLStreamException
     {
         return createSR(createPrivateConfig(), systemId,
@@ -775,8 +778,11 @@ public final class WstxInputFactory
      * Method called to construct a copy of the factory's configuration
      * object, such that two will be unlinked (changes to one are not
      * reflect in the other).
+     *<p>
+     * Note: only public so that other woodstox components outside of
+     * this package can access it.
      */
-    private ReaderConfig createPrivateConfig()
+    public ReaderConfig createPrivateConfig()
     {
         return mConfig.createNonShared(mSymbols.makeChild());
     }

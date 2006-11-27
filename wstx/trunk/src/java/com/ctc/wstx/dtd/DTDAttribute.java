@@ -70,9 +70,11 @@ public abstract class DTDAttribute
          *   SAX parsers use ENUMERATED, plus this way application can
          *   distinguish real NMTOKEN from enumerated type.
          */
-        com.ctc.wstx.sr.StreamScanner.SAX_COMPAT_MODE
-        ? "NMTOKEN" : "ENUMERATED",
-
+        /* 26-Nov-2006, TSa: Either way, we can change type to SAX
+         *   compatible within SAX classes, not here.
+         */
+        //"NMTOKEN"
+        "ENUMERATED",
         "ID",
         "IDREF",
         "IDREFS",

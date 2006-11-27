@@ -3,6 +3,10 @@ package com.ctc.wstx.util;
 import java.io.*;
 import java.util.ArrayList;
 
+import org.xml.sax.ContentHandler;
+import org.xml.sax.SAXException;
+import org.xml.sax.ext.LexicalHandler;
+
 import org.codehaus.stax2.validation.XMLValidationException;
 import org.codehaus.stax2.validation.XMLValidator;
 
@@ -665,6 +669,68 @@ public final class TextBuffer
             }
         }
         return true;
+    }
+
+    /*
+    //////////////////////////////////////////////
+    // Access using SAX handlers:
+    //////////////////////////////////////////////
+     */
+
+    public void fireSaxCharacterEvents(ContentHandler h)
+        throws SAXException
+    {
+        if (mResultArray != null) { // already have single array?
+            h.characters(mResultArray, 0, mResultArray.length);
+        } else if (mInputStart >= 0) { // sharing input buffer?
+            h.characters(mInputBuffer, mInputStart, mInputLen);
+        } else {
+            if (mSegments != null) {
+                for (int i = 0, len = mSegments.size(); i < len; ++i) {
+                    char[] ch = (char[]) mSegments.get(i);
+                    h.characters(ch, 0, ch.length);
+                }
+            }
+            if (mCurrentSize > 0) {
+                h.characters(mCurrentSegment, 0, mCurrentSize);
+            }
+        }
+    }
+
+    public void fireSaxSpaceEvents(ContentHandler h)
+        throws SAXException
+    {
+        if (mResultArray != null) { // only happens for indentation
+            h.ignorableWhitespace(mResultArray, 0, mResultArray.length);
+        } else if (mInputStart >= 0) { // sharing input buffer?
+            h.ignorableWhitespace(mInputBuffer, mInputStart, mInputLen);
+        } else {
+            if (mSegments != null) {
+                for (int i = 0, len = mSegments.size(); i < len; ++i) {
+                    char[] ch = (char[]) mSegments.get(i);
+                    h.ignorableWhitespace(ch, 0, ch.length);
+                }
+            }
+            if (mCurrentSize > 0) {
+                h.ignorableWhitespace(mCurrentSegment, 0, mCurrentSize);
+            }
+        }
+    }
+
+    public void fireSaxCommentEvent(LexicalHandler h)
+        throws SAXException
+    {
+        // Comment can not be split, so may need to combine the array
+        if (mResultArray != null) { // only happens for indentation
+            h.comment(mResultArray, 0, mResultArray.length);
+        } else if (mInputStart >= 0) { // sharing input buffer?
+            h.comment(mInputBuffer, mInputStart, mInputLen);
+        } else if (mSegments != null && mSegments.size() > 0) {
+            char[] ch = contentsAsArray();
+            h.comment(ch, 0, ch.length);
+        } else {
+            h.comment(mCurrentSegment, 0, mCurrentSize);
+        }
     }
 
     /*

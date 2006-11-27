@@ -60,10 +60,6 @@ import com.ctc.wstx.util.*;
 public class FullDTDReader
     extends MinimalDTDReader
 {
-    final static boolean RESOLVE_NOTATION_SYSID = SAX_COMPAT_MODE;
-
-    final static boolean RESOLVE_UNPARSED_ENTITY_SYSID = SAX_COMPAT_MODE;
-
     /**
      * Flag that can be changed to enable or disable interning of shared
      * names; shared names are used for enumerated values to reduce
@@ -332,6 +328,14 @@ public class FullDTDReader
 
     /*
     //////////////////////////////////////////////////
+    // Event listener(s)
+    //////////////////////////////////////////////////
+     */
+
+    final DTDEventListener mEventListener;
+
+    /*
+    //////////////////////////////////////////////////
     // Life-cycle
     //////////////////////////////////////////////////
      */
@@ -409,6 +413,7 @@ public class FullDTDReader
         } else {
             mPredefdNotations = not;
         }
+        mEventListener = mConfig.getDTDEventListener();
     }
 
     /**
@@ -1687,7 +1692,10 @@ public class FullDTDReader
             if (c != '?' || dtdNextFromCurr() != '>') {
                 throwUnexpectedChar(c, ErrorConsts.ERR_WF_PI_XML_MISSING_SPACE);
             }
-        } else {
+            if (mEventListener != null) {
+                mEventListener.dtdProcessingInstruction(target, "");
+            }
+        } else if (mEventListener == null) {
             /* Otherwise, not that much to check since we don't care about
              * the contents.
              */
@@ -1711,6 +1719,53 @@ public class FullDTDReader
                     }
                 }
             }
+        } else {
+            // 24-Nov-2006, TSa: Actually, someone does care...
+            // First, need to skip extra space (if any)
+            while (c <= CHAR_SPACE) {
+                if (c == '\n' || c == '\r') {
+                    skipCRLF(c);
+                } else if (c != '\t' && c != ' ') {
+                    throwInvalidSpace(c);
+                }
+                c = (mInputPtr < mInputLen)
+                    ? mInputBuffer[mInputPtr++] : dtdNextFromCurr();
+            }
+
+            StringBuffer sb = new StringBuffer();
+            main_loop:
+            while (true) {
+                if (c == '?') {
+                    int count = 0;
+                    while (true) {
+                        c = (mInputPtr < mInputLen)
+                            ? mInputBuffer[mInputPtr++] : dtdNextFromCurr();
+                        if (c != '?') {
+                            break;
+                        }
+                        sb.append('?');
+                    }
+                    if (c == '>') {
+                        break;
+                    }
+                    sb.append('?');
+                    // continue, since c needs to be reprocessed
+                    continue;
+                }
+                if (c < CHAR_SPACE) {
+                    if (c == '\n' || c == '\r') {
+                        skipCRLF(c);
+                        c = '\n';
+                    } else if (c != '\t') {
+                        throwInvalidSpace(c);
+                    }
+                }
+                sb.append(c);
+                c = (mInputPtr < mInputLen)
+                    ? mInputBuffer[mInputPtr++] : dtdNextFromCurr();
+            }
+            String data = sb.toString();
+            mEventListener.dtdProcessingInstruction(target, data);
         }
     }
 
@@ -2347,6 +2402,14 @@ public class FullDTDReader
         } else {
             m.put(id, ent);
         }
+
+        // And finally, let's notify listener, if we have one...
+        if (mEventListener != null) {
+            if (ent.isParsed()) { // Parsed GE or PE
+            } else { // unparsed GE
+                mEventListener.dtdUnparsedEntityDecl(id, ent.getPublicId(), ent.getSystemId(), ent.getNotationName(), mInput.getSource());
+            }
+        }
     }
 
     /**
@@ -2381,16 +2444,6 @@ public class FullDTDReader
          */
         if (c == '"' || c == '\'') {
             sysId = parseSystemId(c, mCfgNormalizeLFs, getErrorMsg());
-
-            /* 21-Feb-2006, TSa: For SAX compatibility, we should resolve
-             *   system identifier for notations...
-             */
-            if (RESOLVE_NOTATION_SYSID) {
-                if (sysId.indexOf(':') < 0) { // relative path
-                    URL u = URLUtil.urlFromSystemId(sysId, mInput.getSource());
-                    sysId = u.toExternalForm();
-                }
-            }
             c = skipDtdWs(true);
         } else {
             if (!isPublic) {
@@ -2402,6 +2455,11 @@ public class FullDTDReader
         // And then we should get the closing '>'
         if (c != '>') {
             throwDTDUnexpectedChar(c, "; expected closing '>' after NOTATION declaration");
+        }
+
+        // Any external listeners?
+        if (mEventListener != null) {
+            mEventListener.dtdNotationDecl(id, pubId, sysId, mInput.getSource());
         }
 
         /* Ok, event needs to know its exact starting point (opening '<'
@@ -3087,14 +3145,6 @@ public class FullDTDReader
         if (notationId == null) { // parsed entity:
             return new ParsedExtEntity(evtLoc, id, getSource(), pubId, sysId);
         }
-
-        // unparsed entity
-        if (RESOLVE_UNPARSED_ENTITY_SYSID) { // SAX compatibility?
-            if (sysId.indexOf(':') < 0) { // relative path...
-                URL u = URLUtil.urlFromSystemId(sysId, mInput.getSource());
-                sysId = u.toExternalForm();
-            }
-        }
         return new UnparsedExtEntity(evtLoc, id, getSource(),
                                      pubId, sysId, notationId);
     }
@@ -3231,13 +3281,19 @@ public class FullDTDReader
     protected void handleUndeclaredEntity(String id)
         throws XMLStreamException
     {
-	reportVCViolation("Undeclared parameter entity '"+id+"'.");
+        reportVCViolation("Undeclared parameter entity '"+id+"'.");
         if (mCurrAttrDefault != null) {
             Location loc = getLastCharLocation();
             if (mExpandingPE) {
                 mCurrAttrDefault.addUndeclaredPE(id, loc);
             } else {
                 mCurrAttrDefault.addUndeclaredGE(id, loc);
+            }
+        }
+        if (mEventListener != null) {
+            // GEs only matter when expanding...
+            if (mExpandingPE) {
+                mEventListener.dtdSkippedEntity("%"+id);
             }
         }
     }

@@ -14,6 +14,7 @@ import org.codehaus.stax2.XMLStreamProperties; // for property consts
 import com.ctc.wstx.api.WstxInputProperties;
 import com.ctc.wstx.cfg.InputConfigFlags;
 import com.ctc.wstx.compat.JdkFeatures;
+import com.ctc.wstx.dtd.DTDEventListener;
 import com.ctc.wstx.ent.IntEntity;
 import com.ctc.wstx.ent.EntityDecl;
 import com.ctc.wstx.io.BufferRecycler;
@@ -153,7 +154,7 @@ public final class ReaderConfig
         /* 30-Sep-2005, TSa: Change from 2.0.x (released in 2.8+);
          *   let's by default report these white spaces, since that's
          *   what the reference implementation does. It also helps in
-         *   keeping output lookig pretty, if input is (not a big deal
+         *   keeping output looking pretty, if input is (not a big deal
          *   but still)
          */
         | CFG_REPORT_PROLOG_WS
@@ -293,14 +294,6 @@ public final class ReaderConfig
     int mInputBufferLen;
     int mMinTextSegmentLen;
 
-    Map mCustomEntities;
-
-    XMLReporter mReporter;
-
-    XMLResolver mDtdResolver = null;
-    XMLResolver mEntityResolver = null;
-    XMLResolver mUndeclaredEntityResolver = null;
-
     /**
      * Base URL to use as the resolution context for relative entity
      * references
@@ -323,6 +316,35 @@ public final class ReaderConfig
      * document itself.
      */
     boolean mXml11 = false;
+
+    /*
+    //////////////////////////////////////////////////////////
+    // Common configuration objects
+    //////////////////////////////////////////////////////////
+     */
+
+    XMLReporter mReporter;
+
+    XMLResolver mDtdResolver = null;
+    XMLResolver mEntityResolver = null;
+
+    /*
+    //////////////////////////////////////////////////////////
+    // More special(ized) configuration objects
+    //////////////////////////////////////////////////////////
+     */
+
+    //Map mCustomEntities;
+    //XMLResolver mUndeclaredEntityResolver;
+    //DTDEventListener mDTDEventListener;
+
+    Object[] mSpecialProperties = null;
+
+    private final static int SPEC_PROC_COUNT = 3;
+
+    private final static int SP_IX_CUSTOM_ENTITIES = 0;
+    private final static int SP_IX_UNDECL_ENT_RESOLVER = 1;
+    private final static int SP_IX_DTD_EVENT_LISTENER = 2;
 
     /*
     //////////////////////////////////////////////////////////
@@ -410,15 +432,30 @@ public final class ReaderConfig
                                            mConfigFlags,
                                            mInputBufferLen,
                                            mMinTextSegmentLen);
-        rc.mCustomEntities = mCustomEntities;
         rc.mReporter = mReporter;
         rc.mDtdResolver = mDtdResolver;
         rc.mEntityResolver = mEntityResolver;
-        rc.mUndeclaredEntityResolver = mUndeclaredEntityResolver;
         rc.mBaseURL = mBaseURL;
         rc.mParsingMode = mParsingMode;
+        if (mSpecialProperties != null) {
+            int len = mSpecialProperties.length;
+            rc.mSpecialProperties = new Object[len];
+            System.arraycopy(rc.mSpecialProperties, 0, mSpecialProperties, 0, len);
+        }
 
         return rc;
+    }
+
+    /**
+     * Unlike name suggests there is also some limited state information
+     * associated with the config object. If these objects are reused,
+     * that state needs to be reset between reuses, to avoid carrying
+     * over incorrect state.
+     */
+    public void resetState()
+    {
+        // Current, only xml 1.0 vs 1.1 state is stored here:
+        mXml11 = false;
     }
 
     /*
@@ -548,13 +585,14 @@ public final class ReaderConfig
 
     public Map getCustomInternalEntities()
     {
-        if (mCustomEntities == null) {
+        Map custEnt = (Map) getSpecialProperty(SP_IX_CUSTOM_ENTITIES);
+        if (custEnt == null) {
             return JdkFeatures.getInstance().getEmptyMap();
         }
         // Better be defensive and just return a copy...
-        int len = mCustomEntities.size();
+        int len = custEnt.size();
         HashMap m = new HashMap(len + (len >> 2), 0.81f);
-        Iterator it = mCustomEntities.entrySet().iterator();
+        Iterator it = custEnt.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry me = (Map.Entry) it.next();
             /* Cast is there just as a safe-guard (assertion), and to
@@ -571,7 +609,9 @@ public final class ReaderConfig
 
     public XMLResolver getDtdResolver() { return mDtdResolver; }
     public XMLResolver getEntityResolver() { return mEntityResolver; }
-    public XMLResolver getUndeclaredEntityResolver() { return mUndeclaredEntityResolver; }
+    public XMLResolver getUndeclaredEntityResolver() {
+        return (XMLResolver) getSpecialProperty(SP_IX_UNDECL_ENT_RESOLVER);
+    }
 
     public URL getBaseURL() { return mBaseURL; }
 
@@ -594,6 +634,10 @@ public final class ReaderConfig
      */
     public boolean isXml11() {
         return mXml11;
+    }
+
+    public DTDEventListener getDTDEventListener() {
+        return (DTDEventListener) getSpecialProperty(SP_IX_DTD_EVENT_LISTENER);
     }
 
     /*
@@ -739,7 +783,7 @@ public final class ReaderConfig
                 entMap.put(name, IntEntity.create(name, ch));
             }
         }
-        mCustomEntities = entMap;
+        setSpecialProperty(SP_IX_CUSTOM_ENTITIES, entMap);
     }
 
     public void setXMLReporter(XMLReporter r) {
@@ -764,7 +808,7 @@ public final class ReaderConfig
     }
 
     public void setUndeclaredEntityResolver(XMLResolver r) {
-        mUndeclaredEntityResolver = r;
+        setSpecialProperty(SP_IX_UNDECL_ENT_RESOLVER, r);
     }
 
     public void setBaseURL(URL baseURL) { mBaseURL = baseURL; }
@@ -779,6 +823,10 @@ public final class ReaderConfig
      */
     public void enableXml11(boolean state) {
         mXml11 = state;
+    }
+
+    public void setDTDEventListener(DTDEventListener l) {
+        setSpecialProperty(SP_IX_DTD_EVENT_LISTENER, l);
     }
 
     /*
@@ -1374,5 +1422,21 @@ public final class ReaderConfig
         }
 
         return true;
+    }
+
+    private Object getSpecialProperty(int ix)
+    {
+        if (mSpecialProperties == null) {
+            return null;
+        }
+        return mSpecialProperties[ix];
+    }
+
+    private void setSpecialProperty(int ix, Object value)
+    {
+        if (mSpecialProperties == null) {
+            mSpecialProperties = new Object[3];
+        }
+        mSpecialProperties[ix] = value;
     }
 }
