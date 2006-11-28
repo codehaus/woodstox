@@ -439,8 +439,9 @@ public final class ReaderConfig
         rc.mParsingMode = mParsingMode;
         if (mSpecialProperties != null) {
             int len = mSpecialProperties.length;
-            rc.mSpecialProperties = new Object[len];
-            System.arraycopy(rc.mSpecialProperties, 0, mSpecialProperties, 0, len);
+            Object[] specProps = new Object[len];
+            System.arraycopy(mSpecialProperties, 0, specProps, 0, len);
+            rc.mSpecialProperties = specProps;
         }
 
         return rc;

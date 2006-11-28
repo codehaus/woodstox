@@ -126,18 +126,14 @@ class WstxSAXParser
     }
 
     /*
-     * This constructor is only provided for testing purposes: it should
-     * never be called directly. Instead, an instance should be constructed
-     * using {@link WstxSAXParserFactory}, either directly, or through
-     * JAXP.
+     * This constructor is provided for two main use cases: testing,
+     * and introspection via SAX classes (as opposed to JAXP-based
+     * introspection).
      */
-    // Hmmh. Is it really needed? Maybe not?
-    /*
     public WstxSAXParser()
     {
         this(new WstxInputFactory(), true, false);
     }
-    */
 
     public final Parser getParser()
     {
@@ -168,15 +164,18 @@ class WstxSAXParser
     {
         SAXProperty prop = SAXProperty.findByUri(name);
         if (prop == SAXProperty.DECLARATION_HANDLER) {
+            return mDeclHandler;
         } else if (prop == SAXProperty.DOCUMENT_XML_VERSION) {
+            return mXmlVersion;
         } else if (prop == SAXProperty.DOM_NODE) {
+            return null;
         } else if (prop == SAXProperty.LEXICAL_HANDLER) {
+            return mLexicalHandler;
         } else if (prop == SAXProperty.XML_STRING) {
-        } else {
-            throw new SAXNotRecognizedException("Property '"+name+"' not recognized");
+            return null;
         }
 
-        return null;
+        throw new SAXNotRecognizedException("Property '"+name+"' not recognized");
     }
 
     public void setProperty(String name, Object value)
@@ -184,13 +183,21 @@ class WstxSAXParser
     {
         SAXProperty prop = SAXProperty.findByUri(name);
         if (prop == SAXProperty.DECLARATION_HANDLER) {
+            mDeclHandler = (DeclHandler) value;
         } else if (prop == SAXProperty.DOCUMENT_XML_VERSION) {
+            ; // read-only
         } else if (prop == SAXProperty.DOM_NODE) {
+            ; // read-only
         } else if (prop == SAXProperty.LEXICAL_HANDLER) {
+            mLexicalHandler = (LexicalHandler) value;
         } else if (prop == SAXProperty.XML_STRING) {
+            ; // read-only
         } else {
             throw new SAXNotRecognizedException("Property '"+name+"' not recognized");
         }
+
+        // Trying to modify read-only properties?
+        throw new SAXNotSupportedException("Property '"+name+"' is read-only, can not be modified");
     }
 
     /*
@@ -225,16 +232,25 @@ class WstxSAXParser
         SAXFeature stdFeat = SAXFeature.findByUri(name);
 
         if (stdFeat == SAXFeature.EXTERNAL_GENERAL_ENTITIES) {
+            return mConfig.willSupportExternalEntities();
         } else if (stdFeat == SAXFeature.EXTERNAL_PARAMETER_ENTITIES) {
+            return mConfig.willSupportExternalEntities();
         } else if (stdFeat == SAXFeature.IS_STANDALONE) {
+            return mStandalone;
         } else if (stdFeat == SAXFeature.LEXICAL_HANDLER_PARAMETER_ENTITIES) {
+            // !!! TODO:
+            return false;
         } else if (stdFeat == SAXFeature.NAMESPACES) {
             return mConfig.willSupportNamespaces();
         } else if (stdFeat == SAXFeature.NAMESPACE_PREFIXES) {
+            return !mConfig.willSupportNamespaces();
         } else if (stdFeat == SAXFeature.RESOLVE_DTD_URIS) {
+            // !!! TODO:
+            return false;
         } else if (stdFeat == SAXFeature.STRING_INTERNING) {
             return true;
         } else if (stdFeat == SAXFeature.UNICODE_NORMALIZATION_CHECKING) {
+            return false;
         } else if (stdFeat == SAXFeature.USE_ATTRIBUTES2) {
             return true;
         } else if (stdFeat == SAXFeature.USE_LOCATOR2) {
@@ -244,13 +260,15 @@ class WstxSAXParser
         } else if (stdFeat == SAXFeature.VALIDATION) {
             return mConfig.willValidateWithDTD();
         } else if (stdFeat == SAXFeature.XMLNS_URIS) {
+            /* !!! TODO: default value should be false... but not sure
+             *   if implementing that mode makes sens
+             */
+            return true;
         } else if (stdFeat == SAXFeature.XML_1_1) {
             return true;
-        } else {
-            throw new SAXNotRecognizedException("Feature '"+name+"' not recognized");
         }
 
-        return false;
+        throw new SAXNotRecognizedException("Feature '"+name+"' not recognized");
     }
 
     // Already implemented for SAXParser
@@ -283,27 +301,50 @@ class WstxSAXParser
     }
 
     public void setFeature(String name, boolean value)
-        throws SAXNotRecognizedException
+        throws SAXNotRecognizedException, SAXNotSupportedException
     {
+        boolean invalidValue = false;
+        boolean readOnly = false;
         SAXFeature stdFeat = SAXFeature.findByUri(name);
 
         if (stdFeat == SAXFeature.EXTERNAL_GENERAL_ENTITIES) {
+            mConfig.doSupportExternalEntities(value);
         } else if (stdFeat == SAXFeature.EXTERNAL_PARAMETER_ENTITIES) {
         } else if (stdFeat == SAXFeature.IS_STANDALONE) {
+            readOnly = true;
         } else if (stdFeat == SAXFeature.LEXICAL_HANDLER_PARAMETER_ENTITIES) {
         } else if (stdFeat == SAXFeature.NAMESPACES) {
+            mConfig.doSupportNamespaces(value);
         } else if (stdFeat == SAXFeature.NAMESPACE_PREFIXES) {
+            mConfig.doSupportNamespaces(!value);
         } else if (stdFeat == SAXFeature.RESOLVE_DTD_URIS) {
+            // !!! TODO
         } else if (stdFeat == SAXFeature.STRING_INTERNING) {
+            invalidValue = !value;
         } else if (stdFeat == SAXFeature.UNICODE_NORMALIZATION_CHECKING) {
+            invalidValue = value;
         } else if (stdFeat == SAXFeature.USE_ATTRIBUTES2) {
+            readOnly = true;
         } else if (stdFeat == SAXFeature.USE_LOCATOR2) {
+            readOnly = true;
         } else if (stdFeat == SAXFeature.USE_ENTITY_RESOLVER2) {
+            readOnly = true;
         } else if (stdFeat == SAXFeature.VALIDATION) {
+            mConfig.doValidateWithDTD(value);
         } else if (stdFeat == SAXFeature.XMLNS_URIS) {
+            invalidValue = !value;
         } else if (stdFeat == SAXFeature.XML_1_1) {
+            readOnly = true;
         } else {
             throw new SAXNotRecognizedException("Feature '"+name+"' not recognized");
+        }
+
+        // Trying to modify read-only properties?
+        if (readOnly) {
+            throw new SAXNotSupportedException("Feature '"+name+"' is read-only, can not be modified");
+        }
+        if (invalidValue) {
+            throw new SAXNotSupportedException("Trying to set invalid value for feature '"+name+"', '"+value+"'");
         }
     }
 

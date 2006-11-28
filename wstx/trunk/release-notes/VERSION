@@ -14,6 +14,9 @@ Description:
 
   New features:
 
+  * [WSTX-33]: Woodstox now implements SAX2 interface natively. So, it
+    is fair to say that Woodstox is now StAX/SAX implementation.
+
 == History: ==
 
 3.1 [02-Nov-2006]
