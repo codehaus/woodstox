@@ -48,13 +48,13 @@ import com.ctc.wstx.util.URLUtil;
  * effectively offers an alternative to using Stax input factory /
  * stream reader combination.
  */
-class WstxSAXParser
+public class WstxSAXParser
     extends SAXParser
-     implements Parser // SAX1
+    implements Parser // SAX1
                ,XMLReader // SAX2
                ,Attributes2 // SAX2
                ,Locator2 // SAX2
-                ,DTDEventListener // Woodstox-internal
+               ,DTDEventListener // Woodstox-internal
 {
     /**
      * We will need the factory reference mostly for 

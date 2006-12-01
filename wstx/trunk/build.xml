@@ -56,6 +56,7 @@
     <!-- jars needed for compilation -->
     <path id="compile-classpath">
         <fileset dir="${LibDir}" includes="stax-api*.jar" />
+        <fileset dir="${LibDir}" includes="sax2.jar" />
         <!-- these are needed for optional MSV-based validators -->
         <fileset dir="${LibDir}/msv" includes="*.jar" />
     </path>
@@ -399,6 +400,7 @@
        <copy todir="${DistDir}">
           <fileset dir="${BuildDir}" includes="wstx*.jar" />
           <fileset dir="${BuildDir}" includes="stax2*.jar" />
+          <fileset dir="${BuildDir}" includes="sax2.jar" />
        </copy>
        <!-- Including MSV jars?
          -->

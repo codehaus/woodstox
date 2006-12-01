@@ -57,6 +57,12 @@ public abstract class XmlWriterWrapper
         mWriter.close();
     }
 
+    /* !!! 30-Nov-2006, TSa: Due to co-variance between Appendable and
+     *    Writer, this would not compile with javac 1.5, in 1.4 mode
+     *    (source and target set to "1.4". Not a huge deal, but since
+     *    the base impl is just fine, no point in overriding it.
+     */
+    /*
     public final Writer append(char c)
         throws IOException
     {
@@ -67,6 +73,7 @@ public abstract class XmlWriterWrapper
         write(mBuffer, 0, 1);
         return this;
     }
+    */
 
     public final void write(char[] cbuf)
         throws IOException

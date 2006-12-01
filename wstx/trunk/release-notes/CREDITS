@@ -146,6 +146,8 @@ Wolfgang Hoschek:
   * Reported [WSTX-65], [WSTX-66] and [WSTX-67], regarding event handling
     problems.
     [3.0-final]
+  * Pointed out compilation problem on JDK 1.4 with SAX2 API
+    [3.2]
 
 Bartlomiej Rymkowski:
   * Reported [WSTX-28] (broken handling of property

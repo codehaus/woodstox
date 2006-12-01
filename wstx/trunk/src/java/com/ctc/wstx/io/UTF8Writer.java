@@ -45,6 +45,12 @@ public final class UTF8Writer
         mOutPtr = 0;
     }
 
+    /* !!! 30-Nov-2006, TSa: Due to co-variance between Appendable and
+     *    Writer, this would not compile with javac 1.5, in 1.4 mode
+     *    (source and target set to "1.4". Not a huge deal, but since
+     *    the base impl is just fine, no point in overriding it.
+     */
+    /*
     public Writer append(char c)
         throws IOException
                // note: this is a JDK 1.5 method
@@ -52,6 +58,7 @@ public final class UTF8Writer
         write(c);
         return this;
     }
+    */
 
     public void close()
         throws IOException
