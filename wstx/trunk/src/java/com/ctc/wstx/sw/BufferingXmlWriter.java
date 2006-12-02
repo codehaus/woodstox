@@ -198,15 +198,8 @@ public final class BufferingXmlWriter
             if ((mOutputPtr + len) > mOutputBufLen) {
                 flushBuffer();
             }
-            int ptr = mOutputPtr;
-            /* Note: since it's a small copy, probably faster to copy without
-             * System.arraycopy (which uses JNI)
-             */
-            char[] outBuf = mOutputBuffer;
-            for (len += offset; offset < len; ++offset, ++ptr) {
-                outBuf[ptr] = cbuf[offset];
-            }
-            mOutputPtr = ptr;
+            System.arraycopy(cbuf, offset, mOutputBuffer, mOutputPtr, len);
+            mOutputPtr += len;
             return;
         }
 
@@ -225,20 +218,13 @@ public final class BufferingXmlWriter
                 int needed = (mSmallWriteSize - ptr);
 
                 if ((len - needed) < mSmallWriteSize) {
-                    // Would have too little left, let's just copy it all
-                    len += offset;
-                    do {
-                        outBuf[ptr++] = cbuf[offset++];
-                    } while (offset < len);
-                    mOutputPtr = ptr;
+                    System.arraycopy(cbuf, offset, outBuf, ptr, len);
+                    mOutputPtr = ptr+len;
                     return;
                 }
                 // Just need minimal copy:
-                int last = ptr + needed;
-                do {
-                    outBuf[ptr++] = cbuf[offset++];
-                } while (ptr < last);
-                mOutputPtr = ptr;
+                System.arraycopy(cbuf, offset, outBuf, ptr, needed);
+                mOutputPtr = ptr + needed;
                 len -= needed;
             }
             flushBuffer();
@@ -262,15 +248,8 @@ public final class BufferingXmlWriter
             if ((mOutputPtr + len) >= mOutputBufLen) {
                 flushBuffer();
             }
-            int ptr = mOutputPtr;
-            /* Note: since it's a small copy, probably faster to copy without
-             * System.arraycopy (which uses JNI)
-             */
-            char[] outBuf = mOutputBuffer;
-            for (int offset = 0; offset < len; ++offset, ++ptr) {
-                outBuf[ptr] = str.charAt(offset);
-            }
-            mOutputPtr = ptr;
+            str.getChars(0, len, mOutputBuffer, mOutputPtr);
+            mOutputPtr += len;
             return;
         }
         // Otherwise, let's just call the main method
@@ -291,14 +270,8 @@ public final class BufferingXmlWriter
                 flushBuffer();
             }
             int ptr = mOutputPtr;
-            /* Note: since it's a small copy, probably faster to copy without
-             * System.arraycopy (which uses JNI)
-             */
-            char[] outBuf = mOutputBuffer;
-            for (len += offset; offset < len; ++offset, ++ptr) {
-                outBuf[ptr] = str.charAt(offset);
-            }
-            mOutputPtr = ptr;
+            str.getChars(offset, len, mOutputBuffer, ptr);
+            mOutputPtr = ptr+len;
             return;
         }
 
@@ -310,27 +283,20 @@ public final class BufferingXmlWriter
                 /* Also, if we are to copy any stuff, let's make sure
                  * that we either copy it all in one chunk, or copy
                  * enough for non-small chunk, flush, and output remaining
-                 * non-small chink (former possible if chunk we were requested
+                 * non-small chunk (former possible if chunk we were requested
                  * to output is only slightly over 'small' size)
                  */
                 char[] outBuf = mOutputBuffer;
                 int needed = (mSmallWriteSize - ptr);
 
                 if ((len - needed) < mSmallWriteSize) {
-                    // Would have too little left, let's just copy it all
-                    len += offset;
-                    do {
-                        outBuf[ptr++] = str.charAt(offset++);
-                    } while (offset < len);
-                    mOutputPtr = ptr;
+                    str.getChars(offset, len, outBuf, ptr);
+                    mOutputPtr = ptr+len;
                     return;
                 }
                 // Just need minimal copy:
-                int last = ptr + needed;
-                do {
-                    outBuf[ptr++] = str.charAt(offset++);
-                } while (ptr < last);
-                mOutputPtr = ptr;
+                str.getChars(offset, needed, outBuf, ptr);
+                mOutputPtr = ptr + needed;
                 len -= needed;
             }
             flushBuffer();
@@ -706,10 +672,8 @@ public final class BufferingXmlWriter
             char[] buf = mOutputBuffer;
             buf[ptr++] = '<';
             int len = localName.length();
-            for (int i = 0; i < len; ++i) {
-                buf[ptr++] = localName.charAt(i);
-            }
-            mOutputPtr = ptr;
+            localName.getChars(0, len, buf, ptr);
+            mOutputPtr = ptr+len;
         }
     }    
 
@@ -727,7 +691,8 @@ public final class BufferingXmlWriter
         }
 
         int ptr = mOutputPtr;
-        int extra = (mOutputBufLen - ptr) - (2 + localName.length() + prefix.length());
+        int len = prefix.length();
+        int extra = (mOutputBufLen - ptr) - (2 + localName.length() + len);
         if (extra < 0) { // across buffer boundary, slow case
             fastWriteRaw('<');
             fastWriteRaw(prefix);
@@ -736,16 +701,12 @@ public final class BufferingXmlWriter
         } else { // fast case, all inlined
             char[] buf = mOutputBuffer;
             buf[ptr++] = '<';
-            int len = prefix.length();
-            for (int i = 0; i < len; ++i) {
-                buf[ptr++] = prefix.charAt(i);
-            }
+            prefix.getChars(0, len, buf, ptr);
+            ptr += len;
             buf[ptr++] = ':';
             len = localName.length();
-            for (int i = 0; i < len; ++i) {
-                buf[ptr++] = localName.charAt(i);
-            }
-            mOutputPtr = ptr;
+            localName.getChars(0, len, buf, ptr);
+            mOutputPtr = ptr+len;
         }
     }    
 
@@ -787,9 +748,8 @@ public final class BufferingXmlWriter
             buf[ptr++] = '<';
             buf[ptr++] = '/';
             int len = localName.length();
-            for (int i = 0; i < len; ++i) {
-                buf[ptr++] = localName.charAt(i);
-            }
+            localName.getChars(0, len, buf, ptr);
+            ptr += len;
             buf[ptr++] = '>';
             mOutputPtr = ptr;
         }
@@ -803,7 +763,8 @@ public final class BufferingXmlWriter
             return;
         }
         int ptr = mOutputPtr;
-        int extra = (mOutputBufLen - ptr) - (4 + localName.length() + prefix.length());
+        int len = prefix.length();
+        int extra = (mOutputBufLen - ptr) - (4 + localName.length() + len);
         if (extra < 0) {
             fastWriteRaw('<', '/');
             /* At this point, it is assumed caller knows that end tag
@@ -818,15 +779,12 @@ public final class BufferingXmlWriter
             char[] buf = mOutputBuffer;
             buf[ptr++] = '<';
             buf[ptr++] = '/';
-            int len = prefix.length();
-            for (int i = 0; i < len; ++i) {
-                buf[ptr++] = prefix.charAt(i);
-            }
+            prefix.getChars(0, len, buf, ptr);
+            ptr += len;
             buf[ptr++] = ':';
             len = localName.length();
-            for (int i = 0; i < len; ++i) {
-                buf[ptr++] = localName.charAt(i);
-            }
+            localName.getChars(0, len, buf, ptr);
+            ptr += len;
             buf[ptr++] = '>';
             mOutputPtr = ptr;
         }
@@ -847,7 +805,8 @@ public final class BufferingXmlWriter
         if (mCheckNames) {
             verifyNameValidity(localName, mNsAware);
         }
-        if (((mOutputBufLen - mOutputPtr) - (3 + localName.length())) < 0) {
+        int len = localName.length();
+        if (((mOutputBufLen - mOutputPtr) - (3 + len)) < 0) {
             fastWriteRaw(' ');
             fastWriteRaw(localName);
             fastWriteRaw('=', '"');
@@ -855,16 +814,14 @@ public final class BufferingXmlWriter
             int ptr = mOutputPtr;
             char[] buf = mOutputBuffer;
             buf[ptr++] = ' ';
-            int len = localName.length();
-            for (int i = 0; i < len; ++i) {
-                buf[ptr++] = localName.charAt(i);
-            }
+            localName.getChars(0, len, buf, ptr);
+            ptr += len;
             buf[ptr++] = '=';
             buf[ptr++] = '"';
             mOutputPtr = ptr;
         }
 
-        final int len = (value == null) ? 0 : value.length();
+        len = (value == null) ? 0 : value.length();
         if (len > 0) {
             if (mAttrValueWriter != null) { // custom escaping?
                 mAttrValueWriter.write(value, 0, len);
@@ -889,7 +846,8 @@ public final class BufferingXmlWriter
             verifyNameValidity(prefix, mNsAware);
             verifyNameValidity(localName, mNsAware);
         }
-        if (((mOutputBufLen - mOutputPtr) - (4 + localName.length() + prefix.length())) < 0) {
+        int len = prefix.length();
+        if (((mOutputBufLen - mOutputPtr) - (4 + localName.length() + len)) < 0) {
             fastWriteRaw(' ');
             if (prefix != null && prefix.length() > 0) {
                 fastWriteRaw(prefix);
@@ -901,21 +859,18 @@ public final class BufferingXmlWriter
             int ptr = mOutputPtr;
             char[] buf = mOutputBuffer;
             buf[ptr++] = ' ';
-            int len = prefix.length();
-            for (int i = 0; i < len; ++i) {
-                buf[ptr++] = prefix.charAt(i);
-            }
+            prefix.getChars(0, len, buf, ptr);
+            ptr += len;
             buf[ptr++] = ':';
             len = localName.length();
-            for (int i = 0; i < len; ++i) {
-                buf[ptr++] = localName.charAt(i);
-            }
+            localName.getChars(0, len, buf, ptr);
+            ptr += len;
             buf[ptr++] = '=';
             buf[ptr++] = '"';
             mOutputPtr = ptr;
         }
 
-        final int len = (value == null) ? 0 : value.length();
+        len = (value == null) ? 0 : value.length();
         if (len > 0) {
             if (mAttrValueWriter != null) { // custom escaping?
                 mAttrValueWriter.write(value, 0, len);
@@ -1041,11 +996,8 @@ public final class BufferingXmlWriter
             flushBuffer();
             ptr = mOutputPtr;
         }
-        mOutputPtr += len;
-        char[] buf = mOutputBuffer;
-        for (int i = 0; i < len; ++i) {
-            buf[ptr++] = str.charAt(i);
-        }
+        str.getChars(0, len, mOutputBuffer, ptr);
+        mOutputPtr = ptr+len;
     }
 
     /*

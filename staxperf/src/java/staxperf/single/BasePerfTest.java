@@ -30,7 +30,6 @@ abstract class BasePerfTest
     private final static int WARMUP_ROUNDS = 50;
 
     XMLInputFactory mFactory;
-    XMLStreamReader mStreamReader;
 
     protected int mBatchSize;
 
@@ -83,26 +82,28 @@ abstract class BasePerfTest
 
     protected int testExec2(InputStream in, String path) throws Exception
     {
-        //mStreamReader = mFactory.createXMLStreamReader(r);
-        mStreamReader = mFactory.createXMLStreamReader(path, in);
+        XMLStreamReader sr;
+
+        //sr = mFactory.createXMLStreamReader(r);
+        sr = mFactory.createXMLStreamReader(path, in);
 
         int total = 0;
-        while (mStreamReader.hasNext()) {
-            int type = mStreamReader.next();
+        while (sr.hasNext()) {
+            int type = sr.next();
             total += type; // so it won't be optimized out...
 
-            //if (mStreamReader.hasText()) {
+            //if (sr.hasText()) {
             if (type == CHARACTERS || type == CDATA || type == COMMENT) {
                 // Test (a): just check length (no buffer copy)
 
-                int textLen = mStreamReader.getTextLength();
+                int textLen = sr.getTextLength();
                 total += textLen;
 
                 // Test (b): access internal read buffer
                 /*
-                char[] text = mStreamReader.getTextCharacters();
-                int start = mStreamReader.getTextStart();
-                int len = mStreamReader.getTextLength();
+                char[] text = sr.getTextCharacters();
+                int start = sr.getTextStart();
+                int len = sr.getTextLength();
                 if (text != null) { // Ref. impl. returns nulls sometimes
                     total += text.length; // to prevent dead code elimination
                 }
@@ -110,12 +111,12 @@ abstract class BasePerfTest
 
                 // Test (c): construct string (slowest)
                 /*
-                String text = mStreamReader.getText();
+                String text = sr.getText();
                 total += text.length();
                 */
             }
         }
-        //mStreamReader.close();
+        sr.close();
         return total;
     }
 

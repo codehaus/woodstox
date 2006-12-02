@@ -29,17 +29,6 @@ public class TestWstxPerf
         return f;
     }
 
-    /*
-    public void testFinish()
-        throws Exception
-    {
-        com.ctc.wstx.util.SymbolTable symt = msc.getSymbolTable();
-        double seek = symt.calcAvgSeek();
-        seek = ((int) (100.0  * seek)) / 100.0;
-        System.out.println("Symbol count: "+symt.size()+", avg len: "+seek+".");
-    }
-    */
-
     public static void main(String[] args) throws Exception
     {
         new TestWstxPerf().test(args);

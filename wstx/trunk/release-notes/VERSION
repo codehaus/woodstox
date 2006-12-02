@@ -12,6 +12,14 @@ Description:
     some cases (boundary condition with Windows, \r\n, linefeeds)
    (reported by Frank B)
 
+  Improvements:
+
+  * [WSTX-90] Xml writing improved by 5-10% by consistenly using
+    System.arraycopy (and String.getChars() which uses it) where
+    possible.
+   (reported by Davanum S., submitted patch suggesting optimization
+    that was included)
+
   New features:
 
   * [WSTX-33]: Woodstox now implements SAX2 interface natively. So, it

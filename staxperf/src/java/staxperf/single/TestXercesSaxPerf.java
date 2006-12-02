@@ -16,17 +16,23 @@ public class TestXercesSaxPerf
 {
     final SAXParserFactory mFactory;
     final MyHandler mHandler;
+    //final SAXParser mParser;
+    final XMLReader mReader;
 
-    private TestXercesSaxPerf() {
+    private TestXercesSaxPerf()
+        throws Exception
+    {
         super();
         System.setProperty("javax.xml.parsers.SAXParserFactory",
                            "org.apache.xerces.jaxp.SAXParserFactoryImpl");
         mFactory = SAXParserFactory.newInstance();
         mFactory.setNamespaceAware(true);
-        //mFactory.setValidating(false);
-        mFactory.setValidating(true);
+        mFactory.setValidating(false);
+        //mFactory.setValidating(true);
         System.out.println("SAX factory: "+mFactory.getClass());
         mHandler = new MyHandler();
+        SAXParser parser = mFactory.newSAXParser();
+        mReader = parser.getXMLReader();
     }
 
     protected XMLInputFactory getFactory()
@@ -36,9 +42,8 @@ public class TestXercesSaxPerf
 
     protected int testExec2(InputStream in, String path) throws Exception
     {
-        SAXParser parser = mFactory.newSAXParser();
-        XMLReader xr = parser.getXMLReader();
-
+        //XMLReader xr = mParser.getXMLReader();
+        XMLReader xr = mReader;
         xr.setContentHandler((ContentHandler) mHandler);
         xr.parse(new InputSource(in));
         return mHandler.getTotal();

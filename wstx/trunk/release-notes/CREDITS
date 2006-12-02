@@ -235,3 +235,10 @@ Frank Baxter:
     some cases (boundary condition with Windows, \r\n, linefeeds)
     (reported by Frank B)
     [3.1.1]
+
+Davanum Srinivas:
+  * Reported [WSTX-90], submitted a patch (used as the guideline for
+    the changes): output writing efficiency could be improved by
+    using System.arraycopy() instead of basic character copying.
+    Can improve speed even for relatively short strings, it turns out.
+    [3.2]
