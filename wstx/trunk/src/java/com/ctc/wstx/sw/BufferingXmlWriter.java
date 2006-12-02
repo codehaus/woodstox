@@ -269,9 +269,8 @@ public final class BufferingXmlWriter
             if ((mOutputPtr + len) >= mOutputBufLen) {
                 flushBuffer();
             }
-            int ptr = mOutputPtr;
-            str.getChars(offset, len, mOutputBuffer, ptr);
-            mOutputPtr = ptr+len;
+            str.getChars(offset, offset+len, mOutputBuffer, mOutputPtr);
+            mOutputPtr += len;
             return;
         }
 
@@ -290,12 +289,12 @@ public final class BufferingXmlWriter
                 int needed = (mSmallWriteSize - ptr);
 
                 if ((len - needed) < mSmallWriteSize) {
-                    str.getChars(offset, len, outBuf, ptr);
+                    str.getChars(offset, offset+len, outBuf, ptr);
                     mOutputPtr = ptr+len;
                     return;
                 }
                 // Just need minimal copy:
-                str.getChars(offset, needed, outBuf, ptr);
+                str.getChars(offset, offset+needed, outBuf, ptr);
                 mOutputPtr = ptr + needed;
                 len -= needed;
             }

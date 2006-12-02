@@ -242,3 +242,6 @@ Davanum Srinivas:
     using System.arraycopy() instead of basic character copying.
     Can improve speed even for relatively short strings, it turns out.
     [3.2]
+  * Reported [WSTX-91], submitted patch (regression caused by changes
+    for [WSTX-90]); array index of bounds on stream writer.
+    [3.2]

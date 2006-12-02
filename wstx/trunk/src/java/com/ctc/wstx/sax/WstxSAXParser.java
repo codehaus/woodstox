@@ -184,12 +184,14 @@ public class WstxSAXParser
         SAXProperty prop = SAXProperty.findByUri(name);
         if (prop == SAXProperty.DECLARATION_HANDLER) {
             mDeclHandler = (DeclHandler) value;
+            return;
         } else if (prop == SAXProperty.DOCUMENT_XML_VERSION) {
             ; // read-only
         } else if (prop == SAXProperty.DOM_NODE) {
             ; // read-only
         } else if (prop == SAXProperty.LEXICAL_HANDLER) {
             mLexicalHandler = (LexicalHandler) value;
+            return;
         } else if (prop == SAXProperty.XML_STRING) {
             ; // read-only
         } else {
