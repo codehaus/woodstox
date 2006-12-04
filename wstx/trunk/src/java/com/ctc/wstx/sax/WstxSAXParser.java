@@ -16,6 +16,7 @@ package com.ctc.wstx.sax;
 
 import java.io.*;
 import java.net.URL;
+import javax.xml.XMLConstants;
 import javax.xml.parsers.SAXParser;
 import javax.xml.stream.Location;
 import javax.xml.stream.XMLResolver;
@@ -56,12 +57,16 @@ public class WstxSAXParser
                ,Locator2 // SAX2
                ,DTDEventListener // Woodstox-internal
 {
+    final static boolean FEAT_DEFAULT_NS_PREFIXES = false;
+
     /**
      * We will need the factory reference mostly for 
      */
     final WstxInputFactory mStaxFactory;
 
     final ReaderConfig mConfig;
+
+    boolean mFeatNsPrefixes;
 
     /**
      * Since the stream reader would mostly be just a wrapper around
@@ -94,20 +99,34 @@ public class WstxSAXParser
 
     // // // State:
 
+    /**
+     * Number of attributes accessible via {@link Attributes} and
+     * {@link Attributes2} interfaces, for the current start element.
+     *<p>
+     * Note: does not include namespace declarations, even they are to
+     * be reported as attributes.
+     */
     private int mAttrCount;
+
+    /**
+     * Need to keep track of number of namespaces, if namespace declarations
+     * are to be reported along with attributes (see
+     * {@link #mFeatNsPrefixes}).
+     */
+    private int mNsCount = 0;
+
     /*
     /////////////////////////////////////////////////
     // Life-cycle
     /////////////////////////////////////////////////
      */
 
-    WstxSAXParser(WstxInputFactory sf, boolean nsAware, boolean dtdValidating)
+    WstxSAXParser(WstxInputFactory sf, boolean nsPrefixes)
     {
         mStaxFactory = sf;
+        mFeatNsPrefixes = nsPrefixes;
         mConfig = sf.createPrivateConfig();
-        mConfig.doSupportNamespaces(nsAware);
         mConfig.doSupportDTDs(true);
-        mConfig.doValidateWithDTD(dtdValidating);
         /* Also, let's not bother with lazy parsing; no benefit as we
          * always need all the data, to send via SAX events:
          */
@@ -132,7 +151,7 @@ public class WstxSAXParser
      */
     public WstxSAXParser()
     {
-        this(new WstxInputFactory(), true, false);
+        this(new WstxInputFactory(), FEAT_DEFAULT_NS_PREFIXES);
     }
 
     public final Parser getParser()
@@ -263,7 +282,7 @@ public class WstxSAXParser
             return mConfig.willValidateWithDTD();
         } else if (stdFeat == SAXFeature.XMLNS_URIS) {
             /* !!! TODO: default value should be false... but not sure
-             *   if implementing that mode makes sens
+             *   if implementing that mode makes sense
              */
             return true;
         } else if (stdFeat == SAXFeature.XML_1_1) {
@@ -312,13 +331,15 @@ public class WstxSAXParser
         if (stdFeat == SAXFeature.EXTERNAL_GENERAL_ENTITIES) {
             mConfig.doSupportExternalEntities(value);
         } else if (stdFeat == SAXFeature.EXTERNAL_PARAMETER_ENTITIES) {
+            // !!! TODO
         } else if (stdFeat == SAXFeature.IS_STANDALONE) {
             readOnly = true;
         } else if (stdFeat == SAXFeature.LEXICAL_HANDLER_PARAMETER_ENTITIES) {
+            // !!! TODO
         } else if (stdFeat == SAXFeature.NAMESPACES) {
             mConfig.doSupportNamespaces(value);
         } else if (stdFeat == SAXFeature.NAMESPACE_PREFIXES) {
-            mConfig.doSupportNamespaces(!value);
+            mFeatNsPrefixes = value;
         } else if (stdFeat == SAXFeature.RESOLVE_DTD_URIS) {
             // !!! TODO
         } else if (stdFeat == SAXFeature.STRING_INTERNING) {
@@ -577,6 +598,9 @@ public class WstxSAXParser
         throws SAXException
     {
         mAttrCount = mAttrCollector.getCount();
+        if (mFeatNsPrefixes) {
+            mNsCount = mAttrCollector.getNsCount();
+        }
         mScanner.fireSaxStartElement(mContentHandler, this);
     }
 
@@ -616,82 +640,126 @@ public class WstxSAXParser
 
     public int getIndex(String qName)
     {
-        return (mElemStack == null) ? -1 : 
-            mElemStack.findAttributeIndex(null, qName);
+        if (mElemStack == null) {
+            return -1;
+        }
+        int ix = mElemStack.findAttributeIndex(null, qName);
+        // !!! In ns-as-attrs mode, should also match ns decls?
+        return ix;
     }
 
     public int getIndex(String uri, String localName)
     {
-        return (mElemStack == null) ? -1 : 
-            mElemStack.findAttributeIndex(uri, localName);
+        if (mElemStack == null) {
+            return -1;
+        }
+        int ix = mElemStack.findAttributeIndex(uri, localName);
+        // !!! In ns-as-attrs mode, should also match ns decls?
+        return ix;
     }
 
     public int getLength()
     {
-        return mAttrCount;
+        return mAttrCount + mNsCount;
     }
 
     public String getLocalName(int index)
     {
-        return (index < 0 || index >= mAttrCount) ? null :
-            mAttrCollector.getLocalName(index);
+        if (index < mAttrCount) {
+            return (index < 0) ? null : mAttrCollector.getLocalName(index);
+        }
+        index -= mAttrCount;
+        if (index < mNsCount) {
+            String prefix = mAttrCollector.getNsPrefix(index);
+            return (prefix == null || prefix.length() == 0) ?
+                "xmlns" : prefix;
+        }
+        return null;
     }
 
     public String getQName(int index)
     {
-        if (index < 0 || index >= mAttrCount) {
-            return null;
+        if (index < mAttrCount) {
+            if (index < 0) {
+                return null;
+            }
+            String prefix = mAttrCollector.getPrefix(index);
+            String ln = mAttrCollector.getLocalName(index);
+            return (prefix == null || prefix.length() == 0) ?
+                ln : (prefix + ":" + ln);
         }
-        String prefix = mAttrCollector.getPrefix(index);
-        String ln = mAttrCollector.getLocalName(index);
-        if (prefix == null) {
-            return ln;
+        index -= mAttrCount;
+        if (index < mNsCount) {
+            String prefix = mAttrCollector.getNsPrefix(index);
+            if (prefix == null || prefix.length() == 0) {
+                return "xmlns";
+            }
+            return "xmlns:"+prefix;
         }
-        return prefix + ":" + ln;
+        return null;
     }
 
     public String getType(int index)
     {
-        if (index < 0 || index >= mAttrCount || mElemStack == null) {
-            return null;
+        if (index < mAttrCount) {
+            if (index < 0) {
+                return null;
+            }
+            /* Note: Woodstox will have separate type for enumerated values;
+             * SAX considers these NMTOKENs, so may need to convert (but
+             * note: some SAX impls also use "ENUMERATED")
+             */
+            String type = mElemStack.getAttributeType(index);
+            // Let's count on it being interned:
+            if (type == "ENUMERATED") {
+                type = "NMTOKEN";
+            }
+            return type;
         }
-        /* Note: Woodstox will have separate type for enumerated values;
-         * SAX considers these NMTOKENs, so may need to convert (but
-         * note: some SAX impls also use "ENUMERATED")
-         */
-        String type = mElemStack.getAttributeType(index);
-        // Let's count on it being interned:
-        if (type == "ENUMERATED") {
-            type = "NMTOKEN";
+        // But how about namespace declarations... let's just call them CDATA?
+        index -= mAttrCount;
+        if (index < mNsCount) {
+            return "CDATA";
         }
-        return type;
+        return null;
     }
 
     public String getType(String qName)
     {
-        int ix = getIndex(qName);
-        return (ix < 0) ? null : mScanner.getAttributeType(ix);
+        return getType(getIndex(qName));
     }
 
     public String getType(String uri, String localName)
     {
-        int ix = getIndex(uri, localName);
-        return (ix < 0) ? null : mScanner.getAttributeType(ix);
+        return getType(getIndex(uri, localName));
     }
 
     public String getURI(int index)
     {
-        if (index < 0 || index >= mAttrCount) {
-            return null;
+        if (index < mAttrCount) {
+            if (index < 0) {
+                return null;
+            }
+            String uri = mAttrCollector.getURI(index);
+            return (uri == null) ? "" : uri;
         }
-        String uri = mAttrCollector.getURI(index);
-        return (uri == null) ? "" : uri;
+        index -= mAttrCount;
+        if (index < mNsCount) {
+            return XMLConstants.XMLNS_ATTRIBUTE_NS_URI;
+        }
+        return null;
     }
 
     public String getValue(int index)
     {
-        return (index < 0 || index >= mAttrCount) ? null :
-            mAttrCollector.getValue(index);
+        if (index < mAttrCount) {
+            return (index < 0) ? null : mAttrCollector.getValue(index);
+        }
+        index -= mAttrCount;
+        if (index < mNsCount) {
+            return mAttrCollector.getNsURI(index);
+        }
+        return null;
     }
 
     public String getValue(String qName)
@@ -712,14 +780,26 @@ public class WstxSAXParser
     /////////////////////////////////////////////////////
     */
 
-    /* Note: for now (in absence of DTD processing), none of attributes
-     * are declared, and all are specified (can not default without
-     * a DTD)
-     */
-
     public boolean isDeclared(int index)
     {
-        return false;
+        if (index < mAttrCount) {
+            if (index >= 0) {
+                // !!! TODO: implement properly
+                return true;
+            }
+        } else {
+            index -= mAttrCount;
+            if (index < mNsCount) {
+                /* DTD and namespaces don't really play nicely together;
+                 * and in general xmlns: pseudo-attributes are not declared...
+                 * so not quite sure what to return here. For now, let's
+                 * return true, to indicate they ought to be valid
+                 */
+                return true;
+            }
+        }
+        throwNoSuchAttribute(index);
+        return false; // never gets here
     }
 
     public boolean isDeclared(String qName)
@@ -734,17 +814,40 @@ public class WstxSAXParser
 
     public boolean isSpecified(int index)
     {
-        return true;
+        if (index < mAttrCount) {
+            if (index >= 0) {
+                return mAttrCollector.isSpecified(index);
+            }
+        } else {
+            index -= mAttrCount;
+            if (index < mNsCount) {
+                /* Determining default-attr - based namespace declarations
+                 * would need new accessors on Woodstox... but they are
+                 * extremely rare, too
+                 */
+                return true;
+            }
+        }
+        throwNoSuchAttribute(index);
+        return false; // never gets here
     }
 
     public boolean isSpecified(String qName)
     {
-        return true;
+        int ix = getIndex(qName);
+        if (ix < 0) {
+            throw new IllegalArgumentException("No attribute with qName '"+qName+"'");
+        }
+        return isSpecified(ix);
     }
 
     public boolean isSpecified(String uri, String localName) 
     {
-        return true;
+        int ix = getIndex(uri, localName);
+        if (ix < 0) {
+            throw new IllegalArgumentException("No attribute with uri "+uri+", local name '"+localName+"'");
+        }
+        return isSpecified(ix);
     }
 
     /*
@@ -949,6 +1052,11 @@ public class WstxSAXParser
         throw se;
     }
 
+    private void throwNoSuchAttribute(int index)
+    {
+        throw new IllegalArgumentException("No attribute with index "+index+" (have "+(mAttrCount+mNsCount)+" attributes)");
+    }
+
     /*
     /////////////////////////////////////////////////
     // Helper class for dealing with entity resolution
@@ -995,7 +1103,7 @@ public class WstxSAXParser
 
     /*
     /////////////////////////////////////////////////
-    // Helper class for SAX1 support
+    // Helper classes for SAX1 support
     /////////////////////////////////////////////////
      */
 

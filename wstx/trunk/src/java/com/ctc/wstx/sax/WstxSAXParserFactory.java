@@ -38,6 +38,12 @@ public class WstxSAXParserFactory
 {
     final WstxInputFactory mStaxFactory;
 
+    /**
+     * Sax feature that determines whether namespace declarations need
+     * to be also reported as attributes or not.
+     */
+    boolean mFeatNsPrefixes = false;
+
     public WstxSAXParserFactory()
     {
         mStaxFactory = new WstxInputFactory();
@@ -54,62 +60,99 @@ public class WstxSAXParserFactory
         SAXFeature stdFeat = SAXFeature.findByUri(name);
 
         if (stdFeat == SAXFeature.EXTERNAL_GENERAL_ENTITIES) {
+            return mStaxFactory.getConfig().willSupportExternalEntities();
         } else if (stdFeat == SAXFeature.EXTERNAL_PARAMETER_ENTITIES) {
+            return mStaxFactory.getConfig().willSupportExternalEntities();
         } else if (stdFeat == SAXFeature.IS_STANDALONE) {
+            // Not known at this point...
+            return false;
         } else if (stdFeat == SAXFeature.LEXICAL_HANDLER_PARAMETER_ENTITIES) {
+            // !!! TODO:
+            return false;
         } else if (stdFeat == SAXFeature.NAMESPACES) {
             return mStaxFactory.getConfig().willSupportNamespaces();
         } else if (stdFeat == SAXFeature.NAMESPACE_PREFIXES) {
+            return mFeatNsPrefixes;
         } else if (stdFeat == SAXFeature.RESOLVE_DTD_URIS) {
+            // !!! TODO:
+            return false;
         } else if (stdFeat == SAXFeature.STRING_INTERNING) {
+            return true;
         } else if (stdFeat == SAXFeature.UNICODE_NORMALIZATION_CHECKING) {
+            return false;
         } else if (stdFeat == SAXFeature.USE_ATTRIBUTES2) {
+            return true;
         } else if (stdFeat == SAXFeature.USE_LOCATOR2) {
+            return true;
         } else if (stdFeat == SAXFeature.USE_ENTITY_RESOLVER2) {
+            return true;
         } else if (stdFeat == SAXFeature.VALIDATION) {
+            return mStaxFactory.getConfig().willValidateWithDTD();
         } else if (stdFeat == SAXFeature.XMLNS_URIS) {
+            /* !!! TODO: default value should be false... but not sure
+             *   if implementing that mode makes sense
+             */
+            return true;
         } else if (stdFeat == SAXFeature.XML_1_1) {
+            return true;
         } else {
             throw new SAXNotRecognizedException("Feature '"+name+"' not recognized");
         }
-        // nope, not recognized:
-        return false; // never gets here
     }
 
     public SAXParser newSAXParser()
     {
-        return new WstxSAXParser(mStaxFactory, isNamespaceAware(), isValidating());
+        return new WstxSAXParser(mStaxFactory, mFeatNsPrefixes);
     }
 
-    public void setFeature(String name, boolean enabled)
+    public void setFeature(String name, boolean value)
         throws SAXNotRecognizedException, SAXNotSupportedException
     {
-        boolean ok = true;
+        boolean invalidValue = false;
+        boolean readOnly = false;
         SAXFeature stdFeat = SAXFeature.findByUri(name);
 
         if (stdFeat == SAXFeature.EXTERNAL_GENERAL_ENTITIES) {
+            mStaxFactory.getConfig().doSupportExternalEntities(value);
         } else if (stdFeat == SAXFeature.EXTERNAL_PARAMETER_ENTITIES) {
+            // !!! TODO
         } else if (stdFeat == SAXFeature.IS_STANDALONE) {
+            readOnly = true;
         } else if (stdFeat == SAXFeature.LEXICAL_HANDLER_PARAMETER_ENTITIES) {
+            // !!! TODO
         } else if (stdFeat == SAXFeature.NAMESPACES) {
+            mStaxFactory.getConfig().doSupportNamespaces(value);
         } else if (stdFeat == SAXFeature.NAMESPACE_PREFIXES) {
+            mFeatNsPrefixes = value;
         } else if (stdFeat == SAXFeature.RESOLVE_DTD_URIS) {
+            // !!! TODO
         } else if (stdFeat == SAXFeature.STRING_INTERNING) {
+            invalidValue = !value;
         } else if (stdFeat == SAXFeature.UNICODE_NORMALIZATION_CHECKING) {
+            invalidValue = value;
         } else if (stdFeat == SAXFeature.USE_ATTRIBUTES2) {
+            readOnly = true;
         } else if (stdFeat == SAXFeature.USE_LOCATOR2) {
+            readOnly = true;
         } else if (stdFeat == SAXFeature.USE_ENTITY_RESOLVER2) {
+            readOnly = true;
         } else if (stdFeat == SAXFeature.VALIDATION) {
+            mStaxFactory.getConfig().doValidateWithDTD(value);
         } else if (stdFeat == SAXFeature.XMLNS_URIS) {
+            invalidValue = !value;
         } else if (stdFeat == SAXFeature.XML_1_1) {
+            readOnly = true;
         } else {
             throw new SAXNotRecognizedException("Feature '"+name+"' not recognized");
         }
 
-        if (!ok) {
-            throw new SAXNotSupportedException("Setting std feature "+stdFeat+" to "+enabled+" not supported");
+        // Trying to modify read-only properties?
+        if (readOnly) {
+            throw new SAXNotSupportedException("Feature '"+name+"' is read-only, can not be modified");
         }
-        return;
+        if (invalidValue) {
+            throw new SAXNotSupportedException("Trying to set invalid value for feature '"+name+"', '"+value+"'");
+        }
     }
 
     /*
