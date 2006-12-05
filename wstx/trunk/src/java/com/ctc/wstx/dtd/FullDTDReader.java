@@ -328,11 +328,13 @@ public class FullDTDReader
 
     /*
     //////////////////////////////////////////////////
-    // Event listener(s)
+    // Support for SAX API impl:
     //////////////////////////////////////////////////
      */
 
     final DTDEventListener mEventListener;
+
+    transient TextBuffer mTextBuffer = null;
 
     /*
     //////////////////////////////////////////////////
@@ -497,6 +499,17 @@ public class FullDTDReader
         r.flushFlattenWriter();
         flattenWriter.flush();
         return ss;
+    }
+
+    private TextBuffer getTextBuffer()
+    {
+        if (mTextBuffer == null) {
+            mTextBuffer = TextBuffer.createTemporaryBuffer(200);
+            mTextBuffer.resetInitialized();
+        } else {
+            mTextBuffer.resetWithEmpty();
+        }
+        return mTextBuffer;
     }
 
     /*
@@ -680,7 +693,7 @@ public class FullDTDReader
          */
         char c = dtdNextFromCurr();
         if (c == '?') { // xml decl?
-            skimPI();
+            readPI();
             return;
         }
         if (c != '!') { // nothing valid
@@ -696,7 +709,11 @@ public class FullDTDReader
             if (c != '-') {
                 throwDTDUnexpectedChar(c, "; expected '-' for a comment");
             }
-            skipComment();
+            if (mEventListener != null && mEventListener.dtdReportComments()) {
+                readComment(mEventListener);
+            } else {
+                skipComment();
+            }
         } else if (c == '[') {
             checkInclusion();
         } else if (c >= 'A' && c <= 'Z') {
@@ -731,7 +748,7 @@ public class FullDTDReader
         if (c == '?') { // xml decl?
             mFlattenWriter.enableOutput(mInputPtr);
             mFlattenWriter.output("<?");
-            skimPI();
+            readPI();
             //throwDTDUnexpectedChar(c, " expected '!' to start a directive");
             return;
         }
@@ -1675,7 +1692,7 @@ public class FullDTDReader
      * Method similar to {@link #skipPI}, but one that does basic
      * well-formedness checks.
      */
-    protected void skimPI()
+    protected void readPI()
         throws IOException, XMLStreamException
     {
         String target = parseFullName();
@@ -1732,7 +1749,10 @@ public class FullDTDReader
                     ? mInputBuffer[mInputPtr++] : dtdNextFromCurr();
             }
 
-            StringBuffer sb = new StringBuffer();
+            TextBuffer tb = getTextBuffer();
+            char[] outBuf = tb.getCurrentSegment();
+            int outPtr = 0;
+
             main_loop:
             while (true) {
                 if (c == '?') {
@@ -1743,16 +1763,19 @@ public class FullDTDReader
                         if (c != '?') {
                             break;
                         }
-                        sb.append('?');
+                        if (outPtr >= outBuf.length) {
+                            outBuf = tb.finishCurrentSegment();
+                            outPtr = 0;
+                        }
+                        outBuf[outPtr++] = c;
                     }
                     if (c == '>') {
                         break;
                     }
-                    sb.append('?');
-                    // continue, since c needs to be reprocessed
-                    continue;
-                }
-                if (c < CHAR_SPACE) {
+                    // Need to push back char that follows '?', output '?'
+                    --mInputPtr;
+                    c = '?';
+                } else if (c < CHAR_SPACE) {
                     if (c == '\n' || c == '\r') {
                         skipCRLF(c);
                         c = '\n';
@@ -1760,13 +1783,67 @@ public class FullDTDReader
                         throwInvalidSpace(c);
                     }
                 }
-                sb.append(c);
+                // Need more room?
+                if (outPtr >= outBuf.length) {
+                    outBuf = tb.finishCurrentSegment();
+                    outPtr = 0;
+                }
+                // Ok, let's add char to output:
+                outBuf[outPtr++] = c;
                 c = (mInputPtr < mInputLen)
                     ? mInputBuffer[mInputPtr++] : dtdNextFromCurr();
             }
-            String data = sb.toString();
+            tb.setCurrentLength(outPtr);
+            String data = tb.contentsAsString();
             mEventListener.dtdProcessingInstruction(target, data);
         }
+    }
+
+    /**
+     * Method similar to {@link #skipComment}, but that has to collect
+     * contents, to be reported for a SAX handler.
+     */
+    protected void readComment(DTDEventListener l)
+        throws IOException, XMLStreamException
+    {
+        TextBuffer tb = getTextBuffer();
+        char[] outBuf = tb.getCurrentSegment();
+        int outPtr = 0;
+
+        main_loop:
+        while (true) {
+            char c = (mInputPtr < mInputLen)
+                ? mInputBuffer[mInputPtr++] : dtdNextFromCurr();
+            if (c < CHAR_SPACE) {
+                if (c == '\n' || c == '\r') {
+                    skipCRLF(c);
+                    c = '\n';
+                } else if (c != '\t') {
+                    throwInvalidSpace(c);
+                }
+            } else if (c == '-') {
+                c = dtdNextFromCurr();
+                if (c == '-') { // Ok, has to be end marker then:
+                    // Either get '>' or error:
+                    c = dtdNextFromCurr();
+                    if (c != '>') {
+                        throwParseError(ErrorConsts.ERR_HYPHENS_IN_COMMENT);
+                    }
+                    break;
+                }
+                c = '-';
+                --mInputPtr; // need to push back the second char read
+            }
+            // Need more room?
+            if (outPtr >= outBuf.length) {
+                outBuf = tb.finishCurrentSegment();
+                outPtr = 0;
+            }
+            // Ok, let's add char to output:
+            outBuf[outPtr++] = c;
+        }
+        tb.setCurrentLength(outPtr);
+        tb.fireDtdCommentEvent(l);
     }
 
     /*

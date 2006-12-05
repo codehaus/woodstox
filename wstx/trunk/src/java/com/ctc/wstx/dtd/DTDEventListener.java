@@ -21,9 +21,18 @@ import javax.xml.stream.XMLStreamException;
 
 public interface DTDEventListener
 {
+    // Configuration
+
+    /**
+     * @return True, if there is a listener interested in getting comment
+     *   events within DTD subset (since that's optional)
+     */
+    public boolean dtdReportComments();
+
     // Basic content events
 
     public void dtdProcessingInstruction(String target, String data);
+    public void dtdComment(char[] data, int offset, int len);
     public void dtdSkippedEntity(String name);
 
     // DTD declarations that must be exposed

@@ -11,6 +11,7 @@ import org.codehaus.stax2.validation.XMLValidationException;
 import org.codehaus.stax2.validation.XMLValidator;
 
 import com.ctc.wstx.api.ReaderConfig;
+import com.ctc.wstx.dtd.DTDEventListener;
 
 /**
  * TextBuffer is a class similar to {@link StringBuffer}, with
@@ -730,6 +731,21 @@ public final class TextBuffer
             h.comment(ch, 0, ch.length);
         } else {
             h.comment(mCurrentSegment, 0, mCurrentSize);
+        }
+    }
+
+    public void fireDtdCommentEvent(DTDEventListener l)
+    {
+        // Comment can not be split, so may need to combine the array
+        if (mResultArray != null) { // only happens for indentation
+            l.dtdComment(mResultArray, 0, mResultArray.length);
+        } else if (mInputStart >= 0) { // sharing input buffer?
+            l.dtdComment(mInputBuffer, mInputStart, mInputLen);
+        } else if (mSegments != null && mSegments.size() > 0) {
+            char[] ch = contentsAsArray();
+            l.dtdComment(ch, 0, ch.length);
+        } else {
+            l.dtdComment(mCurrentSegment, 0, mCurrentSize);
         }
     }
 

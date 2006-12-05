@@ -127,10 +127,11 @@ public class WstxSAXParser
         mFeatNsPrefixes = nsPrefixes;
         mConfig = sf.createPrivateConfig();
         mConfig.doSupportDTDs(true);
-        /* Also, let's not bother with lazy parsing; no benefit as we
-         * always need all the data, to send via SAX events:
+        /* Lazy parsing is a tricky thing: although most of the time
+         * it's useless with SAX, it is actually necessary to be able
+         * to properly model internal DTD subsets, for example. So,
+         * we can not really easily determine defaults.
          */
-        mConfig.doParseLazily(false);
         MyResolver r = new MyResolver();
         /* SAX doesn't distinguish between DTD (ext. subset, PEs) and
          * entity (external general entities) resolvers, so let's
@@ -498,6 +499,11 @@ public class WstxSAXParser
     {
         // First we are in prolog:
         int type;
+
+        /* Need to enable lazy parsing, to get DTD start events before
+         * its content events. Plus, can skip more efficiently too.
+         */
+        mConfig.doParseLazily(false);
 
         while ((type = mScanner.next()) != XMLStreamConstants.START_ELEMENT) {
             fireAuxEvent(type, false);
@@ -913,6 +919,22 @@ public class WstxSAXParser
     // DTDEventListener (woodstox internal API) impl
     /////////////////////////////////////////////////////
     */
+
+    public boolean dtdReportComments()
+    {
+        return (mLexicalHandler != null);
+    }
+
+    public void dtdComment(char[] data, int offset, int len)
+    {
+        if (mLexicalHandler != null) {
+            try {
+                mLexicalHandler.comment(data, offset, len);
+            } catch (SAXException sex) {
+                throw new WrappedSaxException(sex);
+            }
+        }
+    }
 
     public void dtdProcessingInstruction(String target, String data)
     {
