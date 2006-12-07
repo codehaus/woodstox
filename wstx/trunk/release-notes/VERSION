@@ -1,9 +1,9 @@
-Version: 3.2rc1
+Version: 3.2pr1
 
-Release date: xx-xxx-2006
+Release date: xx-Dec-2006
 
 Description:
-  First release candidate for 3.2?
+  First pre-release of 3.2 branch.
 
   Problems fixed:
 
@@ -22,6 +22,8 @@ Description:
     possible.
    (reported by Davanum S., submitted patch suggesting optimization
     that was included)
+  * [WSTX-93] System id part of Location reported for expanded external
+    entities was not a valid (resolved) URI, now is.
 
   New features:
 

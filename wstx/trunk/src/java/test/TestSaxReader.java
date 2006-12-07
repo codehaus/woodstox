@@ -43,6 +43,8 @@ public class TestSaxReader
         extends DefaultHandler2
         implements DeclHandler
     {
+        Locator mLocator;
+
         public MyContentHandler() { }
 
         public void characters(char[] ch, int start, int length)
@@ -84,7 +86,10 @@ public class TestSaxReader
             System.out.println("[PROC-INSTR '"+target+"' ...]");
         }
 
-        public void setDocumentLocator(Locator locator) { }
+        public void setDocumentLocator(Locator locator)
+        {
+            mLocator = locator;
+        }
 
         public void skippedEntity(String name)
         {
@@ -119,6 +124,7 @@ public class TestSaxReader
             }
             */
             System.out.println(">");
+            System.out.println(" (Location, system id = '"+mLocator.getSystemId()+"')");
         }
 
         public void startPrefixMapping(String prefix, String uri)

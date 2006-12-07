@@ -295,6 +295,7 @@ public class TestStreamReader
                     System.out.println(sr.isAttributeSpecified(i) ?
                                        "[specified]" : "[Default]");
                 }
+                System.out.print(" [Loc -> "+sr.getLocation()+"]");
             } else if (type == END_ELEMENT) {
                 System.out.print("</");
                 String prefix = sr.getPrefix();

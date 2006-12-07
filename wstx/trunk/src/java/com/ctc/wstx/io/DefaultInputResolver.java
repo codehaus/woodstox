@@ -88,7 +88,7 @@ public final class DefaultInputResolver
                                          +publicId+"')");
         }
         URL url = URLUtil.urlFromSystemId(systemId, ctxt);
-        return sourceFromURL(refCtxt, cfg, entityName, xmlVersion, url, publicId, systemId);
+        return sourceFromURL(refCtxt, cfg, entityName, xmlVersion, url, publicId);
     }
 
     /**
@@ -139,7 +139,7 @@ public final class DefaultInputResolver
             throw new IllegalArgumentException("Can not use other Source objects than StreamSource: got "+o.getClass());
         }
         if (o instanceof URL) {
-            return sourceFromURL(parent, cfg, refName, xmlVersion, (URL) o, null, null);
+            return sourceFromURL(parent, cfg, refName, xmlVersion, (URL) o, null);
         }
         if (o instanceof InputStream) {
             return sourceFromIS(parent, cfg, refName, xmlVersion, (InputStream) o, null, null);
@@ -152,7 +152,7 @@ public final class DefaultInputResolver
         }
         if (o instanceof File) {
             URL u = ((File) o).toURL();
-            return sourceFromURL(parent, cfg, refName, xmlVersion, u, null, null);
+            return sourceFromURL(parent, cfg, refName, xmlVersion, u, null);
         }
 
         throw new IllegalArgumentException("Unrecognized input argument type for sourceFrom(): "+o.getClass());
@@ -239,7 +239,7 @@ public final class DefaultInputResolver
     private static WstxInputSource sourceFromURL(WstxInputSource parent, ReaderConfig cfg,
                                                  String refName, int xmlVersion,
                                                  URL url,
-                                                 String pubId, String sysId)
+                                                 String pubId)
         throws IOException, XMLStreamException
     {
         /* And then create the input source. Note that by default URL's
@@ -249,9 +249,7 @@ public final class DefaultInputResolver
          * let's avoid it.
          */
         InputStream in = URLUtil.optimizedStreamFromURL(url);
-        if (sysId == null) {
-            sysId = url.toExternalForm();
-        }
+        String sysId = url.toExternalForm();
         StreamBootstrapper bs = StreamBootstrapper.getInstance(in, pubId, sysId);
         Reader r = bs.bootstrapInput(cfg, false, xmlVersion);
         return InputSourceFactory.constructEntitySource
