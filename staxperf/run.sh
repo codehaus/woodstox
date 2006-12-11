@@ -3,7 +3,9 @@
 # Need to use more than 16 megs, as files may be over 1 meg...
 # Note: only one of wstx jars should be there...
 
-java -XX:CompileThreshold=400 -Xmx64m -server\
+#-server\
+
+java -XX:CompileThreshold=1000 -Xmx64m -server \
  -cp lib/stax-api-1.0.1.jar\
 :lib/wstx.jar\
 :lib/stax-ri-1.2.0.jar\
