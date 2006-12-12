@@ -52,8 +52,23 @@ public class TestNsStreamWriter
         //XMLStreamWriter sw = f.createXMLStreamWriter(w);
 
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        XMLStreamWriter sw = f.createXMLStreamWriter(bos, ENCODING);
+        //XMLStreamWriter sw = f.createXMLStreamWriter(bos, ENCODING);
+        XMLStreamWriter sw = f.createXMLStreamWriter(bos);
 
+        sw.writeStartDocument();
+
+        {
+            final String TEXT =
+" Table of types of doubts\n"
++"doubt: specific error or issue with the test case\n"
++"extension: uses an extension feature\n"
++"gray-area: the spec does not give enough precision to distinguish correct behavior on the indicated detail\n"
++"processor-specific: processors are required to provide a unique value (should be marked as \"manual\" compare in catalog)\n"
++"serial: processor has options regarding serialization (This doubt only used for detail issues, not general discretion about encoding.)";
+            sw.writeComment(TEXT);
+        }
+
+        sw.writeCharacters("\n");
         sw.writeStartElement("root");
 
         sw.writeCharacters("Need to quote this too: ]]>");

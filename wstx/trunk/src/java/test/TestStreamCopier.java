@@ -99,18 +99,22 @@ public class TestStreamCopier
 //System.err.println("[XMLStreamWriter: "+sw.getClass()+"]");
 
         int count = 0;
-        int type;
 
-		while ((type = sr.next()) != XMLStreamConstants.END_DOCUMENT) {
-            if (type == XMLStreamConstants.DTD && ENABLE_DTD_VALIDATION) {
-                DTDInfo info = sr.getDTDInfo();
-                if (info != null) {
-                    DTDValidationSchema vld = info.getProcessedDTDSchema();
-                    if (vld != null) {
-                        System.err.println("Attaching DTD schema: "+vld);
-                        sw.validateAgainst(vld);
+        for (int type = sr.getEventType(); type !=XMLStreamConstants.END_DOCUMENT; type = sr.next()) {
+            if (type == XMLStreamConstants.DTD) {
+                if (ENABLE_DTD_VALIDATION) {
+                    DTDInfo info = sr.getDTDInfo();
+                    if (info != null) {
+                        DTDValidationSchema vld = info.getProcessedDTDSchema();
+                        if (vld != null) {
+                            System.err.println("Attaching DTD schema: "+vld);
+                            sw.validateAgainst(vld);
+                        }
                     }
                 }
+            } else if (type == XMLStreamConstants.COMMENT) {
+                //System.err.println("Comment: '"+sr.getText()+"'");
+                //if (true) throw new Error("comment");
             }
             sw.copyEventFromReader(sr, false);
             /*

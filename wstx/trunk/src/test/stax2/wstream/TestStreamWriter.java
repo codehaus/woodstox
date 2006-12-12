@@ -88,7 +88,7 @@ public class TestStreamWriter
         
     /*
     //////////////////////////////////////////////////////////
-    // Then new output methods as is
+    // Then new output methods, or improved existing ones
     //////////////////////////////////////////////////////////
      */
 
@@ -128,6 +128,26 @@ public class TestStreamWriter
             assertTokenType(END_ELEMENT, sr.next());
             assertTokenType(END_DOCUMENT, sr.next());
         }
+    }
+
+    /**
+     * This test was inspired by a failing regression test: it required
+     * long enough COMMENT content to trigger buffar boundary problems
+     */
+    public void testLongerComment()
+        throws XMLStreamException
+    {
+        doTestLonger(COMMENT, false, false);
+        doTestLonger(COMMENT, true, false);
+        doTestLonger(COMMENT, true, true);
+    }
+
+    public void testLongerPI()
+        throws XMLStreamException
+    {
+        doTestLonger(PROCESSING_INSTRUCTION, false, false);
+        doTestLonger(PROCESSING_INSTRUCTION, true, false);
+        doTestLonger(PROCESSING_INSTRUCTION, true, true);
     }
 
     public void testCopy()
@@ -304,5 +324,54 @@ public class TestStreamWriter
         assertTokenType(END_ELEMENT, sr.next());
         assertTokenType(END_DOCUMENT, sr.next());
         sr.close();
+    }
+
+    public void doTestLonger(int type, boolean ns, boolean repair)
+        throws XMLStreamException
+    {
+        final String TEXT =
+" Table of types of doubts\n"
++"doubt: specific error or issue with the test case\n"
++"extension: uses an extension feature\n"
++"gray-area: the spec does not give enough precision to distinguish correct behavior on the indicated detail\n"
++"processor-specific: processors are required to provide a unique value (should be marked as \"manual\" compare in catalog)\n"
++"serial: processor has options regarding serialization (This doubt only used for detail issues, not general discretion about encoding.)"
+            ;
+
+        for (int i = 0; i < 2; ++i) {
+            StringWriter strw = new StringWriter();
+            XMLStreamWriter2 w;
+            if (repair) {
+                w = getRepairingWriter(strw);
+            } else {
+                w = getNonRepairingWriter(strw, ns);
+            }
+            w.writeStartDocument();
+            if (type == COMMENT) {
+                w.writeComment(TEXT);
+            } else {
+                w.writeProcessingInstruction("pi", TEXT);
+            }
+            w.writeEmptyElement("root");
+            w.writeEndDocument();
+            w.close();
+            
+            // And then let's parse and verify the contents:
+            XMLStreamReader sr = constructNsStreamReader(strw.toString(), true);
+            assertTokenType(START_DOCUMENT, sr.getEventType());
+            
+            if (type == COMMENT) {
+                assertTokenType(COMMENT, sr.next());
+                assertEquals(TEXT, getAndVerifyText(sr));
+            } else {
+                assertTokenType(PROCESSING_INSTRUCTION, sr.next());
+                // PI data excludes leading space... need to trim
+                assertEquals(TEXT.trim(), sr.getPIData().trim());
+            }
+            assertTokenType(START_ELEMENT, sr.next());
+            assertTokenType(END_ELEMENT, sr.next());
+            assertTokenType(END_DOCUMENT, sr.next());
+            sr.close();
+        }
     }
 }

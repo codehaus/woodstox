@@ -148,6 +148,8 @@ Wolfgang Hoschek:
     [3.0-final]
   * Pointed out compilation problem on JDK 1.4 with SAX2 API
     [3.2]
+  * Reported [WSTX-96]
+    [3.2]
 
 Bartlomiej Rymkowski:
   * Reported [WSTX-28] (broken handling of property

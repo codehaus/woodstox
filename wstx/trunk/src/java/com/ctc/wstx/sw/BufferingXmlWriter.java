@@ -226,6 +226,7 @@ public final class BufferingXmlWriter
                 System.arraycopy(cbuf, offset, outBuf, ptr, needed);
                 mOutputPtr = ptr + needed;
                 len -= needed;
+                offset += needed;
             }
             flushBuffer();
         }
@@ -297,6 +298,7 @@ public final class BufferingXmlWriter
                 str.getChars(offset, offset+needed, outBuf, ptr);
                 mOutputPtr = ptr + needed;
                 len -= needed;
+                offset += needed;
             }
             flushBuffer();
         }
