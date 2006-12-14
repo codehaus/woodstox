@@ -107,8 +107,6 @@ public abstract class BaseInputSource
         mSavedInputProcessed = reader.mCurrInputProcessed;
         mSavedInputRow = reader.mCurrInputRow;
         mSavedInputRowStart = reader.mCurrInputRowStart;
-
-        //System.err.println("Saving "+this+"; ptr = "+mSavedInputPtr+", len = "+mInputLen);
     }
 
     public void restoreContext(WstxInputData reader)
@@ -116,8 +114,6 @@ public abstract class BaseInputSource
         reader.mInputBuffer = mBuffer;
         reader.mInputLen = mInputLen;
         reader.mInputPtr = mSavedInputPtr;
-
-        //System.err.println("Restoring "+this+"; ptr = "+mSavedInputPtr+", len = "+mInputLen);
 
         // then location
         reader.mCurrInputProcessed = mSavedInputProcessed;

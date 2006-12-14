@@ -17,6 +17,9 @@ Description:
   * [WSTX-96] Beginning part of comments (for longer comments)
     was sometimes duplicated by the XMLStreamWriter implementation 
    (reported by Wolfgang H)
+  * [WSTX-97] Character offsets (for XMLStreamReader.getLocation())
+    were sometimes decremented; fixed, and added a unit test
+   (reported by Frank B)
 
   Improvements:
 

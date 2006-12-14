@@ -1,6 +1,6 @@
 Version: 3.1.1
 
-Release date: xx-Nov-2006
+Release date: xx-Dec-2006
 
 Description:
   First patch release for 3.1
@@ -13,6 +13,9 @@ Description:
   * [WSTX-89] Line number information was not properly updated in
     some cases (boundary condition with Windows, \r\n, linefeeds)
     (reported by Frank B)
+  * [WSTX-97] Character offsets (for XMLStreamReader.getLocation())
+    were sometimes decremented; fixed, and added a unit test
+   (reported by Frank B)
 
 == History: ==
 

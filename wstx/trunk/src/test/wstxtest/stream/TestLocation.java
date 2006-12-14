@@ -138,6 +138,66 @@ public class TestLocation
             chars += 4;
             col += 4;
         }
+    }
 
+    /**
+     * This test was added due to bug [WSTX-97]: although it is hard to
+     * verify exact offset calculation, it is quite straight-forward
+     * to verify that it's monotonically increasing, at least.
+     */
+    public void testOffsetIncrementing()
+        throws XMLStreamException
+    {
+        doTestOffset(false, false); // non-coalesce
+        doTestOffset(false, true); // non-coalesce
+
+        doTestOffset(true, false); // coalesce
+        doTestOffset(true, true); // coalesce
+    }
+
+    /*
+    /////////////////////////////////////////////////////////
+    // Helper methods:
+    /////////////////////////////////////////////////////////
+     */
+     
+    public void doTestOffset(boolean coal, boolean readAll)
+        throws XMLStreamException
+    {
+        // First, let's create some input...
+        StringBuffer inputBuf = new StringBuffer();
+        StringBuffer expOut = new StringBuffer();
+        generateData(new Random(123), inputBuf, expOut, true); 
+        String inputStr = inputBuf.toString();
+
+        WstxInputFactory f = getWstxInputFactory();
+        // Should shrink it to get faster convergence
+        f.getConfig().setInputBufferLength(17);
+        f.getConfig().doCoalesceText(coal);
+        XMLStreamReader2 sr = (XMLStreamReader2) f.createXMLStreamReader(new StringReader(inputStr));
+
+        int lastLine = 0;
+        int lastOffset = 0;
+
+        while (sr.next() != XMLStreamConstants.END_DOCUMENT) {
+            Location loc = sr.getLocation();
+            int line = loc.getLineNumber();
+            int offset = loc.getCharacterOffset();
+
+            if (line < lastLine) {
+                fail("Location.getLineNumber() should increase steadily, old value: "+lastLine+", new: "+line);
+            }
+            if (offset < lastOffset) {
+                fail("Location.getCharacterOffset() should increase steadily, old value: "+lastOffset+", new: "+offset);
+            }
+            lastLine = line;
+            lastOffset = offset;
+
+            if (readAll) { // read it, or just skip?
+                if (sr.hasText()) {
+                    String text = sr.getText();
+                }
+            }
+        }
     }
 }

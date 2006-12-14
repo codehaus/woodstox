@@ -119,17 +119,17 @@ public class ReaderSource
         int currAmount = mInputLen - ptr;
 
         // Let's first adjust caller's data appropriately:
+        /* Since we are essentially removing 'ptr' chars that we
+         * have used already, they count as past chars. Also, since
+         * offsets are reduced by 'ptr', need to adjust linefeed offset
+         * marker as well.
+         */
+        reader.mCurrInputProcessed += ptr;
+        reader.mCurrInputRowStart -= ptr;
 
         // Existing data to move?
         if (currAmount > 0) {
             System.arraycopy(mBuffer, ptr, mBuffer, 0, currAmount);
-            /* Since we are essentially removing 'ptr' chars that we
-             * have used already, they count as past chars. Also, since
-             * offsets are reduced by 'ptr', need to adjust linefeed offset
-             * marker as well.
-             */
-            reader.mCurrInputProcessed += ptr;
-            reader.mCurrInputRowStart -= ptr;
             minAmount -= currAmount;
         }
         reader.mInputBuffer = mBuffer;
