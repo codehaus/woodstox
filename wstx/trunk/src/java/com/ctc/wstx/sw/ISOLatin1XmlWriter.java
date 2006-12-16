@@ -51,6 +51,7 @@ public final class ISOLatin1XmlWriter
         while (len > 0) {
             int max = outBuf.length - ptr;
             if (max < 1) { // output buffer full?
+                mOutputPtr = ptr;
                 flushBuffer();
                 ptr = 0;
                 max = outBuf.length;
@@ -104,6 +105,7 @@ public final class ISOLatin1XmlWriter
         while (len > 0) {
             int max = outBuf.length - ptr;
             if (max < 1) { // output buffer full?
+                mOutputPtr = ptr;
                 flushBuffer();
                 ptr = 0;
                 max = outBuf.length;
@@ -158,6 +160,7 @@ public final class ISOLatin1XmlWriter
         while (len > 0) {
             int max = outBuf.length - ptr;
             if (max < 1) { // output buffer full?
+                mOutputPtr = ptr;
                 flushBuffer();
                 ptr = 0;
                 max = outBuf.length;
@@ -243,6 +246,7 @@ public final class ISOLatin1XmlWriter
         while (len > 0) {
             int max = outBuf.length - ptr;
             if (max < 1) { // output buffer full?
+                mOutputPtr = ptr;
                 flushBuffer();
                 ptr = 0;
                 max = outBuf.length;
@@ -318,6 +322,7 @@ public final class ISOLatin1XmlWriter
         while (len > 0) {
             int max = outBuf.length - ptr;
             if (max < 1) { // output buffer full?
+                mOutputPtr = ptr;
                 flushBuffer();
                 ptr = 0;
                 max = outBuf.length;
@@ -394,6 +399,7 @@ public final class ISOLatin1XmlWriter
         while (len > 0) {
             int max = outBuf.length - ptr;
             if (max < 1) { // output buffer full?
+                mOutputPtr = ptr;
                 flushBuffer();
                 ptr = 0;
                 max = outBuf.length;
@@ -472,6 +478,7 @@ public final class ISOLatin1XmlWriter
         while (len > 0) {
             int max = outBuf.length - ptr;
             if (max < 1) { // output buffer full?
+                mOutputPtr = ptr;
                 flushBuffer();
                 ptr = 0;
                 max = outBuf.length;
@@ -525,6 +532,7 @@ public final class ISOLatin1XmlWriter
         while (len > 0) {
             int max = outBuf.length - ptr;
             if (max < 1) { // output buffer full?
+                mOutputPtr = ptr;
                 flushBuffer();
                 ptr = 0;
                 max = outBuf.length;
@@ -602,6 +610,7 @@ public final class ISOLatin1XmlWriter
         while (len > 0) {
             int max = outBuf.length - ptr;
             if (max < 1) { // output buffer full?
+                mOutputPtr = ptr;
                 flushBuffer();
                 ptr = 0;
                 max = outBuf.length;
