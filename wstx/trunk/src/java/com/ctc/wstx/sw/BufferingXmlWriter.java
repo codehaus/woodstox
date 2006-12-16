@@ -214,16 +214,10 @@ public final class BufferingXmlWriter
                  * non-small chink (former possible if chunk we were requested
                  * to output is only slightly over 'small' size)
                  */
-                char[] outBuf = mOutputBuffer;
                 int needed = (mSmallWriteSize - ptr);
 
-                if ((len - needed) < mSmallWriteSize) {
-                    System.arraycopy(cbuf, offset, outBuf, ptr, len);
-                    mOutputPtr = ptr+len;
-                    return;
-                }
                 // Just need minimal copy:
-                System.arraycopy(cbuf, offset, outBuf, ptr, needed);
+                System.arraycopy(cbuf, offset, mOutputBuffer, ptr, needed);
                 mOutputPtr = ptr + needed;
                 len -= needed;
                 offset += needed;
@@ -286,16 +280,10 @@ public final class BufferingXmlWriter
                  * non-small chunk (former possible if chunk we were requested
                  * to output is only slightly over 'small' size)
                  */
-                char[] outBuf = mOutputBuffer;
                 int needed = (mSmallWriteSize - ptr);
 
-                if ((len - needed) < mSmallWriteSize) {
-                    str.getChars(offset, offset+len, outBuf, ptr);
-                    mOutputPtr = ptr+len;
-                    return;
-                }
                 // Just need minimal copy:
-                str.getChars(offset, offset+needed, outBuf, ptr);
+                str.getChars(offset, offset+needed, mOutputBuffer, ptr);
                 mOutputPtr = ptr + needed;
                 len -= needed;
                 offset += needed;

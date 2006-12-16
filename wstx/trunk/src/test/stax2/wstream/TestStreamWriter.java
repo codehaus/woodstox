@@ -137,17 +137,29 @@ public class TestStreamWriter
     public void testLongerComment()
         throws XMLStreamException
     {
-        doTestLonger(COMMENT, false, false);
-        doTestLonger(COMMENT, true, false);
-        doTestLonger(COMMENT, true, true);
+        doTestLonger(COMMENT, false, false, "UTF-8");
+        doTestLonger(COMMENT, false, false, "ISO-8859-1");
+        doTestLonger(COMMENT, false, false, "US-ASCII");
+        doTestLonger(COMMENT, true, false, "UTF-8");
+        doTestLonger(COMMENT, true, false, "ISO-8859-1");
+        doTestLonger(COMMENT, true, false, "US-ASCII");
+        doTestLonger(COMMENT, true, true, "UTF-8");
+        doTestLonger(COMMENT, true, true, "ISO-8859-1");
+        doTestLonger(COMMENT, true, true, "US-ASCII");
     }
 
     public void testLongerPI()
         throws XMLStreamException
     {
-        doTestLonger(PROCESSING_INSTRUCTION, false, false);
-        doTestLonger(PROCESSING_INSTRUCTION, true, false);
-        doTestLonger(PROCESSING_INSTRUCTION, true, true);
+        doTestLonger(PROCESSING_INSTRUCTION, false, false, "UTF-8");
+        doTestLonger(PROCESSING_INSTRUCTION, false, false, "ISO-8859-1");
+        doTestLonger(PROCESSING_INSTRUCTION, false, false, "US-ASCII");
+        doTestLonger(PROCESSING_INSTRUCTION, true, false, "UTF-8");
+        doTestLonger(PROCESSING_INSTRUCTION, true, false, "ISO-8859-1");
+        doTestLonger(PROCESSING_INSTRUCTION, true, false, "US-ASCII");
+        doTestLonger(PROCESSING_INSTRUCTION, true, true, "UTF-8");
+        doTestLonger(PROCESSING_INSTRUCTION, true, true, "ISO-8859-1");
+        doTestLonger(PROCESSING_INSTRUCTION, true, true, "US-ASCII");
     }
 
     public void testCopy()
@@ -326,7 +338,7 @@ public class TestStreamWriter
         sr.close();
     }
 
-    public void doTestLonger(int type, boolean ns, boolean repair)
+    public void doTestLonger(int type, boolean ns, boolean repair, String enc)
         throws XMLStreamException
     {
         final String TEXT =
@@ -342,11 +354,11 @@ public class TestStreamWriter
             StringWriter strw = new StringWriter();
             XMLStreamWriter2 w;
             if (repair) {
-                w = getRepairingWriter(strw);
+                w = getRepairingWriter(strw, enc);
             } else {
-                w = getNonRepairingWriter(strw, ns);
+                w = getNonRepairingWriter(strw, enc, ns);
             }
-            w.writeStartDocument();
+            w.writeStartDocument(enc, "1.0");
             if (type == COMMENT) {
                 w.writeComment(TEXT);
             } else {

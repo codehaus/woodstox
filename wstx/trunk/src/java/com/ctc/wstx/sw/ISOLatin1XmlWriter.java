@@ -378,7 +378,6 @@ public final class ISOLatin1XmlWriter
     protected int writeCommentContent(String data)
         throws IOException
     {
-
         // Note: mSurrogate can not be non-zero at this point, no need to check
 
         int offset = 0;

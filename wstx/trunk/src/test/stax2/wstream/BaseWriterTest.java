@@ -27,6 +27,16 @@ public class BaseWriterTest
         return (XMLStreamWriter2) f.createXMLStreamWriter(w);
     }
 
+    public XMLStreamWriter2 getRepairingWriter(Writer w, String enc)
+        throws XMLStreamException
+    {
+        XMLOutputFactory2 f = getOutputFactory();
+        f.setProperty(XMLStreamProperties.XSP_NAMESPACE_AWARE, Boolean.TRUE);
+        f.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES,
+                      Boolean.TRUE);
+        return (XMLStreamWriter2) f.createXMLStreamWriter(w, enc);
+    }
+
     public XMLStreamWriter2 getNonRepairingWriter(Writer w, boolean nsAware)
         throws XMLStreamException
     {

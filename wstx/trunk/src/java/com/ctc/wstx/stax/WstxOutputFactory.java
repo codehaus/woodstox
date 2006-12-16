@@ -246,9 +246,18 @@ public final class WstxOutputFactory
                     xw = new BufferingXmlWriter(w, cfg, enc, true);
                 } else if (enc == CharsetNames.CS_ISO_LATIN1) {
                     xw = new ISOLatin1XmlWriter(out, cfg, autoCloseOutput);
+
+                    /* 15-Dec-2006, TSa: For now, let's just use the
+                     *   default buffering writer for Ascii: while it's
+                     *   easy to create one from Latin1, it should be
+                     *   done after some refactorings are done to Latin1,
+                     *   not right now.
+                     */
+                    /*
                 } else if (enc == CharsetNames.CS_US_ASCII) {
                     // !!! TBI: won't do proper quoting, need to finish ascii writer
                     xw = new ISOLatin1XmlWriter(out, cfg, autoCloseOutput);
+                    */
                 } else {
                     w = new OutputStreamWriter(out, enc);
                     xw = new BufferingXmlWriter(w, cfg, enc, autoCloseOutput);
