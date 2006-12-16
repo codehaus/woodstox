@@ -245,7 +245,7 @@
 
     <!-- Dummy target that just includes all individual jars... --> 
     <target name="jars"
-       depends="jar.stax2, jar.wstx.lgpl, jar.wstx.asl, jars.j2me, jar.resources"
+       depends="jar.stax2, jar.wstx.lgpl, jar.wstx.asl, jar.resources"
     />
 
     <target name="jars.j2me"

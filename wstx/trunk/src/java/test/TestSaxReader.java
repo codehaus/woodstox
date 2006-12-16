@@ -24,6 +24,7 @@ public class TestSaxReader
         throws Exception
     {
         WstxSAXParserFactory spf = new WstxSAXParserFactory();
+        spf.setFeature("http://xml.org/sax/features/namespace-prefixes", true);
         SAXParser sp = spf.newSAXParser();
         MyContentHandler h = new MyContentHandler();
         sp.setProperty(SAXProperty.LEXICAL_HANDLER.toString(), (DeclHandler) h);
@@ -62,12 +63,7 @@ public class TestSaxReader
         public void endElement(String nsUri, String localName, String qName)
         {
             System.out.print("[END-ELEMENT] </");
-            System.out.print(qName);
-            if (nsUri != null) {
-                System.out.print(" {");
-                System.out.print(nsUri);
-                System.out.print(" }");
-            }
+            System.out.print(getName(qName, nsUri));
             System.out.println(">");
         }
 
@@ -106,23 +102,15 @@ public class TestSaxReader
             System.out.print("[START-ELEMENT] (");
             System.out.print(attrs.getLength());
             System.out.print(" attrs) <");
-            System.out.print(qName);
-            if (nsUri != null) {
-                System.out.print(" {");
-                System.out.print(nsUri);
-                System.out.print(" }");
-            }
-            /*
-            appendName(mText, localName, qName, namespaceURI);
+            System.out.print(getName(qName, nsUri));
+
             for (int i = 0, len = attrs.getLength(); i < len; ++i) {
-                mText.append(' ');
-                appendName(mText, attrs.getLocalName(i), attrs.getQName(i),
-                           attrs.getURI(i));
-                mText.append("='");
-                mText.append(attrs.getValue(i));
-                mText.append("'");
+                System.out.print(' ');
+                System.out.print(getName(attrs.getQName(i), attrs.getURI(i)));
+                System.out.print("='");
+                System.out.print(attrs.getValue(i));
+                System.out.print("'");
             }
-            */
             System.out.println(">");
             System.out.println(" (Location, system id = '"+mLocator.getSystemId()+"')");
         }
@@ -209,6 +197,13 @@ public class TestSaxReader
                 sb.append("]..[");
                 sb.append(ch, (start + length - 28), 28);
             }
+        }
+
+        private String getName(String qname, String uri) {
+            if (uri == null) {
+                return qname;
+            }
+            return qname + " {" + uri + "}";
         }
     }
 

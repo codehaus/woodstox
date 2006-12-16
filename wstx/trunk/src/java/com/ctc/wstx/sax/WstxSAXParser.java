@@ -605,7 +605,17 @@ public class WstxSAXParser
     {
         mAttrCount = mAttrCollector.getCount();
         if (mFeatNsPrefixes) {
-            mNsCount = mAttrCollector.getNsCount();
+            /* 15-Dec-2006, TSa: Note: apparently namespace bindings that
+             *    are added via defaulting are only visible via element
+             *    stack. Thus, we MUST access things via element stack,
+             *    not attribute collector; even though latter seems like
+             *    the more direct route. See
+             *    {@link NsInputElementStack#addNsBinding} for the method
+             *    that injects such special namespace bindings (yes, it's
+             *    a hack, afterthought)
+             */
+            //mNsCount = mAttrCollector.getNsCount();
+            mNsCount = mElemStack.getCurrentNsCount();
         }
         mScanner.fireSaxStartElement(mContentHandler, this);
     }
@@ -676,7 +686,11 @@ public class WstxSAXParser
         }
         index -= mAttrCount;
         if (index < mNsCount) {
-            String prefix = mAttrCollector.getNsPrefix(index);
+            /* As discussed in <code>fireStartTag</code>, we must use
+             * element stack, not attribute collector:
+             */
+            //String prefix = mAttrCollector.getNsPrefix(index);
+            String prefix = mElemStack.getLocalNsPrefix(index);
             return (prefix == null || prefix.length() == 0) ?
                 "xmlns" : prefix;
         }
@@ -696,7 +710,11 @@ public class WstxSAXParser
         }
         index -= mAttrCount;
         if (index < mNsCount) {
-            String prefix = mAttrCollector.getNsPrefix(index);
+            /* As discussed in <code>fireStartTag</code>, we must use
+             * element stack, not attribute collector:
+             */
+            //String prefix = mAttrCollector.getNsPrefix(index);
+            String prefix = mElemStack.getLocalNsPrefix(index);
             if (prefix == null || prefix.length() == 0) {
                 return "xmlns";
             }
@@ -749,8 +767,7 @@ public class WstxSAXParser
             String uri = mAttrCollector.getURI(index);
             return (uri == null) ? "" : uri;
         }
-        index -= mAttrCount;
-        if (index < mNsCount) {
+        if ((index - mAttrCount) < mNsCount) {
             return XMLConstants.XMLNS_ATTRIBUTE_NS_URI;
         }
         return null;
@@ -763,21 +780,23 @@ public class WstxSAXParser
         }
         index -= mAttrCount;
         if (index < mNsCount) {
-            return mAttrCollector.getNsURI(index);
+            /* As discussed in <code>fireStartTag</code>, we must use
+             * element stack, not attribute collector:
+             */
+            //return mAttrCollector.getNsURI(index);
+            return mElemStack.getLocalNsURI(index);
         }
         return null;
     }
 
     public String getValue(String qName)
     {
-        int ix = getIndex(qName);
-        return (ix < 0) ? null :  mAttrCollector.getValue(ix);
+        return getValue(getIndex(qName));
     }
 
     public String getValue(String uri, String localName) 
     {
-        int ix = getIndex(uri, localName);
-        return (ix < 0) ? null :  mAttrCollector.getValue(ix);
+        return getValue(getIndex(uri, localName));
     }
 
     /*
