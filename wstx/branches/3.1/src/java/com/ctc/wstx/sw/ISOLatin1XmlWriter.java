@@ -51,6 +51,7 @@ public final class ISOLatin1XmlWriter
         while (len > 0) {
             int max = outBuf.length - ptr;
             if (max < 1) { // output buffer full?
+                mOutputPtr = ptr;
                 flushBuffer();
                 ptr = 0;
                 max = outBuf.length;
@@ -104,6 +105,7 @@ public final class ISOLatin1XmlWriter
         while (len > 0) {
             int max = outBuf.length - ptr;
             if (max < 1) { // output buffer full?
+                mOutputPtr = ptr;
                 flushBuffer();
                 ptr = 0;
                 max = outBuf.length;
@@ -147,7 +149,7 @@ public final class ISOLatin1XmlWriter
     }
 
     protected void writeAttrValue(String data)
-        throws IOException, XMLStreamException
+        throws IOException
     {
         int offset = 0;
         int len = data.length();
@@ -158,6 +160,7 @@ public final class ISOLatin1XmlWriter
         while (len > 0) {
             int max = outBuf.length - ptr;
             if (max < 1) { // output buffer full?
+                mOutputPtr = ptr;
                 flushBuffer();
                 ptr = 0;
                 max = outBuf.length;
@@ -243,6 +246,7 @@ public final class ISOLatin1XmlWriter
         while (len > 0) {
             int max = outBuf.length - ptr;
             if (max < 1) { // output buffer full?
+                mOutputPtr = ptr;
                 flushBuffer();
                 ptr = 0;
                 max = outBuf.length;
@@ -318,6 +322,7 @@ public final class ISOLatin1XmlWriter
         while (len > 0) {
             int max = outBuf.length - ptr;
             if (max < 1) { // output buffer full?
+                mOutputPtr = ptr;
                 flushBuffer();
                 ptr = 0;
                 max = outBuf.length;
@@ -378,7 +383,6 @@ public final class ISOLatin1XmlWriter
     protected int writeCommentContent(String data)
         throws IOException
     {
-
         // Note: mSurrogate can not be non-zero at this point, no need to check
 
         int offset = 0;
@@ -395,6 +399,7 @@ public final class ISOLatin1XmlWriter
         while (len > 0) {
             int max = outBuf.length - ptr;
             if (max < 1) { // output buffer full?
+                mOutputPtr = ptr;
                 flushBuffer();
                 ptr = 0;
                 max = outBuf.length;
@@ -473,6 +478,7 @@ public final class ISOLatin1XmlWriter
         while (len > 0) {
             int max = outBuf.length - ptr;
             if (max < 1) { // output buffer full?
+                mOutputPtr = ptr;
                 flushBuffer();
                 ptr = 0;
                 max = outBuf.length;
@@ -526,6 +532,7 @@ public final class ISOLatin1XmlWriter
         while (len > 0) {
             int max = outBuf.length - ptr;
             if (max < 1) { // output buffer full?
+                mOutputPtr = ptr;
                 flushBuffer();
                 ptr = 0;
                 max = outBuf.length;
@@ -559,7 +566,7 @@ public final class ISOLatin1XmlWriter
                     // \r, or xml1.1 + other whitespace, need to escape
                 } else if (c < 0x7F) {
                     if (c !='<' && c != '&') {
-                        if (c != '>' || (offset > 0 && data.charAt(offset-1) != ']')) {
+                        if (c != '>' || (offset > 1 && data.charAt(offset-2) != ']')) {
                             outBuf[ptr++] = (byte) c;
                             continue;
                         }
@@ -603,6 +610,7 @@ public final class ISOLatin1XmlWriter
         while (len > 0) {
             int max = outBuf.length - ptr;
             if (max < 1) { // output buffer full?
+                mOutputPtr = ptr;
                 flushBuffer();
                 ptr = 0;
                 max = outBuf.length;
@@ -639,7 +647,7 @@ public final class ISOLatin1XmlWriter
                         /* Since we can be conservative, it doesn't matter
                          * if second check is not exact
                          */
-                        if (c != '>' || (offset > 0 && cbuf[offset-1] != ']')) {
+                        if (c != '>' || (offset > 1 && cbuf[offset-2] != ']')) {
                             outBuf[ptr++] = (byte) c;
                             continue;
                         }
