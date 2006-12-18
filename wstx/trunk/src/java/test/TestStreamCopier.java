@@ -31,8 +31,8 @@ public class TestStreamCopier
         XMLInputFactory f =  XMLInputFactory.newInstance();
         //System.out.println("Factory instance: "+f.getClass());
 
-        //f.setProperty(XMLInputFactory.IS_COALESCING, Boolean.FALSE);
-        f.setProperty(XMLInputFactory.IS_COALESCING, Boolean.TRUE);
+        f.setProperty(XMLInputFactory.IS_COALESCING, Boolean.FALSE);
+        //f.setProperty(XMLInputFactory.IS_COALESCING, Boolean.TRUE);
         //f.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.FALSE);
         f.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.TRUE);
 
@@ -70,8 +70,8 @@ public class TestStreamCopier
 
         XMLOutputFactory f =  XMLOutputFactory.newInstance();
         f.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES,
-                      Boolean.TRUE
-                      //Boolean.FALSE
+                      //Boolean.TRUE
+                      Boolean.FALSE
                       );
         return (XMLOutputFactory2) f;
     }
@@ -116,7 +116,20 @@ public class TestStreamCopier
                 //System.err.println("Comment: '"+sr.getText()+"'");
                 //if (true) throw new Error("comment");
             }
-            sw.copyEventFromReader(sr, false);
+
+            if (type == XMLStreamConstants.CHARACTERS) {
+                //sw.writeCharacters(sr.getText());
+                //sw.writeCharacters(sr.getTextCharacters(), sr.getTextStart(), sr.getTextLength());
+                sw.copyEventFromReader(sr, false);
+            } else if (type == XMLStreamConstants.CDATA) {
+                sw.writeCharacters(sr.getText());
+                //sw.writeCharacters(sr.getTextCharacters(), sr.getTextStart(), sr.getTextLength());
+            } else if (type == XMLStreamConstants.END_ELEMENT) {
+                sw.writeEndElement();
+            } else {
+                sw.copyEventFromReader(sr, false);
+            }
+
             /*
             if (++count % 1000 == 100) {
                 System.err.println("#"+count);

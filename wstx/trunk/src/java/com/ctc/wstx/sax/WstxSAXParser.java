@@ -783,8 +783,9 @@ public class WstxSAXParser
             /* As discussed in <code>fireStartTag</code>, we must use
              * element stack, not attribute collector:
              */
-            //return mAttrCollector.getNsURI(index);
-            return mElemStack.getLocalNsURI(index);
+            //String uri = mAttrCollector.getNsURI(index);
+            String uri = mElemStack.getLocalNsURI(index);
+            return (uri == null) ? "" : uri;
         }
         return null;
     }
