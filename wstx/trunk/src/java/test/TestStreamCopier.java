@@ -95,7 +95,11 @@ public class TestStreamCopier
         //URL url = new URL("http://www.isb-sib.ch/~ejain/uniprot-rdf/data/taxonomy.rdf.gz");
         //sr = (XMLStreamReader2)ifact.createXMLStreamReader(in);
 	
-        XMLStreamWriter2 sw = (XMLStreamWriter2) of.createXMLStreamWriter(out);
+        //XMLStreamWriter2 sw = (XMLStreamWriter2) of.createXMLStreamWriter(out);
+
+        XMLStreamWriter2 sw = (XMLStreamWriter2) of.createXMLStreamWriter(out, "ISO-8859-1");
+        //XMLStreamWriter2 sw = (XMLStreamWriter2) of.createXMLStreamWriter(out, "UTF-8");
+
 //System.err.println("[XMLStreamWriter: "+sw.getClass()+"]");
 
         int count = 0;

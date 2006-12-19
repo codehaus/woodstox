@@ -11,9 +11,6 @@ Description:
   * [WSTX-89] Line number information was not properly updated in
     some cases (boundary condition with Windows, \r\n, linefeeds)
    (reported by Frank B)
-  * [WSTX-91] (regression caused by changes for [WSTX-90]; array index
-    of bounds)
-   (reported by Davanum S, submitted patch)
   * [WSTX-96] Beginning part of comments (for longer comments)
     was sometimes duplicated by the XMLStreamWriter implementation 
    (reported by Wolfgang H)
@@ -28,6 +25,7 @@ Description:
     possible.
    (reported by Davanum S., submitted patch suggesting optimization
     that was included)
+   (also note that this fix resulted in regression, WSTX-91, fixed)
   * [WSTX-93] System id part of Location reported for expanded external
     entities was not a valid (resolved) URI, now is.
 
@@ -35,6 +33,8 @@ Description:
 
   * [WSTX-33] Woodstox now implements SAX2 interface natively. So, it
     is fair to say that Woodstox is now StAX/SAX implementation.
+    (also, note that there were transient problems related to this
+     feature, in trunk, such as WSTX-95, WSTX-101
 
 == History: ==
 

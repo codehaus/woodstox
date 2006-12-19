@@ -65,6 +65,16 @@ public abstract class EncodingXmlWriter
     final static byte BYTE_QUOT = (byte) '"';
     final static byte BYTE_APOS = (byte) '\'';
 
+    final static byte BYTE_A = (byte) 'a';
+    final static byte BYTE_G = (byte) 'g';
+    final static byte BYTE_L = (byte) 'l';
+    final static byte BYTE_M = (byte) 'm';
+    final static byte BYTE_O = (byte) 'o';
+    final static byte BYTE_P = (byte) 'p';
+    final static byte BYTE_Q = (byte) 'q';
+    final static byte BYTE_S = (byte) 's';
+    final static byte BYTE_T = (byte) 't';
+    final static byte BYTE_U = (byte) 'u';
     final static byte BYTE_X = (byte) 'x';
 
     /*
@@ -294,7 +304,7 @@ public abstract class EncodingXmlWriter
             writeRaw(internalSubset, 0, internalSubset.length());
             writeAscii(BYTE_RBRACKET);
         }
-        writeAscii(BYTE_LT);
+        writeAscii(BYTE_GT);
     }
 
     public void writeEntityReference(String name)
@@ -565,32 +575,64 @@ public abstract class EncodingXmlWriter
             flushBuffer();
             ptr = mOutputPtr;
         }
-        buf[ptr++] = BYTE_AMP;
-        buf[ptr++] = BYTE_HASH;
-        buf[ptr++] = BYTE_X;
-        // Can use shorter quoting for tab, cr, lf:
-        if (c < 16) {
-            buf[ptr++] = (byte) ((c < 10) ? ('0' + c) : (('a' - 10) + c));
-        } else {
-            int digits;
 
-            if (c < (1 << 8)) {
-                digits = 2;
-            } else if (c < (1 << 12)) {
-                digits = 3;
-            } else if (c < (1 << 16)) {
-                digits = 4;
+        buf[ptr++] = BYTE_AMP;
+
+        // Can use more optimal notation for 8-bit ascii stuff:
+        if (c < 256) {
+            if (c < 0) throw new Error();
+
+            /* Also; although not really mandatory, let's also
+             * use pre-defined entities where possible.
+             */
+            if (c == '&') {
+                buf[ptr++] = BYTE_A;
+                buf[ptr++] = BYTE_M;
+                buf[ptr++] = BYTE_P;
+            } else if (c == '<') {
+                buf[ptr++] = BYTE_L;
+                buf[ptr++] = BYTE_T;
+            } else if (c == '>') {
+                buf[ptr++] = BYTE_G;
+                buf[ptr++] = BYTE_T;
+            } else if (c == '\'') {
+                buf[ptr++] = BYTE_A;
+                buf[ptr++] = BYTE_P;
+                buf[ptr++] = BYTE_O;
+                buf[ptr++] = BYTE_S;
+            } else if (c == '"') {
+                buf[ptr++] = BYTE_Q;
+                buf[ptr++] = BYTE_U;
+                buf[ptr++] = BYTE_O;
+                buf[ptr++] = BYTE_T;
             } else {
-                digits = 6;
+                buf[ptr++] = BYTE_HASH;
+                buf[ptr++] = BYTE_X;
+                // Can use shortest quoting for tab, cr, lf:
+                if (c >= 16) {
+                    int digit = (c >> 4);
+                    buf[ptr++] = (byte) ((digit < 10) ? ('0' + digit) : (('a' - 10) + digit));
+                    c &= 0xF;
+                }
+                buf[ptr++] = (byte) ((c < 10) ? ('0' + c) : (('a' - 10) + c));
             }
-            ptr += digits;
-            for (int i = 1; i <= digits; ++i) {
-                int digit = (c & 0xF);
-                c >>= 4;
-                buf[ptr-i] = (byte) ((digit < 10) ?
-                                     ('0' + digit) :
-                                     (('a' - 10) + digit));
-            }
+        } else {
+            buf[ptr++] = BYTE_HASH;
+            buf[ptr++] = BYTE_X;
+
+            // Ok, let's write the shortest possible sequence then:
+            int shift = 20;
+            int origPtr = ptr;
+
+            do {
+                int digit = (c >> shift) & 0xF;
+                if (digit > 0 || (ptr != origPtr)) {
+                    buf[ptr++] = (byte) ((digit < 10) ? ('0' + digit) : (('a' - 10) + digit));
+                }
+                shift -= 4;
+            } while (shift > 0);
+            c &= 0xF;
+            buf[ptr++] = (byte) ((c < 10) ? ('0' + c) : (('a' - 10) + c));
         }
         buf[ptr++] = BYTE_SEMICOLON;
         mOutputPtr = ptr;
@@ -608,11 +650,19 @@ public abstract class EncodingXmlWriter
     protected final int calcSurrogate(int secondSurr)
         throws IOException
     {
-        if ((secondSurr < SURR2_FIRST) || (secondSurr > SURR2_LAST)) {
-            throwUnpairedSurrogate();
-        }
+
+
+        // First, let's verify first surrogate is valid:
         int firstSurr = mSurrogate;
         mSurrogate = 0;
+        if (firstSurr < SURR1_FIRST || firstSurr > SURR1_LAST) {
+            throwUnpairedSurrogate(firstSurr);
+        }
+        
+        // Then that the second one is:
+        if ((secondSurr < SURR2_FIRST) || (secondSurr > SURR2_LAST)) {
+            throwUnpairedSurrogate(secondSurr);
+        }
         int ch = 0x10000 + ((firstSurr - SURR1_FIRST) << 10) + (secondSurr - SURR2_FIRST);
         if (ch > XmlConsts.MAX_UNICODE_CHAR) {
             throw new IOException("Illegal surrogate character pair, resulting code 0x"+Integer.toHexString(ch)+" above legal XML character range");
@@ -625,10 +675,16 @@ public abstract class EncodingXmlWriter
     {
         int surr = mSurrogate;
         mSurrogate = 0;
+        throwUnpairedSurrogate(surr);
+    }
+
+    protected final void throwUnpairedSurrogate(int code)
+        throws IOException
+{
         // Let's flush to make debugging easier
         flush();
-        throw new IOException("Unpaired surrogate character (0x"+Integer.toHexString(surr)+")");
-    }
+        throw new IOException("Unpaired surrogate character (0x"+Integer.toHexString(code)+")");
+}
 
     /*
     ////////////////////////////////////////////////
