@@ -14,6 +14,9 @@ Problems fixed:
   * [WSTX-88] Quoting of characters in high range (0x80 - 0xFF) was not
     working correctly for Latin1 output
     (reported by Michael H)
+  * [WSTX-102] WStartDocument construction resulted in NPE, when using
+    DOM source.
+   (reported by Werner D)
 
 == History: ==
 

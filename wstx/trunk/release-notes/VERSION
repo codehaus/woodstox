@@ -17,6 +17,9 @@ Description:
   * [WSTX-97] Character offsets (for XMLStreamReader.getLocation())
     were sometimes decremented; fixed, and added a unit test
    (reported by Frank B)
+  * [WSTX-102] WStartDocument construction resulted in NPE, when using
+    DOM source.
+   (reported by Werner D)
 
   Improvements:
 

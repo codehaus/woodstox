@@ -250,3 +250,8 @@ Davanum Srinivas:
   * Reported [WSTX-91], submitted patch (regression caused by changes
     for [WSTX-90]); array index of bounds on stream writer.
     [3.2]
+
+Werner Donné:
+  * Reported [WSTX-102], submitted patch to fix it: WStartDocument
+    constructor would NPE when building using DOM source.
+    [3.0.3 / 3.1.1]

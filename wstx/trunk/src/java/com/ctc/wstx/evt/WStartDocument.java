@@ -41,7 +41,7 @@ public class WStartDocument
         }
         mEncodingScheme = r.getCharacterEncodingScheme();
         mEncodingSet = (mEncodingScheme != null && mEncodingScheme.length() > 0);
-        mSystemId = loc.getSystemId();
+        mSystemId = (loc != null) ? loc.getSystemId() : "";
     }
 
     /**

@@ -236,3 +236,8 @@ Frank Baxter:
     the problem: Character offsets (for XMLStreamReader.getLocation())
     were sometimes decremented
     [3.1.1]
+
+Werner Donné:
+  * Reported [WSTX-102], submitted patch to fix it: WStartDocument
+    constructor would NPE when building using DOM source.
+    [3.0.3 / 3.1.1]

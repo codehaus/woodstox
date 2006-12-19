@@ -198,15 +198,8 @@ public final class BufferingXmlWriter
             if ((mOutputPtr + len) > mOutputBufLen) {
                 flushBuffer();
             }
-            int ptr = mOutputPtr;
-            /* Note: since it's a small copy, probably faster to copy without
-             * System.arraycopy (which uses JNI)
-             */
-            char[] outBuf = mOutputBuffer;
-            for (len += offset; offset < len; ++offset, ++ptr) {
-                outBuf[ptr] = cbuf[offset];
-            }
-            mOutputPtr = ptr;
+            System.arraycopy(cbuf, offset, mOutputBuffer, mOutputPtr, len);
+            mOutputPtr += len;
             return;
         }
 
@@ -221,31 +214,41 @@ public final class BufferingXmlWriter
                  * non-small chink (former possible if chunk we were requested
                  * to output is only slightly over 'small' size)
                  */
-                char[] outBuf = mOutputBuffer;
                 int needed = (mSmallWriteSize - ptr);
 
-                if ((len - needed) < mSmallWriteSize) {
-                    // Would have too little left, let's just copy it all
-                    len += offset;
-                    do {
-                        outBuf[ptr++] = cbuf[offset++];
-                    } while (offset < len);
-                    mOutputPtr = ptr;
-                    return;
-                }
                 // Just need minimal copy:
-                int last = ptr + needed;
-                do {
-                    outBuf[ptr++] = cbuf[offset++];
-                } while (ptr < last);
-                mOutputPtr = ptr;
+                System.arraycopy(cbuf, offset, mOutputBuffer, ptr, needed);
+                mOutputPtr = ptr + needed;
                 len -= needed;
+                offset += needed;
             }
             flushBuffer();
         }
 
         // And then we'll just write whatever we have left:
         mOut.write(cbuf, offset, len);
+    }
+
+    public void writeRaw(String str)
+        throws IOException
+    {
+        if (mOut == null) {
+            return;
+        }
+        final int len = str.length();
+
+        // First; is the new request small or not? If yes, needs to be buffered
+        if (len < mSmallWriteSize) { // yup
+            // Does it fit in with current buffer? If not, need to flush first
+            if ((mOutputPtr + len) >= mOutputBufLen) {
+                flushBuffer();
+            }
+            str.getChars(0, len, mOutputBuffer, mOutputPtr);
+            mOutputPtr += len;
+            return;
+        }
+        // Otherwise, let's just call the main method
+        writeRaw(str, 0, len);
     }
 
     public void writeRaw(String str, int offset, int len)
@@ -261,15 +264,8 @@ public final class BufferingXmlWriter
             if ((mOutputPtr + len) >= mOutputBufLen) {
                 flushBuffer();
             }
-            int ptr = mOutputPtr;
-            /* Note: since it's a small copy, probably faster to copy without
-             * System.arraycopy (which uses JNI)
-             */
-            char[] outBuf = mOutputBuffer;
-            for (len += offset; offset < len; ++offset, ++ptr) {
-                outBuf[ptr] = str.charAt(offset);
-            }
-            mOutputPtr = ptr;
+            str.getChars(offset, offset+len, mOutputBuffer, mOutputPtr);
+            mOutputPtr += len;
             return;
         }
 
@@ -281,28 +277,16 @@ public final class BufferingXmlWriter
                 /* Also, if we are to copy any stuff, let's make sure
                  * that we either copy it all in one chunk, or copy
                  * enough for non-small chunk, flush, and output remaining
-                 * non-small chink (former possible if chunk we were requested
+                 * non-small chunk (former possible if chunk we were requested
                  * to output is only slightly over 'small' size)
                  */
-                char[] outBuf = mOutputBuffer;
                 int needed = (mSmallWriteSize - ptr);
 
-                if ((len - needed) < mSmallWriteSize) {
-                    // Would have too little left, let's just copy it all
-                    len += offset;
-                    do {
-                        outBuf[ptr++] = str.charAt(offset++);
-                    } while (offset < len);
-                    mOutputPtr = ptr;
-                    return;
-                }
                 // Just need minimal copy:
-                int last = ptr + needed;
-                do {
-                    outBuf[ptr++] = str.charAt(offset++);
-                } while (ptr < last);
-                mOutputPtr = ptr;
+                str.getChars(offset, offset+needed, mOutputBuffer, ptr);
+                mOutputPtr = ptr + needed;
                 len -= needed;
+                offset += needed;
             }
             flushBuffer();
         }
@@ -409,63 +393,63 @@ public final class BufferingXmlWriter
         if (mOut == null) {
             return;
         }
-
         if (mTextWriter != null) { // custom escaping?
             mTextWriter.write(text);
-        } else { // nope, default:
-            int offset = 0;
-            int len = text.length();
-            do {
-                int c = 0;
-                int highChar = mEncHighChar;
-                int start = offset;
-                String ent = null;
-                
-                for (; offset < len; ++offset) {
-                    c = text.charAt(offset); 
-                    if (c <= HIGHEST_ENCODABLE_TEXT_CHAR) {
-                        if (c == '<') {
-                            ent = "&lt;";
-                            break;
-                        } else if (c == '&') {
-                            ent = "&amp;";
-                            break;
-                        } else if (c == '>') {
-                            /* Let's be conservative; and if there's any
-                             * change it might be part of "]]>" quote it
-                             */
-                            if ((offset == start) || text.charAt(offset-1) == ']') {
-                                ent = "&gt;";
-                                break;
-                            }
-                        } else if (c < 0x0020) {
-                            if (c == '\n' || c == '\t') { // fine as is
-                                ;
-                            } else {
-                                if (c != '\r' && (!mXml11 || c == 0)) {
-                                    throwInvalidChar(c);
-                                }
-                                break; // need quoting ok
-                            }
-                        }
-                    } else if (c >= highChar) {
-                        break;
-                    }
-                    // otherwise ok
-                }
-                int outLen = offset - start;
-                if (outLen > 0) {
-                    writeRaw(text, start, outLen);
-                } 
-                if (ent != null) {
-                    writeRaw(ent);
-                    ent = null;
-                } else if (offset < len) {
-                    writeAsEntity(c);
-                }
-            } while (++offset < len);
+            return;
         }
-    }    
+        int inPtr = 0;
+        final int len = text.length();
+        int highChar = mEncHighChar;
+
+        main_loop:
+        while (true) {
+            String ent = null;
+
+            inner_loop:
+            while (true) {
+                if (inPtr >= len) {
+                    break main_loop;
+                }
+                char c = text.charAt(inPtr++);
+                if (c <= HIGHEST_ENCODABLE_TEXT_CHAR) {
+                    if (c <= 0x0020) {
+                        if (c == ' ' || c == '\n' || c == '\t') { // fine as is
+                            ;
+                        } else {
+                            if (c != '\r' && (!mXml11 || c == 0)) {
+                                throwInvalidChar(c);
+                            }
+                            break inner_loop; // need quoting ok
+                        }
+                    } else if (c == '<') {
+                        ent = "&lt;";
+                        break inner_loop;
+                    } else if (c == '&') {
+                        ent = "&amp;";
+                        break inner_loop;
+                    } else if (c == '>') {
+                        // Let's be conservative; and if there's any
+                        // change it might be part of "]]>" quote it
+                        if (inPtr < 2 || text.charAt(inPtr-2) == ']') {
+                            ent = "&gt;";
+                            break inner_loop;
+                        }
+                    }
+                } else if (c >= highChar) {
+                    break inner_loop;
+                }
+                if (mOutputPtr >= mOutputBufLen) {
+                    flushBuffer();
+                }
+                mOutputBuffer[mOutputPtr++] = c;
+            }
+            if (ent != null) {
+                writeRaw(ent);
+            } else {
+                writeAsEntity(text.charAt(inPtr-1));
+            }
+        }
+    }
 
     public void writeCharacters(char[] cbuf, int offset, int len)
         throws IOException
@@ -552,7 +536,7 @@ public final class BufferingXmlWriter
             }
         }
         fastWriteRaw("<!--");
-        writeRaw(data, 0, data.length());
+        writeRaw(data);
         fastWriteRaw("-->");
         return -1;
     }
@@ -560,7 +544,7 @@ public final class BufferingXmlWriter
     public void writeDTD(String data)
         throws IOException
     {
-        writeRaw(data, 0, data.length());
+        writeRaw(data);
     }    
 
     public void writeDTD(String rootName, String systemId, String publicId,
@@ -649,7 +633,7 @@ public final class BufferingXmlWriter
             }
             fastWriteRaw(' ');
             // Data may be longer, let's call regular writeRaw method
-            writeRaw(data, 0, data.length());
+            writeRaw(data);
         }
         fastWriteRaw('?', '>');
         return -1;
@@ -661,21 +645,58 @@ public final class BufferingXmlWriter
     ////////////////////////////////////////////////////
      */
 
-    public void writeStartTagStart(String prefix, String localName)
+    public void writeStartTagStart(String localName)
         throws IOException, XMLStreamException
     {
-        fastWriteRaw('<');
-        if (prefix != null && prefix.length() > 0) {
-            if (mCheckNames) {
-                verifyNameValidity(prefix, mNsAware);
-            }
-            fastWriteRaw(prefix);
-            fastWriteRaw(':');
-        }
         if (mCheckNames) {
             verifyNameValidity(localName, mNsAware);
         }
-        fastWriteRaw(localName);
+
+        int ptr = mOutputPtr;
+        int extra = (mOutputBufLen - ptr) - (1 + localName.length());
+        if (extra < 0) { // split on boundary, slower
+            fastWriteRaw('<');
+            fastWriteRaw(localName);
+        } else {
+            char[] buf = mOutputBuffer;
+            buf[ptr++] = '<';
+            int len = localName.length();
+            localName.getChars(0, len, buf, ptr);
+            mOutputPtr = ptr+len;
+        }
+    }    
+
+    public void writeStartTagStart(String prefix, String localName)
+        throws IOException, XMLStreamException
+    {
+        if (prefix == null || prefix.length() == 0) { // shouldn't happen
+            writeStartTagStart(localName);
+            return;
+        }
+
+        if (mCheckNames) {
+            verifyNameValidity(prefix, mNsAware);
+            verifyNameValidity(localName, mNsAware);
+        }
+
+        int ptr = mOutputPtr;
+        int len = prefix.length();
+        int extra = (mOutputBufLen - ptr) - (2 + localName.length() + len);
+        if (extra < 0) { // across buffer boundary, slow case
+            fastWriteRaw('<');
+            fastWriteRaw(prefix);
+            fastWriteRaw(':');
+            fastWriteRaw(localName);
+        } else { // fast case, all inlined
+            char[] buf = mOutputBuffer;
+            buf[ptr++] = '<';
+            prefix.getChars(0, len, buf, ptr);
+            ptr += len;
+            buf[ptr++] = ':';
+            len = localName.length();
+            localName.getChars(0, len, buf, ptr);
+            mOutputPtr = ptr+len;
+        }
     }    
 
     public void writeStartTagEnd()
@@ -687,23 +708,75 @@ public final class BufferingXmlWriter
     public void writeStartTagEmptyEnd()
         throws IOException
     {
-        fastWriteRaw(" />");
+        int ptr = mOutputPtr;
+        if ((ptr + 3) >= mOutputBufLen) {
+            if (mOut == null) {
+                return;
+            }
+            flushBuffer();
+            ptr = mOutputPtr;
+        }
+        char[] buf = mOutputBuffer;
+        buf[ptr++] = ' ';
+        buf[ptr++] = '/';
+        buf[ptr++] = '>';
+        mOutputPtr = ptr;
+    }    
+
+    public void writeEndTag(String localName)
+        throws IOException
+    {
+        int ptr = mOutputPtr;
+        int extra = (mOutputBufLen - ptr) - (3 + localName.length());
+        if (extra < 0) {
+            fastWriteRaw('<', '/');
+            fastWriteRaw(localName);
+            fastWriteRaw('>');
+        } else {
+            char[] buf = mOutputBuffer;
+            buf[ptr++] = '<';
+            buf[ptr++] = '/';
+            int len = localName.length();
+            localName.getChars(0, len, buf, ptr);
+            ptr += len;
+            buf[ptr++] = '>';
+            mOutputPtr = ptr;
+        }
     }    
 
     public void writeEndTag(String prefix, String localName)
         throws IOException
     {
-        fastWriteRaw('<', '/');
-        /* At this point, it is assumed caller knows that end tag
-         * matches with start tag, and that it (by extension) has been
-         * validated if and as necessary
-         */
-        if (prefix != null && prefix.length() > 0) {
+        if (prefix == null || prefix.length() == 0) {
+            writeEndTag(localName);
+            return;
+        }
+        int ptr = mOutputPtr;
+        int len = prefix.length();
+        int extra = (mOutputBufLen - ptr) - (4 + localName.length() + len);
+        if (extra < 0) {
+            fastWriteRaw('<', '/');
+            /* At this point, it is assumed caller knows that end tag
+             * matches with start tag, and that it (by extension) has been
+             * validated if and as necessary
+             */
             fastWriteRaw(prefix);
             fastWriteRaw(':');
+            fastWriteRaw(localName);
+            fastWriteRaw('>');
+        } else {
+            char[] buf = mOutputBuffer;
+            buf[ptr++] = '<';
+            buf[ptr++] = '/';
+            prefix.getChars(0, len, buf, ptr);
+            ptr += len;
+            buf[ptr++] = ':';
+            len = localName.length();
+            localName.getChars(0, len, buf, ptr);
+            ptr += len;
+            buf[ptr++] = '>';
+            mOutputPtr = ptr;
         }
-        fastWriteRaw(localName);
-        fastWriteRaw('>');
     }    
 
     /*
@@ -712,81 +785,140 @@ public final class BufferingXmlWriter
     ////////////////////////////////////////////////////
      */
 
+    public void writeAttribute(String localName, String value)
+        throws IOException, XMLStreamException
+    {
+        if (mOut == null) {
+            return;
+        }
+        if (mCheckNames) {
+            verifyNameValidity(localName, mNsAware);
+        }
+        int len = localName.length();
+        if (((mOutputBufLen - mOutputPtr) - (3 + len)) < 0) {
+            fastWriteRaw(' ');
+            fastWriteRaw(localName);
+            fastWriteRaw('=', '"');
+        } else {
+            int ptr = mOutputPtr;
+            char[] buf = mOutputBuffer;
+            buf[ptr++] = ' ';
+            localName.getChars(0, len, buf, ptr);
+            ptr += len;
+            buf[ptr++] = '=';
+            buf[ptr++] = '"';
+            mOutputPtr = ptr;
+        }
+
+        len = (value == null) ? 0 : value.length();
+        if (len > 0) {
+            if (mAttrValueWriter != null) { // custom escaping?
+                mAttrValueWriter.write(value, 0, len);
+            } else { // nope, default
+                writeAttrValue(value, len);
+            }
+        }
+        fastWriteRaw('"');
+    }
+
     public void writeAttribute(String prefix, String localName, String value)
         throws IOException, XMLStreamException
     {
         if (mOut == null) {
             return;
         }
-
-        fastWriteRaw(' ');
-        if (prefix != null && prefix.length() > 0) {
-            if (mCheckNames) {
-                verifyNameValidity(prefix, mNsAware);
-            }
-            fastWriteRaw(prefix);
-            fastWriteRaw(':');
+        if (prefix == null || prefix.length() == 0) {
+            writeAttribute(localName, value);
+            return;
         }
         if (mCheckNames) {
+            verifyNameValidity(prefix, mNsAware);
             verifyNameValidity(localName, mNsAware);
         }
-        fastWriteRaw(localName);
-        fastWriteRaw('=', '"');
+        int len = prefix.length();
+        if (((mOutputBufLen - mOutputPtr) - (4 + localName.length() + len)) < 0) {
+            fastWriteRaw(' ');
+            if (prefix != null && prefix.length() > 0) {
+                fastWriteRaw(prefix);
+                fastWriteRaw(':');
+            }
+            fastWriteRaw(localName);
+            fastWriteRaw('=', '"');
+        } else {
+            int ptr = mOutputPtr;
+            char[] buf = mOutputBuffer;
+            buf[ptr++] = ' ';
+            prefix.getChars(0, len, buf, ptr);
+            ptr += len;
+            buf[ptr++] = ':';
+            len = localName.length();
+            localName.getChars(0, len, buf, ptr);
+            ptr += len;
+            buf[ptr++] = '=';
+            buf[ptr++] = '"';
+            mOutputPtr = ptr;
+        }
 
-        int len = (value == null) ? 0 : value.length();
+        len = (value == null) ? 0 : value.length();
         if (len > 0) {
             if (mAttrValueWriter != null) { // custom escaping?
                 mAttrValueWriter.write(value, 0, len);
             } else { // nope, default
-                final char qchar = mEncQuoteChar;
-                int offset = 0;
-                int highChar = mEncHighChar;
-
-                do {
-                    int start = offset;
-                    int c = 0;
-                    String ent = null;
-
-                    for (; offset < len; ++offset) {
-                        c = value.charAt(offset);
-                        if (c <= HIGHEST_ENCODABLE_ATTR_CHAR) { // special char?
-                            if (c == qchar) {
-                                ent = mEncQuoteEntity;
-                                break;
-                            } else if (c == '<') {
-                                ent = "&lt;";
-                                break;
-                            } else if (c == '&') {
-                                ent = "&amp;";
-                                break;
-                            } else if (c < 0x0020) { // tab, cr/lf need encoding too
-                                if (c != '\n' && c != '\r' && c != '\t') {
-                                    if (!mXml11 || c == 0) {
-                                        throwInvalidChar(c);
-                                    }
-                                }
-                                break; // need quoting ok
-                            }
-                        } else if (c >= highChar) { // out of range, have to escape
-                            break;
-                        }
-                    }
-                    // otherwise ok
-                    int outLen = offset - start;
-                    if (outLen > 0) {
-                        writeRaw(value, start, outLen);
-                    }
-                    if (ent != null) {
-                        fastWriteRaw(ent);
-                        ent = null;
-                    } else if (offset < len) {
-                        writeAsEntity(c);
-                    }
-                } while (++offset < len);
+                writeAttrValue(value, len);
             }
         }
-
         fastWriteRaw('"');
+    }
+
+    private final void writeAttrValue(String value, int len)
+        throws IOException
+    {
+        int inPtr = 0;
+        final char qchar = mEncQuoteChar;
+        int highChar = mEncHighChar;
+        
+        main_loop:
+        while (true) { // main_loop
+            String ent = null;
+            
+            inner_loop:
+            while (true) {
+                if (inPtr >= len) {
+                    break main_loop;
+                }
+                char c = value.charAt(inPtr++);
+                if (c <= HIGHEST_ENCODABLE_ATTR_CHAR) { // special char?
+                    if (c < 0x0020) { // tab, cr/lf need encoding too
+                        if (c != '\n' && c != '\r' && c != '\t') {
+                            if (!mXml11 || c == 0) {
+                                throwInvalidChar(c);
+                            }
+                        }
+                        break inner_loop; // need quoting ok
+                    } else if (c == qchar) {
+                        ent = mEncQuoteEntity;
+                        break inner_loop;
+                    } else if (c == '<') {
+                        ent = "&lt;";
+                        break inner_loop;
+                    } else if (c == '&') {
+                        ent = "&amp;";
+                        break inner_loop;
+                    }
+                } else if (c >= highChar) { // out of range, have to escape
+                    break inner_loop;
+                }
+                if (mOutputPtr >= mOutputBufLen) {
+                    flushBuffer();
+                }
+                mOutputBuffer[mOutputPtr++] = c;
+            }
+            if (ent != null) {
+                writeRaw(ent);
+            } else {
+                writeAsEntity(value.charAt(inPtr-1));
+            }
+        }
     }
 
     /*
@@ -842,23 +974,19 @@ public final class BufferingXmlWriter
             if (mOut == null) {
                 return;
             }
-            
             /* It's even possible that String is longer than the buffer (not
              * likely, possible). If so, let's just call the full
              * method:
              */
             if (len > mOutputBufLen) {
-                writeRaw(str, 0, len);
+                writeRaw(str);
                 return;
             }
             flushBuffer();
             ptr = mOutputPtr;
         }
-        mOutputPtr += len;
-        char[] buf = mOutputBuffer;
-        for (int i = 0; i < len; ++i) {
-            buf[ptr++] = str.charAt(i);
-        }
+        str.getChars(0, len, mOutputBuffer, ptr);
+        mOutputPtr = ptr+len;
     }
 
     /*
@@ -966,7 +1094,7 @@ public final class BufferingXmlWriter
         // First the special case (last char is hyphen):
         if (index == (len-1)) {
             fastWriteRaw("<!--");
-            writeRaw(content, 0, len);
+            writeRaw(content);
             // we just need to inject one space in there
             fastWriteRaw(" -->");
             return;
@@ -981,7 +1109,7 @@ public final class BufferingXmlWriter
          * supposed to contain any data, so that should be fine (plus
          * at least result is valid, unlike contents as is)
          */
-	fastWriteRaw("<!--");
+        fastWriteRaw("<!--");
         int start = 0;
         while (index >= 0) {
             // first, content prior to '--' and the first hyphen
@@ -1042,42 +1170,69 @@ public final class BufferingXmlWriter
     protected final void writeAsEntity(int c)
         throws IOException
     {
-        char[] cbuf = mOutputBuffer;
+        char[] buf = mOutputBuffer;
         int ptr = mOutputPtr;
-        if ((ptr + 8) >= cbuf.length) {
+        if ((ptr + 10) >= buf.length) { // &#x [up to 6 hex digits] ;
             flushBuffer();
             ptr = mOutputPtr;
         }
-        cbuf[ptr++] = '&';
-        cbuf[ptr++] = '#';
-        cbuf[ptr++] = 'x';
-        // Can use shorter quoting for tab, cr, lf:
-        if (c < 16) {
-            cbuf[ptr++] = (char) ((c < 10) ?
-                                  ('0' + c) :
-                                  (('a' - 10) + c));
-        } else {
-            int digits;
+        buf[ptr++] = '&';
 
-            if (c < (1 << 8)) {
-                digits = 2;
-            } else if (c < (1 << 12)) {
-                digits = 3;
-            } else if (c < (1 << 16)) {
-                digits = 4;
+        // Can use more optimal notation for 8-bit ascii stuff:
+        if (c < 256) {
+            /* Also; although not really mandatory, let's also
+             * use pre-defined entities where possible.
+             */
+            if (c == '&') {
+                buf[ptr++] = 'a';
+                buf[ptr++] = 'm';
+                buf[ptr++] = 'p';
+            } else if (c == '<') {
+                buf[ptr++] = 'l';
+                buf[ptr++] = 't';
+            } else if (c == '>') {
+                buf[ptr++] = 'g';
+                buf[ptr++] = 't';
+            } else if (c == '\'') {
+                buf[ptr++] = 'a';
+                buf[ptr++] = 'p';
+                buf[ptr++] = 'o';
+                buf[ptr++] = 's';
+            } else if (c == '"') {
+                buf[ptr++] = 'q';
+                buf[ptr++] = 'u';
+                buf[ptr++] = 'o';
+                buf[ptr++] = 't';
             } else {
-                digits = 6;
+                buf[ptr++] = '#';;
+                buf[ptr++] = 'x';;
+                // Can use shortest quoting for tab, cr, lf:
+                if (c >= 16) {
+                    int digit = (c >> 4);
+                    buf[ptr++] = (char) ((digit < 10) ? ('0' + digit) : (('a' - 10) + digit));
+                    c &= 0xF;
+                }
+                buf[ptr++] = (char) ((c < 10) ? ('0' + c) : (('a' - 10) + c));
             }
-            ptr += digits;
-            for (int i = 1; i <= digits; ++i) {
-                int digit = (c & 0xF);
-                c >>= 4;
-                cbuf[ptr-i] = (char) ((digit < 10) ?
-                                      ('0' + digit) :
-                                      (('a' - 10) + digit));
-            }
+        } else {
+            buf[ptr++] = '#';
+            buf[ptr++] = 'x';
+
+            // Ok, let's write the shortest possible sequence then:
+            int shift = 20;
+            int origPtr = ptr;
+
+            do {
+                int digit = (c >> shift) & 0xF;
+                if (digit > 0 || (ptr != origPtr)) {
+                    buf[ptr++] = (char) ((digit < 10) ? ('0' + digit) : (('a' - 10) + digit));
+                }
+                shift -= 4;
+            } while (shift > 0);
+            c &= 0xF;
+            buf[ptr++] = (char) ((c < 10) ? ('0' + c) : (('a' - 10) + c));
         }
-        cbuf[ptr++] = ';';
+        buf[ptr++] = ';';
         mOutputPtr = ptr;
     }
 }

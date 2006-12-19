@@ -224,3 +224,8 @@ Michael Haeusler:
     correctly: some characters in range 0x80 - 0xFF were output both
     as is, and as character entities
     [3.0.3]
+
+Werner Donné:
+  * Reported [WSTX-102], submitted patch to fix it: WStartDocument
+    constructor would NPE when building using DOM source.
+    [3.0.3]

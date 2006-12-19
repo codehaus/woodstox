@@ -216,7 +216,7 @@ public abstract class XmlWriter
     public abstract void writeRaw(String str, int offset, int len)
         throws IOException;
 
-    public final void writeRaw(String str)
+    public void writeRaw(String str)
         throws IOException
     {
         writeRaw(str, 0, str.length());
@@ -282,7 +282,7 @@ public abstract class XmlWriter
      * multi-hyphen sequence.
      */
     public abstract int writeComment(String data)
-        throws IOException;
+        throws IOException, XMLStreamException;
 
     /**
      * Older "legacy" output method for outputting DOCTYPE declaration.
@@ -312,6 +312,23 @@ public abstract class XmlWriter
     ////////////////////////////////////////////////////
      */
 
+    /**
+     *<p>
+     * Note: can throw XMLStreamException, if name checking is enabled,
+     * and name is invalid (name check has to be in this writer, not
+     * caller, since it depends not only on xml limitations, but also
+     * on encoding limitations)
+     */
+    public abstract void writeStartTagStart(String localName)
+        throws IOException, XMLStreamException;
+               
+    /**
+     *<p>
+     * Note: can throw XMLStreamException, if name checking is enabled,
+     * and name is invalid (name check has to be in this writer, not
+     * caller, since it depends not only on xml limitations, but also
+     * on encoding limitations)
+     */
     public abstract void writeStartTagStart(String prefix, String localName)
         throws IOException, XMLStreamException;
 
@@ -319,6 +336,9 @@ public abstract class XmlWriter
         throws IOException;
 
     public abstract void writeStartTagEmptyEnd()
+        throws IOException;
+
+    public abstract void writeEndTag(String localName)
         throws IOException;
 
     public abstract void writeEndTag(String prefix, String localName)
@@ -330,6 +350,23 @@ public abstract class XmlWriter
     ////////////////////////////////////////////////////
      */
 
+    /**
+     *<p>
+     * Note: can throw XMLStreamException, if name checking is enabled,
+     * and name is invalid (name check has to be in this writer, not
+     * caller, since it depends not only on xml limitations, but also
+     * on encoding limitations)
+     */
+    public abstract void writeAttribute(String localName, String value)
+        throws IOException, XMLStreamException;
+
+    /**
+     *<p>
+     * Note: can throw XMLStreamException, if name checking is enabled,
+     * and name is invalid (name check has to be in this writer, not
+     * caller, since it depends not only on xml limitations, but also
+     * on encoding limitations)
+     */
     public abstract void writeAttribute(String prefix, String localName, String value)
         throws IOException, XMLStreamException;
 
@@ -408,7 +445,6 @@ public abstract class XmlWriter
                           WstxInputData.getCharDesc(name.charAt(illegalIx)));
         }
     }
- 
 
     /**
      * This is the method called when an output method call violates

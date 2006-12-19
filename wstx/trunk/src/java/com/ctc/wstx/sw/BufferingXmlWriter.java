@@ -1170,42 +1170,69 @@ public final class BufferingXmlWriter
     protected final void writeAsEntity(int c)
         throws IOException
     {
-        char[] cbuf = mOutputBuffer;
+        char[] buf = mOutputBuffer;
         int ptr = mOutputPtr;
-        if ((ptr + 8) >= cbuf.length) {
+        if ((ptr + 10) >= buf.length) { // &#x [up to 6 hex digits] ;
             flushBuffer();
             ptr = mOutputPtr;
         }
-        cbuf[ptr++] = '&';
-        cbuf[ptr++] = '#';
-        cbuf[ptr++] = 'x';
-        // Can use shorter quoting for tab, cr, lf:
-        if (c < 16) {
-            cbuf[ptr++] = (char) ((c < 10) ?
-                                  ('0' + c) :
-                                  (('a' - 10) + c));
-        } else {
-            int digits;
+        buf[ptr++] = '&';
 
-            if (c < (1 << 8)) {
-                digits = 2;
-            } else if (c < (1 << 12)) {
-                digits = 3;
-            } else if (c < (1 << 16)) {
-                digits = 4;
+        // Can use more optimal notation for 8-bit ascii stuff:
+        if (c < 256) {
+            /* Also; although not really mandatory, let's also
+             * use pre-defined entities where possible.
+             */
+            if (c == '&') {
+                buf[ptr++] = 'a';
+                buf[ptr++] = 'm';
+                buf[ptr++] = 'p';
+            } else if (c == '<') {
+                buf[ptr++] = 'l';
+                buf[ptr++] = 't';
+            } else if (c == '>') {
+                buf[ptr++] = 'g';
+                buf[ptr++] = 't';
+            } else if (c == '\'') {
+                buf[ptr++] = 'a';
+                buf[ptr++] = 'p';
+                buf[ptr++] = 'o';
+                buf[ptr++] = 's';
+            } else if (c == '"') {
+                buf[ptr++] = 'q';
+                buf[ptr++] = 'u';
+                buf[ptr++] = 'o';
+                buf[ptr++] = 't';
             } else {
-                digits = 6;
+                buf[ptr++] = '#';;
+                buf[ptr++] = 'x';;
+                // Can use shortest quoting for tab, cr, lf:
+                if (c >= 16) {
+                    int digit = (c >> 4);
+                    buf[ptr++] = (char) ((digit < 10) ? ('0' + digit) : (('a' - 10) + digit));
+                    c &= 0xF;
+                }
+                buf[ptr++] = (char) ((c < 10) ? ('0' + c) : (('a' - 10) + c));
             }
-            ptr += digits;
-            for (int i = 1; i <= digits; ++i) {
-                int digit = (c & 0xF);
-                c >>= 4;
-                cbuf[ptr-i] = (char) ((digit < 10) ?
-                                      ('0' + digit) :
-                                      (('a' - 10) + digit));
-            }
+        } else {
+            buf[ptr++] = '#';
+            buf[ptr++] = 'x';
+
+            // Ok, let's write the shortest possible sequence then:
+            int shift = 20;
+            int origPtr = ptr;
+
+            do {
+                int digit = (c >> shift) & 0xF;
+                if (digit > 0 || (ptr != origPtr)) {
+                    buf[ptr++] = (char) ((digit < 10) ? ('0' + digit) : (('a' - 10) + digit));
+                }
+                shift -= 4;
+            } while (shift > 0);
+            c &= 0xF;
+            buf[ptr++] = (char) ((c < 10) ? ('0' + c) : (('a' - 10) + c));
         }
-        cbuf[ptr++] = ';';
+        buf[ptr++] = ';';
         mOutputPtr = ptr;
     }
 }

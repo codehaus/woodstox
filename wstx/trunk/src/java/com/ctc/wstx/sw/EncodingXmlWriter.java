@@ -575,13 +575,10 @@ public abstract class EncodingXmlWriter
             flushBuffer();
             ptr = mOutputPtr;
         }
-
         buf[ptr++] = BYTE_AMP;
 
         // Can use more optimal notation for 8-bit ascii stuff:
         if (c < 256) {
-            if (c < 0) throw new Error();
-
             /* Also; although not really mandatory, let's also
              * use pre-defined entities where possible.
              */
