@@ -187,8 +187,8 @@ public class RepairingNsStreamWriter
         /* 01-Sep-2006, TSa: Let's only add the declaration if the prefix
          *   is as of yet unbound. If we have to re-bind things in future,
          *   so be it -- for now, this should suffice (and if we have to
-	 *   add re-binding, must verify that no attribute, nor element
-	 *   itself, is using overridden prefix)
+         *   add re-binding, must verify that no attribute, nor element
+         *   itself, is using overridden prefix)
          */
         int value = mCurrElem.isPrefixValid(prefix, nsURI, true);
         if (value == SimpleOutputElement.PREFIX_UNBOUND) {
