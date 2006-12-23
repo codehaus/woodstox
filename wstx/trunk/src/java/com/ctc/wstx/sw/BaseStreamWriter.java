@@ -73,6 +73,19 @@ public abstract class BaseStreamWriter
     protected final static String NO_NS_URI = "";
     protected final static String NO_PREFIX = null;
 
+    /**
+     * This constant defines minimum length of a String, for which it
+     * is beneficial to do an intermediate copy (using String.getChars()),
+     * and iterate over intermediate array, instead of iterating using
+     * String.charAt(). Former is generally faster for longer Strings, but
+     * has some overhead for shorter Strings. Tests indicate that the
+     * threshold is somewhere between 8 and 16 characters, at least on
+     * x86 platform.
+     */
+    protected final static int MIN_ARRAYCOPY = 12;
+
+    protected final static int DEFAULT_COPYBUFFER_LEN = 512;
+
     /*
     ////////////////////////////////////////////////////
     // Output objects
@@ -84,6 +97,17 @@ public abstract class BaseStreamWriter
      */
     protected final XmlWriter mWriter;
     
+    /**
+     * Intermediate buffer into which characters of a String can be
+     * copied, in cases where such a copy followed by array access
+     * is faster than calling <code>String.charAt()</code> (which
+     * perhaps surprisingly is often case, and especially significant
+     * for longer buffers).
+     *<p>
+     * Note:
+     */
+    protected char[] mCopyBuffer = null;
+
     /*
     ////////////////////////////////////////////////////
     // Per-factory configuration (options, features)
@@ -449,17 +473,46 @@ public abstract class BaseStreamWriter
         }
 
         // Ok, let's just write it out
-        try {
-            /* 21-Jun-2006, TSa: Fixing [WSTX-59]: no quoting can be done
-             *   outside of element tree.
-             */
-            if (inPrologOrEpilog()) {
+        /* 21-Jun-2006, TSa: Fixing [WSTX-59]: no quoting can be done
+         *   outside of element tree.
+         */
+        if (inPrologOrEpilog()) {
+            try {
                 mWriter.writeRaw(text);
-            } else {
-                mWriter.writeCharacters(text);
+            } catch (IOException ioe) {
+                throw new WstxIOException(ioe);
             }
-        } catch (IOException ioe) {
-            throw new WstxIOException(ioe);
+            return;
+        }
+
+        /* Now, would it pay off to make an intermediate copy?
+         * String.getChars (which uses System.arraycopy()) is
+         * very fast compared to access via String.charAt.
+         */
+        int len = text.length();
+        if (len >= MIN_ARRAYCOPY) {
+            char[] buf = mCopyBuffer;
+            if (buf == null) {
+                mCopyBuffer = buf = mConfig.allocMediumCBuffer(DEFAULT_COPYBUFFER_LEN);
+            }
+            int offset = 0;
+            while (len > 0) {
+                int thisLen = (len > buf.length) ? buf.length : len;
+                text.getChars(offset, offset+thisLen, buf, 0);
+                try {
+                    mWriter.writeCharacters(buf, 0, thisLen);
+                } catch (IOException ioe) {
+                    throw new WstxIOException(ioe);
+                }
+                offset += thisLen;
+                len -= thisLen;
+            }
+        } else { // nope, let's just access String using charAt().
+            try {
+                mWriter.writeCharacters(text);
+            } catch (IOException ioe) {
+                throw new WstxIOException(ioe);
+            }
         }
     }
 
@@ -1618,6 +1671,11 @@ public abstract class BaseStreamWriter
          * and release its buffers, and close components it uses if any.
          */
         try {
+            char[] buf = mCopyBuffer;
+            if (buf != null) {
+                mCopyBuffer = null;
+                mConfig.freeMediumCBuffer(buf);
+            }
             mWriter.close();
         } catch (IOException ie) {
             throw new WstxIOException(ie);

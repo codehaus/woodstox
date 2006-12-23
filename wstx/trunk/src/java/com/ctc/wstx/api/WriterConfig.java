@@ -605,6 +605,31 @@ public final class WriterConfig
     /////////////////////////////////////////////////////
      */
 
+    /**
+     * Method called to allocate intermediate recyclable copy buffers
+     */
+    public char[] allocMediumCBuffer(int minSize)
+    {
+//System.err.println("DEBUG: cfg, allocCMedium: "+mCurrRecycler);
+        if (mCurrRecycler != null) {
+            char[] result = mCurrRecycler.getMediumCBuffer(minSize);
+            if (result != null) {
+                return result;
+            }
+        }
+        return new char[minSize];
+    }
+
+    public void freeMediumCBuffer(char[] buffer)
+    {
+//System.err.println("DEBUG: cfg, freeCMedium: "+buffer);
+        // Need to create (and assign) the buffer?
+        if (mCurrRecycler == null) {
+            mCurrRecycler = createRecycler();
+        }
+        mCurrRecycler.returnMediumCBuffer(buffer);
+    }
+
     public char[] allocFullCBuffer(int minSize)
     {
 //System.err.println("DEBUG: cfg, allocCFull: "+mCurrRecycler);
