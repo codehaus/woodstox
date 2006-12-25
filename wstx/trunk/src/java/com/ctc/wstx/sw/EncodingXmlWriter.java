@@ -313,9 +313,6 @@ public abstract class EncodingXmlWriter
         if (mSurrogate != 0) {
             throwUnpairedSurrogate();
         }
-        if (mCheckNames) {
-            verifyNameValidity(name, mNsAware);
-        }
         writeAscii(BYTE_AMP);
         writeName(name);
         writeAscii(BYTE_SEMICOLON);
@@ -345,10 +342,6 @@ public abstract class EncodingXmlWriter
     public int writePI(String target, String data)
         throws IOException, XMLStreamException
     {
-        if (mCheckNames) {
-            // As per namespace specs, can not have colon(s)
-            verifyNameValidity(target, mNsAware);
-        }
         writeAscii(BYTE_LT, BYTE_QMARK);
         writeName(target);
         if (data != null && data.length() > 0) {
@@ -371,9 +364,6 @@ public abstract class EncodingXmlWriter
     public void writeStartTagStart(String localName)
         throws IOException, XMLStreamException
     {
-        if (mCheckNames) {
-            verifyNameValidity(localName, mNsAware);
-        }
         writeAscii(BYTE_LT);
         writeName(localName);
     }    
@@ -384,10 +374,6 @@ public abstract class EncodingXmlWriter
         if (prefix == null || prefix.length() == 0) {
             writeStartTagStart(localName);
             return;
-        }
-        if (mCheckNames) {
-            verifyNameValidity(localName, mNsAware);
-            verifyNameValidity(prefix, mNsAware);
         }
         writeAscii(BYTE_LT);
         writeName(prefix);
@@ -415,7 +401,7 @@ public abstract class EncodingXmlWriter
          * matches with start tag, and that it (by extension) has been
          * validated if and as necessary
          */
-        writeName(localName);
+        writeNameUnchecked(localName);
         writeAscii(BYTE_GT);
     }    
 
@@ -428,10 +414,10 @@ public abstract class EncodingXmlWriter
          * validated if and as necessary
          */
         if (prefix != null && prefix.length() > 0) {
-            writeName(prefix);
+            writeNameUnchecked(prefix);
             writeAscii(BYTE_COLON);
         }
-        writeName(localName);
+        writeNameUnchecked(localName);
         writeAscii(BYTE_GT);
     }    
 
@@ -444,9 +430,6 @@ public abstract class EncodingXmlWriter
     public void writeAttribute(String localName, String value)
         throws IOException, XMLStreamException
     {
-        if (mCheckNames) {
-            verifyNameValidity(localName, mNsAware);
-        }
         writeAscii(BYTE_SPACE);
         writeName(localName);
         writeAscii(BYTE_EQ, BYTE_QUOT);
@@ -459,21 +442,29 @@ public abstract class EncodingXmlWriter
                 writeAttrValue(value);
             }
         }
+        writeAscii(BYTE_QUOT);
+    }    
 
+    public void writeAttribute(String localName, char[] value, int offset, int len)
+        throws IOException, XMLStreamException
+    {
+        writeAscii(BYTE_SPACE);
+        writeName(localName);
+        writeAscii(BYTE_EQ, BYTE_QUOT);
+
+        if (len > 0) {
+            if (mAttrValueWriter != null) { // custom escaping?
+                mAttrValueWriter.write(value, offset, len);
+            } else { // nope, default
+                writeAttrValue(value, offset, len);
+            }
+        }
         writeAscii(BYTE_QUOT);
     }    
 
     public void writeAttribute(String prefix, String localName, String value)
         throws IOException, XMLStreamException
     {
-        if (prefix == null || prefix.length() == 0) {
-            writeAttribute(localName, value);
-            return;
-        }
-        if (mCheckNames) {
-            verifyNameValidity(localName, mNsAware);
-            verifyNameValidity(prefix, mNsAware);
-        }
         writeAscii(BYTE_SPACE);
         writeName(prefix);
         writeAscii(BYTE_COLON);
@@ -490,6 +481,25 @@ public abstract class EncodingXmlWriter
         }
         writeAscii(BYTE_QUOT);
     }    
+
+    public void writeAttribute(String prefix, String localName, char[] value, int offset, int len)
+        throws IOException, XMLStreamException
+    {
+        writeAscii(BYTE_SPACE);
+        writeName(prefix);
+        writeAscii(BYTE_COLON);
+        writeName(localName);
+        writeAscii(BYTE_EQ, BYTE_QUOT);
+
+        if (len > 0) {
+            if (mAttrValueWriter != null) { // custom escaping?
+                mAttrValueWriter.write(value, offset, len);
+            } else { // nope, default
+                writeAttrValue(value, offset, len);
+            }
+        }
+        writeAscii(BYTE_QUOT);
+    }
 
     /*
     ////////////////////////////////////////////////
@@ -636,19 +646,25 @@ public abstract class EncodingXmlWriter
         return ptr;
     }
 
-    protected final void writeName(String str)
+    protected final void writeName(String name)
+        throws IOException, XMLStreamException
+    {
+        if (mCheckNames) {
+            verifyNameValidity(name, mNsAware);
+        }
+        // TODO: maybe we could reuse some previously encoded names?
+        writeRaw(name, 0, name.length());
+    }
+
+    protected final void writeNameUnchecked(String name)
         throws IOException
     {
-        /* TODO: maybe we could reuse some previously encoded names?
-         */
-        writeRaw(str, 0, str.length());
+        writeRaw(name, 0, name.length());
     }
 
     protected final int calcSurrogate(int secondSurr)
         throws IOException
     {
-
-
         // First, let's verify first surrogate is valid:
         int firstSurr = mSurrogate;
         mSurrogate = 0;
@@ -690,6 +706,9 @@ public abstract class EncodingXmlWriter
      */
 
     protected abstract void writeAttrValue(String data)
+        throws IOException;
+
+    protected abstract void writeAttrValue(char[] value, int offset, int len)
         throws IOException;
 
     protected abstract int writeCDataContent(String data)

@@ -29,6 +29,9 @@ Description:
    (reported by Davanum S., submitted patch suggesting optimization
     that was included)
    (also note that this fix resulted in regression, WSTX-91, fixed)
+  * [WSTX-92] Improved speed of XMLStreamWriter.writeCharacters, by
+    using intermediate char[] buffer for longer String.
+   (suggested by Davanum S, submitted a patch)
   * [WSTX-93] System id part of Location reported for expanded external
     entities was not a valid (resolved) URI, now is.
 

@@ -425,8 +425,11 @@ public class RepairingNsStreamWriter
                  * collector has, we can not use pass-through method of
                  * the collector, but need to call XmlWriter directly:
                  */
-                mWriter.writeAttribute(prefix, attrCollector.getLocalName(i),
-                                       attrCollector.getValue(i));
+                if (prefix == null || prefix.length() == 0) {
+                    mWriter.writeAttribute(attrCollector.getLocalName(i), attrCollector.getValue(i));
+                } else {
+                    mWriter.writeAttribute(prefix, attrCollector.getLocalName(i), attrCollector.getValue(i));
+                }
             }
         }
     }

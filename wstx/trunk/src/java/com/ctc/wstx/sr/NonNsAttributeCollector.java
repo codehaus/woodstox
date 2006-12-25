@@ -446,7 +446,7 @@ public final class NonNsAttributeCollector
     {
         // Note: here we assume index checks have been done by caller
         String ln = mAttrNames.getString(index);
-        xw.writeAttribute(null, ln, getValue(index));
+        xw.writeAttribute(ln, getValue(index));
     }
 
     /*

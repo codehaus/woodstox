@@ -464,8 +464,27 @@ public abstract class BaseNsStreamWriter
             mValidator.validateAttribute(localName, nsURI, prefix, value);
         }
         try {
-            boolean hasPrefix = (prefix != null && prefix.length() > 0);
-            if (hasPrefix) {
+            int vlen = value.length();
+            // Worthwhile to make a local copy?
+            if (vlen >= ATTR_MIN_ARRAYCOPY) {
+                char[] buf = mCopyBuffer;
+                if (buf == null) {
+                    mCopyBuffer = buf = mConfig.allocMediumCBuffer(DEFAULT_COPYBUFFER_LEN);
+                }
+                /* Ok, and in unlikely case of attribute values longer than
+                 * buffer... for now, let's just skip those case
+                 */
+                if (vlen <= buf.length) {
+                    value.getChars(0, vlen, buf, 0);
+                    if (prefix != null && prefix.length() > 0) {
+                        mWriter.writeAttribute(prefix, localName, buf, 0, vlen);
+                    } else {
+                        mWriter.writeAttribute(localName, buf, 0, vlen);
+                    }
+                    return;
+                }
+            }
+            if (prefix != null && prefix.length() > 0) {
                 mWriter.writeAttribute(prefix, localName, value);
             } else {
                 mWriter.writeAttribute(localName, value);
@@ -478,6 +497,24 @@ public abstract class BaseNsStreamWriter
     protected void doWriteNamespace(String prefix, String nsURI)
         throws XMLStreamException
     {
+        int vlen = nsURI.length();
+        // Worthwhile to make a local copy?
+        if (vlen >= ATTR_MIN_ARRAYCOPY) {
+            char[] buf = mCopyBuffer;
+            if (buf == null) {
+                mCopyBuffer = buf = mConfig.allocMediumCBuffer(DEFAULT_COPYBUFFER_LEN);
+            }
+            // Let's not bother with too long, though
+            if (vlen <= buf.length) {
+                nsURI.getChars(0, vlen, buf, 0);
+                try {
+                    mWriter.writeAttribute(XMLConstants.XMLNS_ATTRIBUTE, prefix, buf, 0, vlen);
+                } catch (IOException ioe) {
+                    throw new XMLStreamException(ioe);
+                }
+                return;
+            }
+        }
         try {
             mWriter.writeAttribute(XMLConstants.XMLNS_ATTRIBUTE, prefix, nsURI);
         } catch (IOException ioe) {
@@ -485,11 +522,29 @@ public abstract class BaseNsStreamWriter
         }
     }
 
-    protected void doWriteDefaultNs(String uri)
+    protected void doWriteDefaultNs(String nsURI)
         throws XMLStreamException
     {
+        int vlen = nsURI.length();
+        // Worthwhile to make a local copy?
+        if (vlen >= ATTR_MIN_ARRAYCOPY) {
+            char[] buf = mCopyBuffer;
+            if (buf == null) {
+                mCopyBuffer = buf = mConfig.allocMediumCBuffer(DEFAULT_COPYBUFFER_LEN);
+            }
+            // Let's not bother with too long, though
+            if (vlen <= buf.length) {
+                nsURI.getChars(0, vlen, buf, 0);
+                try {
+                    mWriter.writeAttribute(XMLConstants.XMLNS_ATTRIBUTE, buf, 0, vlen);
+                } catch (IOException ioe) {
+                    throw new XMLStreamException(ioe);
+                }
+                return;
+            }
+        }
         try {
-            mWriter.writeAttribute(null, XMLConstants.XMLNS_ATTRIBUTE, uri);
+            mWriter.writeAttribute(XMLConstants.XMLNS_ATTRIBUTE, nsURI);
         } catch (IOException ioe) {
             throw new XMLStreamException(ioe);
         }

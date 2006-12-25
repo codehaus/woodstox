@@ -224,6 +224,82 @@ public final class ISOLatin1XmlWriter
         mOutputPtr = ptr;
     }
 
+    protected void writeAttrValue(char[] data, int offset, int len)
+        throws IOException
+    {
+        int ptr = mOutputPtr;
+
+        main_loop:
+        while (len > 0) {
+            int max = mOutputBuffer.length - ptr;
+            if (max < 1) { // output buffer full?
+                mOutputPtr = ptr;
+                flushBuffer();
+                ptr = 0;
+                max = mOutputBuffer.length;
+            }
+            // Do we start with a surrogate?
+            if (mSurrogate != 0) {
+                int sec = data[offset++];
+                sec = calcSurrogate(sec);
+                mOutputPtr = ptr;
+                ptr = writeAsEntity(sec);
+                --len;
+                continue main_loop;
+            }
+            // How much can we output?
+            if (max > len) {
+                max = len;
+            }
+            inner_loop:
+            for (int inEnd = offset + max; offset < inEnd; ) {
+                int c = data[offset++];
+                if (c < 32) {
+                    /* Need to quote all white space except for regular
+                     * space chars, to preserve them (round-tripping)
+                     */
+                    // !!! TODO: line counting
+                    if (mCheckContent) {
+                        if (c != '\n' && c != '\r' && c != '\t'
+                            && (!mXml11 || c == 0)) {
+                            throwInvalidChar(c);
+                        }
+                    }
+                    // fall-through to char entity output
+                } else if (c < 0x7F) {
+                    if (c != '<' && c != '&' && c != '"') {
+                        mOutputBuffer[ptr++] = (byte) c;
+                        continue;
+                    }
+                    // otherwise fall back on quoting
+                } else if (c > 0x9F && c <= 0xFF) {
+                    mOutputBuffer[ptr++] = (byte) c;
+                    continue; // [WSTX-88]
+                } else {
+                    // Surrogate?
+                    if (c >= SURR1_FIRST && c <= SURR2_LAST) {
+                        mSurrogate = c;
+                        // Last char needs special handling:
+                        if (offset == inEnd) {
+                            break inner_loop;
+                        }
+                        c = calcSurrogate(data[offset++]);
+                        // Let's fall down to entity output
+                    }
+                }
+                /* Has to be escaped as char entity; as such, also need
+                 * to re-calc max. contiguous data we can output
+                 */
+                mOutputPtr = ptr;
+                ptr = writeAsEntity(c);
+                max -= (inEnd - offset); // since we didn't loop completely
+                break inner_loop;
+            }
+            len -= max;
+        }
+        mOutputPtr = ptr;
+    }
+
     protected int writeCDataContent(String data)
         throws IOException
     {

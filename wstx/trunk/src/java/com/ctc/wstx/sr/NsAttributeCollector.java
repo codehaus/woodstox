@@ -647,9 +647,13 @@ public final class NsAttributeCollector
     {
         // Note: here we assume index checks have been done by caller
         int offset = (index << 1);
-        String prefix = mAttrNames.getString(offset);
         String ln = mAttrNames.getString(offset + 1);
-        xw.writeAttribute(prefix, ln, getValue(index));
+        String prefix = mAttrNames.getString(offset);
+        if (prefix == null || prefix.length() == 0) {
+            xw.writeAttribute(ln, getValue(index));
+        } else {
+            xw.writeAttribute(prefix, ln, getValue(index));
+        }
     }
 
     /*

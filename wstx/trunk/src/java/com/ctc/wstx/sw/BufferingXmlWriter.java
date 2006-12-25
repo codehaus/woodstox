@@ -821,14 +821,45 @@ public final class BufferingXmlWriter
         fastWriteRaw('"');
     }
 
-    public void writeAttribute(String prefix, String localName, String value)
+    public void writeAttribute(String localName, char[] value, int offset, int vlen)
         throws IOException, XMLStreamException
     {
         if (mOut == null) {
             return;
         }
-        if (prefix == null || prefix.length() == 0) {
-            writeAttribute(localName, value);
+        if (mCheckNames) {
+            verifyNameValidity(localName, mNsAware);
+        }
+        int len = localName.length();
+        if (((mOutputBufLen - mOutputPtr) - (3 + len)) < 0) {
+            fastWriteRaw(' ');
+            fastWriteRaw(localName);
+            fastWriteRaw('=', '"');
+        } else {
+            int ptr = mOutputPtr;
+            char[] buf = mOutputBuffer;
+            buf[ptr++] = ' ';
+            localName.getChars(0, len, buf, ptr);
+            ptr += len;
+            buf[ptr++] = '=';
+            buf[ptr++] = '"';
+            mOutputPtr = ptr;
+        }
+
+        if (vlen > 0) {
+            if (mAttrValueWriter != null) { // custom escaping?
+                mAttrValueWriter.write(value, offset, vlen);
+            } else { // nope, default
+                writeAttrValue(value, offset, vlen);
+            }
+        }
+        fastWriteRaw('"');
+    }
+
+    public void writeAttribute(String prefix, String localName, String value)
+        throws IOException, XMLStreamException
+    {
+        if (mOut == null) {
             return;
         }
         if (mCheckNames) {
@@ -865,6 +896,50 @@ public final class BufferingXmlWriter
                 mAttrValueWriter.write(value, 0, len);
             } else { // nope, default
                 writeAttrValue(value, len);
+            }
+        }
+        fastWriteRaw('"');
+    }
+
+    public void writeAttribute(String prefix, String localName, char[] value, int offset, int vlen)
+        throws IOException, XMLStreamException
+    {
+        if (mOut == null) {
+            return;
+        }
+        if (mCheckNames) {
+            verifyNameValidity(prefix, mNsAware);
+            verifyNameValidity(localName, mNsAware);
+        }
+        int len = prefix.length();
+        if (((mOutputBufLen - mOutputPtr) - (4 + localName.length() + len)) < 0) {
+            fastWriteRaw(' ');
+            if (prefix != null && prefix.length() > 0) {
+                fastWriteRaw(prefix);
+                fastWriteRaw(':');
+            }
+            fastWriteRaw(localName);
+            fastWriteRaw('=', '"');
+        } else {
+            int ptr = mOutputPtr;
+            char[] buf = mOutputBuffer;
+            buf[ptr++] = ' ';
+            prefix.getChars(0, len, buf, ptr);
+            ptr += len;
+            buf[ptr++] = ':';
+            len = localName.length();
+            localName.getChars(0, len, buf, ptr);
+            ptr += len;
+            buf[ptr++] = '=';
+            buf[ptr++] = '"';
+            mOutputPtr = ptr;
+        }
+
+        if (vlen > 0) {
+            if (mAttrValueWriter != null) { // custom escaping?
+                mAttrValueWriter.write(value, offset, vlen);
+            } else { // nope, default
+                writeAttrValue(value, offset, vlen);
             }
         }
         fastWriteRaw('"');
@@ -917,6 +992,57 @@ public final class BufferingXmlWriter
                 writeRaw(ent);
             } else {
                 writeAsEntity(value.charAt(inPtr-1));
+            }
+        }
+    }
+
+    private final void writeAttrValue(char[] value, int offset, int len)
+        throws IOException
+    {
+        len += offset;
+        final char qchar = mEncQuoteChar;
+        int highChar = mEncHighChar;
+        
+        main_loop:
+        while (true) { // main_loop
+            String ent = null;
+            
+            inner_loop:
+            while (true) {
+                if (offset >= len) {
+                    break main_loop;
+                }
+                char c = value[offset++];
+                if (c <= HIGHEST_ENCODABLE_ATTR_CHAR) { // special char?
+                    if (c < 0x0020) { // tab, cr/lf need encoding too
+                        if (c != '\n' && c != '\r' && c != '\t') {
+                            if (!mXml11 || c == 0) {
+                                throwInvalidChar(c);
+                            }
+                        }
+                        break inner_loop; // need quoting ok
+                    } else if (c == qchar) {
+                        ent = mEncQuoteEntity;
+                        break inner_loop;
+                    } else if (c == '<') {
+                        ent = "&lt;";
+                        break inner_loop;
+                    } else if (c == '&') {
+                        ent = "&amp;";
+                        break inner_loop;
+                    }
+                } else if (c >= highChar) { // out of range, have to escape
+                    break inner_loop;
+                }
+                if (mOutputPtr >= mOutputBufLen) {
+                    flushBuffer();
+                }
+                mOutputBuffer[mOutputPtr++] = c;
+            }
+            if (ent != null) {
+                writeRaw(ent);
+            } else {
+                writeAsEntity(value[offset-1]);
             }
         }
     }

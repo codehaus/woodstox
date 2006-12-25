@@ -360,6 +360,9 @@ public abstract class XmlWriter
     public abstract void writeAttribute(String localName, String value)
         throws IOException, XMLStreamException;
 
+    public abstract void writeAttribute(String localName, char[] value, int offset, int len)
+        throws IOException, XMLStreamException;
+
     /**
      *<p>
      * Note: can throw XMLStreamException, if name checking is enabled,
@@ -368,6 +371,9 @@ public abstract class XmlWriter
      * on encoding limitations)
      */
     public abstract void writeAttribute(String prefix, String localName, String value)
+        throws IOException, XMLStreamException;
+
+    public abstract void writeAttribute(String prefix, String localName, char[] value, int offset, int len)
         throws IOException, XMLStreamException;
 
     /*

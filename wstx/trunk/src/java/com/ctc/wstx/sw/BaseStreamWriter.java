@@ -84,6 +84,8 @@ public abstract class BaseStreamWriter
      */
     protected final static int MIN_ARRAYCOPY = 12;
 
+    protected final static int ATTR_MIN_ARRAYCOPY = 12;
+
     protected final static int DEFAULT_COPYBUFFER_LEN = 512;
 
     /*
@@ -103,8 +105,6 @@ public abstract class BaseStreamWriter
      * is faster than calling <code>String.charAt()</code> (which
      * perhaps surprisingly is often case, and especially significant
      * for longer buffers).
-     *<p>
-     * Note:
      */
     protected char[] mCopyBuffer = null;
 
