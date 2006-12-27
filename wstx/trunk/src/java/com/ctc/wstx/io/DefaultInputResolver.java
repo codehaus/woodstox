@@ -40,8 +40,11 @@ public final class DefaultInputResolver
      * Basic external resource resolver implementation; usable both with
      * DTD and entity resolution.
      *
-     * @param refCtxt Input context, relative to which reference was made.
-     *   May be null, if context is not known.
+     * @param parent Input source that contains reference to be expanded.
+     * @param pathCtxt Reference context to use for resolving path, if
+     *   known. If null, reference context of the parent will
+     *   be used; and if that is null (which is possible), the
+     *   current working directory will be assumed.
      * @param entityName Name/id of the entity being expanded, if this is an
      *   entity expansion; null otherwise (for example, when resolving external
      *   subset).
@@ -63,21 +66,23 @@ public final class DefaultInputResolver
      *   resolution mechanism.
      */
     public static WstxInputSource resolveEntity
-        (WstxInputSource refCtxt, String entityName,
+        (WstxInputSource parent, URL pathCtxt, String entityName,
          String publicId, String systemId,
          XMLResolver customResolver, ReaderConfig cfg, int xmlVersion)
         throws IOException, XMLStreamException
     {
-        URL ctxt = (refCtxt == null) ? null : refCtxt.getSource();
-        if (ctxt == null) {
-            ctxt = URLUtil.urlFromCurrentDir();
+        if (pathCtxt == null) {
+            pathCtxt = parent.getSource();
+            if (pathCtxt == null) {
+                pathCtxt = URLUtil.urlFromCurrentDir();
+            }
         }
 
         // Do we have a custom resolver that may be able to resolve it?
         if (customResolver != null) {
-            Object source = customResolver.resolveEntity(publicId, systemId, ctxt.toExternalForm(), entityName);
+            Object source = customResolver.resolveEntity(publicId, systemId, pathCtxt.toExternalForm(), entityName);
             if (source != null) {
-                return sourceFrom(refCtxt, cfg, entityName, xmlVersion, source);
+                return sourceFrom(parent, cfg, entityName, xmlVersion, source);
             }
         }
             
@@ -87,8 +92,8 @@ public final class DefaultInputResolver
                                          +((entityName == null) ? "[External DTD subset]" : ("entity '"+entityName+"'"))+" without a system id (public id '"
                                          +publicId+"')");
         }
-        URL url = URLUtil.urlFromSystemId(systemId, ctxt);
-        return sourceFromURL(refCtxt, cfg, entityName, xmlVersion, url, publicId);
+        URL url = URLUtil.urlFromSystemId(systemId, pathCtxt);
+        return sourceFromURL(parent, cfg, entityName, xmlVersion, url, publicId);
     }
 
     /**

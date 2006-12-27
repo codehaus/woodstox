@@ -43,7 +43,7 @@ public abstract class EntityDecl
     final String mName;
 
     /**
-     * Context that can be used to resolve references encountered from
+     * Context that is to be used to resolve references encountered from
      * expanded contents of this entity.
      */
     final URL mContext;
@@ -109,12 +109,6 @@ public abstract class EntityDecl
     // Extended API for Wstx core
     ///////////////////////////////////////////
      */
-
-    // // // Extended location info
-
-    public final URL getSource() {
-        return mContext;
-    }
 
     // // // Access to data
 

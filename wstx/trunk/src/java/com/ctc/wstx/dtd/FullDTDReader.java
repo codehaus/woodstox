@@ -2423,7 +2423,7 @@ public class FullDTDReader
                 if (!isNameStartChar(c)) {
                     throwDTDUnexpectedChar(c, "; expected either quoted value, or keyword 'PUBLIC' or 'SYSTEM'");
                 }
-                ent = handleExternalEntityDecl(isParam, id, c, evtLoc);
+                ent = handleExternalEntityDecl(mInput, isParam, id, c, evtLoc);
             }
 
             /* 05-Mar-2006, TSa: Need to know which entities came from the
@@ -3119,12 +3119,15 @@ public class FullDTDReader
      * it's been figured out entity is not internal (does not continue
      * with a quote).
      * 
+     * @param inputSource Input source for the start of the declaration.
+     *   Needed for resolving relative system references, if any.
      * @param isParam True if this a parameter entity declaration; false
      *    if general entity declaration
      * @param evtLoc Location where entity declaration directive started;
      *   needed when construction event Objects for declarations.
      */
-    private EntityDecl handleExternalEntityDecl(boolean isParam, String id,
+    private EntityDecl handleExternalEntityDecl(WstxInputSource inputSource,
+                                                boolean isParam, String id,
                                                 char c, Location evtLoc)
         throws IOException, XMLStreamException
     {
@@ -3219,11 +3222,11 @@ public class FullDTDReader
             throwDTDUnexpectedChar(c, "; expected closing '>'");
         }
 
+        URL ctxt = inputSource.getSource();
         if (notationId == null) { // parsed entity:
-            return new ParsedExtEntity(evtLoc, id, getSource(), pubId, sysId);
+            return new ParsedExtEntity(evtLoc, id, ctxt, pubId, sysId);
         }
-        return new UnparsedExtEntity(evtLoc, id, getSource(),
-                                     pubId, sysId, notationId);
+        return new UnparsedExtEntity(evtLoc, id, ctxt, pubId, sysId, notationId);
     }
 
     /*

@@ -454,18 +454,19 @@ public class ValidatingStreamReader
         WstxInputSource src = null;
 
         try {
-            /* null -> not an entity expansion, no name.
-             * Note, too, that we can NOT just pass mEntityResolver, since
-             * that's the one used for general entities, whereas ext subset
-             * should be resolved by the param entity resolver.
-             */
             int xmlVersion = mDocXmlVersion;
             // 05-Feb-2006, TSa: If xmlVersion not explicitly known, defaults to 1.0
             if (xmlVersion == XmlConsts.XML_V_UNKNOWN) {
                 xmlVersion = XmlConsts.XML_V_10;
             }
+            /* null -> no explicit path context, use parent's
+             * null -> not an entity expansion, no name.
+             * Note, too, that we can NOT just pass mEntityResolver, since
+             * that's the one used for general entities, whereas ext subset
+             * should be resolved by the param entity resolver.
+             */
             src = DefaultInputResolver.resolveEntity
-                (mInput, null, pubId, sysId, mConfig.getDtdResolver(),
+                (mInput, null, null, pubId, sysId, mConfig.getDtdResolver(),
                  mConfig, xmlVersion);
         } catch (FileNotFoundException fex) {
             /* Let's catch and rethrow this just so we get more meaningful

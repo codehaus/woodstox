@@ -126,8 +126,13 @@ public class IntEntity
                                   XMLResolver res, ReaderConfig cfg,
                                   int xmlVersion)
     {
+        /* 26-Dec-2006, TSa: Better leave source as null, since internal
+         *   entity declaration context should never be used: when expanding,
+         *   reference context is to be used.
+         */
         return InputSourceFactory.constructCharArraySource
-            (parent, mName, mRepl, 0, mRepl.length, mContentLocation, getSource());
+            //(parent, mName, mRepl, 0, mRepl.length, mContentLocation, getSource());
+            (parent, mName, mRepl, 0, mRepl.length, mContentLocation, null);
     }
 }
 

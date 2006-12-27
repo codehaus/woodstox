@@ -75,6 +75,6 @@ public class ParsedExtEntity
             xmlVersion = XmlConsts.XML_V_10;
         }
         return DefaultInputResolver.resolveEntity
-            (parent, mName, getPublicId(), getSystemId(), res, cfg, xmlVersion);
+            (parent, mContext, mName, getPublicId(), getSystemId(), res, cfg, xmlVersion);
     }
 }

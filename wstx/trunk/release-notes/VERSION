@@ -7,7 +7,9 @@ Description:
 
   Problems fixed:
 
-  * StartElement.writeUsing() was not properly outputting attributes.
+  * [WSTX-70] External parsed entity references were not resolved using
+    correct path context
+   (reported by Michael K)
   * [WSTX-89] Line number information was not properly updated in
     some cases (boundary condition with Windows, \r\n, linefeeds)
    (reported by Frank B)
@@ -17,9 +19,11 @@ Description:
   * [WSTX-97] Character offsets (for XMLStreamReader.getLocation())
     were sometimes decremented; fixed, and added a unit test
    (reported by Frank B)
+  * [WSTX-99] Encoding problems with XMLStreamWriter.
   * [WSTX-102] WStartDocument construction resulted in NPE, when using
     DOM source.
    (reported by Werner D)
+  * StartElement.writeUsing() was not properly outputting attributes.
 
   Improvements:
 

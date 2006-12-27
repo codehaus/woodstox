@@ -1,10 +1,8 @@
 ------------------------------------
-Planned stuff for 3.2 or 4.0
+Planned stuff for 4.0
 ------------------------------------
 
 * Optimizations/improvements:
-[DONE] * TextBuffer/Builder, getText(): optimize out use of StringBuffer in
-    the simple case (single buffer)
   * Try to move more of async unchecked (runtime) exceptions into
     deferred synchronous (XMLStreamException) exceptions: similar to
     how "]]>" check is now deferred in 3.1
@@ -34,9 +32,12 @@ Planned stuff for 3.2 or 4.0
   * Add getText()-like method that returns CharacterSequence? Could
     allow zero-copy wrapping of parsed textual content.
   * XMLStreamReader2.hasPendingException and/or getPendingException
-    (to check for deferred exceptions)
-  * Typed accessors for XMLStreamReader
+    (to check for deferred exceptions)?
+  * Typed accessors (getIntValue() etc) for XMLStreamReader: both for
+    text events, and attributes
   * Typed write methods for XMLStreamWriter
+  * Char[] attribute accessors for XMLStreamReader
+  * Char[] attribute write methods for XMLStreamWriter
 
 * Removing cruft:
   * Remove support for pre-JDK-1.4
@@ -75,7 +76,6 @@ Planned stuff for 3.2 or 4.0
    * Requirements for compiling, running:
       * Ant 1.5? (rootfileset)
       * Jars: for 1.3/1.2 SAX(2) and DOM API jars?
-[OBSOLETE] * How to build for 1.2, 1.3?
    * FAQ:
       * Output streaming; use of 'writeCharacters("");', flush()
 

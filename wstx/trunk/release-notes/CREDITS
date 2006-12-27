@@ -13,22 +13,22 @@ James Fogarty:
   * Found 3 bugs (getElementText() not working, incorrect index offset
     for non-ns getAttributeLocalName(), index-out-of-bounds when there
     were lots of attribute names whose hashes collide)
-    [1.0-RC1, 1.0-RC2]
+    [1.0]
 
 James Strachan:
   * Found problems with stream writer; namespace repairing mode was not
     working as expected
-    [1.0-RC5]
+    [1.0]
 
 Stepan Koltsov:
   * Found problems with event reader: was setting peeked event to null, yet
     trying to de-reference it
-    [1.0-RC7]
+    [1.0]
 
 Mat Gessel:
   * Pointed out a problem with XMLStreamReader.nextTag() implementation;
     was not skipping comments and PIs
-    [1.0-final]
+    [1.0]
 
 Dan Diephouse:
   * Reported problems with QName construction (null prefix causes
@@ -89,10 +89,10 @@ Ron Yang:
 Ulrich Callmeier:
   * Reported a bug with START_DOCUMENT handling of XMLStreamWriter
     implementation
-    [1.0.7/2.0-final]
+    [1.0.7/2.0]
   * Reported a bug with the input factory: entity and dtd resolvers were
     not being properly passed to instances
-    [1.0.7/2.0-final]
+    [1.0.7/2.0]
   * Report a bug with WriterBase, base class for all encoding writers
     (attribute, element text): an NPE was thrown when trying to output
     encoded characters.
@@ -145,7 +145,7 @@ Wolfgang Hoschek:
     significantly.
   * Reported [WSTX-65], [WSTX-66] and [WSTX-67], regarding event handling
     problems.
-    [3.0-final]
+    [3.0]
   * Pointed out compilation problem on JDK 1.4 with SAX2 API
     [3.2]
   * Reported [WSTX-96]
@@ -195,6 +195,9 @@ Michael Kay:
   * Reported [WSTX-69]: Incorrect types returned by XMLStreamReader, when
     notations/entities are requested.
     [3.0.1/3.1]
+  * Reported [WSTX-70]: External parsed entity reference resolution was
+    not functioning correctly, was using wrong path context.
+    [3.2.0]
   * Reported [WSTX-71]: Use of unchecked exceptions sub-optimal, for cases
     where it would be possible to just defer throwing of checked ones
 
