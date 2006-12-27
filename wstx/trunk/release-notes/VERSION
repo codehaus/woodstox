@@ -1,9 +1,16 @@
-Version: 3.2pr1
+Version: 3.2
 
-Release date: xx-Dec-2006
+Release date: 28-Dec-2006
 
 Description:
-  First pre-release of 3.2 branch.
+  Third API compatible major release in 3.x branch.
+
+  The most significant new feature is implementation of SAX API [WSTX-33],
+  in addition to Stax API. The main immediate benefit is for interoperability,
+  including access to larger set of compatibility and perforance test suites.
+
+  Of fixes, most are on writer (XMLStreamWriter) side: all known encoding
+  issues have been resolved, and performance is also significantly improved.
 
   Problems fixed:
 
@@ -45,6 +52,12 @@ Description:
     is fair to say that Woodstox is now StAX/SAX implementation.
     (also, note that there were transient problems related to this
      feature, in trunk, such as WSTX-95, WSTX-101
+  * [WSTX-94] Added new property (WstxOutputProperties.P_OUTPUT_ESCAPE_CR;
+    default is Boolean.TRUE), which determines whether \r in textual
+    content to be written will be escaped by the default stream writer
+    serializers. The default is to escape \r characters, to ensure
+    clean round-trippability.
+    (requested by Brett P)
 
 == History: ==
 

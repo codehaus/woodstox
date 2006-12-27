@@ -413,13 +413,17 @@ public final class BufferingXmlWriter
                 char c = text.charAt(inPtr++);
                 if (c <= HIGHEST_ENCODABLE_TEXT_CHAR) {
                     if (c <= 0x0020) {
-                        if (c == ' ' || c == '\n' || c == '\t') { // fine as is
-                            ;
-                        } else {
-                            if (c != '\r' && (!mXml11 || c == 0)) {
-                                throwInvalidChar(c);
+                        if (c != ' ' && c != '\n' && c != '\t') { // fine as is
+                            if (c == '\r') {
+                                if (mEscapeCR) {
+                                    break inner_loop;
+                                }
+                            } else {
+                                if (!mXml11 || c == 0) {
+                                    throwInvalidChar(c);
+                                }
+                                break inner_loop; // need quoting ok
                             }
-                            break inner_loop; // need quoting ok
                         }
                     } else if (c == '<') {
                         ent = "&lt;";
@@ -488,8 +492,12 @@ public final class BufferingXmlWriter
                         } else if (c < 0x0020) {
                             if (c == '\n' || c == '\t') { // fine as is
                                 ;
+                            } else if (c == '\r') {
+                                if (mEscapeCR) {
+                                    break;
+                                }
                             } else {
-                                if (c != '\r' && (!mXml11 || c == 0)) {
+                                if (!mXml11 || c == 0) {
                                     throwInvalidChar(c);
                                 }
                                 break; // need quoting ok

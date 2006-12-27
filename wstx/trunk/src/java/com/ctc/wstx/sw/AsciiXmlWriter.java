@@ -595,7 +595,12 @@ public final class AsciiXmlWriter
                     if (c == '\n' || c == '\t') { // TODO: line count
                         mOutputBuffer[mOutputPtr++] = (byte) c;
                         continue;
-                    } else if (c != '\r' && (!mXml11 || c == 0)) { // ok in xml1.1, as entity
+                    } else if (c == '\r') {
+                        if (!mEscapeCR) {
+                            mOutputBuffer[mOutputPtr++] = (byte) c;
+                            continue;
+                        }
+                    } else  if (!mXml11 || c == 0) { // ok in xml1.1, as entity
                         if (mCheckContent) {
                             throwInvalidChar(c);
                         }
@@ -662,7 +667,12 @@ public final class AsciiXmlWriter
                     if (c == '\n' || c == '\t') { // TODO: line count
                         mOutputBuffer[mOutputPtr++] = (byte) c;
                         continue;
-                    } else if (c != '\r' && (!mXml11 || c == 0)) { // ok in xml1.1, as entity
+                    } else if (c == '\r') {
+                        if (!mEscapeCR) {
+                            mOutputBuffer[mOutputPtr++] = (byte) c;
+                            continue;
+                        }
+                    } else if (!mXml11 || c == 0) { // ok in xml1.1, as entity
                         if (mCheckContent) {
                             throwInvalidChar(c);
                         }

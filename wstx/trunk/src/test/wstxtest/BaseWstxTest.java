@@ -167,6 +167,15 @@ public class BaseWstxTest
         return (XMLStreamReader2) f.createXMLStreamReader(new StringReader(content));
     }
 
+    protected XMLStreamReader2 constructNsStreamReader(InputStream in, boolean coal)
+        throws XMLStreamException
+    {
+        XMLInputFactory f = getInputFactory();
+        setNamespaceAware(f, true);
+        setCoalescing(f, coal);
+        return (XMLStreamReader2) f.createXMLStreamReader(in);
+    }
+
     protected XMLStreamReader2 constructNonNsStreamReader(String content, boolean coal)
         throws XMLStreamException
     {

@@ -85,6 +85,11 @@ public abstract class XmlWriter
     protected final boolean mFixContent;
 
     /**
+     * Whether to escape CR (\r) character.
+     */
+    final boolean mEscapeCR;
+
+    /**
      * Flag that defines whether close() on this writer should call
      * close on the underlying output object (stream, writer)
      */
@@ -165,6 +170,7 @@ public abstract class XmlWriter
         mCheckContent = (flags & OutputConfigFlags.CFG_VALIDATE_CONTENT) != 0;
         mCheckNames = (flags & OutputConfigFlags.CFG_VALIDATE_NAMES) != 0;
         mFixContent = (flags & OutputConfigFlags.CFG_FIX_CONTENT) != 0;
+        mEscapeCR = (flags & OutputConfigFlags.CFG_ESCAPE_CR) != 0;
 
         // Has caller requested any custom text or attr value escaping?
 

@@ -92,4 +92,16 @@ public final class WstxOutputProperties
      */
     public final static String P_OUTPUT_FIX_CONTENT = "com.ctc.wstx.outputFixContent";
 
+    /**
+     * Property that determines whether Carriage Return (\r) characters are
+     * to be escaped when output or not. If enabled, all instances of
+     * of character \r are escaped using a character entity (where possible,
+     * that is, within CHARACTERS events, and attribute values). Otherwise
+     * they are output as is. The main reason to enable this property is
+     * to ensure that carriage returns are preserved as is through parsing,
+     * since otherwise they will be converted to canonical xml linefeeds
+     * (\n), when occuring along or as part of \r\n pair.
+     */
+    public final static String P_OUTPUT_ESCAPE_CR = "com.ctc.wstx.outputEscapeCr";
+
 }

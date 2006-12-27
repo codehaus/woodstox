@@ -48,12 +48,12 @@ public final class WriterConfig
 
     // // // And then custom Wstx properties:
 
-    // Namespace support, settings:
-
     // Output settings:
     final static int PROP_OUTPUT_CDATA_AS_TEXT = 11;
 
     final static int PROP_COPY_DEFAULT_ATTRS = 12;
+
+    final static int PROP_ESCAPE_CR = 13;
 
     // Validation flags:
 
@@ -73,8 +73,14 @@ public final class WriterConfig
      *   elements...
      */
     final static boolean DEFAULT_AUTOMATIC_EMPTY_ELEMS = true;
+
     final static boolean DEFAULT_OUTPUT_CDATA_AS_TEXT = false;
     final static boolean DEFAULT_COPY_DEFAULT_ATTRS = false;
+
+    /* 26-Dec-2006, TSa: Since CRs have been auto-escaped so far, let's
+     *   retain the defaults when adding new properties/features.
+     */
+    final static boolean DEFAULT_ESCAPE_CR = true;
 
     /* How about validation? Let's turn them mostly off by default, since
      * there are some performance hits when enabling them.
@@ -104,8 +110,10 @@ public final class WriterConfig
         | (DEFAULT_ENABLE_NS ? CFG_ENABLE_NS : 0)
 
         | (DEFAULT_AUTOMATIC_EMPTY_ELEMS ? CFG_AUTOMATIC_EMPTY_ELEMS : 0)
+
         | (DEFAULT_OUTPUT_CDATA_AS_TEXT ? CFG_OUTPUT_CDATA_AS_TEXT : 0)
         | (DEFAULT_COPY_DEFAULT_ATTRS ? CFG_COPY_DEFAULT_ATTRS : 0)
+        | (DEFAULT_ESCAPE_CR ? CFG_ESCAPE_CR : 0)
 
         | (DEFAULT_VALIDATE_STRUCTURE ? CFG_VALIDATE_STRUCTURE : 0)
         | (DEFAULT_VALIDATE_CONTENT ? CFG_VALIDATE_CONTENT : 0)
@@ -159,6 +167,8 @@ public final class WriterConfig
                         new Integer(PROP_OUTPUT_CDATA_AS_TEXT));
         sProperties.put(WstxOutputProperties.P_COPY_DEFAULT_ATTRS,
                         new Integer(PROP_COPY_DEFAULT_ATTRS));
+        sProperties.put(WstxOutputProperties.P_OUTPUT_ESCAPE_CR,
+                        new Integer(PROP_ESCAPE_CR));
 
         // Validation settings:
         sProperties.put(WstxOutputProperties.P_OUTPUT_VALIDATE_STRUCTURE,
@@ -319,6 +329,8 @@ public final class WriterConfig
             return willOutputCDataAsText() ? Boolean.TRUE : Boolean.FALSE;
         case PROP_COPY_DEFAULT_ATTRS:
             return willCopyDefaultAttrs() ? Boolean.TRUE : Boolean.FALSE;
+        case PROP_ESCAPE_CR:
+            return willEscapeCr() ? Boolean.TRUE : Boolean.FALSE;
 
         case PROP_VALIDATE_STRUCTURE:
             return willValidateStructure() ? Boolean.TRUE : Boolean.FALSE;
@@ -381,6 +393,9 @@ public final class WriterConfig
         case PROP_COPY_DEFAULT_ATTRS:
             doCopyDefaultAttrs(ArgUtil.convertToBoolean(name, value));
             break;
+        case PROP_ESCAPE_CR:
+            doEscapeCr(ArgUtil.convertToBoolean(name, value));
+            break;
 
         case PROP_VALIDATE_STRUCTURE:
             doValidateStructure(ArgUtil.convertToBoolean(name, value));
@@ -438,6 +453,10 @@ public final class WriterConfig
 
     public boolean willCopyDefaultAttrs() {
         return hasConfigFlag(CFG_COPY_DEFAULT_ATTRS);
+    }
+
+    public boolean willEscapeCr() {
+        return hasConfigFlag(CFG_ESCAPE_CR);
     }
 
     public boolean willValidateStructure() {
@@ -505,6 +524,10 @@ public final class WriterConfig
 
     public void doCopyDefaultAttrs(boolean state) {
         setConfigFlag(CFG_COPY_DEFAULT_ATTRS, state);
+    }
+
+    public void doEscapeCr(boolean state) {
+        setConfigFlag(CFG_ESCAPE_CR, state);
     }
 
     public void doValidateStructure(boolean state) {

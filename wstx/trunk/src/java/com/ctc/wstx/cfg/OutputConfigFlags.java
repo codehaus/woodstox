@@ -30,11 +30,19 @@ public interface OutputConfigFlags
      */
     final static int CFG_COPY_DEFAULT_ATTRS =  0x0010;
 
+    /**
+     * Flag that indicates whether CR (\r, ascii 13) characters occuring
+     * in text (CHARACTERS) and attribute values should be escaped using
+     * character entities or not. Escaping is needed to enable seamless
+     * round-tripping (preserving CR characters).
+     */
+    final static int CFG_ESCAPE_CR =  0x0020;
+
     /// Flag that indicates we should check validity of namespace/prefix mappings.
     //final static int CFG_VALIDATE_NS = ;
 
     /// Flag that indicates we should check validity of output XML structure.
-    final static int CFG_VALIDATE_STRUCTURE =  0x0020;
+    final static int CFG_VALIDATE_STRUCTURE =  0x0100;
 
     /**
      * Flag that indicates we should check validity of textual content of
@@ -44,20 +52,20 @@ public interface OutputConfigFlags
      * have ']]>' and processing instruction can not have '?&lt;' character
      * combinations in content passed in.
      */
-    final static int CFG_VALIDATE_CONTENT =    0x0040;
+    final static int CFG_VALIDATE_CONTENT =    0x0200;
 
     /**
      * Flag that indicates we should check validity of names (element and
      * attribute names and prefixes; processing instruction names), that they
      * contain only legal identifier characters.
      */
-    final static int CFG_VALIDATE_NAMES = 0x0080;
+    final static int CFG_VALIDATE_NAMES = 0x0400;
 
     /**
      * Flag that indicates we should check uniqueness of attribute names,
      * to prevent accidental output of duplicate attributes.
      */
-    final static int CFG_VALIDATE_ATTR = 0x0100;
+    final static int CFG_VALIDATE_ATTR = 0x0800;
 
     /**
      * Flag that will enable writer that checks for validity of content
@@ -66,6 +74,6 @@ public interface OutputConfigFlags
      * without validation no problem is noticed by writer (but instead
      * invalid output is created).
      */
-    final static int CFG_FIX_CONTENT =   0x0200;
+    final static int CFG_FIX_CONTENT =   0x1000;
 
 }
