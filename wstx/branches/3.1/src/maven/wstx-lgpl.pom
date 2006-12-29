@@ -3,7 +3,7 @@
  <!-- General information -->
 
   <modelVersion>4.0.0</modelVersion>
-  <groupId>woodstox</groupId>
+  <groupId>org.codehaus.woodstox</groupId>
   <artifactId>wstx-lgpl</artifactId>
   <name>Woodstox</name>
   <version>@VERSION@</version>

@@ -14,7 +14,7 @@
     
     <!-- Project Info -->
     <name>Woodstox</name>
-    <currentVersion>2.0rc1</currentVersion>
+    <currentVersion>3.0.3</currentVersion>
     
     <shortDescription>
          Woodstox is an Open Source XML-processor written in Java, that implements StAX API (version 1.0).
@@ -25,7 +25,7 @@
     </description>
     
     <!-- Project URL -->
-    <url>http://www.cowtowncoder.com/proj/woodstox/</url>
+    <url>http://woodstox.codehaus.org/</url>
     
     <!-- Developers -->
     <developers>

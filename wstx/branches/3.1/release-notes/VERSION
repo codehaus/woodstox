@@ -7,6 +7,8 @@ Description:
 
   Problems fixed:
 
+  * [WSTX-86] Maven group id wrong: was "woodstox", should be
+    "org.codehaus.woodstox"
   * [WSTX-103] Repairing writer had a bug that could result in wrong
     prefix being reported/output.
    (reported by Michael A)
