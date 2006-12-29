@@ -1,9 +1,19 @@
-Version: 3.1.1
+Version: 3.1.2
 
-Release date: xx-Dec-2006
+Release date: xx-xxx-2007
 
 Description:
-  First patch release for 3.1
+  Second patch release for 3.1
+
+  Problems fixed:
+
+  * [WSTX-103] Repairing writer had a bug that could result in wrong
+    prefix being reported/output.
+   (reported by Michael A)
+
+== History: ==
+
+3.1.1 [20-Dec-2006]
 
   Problems fixed:
 
@@ -19,8 +29,6 @@ Description:
   * [WSTX-102] WStartDocument construction resulted in NPE, when using
     DOM source.
    (reported by Werner D)
-
-== History: ==
 
 3.1.0 (3.1-final) [04-Nov-2006]
 

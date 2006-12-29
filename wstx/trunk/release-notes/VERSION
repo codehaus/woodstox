@@ -30,6 +30,9 @@ Description:
   * [WSTX-102] WStartDocument construction resulted in NPE, when using
     DOM source.
    (reported by Werner D)
+  * [WSTX-103] Repairing writer had a bug that could result in wrong
+    prefix being reported/output.
+   (reported by Michael A)
   * StartElement.writeUsing() was not properly outputting attributes.
 
   Improvements:

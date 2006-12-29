@@ -268,7 +268,7 @@ public class RepairingNsStreamWriter
             }
             if (mOutputElemPool != null) {
                 SimpleOutputElement newCurr = mOutputElemPool;
-                mOutputElemPool = newCurr.reuseAsChild(mCurrElem, localName, localName, nsURI);
+                mOutputElemPool = newCurr.reuseAsChild(mCurrElem, prefix, localName, nsURI);
                 --mPoolSize;
                 mCurrElem = newCurr;
             } else {
@@ -282,7 +282,7 @@ public class RepairingNsStreamWriter
             }
             if (mOutputElemPool != null) {
                 SimpleOutputElement newCurr = mOutputElemPool;
-                mOutputElemPool = newCurr.reuseAsChild(mCurrElem, localName, localName, nsURI);
+                mOutputElemPool = newCurr.reuseAsChild(mCurrElem, prefix, localName, nsURI);
                 --mPoolSize;
                 mCurrElem = newCurr;
             } else {

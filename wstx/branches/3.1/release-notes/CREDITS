@@ -241,3 +241,8 @@ Werner Donné:
   * Reported [WSTX-102], submitted patch to fix it: WStartDocument
     constructor would NPE when building using DOM source.
     [3.0.3 / 3.1.1]
+
+Michael Allman: 
+  * [WSTX-103] Repairing writer had a bug that could result in wrong
+    prefix being reported/output.
+    [3.0.4 / 3.1.2]

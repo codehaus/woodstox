@@ -1,10 +1,20 @@
-Version: 3.0.3
+Version: 3.0.4
 
-Release date: xx-Dec-2006
+Release date: xx-xxx-2007
 
 Description:
-  The third patch release for 3.0.
+  The fourth patch release for 3.0.
   Contains critical fixes to the stable branch as reported by users.
+
+Problems fixed:
+
+  * [WSTX-103] Repairing writer had a bug that could result in wrong
+    prefix being reported/output.
+   (reported by Michael A)
+
+== History: ==
+
+3.0.3 [20-Dec-2006]
 
 Problems fixed:
 
@@ -17,8 +27,6 @@ Problems fixed:
   * [WSTX-102] WStartDocument construction resulted in NPE, when using
     DOM source.
    (reported by Werner D)
-
-== History: ==
 
 3.0.2 [27-Sep-2006]
 
