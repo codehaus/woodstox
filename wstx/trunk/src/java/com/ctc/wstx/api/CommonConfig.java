@@ -27,7 +27,7 @@ abstract class CommonConfig
     /* !!! TBI: get from props file or so? Or build as part of Ant
      *    build process?
      */
-    protected final static String IMPL_VERSION = "3.2";
+    protected final static String IMPL_VERSION = "4.0";
 
     /*
     ////////////////////////////////////////////////

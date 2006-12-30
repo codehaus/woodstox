@@ -38,6 +38,7 @@ Planned stuff for 4.0
   * Typed write methods for XMLStreamWriter
   * Char[] attribute accessors for XMLStreamReader
   * Char[] attribute write methods for XMLStreamWriter
+  * XMLStreamWriter2.writeSpace()
 
 * Removing cruft:
   * Remove support for pre-JDK-1.4
