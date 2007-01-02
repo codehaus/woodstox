@@ -43,7 +43,7 @@
     <property name="STAX_TITLE" value="StAX 1.0 API" />
     <property name="STAX_VERSION" value="1.0" />
     <property name="STAX_VENDOR" value="http://jcp.org/en/jsr/detail?id=173" />
-    <property name="WSTX_TITLE" value="WoodSToX XML-processor" />
+    <property name="WSTX_TITLE" value="Woodstox XML-processor" />
     <property name="WSTX_VERSION" value="4.0pr1" />
     <property name="WSTX_VENDOR" value="woodstox.codehaus.org" />
 
@@ -72,6 +72,7 @@
           <include name="src/test/**/*.xml" />
           <include name="src/test/**/*.dtd" />
           <include name="src/java/**/*.html" />
+          <include name="src/maven/*.pom" />
           <include name="src/resources/*" />
           <include name="release-notes/*" />
           <include name="release-notes/asl/*" />

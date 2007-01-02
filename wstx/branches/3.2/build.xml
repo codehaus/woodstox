@@ -72,6 +72,7 @@
           <include name="src/test/**/*.xml" />
           <include name="src/test/**/*.dtd" />
           <include name="src/java/**/*.html" />
+          <include name="src/maven/*.pom" />
           <include name="src/resources/*" />
           <include name="release-notes/*" />
           <include name="release-notes/asl/*" />
