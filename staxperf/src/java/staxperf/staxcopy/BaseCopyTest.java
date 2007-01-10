@@ -94,7 +94,8 @@ abstract class BaseCopyTest
         //XMLStreamWriter2 sw = (XMLStreamWriter2)mOutFactory.createXMLStreamWriter(out, "ISO-8859-1");
         XMLEvent2[] events = mEvents;
 
-        for (XMLEvent2 evt : events) {
+        for (int i = 0, len = events.length; i < len; ++i) {
+            XMLEvent2 evt = events[i];
             evt.writeUsing(sw);
         }
         sw.close();

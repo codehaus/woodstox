@@ -33,7 +33,7 @@ public final class TestStringWrite
 
     final static int[] SIZES = new int[] {
         //3, 4, 7, 12, 16, 20, 27, 32, 48, 64, 128, 256
-        3, 4, 7, 12, 16, 20, 27, 32, 48, 64, 128, 256
+        4, 7, 12, 20, 32, 48, 64
     };
 
     final static int[] ESCAPES = new int[256];
@@ -161,16 +161,16 @@ public final class TestStringWrite
                 } else if (c >= highChar) {
                     break inner_loop;
                 }
-                /*
                 if (mOutputPtr >= mOutputBufLen) {
                     flushBuffer();
                 }
-                */
                 mOutputBuffer[mOutputPtr++] = c;
             }
+            /*
                 if (mOutputPtr >= mOutputBufLen) {
                     flushBuffer();
                 }
+            */
             if (ent != null) {
                 ++mOutputPtr;
             } else {
@@ -184,8 +184,8 @@ public final class TestStringWrite
         mOutputBufLen = OUT_BUFFER.length;
         for (int i = 0; i < count; ++i) {
             mOutputPtr = 0;
-            //test2b(word);
-            test2b_table(word);
+            test2b(word);
+            //test2b_table(word);
         }
     }
 
@@ -301,8 +301,8 @@ public final class TestStringWrite
         for (int i = 0; i < count; ++i) {
             mOutputPtr = 0;
             //test3_getChars(word);
-            //test3_charAt(word);
-            test3_table(word);
+            test3_charAt(word);
+            //test3_table(word);
         }
     }
 
@@ -415,10 +415,12 @@ public final class TestStringWrite
                 }
                 mOutputBuffer[mOutputPtr++] = c;
             }
+            /*
             if (mOutputPtr >= mOutputBufLen) {
                 mOutputPtr = 0;
                 flushBuffer();
             }
+            */
 
             if (ent != null) {
                 ++mOutputPtr;

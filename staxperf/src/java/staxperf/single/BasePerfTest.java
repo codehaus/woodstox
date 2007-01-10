@@ -75,29 +75,34 @@ abstract class BasePerfTest
     protected int testExec(byte[] data, String path) throws Exception
     {
         InputStream in = new ByteArrayInputStream(data);
-        int ret = testExec2(in, path);
+        XMLStreamReader sr = mFactory.createXMLStreamReader(path, in);
+        int ret = testExec2(sr);
         in.close();
         return ret;
     }
 
-    protected int testExec2(InputStream in, String path) throws Exception
+    protected int testExec2(XMLStreamReader sr) throws Exception
     {
-        XMLStreamReader sr;
-
-        //sr = mFactory.createXMLStreamReader(r);
-        sr = mFactory.createXMLStreamReader(path, in);
-
         int total = 0;
+
         while (sr.hasNext()) {
-            int type = sr.next();
+
+            //int type = sr.next();
+            int type = sr.nextTag();
+
             total += type; // so it won't be optimized out...
+
+            // !!! TEST
+            if (type == END_ELEMENT && sr.getLocalName() == "root") break;
 
             //if (sr.hasText()) {
             if (type == CHARACTERS || type == CDATA || type == COMMENT) {
                 // Test (a): just check length (no buffer copy)
 
+                /*
                 int textLen = sr.getTextLength();
                 total += textLen;
+                */
 
                 // Test (b): access internal read buffer
                 /*
@@ -110,10 +115,8 @@ abstract class BasePerfTest
                 */
 
                 // Test (c): construct string (slowest)
-                /*
                 String text = sr.getText();
                 total += text.length();
-                */
             }
         }
         sr.close();
