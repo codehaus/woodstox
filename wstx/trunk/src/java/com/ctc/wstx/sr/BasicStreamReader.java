@@ -73,7 +73,13 @@ public class BasicStreamReader
     implements StreamReaderImpl, DTDInfo, LocationInfo
 {
     /**
-     * StAX API expects null to indicate "no prefix", not an empty String...
+     * StAX API expects "" to indicate "no prefix", instead of null.
+     *<p>
+     * Note: This has changed during lifetime of Woodstox; last time between
+     * 3.2 (which used null) and 4.0 (which uses ""). Currently it is believed
+     * that Java XML standards endorse "" over null (as witnessed by constant
+     * settings under javax.xml packages), and it should not be neceessary
+     * to change it any more in future.
      */
     //protected final static String DEFAULT_NS_PREFIX = SymbolTable.EMPTY_STRING;
     protected final static String DEFAULT_NS_PREFIX = null;
@@ -167,7 +173,6 @@ public class BasicStreamReader
 
     protected final boolean mCfgCoalesceText;
 
-    protected final boolean mCfgNormalizeAttrs;
     protected final boolean mCfgReportTextAsChars;
     protected final boolean mCfgLazyParsing;
 
@@ -417,8 +422,6 @@ public class BasicStreamReader
         // // // First, configuration settings:
 
         mConfigFlags = cfg.getConfigFlags();
-
-        mCfgNormalizeAttrs = (mConfigFlags & CFG_NORMALIZE_ATTR_VALUES) != 0;
         mCfgCoalesceText = (mConfigFlags & CFG_COALESCE_TEXT) != 0;
         mCfgReportTextAsChars = (mConfigFlags & CFG_REPORT_CDATA) == 0;
         mXml11 = cfg.isXml11();
@@ -1800,86 +1803,6 @@ public class BasicStreamReader
 
     /**
      * Method that will parse an attribute value enclosed in quotes, using
-     * an {@link TextBuilder} instance. Will not normalize white space inside
-     * attribute value.
-     */
-    private final void parseNonNormalizedAttrValue(char openingQuote, TextBuilder tb)
-        throws IOException, XMLStreamException
-    {
-        char[] outBuf = tb.getCharBuffer();
-        int outPtr = tb.getCharSize();
-        int outLen = outBuf.length;
-        WstxInputSource currScope = mInput;
-
-        while (true) {
-            char c = (mInputPtr < mInputLen) ? mInputBuffer[mInputPtr++]
-                : getNextChar(SUFFIX_IN_ATTR_VALUE);
-            // Let's do a quick for most attribute content chars:
-            if (c < CHAR_FIRST_PURE_TEXT) {
-                if (c < CHAR_SPACE) {
-                    if (c == '\n') {
-                        markLF();
-                    } else if (c == '\r') {
-                        c = getNextChar(SUFFIX_IN_ATTR_VALUE);
-                        if (c != '\n') { // nope, not 2-char lf (Mac?)
-                            --mInputPtr;
-                            c = mCfgNormalizeLFs ? '\n' : '\r';
-                        } else {
-                            if (mCfgNormalizeLFs) {
-                                // c is fine, then...
-                            } else {
-                                // Ok, except need to add leading '\r' first
-                                if (outPtr >= outLen) {
-                                    outBuf = tb.bufferFull(1);
-                                    outLen = outBuf.length;
-                                }
-                                outBuf[outPtr++] = '\r';
-                                // c is fine to continue
-                            }
-                        }
-                        markLF();
-                    } else if (c != '\t') {
-                        throwInvalidSpace(c);
-                    }
-                } else if (c == openingQuote) {
-                    /* 06-Aug-2004, TSa: Can get these via entities; only "real"
-                     *    end quotes in same scope count. Note, too, that since
-                     *    this will only be done at root level, there's no need
-                     *    to check for "runaway" values; they'll hit EOF
-                     */
-                    if (mInput == currScope) {
-                        break;
-                    }
-                } else if (c == '&') { // an entity of some sort...
-                    if (inputInBuffer() >= 3
-                        && (c = resolveSimpleEntity(true)) != CHAR_NULL) {
-                        // Ok, fine, c is whatever it is
-                    } else { // full entity just changes buffer...
-                        c = fullyResolveEntity(false);
-                        // need to skip output, thusly
-                        if (c == CHAR_NULL) {
-                            continue;
-                        }
-                    }
-                } else if (c == '<') {
-                    throwParseError("Unexpected '<' "+SUFFIX_IN_ATTR_VALUE);
-                }
-            } // if (c < CHAR_FIRST_PURE_TEXT)
-
-            // Ok, let's just add char in, whatever it was
-            if (outPtr >= outLen) {
-                outBuf = tb.bufferFull(1);
-                outLen = outBuf.length;
-            }
-            outBuf[outPtr++] = c;
-        }
-
-        // Fine; let's tell TextBuild we're done:
-        tb.setBufferSize(outPtr);
-    }
-
-    /**
-     * Method that will parse an attribute value enclosed in quotes, using
      * an {@link TextBuilder} instance. Will normalize white space inside
      * attribute value using default XML rules (change linefeeds to spaces
      * etc.; but won't use DTD information for further coalescing).
@@ -2472,7 +2395,7 @@ public class BasicStreamReader
                     if (c != '"' && c != '\'') {
                         throwUnexpectedChar(c, SUFFIX_IN_DTD+"; expected a public identifier.");
                     }
-                    mDtdPublicId = parsePublicId(c, mCfgNormalizeAttrs, SUFFIX_IN_DTD);
+                    mDtdPublicId = parsePublicId(c, SUFFIX_IN_DTD);
                     if (mDtdPublicId.length() == 0) {
                         // According to XML specs, this isn't illegal?
                         // however, better report it as empty, not null.
@@ -3030,12 +2953,8 @@ public class BasicStreamReader
                 tb = ac.getAttrBuilder(prefix, localName);
             }
             tb.startNewEntry();
+            parseNormalizedAttrValue(c, tb);
 
-            if (mCfgNormalizeAttrs) {
-                parseNormalizedAttrValue(c, tb);
-            } else {
-                parseNonNormalizedAttrValue(c, tb);
-            }
             /* 19-Jul-2004, TSa: Need to check that non-default namespace
              *     URI is NOT empty, as per XML namespace specs, #2,
              *    ("...In such declarations, the namespace name may not
@@ -3109,12 +3028,7 @@ public class BasicStreamReader
 
             // And then the actual value
             tb.startNewEntry();
-
-            if (mCfgNormalizeAttrs) {
-                parseNormalizedAttrValue(c, tb);
-            } else {
-                parseNonNormalizedAttrValue(c, tb);
-            }
+            parseNormalizedAttrValue(c, tb);
             // and then we need to iterate some more
             c = (mInputPtr < mInputLen) ?
                 mInputBuffer[mInputPtr++] : getNextCharFromCurrent(SUFFIX_IN_ELEMENT);

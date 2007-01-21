@@ -29,7 +29,7 @@ Planned stuff for 4.0
     has been implemented, but in less clean way]
 
 * Stax2 improvements:
-  * Add getText()-like method that returns CharacterSequence? Could
+  * Add getText()-like method that returns java.lang.CharSequence? Could
     allow zero-copy wrapping of parsed textual content.
   * XMLStreamReader2.hasPendingException and/or getPendingException
     (to check for deferred exceptions)?
@@ -41,8 +41,8 @@ Planned stuff for 4.0
   * XMLStreamWriter2.writeSpace()
 
 * Removing cruft:
-  * Remove support for pre-JDK-1.4
-  * Remove non-normalizing (attr, text) modes
+[DONE]  * Remove support for pre-JDK-1.4
+[DONE]  * Remove non-normalizing (attr, text) modes
 
 * Stax compatibility:
   * Return "" instead of null for 'default' (or 'no') namespace (for 4.0)
@@ -70,6 +70,9 @@ Planned stuff for 4.0
 [DONE] * Xml:id support (is there need to disable it?)
   * XInclude
   * XML Catalog support
+  * Canonicalization?
+    * Writer-side: support automatic linefeeds between PIs/comments
+      in prolog/epilog, and around element tree?
 
 * Documentation:
    * Impl. details, like: always interns names, preserves attribute value

@@ -20,7 +20,6 @@ public class Configs
 
         // Then woodstox-specific ones
         it.addConfig(getLazyParsingConfig())
-            .addConfig(getNormalizeLFsConfig())
             .addConfig(getInputBufferSizeConfig())
             .addConfig(getMinTextSegmentConfig());
     }
@@ -43,10 +42,6 @@ public class Configs
 
     public static InputTestConfig getLazyParsingConfig() {
         return new LazyParsingConfig();
-    }
-
-    public static InputTestConfig getNormalizeLFsConfig() {
-        return new NormalizeLFsConfig();
     }
 
     public static InputTestConfig getInputBufferSizeConfig() {
@@ -178,22 +173,6 @@ public class Configs
 
         public void config(XMLInputFactory f, int index) {
             ((WstxInputFactory) f).getConfig().doParseLazily(booleanFromInt(index));
-        }
-    }
-
-    public static class NormalizeLFsConfig
-        extends BaseConfig
-    {
-        NormalizeLFsConfig() {
-            super(2);
-        }
-
-        public String getDesc(int index) {
-            return "normalize-lfs: "+booleanFromInt(index);
-        }
-
-        public void config(XMLInputFactory f, int index) {
-            ((WstxInputFactory) f).getConfig().doNormalizeLFs(booleanFromInt(index));
         }
     }
 

@@ -395,7 +395,7 @@
         </javadoc>
     </target> 
  
-    <target name="dist" depends="compile,jars,javadoc"
+    <target name="dist" depends="compile,test.compile,jars,javadoc"
     >
        <!-- First, let's copy the binary jars to dist -->
        <copy todir="${DistDir}">

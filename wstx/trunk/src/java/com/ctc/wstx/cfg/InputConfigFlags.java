@@ -123,39 +123,9 @@ public interface InputConfigFlags
 
     // // // Content normalization
 
-    /**
-     * If true, will convert all 'alien' linefeeds (\r\n, \r) to
-     * standard linefeed char (\n), in content like text, CDATA,
-     * processing instructions and comments. If false, will leave
-     * linefeeds as they were.
-     *<p>
-     * Note: not normalizing linefeeds is against XML 1.0 specs
-     */
-    final static int CFG_NORMALIZE_LFS  =   0x2000;
-
-    /**
-     * If true, will do attribute value normalization as explained in
-     * XML specs; if false, will leave values as they are in input (including
-     * not converting linefeeds).
-     *<p>
-     * Note: not normalizing attribute values is against XML 1.0 specs
-     */
-    final static int CFG_NORMALIZE_ATTR_VALUES = 0x4000;
-
-    // // // XML character class validation
-
-    /**
-     * If true, will check that all characters in textual content of
-     * the document (content that is not part of markup; including content
-     * in CDATA, comments and processing instructions) are valid XML (1.1)
-     * characters.
-     * If false, will accept all Unicode characters outside of ones signalling
-     * markup in the context.
-     *<p>
-     * !!! TBI.
-     */
-    final static int CFG_VALIDATE_TEXT_CHARS =   0x8000;
-
+    // 20-Jan-2007, TSa: These properties removed from 4.0, deprecated:
+    //final static int CFG_NORMALIZE_LFS  =   0x2000;
+    //final static int CFG_NORMALIZE_ATTR_VALUES = 0x4000;
 
     // // // Caching
 

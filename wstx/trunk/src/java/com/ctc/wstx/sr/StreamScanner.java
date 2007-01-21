@@ -370,7 +370,7 @@ public abstract class StreamScanner
         int cf = cfg.getConfigFlags();
         mCfgNsEnabled = (cf & CFG_NAMESPACE_AWARE) != 0;
         mCfgReplaceEntities = (cf & CFG_REPLACE_ENTITY_REFS) != 0;
-        mCfgNormalizeLFs = (cf & CFG_NORMALIZE_LFS) != 0;
+        mCfgNormalizeLFs = true;
 
         mInputBuffer = null;
         mInputPtr = mInputLen = 0;
@@ -939,7 +939,7 @@ public abstract class StreamScanner
          *   internal entities (XML, 2.11)
          */
         if (isExt) {
-            mCfgNormalizeLFs = mConfig.willNormalizeLFs();
+            mCfgNormalizeLFs = true;
         } else {
             mCfgNormalizeLFs = false;
         }
@@ -993,7 +993,7 @@ public abstract class StreamScanner
              *   suppressed for internal entity expansion, we may need to
              *   change the state...
              */
-            if (mCfgNormalizeLFs != mConfig.willNormalizeLFs()) {
+            if (!mCfgNormalizeLFs) {
                 mCfgNormalizeLFs = !input.fromInternalEntity();
             }
             // Maybe there are leftovers from that input in buffer now?
@@ -2074,13 +2074,8 @@ public abstract class StreamScanner
      *<br />
      * Also note that this method is not heavily optimized, as it's not
      * likely to be a bottleneck for parsing.
-     *
-     * @param normalize If true, will concatenate all white space into
-     *   a single space char (as per xml specs); if false, will leave
-     *   it as is (for 100% round trip)
      */
-    protected final String parsePublicId(char quoteChar, boolean normalize,
-                                         String errorMsg)
+    protected final String parsePublicId(char quoteChar, String errorMsg)
         throws IOException, XMLStreamException
     {
         char[] buf = getNameBuffer(-1);
@@ -2095,31 +2090,17 @@ public abstract class StreamScanner
             }
             if (c == '\n') {
                 markLF();
-                if (normalize) {
-                    spaceToAdd = true;
-                    continue;
-                }
+                spaceToAdd = true;
+                continue;
             } else if (c == '\r') {
                 if (peekNext() == '\n') {
                     ++mInputPtr;
-                    if (normalize) {
-                        spaceToAdd = true;
-                        continue;
-                    }
-                    if (ptr >= buf.length) {
-                        buf = expandBy50Pct(buf);
-                    }
-                    buf[ptr++] = '\r';
-                    c = '\n';
-                } else if (normalize) {
-                    spaceToAdd = true;
-                    continue;
                 }
+                spaceToAdd = true;
+                continue;
             } else if (c == CHAR_SPACE) {
-                if (normalize) {
-                    spaceToAdd = true;
-                    continue;
-                }
+                spaceToAdd = true;
+                continue;
             } else {
                 // Verify it's a legal pubid char (see XML spec, #13, from 2.3)
                 if ((c >= VALID_PUBID_CHAR_COUNT)

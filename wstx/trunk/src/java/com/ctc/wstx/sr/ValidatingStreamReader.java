@@ -389,7 +389,7 @@ public class ValidatingStreamReader
             NsDefaultProvider nsDefs = null;
             if (mAutoDtdValidator instanceof DTDValidatorBase) {
                 DTDValidatorBase dtdv = (DTDValidatorBase) mAutoDtdValidator;
-                dtdv.setAttrValueNormalization(mCfgNormalizeAttrs);
+                dtdv.setAttrValueNormalization(true);
                 // Do we have any attribute defaults for 'xmlns' or 'xmlns:*'?
                 if (dtdv.hasNsDefaults()) {
                     nsDefs = dtdv;
@@ -540,7 +540,6 @@ public class ValidatingStreamReader
          */
         int significantFlags = mConfigFlags &
             (CFG_NAMESPACE_AWARE
-             | CFG_NORMALIZE_LFS | CFG_NORMALIZE_ATTR_VALUES
              /* Let's optimize non-validating case; DTD info we need
               * is less if so (no need to store content specs for one)...
               * plus, eventual functionality may be different too.
@@ -578,7 +577,6 @@ public class ValidatingStreamReader
     {
         int significantFlags = mConfigFlags &
             (CFG_NAMESPACE_AWARE
-             | CFG_NORMALIZE_LFS | CFG_NORMALIZE_ATTR_VALUES
              /* Let's optimize non-validating case; DTD info we need
               * is less if so (no need to store content specs for one)
               */

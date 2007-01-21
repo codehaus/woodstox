@@ -71,8 +71,10 @@ public final class ReaderConfig
 
     // Simple flags:
 
-    final static int PROP_NORMALIZE_LFS = 40;
-    final static int PROP_NORMALIZE_ATTR_VALUES = 41;
+    // Note: these were included pre-4.0, deprecated:
+    //final static int PROP_NORMALIZE_LFS = 40;
+    //final static int PROP_NORMALIZE_ATTR_VALUES = 41;
+
     final static int PROP_CACHE_DTDS = 42;
     final static int PROP_CACHE_DTDS_BY_PUBLIC_ID = 43;
     final static int PROP_LAZY_PARSING = 44;
@@ -138,23 +140,21 @@ public final class ReaderConfig
 
         // and then custom setting defaults:
 
-        // default is to turn on content normalization
-        | CFG_NORMALIZE_ATTR_VALUES
-        | CFG_NORMALIZE_LFS
-
         // and namespace URI interning
         | CFG_INTERN_NS_URIS
 
         // we will also accurately report CDATA, by default
         | CFG_REPORT_CDATA
 
-        /* 30-Sep-2005, TSa: Change from 2.0.x (released in 2.8+);
-         *   let's by default report these white spaces, since that's
-         *   what the reference implementation does. It also helps in
-         *   keeping output looking pretty, if input is (not a big deal
-         *   but still)
+        /* 20-Jan-2006, TSa: As per discussions on stax-builders list
+         *   (and input from xml experts), 4.0 will revert to "do not
+         *   report SPACE events outside root element by default"
+         *   settings. Conceptually this is what xml specification
+         *   implies should be done: there is no content outside of
+         *   the element tree, including any ignorable content, just
+         *   processing instructions and comments.
          */
-        | CFG_REPORT_PROLOG_WS
+        //| CFG_REPORT_PROLOG_WS
 
         /* but enable DTD caching (if they are handled):
          * (... maybe J2ME subset shouldn't do it?)
@@ -243,10 +243,6 @@ public final class ReaderConfig
 
         // Non-standard ones, flags:
 
-        sProperties.put(WstxInputProperties.P_NORMALIZE_LFS,
-                        new Integer(PROP_NORMALIZE_LFS));
-        sProperties.put(WstxInputProperties.P_NORMALIZE_ATTR_VALUES,
-                        new Integer(PROP_NORMALIZE_ATTR_VALUES)); 
         sProperties.put(WstxInputProperties.P_CACHE_DTDS,
                         new Integer(PROP_CACHE_DTDS));
         sProperties.put(WstxInputProperties.P_CACHE_DTDS_BY_PUBLIC_ID,
@@ -520,13 +516,6 @@ public final class ReaderConfig
     }
 
     // // // Woodstox on/off property accessors
-    public boolean willNormalizeLFs() {
-        return hasConfigFlags(CFG_NORMALIZE_LFS);
-    }
-
-    public boolean willNormalizeAttrValues() {
-        return hasConfigFlags(CFG_NORMALIZE_ATTR_VALUES);
-    }
 
     public boolean willInternNames() {
 	// 17-Apr-2005, TSa: NOP, we'll always intern them...
@@ -684,14 +673,6 @@ public final class ReaderConfig
 
     // // // Mutators for Woodstox-specific properties
 
-    public void doNormalizeLFs(boolean state) {
-        setConfigFlag(CFG_NORMALIZE_LFS, state);
-    }
-
-    public void doNormalizeAttrValues(boolean state) {
-        setConfigFlag(CFG_NORMALIZE_ATTR_VALUES, state);
-    }
-
     public void doInternNames(boolean state) {
         // 17-Apr-2005, TSa: NOP, we'll always intern them...
     }
@@ -843,16 +824,7 @@ public final class ReaderConfig
      * In addition to the standard settings, following Woodstox-specific
      * settings are also done:
      *<ul>
-     * <li>Enable <code>P_NORMALIZE_LFS</code> (will convert all legal
-     *   linefeeds in textual content [including PIs and COMMENTs] into
-     *   canonical "\n" linefeed before application gets
-     *   the text
-     *  <li>
-     * <li>Enable <code>P_NORMALIZE_ATTR_VALUES</code> (will normalize all
-     *    white space in the attribute values so that multiple adjacent white
-     *    space values are represented by a single space; also, leading and
-     *    trailing white space is removed).
-     *  <li>
+     * <b>None</b>.
      *</ul>
      *<p>
      * Notes: Does NOT change 'performance' settings (buffer sizes,
@@ -873,8 +845,6 @@ public final class ReaderConfig
         doXmlIdUniqChecks(true);
 
         // Woodstox-specific ones:
-        doNormalizeLFs(true);
-        doNormalizeAttrValues(true);
     }
 
     /**
@@ -927,10 +897,6 @@ public final class ReaderConfig
      * In addition to the standard settings, following Woodstox-specific
      * settings are also done:
      *<ul>
-     * <li>Disable <code>P_NORMALIZE_LFS</code>
-     *  </li>
-     * <li>Disable <code>P_NORMALIZE_ATTR_VALUES</code>
-     *  </li>
      * <li>Enable <code>P_CACHE_DTDS</code>.
      *  </li>
      * <li>Enable <code>P_LAZY_PARSING</code> (can improve performance
@@ -961,8 +927,6 @@ public final class ReaderConfig
         doXmlIdUniqChecks(false);
 
         // Woodstox-specific:
-        doNormalizeLFs(false);
-        doNormalizeAttrValues(false);
         doCacheDTDs(true);
         doParseLazily(true);
 
@@ -1028,10 +992,6 @@ public final class ReaderConfig
      * In addition to the standard settings, following Woodstox-specific
      * settings are also done:
      *<ul>
-     * <li>Disable <code>P_NORMALIZE_LFS</code>
-     *  </li>
-     * <li>Disable <code>P_NORMALIZE_ATTR_VALUES</code>
-     *  </li>
      * <li>Increases <code>P_MIN_TEXT_SEGMENT</code> to the maximum value so
      *    that all original text segment chunks are reported without
      *    segmentation (but without coalescing with adjacent CDATA segments)
@@ -1049,8 +1009,7 @@ public final class ReaderConfig
         doReportPrologWhitespace(true);
         
         // Woodstox specific settings
-        doNormalizeLFs(false);
-        doNormalizeAttrValues(false);
+
         // effectively prevents from reporting partial segments:
         setShortestReportedTextSegment(Integer.MAX_VALUE);
     }
@@ -1222,10 +1181,6 @@ public final class ReaderConfig
         // // // Then Woodstox custom properties:
 
             // first, flags:
-        case PROP_NORMALIZE_LFS:
-            return willNormalizeLFs() ? Boolean.TRUE : Boolean.FALSE;
-        case PROP_NORMALIZE_ATTR_VALUES:
-            return willNormalizeAttrValues() ? Boolean.TRUE : Boolean.FALSE;
         case PROP_CACHE_DTDS:
             return willCacheDTDs() ? Boolean.TRUE : Boolean.FALSE;
         case PROP_CACHE_DTDS_BY_PUBLIC_ID:
@@ -1311,14 +1266,6 @@ public final class ReaderConfig
             return false;
 
             // // // Custom settings, flags:
-
-        case PROP_NORMALIZE_LFS:
-            doNormalizeLFs(ArgUtil.convertToBoolean(propName, value));
-            break;
-
-        case PROP_NORMALIZE_ATTR_VALUES:
-            doNormalizeAttrValues(ArgUtil.convertToBoolean(propName, value));
-            break;
 
         case PROP_INTERN_NAMES:
             doInternNames(ArgUtil.convertToBoolean(propName, value));

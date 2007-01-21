@@ -14,6 +14,8 @@ Description:
   * Removed compatibility classes from under com.ctc.wstx.compat,
     since baseline JDK requirement is now 1.4, and workarounds are
     not needed (for now?)
+  * Removed deprecated properties P_NORMALIZE_LFS and
+    P_NORMALIZE_ATTR_VALUES, and needed code support.
 
 == History: ==
 

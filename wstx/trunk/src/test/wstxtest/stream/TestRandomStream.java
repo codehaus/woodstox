@@ -24,7 +24,6 @@ public class TestRandomStream
         super(name);
         mConfigs = new InputConfigIterator();
         mConfigs.addConfig(Configs.getLazyParsingConfig())
-            .addConfig(Configs.getNormalizeLFsConfig())
             .addConfig(Configs.getInputBufferSizeConfig())
             .addConfig(Configs.getMinTextSegmentConfig())
             ;
@@ -98,7 +97,6 @@ public class TestRandomStream
 
     String mInput;
     String mExpOutputNorm;
-    String mExpOutputNotNorm;
 
     boolean mReallyStreaming = false;
     boolean mNormalizeLFs = true;
@@ -141,7 +139,6 @@ public class TestRandomStream
             generateData(r, inputBuf, expOutputBuf, autoEntity);
 
             mInput = inputBuf.toString();
-            mExpOutputNotNorm = expOutputBuf.toString();
             normalizeLFs(expOutputBuf);
             mExpOutputNorm = expOutputBuf.toString();
             mConfigs.iterate(f, this);
@@ -155,13 +152,7 @@ public class TestRandomStream
     public void runTest(XMLInputFactory f, InputConfigIterator it)
         throws Exception
     {
-        String exp;
-
-        if (((WstxInputFactory) f).getConfig().willNormalizeLFs()) {
-            exp = mExpOutputNorm;
-        } else {
-            exp = mExpOutputNotNorm;
-        }
+        String exp = mExpOutputNorm;
 
         // First, let's skip through it all
         streamAndSkip(f, it, mInput);

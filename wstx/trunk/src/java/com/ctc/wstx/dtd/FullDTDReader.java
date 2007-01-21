@@ -91,8 +91,6 @@ public class FullDTDReader
 
     // Extracted wstx-specific settings:
 
-    final boolean mCfgNormAttrs;
-
     final boolean mCfgSupportDTDPP;
 
     /**
@@ -378,7 +376,6 @@ public class FullDTDReader
         mXml11 = cfg.isXml11();
         int cfgFlags = cfg.getConfigFlags();
         mConfigFlags = cfgFlags;
-        mCfgNormAttrs = (cfgFlags & CFG_NORMALIZE_ATTR_VALUES) != 0;
         mCfgSupportDTDPP = (cfgFlags & CFG_SUPPORT_DTDPP) != 0;
         mCfgFullyValidating = constructFully;
 
@@ -481,12 +478,6 @@ public class FullDTDReader
         ReaderConfig cfg = ReaderConfig.createFullDefaults();
         // Need to create a non-shared copy to populate symbol table field
         cfg = cfg.createNonShared(new SymbolTable());
-
-        /* Let's actually not normalize LFs; it's likely caller wouldn't
-         * really want any such changes....
-         */
-        cfg.clearConfigFlag(CFG_NORMALIZE_LFS);
-        cfg.clearConfigFlag(CFG_NORMALIZE_ATTR_VALUES);
 
         /* Let's assume xml 1.0... can be taken as an arg later on, if we
          * truly care.
@@ -896,7 +887,7 @@ public class FullDTDReader
              *   suppressed for internal entity expansion, we may need to
              *   change the state...
              */
-            if (mCfgNormalizeLFs != mConfig.willNormalizeLFs()) {
+            if (!mCfgNormalizeLFs) {
                 mCfgNormalizeLFs = !input.fromInternalEntity();
             }
             // Maybe there are leftovers from that input in buffer now?
@@ -1606,26 +1597,27 @@ public class FullDTDReader
                             c = mCfgNormalizeLFs ? '\n' : '\r';
                         } else {
                             // Fine if we are to normalize lfs
+                            /* !!! 20-Jan-2007, TSa: Hmmh. Not sure if and
+                             *  how to preserve: for now, let's assume there's
+                             *  no need.
+                             */
+                            /*
                             if (!mCfgNormalizeLFs) {
-                                // Ok, except need to add leading '\r' first
-                                if (!mCfgNormAttrs) {
-                                    if (outPtr >= outLen) { // need more room?
-                                        outBuf = tb.finishCurrentSegment();
-                                        outPtr = 0;
-                                        outLen = outBuf.length;
-                                    }
-                                    outBuf[outPtr++] = '\r';
+                                if (outPtr >= outLen) { // need more room?
+                                    outBuf = tb.finishCurrentSegment();
+                                    outPtr = 0;
+                                    outLen = outBuf.length;
                                 }
+                                outBuf[outPtr++] = '\r';
                                 // c is fine to continue
                             }
+                            */
                         }
                         markLF();
                     } else if (c != CHAR_SPACE && c != '\t') {
                         throwInvalidSpace(c);
                     }
-                    if (mCfgNormAttrs) {
-                        c = CHAR_SPACE;
-                    }
+                    c = CHAR_SPACE;
                 } else if (c == quoteChar) {
                     /* It is possible to get these via expanded entities;
                      * need to make sure this is the same input level as
@@ -2509,7 +2501,7 @@ public class FullDTDReader
             if (c != '"' && c != '\'') {
                 throwDTDUnexpectedChar(c, "; expected a quote to start the public identifier");
             }
-            pubId = parsePublicId(c, mCfgNormAttrs, getErrorMsg());
+            pubId = parsePublicId(c, getErrorMsg());
             c = skipDtdWs(true);
         } else {
             pubId = null;
@@ -2804,7 +2796,7 @@ public class FullDTDReader
                 attr.normalizeDefault();
                 // but only validate in validating mode:
                 if (mCfgFullyValidating) {
-                    attr.validateDefault(this, mCfgNormAttrs);
+                    attr.validateDefault(this, true);
                 }
             }
         }
@@ -3141,7 +3133,7 @@ public class FullDTDReader
             if (c != '"' && c != '\'') {
                 throwDTDUnexpectedChar(c, "; expected a quote to start the public identifier");
             }
-            pubId = parsePublicId(c, mCfgNormAttrs, getErrorMsg());
+            pubId = parsePublicId(c, getErrorMsg());
             /* 30-Sep-2005, TSa: SGML has public ids that miss the system
              *   id. Although not legal with XML DTDs, let's give bit more
              *   meaningful error in those cases...

@@ -29,25 +29,13 @@ public final class WstxInputProperties
     // // // Normalization:
 
 
-    /**
-     * Whether non-standard linefeeds (\r, \r\n) need to be converted
-     * to standard ones (\n) or not, as per XML specs.
-     *<p>
-     * Turning this option
-     * off may help performance when processing content that has non-standard
-     * linefeeds (Mac, Windows); otherwise effect is negligible.
+    /* As of Woodstox 4.0, xml specification mandated normalization is
+     * always done, and can not be disabled. Removing this feature simplifies
+     * parsing code significantly; and feature itself was seldom if ever
+     * used.
      */
-    public final static String P_NORMALIZE_LFS = "com.ctc.wstx.normalizeLFs";
-
-    /**
-     * Whether white space in attribute values should be normalized as
-     * specified by XML specs or not.
-     *<p>
-     * Turning this option may help performance if attributes generally
-     * have non-normalized white space; otherwise effect is negligible.
-     */
-    public final static String P_NORMALIZE_ATTR_VALUES = "com.ctc.wstx.normalizeAttrValues";
-
+    //public final static String P_NORMALIZE_LFS = "com.ctc.wstx.normalizeLFs";
+    //public final static String P_NORMALIZE_ATTR_VALUES = "com.ctc.wstx.normalizeAttrValues";
 
     // // // XML character validation:
 
@@ -134,6 +122,10 @@ public final class WstxInputProperties
     // // // Entity handling
 
     /**
+     * @deprecated This feature may be remove from future versions of
+     *   Woodstox, since the same functionality can be achieved by using
+     *   custom entity resolvers.
+     *<p>
      * Property of type {@link java.util.Map}, that defines explicit set of
      * internal (generic) entities that will define of override any entities
      * defined in internal or external subsets; except for the 5 pre-defined
