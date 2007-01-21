@@ -32,7 +32,6 @@ import org.codehaus.stax2.DTDInfo;
 import org.codehaus.stax2.XMLStreamReader2;
 
 import com.ctc.wstx.cfg.ErrorConsts;
-import com.ctc.wstx.compat.JdkFeatures;
 import com.ctc.wstx.dtd.DTDSubset;
 import com.ctc.wstx.ent.EntityDecl;
 import com.ctc.wstx.exc.WstxException;
@@ -206,7 +205,7 @@ public class DefaultEventAllocator
                     if (attrCount < 1) {
                         attrs = null;
                     } else {
-                        attrs = JdkFeatures.getInstance().getInsertOrderedMap();
+                        attrs = new LinkedHashMap();
                         for (int i = 0; i < attrCount; ++i) {
                             QName aname = r.getAttributeName(i);
                             attrs.put(aname, new WAttribute(loc, aname, r.getAttributeValue(i), r.isAttributeSpecified(i)));

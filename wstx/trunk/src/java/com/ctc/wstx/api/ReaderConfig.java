@@ -2,9 +2,7 @@ package com.ctc.wstx.api;
 
 import java.lang.ref.SoftReference;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 import javax.xml.stream.*;
 
@@ -13,7 +11,6 @@ import org.codehaus.stax2.XMLStreamProperties; // for property consts
 
 import com.ctc.wstx.api.WstxInputProperties;
 import com.ctc.wstx.cfg.InputConfigFlags;
-import com.ctc.wstx.compat.JdkFeatures;
 import com.ctc.wstx.dtd.DTDEventListener;
 import com.ctc.wstx.ent.IntEntity;
 import com.ctc.wstx.ent.EntityDecl;
@@ -588,7 +585,7 @@ public final class ReaderConfig
     {
         Map custEnt = (Map) getSpecialProperty(SP_IX_CUSTOM_ENTITIES);
         if (custEnt == null) {
-            return JdkFeatures.getInstance().getEmptyMap();
+            return Collections.EMPTY_MAP;
         }
         // Better be defensive and just return a copy...
         int len = custEnt.size();
@@ -762,7 +759,7 @@ public final class ReaderConfig
     {
         Map entMap;
         if (m == null || m.size() < 1) {
-            entMap = JdkFeatures.getInstance().getEmptyMap();
+            entMap = Collections.EMPTY_MAP;
         } else {
             int len = m.size();
             entMap = new HashMap(len + (len >> 1), 0.75f);

@@ -7,8 +7,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.MalformedURLException;
 
-import com.ctc.wstx.compat.JdkFeatures;
-
 public final class URLUtil
 {
     private URLUtil() { }
@@ -130,7 +128,7 @@ public final class URLUtil
     {
         IOException ie = new IOException("[resolving systemId '"+sysId
                                          +"']: "+mex.toString());
-        JdkFeatures.getInstance().setInitCause(ie, mex);
+        ExceptionUtil.setInitCause(ie, mex);
         throw ie;
     }
 }

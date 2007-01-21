@@ -28,7 +28,6 @@ import javax.xml.stream.events.*;
 import org.codehaus.stax2.evt.XMLEvent2;
 
 import com.ctc.wstx.cfg.ErrorConsts;
-import com.ctc.wstx.compat.JdkFeatures;
 import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.exc.WstxIOException;
 

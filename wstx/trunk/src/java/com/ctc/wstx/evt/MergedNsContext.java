@@ -11,7 +11,6 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import javax.xml.stream.events.Namespace;
 
-import com.ctc.wstx.compat.JdkFeatures;
 import com.ctc.wstx.util.BaseNsContext;
 import com.ctc.wstx.util.EmptyIterator;
 
@@ -45,7 +44,7 @@ public class MergedNsContext
     protected MergedNsContext(NamespaceContext parentCtxt, List localNs)
     {
         mParentCtxt = parentCtxt;
-        mNamespaces = (localNs == null) ? JdkFeatures.getInstance().getEmptyList() : localNs;
+        mNamespaces = (localNs == null) ? Collections.EMPTY_LIST : localNs;
     }
 
     public static BaseNsContext construct(NamespaceContext parentCtxt,
@@ -177,10 +176,10 @@ public class MergedNsContext
     {
         int len = mNamespaces.size();
         if (len == 0) {
-            return JdkFeatures.getInstance().getEmptyMap();
+            return Collections.EMPTY_MAP;
         }
 
-        Map m = JdkFeatures.getInstance().getInsertOrderedMap(1 + len + (len>>1));
+        LinkedHashMap m = new LinkedHashMap(1 + len + (len>>1));
         for (int i = 0; i < len; ++i) {
             Namespace ns = (Namespace) mNamespaces.get(i);
             String prefix = ns.getPrefix();
@@ -196,10 +195,10 @@ public class MergedNsContext
     {
         int len = mNamespaces.size();
         if (len == 0) {
-            return JdkFeatures.getInstance().getEmptyMap();
+            return Collections.EMPTY_MAP;
         }
 
-        Map m = JdkFeatures.getInstance().getInsertOrderedMap(1 + len + (len>>1));
+        LinkedHashMap m = new LinkedHashMap(1 + len + (len>>1));
         for (int i = 0; i < len; ++i) {
             Namespace ns = (Namespace) mNamespaces.get(i);
             String uri = ns.getNamespaceURI();

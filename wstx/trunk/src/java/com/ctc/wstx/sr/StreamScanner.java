@@ -36,7 +36,6 @@ import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.cfg.InputConfigFlags;
 import com.ctc.wstx.cfg.ParsingErrorMsgs;
 import com.ctc.wstx.cfg.XmlConsts;
-import com.ctc.wstx.compat.JdkFeatures;
 import com.ctc.wstx.ent.EntityDecl;
 import com.ctc.wstx.exc.*;
 import com.ctc.wstx.io.*;
@@ -690,7 +689,7 @@ public abstract class StreamScanner
             throw (WstxException) strex;
         }
         WstxException newEx = new WstxException(strex);
-        JdkFeatures.getInstance().setInitCause(newEx, strex);
+        ExceptionUtil.setInitCause(newEx, strex);
         throw newEx;
     }
 

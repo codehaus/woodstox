@@ -17,7 +17,7 @@ package com.ctc.wstx.exc;
 
 import javax.xml.stream.XMLStreamException;
 
-import com.ctc.wstx.compat.JdkFeatures;
+import com.ctc.wstx.util.ExceptionUtil;
 
 /**
  * Alternative exception class Woodstox code uses when it is not allowed
@@ -33,10 +33,8 @@ public class WstxLazyException
     {
         super(origEx.getMessage());
         mOrig = origEx;
-        /* Let's additionally try to set source message, if we run on
-         * JDK 1.4 or later.
-         */
-        JdkFeatures.getInstance().setInitCause(this, origEx);
+        // Let's additionally to set source message
+        ExceptionUtil.setInitCause(this, origEx);
     }
 
     public static void throwLazily(XMLStreamException ex)

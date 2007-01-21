@@ -18,8 +18,8 @@ package com.ctc.wstx.exc;
 import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
 
+import com.ctc.wstx.util.ExceptionUtil;
 import com.ctc.wstx.util.StringUtil;
-import com.ctc.wstx.compat.JdkFeatures;
 
 /**
  * Base class for all implementatations of {@link XMLStreamException}
@@ -43,7 +43,7 @@ public class WstxException
         mMsg = th.getMessage();
 
         // 13-Aug-2004, TSa: Better make sure root cause is set...
-        JdkFeatures.getInstance().setInitCause(this, th);
+        ExceptionUtil.setInitCause(this, th);
     }
 
     public WstxException(String msg, Location loc) {
@@ -56,7 +56,7 @@ public class WstxException
         mMsg = msg;
 
         // 13-Aug-2004, TSa: Better make sure root cause is set...
-        JdkFeatures.getInstance().setInitCause(this, th);
+        ExceptionUtil.setInitCause(this, th);
     }
 
     /**

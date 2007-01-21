@@ -1,7 +1,5 @@
 package com.ctc.wstx.util;
 
-import com.ctc.wstx.compat.JdkFeatures;
-
 public final class ExceptionUtil
 {
     private ExceptionUtil() { }
@@ -16,8 +14,8 @@ public final class ExceptionUtil
         throwIfUnchecked(t);
         // Otherwise, let's just change its type:
         RuntimeException rex = new RuntimeException("[was "+t.getClass()+"] "+t.getMessage());
-        // And if possible, indicate the root cause (1.4+ only)
-        JdkFeatures.getInstance().setInitCause(rex, t);
+        // And indicate the root cause
+        setInitCause(rex, t);
         throw rex;
     }
 
@@ -27,8 +25,8 @@ public final class ExceptionUtil
         throwIfUnchecked(t);
         // Otherwise, let's just change its type:
         IllegalArgumentException rex = new IllegalArgumentException("[was "+t.getClass()+"] "+t.getMessage());
-        // And if possible, indicate the root cause (1.4+ only)
-        JdkFeatures.getInstance().setInitCause(rex, t);
+        // And indicate the root cause
+        setInitCause(rex, t);
         throw rex;
     }
 
@@ -59,6 +57,12 @@ public final class ExceptionUtil
             msg = "[no description]";
         }
         throw new RuntimeException("Internal error: "+msg);
+    }
+
+    public static boolean setInitCause(Throwable newT, Throwable rootT)
+    {
+        newT.initCause(rootT);
+        return true;
     }
 
     /*

@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <project>
 
  <!-- General information -->
@@ -25,7 +26,7 @@
     <dependency>
       <groupId>stax</groupId>
       <artifactId>stax-api</artifactId>
-      <version>1.0.1</version>
+      <version>[1.0.1,</version>
     </dependency>
   </dependencies>
 </project>

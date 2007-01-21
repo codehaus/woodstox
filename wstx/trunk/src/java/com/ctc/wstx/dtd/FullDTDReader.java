@@ -32,7 +32,6 @@ import org.codehaus.stax2.validation.XMLValidator;
 import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.cfg.XmlConsts;
-import com.ctc.wstx.compat.JdkFeatures;
 import com.ctc.wstx.ent.*;
 import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.io.WstxInputData;
@@ -2456,7 +2455,7 @@ public class FullDTDReader
                  * report redefinition problems when validating subset
                  * compatibility
                  */
-                mGeneralEntities = m = JdkFeatures.getInstance().getInsertOrderedMap();
+                mGeneralEntities = m = new LinkedHashMap();
             }
         }
 
@@ -2560,7 +2559,7 @@ public class FullDTDReader
              * report redefinition problems in proper order when validating
              * subset compatibility
              */
-            mNotations = m = JdkFeatures.getInstance().getInsertOrderedMap();
+            mNotations = m = new LinkedHashMap();
         } else {
             NotationDecl oldDecl = (NotationDecl) m.get(id);
             if (oldDecl != null) { // oops, a problem!
@@ -2951,7 +2950,7 @@ public class FullDTDReader
             reportWFCViolation("Unrecognized directive #"+keyw+"'; expected #PCDATA (or element name)");
         }
 
-        HashMap m = JdkFeatures.getInstance().getInsertOrderedMap();
+        HashMap m = new LinkedHashMap();
         while (true) {
             char c = skipDtdWs(true);
             if (c == ')') {
@@ -3242,7 +3241,7 @@ public class FullDTDReader
              * report redefinition problems in proper order when validating
              * subset compatibility
              */
-            mElements = m = JdkFeatures.getInstance().getInsertOrderedMap();
+            mElements = m = new LinkedHashMap();
         }
         return m;
     }

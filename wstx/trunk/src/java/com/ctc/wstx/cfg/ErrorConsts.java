@@ -96,6 +96,9 @@ public class ErrorConsts
     public static String ERR_NS_REDECL_XMLNS_URI = "Trying to bind URI '"
         +XMLConstants.XMLNS_ATTRIBUTE_NS_URI+" to prefix \"{0}\" (can not be explicitly bound)";
 
+    public static String ERR_NS_EMPTY = 
+"Non-default namespace can not map to empty URI (as per Namespace 1.0 # 2) in XML 1.0 documents";
+
 
     // // // DTD-specific:
 
@@ -127,11 +130,6 @@ public class ErrorConsts
     public static String ERR_VLD_ANY = "Element <{0}> has ANY content specification; can not contain {1}";
     public static String ERR_VLD_UNKNOWN_ATTR = "Element <{0}> has no attribute \"{1}\"";
     public static String ERR_VLD_WRONG_ROOT = "Unexpected root element <{0}>; expected <{0}> as per DOCTYPE declaration";
-
-    // // // Namespace problems:
-
-    public static String ERR_NS_EMPTY = 
-"Non-default namespace can not map to empty URI (as per Namespace 1.0 # 2) in XML 1.0 documents";
 
     // // // Output problems:
 

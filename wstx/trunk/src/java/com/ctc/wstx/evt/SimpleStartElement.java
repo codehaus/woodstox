@@ -14,7 +14,6 @@ import javax.xml.stream.events.Attribute;
 import javax.xml.stream.events.Namespace;
 import javax.xml.stream.events.StartElement;
 
-import com.ctc.wstx.compat.JdkFeatures;
 import com.ctc.wstx.io.TextEscaper;
 import com.ctc.wstx.util.BaseNsContext;
 import com.ctc.wstx.util.EmptyIterator;
@@ -62,7 +61,7 @@ public class SimpleStartElement
         if (attrs == null || !attrs.hasNext()) {
             attrMap = null;
         } else {
-            attrMap = JdkFeatures.getInstance().getInsertOrderedMap();
+            attrMap = new LinkedHashMap();
             do {
                 Attribute attr = (Attribute) attrs.next();
                 attrMap.put(attr.getName(), attr);

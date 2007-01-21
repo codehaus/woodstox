@@ -101,13 +101,6 @@ public final class SimpleOutputElement
     String mDefaultNsURI;
 
     /**
-     * True, if the default namespace URI has been explicitly specified
-     * for this element; false if it was inherited from the parent
-     * element
-     */
-    boolean mDefaultNsSet;
-
-    /**
      * Mapping of namespace prefixes to URIs and back.
      */
     BijectiveNsMap mNsMapping;
@@ -150,7 +143,6 @@ public final class SimpleOutputElement
         mNsMapShared = false;
         mDefaultNsURI = "";
         mRootNsContext = null;
-        mDefaultNsSet = false;
     }
 
     private SimpleOutputElement(SimpleOutputElement parent,
@@ -165,7 +157,6 @@ public final class SimpleOutputElement
         mNsMapShared = (ns != null);
         mDefaultNsURI = parent.mDefaultNsURI;
         mRootNsContext = parent.mRootNsContext;
-        mDefaultNsSet = false;
     }
 
     /**
@@ -185,7 +176,6 @@ public final class SimpleOutputElement
         mNsMapShared = (mNsMapping != null);
         mDefaultNsURI = parent.mDefaultNsURI;
         mRootNsContext = parent.mRootNsContext;
-        mDefaultNsSet = false;
     }
 
     public static SimpleOutputElement createRoot()
@@ -246,17 +236,17 @@ public final class SimpleOutputElement
         return new SimpleOutputElement(this, prefix, localName, uri, mNsMapping);
     }
 
+    /**
+     * Note: this method can and will only be called before outputting
+     * the root element.
+     */
     protected void setRootNsContext(NamespaceContext ctxt)
     {
         mRootNsContext = ctxt;
-        /* Let's also see if we have an active default ns mapping:
-         * (provided it hasn't yet explicitly been set for this element)
-         */
-        if (!mDefaultNsSet) {
-            String defURI = ctxt.getNamespaceURI("");
-            if (defURI != null && defURI.length() > 0) {
-                mDefaultNsURI = defURI;
-            }
+        // Let's also figure out the default ns binding, if any:
+        String defURI = ctxt.getNamespaceURI("");
+        if (defURI != null && defURI.length() > 0) {
+            mDefaultNsURI = defURI;
         }
     }
 
@@ -399,9 +389,9 @@ public final class SimpleOutputElement
             return PREFIX_MISBOUND;
         }
 
-	/* Need to handle 'xml' prefix and its associated
-	 *   URI; they are always declared by default
-	 */
+        /* Need to handle 'xml' prefix and its associated
+         *   URI; they are always declared by default
+         */
         if (prefix.equals(sXmlNsPrefix)) {
             // Should we thoroughly verify its namespace matches...?
             // 01-Apr-2005, TSa: Yes, let's always check this
@@ -462,7 +452,6 @@ public final class SimpleOutputElement
 
     public void setDefaultNsUri(String uri) {
         mDefaultNsURI = uri;
-        mDefaultNsSet = true;
     }
 
     public void setPrefix(String prefix) {

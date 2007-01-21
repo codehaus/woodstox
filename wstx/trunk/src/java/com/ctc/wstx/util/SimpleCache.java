@@ -2,8 +2,6 @@ package com.ctc.wstx.util;
 
 import java.util.*;
 
-import com.ctc.wstx.compat.JdkFeatures;
-
 /**
  * Simple Map implementation usable for caches where contents do not
  * expire.
@@ -20,7 +18,7 @@ import com.ctc.wstx.compat.JdkFeatures;
 
 public final class SimpleCache
 {
-    final Map mItems;
+    final LimitMap mItems;
 
     final int mMaxSize;
 
@@ -30,7 +28,7 @@ public final class SimpleCache
          * entries, for JDK 1.4: but for pre-1.4 there is no automatic
          * purging.
          */
-        mItems = JdkFeatures.getInstance().getLRULimitMap(maxSize);
+        mItems = new LimitMap(maxSize);
         mMaxSize = maxSize;
     }
 
@@ -54,6 +52,29 @@ public final class SimpleCache
                     break;
                 }
             }
+        }
+    }
+
+    /*
+    /////////////////////////////////////////////
+    // Helper classes
+    /////////////////////////////////////////////
+     */
+
+    final static class LimitMap
+        extends LinkedHashMap
+    {
+        final int mMaxSize;
+
+        public LimitMap(int size)
+        {
+            super(size, 0.8f, true);
+            // Let's not allow silly low values...
+            mMaxSize = size;
+        }
+        
+        public boolean removeEldestEntry(Map.Entry eldest) {
+            return (size() >= mMaxSize);
         }
     }
 }

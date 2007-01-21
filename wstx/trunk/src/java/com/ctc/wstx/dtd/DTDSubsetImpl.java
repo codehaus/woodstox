@@ -23,7 +23,6 @@ import javax.xml.stream.XMLStreamException;
 
 import org.codehaus.stax2.validation.*;
 
-import com.ctc.wstx.compat.JdkFeatures;
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.ent.NotationDecl;
 import com.ctc.wstx.exc.WstxException;
@@ -310,7 +309,7 @@ public final class DTDSubsetImpl
         List l = mGeneralEntityList;
         if (l == null) {
             if (mGeneralEntities == null || mGeneralEntities.size() == 0) {
-                l = JdkFeatures.getInstance().getEmptyList();
+                l = Collections.EMPTY_LIST;
             } else {
                 l = Collections.unmodifiableList(new ArrayList(mGeneralEntities.values()));
             }
@@ -333,7 +332,7 @@ public final class DTDSubsetImpl
         List l = mNotationList;
         if (l == null) {
             if (mNotations == null || mNotations.size() == 0) {
-                l = JdkFeatures.getInstance().getEmptyList();
+                l = Collections.EMPTY_LIST;
             } else {
                 l = Collections.unmodifiableList(new ArrayList(mNotations.values()));
             }
