@@ -1141,7 +1141,7 @@ public abstract class BaseStreamWriter
         }
     }
 
-    public void writeRaw(char[] text, int offset, int length)
+    public void writeRaw(char[] text, int start, int offset)
         throws XMLStreamException
     {
         mAnyOutput = true;
@@ -1149,10 +1149,26 @@ public abstract class BaseStreamWriter
             closeStartElement(mEmptyElement);
         }
         try {
-            mWriter.writeRaw(text, offset, length);
+            mWriter.writeRaw(text, start, offset);
         } catch (IOException ioe) {
             throw new WstxIOException(ioe);
         }
+    }
+
+    public void writeSpace(String text)
+        throws XMLStreamException
+    {
+        /* For now, let's just use writeRaw(): otherwise would need
+         * to add it to all backend writers:
+         */
+        writeRaw(text);
+    }
+
+    public void writeSpace(char[] text, int offset, int length)
+        throws XMLStreamException
+    {
+        // For now, let's just use writeRaw() (see above)
+        writeRaw(text, offset, length);
     }
 
     /*

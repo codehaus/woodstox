@@ -50,7 +50,7 @@
     <!-- Extended API, working title "StAX2" (not version 2.0, but 2/squared)
       -->
     <property name="STAX2_TITLE" value="StAX2 API" />
-    <property name="STAX2_VERSION" value="1.0" />
+    <property name="STAX2_VERSION" value="3.0pr1" />
     <property name="STAX2_VENDOR" value="http://www.cowtowncoder.com" />
 
     <!-- jars needed for compilation -->
@@ -323,7 +323,7 @@
     </target> 
 
     <target name="jar.stax2" depends="compile">
-        <jar jarfile="${BuildDir}/stax2.jar" filesonly="true" >
+        <jar jarfile="${BuildDir}/stax2-${STAX2_VERSION}.jar" filesonly="true" >
           <manifest>
             <attribute name="Built-By" value="${user.name}"/>
             <attribute name="Specification-Title"   value="${STAX2_TITLE}"/>

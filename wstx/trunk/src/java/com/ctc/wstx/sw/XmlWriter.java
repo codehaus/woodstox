@@ -258,7 +258,7 @@ public abstract class XmlWriter
 
     /*
     ////////////////////////////////////////////////////
-    // Write methods, non-elem/attr
+    // Write methods, textual:
     ////////////////////////////////////////////////////
      */
 
@@ -279,6 +279,12 @@ public abstract class XmlWriter
 
     public abstract void writeCharacters(char[] cbuf, int offset, int len)
         throws IOException;
+
+    /*
+    ////////////////////////////////////////////////////
+    // Write methods, non-textual, non-elem/attr:
+    ////////////////////////////////////////////////////
+     */
 
     /**
      * Method that will try to output the content as specified. If

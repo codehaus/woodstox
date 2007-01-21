@@ -13,6 +13,9 @@ import org.codehaus.stax2.validation.Validatable;
  * It also adds limited number of methods that are important for
  * efficient pass-through processing (such as one needed when routing
  * SOAP-messages).
+ *
+ * @version 3.0 01/21/2007
+ * @author Tatu Saloranta (cowtowncoder@yahoo.com)
  */
 public interface XMLStreamWriter2
     extends XMLStreamWriter, Validatable
@@ -104,6 +107,32 @@ public interface XMLStreamWriter2
 
     public void writeStartDocument(String version, String encoding,
                                    boolean standAlone)
+        throws XMLStreamException;
+
+    /**
+     * Method that can be called to write whitespace-only content.
+     * If so, it is to be written as is (with no escaping), and does
+     * not contain non-whitespace characters (writer may validate this,
+     * and throw an exception if it does).
+     *<p>
+     * This method is useful for things like outputting indentation.
+     *
+     * @since 3.0
+     */
+    public void writeSpace(String text)
+        throws XMLStreamException;
+
+    /**
+     * Method that can be called to write whitespace-only content.
+     * If so, it is to be written as is (with no escaping), and does
+     * not contain non-whitespace characters (writer may validate this,
+     * and throw an exception if it does).
+     *<p>
+     * This method is useful for things like outputting indentation.
+     *
+     * @since 3.0
+     */
+    public void writeSpace(char[] text, int offset, int length)
         throws XMLStreamException;
     
     /*

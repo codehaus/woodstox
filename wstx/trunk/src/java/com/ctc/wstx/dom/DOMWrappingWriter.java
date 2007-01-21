@@ -150,6 +150,9 @@ public class DOMWrappingWriter
     public void writeProcessingInstruction(String target) {}
     public void writeProcessingInstruction(String target, String data) {}
 
+    public void writeSpace(char[] text, int start, int len) {}
+    public void writeSpace(String text) {}
+
     public void writeStartDocument()
     {
         writeStartDocument(WstxOutputProperties.DEFAULT_OUTPUT_ENCODING,
