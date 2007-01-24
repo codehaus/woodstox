@@ -1,4 +1,4 @@
-package com.ctc.wstx.evt;
+package org.codehaus.stax2.ri.evt;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -13,10 +13,13 @@ import javax.xml.stream.XMLStreamWriter;
 import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.Namespace;
 
+import org.codehaus.stax2.XMLStreamWriter2;
+import org.codehaus.stax2.ri.evt.BaseEventImpl;
+
 import com.ctc.wstx.util.EmptyIterator;
 
-public class WEndElement
-    extends WEvent
+public class EndElementEventImpl
+    extends BaseEventImpl
     implements EndElement
 {
     final QName mName;
@@ -25,7 +28,7 @@ public class WEndElement
     /**
      * Constructor usually used when reading events from a stream reader.
      */
-    public WEndElement(Location loc, XMLStreamReader r)
+    public EndElementEventImpl(Location loc, XMLStreamReader r)
     {
         super(loc);
         mName = r.getName();
@@ -39,9 +42,9 @@ public class WEndElement
             for (int i = 0; i < nsCount; ++i) {
                 String prefix = r.getNamespacePrefix(i);
                 if (prefix == null || prefix.length() == 0) { //default ns
-                    l.add(new WNamespace(loc, r.getNamespaceURI(i)));
+                    l.add(new NamespaceEventImpl(loc, r.getNamespaceURI(i)));
                 } else {
-                    l.add(new WNamespace(loc, prefix, r.getNamespaceURI(i)));
+                    l.add(new NamespaceEventImpl(loc, prefix, r.getNamespaceURI(i)));
                 }
             }
             mNamespaces = l;
@@ -51,7 +54,7 @@ public class WEndElement
     /**
      * Constructor used by the event factory.
      */
-    public WEndElement(Location loc, QName name, Iterator namespaces)
+    public EndElementEventImpl(Location loc, QName name, Iterator namespaces)
     {
         super(loc);
         mName = name;
@@ -121,7 +124,7 @@ public class WEndElement
         }
     }
 
-    public void writeUsing(XMLStreamWriter w) throws XMLStreamException
+    public void writeUsing(XMLStreamWriter2 w) throws XMLStreamException
     {
         w.writeEndElement();
     }

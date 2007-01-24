@@ -1,26 +1,27 @@
-package com.ctc.wstx.evt;
+package org.codehaus.stax2.ri.evt;
 
 import java.io.IOException;
 import java.io.Writer;
 
-import javax.xml.stream.Location;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
+import javax.xml.stream.*;
 import javax.xml.stream.events.Comment;
 
-public class WComment
-    extends WEvent
+import org.codehaus.stax2.XMLStreamWriter2;
+
+public class CommentEventImpl
+    extends BaseEventImpl
     implements Comment
 {
     final String mContent;
 
-    public WComment(Location loc, String content)
+    public CommentEventImpl(Location loc, String content)
     {
         super(loc);
         mContent = content;
     }
 
-    public String getText() {
+    public String getText()
+    {
         return mContent;
     }
 
@@ -46,7 +47,7 @@ public class WComment
         }
     }
 
-    public void writeUsing(XMLStreamWriter w) throws XMLStreamException
+    public void writeUsing(XMLStreamWriter2 w) throws XMLStreamException
     {
         w.writeComment(mContent);
     }

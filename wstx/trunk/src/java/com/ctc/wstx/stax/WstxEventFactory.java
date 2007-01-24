@@ -22,26 +22,20 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.*;
 import javax.xml.stream.events.*;
 
-import org.codehaus.stax2.evt.XMLEventFactory2;
-import org.codehaus.stax2.evt.DTD2;
+import org.codehaus.stax2.ri.Stax2EventFactoryImpl;
 
 import com.ctc.wstx.dtd.DTDSubset;
 import com.ctc.wstx.evt.*;
 
 /**
- * Basic implementation of {@link XMLEventFactory} to be used with
- * Woodstox.
+ * Implementation of {@link XMLEventFactory} to be used with
+ * Woodstox. Contains minimal additions on top of Stax2 RI.
  */
 public final class WstxEventFactory
-    extends XMLEventFactory2
+    extends Stax2EventFactoryImpl
 {
-    /**
-     * "Current" location of this factory; ie. location assigned for all
-     * events created by this factory.
-     */
-    private Location mLocation;
-
     public WstxEventFactory() {
+        super();
     }
 
     /*
@@ -50,31 +44,12 @@ public final class WstxEventFactory
     /////////////////////////////////////////////////////////////
      */
 
-    public Attribute createAttribute(QName name, String value) {
-        return new WAttribute(mLocation, name, value, true);
-    }
-
-    public Attribute createAttribute(String localName, String value) {
-        return new WAttribute(mLocation, localName, null, null, value, true);
-    }
-
-    public Attribute createAttribute(String prefix, String nsURI,
-                                     String localName, String value)
-    {
-        return new WAttribute(mLocation, localName, nsURI, prefix, value, true);
-    }
-
-    public Characters createCData(String content) {
-        return new WCharacters(mLocation, content, true);
-    }
-
-    public Characters createCharacters(String content) {
-        return new WCharacters(mLocation, content, false);
-    }
-
-    public Comment createComment(String text) {
-        return new WComment(mLocation, text);
-    }
+    //public Attribute createAttribute(QName name, String value)
+    //public Attribute createAttribute(String localName, String value)
+    //public Attribute createAttribute(String prefix, String nsURI, String localName, String value)
+    //public Characters createCData(String content);
+    //public Characters createCharacters(String content);
+    //public Comment createComment(String text);
 
     /**
      * Note: constructing DTD events this way means that there will be no
@@ -85,68 +60,27 @@ public final class WstxEventFactory
         return new WDTD(mLocation, dtd);
     }
 
-    public EndDocument createEndDocument() {
-        return new WEndDocument(mLocation);
-    }
+    //public EndDocument createEndDocument()
 
-    public EndElement createEndElement(QName name, Iterator namespaces) {
-        return new WEndElement(mLocation, name, namespaces);
-    }
+    //public EndElement createEndElement(QName name, Iterator namespaces)
+    //public EndElement createEndElement(String prefix, String nsURI, String localName)
+    //public EndElement createEndElement(String prefix, String nsURI, String localName, Iterator ns)
 
-    public EndElement createEndElement(String prefix, String nsURI,
-                                       String localName)
-    {
-        return createEndElement(new QName(nsURI, localName), null);
-    }
+    //public EntityReference createEntityReference(String name, EntityDeclaration decl)
 
-    public EndElement createEndElement(String prefix, String nsURI,
-                                       String localName, Iterator ns)
-    {
-        return createEndElement(new QName(nsURI, localName, prefix), ns);
-    }
+    //public Characters createIgnorableSpace(String content)
 
-    public EntityReference createEntityReference(String name, EntityDeclaration decl)
-    {
-        return new WEntityReference(mLocation, decl);
-    }
+    //public Namespace createNamespace(String nsURI)
+    //public Namespace createNamespace(String prefix, String nsUri)
 
-    public Characters createIgnorableSpace(String content) {
-        return WCharacters.createIgnorableWS(mLocation, content);
-    }
-
-    public Namespace createNamespace(String nsURI) {
-        return new WNamespace(mLocation, nsURI);
-    }
+    //public ProcessingInstruction createProcessingInstruction(String target, String data)
     
-    public Namespace createNamespace(String prefix, String nsUri) {
-        return new WNamespace(mLocation, prefix, nsUri);
-    }
+    //public Characters createSpace(String content)
 
-    public ProcessingInstruction createProcessingInstruction(String target, String data) {
-        return new WProcInstr(mLocation, target, data);
-    }
-    
-    public Characters createSpace(String content) {
-        return WCharacters.createNonIgnorableWS(mLocation, content);
-    }
-
-    public StartDocument createStartDocument() {
-        return new WStartDocument(mLocation);
-    }
-
-    public StartDocument createStartDocument(String encoding) {
-        return new WStartDocument(mLocation, encoding);
-    }
-
-    public StartDocument createStartDocument(String encoding, String version) {
-        return new WStartDocument(mLocation, encoding, version);
-    }
-
-    public StartDocument createStartDocument(String encoding, String version, boolean standalone)
-    {
-        return new WStartDocument(mLocation, encoding, version,
-                                  true, standalone);
-    }
+    //public StartDocument createStartDocument()
+    //public StartDocument createStartDocument(String encoding)
+    //public StartDocument createStartDocument(String encoding, String version)
+    //public StartDocument createStartDocument(String encoding, String version, boolean standalone)
 
     public StartElement createStartElement(QName name, Iterator attr, Iterator ns)
     {
@@ -173,29 +107,6 @@ public final class WstxEventFactory
     {
         return createStartElement(new QName(nsURI, localName, prefix),
                                   attr, ns, nsCtxt);
-    }
-
-    public void setLocation(Location loc) {
-        mLocation = loc;
-    }
-
-    /*
-    /////////////////////////////////////////////////////////////
-    // XMLEventFactory2 methods
-    /////////////////////////////////////////////////////////////
-     */
-
-    public DTD2 createDTD(String rootName, String sysId, String pubId,
-                          String intSubset)
-    {
-        return new WDTD(mLocation, rootName, sysId, pubId, intSubset);
-    }
-
-    public DTD2 createDTD(String rootName, String sysId, String pubId,
-                          String intSubset, Object processedDTD)
-    {
-        return new WDTD(mLocation, rootName, sysId, pubId, intSubset,
-                        (DTDSubset) processedDTD);
     }
 
     /*

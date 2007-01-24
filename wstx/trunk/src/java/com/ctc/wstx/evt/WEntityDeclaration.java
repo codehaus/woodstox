@@ -8,6 +8,9 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import javax.xml.stream.events.EntityDeclaration;
 
+import org.codehaus.stax2.XMLStreamWriter2;
+import org.codehaus.stax2.ri.evt.BaseEventImpl;
+
 import com.ctc.wstx.ent.EntityDecl;
 import com.ctc.wstx.io.WstxInputSource;
 
@@ -16,7 +19,7 @@ import com.ctc.wstx.io.WstxInputSource;
  * most just wraps a {@link EntityDecl} instance.
  */
 public abstract class WEntityDeclaration
-    extends WEvent
+    extends BaseEventImpl
     implements EntityDeclaration
 {
     public WEntityDeclaration(Location loc)
@@ -65,7 +68,7 @@ public abstract class WEntityDeclaration
      * choose to either skip silently (output nothing), or throw an
      * exception.
      */
-    public void writeUsing(XMLStreamWriter w) throws XMLStreamException
+    public void writeUsing(XMLStreamWriter2 w) throws XMLStreamException
     {
         /* Fail silently, or throw an exception? Let's do latter; at least
          * then we'll get useful (?) bug reports!

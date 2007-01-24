@@ -25,7 +25,9 @@ import java.util.*;
 import javax.xml.stream.Location;
 import javax.xml.stream.XMLReporter;
 import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.events.NotationDeclaration;
 
+import org.codehaus.stax2.ri.evt.NotationDeclarationEventImpl;
 import org.codehaus.stax2.validation.XMLValidationProblem;
 import org.codehaus.stax2.validation.XMLValidator;
 
@@ -2535,11 +2537,11 @@ public class FullDTDReader
          * earlier)
          */
         Location evtLoc = getStartLocation();
-        NotationDecl nd = new NotationDecl(evtLoc, id, pubId, sysId);
+        NotationDeclaration nd = new NotationDeclarationEventImpl(evtLoc, id, pubId, sysId);
 
         // Any definitions from the internal subset?
         if (mPredefdNotations != null) {
-            NotationDecl oldDecl = (NotationDecl) mPredefdNotations.get(id);
+            NotationDeclaration oldDecl = (NotationDeclaration) mPredefdNotations.get(id);
             if (oldDecl != null) { // oops, a problem!
                 DTDSubsetImpl.throwNotationException(oldDecl, nd);
             }
@@ -2553,7 +2555,7 @@ public class FullDTDReader
              */
             mNotations = m = new LinkedHashMap();
         } else {
-            NotationDecl oldDecl = (NotationDecl) m.get(id);
+            NotationDeclaration oldDecl = (NotationDeclaration) m.get(id);
             if (oldDecl != null) { // oops, a problem!
                 DTDSubsetImpl.throwNotationException(oldDecl, nd);
             }
@@ -2877,15 +2879,15 @@ public class FullDTDReader
         String id = readDTDName(c);
 
         if (mPredefdNotations != null) {
-            NotationDecl decl = (NotationDecl) mPredefdNotations.get(id);
+            NotationDeclaration decl = (NotationDeclaration) mPredefdNotations.get(id);
             if (decl != null) {
                 mUsesPredefdNotations = true;
                 return decl.getName();
             }
         }
 
-        NotationDecl decl = (mNotations == null) ? null :
-            (NotationDecl) mNotations.get(id);
+        NotationDeclaration decl = (mNotations == null) ? null :
+            (NotationDeclaration) mNotations.get(id);
         if (decl == null) {
             // In validating mode, this is a problem:
             if (mCfgFullyValidating) {

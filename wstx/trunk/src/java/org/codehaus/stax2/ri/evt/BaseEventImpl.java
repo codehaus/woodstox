@@ -1,37 +1,23 @@
-/* Woodstox XML processor
- *
- * Copyright (c) 2004 Tatu Saloranta, tatu.saloranta@iki.fi
- *
- * Licensed under the License specified in file LICENSE, included with
- * the source code.
- * You may not use this file except in compliance with the License.
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-package com.ctc.wstx.evt;
+package org.codehaus.stax2.ri.evt;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Iterator;
 
 import javax.xml.namespace.QName;
-import javax.xml.stream.Location;
-import javax.xml.stream.XMLEventFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
+import javax.xml.stream.*;
 import javax.xml.stream.events.*;
 
+import org.codehaus.stax2.*;
 import org.codehaus.stax2.evt.XMLEvent2;
 
-import com.ctc.wstx.cfg.ErrorConsts;
-import com.ctc.wstx.exc.WstxException;
-import com.ctc.wstx.exc.WstxIOException;
-
-public abstract class WEvent
+/**
+ * This abstract base class implements common functionality for
+ * Stax2 reference implementation's event API part.
+ *
+ * @author Tatu Saloranta
+ */
+public abstract class BaseEventImpl
     implements XMLEvent2
 {
     /**
@@ -40,7 +26,8 @@ public abstract class WEvent
      */
     protected final Location mLocation;
 
-    protected WEvent(Location loc) {
+    protected BaseEventImpl(Location loc)
+    {
         mLocation = loc;
     }
 
@@ -126,7 +113,7 @@ public abstract class WEvent
     //////////////////////////////////////////////
      */
 
-    public abstract void writeUsing(XMLStreamWriter w) throws XMLStreamException;
+    public abstract void writeUsing(XMLStreamWriter2 w) throws XMLStreamException;
 
     /*
     ///////////////////////////////////////////
@@ -135,7 +122,7 @@ public abstract class WEvent
      */
 
     public String toString() {
-        return "["+ErrorConsts.tokenTypeDesc(getEventType())+"]";
+        return "[Stax Event #"+getEventType()+"]";
     }
 
     /*
@@ -145,8 +132,42 @@ public abstract class WEvent
      */
 
     protected void throwFromIOE(IOException ioe)
-        throws WstxException
+        throws XMLStreamException
     {
-        throw new WstxIOException(ioe);
+        throw new XMLStreamException(ioe);
+    }
+
+    /*
+    //////////////////////////////////////////////
+    // Helper classes
+    //////////////////////////////////////////////
+     */
+
+    /**
+     * Simple implementation of "null iterator", iterator that has nothing to
+     * iterate over.
+     */
+    public final static class EmptyIterator
+        implements Iterator
+    {
+        final static EmptyIterator sInstance = new EmptyIterator();
+        
+        private EmptyIterator() { }
+        
+        public static EmptyIterator getInstance() { return sInstance; }
+
+        public boolean hasNext() { return false; }
+        
+        public Object next() {
+            throw new java.util.NoSuchElementException();
+        }
+        
+        public void remove()
+        {
+            /* The reason we do this is that we know for a fact that
+             * it can not have been moved
+             */
+            throw new IllegalStateException();
+        }
     }
 }

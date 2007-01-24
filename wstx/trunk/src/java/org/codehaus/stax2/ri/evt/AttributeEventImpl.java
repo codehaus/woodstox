@@ -1,26 +1,24 @@
-package com.ctc.wstx.evt;
+package org.codehaus.stax2.ri.evt;
 
 import java.io.IOException;
 import java.io.Writer;
 
 import javax.xml.namespace.QName;
-import javax.xml.stream.Location;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
+import javax.xml.stream.*;
 import javax.xml.stream.events.Attribute;
 
-import com.ctc.wstx.io.TextEscaper;
+import org.codehaus.stax2.XMLStreamWriter2;
 
-public class WAttribute
-    extends WEvent
+public class AttributeEventImpl
+    extends BaseEventImpl
     implements Attribute
 {
     final QName mName;
     final String mValue;
     final boolean mWasSpecified;
 
-    public WAttribute(Location loc, String localName, String uri, String prefix,
-                      String value, boolean wasSpec)
+    public AttributeEventImpl(Location loc, String localName, String uri, String prefix,
+                              String value, boolean wasSpecified)
     {
         super(loc);
         mValue = value;
@@ -36,15 +34,15 @@ public class WAttribute
             }
             mName = new QName(uri, localName, prefix);
         }
-        mWasSpecified = wasSpec;
+        mWasSpecified = wasSpecified;
     }
 
-    public WAttribute(Location loc, QName name, String value, boolean wasSpec)
+    public AttributeEventImpl(Location loc, QName name, String value, boolean wasSpecified)
     {
         super(loc);
         mName = name;
         mValue = value;
-        mWasSpecified = wasSpec;
+        mWasSpecified = wasSpecified;
     }
 
     /*
@@ -74,14 +72,14 @@ public class WAttribute
             w.write(mName.getLocalPart());
             w.write('=');
             w.write('"');
-            TextEscaper.writeEscapedAttrValue(w, mValue);
+            writeEscapedAttrValue(w, mValue);
             w.write('"');
         } catch (IOException ie) {
             throwFromIOE(ie);
         }
     }
 
-    public void writeUsing(XMLStreamWriter w) throws XMLStreamException
+    public void writeUsing(XMLStreamWriter2 w) throws XMLStreamException
     {
         QName n = mName;
         w.writeAttribute(n.getPrefix(), n.getLocalPart(),
@@ -118,7 +116,39 @@ public class WAttribute
 
     /*
     ///////////////////////////////////////////
-    // Overridden standard methods
+    // Internal methods
     ///////////////////////////////////////////
      */
+
+    protected static void writeEscapedAttrValue(Writer w, String value)
+        throws IOException
+    {
+        int i = 0;
+        int len = value.length();
+        do {
+            int start = i;
+            char c = '\u0000';
+
+            for (; i < len; ++i) {
+                c = value.charAt(i);
+                if (c == '<' || c == '&' || c == '"') {
+                    break;
+                }
+            }
+            int outLen = i - start;
+            if (outLen > 0) {
+                w.write(value, start, outLen);
+            }
+            if (i < len) {
+                if (c == '<') {
+                    w.write("&lt;");
+                } else if (c == '&') {
+                    w.write("&amp;");
+                } else if (c == '"') {
+                    w.write("&quot;");
+
+                }
+            }
+        } while (++i < len);
+    }
 }

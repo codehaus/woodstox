@@ -20,11 +20,11 @@ import java.util.*;
 
 import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.events.NotationDeclaration;
 
 import org.codehaus.stax2.validation.*;
 
 import com.ctc.wstx.cfg.ErrorConsts;
-import com.ctc.wstx.ent.NotationDecl;
 import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.exc.WstxParsingException;
 import com.ctc.wstx.sr.InputProblemReporter;
@@ -402,7 +402,7 @@ public final class DTDSubsetImpl
     //////////////////////////////////////////////////////
      */
 
-   public static void throwNotationException(NotationDecl oldDecl, NotationDecl newDecl)
+   public static void throwNotationException(NotationDeclaration oldDecl, NotationDeclaration newDecl)
         throws WstxException
     {
         throw new WstxParsingException
@@ -519,8 +519,8 @@ public final class DTDSubsetImpl
         while (it.hasNext()) {
             Map.Entry en = (Map.Entry) it.next();
             if (fromInt.containsKey(en.getKey())) {
-                throwNotationException((NotationDecl) fromInt.get(en.getKey()),
-                                       (NotationDecl) en.getValue());
+                throwNotationException((NotationDeclaration) fromInt.get(en.getKey()),
+                                       (NotationDeclaration) en.getValue());
             }
         }
     }

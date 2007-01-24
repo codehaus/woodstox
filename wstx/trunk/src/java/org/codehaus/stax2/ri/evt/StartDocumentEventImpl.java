@@ -1,18 +1,15 @@
-package com.ctc.wstx.evt;
+package org.codehaus.stax2.ri.evt;
 
 import java.io.IOException;
 import java.io.Writer;
 
-import javax.xml.stream.Location;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import javax.xml.stream.XMLStreamWriter;
+import javax.xml.stream.*;
 import javax.xml.stream.events.StartDocument;
 
-import com.ctc.wstx.api.WstxOutputProperties;
+import org.codehaus.stax2.XMLStreamWriter2;
 
-public class WStartDocument
-    extends WEvent
+public class StartDocumentEventImpl
+    extends BaseEventImpl
     implements StartDocument
 {
     private final boolean mStandaloneSet;
@@ -22,7 +19,7 @@ public class WStartDocument
     private final String mEncodingScheme;
     private final String mSystemId;
 
-    public WStartDocument(Location loc, XMLStreamReader r)
+    public StartDocumentEventImpl(Location loc, XMLStreamReader r)
     {
         super(loc);
         mStandaloneSet = r.standaloneSet();
@@ -48,23 +45,23 @@ public class WStartDocument
      * Method called by event factory, when constructing start document
      * event.
      */
-    public WStartDocument(Location loc)
+    public StartDocumentEventImpl(Location loc)
     {
         this(loc, (String) null);
     }
 
-    public WStartDocument(Location loc, String encoding)
+    public StartDocumentEventImpl(Location loc, String encoding)
     {
         this(loc, encoding, null);
     }
 
-    public WStartDocument(Location loc, String encoding, String version)
+    public StartDocumentEventImpl(Location loc, String encoding, String version)
     {
         this(loc, encoding, version, false, false);
     }
 
-    public WStartDocument(Location loc, String encoding, String version,
-                          boolean standaloneSet, boolean isStandalone)
+    public StartDocumentEventImpl(Location loc, String encoding, String version,
+                                  boolean standaloneSet, boolean isStandalone)
     {
         super(loc);
         mEncodingScheme = encoding;
@@ -120,7 +117,7 @@ public class WStartDocument
         try {
             w.write("<?xml version=\"");
             if (mVersion == null || mVersion.length() == 0) {
-                w.write(WstxOutputProperties.DEFAULT_XML_VERSION);
+                w.write("1.0");
             } else {
                 w.write(mVersion);
             }
@@ -143,7 +140,8 @@ public class WStartDocument
         }
     }
 
-    public void writeUsing(XMLStreamWriter w) throws XMLStreamException {
+    public void writeUsing(XMLStreamWriter2 w) throws XMLStreamException
+    {
         w.writeStartDocument();
     }
 }

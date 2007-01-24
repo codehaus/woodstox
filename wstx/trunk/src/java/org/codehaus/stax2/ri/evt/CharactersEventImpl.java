@@ -1,17 +1,15 @@
-package com.ctc.wstx.evt;
+package org.codehaus.stax2.ri.evt;
 
 import java.io.IOException;
 import java.io.Writer;
 
-import javax.xml.stream.Location;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
+import javax.xml.stream.*;
 import javax.xml.stream.events.Characters;
 
-import com.ctc.wstx.io.TextEscaper;
+import org.codehaus.stax2.XMLStreamWriter2;
 
-public class WCharacters
-    extends WEvent
+public class CharactersEventImpl
+    extends BaseEventImpl
     implements Characters
 {
     final String mContent;
@@ -22,7 +20,12 @@ public class WCharacters
     boolean mWhitespaceChecked = false;
     boolean mIsWhitespace = false;
 
-    public WCharacters(Location loc, String content, boolean cdata)
+    /**
+     * Constructor for regular unspecified (but non-CDATA) characters
+     * event type, which may or may not be all whitespace, but is not
+     * specified as ignorable white space.
+     */
+    public CharactersEventImpl(Location loc, String content, boolean cdata)
     {
         super(loc);
         mContent = content;
@@ -33,8 +36,8 @@ public class WCharacters
     /**
      * Constructor for creating white space characters...
      */
-    private WCharacters(Location loc, String content,
-                        boolean cdata, boolean allWS, boolean ignorableWS)
+    private CharactersEventImpl(Location loc, String content,
+                                boolean cdata, boolean allWS, boolean ignorableWS)
     {
         super(loc);
         mContent = content;
@@ -49,12 +52,12 @@ public class WCharacters
         }
     }
 
-    public final static WCharacters createIgnorableWS(Location loc, String content) {
-        return new WCharacters(loc, content, false, true, true);
+    public final static CharactersEventImpl createIgnorableWS(Location loc, String content) {
+        return new CharactersEventImpl(loc, content, false, true, true);
     }
 
-    public final static WCharacters createNonIgnorableWS(Location loc, String content) {
-        return new WCharacters(loc, content, false, true, false);
+    public final static CharactersEventImpl createNonIgnorableWS(Location loc, String content) {
+        return new CharactersEventImpl(loc, content, false, true, false);
     }
 
     /*
@@ -82,14 +85,14 @@ public class WCharacters
                 w.write(mContent);
                 w.write("]]>");
             } else {
-                TextEscaper.writeEscapedXMLText(w, mContent);
+                writeEscapedXMLText(w, mContent);
             }
         } catch (IOException ie) {
             throwFromIOE(ie);
         }
     }
 
-    public void writeUsing(XMLStreamWriter w) throws XMLStreamException
+    public void writeUsing(XMLStreamWriter2 w) throws XMLStreamException
     {
         if (mIsCData) {
             w.writeCData(mContent);
@@ -100,7 +103,7 @@ public class WCharacters
 
     /*
     ///////////////////////////////////////////
-    // Attribute implementation
+    // Characters implementation
     ///////////////////////////////////////////
      */
 
@@ -135,11 +138,12 @@ public class WCharacters
 
     /*
     ///////////////////////////////////////////
-    // Package access...
+    // Additional public, but non-Stax-API methods
     ///////////////////////////////////////////
      */
 
-    public void setWhitespaceStatus(boolean status) {
+    public void setWhitespaceStatus(boolean status)
+    {
         mWhitespaceChecked = true;
         mIsWhitespace = status;
     }
@@ -150,4 +154,41 @@ public class WCharacters
     ///////////////////////////////////////////
      */
 
+    protected static void writeEscapedXMLText(Writer w, String text)
+        throws IOException
+    {
+        final int len = text.length();
+        
+        int i = 0;
+        while (i < len) {
+            int start = i;
+            char c = '\u0000';
+
+            for (; i < len; ) {
+                c = text.charAt(i);
+                if (c == '<' || c == '&') {
+                    break;
+                }
+                if (c == '>' && i >= 2 && text.charAt(i-1) == ']'
+                    && text.charAt(i-2) == ']') {
+                    break;
+                }
+                ++i;
+            }
+            int outLen = i - start;
+            if (outLen > 0) {
+                w.write(text, start, outLen);
+            } 
+            if (i < len) {
+                if (c == '<') {
+                    w.write("&lt;");
+                } else if (c == '&') {
+                    w.write("&amp;");
+                } else if (c == '>') {
+                    w.write("&gt;");
+                }
+            }
+            ++i;
+        }
+    }
 }

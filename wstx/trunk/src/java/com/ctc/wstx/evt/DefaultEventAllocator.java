@@ -19,17 +19,14 @@ import java.util.*;
 
 import javax.xml.namespace.QName;
 import javax.xml.namespace.NamespaceContext;
-import javax.xml.stream.Location;
-import javax.xml.stream.XMLStreamConstants;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.*;
 import javax.xml.stream.events.XMLEvent;
 import javax.xml.stream.events.EntityDeclaration;
 import javax.xml.stream.util.XMLEventAllocator;
 import javax.xml.stream.util.XMLEventConsumer;
 
-import org.codehaus.stax2.DTDInfo;
-import org.codehaus.stax2.XMLStreamReader2;
+import org.codehaus.stax2.*;
+import org.codehaus.stax2.ri.evt.*;
 
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.dtd.DTDSubset;
@@ -132,11 +129,11 @@ public class DefaultEventAllocator
 
         switch (r.getEventType()) {
         case CDATA:
-            return new WCharacters(loc, r.getText(), true);
+            return new CharactersEventImpl(loc, r.getText(), true);
         case CHARACTERS:
-            return new WCharacters(loc, r.getText(), false);
+            return new CharactersEventImpl(loc, r.getText(), false);
         case COMMENT:
-            return new WComment(loc, r.getText());
+            return new CommentEventImpl(loc, r.getText());
         case DTD:
             // Not sure if we really need this defensive coding but...
             if (r instanceof XMLStreamReader2) {
@@ -155,21 +152,21 @@ public class DefaultEventAllocator
             return new WDTD(loc, null, r.getText());
 
         case END_DOCUMENT:
-            return new WEndDocument(loc);
+            return new EndDocumentEventImpl(loc);
 
         case END_ELEMENT:
-            return new WEndElement(loc, r);
+            return new EndElementEventImpl(loc, r);
 
         case PROCESSING_INSTRUCTION:
-            return new WProcInstr(loc, r.getPITarget(), r.getPIData());
+            return new ProcInstrEventImpl(loc, r.getPITarget(), r.getPIData());
         case SPACE:
             {
-                WCharacters ch = new WCharacters(loc, r.getText(), false);
+                CharactersEventImpl ch = new CharactersEventImpl(loc, r.getText(), false);
                 ch.setWhitespaceStatus(true);
                 return ch;
             }
         case START_DOCUMENT:
-            return new WStartDocument(loc, r);
+            return new StartDocumentEventImpl(loc, r);
 
         case START_ELEMENT:
             {
@@ -208,7 +205,7 @@ public class DefaultEventAllocator
                         attrs = new LinkedHashMap();
                         for (int i = 0; i < attrCount; ++i) {
                             QName aname = r.getAttributeName(i);
-                            attrs.put(aname, new WAttribute(loc, aname, r.getAttributeValue(i), r.isAttributeSpecified(i)));
+                            attrs.put(aname, new AttributeEventImpl(loc, aname, r.getAttributeValue(i), r.isAttributeSpecified(i)));
                         }
                     }
                 }
@@ -220,7 +217,7 @@ public class DefaultEventAllocator
                     } else {
                         ns = new ArrayList(nsCount);
                         for (int i = 0; i < nsCount; ++i) {
-                            ns.add(WNamespace.constructFor(loc, r.getNamespacePrefix(i), r.getNamespaceURI(i)));
+                            ns.add(NamespaceEventImpl.constructFor(loc, r.getNamespacePrefix(i), r.getNamespaceURI(i)));
                         }
                     }
                 }

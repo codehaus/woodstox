@@ -7,12 +7,11 @@ import java.util.Iterator;
 
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
-import javax.xml.stream.Location;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import javax.xml.stream.XMLStreamWriter;
+import javax.xml.stream.*;
 import javax.xml.stream.events.Attribute;
 import javax.xml.stream.events.StartElement;
+
+import org.codehaus.stax2.ri.evt.AttributeEventImpl;
 
 import com.ctc.wstx.io.TextEscaper;
 import com.ctc.wstx.sr.ElemAttrs;
@@ -163,9 +162,9 @@ public class CompactStartElement
     /////////////////////////////////////////////
      */
 
-    public WAttribute constructAttr(String[] raw, int rawIndex, boolean isDef)
+    public Attribute constructAttr(String[] raw, int rawIndex, boolean isDef)
     {
-        return new WAttribute(mLocation, raw[rawIndex], raw[rawIndex+1],
-                              raw[rawIndex+2], raw[rawIndex+3], isDef);
+        return new AttributeEventImpl(mLocation, raw[rawIndex], raw[rawIndex+1],
+                                      raw[rawIndex+2], raw[rawIndex+3], isDef);
     }
 }

@@ -10,11 +10,12 @@ import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
+// This is unfortunate dependency, but...
+import org.codehaus.stax2.ri.evt.NamespaceEventImpl;
+
 import com.ctc.wstx.util.BaseNsContext;
 import com.ctc.wstx.util.EmptyIterator;
 import com.ctc.wstx.util.SingletonIterator;
-// !!! 27-Jul-2004, TSa: Should remove this dependency!
-import com.ctc.wstx.evt.WNamespace;
 
 /**
  * Simple implementation of separate non-transient namespace context
@@ -189,7 +190,7 @@ public final class CompactNsContext
                 return EmptyIterator.getInstance();
             }
             if (len == 2) { // only one NS
-                return new SingletonIterator(WNamespace.constructFor
+                return new SingletonIterator(NamespaceEventImpl.constructFor
                                              (mLocation,
                                               mNamespaces[firstLocal],
                                               mNamespaces[firstLocal+1]));
@@ -198,7 +199,7 @@ public final class CompactNsContext
             String[] ns = mNamespaces;
             for (len = mNsLength; firstLocal < len;
                  firstLocal += 2) {
-                l.add(WNamespace.constructFor(mLocation, ns[firstLocal],
+                l.add(NamespaceEventImpl.constructFor(mLocation, ns[firstLocal],
                                               ns[firstLocal+1]));
             }
             mNsList = l;

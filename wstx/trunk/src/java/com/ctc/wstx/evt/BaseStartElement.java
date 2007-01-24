@@ -22,12 +22,12 @@ import java.util.Iterator;
 
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
-import javax.xml.stream.Location;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import javax.xml.stream.XMLStreamWriter;
+import javax.xml.stream.*;
 import javax.xml.stream.events.Attribute;
 import javax.xml.stream.events.StartElement;
+
+import org.codehaus.stax2.XMLStreamWriter2;
+import org.codehaus.stax2.ri.evt.BaseEventImpl;
 
 import com.ctc.wstx.util.BaseNsContext;
 import com.ctc.wstx.util.EmptyIterator;
@@ -36,7 +36,7 @@ import com.ctc.wstx.util.EmptyIterator;
  * Shared base class of {@link StartElement} implementations Wstx uses.
  */
 abstract class BaseStartElement
-    extends WEvent
+    extends BaseEventImpl
     implements StartElement
 {
     protected final QName mName;
@@ -130,7 +130,7 @@ abstract class BaseStartElement
         }
     }
 
-    public void writeUsing(XMLStreamWriter w) throws XMLStreamException
+    public void writeUsing(XMLStreamWriter2 w) throws XMLStreamException
     {
         QName n = mName;
         w.writeStartElement(n.getPrefix(), n.getLocalPart(),

@@ -1,4 +1,4 @@
-package org.codehaus.staxmate.util;
+package org.codehaus.stax2.ri;
 
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.stream.*;

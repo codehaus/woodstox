@@ -1,10 +1,9 @@
 package org.codehaus.stax2.evt;
 
 import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
 import javax.xml.stream.events.XMLEvent;
 
-import javax.xml.stream.events.StartElement;
+import org.codehaus.stax2.XMLStreamWriter2;
 
 /**
  * Interface that extends basic {@link XMLEvent2} with method(s)
@@ -18,5 +17,5 @@ import javax.xml.stream.events.StartElement;
 public interface XMLEvent2
     extends XMLEvent
 {
-    public void writeUsing(XMLStreamWriter w) throws XMLStreamException;
+    public void writeUsing(XMLStreamWriter2 w) throws XMLStreamException;
 }

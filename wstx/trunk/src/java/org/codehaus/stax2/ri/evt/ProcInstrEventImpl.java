@@ -1,21 +1,22 @@
-package com.ctc.wstx.evt;
+package org.codehaus.stax2.ri.evt;
 
 import java.io.IOException;
 import java.io.Writer;
 
-import javax.xml.stream.Location;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
+import javax.xml.stream.*;
 import javax.xml.stream.events.ProcessingInstruction;
 
-public class WProcInstr
-    extends WEvent
+import org.codehaus.stax2.*;
+import org.codehaus.stax2.evt.XMLEvent2;
+
+public class ProcInstrEventImpl
+    extends BaseEventImpl
     implements ProcessingInstruction
 {
     final String mTarget;
     final String mData;
 
-    public WProcInstr(Location loc, String target, String data)
+    public ProcInstrEventImpl(Location loc, String target, String data)
     {
         super(loc);
         mTarget = target;
@@ -59,7 +60,7 @@ public class WProcInstr
         }
     }
 
-    public void writeUsing(XMLStreamWriter w) throws XMLStreamException
+    public void writeUsing(XMLStreamWriter2 w) throws XMLStreamException
     {
         if (mData != null && mData.length() > 0) {
             w.writeProcessingInstruction(mTarget, mData);
