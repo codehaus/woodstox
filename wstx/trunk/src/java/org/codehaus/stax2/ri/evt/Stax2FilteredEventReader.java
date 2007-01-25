@@ -1,4 +1,4 @@
-package com.ctc.wstx.evt;
+package org.codehaus.stax2.ri.evt;
 
 import java.io.IOException;
 
@@ -7,9 +7,6 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.*;
 import javax.xml.stream.events.*;
 import javax.xml.stream.util.XMLEventAllocator;
-
-import com.ctc.wstx.exc.WstxLazyException;
-import com.ctc.wstx.util.ExceptionUtil;
 
 /**
  *<p>
@@ -20,7 +17,7 @@ import com.ctc.wstx.util.ExceptionUtil;
  *  </li>
  *</ul>
  */
-public class FilteredEventReader
+public class Stax2FilteredEventReader
     implements XMLEventReader,
                XMLStreamConstants
 {
@@ -33,7 +30,7 @@ public class FilteredEventReader
      */
     XMLEvent mNextEvent;
 
-    public FilteredEventReader(XMLEventReader r, EventFilter f)
+    public Stax2FilteredEventReader(XMLEventReader r, EventFilter f)
     {
         mReader = r;
         mFilter = f;
@@ -54,9 +51,7 @@ public class FilteredEventReader
     public String getElementText()
         throws XMLStreamException
     {
-        /* 09-May-2006, TSa: Not sure if this is good enough: might
-         *   need to improve.
-         */
+        // Is this enough?
         return mReader.getElementText();
     }
 
@@ -69,8 +64,7 @@ public class FilteredEventReader
         try {
             return (peek() != null);
         } catch (XMLStreamException sex) { // shouldn't happen, but...
-            WstxLazyException.throwLazily(sex);
-            return false; // never gets this far
+            throw new RuntimeException(sex);
         }
     }
 
@@ -91,8 +85,7 @@ public class FilteredEventReader
         try {
             return nextEvent();
         } catch (XMLStreamException sex) {
-            ExceptionUtil.throwRuntimeException(sex);
-            return null; // never gets here
+            throw new RuntimeException(sex);
         }
     }
 
@@ -129,7 +122,7 @@ public class FilteredEventReader
     /**
      * Note: only here because we implement Iterator interface
      */
-    public void remove() {
+    public void remove() { // let's let underlying impl fail on it
         mReader.remove();
     }
 }

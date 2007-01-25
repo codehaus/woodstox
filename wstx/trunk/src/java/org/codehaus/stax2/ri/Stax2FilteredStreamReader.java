@@ -1,32 +1,37 @@
-package com.ctc.wstx.stax;
+package org.codehaus.stax2.ri;
 
 import java.io.IOException;
+import java.io.Writer;
 
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
 import javax.xml.stream.*;
-import javax.xml.stream.events.*;
 import javax.xml.stream.util.XMLEventAllocator;
+
+import org.codehaus.stax2.*;
+import org.codehaus.stax2.validation.*;
 
 /**
  * Simple straight-forward implementation of a filtering stream reader,
- * needed to implement {@link javax.xml.stream.XMLInputFactory}
+ * which can fully adapt Stax2 stream reader 
+ * ({@link XMLStreamReader2}).
  */
-public class FilteredStreamReader
-    implements XMLStreamReader,
+public class Stax2FilteredStreamReader
+    implements XMLStreamReader2,
                XMLStreamConstants
 {
-    final XMLStreamReader mReader;
+    final XMLStreamReader2 mReader;
     final StreamFilter mFilter;
 
-    public FilteredStreamReader(XMLStreamReader r, StreamFilter f) {
-        mReader = r;
+    public Stax2FilteredStreamReader(XMLStreamReader r, StreamFilter f)
+    {
+        mReader = Stax2ReaderAdapter.wrapIfNecessary(r);
         mFilter = f;
     }
 
     /*
     ////////////////////////////////////////////////////
-    // XMLStreamReader implementation
+    // Basic XMLStreamReader implementation
     ////////////////////////////////////////////////////
      */
 
@@ -39,31 +44,29 @@ public class FilteredStreamReader
     public int next()
         throws XMLStreamException
     {
-        while (true) {
-            int type = mReader.next();
+        int type;
+        do {
+            type = mReader.next();
             if (mFilter.accept(this)) {
-                return type;
+                break;
             }
-            /* ??? 11-May-2004, TSa: Should we take some precautions for
-             *   END_DOCUMENT event?
-             */
-        }
+        } while (type != END_DOCUMENT);
+
+        return type;
     }
 
     public int nextTag()
         throws XMLStreamException
     {
+        int type;
         // Can be implemented very much like next()
-
         while (true) {
-            int type = mReader.nextTag();
+            type = mReader.nextTag();
             if (mFilter.accept(this)) {
-                return type;
+                break;
             }
-            /* ??? 11-May-2004, TSa: Should we take some precautions for
-             *   END_DOCUMENT event?
-             */
         }
+        return type;
     }
 
     /*
@@ -257,5 +260,97 @@ public class FilteredStreamReader
         mReader.close();
     }
 
+    /*
+    /////////////////////////////////////////////////
+    // XMLStreamReader2 impl
+    /////////////////////////////////////////////////
+     */
+
+    public Object getFeature(String name) {
+        return mReader.getFeature(name);
+    }
+
+    public void setFeature(String name, Object value) {
+        mReader.setFeature(name, value);
+    }
+
+    public boolean isPropertySupported(String name) {
+        return mReader.isPropertySupported(name);
+    }
+
+    public boolean setProperty(String name, Object value) {
+        return mReader.setProperty(name, value);
+    }
+
+    public void skipElement() throws XMLStreamException {
+        mReader.skipElement();
+    }
+
+    public DTDInfo getDTDInfo() throws XMLStreamException {
+        return mReader.getDTDInfo();
+    }
+
+    public AttributeInfo getAttributeInfo() throws XMLStreamException {
+        return mReader.getAttributeInfo();
+    }
+
+    public int getText(Writer w, boolean preserveContents)
+        throws IOException, XMLStreamException
+    {
+        return mReader.getText(w, preserveContents);
+    }
+
+    public LocationInfo getLocationInfo() {
+        return mReader.getLocationInfo();
+    }
+
+    public boolean isEmptyElement() throws XMLStreamException {
+        return mReader.isEmptyElement();
+    }
+
+    public int getDepth() {
+        return mReader.getDepth();
+    }
+
+    public NamespaceContext getNonTransientNamespaceContext() {
+        return mReader.getNonTransientNamespaceContext();
+    }
+
+    public String getPrefixedName() {
+        return mReader.getPrefixedName();
+    }
+
+    public void closeCompletely() throws XMLStreamException {
+        mReader.closeCompletely();
+    }
+
+    /*
+    /////////////////////////////////////////////////
+    // XMLStreamReader2 + Validatable
+    /////////////////////////////////////////////////
+     */
+
+    public XMLValidator validateAgainst(XMLValidationSchema schema)
+        throws XMLStreamException
+    {
+        return mReader.validateAgainst(schema);
+    }
+
+    public XMLValidator stopValidatingAgainst(XMLValidationSchema schema)
+        throws XMLStreamException
+    {
+        return mReader.stopValidatingAgainst(schema);
+    }
+
+    public XMLValidator stopValidatingAgainst(XMLValidator validator)
+        throws XMLStreamException
+    {
+        return mReader.stopValidatingAgainst(validator);
+    }
+
+    public ValidationProblemHandler setValidationProblemHandler(ValidationProblemHandler h)
+    {
+        return mReader.setValidationProblemHandler(h);
+    }
 }
 

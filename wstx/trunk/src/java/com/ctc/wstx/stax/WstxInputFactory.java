@@ -32,6 +32,8 @@ import org.codehaus.stax2.XMLEventReader2;
 import org.codehaus.stax2.XMLInputFactory2;
 import org.codehaus.stax2.XMLStreamReader2;
 import org.codehaus.stax2.io.Stax2Source;
+import org.codehaus.stax2.ri.Stax2FilteredStreamReader;
+import org.codehaus.stax2.ri.evt.Stax2FilteredEventReader;
 
 import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.api.WstxInputProperties;
@@ -41,7 +43,6 @@ import com.ctc.wstx.dtd.DTDId;
 import com.ctc.wstx.dtd.DTDSubset;
 import com.ctc.wstx.dom.DOMWrappingReader;
 import com.ctc.wstx.evt.DefaultEventAllocator;
-import com.ctc.wstx.evt.FilteredEventReader;
 import com.ctc.wstx.evt.WstxEventReader;
 import com.ctc.wstx.exc.WstxIOException;
 import com.ctc.wstx.io.*;
@@ -232,14 +233,14 @@ public final class WstxInputFactory
 
     public XMLEventReader createFilteredReader(XMLEventReader reader, EventFilter filter)
     {
-        return new FilteredEventReader(reader, filter);
+        return new Stax2FilteredEventReader(reader, filter);
     }
 
     public XMLStreamReader createFilteredReader(XMLStreamReader reader, StreamFilter filter)
         throws XMLStreamException
     {
-        return new FilteredStreamReader(reader, filter);
-    } 
+        return new Stax2FilteredStreamReader(reader, filter);
+    }
 
     // // // Event reader factory methods
 
