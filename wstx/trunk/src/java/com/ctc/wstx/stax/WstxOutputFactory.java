@@ -28,11 +28,12 @@ import javax.xml.stream.*;
 import org.codehaus.stax2.XMLOutputFactory2;
 import org.codehaus.stax2.XMLStreamWriter2;
 import org.codehaus.stax2.io.Stax2Result;
+import org.codehaus.stax2.ri.Stax2EventWriterImpl;
+import org.codehaus.stax2.ri.Stax2WriterAdapter;
 
 import com.ctc.wstx.api.WriterConfig;
 import com.ctc.wstx.api.WstxOutputProperties;
 import com.ctc.wstx.cfg.OutputConfigFlags;
-import com.ctc.wstx.evt.WstxEventWriter;
 import com.ctc.wstx.exc.WstxIOException;
 import com.ctc.wstx.io.CharsetNames;
 import com.ctc.wstx.io.UTF8Writer;
@@ -90,13 +91,13 @@ public final class WstxOutputFactory
        if (out == null) {
            throw new IllegalArgumentException("Null OutputStream is not a valid argument");
        }
-       return new WstxEventWriter(createSW(out, null, enc, false));
+       return new Stax2EventWriterImpl(createSW(out, null, enc, false));
     }
 
     public XMLEventWriter createXMLEventWriter(javax.xml.transform.Result result)
          throws XMLStreamException
     {
-        return new WstxEventWriter(createSW(result));
+        return new Stax2EventWriterImpl(createSW(result));
     }
 
     public XMLEventWriter createXMLEventWriter(Writer w)
@@ -105,7 +106,7 @@ public final class WstxOutputFactory
         if (w == null) {
             throw new IllegalArgumentException("Null Writer is not a valid argument");
         }
-        return new WstxEventWriter(createSW(null, w, null, false));
+        return new Stax2EventWriterImpl(createSW(null, w, null, false));
     }
 
     public XMLStreamWriter createXMLStreamWriter(OutputStream out)
@@ -163,13 +164,14 @@ public final class WstxOutputFactory
     public XMLEventWriter createXMLEventWriter(Writer w, String enc)
         throws XMLStreamException
     {
-        return new WstxEventWriter(createSW(null, w, enc, false));
+        return new Stax2EventWriterImpl(createSW(null, w, enc, false));
     }
 
     public XMLEventWriter createXMLEventWriter(XMLStreamWriter sw)
         throws XMLStreamException
     {
-        return new WstxEventWriter(sw);
+        XMLStreamWriter2 sw2 = Stax2WriterAdapter.wrapIfNecessary(sw);
+        return new Stax2EventWriterImpl(sw2);
     }
 
     public XMLStreamWriter2 createXMLStreamWriter(Writer w, String enc)

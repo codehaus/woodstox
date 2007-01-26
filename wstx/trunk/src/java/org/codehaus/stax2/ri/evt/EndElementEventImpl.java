@@ -14,9 +14,8 @@ import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.Namespace;
 
 import org.codehaus.stax2.XMLStreamWriter2;
+import org.codehaus.stax2.ri.EmptyIterator;
 import org.codehaus.stax2.ri.evt.BaseEventImpl;
-
-import com.ctc.wstx.util.EmptyIterator;
 
 public class EndElementEventImpl
     extends BaseEventImpl

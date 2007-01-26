@@ -1,19 +1,4 @@
-/* Woodstox XML processor
- *
- * Copyright (c) 2004 Tatu Saloranta, tatu.saloranta@iki.fi
- *
- * Licensed under the License specified in the file LICENSE which is
- * included with the source code.
- * You may not use this file except in compliance with the License.
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-package com.ctc.wstx.evt;
+package org.codehaus.stax2.ri;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -24,44 +9,27 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.*;
 import javax.xml.stream.events.*;
 
-import com.ctc.wstx.api.WriterConfig;
-import com.ctc.wstx.cfg.OutputConfigFlags;
-import com.ctc.wstx.sw.BaseStreamWriter;
-import com.ctc.wstx.sw.NonNsStreamWriter;
-import com.ctc.wstx.sw.RepairingNsStreamWriter;
-import com.ctc.wstx.sw.SimpleNsStreamWriter;
+import org.codehaus.stax2.*;
+import org.codehaus.stax2.evt.XMLEvent2;
 
 /**
- * Simple implementation of {@link XMLEventWriter}. The only 'special' thing
- * is that since this writer can make full use of the matching
- * {@link BaseStreamWriter}, it tries to call methods that
- * allow full validation of output (if enabled by output settings).
+ * Simple implementation of {@link XMLEventWriter}.
  */
-public class WstxEventWriter
+public class Stax2EventWriterImpl
     implements XMLEventWriter,
-               XMLStreamConstants,
-               OutputConfigFlags
+               XMLStreamConstants
 {
-    final XMLStreamWriter mWriter;
-
-    /**
-     * Since we may be able to use Woodstox-specific short cuts,
-     * occasionally, let's store a reference to type-safe instance,
-     * if one passed.
-     */
-    final BaseStreamWriter mWstxWriter;
+    final XMLStreamWriter2 mWriter;
 
     /*
     ////////////////////////////////////////////////////
-    // Life-cycle (ctors)
+    // Construction, init
     ////////////////////////////////////////////////////
      */
 
-    public WstxEventWriter(XMLStreamWriter sw)
+    public Stax2EventWriterImpl(XMLStreamWriter2 sw)
     {
         mWriter = sw;
-        mWstxWriter = (sw instanceof BaseStreamWriter) ?
-            ((BaseStreamWriter) sw) : null;
     }
 
     /*
@@ -72,9 +40,10 @@ public class WstxEventWriter
 
     /**
      *<p>
-     * Note: ALL events (except for custom ones Wstx itself doesn't produce,
-     * and thus can not deal with) are routed through stream writer. This
-     * because it may want to do different kinds of validation
+     * Note: ALL events (except for custom ones ref. impl. itself doesn't
+     * produce, and thus may not always be able to deal with) are routed
+     * through stream writer. This because it may want to do
+     * different kinds of validation
      */
     public void add(XMLEvent event)
         throws XMLStreamException
@@ -98,14 +67,7 @@ public class WstxEventWriter
             break;
 
         case END_ELEMENT:
-            // Let's call method that can check that element matches start element...
-            {
-                if (mWstxWriter != null) {
-                    mWstxWriter.writeEndElement(event.asEndElement().getName());
-                } else {
-                    mWriter.writeEndElement();
-                }
-            }
+            mWriter.writeEndElement();
             break;
             
         case NAMESPACE:
@@ -128,27 +90,21 @@ public class WstxEventWriter
             break;
             
         case START_ELEMENT:
+
             {
                 StartElement se = event.asStartElement();
-                if (mWstxWriter != null) {
-                    /* Woodstox-specific stream writer has some short
-                     * cuts...
-                     */
-                    mWstxWriter.writeStartElement(se);
-                } else {
-                    QName n = se.getName();
-                    mWriter.writeStartElement(n.getPrefix(), n.getLocalPart(),
-                                              n.getNamespaceURI());
-                    Iterator it = se.getNamespaces();
-                    while (it.hasNext()) {
-                        Namespace ns = (Namespace) it.next();
-                        add(ns);
-                    }
-                    it = se.getAttributes();
-                    while (it.hasNext()) {
-                        Attribute attr = (Attribute) it.next();
-                        add(attr);
-                    }
+                QName n = se.getName();
+                mWriter.writeStartElement(n.getPrefix(), n.getLocalPart(),
+                                          n.getNamespaceURI());
+                Iterator it = se.getNamespaces();
+                while (it.hasNext()) {
+                    Namespace ns = (Namespace) it.next();
+                    add(ns);
+                }
+                it = se.getAttributes();
+                while (it.hasNext()) {
+                    Attribute attr = (Attribute) it.next();
+                    add(attr);
                 }
             }
             break;
@@ -188,30 +144,19 @@ public class WstxEventWriter
                 mWriter.writeProcessingInstruction(pi.getTarget(), pi.getData());
             }
             break;
-            
-            /* And then finally types not produced by Wstx; can/need to
-             * ask event to just output itself
-             */
+
         case CDATA: // usually only CHARACTERS events exist...
         case ENTITY_DECLARATION: // not yet produced by Wstx
         case NOTATION_DECLARATION: // not yet produced by Wstx
         case SPACE: // usually only CHARACTERS events exist...
-
         default:
-            /* Default handling; ok, it's possible to create one's own
-             * event types... if so, let's just by-pass any checks, and
-             * let event output itself.
-             */
-            if (mWstxWriter != null) {
-                event.writeAsEncodedUnicode(mWstxWriter.wrapAsRawWriter());
-            } else {
-                /* 08-Aug-2006, TSa: Not quite sure what to do with this.
-                 *    For now, choices are throwing an exception, or
-                 *    silently failing. Latter is bigger of evils, unless
-                 *    proven otherwise.
-                 */
-                throw new XMLStreamException("Unrecognized event type ("+event.getEventType()+"), for XMLEvent of type "+event.getClass());
+
+            // Easy, if stax2 enabled
+            if (event instanceof XMLEvent2) {
+                ((XMLEvent2) event).writeUsing(mWriter);
             }
+            // Otherwise... well, no real way to do it
+            throw new XMLStreamException("Don't know how to output event "+event);
         }
     }
 

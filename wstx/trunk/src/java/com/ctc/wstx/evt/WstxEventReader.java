@@ -387,5 +387,3 @@ public class WstxEventReader
         throw new WstxParsingException(msg, loc);
     }
 }
-
-

@@ -12,6 +12,9 @@ import javax.xml.stream.events.Namespace;
 import javax.xml.stream.events.StartElement;
 
 import org.codehaus.stax2.XMLStreamWriter2;
+import org.codehaus.stax2.ri.EmptyIterator;
+import org.codehaus.stax2.ri.EmptyNamespaceContext;
+import org.codehaus.stax2.ri.MergedNsContext;
 
 /**
  * Wstx {@link StartElement} implementation used when event is constructed
@@ -22,12 +25,22 @@ public class StartElementEventImpl
     extends BaseEventImpl
     implements StartElement
 {
+    // // // Basic configuration
+
     protected final QName mName;
 
-    protected final Map mAttrs;
+    protected final ArrayList mAttrs;
 
-    //protected final NamespaceContext mNsCtxt;
-    protected NamespaceContext mNsCtxt;
+    protected final ArrayList mNsDecls;
+
+    /**
+     * Enclosing namespace context
+     */
+    protected NamespaceContext mParentNsCtxt;
+
+    // // // Lazily constructed components
+
+    NamespaceContext mActualNsCtxt = null;
 
     /*
     /////////////////////////////////////////////
@@ -35,55 +48,43 @@ public class StartElementEventImpl
     /////////////////////////////////////////////
      */
 
-    protected StartElementEventImpl(Location loc, QName name, Map attrs)
+    protected StartElementEventImpl(Location loc, QName name,
+                                    ArrayList attrs, ArrayList nsDecls,
+                                    NamespaceContext parentNsCtxt)
     {
         super(loc);
         mName = name;
         mAttrs = attrs;
-    }
-
-    /**
-     * Factory method called when a start element needs to be constructed
-     * from an external source (most likely, non-woodstox stream reader).
-     */
-    public static StartElementEventImpl construct(Location loc, QName name,
-                                             Map attrs, List ns)
-    {
-        return new StartElementEventImpl(loc, name, attrs);
+        mNsDecls = nsDecls;
+        mParentNsCtxt = (parentNsCtxt == null) ?
+            EmptyNamespaceContext.getInstance() : parentNsCtxt;
     }
 
     public static StartElementEventImpl construct(Location loc, QName name,
-                                             Iterator attrs, Iterator ns,
-                                             NamespaceContext nsCtxt)
+                                                  Iterator attrIt, Iterator nsDeclIt,
+                                                  NamespaceContext nsCtxt)
     {
-        Map attrMap;
-        if (attrs == null || !attrs.hasNext()) {
-            attrMap = null;
+        ArrayList attrs;
+        if (attrIt == null || !attrIt.hasNext()) {
+            attrs = null;
         } else {
-            attrMap = new LinkedHashMap();
+            attrs = new ArrayList();
             do {
-                Attribute attr = (Attribute) attrs.next();
-                attrMap.put(attr.getName(), attr);
-            } while (attrs.hasNext());
+                // Cast is only done for early catching of incorrect types
+                attrs.add((Attribute) attrIt.next());
+            } while (attrIt.hasNext());
         }
 
-        /*
-        BaseNsContext myCtxt;
-        if (ns != null && ns.hasNext()) {
-            ArrayList l = new ArrayList();
-            do {
-                l.add((Namespace) ns.next()); // cast to catch type problems early
-            } while (ns.hasNext());
-            myCtxt = MergedNsContext.construct(nsCtxt, l);
+        ArrayList nsDecls;
+        if (nsDeclIt == null || !nsDeclIt.hasNext()) {
+            nsDecls = null;
         } else {
-            if (nsCtxt == null) {
-                myCtxt = null;
-            } else {
-                myCtxt = MergedNsContext.construct(nsCtxt, null);
-            }
+            nsDecls = new ArrayList();
+            do {
+                nsDecls.add((Namespace) nsDeclIt.next()); // cast to catch type problems early
+            } while (nsDeclIt.hasNext());
         }
-        */
-        return new StartElementEventImpl(loc, name, attrMap);
+        return new StartElementEventImpl(loc, name, attrs, nsDecls, nsCtxt);
     }
 
     /*
@@ -116,8 +117,25 @@ public class StartElementEventImpl
             }
             w.write(mName.getLocalPart());
 
-            // Base class can output namespaces and attributes:
-            outputNsAndAttr(w);
+            // Any namespaces?
+            if (mNsDecls != null) {
+                for (int i = 0, len = mNsDecls.size(); i < len; ++i) {
+                    w.write(' ');
+                    ((Namespace) mNsDecls.get(i)).writeAsEncodedUnicode(w);
+                }
+            }
+
+            // How about attrs?
+            if (mAttrs != null) {
+                for (int i = 0, len = mAttrs.size(); i < len; ++i) {
+                    Attribute attr = (Attribute) mAttrs.get(i);
+                    // No point in adding default attributes?
+                    if (attr.isSpecified()) {
+                        w.write(' ');
+                        attr.writeAsEncodedUnicode(w);
+                    }
+                }
+            }
 
             w.write('>');
         } catch (IOException ie) {
@@ -125,12 +143,37 @@ public class StartElementEventImpl
         }
     }
 
-    public void writeUsing(XMLStreamWriter2 w) throws XMLStreamException
+    public void writeUsing(XMLStreamWriter2 sw) throws XMLStreamException
     {
         QName n = mName;
-        w.writeStartElement(n.getPrefix(), n.getLocalPart(),
+        sw.writeStartElement(n.getPrefix(), n.getLocalPart(),
                             n.getNamespaceURI());
-        outputNsAndAttr(w);
+
+        // Any namespaces?
+        if (mNsDecls != null) {
+            for (int i = 0, len = mNsDecls.size(); i < len; ++i) {
+                Namespace ns = (Namespace) mNsDecls.get(i);
+                String prefix = ns.getPrefix();
+                String uri = ns.getNamespaceURI();
+                if (prefix == null || prefix.length() == 0) {
+                    sw.writeDefaultNamespace(uri);
+                } else {
+                    sw.writeNamespace(prefix, uri);
+                }
+            }
+        }
+
+        // How about attrs?
+        if (mAttrs != null) {
+            for (int i = 0, len = mAttrs.size(); i < len; ++i) {
+                Attribute attr = (Attribute) mAttrs.get(i);
+                // No point in adding default attributes?
+                if (attr.isSpecified()) {
+                    QName name = attr.getName();
+                    sw.writeAttribute(name.getPrefix(), name.getNamespaceURI(), name.getLocalPart(), attr.getValue());
+                }
+            }
+        }
     }
 
     /*
@@ -145,31 +188,63 @@ public class StartElementEventImpl
 
     public Iterator getNamespaces() 
     {
-        if (mNsCtxt == null) {
-            return EmptyIterator.getInstance();
-        }
-        /*
-        return mNsCtxt.getNamespaces();
-        */
-        return null;
+        return (mNsDecls == null) ?
+            EmptyIterator.getInstance() : mNsDecls.iterator();
     }
 
     public NamespaceContext getNamespaceContext()
     {
-        return mNsCtxt;
+        if (mActualNsCtxt == null) {
+            if (mNsDecls == null) {
+                mActualNsCtxt = mParentNsCtxt;
+            } else {
+                mActualNsCtxt = MergedNsContext.construct(mParentNsCtxt, mNsDecls);
+            }
+        }
+        return mActualNsCtxt;
     }
 
     public String getNamespaceURI(String prefix)
     {
-        return (mNsCtxt == null) ? null : mNsCtxt.getNamespaceURI(prefix);
+        if (mNsDecls != null) {
+            for (int i = 0, len = mNsDecls.size(); i < len; ++i) {
+                Namespace ns = (Namespace) mNsDecls.get(i);
+
+        // !!! TBI: Note: only in THIS context, nowhere else
+            }
+        }
+
+        return null;
     }
 
-    public Attribute getAttributeByName(QName name)
+    public Attribute getAttributeByName(QName nameIn)
     {
         if (mAttrs == null) {
             return null;
         }
-        return (Attribute) mAttrs.get(name);
+
+        String ln = nameIn.getLocalPart();
+        String uri = nameIn.getNamespaceURI();
+        int len = mAttrs.size();
+
+        boolean notInNs = (uri == null || uri.length() == 0);
+        for (int i = 0; i < len; ++i) {
+            Attribute attr = (Attribute) mAttrs.get(i);
+            QName name = attr.getName();
+            if (name.getLocalPart().equals(ln)) {
+                String thisUri = name.getNamespaceURI();
+                if (notInNs) {
+                    if (thisUri == null || thisUri.length() == 0) {
+                        return attr;
+                    }
+                } else {
+                    if (uri.equals(thisUri)) {
+                        return attr;
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     public Iterator getAttributes()
@@ -177,68 +252,6 @@ public class StartElementEventImpl
         if (mAttrs == null) {
             return EmptyIterator.getInstance();
         }
-        return mAttrs.values().iterator();
-    }
-
-    protected void outputNsAndAttr(Writer w) throws IOException
-    {
-        // First namespace declarations, if any:
-        if (mNsCtxt != null) {
-            /*
-            mNsCtxt.outputNamespaceDeclarations(w);
-            */
-        }
-        // Then attributes, if any:
-        if (mAttrs != null && mAttrs.size() > 0) {
-            Iterator it = mAttrs.values().iterator();
-            while (it.hasNext()) {
-                Attribute attr = (Attribute) it.next();
-                // Let's only output explicit attribute values:
-                if (!attr.isSpecified()) {
-                    continue;
-                }
-
-                w.write(' ');
-                QName name = attr.getName();
-                String prefix = name.getPrefix();
-                if (prefix != null && prefix.length() > 0) {
-                    w.write(prefix);
-                    w.write(':');
-                }
-                w.write(name.getLocalPart());
-                w.write("=\"");
-                String val =  attr.getValue();
-                if (val != null && val.length() > 0) {
-                    AttributeEventImpl.writeEscapedAttrValue(w, val);
-                }
-                w.write('"');
-            }
-        }
-    }
-
-    protected void outputNsAndAttr(XMLStreamWriter w) throws XMLStreamException
-    {
-        // First namespace declarations, if any:
-        /* 
-        if (mNsCtxt != null) {
-            mNsCtxt.outputNamespaceDeclarations(w);
-        }
-        */
-        // Then attributes, if any:
-        if (mAttrs != null && mAttrs.size() > 0) {
-            Iterator it = mAttrs.values().iterator();
-            while (it.hasNext()) {
-                Attribute attr = (Attribute) it.next();
-                // Let's only output explicit attribute values:
-                if (!attr.isSpecified()) {
-                    continue;
-                }
-                QName name = attr.getName();
-                String prefix = name.getPrefix();
-                String ln = name.getLocalPart();
-                String nsURI = name.getNamespaceURI();
-                w.writeAttribute(prefix, nsURI, ln, attr.getValue());
-            }
-        }
+        return mAttrs.iterator();
     }
 }
