@@ -207,10 +207,18 @@ public class StartElementEventImpl
     public String getNamespaceURI(String prefix)
     {
         if (mNsDecls != null) {
+            if (prefix == null) {
+                prefix = "";
+            }
             for (int i = 0, len = mNsDecls.size(); i < len; ++i) {
                 Namespace ns = (Namespace) mNsDecls.get(i);
-
-        // !!! TBI: Note: only in THIS context, nowhere else
+                String thisPrefix = ns.getPrefix();
+                if (thisPrefix == null) {
+                    thisPrefix = "";
+                }
+                if (prefix.equals(thisPrefix)) {
+                    return ns.getNamespaceURI();
+                }
             }
         }
 
