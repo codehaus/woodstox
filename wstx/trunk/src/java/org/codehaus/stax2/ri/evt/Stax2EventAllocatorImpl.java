@@ -123,10 +123,10 @@ public class Stax2EventAllocatorImpl
         /* !!! 28-Jan-2007, TSA: One major problem here: there is no way
          *    to access actual entity declaration via Stax 1.0 or Stax2
          *    stream reader, at not least not after DTD subset has been
-         *    processed. Thus, we can not include that information.
+         *    processed. But let's do our best, which means we only know
+         *    the name.
          */
-        //return new EntityReferenceEventImpl(loc, r.getLocalName());
-        return new EntityReferenceEventImpl(loc, null);
+        return new EntityReferenceEventImpl(loc, r.getLocalName());
     }
 
     protected XMLEvent createDTD(XMLStreamReader r, Location loc)

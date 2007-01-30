@@ -21,6 +21,13 @@ public class EntityReferenceEventImpl
         mDecl = decl;
     }
 
+    public EntityReferenceEventImpl(Location loc, String name)
+    {
+        super(loc);
+        // note: location will be incorrect...
+        mDecl = new EntityDeclarationEventImpl(loc, name);
+    }
+
     public EntityDeclaration getDeclaration()
     {
         return mDecl;

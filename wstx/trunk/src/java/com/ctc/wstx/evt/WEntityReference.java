@@ -38,7 +38,7 @@ public class WEntityReference
      */
     public WEntityReference(Location loc, String name)
     {
-        super(loc, null);
+        super(loc, (EntityDeclaration) null);
         mName = name;
     }
 

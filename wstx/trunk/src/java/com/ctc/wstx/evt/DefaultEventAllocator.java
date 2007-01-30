@@ -267,15 +267,8 @@ public class DefaultEventAllocator
         consumer.add(allocate(r));
     }
 
-    /**
-     * Default implementation assumes that the caller knows how to
-     * share instances, and so need not create new copies.
-     *<p>
-     * Note: if this class is sub-classes, this method should be
-     * redefined if assumptions about shareability do not hold.
-     */
     public XMLEventAllocator newInstance() {
-        return this;
+        return new DefaultEventAllocator(mAccurateLocation);
     }
     
     /*
