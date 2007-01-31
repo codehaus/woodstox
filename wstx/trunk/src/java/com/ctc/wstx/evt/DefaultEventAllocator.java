@@ -217,7 +217,7 @@ public class DefaultEventAllocator
                     } else {
                         ns = new ArrayList(nsCount);
                         for (int i = 0; i < nsCount; ++i) {
-                            ns.add(NamespaceEventImpl.constructFor(loc, r.getNamespacePrefix(i), r.getNamespaceURI(i)));
+                            ns.add(NamespaceEventImpl.constructNamespace(loc, r.getNamespacePrefix(i), r.getNamespaceURI(i)));
                         }
                     }
                 }

@@ -96,11 +96,11 @@ public class Stax2EventFactoryImpl
     }
 
     public Namespace createNamespace(String nsURI) {
-        return new NamespaceEventImpl(mLocation, nsURI);
+        return NamespaceEventImpl.constructDefaultNamespace(mLocation, nsURI);
     }
     
-    public Namespace createNamespace(String prefix, String nsUri) {
-        return new NamespaceEventImpl(mLocation, prefix, nsUri);
+    public Namespace createNamespace(String prefix, String nsURI) {
+        return NamespaceEventImpl.constructNamespace(mLocation, prefix, nsURI);
     }
 
     public ProcessingInstruction createProcessingInstruction(String target, String data) {

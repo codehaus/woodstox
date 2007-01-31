@@ -190,7 +190,7 @@ public final class CompactNsContext
                 return EmptyIterator.getInstance();
             }
             if (len == 2) { // only one NS
-                return new SingletonIterator(NamespaceEventImpl.constructFor
+                return new SingletonIterator(NamespaceEventImpl.constructNamespace
                                              (mLocation,
                                               mNamespaces[firstLocal],
                                               mNamespaces[firstLocal+1]));
@@ -199,7 +199,7 @@ public final class CompactNsContext
             String[] ns = mNamespaces;
             for (len = mNsLength; firstLocal < len;
                  firstLocal += 2) {
-                l.add(NamespaceEventImpl.constructFor(mLocation, ns[firstLocal],
+                l.add(NamespaceEventImpl.constructNamespace(mLocation, ns[firstLocal],
                                               ns[firstLocal+1]));
             }
             mNsList = l;

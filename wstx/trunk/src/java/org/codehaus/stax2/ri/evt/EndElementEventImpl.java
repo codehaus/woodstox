@@ -39,12 +39,8 @@ public class EndElementEventImpl
         } else {
             ArrayList l = new ArrayList(nsCount);
             for (int i = 0; i < nsCount; ++i) {
-                String prefix = r.getNamespacePrefix(i);
-                if (prefix == null || prefix.length() == 0) { //default ns
-                    l.add(new NamespaceEventImpl(loc, r.getNamespaceURI(i)));
-                } else {
-                    l.add(new NamespaceEventImpl(loc, prefix, r.getNamespaceURI(i)));
-                }
+                l.add(NamespaceEventImpl.constructNamespace
+                      (loc, r.getNamespacePrefix(i), r.getNamespaceURI(i)));
             }
             mNamespaces = l;
         }

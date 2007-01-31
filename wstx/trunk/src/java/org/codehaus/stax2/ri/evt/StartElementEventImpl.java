@@ -14,7 +14,6 @@ import javax.xml.stream.events.StartElement;
 import org.codehaus.stax2.XMLStreamWriter2;
 import org.codehaus.stax2.ri.EmptyIterator;
 import org.codehaus.stax2.ri.EmptyNamespaceContext;
-import org.codehaus.stax2.ri.MergedNsContext;
 
 /**
  * Wstx {@link StartElement} implementation used when event is constructed

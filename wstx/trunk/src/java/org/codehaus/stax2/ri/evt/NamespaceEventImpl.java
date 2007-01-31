@@ -27,7 +27,7 @@ public class NamespaceEventImpl
      * have namespace prefix/URI, although semantically it would belong
      * to XML namespace URI...
      */
-    public NamespaceEventImpl(Location loc, String nsURI)
+    protected NamespaceEventImpl(Location loc, String nsURI)
     {
         super(loc, XMLConstants.XML_NS_PREFIX, XMLConstants.XMLNS_ATTRIBUTE_NS_URI,
               null,
@@ -40,7 +40,7 @@ public class NamespaceEventImpl
      * Constructor for non-default namespace declaration. Such declarations
      * belong to "XML namespace" namespace.
      */
-    public NamespaceEventImpl(Location loc, String nsPrefix, String nsURI)
+    protected NamespaceEventImpl(Location loc, String nsPrefix, String nsURI)
     {
         super(loc, nsPrefix,  XMLConstants.XMLNS_ATTRIBUTE_NS_URI,
               XMLConstants.XMLNS_ATTRIBUTE,
@@ -49,7 +49,12 @@ public class NamespaceEventImpl
         mURI = nsURI;
     }
 
-    public static NamespaceEventImpl constructFor(Location loc, String nsPrefix, String nsURI)
+    public static NamespaceEventImpl constructDefaultNamespace(Location loc, String nsURI)
+    {
+        return new NamespaceEventImpl(loc, nsURI);
+    }
+
+    public static NamespaceEventImpl constructNamespace(Location loc, String nsPrefix, String nsURI)
     {
         if (nsPrefix == null || nsPrefix.length() == 0) { // default NS:
             return new NamespaceEventImpl(loc, nsURI);
