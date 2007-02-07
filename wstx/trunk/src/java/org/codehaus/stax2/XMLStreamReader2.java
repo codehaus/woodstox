@@ -52,8 +52,10 @@ public interface XMLStreamReader2
     /**
      * Feature used to specify the source for DTD external subset to use
      * instead of DTD specified by the XML document itself (if any).
+     *
+     * @deprecated Use {@link XMLInputFactory2#P_DTD_OVERRIDE} instead.
      */
-    public final static String FEATURE_DTD_OVERRIDE = "org.codehaus.stax2.propDtdOverride";
+    public final static String FEATURE_DTD_OVERRIDE = XMLInputFactory2.P_DTD_OVERRIDE;
 
     /*
     ///////////////////////////

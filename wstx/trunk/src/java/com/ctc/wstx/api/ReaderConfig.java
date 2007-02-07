@@ -8,6 +8,7 @@ import javax.xml.stream.*;
 
 import org.codehaus.stax2.XMLInputFactory2; // for property consts
 import org.codehaus.stax2.XMLStreamProperties; // for property consts
+import org.codehaus.stax2.validation.DTDValidationSchema;
 
 import com.ctc.wstx.api.WstxInputProperties;
 import com.ctc.wstx.cfg.InputConfigFlags;
@@ -333,11 +334,12 @@ public final class ReaderConfig
 
     Object[] mSpecialProperties = null;
 
-    private final static int SPEC_PROC_COUNT = 3;
+    private final static int SPEC_PROC_COUNT = 4;
 
     private final static int SP_IX_CUSTOM_ENTITIES = 0;
     private final static int SP_IX_UNDECL_ENT_RESOLVER = 1;
     private final static int SP_IX_DTD_EVENT_LISTENER = 2;
+    private final static int SP_IX_DTD_OVERRIDE = 3;
 
     /*
     //////////////////////////////////////////////////////////
@@ -627,6 +629,10 @@ public final class ReaderConfig
         return (DTDEventListener) getSpecialProperty(SP_IX_DTD_EVENT_LISTENER);
     }
 
+    public DTDValidationSchema getDTDOverride() {
+        return (DTDValidationSchema) getSpecialProperty(SP_IX_DTD_OVERRIDE);
+    }
+
     /*
     //////////////////////////////////////////////////////////
     // Simple mutators
@@ -806,6 +812,10 @@ public final class ReaderConfig
 
     public void setDTDEventListener(DTDEventListener l) {
         setSpecialProperty(SP_IX_DTD_EVENT_LISTENER, l);
+    }
+
+    public void setDTDOverride(DTDValidationSchema schema) {
+        setSpecialProperty(SP_IX_DTD_OVERRIDE, schema);
     }
 
     /*
@@ -1369,7 +1379,7 @@ public final class ReaderConfig
         return true;
     }
 
-    private Object getSpecialProperty(int ix)
+    private final Object getSpecialProperty(int ix)
     {
         if (mSpecialProperties == null) {
             return null;
@@ -1377,10 +1387,10 @@ public final class ReaderConfig
         return mSpecialProperties[ix];
     }
 
-    private void setSpecialProperty(int ix, Object value)
+    private final void setSpecialProperty(int ix, Object value)
     {
         if (mSpecialProperties == null) {
-            mSpecialProperties = new Object[3];
+            mSpecialProperties = new Object[SPEC_PROC_COUNT];
         }
         mSpecialProperties[ix] = value;
     }

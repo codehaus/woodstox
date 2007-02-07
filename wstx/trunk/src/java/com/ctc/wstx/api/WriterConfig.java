@@ -193,13 +193,25 @@ public final class WriterConfig
 
     protected int mConfigFlags;
 
-    protected String mAutoNsPrefix;
+    /*
+    //////////////////////////////////////////////////////////
+    // More special(ized) configuration objects
+    //////////////////////////////////////////////////////////
+     */
 
-    protected EscapingWriterFactory mTextEscaperFactory = null;
+    //protected String mAutoNsPrefix;
+    //protected EscapingWriterFactory mTextEscaperFactory = null;
+    //protected EscapingWriterFactory mAttrValueEscaperFactory = null;
+    //protected XMLReporter mProblemReporter = null;
 
-    protected EscapingWriterFactory mAttrValueEscaperFactory = null;
+    Object[] mSpecialProperties = null;
 
-    protected XMLReporter mProblemReporter = null;
+    private final static int SPEC_PROC_COUNT = 4;
+
+    private final static int SP_IX_AUTO_NS_PREFIX = 0;
+    private final static int SP_IX_TEXT_ESCAPER_FACTORY = 1;
+    private final static int SP_IX_ATTR_VALUE_ESCAPER_FACTORY = 2;
+    private final static int SP_IX_PROBLEM_REPORTER = 3;
 
     /*
     //////////////////////////////////////////////////////////
@@ -228,17 +240,12 @@ public final class WriterConfig
     //////////////////////////////////////////////////////////
      */
 
-    private WriterConfig(boolean j2meSubset, int flags, String autoNsPrefix,
-                         EscapingWriterFactory textEscaperF,
-                         EscapingWriterFactory attrValueEscaperF,
-                         XMLReporter problemReporter)
+    private WriterConfig(boolean j2meSubset, int flags, Object[] specProps)
     {
         mIsJ2MESubset = j2meSubset;
         mConfigFlags = flags;
-        mAutoNsPrefix = autoNsPrefix;
-        mTextEscaperFactory = textEscaperF;
-        mAttrValueEscaperFactory = attrValueEscaperF;
-        mProblemReporter = problemReporter;
+        mSpecialProperties = specProps;
+
         /* Ok, let's then see if we can find a buffer recycler. Since they
          * are lazily constructed, and since GC may just flush them out
          * on its whims, it's possible we might not find one. That's ok;
@@ -253,28 +260,26 @@ public final class WriterConfig
 
     public static WriterConfig createJ2MEDefaults()
     {
-        WriterConfig rc = new WriterConfig
-            (true, DEFAULT_FLAGS_J2ME, DEFAULT_AUTOMATIC_NS_PREFIX,
-             null, null, null);
-        return rc;
+        return new WriterConfig(true, DEFAULT_FLAGS_J2ME, null);
     }
 
     public static WriterConfig createFullDefaults()
     {
-        WriterConfig rc = new WriterConfig
-            (true, DEFAULT_FLAGS_FULL, DEFAULT_AUTOMATIC_NS_PREFIX,
-             null, null, null);
-        return rc;
+        return new WriterConfig(true, DEFAULT_FLAGS_FULL, null);
     }
 
     public WriterConfig createNonShared()
     {
-        WriterConfig rc = new WriterConfig(mIsJ2MESubset,
-                                           mConfigFlags, mAutoNsPrefix,
-                                           mTextEscaperFactory,
-                                           mAttrValueEscaperFactory,
-                                           mProblemReporter);
-        return rc;
+        Object[] specProps;
+
+        if (mSpecialProperties != null) {
+            int len = mSpecialProperties.length;
+            specProps = new Object[len];
+            System.arraycopy(mSpecialProperties, 0, specProps, 0, len);
+        } else {
+            specProps = null;
+        }
+        return new WriterConfig(mIsJ2MESubset, mConfigFlags, specProps);
     }
 
     /*
@@ -485,19 +490,23 @@ public final class WriterConfig
      *   Defaults to "wstxns".
      */
     public String getAutomaticNsPrefix() {
-        return mAutoNsPrefix;
+        String prefix = (String) getSpecialProperty(SP_IX_AUTO_NS_PREFIX);
+        if (prefix == null) {
+            prefix = DEFAULT_AUTOMATIC_NS_PREFIX;
+        }
+        return prefix;
     }
 
     public EscapingWriterFactory getTextEscaperFactory() {
-        return mTextEscaperFactory;
+        return (EscapingWriterFactory) getSpecialProperty(SP_IX_TEXT_ESCAPER_FACTORY);
     }
 
     public EscapingWriterFactory getAttrValueEscaperFactory() {
-        return mAttrValueEscaperFactory;
+        return (EscapingWriterFactory) getSpecialProperty(SP_IX_ATTR_VALUE_ESCAPER_FACTORY);
     }
 
     public XMLReporter getProblemReporter() {
-        return mProblemReporter;
+        return (XMLReporter) getSpecialProperty(SP_IX_PROBLEM_REPORTER);
     }
 
     // // // Mutators:
@@ -555,19 +564,19 @@ public final class WriterConfig
      *   namespace prefixes ("namespace prefix prefix", so to speak).
      */
     public void setAutomaticNsPrefix(String prefix) {
-        mAutoNsPrefix = prefix;
+        setSpecialProperty(SP_IX_AUTO_NS_PREFIX, prefix);
     }
 
     public void setTextEscaperFactory(EscapingWriterFactory f) {
-        mTextEscaperFactory = f;
+        setSpecialProperty(SP_IX_TEXT_ESCAPER_FACTORY, f);
     }
 
     public void setAttrValueEscaperFactory(EscapingWriterFactory f) {
-        mAttrValueEscaperFactory = f;
+        setSpecialProperty(SP_IX_ATTR_VALUE_ESCAPER_FACTORY, f);
     }
 
     public void setProblemReporter(XMLReporter rep) {
-        mProblemReporter = rep;
+        setSpecialProperty(SP_IX_PROBLEM_REPORTER, rep);
     }
 
     /*
@@ -725,4 +734,20 @@ public final class WriterConfig
     private final boolean hasConfigFlag(int flag) {
         return ((mConfigFlags & flag) == flag);
     } 
+
+    private final Object getSpecialProperty(int ix)
+    {
+        if (mSpecialProperties == null) {
+            return null;
+        }
+        return mSpecialProperties[ix];
+    }
+
+    private final void setSpecialProperty(int ix, Object value)
+    {
+        if (mSpecialProperties == null) {
+            mSpecialProperties = new Object[SPEC_PROC_COUNT];
+        }
+        mSpecialProperties[ix] = value;
+    }
 }

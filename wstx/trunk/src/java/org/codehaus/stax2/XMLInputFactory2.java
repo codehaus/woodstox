@@ -136,6 +136,17 @@ public abstract class XMLInputFactory2
      */
     public final static String P_AUTO_CLOSE_INPUT = "org.codehaus.stax2.closeInputSource";
 
+    // // // Validation settings
+
+    /**
+     * Feature used to specify the source for DTD external subset to use
+     * instead of DTD specified by the XML document itself (if any).
+     *<p>
+     * Note: uses name used earlier for a feature (that could be used with
+     * XMLStreamReader).
+     */
+    public final static String P_DTD_OVERRIDE = "org.codehaus.stax2.propDtdOverride";
+
     /*
     ////////////////////////////////////////////////////
     // Life-cycle

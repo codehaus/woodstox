@@ -26,6 +26,7 @@ import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.transform.stream.StreamSource;
 
+import org.codehaus.stax2.XMLInputFactory2;
 import org.codehaus.stax2.validation.*;
 
 import com.ctc.wstx.api.ReaderConfig;
@@ -81,14 +82,6 @@ public class ValidatingStreamReader
     XMLValidator mAutoDtdValidator = null;
 
     /**
-     * Flag to indicate that the DOCTYPE declaration is to be
-     * overridden by value of {@link #mDTD}. Mostly needed to signal
-     * "significant null" value, which means "just discard DOCTYPE if one
-     * gotten from the document".
-     */
-    boolean mDTDOverridden = false;
-
-    /**
      * Flag that indicates whether a DTD validator has been automatically
      * set (as per DOCTYPE declaration or override)
      */
@@ -98,12 +91,6 @@ public class ValidatingStreamReader
      * Custom validation problem handler, if any.
      */
     protected ValidationProblemHandler mVldProbHandler = null;
-
-    /*
-    ////////////////////////////////////////////////////
-    // Configuration
-    ////////////////////////////////////////////////////
-     */
 
     /*
     ////////////////////////////////////////////////////
@@ -192,27 +179,19 @@ public class ValidatingStreamReader
     {
         // Referring to DTD-related features?
         if (name.equals(FEATURE_DTD_OVERRIDE)) {
-            mDTDOverridden = true;
-            // null is ok, basically means "never use a DTD"...
+            /* !!! 06-Feb-2007, TSa: Null with 4.0 will actually mean
+             *  'remove any overrides'; which is different from earlier
+             *  meaning (which was use a dummy/empty override). 
+             *  Should we throw an exception, or warn, or something...?
+             */
             if (value != null && !(value instanceof DTDValidationSchema)) {
                 throw new IllegalArgumentException("Value to set for feature "+name+" not of type DTDValidationSchema");
             }
-            mDTD = (DTDValidationSchema) value;
+            mConfig.setProperty(XMLInputFactory2.P_DTD_OVERRIDE, (DTDValidationSchema) value);
         } else {
             super.setFeature(name, value);
         }
     }
-
-    // Nothing to override from the base class, for these methods:
-    /*
-    public boolean isPropertySupported(String name)
-    {
-    }
-
-    public void setProperty(String name, Object value)
-    {
-    }
-    */
 
     /*
     ////////////////////////////////////////////////////
@@ -221,10 +200,14 @@ public class ValidatingStreamReader
      */
 
     public Object getProcessedDTD() {
-        return mDTD;
+        return getProcessedDTDSchema();
     }
 
     public DTDValidationSchema getProcessedDTDSchema() {
+        DTDValidationSchema dtd = mConfig.getDTDOverride();
+        if (dtd == null) {
+            dtd = mDTD;
+        }
         return mDTD;
     }
 
@@ -334,11 +317,12 @@ public class ValidatingStreamReader
         /* But, then, we also may need to read the external subset, if
          * one was defined:
          */
-
         /* 19-Sep-2004, TSa: That does not need to be done, however, if
          *    there's a DTD override set.
          */
-        if (mDTDOverridden) {
+
+        mDTD = mConfig.getDTDOverride();
+        if (mDTD != null) {
             // We have earlier override that's already parsed
         } else { // Nope, no override
             DTDSubset extSubset = null;
@@ -367,6 +351,7 @@ public class ValidatingStreamReader
             }
         }
 
+        
         if (mDTD == null) { // only if specifically overridden not to have any
             mGeneralEntities = null;
         } else {
