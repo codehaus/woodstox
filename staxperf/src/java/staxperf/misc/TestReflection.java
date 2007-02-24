@@ -9,8 +9,11 @@ import java.lang.reflect.*;
  */
 public class TestReflection
 {
-    final int ROUNDS_BIG = 1999000;
-    final int ROUNDS_SMALL = 499000;
+    // 2M rounds for faster operations
+    final int ROUNDS_BIG = 2000000;
+
+    // 1/2M for slower ones
+    final int ROUNDS_SMALL = 500000;
 
     final static String NAME = "foobar";
 
@@ -25,17 +28,17 @@ public class TestReflection
         final Method getter = cls.getMethod("getName", new Class[] { });
         final Method setter = cls.getMethod("setName", new Class[] { String.class });
         final Field field = cls.getField("name");
-        Object x = null;
+        Object x = null; // used just to prevent dead code elimination
 
         while (true) {
             String desc;
             int method = (ctr % 8);
 
+            ++ctr;
+
             if (method == 0) {
                 System.out.println();
             }
-
-            ++ctr;
 
             long now = System.currentTimeMillis();
 
@@ -75,17 +78,19 @@ public class TestReflection
                 desc = "Method get";
                 x = testDirectGet(ROUNDS_BIG);
                 break;
-            default:
+            default: // sanity check
                 throw new Error();
             }
             now = System.currentTimeMillis() - now;
+            int dummyHash = (x == null) ? -1 : (x.hashCode() & 0xF);
             System.out.println("Took "+now+" ms for "+
                                (method < 2 ? ROUNDS_SMALL : ROUNDS_BIG)
-                               +" x "+desc);
+                               +" x "+desc+" (x = "+dummyHash+")");
             try { Thread.sleep(100L); } catch (InterruptedException ie) { }
-            if (method == 5) {
+            if (method == 7) { // let's GC after full round
                 System.gc();
             }
+            // Plus let other tasks proceed (scheduler might penalize us otherwise)
             try { Thread.sleep(100L); } catch (InterruptedException ie) { }
         }
     }

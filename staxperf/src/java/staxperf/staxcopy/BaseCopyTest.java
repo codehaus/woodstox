@@ -99,6 +99,16 @@ abstract class BaseCopyTest
             evt.writeUsing(sw);
         }
         sw.close();
+
+        /*
+        if (true) {
+            System.err.println("DOC:");
+            System.err.println(new String(out.toByteArray(), "UTF-8"));
+            System.err.println("/DOC:");
+            if (true) throw new Error();
+        }
+        */
+
         return out.size();
     }
 
@@ -142,10 +152,10 @@ abstract class BaseCopyTest
     {
         int len = data.length;
         String doc = new String(data);
-        if (len > 200) {
-            doc = doc.substring(0, 98) + "]...["+doc.substring(len-98);
+        if (len > 300) {
+            doc = doc.substring(0, 148) + "]...["+doc.substring(len-148);
         }
-        System.out.println("Output document: ("+len+" chars; condensed if above 200 chars)["+doc+"]");
+        System.out.println("Output document: ("+len+" chars; condensed if above 300 chars)["+doc+"]");
     }
 
     private final int readData(File f, CharArrayWriter w)

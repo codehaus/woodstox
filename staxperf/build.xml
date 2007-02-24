@@ -74,6 +74,16 @@
         </javac>
     </target>
 
+    <target name="compile14" depends="prepare">
+        <javac SrcDir="${JavaSrcDir}" destdir="${BuildClassesDir}"
+            debug="true"
+        >
+            <include name="**/*.java" />
+            <exclude name="**/*Javolution*.java" />
+            <classpath refid="classpath" />
+        </javac>
+    </target>
+
     <target name="javadoc" depends="prepare">
         <!-- Build a dirpath that contains just the "source" tree -->
         <javadoc windowtitle="${ProjectName}"

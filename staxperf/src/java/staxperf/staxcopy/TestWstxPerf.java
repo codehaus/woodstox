@@ -20,12 +20,6 @@ public class TestWstxPerf
         System.setProperty("javax.xml.stream.XMLInputFactory",
                            "com.ctc.wstx.stax.WstxInputFactory");
         XMLInputFactory f =  XMLInputFactory.newInstance();
-
-        // To test performance without lazy parsing, uncomment this:
-        //f.setProperty(WstxInputProperties.P_LAZY_PARSING, Boolean.FALSE);
-        // And without namespaces:
-        //f.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.FALSE);
-
         return (XMLInputFactory2) f;
     }
 
@@ -36,17 +30,6 @@ public class TestWstxPerf
         XMLOutputFactory f =  XMLOutputFactory.newInstance();
         return (XMLOutputFactory2) f;
     }
-
-    /*
-    public void testFinish()
-        throws Exception
-    {
-        com.ctc.wstx.util.SymbolTable symt = msc.getSymbolTable();
-        double seek = symt.calcAvgSeek();
-        seek = ((int) (100.0  * seek)) / 100.0;
-        System.out.println("Symbol count: "+symt.size()+", avg len: "+seek+".");
-    }
-    */
 
     public static void main(String[] args) throws Exception
     {
