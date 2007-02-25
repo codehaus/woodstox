@@ -9,7 +9,7 @@ import java.lang.reflect.*;
  */
 public class TestReflection
 {
-    // 2M rounds for faster operations
+    // 3M rounds for faster operations
     final int ROUNDS_BIG = 2000000;
 
     // 1/2M for slower ones
@@ -40,6 +40,8 @@ public class TestReflection
                 System.out.println();
             }
 
+            ReflectionData data = new ReflectionData();
+            data.setDummy(x);
             long now = System.currentTimeMillis();
 
             switch (method) {
@@ -63,7 +65,7 @@ public class TestReflection
 
             case 4:
                 desc = "Method set";
-                x = testDirectSet(ROUNDS_BIG);
+                x = testDirectSet(ROUNDS_BIG, data);
                 break;
 
             case 5:
@@ -76,7 +78,7 @@ public class TestReflection
                 break;
             case 7:
                 desc = "Method get";
-                x = testDirectGet(ROUNDS_BIG);
+                x = testDirectGet(ROUNDS_BIG, data);
                 break;
             default: // sanity check
                 throw new Error();
@@ -142,15 +144,15 @@ public class TestReflection
         return data;
     }
 
-    private Object testDirectSet(int ROUNDS)
+    private Object testDirectSet(int ROUNDS, ReflectionData data)
     {
-        ReflectionData data = new ReflectionData();
+        Object x = null;
 
         for (int i = 0; i < ROUNDS; ++i) {
-            data.setName(NAME);
+            x = data.setName(NAME);
         }
-
-        return data;
+        
+        return x;
     }
 
     private Object testReflectCallGet(int ROUNDS, Method getter)
@@ -178,14 +180,12 @@ public class TestReflection
         return o;
     }
 
-    private Object testDirectGet(int ROUNDS)
+    private Object testDirectGet(int ROUNDS, ReflectionData data)
     {
-        ReflectionData data = new ReflectionData();
         Object o = null;
         for (int i = 0; i < ROUNDS; ++i) {
             o = data.getName();
         }
-
         return o;
     }
 
@@ -205,8 +205,19 @@ class ReflectionData
 
     int age;
 
+    // Just to return something that is non-constant, and can't be optimized out
+    Object dummy;
+
     public ReflectionData() { }
 
-    public void setName(String n) { name = n; }
+    public Object setName(String n) {
+        name = n;
+        return dummy;
+    }
     public String getName() { return name; }
+
+    public void setDummy(Object x)
+    {
+        dummy = x;
+    }
 }
