@@ -239,7 +239,19 @@ public final class WstxInputFactory
     public XMLStreamReader createFilteredReader(XMLStreamReader reader, StreamFilter filter)
         throws XMLStreamException
     {
-        return new Stax2FilteredStreamReader(reader, filter);
+        Stax2FilteredStreamReader fr = new Stax2FilteredStreamReader(reader, filter);
+        /* [WSTX-111] As per Stax 1.0 TCK, apparently the filtered
+         *   reader is expected to be automatically forwarded to the first
+         *   acceptable event. This is different from the way RI works, but
+         *   since specs don't say anything about filtered readers, let's
+         *   consider TCK to be "more formal" for now, and implement that
+         *   behavior.
+         */
+        if (!filter.accept(fr)) { // START_DOCUMENT ok?
+            // Ok, nope, this should do the trick:
+            fr.next();
+        }
+        return fr;
     }
 
     // // // Event reader factory methods

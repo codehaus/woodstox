@@ -1,16 +1,23 @@
-Version: 3.2.0
+Version: 3.2.1
 
-Release date: 28-Dec-2006
+Release date: xx-Apr-2007
 
 Description:
-  Third API compatible major release in 3.x branch.
+  First patch release for 3.2.
 
-  The most significant new feature is implementation of SAX API [WSTX-33],
-  in addition to Stax API. The main immediate benefit is for interoperability,
-  including access to larger set of compatibility and perforance test suites.
+  Problems fixed:
 
-  Of fixes, most are on writer (XMLStreamWriter) side: all known encoding
-  issues have been resolved, and performance is also significantly improved.
+  * Added deprecation marker for Wstx properties that will not be
+    supported in 4.0
+  * [WSTX-111] (Stax 1.0 TCK incompliancy): Filtered stream reader was
+    not initialized to point to first accepted event. This is different
+    from expectations of Stax TCK (although identical to behavior of
+    Stax RI).
+    (reported by Santiag P-G)
+
+== History: ==
+
+3.2 [28-Dec-2006]
 
   Problems fixed:
 
@@ -63,8 +70,6 @@ Description:
     serializers. The default is to escape \r characters, to ensure
     clean round-trippability.
     (requested by Brett P)
-
-== History: ==
 
 3.1 [02-Nov-2006]
 

@@ -268,3 +268,10 @@ Wayne Fay:
   * Suggested good improvements wrt [WSTX-85], for improving Maven
     artifacts
     [4.0]
+
+Santiago Pericas-Geertsen:
+  * [WSTX-111] Reported Stax TCK non-compliancy, regarding filtered stream
+    reader
+    [3.2.1 / 4.0]
+
+

@@ -87,9 +87,9 @@ public abstract class EncodingXmlWriter
      * Actual output stream to use for outputting encoded content as
      * bytes.
      */
-    protected final OutputStream mOut;
+    protected OutputStream mOut;
 
-    protected final byte[] mOutputBuffer;
+    protected byte[] mOutputBuffer;
 
     protected int mOutputPtr;
 
@@ -113,7 +113,7 @@ public abstract class EncodingXmlWriter
     {
         super(cfg, encoding, autoclose);
         mOut = out;
-        mOutputBuffer = new byte[DEFAULT_BUFFER_SIZE];
+        mOutputBuffer = cfg.allocFullBBuffer(DEFAULT_BUFFER_SIZE);
         mOutputPtr = 0;
     }
 
@@ -135,16 +135,25 @@ public abstract class EncodingXmlWriter
         throws IOException
     {
         flush();
-        if (mAutoCloseOutput) {
-            mOut.close();
+        OutputStream out = mOut;
+        mOut = null;
+        if (out != null) { // checked so it can be called multiple times
+            byte[] buf = mOutputBuffer;
+            mOutputBuffer = null;
+            mConfig.freeFullBBuffer(buf);
+            if (mAutoCloseOutput) {
+                out.close();
+            }
         }
     }
 
     public final void flush()
         throws IOException
     {
-        flushBuffer();
-        mOut.flush();
+        if (mOut != null) {
+            flushBuffer();
+            mOut.flush();
+        }
     }
 
     public abstract void writeRaw(char[] cbuf, int offset, int len)

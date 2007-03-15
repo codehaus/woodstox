@@ -7,6 +7,12 @@ Description:
 
   Problems fixed:
 
+  * [WSTX-111] (Stax 1.0 TCK incompliancy): Filtered stream reader was
+    not initialized to point to first accepted event. This is different
+    from expectations of Stax TCK (although identical to behavior of
+    Stax RI).
+    (reported by Santiag P-G)
+
   New features:
 
   Clean-up:
@@ -16,6 +22,9 @@ Description:
     not needed (for now?)
   * Removed deprecated properties P_NORMALIZE_LFS and
     P_NORMALIZE_ATTR_VALUES, and needed code support.
+  * [WSTX-105] Transformed the only existing input-side feature
+    (FEAT_DTD_OVERRIDE) into matching input-side property
+    (XMLInputFactoty2.P_OVERRIDE_DTD).
 
 == History: ==
 
