@@ -264,6 +264,10 @@ Michael Allman:
     prefix being reported/output.
     [3.0.4 / 3.1.2 / 3.2]
 
+Erik Bergersjö:
+  * Reported [WSTX-110], problems regarding Exception root cause setting.
+    [3.2.1 / 4.0]
+
 Santiago Pericas-Geertsen:
   * [WSTX-111] Reported Stax TCK non-compliancy, regarding filtered stream
     reader

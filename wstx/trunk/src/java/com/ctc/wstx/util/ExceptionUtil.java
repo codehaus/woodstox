@@ -59,10 +59,14 @@ public final class ExceptionUtil
         throw new RuntimeException("Internal error: "+msg);
     }
 
-    public static boolean setInitCause(Throwable newT, Throwable rootT)
+    public static void setInitCause(Throwable newT, Throwable rootT)
     {
-        newT.initCause(rootT);
-        return true;
+        /* [WSTX-110]: Better make sure we do not already have
+         * a chained exception...
+         */
+        if (newT.getCause() == null) {
+            newT.initCause(rootT);
+        }
     }
 
     /*

@@ -9,11 +9,14 @@ Description:
 
   * Added deprecation marker for Wstx properties that will not be
     supported in 4.0
+  * [WSTX-110] Exception chaining would itself cause an exception,
+    on some platforms.
+    (reported by Erik Bergersjö)
   * [WSTX-111] (Stax 1.0 TCK incompliancy): Filtered stream reader was
     not initialized to point to first accepted event. This is different
     from expectations of Stax TCK (although identical to behavior of
     Stax RI).
-    (reported by Santiag P-G)
+    (reported by Santiago P-G)
 
 == History: ==
 

@@ -269,9 +269,12 @@ Wayne Fay:
     artifacts
     [4.0]
 
-Santiago Pericas-Geertsen:
-  * [WSTX-111] Reported Stax TCK non-compliancy, regarding filtered stream
-    reader
+Erik Bergersjö:
+  * Reported [WSTX-110], problems regarding Exception root cause setting.
     [3.2.1 / 4.0]
 
+Santiago Pericas-Geertsen:
+  * Pointed out [WSTX-111]: Stax TCK non-compliancy, regarding filtered stream
+    reader.
+    [3.2.1 / 4.0]
 
