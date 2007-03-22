@@ -97,6 +97,11 @@ public final class BufferingXmlWriter
 
     protected int mOutputBufLen;
 
+    /**
+     * Actual physical stream that the writer is using, if known.
+     */
+    protected OutputStream mUnderlyingStream;
+
     /*
     ////////////////////////////////////////////////
     // Encoding/escaping configuration
@@ -126,8 +131,14 @@ public final class BufferingXmlWriter
     ////////////////////////////////////////////////
      */
 
+    /**
+     * @param outs Underlying OutputStream that the writer
+     *    (<code>out</code>) is using, if known. Needed to support
+     *    (optional) access to the underlying stream
+     */
     public BufferingXmlWriter(Writer out, WriterConfig cfg, String enc,
-                              boolean autoclose)
+                              boolean autoclose,
+                              OutputStream outs)
         throws IOException
     {
         super(cfg, enc, autoclose);
@@ -136,6 +147,8 @@ public final class BufferingXmlWriter
         mOutputBufLen = mOutputBuffer.length;
         mSmallWriteSize = DEFAULT_SMALL_SIZE;
         mOutputPtr = 0;
+
+        mUnderlyingStream = outs;
 
         // Let's use double-quotes, as usual; alternative is apostrophe
         mEncQuoteChar = '"';
@@ -154,6 +167,22 @@ public final class BufferingXmlWriter
 
     /*
     ////////////////////////////////////////////////
+    // Raw access to underlying output objects
+    ////////////////////////////////////////////////
+     */
+
+    final protected OutputStream getOutputStream()
+    {
+        return mUnderlyingStream;
+    }
+
+    final protected Writer getWriter()
+    {
+        return mOut;
+    }
+
+    /*
+    ////////////////////////////////////////////////
     // Low-level (pass-through) methods
     ////////////////////////////////////////////////
      */
@@ -165,6 +194,7 @@ public final class BufferingXmlWriter
             flush();
             Writer w = mOut;
             mOut = null;
+            mUnderlyingStream = null;
             mTextWriter = null;
             mAttrValueWriter = null;
             char[] buf = mOutputBuffer;

@@ -104,4 +104,36 @@ public final class WstxOutputProperties
      */
     public final static String P_OUTPUT_ESCAPE_CR = "com.ctc.wstx.outputEscapeCr";
 
+    // // // Per-instance access to underlying output objects
+
+    /**
+     * Property that can be used to find out the underlying
+     * {@link java.io.OutputStream} that an
+     * {@link javax.xml.stream.XMLStreamWriter} instance is using,
+     * if known (not known if constructed with a {@link java.io.Writer},
+     * or other non-stream destination). Null is returned, if not
+     * known.
+     *<p>
+     * Note: in general it is dangerous to operate on returned stream
+     * (if any), due to buffering stream writer can do. As such, caller
+     * has to take care to know what he is doing, including properly
+     * flushing output.
+     */
+    public final static String P_OUTPUT_UNDERLYING_STREAM = "com.ctc.wstx.outputUnderlyingStream";
+
+    /**
+     * Property that can be used to find out the underlying
+     * {@link java.io.Writer} that an
+     * {@link javax.xml.stream.XMLStreamWriter} instance is using,
+     * if known (may not be known if constructed with a {@link java.io.OutputStream},
+     * or other non-Writer destination). Null is returned, if not
+     * known. Note that the Writer may be an internal wrapper over
+     * an output stream.
+     *<p>
+     * Note: in general it is dangerous to operate on returned Writer
+     * (if any), due to buffering stream writer can do. As such, caller
+     * has to take care to know what he is doing, including properly
+     * flushing output.
+     */
+    public final static String P_OUTPUT_UNDERLYING_WRITER = "com.ctc.wstx.outputUnderlyingWriter";
 }

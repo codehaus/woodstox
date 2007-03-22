@@ -131,6 +131,17 @@ public abstract class EncodingXmlWriter
     ////////////////////////////////////////////////
      */
 
+    final protected OutputStream getOutputStream()
+    {
+        return mOut;
+    }
+
+    final protected Writer getWriter()
+    {
+        // No writers are involved with these implementations...
+        return null;
+    }
+
     public void close()
         throws IOException
     {

@@ -7,6 +7,8 @@ Description:
 
   Problems fixed:
 
+  * [WSTX-108] Maven pom files were missing info (license, org etc)
+    (reported by Daniel Kulp)
   * [WSTX-110] Exception chaining would itself cause an exception,
     on some platforms.
     (reported by Erik Bergersjö)
@@ -17,6 +19,11 @@ Description:
     (reported by Santiago P-G)
 
   New features:
+
+  * [WSTX-112] Added access to underlying output stream/writer, via
+    XMLStreamReader.getProperty(). Properties added are
+    'WstxOutputProperties.P_OUTPUT_UNDERLYING_STREAM' and
+    'WstxOutputProperties.P_OUTPUT_UNDERLYING_WRITER'.
 
   Clean-up:
 

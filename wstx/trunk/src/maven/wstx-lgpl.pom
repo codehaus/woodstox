@@ -8,7 +8,8 @@
   <artifactId>wstx-lgpl</artifactId>
   <name>Woodstox</name>
   <version>@VERSION@</version>
-  <description>Woodstox is a high-performance XML processor that implements Stax (JSR-173) API</description>
+  <description>Woodstox is a high-performance XML processor that
+implements Stax (JSR-173) and SAX2 APIs</description>
 
  <!-- Contact information -->
 
@@ -29,4 +30,18 @@
       <version>[1.0.1,</version>
     </dependency>
   </dependencies>
+
+  <!-- Licensing (joy!) -->
+  <licenses>
+    <license>
+      <name>GNU Lesser General Public License (LGPL), Version 2.1</name>
+      <url>http://www.fsf.org/licensing/licenses/lgpl.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <organization>
+    <name>Codehaus</name>
+    <url>http://www.codehaus.org/</url>
+  </organization>
 </project>

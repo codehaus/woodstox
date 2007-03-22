@@ -267,14 +267,17 @@ Michael Allman:
 Wayne Fay:
   * Suggested good improvements wrt [WSTX-85], for improving Maven
     artifacts
-    [4.0]
+   [4.0]
 
 Erik Bergersjö:
   * Reported [WSTX-110], problems regarding Exception root cause setting.
-    [3.2.1 / 4.0]
+   [3.2.1 / 4.0]
 
 Santiago Pericas-Geertsen:
   * Pointed out [WSTX-111]: Stax TCK non-compliancy, regarding filtered stream
     reader.
-    [3.2.1 / 4.0]
+   [3.2.1 / 4.0]
 
+Daniel Kulp:
+  * Pointed out [WSTX-108] (Maven pom missing info), helped resolve
+   [4.0]

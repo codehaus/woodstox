@@ -16,6 +16,7 @@
 package com.ctc.wstx.sw;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.Writer;
 import java.text.MessageFormat;
 
@@ -202,6 +203,25 @@ public abstract class XmlWriter
     public void enableXml11() {
         mXml11 = true;
     }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Access to underlying physical output destinations
+    ////////////////////////////////////////////////////
+     */
+
+    /**
+     * @return Underlying OutputStream used for physical output,
+     *   if the writer was constructed using one
+     */
+    protected abstract OutputStream getOutputStream();
+
+    /**
+     * @return Underlying Writer used for physical output,
+     *   if the writer was constructed with one, or one was
+     *   created to be used with an OutputStream.
+     */
+    protected abstract Writer getWriter();
 
     /*
     ////////////////////////////////////////////////////

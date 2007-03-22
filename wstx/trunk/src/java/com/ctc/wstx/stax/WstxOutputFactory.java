@@ -245,14 +245,14 @@ public final class WstxOutputFactory
                      *   xml writer must call close on utf8 writer. Thus:
                      */
                     w = new UTF8Writer(cfg, out, autoCloseOutput);
-                    xw = new BufferingXmlWriter(w, cfg, enc, true);
+                    xw = new BufferingXmlWriter(w, cfg, enc, true, out);
                 } else if (enc == CharsetNames.CS_ISO_LATIN1) {
                     xw = new ISOLatin1XmlWriter(out, cfg, autoCloseOutput);
                 } else if (enc == CharsetNames.CS_US_ASCII) {
                     xw = new AsciiXmlWriter(out, cfg, autoCloseOutput);
                 } else {
                     w = new OutputStreamWriter(out, enc);
-                    xw = new BufferingXmlWriter(w, cfg, enc, autoCloseOutput);
+                    xw = new BufferingXmlWriter(w, cfg, enc, autoCloseOutput, out);
                 }
             } catch (IOException ex) {
                 throw new XMLStreamException(ex);
@@ -265,7 +265,7 @@ public final class WstxOutputFactory
                 }
             }
             try {
-                xw = new BufferingXmlWriter(w, cfg, enc, autoCloseOutput);
+                xw = new BufferingXmlWriter(w, cfg, enc, autoCloseOutput, null);
             } catch (IOException ex) {
                 throw new XMLStreamException(ex);
             }
