@@ -17,6 +17,10 @@ Description:
     from expectations of Stax TCK (although identical to behavior of
     Stax RI).
     (reported by Santiago P-G)
+  * [WSTX-114] Handling of ID attribute uniqueness check was failing
+    in non-namespace mode: last character was dropped, leading to
+    false collisions
+    (reported by Linus E)
 
   New features:
 

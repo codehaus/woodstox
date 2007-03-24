@@ -177,7 +177,7 @@ public final class NonNsInputElementStack
                 String normValue = mValidator.validateAttribute
                     (nameData[i], null, null, attrCB,
                      attrBuilder.getOffset(i),
-                     attrBuilder.getOffset(i+1) - 1);
+                     attrBuilder.getOffset(i+1));
                 if (normValue != null) {
                     ac.setNormalizedValue(i, normValue);
                 }

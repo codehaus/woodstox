@@ -1,15 +1,12 @@
-package wstxtest.stream;
+package wstxtest.vstream;
 
 import java.io.*;
 
 import javax.xml.stream.*;
 
-import com.ctc.wstx.stax.WstxInputFactory;
-
-import org.codehaus.stax2.*;
 import org.codehaus.stax2.validation.*;
 
-import wstxtest.cfg.*;
+import wstxtest.stream.BaseStreamTest;
 
 /**
  * Simple test for ensuring handling of "xml:space" attribute. Not
@@ -89,12 +86,12 @@ public class TestXmlSpace
      */
 
     private XMLStreamReader getReader(String xml, boolean nsAware)
-	throws XMLStreamException
+        throws XMLStreamException
     {
-	XMLInputFactory f = getInputFactory();
-	setNamespaceAware(f, nsAware);
-	setSupportDTD(f, true);
-	setValidating(f, true);
-	return constructStreamReader(f, xml);
+        XMLInputFactory f = getInputFactory();
+        setNamespaceAware(f, nsAware);
+        setSupportDTD(f, true);
+        setValidating(f, true);
+        return constructStreamReader(f, xml);
     }
 }

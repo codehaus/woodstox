@@ -110,6 +110,9 @@ Linus Ericson:
       [2.0.2/2.6]
     * [WSTX-7] SimpleNsStreamWriter was stripping out attribute namespaces
       [2.0.3/2.7]
+    * [WSTX-114]: Handling of ID attribute values broken, in non-namespace
+      mode: last character was dropped.
+      [3.2/4.0]
 
 Patrick D'Cruze:
   * Reported [WSTX-8]; nextTag() followed by peek() at the start of a
