@@ -24,7 +24,8 @@ public class TestParsingMode
         "<?xml version='1.0'?><root>text</root><!--comment-->\n"
         +"<?xml version='1.0'?><root>text</root><?proc instr>\n"
         +"<?xml version='1.0'?><root>text</root><!--comment-->"
-        +"<?xml version='1.0'?><root>text</root><!--comment-->"
+        +"<?xml version='1.0' encoding='UTF-8'?><root>text</root><!--comment-->"
+        +"<?xml version='1.0' standalone='yes'?><root>text</root><!--comment-->"
         +"<?xml version='1.0'?><root>text</root><!--comment-->"
         ;
 

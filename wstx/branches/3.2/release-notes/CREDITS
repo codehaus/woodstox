@@ -272,6 +272,11 @@ Sami Dalouche:
     when trying to write illegal attribute value characters
     [3.2.1]
 
+Abde Sassi:
+  * Reported [WSTX-109], a bug in xml declaration handling in multi-doc
+    mode.
+   [3.2.1 / 4.0]
+
 Erik Bergersjö:
   * Reported [WSTX-110], problems regarding Exception root cause setting.
     [3.2.1]

@@ -72,7 +72,7 @@ public class Jdk14Impl
          */
         if (newT.getCause() == null) {
             newT.initCause(rootT);
-s        }
+        }
         return true;
     }
 

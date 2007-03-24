@@ -12,6 +12,8 @@ Description:
     (reported by Sami D)
   * [WSTX-108] Maven pom files were missing info (license, org etc)
     (reported by Daniel Kulp)
+  * [WSTX-109], a bug in xml declaration handling in multi-doc mode
+    (reported by Abde S)
   * [WSTX-110] Exception chaining would itself cause an exception,
     on some platforms.
     (reported by Erik Bergersjö)

@@ -2211,8 +2211,8 @@ public class BasicStreamReader
                                     +tb.toString()+"'; expected '"+XmlConsts.XML_SA_YES+"' or '"+
                                     XmlConsts.XML_SA_NO+"'");
                }
+                c = getNextInCurrAfterWS(SUFFIX_IN_XML_DECL);
             }
-            c = getNextInCurrAfterWS(SUFFIX_IN_XML_DECL);
         }
         
         if (c != '?') {
