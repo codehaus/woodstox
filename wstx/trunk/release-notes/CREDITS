@@ -279,7 +279,10 @@ Sami Dalouche:
 
 Daniel Kulp:
   * Pointed out [WSTX-108] (Maven pom missing info), helped resolve
-   [4.0]
+   [3.2.1 / 4.0]
+  * Reported [WSTX-113] (problems with DOMSource when DOM parsed in
+    non-namespace mode)
+   [3.2.1 / 4.0]
 
 Abde Sassi:
   * Reported [WSTX-109], a bug in xml declaration handling in multi-doc
@@ -291,6 +294,6 @@ Erik Bergersjö:
    [3.2.1 / 4.0]
 
 Santiago Pericas-Geertsen:
-  * Pointed out [WSTX-111]: Stax TCK non-compliancy, regarding filtered stream
+  * Pointed out [WSTX-111], Stax TCK non-compliancy, regarding filtered stream
     reader.
    [3.2.1 / 4.0]

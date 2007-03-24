@@ -272,16 +272,23 @@ Sami Dalouche:
     when trying to write illegal attribute value characters
     [3.2.1]
 
+Daniel Kulp:
+  * Pointed out [WSTX-108] (Maven pom missing info), helped resolve
+   [3.2.1]
+  * Reported [WSTX-113] (problems with DOMSource when DOM parsed in
+    non-namespace mode)
+   [3.2.1]
+
 Abde Sassi:
   * Reported [WSTX-109], a bug in xml declaration handling in multi-doc
     mode.
-   [3.2.1 / 4.0]
+   [3.2.1]
 
 Erik Bergersjö:
   * Reported [WSTX-110], problems regarding Exception root cause setting.
-    [3.2.1]
+   [3.2.1]
 
 Santiago Pericas-Geertsen:
-  * [WSTX-111] Reported Stax TCK non-compliancy, regarding filtered stream
+  * Pointed out [WSTX-111], Stax TCK non-compliancy, regarding filtered stream
     reader
-    [3.2.1]
+   [3.2.1]

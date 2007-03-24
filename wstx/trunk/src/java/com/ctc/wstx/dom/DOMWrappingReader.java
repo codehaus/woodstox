@@ -277,7 +277,7 @@ public class DOMWrappingReader
             return null;
         }
         Attr attr = (Attr) mAttrList.get(index);
-        return attr.getLocalName();
+        return safeGetLocalName(attr);
     }
 
     public QName getAttributeName(int index)
@@ -293,7 +293,7 @@ public class DOMWrappingReader
             return null;
         }
         Attr attr = (Attr) mAttrList.get(index);
-        return constructQName(attr.getNamespaceURI(), attr.getLocalName(),
+        return constructQName(attr.getNamespaceURI(), safeGetLocalName(attr),
                               attr.getPrefix());
     }
 
@@ -443,7 +443,7 @@ public class DOMWrappingReader
     public String getLocalName()
     {
         if (mCurrEvent == START_ELEMENT || mCurrEvent == END_ELEMENT) {
-            return mCurrNode.getLocalName();
+            return safeGetLocalName(mCurrNode);
         }
         if (mCurrEvent == ENTITY_REFERENCE) {
             return mCurrNode.getNodeName();
@@ -458,8 +458,7 @@ public class DOMWrappingReader
         if (mCurrEvent != START_ELEMENT && mCurrEvent != END_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_ELEM);
         }
-        return constructQName(mCurrNode.getNamespaceURI(), mCurrNode.getLocalName(),
-                              mCurrNode.getPrefix());
+        return constructQName(mCurrNode.getNamespaceURI(), safeGetLocalName(mCurrNode), mCurrNode.getPrefix());
     }
 
     // // // Namespace access
@@ -1372,20 +1371,20 @@ public class DOMWrappingReader
                                         +ErrorConsts.tokenTypeDesc(mCurrEvent)+")");
     }
 
-    public void throwParseError(String msg)
+    private void throwParseError(String msg)
         throws WstxParsingException
     {
         throw new WstxParsingException(msg, getLastCharLocation());
     }
 
-    public void throwParseError(String format, Object arg)
+    private void throwParseError(String format, Object arg)
         throws WstxParsingException
     {
         String msg = MessageFormat.format(format, new Object[] { arg });
         throw new WstxParsingException(msg, getLastCharLocation());
     }
 
-    public void handleIllegalAttrIndex(int index)
+    private void handleIllegalAttrIndex(int index)
     {
         Element elem = (Element) mCurrNode;
         NamedNodeMap attrs = elem.getAttributes();
@@ -1394,11 +1393,27 @@ public class DOMWrappingReader
         throw new IllegalArgumentException(msg);
     }
 
-    public void handleIllegalNsIndex(int index)
+    private void handleIllegalNsIndex(int index)
     {
         Element elem = (Element) mCurrNode;
         String msg = "Illegal namespace declaration index "+index+" (has "+getNamespaceCount()+" ns declarations)";
         throw new IllegalArgumentException(msg);
+    }
+
+    /**
+     * Due to differences in how namespace-aware and non-namespace modes
+     * work in DOM, different methods are needed. We may or may not be
+     * able to detect namespace-awareness mode of the source Nodes
+     * directly; but at any rate, should contain some logic for handling
+     * problem cases.
+     */
+    private String safeGetLocalName(Node n)
+    {
+        String ln = n.getLocalName();
+        if (ln == null) {
+            ln = n.getNodeName();
+        }
+        return ln;
     }
 }
 

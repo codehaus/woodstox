@@ -11,7 +11,7 @@ Description:
     specifically obscuring some character validity failures
     (reported by Sami D)
   * [WSTX-108] Maven pom files were missing info (license, org etc)
-    (reported by Daniel Kulp)
+    (reported by Daniel K)
   * [WSTX-109], a bug in xml declaration handling in multi-doc mode
     (reported by Abde S)
   * [WSTX-110] Exception chaining would itself cause an exception,
@@ -22,6 +22,9 @@ Description:
     from expectations of Stax TCK (although identical to behavior of
     Stax RI).
     (reported by Santiago P-G)
+  * [WSTX-113]: problems with DOMSource when DOM parsed in
+    non-namespace mode)
+    (reported by Daniel K)
   * [WSTX-114] Handling of ID attribute uniqueness check was failing
     in non-namespace mode: last character was dropped, leading to
     false collisions
