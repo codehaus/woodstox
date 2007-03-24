@@ -1135,8 +1135,10 @@ public class WstxSAXParser
 
                     // Returning null should be fine, actually...
                     return null;
+                } catch (IOException ex) {
+                    throw new WstxIOException(ex);
                 } catch (Exception ex) {
-                    throw new XMLStreamException(ex);
+                    throw new XMLStreamException(ex.getMessage(), ex);
                 }
             }
             return null;

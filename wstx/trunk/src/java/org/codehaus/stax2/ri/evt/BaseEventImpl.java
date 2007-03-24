@@ -134,6 +134,6 @@ public abstract class BaseEventImpl
     protected void throwFromIOE(IOException ioe)
         throws XMLStreamException
     {
-        throw new XMLStreamException(ioe);
+        throw new XMLStreamException(ioe.getMessage(), ioe);
     }
 }

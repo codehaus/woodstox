@@ -34,6 +34,7 @@ import org.codehaus.stax2.XMLStreamReader2;
 
 import com.ctc.wstx.api.WriterConfig;
 import com.ctc.wstx.cfg.ErrorConsts;
+import com.ctc.wstx.exc.WstxIOException;
 import com.ctc.wstx.util.DefaultXmlSymbolTable;
 
 /**
@@ -387,7 +388,7 @@ public abstract class BaseNsStreamWriter
                 mWriter.writeStartTagEnd();
             }
         } catch (IOException ioe) {
-            throw new XMLStreamException(ioe);
+            throw new WstxIOException(ioe);
         }
 
         if (mValidator != null) {
@@ -490,7 +491,7 @@ public abstract class BaseNsStreamWriter
                 mWriter.writeAttribute(localName, value);
             }
         } catch (IOException ioe) {
-            throw new XMLStreamException(ioe);
+            throw new WstxIOException(ioe);
         }
     }
 
@@ -510,7 +511,7 @@ public abstract class BaseNsStreamWriter
                 try {
                     mWriter.writeAttribute(XMLConstants.XMLNS_ATTRIBUTE, prefix, buf, 0, vlen);
                 } catch (IOException ioe) {
-                    throw new XMLStreamException(ioe);
+                    throw new WstxIOException(ioe);
                 }
                 return;
             }
@@ -518,7 +519,7 @@ public abstract class BaseNsStreamWriter
         try {
             mWriter.writeAttribute(XMLConstants.XMLNS_ATTRIBUTE, prefix, nsURI);
         } catch (IOException ioe) {
-            throw new XMLStreamException(ioe);
+            throw new WstxIOException(ioe);
         }
     }
 
@@ -538,7 +539,7 @@ public abstract class BaseNsStreamWriter
                 try {
                     mWriter.writeAttribute(XMLConstants.XMLNS_ATTRIBUTE, buf, 0, vlen);
                 } catch (IOException ioe) {
-                    throw new XMLStreamException(ioe);
+                    throw new WstxIOException(ioe);
                 }
                 return;
             }
@@ -546,7 +547,7 @@ public abstract class BaseNsStreamWriter
         try {
             mWriter.writeAttribute(XMLConstants.XMLNS_ATTRIBUTE, nsURI);
         } catch (IOException ioe) {
-            throw new XMLStreamException(ioe);
+            throw new WstxIOException(ioe);
         }
     }
 
@@ -558,7 +559,7 @@ public abstract class BaseNsStreamWriter
         try {
             mWriter.writeStartTagStart(localName);
         } catch (IOException ioe) {
-            throw new XMLStreamException(ioe);
+            throw new WstxIOException(ioe);
         }
     }
 
@@ -575,7 +576,7 @@ public abstract class BaseNsStreamWriter
                 mWriter.writeStartTagStart(localName);
             }
         } catch (IOException ioe) {
-            throw new XMLStreamException(ioe);
+            throw new WstxIOException(ioe);
         }
     }
 
@@ -660,14 +661,14 @@ public abstract class BaseNsStreamWriter
                 // Nah, need to close open elem, and then output close elem
                 mWriter.writeStartTagEnd();
             } catch (IOException ioe) {
-                throw new XMLStreamException(ioe);
+                throw new WstxIOException(ioe);
             }
         }
 
         try {
             mWriter.writeEndTag(prefix, localName);
         } catch (IOException ioe) {
-            throw new XMLStreamException(ioe);
+            throw new WstxIOException(ioe);
         }
 
         if (mCurrElem.isRoot()) {

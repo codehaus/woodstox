@@ -29,4 +29,19 @@
       <version>1.0.1</version>
     </dependency>
   </dependencies>
+
+  <!-- Licensing (joy!) -->
+  <licenses>
+    <license>
+      <name>GNU Lesser General Public License (LGPL), Version 2.1</name>
+      <url>http://www.fsf.org/licensing/licenses/lgpl.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <organization>
+    <name>Codehaus</name>
+    <url>http://www.codehaus.org/</url>
+  </organization>
+
 </project>

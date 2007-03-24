@@ -29,4 +29,20 @@
       <version>1.0.1</version>
     </dependency>
   </dependencies>
+
+
+  <!-- Licensing (joy!) -->
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <organization>
+    <name>Codehaus</name>
+    <url>http://www.codehaus.org/</url>
+  </organization>
+
 </project>

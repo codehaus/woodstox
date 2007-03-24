@@ -9,6 +9,11 @@ Description:
 
   * Added deprecation marker for Wstx properties that will not be
     supported in 4.0
+  * [WSTX-106] Descriptions missing from many wrapped IOExceptions;
+    specifically obscuring some character validity failures
+    (reported by Sami D)
+  * [WSTX-108] Maven pom files were missing info (license, org etc)
+    (reported by Daniel Kulp)
   * [WSTX-110] Exception chaining would itself cause an exception,
     on some platforms.
     (reported by Erik Bergersjö)

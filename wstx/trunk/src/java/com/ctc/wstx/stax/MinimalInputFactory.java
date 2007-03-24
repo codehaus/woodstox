@@ -209,7 +209,7 @@ public class MinimalInputFactory
             return createSR(null, ReaderBootstrapper.getInstance
                             (new InputStreamReader(in, enc), null, null, enc));
         } catch (UnsupportedEncodingException ex) {
-            throw new XMLStreamException(ex);
+            throw new WstxIOException(ex);
         }
     }
 

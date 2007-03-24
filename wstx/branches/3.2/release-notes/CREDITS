@@ -267,9 +267,14 @@ Michael Allman:
     prefix being reported/output.
     [3.0.4 / 3.1.2 / 3.2]
 
+Sami Dalouche:
+  * Pointed out [WSTX-106], unhelpful XMLStreamException being thrown
+    when trying to write illegal attribute value characters
+    [3.2.1]
+
 Erik Bergersjö:
   * Reported [WSTX-110], problems regarding Exception root cause setting.
-    [3.2.1 / 4.0]
+    [3.2.1]
 
 Santiago Pericas-Geertsen:
   * [WSTX-111] Reported Stax TCK non-compliancy, regarding filtered stream

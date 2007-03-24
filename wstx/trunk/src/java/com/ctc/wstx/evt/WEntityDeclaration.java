@@ -12,6 +12,7 @@ import org.codehaus.stax2.XMLStreamWriter2;
 import org.codehaus.stax2.ri.evt.BaseEventImpl;
 
 import com.ctc.wstx.ent.EntityDecl;
+import com.ctc.wstx.exc.WstxIOException;
 import com.ctc.wstx.io.WstxInputSource;
 
 /**
@@ -57,7 +58,7 @@ public abstract class WEntityDeclaration
         try {
             writeEnc(w);
         } catch (IOException ie) {
-            throw new XMLStreamException(ie);
+            throw new WstxIOException(ie);
         }
     }
 

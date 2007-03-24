@@ -67,7 +67,12 @@ public class Jdk14Impl
 
     public boolean setInitCause(Throwable newT, Throwable rootT)
     {
-        newT.initCause(rootT);
+        /* [WSTX-110]: Better make sure we do not already have
+         * a chained exception...
+         */
+        if (newT.getCause() == null) {
+            newT.initCause(rootT);
+        }
         return true;
     }
 
