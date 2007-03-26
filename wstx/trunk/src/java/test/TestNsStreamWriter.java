@@ -66,7 +66,12 @@ public class TestNsStreamWriter
 
         sw.writeCharacters("\n");
         sw.writeStartElement("root");
-        sw.writeAttribute("attr", "Invalid also: \0");
+
+        sw.setPrefix("ns", "http://foo");
+
+        System.out.println("Prefix 'ns' -> ["+sw.getPrefix("ns")+"]");
+
+        //sw.writeAttribute("attr", "Invalid also: \0");
 
         sw.writeCharacters("Need to quote this too: ]]>");
         /*

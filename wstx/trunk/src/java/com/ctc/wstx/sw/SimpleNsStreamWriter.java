@@ -230,12 +230,12 @@ public class SimpleNsStreamWriter
     protected void writeStartOrEmpty(String localName, String nsURI)
         throws XMLStreamException
     {
-        checkStartElement(localName, "");
         // Need a prefix...
         String prefix = mCurrElem.getPrefix(nsURI);
         if (prefix == null) {
             throw new XMLStreamException("Unbound namespace URI '"+nsURI+"'");
         }
+        checkStartElement(localName, prefix);
         if (mValidator != null) {
             mValidator.validateElementStart(localName, nsURI, prefix);
         }

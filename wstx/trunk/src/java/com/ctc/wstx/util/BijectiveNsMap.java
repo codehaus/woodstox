@@ -316,10 +316,4 @@ public final class BijectiveNsMap
         return "["+getClass().toString()+"; "+size()+" entries; of which "
             +localSize()+" local]";
     }
-
-    /*
-    ///////////////////////////////////////////////
-    // Internal methods
-    ///////////////////////////////////////////////
-     */
 }
