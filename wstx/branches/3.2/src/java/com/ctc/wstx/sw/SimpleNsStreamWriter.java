@@ -108,6 +108,8 @@ public class SimpleNsStreamWriter
         if (!mStartElementOpen) {
             throwOutputError(ERR_NSDECL_WRONG_STATE);
         }
+        // 27-Mar-2007, TSa: Apparently TCK expects a binding to be added
+        setDefaultNamespace(nsURI);
         doWriteDefaultNs(nsURI);
     }
 
@@ -138,7 +140,8 @@ public class SimpleNsStreamWriter
             }
             // 01-Apr-2005, TSa: Can we (and do we want to) verify NS consistency?
         }
-        
+        // 27-Mar-2007, TSa: Apparently TCK expects a binding to be added
+        setPrefix(prefix, nsURI);
         doWriteNamespace(prefix, nsURI);
     }
 
@@ -230,12 +233,12 @@ public class SimpleNsStreamWriter
     protected void writeStartOrEmpty(String localName, String nsURI)
         throws XMLStreamException
     {
-        checkStartElement(localName, "");
         // Need a prefix...
         String prefix = mCurrElem.getPrefix(nsURI);
         if (prefix == null) {
             throw new XMLStreamException("Unbound namespace URI '"+nsURI+"'");
         }
+        checkStartElement(localName, prefix);
         if (mValidator != null) {
             mValidator.validateElementStart(localName, nsURI, prefix);
         }
