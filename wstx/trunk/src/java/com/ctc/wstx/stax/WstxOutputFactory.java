@@ -235,7 +235,14 @@ public final class WstxOutputFactory
             if (enc == null) {
                 enc = WstxOutputProperties.DEFAULT_OUTPUT_ENCODING;
             } else {
-                enc = CharsetNames.normalize(enc);
+                /* Canonical ones are interned, so we may have
+                 * normalized encoding already...
+                 */
+                if (enc != CharsetNames.CS_UTF8
+                    && enc != CharsetNames.CS_ISO_LATIN1
+                    && enc != CharsetNames.CS_US_ASCII) {
+                    enc = CharsetNames.normalize(enc);
+                }
             }
 
             try {
@@ -245,14 +252,14 @@ public final class WstxOutputFactory
                      *   xml writer must call close on utf8 writer. Thus:
                      */
                     w = new UTF8Writer(cfg, out, autoCloseOutput);
-                    xw = new BufferingXmlWriter(w, cfg, enc, true, out);
+                    xw = new BufferingXmlWriter(w, cfg, enc, true, out, 16);
                 } else if (enc == CharsetNames.CS_ISO_LATIN1) {
                     xw = new ISOLatin1XmlWriter(out, cfg, autoCloseOutput);
                 } else if (enc == CharsetNames.CS_US_ASCII) {
                     xw = new AsciiXmlWriter(out, cfg, autoCloseOutput);
                 } else {
                     w = new OutputStreamWriter(out, enc);
-                    xw = new BufferingXmlWriter(w, cfg, enc, autoCloseOutput, out);
+                    xw = new BufferingXmlWriter(w, cfg, enc, autoCloseOutput, out, -1);
                 }
             } catch (IOException ex) {
                 throw new XMLStreamException(ex);
@@ -265,7 +272,7 @@ public final class WstxOutputFactory
                 }
             }
             try {
-                xw = new BufferingXmlWriter(w, cfg, enc, autoCloseOutput, null);
+                xw = new BufferingXmlWriter(w, cfg, enc, autoCloseOutput, null, -1);
             } catch (IOException ex) {
                 throw new XMLStreamException(ex);
             }

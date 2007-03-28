@@ -138,7 +138,7 @@ public final class BufferingXmlWriter
      */
     public BufferingXmlWriter(Writer out, WriterConfig cfg, String enc,
                               boolean autoclose,
-                              OutputStream outs)
+                              OutputStream outs, int bitsize)
         throws IOException
     {
         super(cfg, enc, autoclose);
@@ -157,7 +157,9 @@ public final class BufferingXmlWriter
          * unicode-based encoders. But we do not have to worry about
          * surrogates quite here, fortunately.
          */
-        int bitsize = guessEncodingBitSize(enc);
+        if (bitsize < 1) {
+            bitsize = guessEncodingBitSize(enc);
+        }
         mEncHighChar = ((bitsize < 16) ? (1 << bitsize) : 0xFFFE);
     }
 
@@ -1305,6 +1307,7 @@ public final class BufferingXmlWriter
         if (enc == null || enc.length() == 0) { // let's assume default is UTF-8...
             return 16;
         }
+
         // Let's see if we can find a normalized name, first:
         enc = CharsetNames.normalize(enc);
 

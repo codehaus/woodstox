@@ -498,25 +498,21 @@ public abstract class BaseNsStreamWriter
     protected void doWriteNamespace(String prefix, String nsURI)
         throws XMLStreamException
     {
-        int vlen = nsURI.length();
-        // Worthwhile to make a local copy?
-        if (vlen >= ATTR_MIN_ARRAYCOPY) {
-            char[] buf = mCopyBuffer;
-            if (buf == null) {
-                mCopyBuffer = buf = mConfig.allocMediumCBuffer(DEFAULT_COPYBUFFER_LEN);
-            }
-            // Let's not bother with too long, though
-            if (vlen <= buf.length) {
-                nsURI.getChars(0, vlen, buf, 0);
-                try {
-                    mWriter.writeAttribute(XMLConstants.XMLNS_ATTRIBUTE, prefix, buf, 0, vlen);
-                } catch (IOException ioe) {
-                    throw new WstxIOException(ioe);
-                }
-                return;
-            }
-        }
         try {
+            int vlen = nsURI.length();
+            // Worthwhile to make a local copy?
+            if (vlen >= ATTR_MIN_ARRAYCOPY) {
+                char[] buf = mCopyBuffer;
+                if (buf == null) {
+                    mCopyBuffer = buf = mConfig.allocMediumCBuffer(DEFAULT_COPYBUFFER_LEN);
+                }
+                // Let's not bother with too long, though
+                if (vlen <= buf.length) {
+                    nsURI.getChars(0, vlen, buf, 0);
+                    mWriter.writeAttribute(XMLConstants.XMLNS_ATTRIBUTE, prefix, buf, 0, vlen);
+                    return;
+                }
+            }
             mWriter.writeAttribute(XMLConstants.XMLNS_ATTRIBUTE, prefix, nsURI);
         } catch (IOException ioe) {
             throw new WstxIOException(ioe);
@@ -526,25 +522,21 @@ public abstract class BaseNsStreamWriter
     protected void doWriteDefaultNs(String nsURI)
         throws XMLStreamException
     {
-        int vlen = nsURI.length();
-        // Worthwhile to make a local copy?
-        if (vlen >= ATTR_MIN_ARRAYCOPY) {
-            char[] buf = mCopyBuffer;
-            if (buf == null) {
-                mCopyBuffer = buf = mConfig.allocMediumCBuffer(DEFAULT_COPYBUFFER_LEN);
-            }
-            // Let's not bother with too long, though
-            if (vlen <= buf.length) {
-                nsURI.getChars(0, vlen, buf, 0);
-                try {
-                    mWriter.writeAttribute(XMLConstants.XMLNS_ATTRIBUTE, buf, 0, vlen);
-                } catch (IOException ioe) {
-                    throw new WstxIOException(ioe);
-                }
-                return;
-            }
-        }
         try {
+            int vlen = nsURI.length();
+            // Worthwhile to make a local copy?
+            if (vlen >= ATTR_MIN_ARRAYCOPY) {
+                char[] buf = mCopyBuffer;
+                if (buf == null) {
+                    mCopyBuffer = buf = mConfig.allocMediumCBuffer(DEFAULT_COPYBUFFER_LEN);
+                }
+                // Let's not bother with too long, though
+                if (vlen <= buf.length) {
+                    nsURI.getChars(0, vlen, buf, 0);
+                    mWriter.writeAttribute(XMLConstants.XMLNS_ATTRIBUTE, buf, 0, vlen);
+                    return;
+                }
+            }
             mWriter.writeAttribute(XMLConstants.XMLNS_ATTRIBUTE, nsURI);
         } catch (IOException ioe) {
             throw new WstxIOException(ioe);
