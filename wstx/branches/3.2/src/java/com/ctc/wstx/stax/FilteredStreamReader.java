@@ -39,15 +39,15 @@ public class FilteredStreamReader
     public int next()
         throws XMLStreamException
     {
-        while (true) {
-            int type = mReader.next();
+        int type;
+        do {
+            type = mReader.next();
             if (mFilter.accept(this)) {
-                return type;
+                break;
             }
-            /* ??? 11-May-2004, TSa: Should we take some precautions for
-             *   END_DOCUMENT event?
-             */
-        }
+        } while (type != END_DOCUMENT);
+
+        return type;
     }
 
     public int nextTag()
