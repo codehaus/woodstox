@@ -1306,7 +1306,8 @@ public abstract class BaseStreamWriter
     }
 
     /**
-     * Convenience method needed by {@link com.ctc.wstx.evt.WstxEventWriter}, to use when
+     * Convenience method needed by {@link javax.xml.stream.XMLEventWriter}
+     * implementation, to use when
      * writing a start element, and possibly its attributes and namespace
      * declarations.
      */
@@ -1314,16 +1315,17 @@ public abstract class BaseStreamWriter
         throws XMLStreamException;
 
     /**
-     * Method called by {@link com.ctc.wstx.evt.WstxEventWriter} (instead of the version
+     * Method called by {@link javax.xml.stream.XMLEventWriter}
+     * (instead of the version
      * that takes no argument), so that we can verify it does match the
-     * start element, if necessary
+     * start element if necessary.
      */
     public abstract void writeEndElement(QName name)
         throws XMLStreamException;
 
     /**
-     * Method called by {@link com.ctc.wstx.evt.WstxEventWriter} (instead of
-     * more generic
+     * Method called by {@link javax.xml.stream.XMLEventWriter}
+     * (instead of more generic
      * text output methods), so that we can verify (if necessary) that
      * this character output type is legal in this context. Specifically,
      * it's not acceptable to add non-whitespace content outside root

@@ -21,12 +21,6 @@ import org.codehaus.stax2.ri.EmptyIterator;
 public class Stax2EventAllocatorImpl
     implements XMLEventAllocator, XMLStreamConstants
 {
-    /**
-     * @param accurateLocation If true, allocator will construct instances
-     *   that have accurate location information; if false, instances
-     *   will only have some generic shared Location info. Latter option
-     *   will reduce memory usage/thrashing a bit, and may improve speed.
-     */
     public Stax2EventAllocatorImpl() { }
 
     /*

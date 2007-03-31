@@ -68,17 +68,21 @@
 
     <!-- Source files to include in source packages (tar, zip) -->
     <patternset id="wstx-dist-src-files">
-          <include name="src/**/*.java" />
+          <include name="src/java/**/*.java" />
+          <include name="src/resources/*" />
+          <include name="build.xml" />
+          <include name="project.xml" />
+    </patternset>
+
+    <patternset id="wstx-dist-misc-files">
+          <include name="src/test/**/*.java" />
           <include name="src/test/**/*.xml" />
           <include name="src/test/**/*.dtd" />
           <include name="src/java/**/*.html" />
           <include name="src/maven/*.pom" />
-          <include name="src/resources/*" />
           <include name="release-notes/*" />
           <include name="release-notes/asl/*" />
           <include name="release-notes/lgpl/*" />
-          <include name="build.xml" />
-          <include name="project.xml" />
           <!-- need jars too; at least the api jar, but let's copy
                all for now... it's nice to have the unit tests in there
                too. This way src packages are proper subsets of binary ones
@@ -412,6 +416,7 @@
           -->
        <tar basedir="${basedir}" destfile="${DistDir}/wstx-src-${WSTX_VERSION}.tar">
           <patternset refid="wstx-dist-src-files" />
+          <patternset refid="wstx-dist-misc-files" />
        </tar>
        <gzip zipfile="${DistDir}/wstx-src-${WSTX_VERSION}.tar.gz" src="${DistDir}/wstx-src-${WSTX_VERSION}.tar" />
        <delete file="${DistDir}/wstx-src-${WSTX_VERSION}.tar" />
@@ -420,7 +425,20 @@
           -->
        <zip basedir="${basedir}" destfile="${DistDir}/wstx-src-${WSTX_VERSION}.zip">
           <patternset refid="wstx-dist-src-files" />
+          <patternset refid="wstx-dist-misc-files" />
        </zip>
+
+       <!-- And create source jars for IDE support -->
+       <jar jarfile="${DistDir}/wstx-lgpl-${WSTX_VERSION}-sources.jar" filesonly="true" >
+          <fileset dir="${basedir}">
+              <patternset refid="wstx-dist-src-files" />
+          </fileset>
+       </jar>
+       <jar jarfile="${DistDir}/wstx-lgpl-${WSTX_VERSION}-sources.jar" filesonly="true" >
+          <fileset dir="${basedir}">
+              <patternset refid="wstx-dist-src-files" />
+          </fileset>
+       </jar>
 
        <!-- Then copy javadocs -->
        <copy todir="${DistDir}">

@@ -358,7 +358,8 @@ public abstract class BaseNsStreamWriter
      */
 
     /**
-     * Method called by {@link com.ctc.wstx.evt.WstxEventWriter} (instead of the version
+     * Method called by {@link javax.xml.stream.XMLEventWriter} implementation
+     * (instead of the version
      * that takes no argument), so that we can verify it does match the
      * start element, if necessary
      */
