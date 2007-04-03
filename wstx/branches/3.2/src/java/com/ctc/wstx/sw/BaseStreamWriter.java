@@ -319,6 +319,12 @@ public abstract class BaseStreamWriter
     public abstract String getPrefix(String uri);
 
     public Object getProperty(String name) {
+        if (name.equals(WstxOutputProperties.P_OUTPUT_UNDERLYING_STREAM)) {
+            return mWriter.getOutputStream();
+        }
+        if (name.equals(WstxOutputProperties.P_OUTPUT_UNDERLYING_WRITER)) {
+            return mWriter.getWriter();
+        }
         return mConfig.getProperty(name);
     }
 

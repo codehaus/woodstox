@@ -1,6 +1,6 @@
 Version: 3.2.1
 
-Release date: 31-Mar-2007
+Release date: 03-Apr-2007
 
 Description:
   First patch release for 3.2.
@@ -31,6 +31,13 @@ Description:
     in non-namespace mode: last character was dropped, leading to
     false collisions
     (reported by Linus E)
+
+  New features:
+
+  * [WSTX-112] Added access to underlying output stream/writer, via
+    XMLStreamReader.getProperty(). Properties added are
+    'WstxOutputProperties.P_OUTPUT_UNDERLYING_STREAM' and
+    'WstxOutputProperties.P_OUTPUT_UNDERLYING_WRITER'.
 
 == History: ==
 

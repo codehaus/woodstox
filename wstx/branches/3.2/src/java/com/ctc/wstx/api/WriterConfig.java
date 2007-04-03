@@ -63,6 +63,11 @@ public final class WriterConfig
     final static int PROP_VALIDATE_ATTR = 17;
     final static int PROP_VALIDATE_NAMES = 18;
     final static int PROP_FIX_CONTENT = 19;
+    
+    // Per-writer instance information
+
+    final static int PROP_UNDERLYING_STREAM = 30;
+    final static int PROP_UNDERLYING_WRITER = 31;
 
     // // // Default settings for additional properties:
 
@@ -181,6 +186,12 @@ public final class WriterConfig
                         new Integer(PROP_VALIDATE_NAMES));
         sProperties.put(WstxOutputProperties.P_OUTPUT_FIX_CONTENT,
                         new Integer(PROP_FIX_CONTENT));
+        
+        // Underlying stream/writer access
+        sProperties.put(WstxOutputProperties.P_OUTPUT_UNDERLYING_STREAM,
+                        new Integer(PROP_UNDERLYING_STREAM));
+        sProperties.put(WstxOutputProperties.P_OUTPUT_UNDERLYING_STREAM,
+                        new Integer(PROP_UNDERLYING_STREAM));
     }
 
     /*
@@ -342,6 +353,11 @@ public final class WriterConfig
             return willValidateNames() ? Boolean.TRUE : Boolean.FALSE;
         case PROP_FIX_CONTENT:
             return willFixContent() ? Boolean.TRUE : Boolean.FALSE;
+            
+            // And then per-instance properties: not valid via config object
+        case PROP_UNDERLYING_STREAM:
+        case PROP_UNDERLYING_WRITER:
+            throw new IllegalStateException("Can not access per-stream-writer properties via factory");
         }
 
         throw new Error("Internal error: no handler for property with internal id "+id+".");
@@ -412,6 +428,10 @@ public final class WriterConfig
         case PROP_FIX_CONTENT:
             doFixContent(ArgUtil.convertToBoolean(name, value));
             break;
+                        
+        case PROP_UNDERLYING_STREAM:
+        case PROP_UNDERLYING_WRITER:
+            throw new IllegalStateException("Can not modify per-stream-writer properties via factory");
 
         default:
             throw new Error("Internal error: no handler for property with internal id "+id+".");
