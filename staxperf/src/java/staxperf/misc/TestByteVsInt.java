@@ -13,6 +13,8 @@ import java.util.*;
  */
 public class TestByteVsInt
 {
+    private TestByteVsInt() { }
+
     public void test(String[] args)
         throws IOException
     {
