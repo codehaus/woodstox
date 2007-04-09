@@ -46,7 +46,7 @@ public class Stax2ReaderAdapter
     ////////////////////////////////////////////////////
      */
 
-    private Stax2ReaderAdapter(XMLStreamReader sr)
+    protected Stax2ReaderAdapter(XMLStreamReader sr)
     {
         super(sr);
     }

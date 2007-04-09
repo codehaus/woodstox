@@ -1,59 +1,46 @@
-package staxperf.staxcopy;
+/* Stax2 API extension for Streaming Api for Xml processing (StAX).
+ *
+ * Copyright (c) 2006- Tatu Saloranta, tatu.saloranta@iki.fi
+ *
+ * Licensed under the License specified in file LICENSE, included with
+ * the source code.
+ * You may not use this file except in compliance with the License.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.codehaus.stax2.ri;
 
 import java.io.IOException;
 import java.io.Writer;
 
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.stream.*;
-import javax.xml.stream.util.StreamReaderDelegate;
 
 import org.codehaus.stax2.*;
 import org.codehaus.stax2.validation.*;
 
 /**
- * This adapter implements parts of {@link XMLStreamReader2}, the
- * extended stream reader defined by Stax2 extension, by wrapping
- * a vanilla Stax 1.0 {@link XMLStreamReader} implementation.
+ * This is a partial base implementation of {@link XMLStreamReader2},
+ * the extended stream reader that is part of Stax2.
  */
 public abstract class Stax2ReaderImpl
-    extends StreamReaderDelegate /* from Stax 1.0 */
     implements XMLStreamReader2 /* From Stax2 */
                ,AttributeInfo
                ,DTDInfo
                ,LocationInfo
 {
-    /**
-     * Number of open (start) elements currently.
-     */
-    protected int mDepth = 0;
-
     /*
     ////////////////////////////////////////////////////
     // Life-cycle methods
     ////////////////////////////////////////////////////
      */
 
-    private Stax2ReaderImpl(XMLStreamReader sr)
+    protected Stax2ReaderImpl()
     {
-        super(sr);
-    }
-
-    /*
-    ////////////////////////////////////////////////////
-    // Stax 1.0 methods overridden
-    ////////////////////////////////////////////////////
-     */
-
-    public int next()
-        throws XMLStreamException
-    {
-        int type = super.next();
-        if (type == XMLStreamConstants.START_ELEMENT) {
-            ++mDepth;
-        } else if (type == XMLStreamConstants.END_ELEMENT) {
-            --mDepth;
-        }
-        return type;
     }
 
     /*
@@ -161,27 +148,11 @@ public abstract class Stax2ReaderImpl
      * @return Number of open elements in the stack; 0 when parser is in
      *  prolog/epilog, 1 inside root element and so on.
      */
-    public int getDepth() {
-        return mDepth;
-    }
+    public abstract int getDepth();
 
-    /**
-     * Alas, there is no way to find this out via Stax 1.0, so this
-     * implementation always returns false.
-     */
-    public boolean isEmptyElement() throws XMLStreamException
-    {
-        return false;
-    }
+    public abstract boolean isEmptyElement() throws XMLStreamException;
 
-    public NamespaceContext getNonTransientNamespaceContext()
-    {
-        /* Too hard to construct without other info: let's bail
-         * and return null; this is better than return a transient
-         * one.
-         */
-        return null; // never gets here
-    }
+    public abstract NamespaceContext getNonTransientNamespaceContext();
 
     public String getPrefixedName()
     {
@@ -311,21 +282,12 @@ public abstract class Stax2ReaderImpl
 
     // // // and then the object-based access methods:
 
-    public XMLStreamLocation2 getStartLocation()
-    {
-        return null;
-    }
+    public abstract XMLStreamLocation2 getStartLocation();
 
-    public XMLStreamLocation2 getCurrentLocation()
-    {
-        return null;
-    }
+    public abstract XMLStreamLocation2 getCurrentLocation();
 
-    public final XMLStreamLocation2 getEndLocation()
-        throws XMLStreamException
-    {
-        return null;
-    }
+    public abstract XMLStreamLocation2 getEndLocation()
+        throws XMLStreamException;
 
     /*
     ////////////////////////////////////////////////////
@@ -354,10 +316,7 @@ public abstract class Stax2ReaderImpl
         return null;
     }
 
-    public ValidationProblemHandler setValidationProblemHandler(ValidationProblemHandler h)
-    {
-        return null;
-    }
+    public abstract ValidationProblemHandler setValidationProblemHandler(ValidationProblemHandler h);
 
     /*
     ////////////////////////////////////////////////////

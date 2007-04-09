@@ -224,6 +224,12 @@
         <javac SrcDir="${JavaSrcDir}" destdir="${BuildClassesDir}"
             debug="true"
         >
+<!-- 08-Apr-2007, TSa: Uncomment to see warnings: too verbose
+   to be the default (due to deprecated things we do want to support)
+  -->
+<!--
+            <compilerarg value="-Xlint:deprecation" />
+-->
             <include name="org/codehaus/stax2/**/*.java" />
             <include name="com/ctc/**/*.java" />
             <include name="test/**/*.java" />
