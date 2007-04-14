@@ -81,6 +81,21 @@ public abstract class XMLOutputFactory2
      */
     public final static String P_AUTOMATIC_EMPTY_ELEMENTS = "org.codehaus.stax2.automaticEmptyElements";
 
+    // // // Output stream/writer settings
+
+    /**
+     * Whether stream writer is to close the underlying output
+     * destination (output stream, reader) when stream writer is closed.
+     * Basic StAX2 specification mandates this feature to be set to
+     * false by default
+     * (for destinations that are passed by the application and for which
+     * it has access to).
+     *<p>
+     * Note: if set to true, writers are also allowed (but not required) to
+     * close the underlying destination when they do not need it any more,
+     * for example when throwing an (unrecoverable) exception
+     */
+    public final static String P_AUTO_CLOSE_OUTPUT = "org.codehaus.stax2.autoCloseOutput";
 
     // // Namespace options:
 
