@@ -172,7 +172,7 @@ public final class NonNsAttributeCollector
     ///////////////////////////////////////////////
      */
 
-    public int getNsCount() {
+    protected int getNsCount() {
         return 0;
     }
 

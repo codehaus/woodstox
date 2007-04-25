@@ -53,7 +53,7 @@ public abstract class AttributeCollector
      * Dynamically grown; better not to set too high to avoid excessive
      * overhead for small attribute-less documents.
      */
-    protected final static int EXP_ATTR_COUNT = 16;
+    protected final static int EXP_ATTR_COUNT = 12;
 
     /**
      * This value is used to indicate that we shouldn't keep track
@@ -185,7 +185,7 @@ public abstract class AttributeCollector
      * @return Number of namespace declarations collected, including
      *   possible default namespace declaration
      */
-    public abstract int getNsCount();
+    protected abstract int getNsCount();
 
     public abstract String getNsPrefix(int index);
 

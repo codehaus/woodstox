@@ -8,7 +8,7 @@ package com.ctc.wstx.util;
  */
 public final class TextBuilder
 {
-    private final static int MIN_LEN = 64;
+    private final static int MIN_LEN = 60;
     private final static int MAX_LEN = 120;
 
     private char[] mBuffer;
@@ -91,26 +91,6 @@ public final class TextBuilder
         return mResultString.substring(mBufferOffsets[index],
                                        mBufferOffsets[index+1]);
     }
-
-    // 16-May-2006, TSa: Not needed any more
-    /*
-    public void getEntry(int index, java.io.Writer w)
-        throws java.io.IOException
-    {
-        // Note: caller is assumed to have verified the index
-        int offset = mBufferOffsets[index];
-        int offset2;
-        if (index == (mEntryCount-1)) {
-            offset2 = mBufferLen;
-        } else {
-            offset2 = mBufferOffsets[index+1];
-        }
-        offset2 -= offset;
-        if (offset2 > 0) {
-            w.write(mBuffer, offset, offset2);
-        }
-    }
-    */
 
     public int getOffset(int index) {
         if (index >= mEntryCount) { // last entry

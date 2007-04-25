@@ -260,19 +260,43 @@ public class Stax2ReaderAdapter
 
     public int findAttributeIndex(String nsURI, String localName)
     {
-        // !!! TBI
+        if ("".equals(nsURI)) {
+            nsURI = null;
+        }
+        for (int i = 0, len = getAttributeCount(); i < len; ++i) {
+            if (getAttributeLocalName(i).equals(localName)) {
+                String otherUri = getAttributeNamespace(i);
+                if (nsURI == null) {
+                    if (otherUri == null || otherUri.length() == 0) {
+                        return i;
+                    }
+                } else {
+                    if (nsURI.equals(otherUri)) {
+                        return i;
+                    }
+                }
+            }
+        }
         return -1;
     }
 
     public int getIdAttributeIndex()
     {
-        // !!! TBI
+        for (int i = 0, len = getAttributeCount(); i < len; ++i) {
+            if ("ID".equals(getAttributeType(i))) {
+                return i;
+            }
+        }
         return -1;
     }
 
     public int getNotationAttributeIndex()
     {
-        // !!! TBI
+        for (int i = 0, len = getAttributeCount(); i < len; ++i) {
+            if ("NOTATION".equals(getAttributeType(i))) {
+                return i;
+            }
+        }
         return -1;
     }
 
@@ -302,7 +326,15 @@ public class Stax2ReaderAdapter
      * @return Internal subset portion of the DOCTYPE declaration, if any;
      *   empty String if none
      */
-    public String getDTDInternalSubset() {
+    public String getDTDInternalSubset()
+    {
+        /* According to basic Stax API, getText() <b>should</b> return
+         * the internal subset. Not all implementations agree, so
+         * this may or may not work.
+         */
+        if (getEventType() == XMLStreamConstants.DTD) {
+            return getText();
+        }
         return null;
     }
 

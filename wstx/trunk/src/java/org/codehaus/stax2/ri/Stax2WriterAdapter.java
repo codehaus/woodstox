@@ -23,8 +23,8 @@ import org.codehaus.stax2.validation.XMLValidationSchema;
 import org.codehaus.stax2.validation.XMLValidator;
 
 /**
- * This adapter implements parts of {@link XMLStreamReader2}, the
- * extended stream reader defined by Stax2 extension, by wrapping
+ * This adapter implements parts of {@link XMLStreamWriter2}, the
+ * extended stream writer defined by Stax2 extension, by wrapping
  * a vanilla Stax 1.0 {@link XMLStreamReader} implementation.
  *<p>
  * Note: the implementation is incomplete as-is, since not all

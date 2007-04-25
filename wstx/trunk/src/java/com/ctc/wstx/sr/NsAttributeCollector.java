@@ -59,7 +59,7 @@ public final class NsAttributeCollector
 
     /**
      * TextBuilder into which values of namespace URIs are added (including
-     * URI for the default namespace, if one defined)
+     * URI for the default namespace, if one defined).
      */
     private final TextBuilder mNamespaceURIs = new TextBuilder(EXP_NS_COUNT);
 
@@ -277,7 +277,7 @@ public final class NsAttributeCollector
     /**
      * @return Number of 'new' namespace declarations collected
      */
-    public int getNsCount() {
+    protected int getNsCount() {
         return mNamespaceURIs.size();
     }
 

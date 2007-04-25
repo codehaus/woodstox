@@ -25,23 +25,6 @@ public final class StringVector
         mStrings = new String[initialCount];
     }
 
-    // 12-Jan-2006, TSa: Not used at this point... can be removed maybe?
-    /*
-    private StringVector(String[] str, int size) {
-        mStrings = str;
-        mSize = size;
-    }
-
-    public StringVector makeCopy(int extraSize) {
-        int newSize = mSize + extraSize;
-        String[] strs = new String[newSize];
-        if (mSize > 0) {
-            System.arraycopy(mStrings, 0, strs, 0, mSize);
-        }
-        return new StringVector(strs, mSize);
-    }
-    */
-
     /*
     ///////////////////////////////////////////////////////
     // Basic accessors
