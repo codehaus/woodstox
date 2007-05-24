@@ -24,9 +24,9 @@ import org.codehaus.stax2.XMLStreamReader2;
 import org.codehaus.stax2.validation.XMLValidationSchema;
 
 import com.ctc.wstx.api.ReaderConfig;
-import com.ctc.wstx.dtd.DTDValidatorFactory;
+import com.ctc.wstx.dtd.DTDSchemaFactory;
 import com.ctc.wstx.io.WstxInputSource;
-import com.ctc.wstx.stax.ValidatingInputFactory;
+import com.ctc.wstx.stax.WstxInputFactory;
 import com.ctc.wstx.util.URLUtil;
 
 /**
@@ -98,10 +98,10 @@ public class ValidateXML
                 System.exit(1);
             }
         }
-
-        ValidatingInputFactory f = ValidatingInputFactory.newValidatingInstance();
-	ReaderConfig cfg = f.getConfig();
         
+        WstxInputFactory f = new WstxInputFactory();
+        ReaderConfig cfg = f.getConfig();
+    
         cfg.doSupportNamespaces(true);
         cfg.doSupportDTDs(true);
         cfg.doValidateWithDTD(true);
@@ -127,7 +127,7 @@ public class ValidateXML
                 XMLStreamReader sr = f.createXMLStreamReader(xmlSrc.toExternalForm(), in);
                 // Override DTD specified?
                 if (dtdSrc != null) {
-                    DTDValidatorFactory vf = new DTDValidatorFactory();
+                    DTDSchemaFactory vf = new DTDSchemaFactory();
                     XMLValidationSchema schema = vf.createSchema(dtdSrc);
                     System.out.println("  [trying to use dtd '"+dtdSrc+" for validation]");
                     ((XMLStreamReader2) sr).setFeature(XMLStreamReader2.FEATURE_DTD_OVERRIDE,

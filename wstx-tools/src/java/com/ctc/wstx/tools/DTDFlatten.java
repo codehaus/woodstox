@@ -18,11 +18,12 @@ package com.ctc.wstx.tools;
 import java.io.*;
 import java.net.URL;
 
+import com.ctc.wstx.api.ReaderConfig;
+import com.ctc.wstx.cfg.XmlConsts;
 import com.ctc.wstx.dtd.DTDSubset;
 import com.ctc.wstx.dtd.FullDTDReader;
 import com.ctc.wstx.io.DefaultInputResolver;
 import com.ctc.wstx.io.WstxInputSource;
-import com.ctc.wstx.util.LineSuppressWriter;
 import com.ctc.wstx.util.URLUtil;
 
 /**
@@ -143,9 +144,11 @@ public class DTDFlatten
          * xml declaration will also be included (as long as 'xml' in
          * what looks like a proc. instr. won't cause trouble)
          */
+        ReaderConfig rcfg = ReaderConfig.createFullDefaults();
         WstxInputSource input = DefaultInputResolver.resolveEntity
-            (null, null, // no parent, not from entity,
-             null, url.toExternalForm(), null, null);
+            (null, url, null, // no parent, not from entity,
+             null, url.toExternalForm(),
+             null, rcfg, XmlConsts.XML_V_UNKNOWN);
         DTDSubset ss = FullDTDReader.flattenExternalSubset
             (input, out,
              inclComments, inclConditional, inclParamEntities);
