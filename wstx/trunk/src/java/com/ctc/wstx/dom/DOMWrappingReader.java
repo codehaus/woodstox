@@ -341,7 +341,7 @@ public class DOMWrappingReader
             handleIllegalAttrIndex(index);
             return null;
         }
-        Attr attr = (Attr) mAttrList.get(index);
+        //Attr attr = (Attr) mAttrList.get(index);
         // First, a special case, ID... since it's potentially most useful
         /* 26-Apr-2006, TSa: Turns out that following methods are
          *    DOM Level3, and as such not available in JDK 1.4 and prior.
@@ -1377,12 +1377,14 @@ public class DOMWrappingReader
         throw new WstxParsingException(msg, getLastCharLocation());
     }
 
+    /*
     private void throwParseError(String format, Object arg)
         throws WstxParsingException
     {
         String msg = MessageFormat.format(format, new Object[] { arg });
         throw new WstxParsingException(msg, getLastCharLocation());
     }
+    */
 
     private void handleIllegalAttrIndex(int index)
     {
@@ -1395,7 +1397,6 @@ public class DOMWrappingReader
 
     private void handleIllegalNsIndex(int index)
     {
-        Element elem = (Element) mCurrNode;
         String msg = "Illegal namespace declaration index "+index+" (has "+getNamespaceCount()+" ns declarations)";
         throw new IllegalArgumentException(msg);
     }

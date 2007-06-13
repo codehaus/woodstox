@@ -142,56 +142,56 @@ public final class WriterConfig
     static {
         // // StAX (1.0) standard ones:
         sProperties.put(XMLOutputFactory.IS_REPAIRING_NAMESPACES,
-                        new Integer(PROP_AUTOMATIC_NS));
+                        Integer.valueOf(PROP_AUTOMATIC_NS));
 
         // // StAX2 standard ones:
 
         // Namespace support
         sProperties.put(XMLStreamProperties.XSP_NAMESPACE_AWARE,
-                        new Integer(PROP_ENABLE_NS));
+                        Integer.valueOf(PROP_ENABLE_NS));
 
         // Generic output
         sProperties.put(XMLOutputFactory2.P_AUTOMATIC_EMPTY_ELEMENTS,
-                        new Integer(PROP_AUTOMATIC_EMPTY_ELEMS));
+                        Integer.valueOf(PROP_AUTOMATIC_EMPTY_ELEMS));
         // Namespace support
         sProperties.put(XMLOutputFactory2.P_AUTOMATIC_NS_PREFIX,
-                        new Integer(PROP_AUTOMATIC_NS_PREFIX));
+                        Integer.valueOf(PROP_AUTOMATIC_NS_PREFIX));
         // Text/attr value escaping (customized escapers)
         sProperties.put(XMLOutputFactory2.P_TEXT_ESCAPER,
-                        new Integer(PROP_TEXT_ESCAPER));
+                        Integer.valueOf(PROP_TEXT_ESCAPER));
         sProperties.put(XMLOutputFactory2.P_ATTR_VALUE_ESCAPER,
-                        new Integer(PROP_ATTR_VALUE_ESCAPER));
+                        Integer.valueOf(PROP_ATTR_VALUE_ESCAPER));
         // Problem checking/reporting options
         sProperties.put(XMLStreamProperties.XSP_PROBLEM_REPORTER,
-                        new Integer(PROP_PROBLEM_REPORTER));
+                        Integer.valueOf(PROP_PROBLEM_REPORTER));
 
         // // Woodstox-specifics:
 
         // Output conversions
         sProperties.put(WstxOutputProperties.P_OUTPUT_CDATA_AS_TEXT,
-                        new Integer(PROP_OUTPUT_CDATA_AS_TEXT));
+                        Integer.valueOf(PROP_OUTPUT_CDATA_AS_TEXT));
         sProperties.put(WstxOutputProperties.P_COPY_DEFAULT_ATTRS,
-                        new Integer(PROP_COPY_DEFAULT_ATTRS));
+                        Integer.valueOf(PROP_COPY_DEFAULT_ATTRS));
         sProperties.put(WstxOutputProperties.P_OUTPUT_ESCAPE_CR,
-                        new Integer(PROP_ESCAPE_CR));
+                        Integer.valueOf(PROP_ESCAPE_CR));
 
         // Validation settings:
         sProperties.put(WstxOutputProperties.P_OUTPUT_VALIDATE_STRUCTURE,
-                        new Integer(PROP_VALIDATE_STRUCTURE));
+                        Integer.valueOf(PROP_VALIDATE_STRUCTURE));
         sProperties.put(WstxOutputProperties.P_OUTPUT_VALIDATE_CONTENT,
-                        new Integer(PROP_VALIDATE_CONTENT));
+                        Integer.valueOf(PROP_VALIDATE_CONTENT));
         sProperties.put(WstxOutputProperties.P_OUTPUT_VALIDATE_ATTR,
-                        new Integer(PROP_VALIDATE_ATTR));
+                        Integer.valueOf(PROP_VALIDATE_ATTR));
         sProperties.put(WstxOutputProperties.P_OUTPUT_VALIDATE_NAMES,
-                        new Integer(PROP_VALIDATE_NAMES));
+                        Integer.valueOf(PROP_VALIDATE_NAMES));
         sProperties.put(WstxOutputProperties.P_OUTPUT_FIX_CONTENT,
-                        new Integer(PROP_FIX_CONTENT));
+                        Integer.valueOf(PROP_FIX_CONTENT));
 
         // Underlying stream/writer access
         sProperties.put(WstxOutputProperties.P_OUTPUT_UNDERLYING_STREAM,
-                        new Integer(PROP_UNDERLYING_STREAM));
+                        Integer.valueOf(PROP_UNDERLYING_STREAM));
         sProperties.put(WstxOutputProperties.P_OUTPUT_UNDERLYING_STREAM,
-                        new Integer(PROP_UNDERLYING_STREAM));
+                        Integer.valueOf(PROP_UNDERLYING_STREAM));
     }
 
     /*

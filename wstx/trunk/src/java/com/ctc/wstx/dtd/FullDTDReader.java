@@ -288,8 +288,8 @@ public class FullDTDReader
     boolean mCheckForbiddenPEs = false;
 
     /**
-     * Keyword of the declaration being currently parsed (if any). Used
-     * for error reporting purposes.
+     * Keyword of the declaration being currently parsed (if any). Can be
+     * used for error reporting purposes.
      */
     String mCurrDeclaration;
 

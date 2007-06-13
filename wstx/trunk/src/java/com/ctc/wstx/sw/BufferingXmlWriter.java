@@ -909,7 +909,7 @@ public final class BufferingXmlWriter
         int len = prefix.length();
         if (((mOutputBufLen - mOutputPtr) - (4 + localName.length() + len)) < 0) {
             fastWriteRaw(' ');
-            if (prefix != null && prefix.length() > 0) {
+            if (len > 0) {
                 fastWriteRaw(prefix);
                 fastWriteRaw(':');
             }
@@ -954,7 +954,7 @@ public final class BufferingXmlWriter
         int len = prefix.length();
         if (((mOutputBufLen - mOutputPtr) - (4 + localName.length() + len)) < 0) {
             fastWriteRaw(' ');
-            if (prefix != null && prefix.length() > 0) {
+            if (len > 0) {
                 fastWriteRaw(prefix);
                 fastWriteRaw(':');
             }

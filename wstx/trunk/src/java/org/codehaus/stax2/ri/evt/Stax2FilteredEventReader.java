@@ -24,12 +24,6 @@ public class Stax2FilteredEventReader
     final XMLEventReader mReader;
     final EventFilter mFilter;
 
-    /**
-     * Actually, we need to do local buffering; that's the only way
-     * to reliably implement filtering with peeking.
-     */
-    XMLEvent mNextEvent;
-
     public Stax2FilteredEventReader(XMLEventReader r, EventFilter f)
     {
         mReader = r;

@@ -381,7 +381,7 @@ public abstract class BaseStreamWriter
             throw new WstxIOException(ioe);
         }
         if (ix >= 0) { // unfixable problems?
-            reportNwfContent(ErrorConsts.WERR_CDATA_CONTENT, new Integer(ix));
+            reportNwfContent(ErrorConsts.WERR_CDATA_CONTENT, Integer.valueOf(ix));
         }
     }
 
@@ -549,7 +549,7 @@ public abstract class BaseStreamWriter
         }
 
         if (ix >= 0) {
-            reportNwfContent(ErrorConsts.WERR_COMMENT_CONTENT, new Integer(ix));
+            reportNwfContent(ErrorConsts.WERR_COMMENT_CONTENT, Integer.valueOf(ix));
         }
     }
 
@@ -1087,7 +1087,7 @@ public abstract class BaseStreamWriter
             throw new WstxIOException(ioe);
         }
         if (ix >= 0) { // problems that could not to be fixed?
-            throwOutputError(ErrorConsts.WERR_CDATA_CONTENT, new Integer(ix));
+            throwOutputError(ErrorConsts.WERR_CDATA_CONTENT, Integer.valueOf(ix));
         }
     }
 

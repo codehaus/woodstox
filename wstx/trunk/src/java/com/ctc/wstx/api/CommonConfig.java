@@ -49,17 +49,17 @@ abstract class CommonConfig
     static {
         // Basic information about the implementation:
         sStdProperties.put(XMLStreamProperties.XSP_IMPLEMENTATION_NAME,
-                        new Integer(PROP_IMPL_NAME));
+                        Integer.valueOf(PROP_IMPL_NAME));
         sStdProperties.put(XMLStreamProperties.XSP_IMPLEMENTATION_VERSION,
-                        new Integer(PROP_IMPL_VERSION));
+                        Integer.valueOf(PROP_IMPL_VERSION));
 
         // XML version support:
         sStdProperties.put(XMLStreamProperties.XSP_SUPPORTS_XML11,
-                        new Integer(PROP_SUPPORTS_XML11));
+                        Integer.valueOf(PROP_SUPPORTS_XML11));
 
         // Xml:id support:
         sStdProperties.put(XMLStreamProperties.XSP_SUPPORTS_XML11,
-                        new Integer(PROP_SUPPORTS_XML11));
+                        Integer.valueOf(PROP_SUPPORTS_XML11));
     }
 
     protected CommonConfig() { }

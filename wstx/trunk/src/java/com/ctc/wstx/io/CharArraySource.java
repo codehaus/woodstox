@@ -14,10 +14,6 @@ public final class CharArraySource
 {
     int mOffset;
 
-    // // // Context info we may have to save
-
-    int mInputPtr;
-
     // // // Plus, location offset info:
 
     final Location mContentStart;
