@@ -11,6 +11,7 @@ import javax.xml.namespace.QName;
  * writing XML data from Java types.
  *
  * @author Santiago.PericasGeertsen@sun.com
+ * @author Tatu Saloranta
  */
 public interface TypedXMLStreamWriter {
     
@@ -37,6 +38,12 @@ public interface TypedXMLStreamWriter {
      * Same as {@link #writeBoolean(boolean)} replacing boolean by long.</p>
      */
     void writeLong(long value) throws TypedXMLStreamException;
+    
+    /**
+     * <p><i>[TODO] </i>
+     * Same as {@link #writeBoolean(boolean)} replacing boolean by float.</p>
+     */
+    void writeFloat(float value) throws TypedXMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
@@ -104,6 +111,22 @@ public interface TypedXMLStreamWriter {
     /**
      * <p><i>[TODO] </i>
      * Same as {@link #writeIntArray(int[], int, int)} replacing int 
+     * by long.</p>
+     */
+    void writeLongArray(long[] value, int from, int length)
+        throws TypedXMLStreamException;
+    
+    /**
+     * <p><i>[TODO] </i>
+     * Same as {@link #writeIntArray(int[], int, int)} replacing int 
+     * by float.</p>
+     */
+    void writeFloatArray(float[] value, int from, int length)
+        throws TypedXMLStreamException;
+    
+    /**
+     * <p><i>[TODO] </i>
+     * Same as {@link #writeIntArray(int[], int, int)} replacing int 
      * by double.</p>
      */
     void writeDoubleArray(double[] value, int from, int length)
@@ -141,6 +164,14 @@ public interface TypedXMLStreamWriter {
      */
     void writeLongAttribute(String prefix, String namespaceURI, 
         String localName, long value) throws TypedXMLStreamException;
+    
+    /**
+     * <p><i>[TODO] </i>
+     * Same as {@link #writeBooleanAttribute(String, String, String, boolean)} 
+     * replacing boolean by float.</p>
+     */
+    void writeFloatAttribute(String prefix, String namespaceURI, 
+        String localName, float value) throws TypedXMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
@@ -212,6 +243,22 @@ public interface TypedXMLStreamWriter {
      */
     void writeIntArrayAttribute(String prefix, String namespaceURI, 
         String localName, int[] value) throws TypedXMLStreamException;
+    
+    /**
+     * <p><i>[TODO] </i>
+     * Same as {@link #writeIntArrayAttribute(String, String, String, int[])} 
+     * replacing int by long.</p>
+     */
+    void writeLongArrayAttribute(String prefix, String namespaceURI, 
+        String localName, long[] value) throws TypedXMLStreamException;
+    
+    /**
+     * <p><i>[TODO] </i>
+     * Same as {@link #writeIntArrayAttribute(String, String, String, int[])} 
+     * replacing int by float.</p>
+     */
+    void writeFloatArrayAttribute(String prefix, String namespaceURI, 
+        String localName, float[] value) throws TypedXMLStreamException;
     
     /**
      * <p><i>[TODO] </i>

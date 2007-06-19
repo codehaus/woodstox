@@ -10,6 +10,7 @@ import javax.xml.stream.XMLStreamException;
  * typed data.</p>
  *
  * @author Santiago.PericasGeertsen@sun.com
+ * @author Tatu Saloranta
  */
 public class TypedXMLStreamException extends XMLStreamException {
     

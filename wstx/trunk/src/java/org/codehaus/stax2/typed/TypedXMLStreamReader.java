@@ -11,6 +11,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
  * reading XML data and converting it into Java types.
  * 
  * @author Santiago.PericasGeertsen@sun.com
+ * @author Tatu Saloranta
  */
 public interface TypedXMLStreamReader {
     
@@ -54,6 +55,12 @@ public interface TypedXMLStreamReader {
      * Same as {@link #getElementAsBoolean()} replacing boolean by long.</p>
      */
     long getElementAsLong() throws TypedXMLStreamException;
+    
+    /**
+     * <p><i>[TODO] </i>
+     * Same as {@link #getElementAsBoolean()} replacing boolean by float.</p>
+     */
+    float getElementAsFloat() throws TypedXMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
@@ -167,6 +174,22 @@ public interface TypedXMLStreamReader {
     /**
      * <p><i>[TODO] </i>
      * Same as {@link #getElementAsIntArray(int[], int, int)} replacing int 
+     * by long.</p>
+     */
+    int getElementAsLongArray(long[] value, int from, int length)
+        throws TypedXMLStreamException;
+    
+    /**
+     * <p><i>[TODO] </i>
+     * Same as {@link #getElementAsIntArray(int[], int, int)} replacing int 
+     * by float.</p>
+     */
+    int getElementAsFloatArray(float[] value, int from, int length)
+        throws TypedXMLStreamException;
+    
+    /**
+     * <p><i>[TODO] </i>
+     * Same as {@link #getElementAsIntArray(int[], int, int)} replacing int 
      * by double.</p>
      */
     int getElementAsDoubleArray(double[] value, int from, int length)
@@ -225,6 +248,12 @@ public interface TypedXMLStreamReader {
      * Same as {@link #getAttributeAsBoolean(int)} replacing boolean by long.</p>
      */
     long getAttributeAsLong(int index) throws TypedXMLStreamException;
+    
+    /**
+     * <p><i>[TODO] </i>
+     * Same as {@link #getAttributeAsBoolean(int)} replacing boolean by float.</p>
+     */
+    float getAttributeAsFloat(int index) throws TypedXMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
@@ -304,6 +333,18 @@ public interface TypedXMLStreamReader {
      *         character sequence into an XML Schema boolean value.
      */
     int[] getAttributeAsIntArray(int index) throws TypedXMLStreamException;
+    
+    /**
+     * <p><i>[TODO] </i>
+     * Same as {@link #getAttributeAsIntArray(int)} replacing int by long.</p>
+     */
+    long[] getAttributeAsLongArray(int index) throws TypedXMLStreamException;
+    
+    /**
+     * <p><i>[TODO] </i>
+     * Same as {@link #getAttributeAsIntArray(int)} replacing int by float.</p>
+     */
+    float[] getAttributeAsFloatArray(int index) throws TypedXMLStreamException;    
     
     /**
      * <p><i>[TODO] </i>
