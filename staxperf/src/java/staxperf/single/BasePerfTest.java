@@ -87,13 +87,9 @@ abstract class BasePerfTest
 
         while (sr.hasNext()) {
 
-            //int type = sr.next();
-            int type = sr.nextTag();
+            int type = sr.next();
 
             total += type; // so it won't be optimized out...
-
-            // !!! TEST
-            if (type == END_ELEMENT && sr.getLocalName() == "root") break;
 
             //if (sr.hasText()) {
             if (type == CHARACTERS || type == CDATA || type == COMMENT) {
@@ -105,18 +101,18 @@ abstract class BasePerfTest
                 */
 
                 // Test (b): access internal read buffer
-                /*
                 char[] text = sr.getTextCharacters();
                 int start = sr.getTextStart();
                 int len = sr.getTextLength();
                 if (text != null) { // Ref. impl. returns nulls sometimes
                     total += text.length; // to prevent dead code elimination
                 }
-                */
 
                 // Test (c): construct string (slowest)
+                /*
                 String text = sr.getText();
                 total += text.length();
+                */
             }
         }
         sr.close();
@@ -139,12 +135,19 @@ abstract class BasePerfTest
             SECS = Integer.parseInt(args[1]);
         }
         File f = new File(fn).getAbsoluteFile();
-        String path = f.getAbsolutePath();
+        /* 14-Apr-2007, TSa: Some parsers (like Sjsxp/Zephyr) have
+         *   (performance) problems with non-URL system ids. While this
+         *   could be viewed as problem with those impls, let's try not
+         *   to skew results, but instead make system ids more palatable.
+         */
+        //String path = f.getAbsolutePath();
+        String path = f.getAbsoluteFile().toURL().toExternalForm();
 
         // First, warm up:
 
         byte[] data = readData(f);
 
+        System.out.println("Path: '"+path+"'");
         System.out.println("Warming up; doing  "+WARMUP_ROUNDS+" iterations (real test will run for "+SECS+" seconds): ");
 
         int total = 0; // to prevent any dead code optimizations

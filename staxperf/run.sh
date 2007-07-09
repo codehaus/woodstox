@@ -9,7 +9,7 @@ java -XX:CompileThreshold=1000 -Xmx64m -server \
  -cp lib/stax-api-1.0.1.jar\
 :lib/wstx.jar\
 :lib/stax-ri-1.2.0.jar\
-:lib/sjsxp-1.0.jar\
+:lib/sjsxp-1.0.1.jar\
 :lib/wool.jar\
 :lib/xerces-2.8.0.jar\
 :lib/jdom.jar\
