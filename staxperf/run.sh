@@ -15,5 +15,6 @@ java -XX:CompileThreshold=1000 -Xmx64m -server \
 :lib/jdom.jar\
 :lib/sjsxp.jar\
 :lib/javolution-4.0.2.jar\
+:lib/saxon8.jar\
 :build/classes\
   $*

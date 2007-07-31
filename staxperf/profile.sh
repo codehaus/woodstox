@@ -15,6 +15,7 @@ java -Xmx64m -XX:CompileThreshold=2000 -server \
 :lib/stax_ri.jar\
 :lib/sjsxp-1.0.1.jar\
 :lib/wool.jar\
+:lib/saxon8.jar\
 :build/classes $*
 
 #lib/stax_ri.jar:\
