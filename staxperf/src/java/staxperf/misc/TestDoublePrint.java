@@ -530,36 +530,46 @@ public class TestDoublePrint
     private static void fppfpp3b_(StringBuilder sb, int e, long f, int p)
     {
         //long R = f << Math.max(e-p, 0);
-        BigInteger R = BigInteger.valueOf(f).shiftLeft(Math.max(e-p, 0));
+        MutableBigInteger R = new MutableBigInteger(f);
+        R.shiftLeft(Math.max(e-p, 0));
 
         //long S = 1L << Math.max(0, -(e-p));
-        BigInteger S = BigInteger.ONE.shiftLeft(Math.max(0, -(e-p)));
-
+        MutableBigInteger S = MutableBigInteger.createLeftShifted(Math.max(0, -(e-p)));
         //long Mminus = 1 << Math.max(e-p, 0);
-        BigInteger Mminus = BigInteger.ONE.shiftLeft(Math.max(e-p, 0));
+        MutableBigInteger Mminus = MutableBigInteger.createLeftShifted(Math.max(e-p, 0));
 
         //long Mplus = Mminus;
-        BigInteger Mplus = Mminus;
+        MutableBigInteger Mplus = Mminus;
 
         boolean initial = true;
 
         // simpleFixup
 
         if (f == 1L << (p-1)) {
-            Mplus = Mplus.shiftLeft(1);
-            R = R.shiftLeft(1);
-            S = S.shiftLeft(1);
+            Mplus.shiftLeftOne();
+            R.shiftLeftOne();
+            S.shiftLeftOne();
         }
         int k = 0;
-        while (R.compareTo(S.add(NINE).divide(TEN)) < 0) {  // (S+9)/10 == ceiling(S/10)
-            k--;
-            R = R.multiply(TEN);
-            Mminus = Mminus.multiply(TEN);
-            Mplus = Mplus.multiply(TEN);
+
+        {
+            MutableBigInteger S9_10 = S.dup().add(9).div(10);
+            while (R.compareTo(S9_10) < 0) {  // (S+9)/10 == ceiling(S/10)
+                k--;
+                R.mult(10);
+                Mminus.mult(10);
+                Mplus.mult(10);
+            }
         }
-        while (R.shiftLeft(1).add(Mplus).compareTo(S.shiftLeft(1)) >= 0) {
-            S = S.multiply(TEN);
-            k++;
+
+        {
+            MutableBigInteger S_shifted = S.dup().shiftLeftOne();
+            MutableBigInteger R_shift_add = R.dup().shiftLeftOne().add(Mplus);
+            while (R_shift_add.compareTo(S_shifted) >= 0) {
+                S.mult(10);
+                S_shifted = S.dup().shiftLeftOne();
+                k++;
+            }
         }
 
         for (int z=k; z<0; z++) {
@@ -579,14 +589,16 @@ public class TestDoublePrint
         int U;
         while (true) {
             k--;
-            BigInteger R10 = R.multiply(TEN);
-            U = R10.divide(S).intValue();
+            MutableBigInteger R10 = R.dup().mult(10);
+            U = R10.dup().div(S).intValue();
             R = R10.mod(S);
-            Mminus = Mminus.multiply(TEN);
-            Mplus = Mplus.multiply(TEN);
-            BigInteger R2 = R.shiftLeft(1);
+            Mminus.mult(10);
+            Mplus.mult(10);
+            MutableBigInteger R2 = R.dup().shiftLeftOne();
             low = R2.compareTo(Mminus) < 0;
-            high = R2.compareTo(S.shiftLeft(1).subtract(Mplus)) > 0;
+            MutableBigInteger S_shift_sub = S.dup().shiftLeftOne();
+            S.sub(Mplus);
+            high = R2.compareTo(S_shift_sub) > 0;
             if (low || high) break;
             if (k == -1) {
                 if (initial) {
@@ -597,7 +609,7 @@ public class TestDoublePrint
             sb.append(charForDigit[U]);
             initial = false;
         }
-        if (high && (!low || R.shiftLeft(1).compareTo(S) > 0)) {
+        if (high && (!low || R.shiftLeftOne().compareTo(S) > 0)) {
             U++;
         }
         if (k == -1) {
@@ -669,4 +681,181 @@ public class TestDoublePrint
         }
         System.out.println("Done!");
     }
+
+    /**
+     * Optimized alternative to {@link java.lang.BigInteger}
+     */
+    final static class MutableBigInteger
+    {
+        final static int INT_SIGN = (1 << 31);
+
+        int signum;
+        int[] mag;
+
+        private MutableBigInteger(int s, int[] m)
+        {
+            signum = s;
+            mag = m;
+        }
+
+        public MutableBigInteger(long val)
+        {
+            if (val < 0) {
+                signum = -1;
+                val = -val;
+            } else {
+                signum = 1;
+            }
+
+            int highWord = (int)(val >>> 32);
+            if (highWord==0) {
+                mag = new int[1];
+                mag[0] = (int)val;
+            } else {
+                mag = new int[2];
+                mag[0] = highWord;
+                mag[1] = (int)val;
+            }
+        }
+
+        public MutableBigInteger dup()
+        {
+            int len = mag.length;
+            int[] newMag = new int[len];
+            System.arraycopy(mag, 0, newMag, 0, len);
+            return new MutableBigInteger(signum, newMag);
+        }
+
+        public static MutableBigInteger createLeftShifted(int shift)
+        {
+            if (shift < 63) { // 1<<63 would be negative
+                return new MutableBigInteger(1L << shift);
+            }
+            MutableBigInteger i = new MutableBigInteger(1L);
+            i.shiftLeft(shift);
+            return i;
+        }
+
+        public MutableBigInteger shiftLeftOne()
+        {
+            // First, let's shift in place
+            boolean carry = false;
+            for (int i = mag.length; --i >= 0; ) {
+                int value = mag[i];
+                if (carry) {
+                    mag[i] = (value << 1) | INT_SIGN;
+                } else {
+                    mag[i] = (value << 1);
+                }
+                carry = (value < 0);
+            }
+            // But do we need to expand?
+            if (carry) {
+                expandByOne(1);
+            }
+            return this;
+        }
+ 
+        public MutableBigInteger shiftLeft(int n)
+        {
+            if (n < 1) {
+                if (n < 0) {
+                    throw new IllegalArgumentException("Negative shift "+n);
+                }
+            }
+            int nInts = n >>> 5;
+            int nBits = n & 0x1f;
+            int magLen = mag.length;
+            int newMag[];
+
+            if (nBits == 0) {
+                newMag = new int[magLen + nInts];
+                for (int i=0; i<magLen; i++) {
+                    newMag[i] = mag[i];
+                }
+            } else {
+                int i = 0;
+                int nBits2 = 32 - nBits;
+                int highBits = mag[0] >>> nBits2;
+                if (highBits != 0) {
+                    newMag = new int[magLen + nInts + 1];
+                    newMag[i++] = highBits;
+                } else {
+                    newMag = new int[magLen + nInts];
+                }
+                int j=0;
+                while (j < magLen-1) {
+                    newMag[i++] = mag[j++] << nBits | mag[j] >>> nBits2;
+                }
+                newMag[i] = mag[j] << nBits;
+            }
+            mag = newMag;
+            return this;
+        }
+
+        public MutableBigInteger add(int amount)
+        {
+            // !!! TBI
+            return this;
+        }
+
+        public MutableBigInteger add(MutableBigInteger i)
+        {
+            // !!! TBI
+            return this;
+        }
+
+        public MutableBigInteger sub(MutableBigInteger i)
+        {
+            // !!! TBI
+            return this;
+        }
+
+        public MutableBigInteger mult(int amount)
+        {
+            // !!! TBI
+            return this;
+        }
+
+        public MutableBigInteger mod(MutableBigInteger i)
+        {
+            // !!! TBI
+            return this;
+        }
+
+        public MutableBigInteger div(int amount)
+        {
+            // !!! TBI
+            return this;
+        }
+
+        public MutableBigInteger div(MutableBigInteger i)
+        {
+            // !!! TBI
+            return this;
+        }
+
+        public int compareTo(MutableBigInteger other)
+        {
+            // !!! TBI
+            return 0;
+        }
+
+        public int intValue()
+        {
+            if (mag.length > 1) {
+                throw new IllegalStateException("Overflow");
+            }
+            return mag[0];
+        }
+
+        private void expandByOne(int firstWord)
+        {
+            int[] oldMag = mag;
+            int len = oldMag.length;
+            mag = new int[len+1];
+            System.arraycopy(oldMag, 0, mag, 1, len);
+            mag[0] = firstWord;
+        }
+   }
 }
