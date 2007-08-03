@@ -549,7 +549,7 @@ public class TestDoublePrint
         int k = 0;
 
         {
-            MutableBigInteger S9_10 = S.dup().add(9).div(10);
+            MutableBigInteger S9_10 = S.dup().add9().div10();
             while (R.compareTo(S9_10) < 0) {  // (S+9)/10 == ceiling(S/10)
                 k--;
                 R.mult10();
@@ -586,8 +586,12 @@ public class TestDoublePrint
         while (true) {
             k--;
             MutableBigInteger R10 = R.dup().mult10();
-            U = R10.dup().div(S).intValue();
-            R = R10.mod(S);
+            MutableBigInteger rem = R10.divAndRem(S);
+            /* Original code just took intValue(). So it should
+             * be safe?
+             */
+            U = R10.intValue();
+            R = rem;
             Mminus.mult10();
             Mplus.mult10();
             MutableBigInteger R2 = R.createLeftShifted();
@@ -801,12 +805,32 @@ public class TestDoublePrint
             return this;
         }
 
-        public MutableBigInteger add(int n)
+        public MutableBigInteger add9()
         {
-            if (n < 0) {
-                throw new IllegalArgumentException("Negative amount to add "+n);
+            int ix = mag.length-1;
+            int curr = mag[ix];
+
+            if (curr < 0) { // can only overflow if high bit is set
+                curr += 9;
+                // And we do overflow if high bit gets cleared
+                if (curr >= 0) {
+                    // In which case we'll need to carry things up
+                    while (--ix >= 0) {
+                        curr = mag[ix]+1;
+                        mag[ix] = curr;
+                        if (curr != 0) {
+                            break;
+                        }
+                    }
+                    // And in rare case, may need to expand
+                    if (ix < 0) {
+                        expandByOne(1);
+                    }
+                }
+            } else {
+                mag[ix] = curr+9;
             }
-            // !!! TBI
+
             return this;
         }
 
@@ -839,19 +863,13 @@ public class TestDoublePrint
             return this;
         }
 
-        public MutableBigInteger mod(MutableBigInteger i)
+        public MutableBigInteger div10()
         {
             // !!! TBI
             return this;
         }
 
-        public MutableBigInteger div(int amount)
-        {
-            // !!! TBI
-            return this;
-        }
-
-        public MutableBigInteger div(MutableBigInteger i)
+        public MutableBigInteger divAndRem(MutableBigInteger n)
         {
             // !!! TBI
             return this;
