@@ -524,14 +524,10 @@ public class TestDoublePrint
         }
     }
 
-    private static final BigInteger TEN = BigInteger.valueOf(10);
-    private static final BigInteger NINE = BigInteger.valueOf(9);
-
     private static void fppfpp3b_(StringBuilder sb, int e, long f, int p)
     {
         //long R = f << Math.max(e-p, 0);
-        MutableBigInteger R = new MutableBigInteger(f);
-        R.shiftLeft(Math.max(e-p, 0));
+        MutableBigInteger R = MutableBigInteger.createLeftShifted(Math.max(e-p, 0), f);
 
         //long S = 1L << Math.max(0, -(e-p));
         MutableBigInteger S = MutableBigInteger.createLeftShifted(Math.max(0, -(e-p)));
@@ -556,18 +552,18 @@ public class TestDoublePrint
             MutableBigInteger S9_10 = S.dup().add(9).div(10);
             while (R.compareTo(S9_10) < 0) {  // (S+9)/10 == ceiling(S/10)
                 k--;
-                R.mult(10);
-                Mminus.mult(10);
-                Mplus.mult(10);
+                R.mult10();
+                Mminus.mult10();
+                Mplus.mult10();
             }
         }
 
         {
-            MutableBigInteger S_shifted = S.dup().shiftLeftOne();
-            MutableBigInteger R_shift_add = R.dup().shiftLeftOne().add(Mplus);
+            MutableBigInteger S_shifted = S.createLeftShifted();
+            MutableBigInteger R_shift_add = R.createLeftShifted().add(Mplus);
             while (R_shift_add.compareTo(S_shifted) >= 0) {
-                S.mult(10);
-                S_shifted = S.dup().shiftLeftOne();
+                S.mult10();
+                S_shifted = S.createLeftShifted();
                 k++;
             }
         }
@@ -589,14 +585,14 @@ public class TestDoublePrint
         int U;
         while (true) {
             k--;
-            MutableBigInteger R10 = R.dup().mult(10);
+            MutableBigInteger R10 = R.dup().mult10();
             U = R10.dup().div(S).intValue();
             R = R10.mod(S);
-            Mminus.mult(10);
-            Mplus.mult(10);
-            MutableBigInteger R2 = R.dup().shiftLeftOne();
+            Mminus.mult10();
+            Mplus.mult10();
+            MutableBigInteger R2 = R.createLeftShifted();
             low = R2.compareTo(Mminus) < 0;
-            MutableBigInteger S_shift_sub = S.dup().shiftLeftOne();
+            MutableBigInteger S_shift_sub = S.createLeftShifted();
             S.sub(Mplus);
             high = R2.compareTo(S_shift_sub) > 0;
             if (low || high) break;
@@ -683,30 +679,26 @@ public class TestDoublePrint
     }
 
     /**
-     * Optimized alternative to {@link java.lang.BigInteger}
+     * Optimized alternative to {@link java.lang.BigInteger}.
+     * Operations supported is minimal set needed for computations
+     * needed for printing. Another assumption is that only positive
+     * numbers (including results) are ever needed.
      */
     final static class MutableBigInteger
     {
         final static int INT_SIGN = (1 << 31);
 
-        int signum;
+        // // // No need for signum, always considered positive
+
         int[] mag;
 
-        private MutableBigInteger(int s, int[] m)
+        private MutableBigInteger(int[] m)
         {
-            signum = s;
             mag = m;
         }
 
         public MutableBigInteger(long val)
         {
-            if (val < 0) {
-                signum = -1;
-                val = -val;
-            } else {
-                signum = 1;
-            }
-
             int highWord = (int)(val >>> 32);
             if (highWord==0) {
                 mag = new int[1];
@@ -723,7 +715,13 @@ public class TestDoublePrint
             int len = mag.length;
             int[] newMag = new int[len];
             System.arraycopy(mag, 0, newMag, 0, len);
-            return new MutableBigInteger(signum, newMag);
+            return new MutableBigInteger(newMag);
+        }
+
+        public MutableBigInteger createLeftShifted()
+        {
+            MutableBigInteger newInt = dup();
+            return newInt.shiftLeftOne();
         }
 
         public static MutableBigInteger createLeftShifted(int shift)
@@ -731,9 +729,19 @@ public class TestDoublePrint
             if (shift < 63) { // 1<<63 would be negative
                 return new MutableBigInteger(1L << shift);
             }
-            MutableBigInteger i = new MutableBigInteger(1L);
-            i.shiftLeft(shift);
-            return i;
+            return new MutableBigInteger(1L).shiftLeft(shift);
+        }
+
+        public static MutableBigInteger createLeftShifted(int shift, long value)
+        {
+            if (shift < 63) { // may be able to keep as single long?
+                // as long as we won't lose any info
+                long shifted = value << shift;
+                if ((shifted >> shifted) == value) {
+                    return new MutableBigInteger(shifted);
+                }
+            }
+            return new MutableBigInteger(value).shiftLeft(shift);
         }
 
         public MutableBigInteger shiftLeftOne()
@@ -793,8 +801,11 @@ public class TestDoublePrint
             return this;
         }
 
-        public MutableBigInteger add(int amount)
+        public MutableBigInteger add(int n)
         {
+            if (n < 0) {
+                throw new IllegalArgumentException("Negative amount to add "+n);
+            }
             // !!! TBI
             return this;
         }
@@ -811,9 +822,20 @@ public class TestDoublePrint
             return this;
         }
 
-        public MutableBigInteger mult(int amount)
+        public MutableBigInteger mult10()
         {
-            // !!! TBI
+            long carry = 0L;
+            for (int i = mag.length; --i >= 0; ) {
+                int curr = mag[i];
+                long currL = (curr < 0) ? (curr & LONG_MASK) : ((long) curr);
+                long product = 10L * currL  + carry;
+                mag[i] = (int) product;
+                carry = (product >>> 32);
+            }
+
+            if (carry != 0) { // won't fit must expand
+                expandByOne((int) carry);
+            }
             return this;
         }
 
@@ -837,7 +859,23 @@ public class TestDoublePrint
 
         public int compareTo(MutableBigInteger other)
         {
-            // !!! TBI
+            int[] otherMag = other.mag;
+            int thisLen = mag.length;
+            int thatLen = other.mag.length;
+            if (thisLen > thatLen) {
+                return 1;
+            }
+            if (thisLen < thatLen) {
+                return -1;
+            }
+            for (int i = 0; i < thisLen; ++i) {
+                int i1 = mag[i];
+                int i2 = otherMag[i];
+
+                if (i1 != i2) {
+                    return unsignedCompareTo(i1, i2);
+                }
+            }
             return 0;
         }
 
@@ -856,6 +894,16 @@ public class TestDoublePrint
             mag = new int[len+1];
             System.arraycopy(oldMag, 0, mag, 1, len);
             mag[0] = firstWord;
+        }
+
+        final static long LONG_MASK = 0xFFFFFFFF;
+
+        private final static int unsignedCompareTo(int i1, int i2)
+        {
+            long l1 = (i1 < 0) ? (((long) i1) & LONG_MASK) : (long) i1;
+            long l2 = (i2 < 0) ? (((long) i2) & LONG_MASK) : (long) i2;
+
+            return (l1 > l2) ? 1 : -1;
         }
    }
 }
