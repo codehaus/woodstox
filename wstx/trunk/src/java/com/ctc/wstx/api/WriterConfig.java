@@ -55,9 +55,10 @@ public final class WriterConfig
 
     final static int PROP_ESCAPE_CR = 13;
 
+    final static int PROP_ADD_SPACE_AFTER_EMPTY_ELEM = 14;
+
     // Validation flags:
 
-    // Let's not use this any more... no point:
     final static int PROP_VALIDATE_STRUCTURE = 15; 
     final static int PROP_VALIDATE_CONTENT = 16;
     final static int PROP_VALIDATE_ATTR = 17;
@@ -87,6 +88,13 @@ public final class WriterConfig
      */
     final static boolean DEFAULT_ESCAPE_CR = true;
 
+    /**
+     * 09-Aug-2007, TSa: Space has always been added after empty
+     *   element (before closing "/>"), but now it is configurable.
+     *   Default left as true for backwards compatibility.
+     */
+    final static boolean DEFAULT_ADD_SPACE_AFTER_EMPTY_ELEM = true;
+
     /* How about validation? Let's turn them mostly off by default, since
      * there are some performance hits when enabling them.
      */
@@ -102,9 +110,13 @@ public final class WriterConfig
     final static boolean DEFAULT_VALIDATE_ATTR = false;
     final static boolean DEFAULT_VALIDATE_NAMES = false;
 
-    /* This only matters if content validation is enabled...
+    // This only matters if content validation is enabled...
+    /**
+     * As per [WSTX-120], default was changed to false,
+     * from true (default prior to wstx 4.0)
      */
-    final static boolean DEFAULT_FIX_CONTENT = true;
+    //final static boolean DEFAULT_FIX_CONTENT = true;
+    final static boolean DEFAULT_FIX_CONTENT = false;
 
     /**
      * Default config flags are converted from individual settings,
@@ -119,6 +131,7 @@ public final class WriterConfig
         | (DEFAULT_OUTPUT_CDATA_AS_TEXT ? CFG_OUTPUT_CDATA_AS_TEXT : 0)
         | (DEFAULT_COPY_DEFAULT_ATTRS ? CFG_COPY_DEFAULT_ATTRS : 0)
         | (DEFAULT_ESCAPE_CR ? CFG_ESCAPE_CR : 0)
+        | (DEFAULT_ADD_SPACE_AFTER_EMPTY_ELEM ? CFG_ESCAPE_CR : 0)
 
         | (DEFAULT_VALIDATE_STRUCTURE ? CFG_VALIDATE_STRUCTURE : 0)
         | (DEFAULT_VALIDATE_CONTENT ? CFG_VALIDATE_CONTENT : 0)
@@ -174,6 +187,9 @@ public final class WriterConfig
                         Integer.valueOf(PROP_COPY_DEFAULT_ATTRS));
         sProperties.put(WstxOutputProperties.P_OUTPUT_ESCAPE_CR,
                         Integer.valueOf(PROP_ESCAPE_CR));
+        sProperties.put(WstxOutputProperties.P_ADD_SPACE_AFTER_EMPTY_ELEM
+,
+                        Integer.valueOf(PROP_ADD_SPACE_AFTER_EMPTY_ELEM));
 
         // Validation settings:
         sProperties.put(WstxOutputProperties.P_OUTPUT_VALIDATE_STRUCTURE,
@@ -347,6 +363,8 @@ public final class WriterConfig
             return willCopyDefaultAttrs() ? Boolean.TRUE : Boolean.FALSE;
         case PROP_ESCAPE_CR:
             return willEscapeCr() ? Boolean.TRUE : Boolean.FALSE;
+        case PROP_ADD_SPACE_AFTER_EMPTY_ELEM:
+            return willAddSpaceAfterEmptyElem() ? Boolean.TRUE : Boolean.FALSE;
 
         case PROP_VALIDATE_STRUCTURE:
             return willValidateStructure() ? Boolean.TRUE : Boolean.FALSE;
@@ -418,6 +436,9 @@ public final class WriterConfig
         case PROP_ESCAPE_CR:
             doEscapeCr(ArgUtil.convertToBoolean(name, value));
             break;
+        case PROP_ADD_SPACE_AFTER_EMPTY_ELEM:
+            doAddSpaceAfterEmptyElem(ArgUtil.convertToBoolean(name, value));
+            break;
 
         case PROP_VALIDATE_STRUCTURE:
             doValidateStructure(ArgUtil.convertToBoolean(name, value));
@@ -483,6 +504,10 @@ public final class WriterConfig
 
     public boolean willEscapeCr() {
         return hasConfigFlag(CFG_ESCAPE_CR);
+    }
+
+    public boolean willAddSpaceAfterEmptyElem() {
+        return hasConfigFlag(CFG_ADD_SPACE_AFTER_EMPTY_ELEM);
     }
 
     public boolean willValidateStructure() {
@@ -558,6 +583,10 @@ public final class WriterConfig
 
     public void doEscapeCr(boolean state) {
         setConfigFlag(CFG_ESCAPE_CR, state);
+    }
+
+    public void doAddSpaceAfterEmptyElem(boolean state) {
+        setConfigFlag(CFG_ADD_SPACE_AFTER_EMPTY_ELEM, state);
     }
 
     public void doValidateStructure(boolean state) {

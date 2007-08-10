@@ -38,6 +38,15 @@ public interface OutputConfigFlags
      */
     final static int CFG_ESCAPE_CR =  0x0020;
 
+    /**
+     * Flag that indicates
+     * whether writer is to add a single white space before closing "/>"
+     * of the empty element or not. It is sometimes useful to add to
+     * increase compatibility with HTML browsers, or to increase
+     * readability.
+     */
+    final static int CFG_ADD_SPACE_AFTER_EMPTY_ELEM =  0x0040;
+
     /// Flag that indicates we should check validity of namespace/prefix mappings.
     //final static int CFG_VALIDATE_NS = ;
 

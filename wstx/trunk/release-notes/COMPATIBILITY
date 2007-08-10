@@ -1,3 +1,19 @@
+== Changes from 3.0.x to 4.0.x ==
+
+=== Stream reader ===
+
+=== Stream writer ===
+
+* Default setting of WstxOutputProperties.P_OUTPUT_FIX_CONTENT was
+  true in 3.x. While this seemed like a good idea for maximum xml
+  conformance, it also causes incompatibility issue with the JDK 6
+  included Sun Stax implementation, which does not implement either
+  well-formedness checks or fixing algorithm. As a result, something
+  that works well with Woodstox would not necessarily work well with
+  JDK6 default Stax implementation.
+  As a result, *WstxOutputProperties.P_OUTPUT_FIX_CONTENT* was
+  default settings was *changed to false*.
+
 == Changes from 2.0.x to 3.0.x ==
 
 === XML compatibility ===

@@ -91,6 +91,12 @@ public abstract class XmlWriter
     final boolean mEscapeCR;
 
     /**
+     * Whether to add a space after empty element (before closing "/>")
+     * or not.
+     */
+    final boolean mAddSpaceAfterEmptyElem;
+
+    /**
      * Flag that defines whether close() on this writer should call
      * close on the underlying output object (stream, writer)
      */
@@ -172,6 +178,7 @@ public abstract class XmlWriter
         mCheckNames = (flags & OutputConfigFlags.CFG_VALIDATE_NAMES) != 0;
         mFixContent = (flags & OutputConfigFlags.CFG_FIX_CONTENT) != 0;
         mEscapeCR = (flags & OutputConfigFlags.CFG_ESCAPE_CR) != 0;
+        mAddSpaceAfterEmptyElem = (flags & OutputConfigFlags.CFG_ADD_SPACE_AFTER_EMPTY_ELEM) != 0;
 
         // Has caller requested any custom text or attr value escaping?
 

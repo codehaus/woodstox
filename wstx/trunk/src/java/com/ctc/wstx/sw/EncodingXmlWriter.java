@@ -410,7 +410,11 @@ public abstract class EncodingXmlWriter
     public void writeStartTagEmptyEnd()
         throws IOException
     {
-        writeAscii(" />");
+        if (mAddSpaceAfterEmptyElem) {
+            writeAscii(" />");
+        } else {
+            writeAscii(BYTE_SLASH, BYTE_GT);
+        }
     }    
 
     public void writeEndTag(String localName)

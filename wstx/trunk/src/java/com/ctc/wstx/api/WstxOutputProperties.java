@@ -38,16 +38,19 @@ public final class WstxOutputProperties
      */
     public final static String P_COPY_DEFAULT_ATTRS = "com.ctc.wstx.copyDefaultAttrs";
 
+    /**
+     * Whether writer is to add a single white space before closing "/>"
+     * of the empty element or not. It is sometimes useful to add to
+     * increase compatibility with HTML browsers, or to increase
+     * readability.
+     *<p>
+     * Note: added to resolve Jira entry 
+     * <a href="http://jira.codehaus.org/browse/WSTX-125">WSTX-125</a>.
+     */
+    public final static String P_ADD_SPACE_AFTER_EMPTY_ELEM = "com.ctc.wstx.addSpaceAfterEmptyElem";
+
 
     // // // Validation options:
-
-    /**
-     * Whether output classes should validate namespace/prefix mapping, ie.
-     * to check that element and attribute prefixes (when passed) do have
-     * existing mapping. If false, will just happily output prefixes without
-     * any checking.
-     */
-    //public final static String P_OUTPUT_VALIDATE_NS = "com.ctc.wstx.outputValidateNS";
 
     /**
      * Whether output classes should do basic verification that the output

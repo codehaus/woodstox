@@ -1,12 +1,42 @@
 Version: 4.0rc1
 
-Release date: 02-Apr-2007
+Release date: 02-Sep-2007
 
 Description:
   First release candidate for the new 4.0 series.
 
   Problems fixed:
 
+  * [WSTX-120] By default, context fixing is now disabled, to
+    maximize interoperability, and to follow "principle of least
+    surprise" (i.e. avoid confusion that writer outsmarting developer
+    might cause).
+
+  New features:
+
+  * [WSTX-125] Adding of space between empty element, and closing
+    "/>" is now optional, configurable using
+    'WstxOutputProperties.P_ADD_SPACE_AFTER_EMPTY_ELEM'.
+
+  Clean-up:
+
+  * Removed compatibility classes from under com.ctc.wstx.compat,
+    since baseline JDK requirement is now 1.4, and workarounds are
+    not needed (for now?)
+  * Removed deprecated properties P_NORMALIZE_LFS and
+    P_NORMALIZE_ATTR_VALUES, and needed code support.
+  * [WSTX-105] Transformed the only existing input-side feature
+    (FEAT_DTD_OVERRIDE) into matching input-side property
+    (XMLInputFactoty2.P_OVERRIDE_DTD).
+
+== History: ==
+
+3.2.1 [03-Apr-2007]
+
+  Problems fixed:
+
+  * Added deprecation marker for Wstx properties that will not be
+    supported in 4.0
   * [WSTX-106] Descriptions missing from many wrapped IOExceptions;
     specifically obscuring some character validity failures
     (reported by Sami D)
@@ -36,19 +66,6 @@ Description:
     XMLStreamReader.getProperty(). Properties added are
     'WstxOutputProperties.P_OUTPUT_UNDERLYING_STREAM' and
     'WstxOutputProperties.P_OUTPUT_UNDERLYING_WRITER'.
-
-  Clean-up:
-
-  * Removed compatibility classes from under com.ctc.wstx.compat,
-    since baseline JDK requirement is now 1.4, and workarounds are
-    not needed (for now?)
-  * Removed deprecated properties P_NORMALIZE_LFS and
-    P_NORMALIZE_ATTR_VALUES, and needed code support.
-  * [WSTX-105] Transformed the only existing input-side feature
-    (FEAT_DTD_OVERRIDE) into matching input-side property
-    (XMLInputFactoty2.P_OVERRIDE_DTD).
-
-== History: ==
 
 3.2 [28-Dec-2006]
 

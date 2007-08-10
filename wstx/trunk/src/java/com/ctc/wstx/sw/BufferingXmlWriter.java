@@ -757,7 +757,9 @@ public final class BufferingXmlWriter
             ptr = mOutputPtr;
         }
         char[] buf = mOutputBuffer;
-        buf[ptr++] = ' ';
+        if (mAddSpaceAfterEmptyElem) {
+            buf[ptr++] = ' ';
+        }
         buf[ptr++] = '/';
         buf[ptr++] = '>';
         mOutputPtr = ptr;
