@@ -65,7 +65,9 @@ public class TestOutputFactory
         assertEquals(Boolean.FALSE, f.getProperty(WstxOutputProperties.P_OUTPUT_VALIDATE_NAMES));
         assertEquals(Boolean.FALSE, f.getProperty(WstxOutputProperties.P_OUTPUT_CDATA_AS_TEXT));
         assertEquals(Boolean.FALSE, f.getProperty(WstxOutputProperties.P_COPY_DEFAULT_ATTRS));
-        assertEquals(Boolean.TRUE, f.getProperty(WstxOutputProperties.P_OUTPUT_FIX_CONTENT));
+
+        // As per [WSTX-120], default with Woodstox 4.0 is false:
+        assertEquals(Boolean.FALSE, f.getProperty(WstxOutputProperties.P_OUTPUT_FIX_CONTENT));
         assertEquals(Boolean.TRUE, f.getProperty(XMLOutputFactory2.P_AUTOMATIC_EMPTY_ELEMENTS));
         assertEquals(Boolean.TRUE, f.getProperty(XMLStreamProperties.XSP_NAMESPACE_AWARE));
 
