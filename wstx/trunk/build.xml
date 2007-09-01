@@ -69,6 +69,7 @@
     <!-- Source files to include in source packages (tar, zip) -->
     <patternset id="wstx-dist-src-files">
           <include name="src/java/**/*.java" />
+          <include name="src/samples/**/*.java" />
           <include name="src/resources/*" />
           <include name="build.xml" />
           <include name="project.xml" />
