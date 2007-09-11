@@ -79,8 +79,7 @@ public class TestRepairingNsOutput
         XMLStreamReader sr = constructNsStreamReader(result, false);
         assertTokenType(START_ELEMENT, sr.next());
         assertEquals("root", sr.getLocalName());
-        // !!! TODO: if/when 'no namespace' URI changes to "", need to fix
-        assertNull(sr.getNamespaceURI());
+        assertElemNotInNamespace(sr);
         
         int nsCount = sr.getNamespaceCount();
         assertEquals("Expected one (and only one) namespace declaration, got "+nsCount, 1, nsCount);
@@ -142,7 +141,7 @@ public class TestRepairingNsOutput
         // And then leaf should have no ns decls:
         assertTokenType(START_ELEMENT, sr.next());
         assertEquals("leaf", sr.getLocalName());
-        assertNull(sr.getPrefix());
+        assertNoElemPrefix(sr);
         assertEquals(URI2, sr.getNamespaceURI());
         assertEquals(0, sr.getNamespaceCount());
         
@@ -180,15 +179,15 @@ public class TestRepairingNsOutput
         XMLStreamReader sr = constructNsStreamReader(result, false);
         assertTokenType(START_ELEMENT, sr.next());
         assertEquals("root", sr.getLocalName());
-	assertEquals(URI, sr.getNamespaceURI());
-	assertEquals(1, sr.getAttributeCount());
+        assertEquals(URI, sr.getNamespaceURI());
+        assertEquals(1, sr.getAttributeCount());
         assertEquals("attr", sr.getAttributeLocalName(0));
-	assertEquals(URI, sr.getAttributeNamespace(0));
-	// so far so good: but let's verify prefix is also what caller specified
-	assertEquals("attrns", sr.getAttributePrefix(0));
-
-	assertEquals(2, sr.getNamespaceCount());
-
+        assertEquals(URI, sr.getAttributeNamespace(0));
+        // so far so good: but let's verify prefix is also what caller specified
+        assertEquals("attrns", sr.getAttributePrefix(0));
+        
+        assertEquals(2, sr.getNamespaceCount());
+        
         // fine, rest is ok
         sr.close();
     }

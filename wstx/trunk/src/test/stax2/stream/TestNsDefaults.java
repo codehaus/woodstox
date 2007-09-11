@@ -28,8 +28,8 @@ public class TestNsDefaults
         assertTokenType(DTD, sr.next());
         assertTokenType(START_ELEMENT, sr.next());
         assertEquals("node", sr.getLocalName());
-        assertNull(sr.getPrefix());
-        assertNull(sr.getNamespaceURI());
+        assertElemNotInNamespace(sr);
+        assertNoElemPrefix(sr);
         assertEquals(1, sr.getAttributeCount());
         assertEquals(1, sr.getNamespaceCount());
         
@@ -43,8 +43,8 @@ public class TestNsDefaults
         
         assertTokenType(START_ELEMENT, sr.next());
         assertEquals("node", sr.getLocalName());
-        assertNull(sr.getPrefix());
-        assertNull(sr.getNamespaceURI());
+        assertElemNotInNamespace(sr);
+        assertNoElemPrefix(sr);
 
         assertEquals(1, sr.getAttributeCount());
         assertEquals(1, sr.getNamespaceCount());
@@ -53,8 +53,8 @@ public class TestNsDefaults
         assertEquals("http://default", sr.getNamespaceURI(0));
         
         assertEquals("attr", sr.getAttributeLocalName(0));
-        assertNull(sr.getAttributePrefix(0));
-        assertNull(sr.getAttributeNamespace(0));
+        assertNoAttrPrefix(sr.getAttributePrefix(0));
+        assertNoAttrNamespace(sr.getAttributeNamespace(0));
         assertEquals("456", sr.getAttributeValue(0));
         
         assertTokenType(END_ELEMENT, sr.next());
@@ -66,7 +66,7 @@ public class TestNsDefaults
 
     /*
     ////////////////////////////////////////
-    // Private methods, other
+    // Private methods
     ////////////////////////////////////////
      */
 

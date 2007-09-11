@@ -56,8 +56,9 @@ import com.ctc.wstx.util.*;
  * this is sometimes useful when optimizing modularized DTDs
  * (which are more maintainable) into single monolithic DTDs (which in
  * general can be more performant).
+ *
+ * @author Tatu Saloranta
  */
-
 public class FullDTDReader
     extends MinimalDTDReader
 {
@@ -2893,7 +2894,7 @@ public class FullDTDReader
             if (mCfgFullyValidating) {
                 String msg = "Notation '"+id+"' not defined; ";
                 if (attrName == null) { // reference from entity
-                    reportVCViolation(msg+"can not refer to from an entity");
+                    reportVCViolation(msg+"can not be referenced by an entity");
                 }
                 // reference from attribute
                 reportVCViolation(msg+"can not be used as value for attribute list of '"+attrName+"'");

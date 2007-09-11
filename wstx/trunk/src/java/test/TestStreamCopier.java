@@ -58,8 +58,6 @@ public class TestStreamCopier
         }
         */
 
-        // Let's leave LFs as is...
-        //f.setProperty(WstxInputProperties.P_NORMALIZE_LFS, Boolean.FALSE);
         return (XMLInputFactory2) f;
     }
 

@@ -225,6 +225,13 @@ public final class NonNsInputElementStack
      */
 
     public final String getNamespaceURI(String prefix) {
+        /* No prefixes can be bound in non-namespace mode, however,
+         * "no prefix" needs to match "no namespace": latter of which
+         * is signified by the empty String
+         */
+        if (prefix != null && prefix.length() == 0) {
+            return "";
+        }
         return null;
     }
 
@@ -323,11 +330,11 @@ public final class NonNsInputElementStack
     // // // Information about element at top of stack:
 
     public final String getDefaultNsURI() {
-        return null;
+        return "";
     }
 
     public final String getNsURI() {
-        return null;
+        return "";
     }
 
     public final String getPrefix() {

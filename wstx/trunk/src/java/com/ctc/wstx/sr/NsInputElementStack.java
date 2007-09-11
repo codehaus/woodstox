@@ -49,10 +49,13 @@ public final class NsInputElementStack
     /**
      * Top-most namespace URI assigned for root element, if not specifically
      * defined (default namespace unbound).
-     * As per Stax specs (and related clarifying discussion on
-     * the mailing list), null should consistently be used.
+     *<p>
+     * As per Stax specs, related clarifying discussion on
+     * the mailing list, and especially JDK 1.6 definitions
+     * in {@link XMLConstants} constants, <b>empty String</b>
+     * should be used instead of null.
      */
-    final static String DEFAULT_NAMESPACE_URI = null;
+    final static String DEFAULT_NAMESPACE_URI = "";
 
     final static int IX_PREFIX = 0;
     final static int IX_LOCALNAME = 1;
@@ -364,7 +367,11 @@ public final class NsInputElementStack
         } else {
             // Need to find namespace with the prefix:
             ns = mNamespaces.findLastFromMap(prefix);
-            if (ns == null) {
+            /* 07-Sep-2007, TSa: "no namespace" should now be indicated
+             *   by an empty string, however, due to historical reasons
+             *   let's be bit defensive and allow nulls for the same too
+             */
+            if (ns == null || ns.length() == 0) {
                 mReporter.throwParseError(ErrorConsts.ERR_NS_UNDECLARED, prefix);
             }
         }
@@ -486,7 +493,10 @@ public final class NsInputElementStack
         }
         if (prefix.length() == 0) {
             if (mSize == 0) { // unexpected... but let's not err at this point
-                return null;
+                /* 07-Sep-2007, TSa: Default/"no namespace" does map to
+                 *    "URI" of empty String.
+                 */
+                return "";
             }
             return mElements[mSize-(ENTRY_SIZE - IX_DEFAULT_NS)];
         }

@@ -24,14 +24,6 @@ import com.ctc.wstx.util.TextBuilder;
 public final class NonNsAttributeCollector
     extends AttributeCollector
 {
-    /**
-     * Default URI that is returned in non-namespace mode for all elements
-     * and attributes
-     */
-    protected final static String DEFAULT_NS_URI = null;
-
-    protected final static String DEFAULT_PREFIX = null;
- 
     /*
     ///////////////////////////////////////////////
     // Life-cycle:
@@ -177,11 +169,11 @@ public final class NonNsAttributeCollector
     }
 
     public String getNsPrefix(int index) {
-        return DEFAULT_PREFIX;
+        return ATTR_NO_PREFIX;
     }
 
     public String getNsURI(int index) {
-        return DEFAULT_NS_URI;
+        return ATTR_NO_NAMESPACE_URI;
     }
 
     // // // Direct access to attribute/NS prefixes/localnames/URI
@@ -190,7 +182,7 @@ public final class NonNsAttributeCollector
         if (index < 0 || index >= mAttrCount) {
             throwIndex(index);
         }
-        return DEFAULT_PREFIX;
+        return ATTR_NO_PREFIX;
     }
 
     public String getLocalName(int index) {
@@ -205,7 +197,7 @@ public final class NonNsAttributeCollector
         if (index < 0 || index >= mAttrCount) {
             throwIndex(index);
         }
-        return DEFAULT_NS_URI;
+        return ATTR_NO_NAMESPACE_URI;
     }
 
     public QName getQName(int index) {
@@ -365,8 +357,8 @@ public final class NonNsAttributeCollector
         for (int i = 0; i < count; ++i) {
             int ix = (i << 2);
             raw[ix] = mAttrNames.getString(i);
-            raw[ix+1] = DEFAULT_NS_URI;
-            raw[ix+2] = DEFAULT_PREFIX;
+            raw[ix+1] = ATTR_NO_NAMESPACE_URI;
+            raw[ix+2] = ATTR_NO_PREFIX;
             raw[ix+3] = getValue(i);
         }
 

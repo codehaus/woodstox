@@ -36,8 +36,8 @@ public class TestStreamReader
         //f.setProperty(XMLInputFactory.IS_COALESCING, Boolean.FALSE);
         f.setProperty(XMLInputFactory.IS_COALESCING, Boolean.TRUE);
 
-        //f.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.TRUE);
-        f.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.FALSE);
+        f.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.TRUE);
+        //f.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.FALSE);
 
         f.setProperty(XMLInputFactory.IS_REPLACING_ENTITY_REFERENCES,
                       //Boolean.FALSE
@@ -114,11 +114,6 @@ public class TestStreamReader
                       //WstxInputProperties.PARSING_MODE_DOCUMENTS
                       WstxInputProperties.PARSING_MODE_DOCUMENT
                       );
-
-        // To test windows linefeeds:
-        /*
-            f.setProperty(WstxInputProperties.P_NORMALIZE_LFS, Boolean.TRUE);
-        */
 
         return f;
     }

@@ -35,11 +35,6 @@ public final class NsAttributeCollector
     extends AttributeCollector
 {
     /**
-     * Default URI that root element has, if none is explicitly defined.
-     */
-    protected final static String DEFAULT_NS_URI = null;
-
-    /**
      * Initial size for attribute NS URI buffer
      */
     protected final static int ATTR_URI_BUF_SIZE = 16;
@@ -169,7 +164,7 @@ public final class NsAttributeCollector
             String prefix = attrNames[i+i];
             // Attributes do NOT use default namespace:
             if (prefix == null) {
-                attrURIs[i] = DEFAULT_NS_URI;
+                attrURIs[i] = ATTR_NO_NAMESPACE_URI;
                 // xml:lang etc? fixed mapping
             } else if (prefix == "xml") {
                 attrURIs[i] = XMLConstants.XML_NS_URI;
@@ -311,7 +306,8 @@ public final class NsAttributeCollector
      * Note: caller must check validity of the index prior to calling this
      * method.
      */
-    public QName getQName(int index) {
+    public QName getQName(int index)
+    {
         String prefix = getPrefix(index);
         if (prefix == null) { // QName barfs on null...
             prefix = "";
@@ -350,7 +346,7 @@ public final class NsAttributeCollector
                     return getValue(ix);
                 }
             } else {
-                if (thisURI == null) {
+                if (thisURI == ATTR_NO_NAMESPACE_URI) {
                     return getValue(ix);
                 }
             }
@@ -375,7 +371,7 @@ public final class NsAttributeCollector
                         return getValue(ix);
                     }
                 } else {
-                    if (thisURI == null) {
+                    if (thisURI == ATTR_NO_NAMESPACE_URI) {
                         return getValue(ix);
                     }
                 }
@@ -418,7 +414,7 @@ public final class NsAttributeCollector
                     return ix;
                 }
             } else {
-                if (thisURI == null) {
+                if (thisURI == ATTR_NO_NAMESPACE_URI) {
                     return ix;
                 }
             }
@@ -443,7 +439,7 @@ public final class NsAttributeCollector
                         return ix;
                     }
                 } else {
-                    if (thisURI == null) {
+                    if (thisURI == ATTR_NO_NAMESPACE_URI) {
                         return ix;
                     }
                 }

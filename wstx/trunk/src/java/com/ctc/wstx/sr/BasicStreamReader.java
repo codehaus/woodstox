@@ -67,6 +67,8 @@ import com.ctc.wstx.util.URLUtil;
  * and implemented as the "main" interface. Implementing {@link DTDInfo} is
  * just an implementation detail; it could be implemented as a separate
  * Object if necessary.
+ *
+ * @author Tatu Saloranta
  */
 public class BasicStreamReader
     extends StreamScanner

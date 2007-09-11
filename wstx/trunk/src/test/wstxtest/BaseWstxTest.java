@@ -433,6 +433,61 @@ public class BaseWstxTest
         }
     }
 
+    /**
+     * Method that can be used to verify that the current element
+     * pointed to by the stream reader has no prefix.
+     */
+    protected static void assertNoElemPrefix(XMLStreamReader sr)
+        throws XMLStreamException
+    {
+        assertNull("A", sr.getPrefix());
+        String prefix = sr.getPrefix();
+        if (prefix != null) {
+            if (prefix.length() != 0) {
+                fail("Current element should not have a prefix: got '"+prefix+"'");
+            } else {
+                fail("Excepted null to signify missing prefix (see XMLStreamReader#getPrefix() JavaDocs): got empty String");
+            }
+        }
+    }
+
+    protected static void assertNoAttrPrefix(String attrPrefix)
+        throws XMLStreamException
+    {
+        if (attrPrefix != null) {
+            if (attrPrefix.length() != 0) {
+                fail("Attribute should not have a prefix: got '"+attrPrefix+"'");
+            } else {
+                fail("Expected null to signify missing attribute prefix (see XMLStreamReader#getAttributePrefix() JavaDocs): got empty String");
+            }
+        }
+    }
+
+    /**
+     * Method that can be used to verify that the current element
+     * pointed to by the stream reader does not belong to a namespace.
+     */
+    protected static void assertElemNotInNamespace(XMLStreamReader sr)
+        throws XMLStreamException
+    {
+        String uri = sr.getNamespaceURI();
+        if (uri == null) {
+            fail("Excepted empty String to indicate \"no namespace\": got null");
+        } else if (uri.length() != 0) {
+            fail("Excepted no (null) namespace URI: got '"+uri+"'");
+        }
+    }
+
+    protected static void assertNoAttrNamespace(String attrNsURI)
+        throws XMLStreamException
+    {
+        if (attrNsURI == null) {
+            fail("Expected empty String to indicate \"no namespace\" (for attribute): got null");
+        } else if (attrNsURI.length() != 0) {
+            fail("Expected empty String to indicate \"no namespace\" (for attribute): got '"+attrNsURI+"'");
+        }
+    }
+
     protected static void failStrings(String msg, String exp, String act)
     {
         // !!! TODO: Indicate position where Strings differ
