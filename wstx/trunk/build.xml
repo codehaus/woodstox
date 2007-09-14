@@ -279,11 +279,43 @@
               <patternset refid="wstx-dist-class-files" />
               <patternset refid="stax2-dist-class-files" />
           </fileset>
-          <fileset dir="${RelNotesDir}/lgpl">
+          <!-- 14-Sep-2007, TSa: Seems like Mavenistas like to see this
+                  file under META-INF. Since jar specs do not care, let's
+                  put it there.
+            -->
+          <metainf dir="${RelNotesDir}/lgpl">
             <include name="LICENSE" />
             <include name="NOTICE" />
             <include name="LGPL2.1" />
+          </metainf>
+        </jar>
+    </target> 
+
+    <target name="jar.wstx.asl" depends="compile,copy-resources">
+        <jar jarfile="${BuildDir}/wstx-asl-${WSTX_VERSION}.jar"
+         filesonly="true" >
+          <manifest>
+            <attribute name="Built-By" value="${user.name}"/>
+            <attribute name="Specification-Title"   value="${STAX_TITLE}"/>
+            <attribute name="Specification-Version" value="${STAX_VERSION}"/>
+            <attribute name="Specification-Vendor"  value="${STAX_VENDOR}"/>
+            <attribute name="Implementation-Title"   value="${WSTX_TITLE}"/>
+            <attribute name="Implementation-Version" value="${WSTX_VERSION}"/>
+            <attribute name="Implementation-Vendor"  value="${WSTX_VENDOR}"/>
+          </manifest>
+          <fileset dir="${BuildClassesDir}">
+              <patternset refid="wstx-dist-class-files" />
+              <patternset refid="stax2-dist-class-files" />
           </fileset>
+          <!-- 14-Sep-2007, TSa: Seems like Mavenricks like to see this
+                  file under META-INF. Since jar specs do not care, let's
+                  put it there.
+            -->
+          <metainf dir="${RelNotesDir}/asl">
+            <include name="LICENSE" />
+            <include name="NOTICE" />
+            <include name="ASL2.0" />
+          </metainf>
         </jar>
     </target> 
 
@@ -305,30 +337,6 @@
           <fileset dir="${BuildClassesDir}">
               <include name="META-INF/services/javax.xml.stream.*" />
               <include name="META-INF/services/org.codehaus.stax2.*" />
-          </fileset>
-        </jar>
-    </target> 
-
-    <target name="jar.wstx.asl" depends="compile,copy-resources">
-        <jar jarfile="${BuildDir}/wstx-asl-${WSTX_VERSION}.jar"
-         filesonly="true" >
-          <manifest>
-            <attribute name="Built-By" value="${user.name}"/>
-            <attribute name="Specification-Title"   value="${STAX_TITLE}"/>
-            <attribute name="Specification-Version" value="${STAX_VERSION}"/>
-            <attribute name="Specification-Vendor"  value="${STAX_VENDOR}"/>
-            <attribute name="Implementation-Title"   value="${WSTX_TITLE}"/>
-            <attribute name="Implementation-Version" value="${WSTX_VERSION}"/>
-            <attribute name="Implementation-Vendor"  value="${WSTX_VENDOR}"/>
-          </manifest>
-          <fileset dir="${BuildClassesDir}">
-              <patternset refid="wstx-dist-class-files" />
-              <patternset refid="stax2-dist-class-files" />
-          </fileset>
-          <fileset dir="${RelNotesDir}/asl">
-            <include name="LICENSE" />
-            <include name="NOTICE" />
-            <include name="ASL2.0" />
           </fileset>
         </jar>
     </target> 
