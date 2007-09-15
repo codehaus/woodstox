@@ -14,8 +14,8 @@ import org.w3c.dom.Document;
 import org.codehaus.stax2.*;
 
 /**
- * Unit test suite that checks that DOM-compatibility features (DOMSource,
- * DOMTarget) are implemented as expected.
+ * Unit test suite that checks that input-side DOM-compatibility
+ * features (DOMSource as input) are implemented as expected.
  */
 public class TestDomCompat
     extends BaseStreamTest

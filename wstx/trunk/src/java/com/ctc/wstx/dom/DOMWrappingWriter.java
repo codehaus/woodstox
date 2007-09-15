@@ -45,6 +45,8 @@ public class DOMWrappingWriter
 
     protected final boolean mNsAware;
 
+    protected final boolean mNsRepairing;
+
     /**
      * This member variable is to keep information about encoding
      * that seems to be used for the document (or fragment) to output,
@@ -70,7 +72,20 @@ public class DOMWrappingWriter
      */
     protected final Document mDocument;
 
-    protected Node mCurrNode;
+    /**
+     * This element is the current context element, under which
+     * all other nodes are added, until matching end element
+     * is output. Null outside of the main element tree.
+     */
+    protected Element mParentElem;
+
+    /**
+     * This element is non-null right after a call to
+     * either <code>writeStartElement</code> and
+     * <code>writeEmptyElement</code>, and can be used to
+     * add attributes and namespace declarations.
+     */
+    protected Element mOpenElement;
 
     /*
     ////////////////////////////////////////////////////
@@ -87,6 +102,9 @@ public class DOMWrappingWriter
 
         mConfig = cfg;
         mNsAware = cfg.willSupportNamespaces();
+        mNsRepairing = mNsAware && cfg.automaticNamespacesEnabled();
+
+        Element elem = null;
         
         /* Ok; we need a document node; or an element node; or a document
          * fragment node.
@@ -102,22 +120,21 @@ public class DOMWrappingWriter
 
         case Node.ELEMENT_NODE: // can make sub-tree... ok
             mDocument = treeRoot.getOwnerDocument();
+            elem = (Element) treeRoot;
             break;
 
         case Node.DOCUMENT_FRAGMENT_NODE: // as with element...
             mDocument = treeRoot.getOwnerDocument();
-
             // Above types are fine
             break;
 
         default: // other Nodes not usable
             throw new XMLStreamException("Can not create an XMLStreamWriter for a DOM node of type "+treeRoot.getClass());
         }
-        mCurrNode = treeRoot;
-
         if (mDocument == null) {
             throw new XMLStreamException("Can not create an XMLStreamWriter for given node (of type "+treeRoot.getClass()+"): did not have owner document");
         }
+        mParentElem = mOpenElement = elem;
     }
 
     public static DOMWrappingWriter createFrom(WriterConfig cfg, DOMResult dst)
@@ -170,22 +187,20 @@ public class DOMWrappingWriter
 
     public void writeAttribute(String localName, String value)
     {
-        writeAttribute(null, localName, value);
+        outputAttribute(null, null, localName, value);
     }
 
-    public void writeAttribute(String namespaceURI, String localName, String value) {
-        checkIsElement();
-        // !!! TBI
+    public void writeAttribute(String nsURI, String localName, String value) {
+        outputAttribute(nsURI, null, localName, value);
     }
 
-    public void writeAttribute(String prefix, String namespaceURI, String localName, String value)
+    public void writeAttribute(String prefix, String nsURI, String localName, String value)
     {
-        checkIsElement();
-        // !!! TBI
+        outputAttribute(nsURI, prefix, localName, value);
     }
 
     public void writeCData(String data) {
-        mCurrNode.appendChild(mDocument.createCDATASection(data));
+        appendLeaf(mDocument.createCDATASection(data));
     }
 
     public void writeCharacters(char[] text, int start, int len)
@@ -194,17 +209,16 @@ public class DOMWrappingWriter
     }
     
     public void writeCharacters(String text) {
-        mCurrNode.appendChild(mDocument.createTextNode(text));
+        appendLeaf(mDocument.createTextNode(text));
     }
 
     public void writeComment(String data) {
-        mCurrNode.appendChild(mDocument.createCDATASection(data));
+        appendLeaf(mDocument.createCDATASection(data));
     }
 
-    public void writeDefaultNamespace(String namespaceURI) {
-        checkIsElement();
-
-        // !!! TBI
+    public void writeDefaultNamespace(String nsURI)
+    {
+        writeNamespace(null, nsURI);
     }
 
     public void writeDTD(String dtd)
@@ -217,34 +231,52 @@ public class DOMWrappingWriter
         writeEmptyElement(null, localName);
     }
 
-    public void writeEmptyElement(String namespaceURI, String localName)
+    public void writeEmptyElement(String nsURI, String localName)
     {
-        // Note: can not just call writeStartElement(), since this should not change context for good!
-
-        // !!! TBI
+        /* Note: can not just call writeStartElement(), since this
+         * element will only become the open elem, but not a parent elem
+         */
+        createStartElem(nsURI, null, localName, true);
     }
 
-    public void writeEmptyElement(String prefix, String localName, String namespaceURI)
+    public void writeEmptyElement(String prefix, String localName, String nsURI)
     {
-        // !!! TBI
+        createStartElem(nsURI, prefix, localName, true);
     }
 
     public void writeEndDocument()
     {
-        mCurrNode = mDocument;
+        mParentElem = mOpenElement = null;
     }
 
-    public void writeEndElement() {
+    public void writeEndElement()
+    {
+        // Simple, just need to traverse up... if we can
+        if (mParentElem == null) {
+            throw new IllegalStateException("No open start element to close");
+        }
+        mOpenElement = null; // just in case it was open
+        Node parent = mParentElem.getParentNode();
+        mParentElem = (parent == mDocument) ? null : (Element) parent;
     }
 
     public void writeEntityRef(String name) {
-        mCurrNode.appendChild(mDocument.createEntityReference(name));
+        appendLeaf(mDocument.createEntityReference(name));
     }
 
-    public void writeNamespace(String prefix, String namespaceURI) {
-        checkIsElement();
+    public void writeNamespace(String prefix, String nsURI)
+    {
+        boolean defNS = (prefix == null || prefix.length() == 0);
 
-        // !!! TBI
+        if (!mNsAware) {
+            if (defNS) {
+                outputAttribute(null, null, "xmlns", nsURI);
+            } else {
+                outputAttribute(null, "xmlns", prefix, nsURI);
+            }
+        } else {
+            // !!! TBI
+        }
     }
 
     public void writeProcessingInstruction(String target) {
@@ -252,7 +284,7 @@ public class DOMWrappingWriter
     }
 
     public void writeProcessingInstruction(String target, String data) {
-        mCurrNode.appendChild(mDocument.createProcessingInstruction(target, data));
+        appendLeaf(mDocument.createProcessingInstruction(target, data));
     }
 
     public void writeSpace(char[] text, int start, int len) {
@@ -289,13 +321,15 @@ public class DOMWrappingWriter
         writeStartElement(null, localName);
     }
 
-    public void writeStartElement(String namespaceURI, String localName) {
-        // !!! TBI
+    public void writeStartElement(String nsURI, String localName)
+    {
+        createStartElem(nsURI, null, localName, false);
     }
 
-    public void writeStartElement(String prefix, String localName, String namespaceURI) {
-        // !!! TBI
-    } 
+    public void writeStartElement(String prefix, String localName, String nsURI)
+    {
+        createStartElem(nsURI, prefix, localName, false);
+    }
 
     /*
     ////////////////////////////////////////////////////
@@ -365,7 +399,7 @@ public class DOMWrappingWriter
         /* Alas: although we can create a DocumentType object, there
          * doesn't seem to be a way to attach it in DOM-2!
          */
-        if (mCurrNode != mDocument) {
+        if (mParentElem != null) {
             throw new IllegalStateException("Operation only allowed to the document before adding root element");
         }
         reportUnsupported("writeDTD()");
@@ -416,20 +450,78 @@ public class DOMWrappingWriter
 
     /*
     ///////////////////////////////
-    // Stax2, pass-through methods
+    // Internal methods
     ///////////////////////////////
     */
+
+    protected void appendLeaf(Node n)
+        throws IllegalStateException
+    {
+        if (mParentElem == null) { // to add to document
+            mDocument.appendChild(n);
+        } else {
+            // Will also close the open element, if any
+            mOpenElement = null;
+            mParentElem.appendChild(n);
+        }
+    }
+
+    protected void createStartElem(String nsURI, String prefix, String localName, boolean isEmpty)
+    {
+        Element elem;
+
+        if (mNsAware) {
+            if (mNsRepairing) {
+                /* Need to ensure proper bindings... ugh.
+                 * May change prefix
+                 */
+                // !!! TBI
+            }
+            if (prefix != null && prefix.length() > 0) {
+                localName = prefix + ":" + localName;
+            }
+            elem = mDocument.createElementNS(nsURI, localName);
+        } else { // non-ns, simple
+            if (prefix != null && prefix.length() > 0) {
+                localName = prefix + ":" + localName;
+            }
+            elem = mDocument.createElement(localName);
+        }
+
+        appendLeaf(elem);
+        mOpenElement = elem;
+        if (!isEmpty) {
+            mParentElem = elem;
+        }
+    }
+
+    protected void outputAttribute(String nsURI, String prefix, String localName, String value)
+    {
+        if (mOpenElement == null) {
+            throw new IllegalStateException("No currently open START_ELEMENT, cannot write attribute");
+        }
+
+        if (mNsAware) {
+            if (mNsRepairing) {
+                /* Need to ensure proper bindings... ugh.
+                 * May change prefix
+                 */
+                // !!! TBI
+            }
+            if (prefix != null && prefix.length() > 0) {
+                localName = prefix + ":" + localName;
+            }
+            mOpenElement.setAttributeNS(nsURI, localName, value);
+        } else { // non-ns, simple
+            if (prefix != null && prefix.length() > 0) {
+                localName = prefix + ":" + localName;
+            }
+            mOpenElement.setAttribute(localName, value);
+        }
+    }
 
     private void reportUnsupported(String operName)
     {
         throw new UnsupportedOperationException(operName+" can not be used with DOM-backed writer");
-    }
-
-    private void checkIsElement()
-    {
-        int type = mCurrNode.getNodeType();
-        if (type != Node.ELEMENT_NODE) {
-            throw new IllegalStateException("Operation only allowed when last output event was START_ELEMENT (context node is of type "+type+")");
-        }
     }
 }
