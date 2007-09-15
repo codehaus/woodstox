@@ -70,6 +70,13 @@ public final class StreamBootstrapper
 
     int mBytesPerChar; // minimum, ie. 1 for UTF-8
 
+    /**
+     * Special case for 1-byte encodings: EBCDIC is problematic
+     * as it's not 7-bit ascii compatible. We can deal with it,
+     * still, but only with bit of extra state.
+     */
+    boolean mEBCDIC = false;
+
     String mInputEncoding = null;
 
     /*
@@ -109,6 +116,23 @@ public final class StreamBootstrapper
         mByteBuffer = cfg.allocFullBBuffer(bufSize);
 
         resolveStreamEncoding();
+
+        /* 14-Sep-2007, TSa: One immediate complication: since EBCDIC
+         *   encoding(s) is not 7-bit ascii compatible, its detection
+         *   and handling needs to be done different from others.
+         *   So let's get that out of the way first.
+         */
+        if (mEBCDIC) {
+            normEnc = CharsetNames.CS_EBCDIC;
+            InputStream in = mIn;
+            if (mInputPtr < mInputLen) {
+                in = new MergedStream(cfg, in, mByteBuffer, mInputPtr, mInputLen);
+            }
+            InputStreamReader r = new InputStreamReader(in, normEnc);
+            ReaderBootstrapper rbs = ReaderBootstrapper.getInstance(r, mPublicId, mSystemId, normEnc);
+            return rbs.bootstrapInput(cfg, mainDoc, xmlVersion);
+        }
+
         if (hasXmlDecl()) {
             // note: readXmlDecl will set mXml11Handling too
             readXmlDecl(mainDoc, xmlVersion);
@@ -310,7 +334,10 @@ public final class StreamBootstrapper
                     break bomblock;
 
                 case 0x4c6fa794: // EBCDIC, not (yet?) supported...
-                    reportEBCDIC();
+                    mBytesPerChar = 1;
+                    mEBCDIC = true;
+                    //reportEBCDIC();
+                    break bomblock;
                 }
                 
                 /* Otherwise it's either single-byte doc without xml
