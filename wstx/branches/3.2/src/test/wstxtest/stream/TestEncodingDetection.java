@@ -13,6 +13,12 @@ import javax.xml.stream.*;
 public class TestEncodingDetection
     extends BaseStreamTest
 {
+    /**
+     * Not sure if this is really correct, but that's what works
+     * with JDK codecs.
+     */
+    final static String ENC_EBCDIC = "CP037";
+
     public void testUtf8()
         throws IOException, XMLStreamException
     {
@@ -60,6 +66,40 @@ public class TestEncodingDetection
         assertTokenType(START_ELEMENT, sr.next());
         sr.close();
     }
+
+    /**
+     * Testing for EBCDIC is tricky, mostly due to possible
+     * complexity of the things to support, as well as lack
+     * of sample documents and difficulty in reading ones
+     * that exist (it not being 7-bit ascii compatible).
+     * But let's try a straight-forward (naive?) test
+     * to verify that what is supposed to work does.
+     */
+    public void testEBCDIC()
+        throws IOException, XMLStreamException
+    {
+        String xml = "<?xml version='1.0' encoding='"+ENC_EBCDIC+"' ?>"
+            +"<root attr='123'>rock &amp; roll!<!-- comment --></root>";
+        byte[] bytes = xml.getBytes(ENC_EBCDIC);
+        XMLStreamReader sr = getReader(bytes);
+
+        assertTokenType(START_DOCUMENT, sr.getEventType());
+
+        assertEquals(ENC_EBCDIC, sr.getEncoding());
+
+        assertEquals(ENC_EBCDIC, sr.getCharacterEncodingScheme());
+
+        assertTokenType(START_ELEMENT, sr.next());
+        assertEquals("root", sr.getLocalName());
+        assertTokenType(CHARACTERS, sr.next());
+        assertEquals("rock & roll!", getAndVerifyText(sr));
+        assertTokenType(COMMENT, sr.next());
+        assertEquals(" comment ", getAndVerifyText(sr));
+        assertTokenType(END_ELEMENT, sr.next());
+        assertEquals("root", sr.getLocalName());
+        sr.close();
+    }
+
 
     /*
     /////////////////////////////////////////

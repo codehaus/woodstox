@@ -41,7 +41,8 @@ public final class CharsetNames
 
     // // // Other oddities:
 
-    public final static String CS_EBCDIC = "EBCDIC";
+    //public final static String CS_EBCDIC = "EBCDIC";
+    public final static String CS_EBCDIC = "CP037";
 
     /*
     //////////////////////////////////////////////////
@@ -88,6 +89,9 @@ public final class CharsetNames
 
         case 'c':
         case 'C':
+            if (StringUtil.equalEncodings(csName, "cp037")) {
+                return CS_EBCDIC;
+            }
             // Hmmh. There are boatloads of these... but what to do with them?
             if (StringUtil.encodingStartsWith(csName, "cs")) {
                 // !!! TBI

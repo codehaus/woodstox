@@ -51,6 +51,7 @@ import com.ctc.wstx.io.WstxInputLocation;
 import com.ctc.wstx.sr.StreamReaderImpl;
 import com.ctc.wstx.sr.AttributeCollector;
 import com.ctc.wstx.sr.InputElementStack;
+import com.ctc.wstx.util.DataUtil;
 import com.ctc.wstx.util.StringUtil;
 
 /**
@@ -381,7 +382,7 @@ public abstract class BaseStreamWriter
             throw new WstxIOException(ioe);
         }
         if (ix >= 0) { // unfixable problems?
-            reportNwfContent(ErrorConsts.WERR_CDATA_CONTENT, Integer.valueOf(ix));
+            reportNwfContent(ErrorConsts.WERR_CDATA_CONTENT, DataUtil.Integer(ix));
         }
     }
 
@@ -549,7 +550,7 @@ public abstract class BaseStreamWriter
         }
 
         if (ix >= 0) {
-            reportNwfContent(ErrorConsts.WERR_COMMENT_CONTENT, Integer.valueOf(ix));
+            reportNwfContent(ErrorConsts.WERR_COMMENT_CONTENT, DataUtil.Integer(ix));
         }
     }
 
@@ -1087,7 +1088,7 @@ public abstract class BaseStreamWriter
             throw new WstxIOException(ioe);
         }
         if (ix >= 0) { // problems that could not to be fixed?
-            throwOutputError(ErrorConsts.WERR_CDATA_CONTENT, Integer.valueOf(ix));
+            throwOutputError(ErrorConsts.WERR_CDATA_CONTENT, DataUtil.Integer(ix));
         }
     }
 

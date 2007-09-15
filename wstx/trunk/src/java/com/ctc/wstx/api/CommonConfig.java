@@ -4,6 +4,8 @@ import java.util.*;
 
 import org.codehaus.stax2.XMLStreamProperties;
 
+import com.ctc.wstx.util.DataUtil;
+
 /**
  * Shared common base class for variour configuration container implementations
  * for public factories Woodstox uses: implementations of
@@ -49,17 +51,17 @@ abstract class CommonConfig
     static {
         // Basic information about the implementation:
         sStdProperties.put(XMLStreamProperties.XSP_IMPLEMENTATION_NAME,
-                        Integer.valueOf(PROP_IMPL_NAME));
+                           DataUtil.Integer(PROP_IMPL_NAME));
         sStdProperties.put(XMLStreamProperties.XSP_IMPLEMENTATION_VERSION,
-                        Integer.valueOf(PROP_IMPL_VERSION));
+                           DataUtil.Integer(PROP_IMPL_VERSION));
 
         // XML version support:
         sStdProperties.put(XMLStreamProperties.XSP_SUPPORTS_XML11,
-                        Integer.valueOf(PROP_SUPPORTS_XML11));
+                           DataUtil.Integer(PROP_SUPPORTS_XML11));
 
         // Xml:id support:
         sStdProperties.put(XMLStreamProperties.XSP_SUPPORTS_XML11,
-                        Integer.valueOf(PROP_SUPPORTS_XML11));
+                           DataUtil.Integer(PROP_SUPPORTS_XML11));
     }
 
     protected CommonConfig() { }

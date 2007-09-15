@@ -7,6 +7,8 @@ Description:
 
   Problems fixed:
 
+  * [WSTX-104] Added missing support for outputting to a DOM tree
+    (via XMLOutputFactory.createXMLStreamWriter(DOMSource)).
   * [WSTX-120] By default, context fixing is now disabled, to
     maximize interoperability, and to follow "principle of least
     surprise" (i.e. avoid confusion that writer outsmarting developer
@@ -14,8 +16,6 @@ Description:
 
   New features:
 
-  * [WSTX-104] Added support for outputting to a DOM tree (via
-    XMLOutputFactory.createXMLStreamWriter(DOMSource)).
   * [WSTX-122] Adding support for EBCDIC encoding(s), using Java
     "cp037" encoding as starting point.
   * [WSTX-125] Adding of space between empty element, and closing

@@ -1,9 +1,10 @@
 Version: 3.1.2
 
-Release date: xx-xxx-2007
+Release date: 05-Jun-2007
 
 Description:
-  Second patch release for 3.1
+  Second (and probably last) patch release for 3.1.
+  Contains critical fixes to the stable branch as reported by users.
 
   Problems fixed:
 
@@ -12,6 +13,9 @@ Description:
   * [WSTX-103] Repairing writer had a bug that could result in wrong
     prefix being reported/output.
    (reported by Michael A)
+  * [WSTX-110] Exception chaining would itself cause an exception,
+    on some platforms.
+    (reported by Erik Bergersjö)
 
 == History: ==
 

@@ -123,14 +123,21 @@ public final class StreamBootstrapper
          *   So let's get that out of the way first.
          */
         if (mEBCDIC) {
-            normEnc = CharsetNames.CS_EBCDIC;
             InputStream in = mIn;
             if (mInputPtr < mInputLen) {
                 in = new MergedStream(cfg, in, mByteBuffer, mInputPtr, mInputLen);
             }
-            InputStreamReader r = new InputStreamReader(in, normEnc);
+            normEnc = CharsetNames.CS_EBCDIC;
+            Reader r = new InputStreamReader(in, normEnc);
             ReaderBootstrapper rbs = ReaderBootstrapper.getInstance(r, mPublicId, mSystemId, normEnc);
-            return rbs.bootstrapInput(cfg, mainDoc, xmlVersion);
+            r = rbs.bootstrapInput(cfg, mainDoc, xmlVersion);
+            /* Ok, now, since caller will ask this bootstrapper for its
+             * data, we have to transfer the state from reader bootstrapper...
+             */
+            initFrom(rbs);
+            // Plus add other pieces base class doesn't know
+            mInputEncoding = normEnc;
+            return r;
         }
 
         if (hasXmlDecl()) {

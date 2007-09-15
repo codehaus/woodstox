@@ -17,6 +17,7 @@ import com.ctc.wstx.ent.IntEntity;
 import com.ctc.wstx.ent.EntityDecl;
 import com.ctc.wstx.io.BufferRecycler;
 import com.ctc.wstx.util.ArgUtil;
+import com.ctc.wstx.util.DataUtil;
 import com.ctc.wstx.util.EmptyIterator;
 import com.ctc.wstx.util.SymbolTable;
 
@@ -206,71 +207,71 @@ public final class ReaderConfig
     static {
         // Standard ones; support for features
         sProperties.put(XMLInputFactory.IS_COALESCING,
-                        Integer.valueOf(PROP_COALESCE_TEXT));
+                        DataUtil.Integer(PROP_COALESCE_TEXT));
         sProperties.put(XMLInputFactory.IS_NAMESPACE_AWARE,
-                        Integer.valueOf(PROP_NAMESPACE_AWARE));
+                        DataUtil.Integer(PROP_NAMESPACE_AWARE));
         sProperties.put(XMLInputFactory.IS_REPLACING_ENTITY_REFERENCES,
-                    Integer.valueOf(PROP_REPLACE_ENTITY_REFS));
+                    DataUtil.Integer(PROP_REPLACE_ENTITY_REFS));
         sProperties.put(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES,
-                    Integer.valueOf(PROP_SUPPORT_EXTERNAL_ENTITIES));
+                    DataUtil.Integer(PROP_SUPPORT_EXTERNAL_ENTITIES));
         sProperties.put(XMLInputFactory.IS_VALIDATING,
-                        Integer.valueOf(PROP_VALIDATE_AGAINST_DTD));
+                        DataUtil.Integer(PROP_VALIDATE_AGAINST_DTD));
         sProperties.put(XMLInputFactory.SUPPORT_DTD,
-                        Integer.valueOf(PROP_SUPPORT_DTD));
+                        DataUtil.Integer(PROP_SUPPORT_DTD));
 
         // Standard ones; pluggable components
         sProperties.put(XMLInputFactory.ALLOCATOR,
-                        Integer.valueOf(PROP_EVENT_ALLOCATOR));
+                        DataUtil.Integer(PROP_EVENT_ALLOCATOR));
         sProperties.put(XMLInputFactory.REPORTER,
-                        Integer.valueOf(PROP_WARNING_REPORTER));
+                        DataUtil.Integer(PROP_WARNING_REPORTER));
         sProperties.put(XMLInputFactory.RESOLVER,
-                        Integer.valueOf(PROP_XML_RESOLVER));
+                        DataUtil.Integer(PROP_XML_RESOLVER));
 
         // StAX2-introduced flags:
         sProperties.put(XMLInputFactory2.P_INTERN_NAMES,
-                        Integer.valueOf(PROP_INTERN_NAMES));
+                        DataUtil.Integer(PROP_INTERN_NAMES));
         sProperties.put(XMLInputFactory2.P_INTERN_NS_URIS,
-                        Integer.valueOf(PROP_INTERN_NS_URIS));
+                        DataUtil.Integer(PROP_INTERN_NS_URIS));
         sProperties.put(XMLInputFactory2.P_REPORT_CDATA,
-                        Integer.valueOf(PROP_REPORT_CDATA));
+                        DataUtil.Integer(PROP_REPORT_CDATA));
         sProperties.put(XMLInputFactory2.P_REPORT_PROLOG_WHITESPACE,
-                        Integer.valueOf(PROP_REPORT_PROLOG_WS));
+                        DataUtil.Integer(PROP_REPORT_PROLOG_WS));
         sProperties.put(XMLInputFactory2.P_PRESERVE_LOCATION,
-                        Integer.valueOf(PROP_PRESERVE_LOCATION));
+                        DataUtil.Integer(PROP_PRESERVE_LOCATION));
         sProperties.put(XMLInputFactory2.P_AUTO_CLOSE_INPUT,
-                        Integer.valueOf(PROP_AUTO_CLOSE_INPUT));
+                        DataUtil.Integer(PROP_AUTO_CLOSE_INPUT));
         sProperties.put(XMLInputFactory2.XSP_SUPPORT_XMLID,
-                        Integer.valueOf(PROP_SUPPORT_XMLID));
+                        DataUtil.Integer(PROP_SUPPORT_XMLID));
 
         // Non-standard ones, flags:
 
         sProperties.put(WstxInputProperties.P_CACHE_DTDS,
-                        Integer.valueOf(PROP_CACHE_DTDS));
+                        DataUtil.Integer(PROP_CACHE_DTDS));
         sProperties.put(WstxInputProperties.P_CACHE_DTDS_BY_PUBLIC_ID,
-                        Integer.valueOf(PROP_CACHE_DTDS_BY_PUBLIC_ID));
+                        DataUtil.Integer(PROP_CACHE_DTDS_BY_PUBLIC_ID));
         sProperties.put(WstxInputProperties.P_LAZY_PARSING,
-                        Integer.valueOf(PROP_LAZY_PARSING));
+                        DataUtil.Integer(PROP_LAZY_PARSING));
         sProperties.put(WstxInputProperties.P_SUPPORT_DTDPP,
-                        Integer.valueOf(PROP_SUPPORT_DTDPP));
+                        DataUtil.Integer(PROP_SUPPORT_DTDPP));
 
         // Non-standard ones, non-flags:
 
         sProperties.put(WstxInputProperties.P_INPUT_BUFFER_LENGTH,
-                        Integer.valueOf(PROP_INPUT_BUFFER_LENGTH));
+                        DataUtil.Integer(PROP_INPUT_BUFFER_LENGTH));
         sProperties.put(WstxInputProperties.P_MIN_TEXT_SEGMENT,
-                        Integer.valueOf(PROP_MIN_TEXT_SEGMENT));
+                        DataUtil.Integer(PROP_MIN_TEXT_SEGMENT));
         sProperties.put(WstxInputProperties.P_CUSTOM_INTERNAL_ENTITIES,
-                        Integer.valueOf(PROP_CUSTOM_INTERNAL_ENTITIES));
+                        DataUtil.Integer(PROP_CUSTOM_INTERNAL_ENTITIES));
         sProperties.put(WstxInputProperties.P_DTD_RESOLVER,
-                        Integer.valueOf(PROP_DTD_RESOLVER));
+                        DataUtil.Integer(PROP_DTD_RESOLVER));
         sProperties.put(WstxInputProperties.P_ENTITY_RESOLVER,
-                        Integer.valueOf(PROP_ENTITY_RESOLVER));
+                        DataUtil.Integer(PROP_ENTITY_RESOLVER));
         sProperties.put(WstxInputProperties.P_UNDECLARED_ENTITY_RESOLVER,
-                        Integer.valueOf(PROP_UNDECLARED_ENTITY_RESOLVER));
+                        DataUtil.Integer(PROP_UNDECLARED_ENTITY_RESOLVER));
         sProperties.put(WstxInputProperties.P_BASE_URL,
-                        Integer.valueOf(PROP_BASE_URL));
+                        DataUtil.Integer(PROP_BASE_URL));
         sProperties.put(WstxInputProperties.P_INPUT_PARSING_MODE,
-                        Integer.valueOf(PROP_INPUT_PARSING_MODE));
+                        DataUtil.Integer(PROP_INPUT_PARSING_MODE));
     }
 
     /*
@@ -1209,9 +1210,9 @@ public final class ReaderConfig
 
             // then object values:
         case PROP_INPUT_BUFFER_LENGTH:
-            return Integer.valueOf(getInputBufferLength());
+            return DataUtil.Integer(getInputBufferLength());
         case PROP_MIN_TEXT_SEGMENT:
-            return Integer.valueOf(getShortestReportedTextSegment());
+            return DataUtil.Integer(getShortestReportedTextSegment());
         case PROP_CUSTOM_INTERNAL_ENTITIES:
             return getCustomInternalEntities();
         case PROP_DTD_RESOLVER:

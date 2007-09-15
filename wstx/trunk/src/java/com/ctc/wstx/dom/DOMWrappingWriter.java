@@ -17,6 +17,7 @@ import org.codehaus.stax2.validation.XMLValidator;
 
 import com.ctc.wstx.api.WriterConfig;
 import com.ctc.wstx.api.WstxOutputProperties;
+import com.ctc.wstx.util.EmptyNamespaceContext;
 
 /**
  * This is an adapter class that allows building a DOM tree using
@@ -99,10 +100,16 @@ public class DOMWrappingWriter
         if (treeRoot == null) {
             throw new IllegalArgumentException("Can not pass null Node for constructing a DOM-based XMLStreamWriter");
         }
-
         mConfig = cfg;
         mNsAware = cfg.willSupportNamespaces();
         mNsRepairing = mNsAware && cfg.automaticNamespacesEnabled();
+
+        /* 15-Sep-2007, TSa: Repairing mode not yet supported, so better
+         *   signal that right away
+         */
+        if (mNsRepairing) {
+            throw new XMLStreamException("Repairing mode not (yet) supported with DOM-backed writer");
+        }
 
         Element elem = null;
         
@@ -158,13 +165,21 @@ public class DOMWrappingWriter
         // NOP
     }
 
-    public NamespaceContext getNamespaceContext() {
-        // !!! TBI
-        return null;
+    public NamespaceContext getNamespaceContext()
+    {
+        if (!mNsAware) {
+            return EmptyNamespaceContext.getInstance();
+        }
+        // !!! TBI: 
+        return mNsContext;
     }
 
-    public String getPrefix(String uri) {
-        // !!! TBI
+    public String getPrefix(String uri)
+    {
+        if (!mNsAware) {
+            return null;
+        }
+        // !!! TBI: 
         return null;
     }
 
@@ -276,6 +291,14 @@ public class DOMWrappingWriter
             }
         } else {
             // !!! TBI
+            /* For now, let's output it (in non-repairing ns-aware
+             * mode), but not keep track of bindings.
+             */
+            if (defNS) {
+                outputAttribute(null, null, "xmlns", nsURI);
+            } else {
+                outputAttribute(null, "xmlns", prefix, nsURI);
+            }
         }
     }
 

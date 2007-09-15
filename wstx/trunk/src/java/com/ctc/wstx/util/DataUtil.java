@@ -7,11 +7,38 @@ public final class DataUtil
 {
     final static char[] EMPTY_CHAR_ARRAY = new char[0];
 
+    /**
+     * If baseline requirement was JDK 1.5, we wouldn't need to
+     * cache Integer instances like this (since it has
+     * Integer.valueOf() which does it); but until then, we
+     * alas need our known canonicalization.
+     */
+    final static Integer[] INTS = new Integer[100];
+    static {
+        for (int i = 0; i < INTS.length; ++i) {
+            INTS[i] = new Integer(i);
+        }
+    }
+
     private DataUtil() { }
+
+    /*
+    ////////////////////////////////////////////////////////////
+    // Pooling for immutable objects
+    ////////////////////////////////////////////////////////////
+    */
 
     public static char[] getEmptyCharArray() {
         return EMPTY_CHAR_ARRAY;
     }
+
+    public static Integer Integer(int i)
+    {
+        if (i < 0 || i >= INTS.length) {
+            return new Integer(i);
+        }
+        return INTS[i];
+    }    
 
     /*
     ////////////////////////////////////////////////////////////

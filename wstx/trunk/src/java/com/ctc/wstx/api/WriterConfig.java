@@ -16,6 +16,7 @@ import com.ctc.wstx.api.WstxOutputProperties;
 import com.ctc.wstx.cfg.OutputConfigFlags;
 import com.ctc.wstx.io.BufferRecycler;
 import com.ctc.wstx.util.ArgUtil;
+import com.ctc.wstx.util.DataUtil;
 
 /**
  * Simple configuration container class; passed by reader factory to reader
@@ -155,59 +156,59 @@ public final class WriterConfig
     static {
         // // StAX (1.0) standard ones:
         sProperties.put(XMLOutputFactory.IS_REPAIRING_NAMESPACES,
-                        Integer.valueOf(PROP_AUTOMATIC_NS));
+                        DataUtil.Integer(PROP_AUTOMATIC_NS));
 
         // // StAX2 standard ones:
 
         // Namespace support
         sProperties.put(XMLStreamProperties.XSP_NAMESPACE_AWARE,
-                        Integer.valueOf(PROP_ENABLE_NS));
+                        DataUtil.Integer(PROP_ENABLE_NS));
 
         // Generic output
         sProperties.put(XMLOutputFactory2.P_AUTOMATIC_EMPTY_ELEMENTS,
-                        Integer.valueOf(PROP_AUTOMATIC_EMPTY_ELEMS));
+                        DataUtil.Integer(PROP_AUTOMATIC_EMPTY_ELEMS));
         // Namespace support
         sProperties.put(XMLOutputFactory2.P_AUTOMATIC_NS_PREFIX,
-                        Integer.valueOf(PROP_AUTOMATIC_NS_PREFIX));
+                        DataUtil.Integer(PROP_AUTOMATIC_NS_PREFIX));
         // Text/attr value escaping (customized escapers)
         sProperties.put(XMLOutputFactory2.P_TEXT_ESCAPER,
-                        Integer.valueOf(PROP_TEXT_ESCAPER));
+                        DataUtil.Integer(PROP_TEXT_ESCAPER));
         sProperties.put(XMLOutputFactory2.P_ATTR_VALUE_ESCAPER,
-                        Integer.valueOf(PROP_ATTR_VALUE_ESCAPER));
+                        DataUtil.Integer(PROP_ATTR_VALUE_ESCAPER));
         // Problem checking/reporting options
         sProperties.put(XMLStreamProperties.XSP_PROBLEM_REPORTER,
-                        Integer.valueOf(PROP_PROBLEM_REPORTER));
+                        DataUtil.Integer(PROP_PROBLEM_REPORTER));
 
         // // Woodstox-specifics:
 
         // Output conversions
         sProperties.put(WstxOutputProperties.P_OUTPUT_CDATA_AS_TEXT,
-                        Integer.valueOf(PROP_OUTPUT_CDATA_AS_TEXT));
+                        DataUtil.Integer(PROP_OUTPUT_CDATA_AS_TEXT));
         sProperties.put(WstxOutputProperties.P_COPY_DEFAULT_ATTRS,
-                        Integer.valueOf(PROP_COPY_DEFAULT_ATTRS));
+                        DataUtil.Integer(PROP_COPY_DEFAULT_ATTRS));
         sProperties.put(WstxOutputProperties.P_OUTPUT_ESCAPE_CR,
-                        Integer.valueOf(PROP_ESCAPE_CR));
+                        DataUtil.Integer(PROP_ESCAPE_CR));
         sProperties.put(WstxOutputProperties.P_ADD_SPACE_AFTER_EMPTY_ELEM
 ,
-                        Integer.valueOf(PROP_ADD_SPACE_AFTER_EMPTY_ELEM));
+                        DataUtil.Integer(PROP_ADD_SPACE_AFTER_EMPTY_ELEM));
 
         // Validation settings:
         sProperties.put(WstxOutputProperties.P_OUTPUT_VALIDATE_STRUCTURE,
-                        Integer.valueOf(PROP_VALIDATE_STRUCTURE));
+                        DataUtil.Integer(PROP_VALIDATE_STRUCTURE));
         sProperties.put(WstxOutputProperties.P_OUTPUT_VALIDATE_CONTENT,
-                        Integer.valueOf(PROP_VALIDATE_CONTENT));
+                        DataUtil.Integer(PROP_VALIDATE_CONTENT));
         sProperties.put(WstxOutputProperties.P_OUTPUT_VALIDATE_ATTR,
-                        Integer.valueOf(PROP_VALIDATE_ATTR));
+                        DataUtil.Integer(PROP_VALIDATE_ATTR));
         sProperties.put(WstxOutputProperties.P_OUTPUT_VALIDATE_NAMES,
-                        Integer.valueOf(PROP_VALIDATE_NAMES));
+                        DataUtil.Integer(PROP_VALIDATE_NAMES));
         sProperties.put(WstxOutputProperties.P_OUTPUT_FIX_CONTENT,
-                        Integer.valueOf(PROP_FIX_CONTENT));
+                        DataUtil.Integer(PROP_FIX_CONTENT));
 
         // Underlying stream/writer access
         sProperties.put(WstxOutputProperties.P_OUTPUT_UNDERLYING_STREAM,
-                        Integer.valueOf(PROP_UNDERLYING_STREAM));
+                        DataUtil.Integer(PROP_UNDERLYING_STREAM));
         sProperties.put(WstxOutputProperties.P_OUTPUT_UNDERLYING_STREAM,
-                        Integer.valueOf(PROP_UNDERLYING_STREAM));
+                        DataUtil.Integer(PROP_UNDERLYING_STREAM));
     }
 
     /*

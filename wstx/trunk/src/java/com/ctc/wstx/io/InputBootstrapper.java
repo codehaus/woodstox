@@ -142,6 +142,17 @@ public abstract class InputBootstrapper
         mSystemId = sysId;
     }
 
+    protected void initFrom(InputBootstrapper src)
+    {
+        mInputProcessed = src.mInputProcessed;
+        mInputRow = src.mInputRow;
+        mInputRowStart = src.mInputRowStart;
+        mDeclaredXmlVersion = src.mDeclaredXmlVersion;
+        mFoundEncoding = src.mFoundEncoding;
+        mStandalone = src.mStandalone;
+        mXml11Handling = src.mXml11Handling;
+    }
+
     /*
     ////////////////////////////////////////
     // Public API

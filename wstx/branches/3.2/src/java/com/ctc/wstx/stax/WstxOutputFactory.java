@@ -32,6 +32,7 @@ import org.codehaus.stax2.io.Stax2Result;
 import com.ctc.wstx.api.WriterConfig;
 import com.ctc.wstx.api.WstxOutputProperties;
 import com.ctc.wstx.cfg.OutputConfigFlags;
+import com.ctc.wstx.dom.DOMWrappingWriter;
 import com.ctc.wstx.evt.WstxEventWriter;
 import com.ctc.wstx.exc.WstxIOException;
 import com.ctc.wstx.io.CharsetNames;
@@ -219,7 +220,7 @@ public final class WstxOutputFactory
      *   output stream or Writer, when close() is called on stream writer.
      */
     private BaseStreamWriter createSW(OutputStream out, Writer w, String enc,
-                                      boolean autoCloseOutput)
+                                     boolean autoCloseOutput)
         throws XMLStreamException
     {
         /* Need to ensure that the configuration object is not shared
@@ -278,7 +279,7 @@ public final class WstxOutputFactory
         return new NonNsStreamWriter(xw, enc, cfg);
     }
 
-    private BaseStreamWriter createSW(Result res)
+    private XMLStreamWriter createSW(Result res)
         throws XMLStreamException
     {
         OutputStream out = null;
@@ -309,9 +310,7 @@ public final class WstxOutputFactory
             // !!! TBI
             throw new XMLStreamException("Can not create a STaX writer for a SAXResult -- not implemented.");
         } else if (res instanceof DOMResult) {
-            //DOMResult sr = (DOMResult) res;
-            // !!! TBI
-            throw new XMLStreamException("Can not create a STaX writer for a DOMResult -- not (yet?) implemented.");
+           return DOMWrappingWriter.createFrom(mConfig.createNonShared(), (DOMResult) res);
         } else {
             throw new IllegalArgumentException("Can not instantiate a writer for XML result type "+res.getClass()+" (unrecognized type)");
         }
@@ -324,24 +323,4 @@ public final class WstxOutputFactory
         }
         throw new XMLStreamException("Can not create StAX writer for passed-in Result -- neither writer nor output stream was accessible");
     }
-
-    /*
-    /////////////////////////////////////////////////////
-    // Trivial test driver, to check loading of the
-    // class and instance creation work (mostly to check
-    // j2me subset works)
-    /////////////////////////////////////////////////////
-     */
-
-    /*
-    public static void main(String[] args)
-        throws Exception
-    {
-        WstxOutputFactory f = new WstxOutputFactory();
-
-        // !!! TODO: Test it somehow?
-
-        System.out.println("Writer factory created ok.");
-    }
-    */
 }
