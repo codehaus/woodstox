@@ -25,6 +25,7 @@
     <property name="BuildDir" location="${basedir}/build" />
     <property name="BuildClassesDir" location="${BuildDir}/classes" />
     <property name="EmmaBuildClassesDir" location="${BuildDir}/emma-classes" />
+
     <!-- Documentation -->
     <property name="DocDir" location="${basedir}/doc" />
     <property name="JavaDocDir" location="${BuildDir}/javadoc" />
@@ -101,6 +102,7 @@
 
     <!-- StAX2 class files common to all license flavours: -->
     <patternset id="stax2-dist-class-files">
+        <include name="org/codehaus/stax2/*.class" />
         <include name="org/codehaus/stax2/**/*.class" />
     </patternset>
 
@@ -132,6 +134,14 @@
       <pathelement location="${emma.dir}/emma_ant.jar" />
     </path>
     <taskdef resource="emma_ant.properties" classpathref="emma.lib" />
+
+
+    <!-- And/or support for Cobertura code coverage tool -->
+    <property name="cobertura.coverage.dir" value="${BuildDir}/coverage" />
+    <path id="cobertura.lib">
+      <fileset dir="${LibDir}/cobertura" includes="*.jar" />
+    </path>
+    <taskdef classpathref="cobertura.lib" resource="tasks.properties" />
 
     <!--*********************************************************************-->
     <!-- The readme target shows a brief description of all targets          -->
@@ -167,6 +177,7 @@
         <mkdir dir="${BuildClassesDir}" />
         <mkdir dir="${EmmaBuildClassesDir}" />
         <mkdir dir="${emma.coverage.dir}" />
+        <mkdir dir="${cobertura.coverage.dir}" />
 
         <!-- make docs directories -->
         <mkdir dir="${DocDir}" />
@@ -680,5 +691,73 @@
         -->
     </target>
 
+    <!-- Instead of (or in addition to?) Emma, we can also try
+         Cobertura...
+      -->
+
+    <target name="test-cobertura" depends="test.compile, prepare-staxtest">
+      <!-- First, need to instrument classes -->
+      <property name="cobertura.instr.dir" value="${BuildDir}/cobertura-instr" />
+      <cobertura-instrument todir="${cobertura.instr.dir}">
+        <fileset dir="${BuildClassesDir}">
+          <include name="**/*.class"/>
+        </fileset>
+      </cobertura-instrument>
+
+      <junit fork="once" printsummary="yes" haltonfailure="no" showoutput="yes"
+        maxmemory="500M"
+      >
+        <sysproperty key="net.sourceforge.cobertura.datafile" file="${basedir}/cobertura.ser" />
+            <batchtest fork="no" todir="${TestXmlResultsDir}">
+                <!-- Woodstox-specific tests -->
+                <fileset dir="${TestClassesDir}">
+                    <exclude name="**/*$*.class"/>
+                    <include name="**/Test*.class"/>
+                </fileset>
+                <!-- Generic StAX tests -->
+                <fileset dir="${StaxTestClassesDir}">
+                    <exclude name="**/*$*.class"/>
+                    <include name="org/codehaus/**/Test*.class"/>
+                </fileset>
+            </batchtest>
+            <formatter type="xml" />
+            <!-- Order is important: must first have instrumented classes -->
+            <classpath location="${cobertura.instr.dir}" />
+
+            <!-- StAX API: -->
+            <classpath refid="compile-classpath" />
+            <!-- Actual tests: -->
+            <classpath path="${TestClassesDir}" />
+            <classpath path="${StaxTestClassesDir}" />
+            <!-- Cobertura support: -->
+            <classpath refid="cobertura.lib" />
+            <classpath>
+                <!-- Note: while this may seem superfluous, it is actually
+                     needed because Cobertura does not instrument things
+                     like interfaces. So some of the class files are
+                     needed from non-instrumented location
+                  -->
+                <pathelement path="${BuildClassesDir}" />
+                <fileset dir="${BuildDir}">
+                  <include name="wstx-api-*.jar" />
+                </fileset>
+                <path refid="junit-libs"/>
+            </classpath>     
+        </junit>
+        <!-- and then reporting -->
+        <cobertura-report format="html" destdir="${cobertura.coverage.dir}" >
+          <fileset dir="${JavaSrcDir}">
+            <include name="**/*.java" />
+          </fileset>
+        </cobertura-report>
+
+        <!-- Let's also report junit results? (at least if they fail) -->
+        <junitreport todir="${TestResultsDir}">
+            <fileset dir="${TestXmlResultsDir}">
+                <include name="TEST-*.xml" />
+            </fileset>
+            <report todir="${TestResultsDir}" />
+        </junitreport>
+    </target>
 
 </project>
