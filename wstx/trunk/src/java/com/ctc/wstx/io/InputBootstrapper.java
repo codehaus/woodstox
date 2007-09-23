@@ -43,6 +43,8 @@ public abstract class InputBootstrapper
     public final static char CHAR_NULL = (char) 0;
     public final static char CHAR_SPACE = (char) 0x0020;
 
+    public final static char CHAR_NEL = (char) 0x0085;
+
     public final static byte CHAR_CR = '\r';
     public final static byte CHAR_LF = '\n';
 

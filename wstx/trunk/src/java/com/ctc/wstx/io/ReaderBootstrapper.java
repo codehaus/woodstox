@@ -174,7 +174,7 @@ public final class ReaderBootstrapper
                 }
             }
         }
-        
+ 
         /* Ok, now; do we have unused chars we have read that need to
          * be merged in?
          */
@@ -395,12 +395,4 @@ public final class ReaderBootstrapper
         ++mInputRow;
         mInputRowStart = mInputPtr;
     }
-
-    /*
-    ////////////////////////////////////////
-    // Other private methods:
-    ////////////////////////////////////////
-    */
 }
-
-

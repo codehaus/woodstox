@@ -68,6 +68,13 @@ public final class StreamBootstrapper
 
     boolean mByteSizeFound = false;
 
+    /**
+     * For most encodings, number of physical characters needed for
+     * decoding xml declaration characters (which for variable length
+     * encodings like UTF-8 will be 1). Exception is EBCDIC, which
+     * while a single-byte encoding, is denoted by -1 since it
+     * needs an additional translation lookup.
+     */
     int mBytesPerChar; // minimum, ie. 1 for UTF-8
 
     /**
@@ -78,6 +85,12 @@ public final class StreamBootstrapper
     boolean mEBCDIC = false;
 
     String mInputEncoding = null;
+
+    /**
+     * For single-byte non-ascii-compatible encodings (ok ok, really
+     * just EBCDIC), we'll have to use a lookup table.
+     */
+    int[] mSingleByteTranslation = null;
 
     /*
     ////////////////////////////////////////
@@ -117,29 +130,6 @@ public final class StreamBootstrapper
 
         resolveStreamEncoding();
 
-        /* 14-Sep-2007, TSa: One immediate complication: since EBCDIC
-         *   encoding(s) is not 7-bit ascii compatible, its detection
-         *   and handling needs to be done different from others.
-         *   So let's get that out of the way first.
-         */
-        if (mEBCDIC) {
-            InputStream in = mIn;
-            if (mInputPtr < mInputLen) {
-                in = new MergedStream(cfg, in, mByteBuffer, mInputPtr, mInputLen);
-            }
-            normEnc = CharsetNames.CS_EBCDIC;
-            Reader r = new InputStreamReader(in, normEnc);
-            ReaderBootstrapper rbs = ReaderBootstrapper.getInstance(r, mPublicId, mSystemId, normEnc);
-            r = rbs.bootstrapInput(cfg, mainDoc, xmlVersion);
-            /* Ok, now, since caller will ask this bootstrapper for its
-             * data, we have to transfer the state from reader bootstrapper...
-             */
-            initFrom(rbs);
-            // Plus add other pieces base class doesn't know
-            mInputEncoding = normEnc;
-            return r;
-        }
-
         if (hasXmlDecl()) {
             // note: readXmlDecl will set mXml11Handling too
             readXmlDecl(mainDoc, xmlVersion);
@@ -156,6 +146,16 @@ public final class StreamBootstrapper
         // Now, have we figured out the encoding?
 
         if (normEnc == null) { // not via xml declaration
+            /* 21-Sep-2007, TSa: As with any non-UTF-8 encoding, declaration
+             * isn't optional any more. Besides, we need that information
+             * anyway to know which variant it is.
+             */
+            if (mEBCDIC) {
+                if (mFoundEncoding == null || mFoundEncoding.length() == 0) {
+                    reportXmlProblem("Missing encoding declaration: underlying encoding looks like an EBCDIC variant, but no xml encoding declaration found");
+                }
+            }
+
             if (mBytesPerChar == 2) { // UTF-16, BE/LE
                 normEnc = mBigEndian ? CharsetNames.CS_UTF16BE : CharsetNames.CS_UTF16LE;
             } else if (mBytesPerChar == 4) { // UCS-4... ?
@@ -230,12 +230,18 @@ public final class StreamBootstrapper
 
     public int getInputTotal() {
         int total = mInputProcessed + mInputPtr;
-        return (mBytesPerChar > 1) ? (total / mBytesPerChar) : total;
+        if (mBytesPerChar > 1) {
+            total /= mBytesPerChar;
+        }
+        return total;
     }
 
     public int getInputColumn() {
         int col = mInputPtr - mInputRowStart;
-        return (mBytesPerChar > 1) ? (col / mBytesPerChar) : col;
+        if (mBytesPerChar > 1) {
+            col /= mBytesPerChar;
+        }
+        return col;
     }
 
     /*
@@ -340,10 +346,16 @@ public final class StreamBootstrapper
                     mBigEndian = true; // doesn't really matter
                     break bomblock;
 
-                case 0x4c6fa794: // EBCDIC, not (yet?) supported...
-                    mBytesPerChar = 1;
+                case 0x4c6fa794:
+                    mBytesPerChar = -1;
                     mEBCDIC = true;
-                    //reportEBCDIC();
+
+                    /* For xml declaration handling we can basically
+                     * use any of EBCDIC variants, since declaration
+                     * must not contain control or punctuation characters
+                     * that would differ
+                     */
+                    mSingleByteTranslation = EBCDICCodec.getCp037Mapping();
                     break bomblock;
                 }
                 
@@ -362,7 +374,7 @@ public final class StreamBootstrapper
         /* Hmmh. If we haven't figured it out, let's just assume
          * UTF-8 as per XML specs:
          */
-        mByteSizeFound = (mBytesPerChar > 0);
+        mByteSizeFound = (mBytesPerChar != 0);
         if (!mByteSizeFound) {
             mBytesPerChar = 1;
             mBigEndian = true; // doesn't matter
@@ -467,13 +479,20 @@ public final class StreamBootstrapper
     */
 
     protected void pushback() {
-        mInputPtr -= mBytesPerChar;
+        if (mBytesPerChar < 0) {
+            mInputPtr += mBytesPerChar;
+        } else {
+            mInputPtr -= mBytesPerChar;
+        }
     }
 
     protected int getNext()
         throws IOException, WstxException
     {
-        if (mBytesPerChar > 1) {
+        if (mBytesPerChar != 1) {
+            if (mBytesPerChar == -1) { // need to translate
+                return nextTranslated();
+            }
             return nextMultiByte();
         }
         byte b = (mInputPtr < mInputLen) ?
@@ -487,10 +506,14 @@ public final class StreamBootstrapper
     {
         int count;
 
-        if (mBytesPerChar > 1) { // multi-byte
-            count = skipMbWs();
-        } else {
+        if (mBytesPerChar == 1) { // single byte
             count = skipSbWs();
+        } else {
+            if (mBytesPerChar == -1) { // translated
+                count = skipTranslatedWs();
+            } else { // multi byte
+                count = skipMbWs();
+            }
         }
 
         if (reqWs && count == 0) {
@@ -498,7 +521,10 @@ public final class StreamBootstrapper
         }
 
         // inlined getNext()
-        if (mBytesPerChar > 1) {
+        if (mBytesPerChar != 1) {
+            if (mBytesPerChar == -1) { // translated
+                return nextTranslated();
+            }
             return nextMultiByte();
         }
         byte b = (mInputPtr < mInputLen) ?
@@ -513,7 +539,10 @@ public final class StreamBootstrapper
     protected int checkKeyword(String exp)
         throws IOException, WstxException
     {
-        if (mBytesPerChar > 1) {
+        if (mBytesPerChar != 1) {
+            if (mBytesPerChar == -1) {
+                return checkTranslatedKeyword(exp);
+            }
             return checkMbKeyword(exp);
         }
         return checkSbKeyword(exp);
@@ -524,18 +553,13 @@ public final class StreamBootstrapper
     {
         int i = 0;
         int len = kw.length;
-        boolean mb = (mBytesPerChar > 1);
+        boolean simple = (mBytesPerChar == 1);
+        boolean mb = !simple && (mBytesPerChar > 1);
 
         while (i < len) {
             int c;
 
-            if (mb) {
-                c = nextMultiByte();
-                if (c ==  CHAR_CR || c == CHAR_LF) {
-                    skipMbLF(c);
-                    c = CHAR_LF;
-                }
-            } else {
+            if (simple) {
                 byte b = (mInputPtr < mInputLen) ?
                     mByteBuffer[mInputPtr++] : nextByte();
                 if (b == BYTE_NULL) {
@@ -546,17 +570,31 @@ public final class StreamBootstrapper
                     b = BYTE_LF;
                 }
                 c = (b & 0xFF);
+            } else {
+                if (mb) {
+                    c = nextMultiByte();
+                    if (c ==  CHAR_CR || c == CHAR_LF) {
+                        skipMbLF(c);
+                        c = CHAR_LF;
+                    }
+                } else {
+                    c = nextTranslated();
+                    if (c ==  CHAR_CR || c == CHAR_LF) {
+                        skipTranslatedLF(c);
+                        c = CHAR_LF;
+                    }
+                }
             }
 
             if (c == quoteChar) {
                 return (i < len) ? i : -1;
             }
 
-	    if (i < len) {
-		kw[i++] = (char) c;
-	    }
+            if (i < len) {
+                kw[i++] = (char) c;
+            }
         }
-
+        
         /* If we end up this far, we ran out of buffer space... let's let
          * caller figure that out, though
          */
@@ -585,6 +623,19 @@ public final class StreamBootstrapper
                     mInputPtr += 6;
                     return true;
                 }
+            }
+        } else if (mBytesPerChar == -1) { // translated (EBCDIC)
+            if (ensureLoaded(6)) {
+                int start = mInputPtr; // if we have to 'unread' chars
+                if (nextTranslated() == '<'
+                    && nextTranslated() == '?'
+                    && nextTranslated() == 'x'
+                    && nextTranslated() == 'm'
+                    && nextTranslated() == 'l'
+                    && nextTranslated() <= CHAR_SPACE) {
+                    return true;
+                }
+                mInputPtr = start; // push data back
             }
         } else {
             // ... and then for slower fixed-multibyte encodings:
@@ -705,7 +756,7 @@ public final class StreamBootstrapper
 
     /*
     /////////////////////////////////////////////////////
-    // Internal methods, multi-byte access/checks
+    // Internal methods, multi-byte/translated access/checks
     /////////////////////////////////////////////////////
     */
 
@@ -747,6 +798,18 @@ public final class StreamBootstrapper
         return c;
     }
 
+    protected int nextTranslated()
+        throws IOException, WstxException
+    {
+        byte b = (mInputPtr < mInputLen) ?
+            mByteBuffer[mInputPtr++] : nextByte();
+        int ch = mSingleByteTranslation[b & 0xFF];
+        if (ch < 0) { // special char... won't care for now
+            ch = -ch;
+        }
+        return ch;
+    }
+
     protected int skipMbWs()
         throws IOException, WstxException
     {
@@ -769,6 +832,29 @@ public final class StreamBootstrapper
         return count;
     }
 
+    protected int skipTranslatedWs()
+        throws IOException, WstxException
+    {
+        int count = 0;
+
+        while (true) {
+            int c = nextTranslated();
+
+            // Hmmh. Are we to accept NEL (0x85)?
+            if (c > CHAR_SPACE && c != CHAR_NEL) {
+                --mInputPtr;
+                break;
+            }
+            if (c == CHAR_CR || c == CHAR_LF) {
+                skipTranslatedLF(c);
+            } else if (c == CHAR_NULL) {
+                reportNull();
+            }
+            ++count;
+        }
+        return count;
+    }
+
     protected void skipMbLF(int lf)
         throws IOException, WstxException
     {
@@ -776,6 +862,19 @@ public final class StreamBootstrapper
             int c = nextMultiByte();
             if (c != CHAR_LF) {
                 mInputPtr -= mBytesPerChar;
+            }
+        }
+        ++mInputRow;
+        mInputRowStart = mInputPtr;
+    }
+
+    protected void skipTranslatedLF(int lf)
+        throws IOException, WstxException
+    {
+        if (lf == CHAR_CR) {
+            int c = nextTranslated();
+            if (c != CHAR_LF) {
+                mInputPtr -= 1;
             }
         }
         ++mInputRow;
@@ -793,6 +892,24 @@ public final class StreamBootstrapper
         
         for (int ptr = 1; ptr < len; ++ptr) {
             int c = nextMultiByte();
+            if (c == BYTE_NULL) {
+                reportNull();
+            }
+            if (c != expected.charAt(ptr)) {
+              return c;
+            }
+        }
+
+        return CHAR_NULL;
+    }
+
+    protected int checkTranslatedKeyword(String expected)
+        throws IOException, WstxException
+    {
+        int len = expected.length();
+        
+        for (int ptr = 1; ptr < len; ++ptr) {
+            int c = nextTranslated();
             if (c == BYTE_NULL) {
                 reportNull();
             }
@@ -843,12 +960,6 @@ public final class StreamBootstrapper
         throws IOException
     {
         throw new CharConversionException("Unsupported UCS-4 endianness ("+type+") detected");
-    }
-
-    private void reportEBCDIC()
-        throws IOException
-    {
-        throw new CharConversionException("Unsupported encoding (EBCDIC)");
     }
 
     private void reportMissingBOM(String enc)

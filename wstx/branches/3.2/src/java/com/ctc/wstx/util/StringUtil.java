@@ -273,6 +273,45 @@ public final class StringUtil
         return true; 
     }
 
+    /**
+     * Method that will remove all non-alphanumeric characters, and optionally
+     * upper-case included letters, from the given String.
+     */
+    public static String trimEncoding(String str, boolean upperCase)
+    {
+        int i = 0;
+        int len = str.length();
+
+        // Let's first check if String is fine as is:
+        for (; i < len; ++i) {
+            char c = str.charAt(i);
+            if (c <= CHAR_SPACE || !Character.isLetterOrDigit(c)) {
+                break;
+            }
+        }
+
+        if (i == len) {
+            return str;
+        }
+
+        // Nope: have to trim it
+        StringBuffer sb = new StringBuffer();
+        if (i > 0) {
+            sb.append(str.substring(0, i));
+        }
+        for (; i < len; ++i) {
+            char c = str.charAt(i);
+            if (c > CHAR_SPACE && Character.isLetterOrDigit(c)) {
+                if (upperCase) {
+                    c = Character.toUpperCase(c);
+                }
+                sb.append(c);
+            }
+        }
+
+        return sb.toString();
+    }
+
     public static boolean matches(String str, char[] cbuf, int offset, int len)
     {
         if (str.length() != len) {

@@ -47,8 +47,8 @@ public class TestStreamReader
         f.setProperty(XMLInputFactory.SUPPORT_DTD, Boolean.TRUE);
         //f.setProperty(XMLInputFactory.SUPPORT_DTD, Boolean.FALSE);
 
-        //f.setProperty(XMLInputFactory.IS_VALIDATING, Boolean.FALSE);
-        f.setProperty(XMLInputFactory.IS_VALIDATING, Boolean.TRUE);
+        f.setProperty(XMLInputFactory.IS_VALIDATING, Boolean.FALSE);
+        //f.setProperty(XMLInputFactory.IS_VALIDATING, Boolean.TRUE);
 
         f.setProperty(XMLInputFactory.REPORTER, new TestReporter());
         f.setProperty(XMLInputFactory.RESOLVER, new TestResolver1());
@@ -147,6 +147,7 @@ public class TestStreamReader
                                        (new FileInputStream(file)), "UTF-8"));
         } else {
             sr = (XMLStreamReader2) f.createXMLStreamReader(file);
+            //sr = (XMLStreamReader2) f.createXMLStreamReader(new InputStreamReader(new FileInputStream(file), "IBM500"));
             //sr = (XMLStreamReader2) f.createXMLStreamReader(new StreamSource(file));
         }
 

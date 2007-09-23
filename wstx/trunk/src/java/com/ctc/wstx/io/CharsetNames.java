@@ -41,8 +41,14 @@ public final class CharsetNames
 
     // // // Other oddities:
 
-    //public final static String CS_EBCDIC = "EBCDIC";
-    public final static String CS_EBCDIC = "CP037";
+    /* There are tons of EBCDIC varieties, with similar but
+     * non-identical names. As a result, we can not give or use
+     * just a single canonical name for general use.
+     * However, we can choose a single one to use for bootstrapping;
+     * that is, for parsing xml declaration to know the "real"
+     * EBCDIC variant.
+     */
+    public final static String CS_EBCDIC_SUBSET = "IBM037";
 
     /*
     //////////////////////////////////////////////////
@@ -89,8 +95,11 @@ public final class CharsetNames
 
         case 'c':
         case 'C':
-            if (StringUtil.equalEncodings(csName, "cp037")) {
-                return CS_EBCDIC;
+            /* Tons of variants: let's assume 'cpXXX' is an EBCDIC
+             * variant, and should read 'IBMXXX'
+             */
+            if (StringUtil.encodingStartsWith(csName, "cp")) {
+                return "IBM" + StringUtil.trimEncoding(csName, true).substring(2);
             }
             // Hmmh. There are boatloads of these... but what to do with them?
             if (StringUtil.encodingStartsWith(csName, "cs")) {
@@ -100,9 +109,36 @@ public final class CharsetNames
 
         case 'e':
         case 'E':
-            if (csName.startsWith("EBCDIC") ||
-                csName.startsWith("ebcdic")) {
-                return CS_EBCDIC;
+            if (csName.startsWith("EBCDIC-CP-") ||
+                csName.startsWith("ebcdic-cp-")) {
+                // EBCDIC, but which variety?
+                // Let's trim out prefix to make comparison easier:
+                String type = StringUtil.trimEncoding(csName, true).substring(8);
+                // Note: these are suggested encodings of Xerces
+                if (type.equals("US") || type.equals("CA") || type.equals("NL")) {
+                    return "IBM037";
+                }
+                if (type.equals("DK") || type.equals("NO")) { // Denmark, Norway
+                    return "IBM277";
+                }
+                if (type.equals("FI") || type.equals("SE")) { // Finland, Sweden
+                    return "IBM278";
+                }
+                if (type.equals("ROECE") || type.equals("YU")) {
+                    return "IBM870";
+                }
+                if (type.equals("IT")) return "IBM280";
+                if (type.equals("ES")) return "IBM284";
+                if (type.equals("GB")) return "IBM285";
+                if (type.equals("FR")) return "IBM297";
+                if (type.equals("AR1")) return "IBM420";
+                if (type.equals("AR2")) return "IBM918";
+                if (type.equals("HE")) return "IBM424";
+                if (type.equals("CH")) return "IBM500";
+                if (type.equals("IS")) return "IBM871";
+
+                // Dunno... let's just default to 037?
+                return CS_EBCDIC_SUBSET;
             }
             break;
         case 'i':

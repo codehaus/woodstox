@@ -31,7 +31,7 @@ abstract class BaseReader
      */
     final static char CHAR_DEL = (char) 127;
 
-    private final ReaderConfig mConfig;
+    protected final ReaderConfig mConfig;
 
     protected InputStream mIn;
 
@@ -121,13 +121,11 @@ abstract class BaseReader
      */
     public final void freeBuffers()
     {
-//System.err.println("DEBUG: BaseReader, freeBuffers");
         /* 11-Apr-2005, TSa: Ok, we can release the buffer now, to be
          *   recycled by the next stream reader instantiated by this
          *   thread (if any).
          */
         byte[] buf = mBuffer;
-//System.err.println("DEBUG: buf: "+buf+", cfg: "+mConfig);
         if (buf != null) {
             mBuffer = null;
             if (mConfig != null) {
