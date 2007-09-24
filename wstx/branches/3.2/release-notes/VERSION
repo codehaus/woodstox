@@ -12,8 +12,9 @@ Description:
 
   New features:
 
-  * [WSTX-122] Adding support for EBCDIC encoding(s), using Java
-    "cp037" encoding as starting point.
+  * [WSTX-122] Adding support for EBCDIC encoding(s), using a
+    simple bootstrapper to process xml declaration, then use
+    JDK default codec.
 
 == History: ==
 

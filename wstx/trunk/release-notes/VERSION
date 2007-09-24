@@ -16,8 +16,9 @@ Description:
 
   New features:
 
-  * [WSTX-122] Adding support for EBCDIC encoding(s), using Java
-    "cp037" encoding as starting point.
+  * [WSTX-122] Adding support for EBCDIC encoding(s), using a
+    simple bootstrapper to process xml declaration, then use
+    JDK default codec.
   * [WSTX-125] Adding of space between empty element, and closing
     "/>" is now optional, configurable using
     'WstxOutputProperties.P_ADD_SPACE_AFTER_EMPTY_ELEM'.

@@ -7,7 +7,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>woodstox</groupId>
   <artifactId>wstx-lgpl</artifactId>
-  <version>3.2</version>
+  <version>3.2.2</version>
 
   <distributionManagement>
     <relocation>

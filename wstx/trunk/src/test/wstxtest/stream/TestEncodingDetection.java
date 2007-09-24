@@ -13,11 +13,9 @@ import javax.xml.stream.*;
 public class TestEncodingDetection
     extends BaseStreamTest
 {
-    /**
-     * Not sure if this is really correct, but that's what works
-     * with JDK codecs.
-     */
-    final static String ENC_EBCDIC = "CP037";
+    final static String ENC_EBCDIC_IN_PREFIX = "cp";
+
+    final static String ENC_EBCDIC_OUT_PREFIX = "IBM";
 
     public void testUtf8()
         throws IOException, XMLStreamException
@@ -78,26 +76,37 @@ public class TestEncodingDetection
     public void testEBCDIC()
         throws IOException, XMLStreamException
     {
-        String xml = "<?xml version='1.0' encoding='"+ENC_EBCDIC+"' ?>"
-            +"<root attr='123'>rock &amp; roll!<!-- comment --></root>";
-        byte[] bytes = xml.getBytes(ENC_EBCDIC);
-        XMLStreamReader sr = getReader(bytes);
-
-        assertTokenType(START_DOCUMENT, sr.getEventType());
-
-        assertEquals(ENC_EBCDIC, sr.getEncoding());
-
-        assertEquals(ENC_EBCDIC, sr.getCharacterEncodingScheme());
-
-        assertTokenType(START_ELEMENT, sr.next());
-        assertEquals("root", sr.getLocalName());
-        assertTokenType(CHARACTERS, sr.next());
-        assertEquals("rock & roll!", getAndVerifyText(sr));
-        assertTokenType(COMMENT, sr.next());
-        assertEquals(" comment ", getAndVerifyText(sr));
-        assertTokenType(END_ELEMENT, sr.next());
-        assertEquals("root", sr.getLocalName());
-        sr.close();
+        final String[] subtypes = new String[] {
+            "037", "277", "278", "280", "284", "285", "297",
+            "420", "424", "500", "870", "871", "918",
+        };
+ 
+        for (int i = 0; i < subtypes.length; ++i) {
+            String actEnc = ENC_EBCDIC_IN_PREFIX + subtypes[i];
+            String xml = "<?xml version='1.0' encoding='"+actEnc+"' ?>"
+                +"<root attr='123'>rock &amp; roll!<!-- comment --></root>";
+            byte[] bytes = xml.getBytes(actEnc);
+            XMLStreamReader sr = getReader(bytes);
+            
+            assertTokenType(START_DOCUMENT, sr.getEventType());
+            
+            // Declared encoding should match 100%
+            assertEquals(actEnc, sr.getCharacterEncodingScheme());
+            
+            // Found encoding, though, can be changed
+            String expEnc = ENC_EBCDIC_OUT_PREFIX + subtypes[i];
+            assertEquals(expEnc, sr.getEncoding());
+            
+            assertTokenType(START_ELEMENT, sr.next());
+            assertEquals("root", sr.getLocalName());
+            assertTokenType(CHARACTERS, sr.next());
+            assertEquals("rock & roll!", getAndVerifyText(sr));
+            assertTokenType(COMMENT, sr.next());
+            assertEquals(" comment ", getAndVerifyText(sr));
+            assertTokenType(END_ELEMENT, sr.next());
+            assertEquals("root", sr.getLocalName());
+            sr.close();
+        }
     }
 
 

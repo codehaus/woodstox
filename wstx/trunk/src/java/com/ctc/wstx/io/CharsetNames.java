@@ -103,6 +103,11 @@ public final class CharsetNames
             }
             // Hmmh. There are boatloads of these... but what to do with them?
             if (StringUtil.encodingStartsWith(csName, "cs")) {
+                // Well, "csIBMxx" means EBCDIC of "IBMxx"
+                if (StringUtil.encodingStartsWith(csName, "csIBM")) {
+                    // So let's just peel off "cs" prefix:
+                    return StringUtil.trimEncoding(csName, true).substring(2);
+                }
                 // !!! TBI
             }
             break;
@@ -115,7 +120,8 @@ public final class CharsetNames
                 // Let's trim out prefix to make comparison easier:
                 String type = StringUtil.trimEncoding(csName, true).substring(8);
                 // Note: these are suggested encodings of Xerces
-                if (type.equals("US") || type.equals("CA") || type.equals("NL")) {
+                if (type.equals("US") || type.equals("CA")
+                    || type.equals("WT") || type.equals("NL")) {
                     return "IBM037";
                 }
                 if (type.equals("DK") || type.equals("NO")) { // Denmark, Norway
@@ -178,6 +184,10 @@ public final class CharsetNames
                 if (StringUtil.equalEncodings(suffix, "US-ASCII")) {
                     return CS_US_ASCII;
                 }
+            } else if (StringUtil.encodingStartsWith(csName, "IBM")) {
+                // EBCDIC of some kind... what (if anything) to do?
+                // ... for now, return as is
+                return csName;
             }
             break;
         case 'j':
