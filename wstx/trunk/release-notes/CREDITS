@@ -297,3 +297,9 @@ Santiago Pericas-Geertsen:
   * Pointed out [WSTX-111], Stax TCK non-compliancy, regarding filtered stream
     reader.
    [3.2.1 / 4.0]
+
+Lukasz Wielek:
+  * Reported [WSTX-132], NPE when event writer was passing null namespace
+    URI
+   [3.2.3 / 4.0]
+

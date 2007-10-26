@@ -524,7 +524,7 @@ public abstract class BaseNsStreamWriter
         throws XMLStreamException
     {
         try {
-            int vlen = nsURI.length();
+            int vlen = (nsURI == null) ? 0 : nsURI.length();
             // Worthwhile to make a local copy?
             if (vlen >= ATTR_MIN_ARRAYCOPY) {
                 char[] buf = mCopyBuffer;

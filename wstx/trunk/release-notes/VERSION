@@ -7,18 +7,15 @@ Description:
 
   Problems fixed:
 
-  * [WSTX-104] Added missing support for outputting to a DOM tree
-    (via XMLOutputFactory.createXMLStreamWriter(DOMSource)).
   * [WSTX-120] By default, context fixing is now disabled, to
     maximize interoperability, and to follow "principle of least
     surprise" (i.e. avoid confusion that writer outsmarting developer
     might cause).
+  * [WSTX-132]: NPE in BaseNsStreamWriter if event writer managed to
+    pass in null namespace URI.
 
   New features:
 
-  * [WSTX-122] Adding support for EBCDIC encoding(s), using a
-    simple bootstrapper to process xml declaration, then use
-    JDK default codec.
   * [WSTX-125] Adding of space between empty element, and closing
     "/>" is now optional, configurable using
     'WstxOutputProperties.P_ADD_SPACE_AFTER_EMPTY_ELEM'.
@@ -35,6 +32,22 @@ Description:
     (XMLInputFactoty2.P_OVERRIDE_DTD).
 
 == History: ==
+
+3.2.2 [26-Sep-2007]
+
+Description:
+  Second patch release for 3.2.
+
+  Problems fixed:
+
+  * [WSTX-104] Added missing support for outputting to a DOM tree (via
+    XMLOutputFactory.createXMLStreamWriter(DOMSource)).
+
+  New features:
+
+  * [WSTX-122] Adding support for EBCDIC encoding(s), using a
+    simple bootstrapper to process xml declaration, then use
+    JDK default codec.
 
 3.2.1 [03-Apr-2007]
 

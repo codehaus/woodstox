@@ -526,7 +526,7 @@ public abstract class BaseNsStreamWriter
     protected void doWriteDefaultNs(String nsURI)
         throws XMLStreamException
     {
-        int vlen = nsURI.length();
+        int vlen = (nsURI == null) ? 0 : nsURI.length();
         // Worthwhile to make a local copy?
         if (vlen >= ATTR_MIN_ARRAYCOPY) {
             char[] buf = mCopyBuffer;

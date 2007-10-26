@@ -1,6 +1,18 @@
-Version: 3.2.2
+Version: 3.2.3
 
-Release date: xx-Sep-2007
+Release date: xx-Dec-2007
+
+Description:
+  Third patch release for 3.2.
+
+  Problems fixed:
+
+  * [WSTX-132]: NPE in BaseNsStreamWriter if event writer managed to
+    pass in null namespace URI.
+
+== History: ==
+
+3.2.2 [26-Sep-2007]
 
 Description:
   Second patch release for 3.2.
@@ -15,8 +27,6 @@ Description:
   * [WSTX-122] Adding support for EBCDIC encoding(s), using a
     simple bootstrapper to process xml declaration, then use
     JDK default codec.
-
-== History: ==
 
 3.2.1 [03-Apr-2007]
 
