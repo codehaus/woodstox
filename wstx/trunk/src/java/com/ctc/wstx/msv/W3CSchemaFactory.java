@@ -27,21 +27,20 @@ import org.xml.sax.Locator;
 import org.codehaus.stax2.*;
 import org.codehaus.stax2.validation.*;
 
-import com.sun.msv.grammar.trex.TREXGrammar;
+import com.sun.msv.grammar.xmlschema.XMLSchemaGrammar;
 import com.sun.msv.reader.GrammarReaderController;
-import com.sun.msv.reader.trex.ng.RELAXNGReader;
-import com.sun.msv.verifier.regexp.REDocumentDeclaration;
+import com.sun.msv.reader.xmlschema.XMLSchemaReader;
 
 /**
  * This is a StAX2 schema factory that can parse and create schema instances
  * for creating validators that validate documents to check their validity
- * against specific Relax NG specifications. It requires
+ * against specific W3C Schema instances. It requires
  * Sun Multi-Schema Validator
  * (http://www.sun.com/software/xml/developers/multischema/)
- * to work, and acts as a quite thin wrapper layer (although not a completely
- * trivial one, since MSV only exports SAX API, some adapting is needed)
+ * to work, and acts as a quite thin wrapper layer, similar to
+ * how matching RelaxNG validator works
  */
-public class RelaxNGSchemaFactory
+public class W3CSchemaFactory
     extends BaseSchemaFactory
 {
     /**
@@ -51,7 +50,7 @@ public class RelaxNGSchemaFactory
     protected final GrammarReaderController mDummyController =
         new com.sun.msv.reader.util.IgnoreController();       
 
-    public RelaxNGSchemaFactory()
+    public W3CSchemaFactory()
     {
         super();
     }
@@ -69,20 +68,18 @@ public class RelaxNGSchemaFactory
          *   If not, should just create new instances for each
          *   parsed schema.
          */
-        /* Another thing; should we use a controller to get notified about
-         * errors in parsing?
-         */
         SAXParserFactory saxFactory = getSaxFactory();
+
         MyGrammarController ctrl = new MyGrammarController();
-        TREXGrammar grammar = RELAXNGReader.parse(src, saxFactory, ctrl);
+        XMLSchemaGrammar grammar = XMLSchemaReader.parse(src, saxFactory, ctrl);
         if (grammar == null) {
-            String msg = "Failed to load RelaxNG schema from '"+sysRef+"'";
+            String msg = "Failed to load W3C Schema from '"+sysRef+"'";
             String emsg = ctrl.mErrorMsg;
             if (emsg != null) {
                 msg = msg + ": "+emsg;
             }
             throw new XMLStreamException(msg);
         }
-        return new RelaxNGSchema(grammar);
+        return new W3CSchema(grammar);
     }
 }

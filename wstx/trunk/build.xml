@@ -127,7 +127,7 @@
     <!-- Enabling support for Emma (http://emma.sourceforge.net) code
        - coverage library
       -->
-    <property name="emma.dir" value="${LibDir}" />
+    <property name="emma.dir" value="${LibDir}/coverage" />
     <property name="emma.coverage.dir" value="${BuildDir}/coverage" />
     <path id="emma.lib">
       <pathelement location="${emma.dir}/emma.jar" />
@@ -455,7 +455,7 @@
        </zip>
 
        <!-- And create source jars for IDE support -->
-       <jar jarfile="${DistDir}/wstx-lgpl-${WSTX_VERSION}-sources.jar" filesonly="true" >
+       <jar jarfile="${DistDir}/wstx-asl-${WSTX_VERSION}-sources.jar" filesonly="true" >
           <fileset dir="${basedir}">
               <patternset refid="wstx-dist-src-files" />
           </fileset>
@@ -539,7 +539,7 @@
              have not found one so far)
           -->
         <unzip dest="${StaxTestClassesDir}" overwrite="false">
-           <fileset dir="${LibDir}">
+           <fileset dir="${LibDir}/test">
               <include name="staxtest_*.jar" />
            </fileset>
         </unzip>

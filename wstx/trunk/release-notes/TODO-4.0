@@ -8,8 +8,6 @@ Planned stuff for 4.0
     how "]]>" check is now deferred in 3.1
 
 * Bugs / incomplete handling:
-  * [WSTX-84]: Don't insist on XMLStreamWriter.writeStartDocument()
-    (ie. infer instead).
   * More optimal check for "]]>" in content. Now over 99% reliable, but
     theoretically could miss if combination on input buffer boundary.
   * XMLTest failures:
@@ -62,6 +60,9 @@ Planned stuff for 4.0
 [partial] * Implement DOMTarget (DOMWrappingWriter)
 
 * XML validation:
+   * Finish incomplete support methods that RNG validation uses;
+     InputElementStack's isNotationDeclared, isUnparsedEntityDeclared,
+     getBaseUri().
    * Integrate Multi-Schema Validator's W3C Schema validator using its
      native interface (RNG already integrated)
    * How about DTD++? Data types should be reasonably easy...?

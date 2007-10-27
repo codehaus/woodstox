@@ -37,15 +37,8 @@ import com.ctc.wstx.util.TextAccumulator;
  * document, or document subset.
  *<p>
  * Some notes about implementation:
- *
- * (a) Some properties of RelaxNG model are used for optimization: for
- *   example, since text content in mixed-content models is not really
- *   validated for content, we only combine text segments between start
- *   and end tags (in any combination) -- full textual content between
- *   matching start and end tags is not necessarily collected (or rather,
- *   if there are child elements, is NEVER collected).
  */
-public class RelaxNGValidator
+public class W3CSchemaValidator
     extends XMLValidator
 {
     /*
@@ -71,7 +64,7 @@ public class RelaxNGValidator
     Acceptor mCurrAcceptor = null;
 
     final TextAccumulator mTextAccumulator = new TextAccumulator();
-    
+
     /*
     ////////////////////////////////////
     // Helper objects
@@ -102,7 +95,7 @@ public class RelaxNGValidator
     ////////////////////////////////////
     */
 
-    public RelaxNGValidator(XMLValidationSchema parent, ValidationContext ctxt,
+    public W3CSchemaValidator(XMLValidationSchema parent, ValidationContext ctxt,
                             REDocumentDeclaration vgm)
     {
         mParentSchema = parent;
@@ -184,7 +177,7 @@ public class RelaxNGValidator
                 reportError(mErrorRef);
             }
         }
-        /* No normalization done by RelaxNG, is there? (at least nothing
+        /* No normalization done by W3CSchema, is there? (at least nothing
          * visible to callers that is)
          */
         return null;
