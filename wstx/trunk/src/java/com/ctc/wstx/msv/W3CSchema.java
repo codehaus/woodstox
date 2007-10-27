@@ -25,7 +25,7 @@ import org.codehaus.stax2.*;
 import org.codehaus.stax2.validation.*;
 
 import com.sun.msv.grammar.xmlschema.XMLSchemaGrammar;
-import com.sun.msv.verifier.regexp.REDocumentDeclaration;
+import com.sun.msv.verifier.regexp.xmlschema.XSREDocDecl;
 
 import com.ctc.wstx.exc.WstxIOException;
 
@@ -50,7 +50,7 @@ public class W3CSchema
     public XMLValidator createValidator(ValidationContext ctxt)
         throws XMLStreamException
     {
-        REDocumentDeclaration dd = new REDocumentDeclaration(mGrammar);
+        XSREDocDecl dd = new XSREDocDecl(mGrammar);
         return new W3CSchemaValidator(this, ctxt, dd);
     }
 }
