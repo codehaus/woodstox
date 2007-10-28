@@ -1,4 +1,4 @@
-package wstxtest.stream;
+package wstxtest.vstream;
 
 import java.io.*;
 
@@ -13,6 +13,7 @@ import com.ctc.wstx.io.WstxInputSource;
 import com.ctc.wstx.stax.WstxInputFactory;
 
 import wstxtest.cfg.*;
+import wstxtest.stream.BaseStreamTest;
 
 /**
  * This test suite should really be part of wstx-tools package, but since
