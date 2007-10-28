@@ -2,6 +2,8 @@ package com.ctc.wstx.dtd;
 
 import java.util.*;
 
+import com.ctc.wstx.util.PrefixedName;
+
 /**
  * Content specification that defines content model consisting of just
  * one allowed element. In addition to the allowed element, spec can have
@@ -11,9 +13,9 @@ public class TokenContentSpec
     extends ContentSpec
 {
     final static TokenContentSpec sDummy = new TokenContentSpec
-        (' ', new NameKey("*", "*"));
+        (' ', new PrefixedName("*", "*"));
 
-    final NameKey mElemName;
+    final PrefixedName mElemName;
 
     /*
     ///////////////////////////////////////////////////
@@ -21,13 +23,13 @@ public class TokenContentSpec
     ///////////////////////////////////////////////////
      */
 
-    public TokenContentSpec(char arity, NameKey elemName)
+    public TokenContentSpec(char arity, PrefixedName elemName)
     {
         super(arity);
         mElemName = elemName;
     }
 
-    public static TokenContentSpec construct(char arity, NameKey elemName)
+    public static TokenContentSpec construct(char arity, PrefixedName elemName)
     {
         return new TokenContentSpec(arity, elemName);
     }
@@ -46,7 +48,7 @@ public class TokenContentSpec
         return mArity == ' ';
     }
 
-    public NameKey getName() {
+    public PrefixedName getName() {
         return mElemName;
     }
 
@@ -84,11 +86,11 @@ public class TokenContentSpec
         extends StructValidator
     {
         final char mArity;
-        final NameKey mElemName;
+        final PrefixedName mElemName;
 
         int mCount = 0;
 
-        public Validator(char arity, NameKey elemName)
+        public Validator(char arity, PrefixedName elemName)
         {
             mArity = arity;
             mElemName = elemName;
@@ -105,7 +107,7 @@ public class TokenContentSpec
             return (mArity == '*') ? this : new Validator(mArity, mElemName);
         }
 
-        public String tryToValidate(NameKey elemName)
+        public String tryToValidate(PrefixedName elemName)
         {
             if (!elemName.equals(mElemName)) {
                 return "Expected element <"+mElemName+">";

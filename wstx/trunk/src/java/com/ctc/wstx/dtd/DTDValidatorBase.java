@@ -28,6 +28,7 @@ import com.ctc.wstx.sr.NsDefaultProvider;
 import com.ctc.wstx.sr.InputElementStack;
 import com.ctc.wstx.util.DataUtil;
 import com.ctc.wstx.util.ExceptionUtil;
+import com.ctc.wstx.util.PrefixedName;
 
 /**
  * Shared abstract for Woodstox implementations of {@link XMLValidator}.
@@ -164,7 +165,7 @@ public abstract class DTDValidatorBase
     ///////////////////////////////////////
     */
 
-    protected final transient NameKey mTmpKey = new NameKey(null, null);
+    protected final transient PrefixedName mTmpKey = new PrefixedName(null, null);
 
     /**
      * Temporary buffer attribute instances can share for validation
@@ -393,7 +394,7 @@ public abstract class DTDValidatorBase
     /**
      * Name of current element on the top of the element stack.
      */
-    NameKey getElemName() {
+    PrefixedName getElemName() {
         DTDElement elem = mElems[mElemCount-1];
         return elem.getName();
     }
@@ -484,7 +485,7 @@ public abstract class DTDValidatorBase
         if (def == null) {
             ExceptionUtil.throwInternal("null default attribute value");
         }
-        NameKey an = attr.getName();
+        PrefixedName an = attr.getName();
         // Ok, do we need to find the URI?
         String prefix = an.getPrefix();
         String uri = "";

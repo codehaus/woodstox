@@ -217,7 +217,7 @@ public class FullDTDReader
      */
 
     /**
-     * Map used to shared NameKey instances, to reduce memory usage
+     * Map used to shared PrefixedName instances, to reduce memory usage
      * of (qualified) element and attribute names
      */
     HashMap mSharedNames = null;
@@ -1324,13 +1324,13 @@ public class FullDTDReader
      * Method that will read an element or attribute name from DTD; depending
      * on namespace mode, it can have prefix as well.
      *<p>
-     * Note: returned {@link NameKey} instances are canonicalized so that
+     * Note: returned {@link PrefixedName} instances are canonicalized so that
      * all instances read during parsing of a single DTD subset so that
      * identity comparison can be used instead of calling <code>equals()</code>
      * method (but only within a single subset!). This also reduces memory
      * usage to some extent.
      */
-    private NameKey readDTDQName(char firstChar)
+    private PrefixedName readDTDQName(char firstChar)
         throws IOException, XMLStreamException
     {
         String prefix, localName;
@@ -1540,7 +1540,7 @@ public class FullDTDReader
      * Whether forward references are allowed or not is an open question
      * right now.
      */
-    private void parseAttrDefaultValue(DefaultAttrValue defVal, char quoteChar, NameKey attrName,
+    private void parseAttrDefaultValue(DefaultAttrValue defVal, char quoteChar, PrefixedName attrName,
                                        Location loc, boolean gotFixed)
         throws IOException, XMLStreamException
     {
@@ -1992,7 +1992,7 @@ public class FullDTDReader
         reportWFCViolation(elemDesc(elem) + ": " + msg);
     }
 
-    private void throwDTDAttrError(String msg, DTDElement elem, NameKey attrName)
+    private void throwDTDAttrError(String msg, DTDElement elem, PrefixedName attrName)
         throws XMLStreamException
     {
         reportWFCViolation(attrDesc(elem, attrName) + ": " + msg);
@@ -2017,7 +2017,7 @@ public class FullDTDReader
         return "Element <"+elem+">)";
     }
 
-    private String attrDesc(Object elem, NameKey attrName) {
+    private String attrDesc(Object elem, PrefixedName attrName) {
         return "Attribute '"+attrName+"' (of element <"+elem+">)";
     }
 
@@ -2171,7 +2171,7 @@ public class FullDTDReader
          * to just use normal parsing...
          */
         char c = skipObligatoryDtdWs();
-        final NameKey elemName = readDTDQName(c);
+        final PrefixedName elemName = readDTDQName(c);
 
         /* Ok, event needs to know its exact starting point (opening '<'
          * char), let's get that info now (note: data has been preserved
@@ -2225,7 +2225,7 @@ public class FullDTDReader
         throws IOException, XMLStreamException
     {
         char c = skipObligatoryDtdWs();
-        final NameKey elemName = readDTDQName(c);
+        final PrefixedName elemName = readDTDQName(c);
 
         /* Ok, event needs to know its exact starting point (opening '<'
          * char), let's get that info now (note: data has been preserved
@@ -2639,7 +2639,7 @@ public class FullDTDReader
         throws IOException, XMLStreamException
     {
         // First attribute name
-        NameKey attrName = readDTDQName(c);
+        PrefixedName attrName = readDTDQName(c);
 
         // then type:
         c = skipObligatoryDtdWs();
@@ -2809,7 +2809,7 @@ public class FullDTDReader
      * Parsing method that reads a list of one or more space-separated
      * tokens (nmtoken or name, depending on 'isNotation' argument)
      */
-    private WordResolver parseEnumerated(DTDElement elem, NameKey attrName,
+    private WordResolver parseEnumerated(DTDElement elem, PrefixedName attrName,
                                          boolean isNotation)
         throws IOException, XMLStreamException
     {
@@ -2874,7 +2874,7 @@ public class FullDTDReader
      * but allows attribute defaulting and normalization, as well as
      * access to entity and notation declarations).
      */
-    private String readNotationEntry(char c, NameKey attrName)
+    private String readNotationEntry(char c, PrefixedName attrName)
         throws IOException, XMLStreamException
     {
         String id = readDTDName(c);
@@ -2937,7 +2937,7 @@ public class FullDTDReader
      *   within mixed content model; if false, will just parse and discard
      *   information (done in non-validating DTD-supporting mode)
      */
-    private StructValidator readMixedSpec(NameKey elemName, boolean construct)
+    private StructValidator readMixedSpec(PrefixedName elemName, boolean construct)
         throws IOException, XMLStreamException
     {
         String keyw = checkDTDKeyword("PCDATA");
@@ -2960,7 +2960,7 @@ public class FullDTDReader
             } else {
                 throwDTDUnexpectedChar(c, "; expected either '|' to separate elements, or ')' to close the list");
             }
-            NameKey n = readDTDQName(c);
+            PrefixedName n = readDTDQName(c);
             Object old = m.put(n, TokenContentSpec.construct(' ', n));
             if (old != null) {
                 /* 03-Feb-2006, TSa: Hmmh. Apparently all other XML parsers
@@ -3003,7 +3003,7 @@ public class FullDTDReader
         return val;
     }
 
-    private ContentSpec readContentSpec(NameKey elemName, boolean mainLevel,
+    private ContentSpec readContentSpec(PrefixedName elemName, boolean mainLevel,
                                         boolean construct)
         throws IOException, XMLStreamException
     {
@@ -3047,7 +3047,7 @@ public class FullDTDReader
             if (c == '|' || c == ',') {
                 throwDTDUnexpectedChar(c, " (missing element name?)");
             }
-            NameKey thisName = readDTDQName(c);
+            PrefixedName thisName = readDTDQName(c);
 
             /* Now... it's also legal to directly tag arity marker to a
              * single element name, too...
@@ -3241,7 +3241,7 @@ public class FullDTDReader
         return m;
     }
 
-    final NameKey mAccessKey = new NameKey(null, null);
+    final PrefixedName mAccessKey = new PrefixedName(null, null);
 
     /**
      * Method used to 'intern()' qualified names; main benefit is reduced
@@ -3254,7 +3254,7 @@ public class FullDTDReader
      * not shared. Restriction is needed since the method is not re-entrant:
      * it uses mAccessKey during the method call.
      */
-    private NameKey findSharedName(String prefix, String localName)
+    private PrefixedName findSharedName(String prefix, String localName)
     {
         HashMap m = mSharedNames;
 
@@ -3262,16 +3262,16 @@ public class FullDTDReader
             mSharedNames = m = new HashMap();
         } else {
             // Maybe we already have a shared instance... ?
-            NameKey key = mAccessKey;
+            PrefixedName key = mAccessKey;
             key.reset(prefix, localName);
-            key = (NameKey) m.get(key);
+            key = (PrefixedName) m.get(key);
             if (key != null) { // gotcha
                 return key;
             }
         }
 
         // Not found; let's create, cache and return it:
-        NameKey result = new NameKey(prefix, localName);
+        PrefixedName result = new PrefixedName(prefix, localName);
         m.put(result, result);
         return result;
     }

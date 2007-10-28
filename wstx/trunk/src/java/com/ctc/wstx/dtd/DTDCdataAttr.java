@@ -7,6 +7,7 @@ import org.codehaus.stax2.validation.XMLValidationException;
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.io.WstxInputData;
 import com.ctc.wstx.sr.InputProblemReporter;
+import com.ctc.wstx.util.PrefixedName;
 import com.ctc.wstx.util.WordResolver;
 
 /**
@@ -18,7 +19,7 @@ import com.ctc.wstx.util.WordResolver;
 public final class DTDCdataAttr
     extends DTDAttribute
 {
-    public DTDCdataAttr(NameKey name, DefaultAttrValue defValue, int specIndex,
+    public DTDCdataAttr(PrefixedName name, DefaultAttrValue defValue, int specIndex,
                         boolean nsAware, boolean xml11)
     {
         super(name, defValue, specIndex, nsAware, xml11);

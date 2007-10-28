@@ -3,6 +3,7 @@ package com.ctc.wstx.dtd;
 import javax.xml.stream.Location;
 
 import com.ctc.wstx.cfg.ErrorConsts;
+import com.ctc.wstx.util.PrefixedName;
 
 /**
  * Simple container Object used to store information about id attribute
@@ -50,13 +51,13 @@ class ElementId
     /**
      * Name of element for which this id refers.
      */
-    NameKey mElemName;
+    PrefixedName mElemName;
 
     /**
      * Name of the attribute that contains this id value (often "id", 
      * but need not be)
      */
-    NameKey mAttrName;
+    PrefixedName mAttrName;
 
     /*
     ////////////////////////////////////////////////////
@@ -76,7 +77,7 @@ class ElementId
     */
 
     ElementId(String id, Location loc, boolean defined,
-              NameKey elemName, NameKey attrName)
+              PrefixedName elemName, PrefixedName attrName)
     {
         mIdValue = id;
         mLocation = loc;
@@ -99,11 +100,11 @@ class ElementId
         return mLocation;
     }
 
-    public NameKey getElemName() {
+    public PrefixedName getElemName() {
         return mElemName;
     }
 
-    public NameKey getAttrName() {
+    public PrefixedName getAttrName() {
         return mAttrName;
     }
     

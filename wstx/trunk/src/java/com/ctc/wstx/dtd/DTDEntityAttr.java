@@ -10,6 +10,7 @@ import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.ent.EntityDecl;
 import com.ctc.wstx.io.WstxInputData;
 import com.ctc.wstx.sr.InputProblemReporter;
+import com.ctc.wstx.util.PrefixedName;
 import com.ctc.wstx.util.SymbolTable;
 import com.ctc.wstx.util.WordResolver;
 
@@ -30,7 +31,7 @@ public final class DTDEntityAttr
      * Main constructor. Note that id attributes can never have
      * default values.
      */
-    public DTDEntityAttr(NameKey name, DefaultAttrValue defValue, int specIndex,
+    public DTDEntityAttr(PrefixedName name, DefaultAttrValue defValue, int specIndex,
                      boolean nsAware, boolean xml11)
     {
         super(name, defValue, specIndex, nsAware, xml11);

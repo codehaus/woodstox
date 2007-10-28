@@ -3,14 +3,16 @@ package com.ctc.wstx.dtd;
 import java.util.Collection;
 import java.util.Iterator;
 
+import com.ctc.wstx.util.PrefixedName;
+
 /**
- * NameKeySet implementation suitable for storing small set of NameKey
+ * PrefixedNameSet implementation suitable for storing small set of PrefixedName
  * values (generally 8 or less). Uses linear search, and is thus the
  * most compact presentation for a set
  *<p>
  * Notes about usage:
  * <ul>
- *  <li>All Strings contained in {@link NameKey} instances are assumed
+ *  <li>All Strings contained in {@link PrefixedName} instances are assumed
  *   interned, so that equality comparison can be done (both for values
  *   stored and keys used)
  *   </li>
@@ -22,23 +24,23 @@ import java.util.Iterator;
  *   </li>
  * </ul>
  */
-public final class SmallNameKeySet
-    extends NameKeySet
+public final class SmallPrefixedNameSet
+    extends PrefixedNameSet
 {
     final boolean mNsAware;
 
     final String[] mStrings;
 
-    public SmallNameKeySet(boolean nsAware, NameKey[] names)
+    public SmallPrefixedNameSet(boolean nsAware, PrefixedName[] names)
     {
         mNsAware = nsAware;
         int len = names.length;
         if (len == 0) { // sanity check
-            throw new Error("Trying to construct empty NameKeySet");
+            throw new Error("Trying to construct empty PrefixedNameSet");
         }
         mStrings = new String[nsAware ? (len+len) : len];
         for (int out = 0, in = 0; in < len; ++in) {
-            NameKey nk = names[in];
+            PrefixedName nk = names[in];
             if (nsAware) {
                 mStrings[out++] = nk.getPrefix();
             }
@@ -53,7 +55,7 @@ public final class SmallNameKeySet
     /**
      * @return True if the set contains specified name; false if not.
      */
-    public boolean contains(NameKey name)
+    public boolean contains(PrefixedName name)
     {
         int len = mStrings.length;
         String ln = name.getLocalName();

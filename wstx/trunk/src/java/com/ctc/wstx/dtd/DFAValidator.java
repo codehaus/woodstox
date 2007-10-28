@@ -17,6 +17,7 @@ package com.ctc.wstx.dtd;
 
 import java.util.*;
 
+import com.ctc.wstx.util.PrefixedName;
 import com.ctc.wstx.util.StringUtil;
 
 /**
@@ -40,7 +41,7 @@ public final class DFAValidator
         return new DFAValidator(mState);
     }
 
-    public String tryToValidate(NameKey elemName)
+    public String tryToValidate(PrefixedName elemName)
     {
         // Do we have a follow state with that key?
         DFAState next = mState.findNext(elemName);

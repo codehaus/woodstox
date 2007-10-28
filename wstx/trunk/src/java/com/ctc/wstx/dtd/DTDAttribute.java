@@ -24,6 +24,7 @@ import com.ctc.wstx.ent.EntityDecl;
 import com.ctc.wstx.exc.*;
 import com.ctc.wstx.io.WstxInputData;
 import com.ctc.wstx.sr.InputProblemReporter;
+import com.ctc.wstx.util.PrefixedName;
 import com.ctc.wstx.util.StringUtil;
 import com.ctc.wstx.util.WordResolver;
 
@@ -91,7 +92,7 @@ public abstract class DTDAttribute
     ///////////////////////////////////////////////////
      */
 
-    protected final NameKey mName;
+    protected final PrefixedName mName;
 
     /**
      * Index number amongst "special" attributes (required ones, attributes
@@ -110,7 +111,7 @@ public abstract class DTDAttribute
     ///////////////////////////////////////////////////
      */
 
-    public DTDAttribute(NameKey name, DefaultAttrValue defValue, int specIndex,
+    public DTDAttribute(PrefixedName name, DefaultAttrValue defValue, int specIndex,
                         boolean nsAware, boolean xml11)
     {
         mName = name;
@@ -128,7 +129,7 @@ public abstract class DTDAttribute
     ///////////////////////////////////////////////////
      */
 
-    public final NameKey getName() { return mName; }
+    public final PrefixedName getName() { return mName; }
 
     public final String toString() {
         return mName.toString();

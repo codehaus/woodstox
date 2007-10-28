@@ -7,6 +7,7 @@ import org.codehaus.stax2.validation.XMLValidationException;
 import com.ctc.wstx.exc.WstxValidationException;
 import com.ctc.wstx.io.WstxInputData;
 import com.ctc.wstx.sr.InputProblemReporter;
+import com.ctc.wstx.util.PrefixedName;
 
 /**
  * Specific attribute class for attributes that contain (unique)
@@ -24,7 +25,7 @@ public final class DTDNmTokensAttr
     /**
      * Main constructor.
      */
-    public DTDNmTokensAttr(NameKey name, DefaultAttrValue defValue, int specIndex,
+    public DTDNmTokensAttr(PrefixedName name, DefaultAttrValue defValue, int specIndex,
                            boolean nsAware, boolean xml11)
     {
         super(name, defValue, specIndex, nsAware, xml11);

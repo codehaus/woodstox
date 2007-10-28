@@ -2,6 +2,8 @@ package com.ctc.wstx.dtd;
 
 import java.util.*;
 
+import com.ctc.wstx.util.PrefixedName;
+
 /**
  * Simple content model validator that accepts no elements, ever; this
  * is true for pure #PCDATA content model as well as EMPTY content model.
@@ -32,7 +34,7 @@ public class EmptyValidator
         return this;
     }
 
-    public String tryToValidate(NameKey elemName)
+    public String tryToValidate(PrefixedName elemName)
     {
         return mErrorMsg;
     }

@@ -15,9 +15,11 @@
 
 package com.ctc.wstx.dtd;
 
-public abstract class NameKeySet
+import com.ctc.wstx.util.PrefixedName;
+
+public abstract class PrefixedNameSet
 {
-    protected NameKeySet() { }
+    protected PrefixedNameSet() { }
 
     /**
      * @return True if set contains more than one entry; false if not
@@ -28,7 +30,7 @@ public abstract class NameKeySet
     /**
      * @return True if the set contains specified name; false if not.
      */
-    public abstract boolean contains(NameKey name);
+    public abstract boolean contains(PrefixedName name);
 
     public abstract void appendNames(StringBuffer sb, String sep);
 

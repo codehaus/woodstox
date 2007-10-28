@@ -4,13 +4,15 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.TreeSet;
 
+import com.ctc.wstx.util.PrefixedName;
+
 /**
- * Implementation of {@link NameKeySet} suitable for storing large number
+ * Implementation of {@link PrefixedNameSet} suitable for storing large number
  * of entries; basically anything above trivially small sets (4 or less).
  *<p>
  * Notes about usage:
  * <ul>
- *  <li>All Strings contained in {@link NameKey} instances are assumed
+ *  <li>All Strings contained in {@link PrefixedName} instances are assumed
  *   interned, so that equality comparison can be done (both for values
  *   stored and keys used)
  *   </li>
@@ -22,8 +24,8 @@ import java.util.TreeSet;
  *   </li>
  * </ul>
  */
-public final class LargeNameKeySet
-    extends NameKeySet
+public final class LargePrefixedNameSet
+    extends PrefixedNameSet
 {
     /**
      * Let's not bother creating tiny hash areas; should seldom be a problem
@@ -38,7 +40,7 @@ public final class LargeNameKeySet
      * power of two bigger than number of entries; but at least 4 (it doesn't
      * make sense to create smaller arrays)
      */
-    final NameKey[] mNames;
+    final PrefixedName[] mNames;
 
     /**
      * Secondary (spill) area, in which keys whose hash values collide
@@ -47,7 +49,7 @@ public final class LargeNameKeySet
      */
     final Bucket[] mBuckets;
 
-    public LargeNameKeySet(boolean nsAware, NameKey[] names)
+    public LargePrefixedNameSet(boolean nsAware, PrefixedName[] names)
     {
         mNsAware = nsAware;
         int len = names.length;
@@ -61,14 +63,14 @@ public final class LargeNameKeySet
             tableSize += tableSize;
         }
 
-        mNames = new NameKey[tableSize];
+        mNames = new PrefixedName[tableSize];
         // and 1/4 of that for spill area... but let's do that lazily
 
         Bucket[] buckets = null;
         int mask = (tableSize - 1);
 
         for (int i = 0; i < len; ++i) {
-            NameKey nk = names[i];
+            PrefixedName nk = names[i];
             int ix = (nk.hashCode() & mask);
             if (mNames[ix] == null) { // no collision
                 mNames[ix] = nk;
@@ -94,11 +96,11 @@ public final class LargeNameKeySet
     /**
      * @return True if the set contains specified name; false if not.
      */
-    public boolean contains(NameKey name)
+    public boolean contains(PrefixedName name)
     {
-        NameKey[] hashArea = mNames;
+        PrefixedName[] hashArea = mNames;
         int index = name.hashCode() & (hashArea.length - 1);
-        NameKey res = hashArea[index];
+        PrefixedName res = hashArea[index];
 
         if (res != null && res.equals(name)) {
             return true;
@@ -126,7 +128,7 @@ public final class LargeNameKeySet
         // Let's first get the alphabetized list of all names from main hash
         TreeSet ts = new TreeSet();
         for (int i = 0; i < mNames.length; ++i) {
-            NameKey name = mNames[i];
+            PrefixedName name = mNames[i];
             if (name != null) {
                 ts.add(name);
             }
@@ -164,19 +166,19 @@ public final class LargeNameKeySet
 
     private final static class Bucket
     {
-        final NameKey mName;
+        final PrefixedName mName;
         
         final Bucket mNext;
 
-        public Bucket(NameKey name, Bucket next) {
+        public Bucket(PrefixedName name, Bucket next) {
             mName = name;
             mNext = next;
         }
 
-        public NameKey getName() { return mName; }
+        public PrefixedName getName() { return mName; }
         public Bucket getNext() { return mNext; }
 
-        public boolean contains(NameKey n) {
+        public boolean contains(PrefixedName n) {
             return mName.equals(n);
         }
     }

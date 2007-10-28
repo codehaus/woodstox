@@ -2,6 +2,8 @@ package com.ctc.wstx.dtd;
 
 import java.util.*;
 
+import com.ctc.wstx.util.PrefixedName;
+
 /**
  * Content specification that defines model that has sequence of one or more
  * elements that have to come in the specified order.
@@ -55,7 +57,7 @@ public class SeqContentSpec
         }
 
         if (i == len) { // all leaves, kewl
-            NameKey[] set = new NameKey[len];
+            PrefixedName[] set = new PrefixedName[len];
             for (i = 0; i < len; ++i) {
                 TokenContentSpec ss = (TokenContentSpec) specs[i];
                 set[i] = ss.getName();
@@ -141,7 +143,7 @@ public class SeqContentSpec
         extends StructValidator
     {
         final char mArity;
-        final NameKey[] mNames;
+        final PrefixedName[] mNames;
 
         /**
          * Number of full repetitions done over the sequence
@@ -153,7 +155,7 @@ public class SeqContentSpec
          */
         int mStep = 0;
 
-        public Validator(char arity, NameKey[] names)
+        public Validator(char arity, PrefixedName[] names)
         {
             mArity = arity;
             mNames = names;
@@ -168,7 +170,7 @@ public class SeqContentSpec
             return new Validator(mArity, mNames);
         }
 
-        public String tryToValidate(NameKey elemName)
+        public String tryToValidate(PrefixedName elemName)
         {
             // First; have we already done that max. 1 sequence?
             if (mStep == 0 && mRounds == 1) {
@@ -178,7 +180,7 @@ public class SeqContentSpec
                 }
             }
 
-            NameKey next = mNames[mStep];
+            PrefixedName next = mNames[mStep];
             if (!elemName.equals(next)) {
                 return expElem(mStep);
             }
@@ -216,7 +218,7 @@ public class SeqContentSpec
                 +concatNames(mNames)+")";
         }
 
-        final static String concatNames(NameKey[] names)
+        final static String concatNames(PrefixedName[] names)
         {
             StringBuffer sb = new StringBuffer();
             for (int i = 0, len = names.length; i < len; ++i) {

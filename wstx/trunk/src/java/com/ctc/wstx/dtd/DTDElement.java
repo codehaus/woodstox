@@ -26,6 +26,7 @@ import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.sr.InputProblemReporter;
 import com.ctc.wstx.util.ExceptionUtil;
+import com.ctc.wstx.util.PrefixedName;
 import com.ctc.wstx.util.WordResolver;
 
 /**
@@ -45,7 +46,7 @@ public final class DTDElement
     ///////////////////////////////////////////////////
      */
 
-    final NameKey mName;
+    final PrefixedName mName;
 
     /**
      * Location of the (real) definition of the element; may be null for
@@ -138,7 +139,7 @@ public final class DTDElement
     ///////////////////////////////////////////////////
      */
 
-    private DTDElement(Location loc, NameKey name,
+    private DTDElement(Location loc, PrefixedName name,
                        StructValidator val, int allowedContent,
                        boolean nsAware, boolean xml11)
     {
@@ -154,7 +155,7 @@ public final class DTDElement
      * Method called to create an actual element definition, matching
      * an ELEMENT directive in a DTD subset.
      */
-    public static DTDElement createDefined(ReaderConfig cfg, Location loc, NameKey name,
+    public static DTDElement createDefined(ReaderConfig cfg, Location loc, PrefixedName name,
                                            StructValidator val, int allowedContent)
     {
         if (allowedContent == XMLValidator.CONTENT_ALLOW_UNDEFINED) { // sanity check
@@ -168,7 +169,7 @@ public final class DTDElement
      * Method called to create a "placeholder" element definition, needed to
      * contain attribute definitions.
      */
-    public static DTDElement createPlaceholder(ReaderConfig cfg, Location loc, NameKey name)
+    public static DTDElement createPlaceholder(ReaderConfig cfg, Location loc, PrefixedName name)
     {
         return new DTDElement(loc, name, null, XMLValidator.CONTENT_ALLOW_UNDEFINED,
                               cfg.willSupportNamespaces(), cfg.isXml11());
@@ -235,7 +236,7 @@ public final class DTDElement
      *   case original definition sticks.
      */
     public DTDAttribute addAttribute(InputProblemReporter rep,
-                                     NameKey attrName, int valueType,
+                                     PrefixedName attrName, int valueType,
                                      DefaultAttrValue defValue, WordResolver enumValues,
                                      boolean fullyValidate)
         throws WstxException
@@ -315,7 +316,7 @@ public final class DTDElement
      *   was a dup (there was an earlier declaration)
      */
     public DTDAttribute addNsDefault
-        (InputProblemReporter rep, NameKey attrName, int valueType,
+        (InputProblemReporter rep, PrefixedName attrName, int valueType,
          DefaultAttrValue defValue, boolean fullyValidate)
         throws WstxException
     {
@@ -413,7 +414,7 @@ public final class DTDElement
                                         boolean fullyValidate)
         throws WstxException
     {
-        NameKey attrName = attr.getName();
+        PrefixedName attrName = attr.getName();
 
         // Maybe we already have it? If so, need to ignore
         DTDAttribute old = (DTDAttribute) attrMap.get(attrName);
@@ -464,7 +465,7 @@ public final class DTDElement
     ///////////////////////////////////////////////////
      */
 
-    public NameKey getName() { return mName; }
+    public PrefixedName getName() { return mName; }
 
     public String toString() {
         return mName.toString();

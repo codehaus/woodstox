@@ -3,6 +3,8 @@ package com.ctc.wstx.dtd;
 import java.util.BitSet;
 import java.util.List;
 
+import com.ctc.wstx.util.PrefixedName;
+
 /**
  * Model class that encapsulates a single (obligatory) token instance.
  */
@@ -14,7 +16,7 @@ public final class TokenModel
         NULL_TOKEN.mTokenIndex = 0;
     }
 
-    final NameKey mElemName;
+    final PrefixedName mElemName;
 
     int mTokenIndex = -1; // to catch errors...
 
@@ -24,7 +26,7 @@ public final class TokenModel
     ///////////////////////////////////////////////////
      */
 
-    public TokenModel(NameKey elemName) {
+    public TokenModel(PrefixedName elemName) {
         mElemName = elemName;
     }
 
@@ -38,7 +40,7 @@ public final class TokenModel
     ///////////////////////////////////////////////////
      */
 
-    public NameKey getName() { return mElemName; }
+    public PrefixedName getName() { return mElemName; }
 
     /**
      * Method that has to create a deep copy of the model, without

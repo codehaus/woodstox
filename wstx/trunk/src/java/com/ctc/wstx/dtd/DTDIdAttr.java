@@ -7,6 +7,7 @@ import org.codehaus.stax2.validation.XMLValidationException;
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.io.WstxInputData;
 import com.ctc.wstx.sr.InputProblemReporter;
+import com.ctc.wstx.util.PrefixedName;
 import com.ctc.wstx.util.WordResolver;
 
 /**
@@ -31,7 +32,7 @@ public final class DTDIdAttr
      * not-validating mode it is apparently 'legal' to add default
      * values.
      */
-    public DTDIdAttr(NameKey name, DefaultAttrValue defValue, int specIndex,
+    public DTDIdAttr(PrefixedName name, DefaultAttrValue defValue, int specIndex,
                      boolean nsAware, boolean xml11)
     {
         super(name, defValue, specIndex, nsAware, xml11);
@@ -100,7 +101,7 @@ public final class DTDIdAttr
 
         // Either way, we do need to validate characters, and calculate hash
         ElementIdMap m = v.getIdMap();
-        NameKey elemName = v.getElemName();
+        PrefixedName elemName = v.getElemName();
         Location loc = v.getLocation();
         ElementId id = m.addDefined(cbuf, start, (end - start + 1), hash,
                                     loc, elemName, mName);

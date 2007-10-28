@@ -3,6 +3,7 @@ package com.ctc.wstx.dtd;
 import org.codehaus.stax2.validation.XMLValidationException;
 
 import com.ctc.wstx.sr.InputProblemReporter;
+import com.ctc.wstx.util.PrefixedName;
 import com.ctc.wstx.util.WordResolver;
 
 /**
@@ -19,7 +20,7 @@ public final class DTDEnumAttr
     ///////////////////////////////////////////////////
      */
 
-    public DTDEnumAttr(NameKey name, DefaultAttrValue defValue,
+    public DTDEnumAttr(PrefixedName name, DefaultAttrValue defValue,
                        int specIndex, boolean nsAware, boolean xml11,
                        WordResolver enumValues)
     {

@@ -17,6 +17,8 @@ package com.ctc.wstx.dtd;
 
 import java.util.*;
 
+import com.ctc.wstx.util.PrefixedName;
+
 /**
  * Base class for validator Objects used to validate tree structure of an
  * XML-document against DTD.
@@ -36,7 +38,7 @@ public abstract class StructValidator
      * @return Null if element is valid in its current position; error
      *    message if not.
      */
-    public abstract String tryToValidate(NameKey elemName);
+    public abstract String tryToValidate(PrefixedName elemName);
 
     /**
      * Method called when the end element of the scope this validator

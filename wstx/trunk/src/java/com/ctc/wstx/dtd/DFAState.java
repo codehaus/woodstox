@@ -17,6 +17,8 @@ package com.ctc.wstx.dtd;
 
 import java.util.*;
 
+import com.ctc.wstx.util.PrefixedName;
+
 /**
  * Class that represents a state in DFA used for validating complex
  * DTD content models.
@@ -67,7 +69,7 @@ public final class DFAState
          */
         int flen = tokens.size();
         BitSet[] followPos = new BitSet[flen];
-        NameKey[] tokenNames = new NameKey[flen];
+        PrefixedName[] tokenNames = new PrefixedName[flen];
         for (int i = 0; i < flen; ++i) {
             followPos[i] = new BitSet(flen);
             tokenNames[i] = ((TokenModel) tokens.get(i)).getName();
@@ -117,7 +119,7 @@ public final class DFAState
         return mIndex;
     }
 
-    public DFAState findNext(NameKey elemName) {
+    public DFAState findNext(PrefixedName elemName) {
         return (DFAState) mNext.get(elemName);
     }
 
@@ -132,7 +134,7 @@ public final class DFAState
         return names;
     }
 
-    public void calcNext(NameKey[] tokenNames, BitSet[] tokenFPs,
+    public void calcNext(PrefixedName[] tokenNames, BitSet[] tokenFPs,
                          List stateList, Map stateMap)
     {
         /* Need to loop over all included tokens, and find groups
@@ -148,7 +150,7 @@ public final class DFAState
         mTokenSet = null;
 
         while ((first = tokenSet.nextSetBit(first+1)) >= 0) {
-            NameKey tokenName = tokenNames[first];
+            PrefixedName tokenName = tokenNames[first];
 
             /* Special case; the dummy end token has null as name;
              * we can skip that one:

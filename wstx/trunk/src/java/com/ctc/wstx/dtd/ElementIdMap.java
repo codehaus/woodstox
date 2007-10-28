@@ -18,6 +18,7 @@ package com.ctc.wstx.dtd;
 import javax.xml.stream.Location;
 
 import com.ctc.wstx.util.ExceptionUtil;
+import com.ctc.wstx.util.PrefixedName;
 
 /**
  * This class is a specialized type-safe linked hash map used for
@@ -136,7 +137,7 @@ final class ElementIdMap
      * to add a reference marker.
      */
     public ElementId addReferenced(char[] buffer, int start, int len, int hash,
-                                   Location loc, NameKey elemName, NameKey attrName)
+                                   Location loc, PrefixedName elemName, PrefixedName attrName)
     {
         int index = (hash & mIndexMask);
         ElementId id = mTable[index];
@@ -185,7 +186,7 @@ final class ElementIdMap
      * and report the error.
      */
     public ElementId addDefined(char[] buffer, int start, int len, int hash,
-                                Location loc, NameKey elemName, NameKey attrName)
+                                Location loc, PrefixedName elemName, PrefixedName attrName)
     {
         int index = (hash & mIndexMask);
         ElementId id = mTable[index];

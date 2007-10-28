@@ -3,6 +3,7 @@ package com.ctc.wstx.dtd;
 import java.util.*;
 
 import com.ctc.wstx.util.ExceptionUtil;
+import com.ctc.wstx.util.PrefixedName;
 
 /**
  * Content specification that defines content model that has
@@ -84,7 +85,7 @@ public class ChoiceContentSpec
         }
 
         if (i == len) { // all leaves, kewl
-            NameKeySet keyset = namesetFromSpecs(mNsAware, specs);
+            PrefixedNameSet keyset = namesetFromSpecs(mNsAware, specs);
             return new Validator(mArity, keyset);
         }
 
@@ -152,18 +153,18 @@ public class ChoiceContentSpec
     ///////////////////////////////////////////////////
      */
 
-    protected static NameKeySet namesetFromSpecs(boolean nsAware, ContentSpec[] specs)
+    protected static PrefixedNameSet namesetFromSpecs(boolean nsAware, ContentSpec[] specs)
     {
         int len = specs.length;
-        NameKey[] nameArray = new NameKey[len];
+        PrefixedName[] nameArray = new PrefixedName[len];
         for (int i = 0; i < len; ++i) {
             nameArray[i] = ((TokenContentSpec)specs[i]).getName();
         }
 
         if (len < 5) { // 4 or fewer elements -> small
-            return new SmallNameKeySet(nsAware, nameArray);
+            return new SmallPrefixedNameSet(nsAware, nameArray);
         }
-        return new LargeNameKeySet(nsAware, nameArray);
+        return new LargePrefixedNameSet(nsAware, nameArray);
     }
 
     /*
@@ -177,11 +178,11 @@ public class ChoiceContentSpec
         extends StructValidator
     {
         final char mArity;
-        final NameKeySet mNames;
+        final PrefixedNameSet mNames;
 
         int mCount = 0;
 
-        public Validator(char arity, NameKeySet names)
+        public Validator(char arity, PrefixedNameSet names)
         {
             mArity = arity;
             mNames = names;
@@ -198,7 +199,7 @@ public class ChoiceContentSpec
             return (mArity == '*') ? this : new Validator(mArity, mNames);
         }
 
-        public String tryToValidate(NameKey elemName)
+        public String tryToValidate(PrefixedName elemName)
         {
             if (!mNames.contains(elemName)) {
                 if (mNames.hasMultiple()) {

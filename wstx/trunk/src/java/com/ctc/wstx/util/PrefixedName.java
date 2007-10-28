@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-package com.ctc.wstx.dtd;
+package com.ctc.wstx.util;
 
 import javax.xml.XMLConstants;
 
@@ -34,7 +34,7 @@ import javax.xml.XMLConstants;
  * Note, too, that the hash code is cached as this class is mostly used as
  * a Map key, and hash code is used a lot.
  */
-public final class NameKey
+public final class PrefixedName
     implements Comparable // to allow alphabetic ordering
 {
     private String mPrefix, mLocalName;
@@ -47,14 +47,14 @@ public final class NameKey
     ///////////////////////////////////////////////////
      */
 
-    public NameKey(String prefix, String localName)
+    public PrefixedName(String prefix, String localName)
     {
         mLocalName = localName;
         mPrefix = (prefix != null && prefix.length() == 0) ?
             null : prefix;
     }
 
-    public NameKey reset(String prefix, String localName)
+    public PrefixedName reset(String prefix, String localName)
     {
         mLocalName = localName;
         mPrefix = (prefix != null && prefix.length() == 0) ?
@@ -92,7 +92,7 @@ public final class NameKey
      * Note: it is assumed that the passed-in localName is also
      * interned.
      */
-    boolean isXmlReservedAttr(boolean nsAware, String localName)
+    public boolean isXmlReservedAttr(boolean nsAware, String localName)
     {
         if (nsAware) {
             if ("xml" == mPrefix) {
@@ -130,10 +130,10 @@ public final class NameKey
         if (o == this) {
             return true;
         }
-        if (!(o instanceof NameKey)) { // also filters out nulls
+        if (!(o instanceof PrefixedName)) { // also filters out nulls
             return false;
         }
-        NameKey other = (NameKey) o;
+        PrefixedName other = (PrefixedName) o;
 
         if (mLocalName != other.mLocalName) { // assumes equality
             return false;
@@ -156,7 +156,7 @@ public final class NameKey
 
     public int compareTo(Object o)
     {
-        NameKey other = (NameKey) o;
+        PrefixedName other = (PrefixedName) o;
 
         // First, by prefix, then by local name:
         String op = other.mPrefix;
