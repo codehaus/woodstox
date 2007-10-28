@@ -20,6 +20,7 @@ import java.util.*;
 import org.codehaus.stax2.validation.*;
 
 import com.ctc.wstx.util.DataUtil;
+import com.ctc.wstx.util.ElementIdMap;
 import com.ctc.wstx.util.ExceptionUtil;
 
 /**

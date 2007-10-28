@@ -1,9 +1,8 @@
-package com.ctc.wstx.dtd;
+package com.ctc.wstx.util;
 
 import javax.xml.stream.Location;
 
 import com.ctc.wstx.cfg.ErrorConsts;
-import com.ctc.wstx.util.PrefixedName;
 
 /**
  * Simple container Object used to store information about id attribute
@@ -20,7 +19,7 @@ import com.ctc.wstx.util.PrefixedName;
  * an inner class of the Map; it also reduces number of accessors and
  * mutators ("monkey code") needed.
  */
-class ElementId
+public final class ElementId
 {
     /**
      * Flag that indicates whether this Object presents a defined id

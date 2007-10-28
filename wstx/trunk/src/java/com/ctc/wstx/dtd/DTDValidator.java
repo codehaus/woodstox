@@ -24,6 +24,8 @@ import org.codehaus.stax2.validation.*;
 
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.util.DataUtil;
+import com.ctc.wstx.util.ElementId;
+import com.ctc.wstx.util.ElementIdMap;
 import com.ctc.wstx.util.StringUtil;
 
 /**

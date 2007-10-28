@@ -13,12 +13,10 @@
  * limitations under the License.
  */
 
-package com.ctc.wstx.dtd;
+package com.ctc.wstx.util;
 
 import javax.xml.stream.Location;
 
-import com.ctc.wstx.util.ExceptionUtil;
-import com.ctc.wstx.util.PrefixedName;
 
 /**
  * This class is a specialized type-safe linked hash map used for
@@ -31,7 +29,7 @@ import com.ctc.wstx.util.PrefixedName;
  * more than once.
  */
 
-final class ElementIdMap
+public final class ElementIdMap
 {
     /**
      * Default initial table size; set so that usually it need not

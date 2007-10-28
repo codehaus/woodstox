@@ -7,6 +7,8 @@ import org.codehaus.stax2.validation.XMLValidationException;
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.io.WstxInputData;
 import com.ctc.wstx.sr.InputProblemReporter;
+import com.ctc.wstx.util.ElementId;
+import com.ctc.wstx.util.ElementIdMap;
 import com.ctc.wstx.util.PrefixedName;
 import com.ctc.wstx.util.WordResolver;
 

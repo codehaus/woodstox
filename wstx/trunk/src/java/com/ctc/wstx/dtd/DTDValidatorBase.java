@@ -27,6 +27,7 @@ import com.ctc.wstx.exc.WstxValidationException;
 import com.ctc.wstx.sr.NsDefaultProvider;
 import com.ctc.wstx.sr.InputElementStack;
 import com.ctc.wstx.util.DataUtil;
+import com.ctc.wstx.util.ElementIdMap;
 import com.ctc.wstx.util.ExceptionUtil;
 import com.ctc.wstx.util.PrefixedName;
 
