@@ -26,12 +26,6 @@ import org.codehaus.stax2.validation.ValidationContext;
 public final class AttributeProxy
     implements org.xml.sax.Attributes
 {
-    /**
-     * Static flag used to compile in/remove checks for calls that
-     * are unimplemented (on assumption they are not needed)
-     */
-    private final static boolean PARANOID = true;
-
     private final ValidationContext mContext;
 
     public AttributeProxy(ValidationContext ctxt)
@@ -47,7 +41,30 @@ public final class AttributeProxy
 
     public int getIndex(String qName)
     {
-        if (PARANOID) { illegalAccess(); }
+        int cix = qName.indexOf(':');
+        int acount = mContext.getAttributeCount();
+        if (cix < 0) { // no prefix
+            for (int i = 0; i < acount; ++i) {
+                if (qName.equals(mContext.getAttributeLocalName(i))) {
+                    String prefix = mContext.getAttributePrefix(i);
+                    if (prefix == null || prefix.length() == 0) {
+                        return i;
+                    }
+                }
+            }
+        } else {
+            String prefix = qName.substring(0, cix);
+            String ln = qName.substring(cix+1);
+
+            for (int i = 0; i < acount; ++i) {
+                if (ln.equals(mContext.getAttributeLocalName(i))) {
+                    String p2 = mContext.getAttributePrefix(i);
+                    if (p2 != null && prefix.equals(p2)) {
+                        return i;
+                    }
+                }
+            }
+        }
         return -1;
     }
 
@@ -68,32 +85,32 @@ public final class AttributeProxy
 
     public String getQName(int index)
     {
-        /* Shouldn't be called; could be implemented although
-         * inefficiently (since StAX does not use such prefixed names)
-         */
-        if (PARANOID) { illegalAccess(); }
-        return null;
+        String prefix = mContext.getAttributePrefix(index);
+        String ln = mContext.getAttributeLocalName(index);
+
+        if (prefix == null || prefix.length() == 0) {
+            return ln;
+        }
+        StringBuffer sb = new StringBuffer(prefix.length() + 1 + ln.length());
+        sb.append(prefix);
+        sb.append(':');
+        sb.append(ln);
+        return sb.toString();
     }
 
     public String getType(int index)
     {
-        // Shouldn't be needed...
-        if (PARANOID) { illegalAccess(); }
-        return null;
+        return mContext.getAttributeType(index);
     }
 
     public String getType(String qName)
     {
-        // Shouldn't be needed...
-        if (PARANOID) { illegalAccess(); }
-        return null;
+        return getType(getIndex(qName));
     }
 
     public String getType(String uri, String localName)
     {
-        // Shouldn't be needed...
-        if (PARANOID) { illegalAccess(); }
-        return null;
+        return getType(getIndex(uri, localName));
     }
 
     public String getURI(int index)
@@ -108,25 +125,12 @@ public final class AttributeProxy
 
     public String getValue(String qName)
     {
-        // Shouldn't be needed...
-        if (PARANOID) { illegalAccess(); }
-        return null;
+        return getValue(getIndex(qName));
     }
 
     public String getValue(String uri, String localName)     
     {
         return mContext.getAttributeValue(uri, localName);
-    }
-
-    /*
-    ///////////////////////////////////////////////
-    // Internal methods
-    ///////////////////////////////////////////////
-    */
-
-    private void illegalAccess()
-    {
-        throw new IllegalStateException("Unexpected call to AttributeProxy method that was assumed not to be needed");
     }
 }
 

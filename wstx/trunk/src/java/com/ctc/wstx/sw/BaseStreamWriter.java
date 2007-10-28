@@ -1264,6 +1264,10 @@ public abstract class BaseStreamWriter
         return null;
     }
 
+    public String getAttributeType(int index) {
+        return "";
+    }
+
     public int findAttributeIndex(String nsURI, String localName) {
         return -1;
     }

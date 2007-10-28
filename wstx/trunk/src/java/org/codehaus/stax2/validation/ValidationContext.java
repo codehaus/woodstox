@@ -96,6 +96,8 @@ public interface ValidationContext
 
     public String getAttributeValue(String nsURI, String localName);
 
+    public String getAttributeType(int index);
+
     /**
      * @return Index of the specified attribute, if one present;
      *   -1 otherwise.

@@ -22,12 +22,15 @@ import java.util.*;
 import org.codehaus.stax2.*;
 import org.codehaus.stax2.validation.*;
 
+import org.relaxng.datatype.Datatype;
+
 import com.sun.msv.grammar.IDContextProvider2;
 import com.sun.msv.util.DatatypeRef;
 import com.sun.msv.util.StartTagInfo;
 import com.sun.msv.util.StringRef;
 import com.sun.msv.verifier.Acceptor;
 import com.sun.msv.verifier.DocumentDeclaration;
+import com.sun.msv.verifier.regexp.StringToken;
 
 import com.ctc.wstx.exc.WstxIOException;
 import com.ctc.wstx.util.TextAccumulator;
@@ -37,9 +40,14 @@ import com.ctc.wstx.util.TextAccumulator;
  * backed implementations. A common class can be used since functionality
  * is almost identical between variants (RNG, W3C SChema); minor
  * differences that exist can be configured by settings provided.
+ *<p>
+ * Note about id context provider interface: while it'd be nice to
+ * separate that part out, it is unfortunately closely tied to the
+ * validation process. Hence it's directly implemented by this class.
  */
 public final class GenericMsvValidator
     extends XMLValidator
+    implements com.sun.msv.grammar.IDContextProvider2
 {
     /*
     ////////////////////////////////////
@@ -55,7 +63,7 @@ public final class GenericMsvValidator
 
     /*
     ////////////////////////////////////
-    // State
+    // State, helper objects
     ////////////////////////////////////
     */
 
@@ -64,6 +72,19 @@ public final class GenericMsvValidator
     Acceptor mCurrAcceptor = null;
 
     final TextAccumulator mTextAccumulator = new TextAccumulator();
+
+    /*
+    ////////////////////////////////////
+    // State, positions
+    ////////////////////////////////////
+    */
+
+    /**
+     * Index of the attribute that is currently being validated.
+     * Needed for figuring out which attribute has ID/IDREF/IDREFS
+     * valus being processed
+     */
+    int mAttrIndex = -1;
 
     /*
     ////////////////////////////////////
@@ -80,14 +101,10 @@ public final class GenericMsvValidator
     final StartTagInfo mStartTag = new StartTagInfo("", "", "", null, (IDContextProvider2) null);
 
     /**
-     * Since RelaxNG never has to look into attributes during element
-     * processing (start/end) -- unlike W3C schema, which may need to
-     * access xsi:type and xsi:nillable -- we can just use an empty
-     * shared instance.
+     * This object provides limited access to attribute values of the
+     * currently validated element.
      */
     final AttributeProxy mAttributeProxy;
-
-    final IDContextProvider2 mMsvContext;
 
     /*
     ////////////////////////////////////
@@ -103,8 +120,74 @@ public final class GenericMsvValidator
         mVGM = vgm;
 
         mCurrAcceptor = mVGM.createAcceptor();
-        mMsvContext = new MSVContextProvider(ctxt);
         mAttributeProxy = new AttributeProxy(ctxt);
+    }
+
+    /*
+    ///////////////////////////////////////////////////////////
+    // IDContextProvider2 implementation:
+    //
+    // Core RelaxNG ValidationContext implementation
+    // (org.relaxng.datatype.ValidationContext, base interface
+    // of the id provider context)
+    ///////////////////////////////////////////////////////////
+     */
+
+    public String getBaseUri()
+    {
+        return mContext.getBaseUri();
+    }
+
+    public boolean isNotation(String notationName)
+    {
+        return mContext.isNotationDeclared(notationName);
+    }
+
+    public boolean isUnparsedEntity(String entityName)
+    {
+        return mContext.isUnparsedEntityDeclared(entityName);
+    }
+
+    public String resolveNamespacePrefix(String prefix) 
+    {
+        return mContext.getNamespaceURI(prefix);
+    }
+
+    /*
+    ///////////////////////////////////////////////////////////
+    // IDContextProvider2 implementation, extensions over
+    // core ValidationContext
+    ///////////////////////////////////////////////////////////
+     */
+
+	public void onID(Datatype datatype, StringToken idToken)
+    {
+//System.err.println("WARNING: dt -> "+datatype+", literal -> "+literal.literal);
+        int idType = datatype.getIdType();
+        if (idType == Datatype.ID_TYPE_ID) {
+            String id = idToken.literal.trim();
+            /*
+            StringToken existing = (StringToken)ids.get(literal);
+            if( existing==null ) {
+                // the first time this ID is used
+                ids.put(literal,token);
+            } else
+            if( existing!=token ) {
+                // duplicate id value
+                onDuplicateId(literal);
+            }
+            */
+        } else if (idType == Datatype.ID_TYPE_IDREF) {
+            //idrefs.add(token.literal.trim());
+        } else if (idType == Datatype.ID_TYPE_IDREFS) {
+            /*
+            StringTokenizer tokens = new StringTokenizer(token.literal);
+            while (tokens.hasMoreTokens())
+                idrefs.add(tokens.nextToken());
+            */
+        } else {
+            throw new Error("Internal error: unexpected ID datatype: "+datatype);
+        }
     }
 
     /*
@@ -144,7 +227,7 @@ public final class GenericMsvValidator
          */
         //String qname = (prefix == null || prefix.length() == 0) ? localName : (prefix + ":" +localName);
         String qname = localName;
-        mStartTag.reinit(uri, localName, qname, mAttributeProxy, mMsvContext);
+        mStartTag.reinit(uri, localName, qname, mAttributeProxy, this);
 
         mCurrAcceptor = mCurrAcceptor.createChildAcceptor(mStartTag, mErrorRef);
         /* As per documentation, the side-effect of getting the error message
@@ -172,7 +255,7 @@ public final class GenericMsvValidator
                 uri = "";
             }
 
-            if (!mCurrAcceptor.onAttribute2(uri, localName, qname, value, mMsvContext, mErrorRef, typeRef)
+            if (!mCurrAcceptor.onAttribute2(uri, localName, qname, value, this, mErrorRef, typeRef)
                 || mErrorRef.str != null) {
                 reportError(mErrorRef);
             }
@@ -341,7 +424,7 @@ public final class GenericMsvValidator
         if (mCurrAcceptor != null) {
             String str = textAcc.getAndClear();
             DatatypeRef typeRef = null;
-            if (!mCurrAcceptor.onText2(str, mMsvContext, mErrorRef, typeRef)
+            if (!mCurrAcceptor.onText2(str, this, mErrorRef, typeRef)
                 || mErrorRef.str != null) {
                 reportError(mErrorRef);
             }
