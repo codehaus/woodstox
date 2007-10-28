@@ -129,7 +129,7 @@ class ElementId
 
     public void markDefined(Location defLoc) {
         if (mDefined) { // sanity check
-            throw new Error(ErrorConsts.ERR_INTERNAL);
+            throw new IllegalStateException(ErrorConsts.ERR_INTERNAL);
         }
         mDefined = true;
         mLocation = defLoc;

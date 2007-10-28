@@ -1227,7 +1227,7 @@ public final class ReaderConfig
             return getInputParsingMode();
 
         default: // sanity check, should never happen
-            throw new Error("Internal error: no handler for property with internal id "+id+".");
+            throw new IllegalStateException("Internal error: no handler for property with internal id "+id+".");
         }
     }
 
@@ -1374,7 +1374,7 @@ public final class ReaderConfig
             break;
 
         default: // sanity check, should never happen
-            throw new Error("Internal error: no handler for property with internal id "+id+".");
+            throw new IllegalStateException("Internal error: no handler for property with internal id "+id+".");
         }
 
         return true;

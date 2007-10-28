@@ -402,5 +402,12 @@ public class MinimalDTDReader
     protected String getErrorMsg() {
         return mIsExternal ? SUFFIX_IN_DTD_EXTERNAL : SUFFIX_IN_DTD_INTERNAL;
     }
+
+
+    protected void throwIllegalCall()
+        throws Error
+    {
+        throw new IllegalStateException("Internal error: this method should never be called");
+    }
 }
 

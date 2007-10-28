@@ -27,18 +27,18 @@ import com.sun.msv.util.DatatypeRef;
 import com.sun.msv.util.StartTagInfo;
 import com.sun.msv.util.StringRef;
 import com.sun.msv.verifier.Acceptor;
-import com.sun.msv.verifier.regexp.REDocumentDeclaration;
+import com.sun.msv.verifier.DocumentDeclaration;
 
 import com.ctc.wstx.exc.WstxIOException;
 import com.ctc.wstx.util.TextAccumulator;
 
 /**
- * Actual non-shareable validator instance, that is bound to an XML
- * document, or document subset.
- *<p>
- * Some notes about implementation:
+ * Generic validator instance to be used for all Multi-Schema Validator
+ * backed implementations. A common class can be used since functionality
+ * is almost identical between variants (RNG, W3C SChema); minor
+ * differences that exist can be configured by settings provided.
  */
-public class W3CSchemaValidator
+public final class GenericMsvValidator
     extends XMLValidator
 {
     /*
@@ -51,7 +51,7 @@ public class W3CSchemaValidator
 
     final ValidationContext mContext;
 
-    final REDocumentDeclaration mVGM;
+    final DocumentDeclaration mVGM;
 
     /*
     ////////////////////////////////////
@@ -95,8 +95,8 @@ public class W3CSchemaValidator
     ////////////////////////////////////
     */
 
-    public W3CSchemaValidator(XMLValidationSchema parent, ValidationContext ctxt,
-                            REDocumentDeclaration vgm)
+    public GenericMsvValidator(XMLValidationSchema parent, ValidationContext ctxt,
+                               DocumentDeclaration vgm)
     {
         mParentSchema = parent;
         mContext = ctxt;
@@ -177,7 +177,7 @@ public class W3CSchemaValidator
                 reportError(mErrorRef);
             }
         }
-        /* No normalization done by W3CSchema, is there? (at least nothing
+        /* No normalization done by RelaxNG, is there? (at least nothing
          * visible to callers that is)
          */
         return null;

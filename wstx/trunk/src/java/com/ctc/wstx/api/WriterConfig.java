@@ -385,7 +385,7 @@ public final class WriterConfig
             throw new IllegalStateException("Can not access per-stream-writer properties via factory");
         }
 
-        throw new Error("Internal error: no handler for property with internal id "+id+".");
+        throw new IllegalStateException("Internal error: no handler for property with internal id "+id+".");
     }
 
     /**
@@ -462,7 +462,7 @@ public final class WriterConfig
             throw new IllegalStateException("Can not modify per-stream-writer properties via factory");
 
         default:
-            throw new Error("Internal error: no handler for property with internal id "+id+".");
+            throw new IllegalStateException("Internal error: no handler for property with internal id "+id+".");
         }
 
         return true;

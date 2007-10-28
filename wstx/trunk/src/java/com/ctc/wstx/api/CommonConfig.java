@@ -161,7 +161,7 @@ abstract class CommonConfig
         case PROP_SUPPORTS_XML11:
             return doesSupportXml11() ? Boolean.TRUE : Boolean.FALSE;
         default: // sanity check, should never happen
-            throw new Error("Internal error: no handler for property with internal id "+id+".");
+            throw new IllegalStateException("Internal error: no handler for property with internal id "+id+".");
         }
     }
 }

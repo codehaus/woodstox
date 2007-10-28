@@ -632,7 +632,7 @@ public class SymbolTable {
         }
 
         if (count != mSize) {
-            throw new Error("Internal error on SymbolTable.rehash(): had "+mSize+" entries; now have "+count+".");
+            throw new IllegalStateException("Internal error on SymbolTable.rehash(): had "+mSize+" entries; now have "+count+".");
         }
     }
 
@@ -728,71 +728,4 @@ public class SymbolTable {
             return null;
         }
     }
-
-    /*
-    //////////////////////////////////////////////////////////
-    // Simple test driver(s):
-    //////////////////////////////////////////////////////////
-     */
-
-    /**
-     * Let's just try and see if indexing all the words on an input
-     * file works ok, when there are 2 sort of concurrent readers, and
-     * starting with a small initial size which should trigger
-     * enough rehash()ings.
-     */
-    /*
-    public static void main(String[] args)
-        throws Exception
-    {
-        if (args.length < 1) {
-            System.err.println("Usage: java "+SymbolTable.class+" <file(s)>");
-            System.exit(1);
-        }
-
-        SymbolTable root = new SymbolTable(true, 4);
-        for (int i = 0; i < args.length; ++i) {
-            java.io.FileReader fr = new java.io.FileReader(args[i]);
-            java.io.StreamTokenizer st = new java.io.StreamTokenizer(fr);
-            SymbolTable table1 = root.makeChild();
-            SymbolTable table2 = root.makeChild();
-
-            System.err.println("START: file '"+args[i]+"'");
-            System.err.println("t1: "+table1.size()+" words, t2: "+table2.size()+" words; root: "+root.size()+" words.");
-            //System.err.println("t1Ver: "+table1.version()+", t2Ver: "+table2.version()+" words; root: "+root.version()+".");
-
-            int tt;
-            int count = 0;
-            while ((tt = st.nextToken()) != java.io.StreamTokenizer.TT_EOF) {
-                if (tt == java.io.StreamTokenizer.TT_WORD) {
-                    String word = st.sval;
-                    int hash = calcHash(word);
-                    char[] ch = word.toCharArray();
-                    
-                    SymbolTable table = ((++count & 1) == 0) ? table2 : table1;
-                    
-                    String old = table.findSymbolIfExists(ch, 0, ch.length, hash);
-                    if (old == null) {
-                        System.out.println("Adding '"+word+"'.");
-                        table.findSymbol(ch, 0, ch.length, hash); // will add it
-                    }
-                }
-            }
-
-            System.err.println("OK; t1: "+table1.size()+" words, t2: "+table2.size()+" words.");
-            if (!table1.isDirectChildOf(root)) { // sanity check
-                throw new Error("Table1 not a direct child!");
-            }
-            if (!table2.isDirectChildOf(root)) { // sanity check
-                throw new Error("Table2 not a direct child!");
-            }
-            if ((++count & 1) == 0) {
-                root = table1;
-            } else {
-                root = table2;
-            }
-        }
-        System.out.println("DONE!");
-    }
-    */
 }

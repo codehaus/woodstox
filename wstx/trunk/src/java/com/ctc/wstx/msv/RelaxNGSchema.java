@@ -56,6 +56,6 @@ public class RelaxNGSchema
         throws XMLStreamException
     {
         REDocumentDeclaration dd = new REDocumentDeclaration(mGrammar);
-        return new RelaxNGValidator(this, ctxt, dd);
+        return new GenericMsvValidator(this, ctxt, dd);
     }
 }

@@ -72,9 +72,34 @@ public class MSVContextProvider
     ///////////////////////////////////////////////////////////
     */
 
-	public void onID(Datatype datatype, StringToken literal)
+	public void onID(Datatype datatype, StringToken idToken)
     {
-        // !!! TBI
+//System.err.println("WARNING: dt -> "+datatype+", literal -> "+literal.literal);
+        int idType = datatype.getIdType();
+        if (idType == Datatype.ID_TYPE_ID) {
+            String id = idToken.literal.trim();
+            /*
+            StringToken existing = (StringToken)ids.get(literal);
+            if( existing==null ) {
+                // the first time this ID is used
+                ids.put(literal,token);
+            } else
+            if( existing!=token ) {
+                // duplicate id value
+                onDuplicateId(literal);
+            }
+            */
+        } else if (idType == Datatype.ID_TYPE_IDREF) {
+            //idrefs.add(token.literal.trim());
+        } else if (idType == Datatype.ID_TYPE_IDREFS) {
+            /*
+            StringTokenizer tokens = new StringTokenizer(token.literal);
+            while (tokens.hasMoreTokens())
+                idrefs.add(tokens.nextToken());
+            */
+        } else {
+            throw new Error("Internal error: unexpected ID datatype: "+datatype);
+        }
     }
 
     /*

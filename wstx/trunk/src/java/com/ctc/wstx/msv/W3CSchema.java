@@ -51,6 +51,6 @@ public class W3CSchema
         throws XMLStreamException
     {
         XSREDocDecl dd = new XSREDocDecl(mGrammar);
-        return new W3CSchemaValidator(this, ctxt, dd);
+        return new GenericMsvValidator(this, ctxt, dd);
     }
 }

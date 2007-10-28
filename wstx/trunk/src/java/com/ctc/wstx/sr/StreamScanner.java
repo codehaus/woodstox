@@ -1081,8 +1081,8 @@ public abstract class StreamScanner
 
     protected void throwNullParent(WstxInputSource curr)
     {
-        throw new Error(ErrorConsts.ERR_INTERNAL);
-        //throw new Error("Internal error: null parent for input source '"+curr+"'; should never occur (should have stopped at root input '"+mRootInput+"').");
+        throw new IllegalStateException(ErrorConsts.ERR_INTERNAL);
+        //throw new IllegalStateException("Internal error: null parent for input source '"+curr+"'; should never occur (should have stopped at root input '"+mRootInput+"').");
     }
 
     /*
@@ -2353,11 +2353,5 @@ public abstract class StreamScanner
         throws WstxException
     {
         throwParseError("Illegal character entity: expansion character (code 0x"+Integer.toHexString(value)+") not a valid XML character");
-    }
-
-    protected void throwIllegalCall()
-        throws Error
-    {
-        throw new Error("Internal error: this method should never be called");
     }
 }
