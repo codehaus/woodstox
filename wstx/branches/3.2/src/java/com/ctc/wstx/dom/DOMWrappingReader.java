@@ -644,7 +644,7 @@ public class DOMWrappingReader
                 /* !!! If xml 1.1 was to be handled, should check for
                  *   LSEP and NEL too
                  */
-                if (text.charAt(i) <= 0x0020) {
+                if (text.charAt(i) > 0x0020) {
                     return false;
                 }
             }

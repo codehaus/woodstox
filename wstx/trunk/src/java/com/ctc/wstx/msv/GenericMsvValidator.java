@@ -33,6 +33,8 @@ import com.sun.msv.verifier.DocumentDeclaration;
 import com.sun.msv.verifier.regexp.StringToken;
 
 import com.ctc.wstx.exc.WstxIOException;
+import com.ctc.wstx.util.ElementId;
+import com.ctc.wstx.util.ElementIdMap;
 import com.ctc.wstx.util.TextAccumulator;
 
 /**
@@ -72,6 +74,12 @@ public final class GenericMsvValidator
     Acceptor mCurrAcceptor = null;
 
     final TextAccumulator mTextAccumulator = new TextAccumulator();
+
+    /**
+     * Map that contains information about element id (values of attributes
+     * or textual content with type ID) declarations and references
+     */
+    ElementIdMap mIdDefs;
 
     /*
     ////////////////////////////////////

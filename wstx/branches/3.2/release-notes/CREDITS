@@ -297,3 +297,8 @@ Lukasz Wielek:
   * Reported [WSTX-132], NPE when event writer was passing null namespace
     URI
    [3.2.3]
+
+Yoon-Je Choi:
+  * Reported [WSTX-134]: DOMWrapperingReader.isWhiteSpace was using
+    incorrect check
+   [3.2.3]

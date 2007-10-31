@@ -14,8 +14,8 @@ import org.w3c.dom.Document;
 import org.codehaus.stax2.*;
 
 /**
- * Unit test suite that checks that DOM-compatibility features (DOMSource,
- * DOMTarget) are implemented as expected.
+ * Unit test suite that checks that input-side DOM-compatibility
+ * features (DOMSource as input) are implemented as expected.
  */
 public class TestDomCompat
     extends BaseStreamTest
@@ -122,6 +122,47 @@ public class TestDomCompat
         assertTokenType(END_DOCUMENT, sr.next());
 
         assertFalse(sr.hasNext());
+        sr.close();
+    }
+
+    /**
+     * Test added to verify that [WSTX-134] is fixed properly
+     */
+    public void testDomWhitespace()
+        throws Exception
+    {
+        final String XML =
+            "<?xml version='1.0' ?><root>  \n<leaf>\t</leaf>  x </root>"
+            ;
+
+        // First, need to parse using JAXP DOM:
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        dbf.setNamespaceAware(true);
+        DocumentBuilder db = dbf.newDocumentBuilder();
+        Document dom = db.parse(new InputSource(new StringReader(XML)));
+
+        XMLInputFactory2 ifact = getInputFactory();
+        XMLStreamReader sr = ifact.createXMLStreamReader(new DOMSource(dom));
+
+        assertTokenType(START_DOCUMENT, sr.getEventType());
+        assertTokenType(START_ELEMENT, sr.next());
+        assertEquals("root", sr.getLocalName());
+        assertTokenType(CHARACTERS, sr.next());
+        assertTrue(sr.isWhiteSpace());
+        assertEquals("  \n", getAndVerifyText(sr));
+        assertTokenType(START_ELEMENT, sr.next());
+        assertEquals("leaf", sr.getLocalName());
+        assertTokenType(CHARACTERS, sr.next());
+        assertTrue(sr.isWhiteSpace());
+        assertEquals("\t", getAndVerifyText(sr));
+        assertTokenType(END_ELEMENT, sr.next());
+        assertEquals("leaf", sr.getLocalName());
+        assertTokenType(CHARACTERS, sr.next());
+        assertFalse(sr.isWhiteSpace());
+        assertEquals("  x ", getAndVerifyText(sr));
+        assertTokenType(END_ELEMENT, sr.next());
+        assertEquals("root", sr.getLocalName());
+        assertTokenType(END_DOCUMENT, sr.next());
         sr.close();
     }
 }

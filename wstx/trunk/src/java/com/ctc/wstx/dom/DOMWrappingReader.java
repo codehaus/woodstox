@@ -642,9 +642,9 @@ public class DOMWrappingReader
             String text = getText();
             for (int i = 0, len = text.length(); i < len; ++i) {
                 /* !!! If xml 1.1 was to be handled, should check for
-                 *   LSEP and NEL too
+                 *   LSEP and NEL too?
                  */
-                if (text.charAt(i) <= 0x0020) {
+                if (text.charAt(i) > 0x0020) {
                     return false;
                 }
             }

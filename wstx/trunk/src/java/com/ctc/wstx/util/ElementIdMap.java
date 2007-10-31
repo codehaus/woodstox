@@ -144,7 +144,7 @@ public final class ElementIdMap
             if (id.idMatches(buffer, start, len)) { // found existing one
                 return id;
             }
-            id = id.mNextColl;
+            id = id.nextColliding();
         }
 
         // Not found, need to create a placeholder...
@@ -162,14 +162,14 @@ public final class ElementIdMap
         id = new ElementId(idStr, loc, false, elemName, attrName);
 
         // First, let's link it to Map; all ids have to be connected
-        id.mNextColl = mTable[index];
+        id.setNextColliding(mTable[index]);
         mTable[index] = id;
 
         // And then add the undefined entry at the end of list
         if (mHead == null) {
             mHead = mTail = id;
         } else {
-            mTail.mNextUndefd = id;
+            mTail.linkUndefined(id);
             mTail = id;
         }
         return id;
@@ -193,7 +193,7 @@ public final class ElementIdMap
             if (id.idMatches(buffer, start, len)) {
                 break;
             }
-            id = id.mNextColl;
+            id = id.nextColliding();
         }
 
         /* Not found, can just add it to the Map; no need to add to the
@@ -208,14 +208,14 @@ public final class ElementIdMap
             ++mSize;
             String idStr = new String(buffer, start, len);
             id = new ElementId(idStr, loc, true, elemName, attrName);
-            id.mNextColl = mTable[index];
+            id.setNextColliding(mTable[index]);
             mTable[index] = id;
         } else {
             /* If already defined, nothing additional to do (we could
              * signal an error here, though... for now, we'll let caller
              * do that
              */
-            if (id.mDefined) {
+            if (id.isDefined()) {
                 ;
             } else {
                 /* Not defined, just need to upgrade, and possibly remove from
@@ -228,8 +228,8 @@ public final class ElementIdMap
                  */
                 if (id == mHead) {
                     do {
-                        mHead = mHead.mNextUndefd;
-                    } while (mHead != null && mHead.mDefined);
+                        mHead = mHead.nextUndefined();
+                    } while (mHead != null && mHead.isDefined());
                     
                     // Did we clear up all undefined ids?
                     if (mHead == null) {
@@ -306,9 +306,9 @@ public final class ElementIdMap
         for (int i = 0; i < size; ++i) {
             for (ElementId id = oldSyms[i]; id != null; ) {
                 ++count;
-                int index = calcHash(id.mIdValue) & mIndexMask;
-                ElementId nextIn = id.mNextColl;
-                id.mNextColl = mTable[index];
+                int index = calcHash(id.getId()) & mIndexMask;
+                ElementId nextIn = id.nextColliding();
+                id.setNextColliding(mTable[index]);
                 mTable[index] = id;
                 id = nextIn;
             }

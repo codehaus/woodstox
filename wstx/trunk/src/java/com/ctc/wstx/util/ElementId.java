@@ -13,11 +13,9 @@ import com.ctc.wstx.cfg.ErrorConsts;
  * (ie. we had id as a value of ID type attribute); or in undefined mode,
  * in which case information refers to the first reference.
  *<p>
- * Note: {@link ElementIdMap} and this class are considered to be closely
- * bound; as a result, {@link ElementIdMap} uses straight field access
- * for {@link ElementId} Objects. This is almost as if ElementId was
- * an inner class of the Map; it also reduces number of accessors and
- * mutators ("monkey code") needed.
+ * Note: this class is designed to be used with {@link ElementIdMap},
+ * and as a result has some information specifically needed by the
+ * map implementation (such as collision links).
  */
 public final class ElementId
 {
@@ -25,7 +23,7 @@ public final class ElementId
      * Flag that indicates whether this Object presents a defined id
      * value (value of an ID attribute) or just a reference to one.
      */
-    boolean mDefined;
+    private boolean mDefined;
 
     /*
     /////////////////////////////////////////////////
@@ -37,7 +35,7 @@ public final class ElementId
     /**
      * Actual id value
      */
-    final String mIdValue;
+    private final String mIdValue;
 
     /**
      * Location of either definition (if {@link #mDefined} is true; or
@@ -45,18 +43,18 @@ public final class ElementId
      * a referenced id has not been defined, or there are multiple
      * definitions of same id.
      */
-    Location mLocation;
+    private Location mLocation;
 
     /**
      * Name of element for which this id refers.
      */
-    PrefixedName mElemName;
+    private PrefixedName mElemName;
 
     /**
      * Name of the attribute that contains this id value (often "id", 
      * but need not be)
      */
-    PrefixedName mAttrName;
+    private PrefixedName mAttrName;
 
     /*
     ////////////////////////////////////////////////////
@@ -65,9 +63,12 @@ public final class ElementId
     ////////////////////////////////////////////////////
     */
 
-    ElementId mNextUndefd;
+    private ElementId mNextUndefined;
 
-    ElementId mNextColl;
+    /**
+     * Pointer to the next element within collision chain.
+     */
+    private ElementId mNextColl;
 
     /*
     /////////////////////////////////////////////////
@@ -85,28 +86,33 @@ public final class ElementId
         mAttrName = attrName;
     }
 
+    protected void linkUndefined(ElementId undefined)
+    {
+        if (mNextUndefined != null) {
+            throw new IllegalStateException("ElementId '"+this+"' already had net undefined set ('"+mNextUndefined+"')");
+        }
+        mNextUndefined = undefined;
+    }
+
+    protected void setNextColliding(ElementId nextColl)
+    {
+        // May add/remove link, no point in checking
+        mNextColl = nextColl;
+    }
+
     /*
     /////////////////////////////////////////////////
     // Public API
     /////////////////////////////////////////////////
     */
 
-    public String getId() {
-        return mIdValue;
-    }
-
-    public Location getLocation() {
-        return mLocation;
-    }
-
-    public PrefixedName getElemName() {
-        return mElemName;
-    }
-
-    public PrefixedName getAttrName() {
-        return mAttrName;
-    }
+    public String getId() { return mIdValue; }
+    public Location getLocation() { return mLocation; }
+    public PrefixedName getElemName() { return mElemName; }
+    public PrefixedName getAttrName() { return mAttrName; }
     
+    public boolean isDefined() { return mDefined; }
+
     public boolean idMatches(char[] buf, int start, int len)
     {
         if (mIdValue.length() != len) {
@@ -126,6 +132,9 @@ public final class ElementId
         }
         return true;
     }
+
+    public ElementId nextUndefined() { return mNextUndefined; }
+    public ElementId nextColliding() { return mNextColl; }
 
     public void markDefined(Location defLoc) {
         if (mDefined) { // sanity check

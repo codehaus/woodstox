@@ -430,7 +430,7 @@
        </zip>
 
        <!-- And create source jars for IDE support -->
-       <jar jarfile="${DistDir}/wstx-lgpl-${WSTX_VERSION}-sources.jar" filesonly="true" >
+       <jar jarfile="${DistDir}/wstx-asl-${WSTX_VERSION}-sources.jar" filesonly="true" >
           <fileset dir="${basedir}">
               <patternset refid="wstx-dist-src-files" />
           </fileset>
