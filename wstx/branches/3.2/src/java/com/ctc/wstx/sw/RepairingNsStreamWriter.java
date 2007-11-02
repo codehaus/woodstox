@@ -264,33 +264,31 @@ public class RepairingNsStreamWriter
     {
         checkStartElement(localName, "");
 
-        // Need a prefix....
+        // First, need to find prefix matching URI, if any:
         String prefix = findElemPrefix(nsURI, mCurrElem);
-        if (prefix != null) { // prefix ok, easy
+        /* Then need to create the element, since it'll have to
+         * contain the new namespace binding, if one needed
+         * (changed to resolve [WSTX-135] as reported by Y-J Choi,
+         *  who also proposed the solution)
+         */
+        if (mOutputElemPool != null) {
+            SimpleOutputElement newCurr = mOutputElemPool;
+            mOutputElemPool = newCurr.reuseAsChild(mCurrElem, prefix, localName, nsURI);
+            --mPoolSize;
+            mCurrElem = newCurr;
+        } else {
+            mCurrElem = mCurrElem.createChild(prefix, localName, nsURI);
+        }
+        
+        if (prefix != null) { // prefix ok, easy, no need to overwrite
             if (mValidator != null) {
                 mValidator.validateElementStart(localName, nsURI, prefix);
-            }
-            if (mOutputElemPool != null) {
-                SimpleOutputElement newCurr = mOutputElemPool;
-                mOutputElemPool = newCurr.reuseAsChild(mCurrElem, prefix, localName, nsURI);
-                --mPoolSize;
-                mCurrElem = newCurr;
-            } else {
-                mCurrElem = mCurrElem.createChild(prefix, localName, nsURI);
             }
             doWriteStartTag(prefix, localName);
         } else { // no prefix, more work
             prefix = generateElemPrefix(null, nsURI, mCurrElem);
             if (mValidator != null) {
                 mValidator.validateElementStart(localName, nsURI, prefix);
-            }
-            if (mOutputElemPool != null) {
-                SimpleOutputElement newCurr = mOutputElemPool;
-                mOutputElemPool = newCurr.reuseAsChild(mCurrElem, prefix, localName, nsURI);
-                --mPoolSize;
-                mCurrElem = newCurr;
-            } else {
-                mCurrElem = mCurrElem.createChild(prefix, localName, nsURI);
             }
             mCurrElem.setPrefix(prefix);
             doWriteStartTag(prefix, localName);

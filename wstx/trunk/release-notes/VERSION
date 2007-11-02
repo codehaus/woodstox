@@ -14,7 +14,10 @@ Description:
   * [WSTX-132]: NPE in BaseNsStreamWriter if event writer managed to
     pass in null namespace URI.
   * [WSTX-134]: Bug in DOMWrappingReader.isWhiteSpace implementation
-   (reported by Yoon-Je C)
+    (reported by Yoon-Je C)
+  * [WSTX-135]: Incorrect namespace binding for parent element, for
+    repairing namespace writer.
+    (reported by Yoon-Je C)
 
   New features:
 

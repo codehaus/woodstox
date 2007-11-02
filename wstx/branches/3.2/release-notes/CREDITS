@@ -300,5 +300,8 @@ Lukasz Wielek:
 
 Yoon-Je Choi:
   * Reported [WSTX-134]: DOMWrapperingReader.isWhiteSpace was using
-    incorrect check
+    incorrect check, suggested fix.
+   [3.2.3]
+  * Reported [WSTX-135]: Repairing stream writer was associating namespace
+    bindings with parent element, pointed out solution.
    [3.2.3]
