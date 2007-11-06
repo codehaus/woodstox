@@ -109,7 +109,8 @@ public class TestRelaxNG
             +"  <word>foobar</word>\n"
             +"  <description>Foo Bar</description>\n"
             +"</term>";
-        verifyRngFailure(XML, schema, "wrong root element");
+        verifyRngFailure(XML, schema, "wrong root element",
+                         "is not allowed. Possible tag names are");
 
         // Then, wrong child ordering:
         XML = "<dict>\n"
@@ -117,18 +118,22 @@ public class TestRelaxNG
             +"  <description>Foo Bar</description>\n"
             +"  <word>foobar</word>\n"
             +"</term></dict>";
-        verifyRngFailure(XML, schema, "illegal child element ordering");
+        verifyRngFailure(XML, schema, "illegal child element ordering",
+                         "tag name \"description\" is not allowed. Possible tag names are");
 
         // Then, missing children:
         XML = "<dict>\n"
             +"<term type='x'>\n"
             +"</term></dict>";
-        verifyRngFailure(XML, schema, "missing children");
+        verifyRngFailure(XML, schema, "missing children",
+                         "uncompleted content model. expecting: <word>");
+
         XML = "<dict>\n"
             +"<term type='x'>\n"
             +"<word>word</word>"
             +"</term></dict>";
-        verifyRngFailure(XML, schema, "incomplete children");
+        verifyRngFailure(XML, schema, "incomplete children",
+                         "uncompleted content model. expecting: <description>");
 
         // Then illegal text in non-mixed element
         XML = "<dict>\n"
@@ -136,7 +141,8 @@ public class TestRelaxNG
             +"  <word>foobar</word>\n"
             +"  <description>Foo Bar</description>\n"
             +"</term></dict>";
-        verifyRngFailure(XML, schema, "invalid non-whitespace text");
+        verifyRngFailure(XML, schema, "invalid non-whitespace text",
+                         "Element <term> has non-mixed content specification; can not contain non-white space text");
 
         // missing attribute
         XML = "<dict>\n"
@@ -150,13 +156,15 @@ public class TestRelaxNG
             +"  <word>foobar</word>\n"
             +"  <description>Foo Bar</description>\n"
             +"</term></dict>";
-        verifyRngFailure(XML, schema, "undeclared attribute");
+        verifyRngFailure(XML, schema, "undeclared attribute",
+                         "unexpected attribute \"attr\"");
         XML = "<dict>\n"
             +"<term type='x'>"
             +"  <word type='noun'>foobar</word>\n"
             +"  <description>Foo Bar</description>\n"
             +"</term></dict>";
-        verifyRngFailure(XML, schema, "undeclared attribute");
+        verifyRngFailure(XML, schema, "undeclared attribute",
+                         "unexpected attribute \"type\"");
     }
 
     public void testSimpleNs()
@@ -199,19 +207,22 @@ public class TestRelaxNG
         String XML = "<root xmlns='http://test'>\n"
             +"<leaf />\n"
             +"</root>";
-        verifyRngFailure(XML, schema, "wrong root element");
+        verifyRngFailure(XML, schema, "wrong root element",
+                         "namespace URI of tag \"root\" is wrong");
 
         // Wrong child namespace
         XML = "<root>\n"
             +"<leaf xmlns='http://other' />\n"
             +"</root>";
-        verifyRngFailure(XML, schema, "wrong child element namespace");
+        verifyRngFailure(XML, schema, "wrong child element namespace",
+                         "namespace URI of tag \"leaf\" is wrong.");
 
         // Wrong attribute namespace
         XML = "<root>\n"
-            +"<ns:leaf xmlns:ns='http://test' ns:attr='123' />\n"
+            +"<ns:leaf xmlns:ns='http://test' ns:attr1='123' />\n"
             +"</root>";
-        verifyRngFailure(XML, schema, "wrong attribute namespace");
+        verifyRngFailure(XML, schema, "wrong attribute namespace",
+                         "unexpected attribute \"attr1\"");
     }
 
     /**
@@ -311,7 +322,7 @@ public class TestRelaxNG
         return constructStreamReader(f, contents);
     }
 
-    void verifyRngFailure(String xml, XMLValidationSchema schema, String failMsg)
+    void verifyRngFailure(String xml, XMLValidationSchema schema, String failMsg, String failPhrase)
         throws XMLStreamException
     {
         XMLStreamReader2 sr = getReader(xml);
@@ -322,11 +333,14 @@ public class TestRelaxNG
             }
             fail("Expected validity exception for "+failMsg);
         } catch (XMLValidationException vex) {
-            // Uncomment for trouble shooting
-            //System.err.println("DEBUG: expected '"+failMsg+"', got '"+vex.getMessage()+"'");
+            String origMsg = vex.getMessage();
+            String msg = (origMsg == null) ? "" : origMsg.toLowerCase();
+            if (msg.indexOf(failPhrase.toLowerCase()) < 0) {
+                fail("Expected validation exception for "+failMsg+", containing phrase '"+failPhrase+"': got '"+origMsg+"'");
+            }
             // should get this specific type; not basic stream exception
         } catch (XMLStreamException sex) {
-            fail("Expected XMLValidationException for "+failMsg+", got: "+sex);
+            fail("Expected XMLValidationException for "+failMsg);
         }
     }
 }

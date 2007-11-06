@@ -2,6 +2,10 @@
 
 === Stream reader ===
 
+* Defaulting reporting of "no prefix" and "no namespace [URI]"
+  have been changed from null value to empty Strig (""), to be
+  in accordance with the latest consensus regarding Stax API.
+
 === Stream writer ===
 
 * Default setting of WstxOutputProperties.P_OUTPUT_FIX_CONTENT was
