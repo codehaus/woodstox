@@ -329,8 +329,6 @@ public class DTDValidator
 
         // Then let's get info from parent, if any
         if (ix < 1) { // root element closing..
-            checkIdRefs();
-
             // doesn't really matter; epilog/prolog differently handled:
             return XMLValidator.CONTENT_ALLOW_WS;
         }
@@ -343,7 +341,10 @@ public class DTDValidator
     public void validationCompleted(boolean eod)
         throws XMLValidationException
     {
-        // 18-Dec-2005, TSa: Is there something we should do here...?
+        /* Need to now ensure that all IDREF/IDREFS references
+         * point to defined ID attributes
+         */
+        checkIdRefs();
     }
 
     /*

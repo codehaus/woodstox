@@ -89,7 +89,7 @@ public final class NonNsInputElementStack
 
     public final void push(String prefix, String localName)
     {
-        throw new Error(INT_ERR_UNEXPECTED_CALL);
+        throw new IllegalStateException(INT_ERR_UNEXPECTED_CALL);
     }
 
     public final void push(String fullName)
@@ -105,34 +105,19 @@ public final class NonNsInputElementStack
     }
 
     /**
-     * @return Validation state that should be effective for the parent
-     *   element state
+     * @return True if stack still has elements; false if not (root closed)
      */
-    public int pop()
+    public boolean pop()
         throws XMLStreamException
     {
         if (mSize == 0) {
             throw new IllegalStateException("Popping from empty stack.");
         }
-
-        if (mValidator == null) {
-            /* Let's allow GCing (not likely to matter, as Strings are very
-             * likely interned... but it's a good habit
-             */
-            mElements[--mSize] = null;
-            return XMLValidator.CONTENT_ALLOW_ANY_TEXT;
-        }
-
-        /* Note: can and should not shrink the stack before calling
-         * validator (since it can do a callback to access the info --
-         * not just the current element, but possibly other related data
-         * like stack depth)
+        /* Let's allow GCing (not likely to matter, as Strings are very
+         * likely interned... but it's a good habit
          */
-        int size = mSize-1;
-        int result = mValidator.validateElementEnd(mElements[size], null, null);
-        mSize = size;
-        mElements[size] = null;
-        return result;
+        mElements[--mSize] = null;
+        return (mSize > 0);
     }
 
     /**
@@ -193,17 +178,25 @@ public final class NonNsInputElementStack
         return mValidator.validateElementAndAttributes();
     }
 
-    /*
-    ///////////////////////////////////////////////////
-    // Public methods
-    ///////////////////////////////////////////////////
-     */
-
-    public final boolean isNamespaceAware() {
-        return false;
+    public int validateEndElement()
+        throws XMLStreamException
+    {
+        if (mValidator == null) { // should never be null if we get here
+            return XMLValidator.CONTENT_ALLOW_ANY_TEXT;
+        }
+        int index = mSize-1;
+        int result = mValidator.validateElementEnd(mElements[index], null, null);
+        if (index == 0) { // root closing
+            mValidator.validationCompleted(true);
+        }
+        return result;
     }
 
-    public final int getDepth() { return mSize; }
+    /*
+    ///////////////////////////////////////////////////
+    // Access to helper objects
+    ///////////////////////////////////////////////////
+     */
 
     public final AttributeCollector getAttrCollector() {
         return mAttrCollector;
@@ -321,7 +314,13 @@ public final class NonNsInputElementStack
     ///////////////////////////////////////////////////
      */
 
+    public final boolean isNamespaceAware() {
+        return false;
+    }
+
     // // // Generic stack information:
+
+    public final int getDepth() { return mSize; }
 
     public final boolean isEmpty() {
         return mSize == 0;

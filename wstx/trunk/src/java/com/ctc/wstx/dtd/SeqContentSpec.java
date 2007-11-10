@@ -209,7 +209,7 @@ public class SeqContentSpec
                 return "Expected sequence ("+concatNames(mNames)+"); got end element";
             }
             // should never happen:
-            throw new Error("Internal error");
+            throw new IllegalStateException("Internal error");
         }
 
         private String expElem(int step)

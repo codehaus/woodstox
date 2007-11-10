@@ -133,6 +133,11 @@ public final class ElementId
         return true;
     }
 
+    public boolean idMatches(String idStr)
+    {
+        return mIdValue.equals(idStr);
+    }
+
     public ElementId nextUndefined() { return mNextUndefined; }
     public ElementId nextColliding() { return mNextColl; }
 

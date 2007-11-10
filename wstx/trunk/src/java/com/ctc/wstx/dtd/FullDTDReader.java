@@ -3345,7 +3345,7 @@ public class FullDTDReader
             return ed;
         }
 
-        throw new Error(ErrorConsts.ERR_INTERNAL);
+        throw new IllegalStateException(ErrorConsts.ERR_INTERNAL);
     }
 
     // @Override

@@ -1372,8 +1372,7 @@ public class BasicStreamReader
      */
     public boolean isEmptyElement() throws XMLStreamException
     {
-        return (mCurrToken == START_ELEMENT) ?
-            mStEmptyElem : false;
+        return (mCurrToken == START_ELEMENT) ? mStEmptyElem : false;
     }
 
     public NamespaceContext getNonTransientNamespaceContext()
@@ -2560,11 +2559,7 @@ public class BasicStreamReader
                 }
             } else if (mCurrToken == END_ELEMENT) {
                 // Close tag removes current element from stack
-                int vld = mElementStack.pop();
-                mVldContent = vld;
-                mValidateText = (vld == XMLValidator.CONTENT_ALLOW_VALIDATABLE_TEXT);
-                // ... which may be the root element?
-                if (mElementStack.isEmpty()) {
+                if (!mElementStack.pop()) { // false if root closed
                     // if so, we'll get to epilog, unless in fragment mode
                     if (!mConfig.inputParsingModeFragment()) {
                         mParseState = STATE_EPILOG;
@@ -2867,7 +2862,14 @@ public class BasicStreamReader
             ++mCurrDepth; // needed to match nesting with entity expansion
         }
         mStEmptyElem = empty;
+
+        /* Validation aspects differ depending on whether we have an
+         * empty tag or not
+         */
         int vld = mElementStack.resolveAndValidateElement();
+        if (empty) {
+            vld = mElementStack.validateEndElement();
+        }
         mVldContent = vld;
         mValidateText = (vld == XMLValidator.CONTENT_ALLOW_VALIDATABLE_TEXT);
     }
@@ -3046,7 +3048,8 @@ public class BasicStreamReader
         throws IOException, XMLStreamException
     {
         mTokenState = TOKEN_FULL_COALESCED; // will be read completely
-        if (mElementStack.isEmpty()) { // no start element?
+
+        if (mElementStack.isEmpty()) {
             // Let's just offline this for clarity
             reportExtraEndElem();
             return;
@@ -3093,15 +3096,6 @@ public class BasicStreamReader
             }
             c = (mInputPtr < mInputLen) ? mInputBuffer[mInputPtr++]
                 : getNextCharFromCurrent(SUFFIX_IN_CLOSE_ELEMENT);
-        } else {
-            /* May have an extra colon? (does XML specs allow that?); if so,
-             * need to skip it:
-             */
-            // ... probably only allowed if start tag had it too?
-            if (c == ':') {
-                c = (mInputPtr < mInputLen) ? mInputBuffer[mInputPtr++]
-                    : getNextCharFromCurrent(SUFFIX_IN_CLOSE_ELEMENT);
-            }
         }
 
         // Ok, then, does the local name match?
@@ -3136,6 +3130,11 @@ public class BasicStreamReader
         if (c != '>') {
             throwUnexpectedChar(c, SUFFIX_IN_CLOSE_ELEMENT+" Expected '>'.");
         }
+
+        // Finally, let's let validator detect if things are ok
+        int vld = mElementStack.validateEndElement();
+        mVldContent = vld;
+        mValidateText = (vld == XMLValidator.CONTENT_ALLOW_VALIDATABLE_TEXT);
     }
 
     private void reportExtraEndElem()

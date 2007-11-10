@@ -100,7 +100,7 @@ public class TestW3CSchema
 +"    </name>"
 +"    <url href='urn:something' />"
 +"  </person>"
-+"  <person id='a123'>"
++"  <person id='b12'>"
 +"    <name><family>Blow</family><given>Joe</given>"
 +"    </name>"
 +"    <url />"
@@ -136,7 +136,7 @@ public class TestW3CSchema
         XMLValidationSchema schema = parseSchema(SIMPLE_NON_NS_SCHEMA);
         String XML = "<personnel><person>"
             +"<name><family>F</family><given>G</given>"
-            +"</name></personnel>";
+            +"</name></person></personnel>";
         verifyFailure(XML, schema, "missing id attribute",
                       "is missing \"id\" attribute");
     }
@@ -147,9 +147,9 @@ public class TestW3CSchema
         XMLValidationSchema schema = parseSchema(SIMPLE_NON_NS_SCHEMA);
         String XML = "<personnel><person id='a1'>"
             +"<name><family>F</family><given>G</given>"
-            +"</name></personnel>";
-        verifyFailure(XML, schema, "undefined id ('a1')",
-                      "is missing \"id\" attribute");
+            +"</name><link manager='m3' /></person></personnel>";
+        verifyFailure(XML, schema, "undefined referenced id ('m3')",
+                      "Undefined ID 'm3'");
     }
 
     /*
@@ -192,7 +192,7 @@ public class TestW3CSchema
             }
             // should get this specific type; not basic stream exception
         } catch (XMLStreamException sex) {
-            fail("Expected XMLValidationException for "+failMsg);
+            fail("Expected XMLValidationException for "+failMsg+"; instead got "+sex.getMessage());
         }
     }
 }

@@ -72,6 +72,6 @@ public class UnparsedExtEntity
                                   int xmlVersion)
     {
         // Should never get called, actually...
-        throw new Error("Internal error: createInputSource() called for unparsed (external) entity.");
+        throw new IllegalStateException("Internal error: createInputSource() called for unparsed (external) entity.");
     }
 }

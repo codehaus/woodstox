@@ -27,6 +27,12 @@ import javax.xml.stream.Location;
  * stored for the purpose of verifying
  * that all referenced id values are defined, and that none are defined
  * more than once.
+ *<p>
+ * Note: there are 2 somewhat distinct usage modes, by DTDValidator and
+ * by MSV-based validators. 
+ * DTDs pass raw character arrays, whereas
+ * MSV-based validators operate on Strings. This is the main reason
+ * for 2 distinct sets of methods.
  */
 
 public final class ElementIdMap
@@ -175,6 +181,47 @@ public final class ElementIdMap
         return id;
     }
 
+    public ElementId addReferenced(String idStr,
+                                   Location loc, PrefixedName elemName, PrefixedName attrName)
+    {
+        int hash = calcHash(idStr);
+        int index = (hash & mIndexMask);
+        ElementId id = mTable[index];
+
+        while (id != null) {
+            if (id.idMatches(idStr)) { // found existing one
+                return id;
+            }
+            id = id.nextColliding();
+        }
+
+        // Not found, need to create a placeholder...
+
+        // But first, do we need more room?
+        if (mSize >= mSizeThreshold) {
+            rehash();
+            // Index changes, for the new entr:
+            index = (hash & mIndexMask);
+        }
+        ++mSize;
+
+        // Ok, then, let's create the entry
+        id = new ElementId(idStr, loc, false, elemName, attrName);
+
+        // First, let's link it to Map; all ids have to be connected
+        id.setNextColliding(mTable[index]);
+        mTable[index] = id;
+
+        // And then add the undefined entry at the end of list
+        if (mHead == null) {
+            mHead = mTail = id;
+        } else {
+            mTail.linkUndefined(id);
+            mTail = id;
+        }
+        return id;
+    }
+
     /**
      * Method called when an id definition is encountered. If so, need
      * to check if specified id entry (ref or definiton) exists. If not,
@@ -242,6 +289,62 @@ public final class ElementIdMap
         return id;
     }
 
+    public ElementId addDefined(String idStr,
+                                Location loc, PrefixedName elemName, PrefixedName attrName)
+    {
+        int hash = calcHash(idStr);
+        int index = (hash & mIndexMask);
+        ElementId id = mTable[index];
+
+        while (id != null) {
+            if (id.idMatches(idStr)) {
+                break;
+            }
+            id = id.nextColliding();
+        }
+
+        /* Not found, can just add it to the Map; no need to add to the
+         * linked list as it's not undefined
+         */
+        if (id == null) {
+            if (mSize >= mSizeThreshold) { // need more room
+                rehash();
+                index = (hash & mIndexMask);
+            }
+            ++mSize;
+            id = new ElementId(idStr, loc, true, elemName, attrName);
+            id.setNextColliding(mTable[index]);
+            mTable[index] = id;
+        } else {
+            /* If already defined, nothing additional to do (we could
+             * signal an error here, though... for now, we'll let caller
+             * do that
+             */
+            if (id.isDefined()) {
+                ;
+            } else {
+                /* Not defined, just need to upgrade, and possibly remove from
+                 * the linked list.
+                 */
+                id.markDefined(loc);
+                
+                /* Ok; if it was the first undefined, need to unlink it, as
+                 * well as potentially next items.
+                 */
+                if (id == mHead) {
+                    do {
+                        mHead = mHead.nextUndefined();
+                    } while (mHead != null && mHead.isDefined());
+                    if (mHead == null) { // cleared up all undefined ids?
+                        mTail = null;
+                    }
+                }
+            }
+        }
+
+        return id;
+    }
+
     /**
      * Implementation of a hashing method for variable length
      * Strings. Most of the time intention is that this calculation
@@ -263,7 +366,8 @@ public final class ElementIdMap
         return hash;
     }
 
-    public static int calcHash(String key) {
+    public static int calcHash(String key)
+    {
         int hash = (int) key.charAt(0);
         for (int i = 1, len = key.length(); i < len; ++i) {
             hash = (hash * 31) + (int) key.charAt(i);

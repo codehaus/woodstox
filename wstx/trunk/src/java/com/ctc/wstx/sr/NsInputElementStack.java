@@ -207,44 +207,21 @@ public final class NsInputElementStack
     }
 
     public final void push(String fullName) {
-        throw new Error("Internal error: push(fullName) shouldn't be called for namespace aware element stack.");
+        throw new IllegalStateException("Internal error: push(fullName) shouldn't be called for namespace aware element stack.");
     }
 
     /**
-     * Method called by the stream reader when encountering an end tag.
-     *
-     * @return Validation state that should be effective for the parent
-     *   element state
+     * @return True if stack still has elements; false if not (root closed)
      */
-    public int pop()
+    public boolean pop()
         throws XMLStreamException
     {
-        int index = mSize;
-        if (index == 0) {
+        if (mSize == 0) {
             throw new IllegalStateException("Popping from empty stack.");
         }
-
-        int result;
-
-        /* Can and should not shrink (or clear) the stack before calling
-         * the validator, so let's just update the local count
-         */
-        index -= 4;
-
-        if (mValidator == null) {
-            /* Let's allow GCing (not likely to matter, as Strings are very
-             * likely interned... but it's a good habit
-             */
-            result = XMLValidator.CONTENT_ALLOW_ANY_TEXT;
-        } else {
-            result = mValidator.validateElementEnd(mElements[index+IX_LOCALNAME],
-                                                   mElements[index+IX_URI],
-                                                   mElements[index+IX_PREFIX]);
-
-        }
-
+        mSize -= 4;
+        int index = mSize;
         // Now we can shrink the stack:
-        mSize = index;
         mElements[index] = null;
         mElements[index+1] = null;
         mElements[index+2] = null;
@@ -256,7 +233,7 @@ public final class NsInputElementStack
             mLastNsContext = null; // let's invalidate ns ctxt too, if we had one
             mNamespaces.removeLast(nsCount);
         }
-        return result;
+        return (index > 0);
     }
 
     /**
@@ -430,17 +407,26 @@ public final class NsInputElementStack
         return mValidator.validateElementAndAttributes();
     }
 
-    /*
-    ///////////////////////////////////////////////////
-    // Public methods
-    ///////////////////////////////////////////////////
-     */
-
-    public final boolean isNamespaceAware() {
-        return true;
+    public int validateEndElement()
+        throws XMLStreamException
+    {
+        if (mValidator == null) { // should never be null if we get here
+            return XMLValidator.CONTENT_ALLOW_ANY_TEXT;
+        }
+        int index = mSize-4;
+        int result =  mValidator.validateElementEnd
+            (mElements[index+IX_LOCALNAME], mElements[index+IX_URI], mElements[index+IX_PREFIX]);
+        if (index == 0) { // root closing
+            mValidator.validationCompleted(true);
+        }
+        return result;
     }
 
-    public final int getDepth() { return (mSize >> 2); }
+    /*
+    ///////////////////////////////////////////////////
+    // Access to helper objects
+    ///////////////////////////////////////////////////
+     */
 
     public final AttributeCollector getAttrCollector() {
         return mAttrCollector;
@@ -718,11 +704,18 @@ public final class NsInputElementStack
     ///////////////////////////////////////////////////
      */
 
+    public final boolean isNamespaceAware() {
+        return true;
+    }
+
     // // // Generic stack information:
 
     public final boolean isEmpty() {
         return mSize == 0;
     }
+
+    public final int getDepth() { return (mSize >> 2); }
+
 
     // // // Information about element at top of stack:
 

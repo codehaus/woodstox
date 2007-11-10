@@ -129,6 +129,6 @@ public final class DTDIdAttr
         throws XMLValidationException
     {
         // Should never get called
-        throw new Error(ErrorConsts.ERR_INTERNAL);
+        throw new IllegalStateException(ErrorConsts.ERR_INTERNAL);
     }
 }

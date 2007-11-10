@@ -19,6 +19,8 @@ import java.io.*;
 import java.net.URL;
 import java.util.*;
 
+import javax.xml.stream.Location;
+
 import org.codehaus.stax2.*;
 import org.codehaus.stax2.validation.*;
 
@@ -35,6 +37,7 @@ import com.sun.msv.verifier.regexp.StringToken;
 import com.ctc.wstx.exc.WstxIOException;
 import com.ctc.wstx.util.ElementId;
 import com.ctc.wstx.util.ElementIdMap;
+import com.ctc.wstx.util.PrefixedName;
 import com.ctc.wstx.util.TextAccumulator;
 
 /**
@@ -87,12 +90,18 @@ public final class GenericMsvValidator
     ////////////////////////////////////
     */
 
+    String mCurrAttrPrefix;
+
+    String mCurrAttrLocalName;
+
     /**
-     * Index of the attribute that is currently being validated.
-     * Needed for figuring out which attribute has ID/IDREF/IDREFS
-     * valus being processed
+     * Sometimes a problem object has to be temporarily
+     * stored, and only reported later on. This happens
+     * when exceptions can not be thrown via code outside
+     * of Woodstox (like validation methods in MSV that do
+     * callbacks).
      */
-    int mAttrIndex = -1;
+    XMLValidationProblem mProblem;
 
     /*
     ////////////////////////////////////
@@ -168,33 +177,41 @@ public final class GenericMsvValidator
     ///////////////////////////////////////////////////////////
      */
 
+    /**
+     *<p>
+     * Note: we have to throw a dummy marker exception, which merely
+     * signals that a validation problem is to be reported.
+     * This is obviously messy, but has to do for now.
+     */
 	public void onID(Datatype datatype, StringToken idToken)
+        throws IllegalArgumentException
     {
-//System.err.println("WARNING: dt -> "+datatype+", literal -> "+literal.literal);
+        if (mIdDefs == null) {
+            mIdDefs = new ElementIdMap();
+        }
+
         int idType = datatype.getIdType();
+        Location loc = mContext.getValidationLocation();
+        PrefixedName elemPName = getElementPName();
+        PrefixedName attrPName = getAttrPName();
+
         if (idType == Datatype.ID_TYPE_ID) {
-            String id = idToken.literal.trim();
-            /*
-            StringToken existing = (StringToken)ids.get(literal);
-            if( existing==null ) {
-                // the first time this ID is used
-                ids.put(literal,token);
-            } else
-            if( existing!=token ) {
-                // duplicate id value
-                onDuplicateId(literal);
+            String idStr = idToken.literal.trim();
+            ElementId eid = mIdDefs.addDefined(idStr, loc, elemPName, attrPName);
+            // We can detect dups by checking if Location is the one we passed:
+            if (eid.getLocation() != loc) {
+                mProblem = new XMLValidationProblem(loc, "Duplicate id '"+idStr+"', first declared at "+eid.getLocation());
             }
-            */
         } else if (idType == Datatype.ID_TYPE_IDREF) {
-            //idrefs.add(token.literal.trim());
+            String idStr = idToken.literal.trim();
+            mIdDefs.addReferenced(idStr, loc, elemPName, attrPName);
         } else if (idType == Datatype.ID_TYPE_IDREFS) {
-            /*
-            StringTokenizer tokens = new StringTokenizer(token.literal);
-            while (tokens.hasMoreTokens())
-                idrefs.add(tokens.nextToken());
-            */
-        } else {
-            throw new Error("Internal error: unexpected ID datatype: "+datatype);
+            StringTokenizer tokens = new StringTokenizer(idToken.literal);
+            while (tokens.hasMoreTokens()) {
+                mIdDefs.addReferenced(tokens.nextToken(), loc, elemPName, attrPName);
+            }
+        } else { // sanity check
+            throw new IllegalStateException("Internal error: unexpected ID datatype: "+datatype);
         }
     }
 
@@ -245,6 +262,11 @@ public final class GenericMsvValidator
         if (mErrorRef.str != null) {
             reportError(mErrorRef);
         }
+        if (mProblem != null) { // pending problems (to throw exception on)?
+            XMLValidationProblem p = mProblem;
+            mProblem = null;
+            mContext.reportProblem(p);
+        }
         mAcceptors.add(mCurrAcceptor);
     }
 
@@ -252,7 +274,10 @@ public final class GenericMsvValidator
                                     String prefix, String value)
         throws XMLValidationException
     {
+        mCurrAttrLocalName = localName;
+        mCurrAttrPrefix = prefix;
         if (mCurrAcceptor != null) {
+
             String qname = localName; // for now, let's assume we don't need prefixed version
             DatatypeRef typeRef = null; // for now, let's not care
 
@@ -266,6 +291,11 @@ public final class GenericMsvValidator
             if (!mCurrAcceptor.onAttribute2(uri, localName, qname, value, this, mErrorRef, typeRef)
                 || mErrorRef.str != null) {
                 reportError(mErrorRef);
+            }
+            if (mProblem != null) { // pending problems (to throw exception on)?
+                XMLValidationProblem p = mProblem;
+                mProblem = null;
+                mContext.reportProblem(p);
             }
         }
         /* No normalization done by RelaxNG, is there? (at least nothing
@@ -291,6 +321,8 @@ public final class GenericMsvValidator
     public int validateElementAndAttributes()
         throws XMLValidationException
     {
+        // Not handling any attributes
+        mCurrAttrLocalName = mCurrAttrPrefix = "";
         if (mCurrAcceptor != null) {
             /* start tag info is still intact here (only attributes sent
              * since child acceptor was created)
@@ -391,7 +423,22 @@ public final class GenericMsvValidator
     public void validationCompleted(boolean eod)
         throws XMLValidationException
     {
-        // Is there something we should do here...?
+        /* Ok, so, we should verify that there are no undefined
+         * IDREF/IDREFS references. But only if we hit EOF, not
+         * if validation was cancelled.
+         */
+        if (eod) {
+            if (mIdDefs != null) {
+                ElementId ref = mIdDefs.getFirstUndefined();
+                if (ref != null) { // problem!
+                    String msg = "Undefined ID '"+ref.getId()
+                        +"': referenced from element <"
+                        +ref.getElemName()+">, attribute '"
+                        +ref.getAttrName()+"'";
+                    reportError(msg, ref.getLocation());
+                }
+            }
+        }
     }
 
     /*
@@ -426,7 +473,17 @@ public final class GenericMsvValidator
     ///////////////////////////////////////
     */
 
-    private void doValidateText(TextAccumulator textAcc)
+    PrefixedName getElementPName()
+    {
+        return PrefixedName.valueOf(mContext.getCurrentElementName());
+    }
+    
+    PrefixedName getAttrPName()
+    {
+        return new PrefixedName(mCurrAttrPrefix, mCurrAttrLocalName);
+    }
+
+    void doValidateText(TextAccumulator textAcc)
         throws XMLValidationException
     {
         if (mCurrAcceptor != null) {
@@ -447,7 +504,19 @@ public final class GenericMsvValidator
         if (msg == null) {
             msg = "Unknown reason";
         }
+        reportError(msg);
+    }
+
+    private void reportError(String msg)
+        throws XMLValidationException
+    {
+        reportError(msg, mContext.getValidationLocation());
+    }
+
+    private void reportError(String msg, Location loc)
+        throws XMLValidationException
+    {
         mContext.reportProblem(new XMLValidationProblem
-                               (mContext.getValidationLocation(), msg, XMLValidationProblem.SEVERITY_ERROR));
+                               (loc, msg, XMLValidationProblem.SEVERITY_ERROR));
     }
 }

@@ -257,7 +257,7 @@ public class DefaultEventAllocator
             throw new WstxException("Internal error: should not get "
                                     +ErrorConsts.tokenTypeDesc(r.getEventType()));
         default:
-            throw new Error("Unrecognized event type "+r.getEventType()+".");
+            throw new IllegalStateException("Unrecognized event type "+r.getEventType()+".");
         }
     }
     

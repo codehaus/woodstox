@@ -16,6 +16,7 @@
 package com.ctc.wstx.util;
 
 import javax.xml.XMLConstants;
+import javax.xml.namespace.QName;
 
 /**
  * Simple key Object to be used for storing/accessing of potentially namespace
@@ -61,6 +62,11 @@ public final class PrefixedName
             null : prefix;
         mHash = 0;
         return this;
+    }
+
+    public static PrefixedName valueOf(QName n)
+    {
+        return new PrefixedName(n.getPrefix(), n.getLocalPart());
     }
 
     /*

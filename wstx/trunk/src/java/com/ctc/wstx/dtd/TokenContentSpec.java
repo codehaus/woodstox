@@ -2,6 +2,7 @@ package com.ctc.wstx.dtd;
 
 import java.util.*;
 
+import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.util.PrefixedName;
 
 /**
@@ -133,7 +134,7 @@ public class TokenContentSpec
                     +" element <"+mElemName+">";
             }
             // should never happen:
-            throw new Error("Internal error");
+            throw new IllegalStateException(ErrorConsts.ERR_INTERNAL);
         }
     }
 }

@@ -57,6 +57,12 @@ public abstract class InputElementStack
 {
     final static int ID_ATTR_NONE = -1;
 
+    /*
+    //////////////////////////////////////////////////
+    // Configuration
+    //////////////////////////////////////////////////
+    */
+
     protected final ReaderConfig mConfig;
 
     protected InputProblemReporter mReporter = null;
@@ -226,10 +232,10 @@ public abstract class InputElementStack
      * element from the stack;
      * called when an end element is encountered during parsing.
      *
-     * @return Validation state that should be effective for the parent
-     *   element state
+     * @return True if stack has more elements; false if not (that is,
+     *    root element closed)
      */
-    public abstract int pop()
+    public abstract boolean pop()
         throws XMLStreamException;
 
     /**
@@ -241,6 +247,17 @@ public abstract class InputElementStack
      *   for the fully resolved element context
      */
     public abstract int resolveAndValidateElement()
+        throws XMLStreamException;
+
+    /**
+     * Method called after parsing (but before returning) end element,
+     * to allow for pluggable validators to verify correctness of
+     * the content model for the closing element.
+     *
+     * @return Validation state that should be effective for the parent
+     *   element state
+     */
+    public abstract int validateEndElement()
         throws XMLStreamException;
 
     /*

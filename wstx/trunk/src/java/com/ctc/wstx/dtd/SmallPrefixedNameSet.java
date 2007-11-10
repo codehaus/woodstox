@@ -36,7 +36,7 @@ public final class SmallPrefixedNameSet
         mNsAware = nsAware;
         int len = names.length;
         if (len == 0) { // sanity check
-            throw new Error("Trying to construct empty PrefixedNameSet");
+            throw new IllegalStateException("Trying to construct empty PrefixedNameSet");
         }
         mStrings = new String[nsAware ? (len+len) : len];
         for (int out = 0, in = 0; in < len; ++in) {

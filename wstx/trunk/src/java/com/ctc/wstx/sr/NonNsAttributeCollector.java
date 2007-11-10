@@ -448,7 +448,7 @@ public final class NonNsAttributeCollector
      */
 
     private void throwInternal() {
-        throw new Error("Internal error: shouldn't call this method.");
+        throw new IllegalStateException("Internal error: shouldn't call this method.");
     }
 
     /**
