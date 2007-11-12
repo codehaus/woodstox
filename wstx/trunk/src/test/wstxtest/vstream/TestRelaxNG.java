@@ -301,6 +301,104 @@ public class TestRelaxNG
         sr.close();
     }
 
+    public void testSimpleEnumAttr()
+        throws XMLStreamException
+    {
+        final String schemaDef =
+            "<element xmlns='http://relaxng.org/ns/structure/1.0' name='root'>\n"
+            +" <attribute name='enumAttr'>\n"
+            +"  <choice>\n"
+            +"   <value>value1</value>\n"
+            +"   <value>another</value>\n"
+            +"   <value>42</value>\n"
+            +"  </choice>\n"
+            +" </attribute>\n"
+            +"</element>"
+        ;
+        XMLValidationSchema schema = parseRngSchema(schemaDef);
+
+        // First, simple valid document
+        String XML = "<root enumAttr='another' />";
+        XMLStreamReader2 sr = getReader(XML);
+        sr.validateAgainst(schema);
+        while (sr.next() != END_DOCUMENT) { }
+        sr.close();
+
+        // And then invalid one, with unrecognized value
+        XML = "<root enumAttr='421' />";
+        verifyRngFailure(XML, schema, "enum attribute with unknown value",
+                         "attribute \"enumAttr\" has a bad value");
+    }
+
+    /**
+     * Test case for testing handling ID/IDREF/IDREF attributes, using
+     * schema datatype library.
+     */
+    public void testSimpleIdAttrs()
+        throws XMLStreamException
+    {
+        final String schemaDef =
+            "<element xmlns='http://relaxng.org/ns/structure/1.0'"
+            +"  datatypeLibrary='http://www.w3.org/2001/XMLSchema-datatypes' name='root'>\n"
+            +" <oneOrMore>\n"
+            +"  <element name='leaf'>\n"
+            +"   <attribute name='id'><data type='ID' /></attribute>\n"
+            +"   <optional>\n"
+            +"    <attribute name='ref'><data type='IDREF' /></attribute>\n"
+            +"   </optional>\n"
+            +"   <optional>\n"
+            +"    <attribute name='refs'><data type='IDREFS' /></attribute>\n"
+            +"   </optional>\n"
+            +"  </element>\n"
+            +" </oneOrMore>\n"
+            +"</element>"
+        ;
+
+        XMLValidationSchema schema = parseRngSchema(schemaDef);
+
+        // First, a simple valid document
+        String XML = "<root>"
+            +" <leaf id='first' ref='second' />\n"
+            +" <leaf id='second' ref='third' />\n"
+            +" <leaf id='third' refs='first second third' />\n"
+            +"</root>"
+            ;
+        XMLStreamReader2 sr = getReader(XML);
+        sr.validateAgainst(schema);
+        while (sr.next() != END_DOCUMENT) { }
+        sr.close();
+
+        // Then one with malformed id
+        XML = "<root><leaf id='123invalidid' /></root>";
+        verifyRngFailure(XML, schema, "malformed id",
+                         "attribute \"id\" has a bad value");
+
+        // Then with malformed IDREF value (would be valid IDREFS)
+        XML = "<root>"
+            +" <leaf id='a' ref='a c' />\n"
+            +" <leaf id='c' />\n"
+            +"</root>"
+            ;
+        verifyRngFailure(XML, schema, "malformed id",
+                         "attribute \"ref\" has a bad value");
+
+        // And then invalid one, with dangling ref
+        XML = "<root>"
+            +" <leaf id='a' ref='second' />\n"
+            +"</root>"
+            ;
+        verifyRngFailure(XML, schema, "reference to undefined id",
+                         "Undefined ID");
+
+        // and another one with some of refs undefined
+        XML = "<root>"
+            +" <leaf refs='this other' id='this' />\n"
+            +"</root>"
+            ;
+        verifyRngFailure(XML, schema, "reference to undefined id",
+                         "Undefined ID");
+    }
+
     /*
     //////////////////////////////////////////////////////////////
     // Helper methods
