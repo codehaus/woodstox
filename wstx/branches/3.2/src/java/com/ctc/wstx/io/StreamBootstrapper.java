@@ -935,6 +935,10 @@ public final class StreamBootstrapper
              * as what was declared...
              */
             if (bpc != mBytesPerChar) {
+                // [WSTX-138]: Needs to detect EBCDIC discrepancy
+                if (mEBCDIC) {
+                    reportXmlProblem("Declared encoding '"+id+"' incompatible with auto-detected physical encoding (EBCDIC variant), can not decode input since actual code page not known");
+                }
                 reportXmlProblem("Declared encoding '"+id+"' uses "+bpc
                                  +" bytes per character; but physical encoding appeared to use "+mBytesPerChar+"; cannot decode");
             }

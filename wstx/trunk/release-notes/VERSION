@@ -1,9 +1,9 @@
-Version: 4.0rc1
+Version: 3.9
 
-Release date: xx-Dec-2007
+Release date: xx-Nov-2007
 
 Description:
-  First release candidate for the new 4.0 series.
+  First pre-4.0 version.
 
   Problems fixed:
 
@@ -18,12 +18,16 @@ Description:
   * [WSTX-135]: Incorrect namespace binding for parent element, for
     repairing namespace writer.
     (reported by Yoon-Je C)
+  * [WSTX-138]: Sub-optimal error messaging for incompatible encoding
+    declaration, physical encoding used (EBCDIC vs UTF-x)
+    (reported by Wouter C) 
 
   New features:
 
   * [WSTX-125] Adding of space between empty element, and closing
     "/>" is now optional, configurable using
     'WstxOutputProperties.P_ADD_SPACE_AFTER_EMPTY_ELEM'.
+  * [WSTX-137] Add W3C Schema validation support using MSV.
 
   Clean-up:
 

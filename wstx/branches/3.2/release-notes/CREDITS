@@ -293,6 +293,13 @@ Santiago Pericas-Geertsen:
     reader
    [3.2.1]
 
+Wouter Cordewiner:
+  * Pointed out [WSTX-122], helped in adding EBCDIC support.
+   [3.2.2]
+  * Pointed out [WSTX-138], confusing error msg for xml declaration /
+    physical encoding inconsistency (EBCDIC vs UTF-x)
+   [3.2.3]
+
 Lukasz Wielek:
   * Reported [WSTX-132], NPE when event writer was passing null namespace
     URI
