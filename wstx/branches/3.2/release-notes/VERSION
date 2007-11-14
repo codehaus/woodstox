@@ -1,9 +1,15 @@
 Version: 3.2.3
 
-Release date: xx-Nov-2007
+Release date: 14-Nov-2007
 
 Description:
   Third patch release for 3.2.
+
+  Improvements:
+
+  * Adding simple adapters under org.codehaus.stax2.ri (backported
+    from trunk) for Stax2 API/jar to help in forwards-compatibility
+    with helper packages such as StaxMate.
 
   Problems fixed:
 
