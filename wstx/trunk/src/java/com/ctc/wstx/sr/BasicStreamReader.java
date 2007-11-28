@@ -429,7 +429,7 @@ public class BasicStreamReader
         mXml11 = cfg.isXml11();
 
         // Can only use canonical white space if we are normalizing lfs
-        mCheckIndentation = mCfgNormalizeLFs ? 16 : 0;
+        mCheckIndentation = mNormalizeLFs ? 16 : 0;
 
         /* 30-Sep-2005, TSa: Let's not do lazy parsing when access is via
          *   Event API. Reason is that there will be no performance benefit
@@ -1622,6 +1622,7 @@ public class BasicStreamReader
     // Support for SAX XMLReader implementation
     //////////////////////////////////////////////////////
      */
+
     public void fireSaxStartElement(ContentHandler h, Attributes attrs)
         throws SAXException
     {
@@ -1837,7 +1838,7 @@ public class BasicStreamReader
                          *   distinguish char entity originated ones from
                          *   real ones.
                          */
-                        if (mCfgNormalizeLFs) {
+                        if (mNormalizeLFs) {
                             c = getNextChar(SUFFIX_IN_ATTR_VALUE);
                             if (c != '\n') { // nope, not 2-char lf (Mac?)
                                 --mInputPtr;
@@ -2409,7 +2410,7 @@ public class BasicStreamReader
                     if (c != '"' && c != '\'') {
                         throwParseError(SUFFIX_IN_DTD+"; expected a system identifier.");
                     }
-                    mDtdSystemId = parseSystemId(c, mCfgNormalizeLFs, SUFFIX_IN_DTD);
+                    mDtdSystemId = parseSystemId(c, mNormalizeLFs, SUFFIX_IN_DTD);
                     if (mDtdSystemId.length() == 0) {
                         // According to XML specs, this isn't illegal?
                         // however, better report it as empty, not null.
@@ -2426,7 +2427,7 @@ public class BasicStreamReader
                     if (c != '"' && c != '\'') {
                         throwUnexpectedChar(c, SUFFIX_IN_DTD+"; expected a system identifier.");
                     }
-                    mDtdSystemId = parseSystemId(c, mCfgNormalizeLFs, SUFFIX_IN_DTD);
+                    mDtdSystemId = parseSystemId(c, mNormalizeLFs, SUFFIX_IN_DTD);
                     if (mDtdSystemId.length() == 0) {
                         // According to XML specs, this isn't illegal?
                         mDtdSystemId = null;
@@ -2489,7 +2490,7 @@ public class BasicStreamReader
         if (c == '[') {
             // Do we need to get contents as text too?
             if (copyContents) {
-                ((BranchingReaderSource) mInput).startBranch(mTextBuffer, mInputPtr, mCfgNormalizeLFs);
+                ((BranchingReaderSource) mInput).startBranch(mTextBuffer, mInputPtr, mNormalizeLFs);
             }
 
             try {
@@ -2846,7 +2847,7 @@ public class BasicStreamReader
              * and namespace declarations. Split into another method for clarity,
              * and so that maybe JIT has easier time to optimize it separately.
              */
-             /* 04-Jul=2005, TSa: But hold up: we can easily check for a fairly
+             /* 04-Jul-2005, TSa: But hold up: we can easily check for a fairly
               *   common case of no attributes showing up, and us getting the
               *   closing '>' right away. Let's do that, since it can save
               *   a call to a rather long method.
@@ -3695,7 +3696,7 @@ public class BasicStreamReader
                 if (c == '\n') {
                     markLF(ptr);
                 } else if (c == '\r') {
-                    if (!mCfgNormalizeLFs && ptr < inputLen) {
+                    if (!mNormalizeLFs && ptr < inputLen) {
                         if (inputBuf[ptr] == '\n') {
                             ++ptr;
                         }
@@ -3757,7 +3758,7 @@ public class BasicStreamReader
                     markLF();
                 } else if (c == '\r') {
                     if (skipCRLF(c)) { // got 2 char LF
-                        if (!mCfgNormalizeLFs) {
+                        if (!mNormalizeLFs) {
                             if (outPtr >= outLen) { // need more room?
                                 outBuf = mTextBuffer.finishCurrentSegment();
                                 outLen = outBuf.length;
@@ -3767,7 +3768,7 @@ public class BasicStreamReader
                         }
                         // And let's let default output the 2nd char
                         c = '\n';
-                    } else if (mCfgNormalizeLFs) { // just \r, but need to convert
+                    } else if (mNormalizeLFs) { // just \r, but need to convert
                         c = '\n'; // For Mac text
                     }
                 } else if (c != '\t') {
@@ -3877,7 +3878,7 @@ public class BasicStreamReader
                 if (c == '\n') {
                     markLF(ptr);
                 } else if (c == '\r') {
-                    if (ptr < inputLen && !mCfgNormalizeLFs) {
+                    if (ptr < inputLen && !mNormalizeLFs) {
                         if (inputBuf[ptr] == '\n') {
                             ++ptr;
                         }
@@ -3953,7 +3954,7 @@ public class BasicStreamReader
                 } else if (c == '\r') {
                     mInputPtr = inputPtr;
                     if (skipCRLF(c)) { // got 2 char LF
-                        if (!mCfgNormalizeLFs) {
+                        if (!mNormalizeLFs) {
                             // Special handling, to output 2 chars at a time:
                             if (outPtr >= outBuf.length) { // need more room?
                                 outBuf = mTextBuffer.finishCurrentSegment();
@@ -3963,7 +3964,7 @@ public class BasicStreamReader
                         }
                         // And let's let default output the 2nd char, either way
                         c = '\n';
-                    } else if (mCfgNormalizeLFs) { // just \r, but need to convert
+                    } else if (mNormalizeLFs) { // just \r, but need to convert
                         c = '\n'; // For Mac text
                     }
                     /* Since skipCRLF() needs to peek(), buffer may have
@@ -4136,7 +4137,7 @@ public class BasicStreamReader
                         --ptr;
                         break;
                     }
-                    if (mCfgNormalizeLFs) { // can we do in-place Mac replacement?
+                    if (mNormalizeLFs) { // can we do in-place Mac replacement?
                         if (inputBuf[ptr] == '\n') { // nope, 2 char lf
                             --ptr;
                             break;
@@ -4247,7 +4248,7 @@ public class BasicStreamReader
                 } else if (c == '\r') {
                     mInputPtr = inputPtr;
                     if (skipCRLF(c)) { // got 2 char LF
-                        if (!mCfgNormalizeLFs) {
+                        if (!mNormalizeLFs) {
                             // Special handling, to output 2 chars at a time:
                             outBuf[outPtr++] = c;
                             if (outPtr >= outBuf.length) { // need more room?
@@ -4257,7 +4258,7 @@ public class BasicStreamReader
                         }
                         // And let's let default output the 2nd char, either way
                         c = '\n';
-                    } else if (mCfgNormalizeLFs) { // just \r, but need to convert
+                    } else if (mNormalizeLFs) { // just \r, but need to convert
                         c = '\n'; // For Mac text
                     }
                     /* Since skipCRLF() needs to peek(), buffer may have
@@ -4383,7 +4384,7 @@ public class BasicStreamReader
              */
             do {
                 // We'll need at least one char, no matter what:
-                if (ptr < len && mCfgNormalizeLFs) {
+                if (ptr < len && mNormalizeLFs) {
                     if (c == '\r') {
                         c = '\n';
                         if (mInputBuffer[ptr] == c) {
@@ -4438,7 +4439,7 @@ public class BasicStreamReader
                             --ptr;
                             break;
                         }
-                        if (mCfgNormalizeLFs) { // can we do in-place Mac replacement?
+                        if (mNormalizeLFs) { // can we do in-place Mac replacement?
                             if (inputBuf[ptr] == '\n') { // nope, 2 char lf
                                 --ptr;
                                 break;
@@ -4555,7 +4556,7 @@ public class BasicStreamReader
                     } else if (c == '\r') {
                         mInputPtr = inputPtr;
                         if (skipCRLF(c)) { // got 2 char LF
-                            if (!mCfgNormalizeLFs) {
+                            if (!mNormalizeLFs) {
                                 // Special handling, to output 2 chars at a time:
                                 outBuf[outPtr++] = c;
                                 if (outPtr >= outBuf.length) { // need more room?
@@ -4565,7 +4566,7 @@ public class BasicStreamReader
                             }
                             // And let's let default output the 2nd char
                             c = '\n';
-                        } else if (mCfgNormalizeLFs) { // just \r, but need to convert
+                        } else if (mNormalizeLFs) { // just \r, but need to convert
                             c = '\n'; // For Mac text
                         }
                         /* note: skipCRLF() may change ptr and len, but since
@@ -4812,7 +4813,7 @@ public class BasicStreamReader
                     --ptr;
                     break;
                 }
-                if (mCfgNormalizeLFs) { // can we do in-place Mac replacement?
+                if (mNormalizeLFs) { // can we do in-place Mac replacement?
                     if (inputBuf[ptr] == '\n') { // nope, 2 char lf
                         --ptr;
                         break;
@@ -4887,7 +4888,7 @@ public class BasicStreamReader
                 markLF();
             } else if (c == '\r') {
                 if (skipCRLF(c)) {
-                    if (!mCfgNormalizeLFs) {
+                    if (!mNormalizeLFs) {
                         // Special handling, to output 2 chars at a time:
                         outBuf[outPtr++] = c;
                         if (outPtr >= outBuf.length) { // need more room?
@@ -4896,7 +4897,7 @@ public class BasicStreamReader
                         }
                     }
                     c = '\n';
-                } else if (mCfgNormalizeLFs) {
+                } else if (mNormalizeLFs) {
                     c = '\n'; // For Mac text
                 }
             } else if (c != CHAR_SPACE && c != '\t') {
@@ -4975,7 +4976,7 @@ public class BasicStreamReader
                             d = mInputBuffer[mInputPtr++];
                         }
                         if (d == '\n') {
-                            if (mCfgNormalizeLFs) {
+                            if (mNormalizeLFs) {
                                 /* Let's flush content prior to 2-char LF, and
                                  * start the new segment on the second char...
                                  * this way, no mods are needed for the buffer,
@@ -4992,7 +4993,7 @@ public class BasicStreamReader
                             }
                         } else { // not 2-char... need to replace?
                             --mInputPtr;
-                            if (mCfgNormalizeLFs) {
+                            if (mNormalizeLFs) {
                                 mInputBuffer[mInputPtr-1] = '\n';
                             }
                         }
@@ -5126,7 +5127,7 @@ public class BasicStreamReader
                                 d = mInputBuffer[mInputPtr++];
                             }
                             if (d == '\n') {
-                                if (mCfgNormalizeLFs) {
+                                if (mNormalizeLFs) {
                                     /* Let's flush content prior to 2-char LF, and
                                      * start the new segment on the second char...
                                      * this way, no mods are needed for the buffer,
@@ -5143,7 +5144,7 @@ public class BasicStreamReader
                                 }
                             } else { // not 2-char... need to replace?
                                 --mInputPtr;
-                                if (mCfgNormalizeLFs) {
+                                if (mNormalizeLFs) {
                                     mInputBuffer[mInputPtr-1] = '\n';
                                 }
                             }

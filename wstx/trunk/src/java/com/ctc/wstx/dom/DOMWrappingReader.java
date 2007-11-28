@@ -630,12 +630,6 @@ public class DOMWrappingReader
         return (mCurrEvent == START_ELEMENT);
     }
 
-    /**
-     *<p>
-     * 05-Apr-2004, TSa: Could try to determine status when text is actually
-     *   read. That'd prevent double reads... but would it slow down that
-     *   one reading so that net effect would be negative?
-     */
     public boolean isWhiteSpace()
     {
         if (mCurrEvent == CHARACTERS || mCurrEvent == CDATA) {

@@ -890,8 +890,8 @@ public class FullDTDReader
              *   suppressed for internal entity expansion, we may need to
              *   change the state...
              */
-            if (!mCfgNormalizeLFs) {
-                mCfgNormalizeLFs = !input.fromInternalEntity();
+            if (!mNormalizeLFs) {
+                mNormalizeLFs = !input.fromInternalEntity();
             }
             // Maybe there are leftovers from that input in buffer now?
         } while (mInputPtr >= mInputLen);
@@ -1491,7 +1491,7 @@ public class FullDTDReader
                     markLF();
                 } else if (c == '\r') {
                     if (skipCRLF(c)) {
-                        if (!mCfgNormalizeLFs) {
+                        if (!mNormalizeLFs) {
                             // Special handling, to output 2 chars at a time:
                             if (outPtr >= outBuf.length) { // need more room?
                                 outBuf = tb.finishCurrentSegment();
@@ -1501,7 +1501,7 @@ public class FullDTDReader
                         }
                         c = '\n';
                     } else {
-                        if (mCfgNormalizeLFs) { // Mac LF
+                        if (mNormalizeLFs) { // Mac LF
                             c = '\n';
                         }
                     }
@@ -1597,7 +1597,7 @@ public class FullDTDReader
                         c = getNextChar(SUFFIX_IN_DEF_ATTR_VALUE);
                         if (c != '\n') { // nope, not 2-char lf (Mac?)
                             --mInputPtr;
-                            c = mCfgNormalizeLFs ? '\n' : '\r';
+                            c = mNormalizeLFs ? '\n' : '\r';
                         } else {
                             // Fine if we are to normalize lfs
                             /* !!! 20-Jan-2007, TSa: Hmmh. Not sure if and
@@ -1605,7 +1605,7 @@ public class FullDTDReader
                              *  no need.
                              */
                             /*
-                            if (!mCfgNormalizeLFs) {
+                            if (!mNormalizeLFs) {
                                 if (outPtr >= outLen) { // need more room?
                                     outBuf = tb.finishCurrentSegment();
                                     outPtr = 0;
@@ -2514,7 +2514,7 @@ public class FullDTDReader
          * there's public id, system one is optional.
          */
         if (c == '"' || c == '\'') {
-            sysId = parseSystemId(c, mCfgNormalizeLFs, getErrorMsg());
+            sysId = parseSystemId(c, mNormalizeLFs, getErrorMsg());
             c = skipDtdWs(true);
         } else {
             if (!isPublic) {
@@ -3165,7 +3165,7 @@ public class FullDTDReader
         if (c != '"' && c != '\'') {
             throwDTDUnexpectedChar(c, "; expected a quote to start the system identifier");
         }
-        String sysId = parseSystemId(c, mCfgNormalizeLFs, getErrorMsg());
+        String sysId = parseSystemId(c, mNormalizeLFs, getErrorMsg());
 
         // Ok; how about notation?
         String notationId = null;

@@ -53,14 +53,6 @@ public abstract class StreamScanner
     implements InputProblemReporter,
         InputConfigFlags, ParsingErrorMsgs
 {
-    /**
-     * In case we want better compatibility with SAX parsers (like Xerces),
-     * this flag can be turned on.
-     *<p>
-     * Perhaps this should be a property that could be enabled dynamically?
-     */
-    //public final static boolean SAX_COMPAT_MODE = true;
-    public final static boolean SAX_COMPAT_MODE = false;
 
     // // // Some well-known chars:
 
@@ -209,17 +201,6 @@ public abstract class StreamScanner
      */
     protected boolean mCfgReplaceEntities;
 
-    /**
-     * Flag that indicates whether linefeeds in the input data are to
-     * be normalized or not.
-     *<p>
-     * Note: xml specs mandate that the line feeds are only normalized
-     * when they are from the external entities (main doc, external
-     * general/parsed entities), meaning that normalization has to be
-     * suppressed when expanding internal general/parsed entities.
-     */
-    protected boolean mCfgNormalizeLFs;
-
     /*
     ////////////////////////////////////////////////////
     // Symbol handling, if applicable
@@ -281,6 +262,16 @@ public abstract class StreamScanner
     protected int mCurrDepth = 0;
 
     protected int mInputTopDepth = 0;
+
+    /**
+     * Flag that indicates whether linefeeds in the input data are to
+     * be normalized or not.
+     * Xml specs mandate that the line feeds are only normalized
+     * when they are from the external entities (main doc, external
+     * general/parsed entities), so normalization has to be
+     * suppressed when expanding internal general/parsed entities.
+     */
+    protected boolean mNormalizeLFs;
 
     /*
     ////////////////////////////////////////////////////
@@ -370,8 +361,8 @@ public abstract class StreamScanner
         int cf = cfg.getConfigFlags();
         mCfgNsEnabled = (cf & CFG_NAMESPACE_AWARE) != 0;
         mCfgReplaceEntities = (cf & CFG_REPLACE_ENTITY_REFS) != 0;
-        mCfgNormalizeLFs = true;
 
+        mNormalizeLFs = true;
         mInputBuffer = null;
         mInputPtr = mInputLen = 0;
         mEntityResolver = res;
@@ -939,9 +930,9 @@ public abstract class StreamScanner
          *   internal entities (XML, 2.11)
          */
         if (isExt) {
-            mCfgNormalizeLFs = true;
+            mNormalizeLFs = true;
         } else {
-            mCfgNormalizeLFs = false;
+            mNormalizeLFs = false;
         }
     }
 
@@ -993,8 +984,8 @@ public abstract class StreamScanner
              *   suppressed for internal entity expansion, we may need to
              *   change the state...
              */
-            if (!mCfgNormalizeLFs) {
-                mCfgNormalizeLFs = !input.fromInternalEntity();
+            if (!mNormalizeLFs) {
+                mNormalizeLFs = !input.fromInternalEntity();
             }
             // Maybe there are leftovers from that input in buffer now?
         } while (mInputPtr >= mInputLen);

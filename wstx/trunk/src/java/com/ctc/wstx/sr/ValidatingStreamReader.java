@@ -286,7 +286,7 @@ public class ValidatingStreamReader
         if (c == '[') {
             // Do we need to copy the contents of int. subset in the buffer?
             if (copyContents) {
-                ((BranchingReaderSource) mInput).startBranch(mTextBuffer, mInputPtr, mCfgNormalizeLFs);
+                ((BranchingReaderSource) mInput).startBranch(mTextBuffer, mInputPtr, mNormalizeLFs);
             }
 
             try {
@@ -336,7 +336,7 @@ public class ValidatingStreamReader
              * just follow the wrong example.
              */
 
-            //if ((mDocStandalone != DOC_STANDALONE_YES) || SAX_COMPAT_MODE) {
+            //if (mDocStandalone != DOC_STANDALONE_YES) {
             if (true) {
                 if (mDtdPublicId != null || mDtdSystemId != null) {
                     extSubset =  findDtdExtSubset(mDtdPublicId, mDtdSystemId, intSubset);
