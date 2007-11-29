@@ -40,8 +40,9 @@ public class TestXercesSaxPerf
         return null;
     }
 
-    protected int testExec2(InputStream in, String path) throws Exception
+    protected int testExec(byte[] data, String path) throws Exception
     {
+        InputStream in = new ByteArrayInputStream(data);
         //XMLReader xr = mParser.getXMLReader();
         XMLReader xr = mReader;
         xr.setContentHandler((ContentHandler) mHandler);
@@ -49,28 +50,9 @@ public class TestXercesSaxPerf
         return mHandler.getTotal();
     }
 
-    /*
-    public void testFinish()
-        throws Exception
-    {
-        com.ctc.wstx.util.SymbolTable symt = msc.getSymbolTable();
-        double seek = symt.calcAvgSeek();
-        seek = ((int) (100.0  * seek)) / 100.0;
-        System.out.println("Symbol count: "+symt.size()+", avg len: "+seek+".");
-    }
-    */
-
     public static void main(String[] args) throws Exception
     {
-        //try {
-            new TestXercesSaxPerf().test(args);
-            /*
-        } catch (Throwable t) {
-            System.err.println("Error: "+t);
-            Throwable root = t.getCause();
-            System.err.println("Root cause: "+root);
-        }
-            */
+        new TestXercesSaxPerf().test(args);
     }
 
     /**

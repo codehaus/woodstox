@@ -3,24 +3,26 @@ package staxperf.single;
 import java.io.*;
 import javax.xml.parsers.*; // TRAX, for creating parsers
 
+import org.w3c.dom.*;
 import org.xml.sax.*;
 import org.xml.sax.helpers.DefaultHandler;
 
 import javax.xml.stream.XMLInputFactory;
 
-public class TestWstxSaxPerf
+public class TestPiccoloSaxPerf
     extends BasePerfTest
 {
     final SAXParserFactory mFactory;
     final MyHandler mHandler;
+    //final SAXParser mParser;
     final XMLReader mReader;
 
-    private TestWstxSaxPerf()
+    private TestPiccoloSaxPerf()
         throws Exception
     {
         super();
         System.setProperty("javax.xml.parsers.SAXParserFactory",
-                           "com.ctc.wstx.sax.WstxSAXParserFactory");
+                           "com.bluecast.xml.JAXPSAXParserFactory");
         mFactory = SAXParserFactory.newInstance();
         mFactory.setNamespaceAware(true);
         mFactory.setValidating(false);
@@ -48,7 +50,7 @@ public class TestWstxSaxPerf
 
     public static void main(String[] args) throws Exception
     {
-        new TestWstxSaxPerf().test(args);
+        new TestPiccoloSaxPerf().test(args);
     }
 
     /**
