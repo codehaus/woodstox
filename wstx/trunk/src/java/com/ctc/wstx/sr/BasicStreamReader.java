@@ -2716,6 +2716,7 @@ public class BasicStreamReader
                 mCurrEntity = ed;
                 /*
                 // let's not worry about non-parsed entities, since this is unexpanded mode
+                // ... although it'd be an error either way? Should we report it?
                 if (ed != null && !ed.isParsed()) {
                     throwParseError("Reference to unparsed entity '"+ed.getName()+"' from content not allowed.");
                 }

@@ -592,6 +592,14 @@ public class WstxSAXParser
                 mScanner.fireSaxSpaceEvents(mContentHandler);
             }
             break;
+        case XMLStreamConstants.ENTITY_REFERENCE:
+            /* Only occurs in non-entity-expanding mode; so effectively
+             * we are skipping the entity?
+             */
+            if (mContentHandler != null) {
+                mContentHandler.skippedEntity(mScanner.getLocalName());
+            }
+            break;
         default:
             if (type == XMLStreamConstants.END_DOCUMENT) {
                 throwSaxException("Unexpected end-of-input in "+(inTree ? "tree" : "prolog"));

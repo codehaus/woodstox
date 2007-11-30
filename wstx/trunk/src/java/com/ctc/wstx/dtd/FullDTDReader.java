@@ -809,7 +809,7 @@ public class FullDTDReader
     ////////////////////////////////////////////////////
      */
 
-    protected void initInputSource(WstxInputSource newInput, boolean isExt)
+    protected void initInputSource(WstxInputSource newInput, boolean isExt, String entityId)
         throws IOException, XMLStreamException
     {
         if (mFlattenWriter != null) {
@@ -821,13 +821,13 @@ public class FullDTDReader
                  * this includes skipping of optional XML declaration that we
                  * do NOT want to output
                  */
-                super.initInputSource(newInput, isExt);
+                super.initInputSource(newInput, isExt, entityId);
             } finally {
                 // This will effectively skip declaration
                 mFlattenWriter.enableOutput(mInputPtr);
             }
         } else {
-            super.initInputSource(newInput, isExt);
+            super.initInputSource(newInput, isExt, entityId);
         }
     }
 

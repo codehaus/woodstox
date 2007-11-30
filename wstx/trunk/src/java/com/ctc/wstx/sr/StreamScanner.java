@@ -912,8 +912,11 @@ public abstract class StreamScanner
      * Method called when an entity has been expanded (new input source
      * has been created). Needs to initialize location information and change
      * active input source.
+     *
+     * @param entityId Name of the entity being expanded
      */
-    protected void initInputSource(WstxInputSource newInput, boolean isExt)
+    protected void initInputSource(WstxInputSource newInput, boolean isExt,
+                                   String entityId)
         throws IOException, XMLStreamException
     {
         mInput = newInput;
@@ -1586,12 +1589,12 @@ public abstract class StreamScanner
         /* And then we'll need to make sure new input comes from the new
          * input source
          */
-        initInputSource(newInput, isExt);
+        initInputSource(newInput, isExt, id);
     }
 
     /**
      *<p>
-     * note: only from the local expandEntity() method
+     * note: only called from the local expandEntity() method
      */
     private void expandUnresolvedEntity(String id)
         throws IOException, XMLStreamException
@@ -1619,7 +1622,7 @@ public abstract class StreamScanner
                 (oldInput, id, null, null, resolver, mConfig, xmlVersion);
             if (newInput != null) {
                 // true -> is external
-                initInputSource(newInput, true);
+                initInputSource(newInput, true, id);
                 return;
             }
         }
