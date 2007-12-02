@@ -9,7 +9,6 @@ the specification:
 
 * SAX input (source) and output (result) objects can not be used with
   XMLInputFactory and XMLOutputFactory.
-* DOM (output) result objects can not be used XMLOutputFactory.
 
 Also, following 3.0 features may be considered non-compliant (either
 regarding Stax 1.0, or XML 1.0), based on discussions on stax-builders

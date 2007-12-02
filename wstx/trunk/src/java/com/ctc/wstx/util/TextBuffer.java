@@ -31,13 +31,15 @@ import com.ctc.wstx.dtd.DTDEventListener;
  * {@link #toString} method, as opposed to
  * {@link #contentsAsArray} or {@link #contentsAsString}. Internally
  * resulting code paths may or may not be different, WRT caching.
+ *
+ * @author Tatu Saloranta
  */
 public final class TextBuffer
 {
-    /* 23-Mar-2006, TSa: After realizing that memory buffer clearing
-     *   is a significant overhead for small documents, it occured to
-     *   me that default size for this buffer was too big (4000 chars);
-     *   no need to be that big.
+    /* 23-Mar-2006, TSa: Memory buffer clearing is a significant overhead
+     *    for small documents, no need to use huge buffer -- it will expand
+     *    as necessary for larger docs, but commonly text segments just
+     *    aren't that long.
      */
     /**
      * Size of the first text segment buffer to allocate; need not contain

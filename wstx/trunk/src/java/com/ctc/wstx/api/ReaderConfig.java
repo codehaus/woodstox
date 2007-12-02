@@ -133,9 +133,12 @@ public final class ReaderConfig
      * to conform to StAX 1.0 specifications.
      */
     final static int DEFAULT_FLAGS_FULL =
+        0
         // First, default settings StAX specs dictate:
-        CFG_COALESCE_TEXT
+
         | CFG_NAMESPACE_AWARE
+        // Coalescing to be disabled
+        //| CFG_COALESCE_TEXT
         | CFG_REPLACE_ENTITY_REFS
         | CFG_SUPPORT_EXTERNAL_ENTITIES
         | CFG_SUPPORT_DTD

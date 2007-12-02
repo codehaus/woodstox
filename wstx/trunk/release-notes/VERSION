@@ -13,6 +13,9 @@ Description:
     maximize interoperability, and to follow "principle of least
     surprise" (i.e. avoid confusion that writer outsmarting developer
     might cause).
+  * [WSTX-140] Default settings for WstxInputFactory.IS_COALESCING
+    changed to Boolean.FALSE as per Stax specs; was defaulting to
+    true by accident
 
   New features:
 

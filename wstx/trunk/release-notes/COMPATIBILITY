@@ -5,6 +5,9 @@
 * Defaulting reporting of "no prefix" and "no namespace [URI]"
   have been changed from null value to empty Strig (""), to be
   in accordance with the latest consensus regarding Stax API.
+* Fix for [WSTX-140] changes default for IS_COALESCING to be
+  Boolean.FALSE as per Stax specs. 3.0 and earlier were defaulting
+  to Boolean.TRUE.
 
 === Stream writer ===
 

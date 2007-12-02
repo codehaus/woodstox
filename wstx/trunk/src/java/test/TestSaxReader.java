@@ -3,6 +3,7 @@ package test;
 import java.io.*;
 
 import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
 import javax.xml.stream.*;
 
 import org.xml.sax.*;
@@ -23,11 +24,14 @@ public class TestSaxReader
     protected void test(File file)
         throws Exception
     {
-        WstxSAXParserFactory spf = new WstxSAXParserFactory();
+        //SAXParserFactory spf = SAXParserFactory.newInstance();
+        SAXParserFactory spf = new WstxSAXParserFactory();
         spf.setFeature("http://xml.org/sax/features/namespace-prefixes", true);
         SAXParser sp = spf.newSAXParser();
         MyContentHandler h = new MyContentHandler();
         sp.setProperty(SAXProperty.LEXICAL_HANDLER.toString(), (DeclHandler) h);
+        // This shouldn't be needed -- nor seems to work for Xerces?
+        //sp.getXMLReader().setEntityResolver(h);
         InputStream in = new FileInputStream(file);
         InputSource src = new InputSource(in);
         src.setSystemId(file.toURL().toExternalForm());
@@ -180,7 +184,6 @@ public class TestSaxReader
          * SAXParser sets it as the default entity resolver when
          * its parse() method gets called.
          */
-
         public InputSource resolveEntity(String publicId, String systemId) 
         {
             System.out.println("[RESOLVE-ENTITY pub '"+publicId+"' sys '"+systemId+"']");
