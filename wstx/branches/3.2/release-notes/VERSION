@@ -1,15 +1,21 @@
-Version: 3.2.3
+Version: 3.2.4
 
-Release date: 14-Nov-2007
+Release date: xx-Dec-2007
 
 Description:
-  Third patch release for 3.2.
+  Fourth patch release for 3.2.
 
   Improvements:
 
-  * Adding simple adapters under org.codehaus.stax2.ri (backported
-    from trunk) for Stax2 API/jar to help in forwards-compatibility
-    with helper packages such as StaxMate.
+  Problems fixed:
+
+  * [WSTX-141]: Copying of CDATA events, using XMLEventWriter, was
+    producing garbled output.
+    (reported by Frank B) 
+
+== History: ==
+
+3.2.3 [14-Nov-2007]
 
   Problems fixed:
 
@@ -24,12 +30,13 @@ Description:
     declaration, physical encoding used (EBCDIC vs UTF-x)
     (reported by Wouter C) 
 
-== History: ==
+  Improvements:
+
+  * Adding simple adapters under org.codehaus.stax2.ri (backported
+    from trunk) for Stax2 API/jar to help in forwards-compatibility
+    with helper packages such as StaxMate.
 
 3.2.2 [26-Sep-2007]
-
-Description:
-  Second patch release for 3.2.
 
   Problems fixed:
 

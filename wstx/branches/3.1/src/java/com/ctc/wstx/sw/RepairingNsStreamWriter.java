@@ -187,8 +187,8 @@ public class RepairingNsStreamWriter
         /* 01-Sep-2006, TSa: Let's only add the declaration if the prefix
          *   is as of yet unbound. If we have to re-bind things in future,
          *   so be it -- for now, this should suffice (and if we have to
-	 *   add re-binding, must verify that no attribute, nor element
-	 *   itself, is using overridden prefix)
+         *   add re-binding, must verify that no attribute, nor element
+         *   itself, is using overridden prefix)
          */
         int value = mCurrElem.isPrefixValid(prefix, nsURI, true);
         if (value == SimpleOutputElement.PREFIX_UNBOUND) {
@@ -264,33 +264,31 @@ public class RepairingNsStreamWriter
     {
         checkStartElement(localName, "");
 
-        // Need a prefix....
+        // First, need to find prefix matching URI, if any:
         String prefix = findElemPrefix(nsURI, mCurrElem);
-        if (prefix != null) { // prefix ok, easy
+        /* Then need to create the element, since it'll have to
+         * contain the new namespace binding, if one needed
+         * (changed to resolve [WSTX-135] as reported by Y-J Choi,
+         *  who also proposed the solution)
+         */
+        if (mOutputElemPool != null) {
+            SimpleOutputElement newCurr = mOutputElemPool;
+            mOutputElemPool = newCurr.reuseAsChild(mCurrElem, prefix, localName, nsURI);
+            --mPoolSize;
+            mCurrElem = newCurr;
+        } else {
+            mCurrElem = mCurrElem.createChild(prefix, localName, nsURI);
+        }
+        
+        if (prefix != null) { // prefix ok, easy, no need to overwrite
             if (mValidator != null) {
                 mValidator.validateElementStart(localName, nsURI, prefix);
-            }
-            if (mOutputElemPool != null) {
-                SimpleOutputElement newCurr = mOutputElemPool;
-                mOutputElemPool = newCurr.reuseAsChild(mCurrElem, prefix, localName, nsURI);
-                --mPoolSize;
-                mCurrElem = newCurr;
-            } else {
-                mCurrElem = mCurrElem.createChild(prefix, localName, nsURI);
             }
             doWriteStartTag(prefix, localName);
         } else { // no prefix, more work
             prefix = generateElemPrefix(null, nsURI, mCurrElem);
             if (mValidator != null) {
                 mValidator.validateElementStart(localName, nsURI, prefix);
-            }
-            if (mOutputElemPool != null) {
-                SimpleOutputElement newCurr = mOutputElemPool;
-                mOutputElemPool = newCurr.reuseAsChild(mCurrElem, prefix, localName, nsURI);
-                --mPoolSize;
-                mCurrElem = newCurr;
-            } else {
-                mCurrElem = mCurrElem.createChild(prefix, localName, nsURI);
             }
             mCurrElem.setPrefix(prefix);
             doWriteStartTag(prefix, localName);
@@ -425,8 +423,11 @@ public class RepairingNsStreamWriter
                  * collector has, we can not use pass-through method of
                  * the collector, but need to call XmlWriter directly:
                  */
-                mWriter.writeAttribute(prefix, attrCollector.getLocalName(i),
-                                       attrCollector.getValue(i));
+                if (prefix == null || prefix.length() == 0) {
+                    mWriter.writeAttribute(attrCollector.getLocalName(i), attrCollector.getValue(i));
+                } else {
+                    mWriter.writeAttribute(prefix, attrCollector.getLocalName(i), attrCollector.getValue(i));
+                }
             }
         }
     }

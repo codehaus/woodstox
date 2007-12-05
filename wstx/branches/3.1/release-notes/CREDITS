@@ -236,6 +236,10 @@ Frank Baxter:
     the problem: Character offsets (for XMLStreamReader.getLocation())
     were sometimes decremented
     [3.1.1]
+  * Reported [WSTX-141], supplied test case demonstrate it:
+    Copying of CDATA events using XMLEventWriter was producing
+    garbled output.
+    [3.1.3]
 
 Werner Donné:
   * Reported [WSTX-102], submitted patch to fix it: WStartDocument
@@ -246,3 +250,8 @@ Michael Allman:
   * [WSTX-103] Repairing writer had a bug that could result in wrong
     prefix being reported/output.
     [3.0.4 / 3.1.2]
+
+Yoon-Je Choi:
+  * Reported [WSTX-135]: Repairing stream writer was associating namespace
+    bindings with parent element, pointed out solution.
+   [3.1.3]

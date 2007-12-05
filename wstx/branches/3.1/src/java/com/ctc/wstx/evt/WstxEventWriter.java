@@ -169,7 +169,11 @@ public class WstxEventWriter
                 }
             }
             break;
-            
+
+        case CDATA:
+            mWriter.writeCData(event.asCharacters().getData());
+            break;
+ 
         case COMMENT:
             mWriter.writeComment(((Comment) event).getText());
             break;
@@ -192,7 +196,6 @@ public class WstxEventWriter
             /* And then finally types not produced by Wstx; can/need to
              * ask event to just output itself
              */
-        case CDATA: // usually only CHARACTERS events exist...
         case ENTITY_DECLARATION: // not yet produced by Wstx
         case NOTATION_DECLARATION: // not yet produced by Wstx
         case SPACE: // usually only CHARACTERS events exist...
@@ -203,6 +206,11 @@ public class WstxEventWriter
              * let event output itself.
              */
             if (mWstxWriter != null) {
+                /* Related to [WSTX-141]: need to force closing of open
+                 * start elements (if any), first. Simplest way (and the
+                 * only generic one I know of) is to make a dummy write.
+                 */
+                mWstxWriter.writeCharacters("");
                 event.writeAsEncodedUnicode(mWstxWriter.wrapAsRawWriter());
             } else {
                 /* 08-Aug-2006, TSa: Not quite sure what to do with this.

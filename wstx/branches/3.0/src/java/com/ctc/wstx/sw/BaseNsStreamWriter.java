@@ -497,7 +497,12 @@ public abstract class BaseNsStreamWriter
         mAnyOutput = true;
         mStartElementOpen = true;
         try {
-            mWriter.writeStartTagStart(prefix, localName);
+            boolean hasPrefix = (prefix != null && prefix.length() > 0);
+            if (hasPrefix) {
+                mWriter.writeStartTagStart(prefix, localName);
+            } else {
+                mWriter.writeStartTagStart(localName);
+            }
         } catch (IOException ioe) {
             throw new WstxIOException(ioe);
         }

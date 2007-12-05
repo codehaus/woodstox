@@ -225,6 +225,12 @@ Michael Haeusler:
     as is, and as character entities
     [3.0.3]
 
+Frank Baxter:
+  * Reported [WSTX-141], supplied test case demonstrate it:
+    Copying of CDATA events using XMLEventWriter was producing
+    garbled output.
+    [3.0.5]
+
 Werner Donné:
   * Reported [WSTX-102], submitted patch to fix it: WStartDocument
     constructor would NPE when building using DOM source.
@@ -234,3 +240,8 @@ Michael Allman:
   * [WSTX-103] Repairing writer had a bug that could result in wrong
     prefix being reported/output.
     [3.0.4]
+
+Yoon-Je Choi:
+  * Reported [WSTX-135]: Repairing stream writer was associating namespace
+    bindings with parent element, pointed out solution.
+   [3.0.5]
