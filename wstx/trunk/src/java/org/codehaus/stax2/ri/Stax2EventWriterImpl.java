@@ -125,6 +125,10 @@ public class Stax2EventWriterImpl
                 }
             }
             break;
+
+        case CDATA:
+            mWriter.writeCData(event.asCharacters().getData());
+            break;
             
         case COMMENT:
             mWriter.writeComment(((Comment) event).getText());
@@ -145,7 +149,6 @@ public class Stax2EventWriterImpl
             }
             break;
 
-        case CDATA: // usually only CHARACTERS events exist...
         case ENTITY_DECLARATION: // not yet produced by Wstx
         case NOTATION_DECLARATION: // not yet produced by Wstx
         case SPACE: // usually only CHARACTERS events exist...
@@ -154,9 +157,10 @@ public class Stax2EventWriterImpl
             // Easy, if stax2 enabled
             if (event instanceof XMLEvent2) {
                 ((XMLEvent2) event).writeUsing(mWriter);
+            } else {
+                // Otherwise... well, no real way to do it in generic manner
+                throw new XMLStreamException("Don't know how to output event "+event);
             }
-            // Otherwise... well, no real way to do it
-            throw new XMLStreamException("Don't know how to output event "+event);
         }
     }
 
