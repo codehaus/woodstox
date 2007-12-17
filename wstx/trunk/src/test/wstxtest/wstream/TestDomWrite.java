@@ -35,6 +35,7 @@ public class TestDomWrite
         sw.close();
 
         Element root = doc.getDocumentElement();
+
         assertNotNull(root);
         assertEquals("root", root.getTagName());
         NamedNodeMap attrs = root.getAttributes();
@@ -51,11 +52,71 @@ public class TestDomWrite
         assertEquals(0, attrs.getLength());
 
         child = child.getNextSibling();
+        assertNotNull(child);
         assertEquals(Node.TEXT_NODE, child.getNodeType());
         // Alas, getTextContent() is DOM 3 (Jdk 1.5+)
         //assertEquals("text?<ok>", child.getTextContent());
         // ... so we'll use less refined method
         assertEquals("text?<ok>", child.getNodeValue());
+    }
+
+    public void testRepairingNsOutput()
+        throws Exception
+    {
+        final String URI1 = "urn:1";
+        final String URI2 = "urn:2";
+
+        Document doc = createDomDoc(false);
+        XMLOutputFactory of = getFactory(2);
+        XMLStreamWriter sw = of.createXMLStreamWriter(new DOMResult(doc));
+
+        sw.writeStartDocument();
+        sw.writeStartElement(URI1, "root");
+        sw.writeAttribute("attr", "x");
+        sw.writeEmptyElement(URI2, "leaf");
+        sw.writeStartElement(URI2, "leaf2");
+        sw.writeAttribute(URI2, "attr2", "<value>");
+        sw.writeEndElement();
+        sw.writeEndElement();
+        sw.writeEndDocument();
+        sw.close();
+
+        Element root = doc.getDocumentElement();
+
+        //System.err.println("DOC -> "+((org.w3c.dom.ls.DOMImplementationLS) doc.getImplementation()).createLSSerializer().writeToString(doc));
+
+        assertNotNull(root);
+        assertEquals("root", root.getLocalName());
+        assertEquals(URI1, root.getNamespaceURI());
+        NamedNodeMap attrs = root.getAttributes();
+        // 1 attribute, 1 ns decl:
+        assertEquals(2, attrs.getLength());
+        // interesting -- as per javadocs, must pass null for "no namespace"
+        assertEquals("x", root.getAttributeNS(null, "attr"));
+
+        Node child = root.getFirstChild();
+        assertNotNull(child);
+        assertEquals(Node.ELEMENT_NODE, child.getNodeType());
+        Element elem = (Element) child;
+        assertEquals("leaf", elem.getLocalName());
+        attrs = elem.getAttributes();
+        // 1 ns decl:
+        assertEquals(1, attrs.getLength());
+
+        child = child.getNextSibling();
+        assertNotNull(child);
+        assertEquals(Node.ELEMENT_NODE, child.getNodeType());
+        elem = (Element) child;
+        assertEquals("leaf2", elem.getLocalName());
+        attrs = elem.getAttributes();
+        /* At least 1 attribute, 1 ns decl; but depending on
+         * how writer chooses to do it, may be 2 ns decls. So...
+         */
+        int count = attrs.getLength();
+        if (count < 2 || count > 3) {
+            fail("Expected 2 or 3 attributes (including namespace declarations), got "+count);
+        }
+        assertEquals("<value>", elem.getAttributeNS(URI2, "attr2"));
     }
 
     /*
