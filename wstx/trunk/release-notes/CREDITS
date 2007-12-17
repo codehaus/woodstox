@@ -246,6 +246,10 @@ Frank Baxter:
     the problem: Character offsets (for XMLStreamReader.getLocation())
     were sometimes decremented
     [3.1.1]
+  * Reported [WSTX-141], supplied test case demonstrate it:
+    Copying of CDATA events using XMLEventWriter was producing
+    garbled output.
+    [3.2.4/3.9.1]
 
 Davanum Srinivas:
   * Reported [WSTX-90], submitted a patch (used as the guideline for
