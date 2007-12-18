@@ -1,7 +1,9 @@
 package com.ctc.wstx.dom;
 
+import java.text.MessageFormat;
 import java.util.*;
 
+import javax.xml.XMLConstants;
 import javax.xml.namespace.*;
 import javax.xml.stream.*;
 import javax.xml.transform.dom.DOMResult;
@@ -17,7 +19,15 @@ import org.codehaus.stax2.validation.XMLValidator;
 
 import com.ctc.wstx.api.WriterConfig;
 import com.ctc.wstx.api.WstxOutputProperties;
+import com.ctc.wstx.cfg.ErrorConsts;
+import com.ctc.wstx.sw.OutputElementBase;
+import com.ctc.wstx.util.DefaultXmlSymbolTable;
 import com.ctc.wstx.util.EmptyNamespaceContext;
+
+/* TODO:
+ *
+ * - validator interface implementation
+ */
 
 /**
  * This is an adapter class that allows building a DOM tree using
@@ -36,6 +46,19 @@ import com.ctc.wstx.util.EmptyNamespaceContext;
 public class DOMWrappingWriter
     implements XMLStreamWriter2
 {
+    /*
+    ////////////////////////////////////////////////////
+    // Constants
+    ////////////////////////////////////////////////////
+     */
+
+    final protected static String sPrefixXml = DefaultXmlSymbolTable.getXmlSymbol();
+
+    final protected static String sPrefixXmlns = DefaultXmlSymbolTable.getXmlnsSymbol();
+
+    final protected static String ERR_NSDECL_WRONG_STATE =
+        "Trying to write a namespace declaration when there is no open start element.";
+
     /*
     ////////////////////////////////////////////////////
     // Configuration
@@ -77,23 +100,51 @@ public class DOMWrappingWriter
      * This element is the current context element, under which
      * all other nodes are added, until matching end element
      * is output. Null outside of the main element tree.
+     *<p>
+     * Note: explicit empty element (written using
+     * <code>writeEmptyElement</code>) will never become
+     * current element.
      */
-    protected Element mParentElem;
+    protected DOMOutputElement mCurrElem;
 
     /**
      * This element is non-null right after a call to
      * either <code>writeStartElement</code> and
      * <code>writeEmptyElement</code>, and can be used to
      * add attributes and namespace declarations.
+     *<p>
+     * Note: while this is often the same as {@link #mCurrElem},
+     * it's not always. Specifically, an empty element (written
+     * explicitly using <code>writeEmptyElement</code>) will
+     * become open element but NOT current element. Conversely,
+     * regular elements will remain current element when
+     * non elements are written (text, comments, PI), but
+     * not the open element.
      */
-    protected Element mOpenElement;
+    protected DOMOutputElement mOpenElement;
+
+    /**
+     *  for NsRepairing mode
+     */
+    protected int[] mAutoNsSeq;
+    protected String mSuggestedDefNs = null;
+    protected String mAutomaticNsPrefix;
+
+    /**
+     * Map that contains URI-to-prefix entries that point out suggested
+     * prefixes for URIs. These are populated by calls to
+     * {@link #setPrefix}, and they are only used as hints for binding;
+     * if there are conflicts, repairing writer can just use some other
+     * prefix.
+     */
+    HashMap mSuggestedPrefixes = null;
 
     /*
     ////////////////////////////////////////////////////
     // Life-cycle
     ////////////////////////////////////////////////////
      */
-
+    
     private DOMWrappingWriter(WriterConfig cfg, Node treeRoot)
         throws XMLStreamException
     {
@@ -103,16 +154,11 @@ public class DOMWrappingWriter
         mConfig = cfg;
         mNsAware = cfg.willSupportNamespaces();
         mNsRepairing = mNsAware && cfg.automaticNamespacesEnabled();
-
-        /* 15-Sep-2007, TSa: Repairing mode not yet supported, so better
-         *   signal that right away
-         */
-        if (mNsRepairing) {
-            throw new XMLStreamException("Repairing mode not (yet) supported with DOM-backed writer");
-        }
+        mAutoNsSeq = null;
+        mAutomaticNsPrefix = mNsRepairing ? mConfig.getAutomaticNsPrefix() : null;
 
         Element elem = null;
-        
+
         /* Ok; we need a document node; or an element node; or a document
          * fragment node.
          */
@@ -141,7 +187,12 @@ public class DOMWrappingWriter
         if (mDocument == null) {
             throw new XMLStreamException("Can not create an XMLStreamWriter for given node (of type "+treeRoot.getClass()+"): did not have owner document");
         }
-        mParentElem = mOpenElement = elem;
+        mCurrElem = DOMOutputElement.createRoot();
+        if(elem == null) {
+            mOpenElement = null;
+        } else {
+            mOpenElement = mCurrElem = mCurrElem.createChild(elem);
+        }
     }
 
     public static DOMWrappingWriter createFrom(WriterConfig cfg, DOMResult dst)
@@ -160,7 +211,7 @@ public class DOMWrappingWriter
     public void close() {
         // NOP
     }
-    
+
     public void flush() {
         // NOP
     }
@@ -170,8 +221,7 @@ public class DOMWrappingWriter
         if (!mNsAware) {
             return EmptyNamespaceContext.getInstance();
         }
-        // !!! TBI: 
-        return mNsContext;
+        return mCurrElem;
     }
 
     public String getPrefix(String uri)
@@ -179,37 +229,85 @@ public class DOMWrappingWriter
         if (!mNsAware) {
             return null;
         }
-        // !!! TBI: 
-        return null;
+        if (mNsContext != null) {
+            String prefix = mNsContext.getPrefix(uri);
+            if (prefix != null) {
+                return prefix;
+            }
+        }
+        return mCurrElem.getPrefix(uri);
     }
 
     public Object getProperty(String name) {
-        // !!! TBI
-        return null;
+        return mConfig.getProperty(name);
     }
 
     public void setDefaultNamespace(String uri) {
-        // !!! TBI
+        mSuggestedDefNs = (uri == null || uri.length() == 0) ? null : uri;
     }
 
     public void setNamespaceContext(NamespaceContext context) {
         mNsContext = context;
     }
 
-    public void setPrefix(String prefix, String uri) {
-        // !!! TBI
+    public void setPrefix(String prefix, String uri)
+        throws XMLStreamException
+    {
+        if (prefix == null) {
+            throw new NullPointerException("Can not pass null 'prefix' value");
+        }
+        // Are we actually trying to set the default namespace?
+        if (prefix.length() == 0) {
+            setDefaultNamespace(uri);
+            return;
+        }
+        if (uri == null) {
+            throw new NullPointerException("Can not pass null 'uri' value");
+        }
+
+        /* Let's verify that xml/xmlns are never (mis)declared; as
+         * mandated by XML NS specification
+         */
+        {
+            if (prefix.equals(sPrefixXml)) { // prefix "xml"
+                if (!uri.equals(XMLConstants.XML_NS_URI)) {
+                    throwOutputError(ErrorConsts.ERR_NS_REDECL_XML, uri);
+                }
+            } else if (prefix.equals(sPrefixXmlns)) { // prefix "xmlns"
+                if (!uri.equals(XMLConstants.XMLNS_ATTRIBUTE_NS_URI)) {
+                    throwOutputError(ErrorConsts.ERR_NS_REDECL_XMLNS, uri);
+                }
+            } else {
+                // Neither of prefixes.. but how about URIs?
+                if (uri.equals(XMLConstants.XML_NS_URI)) {
+                    throwOutputError(ErrorConsts.ERR_NS_REDECL_XML_URI, prefix);
+                } else if (uri.equals(XMLConstants.XMLNS_ATTRIBUTE_NS_URI)) {
+                    throwOutputError(ErrorConsts.ERR_NS_REDECL_XMLNS_URI, prefix);
+                }
+            }
+        }
+
+        if (mSuggestedPrefixes == null) {
+            mSuggestedPrefixes = new HashMap(16);
+        }
+        mSuggestedPrefixes.put(uri, prefix);
+
     }
 
     public void writeAttribute(String localName, String value)
+        throws XMLStreamException
     {
         outputAttribute(null, null, localName, value);
     }
 
-    public void writeAttribute(String nsURI, String localName, String value) {
+    public void writeAttribute(String nsURI, String localName, String value)
+        throws XMLStreamException
+    {
         outputAttribute(nsURI, null, localName, value);
     }
 
     public void writeAttribute(String prefix, String nsURI, String localName, String value)
+        throws XMLStreamException
     {
         outputAttribute(nsURI, prefix, localName, value);
     }
@@ -222,7 +320,7 @@ public class DOMWrappingWriter
     {
         writeCharacters(new String(text, start, len));
     }
-    
+
     public void writeCharacters(String text) {
         appendLeaf(mDocument.createTextNode(text));
     }
@@ -233,7 +331,11 @@ public class DOMWrappingWriter
 
     public void writeDefaultNamespace(String nsURI)
     {
-        writeNamespace(null, nsURI);
+        if (mOpenElement == null) {
+            throw new IllegalStateException("No currently open START_ELEMENT, cannot write attribute");
+        }
+        setDefaultNamespace(nsURI);
+        mOpenElement.addAttribute(XMLConstants.XMLNS_ATTRIBUTE_NS_URI, "xmlns", nsURI);
     }
 
     public void writeDTD(String dtd)
@@ -242,64 +344,62 @@ public class DOMWrappingWriter
         reportUnsupported("writeDTD()");
     }
 
-    public void writeEmptyElement(String localName) {
+    public void writeEmptyElement(String localName)
+        throws XMLStreamException
+    {
         writeEmptyElement(null, localName);
     }
 
     public void writeEmptyElement(String nsURI, String localName)
+        throws XMLStreamException
     {
+        // First things first: must 
+
         /* Note: can not just call writeStartElement(), since this
          * element will only become the open elem, but not a parent elem
          */
         createStartElem(nsURI, null, localName, true);
     }
 
-    public void writeEmptyElement(String prefix, String localName, String nsURI)
+    public void writeEmptyElement(String prefix, String localName, String nsURI)  
+        throws XMLStreamException
     {
+        if (prefix == null) { // passing null would mean "dont care", if repairing
+            prefix = "";
+        }
         createStartElem(nsURI, prefix, localName, true);
     }
 
     public void writeEndDocument()
     {
-        mParentElem = mOpenElement = null;
+        mCurrElem = mOpenElement = null;
     }
 
     public void writeEndElement()
     {
         // Simple, just need to traverse up... if we can
-        if (mParentElem == null) {
+        if (mCurrElem == null || mCurrElem.isRoot()) {
             throw new IllegalStateException("No open start element to close");
         }
         mOpenElement = null; // just in case it was open
-        Node parent = mParentElem.getParentNode();
-        mParentElem = (parent == mDocument) ? null : (Element) parent;
+        mCurrElem = mCurrElem.getParent();
     }
 
     public void writeEntityRef(String name) {
         appendLeaf(mDocument.createEntityReference(name));
     }
 
-    public void writeNamespace(String prefix, String nsURI)
+    public void writeNamespace(String prefix, String nsURI) throws XMLStreamException
     {
-        boolean defNS = (prefix == null || prefix.length() == 0);
-
-        if (!mNsAware) {
-            if (defNS) {
-                outputAttribute(null, null, "xmlns", nsURI);
-            } else {
-                outputAttribute(null, "xmlns", prefix, nsURI);
-            }
-        } else {
-            // !!! TBI
-            /* For now, let's output it (in non-repairing ns-aware
-             * mode), but not keep track of bindings.
-             */
-            if (defNS) {
-                outputAttribute(null, null, "xmlns", nsURI);
-            } else {
-                outputAttribute(null, "xmlns", prefix, nsURI);
-            }
+        if (prefix == null || prefix.length() == 0) {
+            writeDefaultNamespace(nsURI);
+            return;
         }
+        if (!mNsAware) {
+            throwOutputError("Can not set write namespaces with non-namespace writer.");
+        }
+        outputAttribute(XMLConstants.XMLNS_ATTRIBUTE_NS_URI, null, prefix, nsURI);
+        mCurrElem.addPrefix(prefix, nsURI);
     }
 
     public void writeProcessingInstruction(String target) {
@@ -326,7 +426,7 @@ public class DOMWrappingWriter
     public void writeStartDocument()
     {
         writeStartDocument(WstxOutputProperties.DEFAULT_OUTPUT_ENCODING,
-                           WstxOutputProperties.DEFAULT_XML_VERSION);
+                WstxOutputProperties.DEFAULT_XML_VERSION);
     }
 
     public void writeStartDocument(String version)
@@ -340,16 +440,20 @@ public class DOMWrappingWriter
         mEncoding = encoding;
     }
 
-    public void writeStartElement(String localName) {
+    public void writeStartElement(String localName)
+        throws XMLStreamException
+    {
         writeStartElement(null, localName);
     }
 
     public void writeStartElement(String nsURI, String localName)
+        throws XMLStreamException
     {
         createStartElem(nsURI, null, localName, false);
     }
 
-    public void writeStartElement(String prefix, String localName, String nsURI)
+    public void writeStartElement(String prefix, String localName, String nsURI) 
+        throws XMLStreamException
     {
         createStartElem(nsURI, prefix, localName, false);
     }
@@ -397,11 +501,12 @@ public class DOMWrappingWriter
 
     public ValidationProblemHandler setValidationProblemHandler(ValidationProblemHandler h)
     {
-        // Not implemented by the basic reader
+        // !!! TBI
         return null;
     }
 
     public XMLStreamLocation2 getLocation() {
+        // !!! TBI
         return null;
     }
 
@@ -422,7 +527,7 @@ public class DOMWrappingWriter
         /* Alas: although we can create a DocumentType object, there
          * doesn't seem to be a way to attach it in DOM-2!
          */
-        if (mParentElem != null) {
+        if (mCurrElem != null) {
             throw new IllegalStateException("Operation only allowed to the document before adding root element");
         }
         reportUnsupported("writeDTD()");
@@ -440,12 +545,12 @@ public class DOMWrappingWriter
     {
         writeStartDocument(encoding, version);
     }
-    
+
     /*
     ///////////////////////////////
     // Stax2, pass-through methods
     ///////////////////////////////
-    */
+     */
 
     public void writeRaw(String text)
         throws XMLStreamException
@@ -475,50 +580,94 @@ public class DOMWrappingWriter
     ///////////////////////////////
     // Internal methods
     ///////////////////////////////
-    */
+     */
 
     protected void appendLeaf(Node n)
         throws IllegalStateException
     {
-        if (mParentElem == null) { // to add to document
-            mDocument.appendChild(n);
-        } else {
-            // Will also close the open element, if any
-            mOpenElement = null;
-            mParentElem.appendChild(n);
-        }
+        mCurrElem.appendNode(n);
+        mOpenElement = null;
     }
 
+    /* Note: copied from regular RepairingNsStreamWriter#writeStartOrEmpty
+     * (and its non-repairing counterpart)
+     */
     protected void createStartElem(String nsURI, String prefix, String localName, boolean isEmpty)
+        throws XMLStreamException
     {
-        Element elem;
+        DOMOutputElement elem;
 
-        if (mNsAware) {
+        if (!mNsAware) {
+            if(nsURI != null && nsURI.length() > 0) {
+                throwOutputError("Can not specify non-empty uri/prefix in non-namespace mode");
+            }
+            elem =  mCurrElem.createChild(mDocument.createElement(localName));
+        } else {
             if (mNsRepairing) {
-                /* Need to ensure proper bindings... ugh.
-                 * May change prefix
+                String actPrefix = validateElemPrefix(prefix, nsURI, mCurrElem);
+                if(actPrefix != null && actPrefix.length() != 0) {// fine, an existing binding we can use:
+                    elem = mCurrElem.createChild(mDocument.createElementNS(nsURI, actPrefix+":"+localName));
+                } else { // nah, need to create a new binding...
+                    /* Need to ensure that we'll pass "" as prefix, not null,
+                     * so it is understood as "I want to use the default NS",
+                     * not as "whatever prefix, I don't care"
+                     */
+                    if (prefix == null) {
+                        prefix = "";
+                    }
+                    actPrefix = generateElemPrefix(prefix, nsURI, mCurrElem);
+                    boolean hasPrefix = (actPrefix.length() != 0);
+                    if (hasPrefix) {
+                        localName = actPrefix + ":" + localName;
+                    }
+                    elem = mCurrElem.createChild(mDocument.createElementNS(nsURI, localName));
+                    /* Hmmh. writeNamespace method requires open element
+                     * to be defined. So we'll need to set it first
+                     * (will be set again at a later point -- would be
+                     * good to refactor this method into separate
+                     * sub-classes or so)
+                     */
+                    mOpenElement = elem;
+                    // Need to add new ns declaration as well
+                    if (hasPrefix) {
+                        writeNamespace(actPrefix, nsURI);
+                        elem.addPrefix(actPrefix, nsURI);
+                    } else {
+                        writeDefaultNamespace(nsURI);
+                        elem.setDefaultNsUri(nsURI);
+                    }
+                }
+            } else {
+                /* Non-repairing; if non-null prefix (including "" to
+                 * indicate "no prefix") passed, use as is, otherwise
+                 * try to locate the prefix
                  */
-                // !!! TBI
+                if (prefix == null) {
+                    if (nsURI == null) {
+                        nsURI = "";
+                    }
+                    prefix = (mSuggestedPrefixes == null) ? null : (String) mSuggestedPrefixes.get(nsURI);
+                    if (prefix == null) {
+                        throwOutputError("Can not find prefix for namespace \""+nsURI+"\"");
+                    }
+                }
+                if (prefix.length() != 0) {
+                    localName = prefix + ":" +localName;
+                }
+                elem = mCurrElem.createChild(mDocument.createElementNS(nsURI, localName));
             }
-            if (prefix != null && prefix.length() > 0) {
-                localName = prefix + ":" + localName;
-            }
-            elem = mDocument.createElementNS(nsURI, localName);
-        } else { // non-ns, simple
-            if (prefix != null && prefix.length() > 0) {
-                localName = prefix + ":" + localName;
-            }
-            elem = mDocument.createElement(localName);
         }
-
-        appendLeaf(elem);
+        /* Got the element; need to make it the open element, and
+         * if it's not an (explicit) empty element, current element as well
+         */
         mOpenElement = elem;
         if (!isEmpty) {
-            mParentElem = elem;
+            mCurrElem = elem;
         }
     }
 
     protected void outputAttribute(String nsURI, String prefix, String localName, String value)
+        throws XMLStreamException
     {
         if (mOpenElement == null) {
             throw new IllegalStateException("No currently open START_ELEMENT, cannot write attribute");
@@ -526,25 +675,235 @@ public class DOMWrappingWriter
 
         if (mNsAware) {
             if (mNsRepairing) {
-                /* Need to ensure proper bindings... ugh.
-                 * May change prefix
-                 */
-                // !!! TBI
+                prefix = findOrCreateAttrPrefix(prefix, nsURI, mOpenElement);
             }
             if (prefix != null && prefix.length() > 0) {
                 localName = prefix + ":" + localName;
             }
-            mOpenElement.setAttributeNS(nsURI, localName, value);
+            mOpenElement.addAttribute(nsURI, localName, value);
         } else { // non-ns, simple
             if (prefix != null && prefix.length() > 0) {
                 localName = prefix + ":" + localName;
             }
-            mOpenElement.setAttribute(localName, value);
+            mOpenElement.addAttribute(localName, value);
         }
     }
 
     private void reportUnsupported(String operName)
     {
         throw new UnsupportedOperationException(operName+" can not be used with DOM-backed writer");
+    }
+
+    private final String validateElemPrefix(String prefix, String nsURI,
+                                            DOMOutputElement elem)
+        throws XMLStreamException
+    {
+        /* 06-Feb-2005, TSa: Special care needs to be taken for the
+         *   "empty" (or missing) namespace:
+         *   (see comments from findOrCreatePrefix())
+         */
+        if (nsURI == null || nsURI.length() == 0) {
+            String currURL = elem.getDefaultNsUri();
+            if (currURL == null || currURL.length() == 0) {
+                // Ok, good:
+                return "";
+            }
+            // Nope, needs to be re-bound:
+            return null;
+        }
+
+        int status = elem.isPrefixValid(prefix, nsURI, true);
+        if (status == DOMOutputElement.PREFIX_OK) {
+            return prefix;
+        }
+        return null;
+    }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Internal methods
+    ////////////////////////////////////////////////////
+     */
+
+    /**
+     * Method called to find an existing prefix for the given namespace,
+     * if any exists in the scope. If one is found, it's returned (including
+     * "" for the current default namespace); if not, null is returned.
+     *
+     * @param nsURI URI of namespace for which we need a prefix
+     */
+    protected final String findElemPrefix(String nsURI, DOMOutputElement elem)
+        throws XMLStreamException
+    {
+        /* Special case: empty NS URI can only be bound to the empty
+         * prefix...
+         */
+        if (nsURI == null || nsURI.length() == 0) {
+            String currDefNsURI = elem.getDefaultNsUri();
+            if (currDefNsURI != null && currDefNsURI.length() > 0) {
+                // Nope; won't do... has to be re-bound, but not here:
+                return null;
+            }
+            return "";
+        }
+        return mCurrElem.getPrefix(nsURI);
+    }
+    
+    
+    /**
+     * Method called after {@link #findElemPrefix} has returned null,
+     * to create and bind a namespace mapping for specified namespace.
+     */
+    protected final String generateElemPrefix(String suggPrefix, String nsURI,
+                                              DOMOutputElement elem)
+        throws XMLStreamException
+    {
+        /* Ok... now, since we do not have an existing mapping, let's
+         * see if we have a preferred prefix to use.
+         */
+        /* Except if we need the empty namespace... that can only be
+         * bound to the empty prefix:
+         */
+        if (nsURI == null || nsURI.length() == 0) {
+            return "";
+        }
+
+        /* Ok; with elements this is easy: the preferred prefix can
+         * ALWAYS be used, since it can mask preceding bindings:
+         */
+        if (suggPrefix == null) {
+            // caller wants this URI to map as the default namespace?
+            if (mSuggestedDefNs != null && mSuggestedDefNs.equals(nsURI)) {
+                suggPrefix = "";
+            } else {
+                suggPrefix = (mSuggestedPrefixes == null) ? null:
+                    (String) mSuggestedPrefixes.get(nsURI);
+                if (suggPrefix == null) {
+                    /* 16-Oct-2005, TSa: We have 2 choices here, essentially;
+                     *   could make elements always try to override the def
+                     *   ns... or can just generate new one. Let's do latter
+                     *   for now.
+                     */
+                    if (mAutoNsSeq == null) {
+                        mAutoNsSeq = new int[1];
+                        mAutoNsSeq[0] = 1;
+                    }
+                    suggPrefix = elem.generateMapping(mAutomaticNsPrefix, nsURI,
+                                                      mAutoNsSeq);
+                }
+            }
+        }
+
+        // Ok; let's let the caller deal with bindings
+        return suggPrefix;
+    }
+    
+    
+    /**
+     * Method called to somehow find a prefix for given namespace, to be
+     * used for a new start element; either use an existing one, or
+     * generate a new one. If a new mapping needs to be generated,
+     * it will also be automatically bound, and necessary namespace
+     * declaration output.
+     *
+     * @param suggPrefix Suggested prefix to bind, if any; may be null
+     *   to indicate "no preference"
+     * @param nsURI URI of namespace for which we need a prefix
+     * @param elem Currently open start element, on which the attribute
+     *   will be added.
+     */
+    protected final String findOrCreateAttrPrefix(String suggPrefix, String nsURI,
+                                                  DOMOutputElement elem)
+        throws XMLStreamException
+    {
+        if (nsURI == null || nsURI.length() == 0) {
+            /* Attributes never use the default namespace; missing
+             * prefix always leads to the empty ns... so nothing
+             * special is needed here.
+             */
+             return null;
+        }
+        // Maybe the suggested prefix is properly bound?
+        if (suggPrefix != null) {
+            int status = elem.isPrefixValid(suggPrefix, nsURI, false);
+            if (status == OutputElementBase.PREFIX_OK) {
+                return suggPrefix;
+            }
+            /* Otherwise, if the prefix is unbound, let's just bind
+             * it -- if caller specified a prefix, it probably prefers
+             * binding that prefix even if another prefix already existed?
+             * The remaining case (already bound to another URI) we don't
+             * want to touch, at least not yet: it may or not be safe
+             * to change binding, so let's just not try it.
+             */
+            if (status == OutputElementBase.PREFIX_UNBOUND) {
+                elem.addPrefix(suggPrefix, nsURI);
+                writeNamespace(suggPrefix, nsURI);
+                return suggPrefix;
+            }
+        }
+
+        // If not, perhaps there's another existing binding available?
+        String prefix = elem.getExplicitPrefix(nsURI);
+        if (prefix != null) { // already had a mapping for the URI... cool.
+            return prefix;
+        }
+
+        /* Nope, need to create one. First, let's see if there's a
+         * preference...
+         */
+        if (suggPrefix != null) {
+            prefix = suggPrefix;
+        } else if (mSuggestedPrefixes != null) {
+            prefix = (String) mSuggestedPrefixes.get(nsURI);
+            // note: def ns is never added to suggested prefix map
+        }
+
+        if (prefix != null) {
+            /* Can not use default namespace for attributes.
+             * Also, re-binding is tricky for attributes; can't
+             * re-bind anything that's bound on this scope... or
+             * used in this scope. So, to simplify life, let's not
+             * re-bind anything for attributes.
+             */
+            if (prefix.length() == 0
+                || (elem.getNamespaceURI(prefix) != null)) {
+                prefix = null;
+            }
+        }
+
+        if (prefix == null) {
+            if (mAutoNsSeq == null) {
+                mAutoNsSeq = new int[1];
+                mAutoNsSeq[0] = 1;
+            }
+            prefix = mCurrElem.generateMapping(mAutomaticNsPrefix, nsURI,
+                                               mAutoNsSeq);
+        }
+
+        // Ok; so far so good: let's now bind and output the namespace:
+        elem.addPrefix(prefix, nsURI);
+        writeNamespace(prefix, nsURI);
+        return prefix;
+    }
+    
+    
+    /*
+    ////////////////////////////////////////////////////
+    // Package methods, basic output problem reporting
+    ////////////////////////////////////////////////////
+     */
+
+    protected static void throwOutputError(String msg)
+        throws XMLStreamException
+    {
+        throw new XMLStreamException(msg);
+    }
+
+    protected static void throwOutputError(String format, Object arg)
+        throws XMLStreamException
+    {
+        String msg = MessageFormat.format(format, new Object[] { arg });
+        throwOutputError(msg);
     }
 }
