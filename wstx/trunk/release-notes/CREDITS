@@ -321,3 +321,8 @@ Yoon-Je Choi:
   * Reported [WSTX-135]: Repairing stream writer was associating namespace
     bindings with parent element, pointed out solution.
    [3.2.3 / 4.0]
+
+Matt Gormley:
+  * Reported [WSTX-143], bug in handling of DEL char in UTF8Reader,
+    suggested fix, submitted unit test.
+   [3.2.4 / 4.0]

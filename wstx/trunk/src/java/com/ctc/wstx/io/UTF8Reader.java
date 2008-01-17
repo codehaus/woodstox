@@ -164,6 +164,9 @@ public final class UTF8Reader
                         reportInvalidXml11(c, bytePos, charPos);
                     } // but not in xml 1.0
                     cbuf[outPtr++] = (char) c;
+                    if(inPtr >= inEnd){
+                    	break main_loop;
+                    }
                     continue main_loop;
                 }
             }

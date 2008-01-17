@@ -1,17 +1,18 @@
 Version: 3.2.4
 
-Release date: xx-Dec-2007
+Release date: xx-Jan-2008
 
 Description:
   Fourth patch release for 3.2.
-
-  Improvements:
 
   Problems fixed:
 
   * [WSTX-141]: Copying of CDATA events, using XMLEventWriter, was
     producing garbled output.
     (reported by Frank B) 
+  * [WSTX-143]: UTF8Reader had a bug in handling of DEL (127) character
+    at buffer boundary.
+    (report by Matt G)
 
 == History: ==
 
