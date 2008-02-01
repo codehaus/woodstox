@@ -5,8 +5,11 @@ import java.util.*;
 import javax.xml.namespace.QName;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.stream.*;
-import javax.xml.stream.events.XMLEvent;
+import javax.xml.stream.events.DTD;
 import javax.xml.stream.events.EntityDeclaration;
+import javax.xml.stream.events.EntityReference;
+import javax.xml.stream.events.StartElement;
+import javax.xml.stream.events.XMLEvent;
 import javax.xml.stream.util.XMLEventAllocator;
 import javax.xml.stream.util.XMLEventConsumer;
 
@@ -111,7 +114,7 @@ public class Stax2EventAllocatorImpl
         return r.getLocation();
     }
 
-    protected XMLEvent createEntityReference(XMLStreamReader r, Location loc)
+    protected EntityReference createEntityReference(XMLStreamReader r, Location loc)
         throws XMLStreamException
     {
         /* !!! 28-Jan-2007, TSA: One major problem here: there is no way
@@ -123,7 +126,7 @@ public class Stax2EventAllocatorImpl
         return new EntityReferenceEventImpl(loc, r.getLocalName());
     }
 
-    protected XMLEvent createDTD(XMLStreamReader r, Location loc)
+    protected DTD createDTD(XMLStreamReader r, Location loc)
         throws XMLStreamException
     {
         // Not sure if we really need this defensive coding but...
@@ -144,7 +147,7 @@ public class Stax2EventAllocatorImpl
         return new DTDEventImpl(loc, null, r.getText());
     }
 
-    protected XMLEvent createStartElement(XMLStreamReader r, Location loc)
+    protected StartElement createStartElement(XMLStreamReader r, Location loc)
         throws XMLStreamException
     {
         NamespaceContext nsCtxt = null;
