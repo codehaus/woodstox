@@ -3,7 +3,8 @@ package org.codehaus.stax2.typed;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import javax.xml.namespace.QName;
-import javax.xml.datatype.XMLGregorianCalendar;
+// !!! 30-Jan-2008, TSa: JDK 1.5 only -- is that ok?
+//import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
  * This interface provides a typed extension to 
@@ -86,10 +87,11 @@ public interface TypedXMLStreamReader {
      */
     QName getElementAsQName() throws TypedXMLStreamException;
     
+    // !!! 30-Jan-2008, TSa: JDK 1.5 only -- is that ok?
     /**
      * <p><i>[TODO] </i>
      */
-    XMLGregorianCalendar getElementAsCalendar() throws TypedXMLStreamException;
+    //XMLGregorianCalendar getElementAsCalendar() throws TypedXMLStreamException;
     
     /**
      * <p>Read an element content as a byte array. The lexical
@@ -279,10 +281,11 @@ public interface TypedXMLStreamReader {
      */
     QName getAttributeAsQName(int index) throws TypedXMLStreamException;
     
+    // !!! 30-Jan-2008, TSa: JDK 1.5 only -- is that ok?
     /**
      * <p><i>[TODO] </i>
      */
-    XMLGregorianCalendar getAttributeAsCalendar(int index) throws TypedXMLStreamException;
+    //XMLGregorianCalendar getAttributeAsCalendar(int index) throws TypedXMLStreamException;
     
     /**
      * <p>Read an attribute value as a byte array. The lexical

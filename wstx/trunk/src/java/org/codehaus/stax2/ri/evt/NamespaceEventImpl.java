@@ -29,7 +29,7 @@ public class NamespaceEventImpl
      */
     protected NamespaceEventImpl(Location loc, String nsURI)
     {
-        super(loc, XMLConstants.XML_NS_PREFIX, XMLConstants.XMLNS_ATTRIBUTE_NS_URI,
+        super(loc, XMLConstants.XMLNS_ATTRIBUTE, XMLConstants.XMLNS_ATTRIBUTE_NS_URI,
               null,
               nsURI, true);
         mPrefix = "";

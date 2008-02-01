@@ -2,7 +2,8 @@ package org.codehaus.stax2.typed;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import javax.xml.datatype.XMLGregorianCalendar;
+// !!! 30-Jan-2008, TSa: JDK 1.5 only -- is that ok?
+//import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 /**
@@ -69,11 +70,11 @@ public interface TypedXMLStreamWriter {
      */
     void writeQName(QName value) throws TypedXMLStreamException;
     
+    // !!! 30-Jan-2008, TSa: JDK 1.5 only -- is that ok?
     /**
      * <p><i>[TODO] </i>
      */
-    void writeCalendar(XMLGregorianCalendar value)
-        throws TypedXMLStreamException;
+    //void writeCalendar(XMLGregorianCalendar value) throws TypedXMLStreamException;
     
     /**
      * <p>Write a byte array to the output. The lexical
@@ -205,12 +206,11 @@ public interface TypedXMLStreamWriter {
     void writeQNameAttribute(String prefix, String namespaceURI, 
         String localName, QName value) throws TypedXMLStreamException;
 
+    // !!! 30-Jan-2008, TSa: JDK 1.5 only -- is that ok?
     /**
      * <p><i>[TODO] </i>
      */
-    void writeCalendarAttribute(String prefix, String namespaceURI, 
-        String localName, XMLGregorianCalendar value) 
-        throws TypedXMLStreamException;
+    //void writeCalendarAttribute(String prefix, String namespaceURI, String localName, XMLGregorianCalendar value)  throws TypedXMLStreamException;
         
     /**
      * <p>Write a byte array attribute. The lexical
