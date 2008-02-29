@@ -6,36 +6,31 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamReader;
 
-//import com.ctc.wstx.api.WstxInputProperties;
+import org.codehaus.stax2.io.*;
 
-public class TestWoolPerf
+public class TestAaltoBytePerf
     extends BasePerfTest
 {
-    protected TestWoolPerf() {
-        super();
-    }
+    private TestAaltoBytePerf() { }
 
     protected XMLInputFactory getFactory()
     {
         System.setProperty("javax.xml.stream.XMLInputFactory",
-                           "org.codehaus.wool.stax.WoolInputFactory");
+                           "org.codehaus.wool.stax.InputFactoryImpl");
         XMLInputFactory f =  XMLInputFactory.newInstance();
         return f;
     }
 
-    // To test Char/Reader based parsing, uncomment:
-    /*
     protected int testExec(byte[] data, String path) throws Exception
     {
-        Reader r = new InputStreamReader(new ByteArrayInputStream(data), "UTF-8");
-        XMLStreamReader sr = mFactory.createXMLStreamReader(r);
+        Stax2ByteArraySource src = new Stax2ByteArraySource(data, 0, data.length);
+        XMLStreamReader sr = mFactory.createXMLStreamReader(src);
         int ret = testExec2(sr);
         return ret;
     }
-    */
 
     public static void main(String[] args) throws Exception
     {
-        new TestWoolPerf().test(args);
+        new TestAaltoBytePerf().test(args);
     }
 }
