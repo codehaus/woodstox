@@ -75,7 +75,11 @@ abstract class BasePerfTest
     protected int testExec(byte[] data, String path) throws Exception
     {
         InputStream in = new ByteArrayInputStream(data);
+
+        // !!! TEST: whether to reuse factory or not:
         XMLStreamReader sr = mFactory.createXMLStreamReader(path, in);
+        //XMLStreamReader sr = getFactory().createXMLStreamReader(path, in);
+
         int ret = testExec2(sr);
         in.close();
         return ret;

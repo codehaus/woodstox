@@ -17,10 +17,12 @@ public class TestAaltoPerf
 
     protected XMLInputFactory getFactory()
     {
-        System.setProperty("javax.xml.stream.XMLInputFactory",
-                           "org.codehaus.wool.stax.InputFactoryImpl");
-        XMLInputFactory f =  XMLInputFactory.newInstance();
-        return f;
+        try {
+            Class cls = Class.forName("org.codehaus.wool.stax.InputFactoryImpl");
+            return (XMLInputFactory) cls.newInstance();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     // To test Char/Reader based parsing, uncomment:
