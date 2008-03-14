@@ -27,6 +27,33 @@ public interface XmlConsts
     public final static String XML_SA_YES = "yes";
     public final static String XML_SA_NO = "no";
 
+    // // // Stax specs mandates some settings: but since exact
+    // // // definitions have been re-interpreted a few times,
+    // // // let's isolate them in a single place
+
+    /* 13-Mar-2008, TSa: As per latest reading of Stax specs,
+     *   all of these are expected to be "", not null.
+     */
+
+    public final static String ELEM_NO_NS_URI = "";
+
+    public final static String ATTR_NO_NS_URI = "";
+
+    public final static String ELEM_NO_PREFIX = "";
+
+    public final static String ATTR_NO_PREFIX = "";
+
+    /**
+     * Top-most namespace URI assigned for root element, if not specifically
+     * defined (default namespace unbound).
+     *<p>
+     * As per Stax specs, related clarifying discussion on
+     * the mailing list, and especially JDK 1.6 definitions
+     * in {@link XMLConstants} constants, <b>empty String</b>
+     * should be used instead of null.
+     */
+    public final static String DEFAULT_NAMESPACE_URI = ELEM_NO_NS_URI;
+
     // // // Well, these are not strictly xml constants, but for
     // // // now can live here
 

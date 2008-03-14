@@ -2,6 +2,8 @@ package com.ctc.wstx.api;
 
 import javax.xml.stream.XMLResolver;
 
+import org.codehaus.stax2.XMLInputFactory2;
+
 /**
  * Class that contains constant for property names used to configure
  * cursor and event readers produced by Wstx implementation of
@@ -72,7 +74,28 @@ public final class WstxInputProperties
 
     // // // Enabling/disabling lazy/incomplete parsing
 
-    public final static String P_LAZY_PARSING = "com.ctc.wstx.lazyParsing";
+    /**
+     * Whether stream readers are allowed to do lazy parsing, meaning
+     * to parse minimal part of the event when
+     * {@link javax.xml.stream.XMLStreamReader#next} is called, and only parse the rest
+     * as needed (or skip remainder of no extra information is needed).
+     * Alternative to lazy parsing is called "eager parsing", and is
+     * what most xml parsers use by default.
+     *<p>
+     * Enabling lazy parsing can improve performance for tasks where
+     * number of textual events are skipped. The downside is that
+     * not all well-formedness problems are reported when
+     * {@link javax.xml.stream.XMLStreamReader#next} is called, but only when the
+     * rest of event are read or skipped.
+     *<p>
+     * Default value for Woodstox is such that lazy parsing is
+     * enabled.
+     *
+     * @deprecated As of Woodstox 4.0 use
+     *  {@link XMLInputFactory2#P_LAZY_PARSING} instead (from
+     *  Stax2 extension API, v3.0)
+     */
+    public final static String P_LAZY_PARSING = XMLInputFactory2.P_LAZY_PARSING;
 
 
     // // // Enabling/disabling support for dtd++
@@ -122,15 +145,15 @@ public final class WstxInputProperties
     // // // Entity handling
 
     /**
-     * @deprecated This feature may be remove from future versions of
-     *   Woodstox, since the same functionality can be achieved by using
-     *   custom entity resolvers.
-     *<p>
      * Property of type {@link java.util.Map}, that defines explicit set of
      * internal (generic) entities that will define of override any entities
      * defined in internal or external subsets; except for the 5 pre-defined
      * entities (lt, gt, amp, apos, quot). Can be used to explicitly define
      * entites that would normally come from a DTD.
+     *<p>
+     * @deprecated This feature may be removed from future versions of
+     *   Woodstox, since the same functionality can be achieved by using
+     *   custom entity resolvers.
      */
     public final static String P_CUSTOM_INTERNAL_ENTITIES = "com.ctc.wstx.customInternalEntities";
 

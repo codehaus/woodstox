@@ -252,7 +252,7 @@ public final class ReaderConfig
                         DataUtil.Integer(PROP_CACHE_DTDS));
         sProperties.put(WstxInputProperties.P_CACHE_DTDS_BY_PUBLIC_ID,
                         DataUtil.Integer(PROP_CACHE_DTDS_BY_PUBLIC_ID));
-        sProperties.put(WstxInputProperties.P_LAZY_PARSING,
+        sProperties.put(XMLInputFactory2.P_LAZY_PARSING,
                         DataUtil.Integer(PROP_LAZY_PARSING));
         sProperties.put(WstxInputProperties.P_SUPPORT_DTDPP,
                         DataUtil.Integer(PROP_SUPPORT_DTDPP));
@@ -872,7 +872,7 @@ public final class ReaderConfig
      * In addition to the standard settings, following Woodstox-specific
      * settings are also done:
      *<ul>
-     *  <li>Disable <code>P_LAZY_PARSING</code> (to allow for synchronous
+     *  <li>Disable <code>XMLStreamFactory2.P_LAZY_PARSING</code> (to allow for synchronous
      *    error notification by forcing full XML events to be completely
      *    parsed when reader's <code>next() is called)
      * </li>
@@ -913,7 +913,7 @@ public final class ReaderConfig
      *<ul>
      * <li>Enable <code>P_CACHE_DTDS</code>.
      *  </li>
-     * <li>Enable <code>P_LAZY_PARSING</code> (can improve performance
+     * <li>Enable <code>XMLStremaFactory2.P_LAZY_PARSING</code> (can improve performance
      *   especially when skipping text segments)
      *  </li>
      * <li>Disable Xml:id uniqueness checks (and leave typing as is)
