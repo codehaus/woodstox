@@ -40,25 +40,6 @@ import com.ctc.wstx.util.WordResolver;
  */
 public abstract class AttributeCollector
 {
-    /* 09-Sep-2007, TSa: Since there have been so many changes to
-     *    speculations on what exactly should be returned as "no namespace"
-     *    and "no namespace" values, let's start refactoring these
-     *    to isolated definition(s).
-     */
-
-    /**
-     * Default URI that is returned in non-namespace mode for all elements
-     * and attributes.
-     */
-    protected final static String ATTR_NO_NAMESPACE_URI = "";
-
-    /**
-     * Value to return as indicator that the attribute has
-     * no prefix.
-     */
-    protected final static String ATTR_NO_PREFIX = null;
-
-
     /**
      * Threshold value that indicates minimum length for lists instances
      * that need a Map structure, for fast attribute access by fully-qualified

@@ -101,9 +101,6 @@ public abstract class OutputElementBase
 
     /**
      * Method called to reuse a pooled instance.
-     *
-     * @return Chained pooled instance that should now be head of the
-     *   reuse chain
      */
     protected void relink(OutputElementBase parent)
     {

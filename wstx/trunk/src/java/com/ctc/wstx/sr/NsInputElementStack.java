@@ -27,6 +27,7 @@ import org.codehaus.stax2.validation.XMLValidator;
 
 import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.cfg.ErrorConsts;
+import com.ctc.wstx.cfg.XmlConsts;
 import com.ctc.wstx.util.*;
 
 /**
@@ -46,17 +47,6 @@ import com.ctc.wstx.util.*;
 public final class NsInputElementStack
     extends InputElementStack
 {
-    /**
-     * Top-most namespace URI assigned for root element, if not specifically
-     * defined (default namespace unbound).
-     *<p>
-     * As per Stax specs, related clarifying discussion on
-     * the mailing list, and especially JDK 1.6 definitions
-     * in {@link XMLConstants} constants, <b>empty String</b>
-     * should be used instead of null.
-     */
-    final static String DEFAULT_NAMESPACE_URI = "";
-
     final static int IX_PREFIX = 0;
     final static int IX_LOCALNAME = 1;
     final static int IX_URI = 2;
@@ -181,7 +171,7 @@ public final class NsInputElementStack
         mElements[index+1] = localName;
 
         if (index == 0) { // root element
-            mElements[IX_DEFAULT_NS] = DEFAULT_NAMESPACE_URI;
+            mElements[IX_DEFAULT_NS] = XmlConsts.DEFAULT_NAMESPACE_URI;
         } else {
             // Let's just duplicate parent's default NS URI as baseline:
             mElements[index + IX_DEFAULT_NS] = mElements[index - (ENTRY_SIZE - IX_DEFAULT_NS)];
@@ -294,10 +284,10 @@ public final class NsInputElementStack
                          *    result in null being added:
                          */
                         if (nsUri == null || nsUri.length() == 0) {
-                            nsUri = DEFAULT_NAMESPACE_URI;
+                            nsUri = XmlConsts.DEFAULT_NAMESPACE_URI;
                         }
                         // The default ns binding needs special handling:
-                        if (prefix == null) {
+                        if (prefix == XmlConsts.ATTR_NO_PREFIX) {
                             mElements[mSize-(ENTRY_SIZE - IX_DEFAULT_NS)] = nsUri;
                         }
 
@@ -514,11 +504,9 @@ public final class NsInputElementStack
          * list of active namespaces. Note that we can not count on prefix
          * being interned/canonicalized.
          */
-        //String prefix = mNamespaces.findLastByValueNonInterned(nsURI);
         String prefix = null;
 
-        /* 29-Sep-2004, TSa: Need to check for namespace masking, too...
-         */
+        // 29-Sep-2004, TSa: Need to check for namespace masking, too...
         String[] strs = mNamespaces.getInternalArray();
         int len = mNamespaces.size();
 
@@ -557,10 +545,7 @@ public final class NsInputElementStack
             return new SingletonIterator(XMLConstants.XMLNS_ATTRIBUTE);
         }
 
-        //return mNamespaces.findAllByValueNonInterned(nsURI);
-
-        /* 29-Sep-2004, TSa: Need to check for namespace masking, too...
-         */
+        // 29-Sep-2004, TSa: Need to check for namespace masking, too...
         String[] strs = mNamespaces.getInternalArray();
         int len = mNamespaces.size();
         ArrayList l = null;

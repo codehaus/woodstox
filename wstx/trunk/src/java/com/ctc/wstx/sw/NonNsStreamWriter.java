@@ -34,6 +34,7 @@ import org.codehaus.stax2.validation.XMLValidator;
 
 import com.ctc.wstx.api.WriterConfig;
 import com.ctc.wstx.cfg.ErrorConsts;
+import com.ctc.wstx.cfg.XmlConsts;
 import com.ctc.wstx.sr.AttributeCollector;
 import com.ctc.wstx.sr.InputElementStack;
 import com.ctc.wstx.sr.StreamReaderImpl;
@@ -147,7 +148,7 @@ public class NonNsStreamWriter
             /* No need to get it normalized... even if validator does normalize
              * it, we don't use that for anything
              */
-            mValidator.validateAttribute(localName, NO_NS_URI, NO_PREFIX, value);
+            mValidator.validateAttribute(localName, XmlConsts.ATTR_NO_NS_URI, XmlConsts.ATTR_NO_PREFIX, value);
         }
         
         try {
@@ -326,7 +327,7 @@ public class NonNsStreamWriter
                 mState = STATE_EPILOG;
             }
             if (mValidator != null) {
-                mVldContent = mValidator.validateElementEnd(localName, NO_NS_URI, NO_PREFIX);
+                mVldContent = mValidator.validateElementEnd(localName, XmlConsts.ELEM_NO_NS_URI, XmlConsts.ELEM_NO_PREFIX);
             }
         }
     }
@@ -423,7 +424,7 @@ public class NonNsStreamWriter
             reportInvalidContent(START_ELEMENT);
             }*/
         if (mValidator != null) {
-            mValidator.validateElementStart(localName, NO_NS_URI, NO_PREFIX);
+            mValidator.validateElementStart(localName, XmlConsts.ELEM_NO_NS_URI, XmlConsts.ELEM_NO_PREFIX);
         }       
 
         mStartElementOpen = true;
@@ -505,7 +506,7 @@ public class NonNsStreamWriter
                         mState = STATE_EPILOG;
                     }
                     if (mValidator != null) {
-                        mVldContent = mValidator.validateElementEnd(localName, NO_NS_URI, NO_PREFIX);
+                        mVldContent = mValidator.validateElementEnd(localName, XmlConsts.ELEM_NO_NS_URI, XmlConsts.ELEM_NO_PREFIX);
                     }
                     return;
                 }
@@ -528,7 +529,7 @@ public class NonNsStreamWriter
 
         // Ok, time to validate...
         if (mValidator != null) {
-            mVldContent = mValidator.validateElementEnd(localName, NO_NS_URI, NO_PREFIX);
+            mVldContent = mValidator.validateElementEnd(localName, XmlConsts.ELEM_NO_NS_URI, XmlConsts.ELEM_NO_PREFIX);
         }
     }
 }

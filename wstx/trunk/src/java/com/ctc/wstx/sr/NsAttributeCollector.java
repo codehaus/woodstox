@@ -10,6 +10,7 @@ import javax.xml.stream.XMLStreamException;
 
 import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.cfg.ErrorConsts;
+import com.ctc.wstx.cfg.XmlConsts;
 import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.sw.XmlWriter;
 import com.ctc.wstx.util.DataUtil;
@@ -163,8 +164,8 @@ public final class NsAttributeCollector
         for (int i = 0; i < attrCount; ++i) {
             String prefix = attrNames[i+i];
             // Attributes do NOT use default namespace:
-            if (prefix == null) {
-                attrURIs[i] = ATTR_NO_NAMESPACE_URI;
+            if (prefix == XmlConsts.ATTR_NO_PREFIX) {
+                attrURIs[i] = XmlConsts.ATTR_NO_NS_URI;
                 // xml:lang etc? fixed mapping
             } else if (prefix == "xml") {
                 attrURIs[i] = XMLConstants.XML_NS_URI;
@@ -346,7 +347,7 @@ public final class NsAttributeCollector
                     return getValue(ix);
                 }
             } else {
-                if (thisURI == ATTR_NO_NAMESPACE_URI) {
+                if (thisURI == XmlConsts.ATTR_NO_NS_URI) {
                     return getValue(ix);
                 }
             }
@@ -371,7 +372,7 @@ public final class NsAttributeCollector
                         return getValue(ix);
                     }
                 } else {
-                    if (thisURI == ATTR_NO_NAMESPACE_URI) {
+                    if (thisURI == XmlConsts.ATTR_NO_NS_URI) {
                         return getValue(ix);
                     }
                 }
@@ -414,7 +415,7 @@ public final class NsAttributeCollector
                     return ix;
                 }
             } else {
-                if (thisURI == ATTR_NO_NAMESPACE_URI) {
+                if (thisURI == XmlConsts.ATTR_NO_NS_URI) {
                     return ix;
                 }
             }
@@ -439,7 +440,7 @@ public final class NsAttributeCollector
                         return ix;
                     }
                 } else {
-                    if (thisURI == ATTR_NO_NAMESPACE_URI) {
+                    if (thisURI == XmlConsts.ATTR_NO_NS_URI) {
                         return ix;
                     }
                 }

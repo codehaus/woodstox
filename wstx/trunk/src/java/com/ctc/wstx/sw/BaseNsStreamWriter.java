@@ -34,6 +34,7 @@ import org.codehaus.stax2.XMLStreamReader2;
 
 import com.ctc.wstx.api.WriterConfig;
 import com.ctc.wstx.cfg.ErrorConsts;
+import com.ctc.wstx.cfg.XmlConsts;
 import com.ctc.wstx.exc.WstxIOException;
 import com.ctc.wstx.util.DefaultXmlSymbolTable;
 
@@ -247,7 +248,7 @@ public abstract class BaseNsStreamWriter
     {
         checkStartElement(localName, null);
         if (mValidator != null) {
-            mValidator.validateElementStart(localName, NO_NS_URI, NO_PREFIX);
+            mValidator.validateElementStart(localName, XmlConsts.ELEM_NO_NS_URI, XmlConsts.ELEM_NO_PREFIX);
         }
         mEmptyElement = true;
         if (mOutputElemPool != null) {
@@ -291,7 +292,7 @@ public abstract class BaseNsStreamWriter
     {
         checkStartElement(localName, null);
         if (mValidator != null) {
-            mValidator.validateElementStart(localName, NO_NS_URI, NO_PREFIX);
+            mValidator.validateElementStart(localName, XmlConsts.ELEM_NO_NS_URI, XmlConsts.ELEM_NO_PREFIX);
         }
         mEmptyElement = false;
         if (mOutputElemPool != null) {

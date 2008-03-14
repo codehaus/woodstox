@@ -74,18 +74,6 @@ public class BasicStreamReader
     extends StreamScanner
     implements StreamReaderImpl, DTDInfo, LocationInfo
 {
-    /**
-     * StAX API expects "" to indicate "no prefix", instead of null.
-     *<p>
-     * Note: This has changed during lifetime of Woodstox; last time between
-     * 3.2 (which used null) and 4.0 (which uses ""). Currently it is believed
-     * that Java XML standards endorse "" over null (as witnessed by constant
-     * settings under javax.xml packages), and it should not be neceessary
-     * to change it any more in future.
-     */
-    //protected final static String DEFAULT_NS_PREFIX = SymbolTable.EMPTY_STRING;
-    protected final static String DEFAULT_NS_PREFIX = null;
-
     // // // Standalone values:
 
     final static int DOC_STANDALONE_UNKNOWN = 0;
@@ -2841,7 +2829,7 @@ public class BasicStreamReader
                 c = (mInputPtr < mInputLen) ?
                     mInputBuffer[mInputPtr++] : getNextCharFromCurrent(SUFFIX_IN_ELEMENT);
             } else {
-                mElementStack.push(DEFAULT_NS_PREFIX, str);
+                mElementStack.push(XmlConsts.ATTR_NO_PREFIX, str);
                 // c is fine as
             }
             /* Enough about element name itself; let's then parse attributes
@@ -2915,7 +2903,7 @@ public class BasicStreamReader
                 localName = parseLocalName(c);
             } else {
                 --mInputPtr; // pushback
-                prefix = DEFAULT_NS_PREFIX;
+                prefix = XmlConsts.ATTR_NO_PREFIX;
                 localName = str;
             }
 
@@ -2949,7 +2937,7 @@ public class BasicStreamReader
                     throwParseError("Duplicate declaration for namespace prefix '"+localName+"'.");
                 }
                 startLen = tb.getCharSize();
-            } else if (localName == sPrefixXmlns && prefix == DEFAULT_NS_PREFIX) {
+            } else if (localName == sPrefixXmlns && prefix == XmlConsts.ATTR_NO_PREFIX) {
                 tb = ac.getDefaultNsBuilder();
                 // returns null if default ns was already declared
                 if (null == tb) {

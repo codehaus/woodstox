@@ -9,6 +9,7 @@ import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
 
 import com.ctc.wstx.api.ReaderConfig;
+import com.ctc.wstx.cfg.XmlConsts;
 import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.sw.XmlWriter;
 import com.ctc.wstx.util.DataUtil;
@@ -169,11 +170,11 @@ public final class NonNsAttributeCollector
     }
 
     public String getNsPrefix(int index) {
-        return ATTR_NO_PREFIX;
+        return XmlConsts.ATTR_NO_PREFIX;
     }
 
     public String getNsURI(int index) {
-        return ATTR_NO_NAMESPACE_URI;
+        return XmlConsts.ATTR_NO_NS_URI;
     }
 
     // // // Direct access to attribute/NS prefixes/localnames/URI
@@ -182,7 +183,7 @@ public final class NonNsAttributeCollector
         if (index < 0 || index >= mAttrCount) {
             throwIndex(index);
         }
-        return ATTR_NO_PREFIX;
+        return XmlConsts.ATTR_NO_PREFIX;
     }
 
     public String getLocalName(int index) {
@@ -197,7 +198,7 @@ public final class NonNsAttributeCollector
         if (index < 0 || index >= mAttrCount) {
             throwIndex(index);
         }
-        return ATTR_NO_NAMESPACE_URI;
+        return XmlConsts.ATTR_NO_NS_URI;
     }
 
     public QName getQName(int index) {
@@ -357,8 +358,8 @@ public final class NonNsAttributeCollector
         for (int i = 0; i < count; ++i) {
             int ix = (i << 2);
             raw[ix] = mAttrNames.getString(i);
-            raw[ix+1] = ATTR_NO_NAMESPACE_URI;
-            raw[ix+2] = ATTR_NO_PREFIX;
+            raw[ix+1] = XmlConsts.ATTR_NO_NS_URI;
+            raw[ix+2] = XmlConsts.ATTR_NO_PREFIX;
             raw[ix+3] = getValue(i);
         }
 

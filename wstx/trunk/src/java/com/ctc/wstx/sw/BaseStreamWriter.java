@@ -71,9 +71,6 @@ public abstract class BaseStreamWriter
 
     protected final static char CHAR_SPACE = ' ';
 
-    protected final static String NO_NS_URI = "";
-    protected final static String NO_PREFIX = null;
-
     /**
      * This constant defines minimum length of a String, for which it
      * is beneficial to do an intermediate copy (using String.getChars()),

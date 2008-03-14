@@ -12,6 +12,7 @@ import org.codehaus.stax2.validation.XMLValidator;
 
 import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.cfg.ErrorConsts;
+import com.ctc.wstx.cfg.XmlConsts;
 import com.ctc.wstx.util.BaseNsContext;
 import com.ctc.wstx.util.EmptyIterator;
 import com.ctc.wstx.util.EmptyNamespaceContext;
@@ -229,7 +230,7 @@ public final class NonNsInputElementStack
     }
 
     public final String getPrefix(String nsURI) {
-        return null;
+        return XmlConsts.ELEM_NO_PREFIX;
     }
 
     public final Iterator getPrefixes(String nsURI) {
