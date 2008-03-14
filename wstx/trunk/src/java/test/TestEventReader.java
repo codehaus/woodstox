@@ -43,10 +43,6 @@ public class TestEventReader
                           new Integer(13));
         }
 
-	f.setProperty(WstxInputProperties.P_LAZY_PARSING,
-		      //Boolean.FALSE);
-		      Boolean.TRUE);
-
         System.out.println("Factory instance: "+f.getClass());
         System.out.println("  coalescing: "+f.getProperty(XMLInputFactory.IS_COALESCING));
     }

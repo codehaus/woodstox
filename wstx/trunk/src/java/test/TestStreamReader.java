@@ -70,11 +70,7 @@ public class TestStreamReader
             //new Integer(23));
         }
 
-        /*
-        f.setProperty(WstxInputProperties.P_LAZY_PARSING,
-                      //Boolean.FALSE);
-                      Boolean.TRUE);
-        */
+        //f.setProperty(XMLInputFactory2.P_LAZY_PARSING, Boolean.FALSE);
 
         /*
         if (f.isPropertySupported(WstxInputProperties.P_CUSTOM_INTERNAL_ENTITIES)) {
