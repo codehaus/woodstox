@@ -1,6 +1,6 @@
-Version: 3.9
+Version: 4.0pr1
 
-Release date: 23-Nov-2007
+Release date: xx-Mar-2008
 
 Description:
   First pre-4.0 version. Beyond clean-up and refactoring, the most
@@ -9,19 +9,14 @@ Description:
 
   Problems fixed:
 
-== History: ==
-
-3.9.0 [23-Nov-2007]
-
-  Problems fixed:
-
   * [WSTX-120] By default, content fixing is now disabled, to
     maximize interoperability, and to follow "principle of least
-    surprise" (i.e. avoid confusion that writer outsmarting developer
-    might cause).
+    surprise" (i.e. avoid confusion arising from the stream writer
+    outsmarting developer)
   * [WSTX-140] Default settings for WstxInputFactory.IS_COALESCING
     changed to Boolean.FALSE as per Stax specs; was defaulting to
     true by accident
+  * [WSTX-139] DOMWrappingWriter now implements repairing mode.
 
   New features:
 
@@ -29,6 +24,8 @@ Description:
     "/>" is now optional, configurable using
     'WstxOutputProperties.P_ADD_SPACE_AFTER_EMPTY_ELEM'.
   * [WSTX-137] Add W3C Schema validation support using MSV.
+  * Converted Woodstox-specific property WstxInputProperties.P_LAZY_PARSING
+    to XMLInputFactory2.P_LAZY_PARSING.
 
   Clean-up:
 
@@ -40,10 +37,15 @@ Description:
   * [WSTX-105] Transformed the only existing input-side feature
     (FEAT_DTD_OVERRIDE) into matching input-side property
     (XMLInputFactoty2.P_OVERRIDE_DTD).
-  * Reference implementation of Stax2 included under
+  * Reference implementation of Stax2 API now included under
     org.codehaus.stax2.ri (implements classes that can be implemented
     in generic way, making use of existing Stax 1.0 implementation
     or other Stax2 classes)
+  * Stax API specification compatibility improvements:
+    * Missing prefixes now reported as "", not nulls.
+    * "No namespace" now reported as "", not null.
+
+== History: ==
 
 3.2.3 [14-Nov-2007]
 

@@ -29,6 +29,7 @@ Planned stuff for 4.0
     has been implemented, but in less clean way]
 
 * Stax2 improvements:
+[DONE] * XMLStreamWriter2.writeSpace()
   * Add getText()-like method that returns java.lang.CharSequence? Could
     allow zero-copy wrapping of parsed textual content.
   * XMLStreamReader2.hasPendingException and/or getPendingException
@@ -38,7 +39,6 @@ Planned stuff for 4.0
   * Typed write methods for XMLStreamWriter
   * Char[] attribute accessors for XMLStreamReader
   * Char[] attribute write methods for XMLStreamWriter
-  * XMLStreamWriter2.writeSpace()
 
 * Removing cruft:
 [DONE]  * Remove support for pre-JDK-1.4
@@ -63,14 +63,13 @@ Planned stuff for 4.0
    * Finish incomplete support methods that RNG validation uses;
      InputElementStack's isNotationDeclared, isUnparsedEntityDeclared,
      getBaseUri().
-   * Integrate Multi-Schema Validator's W3C Schema validator using its
-     native interface (RNG already integrated)
+[DONE] * Integrate Multi-Schema Validator's W3C Schema validator
    * How about DTD++? Data types should be reasonably easy...?
      Would also allow partial W3C Schema and RelaxNG implementations
      natively?
 
 * XML standards:
-[DONE] * Xml:id support (is there need to disable it?)
+[DONE, 3.1] * Xml:id support (is there need to disable it?)
   * XInclude
   * XML Catalog support
   * Canonicalization?
@@ -86,3 +85,4 @@ Planned stuff for 4.0
    * FAQ:
       * Output streaming; use of 'writeCharacters("");', flush()
 
+Stax2:
