@@ -15,7 +15,7 @@ import org.codehaus.stax2.validation.Validatable;
  * SOAP-messages).
  *
  * @version 3.0 01/21/2007
- * @author Tatu Saloranta (cowtowncoder@yahoo.com)
+ * @author Tatu Saloranta (tatu.saloranta@iki.fi)
  */
 public interface XMLStreamWriter2
     extends XMLStreamWriter, Validatable

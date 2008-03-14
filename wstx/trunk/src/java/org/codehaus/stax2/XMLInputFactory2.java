@@ -18,6 +18,9 @@ import javax.xml.stream.XMLStreamReader;
  * NOTE: although actual values for the property names are
  * visible, implementations should try to use the symbolic constants
  * defined here instead, to avoid typos.
+ *
+ * @version 3.0 01/21/2007
+ * @author Tatu Saloranta (tatu.saloranta@iki.fi)
  */
 public abstract class XMLInputFactory2
     extends XMLInputFactory
@@ -73,6 +76,23 @@ public abstract class XMLInputFactory2
      */
     public final static String P_REPORT_CDATA = "http://java.sun.com/xml/stream/properties/report-cdata-event";
 
+    /**
+     * Whether stream readers are allowed to do lazy parsing, meaning
+     * to parse minimal part of the event when
+     * {@link XMLStreamReader#next} is called, and only parse the rest
+     * as needed (or skip remainder of no extra information is needed).
+     * Alternative to lazy parsing is called "eager parsing", and is
+     * what most xml parsers use by default.
+     *<p>
+     * Enabling lazy parsing can improve performance for tasks where
+     * number of textual events are skipped. The downside is that
+     * not all well-formedness problems are reported when
+     * {@link XMLStreamReader#next} is called, but only when the
+     * rest of event are read or skipped.
+     *<p>
+     * Default value for this setting is implementation dependant.
+     */
+    public final static String P_LAZY_PARSING = "com.ctc.wstx.lazyParsing";
 
     // // // Optimization settings
  

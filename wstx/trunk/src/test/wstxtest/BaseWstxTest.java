@@ -233,7 +233,7 @@ public class BaseWstxTest
     protected static void setLazyParsing(XMLInputFactory f, boolean state)
         throws XMLStreamException
     {
-        f.setProperty(WstxInputProperties.P_LAZY_PARSING,
+        f.setProperty(XMLInputFactory2.P_LAZY_PARSING,
                       state ? Boolean.TRUE : Boolean.FALSE);
     }
 

@@ -42,11 +42,14 @@ import org.codehaus.stax2.io.EscapingWriterFactory;
  * <li>{@link XMLStreamProperties#XSP_PROBLEM_REPORTER}: 
  *  </li>
  * </ul>
+ *
+ * @version 3.0 01/21/2007
+ * @author Tatu Saloranta (tatu.saloranta@iki.fi)
  */
 public abstract class XMLOutputFactory2
     extends XMLOutputFactory
     implements XMLStreamProperties
-{ 
+{
     /*
     ////////////////////////////////////////////////////
     // We share some options with other factories
