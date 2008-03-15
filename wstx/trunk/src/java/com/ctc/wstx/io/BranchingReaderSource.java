@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.io.Reader;
 import java.net.URL;
 
-import javax.xml.stream.Location;
-
 import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.util.TextBuffer;
 

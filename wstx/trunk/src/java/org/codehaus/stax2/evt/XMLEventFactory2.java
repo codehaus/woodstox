@@ -1,11 +1,6 @@
 package org.codehaus.stax2.evt;
 
-import java.util.Iterator;
-
-import javax.xml.namespace.NamespaceContext;
-import javax.xml.namespace.QName;
 import javax.xml.stream.XMLEventFactory;
-import javax.xml.stream.events.*;
 
 /**
  * Interface that adds missing (but required) methods to

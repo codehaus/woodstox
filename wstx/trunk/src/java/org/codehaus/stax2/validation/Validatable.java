@@ -2,9 +2,6 @@ package org.codehaus.stax2.validation;
 
 import javax.xml.stream.XMLStreamException;
 
-import javax.xml.namespace.QName;
-import javax.xml.stream.Location;
-
 /**
  * Interface that defines API that Stax2 validation system exposes to the
  * applications. It is implemented by stream readers and writers.

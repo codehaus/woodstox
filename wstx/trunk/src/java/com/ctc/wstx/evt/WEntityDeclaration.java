@@ -5,7 +5,6 @@ import java.io.Writer;
 
 import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
 import javax.xml.stream.events.EntityDeclaration;
 
 import org.codehaus.stax2.XMLStreamWriter2;
@@ -13,7 +12,6 @@ import org.codehaus.stax2.ri.evt.BaseEventImpl;
 
 import com.ctc.wstx.ent.EntityDecl;
 import com.ctc.wstx.exc.WstxIOException;
-import com.ctc.wstx.io.WstxInputSource;
 
 /**
  * Simple implementation of StAX entity declaration events; for the

@@ -16,10 +16,10 @@ import javax.xml.namespace.QName;
  */
 public final class ElemAttrs
 {
-    private final static int OFFSET_LOCAL_NAME = 0;
+    //private final static int OFFSET_LOCAL_NAME = 0;
     private final static int OFFSET_NS_URI = 1;
-    private final static int OFFSET_NS_PREFIX = 2;
-    private final static int OFFSET_VALUE = 3;
+    //private final static int OFFSET_NS_PREFIX = 2;
+    //private final static int OFFSET_VALUE = 3;
     
     /**
      * Array that contains 4 Strings for each attribute;

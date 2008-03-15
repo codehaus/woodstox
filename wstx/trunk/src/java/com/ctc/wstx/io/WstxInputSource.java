@@ -18,10 +18,6 @@ package com.ctc.wstx.io;
 import java.io.IOException;
 import java.net.URL;
 
-import javax.xml.stream.Location;
-
-import com.ctc.wstx.util.TextBuffer;
-
 /**
  * Interface that defines API actual parsers (or, "readers"
  * in StAX lingo) can use to read input from various input sources. Needed to

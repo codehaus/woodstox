@@ -1,22 +1,15 @@
 package wstxtest.stream;
 
-import java.io.*;
-
 import javax.xml.stream.*;
 
-import org.codehaus.stax2.XMLStreamReader2;
 import org.codehaus.stax2.XMLStreamProperties;
 
 import com.ctc.wstx.api.WstxInputProperties;
-
-import wstxtest.cfg.*;
 
 /**
  * Set of unit tests that check how Woodstox handles white space in
  * prolog and/or epilog.
  */
-import com.ctc.wstx.api.ReaderConfig;
-
 public class TestConfig
     extends BaseStreamTest
 {

@@ -1,7 +1,6 @@
 package wstxtest.stream;
 
 import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
 
 import com.ctc.wstx.sr.*;
 import com.ctc.wstx.stax.WstxInputFactory;
@@ -40,8 +39,8 @@ public class TestAttrCollector
         throws XMLStreamException
     {
         WstxInputFactory f = getWstxInputFactory();
-        NsAttributeCollector ac = new NsAttributeCollector(f.getConfig());
-        StringVector attrsIn = new StringVector(8);
+        //*NsAttributeCollector ac =*/ new NsAttributeCollector(f.getConfig());
+        /*StringVector attrsIn =*/ new StringVector(8);
 
         // !!! TBI
     }
@@ -50,7 +49,7 @@ public class TestAttrCollector
         throws XMLStreamException
     {
         WstxInputFactory f = getWstxInputFactory();
-        NonNsAttributeCollector ac = new NonNsAttributeCollector(f.getConfig());
+        /*NonNsAttributeCollector ac =*/ new NonNsAttributeCollector(f.getConfig());
 
         // !!! TBI
     }

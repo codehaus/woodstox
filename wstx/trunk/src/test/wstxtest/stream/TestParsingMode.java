@@ -2,11 +2,7 @@ package wstxtest.stream;
 
 import javax.xml.stream.*;
 
-import org.codehaus.stax2.*;
-
 import com.ctc.wstx.api.WstxInputProperties;
-import com.ctc.wstx.ent.EntityDecl;
-import com.ctc.wstx.exc.WstxLazyException;
 
 /**
  * This unit tests verifies that different input parsing modes

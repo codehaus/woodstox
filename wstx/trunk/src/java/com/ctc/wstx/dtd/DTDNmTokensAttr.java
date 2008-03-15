@@ -1,10 +1,7 @@
 package com.ctc.wstx.dtd;
 
-import javax.xml.stream.Location;
-
 import org.codehaus.stax2.validation.XMLValidationException;
 
-import com.ctc.wstx.exc.WstxValidationException;
 import com.ctc.wstx.io.WstxInputData;
 import com.ctc.wstx.sr.InputProblemReporter;
 import com.ctc.wstx.util.PrefixedName;

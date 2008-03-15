@@ -15,19 +15,12 @@
 
 package com.ctc.wstx.msv;
 
-import java.io.*;
-import java.net.URL;
-
-import javax.xml.parsers.SAXParserFactory;
 import javax.xml.stream.*;
 
-import org.codehaus.stax2.*;
 import org.codehaus.stax2.validation.*;
 
 import com.sun.msv.grammar.trex.TREXGrammar;
 import com.sun.msv.verifier.regexp.REDocumentDeclaration;
-
-import com.ctc.wstx.exc.WstxIOException;
 
 /**
  * This is a validation schema instance based on a RELAX NG schema. It

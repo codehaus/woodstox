@@ -1,10 +1,6 @@
 package wstxtest.util;
 
-import java.io.IOException;
-import java.io.StringWriter;
 import java.util.*;
-
-import junit.framework.TestCase;
 
 import com.ctc.wstx.util.StringUtil;
 

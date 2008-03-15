@@ -14,9 +14,6 @@
  */
 package org.codehaus.stax2.ri;
 
-import java.io.*;
-
-import javax.xml.namespace.NamespaceContext;
 import javax.xml.stream.*;
 
 import org.codehaus.stax2.*;

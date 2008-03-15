@@ -364,7 +364,7 @@ public final class DTDElement
             mAttrMap = m = new HashMap();
         }
 
-        boolean anyAdded = false;
+        //boolean anyAdded = false;
         
         if (otherMap != null && otherMap.size() > 0) {
             Iterator it = otherMap.entrySet().iterator();

@@ -4,12 +4,9 @@ import java.io.*;
 
 import javax.xml.stream.*;
 
-import com.ctc.wstx.stax.WstxInputFactory;
-
 import org.codehaus.stax2.*;
 import org.codehaus.stax2.validation.*;
 
-import wstxtest.cfg.*;
 import wstxtest.stream.BaseStreamTest;
 
 /**

@@ -15,7 +15,6 @@
 
 package com.ctc.wstx.util;
 
-import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
 
 /**

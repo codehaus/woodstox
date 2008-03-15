@@ -24,7 +24,6 @@ import javax.xml.stream.events.*;
 
 import org.codehaus.stax2.ri.Stax2EventFactoryImpl;
 
-import com.ctc.wstx.dtd.DTDSubset;
 import com.ctc.wstx.evt.*;
 
 /**

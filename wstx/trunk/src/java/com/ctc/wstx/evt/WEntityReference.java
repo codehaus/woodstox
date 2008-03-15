@@ -1,18 +1,10 @@
 package com.ctc.wstx.evt;
 
-import java.io.IOException;
-import java.io.Writer;
-
 import javax.xml.stream.Location;
-import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.EntityReference;
 import javax.xml.stream.events.EntityDeclaration;
 
 import org.codehaus.stax2.ri.evt.EntityReferenceEventImpl;
-
-import org.codehaus.stax2.XMLStreamWriter2;
-
-import com.ctc.wstx.ent.EntityDecl;
 
 /**
  * We need a slightly specialized version to support concept of

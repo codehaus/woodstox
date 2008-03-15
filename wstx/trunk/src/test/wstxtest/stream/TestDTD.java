@@ -8,8 +8,6 @@ import org.codehaus.stax2.*;
  * Set of unit tests that checks some additional invariants Woodstox
  * guarantees with respect to DOCTYPE declaration handling.
  */
-import com.ctc.wstx.api.ReaderConfig;
-
 public class TestDTD
     extends BaseStreamTest
 {

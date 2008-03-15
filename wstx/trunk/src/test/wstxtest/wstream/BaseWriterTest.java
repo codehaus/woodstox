@@ -1,14 +1,12 @@
 package wstxtest.wstream;
 
 import java.io.*;
-import java.util.HashMap;
 
 import javax.xml.stream.*;
 
 import org.codehaus.stax2.XMLStreamReader2;
 
 import wstxtest.BaseWstxTest;
-import wstxtest.cfg.*;
 
 public class BaseWriterTest
     extends BaseWstxTest

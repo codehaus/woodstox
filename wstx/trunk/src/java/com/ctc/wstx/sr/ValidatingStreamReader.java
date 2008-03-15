@@ -17,14 +17,11 @@ package com.ctc.wstx.sr;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.Reader;
 import java.net.URL;
 import java.util.*;
 
-import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamException;
-import javax.xml.transform.stream.StreamSource;
 
 import org.codehaus.stax2.XMLInputFactory2;
 import org.codehaus.stax2.validation.*;
@@ -32,13 +29,11 @@ import org.codehaus.stax2.validation.*;
 import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.cfg.XmlConsts;
-import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.io.*;
 import com.ctc.wstx.dtd.DTDId;
 import com.ctc.wstx.dtd.DTDSubset;
 import com.ctc.wstx.dtd.DTDValidatorBase;
 import com.ctc.wstx.dtd.FullDTDReader;
-import com.ctc.wstx.util.ExceptionUtil;
 import com.ctc.wstx.util.URLUtil;
 
 /**

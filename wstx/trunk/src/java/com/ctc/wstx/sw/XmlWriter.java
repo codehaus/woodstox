@@ -22,16 +22,13 @@ import java.text.MessageFormat;
 
 import javax.xml.stream.XMLStreamException;
 
-import org.codehaus.stax2.XMLStreamReader2;
 import org.codehaus.stax2.io.EscapingWriterFactory;
 
 import com.ctc.wstx.api.WriterConfig;
 import com.ctc.wstx.api.WstxOutputProperties;
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.cfg.OutputConfigFlags;
-import com.ctc.wstx.cfg.XmlConsts;
 import com.ctc.wstx.exc.WstxIOException;
-import com.ctc.wstx.io.TextEscaper;
 import com.ctc.wstx.io.WstxInputData;
 
 /**

@@ -1,22 +1,12 @@
 package com.ctc.wstx.dom;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-
-import javax.xml.XMLConstants;
 import javax.xml.namespace.NamespaceContext;
-import javax.xml.stream.XMLStreamException;
 
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import com.ctc.wstx.sw.OutputElementBase;
 import com.ctc.wstx.util.BijectiveNsMap;
-import com.ctc.wstx.util.EmptyIterator;
-
 
 /**
  * Context object that holds information about an open element

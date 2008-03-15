@@ -15,8 +15,6 @@
 
 package com.ctc.wstx.dtd;
 
-import java.util.*;
-
 import com.ctc.wstx.util.PrefixedName;
 
 /**

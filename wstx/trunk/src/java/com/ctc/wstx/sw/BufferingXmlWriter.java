@@ -20,8 +20,6 @@ import java.io.*;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 
-import org.codehaus.stax2.XMLStreamReader2;
-
 import com.ctc.wstx.api.WriterConfig;
 import com.ctc.wstx.io.CharsetNames;
 

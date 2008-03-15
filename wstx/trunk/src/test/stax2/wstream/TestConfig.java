@@ -4,8 +4,6 @@ import javax.xml.stream.*;
 
 import org.codehaus.stax2.*;
 
-import stax2.BaseStax2Test;
-
 /**
  * Set of unit tests that checks that configuring of
  * {@link XMLOutputFactory2} works ok.

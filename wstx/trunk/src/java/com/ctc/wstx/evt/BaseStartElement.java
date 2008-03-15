@@ -17,7 +17,6 @@ package com.ctc.wstx.evt;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.util.ArrayList;
 import java.util.Iterator;
 
 import javax.xml.namespace.NamespaceContext;

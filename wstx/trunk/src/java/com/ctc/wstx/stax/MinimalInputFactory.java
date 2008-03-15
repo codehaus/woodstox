@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
-import java.util.*;
 
 import javax.xml.stream.*;
 import javax.xml.transform.Source;
@@ -38,7 +37,6 @@ import com.ctc.wstx.exc.WstxIOException;
 import com.ctc.wstx.io.*;
 import com.ctc.wstx.util.DefaultXmlSymbolTable;
 import com.ctc.wstx.util.SymbolTable;
-import com.ctc.wstx.util.TextBuilder;
 import com.ctc.wstx.util.URLUtil;
 import com.ctc.wstx.sr.BasicStreamReader;
 import com.ctc.wstx.sr.ReaderCreator;

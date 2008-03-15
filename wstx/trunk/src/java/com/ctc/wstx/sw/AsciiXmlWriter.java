@@ -369,7 +369,6 @@ public final class AsciiXmlWriter
         int ptr = mOutputPtr;
         int offset = start;
 
-        main_loop:
         while (len > 0) {
             int max = mOutputBuffer.length - ptr;
             if (max < 1) { // output buffer full?
@@ -443,7 +442,6 @@ public final class AsciiXmlWriter
 
         int ptr = mOutputPtr;
 
-        main_loop:
         while (len > 0) {
             int max = mOutputBuffer.length - ptr;
             if (max < 1) { // output buffer full?

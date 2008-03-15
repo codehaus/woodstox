@@ -1,6 +1,5 @@
 package org.codehaus.stax2.ri.evt;
 
-import java.io.IOException;
 import java.io.Writer;
 
 import javax.xml.stream.*;

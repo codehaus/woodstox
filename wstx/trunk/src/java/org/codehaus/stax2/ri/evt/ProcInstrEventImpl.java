@@ -7,7 +7,6 @@ import javax.xml.stream.*;
 import javax.xml.stream.events.ProcessingInstruction;
 
 import org.codehaus.stax2.*;
-import org.codehaus.stax2.evt.XMLEvent2;
 
 public class ProcInstrEventImpl
     extends BaseEventImpl

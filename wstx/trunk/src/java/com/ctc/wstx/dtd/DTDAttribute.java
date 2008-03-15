@@ -21,7 +21,6 @@ import org.codehaus.stax2.validation.XMLValidationException;
 import org.codehaus.stax2.validation.ValidationContext;
 
 import com.ctc.wstx.ent.EntityDecl;
-import com.ctc.wstx.exc.*;
 import com.ctc.wstx.io.WstxInputData;
 import com.ctc.wstx.sr.InputProblemReporter;
 import com.ctc.wstx.util.PrefixedName;

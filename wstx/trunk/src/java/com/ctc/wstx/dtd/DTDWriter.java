@@ -1,12 +1,7 @@
 package com.ctc.wstx.dtd;
 
 import java.io.IOException;
-import java.io.Reader;
 import java.io.Writer;
-
-import javax.xml.stream.Location;
-import javax.xml.stream.XMLReporter;
-import javax.xml.stream.XMLStreamException;
 
 /**
  * Simple utility class used by {@link DTDReader} when writing out

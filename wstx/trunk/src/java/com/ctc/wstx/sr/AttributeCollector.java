@@ -16,10 +16,7 @@
 package com.ctc.wstx.sr;
 
 import java.io.IOException;
-import java.io.Writer;
 
-import javax.xml.XMLConstants;
-import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.namespace.QName;
 
@@ -28,7 +25,6 @@ import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.sw.XmlWriter;
 import com.ctc.wstx.util.StringVector;
 import com.ctc.wstx.util.TextBuilder;
-import com.ctc.wstx.util.WordResolver;
 
 /**
  * Shared base class that defines API stream reader uses to communicate

@@ -1,10 +1,7 @@
 package wstxtest.wstream;
 
-import java.io.*;
 
 import javax.xml.parsers.*;
-import javax.xml.namespace.NamespaceContext;
-import javax.xml.namespace.QName;
 import javax.xml.stream.*;
 import javax.xml.transform.dom.DOMResult;
 import org.w3c.dom.*;

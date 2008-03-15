@@ -6,7 +6,6 @@ import javax.xml.namespace.QName;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.stream.*;
 import javax.xml.stream.events.DTD;
-import javax.xml.stream.events.EntityDeclaration;
 import javax.xml.stream.events.EntityReference;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;

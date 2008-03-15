@@ -1,7 +1,5 @@
 package wstxtest.util;
 
-import java.util.*;
-
 import junit.framework.TestCase;
 
 import com.ctc.wstx.util.TextAccumulator;

@@ -2,8 +2,6 @@ package com.ctc.wstx.dtd;
 
 import java.util.*;
 
-import com.ctc.wstx.cfg.ErrorConsts;
-
 /**
  * Model class that encapsulates set of sub-models, of which one (and only
  * one) needs to be matched.

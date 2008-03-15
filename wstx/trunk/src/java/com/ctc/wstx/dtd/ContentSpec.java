@@ -15,8 +15,6 @@
 
 package com.ctc.wstx.dtd;
 
-import java.util.*;
-
 /**
  * Abstract base class for classes that contain parts of a content
  * specification of an element defined in DTD. They are created

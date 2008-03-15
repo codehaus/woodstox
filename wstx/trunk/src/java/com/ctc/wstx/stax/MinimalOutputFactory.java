@@ -16,7 +16,6 @@
 package com.ctc.wstx.stax;
 
 import java.io.*;
-import java.util.HashMap;
 
 import javax.xml.transform.Result;
 import javax.xml.transform.dom.DOMResult;
@@ -34,7 +33,6 @@ import com.ctc.wstx.exc.WstxIOException;
 import com.ctc.wstx.io.CharsetNames;
 import com.ctc.wstx.io.UTF8Writer;
 import com.ctc.wstx.sw.*;
-import com.ctc.wstx.util.ArgUtil;
 
 /**
  * Minimalistic input factory, which implements the suggested J2ME

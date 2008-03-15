@@ -16,28 +16,22 @@
 package com.ctc.wstx.sw;
 
 import java.io.IOException;
-import java.io.Writer;
 import java.util.Iterator;
 import java.util.TreeMap;
 
 import javax.xml.XMLConstants;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
-import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamWriter;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.Attribute;
 import javax.xml.stream.events.StartElement;
-
-import org.codehaus.stax2.XMLStreamReader2;
-import org.codehaus.stax2.validation.XMLValidator;
 
 import com.ctc.wstx.api.WriterConfig;
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.cfg.XmlConsts;
 import com.ctc.wstx.sr.AttributeCollector;
 import com.ctc.wstx.sr.InputElementStack;
-import com.ctc.wstx.sr.StreamReaderImpl;
 import com.ctc.wstx.util.EmptyNamespaceContext;
 import com.ctc.wstx.util.StringVector;
 

@@ -1,13 +1,8 @@
 package wstxtest.stream;
 
-import java.io.*;
-import java.util.Random;
-
 import javax.xml.stream.*;
 
 import com.ctc.wstx.stax.WstxInputFactory;
-
-import wstxtest.cfg.*;
 
 public class TestAttr
     extends BaseStreamTest

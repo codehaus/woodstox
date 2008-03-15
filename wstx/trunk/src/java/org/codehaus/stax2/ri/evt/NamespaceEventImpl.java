@@ -1,14 +1,8 @@
 package org.codehaus.stax2.ri.evt;
 
-import java.io.Writer;
-import java.util.Iterator;
-
 import javax.xml.XMLConstants;
-import javax.xml.namespace.QName;
 import javax.xml.stream.*;
 import javax.xml.stream.events.Namespace;
-
-import org.codehaus.stax2.XMLStreamWriter2;
 
 /**
  * Implementation of {@link Namespace}. Only returned via accessors in

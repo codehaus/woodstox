@@ -15,10 +15,7 @@
 
 package com.ctc.wstx.dtd;
 
-import java.text.MessageFormat;
 import java.util.*;
-
-import javax.xml.stream.Location;
 
 import org.codehaus.stax2.validation.*;
 

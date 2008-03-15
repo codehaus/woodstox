@@ -5,7 +5,6 @@ import java.util.Random;
 import javax.xml.stream.*;
 
 import org.codehaus.stax2.*;
-import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.stax.WstxInputFactory;
 
 /**

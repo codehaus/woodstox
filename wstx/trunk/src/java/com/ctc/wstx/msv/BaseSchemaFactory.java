@@ -24,7 +24,6 @@ import javax.xml.stream.*;
 import org.xml.sax.InputSource;
 import org.xml.sax.Locator;
 
-import org.codehaus.stax2.*;
 import org.codehaus.stax2.validation.*;
 
 import com.ctc.wstx.api.ValidatorConfig;

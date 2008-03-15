@@ -17,11 +17,9 @@ package com.ctc.wstx.stax;
 
 import java.io.*;
 import java.net.URL;
-import java.util.*;
 
 import javax.xml.stream.*;
 import javax.xml.stream.util.XMLEventAllocator;
-import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.stream.StreamSource;
@@ -51,7 +49,6 @@ import com.ctc.wstx.sr.ReaderCreator;
 import com.ctc.wstx.util.DefaultXmlSymbolTable;
 import com.ctc.wstx.util.SimpleCache;
 import com.ctc.wstx.util.SymbolTable;
-import com.ctc.wstx.util.TextBuilder;
 import com.ctc.wstx.util.URLUtil;
 
 /**

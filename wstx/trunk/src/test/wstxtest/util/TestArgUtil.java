@@ -24,12 +24,12 @@ public class TestArgUtil
 
         // and then errors:
         try {
-            boolean b = ArgUtil.convertToBoolean("test", new Integer(0));
+            /*boolean b =*/ ArgUtil.convertToBoolean("test", new Integer(0));
             fail("Expected an IllegalArgumentException");
         } catch (IllegalArgumentException iae) { }
 
         try {
-            boolean b = ArgUtil.convertToBoolean("test", "foobar");
+            /*boolean b =*/ ArgUtil.convertToBoolean("test", "foobar");
             fail("Expected an IllegalArgumentException");
         } catch (IllegalArgumentException iae) { }
     }

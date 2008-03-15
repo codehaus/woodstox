@@ -4,8 +4,6 @@ import java.io.*;
 
 import javax.xml.stream.*;
 
-import org.codehaus.stax2.*;
-
 import com.ctc.wstx.api.WstxOutputProperties;
 
 /**

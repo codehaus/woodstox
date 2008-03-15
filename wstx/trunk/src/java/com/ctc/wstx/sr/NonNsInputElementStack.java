@@ -2,8 +2,6 @@ package com.ctc.wstx.sr;
 
 import java.util.*;
 
-import javax.xml.XMLConstants;
-import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
 import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
@@ -11,12 +9,10 @@ import javax.xml.stream.XMLStreamException;
 import org.codehaus.stax2.validation.XMLValidator;
 
 import com.ctc.wstx.api.ReaderConfig;
-import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.cfg.XmlConsts;
 import com.ctc.wstx.util.BaseNsContext;
 import com.ctc.wstx.util.EmptyIterator;
 import com.ctc.wstx.util.EmptyNamespaceContext;
-import com.ctc.wstx.util.SingletonIterator;
 import com.ctc.wstx.util.StringVector;
 import com.ctc.wstx.util.TextBuilder;
 

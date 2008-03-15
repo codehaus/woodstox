@@ -2,9 +2,7 @@ package stax2.evt;
 
 import java.io.*;
 
-import javax.xml.namespace.QName;
 import javax.xml.stream.*;
-import javax.xml.stream.events.*;
 
 import org.codehaus.stax2.*;
 import org.codehaus.stax2.evt.*;

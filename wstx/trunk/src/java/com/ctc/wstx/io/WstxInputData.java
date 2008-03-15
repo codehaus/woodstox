@@ -64,16 +64,12 @@ public class WstxInputData
     private final static int VALID_CHAR_COUNT = 0x100;
 
     // These are the same for both 1.0 and 1.1...
-    private final static int FIRST_VALID_FOR_FIRST = 0x0041; // 'A'
-    private final static int FIRST_VALID_FOR_REST = 0x002D; // '.'
+//    private final static int FIRST_VALID_FOR_FIRST = 0x0041; // 'A'
+//    private final static int FIRST_VALID_FOR_REST = 0x002D; // '.'
 
     private final static byte NAME_CHAR_INVALID_B = (byte) 0;
     private final static byte NAME_CHAR_ALL_VALID_B = (byte) 1;
     private final static byte NAME_CHAR_VALID_NONFIRST_B = (byte) -1;
-
-    private final static int NAME_CHAR_INVALID_I = (byte) 0;
-    private final static int NAME_CHAR_ALL_VALID_I = (byte) 1;
-    private final static int NAME_CHAR_VALID_NONFIRST_I = (byte) -1;
 
     private final static byte[] sCharValidity = new byte[VALID_CHAR_COUNT];
 
@@ -109,7 +105,7 @@ public class WstxInputData
      */
     private final static int VALID_PUBID_CHAR_COUNT = 0x80;
     private final static byte[] sPubidValidity = new byte[VALID_PUBID_CHAR_COUNT];
-    private final static byte PUBID_CHAR_INVALID_B = (byte) 0;
+//    private final static byte PUBID_CHAR_INVALID_B = (byte) 0;
     private final static byte PUBID_CHAR_VALID_B = (byte) 1;
     static {
         for (int i = 0, last = ('z' - 'a'); i <= last; ++i) {

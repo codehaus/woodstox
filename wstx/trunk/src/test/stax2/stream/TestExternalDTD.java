@@ -4,7 +4,6 @@ import java.io.*;
 import java.net.URL;
 
 import javax.xml.stream.*;
-import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 
 import org.codehaus.stax2.*;

@@ -1,7 +1,5 @@
 package org.codehaus.stax2.ri;
 
-import java.io.IOException;
-import java.io.Writer;
 import java.util.Iterator;
 
 import javax.xml.namespace.NamespaceContext;

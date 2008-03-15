@@ -1,12 +1,7 @@
 package org.codehaus.stax2.ri.evt;
 
-import java.io.IOException;
-
-import javax.xml.namespace.NamespaceContext;
-import javax.xml.namespace.QName;
 import javax.xml.stream.*;
 import javax.xml.stream.events.*;
-import javax.xml.stream.util.XMLEventAllocator;
 
 /**
  *<p>

@@ -10,9 +10,7 @@ import com.ctc.wstx.dtd.DTDSubset;
 import com.ctc.wstx.dtd.FullDTDReader;
 import com.ctc.wstx.io.DefaultInputResolver;
 import com.ctc.wstx.io.WstxInputSource;
-import com.ctc.wstx.stax.WstxInputFactory;
 
-import wstxtest.cfg.*;
 import wstxtest.stream.BaseStreamTest;
 
 /**

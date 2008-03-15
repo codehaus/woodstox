@@ -4,8 +4,6 @@ import javax.xml.stream.XMLInputFactory;
 
 import com.ctc.wstx.stax.WstxInputFactory;
 
-import com.ctc.wstx.api.ReaderConfig;
-
 public class Configs
 {
     private Configs() { }

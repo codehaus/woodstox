@@ -1,24 +1,13 @@
 package com.ctc.wstx.evt;
 
-import java.io.IOException;
-import java.io.StringWriter;
-import java.io.Writer;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import javax.xml.stream.Location;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
-import javax.xml.stream.events.DTD;
-import javax.xml.stream.events.NotationDeclaration;
 
-import org.codehaus.stax2.XMLStreamWriter2;
 import org.codehaus.stax2.ri.evt.DTDEventImpl;
 
-import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.dtd.DTDSubset;
-import com.ctc.wstx.ent.EntityDecl;
 
 /**
  * Event that contains all StAX accessible information read from internal

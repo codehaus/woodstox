@@ -1,7 +1,6 @@
 package wstxtest.io;
 
 import java.io.*;
-import java.util.*;
 
 import junit.framework.TestCase;
 

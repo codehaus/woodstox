@@ -6,7 +6,6 @@ import java.io.Writer;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
 import javax.xml.stream.*;
-import javax.xml.stream.util.XMLEventAllocator;
 
 import org.codehaus.stax2.*;
 import org.codehaus.stax2.validation.*;

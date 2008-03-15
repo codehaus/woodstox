@@ -1,11 +1,9 @@
 package com.ctc.wstx.sr;
 
 import java.io.IOException;
-import java.io.Writer;
 
 import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
-import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
 
 import com.ctc.wstx.api.ReaderConfig;

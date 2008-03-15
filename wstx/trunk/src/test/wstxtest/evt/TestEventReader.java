@@ -1,11 +1,7 @@
 package wstxtest.evt;
 
-import java.io.*;
-
 import javax.xml.stream.*;
 import javax.xml.stream.events.XMLEvent;
-
-import org.codehaus.stax2.XMLStreamReader2;
 
 import com.ctc.wstx.exc.*;
 
@@ -28,7 +24,6 @@ import com.ctc.wstx.exc.*;
  *  </li>
  *</ul>
  */
-import com.ctc.wstx.api.ReaderConfig;
 
 public class TestEventReader
     extends wstxtest.BaseWstxTest

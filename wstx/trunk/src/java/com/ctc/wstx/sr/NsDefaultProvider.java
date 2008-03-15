@@ -15,8 +15,6 @@
 
 package com.ctc.wstx.sr;
 
-import java.util.*;
-
 import org.codehaus.stax2.validation.XMLValidationException;
 
 /**

@@ -15,22 +15,16 @@
 
 package com.ctc.wstx.msv;
 
-import java.io.*;
-import java.net.URL;
-
 import javax.xml.parsers.SAXParserFactory;
 import javax.xml.stream.*;
 
 import org.xml.sax.InputSource;
-import org.xml.sax.Locator;
 
-import org.codehaus.stax2.*;
 import org.codehaus.stax2.validation.*;
 
 import com.sun.msv.grammar.trex.TREXGrammar;
 import com.sun.msv.reader.GrammarReaderController;
 import com.sun.msv.reader.trex.ng.RELAXNGReader;
-import com.sun.msv.verifier.regexp.REDocumentDeclaration;
 
 /**
  * This is a StAX2 schema factory that can parse and create schema instances

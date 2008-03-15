@@ -15,12 +15,8 @@
 
 package com.ctc.wstx.evt;
 
-import java.io.IOException;
-import java.io.Reader;
 import java.util.NoSuchElementException;
 
-import javax.xml.namespace.NamespaceContext;
-import javax.xml.namespace.QName;
 import javax.xml.stream.*;
 import javax.xml.stream.events.*;
 import javax.xml.stream.util.XMLEventAllocator;

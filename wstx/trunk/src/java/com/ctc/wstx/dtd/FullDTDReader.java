@@ -16,7 +16,6 @@
 package com.ctc.wstx.dtd;
 
 import java.io.IOException;
-import java.io.Reader;
 import java.io.Writer;
 import java.net.URL;
 import java.text.MessageFormat;
@@ -35,7 +34,6 @@ import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.cfg.XmlConsts;
 import com.ctc.wstx.ent.*;
-import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.io.WstxInputData;
 import com.ctc.wstx.io.WstxInputSource;
 import com.ctc.wstx.util.*;
@@ -1398,7 +1396,7 @@ public class FullDTDReader
          *  (ie. main XML input) file (or to be precise; they are legal
          *  in the int. subset only as complete declarations)
          */
-        boolean allowPEs = mIsExternal || (mInput != mRootInput);
+        //boolean allowPEs = mIsExternal || (mInput != mRootInput);
 
         TextBuffer tb = mValueBuffer;
         if (tb == null) {
@@ -1747,10 +1745,8 @@ public class FullDTDReader
             char[] outBuf = tb.getCurrentSegment();
             int outPtr = 0;
 
-            main_loop:
             while (true) {
                 if (c == '?') {
-                    int count = 0;
                     while (true) {
                         c = (mInputPtr < mInputLen)
                             ? mInputBuffer[mInputPtr++] : dtdNextFromCurr();
@@ -1804,7 +1800,6 @@ public class FullDTDReader
         char[] outBuf = tb.getCurrentSegment();
         int outPtr = 0;
 
-        main_loop:
         while (true) {
             char c = (mInputPtr < mInputLen)
                 ? mInputBuffer[mInputPtr++] : dtdNextFromCurr();

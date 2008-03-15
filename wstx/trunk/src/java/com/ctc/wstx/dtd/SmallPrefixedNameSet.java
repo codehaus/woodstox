@@ -1,8 +1,5 @@
 package com.ctc.wstx.dtd;
 
-import java.util.Collection;
-import java.util.Iterator;
-
 import com.ctc.wstx.util.PrefixedName;
 
 /**

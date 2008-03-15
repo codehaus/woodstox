@@ -1,7 +1,5 @@
 package com.ctc.wstx.util;
 
-import javax.xml.XMLConstants;
-
 import com.ctc.wstx.util.SymbolTable;
 
 /**

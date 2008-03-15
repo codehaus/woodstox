@@ -16,11 +16,9 @@
 package com.ctc.wstx.sw;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.text.MessageFormat;
 
-import javax.xml.XMLConstants;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
 import javax.xml.stream.Location;
@@ -37,7 +35,6 @@ import org.codehaus.stax2.DTDInfo;
 import org.codehaus.stax2.XMLStreamLocation2;
 import org.codehaus.stax2.XMLStreamReader2;
 import org.codehaus.stax2.XMLStreamWriter2;
-import org.codehaus.stax2.io.EscapingWriterFactory;
 import org.codehaus.stax2.validation.*;
 
 import com.ctc.wstx.api.WriterConfig;
@@ -46,7 +43,6 @@ import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.cfg.OutputConfigFlags;
 import com.ctc.wstx.cfg.XmlConsts;
 import com.ctc.wstx.exc.*;
-import com.ctc.wstx.io.WstxInputData;
 import com.ctc.wstx.io.WstxInputLocation;
 import com.ctc.wstx.sr.StreamReaderImpl;
 import com.ctc.wstx.sr.AttributeCollector;

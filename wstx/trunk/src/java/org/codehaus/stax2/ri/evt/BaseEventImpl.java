@@ -2,7 +2,6 @@ package org.codehaus.stax2.ri.evt;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.util.Iterator;
 
 import javax.xml.namespace.QName;
 import javax.xml.stream.*;

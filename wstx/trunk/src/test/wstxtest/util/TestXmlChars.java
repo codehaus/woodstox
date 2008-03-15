@@ -1,11 +1,8 @@
 package wstxtest.util;
 
-import java.util.*;
-
 import junit.framework.TestCase;
 
 import com.ctc.wstx.io.WstxInputData;
-import com.ctc.wstx.util.DataUtil;
 
 /**
  * Simple unit tests for testing methods in {@link com.ctc.wstx.util.XmlChars}

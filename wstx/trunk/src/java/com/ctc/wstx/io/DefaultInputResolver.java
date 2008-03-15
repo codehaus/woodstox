@@ -3,7 +3,6 @@ package com.ctc.wstx.io;
 import java.io.*;
 import java.net.URL;
 
-import javax.xml.stream.XMLReporter;
 import javax.xml.stream.XMLResolver;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.transform.Source;
@@ -11,7 +10,6 @@ import javax.xml.transform.stream.StreamSource;
 
 import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.cfg.XmlConsts;
-import com.ctc.wstx.util.StringUtil;
 import com.ctc.wstx.util.URLUtil;
 
 /**
@@ -20,8 +18,6 @@ import com.ctc.wstx.util.URLUtil;
  */
 public final class DefaultInputResolver
 {
-    private final static int DEFAULT_BUFFER_LENGTH = 4000;
-
     /*
     ////////////////////////////
     // Life-cycle

@@ -135,10 +135,8 @@ public final class TextBuilder
     }
 
     public void append(char[] src, int start, int len) {
-        char[] buf = mBuffer;
         if (len > (mBuffer.length - mBufferLen)) {
             resize(len);
-            buf = mBuffer;
         }
         System.arraycopy(src, start, mBuffer, mBufferLen, len);
         mBufferLen += len;

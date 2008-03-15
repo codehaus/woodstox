@@ -9,7 +9,6 @@ import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.cfg.ParsingErrorMsgs;
 import com.ctc.wstx.cfg.XmlConsts;
 import com.ctc.wstx.exc.*;
-import com.ctc.wstx.util.StringUtil;
 
 /**
  * Input bootstrap class used with streams, when encoding is not known

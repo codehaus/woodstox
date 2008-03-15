@@ -16,7 +16,6 @@
 package com.ctc.wstx.sr;
 
 import java.io.*;
-import java.net.URL;
 import java.text.MessageFormat;
 import java.util.Map;
 
@@ -40,18 +39,14 @@ import org.codehaus.stax2.validation.*;
 import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.cfg.XmlConsts;
-import com.ctc.wstx.dtd.DTDSubset;
 import com.ctc.wstx.dtd.MinimalDTDReader;
 import com.ctc.wstx.ent.EntityDecl;
 import com.ctc.wstx.exc.WstxException;
-import com.ctc.wstx.exc.WstxValidationException;
 import com.ctc.wstx.io.*;
 import com.ctc.wstx.util.DefaultXmlSymbolTable;
-import com.ctc.wstx.util.SymbolTable;
 import com.ctc.wstx.util.TextAccumulator;
 import com.ctc.wstx.util.TextBuffer;
 import com.ctc.wstx.util.TextBuilder;
-import com.ctc.wstx.util.URLUtil;
 
 /**
  * Implementation of {@link XMLStreamReader2} that implements non-DTD
@@ -4116,7 +4111,6 @@ public class BasicStreamReader
         char[] inputBuf = mInputBuffer;
         int start = ptr-1;
 
-        outer_loop:
         while (true) {
             if (c < CHAR_SPACE) {
                 if (c == '\n') {

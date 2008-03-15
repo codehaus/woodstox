@@ -16,7 +16,6 @@
 package org.codehaus.stax2;
 
 import java.io.IOException;
-import java.io.Reader;
 import java.io.Writer;
 
 import javax.xml.namespace.NamespaceContext;

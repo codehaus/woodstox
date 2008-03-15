@@ -3,7 +3,6 @@ package org.codehaus.stax2.io;
 import java.io.OutputStream;
 import java.io.IOException;
 import java.io.Writer;
-import java.net.URL;
 
 import javax.xml.transform.Result;
 

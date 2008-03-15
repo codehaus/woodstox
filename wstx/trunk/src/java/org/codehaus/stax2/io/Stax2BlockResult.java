@@ -1,7 +1,6 @@
 package org.codehaus.stax2.io;
 
 import java.io.*;
-import java.net.URL;
 
 /**
  * This is the mid-level abstract base class for {@link Stax2Result}s

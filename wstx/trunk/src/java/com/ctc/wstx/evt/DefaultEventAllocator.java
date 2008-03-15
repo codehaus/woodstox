@@ -21,7 +21,6 @@ import javax.xml.namespace.QName;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.stream.*;
 import javax.xml.stream.events.XMLEvent;
-import javax.xml.stream.events.EntityDeclaration;
 import javax.xml.stream.util.XMLEventAllocator;
 import javax.xml.stream.util.XMLEventConsumer;
 

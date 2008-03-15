@@ -1,7 +1,5 @@
 package stax2.stream;
 
-import java.io.*;
-
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.stream.*;
 

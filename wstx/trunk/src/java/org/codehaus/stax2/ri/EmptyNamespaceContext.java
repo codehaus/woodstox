@@ -1,11 +1,9 @@
 package org.codehaus.stax2.ri;
 
-import java.io.Writer;
 import java.util.Iterator;
 
 import javax.xml.XMLConstants;
 import javax.xml.namespace.NamespaceContext;
-import javax.xml.stream.XMLStreamWriter;
 
 /**
  * Dummy {@link NamespaceContext} implementation that contains no

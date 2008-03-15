@@ -17,7 +17,6 @@ package com.ctc.wstx.sr;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.Reader;
 import java.net.URL;
 import java.text.MessageFormat;
 
@@ -97,10 +96,6 @@ public abstract class StreamScanner
     private final static byte NAME_CHAR_ALL_VALID_B = (byte) 1;
     private final static byte NAME_CHAR_VALID_NONFIRST_B = (byte) -1;
 
-    private final static int NAME_CHAR_INVALID_I = (byte) 0;
-    private final static int NAME_CHAR_ALL_VALID_I = (byte) 1;
-    private final static int NAME_CHAR_VALID_NONFIRST_I = (byte) -1;
-
     private final static byte[] sCharValidity = new byte[VALID_CHAR_COUNT];
 
     static {
@@ -134,7 +129,7 @@ public abstract class StreamScanner
      */
     private final static int VALID_PUBID_CHAR_COUNT = 0x80;
     private final static byte[] sPubidValidity = new byte[VALID_PUBID_CHAR_COUNT];
-    private final static byte PUBID_CHAR_INVALID_B = (byte) 0;
+//    private final static byte PUBID_CHAR_INVALID_B = (byte) 0;
     private final static byte PUBID_CHAR_VALID_B = (byte) 1;
     static {
         for (int i = 0, last = ('z' - 'a'); i <= last; ++i) {

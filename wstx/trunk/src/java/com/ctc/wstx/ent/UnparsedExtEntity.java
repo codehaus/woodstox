@@ -5,15 +5,10 @@ import java.io.Writer;
 import java.net.URL;
 
 import javax.xml.stream.Location;
-import javax.xml.stream.XMLReporter;
 import javax.xml.stream.XMLResolver;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.events.EntityReference;
-import javax.xml.stream.events.EntityDeclaration;
 
 import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.io.WstxInputSource;
-import com.ctc.wstx.util.URLUtil;
 
 public class UnparsedExtEntity
     extends ExtEntity

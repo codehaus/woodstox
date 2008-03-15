@@ -32,12 +32,9 @@ import org.xml.sax.ext.Locator2;
 import org.codehaus.stax2.DTDInfo;
 
 import com.ctc.wstx.api.ReaderConfig;
-import com.ctc.wstx.cfg.XmlConsts;
 import com.ctc.wstx.dtd.DTDEventListener;
 import com.ctc.wstx.exc.WstxIOException;
-import com.ctc.wstx.io.BranchingReaderSource;
 import com.ctc.wstx.io.InputBootstrapper;
-import com.ctc.wstx.io.InputSourceFactory;
 import com.ctc.wstx.io.ReaderBootstrapper;
 import com.ctc.wstx.io.StreamBootstrapper;
 import com.ctc.wstx.sr.*;

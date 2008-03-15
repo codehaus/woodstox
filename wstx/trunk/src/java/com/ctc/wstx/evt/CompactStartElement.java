@@ -5,7 +5,6 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
 import javax.xml.stream.*;
 import javax.xml.stream.events.Attribute;
@@ -27,7 +26,7 @@ public class CompactStartElement
     extends BaseStartElement
 {
     // Need to be in sync with ones from ElemAttrs
-    private final static int OFFSET_LOCAL_NAME = 0;
+    //private final static int OFFSET_LOCAL_NAME = 0;
     private final static int OFFSET_NS_URI = 1;
     private final static int OFFSET_NS_PREFIX = 2;
     private final static int OFFSET_VALUE = 3;

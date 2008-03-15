@@ -15,13 +15,10 @@
 
 package com.ctc.wstx.msv;
 
-import java.io.*;
-import java.net.URL;
 import java.util.*;
 
 import javax.xml.stream.Location;
 
-import org.codehaus.stax2.*;
 import org.codehaus.stax2.validation.*;
 
 import org.relaxng.datatype.Datatype;
@@ -34,7 +31,6 @@ import com.sun.msv.verifier.Acceptor;
 import com.sun.msv.verifier.DocumentDeclaration;
 import com.sun.msv.verifier.regexp.StringToken;
 
-import com.ctc.wstx.exc.WstxIOException;
 import com.ctc.wstx.util.ElementId;
 import com.ctc.wstx.util.ElementIdMap;
 import com.ctc.wstx.util.PrefixedName;

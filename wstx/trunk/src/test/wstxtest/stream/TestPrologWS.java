@@ -1,11 +1,8 @@
 package wstxtest.stream;
 
 import java.io.*;
-import java.util.Random;
 
 import javax.xml.stream.*;
-
-import org.codehaus.stax2.XMLStreamReader2;
 
 import com.ctc.wstx.stax.WstxInputFactory;
 

@@ -17,11 +17,9 @@ package com.ctc.wstx.dtd;
 
 import java.io.*;
 import java.net.URL;
-import java.util.*;
 
 import javax.xml.stream.*;
 
-import org.codehaus.stax2.*;
 import org.codehaus.stax2.validation.*;
 
 import com.ctc.wstx.api.ReaderConfig;

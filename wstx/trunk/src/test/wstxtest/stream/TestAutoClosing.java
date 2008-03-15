@@ -1,9 +1,7 @@
 package wstxtest.stream;
 
 import java.io.*;
-import java.util.*;
 import javax.xml.stream.*;
-import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 
 import org.codehaus.stax2.*;

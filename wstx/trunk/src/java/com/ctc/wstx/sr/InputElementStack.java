@@ -16,9 +16,7 @@
 package com.ctc.wstx.sr;
 
 import java.util.Iterator;
-import java.util.Map;
 
-import javax.xml.XMLConstants;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
 import javax.xml.stream.Location;
@@ -34,7 +32,6 @@ import org.codehaus.stax2.validation.ValidatorPair;
 
 import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.api.WstxInputProperties;
-import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.cfg.XmlConsts;
 import com.ctc.wstx.dtd.DTDValidatorBase; // unfortunate dependency
 import com.ctc.wstx.util.*;

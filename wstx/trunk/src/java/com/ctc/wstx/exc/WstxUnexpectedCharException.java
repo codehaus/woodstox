@@ -1,7 +1,6 @@
 package com.ctc.wstx.exc;
 
 import javax.xml.stream.Location;
-import javax.xml.stream.XMLStreamException;
 
 /**
  * Generic exception type that indicates that tokenizer/parser encountered

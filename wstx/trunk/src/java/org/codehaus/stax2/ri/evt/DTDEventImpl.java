@@ -6,7 +6,6 @@ import java.io.Writer;
 import java.util.*;
 
 import javax.xml.stream.*;
-import javax.xml.stream.events.DTD;
 
 import org.codehaus.stax2.XMLStreamWriter2;
 import org.codehaus.stax2.evt.DTD2;

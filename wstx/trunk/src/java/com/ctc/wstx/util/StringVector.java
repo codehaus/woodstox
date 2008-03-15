@@ -1,8 +1,5 @@
 package com.ctc.wstx.util;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-
 /**
  * Data container similar {@link java.util.List} (from storage perspective),
  * but that can be used in multiple ways. For some uses it acts more like

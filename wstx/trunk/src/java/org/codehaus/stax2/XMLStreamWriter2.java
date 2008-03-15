@@ -1,6 +1,5 @@
 package org.codehaus.stax2;
 
-import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 

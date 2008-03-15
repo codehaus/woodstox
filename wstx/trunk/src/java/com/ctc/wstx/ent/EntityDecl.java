@@ -20,14 +20,11 @@ import java.io.Writer;
 import java.net.URL;
 
 import javax.xml.stream.Location;
-import javax.xml.stream.XMLReporter;
 import javax.xml.stream.XMLResolver;
 import javax.xml.stream.XMLStreamException;
 
 import com.ctc.wstx.api.ReaderConfig;
-import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.evt.WEntityDeclaration;
-import com.ctc.wstx.io.WstxInputLocation;
 import com.ctc.wstx.io.WstxInputSource;
 
 /**

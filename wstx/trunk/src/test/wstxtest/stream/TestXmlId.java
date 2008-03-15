@@ -1,7 +1,5 @@
 package wstxtest.stream;
 
-import java.io.*;
-
 import javax.xml.stream.*;
 
 import org.codehaus.stax2.XMLInputFactory2;
@@ -12,8 +10,6 @@ import org.codehaus.stax2.validation.XMLValidationException;
  * Set of unit tests that check that Woodstox support for Xml:id works
  * as expected.
  */
-import com.ctc.wstx.api.ReaderConfig;
-
 public class TestXmlId
     extends BaseStreamTest
 {

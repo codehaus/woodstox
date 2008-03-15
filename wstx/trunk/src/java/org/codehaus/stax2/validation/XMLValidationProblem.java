@@ -1,7 +1,6 @@
 package org.codehaus.stax2.validation;
 
 import javax.xml.stream.Location;
-import javax.xml.stream.XMLStreamException;
 
 /**
  * Simple container class used to store validation problem (error),

@@ -1,7 +1,6 @@
 package org.codehaus.stax2.io;
 
 import java.io.*;
-import java.net.URL;
 
 /**
  * Simple implementation of {@link Stax2ReferentialResult}, which refers

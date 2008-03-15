@@ -1,7 +1,6 @@
 package com.ctc.wstx.exc;
 
 import javax.xml.stream.Location;
-import javax.xml.stream.XMLStreamException;
 
 /**
  * Intermediate base class for reporting actual Wstx parsing problems.
