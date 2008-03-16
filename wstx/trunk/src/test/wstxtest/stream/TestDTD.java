@@ -33,6 +33,7 @@ public class TestDTD
         assertTokenType(DTD, sr.next());
 
         DTDInfo info = sr.getDTDInfo();
+        assertNotNull(info);
 
         assertTokenType(START_ELEMENT, sr.next());
     }

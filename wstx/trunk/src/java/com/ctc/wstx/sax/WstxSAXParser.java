@@ -29,7 +29,7 @@ import org.xml.sax.ext.DeclHandler;
 import org.xml.sax.ext.LexicalHandler;
 import org.xml.sax.ext.Locator2;
 
-import org.codehaus.stax2.DTDInfo;
+//import org.codehaus.stax2.DTDInfo;
 
 import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.dtd.DTDEventListener;
@@ -570,7 +570,7 @@ public class WstxSAXParser
             break;
         case XMLStreamConstants.DTD:
             if (mLexicalHandler != null) {
-                /* Note: this is bit tricky, sice calling getDTDInfo() will
+                /* Note: this is bit tricky, since calling getDTDInfo() will
                  * trigger full reading of the subsets... but we need to
                  * get some info first, to be able to send dtd-start event,
                  * and only then get the rest. Thus, need to call separate
@@ -582,7 +582,7 @@ public class WstxSAXParser
                 mLexicalHandler.startDTD(rootName, pubId, sysId);
                 // Ok, let's get rest (if any) read:
                 try {
-                    DTDInfo dtdInfo = mScanner.getDTDInfo();
+                    /*DTDInfo dtdInfo =*/ mScanner.getDTDInfo();
                 } catch (WrappedSaxException wse) {
                     throw wse.getSaxException();
                 }

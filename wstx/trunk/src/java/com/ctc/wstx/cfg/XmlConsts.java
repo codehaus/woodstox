@@ -39,11 +39,9 @@ public interface XmlConsts
 
     public final static String ATTR_NO_NS_URI = "";
 
-    //public final static String ELEM_NO_PREFIX = "";
-    public final static String ELEM_NO_PREFIX = null;
+    public final static String ELEM_NO_PREFIX = "";
 
-    //public final static String ATTR_NO_PREFIX = "";
-    public final static String ATTR_NO_PREFIX = null;
+    public final static String ATTR_NO_PREFIX = "";
 
     /**
      * Top-most namespace URI assigned for root element, if not specifically

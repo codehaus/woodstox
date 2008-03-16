@@ -69,9 +69,7 @@ public class TestLocationInfo
                        100, loc.getEndingCharOffset());
 
         // Let's ignore text/space, if there is one:
-        int type;
-
-        while ((type = sr.next()) != START_ELEMENT) {
+        while (sr.next() != START_ELEMENT) {
             ;
         }
 

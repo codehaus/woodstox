@@ -57,7 +57,7 @@ public final class DTDNmTokensAttr
     public String validate(DTDValidatorBase v, char[] cbuf, int start, int end, boolean normalize)
         throws XMLValidationException
     {
-        int origStart = start;
+        //int origStart = start;
 
         /* First things first; let's ensure value is not empty (all
          * white space)...
@@ -84,14 +84,14 @@ public final class DTDNmTokensAttr
             return null; // ok, all good
         }
 
-        boolean trimmed = (origStart != start);
+        //boolean trimmed = (origStart != start);
         //origStart = start;
 
         --end; // so that it now points to the last char
         // Wouldn't absolutely have to trim trailing... but is easy to do
         while (end > start && WstxInputData.isSpaceChar(cbuf[end])) {
             --end;
-            trimmed = true;
+            //trimmed = true;
         }
 
         /* Ok, now, need to check we only have valid chars, and maybe

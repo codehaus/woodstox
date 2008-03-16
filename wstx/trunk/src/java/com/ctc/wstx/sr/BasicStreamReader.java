@@ -581,7 +581,7 @@ public class BasicStreamReader
         return mAttrCollector.getCount();
     }
 
-	public String getAttributeLocalName(int index) {
+    public String getAttributeLocalName(int index) {
         if (mCurrToken != START_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
         }
@@ -599,14 +599,18 @@ public class BasicStreamReader
         if (mCurrToken != START_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
         }
-        return mAttrCollector.getURI(index);
+        // Internally it's marked as null, externally need to see ""
+        String uri = mAttrCollector.getURI(index);
+        return (uri == null) ? XmlConsts.ATTR_NO_NS_URI : uri;
     }
 
     public String getAttributePrefix(int index) {
         if (mCurrToken != START_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
         }
-        return mAttrCollector.getPrefix(index);
+        // Internally it's marked as null, externally need to see ""
+        String p = mAttrCollector.getPrefix(index);
+        return (p == null) ? XmlConsts.ATTR_NO_PREFIX : p;
     }
 
     public String getAttributeType(int index) {
@@ -734,14 +738,18 @@ public class BasicStreamReader
         if (mCurrToken != START_ELEMENT && mCurrToken != END_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_ELEM);
         }
-        return mElementStack.getLocalNsPrefix(index);
+        // Internally it's marked as null, externally need to see ""
+        String p = mElementStack.getLocalNsPrefix(index);
+        return (p == null) ? XmlConsts.ATTR_NO_PREFIX : p;
     }
 
     public String getNamespaceURI() {
         if (mCurrToken != START_ELEMENT && mCurrToken != END_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_ELEM);
         }
-        return mElementStack.getNsURI();
+        // Internally it's marked as null, externally need to see ""
+        String uri = mElementStack.getNsURI();
+        return (uri == null) ? XmlConsts.ELEM_NO_NS_URI : uri;
     }
 
     public String getNamespaceURI(int index)
@@ -749,10 +757,9 @@ public class BasicStreamReader
         if (mCurrToken != START_ELEMENT && mCurrToken != END_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_ELEM);
         }
-        /* WSTX-57: Should return "" for ns unbinding declaration:
-         */
+        // Internally it's marked as null, externally need to see ""
         String uri = mElementStack.getLocalNsURI(index);
-        return (uri == null) ? "" : uri;
+        return (uri == null) ? XmlConsts.ATTR_NO_NS_URI : uri;
     }
 
     public String getNamespaceURI(String prefix)
@@ -760,6 +767,9 @@ public class BasicStreamReader
         if (mCurrToken != START_ELEMENT && mCurrToken != END_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_ELEM);
         }
+        /* Note: this will need to return null if no URI found for
+         * the prefix, so we can't mask it.
+         */
         return mElementStack.getNamespaceURI(prefix);
     }
 
@@ -785,7 +795,9 @@ public class BasicStreamReader
         if (mCurrToken != START_ELEMENT && mCurrToken != END_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_ELEM);
         }
-        return mElementStack.getPrefix();
+        // Internally it's marked as null, externally need to see ""
+        String p = mElementStack.getPrefix();
+        return (p == null) ? XmlConsts.ELEM_NO_PREFIX : p;
     }
 
     public String getText()
@@ -1641,7 +1653,7 @@ public class BasicStreamReader
             int nsCount = mElementStack.getCurrentNsCount();
             for (int i = 0; i < nsCount; ++i) {
                 String prefix = mElementStack.getLocalNsPrefix(i);
-                String nsUri = mElementStack.getLocalNsURI(i);
+                //String nsUri = mElementStack.getLocalNsURI(i);
                 h.endPrefixMapping((prefix == null) ? "" : prefix);
             }
         }
@@ -2824,7 +2836,7 @@ public class BasicStreamReader
                 c = (mInputPtr < mInputLen) ?
                     mInputBuffer[mInputPtr++] : getNextCharFromCurrent(SUFFIX_IN_ELEMENT);
             } else {
-                mElementStack.push(XmlConsts.ATTR_NO_PREFIX, str);
+                mElementStack.push(null, str);
                 // c is fine as
             }
             /* Enough about element name itself; let's then parse attributes
@@ -2866,7 +2878,6 @@ public class BasicStreamReader
         throws IOException, XMLStreamException
     {
         AttributeCollector ac = mAttrCollector;
-        boolean gotDefaultNS = false;
 
         while (true) {
             if (c <= CHAR_SPACE) {
@@ -2898,7 +2909,7 @@ public class BasicStreamReader
                 localName = parseLocalName(c);
             } else {
                 --mInputPtr; // pushback
-                prefix = XmlConsts.ATTR_NO_PREFIX;
+                prefix = null;
                 localName = str;
             }
 
@@ -2932,7 +2943,7 @@ public class BasicStreamReader
                     throwParseError("Duplicate declaration for namespace prefix '"+localName+"'.");
                 }
                 startLen = tb.getCharSize();
-            } else if (localName == sPrefixXmlns && prefix == XmlConsts.ATTR_NO_PREFIX) {
+            } else if (localName == sPrefixXmlns && prefix == null) {
                 tb = ac.getDefaultNsBuilder();
                 // returns null if default ns was already declared
                 if (null == tb) {

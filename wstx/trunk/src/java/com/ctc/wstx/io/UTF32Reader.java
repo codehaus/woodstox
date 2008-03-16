@@ -115,11 +115,11 @@ public final class UTF32Reader
             int ch;
 
             if (mBigEndian) {
-                ch = (mBuffer[ptr] << 24) | ((mBuffer[ptr+1] & 0xFF) << 16)
-                    | ((mBuffer[ptr+2] & 0xFF) << 8) | (mBuffer[ptr+3] & 0xFF);
+                ch = (buf[ptr] << 24) | ((buf[ptr+1] & 0xFF) << 16)
+                    | ((buf[ptr+2] & 0xFF) << 8) | (buf[ptr+3] & 0xFF);
             } else {
-                ch = (mBuffer[ptr] & 0xFF) | ((mBuffer[ptr+1] & 0xFF) << 8)
-                    | ((mBuffer[ptr+2] & 0xFF) << 16) | (mBuffer[ptr+3] << 24);
+                ch = (buf[ptr] & 0xFF) | ((buf[ptr+1] & 0xFF) << 8)
+                    | ((buf[ptr+2] & 0xFF) << 16) | (buf[ptr+3] << 24);
             }
             mPtr += 4;
 

@@ -565,7 +565,6 @@ public final class AsciiXmlWriter
     {
         int offset = 0;
         int len = data.length();
-        int ptr = mOutputPtr;
 
         main_loop:
         while (len > 0) {

@@ -54,7 +54,7 @@ public class TestFlattening
             WstxInputSource input = DefaultInputResolver.sourceFromString
                 (null, cfg, "[dtd]", /*xml version for compat checks*/ XmlConsts.XML_V_UNKNOWN, DTD);
             StringWriter strw = new StringWriter();
-            DTDSubset ss = FullDTDReader.flattenExternalSubset
+            /*DTDSubset ss =*/ FullDTDReader.flattenExternalSubset
                 (input, strw,
                  inclComments, inclConditionals, inclPEs);
             strw.flush();
@@ -68,8 +68,9 @@ public class TestFlattening
                 (null, cfg, "[dtd]", /*xml version for compatibility checks*/ XmlConsts.XML_V_UNKNOWN, output);
 
             strw = new StringWriter();
-            ss = FullDTDReader.flattenExternalSubset
+            DTDSubset ss = FullDTDReader.flattenExternalSubset
                 (input, strw, inclComments, inclConditionals, inclPEs);
+            assertNotNull(ss);
             strw.flush();
             String output2 = strw.toString();
 

@@ -28,7 +28,7 @@ public class TestPrologWS
             boolean firstDoc = (i & 2) == 0;
             String content = firstDoc ? XML1 : XML2;
             boolean streaming = (i & 4) != 0;
-            XMLStreamReader sr = getReader(content, true, (i == 1));
+            XMLStreamReader sr = getReader(content, true, lazy);
 
             assertTokenType(START_DOCUMENT, sr.getEventType());
 
@@ -62,7 +62,7 @@ public class TestPrologWS
         for (int i = 0; i < 4; ++i) {
             boolean lazy = (i & 1) == 0;
             String content = ((i & 2) == 0) ? XML1 : XML2;
-            XMLStreamReader sr = getReader(content, false, (i == 1));
+            XMLStreamReader sr = getReader(content, false, lazy);
 
             assertTokenType(START_DOCUMENT, sr.getEventType());
 

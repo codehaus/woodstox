@@ -9,7 +9,6 @@ import javax.xml.stream.XMLStreamException;
 import org.codehaus.stax2.validation.XMLValidator;
 
 import com.ctc.wstx.api.ReaderConfig;
-import com.ctc.wstx.cfg.XmlConsts;
 import com.ctc.wstx.util.BaseNsContext;
 import com.ctc.wstx.util.EmptyIterator;
 import com.ctc.wstx.util.EmptyNamespaceContext;
@@ -219,14 +218,14 @@ public final class NonNsInputElementStack
          * "no prefix" needs to match "no namespace": latter of which
          * is signified by the empty String
          */
-        if (prefix != null && prefix.length() == 0) {
+        if (prefix == null || prefix.length() == 0) {
             return "";
         }
         return null;
     }
 
     public final String getPrefix(String nsURI) {
-        return XmlConsts.ELEM_NO_PREFIX;
+        return null;
     }
 
     public final Iterator getPrefixes(String nsURI) {
@@ -326,11 +325,11 @@ public final class NonNsInputElementStack
     // // // Information about element at top of stack:
 
     public final String getDefaultNsURI() {
-        return "";
+        return null;
     }
 
     public final String getNsURI() {
-        return "";
+        return null;
     }
 
     public final String getPrefix() {

@@ -8,7 +8,6 @@ import javax.xml.stream.XMLStreamException;
 
 import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.cfg.ErrorConsts;
-import com.ctc.wstx.cfg.XmlConsts;
 import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.sw.XmlWriter;
 import com.ctc.wstx.util.DataUtil;
@@ -154,16 +153,15 @@ public final class NsAttributeCollector
         // Need to have room for URIs:
         String[] attrURIs = mAttrURIs;
         if (attrURIs == null || attrURIs.length < attrCount) {
-            int size = (attrCount < ATTR_URI_BUF_SIZE) ? ATTR_URI_BUF_SIZE
-                : attrCount;
-            mAttrURIs = attrURIs = new String[attrCount];
+            int size = (attrCount < ATTR_URI_BUF_SIZE) ? ATTR_URI_BUF_SIZE : attrCount;
+            mAttrURIs = attrURIs = new String[size];
         }
         String[] attrNames = mAttrNames.getInternalArray();
         for (int i = 0; i < attrCount; ++i) {
             String prefix = attrNames[i+i];
             // Attributes do NOT use default namespace:
-            if (prefix == XmlConsts.ATTR_NO_PREFIX) {
-                attrURIs[i] = XmlConsts.ATTR_NO_NS_URI;
+            if (prefix == null) {
+                attrURIs[i] = null;
                 // xml:lang etc? fixed mapping
             } else if (prefix == "xml") {
                 attrURIs[i] = XMLConstants.XML_NS_URI;
@@ -345,7 +343,7 @@ public final class NsAttributeCollector
                     return getValue(ix);
                 }
             } else {
-                if (thisURI == XmlConsts.ATTR_NO_NS_URI) {
+                if (thisURI == null) {
                     return getValue(ix);
                 }
             }
@@ -370,7 +368,7 @@ public final class NsAttributeCollector
                         return getValue(ix);
                     }
                 } else {
-                    if (thisURI == XmlConsts.ATTR_NO_NS_URI) {
+                    if (thisURI == null) {
                         return getValue(ix);
                     }
                 }
@@ -413,7 +411,7 @@ public final class NsAttributeCollector
                     return ix;
                 }
             } else {
-                if (thisURI == XmlConsts.ATTR_NO_NS_URI) {
+                if (thisURI == null) {
                     return ix;
                 }
             }
@@ -438,7 +436,7 @@ public final class NsAttributeCollector
                         return ix;
                     }
                 } else {
-                    if (thisURI == XmlConsts.ATTR_NO_NS_URI) {
+                    if (thisURI == null) {
                         return ix;
                     }
                 }

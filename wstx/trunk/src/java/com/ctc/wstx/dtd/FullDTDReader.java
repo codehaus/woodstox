@@ -475,7 +475,6 @@ public class FullDTDReader
                                                   boolean inclPEs)
         throws IOException, XMLStreamException
     {
-        int configFlags = -1; // let's start with all options set, first
         ReaderConfig cfg = ReaderConfig.createFullDefaults();
         // Need to create a non-shared copy to populate symbol table field
         cfg = cfg.createNonShared(new SymbolTable());
@@ -2402,7 +2401,7 @@ public class FullDTDReader
                  * opening quote. To do that, need to 'peek' next char, then
                  * push it back:
                  */
-                char foo = dtdNextFromCurr();
+                /*char foo =*/ dtdNextFromCurr();
                 Location contentLoc = getLastCharLocation();
                 --mInputPtr; // pushback
                 char[] contents = parseEntityValue(id, contentLoc, c);
@@ -3120,7 +3119,6 @@ public class FullDTDReader
                                                 char c, Location evtLoc)
         throws IOException, XMLStreamException
     {
-        String errId = null;
         boolean isPublic = checkPublicSystemKeyword(c);
 
         String pubId = null;

@@ -38,7 +38,7 @@ public class TestAttrCollector
     public void testNsAttrCollector()
         throws XMLStreamException
     {
-        WstxInputFactory f = getWstxInputFactory();
+        /*WstxInputFactory f =*/ getWstxInputFactory();
         //*NsAttributeCollector ac =*/ new NsAttributeCollector(f.getConfig());
         /*StringVector attrsIn =*/ new StringVector(8);
 

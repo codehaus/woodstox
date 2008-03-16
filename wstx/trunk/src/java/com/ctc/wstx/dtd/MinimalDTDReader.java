@@ -387,7 +387,7 @@ public class MinimalDTDReader
     private void skipDTDName()
         throws IOException, XMLStreamException
     {
-        int len = skipFullName(getNextChar(getErrorMsg()));
+        /*int len =*/ skipFullName(getNextChar(getErrorMsg()));
         /* Should we give an error about missing name? For now,
          * let's just exit.
          */

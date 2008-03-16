@@ -1799,8 +1799,6 @@ public abstract class StreamScanner
     protected String parseFullName()
         throws IOException, XMLStreamException
     {
-        char c;
-
         if (mInputPtr >= mInputLen) {
             loadMoreFromCurrent();
         }

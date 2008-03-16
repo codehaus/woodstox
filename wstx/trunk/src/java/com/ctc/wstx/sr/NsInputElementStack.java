@@ -259,7 +259,7 @@ public final class NsInputElementStack
                     if (internNsUris && nsUri.length() > 0) {
                         nsUri = sInternCache.intern(nsUri);
                     }
-                    // will have defaul ns's too; have null prefix
+                    // will have default ns's too; have null prefix
                     String prefix = nsPrefixes[i];
                     /* 18-Jul-2004, TSa: Need to check that 'xml' and 'xmlns'
                      *   prefixes are not re-defined (and 'xmlns' not even
@@ -287,7 +287,7 @@ public final class NsInputElementStack
                             nsUri = XmlConsts.DEFAULT_NAMESPACE_URI;
                         }
                         // The default ns binding needs special handling:
-                        if (prefix == XmlConsts.ATTR_NO_PREFIX) {
+                        if (prefix == null) {
                             mElements[mSize-(ENTRY_SIZE - IX_DEFAULT_NS)] = nsUri;
                         }
 
@@ -327,7 +327,7 @@ public final class NsInputElementStack
         String prefix = mElements[mSize-(ENTRY_SIZE - IX_PREFIX)];
         String ns;
 
-        if (prefix == null || prefix.length() == 0) { // use default NS, if any
+        if (prefix == null) { // use default NS, if any
             ns = mElements[mSize-(ENTRY_SIZE - IX_DEFAULT_NS)];
         } else if (prefix == "xml") {
             ns = XMLConstants.XML_NS_URI;
@@ -472,7 +472,7 @@ public final class NsInputElementStack
                 /* 07-Sep-2007, TSa: Default/"no namespace" does map to
                  *    "URI" of empty String.
                  */
-                return "";
+                return XmlConsts.DEFAULT_NAMESPACE_URI;
             }
             return mElements[mSize-(ENTRY_SIZE - IX_DEFAULT_NS)];
         }
@@ -489,7 +489,8 @@ public final class NsInputElementStack
         return mNamespaces.findLastNonInterned(prefix);
     }
 
-    public final String getPrefix(String nsURI) {
+    public final String getPrefix(String nsURI)
+    {
         if (nsURI == null || nsURI.length() == 0) {
             throw new IllegalArgumentException("Illegal to pass null/empty prefix as argument.");
         }

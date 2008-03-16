@@ -97,5 +97,9 @@ public class TestOutputFactory
          */
         WstxInputProperties fooin = new WstxInputProperties();
         WstxOutputProperties fooout = new WstxOutputProperties();
+ 
+        // These just to keep compilers/FindBugs etc happy
+        assertNotNull(fooin);
+        assertNotNull(fooout);
     }
 }

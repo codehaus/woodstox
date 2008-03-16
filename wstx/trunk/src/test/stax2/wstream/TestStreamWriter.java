@@ -80,6 +80,7 @@ public class TestStreamWriter
             StringWriter strw = new StringWriter();
             XMLStreamWriter2 w = (XMLStreamWriter2)of.createXMLStreamWriter(strw);
             XMLStreamLocation2 loc = w.getLocation();
+            assertNotNull(loc);
             // Need to output something, otherwise it'll be empty doc
             w.writeEmptyElement("root");
             w.close();
