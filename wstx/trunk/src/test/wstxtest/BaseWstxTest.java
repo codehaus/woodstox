@@ -12,6 +12,7 @@ import org.codehaus.stax2.evt.*;
 
 import com.ctc.wstx.api.WstxInputProperties;
 import com.ctc.wstx.api.WstxOutputProperties;
+import com.ctc.wstx.cfg.XmlConsts;
 import com.ctc.wstx.stax.WstxInputFactory;
 import com.ctc.wstx.stax.WstxOutputFactory;
 
@@ -440,26 +441,25 @@ public class BaseWstxTest
     protected static void assertNoElemPrefix(XMLStreamReader sr)
         throws XMLStreamException
     {
-        assertNull("A", sr.getPrefix());
         String prefix = sr.getPrefix();
-        if (prefix != null) {
-            if (prefix.length() != 0) {
-                fail("Current element should not have a prefix: got '"+prefix+"'");
-            } else {
-                fail("Excepted null to signify missing prefix (see XMLStreamReader#getPrefix() JavaDocs): got empty String");
-            }
+        if (prefix != XmlConsts.ELEM_NO_PREFIX) {
+            fail("Element that does not have a prefix should be indicated with <"+XmlConsts.ELEM_NO_PREFIX+">, not <"+prefix+">");
         }
     }
 
+    /**
+     * Helper method for ensuring that the given return value for
+     * attribute prefix accessor has returned a value that
+     * represents "no prefix" value.
+     *<p>
+     * Current thinking (early 2008) is that empty string is the
+     * expected value here.
+     */
     protected static void assertNoAttrPrefix(String attrPrefix)
         throws XMLStreamException
     {
-        if (attrPrefix != null) {
-            if (attrPrefix.length() != 0) {
-                fail("Attribute should not have a prefix: got '"+attrPrefix+"'");
-            } else {
-                fail("Expected null to signify missing attribute prefix (see XMLStreamReader#getAttributePrefix() JavaDocs): got empty String");
-            }
+        if (attrPrefix != XmlConsts.ATTR_NO_PREFIX) {
+            fail("Attribute that does not have a prefix should be indicated with <"+XmlConsts.ATTR_NO_PREFIX+">, not <"+attrPrefix+">");
         }
     }
 

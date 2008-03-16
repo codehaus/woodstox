@@ -36,8 +36,8 @@ public class TestStreamReader
         //f.setProperty(XMLInputFactory.IS_COALESCING, Boolean.FALSE);
         f.setProperty(XMLInputFactory.IS_COALESCING, Boolean.TRUE);
 
-        f.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.TRUE);
-        //f.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.FALSE);
+        //f.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.TRUE);
+        f.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.FALSE);
 
         f.setProperty(XMLInputFactory.IS_REPLACING_ENTITY_REFERENCES,
                       //Boolean.FALSE
@@ -259,9 +259,12 @@ public class TestStreamReader
             } else if (type == START_ELEMENT) {
                 String prefix = sr.getPrefix();
                 System.out.print('<');
-                if (prefix != null && prefix.length() > 0) {
+                if (prefix == null) {
+                    System.out.print("{null-prefix}");
+                } else if (prefix.length() == 0) {
+                    System.out.print("{empty-prefix}");
+                } else {
                     System.out.print(prefix);
-                    System.out.print(':');
                 }
                 System.out.print(sr.getLocalName());
                 //System.out.println("[first char 0x"+Integer.toHexString(sr.getLocalName().charAt(0))+"]");
