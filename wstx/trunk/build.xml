@@ -45,7 +45,7 @@
     <property name="STAX_VERSION" value="1.0" />
     <property name="STAX_VENDOR" value="http://jcp.org/en/jsr/detail?id=173" />
     <property name="WSTX_TITLE" value="Woodstox XML-processor" />
-    <property name="WSTX_VERSION" value="3.9.0" />
+    <property name="WSTX_VERSION" value="3.9.2" />
     <property name="WSTX_VENDOR" value="woodstox.codehaus.org" />
 
     <!-- Extended API, working title "StAX2" (not version 2.0, but 2/squared)
@@ -268,7 +268,7 @@
 
     <!-- Dummy target that just includes all individual jars... --> 
     <target name="jars"
-       depends="jar.stax2, jar.wstx.lgpl, jar.wstx.asl, jar.resources"
+       depends="jar.stax2, jar.wstx.lgpl, jar.wstx.asl, jar.resources, jar.stax2test"
     />
 
     <target name="jars.j2me"
@@ -365,6 +365,26 @@
           </manifest>
           <fileset dir="${BuildClassesDir}">
              <include name="org/codehaus/stax2/**/*.class" />
+          </fileset>
+        </jar>
+    </target> 
+
+    <!-- 15-Mar-2008, TSa: Let's also package up Stax2 compatibility
+         test suite, for other stax2 impls to use
+      -->
+    <target name="jar.stax2test" depends="test.compile">
+        <jar jarfile="${BuildDir}/stax2test-${STAX2_VERSION}.jar" filesonly="true" >
+          <manifest>
+            <attribute name="Built-By" value="${user.name}"/>
+            <attribute name="Specification-Title"   value="${STAX2_TITLE}"/>
+            <attribute name="Specification-Version" value="${STAX2_VERSION}"/>
+            <attribute name="Specification-Vendor"  value="${STAX2_VENDOR}"/>
+            <attribute name="Implementation-Title"   value="${STAX2_TITLE}"/>
+            <attribute name="Implementation-Version" value="${STAX2_VERSION}"/>
+            <attribute name="Implementation-Vendor"  value="${STAX2_VENDOR}"/>
+          </manifest>
+          <fileset dir="${TestClassesDir}">
+             <include name="stax2/**/*.class" />
           </fileset>
         </jar>
     </target> 

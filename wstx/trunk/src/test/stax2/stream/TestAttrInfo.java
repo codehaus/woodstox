@@ -9,13 +9,21 @@ import stax2.BaseStax2Test;
 /**
  * Set of unit tests that checks that the {@link AttributeInfo} implementation
  * works as expected.
+ *
+ * @author Tatu Saloranta
  */
 public class TestAttrInfo
     extends BaseStax2Test
 {
     final static String DEFAULT_VALUE = "default value";
 
-    final static String TEST_DOC =
+    final static String TEST_DOC_BASIC =
+        "<?xml version='1.0'?>"
+        +"<root idAttr='idValue' textAttr='value' notation='not2' textAttr3='1'"
+        +"><leaf />"
+        +"</root>";
+
+    final static String TEST_DOC_DTD =
         "<?xml version='1.0'?>"
         +"<!DOCTYPE root [\n"
         +"<!ELEMENT root (leaf)>\n"
@@ -34,18 +42,92 @@ public class TestAttrInfo
         +"><leaf />"
         +"</root>";
 
-    public TestAttrInfo(String name) {
-        super(name);
-    }
-
-    public void testAttrFind()
+    /**
+     * Baseline test case that does not use any information originating
+     * from DTDs.
+     */
+    public void testAttrFindBasic()
         throws XMLStreamException
     {
-        XMLStreamReader2 sr = getAttrReader();
+        XMLStreamReader2 sr = getAttrReader(TEST_DOC_BASIC);
+
+        // Let's verify basic facts...
+        assertEquals(4, sr.getAttributeCount());
+
         AttributeInfo info = sr.getAttributeInfo();
+        assertNotNull(info);
+
+        // And then see if we can find the attributes
+        {
+            int ix = info.findAttributeIndex(null, "textAttr");
+            if (ix < 0) {
+                fail("Failed to find index of attribute 'textAttr'");
+            }
+            assertEquals("value", sr.getAttributeValue(ix));
+
+            ix = info.findAttributeIndex(null, "textAttr2");
+            if (ix >= 0) {
+                fail("Found a phantom index for (missing) attribute 'textAttr2'");
+            }
+
+            ix = info.findAttributeIndex(null, "textAttr3");
+            if (ix < 0) {
+                fail("Failed to find index of attribute 'textAttr3'");
+            }
+            assertEquals("1", sr.getAttributeValue(ix));
+        }
+
+        // Notation attr?
+        {
+            int ix = info.findAttributeIndex(null, "notation");
+            if (ix < 0) {
+                fail("Failed to find index of attribute 'notation'");
+            }
+            int notIx = info.getNotationAttributeIndex();
+            if (notIx < 0) {
+                fail("Failed to find index of the notation attribute");
+            }
+            assertEquals(ix, notIx);
+            assertEquals("not2", sr.getAttributeValue(notIx));
+        }
+
+        // Ok, how about the id attr?
+        {
+            int ix = info.findAttributeIndex(null, "idAttr");
+            if (ix < 0) {
+                fail("Failed to find index of attribute 'id'");
+            }
+            assertEquals("idValue", sr.getAttributeValue(ix));
+
+            // .. but not by type, as that depends on DTD or Xml:id
+        }
+
+        // Ok; but how about of non-existing ones?
+        assertEquals(-1, info.findAttributeIndex(null, "foo"));
+        assertEquals(-1, info.findAttributeIndex("http://foo", "id"));
+
+        // and then the other (empty) element:
+        assertTokenType(START_ELEMENT, sr.next());
+        assertEquals(0, sr.getAttributeCount());
+        assertEquals(-1, info.findAttributeIndex(null, "dummyAttr"));
+
+        finishAttrReader(sr);
+    }
+
+    /**
+     * More complex test case, in which information from DTD
+     * (like attribute default values, notations) are needed.
+     */
+    public void testAttrFindDTD()
+        throws XMLStreamException
+    {
+        XMLStreamReader2 sr = getAttrReader(TEST_DOC_DTD);
 
         // Let's verify basic facts...
         assertEquals(5, sr.getAttributeCount());
+
+        AttributeInfo info = sr.getAttributeInfo();
+        assertNotNull(info);
 
         // And then see if we can find the attributes
         {
@@ -113,13 +195,16 @@ public class TestAttrInfo
     ////////////////////////////////////////
      */
 
-    private XMLStreamReader2 getAttrReader()
+    private XMLStreamReader2 getAttrReader(String str)
         throws XMLStreamException
     {
-        XMLStreamReader2 sr = getReader(TEST_DOC);
+        XMLStreamReader2 sr = getReader(str);
         assertTokenType(START_DOCUMENT, sr.getEventType());
-        assertTokenType(DTD, sr.next());
-        assertTokenType(START_ELEMENT, sr.next());
+        int type = sr.next();
+        if (type == DTD) {
+            type = sr.next();
+        }
+        assertTokenType(START_ELEMENT, type);
         return sr;
     }
 

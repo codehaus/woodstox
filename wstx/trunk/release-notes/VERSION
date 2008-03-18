@@ -1,18 +1,21 @@
-Version: 4.0pr1
+Version: 3.9.1
 
-Release date: xx-Mar-2008
+Release date: 16-Mar-2008
 
 Description:
-  First pre-4.0 version. Beyond clean-up and refactoring, the most
-  important new thing is W3C Schema validation, and related fixes
-  to validation framework (and existing RNG validator as well)
+  Second pre-4.0 version. Mostly refactoring, conformance improvements
+  with Stax specs, and minor additions to stax2 framework (to get v3.0
+  solidified).
 
   Problems fixed:
 
-  * [WSTX-120] By default, content fixing is now disabled, to
-    maximize interoperability, and to follow "principle of least
-    surprise" (i.e. avoid confusion arising from the stream writer
-    outsmarting developer)
+  New features:
+
+== History: ==
+
+3.9.1 [16-Mar-2008]
+
+  Problems fixed:
   * [WSTX-140] Default settings for WstxInputFactory.IS_COALESCING
     changed to Boolean.FALSE as per Stax specs; was defaulting to
     true by accident
@@ -20,12 +23,34 @@ Description:
 
   New features:
 
+  * Reference implementation of Stax2 API now included under
+    org.codehaus.stax2.ri (implements classes that can be implemented
+    in generic way, making use of existing Stax 1.0 implementation
+    or other Stax2 classes)
+  * Converted Woodstox-specific property WstxInputProperties.P_LAZY_PARSING
+    to XMLInputFactory2.P_LAZY_PARSING (stax2 API).
+
+  Clean-up:
+
+  * Stax API specification compatibility improvements:
+    * Missing prefixes now reported as "", not nulls.
+    * "No namespace" now reported as "", not null.
+
+3.9.0 [23-Nov-2007]
+
+  Problems fixed:
+
+  * [WSTX-120] By default, content fixing is now disabled, to
+    maximize interoperability, and to follow "principle of least
+    surprise" (i.e. avoid confusion arising from the stream writer
+    outsmarting developer)
+
+  New features:
+
   * [WSTX-125] Adding of space between empty element, and closing
     "/>" is now optional, configurable using
     'WstxOutputProperties.P_ADD_SPACE_AFTER_EMPTY_ELEM'.
   * [WSTX-137] Add W3C Schema validation support using MSV.
-  * Converted Woodstox-specific property WstxInputProperties.P_LAZY_PARSING
-    to XMLInputFactory2.P_LAZY_PARSING.
 
   Clean-up:
 
@@ -37,15 +62,17 @@ Description:
   * [WSTX-105] Transformed the only existing input-side feature
     (FEAT_DTD_OVERRIDE) into matching input-side property
     (XMLInputFactoty2.P_OVERRIDE_DTD).
-  * Reference implementation of Stax2 API now included under
-    org.codehaus.stax2.ri (implements classes that can be implemented
-    in generic way, making use of existing Stax 1.0 implementation
-    or other Stax2 classes)
-  * Stax API specification compatibility improvements:
-    * Missing prefixes now reported as "", not nulls.
-    * "No namespace" now reported as "", not null.
 
-== History: ==
+3.2.4 [17-Jan-2008]
+
+  Problems fixed:
+
+  * [WSTX-141]: Copying of CDATA events, using XMLEventWriter, was
+    producing garbled output.
+    (reported by Frank B) 
+  * [WSTX-143]: UTF8Reader had a bug in handling of DEL (127) character
+    at buffer boundary.
+    (report by Matt G)
 
 3.2.3 [14-Nov-2007]
 

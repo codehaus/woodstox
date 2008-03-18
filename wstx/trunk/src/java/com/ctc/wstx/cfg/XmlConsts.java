@@ -49,7 +49,7 @@ public interface XmlConsts
      *<p>
      * As per Stax specs, related clarifying discussion on
      * the mailing list, and especially JDK 1.6 definitions
-     * in {@link XMLConstants} constants, <b>empty String</b>
+     * in {@link javax.xml.XMLConstants} constants, <b>empty String</b>
      * should be used instead of null.
      */
     public final static String DEFAULT_NAMESPACE_URI = ELEM_NO_NS_URI;

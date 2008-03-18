@@ -29,6 +29,13 @@ abstract class CommonConfig
     /* !!! TBI: get from props file or so? Or build as part of Ant
      *    build process?
      */
+    /**
+     * This is "major.minor" version used for purposes of determining
+     * the feature set. Patch level is not included, since those should
+     * not affect API or feature set. Using applications should be
+     * prepared to take additional levels, however, just not depend
+     * on those being available.
+     */
     protected final static String IMPL_VERSION = "4.0";
 
     /*

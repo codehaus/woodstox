@@ -37,6 +37,8 @@ public class Stax2EventWriterImpl
      */
 
     /**
+     * Basic implementation of the method which will use event implementations
+     * available as part of the reference implementation.
      *<p>
      * Note: ALL events (except for custom ones ref. impl. itself doesn't
      * produce, and thus may not always be able to deal with) are routed
