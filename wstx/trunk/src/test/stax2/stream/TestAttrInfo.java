@@ -83,12 +83,13 @@ public class TestAttrInfo
             if (ix < 0) {
                 fail("Failed to find index of attribute 'notation'");
             }
+            assertEquals("not2", sr.getAttributeValue(ix));
+            // No DTD info available, should NOT find via this:
+
             int notIx = info.getNotationAttributeIndex();
-            if (notIx < 0) {
-                fail("Failed to find index of the notation attribute");
+            if (notIx >= 0) {
+                fail("Found a bogus notation attribute index ("+notIx+")");
             }
-            assertEquals(ix, notIx);
-            assertEquals("not2", sr.getAttributeValue(notIx));
         }
 
         // Ok, how about the id attr?

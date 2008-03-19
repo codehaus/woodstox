@@ -48,7 +48,7 @@ abstract class CommonConfig
     final static int PROP_IMPL_VERSION = 2;
 
     final static int PROP_SUPPORTS_XML11 = 3;
-    final static int PROP_SUPPORTS_XMLID = 4;
+    final static int PROP_SUPPORT_XMLID = 4;
 
     /**
      * Map to use for converting from String property ids to enumeration
@@ -67,8 +67,8 @@ abstract class CommonConfig
                            DataUtil.Integer(PROP_SUPPORTS_XML11));
 
         // Xml:id support:
-        sStdProperties.put(XMLStreamProperties.XSP_SUPPORTS_XML11,
-                           DataUtil.Integer(PROP_SUPPORTS_XML11));
+        sStdProperties.put(XMLStreamProperties.XSP_SUPPORT_XMLID,
+                           DataUtil.Integer(PROP_SUPPORT_XMLID));
     }
 
     protected CommonConfig() { }
@@ -136,6 +136,13 @@ abstract class CommonConfig
         return true;
     }
 
+    protected boolean doesSupportXmlId() {
+        /* Woodstox does support Xml:id ... but sub-classes can
+         * override it if/as necessary.
+         */
+        return true;
+    }
+
     protected abstract Object getProperty(int id);
 
     protected abstract boolean setProperty(String propName, int id, Object value);
@@ -167,6 +174,8 @@ abstract class CommonConfig
             return IMPL_VERSION;
         case PROP_SUPPORTS_XML11:
             return doesSupportXml11() ? Boolean.TRUE : Boolean.FALSE;
+        case PROP_SUPPORT_XMLID:
+            return doesSupportXmlId() ? Boolean.TRUE : Boolean.FALSE;
         default: // sanity check, should never happen
             throw new IllegalStateException("Internal error: no handler for property with internal id "+id+".");
         }
