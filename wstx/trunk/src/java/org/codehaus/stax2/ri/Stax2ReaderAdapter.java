@@ -209,7 +209,7 @@ public class Stax2ReaderAdapter
          * and return null; this is better than return a transient
          * one.
          */
-        return null; // never gets here
+        return null;
     }
 
     public String getPrefixedName()
@@ -221,7 +221,7 @@ public class Stax2ReaderAdapter
                 String prefix = getPrefix();
                 String ln = getLocalName();
 
-                if (prefix == null) {
+                if (prefix == null || prefix.length() == 0) {
                     return ln;
                 }
                 StringBuffer sb = new StringBuffer(ln.length() + 1 + prefix.length());

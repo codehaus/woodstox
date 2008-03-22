@@ -11,6 +11,9 @@ Description:
 
   New features:
 
+  * More complete Stax2 API ref. impl, adding generic XMLEventReader
+    implementation.
+
 == History: ==
 
 3.9.1 [16-Mar-2008]
