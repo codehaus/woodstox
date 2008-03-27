@@ -277,11 +277,13 @@ public interface XMLStreamReader2
 
     /**
      * Method that returns the number of open elements in the stack; 0 when
-     * the reader is in prolog/epilog, 1 inside root element and so on.
+     * the reader is in prolog/epilog, 1 inside root element (including
+     * when pointing at the root element itself) and so on.
      * Depth is same for matching start/end elements, as well as for the
-     * immediate non-element children of the element.
+     * all children of an element.
      *
-     * @return Number of open elements currently in the reader's stack
+     * @return Number of open elements currently in the reader's stack,
+     *  including current START_ELEMENT or END_ELEMENT (if pointing to one).
      */
     public int getDepth();
 

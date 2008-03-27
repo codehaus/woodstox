@@ -66,6 +66,35 @@ public class TestStreamWriter
     }
 
     /**
+     * Additional tests based on [WSTX-146]; JDK may report legacy
+     * encoding names, we shouldn't report those but rather IANA
+     * approved canonical equivalents.
+     */
+    public void testLegacyEncodings()
+        throws Exception
+    {
+        String[] encs = new String[] { "UTF-8", "US-ASCII", "ISO-8859-1" };
+
+        XMLOutputFactory2 outf = getFactory(true, false);
+        XMLInputFactory2 inf = getNewInputFactory();
+
+        for (int i = 0; i < encs.length; ++i) {
+            String enc = encs[i];
+            ByteArrayOutputStream os = new ByteArrayOutputStream();
+            XMLStreamWriter sw = outf.createXMLStreamWriter(new OutputStreamWriter(os, enc));
+            sw.writeStartDocument("1.0");
+            sw.writeEmptyElement("foo");
+            sw.writeEndDocument();
+            // Parse it and check the encoding
+            XMLStreamReader sr = inf.createXMLStreamReader(new ByteArrayInputStream(os.toByteArray()));
+            String act = sr.getCharacterEncodingScheme();
+            if (!enc.equals(act)) {
+                fail("Expected encoding to be returned correctly as \""+enc+"\", got \""+act+"\"");
+            }
+        }
+    }
+
+    /**
      * Since Woodstox doesn't yet actually implement the method, we'll
      * just call the method and do not expect and exception. Returned
      * object (or lack thereof) is not inspected
@@ -80,6 +109,7 @@ public class TestStreamWriter
             StringWriter strw = new StringWriter();
             XMLStreamWriter2 w = (XMLStreamWriter2)of.createXMLStreamWriter(strw);
             XMLStreamLocation2 loc = w.getLocation();
+            assertNotNull(loc);
             // Need to output something, otherwise it'll be empty doc
             w.writeEmptyElement("root");
             w.close();
@@ -308,7 +338,16 @@ public class TestStreamWriter
         XMLOutputFactory of = getFactory(false, false);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         Writer w = new OutputStreamWriter(out, enc);
+        /* 26-Mar-2008, tatus: Note: we may get legacy encoding
+         *   names from here (like "ASCII" over "US-ASCII" etc).
+         *  Additionally, should we count on output factory knowing
+         *  how to find underlying encoding from OutputStreamWriter?
+         *  Could (should?) explicitly pass encoding instead.
+         */
         XMLStreamWriter sw = of.createXMLStreamWriter(w);
+
+        // So shouldn't we do this?
+        //XMLStreamWriter sw = of.createXMLStreamWriter(w, enc);
         
         sw.writeStartDocument(enc, "1.0");
         sw.writeStartElement("elem");
@@ -330,7 +369,7 @@ public class TestStreamWriter
         assertEquals(1, sr.getAttributeCount());
         String attrValue = sr.getAttributeValue(0);
         if (!IN.equals(attrValue)) {
-            failStrings("Incorrect writing/reading of attribute value",
+            failStrings("Incorrect writing/reading of attribute value (encoding '"+enc+"')",
                         IN, attrValue);
         }
         assertTokenType(END_ELEMENT, sr.next());

@@ -329,3 +329,7 @@ Matt Gormley:
   * Reported [WSTX-143], bug in handling of DEL char in UTF8Reader,
     suggested fix, submitted unit test.
    [3.2.4 / 4.0]
+
+Jim Ancona:
+  * Reported [WSTX-146], contributed a unit test for verifying fix.
+   [3.2.5 / 4.0]

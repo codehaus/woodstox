@@ -1,13 +1,16 @@
-Version: 3.9.1
+Version: 3.9.2
 
-Release date: 16-Mar-2008
+Release date: xx-Mar-2008
 
 Description:
-  Second pre-4.0 version. Mostly refactoring, conformance improvements
-  with Stax specs, and minor additions to stax2 framework (to get v3.0
-  solidified).
+  Third pre-4.0 version. Minor bug-fixes.
 
   Problems fixed:
+
+  * [WSTX-146] XMLStreamWriter implementation was using encoding
+    returned by OutputStreamWriter as is; and JDK was reporting
+    legacy encodings. Needed to normalize encoding.
+    (reported by Jim A)
 
   New features:
 

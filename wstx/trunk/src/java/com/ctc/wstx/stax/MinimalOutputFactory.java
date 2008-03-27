@@ -203,9 +203,7 @@ public final class MinimalOutputFactory
         } else {
             // we may still be able to figure out the encoding:
             if (enc == null) {
-                if (w instanceof OutputStreamWriter) {
-                    enc = ((OutputStreamWriter) w).getEncoding();
-                }
+                enc = CharsetNames.findEncodingFor(w);
             }
             try {
                 xw = new BufferingXmlWriter(w, cfg, enc, autoCloseOutput, null, -1);
