@@ -225,7 +225,7 @@ public abstract class Stax2EventReaderImpl
             throwEndOfInput();
         } else if (mState == STATE_INITIAL) {
             mState = STATE_CONTENT;
-            return createStartEvent();
+            return createStartDocumentEvent();
         }
         if (mPeekedEvent != null) {
             XMLEvent evt = mPeekedEvent;
@@ -343,7 +343,7 @@ public abstract class Stax2EventReaderImpl
             if (mState == STATE_INITIAL) {
                 // Not sure what it should be... but this should do:
                 mPrePeekEvent = START_DOCUMENT;
-                mPeekedEvent = createStartEvent();
+                mPeekedEvent = createStartDocumentEvent();
                 mState = STATE_CONTENT;
             } else {
                 mPrePeekEvent = mReader.getEventType();
@@ -389,17 +389,35 @@ public abstract class Stax2EventReaderImpl
     protected XMLEvent createNextEvent(boolean checkEOD, int type)
         throws XMLStreamException
     {
-        XMLEvent evt = mAllocator.allocate(mReader);
-        if (checkEOD && type == END_DOCUMENT) {
-            mState = STATE_END_OF_INPUT;
+        try {
+            XMLEvent evt = mAllocator.allocate(mReader);
+            if (checkEOD && type == END_DOCUMENT) {
+                mState = STATE_END_OF_INPUT;
+            }
+            return evt;
+        } catch (RuntimeException rex) {
+            /* 29-Mar-2008, TSa: Due to some problems with Stax API
+             *  (lack of 'throws XMLStreamException' in signature of
+             *  XMLStreamReader.getText(), for one) it is possible
+             *  we will get a wrapped XMLStreamException. If so,
+             *  we should be able to unwrap it.
+             */
+            Throwable t = rex.getCause();
+            while (t != null) {
+                if (t instanceof XMLStreamException) {
+                    throw (XMLStreamException) t;
+                }
+                t = t.getCause();
+            }
+            // Nope, need to re-throw as is
+            throw rex;
         }
-        return evt;
     }
 
     /**
-     * Method called to create the very first START_DOCUMENT event.
+     * Method called to create the very first event (START_DOCUMENT).
      */
-    protected XMLEvent createStartEvent()
+    protected XMLEvent createStartDocumentEvent()
         throws XMLStreamException
     {
         XMLEvent start = mAllocator.allocate(mReader);

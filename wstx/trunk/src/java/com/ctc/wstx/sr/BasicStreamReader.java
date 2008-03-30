@@ -1001,7 +1001,7 @@ public class BasicStreamReader
     public final int next()
         throws XMLStreamException
     {
-        /* 24-Sep-2006, TSa: We may deferred an exception that occurred
+        /* 24-Sep-2006, TSa: We may have deferred an exception that occurred
          *   during parsing of the previous event. If so, now it needs to
          *   be thrown.
          */
