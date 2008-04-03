@@ -23,6 +23,8 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
 
+import org.codehaus.stax2.ri.EmptyIterator;
+import org.codehaus.stax2.ri.SingletonIterator;
 import org.codehaus.stax2.validation.XMLValidator;
 
 import com.ctc.wstx.api.ReaderConfig;

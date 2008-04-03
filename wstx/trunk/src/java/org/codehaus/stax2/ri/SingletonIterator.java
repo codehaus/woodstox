@@ -1,36 +1,36 @@
-package com.ctc.wstx.util;
+package org.codehaus.stax2.ri;
 
 import java.util.Iterator;
-import java.util.NoSuchElementException;
 
 /**
  * Simple read-only iterator that iterators over one specific item, passed
  * in as constructor argument.
  */
-public final class SingletonIterator
+public class SingletonIterator
     implements Iterator
 {
     private final Object mValue;
-
+    
     private boolean mDone = false;
-
+    
     public SingletonIterator(Object value) {
         mValue = value;
     }
-
+    
     public boolean hasNext() {
         return !mDone;
     }
-
+    
     public Object next() {
         if (mDone) {
-            throw new NoSuchElementException();
+            throw new java.util.NoSuchElementException();
         }
         mDone = true;
         return mValue;
     }
-
-    public void remove() {
+    
+    public void remove()
+    {
         throw new UnsupportedOperationException("Can not remove item from SingletonIterator.");
     }
 }

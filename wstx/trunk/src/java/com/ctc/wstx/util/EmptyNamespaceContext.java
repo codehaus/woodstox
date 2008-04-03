@@ -6,10 +6,16 @@ import java.util.Iterator;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.stream.XMLStreamWriter;
 
+import org.codehaus.stax2.ri.EmptyIterator;
+
 /**
  * Dummy {@link NamespaceContext} (and {@link BaseNsContext})
  * implementation that is usually used in
  * non-namespace-aware mode.
+ *<p>
+ * Note: differs from Stax2 reference implementation's version
+ * slightly, since it needs to support Woodstox specific extensions
+ * for efficient namespace declaration serialization.
  */
 public final class EmptyNamespaceContext
     extends BaseNsContext

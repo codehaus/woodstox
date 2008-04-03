@@ -33,9 +33,7 @@ public abstract class Stax2WriterImpl
     ////////////////////////////////////////////////////
      */
 
-    protected Stax2WriterImpl()
-    {
-    }
+    protected Stax2WriterImpl() { }
 
      /*
     ////////////////////////////////////////////////////

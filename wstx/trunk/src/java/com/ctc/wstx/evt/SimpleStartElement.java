@@ -13,9 +13,10 @@ import javax.xml.stream.events.Attribute;
 import javax.xml.stream.events.Namespace;
 import javax.xml.stream.events.StartElement;
 
+import org.codehaus.stax2.ri.EmptyIterator;
+
 import com.ctc.wstx.io.TextEscaper;
 import com.ctc.wstx.util.BaseNsContext;
-import com.ctc.wstx.util.EmptyIterator;
 
 /**
  * Wstx {@link StartElement} implementation used when event is constructed

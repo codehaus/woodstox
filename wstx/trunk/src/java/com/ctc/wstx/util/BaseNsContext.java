@@ -24,6 +24,8 @@ import javax.xml.namespace.NamespaceContext;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
+import org.codehaus.stax2.ri.SingletonIterator;
+
 import com.ctc.wstx.cfg.ErrorConsts;
 
 /**

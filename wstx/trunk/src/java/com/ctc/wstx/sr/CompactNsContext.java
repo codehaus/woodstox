@@ -11,11 +11,11 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
 // This is unfortunate dependency, but...
+import org.codehaus.stax2.ri.EmptyIterator;
+import org.codehaus.stax2.ri.SingletonIterator;
 import org.codehaus.stax2.ri.evt.NamespaceEventImpl;
 
 import com.ctc.wstx.util.BaseNsContext;
-import com.ctc.wstx.util.EmptyIterator;
-import com.ctc.wstx.util.SingletonIterator;
 
 /**
  * Simple implementation of separate non-transient namespace context

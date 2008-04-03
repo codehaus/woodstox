@@ -1,6 +1,6 @@
-/* Woodstox XML processor
+/* Stax2 API extension for Streaming Api for Xml processing (StAX).
  *
- * Copyright (c) 2004- Tatu Saloranta, tatu.saloranta@iki.fi
+ * Copyright (c) 2006- Tatu Saloranta, tatu.saloranta@iki.fi
  *
  * Licensed under the License specified in the file LICENSE which is
  * included with the source code.
@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-package com.ctc.wstx.dom;
+package org.codehaus.stax2.ri.dom;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -33,18 +33,15 @@ import org.codehaus.stax2.DTDInfo;
 import org.codehaus.stax2.LocationInfo;
 import org.codehaus.stax2.XMLStreamLocation2;
 import org.codehaus.stax2.XMLStreamReader2;
+import org.codehaus.stax2.ri.EmptyIterator;
+import org.codehaus.stax2.ri.EmptyNamespaceContext;
+import org.codehaus.stax2.ri.SingletonIterator;
 import org.codehaus.stax2.validation.DTDValidationSchema;
 import org.codehaus.stax2.validation.ValidationProblemHandler;
 import org.codehaus.stax2.validation.XMLValidationSchema;
 import org.codehaus.stax2.validation.XMLValidator;
 
-import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.cfg.ErrorConsts;
-import com.ctc.wstx.exc.WstxParsingException;
-import com.ctc.wstx.io.WstxInputLocation;
-import com.ctc.wstx.util.EmptyIterator;
-import com.ctc.wstx.util.EmptyNamespaceContext;
-import com.ctc.wstx.util.SingletonIterator;
 import com.ctc.wstx.util.TextAccumulator;
 
 /**
@@ -68,9 +65,10 @@ import com.ctc.wstx.util.TextAccumulator;
  *   </li>
  *  </ul>
  */
-public class DOMWrappingReader
+public abstract class DOMWrappingReader
     implements XMLStreamReader2,
-               DTDInfo, LocationInfo, NamespaceContext,
+               AttributeInfo, DTDInfo, LocationInfo,
+               NamespaceContext,
                XMLStreamConstants
 {
     // // // Bit masks used for quick type comparisons
@@ -79,13 +77,44 @@ public class DOMWrappingReader
         (1 << CHARACTERS) | (1 << CDATA) | (1 << SPACE)
         | (1 << COMMENT) | (1 << DTD) | (1 << ENTITY_REFERENCE);
 
+    final private static int MASK_GET_TEXT_XXX =
+        (1 << CHARACTERS) | (1 << CDATA) | (1 << SPACE) | (1 << COMMENT);
+
     final private static int MASK_GET_ELEMENT_TEXT = 
         (1 << CHARACTERS) | (1 << CDATA) | (1 << SPACE)
         | (1 << ENTITY_REFERENCE);
 
-    // // // Configuration:
+    // // // Enumerated error case ids
 
-    protected final ReaderConfig mConfig;
+    /**
+     * Current state not START_ELEMENT, should be
+     */
+    protected final static int ERR_STATE_NOT_START_ELEM = 1;
+
+    /**
+     * Current state not START_ELEMENT or END_ELEMENT, should be
+     */
+    protected final static int ERR_STATE_NOT_ELEM = 2;
+
+    /**
+     * Current state not PROCESSING_INSTRUCTION
+     */
+    protected final static int ERR_STATE_NOT_PI = 3;
+
+    /**
+     * Current state not one where getText() can be used
+     */
+    protected final static int ERR_STATE_NOT_TEXTUAL = 4;
+
+    /**
+     * Current state not one where getTextXxx() can be used
+     */
+    protected final static int ERR_STATE_NOT_TEXTUAL_XXX = 5;
+
+    protected final static int ERR_STATE_NO_LOCALNAME = 6;
+
+
+    // // // Configuration:
 
     protected final String mSystemId;
 
@@ -141,16 +170,15 @@ public class DOMWrappingReader
      * @param treeRoot Node that is the tree of the DOM document, or
      *   fragment.
      */
-    private DOMWrappingReader(ReaderConfig cfg, Node treeRoot, String sysId)
+    protected DOMWrappingReader(DOMSource src, boolean nsAware)
         throws XMLStreamException
     {
+        Node treeRoot = src.getNode();
         if (treeRoot == null) {
             throw new IllegalArgumentException("Can not pass null Node for constructing a DOM-based XMLStreamReader");
         }
-
-        mConfig = cfg;
-        mNsAware = cfg.willSupportNamespaces();
-        mSystemId = sysId;
+        mNsAware = nsAware;
+        mSystemId = src.getSystemId();
         
         /* Ok; we need a document node; or an element node; or a document
          * fragment node.
@@ -174,13 +202,14 @@ public class DOMWrappingReader
         mRootNode = mCurrNode = treeRoot;
     }
 
-    public static DOMWrappingReader createFrom(ReaderConfig cfg, DOMSource src)
-        throws XMLStreamException
-    {
-        Node rootNode = src.getNode();
-        String systemId = src.getSystemId();
-        return new DOMWrappingReader(cfg, rootNode, systemId);
-    }
+    /*
+    ////////////////////////////////////////////////////
+    // Abstract methods for sub-classes to implement
+    ////////////////////////////////////////////////////
+     */
+
+    protected abstract void throwStreamException(String msg, Location loc)
+        throws XMLStreamException;
 
     /*
     ////////////////////////////////////////////////////
@@ -240,10 +269,20 @@ public class DOMWrappingReader
     ////////////////////////////////////////////////////
      */
 
-    public Object getProperty(String name)
-    {
-        return mConfig.getProperty(name);
-    }
+    public abstract Object getProperty(String name);
+
+    // NOTE: getProperty() defined in Stax 1.0 interface
+
+    public abstract boolean isPropertySupported(String name);
+
+    /**
+     * @param name Name of the property to set
+     * @param value Value to set property to.
+     *
+     * @return True, if the specified property was <b>succesfully</b>
+     *    set to specified value; false if its value was not changed
+     */
+    public abstract boolean setProperty(String name, Object value);
 
     /*
     ////////////////////////////////////////////////////
@@ -256,7 +295,7 @@ public class DOMWrappingReader
     public int getAttributeCount()
     {
         if (mCurrEvent != START_ELEMENT) {
-            throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
+            reportWrongState(ERR_STATE_NOT_START_ELEM);
         }
         if (mAttrList == null) {
             calcNsAndAttrLists(true);
@@ -264,10 +303,10 @@ public class DOMWrappingReader
         return mAttrList.size();
     }
 
-	public String getAttributeLocalName(int index)
+    public String getAttributeLocalName(int index)
     {
         if (mCurrEvent != START_ELEMENT) {
-            throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
+            reportWrongState(ERR_STATE_NOT_START_ELEM);
         }
         if (mAttrList == null) {
             calcNsAndAttrLists(true);
@@ -283,7 +322,7 @@ public class DOMWrappingReader
     public QName getAttributeName(int index)
     {
         if (mCurrEvent != START_ELEMENT) {
-            throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
+            reportWrongState(ERR_STATE_NOT_START_ELEM);
         }
         if (mAttrList == null) {
             calcNsAndAttrLists(true);
@@ -300,7 +339,7 @@ public class DOMWrappingReader
     public String getAttributeNamespace(int index)
     {
         if (mCurrEvent != START_ELEMENT) {
-            throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
+            reportWrongState(ERR_STATE_NOT_START_ELEM);
         }
         if (mAttrList == null) {
             calcNsAndAttrLists(true);
@@ -316,7 +355,7 @@ public class DOMWrappingReader
     public String getAttributePrefix(int index)
     {
         if (mCurrEvent != START_ELEMENT) {
-            throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
+            reportWrongState(ERR_STATE_NOT_START_ELEM);
         }
         if (mAttrList == null) {
             calcNsAndAttrLists(true);
@@ -332,7 +371,7 @@ public class DOMWrappingReader
     public String getAttributeType(int index)
     {
         if (mCurrEvent != START_ELEMENT) {
-            throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
+            reportWrongState(ERR_STATE_NOT_START_ELEM);
         }
         if (mAttrList == null) {
             calcNsAndAttrLists(true);
@@ -361,7 +400,7 @@ public class DOMWrappingReader
     public String getAttributeValue(int index)
     {
         if (mCurrEvent != START_ELEMENT) {
-            throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
+            reportWrongState(ERR_STATE_NOT_START_ELEM);
         }
         if (mAttrList == null) {
             calcNsAndAttrLists(true);
@@ -377,7 +416,7 @@ public class DOMWrappingReader
     public String getAttributeValue(String nsURI, String localName)
     {
         if (mCurrEvent != START_ELEMENT) {
-            throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
+            reportWrongState(ERR_STATE_NOT_START_ELEM);
         }
         Element elem = (Element) mCurrNode;
         NamedNodeMap attrs = elem.getAttributes();
@@ -408,7 +447,10 @@ public class DOMWrappingReader
         throws XMLStreamException
     {
         if (mCurrEvent != START_ELEMENT) {
-            throwParseError(ErrorConsts.ERR_STATE_NOT_STELEM);
+            /* Quite illogical: this is not an IllegalStateException
+             * like other similar ones, but rather an XMLStreamException
+             */
+            reportParseProblem(ERR_STATE_NOT_START_ELEM);
         }
         TextAccumulator acc = new TextAccumulator();
 
@@ -424,7 +466,7 @@ public class DOMWrappingReader
                 continue;
             }
             if (((1 << type) & MASK_GET_ELEMENT_TEXT) == 0) {
-                throwParseError("Expected a text token, got "+ErrorConsts.tokenTypeDesc(type)+".");
+                reportParseProblem(ERR_STATE_NOT_TEXTUAL);
             }
             acc.addText(getText());
         }
@@ -445,10 +487,10 @@ public class DOMWrappingReader
         if (mCurrEvent == START_ELEMENT || mCurrEvent == END_ELEMENT) {
             return safeGetLocalName(mCurrNode);
         }
-        if (mCurrEvent == ENTITY_REFERENCE) {
-            return mCurrNode.getNodeName();
+        if (mCurrEvent != ENTITY_REFERENCE) {
+            reportWrongState(ERR_STATE_NO_LOCALNAME);
         }
-        throw new IllegalStateException("Current state ("+ErrorConsts.tokenTypeDesc(mCurrEvent)+") not START_ELEMENT, END_ELEMENT or ENTITY_REFERENCE");
+        return mCurrNode.getNodeName();
     }
 
     // // // getLocation() defined in StreamScanner
@@ -456,7 +498,7 @@ public class DOMWrappingReader
     public QName getName()
     {
         if (mCurrEvent != START_ELEMENT && mCurrEvent != END_ELEMENT) {
-            throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_ELEM);
+            reportWrongState(ERR_STATE_NOT_START_ELEM);
         }
         return constructQName(mCurrNode.getNamespaceURI(), safeGetLocalName(mCurrNode), mCurrNode.getPrefix());
     }
@@ -467,9 +509,10 @@ public class DOMWrappingReader
         return this;
     }
 
-    public int getNamespaceCount() {
+    public int getNamespaceCount()
+    {
         if (mCurrEvent != START_ELEMENT && mCurrEvent != END_ELEMENT) {
-            throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_ELEM);
+            reportWrongState(ERR_STATE_NOT_ELEM);
         }
         if (mNsDeclList == null) {
             if (!mNsAware) {
@@ -487,7 +530,7 @@ public class DOMWrappingReader
      */
     public String getNamespacePrefix(int index) {
         if (mCurrEvent != START_ELEMENT && mCurrEvent != END_ELEMENT) {
-            throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_ELEM);
+            reportWrongState(ERR_STATE_NOT_ELEM);
         }
         if (mNsDeclList == null) {
             if (!mNsAware) {
@@ -503,14 +546,14 @@ public class DOMWrappingReader
 
     public String getNamespaceURI() {
         if (mCurrEvent != START_ELEMENT && mCurrEvent != END_ELEMENT) {
-            throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_ELEM);
+            reportWrongState(ERR_STATE_NOT_ELEM);
         }
         return mCurrNode.getNamespaceURI();
     }
 
     public String getNamespaceURI(int index) {
         if (mCurrEvent != START_ELEMENT && mCurrEvent != END_ELEMENT) {
-            throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_ELEM);
+            reportWrongState(ERR_STATE_NOT_ELEM);
         }
         if (mNsDeclList == null) {
             if (!mNsAware) {
@@ -529,21 +572,21 @@ public class DOMWrappingReader
 
     public String getPIData() {
         if (mCurrEvent != PROCESSING_INSTRUCTION) {
-            throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_PI);
+            reportWrongState(ERR_STATE_NOT_PI);
         }
         return mCurrNode.getNodeValue();
     }
 
     public String getPITarget() {
         if (mCurrEvent != PROCESSING_INSTRUCTION) {
-            throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_PI);
+            reportWrongState(ERR_STATE_NOT_PI);
         }
         return mCurrNode.getNodeName();
     }
 
     public String getPrefix() {
         if (mCurrEvent != START_ELEMENT && mCurrEvent != END_ELEMENT) {
-            throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_ELEM);
+            reportWrongState(ERR_STATE_NOT_ELEM);
         }
         return mCurrNode.getPrefix();
     }
@@ -551,7 +594,7 @@ public class DOMWrappingReader
     public String getText()
     {
         if (((1 << mCurrEvent) & MASK_GET_TEXT) == 0) {
-            throwNotTextual(mCurrEvent);
+            reportWrongState(ERR_STATE_NOT_TEXTUAL);
         }
         return mCurrNode.getNodeValue();
     }
@@ -564,8 +607,8 @@ public class DOMWrappingReader
 
     public int getTextCharacters(int sourceStart, char[] target, int targetStart, int len)
     {
-        if (((1 << mCurrEvent) & MASK_GET_TEXT) == 0) {
-            throwNotTextual(mCurrEvent);
+        if (((1 << mCurrEvent) & MASK_GET_TEXT_XXX) == 0) {
+            reportWrongState(ERR_STATE_NOT_TEXTUAL_XXX);
         }
         String text = getText();
         if (len > text.length()) {
@@ -577,16 +620,16 @@ public class DOMWrappingReader
 
     public int getTextLength()
     {
-        if (((1 << mCurrEvent) & MASK_GET_TEXT) == 0) {
-            throwNotTextual(mCurrEvent);
+        if (((1 << mCurrEvent) & MASK_GET_TEXT_XXX) == 0) {
+            reportWrongState(ERR_STATE_NOT_TEXTUAL_XXX);
         }
         return getText().length();
     }
 
     public int getTextStart()
     {
-        if (((1 << mCurrEvent) & MASK_GET_TEXT) == 0) {
-            throwNotTextual(mCurrEvent);
+        if (((1 << mCurrEvent) & MASK_GET_TEXT_XXX) == 0) {
+            reportWrongState(ERR_STATE_NOT_TEXTUAL_XXX);
         }
         return 0;
     }
@@ -606,7 +649,7 @@ public class DOMWrappingReader
     public boolean isAttributeSpecified(int index)
     {
         if (mCurrEvent != START_ELEMENT) {
-            throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
+            reportWrongState(ERR_STATE_NOT_START_ELEM);
         }
         Element elem = (Element) mCurrNode;
         Attr attr = (Attr) elem.getAttributes().item(index);
@@ -665,35 +708,35 @@ public class DOMWrappingReader
         }
 
         if (type != curr) {
-            throwParseError("Expected type "+ErrorConsts.tokenTypeDesc(type)
-                            +", current type "
-                            +ErrorConsts.tokenTypeDesc(curr));
+            throwStreamException("Required type "+ErrorConsts.tokenTypeDesc(type)
+                                 +", current type "
+                                 +ErrorConsts.tokenTypeDesc(curr));
         }
 
         if (localName != null) {
             if (curr != START_ELEMENT && curr != END_ELEMENT
                 && curr != ENTITY_REFERENCE) {
-                throwParseError("Expected non-null local name, but current token not a START_ELEMENT, END_ELEMENT or ENTITY_REFERENCE (was "+ErrorConsts.tokenTypeDesc(mCurrEvent)+")");
+                throwStreamException("Required a non-null local name, but current token not a START_ELEMENT, END_ELEMENT or ENTITY_REFERENCE (was "+ErrorConsts.tokenTypeDesc(mCurrEvent)+")");
             }
             String n = getLocalName();
             if (n != localName && !n.equals(localName)) {
-                throwParseError("Expected local name '"+localName+"'; current local name '"+n+"'.");
+                throwStreamException("Required local name '"+localName+"'; current local name '"+n+"'.");
             }
         }
         if (nsUri != null) {
             if (curr != START_ELEMENT && curr != END_ELEMENT) {
-                throwParseError("Expected non-null NS URI, but current token not a START_ELEMENT or END_ELEMENT (was "+ErrorConsts.tokenTypeDesc(curr)+")");
+                throwStreamException("Required non-null NS URI, but current token not a START_ELEMENT or END_ELEMENT (was "+ErrorConsts.tokenTypeDesc(curr)+")");
             }
 
             String uri = getNamespaceURI();
             // No namespace?
             if (nsUri.length() == 0) {
                 if (uri != null && uri.length() > 0) {
-                    throwParseError("Expected empty namespace, instead have '"+uri+"'.");
+                    throwStreamException("Required empty namespace, instead have '"+uri+"'.");
                 }
             } else {
                 if ((nsUri != uri) && !nsUri.equals(uri)) {
-                    throwParseError("Expected namespace '"+nsUri+"'; have '"
+                    throwStreamException("Required namespace '"+nsUri+"'; have '"
                                     +uri+"'.");
                 }
             }
@@ -858,14 +901,14 @@ public class DOMWrappingReader
                 if (isWhiteSpace()) {
                     continue;
                 }
-                throwParseError("Received non-all-whitespace CHARACTERS or CDATA event in nextTag().");
+                throwStreamException("Received non-all-whitespace CHARACTERS or CDATA event in nextTag().");
 		break; // never gets here, but jikes complains without
             case START_ELEMENT:
             case END_ELEMENT:
                 return next;
             }
-            throwParseError("Received event "+ErrorConsts.tokenTypeDesc(next)
-                            +", instead of START_ELEMENT or END_ELEMENT.");
+            throwStreamException("Received event "+ErrorConsts.tokenTypeDesc(next)
+                                 +", instead of START_ELEMENT or END_ELEMENT.");
         }
     }
 
@@ -940,36 +983,13 @@ public class DOMWrappingReader
 
     public Object getFeature(String name)
     {
-        // No readable features defined yet...
-        throw new IllegalArgumentException(MessageFormat.format(ErrorConsts.ERR_UNKNOWN_FEATURE, new Object[] { name })); 
+        // No readable features supported yet
+        throw new IllegalArgumentException("Unrecognized feature \""+name+"\"");
     }
 
     public void setFeature(String name, Object value)
     {
-        // Base-class has no settable features at this point.
-        throw new IllegalArgumentException(MessageFormat.format(ErrorConsts.ERR_UNKNOWN_FEATURE, new Object[] { name })); 
-    }
-
-    // NOTE: getProperty() defined in Stax 1.0 interface
-
-    public boolean isPropertySupported(String name) {
-        // !!! TBI: not all these properties are really supported
-        return mConfig.isPropertySupported(name);
-    }
-
-    /**
-     * @param name Name of the property to set
-     * @param value Value to set property to.
-     *
-     * @return True, if the specified property was <b>succesfully</b>
-     *    set to specified value; false if its value was not changed
-     */
-    public boolean setProperty(String name, Object value)
-    {
-        /* Note: can not call local method, since it'll return false for
-         * recognized but non-mutable properties
-         */
-        return mConfig.setProperty(name, value);
+        throw new IllegalArgumentException("Unrecognized feature \""+name+"\"");
     }
 
     // // // StAX2, additional traversal methods
@@ -977,7 +997,7 @@ public class DOMWrappingReader
     public void skipElement() throws XMLStreamException
     {
         if (mCurrEvent != START_ELEMENT) {
-            throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
+            reportWrongState(ERR_STATE_NOT_START_ELEM);
         }
         int nesting = 1; // need one more end elements than start elements
 
@@ -998,10 +1018,62 @@ public class DOMWrappingReader
     public AttributeInfo getAttributeInfo() throws XMLStreamException
     {
         if (mCurrEvent != START_ELEMENT) {
-            throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
+            reportWrongState(ERR_STATE_NOT_START_ELEM);
         }
+        return this;
+    }
+
+    // AttributeInfo impl:
+
+    //public int getAttributeCount()
+
+    public int findAttributeIndex(String nsURI, String localName)
+    {
+        if (mCurrEvent != START_ELEMENT) {
+            reportWrongState(ERR_STATE_NOT_START_ELEM);
+        }
+        Element elem = (Element) mCurrNode;
+        NamedNodeMap attrs = elem.getAttributes();
+        if (nsURI != null && nsURI.length() == 0) {
+            nsURI = null;
+        }
+        // Ugh. Horrible clumsy code. But has to do...
+        for (int i = 0, len = attrs.getLength(); i < len; ++i) {
+            Node attr = attrs.item(i);
+            String ln = safeGetLocalName(attr);
+            if (localName.equals(ln)) {
+                String thisUri = attr.getNamespaceURI();
+                boolean isEmpty = (thisUri == null) || thisUri.length() == 0;
+                if (nsURI == null) {
+                    if (isEmpty) {
+                        return i;
+                    }
+                } else {
+                    if (!isEmpty && nsURI.equals(thisUri)) {
+                        return i;
+                    }
+                }
+            }
+        }
+        return -1;
+    }
+
+    public int getIdAttributeIndex()
+    {
         // !!! TBI
-        return null;
+
+        // Note: will need Dom3 level support (JDK 1.5)
+
+        return -1;
+    }
+
+    public int getNotationAttributeIndex()
+    {
+        // !!! TBI
+
+        // Note: will need Dom3 level support (JDK 1.5)
+
+        return -1;
     }
 
     // // // StAX2, Additional DTD access
@@ -1058,7 +1130,7 @@ public class DOMWrappingReader
         throws IOException, XMLStreamException
     {
         if (((1 << mCurrEvent) & MASK_GET_TEXT) == 0) {
-            throwNotTextual(mCurrEvent);
+            reportWrongState(ERR_STATE_NOT_TEXTUAL);
         }
         String text = getText();
         w.write(text);
@@ -1348,38 +1420,6 @@ public class DOMWrappingReader
         mNsDeclList = (nsOut == null) ? Collections.EMPTY_LIST : nsOut;
     }
 
-    /**
-     * Method that returns location of the last character returned by this
-     * reader; that is, location "one less" than the currently pointed to
-     * location.
-     */
-    protected WstxInputLocation getLastCharLocation()
-    {
-        // !!! TBI
-        return null;
-    }
-
-    private void throwNotTextual(int type)
-    {
-        throw new IllegalStateException("Not a textual event ("
-                                        +ErrorConsts.tokenTypeDesc(mCurrEvent)+")");
-    }
-
-    private void throwParseError(String msg)
-        throws WstxParsingException
-    {
-        throw new WstxParsingException(msg, getLastCharLocation());
-    }
-
-    /*
-    private void throwParseError(String format, Object arg)
-        throws WstxParsingException
-    {
-        String msg = MessageFormat.format(format, new Object[] { arg });
-        throw new WstxParsingException(msg, getLastCharLocation());
-    }
-    */
-
     private void handleIllegalAttrIndex(int index)
     {
         Element elem = (Element) mCurrNode;
@@ -1409,6 +1449,70 @@ public class DOMWrappingReader
             ln = n.getNodeName();
         }
         return ln;
+    }
+
+    /*
+    ///////////////////////////////////////////////
+    // Overridable error reporting methods
+    ///////////////////////////////////////////////
+     */
+
+    protected void reportWrongState(int errorType)
+    {
+        throw new IllegalStateException(findErrorDesc(errorType, mCurrEvent));
+    }
+
+    protected void reportParseProblem(int errorType)
+        throws XMLStreamException
+    {
+        throwStreamException(findErrorDesc(errorType, mCurrEvent));
+    }
+
+    protected void throwStreamException(String msg)
+        throws XMLStreamException
+    {
+        throwStreamException(msg, getErrorLocation());
+    }
+
+    protected Location getErrorLocation()
+    {
+        Location loc = getCurrentLocation();
+        if (loc == null) {
+            loc = getLocation();
+        }
+        return loc;
+    }
+
+    /*
+    ///////////////////////////////////////////////
+    // Other internal methods
+    ///////////////////////////////////////////////
+     */
+
+    /**
+     * Method used to locate error message description to use.
+     * Calls sub-classes <code>findErrorDesc()</code> first, and only
+     * if no message found, uses default messages defined here.
+     */
+    protected String findErrorDesc(int errorType, int currEvent)
+    {
+        switch (errorType) {
+        case ERR_STATE_NOT_START_ELEM:
+            return "Current state not START_ELEMENT";
+        case ERR_STATE_NOT_ELEM:
+            return "Current state not START_ELEMENT or END_ELEMENT";
+        case ERR_STATE_NO_LOCALNAME:
+            return "Current state has no local name";
+        case ERR_STATE_NOT_PI:
+            return "Current state not PROCESSING_INSTRUCTION";
+
+        case ERR_STATE_NOT_TEXTUAL:
+            return "Current state not a textual event";
+        case ERR_STATE_NOT_TEXTUAL_XXX:
+            return "Current state not CHARACTERS, CDATA, SPACE or COMMENT";
+        }
+        // should never happen, but it'd be bad to throw another exception...
+        return "Internal error (unrecognized error type: "+errorType+")";
     }
 }
 

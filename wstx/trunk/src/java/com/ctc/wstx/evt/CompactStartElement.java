@@ -10,13 +10,13 @@ import javax.xml.stream.*;
 import javax.xml.stream.events.Attribute;
 import javax.xml.stream.events.StartElement;
 
+import org.codehaus.stax2.ri.EmptyIterator;
+import org.codehaus.stax2.ri.SingletonIterator;
 import org.codehaus.stax2.ri.evt.AttributeEventImpl;
 
 import com.ctc.wstx.io.TextEscaper;
 import com.ctc.wstx.sr.ElemAttrs;
 import com.ctc.wstx.util.BaseNsContext;
-import com.ctc.wstx.util.EmptyIterator;
-import com.ctc.wstx.util.SingletonIterator;
 
 /**
  * Wstx {@link StartElement} implementation used when directly creating

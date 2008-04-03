@@ -39,7 +39,7 @@ import com.ctc.wstx.cfg.InputConfigFlags;
 import com.ctc.wstx.cfg.XmlConsts;
 import com.ctc.wstx.dtd.DTDId;
 import com.ctc.wstx.dtd.DTDSubset;
-import com.ctc.wstx.dom.DOMWrappingReader;
+import com.ctc.wstx.dom.WstxDOMWrappingReader;
 import com.ctc.wstx.evt.DefaultEventAllocator;
 import com.ctc.wstx.evt.WstxEventReader;
 import com.ctc.wstx.exc.WstxIOException;
@@ -744,7 +744,7 @@ public final class WstxInputFactory
         } else if (src instanceof DOMSource) {
             DOMSource domSrc = (DOMSource) src;
             // SymbolTable not used by the DOM-based 'reader':
-            return DOMWrappingReader.createFrom(cfg, domSrc);
+            return WstxDOMWrappingReader.createFrom(domSrc, cfg);
         } else {
             throw new IllegalArgumentException("Can not instantiate StAX reader for XML source type "+src.getClass()+" (unrecognized type)");
         }

@@ -10,8 +10,9 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import javax.xml.stream.events.Namespace;
 
+import org.codehaus.stax2.ri.EmptyIterator;
+
 import com.ctc.wstx.util.BaseNsContext;
-import com.ctc.wstx.util.EmptyIterator;
 
 /**
  * Hierarchic {@link NamespaceContext} implementation used when constructing

@@ -21,8 +21,9 @@ import javax.xml.XMLConstants;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.stream.XMLStreamException;
 
+import org.codehaus.stax2.ri.EmptyIterator;
+
 import com.ctc.wstx.util.BijectiveNsMap;
-import com.ctc.wstx.util.EmptyIterator;
 
 /**
  * Class that encapsulates information about a specific element in virtual

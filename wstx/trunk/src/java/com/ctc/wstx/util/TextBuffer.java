@@ -998,7 +998,7 @@ public final class TextBuffer
         // Do we use shared array?
         if (mInputStart >= 0) {
             if (mInputLen < 1) {
-                return EmptyIterator.getEmptyCharArray();
+                return DataUtil.getEmptyCharArray();
             }
             result = new char[mInputLen];
             System.arraycopy(mInputBuffer, mInputStart, result, 0,
@@ -1006,7 +1006,7 @@ public final class TextBuffer
         } else { // nope 
             int size = size();
             if (size < 1) {
-                return EmptyIterator.getEmptyCharArray();
+                return DataUtil.getEmptyCharArray();
             }
             int offset = 0;
             result = new char[size];

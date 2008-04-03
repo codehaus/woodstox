@@ -6,11 +6,11 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
 
+import org.codehaus.stax2.ri.EmptyIterator;
 import org.codehaus.stax2.validation.XMLValidator;
 
 import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.util.BaseNsContext;
-import com.ctc.wstx.util.EmptyIterator;
 import com.ctc.wstx.util.EmptyNamespaceContext;
 import com.ctc.wstx.util.StringVector;
 import com.ctc.wstx.util.TextBuilder;

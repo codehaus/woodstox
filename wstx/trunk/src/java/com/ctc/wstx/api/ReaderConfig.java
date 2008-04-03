@@ -10,6 +10,8 @@ import org.codehaus.stax2.XMLInputFactory2; // for property consts
 import org.codehaus.stax2.XMLStreamProperties; // for property consts
 import org.codehaus.stax2.validation.DTDValidationSchema;
 
+import org.codehaus.stax2.ri.EmptyIterator;
+
 import com.ctc.wstx.api.WstxInputProperties;
 import com.ctc.wstx.cfg.InputConfigFlags;
 import com.ctc.wstx.dtd.DTDEventListener;
@@ -18,7 +20,6 @@ import com.ctc.wstx.ent.EntityDecl;
 import com.ctc.wstx.io.BufferRecycler;
 import com.ctc.wstx.util.ArgUtil;
 import com.ctc.wstx.util.DataUtil;
-import com.ctc.wstx.util.EmptyIterator;
 import com.ctc.wstx.util.SymbolTable;
 
 /**
@@ -760,7 +761,7 @@ public final class ReaderConfig
                 Object val = me.getValue();
                 char[] ch;
                 if (val == null) {
-                    ch = EmptyIterator.getEmptyCharArray();
+                    ch = DataUtil.getEmptyCharArray();
                 } else if (val instanceof char[]) {
                     ch = (char[]) val;
                 } else {
