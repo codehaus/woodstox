@@ -1,5 +1,7 @@
 package org.codehaus.stax2.typed;
 
+import javax.xml.stream.XMLStreamReader;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import javax.xml.namespace.QName;
@@ -14,7 +16,15 @@ import javax.xml.namespace.QName;
  * @author Santiago.PericasGeertsen@sun.com
  * @author Tatu Saloranta
  */
-public interface TypedXMLStreamReader {
+public interface TypedXMLStreamReader
+    extends XMLStreamReader
+{
+    /*
+    //////////////////////////////////////////////////////////
+    // First, typed element accessors
+    //////////////////////////////////////////////////////////
+     */
+
     
     // -- Elements --------------------------------------------------
     
@@ -29,8 +39,10 @@ public interface TypedXMLStreamReader {
      * data type.
      * An exception is thrown if, after whitespace is
      * collapsed, the resulting sequence of characters is not in 
-     * the lexical space defined by the XML Schema boolean data type.</p>
-     * 
+     * the lexical space defined by the XML Schema boolean data type.
+     * (note: allowed lexical values are canonicals "true" and
+     * "false", as well as non-canonical "0" and "1")
+     * </p>
      * <p>These are the pre and post conditions of calling this
      * method, regardless of whether an exception is thrown or not.
      * <ul>
@@ -43,55 +55,55 @@ public interface TypedXMLStreamReader {
      * @throws TypedXMLStreamException  If unable to convert the resulting
      *         character sequence into an XML Schema boolean value.
      */
-    boolean getElementAsBoolean() throws TypedXMLStreamException;
-    
+    public boolean getElementAsBoolean() throws TypedXMLStreamException;
+
     /**
      * <p><i>[TODO] </i>
      * Same as {@link #getElementAsBoolean()} replacing boolean by int.</p>
      */
-    int getElementAsInt() throws TypedXMLStreamException;
+    public int getElementAsInt() throws TypedXMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
      * Same as {@link #getElementAsBoolean()} replacing boolean by long.</p>
      */
-    long getElementAsLong() throws TypedXMLStreamException;
+    public long getElementAsLong() throws TypedXMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
      * Same as {@link #getElementAsBoolean()} replacing boolean by float.</p>
      */
-    float getElementAsFloat() throws TypedXMLStreamException;
+    public float getElementAsFloat() throws TypedXMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
      * Same as {@link #getElementAsBoolean()} replacing boolean by double.</p>
      */
-    double getElementAsDouble() throws TypedXMLStreamException;
+    public double getElementAsDouble() throws TypedXMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
      * Same as {@link #getElementAsBoolean()} replacing boolean by long.</p>
      */
-    BigInteger getElementAsInteger() throws TypedXMLStreamException;
+    public BigInteger getElementAsInteger() throws TypedXMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
      * Same as {@link #getElementAsBoolean()} replacing boolean by decimal.</p>
      */
-    BigDecimal getElementAsDecimal() throws TypedXMLStreamException;
+    public BigDecimal getElementAsDecimal() throws TypedXMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
      * Same as {@link #getElementAsBoolean()} replacing boolean by QName.</p>
      */
-    QName getElementAsQName() throws TypedXMLStreamException;
+    public QName getElementAsQName() throws TypedXMLStreamException;
     
     // !!! 30-Jan-2008, TSa: JDK 1.5 only -- is that ok?
     /**
      * <p><i>[TODO] </i>
      */
-    //XMLGregorianCalendar getElementAsCalendar() throws TypedXMLStreamException;
+    //public XMLGregorianCalendar getElementAsCalendar() throws TypedXMLStreamException;
     
     /**
      * <p>Read an element content as a byte array. The lexical
@@ -127,7 +139,7 @@ public interface TypedXMLStreamReader {
      * @return        The number of bytes actually copied which must
      *                be less or equal than <code>length</code>.
      */
-    int getElementAsBinary(byte[] value, int from, int length)
+    public int getElementAsBinary(byte[] value, int from, int length)
         throws TypedXMLStreamException;
     
     /**
@@ -170,7 +182,7 @@ public interface TypedXMLStreamReader {
      * @return        The number of ints actually copied which must
      *                be less or equal than <code>length</code>.
      */
-    int getElementAsIntArray(int[] value, int from, int length)
+    public int getElementAsIntArray(int[] value, int from, int length)
         throws TypedXMLStreamException;
     
     /**
@@ -178,7 +190,7 @@ public interface TypedXMLStreamReader {
      * Same as {@link #getElementAsIntArray(int[], int, int)} replacing int 
      * by long.</p>
      */
-    int getElementAsLongArray(long[] value, int from, int length)
+    public int getElementAsLongArray(long[] value, int from, int length)
         throws TypedXMLStreamException;
     
     /**
@@ -186,7 +198,7 @@ public interface TypedXMLStreamReader {
      * Same as {@link #getElementAsIntArray(int[], int, int)} replacing int 
      * by float.</p>
      */
-    int getElementAsFloatArray(float[] value, int from, int length)
+    public int getElementAsFloatArray(float[] value, int from, int length)
         throws TypedXMLStreamException;
     
     /**
@@ -194,28 +206,34 @@ public interface TypedXMLStreamReader {
      * Same as {@link #getElementAsIntArray(int[], int, int)} replacing int 
      * by double.</p>
      */
-    int getElementAsDoubleArray(double[] value, int from, int length)
+    public int getElementAsDoubleArray(double[] value, int from, int length)
         throws TypedXMLStreamException;
     
+    /*
+    //////////////////////////////////////////////////////////
+    // Then, typed element accessors
+    //////////////////////////////////////////////////////////
+     */
+
     // -- Attributes ------------------------------------------------
     
     /**
      * Returns the index of the attribute whose local name is 
      * <code>localName</code> and URI is <code>namespaceURI</code>
-     * or <code>-1</code> if no such attribute exists. If 
-     * <code>namespaceURI</code> is <code>null</code> the namespace 
-     * is not checked for equality.
+     * or <code>-1</code> if no such attribute exists.
      * 
-     * @param namespaceURI  The attribute's namespace URI.
+     * @param namespaceURI  The attribute's namespace URI. Values of
+     *   null and "" are considered the same, i.e. "no namespace"
+     *   (or "empty" namespace)
      * @param localName  The attribute's local name.
      * @return The attribute's index or <code>-1</code> if no
      *          such attribute exists.
      * @throws java.lang.IllegalStateException  If this is not
-     *          a START_ELEMENT or ATTRIBUTE event.
+     *          a START_ELEMENT event
      * @throws TypedXMLStreamException  If unable to convert the resulting
      *         character sequence into an XML Schema boolean value.
      */
-    int getAttributeIndex(String namespaceURI, String localName);
+    public int getAttributeIndex(String namespaceURI, String localName);
     
    /**
      * <p>Read an attribute value as a boolean. The lexical
@@ -233,53 +251,53 @@ public interface TypedXMLStreamReader {
      * @param index  The attribute's index as returned by {@link
      *        #getAttributeIndex(String, String)}
      * @throws java.lang.IllegalStateException  If this is not
-     *         a START_ELEMENT or ATTRIBUTE event.
+     *         a START_ELEMENT event.
      * @throws TypedXMLStreamException  If unable to convert the resulting
      *         character sequence into an XML Schema boolean value.
      */
-    boolean getAttributeAsBoolean(int index) throws TypedXMLStreamException;
+    public boolean getAttributeAsBoolean(int index) throws TypedXMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
      * Same as {@link #getAttributeAsBoolean(int)} replacing boolean by int.</p>
      */
-    int getAttributeAsInt(int index) throws TypedXMLStreamException;
+    public int getAttributeAsInt(int index) throws TypedXMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
      * Same as {@link #getAttributeAsBoolean(int)} replacing boolean by long.</p>
      */
-    long getAttributeAsLong(int index) throws TypedXMLStreamException;
+    public long getAttributeAsLong(int index) throws TypedXMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
      * Same as {@link #getAttributeAsBoolean(int)} replacing boolean by float.</p>
      */
-    float getAttributeAsFloat(int index) throws TypedXMLStreamException;
+    public float getAttributeAsFloat(int index) throws TypedXMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
      * Same as {@link #getAttributeAsBoolean(int)} replacing boolean by double.</p>
      */
-    double getAttributeAsDouble(int index) throws TypedXMLStreamException;
+    public double getAttributeAsDouble(int index) throws TypedXMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
      * Same as {@link #getAttributeAsBoolean(int)} replacing boolean by integer.</p>
      */
-    BigInteger getAttributeAsInteger(int index) throws TypedXMLStreamException;
+    public BigInteger getAttributeAsInteger(int index) throws TypedXMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
      * Same as {@link #getAttributeAsBoolean(int)} replacing boolean by decimal.</p>
      */
-    BigDecimal getAttributeAsDecimal(int index) throws TypedXMLStreamException;
+    public BigDecimal getAttributeAsDecimal(int index) throws TypedXMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
      * Same as {@link #getAttributeAsBoolean(int)} replacing boolean by QName.</p>
      */
-    QName getAttributeAsQName(int index) throws TypedXMLStreamException;
+    public QName getAttributeAsQName(int index) throws TypedXMLStreamException;
     
     // !!! 30-Jan-2008, TSa: JDK 1.5 only -- is that ok?
     /**
@@ -307,7 +325,7 @@ public interface TypedXMLStreamReader {
      * @throws TypedXMLStreamException  If unable to convert the resulting
      *         character sequence into an XML Schema boolean value.
      */
-    byte[] getAttributeAsBinary(int index) throws TypedXMLStreamException;
+    public byte[] getAttributeAsBinary(int index) throws TypedXMLStreamException;
     
     /**
      * <p>Read an attribute content as an int array. The lexical
@@ -335,23 +353,23 @@ public interface TypedXMLStreamReader {
      * @throws TypedXMLStreamException  If unable to convert the resulting
      *         character sequence into an XML Schema boolean value.
      */
-    int[] getAttributeAsIntArray(int index) throws TypedXMLStreamException;
+    public int[] getAttributeAsIntArray(int index) throws TypedXMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
      * Same as {@link #getAttributeAsIntArray(int)} replacing int by long.</p>
      */
-    long[] getAttributeAsLongArray(int index) throws TypedXMLStreamException;
+    public long[] getAttributeAsLongArray(int index) throws TypedXMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
      * Same as {@link #getAttributeAsIntArray(int)} replacing int by float.</p>
      */
-    float[] getAttributeAsFloatArray(int index) throws TypedXMLStreamException;    
+    public float[] getAttributeAsFloatArray(int index) throws TypedXMLStreamException;    
     
     /**
      * <p><i>[TODO] </i>
      * Same as {@link #getAttributeAsIntArray(int)} replacing int by double.</p>
      */
-    double[] getAttributeAsDoubleArray(int index) throws TypedXMLStreamException;    
+    public double[] getAttributeAsDoubleArray(int index) throws TypedXMLStreamException;    
 }
