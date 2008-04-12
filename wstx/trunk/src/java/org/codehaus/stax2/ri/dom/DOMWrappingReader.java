@@ -36,13 +36,11 @@ import org.codehaus.stax2.XMLStreamReader2;
 import org.codehaus.stax2.ri.EmptyIterator;
 import org.codehaus.stax2.ri.EmptyNamespaceContext;
 import org.codehaus.stax2.ri.SingletonIterator;
+import org.codehaus.stax2.ri.Stax2Util;
 import org.codehaus.stax2.validation.DTDValidationSchema;
 import org.codehaus.stax2.validation.ValidationProblemHandler;
 import org.codehaus.stax2.validation.XMLValidationSchema;
 import org.codehaus.stax2.validation.XMLValidator;
-
-import com.ctc.wstx.cfg.ErrorConsts;
-import com.ctc.wstx.util.TextAccumulator;
 
 /**
  * This is an adapter class that presents a DOM document as if it was
@@ -120,7 +118,18 @@ public abstract class DOMWrappingReader
 
     protected final Node mRootNode;
 
+    /**
+     * Whether stream reader is to be namespace aware (as per property
+     * {@link XMLInputFactory#IS_NAMESPACE_PROPERTY}) or not
+     */
     protected final boolean mNsAware;
+
+    /**
+     * Whether stream reader is to coalesce adjacent textual
+     * (CHARACTERS, SPACE, CDATA) events (as per property
+     * {@link XMLInputFactory#IS_COALESCING}) or not
+     */
+    protected final boolean mCoalescing;
 
     // // // State:
 
@@ -133,6 +142,19 @@ public abstract class DOMWrappingReader
     protected Node mCurrNode;
 
     protected int mDepth = 0;
+
+    /**
+     * In coalescing mode, we may need to combine textual content
+     * from multiple adjacent nodes. Since we shouldn't be modifying
+     * the underlying DOM tree, need to accumulate it into a temporary
+     * variable
+     */
+    protected String mCoalescedText;
+
+    /**
+     * Helper object used for combining segments of text as needed
+     */
+    protected Stax2Util.TextBuffer mTextBuffer = new Stax2Util.TextBuffer();
 
     // // // Attribute/namespace declaration state
 
@@ -170,7 +192,7 @@ public abstract class DOMWrappingReader
      * @param treeRoot Node that is the tree of the DOM document, or
      *   fragment.
      */
-    protected DOMWrappingReader(DOMSource src, boolean nsAware)
+    protected DOMWrappingReader(DOMSource src, boolean nsAware, boolean coalescing)
         throws XMLStreamException
     {
         Node treeRoot = src.getNode();
@@ -178,6 +200,7 @@ public abstract class DOMWrappingReader
             throw new IllegalArgumentException("Can not pass null Node for constructing a DOM-based XMLStreamReader");
         }
         mNsAware = nsAware;
+        mCoalescing = coalescing;
         mSystemId = src.getSystemId();
         
         /* Ok; we need a document node; or an element node; or a document
@@ -448,15 +471,14 @@ public abstract class DOMWrappingReader
     {
         if (mCurrEvent != START_ELEMENT) {
             /* Quite illogical: this is not an IllegalStateException
-             * like other similar ones, but rather an XMLStreamException
+             * like other similar ones, but rather an XMLStreamException.
+             * But that's how Stax JavaDocs outline how it should be.
              */
             reportParseProblem(ERR_STATE_NOT_START_ELEM);
         }
-        TextAccumulator acc = new TextAccumulator();
+        mTextBuffer.reset();
 
-        /**
-         * Need to loop to get rid of PIs, comments
-         */
+        // Need to loop to get rid of PIs, comments
         while (true) {
             int type = next();
             if (type == END_ELEMENT) {
@@ -468,9 +490,9 @@ public abstract class DOMWrappingReader
             if (((1 << type) & MASK_GET_ELEMENT_TEXT) == 0) {
                 reportParseProblem(ERR_STATE_NOT_TEXTUAL);
             }
-            acc.addText(getText());
+            mTextBuffer.append(getText());
         }
-        return acc.getAndClear();
+        return mTextBuffer.get();
     }
 
     /**
@@ -593,6 +615,9 @@ public abstract class DOMWrappingReader
 
     public String getText()
     {
+        if (mCoalescedText != null) {
+            return mCoalescedText;
+        }
         if (((1 << mCurrEvent) & MASK_GET_TEXT) == 0) {
             reportWrongState(ERR_STATE_NOT_TEXTUAL);
         }
@@ -708,15 +733,15 @@ public abstract class DOMWrappingReader
         }
 
         if (type != curr) {
-            throwStreamException("Required type "+ErrorConsts.tokenTypeDesc(type)
+            throwStreamException("Required type "+Stax2Util.eventTypeDesc(type)
                                  +", current type "
-                                 +ErrorConsts.tokenTypeDesc(curr));
+                                 +Stax2Util.eventTypeDesc(curr));
         }
 
         if (localName != null) {
             if (curr != START_ELEMENT && curr != END_ELEMENT
                 && curr != ENTITY_REFERENCE) {
-                throwStreamException("Required a non-null local name, but current token not a START_ELEMENT, END_ELEMENT or ENTITY_REFERENCE (was "+ErrorConsts.tokenTypeDesc(mCurrEvent)+")");
+                throwStreamException("Required a non-null local name, but current token not a START_ELEMENT, END_ELEMENT or ENTITY_REFERENCE (was "+Stax2Util.eventTypeDesc(mCurrEvent)+")");
             }
             String n = getLocalName();
             if (n != localName && !n.equals(localName)) {
@@ -725,7 +750,7 @@ public abstract class DOMWrappingReader
         }
         if (nsUri != null) {
             if (curr != START_ELEMENT && curr != END_ELEMENT) {
-                throwStreamException("Required non-null NS URI, but current token not a START_ELEMENT or END_ELEMENT (was "+ErrorConsts.tokenTypeDesc(curr)+")");
+                throwStreamException("Required non-null NS URI, but current token not a START_ELEMENT or END_ELEMENT (was "+Stax2Util.eventTypeDesc(curr)+")");
             }
 
             String uri = getNamespaceURI();
@@ -753,6 +778,8 @@ public abstract class DOMWrappingReader
     public int next()
         throws XMLStreamException
     {
+        mCoalescedText = null;
+
         /* For most events, we just need to find the next sibling; and
          * that failing, close the parent element. But there are couple
          * of special cases, which are handled first:
@@ -778,10 +805,10 @@ public abstract class DOMWrappingReader
                 throw new XMLStreamException("Internal error: unexpected DOM root node type "+mCurrNode.getNodeType()+" for node '"+mCurrNode+"'");
             }
             break;
-
+            
         case END_DOCUMENT: // end reached: should not call!
             throw new java.util.NoSuchElementException("Can not call next() after receiving END_DOCUMENT");
-
+            
         case START_ELEMENT: // element returned, need to traverse children, if any
             ++mDepth;
             mAttrList = null; // so it will not get reused accidentally
@@ -803,7 +830,7 @@ public abstract class DOMWrappingReader
             }
 
         case END_ELEMENT:
-
+            
             --mDepth;
             // Need to clear these lists
             mAttrList = null;
@@ -851,7 +878,11 @@ public abstract class DOMWrappingReader
         // Ok, need to determine current node type:
         switch (mCurrNode.getNodeType()) {
         case Node.CDATA_SECTION_NODE:
-            mCurrEvent = CDATA;
+            if (mCoalescing) {
+                coalesceText(CDATA);
+            } else {
+                mCurrEvent = CDATA;
+            }
             break;
         case Node.COMMENT_NODE:
             mCurrEvent = COMMENT;
@@ -869,7 +900,11 @@ public abstract class DOMWrappingReader
             mCurrEvent = PROCESSING_INSTRUCTION;
             break;
         case Node.TEXT_NODE:
-            mCurrEvent = CHARACTERS;
+            if (mCoalescing) {
+                coalesceText(CHARACTERS);
+            } else {
+                mCurrEvent = CHARACTERS;
+            }
             break;
 
             // Should not get other nodes (notation/entity decl., attr)
@@ -907,7 +942,7 @@ public abstract class DOMWrappingReader
             case END_ELEMENT:
                 return next;
             }
-            throwStreamException("Received event "+ErrorConsts.tokenTypeDesc(next)
+            throwStreamException("Received event "+Stax2Util.eventTypeDesc(next)
                                  +", instead of START_ELEMENT or END_ELEMENT.");
         }
     }
@@ -1129,9 +1164,6 @@ public abstract class DOMWrappingReader
     public int getText(Writer w, boolean preserveContents)
         throws IOException, XMLStreamException
     {
-        if (((1 << mCurrEvent) & MASK_GET_TEXT) == 0) {
-            reportWrongState(ERR_STATE_NOT_TEXTUAL);
-        }
         String text = getText();
         w.write(text);
         return text.length();
@@ -1194,7 +1226,7 @@ public abstract class DOMWrappingReader
             return getDTDRootName();
 
         }
-        throw new IllegalStateException("Current state ("+ErrorConsts.tokenTypeDesc(mCurrEvent)+") not START_ELEMENT, END_ELEMENT, ENTITY_REFERENCE, PROCESSING_INSTRUCTION or DTD");
+        throw new IllegalStateException("Current state ("+Stax2Util.eventTypeDesc(mCurrEvent)+") not START_ELEMENT, END_ELEMENT, ENTITY_REFERENCE, PROCESSING_INSTRUCTION or DTD");
     }
 
     public void closeCompletely() throws XMLStreamException
@@ -1308,7 +1340,7 @@ public abstract class DOMWrappingReader
 
     /*
     ////////////////////////////////////////////////////
-    // Stax2 validation
+    // Stax2 validation: !!! TODO
     ////////////////////////////////////////////////////
      */
 
@@ -1341,7 +1373,33 @@ public abstract class DOMWrappingReader
 
     /*
     ////////////////////////////////////////////
-    // Internal methods
+    // Internal methods, text gathering
+    ////////////////////////////////////////////
+     */
+
+    protected void coalesceText(int initialType)
+    {
+        mTextBuffer.reset();
+        mTextBuffer.append(mCurrNode.getNodeValue());
+
+        Node n;
+        while ((n = mCurrNode.getNextSibling()) != null) {
+            int type = n.getNodeType();
+            if (type != Node.TEXT_NODE && type != Node.CDATA_SECTION_NODE) {
+                break;
+            }
+            mCurrNode = n;
+            mTextBuffer.append(mCurrNode.getNodeValue());
+        }
+        mCoalescedText = mTextBuffer.get();
+
+        // Either way, type gets always set to be CHARACTERS
+        mCurrEvent = CHARACTERS;
+    }
+
+    /*
+    ////////////////////////////////////////////
+    // Internal methods, namespace support
     ////////////////////////////////////////////
      */
 
@@ -1496,20 +1554,21 @@ public abstract class DOMWrappingReader
      */
     protected String findErrorDesc(int errorType, int currEvent)
     {
+        String evtDesc = Stax2Util.eventTypeDesc(currEvent);
         switch (errorType) {
         case ERR_STATE_NOT_START_ELEM:
-            return "Current state not START_ELEMENT";
+            return "Current event "+evtDesc+", needs to be START_ELEMENT";
         case ERR_STATE_NOT_ELEM:
-            return "Current state not START_ELEMENT or END_ELEMENT";
+            return "Current event "+evtDesc+", needs to be START_ELEMENT or END_ELEMENT";
         case ERR_STATE_NO_LOCALNAME:
-            return "Current state has no local name";
+            return "Current event ("+evtDesc+") has no local name";
         case ERR_STATE_NOT_PI:
-            return "Current state not PROCESSING_INSTRUCTION";
+            return "Current event "+evtDesc+", needs to be PROCESSING_INSTRUCTION";
 
         case ERR_STATE_NOT_TEXTUAL:
-            return "Current state not a textual event";
+            return "Current event ("+evtDesc+") not a textual event";
         case ERR_STATE_NOT_TEXTUAL_XXX:
-            return "Current state not CHARACTERS, CDATA, SPACE or COMMENT";
+            return "Current event "+evtDesc+", needs to be one of CHARACTERS, CDATA, SPACE or COMMENT";
         }
         // should never happen, but it'd be bad to throw another exception...
         return "Internal error (unrecognized error type: "+errorType+")";

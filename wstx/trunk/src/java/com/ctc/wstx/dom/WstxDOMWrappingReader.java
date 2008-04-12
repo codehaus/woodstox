@@ -23,7 +23,7 @@ public class WstxDOMWrappingReader
     protected WstxDOMWrappingReader(DOMSource src, ReaderConfig cfg)
         throws XMLStreamException
     {
-        super(src, cfg.willSupportNamespaces());
+        super(src, cfg.willSupportNamespaces(), cfg.willCoalesceText());
         mConfig = cfg;
     }
 
@@ -69,13 +69,5 @@ public class WstxDOMWrappingReader
         throws XMLStreamException
     {
         throw new WstxParsingException(msg, loc);
-    }
-
-    // @Override
-    protected final String findErrorDesc(int errorType, int currEvent)
-    {
-        String msg = super.findErrorDesc(errorType, currEvent);
-        msg += " (current event: "+ErrorConsts.tokenTypeDesc(currEvent)+")";
-        return msg;
     }
 }

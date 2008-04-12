@@ -7,6 +7,8 @@ Description:
 
   Problems fixed:
 
+  * [WSTX-145] DOMWrappingReader was not implementing coalescing mode.
+    (reported by David C)
   * [WSTX-146] XMLStreamWriter implementation was using encoding
     returned by OutputStreamWriter as is; and JDK was reporting
     legacy encodings. Needed to normalize encoding.

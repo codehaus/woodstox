@@ -8,6 +8,9 @@ public final class TextAccumulator
 {
     private String mText = null;
 
+    /* !!! JDK 1.5: when we can upgrade to Java 5, can convert
+     *  to using <code>StringBuilder</code> instead.
+     */
     private StringBuffer mBuilder = null;
 
     public TextAccumulator() { }

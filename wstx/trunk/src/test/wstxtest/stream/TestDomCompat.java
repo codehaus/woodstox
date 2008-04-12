@@ -165,4 +165,54 @@ public class TestDomCompat
         assertTokenType(END_DOCUMENT, sr.next());
         sr.close();
     }
+
+    /**
+     * Test to verify that [WSTX-145] is properly fixed
+     */
+    public void testDomCoalescingText()
+        throws Exception
+    {
+        final String XML =
+            "<root>Some <![CDATA[content]]> in cdata</root>";
+            ;
+
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        DocumentBuilder db = dbf.newDocumentBuilder();
+        Document dom = db.parse(new InputSource(new StringReader(XML)));
+
+        XMLInputFactory2 ifact = getInputFactory();
+        setCoalescing(ifact, true);
+        XMLStreamReader sr = ifact.createXMLStreamReader(new DOMSource(dom));
+        assertTokenType(START_DOCUMENT, sr.getEventType());
+        assertTokenType(START_ELEMENT, sr.next());
+        assertEquals("root", sr.getLocalName());
+        assertTokenType(CHARACTERS, sr.next());
+        assertEquals("Some content in cdata", getAndVerifyText(sr));
+
+        assertTokenType(END_ELEMENT, sr.next());
+        assertTokenType(END_DOCUMENT, sr.next());
+    }
+
+    public void testDomCoalescingType()
+        throws Exception
+    {
+        final String XML =
+            "<root><![CDATA[...]]></root>";
+            ;
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        DocumentBuilder db = dbf.newDocumentBuilder();
+        Document dom = db.parse(new InputSource(new StringReader(XML)));
+        XMLInputFactory2 ifact = getInputFactory();
+        setCoalescing(ifact, true);
+        XMLStreamReader sr = ifact.createXMLStreamReader(new DOMSource(dom));
+        assertTokenType(START_DOCUMENT, sr.getEventType());
+        assertTokenType(START_ELEMENT, sr.next());
+        assertEquals("root", sr.getLocalName());
+        // Should always be of type CHARACTERS, even if underlying event is CDATA
+        assertTokenType(CHARACTERS, sr.next());
+        assertEquals("...", getAndVerifyText(sr));
+
+        assertTokenType(END_ELEMENT, sr.next());
+        assertTokenType(END_DOCUMENT, sr.next());
+    }
 }

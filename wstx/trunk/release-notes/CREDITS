@@ -333,3 +333,8 @@ Matt Gormley:
 Jim Ancona:
   * Reported [WSTX-146], contributed a unit test for verifying fix.
    [3.2.5 / 4.0]
+
+David Citron:
+  * Reported [WSTX-145]: DOMWrappingReader was not implementing coalescing
+    mode.
+   [4.0]
