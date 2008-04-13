@@ -1009,6 +1009,41 @@ public abstract class DOMWrappingReader
     }
 
     /*
+    /////////////////////////////////////////////////
+    // TypedXMLStreamReader2 implementation
+    /////////////////////////////////////////////////
+     */
+
+    public boolean getElementAsBoolean() throws XMLStreamException
+    {
+        // !!! TBI
+        return false;
+    }
+
+    public int getElementAsInt() throws XMLStreamException
+    {
+        // !!! TBI
+        return 0;
+    }
+
+    public int getAttributeIndex(String namespaceURI, String localName)
+    {
+        return findAttributeIndex(namespaceURI, localName);
+    }
+
+    public boolean getAttributeAsBoolean(int index) throws XMLStreamException
+    {
+        // !!! TBI
+        return false;
+    }
+
+    public int getAttributeAsInt(int index) throws XMLStreamException
+    {
+        // !!! TBI
+        return 0;
+    }
+
+    /*
     ////////////////////////////////////////////////////
     // XMLStreamReader2 (StAX2) implementation
     ////////////////////////////////////////////////////

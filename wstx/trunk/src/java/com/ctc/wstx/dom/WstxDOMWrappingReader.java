@@ -6,7 +6,6 @@ import javax.xml.transform.dom.DOMSource;
 import org.codehaus.stax2.ri.dom.DOMWrappingReader;
 
 import com.ctc.wstx.api.ReaderConfig;
-import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.exc.WstxParsingException;
 
 public class WstxDOMWrappingReader

@@ -102,7 +102,7 @@ public class Stax2FilteredStreamReader
         return mReader.getAttributeCount();
     }
 
-	public String getAttributeLocalName(int index) {
+    public String getAttributeLocalName(int index) {
         return mReader.getAttributeLocalName(index);
     }
 
@@ -257,6 +257,37 @@ public class Stax2FilteredStreamReader
         throws XMLStreamException
     {
         mReader.close();
+    }
+
+    /*
+    /////////////////////////////////////////////////
+    // TypedXMLStreamReader2
+    /////////////////////////////////////////////////
+     */
+
+    public boolean getElementAsBoolean() throws XMLStreamException
+    {
+        return mReader.getElementAsBoolean();
+    }
+
+    public int getElementAsInt() throws XMLStreamException
+    {
+        return mReader.getElementAsInt();
+    }
+
+    public int getAttributeIndex(String namespaceURI, String localName)
+    {
+        return mReader.getAttributeIndex(namespaceURI, localName);
+    }
+
+    public boolean getAttributeAsBoolean(int index) throws XMLStreamException
+    {
+        return mReader.getAttributeAsBoolean(index);
+    }
+
+    public int getAttributeAsInt(int index) throws XMLStreamException
+    {
+        return mReader.getAttributeAsInt(index);
     }
 
     /*

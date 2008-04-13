@@ -1,5 +1,6 @@
 package org.codehaus.stax2.typed;
 
+import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
 import java.math.BigDecimal;
@@ -12,6 +13,14 @@ import javax.xml.namespace.QName;
  * This interface provides a typed extension to 
  * {@link javax.xml.stream.XMLStreamReader}. It defines methods for
  * reading XML data and converting it into Java types.
+ *<p>
+ * Implementation notes:
+ *
+ * 12-Apr-2008, TSa: Commenting out most accessors, leaving just
+ *   simplest numeric type accessors.
+ *   This is to implement reference implementation
+ *   in multiple phases. Next step will be complete list of "simple types",
+ *   and then either list type, or binary data accessors.
  * 
  * @author Santiago.PericasGeertsen@sun.com
  * @author Tatu Saloranta
@@ -24,9 +33,6 @@ public interface TypedXMLStreamReader
     // First, typed element accessors
     //////////////////////////////////////////////////////////
      */
-
-    
-    // -- Elements --------------------------------------------------
     
     /**
      * <p>Read an element content as a boolean. The lexical
@@ -52,58 +58,66 @@ public interface TypedXMLStreamReader
      * </ul>
      * </p>
      * 
+     * @throws XMLStreamException  If unable to access content
      * @throws TypedXMLStreamException  If unable to convert the resulting
      *         character sequence into an XML Schema boolean value.
      */
-    public boolean getElementAsBoolean() throws TypedXMLStreamException;
+    public boolean getElementAsBoolean() throws XMLStreamException;
 
     /**
      * <p><i>[TODO] </i>
      * Same as {@link #getElementAsBoolean()} replacing boolean by int.</p>
+     *
+     * @throws XMLStreamException  If unable to access content
+     * @throws TypedXMLStreamException  If unable to convert the resulting
+     *         character sequence into a 32-bit integer value
      */
-    public int getElementAsInt() throws TypedXMLStreamException;
+    public int getElementAsInt() throws XMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
      * Same as {@link #getElementAsBoolean()} replacing boolean by long.</p>
+     * @throws XMLStreamException  If unable to access content
+     * @throws TypedXMLStreamException  If unable to convert the resulting
+     *         character sequence into a 64-bit integer value
      */
-    public long getElementAsLong() throws TypedXMLStreamException;
+    //public long getElementAsLong() throws XMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
      * Same as {@link #getElementAsBoolean()} replacing boolean by float.</p>
      */
-    public float getElementAsFloat() throws TypedXMLStreamException;
+    //public float getElementAsFloat() throws XMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
      * Same as {@link #getElementAsBoolean()} replacing boolean by double.</p>
      */
-    public double getElementAsDouble() throws TypedXMLStreamException;
+    //public double getElementAsDouble() throws XMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
      * Same as {@link #getElementAsBoolean()} replacing boolean by long.</p>
      */
-    public BigInteger getElementAsInteger() throws TypedXMLStreamException;
+    //public BigInteger getElementAsInteger() throws XMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
      * Same as {@link #getElementAsBoolean()} replacing boolean by decimal.</p>
      */
-    public BigDecimal getElementAsDecimal() throws TypedXMLStreamException;
+    //public BigDecimal getElementAsDecimal() throws XMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
      * Same as {@link #getElementAsBoolean()} replacing boolean by QName.</p>
      */
-    public QName getElementAsQName() throws TypedXMLStreamException;
+    //public QName getElementAsQName() throws XMLStreamException;
     
     // !!! 30-Jan-2008, TSa: JDK 1.5 only -- is that ok?
     /**
      * <p><i>[TODO] </i>
      */
-    //public XMLGregorianCalendar getElementAsCalendar() throws TypedXMLStreamException;
+    //public XMLGregorianCalendar getElementAsCalendar() throws XMLStreamException;
     
     /**
      * <p>Read an element content as a byte array. The lexical
@@ -139,8 +153,8 @@ public interface TypedXMLStreamReader
      * @return        The number of bytes actually copied which must
      *                be less or equal than <code>length</code>.
      */
-    public int getElementAsBinary(byte[] value, int from, int length)
-        throws TypedXMLStreamException;
+    //public int getElementAsBinary(byte[] value, int from, int length)
+    //    throws XMLStreamException;
     
     /**
      * <p>Read an element content as an int array. The lexical
@@ -182,40 +196,38 @@ public interface TypedXMLStreamReader
      * @return        The number of ints actually copied which must
      *                be less or equal than <code>length</code>.
      */
-    public int getElementAsIntArray(int[] value, int from, int length)
-        throws TypedXMLStreamException;
+    //public int getElementAsIntArray(int[] value, int from, int length)
+    //    throws XMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
      * Same as {@link #getElementAsIntArray(int[], int, int)} replacing int 
      * by long.</p>
      */
-    public int getElementAsLongArray(long[] value, int from, int length)
-        throws TypedXMLStreamException;
+    //public int getElementAsLongArray(long[] value, int from, int length)
+    //   throws XMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
      * Same as {@link #getElementAsIntArray(int[], int, int)} replacing int 
      * by float.</p>
      */
-    public int getElementAsFloatArray(float[] value, int from, int length)
-        throws TypedXMLStreamException;
+    //public int getElementAsFloatArray(float[] value, int from, int length)
+    //    throws XMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
      * Same as {@link #getElementAsIntArray(int[], int, int)} replacing int 
      * by double.</p>
      */
-    public int getElementAsDoubleArray(double[] value, int from, int length)
-        throws TypedXMLStreamException;
+    //public int getElementAsDoubleArray(double[] value, int from, int length)
+    //    throws XMLStreamException;
     
     /*
     //////////////////////////////////////////////////////////
-    // Then, typed element accessors
+    // Then, typed attribute accessors
     //////////////////////////////////////////////////////////
      */
-
-    // -- Attributes ------------------------------------------------
     
     /**
      * Returns the index of the attribute whose local name is 
@@ -230,7 +242,7 @@ public interface TypedXMLStreamReader
      *          such attribute exists.
      * @throws java.lang.IllegalStateException  If this is not
      *          a START_ELEMENT event
-     * @throws TypedXMLStreamException  If unable to convert the resulting
+     * @throws XMLStreamException  If unable to convert the resulting
      *         character sequence into an XML Schema boolean value.
      */
     public int getAttributeIndex(String namespaceURI, String localName);
@@ -252,58 +264,58 @@ public interface TypedXMLStreamReader
      *        #getAttributeIndex(String, String)}
      * @throws java.lang.IllegalStateException  If this is not
      *         a START_ELEMENT event.
-     * @throws TypedXMLStreamException  If unable to convert the resulting
+     * @throws XMLStreamException  If unable to convert the resulting
      *         character sequence into an XML Schema boolean value.
      */
-    public boolean getAttributeAsBoolean(int index) throws TypedXMLStreamException;
+    public boolean getAttributeAsBoolean(int index) throws XMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
      * Same as {@link #getAttributeAsBoolean(int)} replacing boolean by int.</p>
      */
-    public int getAttributeAsInt(int index) throws TypedXMLStreamException;
+    public int getAttributeAsInt(int index) throws XMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
      * Same as {@link #getAttributeAsBoolean(int)} replacing boolean by long.</p>
      */
-    public long getAttributeAsLong(int index) throws TypedXMLStreamException;
+    //public long getAttributeAsLong(int index) throws XMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
      * Same as {@link #getAttributeAsBoolean(int)} replacing boolean by float.</p>
      */
-    public float getAttributeAsFloat(int index) throws TypedXMLStreamException;
+    //public float getAttributeAsFloat(int index) throws XMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
      * Same as {@link #getAttributeAsBoolean(int)} replacing boolean by double.</p>
      */
-    public double getAttributeAsDouble(int index) throws TypedXMLStreamException;
+    //public double getAttributeAsDouble(int index) throws XMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
      * Same as {@link #getAttributeAsBoolean(int)} replacing boolean by integer.</p>
      */
-    public BigInteger getAttributeAsInteger(int index) throws TypedXMLStreamException;
+    //public BigInteger getAttributeAsInteger(int index) throws XMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
      * Same as {@link #getAttributeAsBoolean(int)} replacing boolean by decimal.</p>
      */
-    public BigDecimal getAttributeAsDecimal(int index) throws TypedXMLStreamException;
+    //public BigDecimal getAttributeAsDecimal(int index) throws XMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
      * Same as {@link #getAttributeAsBoolean(int)} replacing boolean by QName.</p>
      */
-    public QName getAttributeAsQName(int index) throws TypedXMLStreamException;
+    //public QName getAttributeAsQName(int index) throws XMLStreamException;
     
     // !!! 30-Jan-2008, TSa: JDK 1.5 only -- is that ok?
     /**
      * <p><i>[TODO] </i>
      */
-    //XMLGregorianCalendar getAttributeAsCalendar(int index) throws TypedXMLStreamException;
+    //XMLGregorianCalendar getAttributeAsCalendar(int index) throws XMLStreamException;
     
     /**
      * <p>Read an attribute value as a byte array. The lexical
@@ -322,10 +334,10 @@ public interface TypedXMLStreamReader
      * @return An array of bytes with the content.
      * @throws java.lang.IllegalStateException  If this is not
      *         a START_ELEMENT or ATTRIBUTE event.
-     * @throws TypedXMLStreamException  If unable to convert the resulting
+     * @throws XMLStreamException  If unable to convert the resulting
      *         character sequence into an XML Schema boolean value.
      */
-    public byte[] getAttributeAsBinary(int index) throws TypedXMLStreamException;
+    //public byte[] getAttributeAsBinary(int index) throws XMLStreamException;
     
     /**
      * <p>Read an attribute content as an int array. The lexical
@@ -350,26 +362,26 @@ public interface TypedXMLStreamReader
      * @return An array of ints with the content.
      * @throws java.lang.IllegalStateException  If this is not
      *         a START_ELEMENT or ATTRIBUTE event.
-     * @throws TypedXMLStreamException  If unable to convert the resulting
+     * @throws XMLStreamException  If unable to convert the resulting
      *         character sequence into an XML Schema boolean value.
      */
-    public int[] getAttributeAsIntArray(int index) throws TypedXMLStreamException;
+    //public int[] getAttributeAsIntArray(int index) throws XMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
      * Same as {@link #getAttributeAsIntArray(int)} replacing int by long.</p>
      */
-    public long[] getAttributeAsLongArray(int index) throws TypedXMLStreamException;
+    //public long[] getAttributeAsLongArray(int index) throws XMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
      * Same as {@link #getAttributeAsIntArray(int)} replacing int by float.</p>
      */
-    public float[] getAttributeAsFloatArray(int index) throws TypedXMLStreamException;    
+    //public float[] getAttributeAsFloatArray(int index) throws XMLStreamException;    
     
     /**
      * <p><i>[TODO] </i>
      * Same as {@link #getAttributeAsIntArray(int)} replacing int by double.</p>
      */
-    public double[] getAttributeAsDoubleArray(int index) throws TypedXMLStreamException;    
+    //public double[] getAttributeAsDoubleArray(int index) throws XMLStreamException;    
 }

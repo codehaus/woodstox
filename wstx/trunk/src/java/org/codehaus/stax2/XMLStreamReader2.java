@@ -22,6 +22,7 @@ import javax.xml.namespace.NamespaceContext;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
+import org.codehaus.stax2.typed.TypedXMLStreamReader;
 import org.codehaus.stax2.validation.Validatable;
 
 /**
@@ -46,7 +47,8 @@ import org.codehaus.stax2.validation.Validatable;
  *</dt>
  */
 public interface XMLStreamReader2
-    extends XMLStreamReader, Validatable
+    extends TypedXMLStreamReader,
+            Validatable
 {
     /**
      * Feature used to specify the source for DTD external subset to use

@@ -8,6 +8,7 @@ import javax.xml.stream.*;
 
 import org.codehaus.stax2.XMLInputFactory2; // for property consts
 import org.codehaus.stax2.XMLStreamProperties; // for property consts
+import org.codehaus.stax2.typed.ValueDecoder;
 import org.codehaus.stax2.validation.DTDValidationSchema;
 
 import org.codehaus.stax2.ri.EmptyIterator;
@@ -68,7 +69,11 @@ public final class ReaderConfig
     final static int PROP_REPORT_PROLOG_WS = 23;
     final static int PROP_PRESERVE_LOCATION = 24;
     final static int PROP_AUTO_CLOSE_INPUT = 25;
-    final static int PROP_SUPPORT_XMLID = 26;
+
+    // Enum / Object type properties:
+    final static int PROP_SUPPORT_XMLID = 26; // shared with WriterConfig
+    final static int PROP_DTD_OVERRIDE = 27;
+    final static int PROP_TYPED_VALUE_DECODER = 28;
 
     // // // Constants for additional Wstx properties:
 
@@ -246,6 +251,10 @@ public final class ReaderConfig
                         DataUtil.Integer(PROP_AUTO_CLOSE_INPUT));
         sProperties.put(XMLInputFactory2.XSP_SUPPORT_XMLID,
                         DataUtil.Integer(PROP_SUPPORT_XMLID));
+        sProperties.put(XMLInputFactory2.P_DTD_OVERRIDE,
+                        DataUtil.Integer(PROP_DTD_OVERRIDE));
+        sProperties.put(XMLInputFactory2.P_TYPED_VALUE_DECODER,
+                        DataUtil.Integer(PROP_TYPED_VALUE_DECODER));
 
         // Non-standard ones, flags:
 
@@ -339,12 +348,13 @@ public final class ReaderConfig
 
     Object[] mSpecialProperties = null;
 
-    private final static int SPEC_PROC_COUNT = 4;
+    private final static int SPEC_PROC_COUNT = 5;
 
     private final static int SP_IX_CUSTOM_ENTITIES = 0;
     private final static int SP_IX_UNDECL_ENT_RESOLVER = 1;
     private final static int SP_IX_DTD_EVENT_LISTENER = 2;
     private final static int SP_IX_DTD_OVERRIDE = 3;
+    private final static int SP_IX_TYPED_VALUE_DECODER = 4;
 
     /*
     //////////////////////////////////////////////////////////
@@ -638,6 +648,13 @@ public final class ReaderConfig
         return (DTDValidationSchema) getSpecialProperty(SP_IX_DTD_OVERRIDE);
     }
 
+    /**
+     * @since 4.0
+     */
+    public ValueDecoder getTypedValueDecoder() {
+        return (ValueDecoder) getSpecialProperty(SP_IX_TYPED_VALUE_DECODER);
+    }
+
     /*
     //////////////////////////////////////////////////////////
     // Simple mutators
@@ -821,6 +838,13 @@ public final class ReaderConfig
 
     public void setDTDOverride(DTDValidationSchema schema) {
         setSpecialProperty(SP_IX_DTD_OVERRIDE, schema);
+    }
+
+    /**
+     * @since 4.0
+     */
+    public void setTypedValueDecoder(ValueDecoder d) {
+        setSpecialProperty(SP_IX_TYPED_VALUE_DECODER, d);
     }
 
     /*
@@ -1193,6 +1217,11 @@ public final class ReaderConfig
         case PROP_AUTO_CLOSE_INPUT:
             return willAutoCloseInput() ? Boolean.TRUE : Boolean.FALSE;
 
+        case PROP_DTD_OVERRIDE:
+            return getDTDOverride();
+        case PROP_TYPED_VALUE_DECODER:
+            return getTypedValueDecoder();
+
         // // // Then Woodstox custom properties:
 
             // first, flags:
@@ -1238,7 +1267,7 @@ public final class ReaderConfig
     public boolean setProperty(String propName, int id, Object value)
     {
         switch (id) {
-            // First, standard properties:
+            // First, standard (Stax 1.0) properties:
 
         case PROP_COALESCE_TEXT:
             doCoalesceText(ArgUtil.convertToBoolean(propName, value));
@@ -1280,31 +1309,33 @@ public final class ReaderConfig
              */
             return false;
 
-            // // // Custom settings, flags:
+        // // // Then Stax2 properties, flags:
+
+        case PROP_INTERN_NS_URIS:
+            doInternNsURIs(ArgUtil.convertToBoolean(propName, value));
+            break;
 
         case PROP_INTERN_NAMES:
             doInternNames(ArgUtil.convertToBoolean(propName, value));
             break;
 
-        case PROP_INTERN_NS_URIS:
-            doInternNsURIs(ArgUtil.convertToBoolean(propName, value));
+        case PROP_REPORT_CDATA:
+            doReportCData(ArgUtil.convertToBoolean(propName, value));
             break;
 
         case PROP_REPORT_PROLOG_WS:
             doReportPrologWhitespace(ArgUtil.convertToBoolean(propName, value));
             break;
 
-        case PROP_CACHE_DTDS:
-            doCacheDTDs(ArgUtil.convertToBoolean(propName, value));
+        case PROP_PRESERVE_LOCATION:
+            doPreserveLocation(ArgUtil.convertToBoolean(propName, value));
             break;
 
-        case PROP_CACHE_DTDS_BY_PUBLIC_ID:
-            doCacheDTDsByPublicId(ArgUtil.convertToBoolean(propName, value));
+        case PROP_AUTO_CLOSE_INPUT:
+            doAutoCloseInput(ArgUtil.convertToBoolean(propName, value));
             break;
 
-        case PROP_LAZY_PARSING:
-            doParseLazily(ArgUtil.convertToBoolean(propName, value));
-            break;
+        // // // Then Stax2 properties, enum/object types:
 
         case PROP_SUPPORT_XMLID:
             {
@@ -1321,29 +1352,37 @@ public final class ReaderConfig
                     throw new IllegalArgumentException
                         ("Illegal argument ('"+value+"') to set property "
 +XMLStreamProperties.XSP_SUPPORT_XMLID+" to: has to be one of '"
-+XMLStreamProperties.XSP_V_XMLID_NONE+"', '"
-+XMLStreamProperties.XSP_V_XMLID_TYPING+"' or '"
-+XMLStreamProperties.XSP_V_XMLID_FULL+"'"
++XMLStreamProperties.XSP_V_XMLID_NONE+"', '"+XMLStreamProperties.XSP_V_XMLID_TYPING+"' or '"+XMLStreamProperties.XSP_V_XMLID_FULL+"'"
                          );
                 }
                 setConfigFlag(CFG_XMLID_TYPING, typing);
                 setConfigFlag(CFG_XMLID_UNIQ_CHECKS, uniq);
-                break;
             }
-
-        case PROP_PRESERVE_LOCATION:
-            doPreserveLocation(ArgUtil.convertToBoolean(propName, value));
             break;
 
-        case PROP_AUTO_CLOSE_INPUT:
-            doAutoCloseInput(ArgUtil.convertToBoolean(propName, value));
+        case PROP_DTD_OVERRIDE:
+            setDTDOverride((DTDValidationSchema) value);
             break;
 
-        case PROP_REPORT_CDATA:
-            doReportCData(ArgUtil.convertToBoolean(propName, value));
+        case PROP_TYPED_VALUE_DECODER:
+            setTypedValueDecoder((ValueDecoder) value);
             break;
 
-            // // // Custom settings, Object properties:
+        // // // And then Woodstox specific, flags
+
+        case PROP_CACHE_DTDS:
+            doCacheDTDs(ArgUtil.convertToBoolean(propName, value));
+            break;
+
+        case PROP_CACHE_DTDS_BY_PUBLIC_ID:
+            doCacheDTDsByPublicId(ArgUtil.convertToBoolean(propName, value));
+            break;
+
+        case PROP_LAZY_PARSING:
+            doParseLazily(ArgUtil.convertToBoolean(propName, value));
+            break;
+
+        // // // And then Woodstox specific, enum/object:
 
         case PROP_INPUT_BUFFER_LENGTH:
             setInputBufferLength(ArgUtil.convertToInt(propName, value, 1));

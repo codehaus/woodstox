@@ -234,6 +234,7 @@
 
     <target name="compile" depends="prepare,copy-resources">
         <javac SrcDir="${JavaSrcDir}" destdir="${BuildClassesDir}"
+            source="1.4" target="1.4"
             debug="true"
         >
 <!-- 08-Apr-2007, TSa: Uncomment to see warnings: too verbose
@@ -250,7 +251,8 @@
         <!-- 03-Aug-2006, TSa: Let's also compile samples, to ensure they
                won't get obsolete with impl/api changes
           -->
-        <javac SrcDir="${JavaSamplesDir}" destdir="${BuildClassesDir}">
+        <javac SrcDir="${JavaSamplesDir}" destdir="${BuildClassesDir}"
+            source="1.4" target="1.4">
             <include name="*.java" />
             <classpath refid="compile-classpath" />
         </javac>
@@ -571,6 +573,7 @@
 
     <target name="test.compile" depends="compile">
         <javac SrcDir="${TestSrcDir}" destdir="${TestClassesDir}"
+            source="1.4" target="1.4"
             debug="true"
         >
             <include name="**/*.java" />

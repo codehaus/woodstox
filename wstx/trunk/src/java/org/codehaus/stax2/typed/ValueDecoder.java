@@ -35,6 +35,7 @@ public abstract class ValueDecoder
     public abstract int decodeInt(char[] lexical, int first, int last)
         throws IllegalArgumentException;
 
+    /*
     public long decodeLong(String lexical) throws IllegalArgumentException {
         return decodeLong(lexical, 0, lexical.length());
     }
@@ -61,7 +62,16 @@ public abstract class ValueDecoder
     public abstract double decodeDouble(char[] lexical, int first, int last)
         throws IllegalArgumentException;
 
-    // Unlimited precision floating-point types
+    // Unlimited precision integer floating-point types
+
+    public BigInteger decodeBigInteger(String lexical) throws IllegalArgumentException {
+        return decodeBigInteger(lexical, 0, lexical.length());
+    }
+
+    public abstract BigInteger decodeBigInteger(String lexical, int first, int last)
+        throws IllegalArgumentException;
+    public abstract BigDecimal decodeBigInteger(char[] lexical, int first, int last)
+        throws IllegalArgumentException;
 
     public BigDecimal decodeDecimal(String lexical) throws IllegalArgumentException {
         return decodeDecimal(lexical, 0, lexical.length());
@@ -71,6 +81,7 @@ public abstract class ValueDecoder
         throws IllegalArgumentException;
     public abstract BigDecimal decodeDecimal(char[] lexical, int first, int last)
         throws IllegalArgumentException;
+    */
 
     // Enumerated types
 

@@ -4,18 +4,29 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 // !!! 30-Jan-2008, TSa: JDK 1.5 only -- is that ok?
 //import javax.xml.datatype.XMLGregorianCalendar;
+
 import javax.xml.namespace.QName;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 
 /**
  * This interface provides a typed extension to 
  * {@link javax.xml.stream.XMLStreamWriter}. It defines methods for
  * writing XML data from Java types.
+ *<p>
+ * Exceptions to throw are declared to be basic {@link XMLStreamException}s,
+ * because in addition to specific {@link TypedXMLStreamException}s
+ * (which are more specific subclasses)
+ * that are thrown if conversion itself fails, methods also need to
+ * access underlying textual content which may throw other subtypes
+ * of stream exception. 
  *
  * @author Santiago.PericasGeertsen@sun.com
  * @author Tatu Saloranta
  */
-public interface TypedXMLStreamWriter {
-    
+public interface TypedXMLStreamWriter
+    extends XMLStreamWriter
+{
     // -- Elements --------------------------------------------------
     
     /**
@@ -26,55 +37,55 @@ public interface TypedXMLStreamWriter {
      *
      * @param value  The boolean value to write.
      */
-    void writeBoolean(boolean value) throws TypedXMLStreamException;
+    void writeBoolean(boolean value) throws XMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
      * Same as {@link #writeBoolean(boolean)} replacing boolean by int.</p>
      */
-    void writeInt(int value) throws TypedXMLStreamException;
+    void writeInt(int value) throws XMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
      * Same as {@link #writeBoolean(boolean)} replacing boolean by long.</p>
      */
-    void writeLong(long value) throws TypedXMLStreamException;
+    void writeLong(long value) throws XMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
      * Same as {@link #writeBoolean(boolean)} replacing boolean by float.</p>
      */
-    void writeFloat(float value) throws TypedXMLStreamException;
+    void writeFloat(float value) throws XMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
      * Same as {@link #writeBoolean(boolean)} replacing boolean by double.</p>
      */
-    void writeDouble(double value) throws TypedXMLStreamException;
+    void writeDouble(double value) throws XMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
      * Same as {@link #writeBoolean(boolean)} replacing boolean by integer.</p>
      */
-    void writeInteger(BigInteger value) throws TypedXMLStreamException;
+    void writeInteger(BigInteger value) throws XMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
      * Same as {@link #writeBoolean(boolean)} replacing boolean by decimal.</p>
      */
-    void writeDecimal(BigDecimal value) throws TypedXMLStreamException;
+    void writeDecimal(BigDecimal value) throws XMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
      * Same as {@link #writeBoolean(boolean)} replacing boolean by QName.</p>
      */
-    void writeQName(QName value) throws TypedXMLStreamException;
+    void writeQName(QName value) throws XMLStreamException;
     
     // !!! 30-Jan-2008, TSa: JDK 1.5 only -- is that ok?
     /**
      * <p><i>[TODO] </i>
      */
-    //void writeCalendar(XMLGregorianCalendar value) throws TypedXMLStreamException;
+    //void writeCalendar(XMLGregorianCalendar value) throws XMLStreamException;
     
     /**
      * <p>Write a byte array to the output. The lexical
@@ -88,7 +99,7 @@ public interface TypedXMLStreamWriter {
      * @param length  The number of bytes to write.
      */
     void writeBinary(byte[] value, int from, int length)
-        throws TypedXMLStreamException;
+        throws XMLStreamException;
     
     /**
      * <p>Write int array to the output. The lexical
@@ -107,7 +118,7 @@ public interface TypedXMLStreamWriter {
      * @param length  The number of ints to write.
      */
     void writeIntArray(int[] value, int from, int length)
-        throws TypedXMLStreamException;
+        throws XMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
@@ -115,7 +126,7 @@ public interface TypedXMLStreamWriter {
      * by long.</p>
      */
     void writeLongArray(long[] value, int from, int length)
-        throws TypedXMLStreamException;
+        throws XMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
@@ -123,7 +134,7 @@ public interface TypedXMLStreamWriter {
      * by float.</p>
      */
     void writeFloatArray(float[] value, int from, int length)
-        throws TypedXMLStreamException;
+        throws XMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
@@ -131,7 +142,7 @@ public interface TypedXMLStreamWriter {
      * by double.</p>
      */
     void writeDoubleArray(double[] value, int from, int length)
-        throws TypedXMLStreamException;
+        throws XMLStreamException;
     
  
     // -- Attributes ------------------------------------------------
@@ -148,7 +159,7 @@ public interface TypedXMLStreamWriter {
      * @param value  The boolean value to write.
      */
     void writeBooleanAttribute(String prefix, String namespaceURI, 
-        String localName, boolean value) throws TypedXMLStreamException;
+        String localName, boolean value) throws XMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
@@ -156,7 +167,7 @@ public interface TypedXMLStreamWriter {
      * replacing boolean by int.</p>
      */
     void writeIntAttribute(String prefix, String namespaceURI, 
-        String localName, int value) throws TypedXMLStreamException;
+        String localName, int value) throws XMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
@@ -164,7 +175,7 @@ public interface TypedXMLStreamWriter {
      * replacing boolean by long.</p>
      */
     void writeLongAttribute(String prefix, String namespaceURI, 
-        String localName, long value) throws TypedXMLStreamException;
+        String localName, long value) throws XMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
@@ -172,7 +183,7 @@ public interface TypedXMLStreamWriter {
      * replacing boolean by float.</p>
      */
     void writeFloatAttribute(String prefix, String namespaceURI, 
-        String localName, float value) throws TypedXMLStreamException;
+        String localName, float value) throws XMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
@@ -180,7 +191,7 @@ public interface TypedXMLStreamWriter {
      * replacing boolean by double.</p>
      */
     void writeDoubleAttribute(String prefix, String namespaceURI, 
-        String localName, double value) throws TypedXMLStreamException;
+        String localName, double value) throws XMLStreamException;
  
     /**
      * <p><i>[TODO] </i>
@@ -188,7 +199,7 @@ public interface TypedXMLStreamWriter {
      * replacing boolean by integer.</p>
      */
     void writeIntegerAttribute(String prefix, String namespaceURI, 
-        String localName, BigInteger value) throws TypedXMLStreamException;
+        String localName, BigInteger value) throws XMLStreamException;
 
     /**
      * <p><i>[TODO] </i>
@@ -196,7 +207,7 @@ public interface TypedXMLStreamWriter {
      * replacing boolean by decimal.</p>
      */
     void writeDecimalAttribute(String prefix, String namespaceURI, 
-        String localName, BigDecimal value) throws TypedXMLStreamException;
+        String localName, BigDecimal value) throws XMLStreamException;
 
     /**
      * <p><i>[TODO] </i>
@@ -204,13 +215,13 @@ public interface TypedXMLStreamWriter {
      * replacing boolean by QName.</p>
      */
     void writeQNameAttribute(String prefix, String namespaceURI, 
-        String localName, QName value) throws TypedXMLStreamException;
+        String localName, QName value) throws XMLStreamException;
 
     // !!! 30-Jan-2008, TSa: JDK 1.5 only -- is that ok?
     /**
      * <p><i>[TODO] </i>
      */
-    //void writeCalendarAttribute(String prefix, String namespaceURI, String localName, XMLGregorianCalendar value)  throws TypedXMLStreamException;
+    //void writeCalendarAttribute(String prefix, String namespaceURI, String localName, XMLGregorianCalendar value)  throws XMLStreamException;
         
     /**
      * <p>Write a byte array attribute. The lexical
@@ -224,7 +235,7 @@ public interface TypedXMLStreamWriter {
      * @param value   The array from which to write the bytes.
      */
     void writeBinaryAttribute(String prefix, String namespaceURI, 
-        String localName, byte[] value) throws TypedXMLStreamException;
+        String localName, byte[] value) throws XMLStreamException;
     
     /**
      * <p>Write int array attribute. The lexical
@@ -242,7 +253,7 @@ public interface TypedXMLStreamWriter {
      * @param value   The array from which to write the ints.
      */
     void writeIntArrayAttribute(String prefix, String namespaceURI, 
-        String localName, int[] value) throws TypedXMLStreamException;
+        String localName, int[] value) throws XMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
@@ -250,7 +261,7 @@ public interface TypedXMLStreamWriter {
      * replacing int by long.</p>
      */
     void writeLongArrayAttribute(String prefix, String namespaceURI, 
-        String localName, long[] value) throws TypedXMLStreamException;
+        String localName, long[] value) throws XMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
@@ -258,7 +269,7 @@ public interface TypedXMLStreamWriter {
      * replacing int by float.</p>
      */
     void writeFloatArrayAttribute(String prefix, String namespaceURI, 
-        String localName, float[] value) throws TypedXMLStreamException;
+        String localName, float[] value) throws XMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
@@ -266,5 +277,5 @@ public interface TypedXMLStreamWriter {
      * replacing int by double.</p>
      */
     void writeDoubleArrayAttribute(String prefix, String namespaceURI, 
-        String localName, double[] value) throws TypedXMLStreamException;
+        String localName, double[] value) throws XMLStreamException;
 }
