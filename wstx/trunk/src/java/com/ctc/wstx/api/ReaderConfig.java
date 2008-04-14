@@ -79,7 +79,7 @@ public final class ReaderConfig
 
     // Simple flags:
 
-    // Note: these were included pre-4.0, deprecated:
+    // Note: these were included pre-4.0, are deprecated in 4.0
     //final static int PROP_NORMALIZE_LFS = 40;
     //final static int PROP_NORMALIZE_ATTR_VALUES = 41;
 

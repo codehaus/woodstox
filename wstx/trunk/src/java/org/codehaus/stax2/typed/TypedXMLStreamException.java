@@ -20,6 +20,8 @@ import javax.xml.stream.XMLStreamException;
  * {@link IllegalArgumentException}, since that is the supertype
  * of regular parsing/conversion types for primitive types.
  *
+ * @since 3.0
+ *
  * @author Santiago.PericasGeertsen@sun.com
  * @author Tatu Saloranta
  */

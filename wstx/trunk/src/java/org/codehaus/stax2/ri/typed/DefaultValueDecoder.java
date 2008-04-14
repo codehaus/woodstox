@@ -11,12 +11,15 @@ import org.codehaus.stax2.typed.ValueDecoder;
  * @author Tatu Saloranta
  */
 public class DefaultValueDecoder
+    extends ValueDecoder
 {
     private final static long L_BILLION = 1000000000;
 
     private final static long L_MAX_INT = (long) Integer.MAX_VALUE;
 
     private final static long L_MIN_INT = (long) Integer.MIN_VALUE;
+
+    public DefaultValueDecoder() { }
 
     /*
     ///////////////////////////////////////////////
@@ -373,18 +376,23 @@ public class DefaultValueDecoder
      */
     protected int trimTrailingSpace(String str, int start, int end)
     {
-        while (end > start && isSpace(str.charAt(end))) {
-            --end;
+        /* Two things to note: first, we'll be "off by one", since
+         * end indicates first char _after_ end, and second,
+         * we need not check the first char (one at 'start') since
+         * it must have been checked earlier to be non-whitespace.
+         */
+        while (--end > start && isSpace(str.charAt(end))) {
+            ;
         }
-        return end;
+        return end+1;
     }
 
     protected int trimTrailingSpace(char[] c, int start, int end)
     {
-        while (end > start && isSpace(c[end])) {
-            --end;
+        while (--end > start && isSpace(c[end])) {
+            ;
         }
-        return end;
+        return end+1;
     }
 
     protected boolean allDigits(String str, int start, int end)
@@ -418,6 +426,6 @@ public class DefaultValueDecoder
      */
     private final boolean isSpace(char c)
     {
-        return ((int) c) < 0x0020;
+        return ((int) c) <= 0x0020;
     }
 }

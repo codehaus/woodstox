@@ -19,6 +19,8 @@ import javax.xml.namespace.QName;
  * Latter is the reason why there are generally three variants
  * of most methods. One imp
  *
+ * @since 3.0
+ *
  * @author Tatu Saloranta
  */
 public abstract class ValueDecoder

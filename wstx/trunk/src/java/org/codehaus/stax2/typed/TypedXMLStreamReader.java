@@ -24,6 +24,8 @@ import javax.xml.namespace.QName;
  * 
  * @author Santiago.PericasGeertsen@sun.com
  * @author Tatu Saloranta
+ *
+ * @since 3.0
  */
 public interface TypedXMLStreamReader
     extends XMLStreamReader

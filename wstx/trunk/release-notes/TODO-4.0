@@ -7,6 +7,11 @@ Planned stuff for 4.0
     deferred synchronous (XMLStreamException) exceptions: similar to
     how "]]>" check is now deferred in 3.1
 
+* Clean up:
+  * SymbolTable, input factory: Link symbol table child instance to its
+    (per-factory) parent, and remove link from stream reader to factory.
+    Simplifies access patterns
+
 * Bugs / incomplete handling:
   * More optimal check for "]]>" in content. Now over 99% reliable, but
     theoretically could miss if combination on input buffer boundary.
@@ -34,19 +39,26 @@ Planned stuff for 4.0
     allow zero-copy wrapping of parsed textual content.
   * XMLStreamReader2.hasPendingException and/or getPendingException
     (to check for deferred exceptions)?
-  * Typed accessors (getIntValue() etc) for XMLStreamReader: both for
-    text events, and attributes
-  * Typed write methods for XMLStreamWriter
   * Char[] attribute accessors for XMLStreamReader
   * Char[] attribute write methods for XMLStreamWriter
+
+* Stax2, typed API:
+  * Reader side:
+    * Simple types
+    * List types
+    * Binary
+  * Writer side:
+    * Simple types
+    * List types
+    * Binary
 
 * Removing cruft:
 [DONE]  * Remove support for pre-JDK-1.4
 [DONE]  * Remove non-normalizing (attr, text) modes
 
 * Stax compatibility:
-  * Return "" instead of null for 'default' (or 'no') namespace (for 4.0)
-  * Change default for 'report SPACE outside root element' to false, from
+[DONE] * Return "" instead of null for 'default' (or 'no') namespace (for 4.0)
+[DONE] * Change default for 'report SPACE outside root element' to false, from
     true (basically revert to pre-3.0 state)
   * Minimize unchecked (lazy) exceptions, by deferring throwing of some
     exceptions (at least any problems in CHARACTERS segment which are
@@ -57,7 +69,10 @@ Planned stuff for 4.0
    * Heuristically
 
 * Interoperability:
-[partial] * Implement DOMTarget (DOMWrappingWriter)
+   * DOM:
+[DONE] * Implement DOMTarget (DOMWrappingWriter)
+      * DOMWrappingReader: implement Stax2 validation API
+      * DOMWrappingWriter: implement Stax2 validation API
 
 * XML validation:
    * Finish incomplete support methods that RNG validation uses;
@@ -84,5 +99,3 @@ Planned stuff for 4.0
       * Jars: for 1.3/1.2 SAX(2) and DOM API jars?
    * FAQ:
       * Output streaming; use of 'writeCharacters("");', flush()
-
-Stax2:

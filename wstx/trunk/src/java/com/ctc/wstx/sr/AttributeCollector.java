@@ -20,6 +20,8 @@ import java.io.IOException;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.namespace.QName;
 
+import org.codehaus.stax2.typed.ValueDecoder;
+
 import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.sw.XmlWriter;
@@ -246,6 +248,50 @@ public abstract class AttributeCollector
 
     public final int getXmlIdAttrIndex() {
         return mXmlIdAttrIndex;
+    }
+
+    /*
+    //////////////////////////////////////////////////////
+    // Type-safe accessors to support TypedXMLStreamReader
+    //////////////////////////////////////////////////////
+     */
+
+    public final boolean getValueAsBoolean(int index, ValueDecoder dec)
+        throws IllegalArgumentException
+    {
+        if (index < 0 || index >= mAttrCount) {
+            throwIndex(index);
+        }
+        /* Let's use String version iff it exists (since it most
+         * likely has then also been normalized), otherwise
+         * use the raw char array.
+         */
+        if (mAttrValues == null) {
+            String value = mAttrValues[index];
+            if (value != null) {
+                return dec.decodeBoolean(value);
+            }
+        }
+        return dec.decodeBoolean(mValueBuffer.getCharBuffer(),
+                                 mValueBuffer.getOffset(index),
+                                 mValueBuffer.getOffset(index+1));
+    }
+
+    public final int getValueAsInt(int index, ValueDecoder dec)
+        throws IllegalArgumentException
+    {
+        if (index < 0 || index >= mAttrCount) {
+            throwIndex(index);
+        }
+        if (mAttrValues == null) {
+            String value = mAttrValues[index];
+            if (value != null) {
+                return dec.decodeInt(value);
+            }
+        }
+        return dec.decodeInt(mValueBuffer.getCharBuffer(),
+                             mValueBuffer.getOffset(index),
+                             mValueBuffer.getOffset(index+1));
     }
 
     /*

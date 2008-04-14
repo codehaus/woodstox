@@ -34,6 +34,9 @@ import org.codehaus.stax2.DTDInfo;
 import org.codehaus.stax2.LocationInfo;
 import org.codehaus.stax2.XMLStreamLocation2;
 import org.codehaus.stax2.XMLStreamReader2;
+import org.codehaus.stax2.ri.typed.DefaultValueDecoder;
+import org.codehaus.stax2.typed.TypedXMLStreamException;
+import org.codehaus.stax2.typed.ValueDecoder;
 import org.codehaus.stax2.validation.*;
 
 import com.ctc.wstx.api.ReaderConfig;
@@ -141,6 +144,13 @@ public class BasicStreamReader
         (1 << CHARACTERS) | (1 << CDATA) | (1 << SPACE)
         | (1 << ENTITY_REFERENCE);
 
+
+    /**
+     * We will use a stateless shared decoder if none is explicitly
+     * configured to be used
+     */
+    final static ValueDecoder sDefaultValueDecoder = new DefaultValueDecoder();
+
     /*
     ////////////////////////////////////////////////////
     // Configuration
@@ -175,6 +185,12 @@ public class BasicStreamReader
      * and external subsets).
      */
     final Map mCustomEntities;
+
+    /**
+     * Decoder used to convert textual (lexical) element content
+     * and attribute values into Java types.
+     */
+    protected ValueDecoder mValueDecoder;
 
     /*
     ////////////////////////////////////////////////////
@@ -444,6 +460,11 @@ public class BasicStreamReader
         }
 
         mCustomEntities = cfg.getCustomInternalEntities();
+        mValueDecoder = cfg.getTypedValueDecoder();
+        // If no explicitly set one, we'll use the default one
+        if (mValueDecoder == null) {
+            mValueDecoder = sDefaultValueDecoder;
+        }
 
         // // // Then handling of xml declaration data:
 
@@ -1158,14 +1179,26 @@ public class BasicStreamReader
 
     public boolean getElementAsBoolean() throws XMLStreamException
     {
-        // !!! TBI
-        return false;
+        String value = getElementText();
+        try {
+            // !!! TODO: optimize
+            return mValueDecoder.decodeBoolean(value);
+        } catch (IllegalArgumentException iae) {
+            throwTypeException(iae, value);
+            return false; // never gets here
+        }
     }
 
     public int getElementAsInt() throws XMLStreamException
     {
-        // !!! TBI
-        return 0;
+        String value = getElementText();
+        try {
+            // !!! TODO: optimize
+            return mValueDecoder.decodeInt(value);
+        } catch (IllegalArgumentException iae) {
+            throwTypeException(iae, value);
+            return 0; // never gets here
+        }
     }
 
     public int getAttributeIndex(String namespaceURI, String localName)
@@ -1179,14 +1212,22 @@ public class BasicStreamReader
 
     public boolean getAttributeAsBoolean(int index) throws XMLStreamException
     {
-        // !!! TBI
-        return false;
+        try {
+            return mAttrCollector.getValueAsBoolean(index, mValueDecoder);
+        } catch (IllegalArgumentException iae) {
+            throwTypeException(iae, mAttrCollector.getValue(index));
+            return false; // never gets here
+        }
     }
 
     public int getAttributeAsInt(int index) throws XMLStreamException
     {
-        // !!! TBI
-        return 0;
+        try {
+            return mAttrCollector.getValueAsInt(index, mValueDecoder);
+        } catch (IllegalArgumentException iae) {
+            throwTypeException(iae, mAttrCollector.getValue(index));
+            return 0; // never gets here
+        }
     }
 
     /*
@@ -5439,6 +5480,20 @@ public class BasicStreamReader
                             +mElementStack.getTopElementDesc()
                             +"> does not allow mixed content");
         
+    }
+
+    /**
+     * Method called to wrap or convert given conversion-fail exception
+     * into a full {@link TypedXMLStreamException),
+     *
+     * @param iae Problem as reported by converter
+     * @param lexicalValue Lexical value (element content, attribute value)
+     *    that could not be converted succesfully.
+     */
+    private void throwTypeException(IllegalArgumentException iae, String lexicalValue)
+        throws TypedXMLStreamException
+    {
+        throw new TypedXMLStreamException(lexicalValue, iae.getMessage(), getStartLocation(), iae);
     }
 
     /**
