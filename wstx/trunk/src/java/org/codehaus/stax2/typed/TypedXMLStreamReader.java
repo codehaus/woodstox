@@ -252,18 +252,16 @@ public interface TypedXMLStreamReader
    /**
      * <p>Read an attribute value as a boolean. The lexical
      * representation of a boolean is defined by the 
-     * <a href="http://www.w3.org/TR/xmlschema-2/#boolean">XML Schema
-     * boolean</a> data type. Whitespace MUST be 
-     * <a href="http://www.w3.org/TR/xmlschema-2/
-     *   datatypes.html#rf-whiteSpace">collapsed</a>
+     * <a href="http://www.w3.org/TR/xmlschema-2/#boolean">XML Schema boolean</a>
+     * data type. Whitespace MUST be 
+     * <a href="http://www.w3.org/TR/xmlschema-2/datatypes.html#rf-whiteSpace">collapsed</a>
      * according to the whiteSpace facet for the XML Schema boolean
      * data type.
      * An exception is thrown if, after whitespace is
      * collapsed, the resulting sequence of characters is not in 
      * the lexical space defined by the XML Schema boolean data type.</p>
      * 
-     * @param index  The attribute's index as returned by {@link
-     *        #getAttributeIndex(String, String)}
+     * @param index  The attribute's index as returned by {@link #getAttributeIndex(String, String)}
      * @throws java.lang.IllegalStateException  If this is not
      *         a START_ELEMENT event.
      * @throws XMLStreamException  If unable to convert the resulting

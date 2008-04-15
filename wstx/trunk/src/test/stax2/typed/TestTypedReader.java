@@ -17,6 +17,12 @@ import stax2.BaseStax2Test;
 public class TestTypedReader
     extends BaseStax2Test
 {
+    /*
+    ////////////////////////////////////////
+    // Tests for numeric/enum types
+    ////////////////////////////////////////
+     */
+
     public void testSimpleBooleanElem()
         throws Exception
     {
@@ -47,6 +53,24 @@ public class TestTypedReader
 
         checkBooleanAttrException("<root attr=\"yes\" />");
         checkBooleanAttrException("<root attr='01' />");
+    }
+
+    public void testMultipleBooleanAttr()
+        throws Exception
+    {
+        XMLStreamReader2 sr = getRootReader("<root a1='true' b=\"false\" third='0' />");
+        assertEquals(3, sr.getAttributeCount());
+        int ix1 = sr.getAttributeIndex("", "a1");
+        int ix2 = sr.getAttributeIndex("", "b");
+        int ix3 = sr.getAttributeIndex("", "third");
+        if (ix1 < 0 || ix2 < 0 || ix3 < 0) {
+            fail("Couldn't find indexes of attributes: a1="+ix1+", b="+ix2+", third="+ix3);
+        }
+        assertTrue(sr.getAttributeAsBoolean(ix1));
+        assertFalse(sr.getAttributeAsBoolean(ix2));
+        assertFalse(sr.getAttributeAsBoolean(ix3));
+
+        sr.close();
     }
 
     /*

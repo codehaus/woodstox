@@ -136,7 +136,7 @@ public abstract class Stax2EventReaderImpl
      *
      * @param errorType Type of the problem, one of <code>ERR_</code>
      *    constants
-     * @param currentEvent Type of the event that triggered the problem,
+     * @param eventType Type of the event that triggered the problem,
      *    if any; -1 if not available.
      */
     protected abstract String getErrorDesc(int errorType, int eventType);

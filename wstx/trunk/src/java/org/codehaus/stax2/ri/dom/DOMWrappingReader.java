@@ -120,7 +120,7 @@ public abstract class DOMWrappingReader
 
     /**
      * Whether stream reader is to be namespace aware (as per property
-     * {@link XMLInputFactory#IS_NAMESPACE_PROPERTY}) or not
+     * {@link XMLInputFactory#IS_NAMESPACE_AWARE}) or not
      */
     protected final boolean mNsAware;
 
@@ -188,9 +188,13 @@ public abstract class DOMWrappingReader
      */
 
     /**
-     * @param cfg Configuration of this reader
-     * @param treeRoot Node that is the tree of the DOM document, or
-     *   fragment.
+     * @param src Node that is the tree of the DOM document, or fragment.
+     * @param nsAware Whether resulting reader should operate in namespace
+     *   aware mode or not. Note that this should be compatible with
+     *   settings for the DOM builder that produced DOM tree or fragment
+     *   being operated on, otherwise results are not defined.
+     * @param coalescing Whether resulting reader should coalesce adjacent
+     *    text events or not
      */
     protected DOMWrappingReader(DOMSource src, boolean nsAware, boolean coalescing)
         throws XMLStreamException

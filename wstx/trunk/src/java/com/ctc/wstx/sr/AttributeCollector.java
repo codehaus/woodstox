@@ -266,7 +266,7 @@ public abstract class AttributeCollector
          * likely has then also been normalized), otherwise
          * use the raw char array.
          */
-        if (mAttrValues == null) {
+        if (mAttrValues != null) {
             String value = mAttrValues[index];
             if (value != null) {
                 return dec.decodeBoolean(value);

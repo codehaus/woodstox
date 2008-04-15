@@ -53,7 +53,7 @@ public class TypedXMLStreamException
      * Constructor used to wrap an underlying data conversion
      * error message.
      *
-     * @param th  A nested exception.
+     * @param rootCause Underlying conversion problem
      */
     public TypedXMLStreamException(String lexical, IllegalArgumentException rootCause)
     {
@@ -64,8 +64,8 @@ public class TypedXMLStreamException
     /**
      * Construct an exception with the associated message and exception
      *
-     * @param th  A nested exception.
      * @param msg  The message to report.
+     * @param rootCause Underlying conversion problem
      */
     public TypedXMLStreamException(String lexical, String msg, IllegalArgumentException rootCause)
     {
@@ -77,9 +77,9 @@ public class TypedXMLStreamException
      * Construct an exception with the associated message, exception and 
      * location.
      *
-     * @param th  A nested exception.
      * @param msg  The message to report.
      * @param location  The location of the error.
+     * @param rootCause Underlying conversion problem
      */
     public TypedXMLStreamException(String lexical, String msg,
                                    Location location, 
