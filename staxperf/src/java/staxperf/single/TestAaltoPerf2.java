@@ -6,12 +6,15 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamReader;
 
-//import com.ctc.wstx.api.WstxInputProperties;
+import org.codehaus.wool.in.*;
+import org.codehaus.stax2.io.Stax2ByteArraySource;
 
-public class TestAaltoPerf
+public class TestAaltoPerf2
     extends BasePerfTest
 {
-    protected TestAaltoPerf() { super(); }
+    private byte[] mMutableData;
+
+    private TestAaltoPerf2() { super(); }
 
     protected XMLInputFactory getFactory()
     {
@@ -21,19 +24,23 @@ public class TestAaltoPerf
         return f;
     }
 
-    // To test Char/Reader based parsing, uncomment:
-    /*
     protected int testExec(byte[] data, String path) throws Exception
     {
-        Reader r = new InputStreamReader(new ByteArrayInputStream(data), "UTF-8");
-        XMLStreamReader sr = mFactory.createXMLStreamReader(r);
+        if (mMutableData == null) {
+            mMutableData = new byte[data.length + 1];
+            System.arraycopy(data, 0, mMutableData, 0, data.length);
+        }
+
+        InputStream in = new ByteArrayInputStream(data);
+        Stax2ByteArraySource src = new Stax2ByteArraySource(mMutableData, 0, data.length);
+        XMLStreamReader sr = mFactory.createXMLStreamReader(src);
         int ret = testExec2(sr);
+        in.close();
         return ret;
     }
-    */
 
     public static void main(String[] args) throws Exception
     {
-        new TestAaltoPerf().test(args);
+        new TestAaltoPerf2().test(args);
     }
 }

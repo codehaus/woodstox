@@ -103,13 +103,13 @@
 
     <target name="dist" depends="compile,javadoc">
        <!-- Then let's create the source distribution package -->
-       <tar basedir="${basedir}" destfile="${DistDir}/staxperf-src.tar"
-        includes="build.xml" >
+       <tar basedir="${basedir}" destfile="${DistDir}/staxperf-src.tar">
           <tarfileset dir="." includes="src/**/*.java" />
           <tarfileset dir="." includes="src/java/**/*.html" />
           <tarfileset dir="." includes="build.xml" />
        </tar>
        <gzip zipfile="${DistDir}/staxperf-src.tar.gz" src="${DistDir}/staxperf-src.tar" />
+       <delete file="${DistDir}/staxperf-src.tar" />
        <!-- Then copy javadocs -->
        <copy todir="${DistDir}">
          <fileset dir="${DocDir}" includes="javadoc/**/*" />
@@ -119,6 +119,10 @@
          -->
        <copy todir="${DistDir}" >
             <fileset dir="." includes="release-notes/*" />
+       </copy>
+       <!-- And finally, some test data? -->
+       <copy todir="${DistDir}" >
+            <fileset dir="typed-xml" includes="release-notes/*" />
        </copy>
     </target>
 

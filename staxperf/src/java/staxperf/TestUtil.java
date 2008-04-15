@@ -1,5 +1,7 @@
 package staxperf;
 
+import java.io.*;
+
 public class TestUtil
 {
     protected TestUtil() { }
@@ -39,6 +41,23 @@ public class TestUtil
             return 2;
         }
         return 1;
+    }
+
+    public final static byte[] readData(File f)
+        throws IOException
+    {
+        int len = (int) f.length();
+        byte[] data = new byte[len];
+        int offset = 0;
+        FileInputStream fis = new FileInputStream(f);
+        
+        while (len > 0) {
+            int count = fis.read(data, offset, len-offset);
+            offset += count;
+            len -= count;
+        }
+
+        return data;
     }
 
 }
