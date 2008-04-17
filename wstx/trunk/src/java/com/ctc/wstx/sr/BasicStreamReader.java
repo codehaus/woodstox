@@ -45,6 +45,7 @@ import com.ctc.wstx.cfg.XmlConsts;
 import com.ctc.wstx.dtd.MinimalDTDReader;
 import com.ctc.wstx.ent.EntityDecl;
 import com.ctc.wstx.exc.WstxException;
+import com.ctc.wstx.exc.WstxIOException;
 import com.ctc.wstx.io.*;
 import com.ctc.wstx.util.DefaultXmlSymbolTable;
 import com.ctc.wstx.util.TextAccumulator;
@@ -673,15 +674,11 @@ public class BasicStreamReader
         if (mCurrToken != START_ELEMENT) {
             throwParseError(ErrorConsts.ERR_STATE_NOT_STELEM);
         }
-        TextAccumulator acc = new TextAccumulator();
-
-        /**
-         * Need to loop to get rid of PIs, comments
-         */
+        // First need to find a textual event
         while (true) {
             int type = next();
             if (type == END_ELEMENT) {
-                break;
+                return "";
             }
             if (type == COMMENT || type == PROCESSING_INSTRUCTION) {
                 continue;
@@ -689,9 +686,33 @@ public class BasicStreamReader
             if (((1 << type) & MASK_GET_ELEMENT_TEXT) == 0) {
                 throwParseError("Expected a text token, got "+tokenTypeDesc(type)+".");
             }
-            acc.addText(getText());
+            break;
         }
-        return acc.getAndClear();
+        if (mTokenState < TOKEN_FULL_SINGLE) {
+            try {
+                readCoalescedText(mCurrToken, false);
+            } catch (IOException ioe) {
+                throwFromIOE(ioe);
+            }
+        }
+        String text = mTextBuffer.contentsAsString();
+        // Then we'll see if end is nigh...
+        TextAccumulator acc = null;
+        int type;
+        
+        while ((type = next()) != END_ELEMENT) {
+            if (type != COMMENT && type != PROCESSING_INSTRUCTION) {
+                if (((1 << type) & MASK_GET_ELEMENT_TEXT) == 0) {
+                    throwParseError("Expected a text token, got "+tokenTypeDesc(type)+".");
+                }
+                if (acc == null) {
+                    acc = new TextAccumulator();
+                    acc.addText(text);
+                }
+                acc.addText(getText());
+            }
+        }
+        return (acc == null) ? text : acc.getAndClear();
     }
 
     /**
@@ -1035,64 +1056,76 @@ public class BasicStreamReader
         /* Note: can not yet accurately record the location, since the
          * previous event might not yet be completely finished...
          */
-        try {
-            if (mParseState == STATE_TREE) {
-                int type = nextFromTree();
-                mCurrToken =  type;
-                // Lazy-parsing disabled?
-                if (!mCfgLazyParsing && (mTokenState < mStTextThreshold)) {
-                    finishToken(false);
-                }
-                /* Special cases -- sometimes (when coalescing text, or
-                 * when specifically configured to do so), CDATA and SPACE are
-                 * to be reported as CHARACTERS, although we still will
-                 * internally keep track of the real type.
+        if (mParseState == STATE_TREE) {
+            int type;
+            try {
+                type = nextFromTree();
+            } catch (IOException ioe) {
+                // inlined: throwFromIOE(ioe);
+                throw new WstxIOException(ioe);
+            }
+            mCurrToken = type;
+            if (mTokenState < mStTextThreshold) { // incomplete?
+                /* Can remain incomplete if lazy parsing is enabled,
+                 * and this is not a validatable text segment; otherwise
+                 * must finish
                  */
-                if (type == CDATA) {
-                    if (mValidateText) {
-                        if (mTokenState < mStTextThreshold) {
-                            finishToken(false);
-                        }
+                if (!mCfgLazyParsing ||
+                    (mValidateText && (type == CHARACTERS || type == CDATA))) {
+                    try {
+                        finishToken(false);
+                    } catch (IOException ie) {
+                        throwFromIOE(ie);
+                    }
+                }
+            }
+
+            /* Special cases -- sometimes (when coalescing text, or
+             * when specifically configured to do so), CDATA and SPACE are
+             * to be reported as CHARACTERS, although we still will
+             * internally keep track of the real type.
+             */
+            if (type == CDATA) {
+                if (mValidateText) {
+                    mElementStack.validateText(mTextBuffer, false);
+                }
+                if (mCfgCoalesceText || mCfgReportTextAsChars) {
+                    return CHARACTERS;
+                }
+                /*
+                  } else if (type == SPACE) {
+                  //if (mValidateText) { throw new IllegalStateException("Internal error: trying to validate SPACE event"); }
+                  */
+            } else if (type == CHARACTERS) {
+                if (mValidateText) {
+                    /* We may be able to determine that there will be
+                     * no more text coming for this element: but only
+                     * seeing the end tag marker ("</") is certain
+                     * (PIs and comments won't do, nor CDATA; start
+                     * element possibly... but that indicates mixed
+                     * content that's generally non-validatable)
+                         */
+                    if ((mInputPtr+1) < mInputLen
+                        && mInputBuffer[mInputPtr] == '<'
+                        && mInputBuffer[mInputPtr+1] == '/') {
+                        // yup, it's all there is
+                        mElementStack.validateText(mTextBuffer, true);
+                    } else {
                         mElementStack.validateText(mTextBuffer, false);
                     }
-                    if (mCfgCoalesceText || mCfgReportTextAsChars) {
-                        return CHARACTERS;
-                    }
-                    /*
-                } else if (type == SPACE) {
-                    //if (mValidateText) { throw new IllegalStateException("Internal error: trying to validate SPACE event"); }
-                    */
-                } else if (type == CHARACTERS) {
-                    if (mValidateText) {
-                        if (mTokenState < mStTextThreshold) {
-                            finishToken(false);
-                        }
-                        /* We may be able to determine that there will be
-                         * no more text coming for this element: but only
-                         * seeing the end tag marker ("</") is certain
-                         * (PIs and comments won't do, nor CDATA; start
-                         * element possibly... but that indicates mixed
-                         * content that's generally non-validatable)
-                         */
-                        if ((mInputPtr+1) < mInputLen
-                            && mInputBuffer[mInputPtr] == '<'
-                            && mInputBuffer[mInputPtr+1] == '/') {
-                            // yup, it's all there is
-                            mElementStack.validateText(mTextBuffer, true);
-                        } else {
-                            mElementStack.validateText(mTextBuffer, false);
-                        }
-                    }
                 }
-                return type;
             }
+            return type;
+        }
+
+        try {
             if (mParseState == STATE_PROLOG) {
                 nextFromProlog(true);
             } else if (mParseState == STATE_EPILOG) {
                 if (nextFromProlog(false)) {
                     // We'll return END_DOCUMENT, need to mark it 'as consumed'
                     mSecondaryToken = 0;
-
+                    
                 }
             } else if (mParseState == STATE_MULTIDOC_HACK) {
                 mCurrToken = nextFromMultiDocState();
@@ -1103,10 +1136,11 @@ public class BasicStreamReader
                 }
                 throw new java.util.NoSuchElementException();
             }
-        } catch (IOException ie) {
-            throwFromIOE(ie);
+            return mCurrToken;
+        } catch (IOException ioe) {
+            // inlined: throwFromIOE(ioe);
+            throw new WstxIOException(ioe);
         }
-        return mCurrToken;
     }
 
     public int nextTag()
