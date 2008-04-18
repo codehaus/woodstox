@@ -146,6 +146,21 @@ public class BasicStreamReader
         | (1 << ENTITY_REFERENCE);
 
 
+    // // // Indicator of type of text in text event (WRT white space)
+
+    final static int ALL_WS_UNKNOWN = 0x0000;
+    final static int ALL_WS_YES = 0x0001;
+    final static int ALL_WS_NO = 0x0002;
+
+    /* 2 magic constants used for enabling/disabling indentation checks:
+     * (to minimize negative impact for both small docs, and large
+     * docs with non-regular white space)
+     */
+
+    private final static int INDENT_CHECK_START = 16;
+
+    private final static int INDENT_CHECK_MAX = 40;
+
     /**
      * We will use a stateless shared decoder if none is explicitly
      * configured to be used
@@ -306,7 +321,7 @@ public class BasicStreamReader
     /**
      * Main parsing/tokenization state (STATE_xxx)
      */
-    int mParseState;
+    protected int mParseState;
 
     /**
      * Current state of the stream, ie token value returned by
@@ -321,12 +336,6 @@ public class BasicStreamReader
      * {@link #mCurrToken} is already populated.
      */
     protected int mSecondaryToken = START_DOCUMENT;
-    
-    // // // Indicator of type of text in text event (WRT white space)
-
-    final static int ALL_WS_UNKNOWN = 0x0000;
-    final static int ALL_WS_YES = 0x0001;
-    final static int ALL_WS_NO = 0x0002;
 
     /**
      * Status of current (text) token's "whitespaceness", that is,
@@ -341,12 +350,6 @@ public class BasicStreamReader
      * and will prevent lazy parsing of text.
      */
     protected boolean mValidateText = false;
-
-    // 2 magic constants used for enabling/disabling indentation checks:
-
-    private final static int INDENT_CHECK_START = 16;
-
-    private final static int INDENT_CHECK_MAX = 40;
 
     /**
      * Counter used for determining whether we are to try to heuristically
@@ -701,15 +704,16 @@ public class BasicStreamReader
         int type;
         
         while ((type = next()) != END_ELEMENT) {
-            if (type != COMMENT && type != PROCESSING_INSTRUCTION) {
-                if (((1 << type) & MASK_GET_ELEMENT_TEXT) == 0) {
-                    throwParseError("Expected a text token, got "+tokenTypeDesc(type)+".");
-                }
+            if (((1 << type) & MASK_GET_ELEMENT_TEXT) != 0) {
                 if (acc == null) {
                     acc = new TextAccumulator();
                     acc.addText(text);
                 }
                 acc.addText(getText());
+                continue;
+            }
+            if (type != COMMENT && type != PROCESSING_INSTRUCTION) {
+                throwParseError("Expected a text token, got "+tokenTypeDesc(type)+".");
             }
         }
         return (acc == null) ? text : acc.getAndClear();
