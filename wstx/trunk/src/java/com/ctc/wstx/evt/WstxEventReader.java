@@ -21,7 +21,7 @@ import javax.xml.stream.*;
 import javax.xml.stream.events.*;
 import javax.xml.stream.util.XMLEventAllocator;
 
-import org.codehaus.stax2.ri.evt.Stax2EventReaderImpl;
+import org.codehaus.stax2.ri.Stax2EventReaderImpl;
 
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.exc.WstxParsingException;

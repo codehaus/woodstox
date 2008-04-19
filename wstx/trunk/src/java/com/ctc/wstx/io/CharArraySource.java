@@ -25,7 +25,7 @@ public final class CharArraySource
         super(parent, fromEntity, loc.getPublicId(), loc.getSystemId(), src);
         mBuffer = chars;
         mOffset = offset;
-        mInputLen = offset + len;
+        mInputLast = offset + len;
         mContentStart = loc;
     }
 
@@ -66,15 +66,15 @@ public final class CharArraySource
          * somehow we get a dummy char source (length of 0), it'll
          * also prevent any reading.
          */
-        int len = mInputLen - mOffset;
+        int len = mInputLast - mOffset;
         if (len < 1) {
             return -1;
         }
         reader.mInputBuffer = mBuffer;
         reader.mInputPtr = mOffset;
-        reader.mInputLen = mInputLen;
+        reader.mInputEnd = mInputLast;
         // Also, need to note the fact we're done
-        mOffset = mInputLen;
+        mOffset = mInputLast;
         return len;
     }
 
@@ -84,8 +84,8 @@ public final class CharArraySource
          * read from at all. And that should mean caller also has no
          * existing input...
          */
-        if (reader.mInputPtr >= reader.mInputLen) {
-            int len = mInputLen - mOffset;
+        if (reader.mInputPtr >= reader.mInputEnd) {
+            int len = mInputLast - mOffset;
             if (len >= minAmount) {
                 return (readInto(reader) > 0);
             }

@@ -844,7 +844,7 @@ public class FullDTDReader
             /* Note: can not trust mInputPtr; may not be correct. End of
              * input should be, though.
              */
-            mFlattenWriter.flush(mInputBuffer, mInputLen);
+            mFlattenWriter.flush(mInputBuffer, mInputEnd);
         }
 
         do {
@@ -852,8 +852,8 @@ public class FullDTDReader
              * reporting purposes, and do this now while previous amounts
              * are still known.
              */
-            mCurrInputProcessed += mInputLen;
-            mCurrInputRowStart -= mInputLen;
+            mCurrInputProcessed += mInputEnd;
+            mCurrInputRowStart -= mInputEnd;
             try {
                 int count = input.readInto(this);
                 if (count > 0) {
@@ -894,7 +894,7 @@ public class FullDTDReader
                 mNormalizeLFs = !input.fromInternalEntity();
             }
             // Maybe there are leftovers from that input in buffer now?
-        } while (mInputPtr >= mInputLen);
+        } while (mInputPtr >= mInputEnd);
 
         return true;
     }
@@ -904,12 +904,12 @@ public class FullDTDReader
     {
         // Any flattened not-yet-output input to flush?
         if (mFlattenWriter != null) {
-            mFlattenWriter.flush(mInputBuffer, mInputLen);
+            mFlattenWriter.flush(mInputBuffer, mInputEnd);
         }
 
         // Need to update offsets properly
-        mCurrInputProcessed += mInputLen;
-        mCurrInputRowStart -= mInputLen;
+        mCurrInputProcessed += mInputEnd;
+        mCurrInputRowStart -= mInputEnd;
         try {
             int count = mInput.readInto(this);
             if (count > 0) {
@@ -927,13 +927,13 @@ public class FullDTDReader
     protected boolean ensureInput(int minAmount)
         throws XMLStreamException
     {
-        int currAmount = mInputLen - mInputPtr;
+        int currAmount = mInputEnd - mInputPtr;
         if (currAmount >= minAmount) {
             return true;
         }
         // Any flattened not-yet-output input to flush?
         if (mFlattenWriter != null) {
-            mFlattenWriter.flush(mInputBuffer, mInputLen);
+            mFlattenWriter.flush(mInputBuffer, mInputEnd);
         }
         try {
             if (mInput.readMore(this, minAmount)) {
@@ -977,7 +977,7 @@ public class FullDTDReader
         throws XMLStreamException
     {
         char c;
-        if (mInputPtr < mInputLen) {
+        if (mInputPtr < mInputEnd) {
             c = mInputBuffer[mInputPtr++];
         } else {
             int i = peekNext();
@@ -1002,7 +1002,7 @@ public class FullDTDReader
         throws XMLStreamException
     {
         while (true) {
-            char c = (mInputPtr < mInputLen) ?
+            char c = (mInputPtr < mInputEnd) ?
                 mInputBuffer[mInputPtr++] : getNextChar(getErrorMsg());
             if (c != '%') {
                 return c;
@@ -1015,7 +1015,7 @@ public class FullDTDReader
         throws XMLStreamException
     {
         while (true) {
-            char c = (mInputPtr < mInputLen)
+            char c = (mInputPtr < mInputEnd)
                 ? mInputBuffer[mInputPtr++] : getNextChar(getErrorMsg());
             if (c > CHAR_SPACE) {
                 if (c == '%' && handlePEs) {
@@ -1082,7 +1082,7 @@ public class FullDTDReader
              * restrict get next on current block (in case PE ends); happens
              * with xmltest/valid/not-sa/003.xml, for eaxmple.
              */
-            c = (mInputPtr < mInputLen)
+            c = (mInputPtr < mInputEnd)
                 ? mInputBuffer[mInputPtr++] : getNextChar(getErrorMsg());
         }
         return c;
@@ -1111,21 +1111,21 @@ public class FullDTDReader
             // Flush up to but not including ampersand...
             mFlattenWriter.flush(mInputBuffer, mInputPtr-1);
             mFlattenWriter.disableOutput();
-            c = (mInputPtr < mInputLen) ?
+            c = (mInputPtr < mInputEnd) ?
                 mInputBuffer[mInputPtr++] : dtdNextFromCurr();
             id = readDTDName(c);
             try {
-                c = (mInputPtr < mInputLen) ?
+                c = (mInputPtr < mInputEnd) ?
                     mInputBuffer[mInputPtr++] : dtdNextFromCurr();
             } finally {
                 // will ignore name and colon (or whatever was parsed)
                 mFlattenWriter.enableOutput(mInputPtr);
             }
         } else {
-            c = (mInputPtr < mInputLen) ?
+            c = (mInputPtr < mInputEnd) ?
                 mInputBuffer[mInputPtr++] : dtdNextFromCurr();
             id = readDTDName(c);
-            c = (mInputPtr < mInputLen) ?
+            c = (mInputPtr < mInputEnd) ?
                 mInputBuffer[mInputPtr++] : dtdNextFromCurr();
         }
         
@@ -1157,7 +1157,7 @@ public class FullDTDReader
         char c = ' ';
 
         for (; i < len; ++i) {
-            if (mInputPtr < mInputLen) {
+            if (mInputPtr < mInputEnd) {
                 c = mInputBuffer[mInputPtr++];
             } else {
                 c = dtdNextIfAvailable();
@@ -1212,7 +1212,7 @@ public class FullDTDReader
 
         while (true) {
             char c;
-            if (mInputPtr < mInputLen) {
+            if (mInputPtr < mInputEnd) {
                 c = mInputBuffer[mInputPtr++];
             } else {
                 // Don't want to cross block boundary
@@ -1312,7 +1312,7 @@ public class FullDTDReader
                 outLen = outBuf.length;
             }
             outBuf[outPtr++] = c;
-            if (mInputPtr < mInputLen) {
+            if (mInputPtr < mInputEnd) {
                 c = mInputBuffer[mInputPtr++];
             } else {
                 c = dtdNextIfAvailable();
@@ -1374,7 +1374,7 @@ public class FullDTDReader
     private char readArity()
         throws XMLStreamException
     {
-        char c = (mInputPtr < mInputLen) ?
+        char c = (mInputPtr < mInputEnd) ?
             mInputBuffer[mInputPtr++] : getNextChar(getErrorMsg());
         if (c == '?' || c == '*' || c == '+') {
             return c;
@@ -1418,7 +1418,7 @@ public class FullDTDReader
         int outPtr = tb.getCurrentSegmentSize();
 
         while (true) {
-            if (mInputPtr >= mInputLen) {
+            if (mInputPtr >= mInputEnd) {
                 loadMoreScoped(currScope, id, loc);
             }
             char c = mInputBuffer[mInputPtr++];
@@ -1462,7 +1462,7 @@ public class FullDTDReader
                             outPtr = 0;
                         }
                         outBuf[outPtr++] = c; // starting with '&'
-                        if (mInputPtr >= mInputLen) {
+                        if (mInputPtr >= mInputEnd) {
                             loadMoreScoped(currScope, id, loc);
                         }
                         c = mInputBuffer[mInputPtr++];
@@ -1584,7 +1584,7 @@ public class FullDTDReader
         main_loop:
 
         while (true) {
-            if (mInputPtr >= mInputLen) {
+            if (mInputPtr >= mInputEnd) {
                 boolean check = (mInput == currScope);
                 loadMore(getErrorMsg());
                 // Did we get out of the scope?
@@ -1719,11 +1719,11 @@ public class FullDTDReader
              * the contents.
              */
             while (true) {
-                c = (mInputPtr < mInputLen)
+                c = (mInputPtr < mInputEnd)
                     ? mInputBuffer[mInputPtr++] : dtdNextFromCurr();
                 if (c == '?') {
                     do {
-                        c = (mInputPtr < mInputLen)
+                        c = (mInputPtr < mInputEnd)
                             ? mInputBuffer[mInputPtr++] : dtdNextFromCurr();
                     } while (c == '?');
                     if (c == '>') {
@@ -1747,7 +1747,7 @@ public class FullDTDReader
                 } else if (c != '\t' && c != ' ') {
                     throwInvalidSpace(c);
                 }
-                c = (mInputPtr < mInputLen)
+                c = (mInputPtr < mInputEnd)
                     ? mInputBuffer[mInputPtr++] : dtdNextFromCurr();
             }
 
@@ -1758,7 +1758,7 @@ public class FullDTDReader
             while (true) {
                 if (c == '?') {
                     while (true) {
-                        c = (mInputPtr < mInputLen)
+                        c = (mInputPtr < mInputEnd)
                             ? mInputBuffer[mInputPtr++] : dtdNextFromCurr();
                         if (c != '?') {
                             break;
@@ -1790,7 +1790,7 @@ public class FullDTDReader
                 }
                 // Ok, let's add char to output:
                 outBuf[outPtr++] = c;
-                c = (mInputPtr < mInputLen)
+                c = (mInputPtr < mInputEnd)
                     ? mInputBuffer[mInputPtr++] : dtdNextFromCurr();
             }
             tb.setCurrentLength(outPtr);
@@ -1811,7 +1811,7 @@ public class FullDTDReader
         int outPtr = 0;
 
         while (true) {
-            char c = (mInputPtr < mInputLen)
+            char c = (mInputPtr < mInputEnd)
                 ? mInputBuffer[mInputPtr++] : dtdNextFromCurr();
             if (c < CHAR_SPACE) {
                 if (c == '\n' || c == '\r') {
@@ -1918,7 +1918,7 @@ public class FullDTDReader
          */
         String errorMsg = getErrorMsg();
         while (true) {
-            c = (mInputPtr < mInputLen)
+            c = (mInputPtr < mInputEnd)
                 ? mInputBuffer[mInputPtr++] : getNextChar(errorMsg);
             if (c < CHAR_SPACE) {
                 if (c == '\n' || c == '\r') {
@@ -2981,7 +2981,7 @@ public class FullDTDReader
         /* One more check: can have a trailing asterisk; in fact, have
          * to have one if there were any elements.
          */
-        char c = (mInputPtr < mInputLen) ?
+        char c = (mInputPtr < mInputEnd) ?
             mInputBuffer[mInputPtr++] : getNextChar(getErrorMsg());
         if (c != '*') {
             if (m.size() > 0) {

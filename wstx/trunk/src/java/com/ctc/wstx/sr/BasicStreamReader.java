@@ -1103,7 +1103,7 @@ public class BasicStreamReader
                      * element possibly... but that indicates mixed
                      * content that's generally non-validatable)
                          */
-                    if ((mInputPtr+1) < mInputLen
+                    if ((mInputPtr+1) < mInputEnd
                         && mInputBuffer[mInputPtr] == '<'
                         && mInputBuffer[mInputPtr+1] == '/') {
                         // yup, it's all there is
@@ -1206,25 +1206,29 @@ public class BasicStreamReader
 
     public boolean getElementAsBoolean() throws XMLStreamException
     {
-        String value = getElementText();
+        String value = collectElementText();
         try {
-            // !!! TODO: optimize
-            return mValueDecoder.decodeBoolean(value);
+            if (value == null) {
+                return mTextBuffer.convertToBoolean(mValueDecoder);
+            } else {
+                return mValueDecoder.decodeBoolean(value);
+            }
         } catch (IllegalArgumentException iae) {
-            throwTypeException(iae, value);
-            return false; // never gets here
+            throw constructTypeException(iae, value);
         }
     }
 
     public int getElementAsInt() throws XMLStreamException
     {
-        String value = getElementText();
+        String value = collectElementText();
         try {
-            // !!! TODO: optimize
-            return mValueDecoder.decodeInt(value);
+            if (value == null) {
+                return mTextBuffer.convertToInt(mValueDecoder);
+            } else {
+                return mValueDecoder.decodeInt(value);
+            }
         } catch (IllegalArgumentException iae) {
-            throwTypeException(iae, value);
-            return 0; // never gets here
+            throw constructTypeException(iae, value);
         }
     }
 
@@ -1242,8 +1246,7 @@ public class BasicStreamReader
         try {
             return mAttrCollector.getValueAsBoolean(index, mValueDecoder);
         } catch (IllegalArgumentException iae) {
-            throwTypeException(iae, mAttrCollector.getValue(index));
-            return false; // never gets here
+            throw constructTypeException(iae, mAttrCollector.getValue(index));
         }
     }
 
@@ -1252,19 +1255,96 @@ public class BasicStreamReader
         try {
             return mAttrCollector.getValueAsInt(index, mValueDecoder);
         } catch (IllegalArgumentException iae) {
-            throwTypeException(iae, mAttrCollector.getValue(index));
-            return 0; // never gets here
+            throw constructTypeException(iae, mAttrCollector.getValue(index));
         }
     }
 
     /**
      * Special implementation of functionality similar to that of
      * {@link #getElementText}, but optimized for the specific
-     * use case of handling typed element content.
-     *<p>
-     * Note:
+     * use case of handling typed element content. This allows for
+     * doing things like trimming leading white space.
+     *
+     * @return Collected String, if any; or null to indicate
+     *   contents are in mTextBuffer.
      */
-    private String collectTypedElementContent()
+    private String collectElementText()
+        throws XMLStreamException
+    {
+        if (mCurrToken != START_ELEMENT) {
+            throwParseError(ErrorConsts.ERR_STATE_NOT_STELEM);
+        }
+        /* Ok, now: with START_ELEMENT we know that it's not partially
+         * processed; that we are in-tree (not prolog or epilog).
+         * The only possible complication would be 
+         */
+        if (mStEmptyElem) {
+            // And if so, we'll then get 'virtual' close tag; things
+            // are simple as location info was set when dealing with
+            // empty start element; and likewise, validation (if any)
+            // has been taken care of.
+            mStEmptyElem = false;
+            mCurrToken = END_ELEMENT;
+            return "";
+        }
+        // First need to find a textual event
+        while (true) {
+            int type = next();
+            if (type == END_ELEMENT) {
+                return "";
+            }
+            if (type == COMMENT || type == PROCESSING_INSTRUCTION) {
+                continue;
+            }
+            if (((1 << type) & MASK_GET_ELEMENT_TEXT) == 0) {
+                throwParseError("Expected a text token, got "+tokenTypeDesc(type)+".");
+            }
+            break;
+        }
+        if (mTokenState < TOKEN_FULL_SINGLE) {
+            readCoalescedText(mCurrToken, false);
+        }
+        /* Ok: then quick check; if it looks like we are directly
+         * followed by the end tag, we need not construct String
+         * quite yet.
+         */
+        if ((mInputPtr + 1) < mInputEnd &&
+            mInputBuffer[mInputPtr] == '<' && mInputBuffer[mInputPtr+1] == '/') {
+            // But first: is textual content validation needed?
+            if (mValidateText) {
+                mElementStack.validateText(mTextBuffer, true);
+            }
+            mInputPtr += 2;
+            mCurrToken = END_ELEMENT;
+            // Can by-pass next(), nextFromTree(), in this case:
+            readEndElem();
+            return null;
+        }
+
+        // Otherwise, we'll need to do slower processing
+
+        String text = mTextBuffer.contentsAsString();
+        // Then we'll see if end is nigh...
+        TextAccumulator acc = null;
+        int type;
+        
+        while ((type = next()) != END_ELEMENT) {
+            if (((1 << type) & MASK_GET_ELEMENT_TEXT) != 0) {
+                if (acc == null) {
+                    acc = new TextAccumulator();
+                    acc.addText(text);
+                }
+                acc.addText(getText());
+                continue;
+            }
+            if (type != COMMENT && type != PROCESSING_INSTRUCTION) {
+                throwParseError("Expected a text token, got "+tokenTypeDesc(type)+".");
+            }
+        }
+        return (acc == null) ? text : acc.getAndClear();
+    }
+
+    private String collectElementText2()
         throws XMLStreamException
     {
         // First sanity checks to ensure state is as expected
@@ -1893,7 +1973,7 @@ public class BasicStreamReader
       int len = expected.length();
 
       while (expected.charAt(ptr) == c && ++ptr < len) {
-          if (mInputPtr < mInputLen) {
+          if (mInputPtr < mInputEnd) {
               c = mInputBuffer[mInputPtr++];
           } else {
               int ci = getNext();
@@ -1918,7 +1998,7 @@ public class BasicStreamReader
       sb.append(c);
 
       while (true) {
-          if (mInputPtr < mInputLen) {
+          if (mInputPtr < mInputEnd) {
               c = mInputBuffer[mInputPtr++];
           } else {
               int ci = getNext();
@@ -1972,7 +2052,7 @@ public class BasicStreamReader
         WstxInputSource currScope = mInput;
 
         while (true) {
-            char c = (mInputPtr < mInputLen) ? mInputBuffer[mInputPtr++]
+            char c = (mInputPtr < mInputEnd) ? mInputBuffer[mInputPtr++]
                 : getNextChar(SUFFIX_IN_ATTR_VALUE);
             // Let's do a quick for most attribute content chars:
             if (c <= '\'') {
@@ -2414,7 +2494,7 @@ public class BasicStreamReader
         int outPtr = 0;
 
         while (true) {
-            char c = (mInputPtr < mInputLen) ? mInputBuffer[mInputPtr++]
+            char c = (mInputPtr < mInputEnd) ? mInputBuffer[mInputPtr++]
                 : getNextChar(SUFFIX_IN_XML_DECL);
             
             if (c == quoteChar) {
@@ -2731,7 +2811,7 @@ public class BasicStreamReader
                 mTokenInputTotal = mCurrInputProcessed + mInputPtr;
                 mTokenInputRow = mCurrInputRow;
                 mTokenInputCol = mInputPtr - mCurrInputRowStart;
-                char c = (mInputPtr < mInputLen) ? mInputBuffer[mInputPtr++]
+                char c = (mInputPtr < mInputEnd) ? mInputBuffer[mInputPtr++]
                     : getNextChar(SUFFIX_IN_CDATA);
                 if (readCDataPrimary(c)) { // got it all!
                     /* note: can not be in coalescing mode at this point;
@@ -2880,16 +2960,8 @@ public class BasicStreamReader
                 }
                 return type;
             }
-            if (c == '/') { // always legal
+            if (c == '/') { // always legal (if name matches etc)
                 readEndElem();
-                /* 13-Feb-2006, TSa: Are we about to close an element that
-                 *    started within a parent element?
-                 *    That's a GE/element nesting WFC violation...
-                 */
-                if (mCurrDepth == mInputTopDepth) {
-                    handleGreedyEntityProblem(mInput);
-                }
-                --mCurrDepth;
                 return END_ELEMENT;
             }
 
@@ -2998,13 +3070,13 @@ public class BasicStreamReader
 
         if (mCfgNsEnabled) {
             String str = parseLocalName(c);
-            c = (mInputPtr < mInputLen) ?
+            c = (mInputPtr < mInputEnd) ?
                 mInputBuffer[mInputPtr++] : getNextCharFromCurrent(SUFFIX_EOF_EXP_NAME);
             if (c == ':') { // Ok, got namespace and local name
-                c = (mInputPtr < mInputLen) ?
+                c = (mInputPtr < mInputEnd) ?
                     mInputBuffer[mInputPtr++] : getNextCharFromCurrent(SUFFIX_EOF_EXP_NAME);
                 mElementStack.push(str, parseLocalName(c));
-                c = (mInputPtr < mInputLen) ?
+                c = (mInputPtr < mInputEnd) ?
                     mInputBuffer[mInputPtr++] : getNextCharFromCurrent(SUFFIX_IN_ELEMENT);
             } else {
                 mElementStack.push(null, str);
@@ -3022,7 +3094,7 @@ public class BasicStreamReader
             empty = (c == '>') ? false : handleNsAttrs(c);
         } else { // Namespace handling not enabled:
             mElementStack.push(parseFullName(c));
-            c = (mInputPtr < mInputLen) ?
+            c = (mInputPtr < mInputEnd) ?
                 mInputBuffer[mInputPtr++] : getNextCharFromCurrent(SUFFIX_IN_ELEMENT);
             empty = (c == '>') ? false : handleNonNsAttrs(c);
         }
@@ -3071,11 +3143,11 @@ public class BasicStreamReader
 
             String prefix, localName;
             String str = parseLocalName(c);
-            c = (mInputPtr < mInputLen) ?
+            c = (mInputPtr < mInputEnd) ?
                 mInputBuffer[mInputPtr++] : getNextCharFromCurrent(SUFFIX_EOF_EXP_NAME);
             if (c == ':') { // Ok, got namespace and local name
                 prefix = str;
-                c = (mInputPtr < mInputLen) ?
+                c = (mInputPtr < mInputEnd) ?
                     mInputBuffer[mInputPtr++] : getNextCharFromCurrent(SUFFIX_EOF_EXP_NAME);
                 localName = parseLocalName(c);
             } else {
@@ -3084,7 +3156,7 @@ public class BasicStreamReader
                 localName = str;
             }
 
-            c = (mInputPtr < mInputLen) ?
+            c = (mInputPtr < mInputEnd) ?
                 mInputBuffer[mInputPtr++] : getNextCharFromCurrent(SUFFIX_IN_ELEMENT);
             if (c <= CHAR_SPACE) {
                 c = getNextInCurrAfterWS(SUFFIX_IN_ELEMENT, c);
@@ -3092,7 +3164,7 @@ public class BasicStreamReader
             if (c != '=') {
                 throwUnexpectedChar(c, " expected '='");
             }
-            c = (mInputPtr < mInputLen) ?
+            c = (mInputPtr < mInputEnd) ?
                 mInputBuffer[mInputPtr++] : getNextCharFromCurrent(SUFFIX_IN_ELEMENT);
             if (c <= CHAR_SPACE) {
                 c = getNextInCurrAfterWS(SUFFIX_IN_ELEMENT, c);
@@ -3144,7 +3216,7 @@ public class BasicStreamReader
             }
 
             // and then we need to iterate some more
-            c = (mInputPtr < mInputLen) ?
+            c = (mInputPtr < mInputEnd) ?
                 mInputBuffer[mInputPtr++] : getNextCharFromCurrent(SUFFIX_IN_ELEMENT);
         }
         // never gets here
@@ -3178,7 +3250,7 @@ public class BasicStreamReader
 
             String name = parseFullName(c);
             TextBuilder tb = ac.getAttrBuilder(null, name);
-            c = (mInputPtr < mInputLen) ?
+            c = (mInputPtr < mInputEnd) ?
                 mInputBuffer[mInputPtr++] : getNextCharFromCurrent(SUFFIX_IN_ELEMENT);
             if (c <= CHAR_SPACE) {
                 c = getNextInCurrAfterWS(SUFFIX_IN_ELEMENT, c);
@@ -3186,7 +3258,7 @@ public class BasicStreamReader
             if (c != '=') {
                 throwUnexpectedChar(c, " expected '='");
             }
-            c = (mInputPtr < mInputLen) ?
+            c = (mInputPtr < mInputEnd) ?
                 mInputBuffer[mInputPtr++] : getNextCharFromCurrent(SUFFIX_IN_ELEMENT);
             if (c <= CHAR_SPACE) {
                 c = getNextInCurrAfterWS(SUFFIX_IN_ELEMENT, c);
@@ -3201,7 +3273,7 @@ public class BasicStreamReader
             tb.startNewEntry();
             parseNormalizedAttrValue(c, tb);
             // and then we need to iterate some more
-            c = (mInputPtr < mInputLen) ?
+            c = (mInputPtr < mInputEnd) ?
                 mInputBuffer[mInputPtr++] : getNextCharFromCurrent(SUFFIX_IN_ELEMENT);
         }
         // never gets here
@@ -3219,10 +3291,10 @@ public class BasicStreamReader
         if (mElementStack.isEmpty()) {
             // Let's just offline this for clarity
             reportExtraEndElem();
-            return;
+            return; // never gets here
         }
 
-        char c = (mInputPtr < mInputLen) ? mInputBuffer[mInputPtr++]
+        char c = (mInputPtr < mInputEnd) ? mInputBuffer[mInputPtr++]
             : getNextCharFromCurrent(SUFFIX_IN_CLOSE_ELEMENT);
         // Quick check first; missing name?
         if  (!isNameStartChar(c) && c != ':') {
@@ -3246,22 +3318,22 @@ public class BasicStreamReader
             while (true){
                 if (c != expPrefix.charAt(i)) {
                     reportWrongEndPrefix(expPrefix, expLocalName, i);
-                    return;
+                    return; // never gets here
                 }
                 if (++i >= len) {
                     break;
                 }
-                c = (mInputPtr < mInputLen) ? mInputBuffer[mInputPtr++]
+                c = (mInputPtr < mInputEnd) ? mInputBuffer[mInputPtr++]
                     : getNextCharFromCurrent(SUFFIX_IN_CLOSE_ELEMENT);
             }
             // And then we should get a colon
-            c = (mInputPtr < mInputLen) ? mInputBuffer[mInputPtr++]
+            c = (mInputPtr < mInputEnd) ? mInputBuffer[mInputPtr++]
                 : getNextCharFromCurrent(SUFFIX_IN_CLOSE_ELEMENT);
             if (c != ':') {
                 reportWrongEndPrefix(expPrefix, expLocalName, i);
                 return;
             }
-            c = (mInputPtr < mInputLen) ? mInputBuffer[mInputPtr++]
+            c = (mInputPtr < mInputEnd) ? mInputBuffer[mInputPtr++]
                 : getNextCharFromCurrent(SUFFIX_IN_CLOSE_ELEMENT);
         }
 
@@ -3273,17 +3345,17 @@ public class BasicStreamReader
             if (c != expLocalName.charAt(i)) {
                 // Not a match...
                 reportWrongEndElem(expPrefix, expLocalName, i);
-                return;
+                return; // never gets here
             }
             if (++i >= len) {
                 break;
             }
-            c = (mInputPtr < mInputLen) ? mInputBuffer[mInputPtr++]
+            c = (mInputPtr < mInputEnd) ? mInputBuffer[mInputPtr++]
                 : getNextCharFromCurrent(SUFFIX_IN_CLOSE_ELEMENT);
         }
 
         // Let's see if end element still continues, however?
-        c = (mInputPtr < mInputLen) ? mInputBuffer[mInputPtr++]
+        c = (mInputPtr < mInputEnd) ? mInputBuffer[mInputPtr++]
             : getNextCharFromCurrent(SUFFIX_IN_CLOSE_ELEMENT);
         if (c <= CHAR_SPACE) {
             c = getNextInCurrAfterWS(SUFFIX_IN_CLOSE_ELEMENT, c);
@@ -3302,6 +3374,16 @@ public class BasicStreamReader
         int vld = mElementStack.validateEndElement();
         mVldContent = vld;
         mValidateText = (vld == XMLValidator.CONTENT_ALLOW_VALIDATABLE_TEXT);
+
+        // Plus verify WFC that start and end tags came from same entity
+        /* 13-Feb-2006, TSa: Are we about to close an element that
+         *    started within a parent element?
+         *    That's a GE/element nesting WFC violation...
+         */
+        if (mCurrDepth == mInputTopDepth) {
+            handleGreedyEntityProblem(mInput);
+        }
+        --mCurrDepth;
     }
 
     private void reportExtraEndElem()
@@ -3355,7 +3437,7 @@ public class BasicStreamReader
             /* Good enough; it is a CDATA section... but let's just also
              * parse the easy ("free") stuff:
              */
-            c = (mInputPtr < mInputLen) ? mInputBuffer[mInputPtr++]
+            c = (mInputPtr < mInputEnd) ? mInputBuffer[mInputPtr++]
                 : getNextCharFromCurrent(SUFFIX_IN_CDATA);
             readCDataPrimary(c); // sets token state appropriately...
             return CDATA;
@@ -3434,11 +3516,11 @@ public class BasicStreamReader
 
         case PROCESSING_INSTRUCTION:
             while (true) {
-                char c = (mInputPtr < mInputLen)
+                char c = (mInputPtr < mInputEnd)
                     ? mInputBuffer[mInputPtr++] : getNextCharFromCurrent(SUFFIX_IN_PROC_INSTR);
                 if (c == '?') {
                     do {
-                        c = (mInputPtr < mInputLen)
+                        c = (mInputPtr < mInputEnd)
                             ? mInputBuffer[mInputPtr++] : getNextCharFromCurrent(SUFFIX_IN_PROC_INSTR);
                     } while (c == '?');
                     if (c == '>') {
@@ -3460,7 +3542,7 @@ public class BasicStreamReader
 
             while (true) {
                 // Fairly easy to skip through white space...
-                while (mInputPtr < mInputLen) {
+                while (mInputPtr < mInputEnd) {
                     char c = mInputBuffer[mInputPtr++];
                     if (c > CHAR_SPACE) { // non-EOF non-WS?
                         result = c;
@@ -3534,7 +3616,7 @@ public class BasicStreamReader
         while (true) {
             char c;
             do {
-                c = (mInputPtr < mInputLen)
+                c = (mInputPtr < mInputEnd)
                     ? mInputBuffer[mInputPtr++] : getNextCharFromCurrent(errorMsg);
                 if (c < CHAR_SPACE) {
                     if (c == '\n' || c == '\r') {
@@ -3558,7 +3640,7 @@ public class BasicStreamReader
                 }
                 // Otherwise, let's loop to see if there is end
                 while (c == endChar) {
-                    c = (mInputPtr < mInputLen)
+                    c = (mInputPtr < mInputEnd)
                         ? mInputBuffer[mInputPtr++] : getNextCharFromCurrent(errorMsg);
                 }
                 if (c == '>') {
@@ -3641,7 +3723,7 @@ public class BasicStreamReader
                 // Can entities be resolved automatically?
                 if (mCfgReplaceEntities) {
                     // Let's first try quick resolution:
-                    if ((mInputLen - mInputPtr) >= 3
+                    if ((mInputEnd - mInputPtr) >= 3
                         && resolveSimpleEntity(true) != CHAR_NULL) {
                         ;
                     } else {
@@ -3673,7 +3755,7 @@ public class BasicStreamReader
             }
 
             // Hmmh... let's do quick looping here:
-            while (mInputPtr < mInputLen) {
+            while (mInputPtr < mInputEnd) {
                 char c = mInputBuffer[mInputPtr++];
                 if (c < CHAR_FIRST_PURE_TEXT) { // need to check it
                     i = c;
@@ -3755,7 +3837,7 @@ public class BasicStreamReader
                  *   be CDATA, and thus we are done.
                  */
                 if (mTokenState == TOKEN_FULL_SINGLE
-                    && (mInputPtr + 1) < mInputLen
+                    && (mInputPtr + 1) < mInputEnd
                     && mInputBuffer[mInputPtr+1] != '!') {
                     mTokenState = TOKEN_FULL_COALESCED;
                     return;
@@ -3829,7 +3911,7 @@ public class BasicStreamReader
         throws XMLStreamException
     {
         char[] inputBuf = mInputBuffer;
-        int inputLen = mInputLen;
+        int inputLen = mInputEnd;
         int ptr = mInputPtr;
         int start = ptr;
 
@@ -3898,7 +3980,7 @@ public class BasicStreamReader
         int outLen = outBuf.length;
 
         while (true) {
-            char c = (mInputPtr < mInputLen) ?
+            char c = (mInputPtr < mInputEnd) ?
                 mInputBuffer[mInputPtr++] : getNextCharFromCurrent(SUFFIX_IN_COMMENT);
 
             if (c < CHAR_SPACE) {
@@ -3989,7 +4071,7 @@ public class BasicStreamReader
         }
 
         // And then either white space before data, or end marker:
-        char c = (mInputPtr < mInputLen) ?
+        char c = (mInputPtr < mInputEnd) ?
             mInputBuffer[mInputPtr++] : getNextCharFromCurrent(SUFFIX_IN_PROC_INSTR);
         if (isSpaceChar(c)) { // Ok, space to skip
             mTokenState = TOKEN_STARTED;
@@ -4017,7 +4099,7 @@ public class BasicStreamReader
         int ptr = mInputPtr;
         int start = ptr;
         char[] inputBuf = mInputBuffer;
-        int inputLen = mInputLen;
+        int inputLen = mInputEnd;
 
         outer_loop:
         while (ptr < inputLen) {
@@ -4075,7 +4157,7 @@ public class BasicStreamReader
         throws XMLStreamException
     {
         char[] inputBuf = mInputBuffer;
-        int inputLen = mInputLen;
+        int inputLen = mInputEnd;
         int inputPtr = mInputPtr;
 
         /* Output pointers; calls will also ensure that the buffer is
@@ -4091,7 +4173,7 @@ public class BasicStreamReader
                 loadMoreFromCurrent(SUFFIX_IN_PROC_INSTR);
                 inputBuf = mInputBuffer;
                 inputPtr = mInputPtr;
-                inputLen = mInputLen;
+                inputLen = mInputEnd;
             }
 
             // And then do chunks
@@ -4120,7 +4202,7 @@ public class BasicStreamReader
                      */
                     inputPtr = mInputPtr;
                     inputBuf = mInputBuffer;
-                    inputLen = mInputLen;
+                    inputLen = mInputEnd;
                 } else if (c != '\t') {
                     throwInvalidSpace(c);
                 }
@@ -4129,7 +4211,7 @@ public class BasicStreamReader
 
                 qmLoop:
                 while (true) {
-                    c = (mInputPtr < mInputLen) ? mInputBuffer[mInputPtr++]
+                    c = (mInputPtr < mInputEnd) ? mInputBuffer[mInputPtr++]
                         : getNextCharFromCurrent(SUFFIX_IN_PROC_INSTR);
                     if (c == '>') { // got it!
                         break main_loop;
@@ -4148,7 +4230,7 @@ public class BasicStreamReader
                          */
                         inputPtr = --mInputPtr; // push back last char
                         inputBuf = mInputBuffer;
-                        inputLen = mInputLen;
+                        inputLen = mInputEnd;
                         c = '?';
                         break qmLoop;
                     }
@@ -4201,7 +4283,7 @@ public class BasicStreamReader
 
         // But how about additional text?
         while (!deferErrors || (mPendingException == null)) {
-            if (mInputPtr >= mInputLen) {
+            if (mInputPtr >= mInputEnd) {
                 mTextBuffer.ensureNotShared();
                 if (!loadMore()) {
                     // ??? Likely an error but let's just break
@@ -4212,7 +4294,7 @@ public class BasicStreamReader
             char c = mInputBuffer[mInputPtr];
             if (c == '<') { // CDATA, maybe?
                 // Need to distinguish "<![" from other tags/directives
-                if ((mInputLen - mInputPtr) < 3) {
+                if ((mInputEnd - mInputPtr) < 3) {
                     mTextBuffer.ensureNotShared();
                     if (!ensureInput(3)) {
                         break;
@@ -4271,7 +4353,7 @@ public class BasicStreamReader
         mWsStatus = (c <= CHAR_SPACE) ? ALL_WS_UNKNOWN : ALL_WS_NO;
 
         int ptr = mInputPtr;
-        int inputLen = mInputLen;
+        int inputLen = mInputEnd;
         char[] inputBuf = mInputBuffer;
         int start = ptr-1;
 
@@ -4371,7 +4453,7 @@ public class BasicStreamReader
     {
         // Input pointers
         char[] inputBuf = mInputBuffer;
-        int inputLen = mInputLen;
+        int inputLen = mInputEnd;
         int inputPtr = mInputPtr;
 
         /* Output pointers; calls will also ensure that the buffer is
@@ -4385,7 +4467,7 @@ public class BasicStreamReader
                 loadMore(SUFFIX_IN_CDATA);
                 inputBuf = mInputBuffer;
                 inputPtr = mInputPtr;
-                inputLen = mInputLen;
+                inputLen = mInputEnd;
             }
             char c = inputBuf[inputPtr++];
 
@@ -4413,7 +4495,7 @@ public class BasicStreamReader
                      */
                     inputPtr = mInputPtr;
                     inputBuf = mInputBuffer;
-                    inputLen = mInputLen;
+                    inputLen = mInputEnd;
                 } else if (c != '\t') {
                     throwInvalidSpace(c);
                 }
@@ -4425,7 +4507,7 @@ public class BasicStreamReader
                 }
                 inputPtr = mInputPtr;
                 inputBuf = mInputBuffer;
-                inputLen = mInputLen;
+                inputLen = mInputEnd;
 
                 outBuf = mTextBuffer.getCurrentSegment();
                 outPtr = mTextBuffer.getCurrentSegmentSize();
@@ -4469,7 +4551,7 @@ public class BasicStreamReader
         char c;
         do {
             ++bracketCount;
-            c = (mInputPtr < mInputLen) ? mInputBuffer[mInputPtr++]
+            c = (mInputPtr < mInputEnd) ? mInputBuffer[mInputPtr++]
                 : getNextCharFromCurrent(SUFFIX_IN_CDATA);
         } while (c == ']');
 
@@ -4521,7 +4603,7 @@ public class BasicStreamReader
 
         // First: can we heuristically canonicalize ws used for indentation?
         if (c <= CHAR_SPACE) {
-            int len = mInputLen;
+            int len = mInputEnd;
             /* Even without indentation removal, it's good idea to
              * 'convert' \r or \r\n into \n (by replacing or skipping first
              * char): this may allow reusing the buffer. 
@@ -4568,7 +4650,7 @@ public class BasicStreamReader
         }
         
         char[] inputBuf = mInputBuffer;
-        int inputLen = mInputLen;
+        int inputLen = mInputEnd;
 
         // Let's first see if we can just share input buffer:
         while (true) {
@@ -4676,7 +4758,7 @@ public class BasicStreamReader
         int outPtr = mTextBuffer.getCurrentSegmentSize();
         int inputPtr = mInputPtr;
         char[] inputBuffer = mInputBuffer;
-        int inputLen = mInputLen;
+        int inputLen = mInputEnd;
 
         while (true) {
             if (inputPtr >= inputLen) {
@@ -4691,7 +4773,7 @@ public class BasicStreamReader
                 }
                 inputPtr = mInputPtr;
                 inputBuffer = mInputBuffer;
-                inputLen = mInputLen;
+                inputLen = mInputEnd;
             }
             char c = inputBuffer[inputPtr++];
 
@@ -4721,7 +4803,7 @@ public class BasicStreamReader
                          * actual buffer object:
                          */
                         //inputBuffer = mInputBuffer;
-                        inputLen = mInputLen;
+                        inputLen = mInputEnd;
                         inputPtr = mInputPtr;
                     } else if (c != '\t') {
                         mTextBuffer.setCurrentLength(outPtr);
@@ -4743,7 +4825,7 @@ public class BasicStreamReader
                             if (c == CHAR_NULL) {
                                 // Input buffer changed, nothing to output quite yet:
                                 inputBuffer = mInputBuffer;
-                                inputLen = mInputLen;
+                                inputLen = mInputEnd;
                                 inputPtr = mInputPtr;
                                 continue;
                             }
@@ -4765,7 +4847,7 @@ public class BasicStreamReader
                     }
                     inputPtr = mInputPtr;
                     // not quite sure why this is needed... but it is:
-                    inputLen = mInputLen;
+                    inputLen = mInputEnd;
                 } else if (c == '>') {
                     // Let's see if we got ']]>'?
                     /* 21-Apr-2005, TSa: But we can NOT check the output buffer
@@ -4845,7 +4927,7 @@ public class BasicStreamReader
          * and if so, we can use a canonical shared representation of
          * this even.
          */
-        final int inputLen = mInputLen;
+        final int inputLen = mInputEnd;
         final char[] inputBuf = mInputBuffer;
         int start = ptr-1;
         final char lf = c;
@@ -4935,7 +5017,7 @@ public class BasicStreamReader
     {
         int ptr = mInputPtr;
         char[] inputBuf = mInputBuffer;
-        int inputLen = mInputLen;
+        int inputLen = mInputEnd;
         int start = ptr-1;
 
         // Let's first see if we can just share input buffer:
@@ -4956,7 +5038,7 @@ public class BasicStreamReader
             if (c == '\n') {
                 markLF(ptr);
             } else if (c == '\r') {
-                if (ptr >= mInputLen) { // can't peek?
+                if (ptr >= mInputEnd) { // can't peek?
                     --ptr;
                     break;
                 }
@@ -5009,7 +5091,7 @@ public class BasicStreamReader
         int outPtr = mTextBuffer.getCurrentSegmentSize();
 
         while (true) {
-            if (mInputPtr >= mInputLen) {
+            if (mInputPtr >= mInputEnd) {
                 /* 07-Oct-2005, TSa: Let's not throw an exception yet --
                  *   can return SPACE, and let exception be thrown
                  *   when trying to fetch next event.
@@ -5089,7 +5171,7 @@ public class BasicStreamReader
         while (true) {
 	    char c;
             // Reached the end of buffer? Need to flush, then
-            if (mInputPtr >= mInputLen) {
+            if (mInputPtr >= mInputEnd) {
                 int len = mInputPtr - start;
                 if (len > 0) {
                     w.write(mInputBuffer, start, len);
@@ -5107,7 +5189,7 @@ public class BasicStreamReader
                         markLF();
                     } else if (c == '\r') {
                         char d;
-                        if (mInputPtr >= mInputLen) {
+                        if (mInputPtr >= mInputEnd) {
                             /* If we can't peek easily, let's flush past stuff
                              * and load more... (have to flush, since new read
                              * will overwrite inbut buffers)
@@ -5160,7 +5242,7 @@ public class BasicStreamReader
                         count += len;
                     }
                     if (mCfgReplaceEntities) { // can we expand all entities?
-                        if ((mInputLen - mInputPtr) < 3
+                        if ((mInputEnd - mInputPtr) < 3
                             || (c = resolveSimpleEntity(true)) == CHAR_NULL) {
                             c = fullyResolveEntity(true);
                         }
@@ -5238,7 +5320,7 @@ public class BasicStreamReader
          * if ']' is part of ']]>', and after this if no end marker found,
          * go back to the first part.
          */
-        char c = (mInputPtr < mInputLen) ?
+        char c = (mInputPtr < mInputEnd) ?
             mInputBuffer[mInputPtr++] : getNextChar(SUFFIX_IN_CDATA);
         int count = 0;
 
@@ -5258,7 +5340,7 @@ public class BasicStreamReader
                             markLF();
                         } else if (c == '\r') {
                             char d;
-                            if (mInputPtr >= mInputLen) {
+                            if (mInputPtr >= mInputEnd) {
                                 /* If we can't peek easily, let's flush past stuff
                                  * and load more... (have to flush, since new read
                                  * will overwrite inbut buffers)
@@ -5302,7 +5384,7 @@ public class BasicStreamReader
                     }
                 }
                 // Reached the end of buffer? Need to flush, then
-                if (mInputPtr >= mInputLen) {
+                if (mInputPtr >= mInputEnd) {
                     int len = mInputPtr - start;
                     if (len > 0) {
                         w.write(mInputBuffer, start, len);
@@ -5334,7 +5416,7 @@ public class BasicStreamReader
             int bracketCount = 0;
             do {
                 ++bracketCount;
-                c = (mInputPtr < mInputLen) ? mInputBuffer[mInputPtr++]
+                c = (mInputPtr < mInputEnd) ? mInputBuffer[mInputPtr++]
                     : getNextCharFromCurrent(SUFFIX_IN_CDATA);
             } while (c == ']');
 
@@ -5372,7 +5454,7 @@ public class BasicStreamReader
          */
         main_loop:
         while (true) {
-            if (mInputPtr >= mInputLen) {
+            if (mInputPtr >= mInputEnd) {
                 if (!loadMore()) {
                     /* Shouldn't normally happen, but let's just let
                      * caller deal with it...
@@ -5384,7 +5466,7 @@ public class BasicStreamReader
             char c = mInputBuffer[mInputPtr];
             if (c == '<') { // CDATA, maybe?
                 // Need to distinguish "<![" from other tags/directives
-                if ((mInputLen - mInputPtr) < 3) {
+                if ((mInputEnd - mInputPtr) < 3) {
                     if (!ensureInput(3)) { // likewise, probably an error...
                         break main_loop;
                     }
@@ -5442,7 +5524,7 @@ public class BasicStreamReader
             } else if (c != CHAR_SPACE && c != '\t') {
                 throwInvalidSpace(c);
             }
-            if (mInputPtr >= mInputLen) {
+            if (mInputPtr >= mInputEnd) {
                 // Let's see if current source has more
                 if (!loadMoreFromCurrent()) {
                     return true;
@@ -5572,10 +5654,9 @@ public class BasicStreamReader
      * @param lexicalValue Lexical value (element content, attribute value)
      *    that could not be converted succesfully.
      */
-    private void throwTypeException(IllegalArgumentException iae, String lexicalValue)
-        throws TypedXMLStreamException
+    private TypedXMLStreamException constructTypeException(IllegalArgumentException iae, String lexicalValue)
     {
-        throw new TypedXMLStreamException(lexicalValue, iae.getMessage(), getStartLocation(), iae);
+        return new TypedXMLStreamException(lexicalValue, iae.getMessage(), getStartLocation(), iae);
     }
 
     /**

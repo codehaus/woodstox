@@ -476,6 +476,43 @@ public class TestRelaxNG
 
     }
 
+    /**
+     * Another test, but one that verifies that empty tags do not
+     * cause problems with validation
+     */
+    public void testSimpleBooleanElem2()
+        throws XMLStreamException
+    {
+        final String schemaDef =
+            "<element xmlns='http://relaxng.org/ns/structure/1.0'"
+            +"  datatypeLibrary='http://www.w3.org/2001/XMLSchema-datatypes' name='root'>\n"
+            +"  <element name='leaf1'><text /></element>\n"
+            +"  <element name='leaf2'>\n"
+            +"   <data type='boolean' />\n"
+            +"  </element>\n"
+            +"</element>"
+        ;
+
+        XMLValidationSchema schema = parseRngSchema(schemaDef);
+
+        // First, a simple valid document
+        XMLStreamReader2 sr = getReader("<root><leaf1>abc</leaf1><leaf2>true</leaf2></root>");
+        sr.validateAgainst(schema);
+        while (sr.next() != END_DOCUMENT) { }
+        sr.close();
+
+        // Then another valid, but with empty tag for leaf1
+        sr = getReader("<root><leaf1 /><leaf2>false</leaf2></root>");
+        sr.validateAgainst(schema);
+        while (sr.next() != END_DOCUMENT) { }
+        sr.close();
+
+        // And then one more invalid case
+        verifyRngFailure("<root><leaf1 /><leaf2>true false</leaf2></root>",
+                         schema, "missing boolean element value",
+                         "does not satisfy the \"boolean\" type");
+    }
+
     /*
     //////////////////////////////////////////////////////////////
     // Helper methods

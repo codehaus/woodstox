@@ -47,8 +47,8 @@ public final class BranchingReaderSource
     {
         // Need to flush out branched content?
         if (mBranchBuffer != null) {
-            if (mInputLen > mBranchStartOffset) {
-                appendBranched(mBranchStartOffset, mInputLen);
+            if (mInputLast > mBranchStartOffset) {
+                appendBranched(mBranchStartOffset, mInputLast);
             }
             mBranchStartOffset = 0;
         }
@@ -61,7 +61,7 @@ public final class BranchingReaderSource
         // Existing data to output to branch?
         if (mBranchBuffer != null) {
             int ptr = reader.mInputPtr;
-            int currAmount = mInputLen - ptr;
+            int currAmount = mInputLast - ptr;
             if (currAmount > 0) {
                 if (ptr > mBranchStartOffset) {
                     appendBranched(mBranchStartOffset, ptr);

@@ -176,7 +176,7 @@ public class WstxInputData
     /**
      * Index of character after last available one in the buffer.
      */
-    protected int mInputLen = 0;
+    protected int mInputEnd = 0;
 
     /*
     ////////////////////////////////////////////////////
@@ -221,7 +221,7 @@ public class WstxInputData
     {
         mInputBuffer = src.mInputBuffer;
         mInputPtr = src.mInputPtr;
-        mInputLen = src.mInputLen;
+        mInputEnd = src.mInputEnd;
 
         mCurrInputProcessed = src.mCurrInputProcessed;
         mCurrInputRow = src.mCurrInputRow;

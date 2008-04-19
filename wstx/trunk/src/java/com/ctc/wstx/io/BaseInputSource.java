@@ -29,7 +29,7 @@ public abstract class BaseInputSource
     /**
      * Length of the buffer, if buffer used
      */
-    protected int mInputLen;
+    protected int mInputLast;
 
     /*
     ////////////////////////////////////////////////////////////////
@@ -108,7 +108,7 @@ public abstract class BaseInputSource
     public void restoreContext(WstxInputData reader)
     {
         reader.mInputBuffer = mBuffer;
-        reader.mInputLen = mInputLen;
+        reader.mInputEnd = mInputLast;
         reader.mInputPtr = mSavedInputPtr;
 
         // then location

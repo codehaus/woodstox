@@ -359,7 +359,7 @@ public abstract class StreamScanner
 
         mNormalizeLFs = true;
         mInputBuffer = null;
-        mInputPtr = mInputLen = 0;
+        mInputPtr = mInputEnd = 0;
         mEntityResolver = res;
     }
 
@@ -713,13 +713,13 @@ public abstract class StreamScanner
     }
 
     protected final int inputInBuffer() {
-        return mInputLen - mInputPtr;
+        return mInputEnd - mInputPtr;
     }
 
     protected final int getNext()
         throws XMLStreamException
     {
-        if (mInputPtr >= mInputLen) {
+        if (mInputPtr >= mInputEnd) {
             if (!loadMore()) {
                 return -1;
             }
@@ -739,7 +739,7 @@ public abstract class StreamScanner
     protected final int peekNext()
         throws XMLStreamException
     {
-        if (mInputPtr >= mInputLen) {
+        if (mInputPtr >= mInputEnd) {
             if (!loadMoreFromCurrent()) {
                 return -1;
             }
@@ -750,7 +750,7 @@ public abstract class StreamScanner
     protected final char getNextChar(String errorMsg)
         throws XMLStreamException
     {
-        if (mInputPtr >= mInputLen) {
+        if (mInputPtr >= mInputEnd) {
             loadMore(errorMsg);
         }
         return mInputBuffer[mInputPtr++];
@@ -767,7 +767,7 @@ public abstract class StreamScanner
     protected final char getNextCharFromCurrent(String errorMsg)
         throws XMLStreamException
     {
-        if (mInputPtr >= mInputLen) {
+        if (mInputPtr >= mInputEnd) {
             loadMoreFromCurrent(errorMsg);
         }
         return mInputBuffer[mInputPtr++];
@@ -781,7 +781,7 @@ public abstract class StreamScanner
     protected final int getNextAfterWS()
         throws XMLStreamException
     {
-        if (mInputPtr >= mInputLen) {
+        if (mInputPtr >= mInputEnd) {
             if (!loadMore()) {
                 return -1;
             }
@@ -795,7 +795,7 @@ public abstract class StreamScanner
                 throwInvalidSpace(c);
             }
             // Still a white space?
-            if (mInputPtr >= mInputLen) {
+            if (mInputPtr >= mInputEnd) {
                 if (!loadMore()) {
                     return -1;
                 }
@@ -808,7 +808,7 @@ public abstract class StreamScanner
     protected final char getNextCharAfterWS(String errorMsg)
         throws XMLStreamException
     {
-        if (mInputPtr >= mInputLen) {
+        if (mInputPtr >= mInputEnd) {
             loadMore(errorMsg);
         }
 
@@ -822,7 +822,7 @@ public abstract class StreamScanner
             }
 
             // Still a white space?
-            if (mInputPtr >= mInputLen) {
+            if (mInputPtr >= mInputEnd) {
                 loadMore(errorMsg);
             }
             c = mInputBuffer[mInputPtr++];
@@ -848,7 +848,7 @@ public abstract class StreamScanner
             }
 
             // Still a white space?
-            if (mInputPtr >= mInputLen) {
+            if (mInputPtr >= mInputEnd) {
                 loadMoreFromCurrent(errorMsg);
             }
             c = mInputBuffer[mInputPtr++];
@@ -917,7 +917,7 @@ public abstract class StreamScanner
         mInput = newInput;
         // Let's make sure new input will be read next time input is needed:
         mInputPtr = 0;
-        mInputLen = 0;
+        mInputEnd = 0;
         /* Plus, reset the input location so that'll be accurate for
          * error reporting etc.
          */
@@ -950,8 +950,8 @@ public abstract class StreamScanner
              * reporting purposes, and do this now while previous amounts
              * are still known.
              */
-            mCurrInputProcessed += mInputLen;
-            mCurrInputRowStart -= mInputLen;
+            mCurrInputProcessed += mInputEnd;
+            mCurrInputRowStart -= mInputEnd;
             int count;
             try {
                 count = input.readInto(this);
@@ -991,7 +991,7 @@ public abstract class StreamScanner
                 mNormalizeLFs = !input.fromInternalEntity();
             }
             // Maybe there are leftovers from that input in buffer now?
-        } while (mInputPtr >= mInputLen);
+        } while (mInputPtr >= mInputEnd);
 
         return true;
     }
@@ -1009,8 +1009,8 @@ public abstract class StreamScanner
         throws XMLStreamException
     {
         // Need to update offsets properly
-        mCurrInputProcessed += mInputLen;
-        mCurrInputRowStart -= mInputLen;
+        mCurrInputProcessed += mInputEnd;
+        mCurrInputRowStart -= mInputEnd;
         try {
             int count = mInput.readInto(this);
             return (count > 0);
@@ -1045,7 +1045,7 @@ public abstract class StreamScanner
     protected boolean ensureInput(int minAmount)
         throws XMLStreamException
     {
-        int currAmount = mInputLen - mInputPtr;
+        int currAmount = mInputEnd - mInputPtr;
         if (currAmount >= minAmount) {
             return true;
         }
@@ -1130,7 +1130,7 @@ public abstract class StreamScanner
         if (c == '#') {
             c = buf[ptr++];
             int value = 0;
-            int inputLen = mInputLen;
+            int inputLen = mInputEnd;
             if (c == 'x') { // hex
                 while (ptr < inputLen) {
                     c = buf[ptr++];
@@ -1193,14 +1193,14 @@ public abstract class StreamScanner
                 
                 if (c == 'm') { // amp?
                     if (buf[ptr++] == 'p') {
-                        if (ptr < mInputLen && buf[ptr++] == ';') {
+                        if (ptr < mInputEnd && buf[ptr++] == ';') {
                             mInputPtr = ptr;
                             return '&';
                         }
                     }
                 } else if (c == 'p') { // apos?
                     if (buf[ptr++] == 'o') {
-                        int len = mInputLen;
+                        int len = mInputEnd;
                         if (ptr < len && buf[ptr++] == 's') {
                             if (ptr < len && buf[ptr++] == ';') {
                                 mInputPtr = ptr;
@@ -1221,7 +1221,7 @@ public abstract class StreamScanner
                 }
             } else if (c == 'q') { // quot?
                 if (buf[ptr++] == 'u' && buf[ptr++] == 'o') {
-                    int len = mInputLen;
+                    int len = mInputEnd;
                     if (ptr < len && buf[ptr++] == 't') {
                         if (ptr < len && buf[ptr++] == ';') {
                             mInputPtr = ptr;
@@ -1268,7 +1268,7 @@ public abstract class StreamScanner
         throws XMLStreamException
     {
         //int avail = inputInBuffer();
-        int avail = mInputLen - mInputPtr;
+        int avail = mInputEnd - mInputPtr;
         if (avail < 6) {
             // split entity, or buffer boundary
             /* Don't want to lose leading '&' (in case we can not expand
@@ -1360,7 +1360,7 @@ public abstract class StreamScanner
         throws XMLStreamException
     {
         //int avail = inputInBuffer();
-        int avail = mInputLen - mInputPtr;
+        int avail = mInputEnd - mInputPtr;
         if (avail < 6) {
             // split entity, or buffer boundary
             /* Don't want to lose leading '&' (in case we can not expand
@@ -1722,7 +1722,7 @@ public abstract class StreamScanner
 
         int ptr = mInputPtr;
         int hash = (int) c;
-        final int inputLen = mInputLen;
+        final int inputLen = mInputEnd;
         int startPtr = ptr-1; // already read previous char
         final char[] inputBuf = mInputBuffer;
 
@@ -1764,7 +1764,7 @@ public abstract class StreamScanner
     protected String parseLocalName2(int start, int hash)
         throws XMLStreamException
     {
-        int ptr = mInputLen - start;
+        int ptr = mInputEnd - start;
         // Let's assume fairly short names
         char[] outBuf = getNameBuffer(ptr+8);
 
@@ -1775,7 +1775,7 @@ public abstract class StreamScanner
         int outLen = outBuf.length;
         while (true) {
             // note: names can not cross input block (entity) boundaries...
-            if (mInputPtr >= mInputLen) {
+            if (mInputPtr >= mInputEnd) {
                 if (!loadMoreFromCurrent()) {
                     break;
                 }
@@ -1819,7 +1819,7 @@ public abstract class StreamScanner
     protected String parseFullName()
         throws XMLStreamException
     {
-        if (mInputPtr >= mInputLen) {
+        if (mInputPtr >= mInputEnd) {
             loadMoreFromCurrent();
         }
         return parseFullName(mInputBuffer[mInputPtr++]);
@@ -1845,7 +1845,7 @@ public abstract class StreamScanner
 
         int ptr = mInputPtr;
         int hash = (int) c;
-        int inputLen = mInputLen;
+        int inputLen = mInputEnd;
         int startPtr = ptr-1; // to account for the first char
 
         /* After which there may be zero or more name chars
@@ -1884,7 +1884,7 @@ public abstract class StreamScanner
     protected String parseFullName2(int start, int hash)
         throws XMLStreamException
     {
-        int ptr = mInputLen - start;
+        int ptr = mInputEnd - start;
         // Let's assume fairly short names
         char[] outBuf = getNameBuffer(ptr+8);
 
@@ -1899,7 +1899,7 @@ public abstract class StreamScanner
              *   have to come from the same input source. Thus, let's only
              *   load things from same input level
              */
-            if (mInputPtr >= mInputLen) {
+            if (mInputPtr >= mInputEnd) {
                 if (!loadMoreFromCurrent()) {
                     break;
                 }
@@ -1942,7 +1942,7 @@ public abstract class StreamScanner
         while (true) {
             char c;
 
-            if (mInputPtr < mInputLen) {
+            if (mInputPtr < mInputEnd) {
                 c = mInputBuffer[mInputPtr++];
             } else { // can't error here, so let's accept EOF for now:
                 int i = getNext();
@@ -1965,7 +1965,7 @@ public abstract class StreamScanner
     {
         String id = parseFullName(c);
         // Needs to be followed by a semi-colon, too.. from same input source:
-        if (mInputPtr >= mInputLen) {
+        if (mInputPtr >= mInputEnd) {
             if (!loadMoreFromCurrent()) {
                 throwParseError("Missing semicolon after reference for entity '"+id+"'");
             }
@@ -1999,7 +1999,7 @@ public abstract class StreamScanner
          */
         int count = 1;
         while (true) {
-            c = (mInputPtr < mInputLen) ?
+            c = (mInputPtr < mInputEnd) ?
                 mInputBuffer[mInputPtr++] : getNextChar(SUFFIX_EOF_EXP_NAME);
             if (c != ':' && !isNameChar(c)) {
                 break;
@@ -2029,7 +2029,7 @@ public abstract class StreamScanner
         int ptr = 0;
 
         while (true) {
-            char c = (mInputPtr < mInputLen) ?
+            char c = (mInputPtr < mInputEnd) ?
                 mInputBuffer[mInputPtr++] : getNextChar(errorMsg);
             if (c == quoteChar) {
                 break;
@@ -2090,7 +2090,7 @@ public abstract class StreamScanner
         boolean spaceToAdd = false;
 
         while (true) {
-            char c = (mInputPtr < mInputLen) ?
+            char c = (mInputPtr < mInputEnd) ?
                 mInputBuffer[mInputPtr++] : getNextChar(errorMsg);
             if (c == quoteChar) {
                 break;
@@ -2150,13 +2150,13 @@ public abstract class StreamScanner
         throws XMLStreamException
     {
         // Let's first ensure we have some data in there...
-        if (mInputPtr >= mInputLen) {
+        if (mInputPtr >= mInputEnd) {
             loadMore(errorMsg);
         }
         while (true) {
             // Let's loop consequtive 'easy' spans:
             char[] inputBuf = mInputBuffer;
-            int inputLen = mInputLen;
+            int inputLen = mInputEnd;
             int ptr = mInputPtr;
             int startPtr = ptr;
             while (ptr < inputLen) {
@@ -2209,7 +2209,7 @@ public abstract class StreamScanner
             loadMore(errorMsg);
             startPtr = ptr = mInputPtr;
             inputBuf = mInputBuffer;
-            inputLen = mInputLen;
+            inputLen = mInputEnd;
         }
     }
 
@@ -2226,7 +2226,7 @@ public abstract class StreamScanner
         char c = getNextChar(SUFFIX_IN_ENTITY_REF);
         if (c == 'x') { // hex
             while (true) {
-                c = (mInputPtr < mInputLen) ? mInputBuffer[mInputPtr++]
+                c = (mInputPtr < mInputEnd) ? mInputBuffer[mInputPtr++]
                     : getNextCharFromCurrent(SUFFIX_IN_ENTITY_REF);
                 if (c == ';') {
                     break;
@@ -2257,7 +2257,7 @@ public abstract class StreamScanner
                 } else {
                     throwUnexpectedChar(c, "; expected a decimal number.");
                 }
-                c = (mInputPtr < mInputLen) ? mInputBuffer[mInputPtr++]
+                c = (mInputPtr < mInputEnd) ? mInputBuffer[mInputPtr++]
                     : getNextCharFromCurrent(SUFFIX_IN_ENTITY_REF);
             }
         }

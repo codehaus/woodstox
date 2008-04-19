@@ -251,14 +251,14 @@ public class MinimalDTDReader
     protected char dtdNextFromCurr()
         throws XMLStreamException
     {
-        return (mInputPtr < mInputLen) ?
+        return (mInputPtr < mInputEnd) ?
             mInputBuffer[mInputPtr++] : getNextCharFromCurrent(getErrorMsg());
     }
 
     protected char dtdNextChar()
         throws XMLStreamException
     {
-        return (mInputPtr < mInputLen) ?
+        return (mInputPtr < mInputEnd) ?
             mInputBuffer[mInputPtr++] : getNextChar(getErrorMsg());
     }
 
@@ -266,7 +266,7 @@ public class MinimalDTDReader
         throws XMLStreamException
     {
         while (true) {
-            char c = (mInputPtr < mInputLen) ?
+            char c = (mInputPtr < mInputEnd) ?
                 mInputBuffer[mInputPtr++] : getNextChar(getErrorMsg());
             if (c != '%') {
                 return c;
@@ -289,7 +289,7 @@ public class MinimalDTDReader
          * if none found, let's not throw an exception -- we are just skipping
          * internal subset here.
          */
-        char c = (mInputPtr < mInputLen) ?
+        char c = (mInputPtr < mInputEnd) ?
             mInputBuffer[mInputPtr++] : dtdNextFromCurr();
         if (c != ';') {
             --mInputPtr;
@@ -301,7 +301,7 @@ public class MinimalDTDReader
     {
         skipCommentContent();
         // Now, we may be getting end mark; first need second marker char:.
-        char c = (mInputPtr < mInputLen)
+        char c = (mInputPtr < mInputEnd)
             ? mInputBuffer[mInputPtr++] : dtdNextFromCurr();
         if (c != '>') {
             throwParseError("String '--' not allowed in comment (missing '>'?)");
@@ -312,10 +312,10 @@ public class MinimalDTDReader
         throws XMLStreamException
     {
         while (true) {
-            char c = (mInputPtr < mInputLen) ?
+            char c = (mInputPtr < mInputEnd) ?
                 mInputBuffer[mInputPtr++] : dtdNextFromCurr();
             if (c == '-') {
-                c = (mInputPtr < mInputLen) ?
+                c = (mInputPtr < mInputEnd) ?
                     mInputBuffer[mInputPtr++] : dtdNextFromCurr();
                 if (c == '-') {
                     return;
@@ -330,11 +330,11 @@ public class MinimalDTDReader
         throws XMLStreamException
     {
         while (true) {
-            char c = (mInputPtr < mInputLen)
+            char c = (mInputPtr < mInputEnd)
                 ? mInputBuffer[mInputPtr++] : dtdNextFromCurr();
             if (c == '?') {
                 do {
-                    c = (mInputPtr < mInputLen)
+                    c = (mInputPtr < mInputEnd)
                         ? mInputBuffer[mInputPtr++] : dtdNextFromCurr();
                 } while (c == '?');
                 if (c == '>') {
@@ -351,7 +351,7 @@ public class MinimalDTDReader
         throws XMLStreamException
     {
         while (c != '>') {
-            c = (mInputPtr < mInputLen)
+            c = (mInputPtr < mInputEnd)
                 ? mInputBuffer[mInputPtr++] : dtdNextFromCurr();
             if (c == '\n' || c == '\r') {
                 skipCRLF(c);
@@ -371,7 +371,7 @@ public class MinimalDTDReader
         throws XMLStreamException
     {
         while (true) {
-            char c = (mInputPtr < mInputLen)
+            char c = (mInputPtr < mInputEnd)
                 ? mInputBuffer[mInputPtr++] : dtdNextFromCurr();
             if (c == '\n' || c == '\r') {
                 skipCRLF(c);

@@ -86,9 +86,9 @@ public class ReaderSource
             /* Let's prevent caller from accidentally being able to access
              * data, first.
              */
-            mInputLen = 0;
+            mInputLast = 0;
             reader.mInputPtr = 0;
-            reader.mInputLen = 0;
+            reader.mInputEnd = 0;
             if (count == 0) {
                 /* Sanity check; should never happen with correctly written
                  * Readers:
@@ -99,8 +99,8 @@ public class ReaderSource
         }
         reader.mInputBuffer = mBuffer;
         reader.mInputPtr = 0;
-        mInputLen = count;
-        reader.mInputLen = count;
+        mInputLast = count;
+        reader.mInputEnd = count;
 
         return count;
     }
@@ -116,7 +116,7 @@ public class ReaderSource
         }
 
         int ptr = reader.mInputPtr;
-        int currAmount = mInputLen - ptr;
+        int currAmount = mInputLast - ptr;
 
         // Let's first adjust caller's data appropriately:
         /* Since we are essentially removing 'ptr' chars that we
@@ -134,7 +134,7 @@ public class ReaderSource
         }
         reader.mInputBuffer = mBuffer;
         reader.mInputPtr = 0;
-        mInputLen = currAmount;
+        mInputLast = currAmount;
 
         while (minAmount > 0) {
             int amount = mBuffer.length - currAmount;
@@ -143,13 +143,13 @@ public class ReaderSource
                 if (actual == 0) { // sanity check:
                     throw new IOException("Reader returned 0 characters, even when asked to read up to "+amount);
                 }
-                reader.mInputLen = mInputLen = currAmount;
+                reader.mInputEnd = mInputLast = currAmount;
                 return false;
             }
             currAmount += actual;
             minAmount -= actual;
         }
-        reader.mInputLen = mInputLen = currAmount;
+        reader.mInputEnd = mInputLast = currAmount;
         return true;
     }
 

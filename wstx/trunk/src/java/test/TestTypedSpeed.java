@@ -41,12 +41,14 @@ public class TestTypedSpeed
     /**
      * Let's keep per-run times above 50 milliseconds
      */
-    final static int MIN_RUN_TIME = 50;
+    //final static int MIN_RUN_TIME = 50;
+    final static int MIN_RUN_TIME = 10;
 
     /**
      * Let's keep per-run times below 300 milliseconds
      */
-    final static int MAX_RUN_TIME = 300;
+    //final static int MAX_RUN_TIME = 300;
+    final static int MAX_RUN_TIME = 1000;
 
     final XMLInputFactory mInputFactory;
 
@@ -142,7 +144,7 @@ public class TestTypedSpeed
             String msg;
             int sum = 0;
 
-            switch (round) {
+            switch (1) {
             case 0:
                 msg = "Access using Stax 1.0";
                 switch (mType) {

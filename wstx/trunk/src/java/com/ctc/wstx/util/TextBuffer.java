@@ -7,6 +7,7 @@ import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.ext.LexicalHandler;
 
+import org.codehaus.stax2.typed.ValueDecoder;
 import org.codehaus.stax2.validation.XMLValidationException;
 import org.codehaus.stax2.validation.XMLValidator;
 
@@ -74,6 +75,9 @@ public final class TextBuffer
      */
     private int mInputStart;
 
+    /**
+     * When using shared buffer, number of characters in buffer
+     */
     private int mInputLen;
 
     // // // Internal non-shared collector buffers:
@@ -380,6 +384,38 @@ public final class TextBuffer
         }
         // Nope, need to have/create a non-segmented array and return it
         return contentsAsArray();
+    }
+
+    /*
+    /////////////////////////////////////////////////
+    // Accessors for implementing StAX2 Typed access
+    /////////////////////////////////////////////////
+     */
+
+    public boolean convertToBoolean(ValueDecoder vd)
+        throws IllegalArgumentException
+    {
+        if (mInputStart >= 0) { // shared buffer, common case
+            int start = mInputStart;
+            int end = start + mInputLen;
+            return vd.decodeBoolean(mInputBuffer, start, end);
+        }
+        char[] buf = getTextBuffer();
+        int len = mSegmentSize + mCurrentSize;
+        return vd.decodeBoolean(buf, 0, len);
+    }
+
+    public int convertToInt(ValueDecoder vd)
+        throws IllegalArgumentException
+    {
+        if (mInputStart >= 0) { // shared buffer, common case
+            int start = mInputStart;
+            int end = start + mInputLen;
+            return vd.decodeInt(mInputBuffer, start, end);
+        }
+        char[] buf = getTextBuffer();
+        int len = mSegmentSize + mCurrentSize;
+        return vd.decodeInt(buf, 0, len);
     }
 
     /*

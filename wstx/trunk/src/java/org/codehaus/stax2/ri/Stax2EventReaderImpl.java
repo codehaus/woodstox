@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-package org.codehaus.stax2.ri.evt;
+package org.codehaus.stax2.ri;
 
 import java.util.NoSuchElementException;
 
