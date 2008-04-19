@@ -396,6 +396,86 @@ public class TestRelaxNG
                          "Undefined ID");
     }
 
+    public void testSimpleIntAttr()
+        throws XMLStreamException
+    {
+        final String schemaDef =
+            "<element xmlns='http://relaxng.org/ns/structure/1.0'"
+            +"  datatypeLibrary='http://www.w3.org/2001/XMLSchema-datatypes' name='root'>\n"
+            +"  <element name='leaf'>\n"
+            +"   <attribute name='nr'><data type='integer' /></attribute>\n"
+            +"  </element>\n"
+            +"</element>"
+        ;
+
+        XMLValidationSchema schema = parseRngSchema(schemaDef);
+
+        // First, a simple valid document
+        XMLStreamReader2 sr = getReader("<root><leaf nr='  123  ' /></root>");
+        sr.validateAgainst(schema);
+        while (sr.next() != END_DOCUMENT) { }
+        sr.close();
+
+        // Then one with invalid element value
+        verifyRngFailure("<root><leaf nr='12.03' /></root>",
+                         schema, "invalid integer attribute value",
+                         "does not satisfy the \"integer\" type");
+
+        // And missing attribute
+        verifyRngFailure("<root><leaf /></root>",
+                         schema, "missing integer attribute value",
+                         "is missing \"nr\" attribute");
+
+        // And then two variations of having empty value
+        verifyRngFailure("<root><leaf nr=\"\"/></root>",
+                         schema, "missing integer attribute value",
+                         "does not satisfy the \"integer\" type");
+        verifyRngFailure("<root><leaf nr='\r\n'/></root>",
+                         schema, "missing integer attribute value",
+                         "does not satisfy the \"integer\" type");
+    }
+
+    public void testSimpleBooleanElem()
+        throws XMLStreamException
+    {
+        final String schemaDef =
+            "<element xmlns='http://relaxng.org/ns/structure/1.0'"
+            +"  datatypeLibrary='http://www.w3.org/2001/XMLSchema-datatypes' name='root'>\n"
+            +"  <element name='leaf'>\n"
+            +"   <data type='boolean' />\n"
+            +"  </element>\n"
+            +"</element>"
+        ;
+
+        XMLValidationSchema schema = parseRngSchema(schemaDef);
+
+        // First, a simple valid document
+        XMLStreamReader2 sr = getReader("<root><leaf>true</leaf></root>");
+        sr.validateAgainst(schema);
+        while (sr.next() != END_DOCUMENT) { }
+        sr.close();
+
+        // Then one with invalid element value
+        verifyRngFailure("<root><leaf>foobar</leaf></root>",
+                         schema, "invalid boolean element value",
+                         "does not satisfy the \"boolean\" type");
+
+        // And one with empty value
+        verifyRngFailure("<root><leaf>   </leaf></root>",
+                         schema, "missing boolean element value",
+                         "does not satisfy the \"boolean\" type");
+
+        // And then 2 variations of completely missing value
+        verifyRngFailure("<root><leaf></leaf></root>",
+                         schema, "missing boolean element value",
+                         "does not satisfy the \"boolean\" type");
+
+        verifyRngFailure("<root><leaf /></root>",
+                         schema, "missing boolean element value",
+                         "does not satisfy the \"boolean\" type");
+
+    }
+
     /*
     //////////////////////////////////////////////////////////////
     // Helper methods

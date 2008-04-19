@@ -73,6 +73,12 @@ public class BasicStreamReader
     extends StreamScanner
     implements StreamReaderImpl, DTDInfo, LocationInfo
 {
+    /*
+    ////////////////////////////////////////////////////
+    // Constants
+    ////////////////////////////////////////////////////
+     */
+
     // // // Standalone values:
 
     final static int DOC_STANDALONE_UNKNOWN = 0;
@@ -161,6 +167,12 @@ public class BasicStreamReader
 
     private final static int INDENT_CHECK_MAX = 40;
 
+    // // // Shared namespace symbols
+
+    final protected static String sPrefixXml = DefaultXmlSymbolTable.getXmlSymbol();
+
+    final protected static String sPrefixXmlns = DefaultXmlSymbolTable.getXmlnsSymbol();
+
     /**
      * We will use a stateless shared decoder if none is explicitly
      * configured to be used
@@ -213,10 +225,6 @@ public class BasicStreamReader
     // Symbol handling:
     ////////////////////////////////////////////////////
      */
-
-    final protected static String sPrefixXml = DefaultXmlSymbolTable.getXmlSymbol();
-
-    final protected static String sPrefixXmlns = DefaultXmlSymbolTable.getXmlnsSymbol();
 
     /**
      * Object to notify about shared stuff, such as symbol tables, as well
@@ -1252,24 +1260,14 @@ public class BasicStreamReader
     /**
      * Special implementation of functionality similar to that of
      * {@link #getElementText}, but optimized for the specific
-     * use case of handling typed element content
-     *
-     * @return Collected content, if collection produced an explicit
-     *   String; null if content was stored in the text buffer for
-     *   more efficient buffer access.
+     * use case of handling typed element content.
+     *<p>
+     * Note:
      */
     private String collectTypedElementContent()
         throws XMLStreamException
     {
-        /* Very first thing: let's only use the optimized version
-         * if validation is not enabled. If it is, let's just use
-         * slower but complete implementation. This allows heavy
-         * optimization of non-validating (and most likely) use case.
-         */
-        if (mVldContent < XMLValidator.CONTENT_ALLOW_ANY_TEXT) {
-            return getElementText();
-        }
-        // Then sanity checks to ensure state is as expected
+        // First sanity checks to ensure state is as expected
         if (mCurrToken != START_ELEMENT) {
             throwParseError(ErrorConsts.ERR_STATE_NOT_STELEM);
         }
