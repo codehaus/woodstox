@@ -416,7 +416,7 @@ public class BasicStreamReader
                                 BranchingReaderSource input, ReaderCreator owner,
                                 ReaderConfig cfg, InputElementStack elemStack,
                                 boolean forER)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         super(input, cfg, cfg.getEntityResolver());
 
@@ -519,7 +519,7 @@ public class BasicStreamReader
     public static BasicStreamReader createBasicStreamReader
         (BranchingReaderSource input, ReaderCreator owner, ReaderConfig cfg,
          InputBootstrapper bs, boolean forER)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
 
         BasicStreamReader sr = new BasicStreamReader
@@ -692,11 +692,7 @@ public class BasicStreamReader
             break;
         }
         if (mTokenState < TOKEN_FULL_SINGLE) {
-            try {
-                readCoalescedText(mCurrToken, false);
-            } catch (IOException ioe) {
-                throwFromIOE(ioe);
-            }
+            readCoalescedText(mCurrToken, false);
         }
         String text = mTextBuffer.contentsAsString();
         // Then we'll see if end is nigh...
@@ -1061,13 +1057,7 @@ public class BasicStreamReader
          * previous event might not yet be completely finished...
          */
         if (mParseState == STATE_TREE) {
-            int type;
-            try {
-                type = nextFromTree();
-            } catch (IOException ioe) {
-                // inlined: throwFromIOE(ioe);
-                throw new WstxIOException(ioe);
-            }
+            int type = nextFromTree();
             mCurrToken = type;
             if (mTokenState < mStTextThreshold) { // incomplete?
                 /* Can remain incomplete if lazy parsing is enabled,
@@ -1076,11 +1066,7 @@ public class BasicStreamReader
                  */
                 if (!mCfgLazyParsing ||
                     (mValidateText && (type == CHARACTERS || type == CDATA))) {
-                    try {
-                        finishToken(false);
-                    } catch (IOException ie) {
-                        throwFromIOE(ie);
-                    }
+                    finishToken(false);
                 }
             }
 
@@ -1122,29 +1108,24 @@ public class BasicStreamReader
             return type;
         }
 
-        try {
-            if (mParseState == STATE_PROLOG) {
-                nextFromProlog(true);
-            } else if (mParseState == STATE_EPILOG) {
-                if (nextFromProlog(false)) {
-                    // We'll return END_DOCUMENT, need to mark it 'as consumed'
-                    mSecondaryToken = 0;
-                    
-                }
-            } else if (mParseState == STATE_MULTIDOC_HACK) {
-                mCurrToken = nextFromMultiDocState();
-            } else { // == STATE_CLOSED
-                if (mSecondaryToken == END_DOCUMENT) { // marker
-                    mSecondaryToken = 0; // mark end doc as consumed
-                    return END_DOCUMENT;
-                }
-                throw new java.util.NoSuchElementException();
+        if (mParseState == STATE_PROLOG) {
+            nextFromProlog(true);
+        } else if (mParseState == STATE_EPILOG) {
+            if (nextFromProlog(false)) {
+                // We'll return END_DOCUMENT, need to mark it 'as consumed'
+                mSecondaryToken = 0;
+                
             }
-            return mCurrToken;
-        } catch (IOException ioe) {
-            // inlined: throwFromIOE(ioe);
-            throw new WstxIOException(ioe);
+        } else if (mParseState == STATE_MULTIDOC_HACK) {
+            mCurrToken = nextFromMultiDocState();
+        } else { // == STATE_CLOSED
+            if (mSecondaryToken == END_DOCUMENT) { // marker
+                mSecondaryToken = 0; // mark end doc as consumed
+                return END_DOCUMENT;
+            }
+            throw new java.util.NoSuchElementException();
         }
+        return mCurrToken;
     }
 
     public int nextTag()
@@ -1268,6 +1249,64 @@ public class BasicStreamReader
         }
     }
 
+    /**
+     * Special implementation of functionality similar to that of
+     * {@link #getElementText}, but optimized for the specific
+     * use case of handling typed element content
+     *
+     * @return Collected content, if collection produced an explicit
+     *   String; null if content was stored in the text buffer for
+     *   more efficient buffer access.
+     */
+    private String collectTypedElementContent()
+        throws XMLStreamException
+    {
+        /* Very first thing: let's only use the optimized version
+         * if validation is not enabled. If it is, let's just use
+         * slower but complete implementation. This allows heavy
+         * optimization of non-validating (and most likely) use case.
+         */
+        if (mVldContent < XMLValidator.CONTENT_ALLOW_ANY_TEXT) {
+            return getElementText();
+        }
+        // Then sanity checks to ensure state is as expected
+        if (mCurrToken != START_ELEMENT) {
+            throwParseError(ErrorConsts.ERR_STATE_NOT_STELEM);
+        }
+        /* Ok, now: with START_ELEMENT we know that it's not partially
+         * processed; that we are in-tree (not prolog or epilog).
+         * The only possible complication would be 
+         */
+        if (mStEmptyElem) {
+            // and if so, we'll then get 'virtual' close tag:
+            mStEmptyElem = false;
+            // ... and location info is correct already
+            mCurrToken = END_ELEMENT;
+            mTextBuffer.resetWithEmptyString();
+            return "";
+        }
+
+        /* After that, we should be able to figure out the
+         * following character. This is basically inlined version
+         * of second half of 'nextFromTree()' (first half being
+         * irrelevant for our purposes)
+         *
+         * Note: no need to keep track of token start; it'll get
+         * overwritten by location info for final END_ELEMENT
+         *
+         * Also: we can skip leading space as a minor optimization
+         * (as it will always get trimmed as part of normalization)
+         */
+        int i = getNextAfterWS();
+        if (i < 0) {
+            throwUnexpectedEOF();
+        }
+
+        // !!! TBI
+
+        return null;
+    }
+
     /*
     ////////////////////////////////////////////////////
     // XMLStreamReader2 (StAX2) implementation
@@ -1360,7 +1399,7 @@ public class BasicStreamReader
             return null;
         }
         if (mTokenState < TOKEN_FULL_SINGLE) { // need to fully read it in now
-            wrappedFinishToken();
+            finishToken(false);
         }
         return this;
     }
@@ -1621,7 +1660,7 @@ public class BasicStreamReader
     {
         // Need to get to the end of the token, if not there yet
         if (mTokenState < mStTextThreshold) {
-            wrappedFinishToken();
+            finishToken(false);
         }
         return mCurrInputProcessed + mInputPtr;
     }
@@ -1640,7 +1679,7 @@ public class BasicStreamReader
     {
         // Need to get to the end of the token, if not there yet
         if (mTokenState < mStTextThreshold) {
-            wrappedFinishToken();
+            finishToken(false);
         }
         // And then we just need the current location!
         return getCurrentLocation();
@@ -1778,7 +1817,7 @@ public class BasicStreamReader
     }
 
     public void fireSaxCharacterEvents(ContentHandler h)
-        throws IOException, XMLStreamException, SAXException
+        throws XMLStreamException, SAXException
     {
         if (h != null) {
             if (mPendingException != null) {
@@ -1797,7 +1836,7 @@ public class BasicStreamReader
     }
 
     public void fireSaxSpaceEvents(ContentHandler h)
-        throws IOException, XMLStreamException, SAXException
+        throws XMLStreamException, SAXException
     {
         if (h != null) {
             if (mTokenState < mStTextThreshold) {
@@ -1808,7 +1847,7 @@ public class BasicStreamReader
     }
 
     public void fireSaxCommentEvent(LexicalHandler h)
-        throws IOException, XMLStreamException, SAXException
+        throws XMLStreamException, SAXException
     {
         if (h != null) {
             if (mTokenState < mStTextThreshold) {
@@ -1819,7 +1858,7 @@ public class BasicStreamReader
     }
 
     public void fireSaxPIEvent(ContentHandler h)
-        throws IOException, XMLStreamException, SAXException
+        throws XMLStreamException, SAXException
     {
         if (h != null) {
             if (mTokenState < mStTextThreshold) {
@@ -1850,7 +1889,7 @@ public class BasicStreamReader
      *   keyword if not.
      */
     protected String checkKeyword(char c, String expected)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
       int ptr = 0;
       int len = expected.length();
@@ -1902,7 +1941,7 @@ public class BasicStreamReader
     }
 
     protected void checkCData()
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         String wrong = checkKeyword(getNextCharFromCurrent(SUFFIX_IN_CDATA), "CDATA");
         if (wrong != null) {
@@ -1927,7 +1966,7 @@ public class BasicStreamReader
      * @param tb TextBuilder into which attribute value will be added
      */
     private final void parseNormalizedAttrValue(char openingQuote, TextBuilder tb)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         char[] outBuf = tb.getCharBuffer();
         int outPtr = tb.getCharSize();
@@ -2016,7 +2055,7 @@ public class BasicStreamReader
      * @return True if we hit EOI, false otherwise
      */
     private boolean nextFromProlog(boolean isProlog)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         int i;
 
@@ -2124,7 +2163,7 @@ public class BasicStreamReader
     }
 
     protected void handleRootElem(char c)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         mParseState = STATE_TREE;
         initValidation();
@@ -2219,7 +2258,7 @@ public class BasicStreamReader
      * returned.
      */
     private int nextFromMultiDocState()
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         if (mCurrToken == END_DOCUMENT) {
             /* Ok; this is the initial step; need to advance: need to parse
@@ -2259,7 +2298,7 @@ public class BasicStreamReader
     }
 
     protected void handleMultiDocXmlDecl()
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         // Let's default these first
         mDocStandalone = DOC_STANDALONE_UNKNOWN;
@@ -2346,7 +2385,7 @@ public class BasicStreamReader
      * case no equals char is encountered.
      */
     protected final char skipEquals(String name, String eofMsg)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         char c = getNextInCurrAfterWS(eofMsg);
         if (c != '=') {
@@ -2368,7 +2407,7 @@ public class BasicStreamReader
      * is not optimized too much.
      */
     protected final void parseQuoted(String name, char quoteChar, TextBuffer tbuf)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         if (quoteChar != '"' && quoteChar != '\'') {
             throwUnexpectedChar(quoteChar, " in xml declaration; waited ' or \" to start a value for pseudo-attribute '"+name+"'");
@@ -2404,7 +2443,7 @@ public class BasicStreamReader
      * it would start same way otherwise.
      */
     private void nextFromPrologBang(boolean isProlog)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         int i = getNext();
         if (i < 0) {
@@ -2460,7 +2499,7 @@ public class BasicStreamReader
      * optional internal subset.
      */
     private void startDTD()
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         /* 21-Nov-2004, TSa: Let's make sure that the buffer gets cleared
          *   at this point. Need not start branching yet, however, since
@@ -2594,7 +2633,7 @@ public class BasicStreamReader
      *   subset (if one found).
      */
     protected void finishDTD(boolean copyContents)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         /* We know there are no spaces, as this char was read and pushed
          * back earlier...
@@ -2641,7 +2680,7 @@ public class BasicStreamReader
      * document tree, and return its type.
      */
     private final int nextFromTree()
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         int i;
 
@@ -2676,24 +2715,7 @@ public class BasicStreamReader
                 if (!mElementStack.pop()) { // false if root closed
                     // if so, we'll get to epilog, unless in fragment mode
                     if (!mConfig.inputParsingModeFragment()) {
-                        mParseState = STATE_EPILOG;
-                        // this call will update the location too...
-                        if (nextFromProlog(false)) {
-                            mSecondaryToken = 0;
-                        }
-                        /* 10-Apr-2006, TSa: Let's actually try to update
-                         *   SymbolTable here (after main xml tree); caller
-                         *   may not continue parsing after this.
-                         */
-                        if (mSymbols.isDirty()) {
-                            mOwner.updateSymbolTable(mSymbols);
-                        }
-                        /* May be able to recycle, but not certain; and
-                         * definitely can not just clean contents (may
-                         * contain space(s) read)
-                         */
-                        mTextBuffer.recycle(false);
-                        return mCurrToken;
+                        return closeContentTree();
                     }
                     // in fragment mode, fine, we'll just continue
                 }
@@ -2757,12 +2779,11 @@ public class BasicStreamReader
 
         if (i < 0) {
             /* 07-Oct-2005, TSa: May be ok in fragment mode (not otherwise),
-             *   but we can just check if element stack has anything, as
+             *   but we can just check if element stack has anything, as that
              *   handles all cases
              */
             if (!mElementStack.isEmpty()) {
-                throwUnexpectedEOF("; was expecting a close tag for element <"
-                                   +mElementStack.getTopElementDesc()+">");
+                throwUnexpectedEOF();
             }
             return handleEOF(false);
         }
@@ -2933,12 +2954,46 @@ public class BasicStreamReader
     }
 
     /**
+     * Method called when advacing stream past the end tag that closes
+     * the root element of the open document.
+     * Document can be either the singular one, in regular mode, or one of
+     * possibly multiple, in multi-doc mode: this method is never called
+     * in fragment mode. Method needs to update state properly and
+     * parse following epilog event (if any).
+     *
+     * @return Event following end tag of the root elemennt, if any;
+     *   END_DOCUMENT otherwis.e
+     */
+    private int closeContentTree()
+        throws XMLStreamException
+    {
+        mParseState = STATE_EPILOG;
+        // this call will update the location too...
+        if (nextFromProlog(false)) {
+            mSecondaryToken = 0;
+        }
+        /* 10-Apr-2006, TSa: Let's actually try to update
+         *   SymbolTable here (after main xml tree); caller
+         *   may not continue parsing after this.
+         */
+        if (mSymbols.isDirty()) {
+            mOwner.updateSymbolTable(mSymbols);
+        }
+        /* May be able to recycle, but not certain; and
+         * definitely can not just clean contents (may
+         * contain space(s) read)
+         */
+        mTextBuffer.recycle(false);
+        return mCurrToken;
+    }
+
+    /**
      * Method that takes care of parsing of start elements; including
      * full parsing of namespace declarations and attributes, as well as
      * namespace resolution.
      */
     private final void handleStartElem(char c)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         mTokenState = TOKEN_FULL_COALESCED;
         boolean empty;
@@ -2993,7 +3048,7 @@ public class BasicStreamReader
      * @return True if this is an empty element; false if not
      */
     private final boolean handleNsAttrs(char c)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         AttributeCollector ac = mAttrCollector;
 
@@ -3101,7 +3156,7 @@ public class BasicStreamReader
      * @return True if this is an empty element; false if not
      */
     private final boolean handleNonNsAttrs(char c)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         AttributeCollector ac = mAttrCollector;
 
@@ -3159,7 +3214,7 @@ public class BasicStreamReader
      * stack appropriately (including checking that tag matches etc).
      */
     private final void readEndElem()
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         mTokenState = TOKEN_FULL_COALESCED; // will be read completely
 
@@ -3252,14 +3307,14 @@ public class BasicStreamReader
     }
 
     private void reportExtraEndElem()
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         String name = parseFNameForError();
         throwParseError("Unbalanced close tag </"+name+">; no open start tag.");
     }
 
     private void reportWrongEndPrefix(String prefix, String localName, int done)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         --mInputPtr; // pushback
         String fullName = prefix + ":" + localName;
@@ -3270,7 +3325,7 @@ public class BasicStreamReader
     }
 
     private void reportWrongEndElem(String prefix, String localName, int done)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         --mInputPtr; // pushback
         String fullName;
@@ -3294,7 +3349,7 @@ public class BasicStreamReader
      * be), let's convert CDATA if necessary.
      */
     private int nextFromTreeCommentOrCData()
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         char c = getNextCharFromCurrent(SUFFIX_IN_DOC);
         if (c == '[') {
@@ -3334,7 +3389,7 @@ public class BasicStreamReader
      *    follows
      */
     private int skipToken()
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         int result;
 
@@ -3473,7 +3528,7 @@ public class BasicStreamReader
     }
 
     private void skipCommentOrCData(String errorMsg, char endChar, boolean preventDoubles)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         /* Let's skip all chars except for double-ending chars in
          * question (hyphen for comments, right brack for cdata)
@@ -3535,7 +3590,7 @@ public class BasicStreamReader
      *   if any; or -1 to denote EOF
      */
     private int skipCoalescedText(int i)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         while (true) {
             // Ok, plain text or markup?
@@ -3574,7 +3629,7 @@ public class BasicStreamReader
     }
 
     private int skipTokenText(int i)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         /* Fairly easy; except for potential to have entities
          * expand to some crap?
@@ -3643,7 +3698,7 @@ public class BasicStreamReader
         throws XMLStreamException
     {
         if (mTokenState < mStTextThreshold) {
-            wrappedFinishToken();
+            finishToken(false);
         }
     }
 
@@ -3651,16 +3706,6 @@ public class BasicStreamReader
     {
         if (mTokenState < mStTextThreshold) {
             safeFinishToken();
-        }
-    }
-
-    protected void wrappedFinishToken()
-        throws XMLStreamException
-    {
-        try {
-            finishToken(false);
-        } catch (IOException ie) {
-            throwFromIOE(ie);
         }
     }
 
@@ -3674,14 +3719,6 @@ public class BasicStreamReader
              */
             boolean deferErrors = (mCurrToken == CHARACTERS);
             finishToken(deferErrors);
-        } catch (IOException ioe) {
-            /* Hmmh. But how about I/O exceptions: should they be deferred?
-             * Deferring them may lead to confusion, and perhaps incomplete
-             * state before they are delivered (i.e. as a side-effect, some
-             * weird additional problems may be encountered). So let's start
-             * changing things slowly, and not yet defer io exceptions.
-             */
-            throwLazyError(ioe);
         } catch (XMLStreamException strex) {
             throwLazyError(strex);
         }
@@ -3698,7 +3735,7 @@ public class BasicStreamReader
      *   just store the exception; if false, will not store, just throw.
      */
     protected void finishToken(boolean deferErrors)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         switch (mCurrToken) {
         case CDATA:
@@ -3791,7 +3828,7 @@ public class BasicStreamReader
     }
 
     private void readComment()
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         char[] inputBuf = mInputBuffer;
         int inputLen = mInputLen;
@@ -3853,7 +3890,7 @@ public class BasicStreamReader
     }
 
     private void readComment2(TextBuffer tb)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         /* Output pointers; calls will also ensure that the buffer is
          * not shared, AND has room for at least one more char
@@ -3929,7 +3966,7 @@ public class BasicStreamReader
      *    xml declaration.
      */
     private final int readPIPrimary()
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         // Ok, first we need the name:
         String target = parseFullName();
@@ -3977,7 +4014,7 @@ public class BasicStreamReader
      * point target has been parsed.
      */
     private void readPI()
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         int ptr = mInputPtr;
         int start = ptr;
@@ -4037,7 +4074,7 @@ public class BasicStreamReader
     }
 
     private void readPI2(TextBuffer tb)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         char[] inputBuf = mInputBuffer;
         int inputLen = mInputLen;
@@ -4144,7 +4181,7 @@ public class BasicStreamReader
      *   just store the exception; if false, will not store, just throw.
      */
     private void readCoalescedText(int currType, boolean deferErrors)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         boolean wasCData;
 
@@ -4231,7 +4268,7 @@ public class BasicStreamReader
      *   it wasn't read (ie. end-of-buffer or entity encountered).
      */
     private final boolean readCDataPrimary(char c)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         mWsStatus = (c <= CHAR_SPACE) ? ALL_WS_UNKNOWN : ALL_WS_NO;
 
@@ -4332,7 +4369,7 @@ public class BasicStreamReader
      *   hit the end marker); false if a shorter segment was returned.
      */
     private boolean readCDataSecondary(int shortestSegment)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         // Input pointers
         char[] inputBuf = mInputBuffer;
@@ -4428,7 +4465,7 @@ public class BasicStreamReader
      * @return True, if we hit the end marker; false if not.
      */
     private boolean checkCDataEnd(char[] outBuf, int outPtr)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         int bracketCount = 0;
         char c;
@@ -4479,7 +4516,7 @@ public class BasicStreamReader
      *   it wasn't read (ie. end-of-buffer or entity encountered).
      */
     private final boolean readTextPrimary(char c)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         int ptr = mInputPtr;
         int start = ptr-1;
@@ -4632,7 +4669,7 @@ public class BasicStreamReader
      *   it may still continue
      */
     private final boolean readTextSecondary(int shortestSegment, boolean deferErrors)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         /* Output pointers; calls will also ensure that the buffer is
          * not shared, AND has room for at least one more char
@@ -4800,7 +4837,7 @@ public class BasicStreamReader
      *    to process (not processed by this method)
      */
     private final int readIndentation(char c, int ptr)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         /* We need to verify that:
          * (a) we can read enough contiguous data to do determination
@@ -4896,7 +4933,7 @@ public class BasicStreamReader
      *   something prevented that (end of buffer, replaceable 2-char lf)
      */
     private final boolean readSpacePrimary(char c, boolean prologWS)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         int ptr = mInputPtr;
         char[] inputBuf = mInputBuffer;
@@ -4964,7 +5001,7 @@ public class BasicStreamReader
      *   (or epilog); false if it's within xml tree.
      */
     private void readSpaceSecondary(boolean prologWS)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         /* Let's not bother optimizing input. However, we can easily optimize
          * output, since it's easy to do, yet has more effect on performance
@@ -5395,7 +5432,7 @@ public class BasicStreamReader
      *   if not (character passed was not white space)
      */
     protected final boolean skipWS(char c) 
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         if (c > CHAR_SPACE) {
             return false;
@@ -5518,6 +5555,15 @@ public class BasicStreamReader
                             +mElementStack.getTopElementDesc()
                             +"> does not allow mixed content");
         
+    }
+
+    /**
+     * Method called when we get an EOF within content tree
+     */
+    protected void throwUnexpectedEOF()
+        throws WstxException
+    {
+        throwUnexpectedEOF("; was expecting a close tag for element <"+mElementStack.getTopElementDesc()+">");
     }
 
     /**

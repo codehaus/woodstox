@@ -78,6 +78,8 @@ public final class TextBuffer
 
     // // // Internal non-shared collector buffers:
 
+    private boolean mHasSegments = false;
+
     /**
      * List of segments prior to currently active segment.
      */
@@ -202,13 +204,26 @@ public final class TextBuffer
         mResultArray = null;
 
         // And then reset internal input buffers, if necessary:
-        if (mSegments != null && mSegments.size() > 0) {
-            /* Let's start using _last_ segment from list; for one, it's
-             * the biggest one, and it's also most likely to be cached
-             */
-            mCurrentSegment = (char[]) mSegments.get(mSegments.size() - 1);
-            mSegments.clear();
-            mSegmentSize = 0;
+        if (mHasSegments) {
+            clearSegments();
+        }
+        mCurrentSize = 0;
+    }
+
+    /**
+     * Similar to {@link #resetWithEmpty}, but actively marks current
+     * text content to be empty string (whereas former method leaves
+     * content as undefined).
+     */
+    public void resetWithEmptyString()
+    {
+        mInputBuffer = null;
+        mInputStart = -1; // indicates shared buffer not used
+        mInputLen = 0;
+        mResultString = "";
+        mResultArray = null;
+        if (mHasSegments) {
+            clearSegments();
         }
         mCurrentSize = 0;
     }
@@ -232,13 +247,8 @@ public final class TextBuffer
         mResultArray = null;
 
         // And then reset internal input buffers, if necessary:
-        if (mSegments != null && mSegments.size() > 0) {
-            /* Let's start using _last_ segment from list; for one, it's
-             * the biggest one, and it's also most likely to be cached
-             */
-            mCurrentSegment = (char[]) mSegments.get(mSegments.size() - 1);
-            mSegments.clear();
-            mCurrentSize = mSegmentSize = 0;
+        if (mHasSegments) {
+            clearSegments();
         }
     }
 
@@ -253,18 +263,14 @@ public final class TextBuffer
         mResultArray = null;
 
         // And then reset internal input buffers, if necessary:
-        if (mSegments != null && mSegments.size() > 0) {
-            /* Let's start using _last_ segment from list; for one, it's
-             * the biggest one, and it's also most likely to be cached
-             */
-            mCurrentSegment = (char[]) mSegments.get(mSegments.size() - 1);
-            mSegments.clear();
+        if (mHasSegments) {
+            clearSegments();
         } else {
             if (mCurrentSegment == null) {
                 mCurrentSegment = allocBuffer(mInitialBufSize);
             }
+            mCurrentSize = mSegmentSize = 0;
         }
-        mCurrentSize = mSegmentSize = 0;
         append(buf, start, len);
     }
 
@@ -290,6 +296,17 @@ public final class TextBuffer
             }
         }
         return new char[needed];
+    }
+
+    private final void clearSegments()
+    {
+        mHasSegments = false;
+        /* Let's start using _last_ segment from list; for one, it's
+         * the biggest one, and it's also most likely to be cached
+         */
+        mCurrentSegment = (char[]) mSegments.get(mSegments.size() - 1);
+        mSegments.clear();
+        mCurrentSize = mSegmentSize = 0;
     }
 
     public void resetWithIndentation(int indCharCount, char indChar)
@@ -906,6 +923,7 @@ public final class TextBuffer
         if (mSegments == null) {
             mSegments = new ArrayList();
         }
+        mHasSegments = true;
         mSegments.add(mCurrentSegment);
         int oldLen = mCurrentSegment.length;
         mSegmentSize += oldLen;
@@ -975,6 +993,7 @@ public final class TextBuffer
             mSegments = new ArrayList();
         }
         char[] curr = mCurrentSegment;
+        mHasSegments = true;
         mSegments.add(curr);
         mSegmentSize += curr.length;
         int oldLen = curr.length;

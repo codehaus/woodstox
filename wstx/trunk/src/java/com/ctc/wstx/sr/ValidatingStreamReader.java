@@ -97,7 +97,7 @@ public class ValidatingStreamReader
                                    BranchingReaderSource input, ReaderCreator owner,
                                    ReaderConfig cfg, InputElementStack elemStack,
                                    boolean forER)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         super(bs, input, owner, cfg, elemStack, forER);
     }
@@ -118,7 +118,7 @@ public class ValidatingStreamReader
     public static ValidatingStreamReader createValidatingStreamReader
         (BranchingReaderSource input, ReaderCreator owner,
          ReaderConfig cfg, InputBootstrapper bs, boolean forER)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         ValidatingStreamReader sr = new ValidatingStreamReader
             (bs, input, owner, cfg, createElementStack(cfg), forER);
@@ -262,7 +262,7 @@ public class ValidatingStreamReader
      *   false, will only do parsing.
      */
     protected void finishDTD(boolean copyContents)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         if (!hasConfigFlags(CFG_SUPPORT_DTD)) {
             super.finishDTD(copyContents);
@@ -334,7 +334,7 @@ public class ValidatingStreamReader
             //if (mDocStandalone != DOC_STANDALONE_YES) {
             if (true) {
                 if (mDtdPublicId != null || mDtdSystemId != null) {
-                    extSubset =  findDtdExtSubset(mDtdPublicId, mDtdSystemId, intSubset);
+                    extSubset = findDtdExtSubset(mDtdPublicId, mDtdSystemId, intSubset);
                 }
             }
             if (intSubset == null) {
@@ -410,10 +410,15 @@ public class ValidatingStreamReader
      */
     private DTDSubset findDtdExtSubset(String pubId, String sysId,
                                        DTDSubset intSubset)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         boolean cache = hasConfigFlags(CFG_CACHE_DTDS);
-        DTDId dtdId = constructDtdId(pubId, sysId);
+        DTDId dtdId;
+        try {
+            dtdId = constructDtdId(pubId, sysId);
+        } catch (IOException ioe) {
+            throw constructFromIOE(ioe);
+        }
 
         if (cache) {
             DTDSubset extSubset = findCachedSubset(dtdId, intSubset);
@@ -453,6 +458,8 @@ public class ValidatingStreamReader
              * description (with input source position etc)
              */
             throwParseError("(was "+fex.getClass().getName()+") "+fex.getMessage());
+        } catch (IOException ioe) {
+            throwFromIOE(ioe);
         }
 
         DTDSubset extSubset = FullDTDReader.readExternalSubset(src, mConfig, intSubset,

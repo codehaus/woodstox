@@ -423,7 +423,7 @@ public class FullDTDReader
                                                ReaderConfig cfg,
                                                boolean constructFully,
                                                int xmlVersion)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         FullDTDReader r = new FullDTDReader(input, cfg, constructFully, xmlVersion);
         // Need to read using the same low-level reader interface:
@@ -448,7 +448,7 @@ public class FullDTDReader
     public static DTDSubset readExternalSubset
         (WstxInputSource src, ReaderConfig cfg, DTDSubset intSubset, 
          boolean constructFully, int xmlVersion)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         FullDTDReader r = new FullDTDReader(src, cfg, intSubset, constructFully, xmlVersion);
         return r.parseDTD();
@@ -522,7 +522,7 @@ public class FullDTDReader
     }
 
     private void flushFlattenWriter()
-        throws IOException
+        throws XMLStreamException
     {
         mFlattenWriter.flush(mInputBuffer, mInputPtr);
     }
@@ -558,7 +558,7 @@ public class FullDTDReader
      */
 
     protected DTDSubset parseDTD()
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         while (true) {
             mCheckForbiddenPEs = false; // PEs are ok at this point
@@ -675,7 +675,7 @@ public class FullDTDReader
     }
 
     protected void parseDirective()
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         /* Hmmh. Don't think PEs are allowed to contain starting
          * '!' (or '?')... and it has to come from the same
@@ -721,7 +721,7 @@ public class FullDTDReader
      * 'if (... flatten...) ... else ...' spaghetti code.
      */
     protected void parseDirectiveFlattened()
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         /* First, need to flush any flattened output there may be, at
          * this point (except for opening lt char): and then need to
@@ -807,7 +807,7 @@ public class FullDTDReader
      */
 
     protected void initInputSource(WstxInputSource newInput, boolean isExt, String entityId)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         if (mFlattenWriter != null) {
             // Anything to flush from previous buffer contents?
@@ -835,7 +835,7 @@ public class FullDTDReader
      * secondly, to handle (optional) flattening output.
      */
     protected boolean loadMore()
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         WstxInputSource input = mInput;
 
@@ -854,15 +854,18 @@ public class FullDTDReader
              */
             mCurrInputProcessed += mInputLen;
             mCurrInputRowStart -= mInputLen;
-            int count = input.readInto(this);
-            if (count > 0) {
-                if (mFlattenWriter != null) {
-                    mFlattenWriter.setFlattenStart(mInputPtr);
+            try {
+                int count = input.readInto(this);
+                if (count > 0) {
+                    if (mFlattenWriter != null) {
+                        mFlattenWriter.setFlattenStart(mInputPtr);
+                    }
+                    return true;
                 }
-                return true;
+                input.close();
+            } catch (IOException ioe) {
+                throw constructFromIOE(ioe);
             }
-
-            input.close();
             if (input == mRootInput) {
                 return false;
             }
@@ -897,7 +900,7 @@ public class FullDTDReader
     }
 
     protected boolean loadMoreFromCurrent()
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         // Any flattened not-yet-output input to flush?
         if (mFlattenWriter != null) {
@@ -907,18 +910,22 @@ public class FullDTDReader
         // Need to update offsets properly
         mCurrInputProcessed += mInputLen;
         mCurrInputRowStart -= mInputLen;
-        int count = mInput.readInto(this);
-        if (count > 0) {
-            if (mFlattenWriter != null) {
-                mFlattenWriter.setFlattenStart(mInputPtr);
+        try {
+            int count = mInput.readInto(this);
+            if (count > 0) {
+                if (mFlattenWriter != null) {
+                    mFlattenWriter.setFlattenStart(mInputPtr);
+                }
+                return true;
             }
-            return true;
+        } catch (IOException ie) {
+            throwFromIOE(ie);
         }
         return false;
     }
 
     protected boolean ensureInput(int minAmount)
-        throws IOException
+        throws XMLStreamException
     {
         int currAmount = mInputLen - mInputPtr;
         if (currAmount >= minAmount) {
@@ -928,12 +935,16 @@ public class FullDTDReader
         if (mFlattenWriter != null) {
             mFlattenWriter.flush(mInputBuffer, mInputLen);
         }
-        if (mInput.readMore(this, minAmount)) {
-            if (mFlattenWriter != null) {
-                //mFlattenWriter.setFlattenStart(mInputPtr);
-                mFlattenWriter.setFlattenStart(currAmount);
+        try {
+            if (mInput.readMore(this, minAmount)) {
+                if (mFlattenWriter != null) {
+                    //mFlattenWriter.setFlattenStart(mInputPtr);
+                    mFlattenWriter.setFlattenStart(currAmount);
+                }
+                return true;
             }
-            return true;
+        } catch (IOException ie) {
+            throwFromIOE(ie);
         }
         return false;
     }
@@ -946,7 +957,7 @@ public class FullDTDReader
 
     private void loadMoreScoped(WstxInputSource currScope,
                                 String entityName, Location loc)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         boolean check = (mInput == currScope);
         loadMore(getErrorMsg());
@@ -963,7 +974,7 @@ public class FullDTDReader
      *    NULL if end of block (entity expansion)
      */
     private char dtdNextIfAvailable()
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         char c;
         if (mInputPtr < mInputLen) {
@@ -988,7 +999,7 @@ public class FullDTDReader
      * character (which has to be '%').
      */
     private char getNextExpanded()
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         while (true) {
             char c = (mInputPtr < mInputLen) ?
@@ -1001,7 +1012,7 @@ public class FullDTDReader
     }
 
     private char skipDtdWs(boolean handlePEs)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         while (true) {
             char c = (mInputPtr < mInputLen)
@@ -1033,7 +1044,7 @@ public class FullDTDReader
      *   or PE start/end)
      */
     private char skipObligatoryDtdWs()
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         /* Ok; since we need at least one space, or a PE, or end of input
          * block, let's do this unique check first...
@@ -1083,7 +1094,7 @@ public class FullDTDReader
      * now we should get parameter entity name.
      */
     private void expandPE()
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         String id;
         char c;
@@ -1139,7 +1150,7 @@ public class FullDTDReader
      * reporting purposes.
      */
     protected String checkDTDKeyword(String exp)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         int i = 0;
         int len = exp.length();
@@ -1195,7 +1206,7 @@ public class FullDTDReader
      * @param prefix Part of keyword already read in.
      */
     protected String readDTDKeyword(String prefix)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         StringBuffer sb = new StringBuffer(prefix);
 
@@ -1224,7 +1235,7 @@ public class FullDTDReader
      *   contains 'SYSTEM'; otherwise throws an exception.
      */
     private boolean checkPublicSystemKeyword(char c) 
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         String errId;
 
@@ -1252,7 +1263,7 @@ public class FullDTDReader
     }
 
     private String readDTDName(char c)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         // Let's just check this before trying to parse the id...
         if (!isNameStartChar(c)) {
@@ -1262,7 +1273,7 @@ public class FullDTDReader
     }
 
     private String readDTDLocalName(char c, boolean checkChar)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         /* Let's just check this first, to get better error msg
          * (parseLocalName() will double-check it too)
@@ -1278,7 +1289,7 @@ public class FullDTDReader
      * ie. there are no additional restrictions for the first char
      */
     private String readDTDNmtoken(char c)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         char[] outBuf = getNameBuffer(64);
         int outLen = outBuf.length;
@@ -1328,7 +1339,7 @@ public class FullDTDReader
      * usage to some extent.
      */
     private PrefixedName readDTDQName(char firstChar)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         String prefix, localName;
 
@@ -1361,7 +1372,7 @@ public class FullDTDReader
     }
 
     private char readArity()
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         char c = (mInputPtr < mInputLen) ?
             mInputBuffer[mInputPtr++] : getNextChar(getErrorMsg());
@@ -1380,7 +1391,7 @@ public class FullDTDReader
      * entity (parameter or generic).
      */
     private char[] parseEntityValue(String id, Location loc, char quoteChar)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         /* 25-Jun-2004, TSa: Let's first mark current input source as the
          *   scope, so we can both make sure it ends in this input
@@ -1539,7 +1550,7 @@ public class FullDTDReader
      */
     private void parseAttrDefaultValue(DefaultAttrValue defVal, char quoteChar, PrefixedName attrName,
                                        Location loc, boolean gotFixed)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         if (quoteChar != '"' && quoteChar != '\'') { // caller doesn't test it
             String msg = "; expected a single or double quote to enclose the default value";
@@ -1684,7 +1695,7 @@ public class FullDTDReader
      * well-formedness checks.
      */
     protected void readPI()
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         String target = parseFullName();
         if (target.length() == 0) {
@@ -1793,7 +1804,7 @@ public class FullDTDReader
      * contents, to be reported for a SAX handler.
      */
     protected void readComment(DTDEventListener l)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         TextBuffer tb = getTextBuffer();
         char[] outBuf = tb.getCurrentSegment();
@@ -1841,7 +1852,7 @@ public class FullDTDReader
      */
 
     private void checkInclusion()
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         String keyword;
 
@@ -1884,7 +1895,7 @@ public class FullDTDReader
     }
 
     private void handleIncluded()
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         char c = skipDtdWs(false);
         if (c != '[') {
@@ -1894,7 +1905,7 @@ public class FullDTDReader
     }
 
     private void handleIgnored()
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         char c = skipDtdWs(false);
         int count = 1; // Nesting of IGNORE/INCLUDE sections we have to match
@@ -2030,7 +2041,7 @@ public class FullDTDReader
      * Note: c is known to be a letter (from 'A' to 'Z') at this poit.
      */
     private void handleDeclaration(char c)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         String keyw = null;
  
@@ -2121,7 +2132,7 @@ public class FullDTDReader
      * to be enabled by the method at some point.
      */
     private void handleSuppressedDeclaration()
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         String keyw;
         char c = dtdNextFromCurr();
@@ -2158,7 +2169,7 @@ public class FullDTDReader
      * been succesfully parsed.
      */
     private void handleAttlistDecl()
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         /* This method will handle PEs that contain the whole element
          * name. Since it's illegal to have partials, we can then proceed
@@ -2216,7 +2227,7 @@ public class FullDTDReader
     }
 
     private void handleElementDecl()
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         char c = skipObligatoryDtdWs();
         final PrefixedName elemName = readDTDQName(c);
@@ -2322,7 +2333,7 @@ public class FullDTDReader
      *   of flattened output.
      */
     private void handleEntityDecl(boolean suppressPEDecl)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         /* Hmmh. It seems that PE reference are actually accepted
          * even here... which makes distinguishing definition from
@@ -2481,7 +2492,7 @@ public class FullDTDReader
      * Method called to handle <!NOTATION ... > declaration.
      */
     private void handleNotationDecl()
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         char c = skipObligatoryDtdWs();
         String id = readDTDName(c);
@@ -2566,7 +2577,7 @@ public class FullDTDReader
      * called.
      */
     private void handleTargetNsDecl()
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         mAnyDTDppFeatures = true;
         
@@ -2630,7 +2641,7 @@ public class FullDTDReader
      */
     private void handleAttrDecl(DTDElement elem, char c, int index,
                                 Location loc)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         // First attribute name
         PrefixedName attrName = readDTDQName(c);
@@ -2805,7 +2816,7 @@ public class FullDTDReader
      */
     private WordResolver parseEnumerated(DTDElement elem, PrefixedName attrName,
                                          boolean isNotation)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         /* Need to use tree set to be able to construct the data
          * structs we need later on...
@@ -2869,7 +2880,7 @@ public class FullDTDReader
      * access to entity and notation declarations).
      */
     private String readNotationEntry(char c, PrefixedName attrName)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         String id = readDTDName(c);
 
@@ -2901,7 +2912,7 @@ public class FullDTDReader
     }
 
     private String readEnumEntry(char c, HashMap sharedEnums)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         String id = readDTDNmtoken(c);
 
@@ -2932,7 +2943,7 @@ public class FullDTDReader
      *   information (done in non-validating DTD-supporting mode)
      */
     private StructValidator readMixedSpec(PrefixedName elemName, boolean construct)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         String keyw = checkDTDKeyword("PCDATA");
         if (keyw != null) {
@@ -2999,7 +3010,7 @@ public class FullDTDReader
 
     private ContentSpec readContentSpec(PrefixedName elemName, boolean mainLevel,
                                         boolean construct)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         ArrayList subSpecs = new ArrayList();
         boolean isChoice = false; // default to sequence
@@ -3117,7 +3128,7 @@ public class FullDTDReader
     private EntityDecl handleExternalEntityDecl(WstxInputSource inputSource,
                                                 boolean isParam, String id,
                                                 char c, Location evtLoc)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         boolean isPublic = checkPublicSystemKeyword(c);
 

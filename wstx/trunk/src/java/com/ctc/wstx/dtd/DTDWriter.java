@@ -3,10 +3,19 @@ package com.ctc.wstx.dtd;
 import java.io.IOException;
 import java.io.Writer;
 
+import javax.xml.stream.XMLStreamException;
+
+import com.ctc.wstx.exc.WstxIOException;
+
 /**
  * Simple utility class used by {@link DTDReader} when writing out
  * flattened external DTD subset file. Writing functionality encapsulated
  * here since it's specific to one mode of operation (flattening).
+ *<p>
+ * Note, too, that underlying {@link IOException}s are generally wrapped
+ * as {@link XMLStreamException}s. This is needed to reduce amount of
+ * work caller has to do for wrapping. It will still be possible to
+ * unwrap these exceptions further up the call stack if need be.
  */
 final class DTDWriter
 {
@@ -108,11 +117,15 @@ final class DTDWriter
      */
 
     public void flush(char[] buf, int upUntil)
-        throws IOException
+        throws XMLStreamException
     {
         if (mFlattenStart < upUntil) {
             if (mIsFlattening > 0) {
-                mWriter.write(buf, mFlattenStart, upUntil - mFlattenStart);
+                try {
+                    mWriter.write(buf, mFlattenStart, upUntil - mFlattenStart);
+                } catch (IOException ioe) {
+                    throw new WstxIOException(ioe);
+                }
             }
             mFlattenStart = upUntil;
         }
@@ -125,25 +138,27 @@ final class DTDWriter
      * or conditional sections)
      */
     public void output(String output)
-        throws IOException
+        throws XMLStreamException
     {
         if (mIsFlattening > 0) {
-            mWriter.write(output);
+            try {
+                mWriter.write(output);
+            } catch (IOException ioe) {
+                throw new WstxIOException(ioe);
+            }
         }
     }
 
     public void output(char c)
-        throws IOException
+        throws XMLStreamException
     {
         if (mIsFlattening > 0) {
-            mWriter.write(c);
+            try {
+                mWriter.write(c);
+            } catch (IOException ioe) {
+                throw new WstxIOException(ioe);
+            }
         }
     }
-
-    /*
-    //////////////////////////////////////////////////
-    // Internal methods
-    //////////////////////////////////////////////////
-     */
 }
 

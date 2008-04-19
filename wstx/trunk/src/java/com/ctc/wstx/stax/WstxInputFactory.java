@@ -552,14 +552,7 @@ public final class WstxInputFactory
         BranchingReaderSource input = InputSourceFactory.constructDocumentSource
             (cfg, bs, null, systemId, src, r, autoCloseInput);
 
-      
-        try {
-            ValidatingStreamReader sr = ValidatingStreamReader.createValidatingStreamReader
-                (input, this, cfg, bs, forER);
-            return sr;
-        } catch (IOException ie) {
-            throw new WstxIOException(ie);
-        }
+        return ValidatingStreamReader.createValidatingStreamReader(input, this, cfg, bs, forER);
     }
 
     /**

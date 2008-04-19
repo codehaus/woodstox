@@ -84,7 +84,7 @@ public class MinimalDTDReader
      */
     public static void skipInternalSubset(WstxInputData srcData, WstxInputSource input,
                                           ReaderConfig cfg)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         MinimalDTDReader r = new MinimalDTDReader(input, cfg);
         // Need to read from same source as the master (owning stream reader)
@@ -177,7 +177,7 @@ public class MinimalDTDReader
      * any parsing, except for trying to match end of subset properly.
      */
     protected void skipInternalSubset()
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         while (true) {
             int i = getNextAfterWS();
@@ -249,21 +249,21 @@ public class MinimalDTDReader
      */
 
     protected char dtdNextFromCurr()
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         return (mInputPtr < mInputLen) ?
             mInputBuffer[mInputPtr++] : getNextCharFromCurrent(getErrorMsg());
     }
 
     protected char dtdNextChar()
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         return (mInputPtr < mInputLen) ?
             mInputBuffer[mInputPtr++] : getNextChar(getErrorMsg());
     }
 
     protected char getNextSkippingPEs()
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         while (true) {
             char c = (mInputPtr < mInputLen) ?
@@ -282,7 +282,7 @@ public class MinimalDTDReader
      */
 
     private void skipPE()
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         skipDTDName();
         /* Should now get semicolon... let's try to find and skip it; but
@@ -297,7 +297,7 @@ public class MinimalDTDReader
     }
 
     protected void skipComment()
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         skipCommentContent();
         // Now, we may be getting end mark; first need second marker char:.
@@ -309,7 +309,7 @@ public class MinimalDTDReader
     }
 
     protected void skipCommentContent()
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         while (true) {
             char c = (mInputPtr < mInputLen) ?
@@ -327,7 +327,7 @@ public class MinimalDTDReader
     }
 
     protected void skipPI()
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         while (true) {
             char c = (mInputPtr < mInputLen)
@@ -348,7 +348,7 @@ public class MinimalDTDReader
     }
 
     private void skipDeclaration(char c)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         while (c != '>') {
             c = (mInputPtr < mInputLen)
@@ -368,7 +368,7 @@ public class MinimalDTDReader
     }
 
     private void skipLiteral(char quoteChar)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         while (true) {
             char c = (mInputPtr < mInputLen)
@@ -385,7 +385,7 @@ public class MinimalDTDReader
     }
 
     private void skipDTDName()
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         /*int len =*/ skipFullName(getNextChar(getErrorMsg()));
         /* Should we give an error about missing name? For now,

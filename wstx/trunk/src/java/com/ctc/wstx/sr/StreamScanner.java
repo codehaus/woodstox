@@ -590,7 +590,7 @@ public abstract class StreamScanner
         return new WstxParsingException(msg, getLastCharLocation());
     }
 
-    protected WstxException constructFromIoe(IOException ioe)
+    protected WstxException constructFromIOE(IOException ioe)
     {
         return new WstxIOException(ioe);
     }
@@ -717,7 +717,7 @@ public abstract class StreamScanner
     }
 
     protected final int getNext()
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         if (mInputPtr >= mInputLen) {
             if (!loadMore()) {
@@ -737,7 +737,7 @@ public abstract class StreamScanner
      * cross input block boundary.
      */
     protected final int peekNext()
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         if (mInputPtr >= mInputLen) {
             if (!loadMoreFromCurrent()) {
@@ -748,7 +748,7 @@ public abstract class StreamScanner
     }
 
     protected final char getNextChar(String errorMsg)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         if (mInputPtr >= mInputLen) {
             loadMore(errorMsg);
@@ -765,7 +765,7 @@ public abstract class StreamScanner
      * such markup is not legal.
      */
     protected final char getNextCharFromCurrent(String errorMsg)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         if (mInputPtr >= mInputLen) {
             loadMoreFromCurrent(errorMsg);
@@ -779,7 +779,7 @@ public abstract class StreamScanner
      * indicate EOF (end of the outermost input source)/
      */
     protected final int getNextAfterWS()
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         if (mInputPtr >= mInputLen) {
             if (!loadMore()) {
@@ -806,7 +806,7 @@ public abstract class StreamScanner
     }
 
     protected final char getNextCharAfterWS(String errorMsg)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         if (mInputPtr >= mInputLen) {
             loadMore(errorMsg);
@@ -831,13 +831,13 @@ public abstract class StreamScanner
     }
 
     protected final char getNextInCurrAfterWS(String errorMsg)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         return getNextInCurrAfterWS(errorMsg, getNextCharFromCurrent(errorMsg));
     }
 
     protected final char getNextInCurrAfterWS(String errorMsg, char c)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         while (c <= CHAR_SPACE) {
             // Linefeed?
@@ -865,7 +865,7 @@ public abstract class StreamScanner
      * @return True, if passed in char is '\r' and next one is '\n'.
      */
     protected final boolean skipCRLF(char c) 
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         boolean result;
 
@@ -912,7 +912,7 @@ public abstract class StreamScanner
      */
     protected void initInputSource(WstxInputSource newInput, boolean isExt,
                                    String entityId)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         mInput = newInput;
         // Let's make sure new input will be read next time input is needed:
@@ -942,7 +942,7 @@ public abstract class StreamScanner
      *   we reached EOF.
      */
     protected boolean loadMore()
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         WstxInputSource input = mInput;
         do {
@@ -952,11 +952,16 @@ public abstract class StreamScanner
              */
             mCurrInputProcessed += mInputLen;
             mCurrInputRowStart -= mInputLen;
-            int count = input.readInto(this);
-            if (count > 0) {
-                return true;
+            int count;
+            try {
+                count = input.readInto(this);
+                if (count > 0) {
+                    return true;
+                }
+                input.close();
+            } catch (IOException ioe) {
+                throw constructFromIOE(ioe);
             }
-            input.close();
             if (input == mRootInput) {
                 /* Note: no need to check entity/input nesting in this
                  * particular case, since it will be handled by higher level
@@ -992,7 +997,7 @@ public abstract class StreamScanner
     }
 
     protected final boolean loadMore(String errorMsg)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         if (!loadMore()) {
             throwUnexpectedEOF(errorMsg);
@@ -1001,17 +1006,21 @@ public abstract class StreamScanner
     }
 
     protected boolean loadMoreFromCurrent()
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         // Need to update offsets properly
         mCurrInputProcessed += mInputLen;
         mCurrInputRowStart -= mInputLen;
-        int count = mInput.readInto(this);
-        return (count > 0);
+        try {
+            int count = mInput.readInto(this);
+            return (count > 0);
+        } catch (IOException ie) {
+            throw constructFromIOE(ie);
+        }
     }
 
     protected final boolean loadMoreFromCurrent(String errorMsg)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         if (!loadMoreFromCurrent()) {
             throwUnexpectedEOB(errorMsg);
@@ -1034,13 +1043,17 @@ public abstract class StreamScanner
      * @return true if there's now enough data; false if not (EOF)
      */
     protected boolean ensureInput(int minAmount)
-        throws IOException
+        throws XMLStreamException
     {
         int currAmount = mInputLen - mInputPtr;
         if (currAmount >= minAmount) {
             return true;
         }
-        return mInput.readMore(this, minAmount);
+        try {
+            return mInput.readMore(this, minAmount);
+        } catch (IOException ie) {
+            throw constructFromIOE(ie);
+        }
     }
 
     protected void closeAllInput(boolean force)
@@ -1055,7 +1068,7 @@ public abstract class StreamScanner
                     input.close();
                 }
             } catch (IOException ie) {
-                throwFromIOE(ie);
+                throw constructFromIOE(ie);
             }
             if (input == mRootInput) {
                 break;
@@ -1252,7 +1265,7 @@ public abstract class StreamScanner
      *   entity, or spans input buffer boundary).
      */
     protected char resolveCharOnlyEntity(boolean checkStd)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         //int avail = inputInBuffer();
         int avail = mInputLen - mInputPtr;
@@ -1344,7 +1357,7 @@ public abstract class StreamScanner
      * mode); which means it's never called from dtd handler.
      */
     protected EntityDecl resolveNonCharEntity()
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         //int avail = inputInBuffer();
         int avail = mInputLen - mInputPtr;
@@ -1447,7 +1460,7 @@ public abstract class StreamScanner
      *    input source.
      */
     protected char fullyResolveEntity(boolean allowExt)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         char c = getNextCharFromCurrent(SUFFIX_IN_ENTITY_REF);
 
@@ -1500,7 +1513,7 @@ public abstract class StreamScanner
      */
     protected EntityDecl expandEntity(String id, boolean allowExt,
                                       Object extraArg)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         mCurrName = id;
 
@@ -1534,7 +1547,7 @@ public abstract class StreamScanner
      * @param allowExt Whether external entities are allowed or not.
      */
     private void expandEntity(EntityDecl ed, boolean allowExt)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         String id = ed.getName();
 
@@ -1580,6 +1593,8 @@ public abstract class StreamScanner
              * description (with input source position etc)
              */
             throwParseError("(was "+fex.getClass().getName()+") "+fex.getMessage());
+        } catch (IOException ioe) {
+            throw constructFromIOE(ioe);
         }
         /* And then we'll need to make sure new input comes from the new
          * input source
@@ -1592,7 +1607,7 @@ public abstract class StreamScanner
      * note: only called from the local expandEntity() method
      */
     private void expandUnresolvedEntity(String id)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         XMLResolver resolver = mConfig.getUndeclaredEntityResolver();
         if (resolver != null) {
@@ -1613,8 +1628,13 @@ public abstract class StreamScanner
             if (xmlVersion == XmlConsts.XML_V_UNKNOWN) {
                 xmlVersion = XmlConsts.XML_V_10;
             }
-            WstxInputSource newInput = DefaultInputResolver.resolveEntityUsing
-                (oldInput, id, null, null, resolver, mConfig, xmlVersion);
+            WstxInputSource newInput;
+            try {
+                newInput = DefaultInputResolver.resolveEntityUsing
+                    (oldInput, id, null, null, resolver, mConfig, xmlVersion);
+            } catch (IOException ioe) {
+                throw constructFromIOE(ioe);
+            }
             if (newInput != null) {
                 // true -> is external
                 initInputSource(newInput, true, id);
@@ -1687,7 +1707,7 @@ public abstract class StreamScanner
      *    EOF or non-name-start char encountered)
      */
     protected String parseLocalName(char c)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         /* Has to start with letter, or '_' (etc); we won't allow ':' as that
          * is taken as namespace separator; no use trying to optimize
@@ -1742,7 +1762,7 @@ public abstract class StreamScanner
      * called very often.
      */
     protected String parseLocalName2(int start, int hash)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         int ptr = mInputLen - start;
         // Let's assume fairly short names
@@ -1797,7 +1817,7 @@ public abstract class StreamScanner
      *    EOF or non-name-start char encountered)
      */
     protected String parseFullName()
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         if (mInputPtr >= mInputLen) {
             loadMoreFromCurrent();
@@ -1806,7 +1826,7 @@ public abstract class StreamScanner
     }
 
     protected String parseFullName(char c)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         // First char has special handling:
         if (!isNameStartChar(c)) {
@@ -1862,7 +1882,7 @@ public abstract class StreamScanner
     }
 
     protected String parseFullName2(int start, int hash)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         int ptr = mInputLen - start;
         // Let's assume fairly short names
@@ -1916,7 +1936,7 @@ public abstract class StreamScanner
      * messages.
      */
     protected String parseFNameForError()
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         StringBuffer sb = new StringBuffer(100);
         while (true) {
@@ -1941,7 +1961,7 @@ public abstract class StreamScanner
     }
 
     protected final String parseEntityName(char c)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         String id = parseFullName(c);
         // Needs to be followed by a semi-colon, too.. from same input source:
@@ -1967,7 +1987,7 @@ public abstract class StreamScanner
      * @return Length of skipped name.
      */
     protected int skipFullName(char c)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         if (!isNameStartChar(c)) {
             --mInputPtr;
@@ -2003,7 +2023,7 @@ public abstract class StreamScanner
      */
     protected final String parseSystemId(char quoteChar, boolean convertLFs,
                                          String errorMsg)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         char[] buf = getNameBuffer(-1);
         int ptr = 0;
@@ -2063,7 +2083,7 @@ public abstract class StreamScanner
      * likely to be a bottleneck for parsing.
      */
     protected final String parsePublicId(char quoteChar, String errorMsg)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         char[] buf = getNameBuffer(-1);
         int ptr = 0;
@@ -2127,7 +2147,7 @@ public abstract class StreamScanner
 
     protected final void parseUntil(TextBuffer tb, char endChar, boolean convertLFs,
                                     String errorMsg)
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         // Let's first ensure we have some data in there...
         if (mInputPtr >= mInputLen) {
@@ -2200,7 +2220,7 @@ public abstract class StreamScanner
      */
 
     private char resolveCharEnt()
-        throws IOException, XMLStreamException
+        throws XMLStreamException
     {
         int value = 0;
         char c = getNextChar(SUFFIX_IN_ENTITY_REF);
