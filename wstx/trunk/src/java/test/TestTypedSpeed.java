@@ -6,7 +6,6 @@ import javax.xml.stream.*;
 
 import org.codehaus.stax2.*;
 
-import com.ctc.wstx.api.WstxInputProperties;
 import com.ctc.wstx.stax.WstxInputFactory;
 
 /**
@@ -42,7 +41,7 @@ public class TestTypedSpeed
      * Let's keep per-run times above 50 milliseconds
      */
     //final static int MIN_RUN_TIME = 50;
-    final static int MIN_RUN_TIME = 10;
+    final static int MIN_RUN_TIME = 5;
 
     /**
      * Let's keep per-run times below 300 milliseconds
@@ -84,7 +83,8 @@ public class TestTypedSpeed
         mIn.reset();
         String firstValue = findFirstValue(mIn); // also sets/clear 'mUseAttr' flag
         if (mUseAttr) {
-            System.out.println("(data stored as attributes)");
+            REPS += REPS;
+            System.out.println("(data stored as attributes: doubling REPS to "+REPS+")");
         } else {
             System.out.println("(data stored as element content)");
         }
@@ -144,7 +144,7 @@ public class TestTypedSpeed
             String msg;
             int sum = 0;
 
-            switch (1) {
+            switch (round) {
             case 0:
                 msg = "Access using Stax 1.0";
                 switch (mType) {

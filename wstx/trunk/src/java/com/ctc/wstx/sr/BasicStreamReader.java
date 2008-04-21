@@ -1243,6 +1243,9 @@ public class BasicStreamReader
 
     public boolean getAttributeAsBoolean(int index) throws XMLStreamException
     {
+        if (mCurrToken != START_ELEMENT) {
+            throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
+        }
         try {
             return mAttrCollector.getValueAsBoolean(index, mValueDecoder);
         } catch (IllegalArgumentException iae) {
@@ -1252,6 +1255,9 @@ public class BasicStreamReader
 
     public int getAttributeAsInt(int index) throws XMLStreamException
     {
+        if (mCurrToken != START_ELEMENT) {
+            throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
+        }
         try {
             return mAttrCollector.getValueAsInt(index, mValueDecoder);
         } catch (IllegalArgumentException iae) {
