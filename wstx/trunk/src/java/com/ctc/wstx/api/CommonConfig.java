@@ -69,6 +69,14 @@ abstract class CommonConfig
         // Xml:id support:
         sStdProperties.put(XMLStreamProperties.XSP_SUPPORT_XMLID,
                            DataUtil.Integer(PROP_SUPPORT_XMLID));
+
+
+        /* 23-Apr-2008, tatus: Additional interoperability property,
+         *    one that Sun implementation uses. Can map tor Stax2
+         *    property quite easily.
+         */
+        sStdProperties.put("http://java.sun.com/xml/stream/properties/implementation-name",
+                           DataUtil.Integer(PROP_IMPL_NAME));
     }
 
     protected CommonConfig() { }
@@ -113,6 +121,25 @@ abstract class CommonConfig
             throw new IllegalArgumentException("Unrecognized property '"+propName+"'");
         }
         return setStdProperty(propName, id, value);
+    }
+
+    /*
+    //////////////////////////////////////////////////////////
+    // Additional methods used by Woodstox core
+    //////////////////////////////////////////////////////////
+     */
+
+    public final Object safeGetProperty(String propName)
+    {
+        int id = findPropertyId(propName);
+        if (id >= 0) {
+            return getProperty(id);
+        }
+        id = findStdPropertyId(propName);
+        if (id < 0) {
+            return null;
+        }
+        return getStdProperty(id);
     }
 
     /*

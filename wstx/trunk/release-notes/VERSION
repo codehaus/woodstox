@@ -18,6 +18,9 @@ Description:
 
   * More complete Stax2 API ref. impl, adding generic XMLEventReader
     implementation.
+  * Added "synonym" property for interoperability; now property
+    "http://java.sun.com/xml/stream/properties/implementation-name"
+    is recognized as a synonym of XMLStreamProperties2.XSP_IMPLEMENTATION_NAME
 
 == History: ==
 

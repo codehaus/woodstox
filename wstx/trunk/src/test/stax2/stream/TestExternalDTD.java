@@ -49,13 +49,22 @@ public class TestExternalDTD
             String sysId = constructSystemId(resolveFile(filename));
             String XML = (i == 0) ? EXTERNAL_XML1 : EXTERNAL_XML2;
             XMLInputFactory2 f = getFactory();
-            XMLStreamReader sr = f.createXMLStreamReader(sysId,
-                                                         utf8StreamFromString(XML));
-            assertTokenType(DTD, sr.next());
-            assertTokenType(START_ELEMENT, sr.next());
-            assertTokenType(CHARACTERS, sr.next());
-            assertEquals(SIMPLE_EXT_ENTITY_TEXT, getAndVerifyText(sr));
-            assertTokenType(END_ELEMENT, sr.next());
+            XMLStreamReader sr;
+            try {
+                sr = f.createXMLStreamReader(sysId, utf8StreamFromString(XML));
+            } catch (XMLStreamException xse) {
+                fail("Failed to construct a SystemID-based stream reader: "+xse);
+                return; // never gets here
+            }
+            try {
+                assertTokenType(DTD, sr.next());
+                assertTokenType(START_ELEMENT, sr.next());
+                assertTokenType(CHARACTERS, sr.next());
+                assertEquals(SIMPLE_EXT_ENTITY_TEXT, getAndVerifyText(sr));
+                assertTokenType(END_ELEMENT, sr.next());
+            } catch (XMLStreamException xse) {
+                fail("Failed to process content using SystemID-based stream reader: "+xse);
+            }
         }
     }
 
@@ -72,13 +81,22 @@ public class TestExternalDTD
             String sysId = constructSystemId(resolveFile(filename));
             String XML = (i == 0) ? EXTERNAL_XML1 : EXTERNAL_XML2;
             XMLInputFactory2 f = getFactory();
-            XMLStreamReader sr = f.createXMLStreamReader(sysId,
-                                                         new StringReader(XML));
-            assertTokenType(DTD, sr.next());
-            assertTokenType(START_ELEMENT, sr.next());
-            assertTokenType(CHARACTERS, sr.next());
-            assertEquals(SIMPLE_EXT_ENTITY_TEXT, getAndVerifyText(sr));
-            assertTokenType(END_ELEMENT, sr.next());
+            XMLStreamReader sr;
+            try {
+                sr = f.createXMLStreamReader(sysId, new StringReader(XML));
+            } catch (XMLStreamException xse) {
+                fail("Failed to construct a SystemID-based String reader: "+xse);
+                return; // never gets here
+            }
+            try {
+                assertTokenType(DTD, sr.next());
+                assertTokenType(START_ELEMENT, sr.next());
+                assertTokenType(CHARACTERS, sr.next());
+                assertEquals(SIMPLE_EXT_ENTITY_TEXT, getAndVerifyText(sr));
+                assertTokenType(END_ELEMENT, sr.next());
+            } catch (XMLStreamException xse) {
+                fail("Failed to process content using SystemID-based String reader: "+xse);
+            }
         }
     }
 
@@ -96,26 +114,46 @@ public class TestExternalDTD
             String XML = (i == 0) ? EXTERNAL_XML1 : EXTERNAL_XML2;
             StreamSource src = new StreamSource(utf8StreamFromString(XML), sysId);
             XMLInputFactory2 f = getFactory();
-            XMLStreamReader sr = f.createXMLStreamReader(src);
-            assertTokenType(DTD, sr.next());
-            assertTokenType(START_ELEMENT, sr.next());
-            assertTokenType(CHARACTERS, sr.next());
-            assertEquals(SIMPLE_EXT_ENTITY_TEXT, getAndVerifyText(sr));
-            assertTokenType(END_ELEMENT, sr.next());
+            XMLStreamReader sr;
+            try {
+                sr = f.createXMLStreamReader(src);
+            } catch (XMLStreamException xse) {
+                fail("Failed to construct a StreamSource-based stream reader: "+xse);
+                return; // never gets here
+            }
+            try {
+                assertTokenType(DTD, sr.next());
+                assertTokenType(START_ELEMENT, sr.next());
+                assertTokenType(CHARACTERS, sr.next());
+                assertEquals(SIMPLE_EXT_ENTITY_TEXT, getAndVerifyText(sr));
+                assertTokenType(END_ELEMENT, sr.next());
+            } catch (XMLStreamException xse) {
+                fail("Failed to process content using StreamSource-based stream reader: "+xse);
+            }
         }
 
         // Then just passing File:
         for (int i = 0; i < 2; ++i) {
             String filename = (i == 0) ? EXTERNAL_FILENAME1 : EXTERNAL_FILENAME2;
             File file = resolveFile(filename);
-            StreamSource src = new StreamSource(file);
+            StreamSource src = new StreamSource(file);            
             XMLInputFactory2 f = getFactory();
-            XMLStreamReader sr = f.createXMLStreamReader(src);
-            assertTokenType(DTD, sr.next());
-            assertTokenType(START_ELEMENT, sr.next());
-            assertTokenType(CHARACTERS, sr.next());
-            assertEquals(SIMPLE_EXT_ENTITY_TEXT, getAndVerifyText(sr));
-            assertTokenType(END_ELEMENT, sr.next());
+            XMLStreamReader sr;
+            try {
+                sr = f.createXMLStreamReader(src);
+            } catch (XMLStreamException xse) {
+                fail("Failed to construct a StreamSource/file-based stream reader: "+xse);
+                return; // never gets here
+            }
+            try {
+                assertTokenType(DTD, sr.next());
+                assertTokenType(START_ELEMENT, sr.next());
+                assertTokenType(CHARACTERS, sr.next());
+                assertEquals(SIMPLE_EXT_ENTITY_TEXT, getAndVerifyText(sr));
+                assertTokenType(END_ELEMENT, sr.next());
+            } catch (XMLStreamException xse) {
+                fail("Failed to process content using StreamSource/file-based stream reader: "+xse);
+            }
         }
     }
 
@@ -129,7 +167,14 @@ public class TestExternalDTD
             String filename = (i == 0) ? EXTERNAL_FILENAME1 : EXTERNAL_FILENAME2;
             URL src = resolveFile(filename).toURL();
             XMLInputFactory2 f = getFactory();
-            XMLStreamReader sr = f.createXMLStreamReader(src);
+            XMLStreamReader sr;
+
+            try {
+                sr = f.createXMLStreamReader(src);
+            } catch (XMLStreamException xse) {
+                fail("Failed to construct an URL-based stream reader: "+xse);
+                return; // never gets here
+            }
             assertTokenType(DTD, sr.next());
             assertTokenType(START_ELEMENT, sr.next());
             assertTokenType(CHARACTERS, sr.next());
@@ -148,7 +193,13 @@ public class TestExternalDTD
             String filename = (i == 0) ? EXTERNAL_FILENAME1 : EXTERNAL_FILENAME2;
             File file = resolveFile(filename);
             XMLInputFactory2 f = getFactory();
-            XMLStreamReader sr = f.createXMLStreamReader(file);
+            XMLStreamReader sr;
+            try {
+                sr = f.createXMLStreamReader(file);
+            } catch (XMLStreamException xse) {
+                fail("Failed to construct a file-based stream reader: "+xse);
+                return; // never gets here
+            }
             assertTokenType(DTD, sr.next());
             assertTokenType(START_ELEMENT, sr.next());
             assertTokenType(CHARACTERS, sr.next());

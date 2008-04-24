@@ -1,5 +1,7 @@
 package com.ctc.wstx.dom;
 
+import java.util.Collections;
+
 import javax.xml.stream.*;
 import javax.xml.transform.dom.DOMSource;
 
@@ -46,6 +48,14 @@ public class WstxDOMWrappingReader
 
     public Object getProperty(String name)
     {
+        if (name.equals("javax.xml.stream.entities")) {
+            // !!! TBI
+            return Collections.EMPTY_LIST;
+        }
+        if (name.equals("javax.xml.stream.notations")) {
+            // !!! TBI
+            return Collections.EMPTY_LIST;
+        }
         return mConfig.getProperty(name);
     }
 

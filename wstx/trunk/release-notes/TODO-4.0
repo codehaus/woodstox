@@ -13,6 +13,7 @@ Planned stuff for 4.0
     Simplifies access patterns
 
 * Bugs / incomplete handling:
+  * XMLEvent: should it implement equals(), hashCode()?
   * More optimal check for "]]>" in content. Now over 99% reliable, but
     theoretically could miss if combination on input buffer boundary.
   * XMLTest failures:

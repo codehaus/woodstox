@@ -596,7 +596,12 @@ public class BasicStreamReader
 
     public Object getProperty(String name)
     {
-        return mConfig.getProperty(name);
+        /* 23-Apr-2008, TSa: Let's NOT throw IllegalArgumentException
+         *   for unknown property; JavaDocs do not suggest it needs
+         *   to be done (different from that of XMLInputFactory
+         *   and XMLStreamWriter specification)
+         */
+        return mConfig.safeGetProperty(name);
     }
 
     /*

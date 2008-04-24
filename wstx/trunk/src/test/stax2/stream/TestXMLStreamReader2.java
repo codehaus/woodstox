@@ -115,27 +115,31 @@ public class TestXMLStreamReader2
             +"</root>"
             ;
         XMLStreamReader2 sr = getReader(XML, ns);
-        assertTokenType(DTD, sr.next());
-        assertEquals("root", sr.getPrefixedName());
-        assertTokenType(START_ELEMENT, sr.next());
-        assertEquals("root", sr.getPrefixedName());
-        assertTokenType(START_ELEMENT, sr.next());
-        assertEquals("xy:elem", sr.getPrefixedName());
-        assertTokenType(PROCESSING_INSTRUCTION, sr.next());
-        assertEquals("proc", sr.getPrefixedName());
-        assertTokenType(START_ELEMENT, sr.next());
-        assertEquals("leaf", sr.getPrefixedName());
-        assertTokenType(END_ELEMENT, sr.next());
-        assertEquals("leaf", sr.getPrefixedName());
-        assertTokenType(START_ELEMENT, sr.next());
-        assertEquals("another:x", sr.getPrefixedName());
-        assertTokenType(END_ELEMENT, sr.next());
-        assertEquals("another:x", sr.getPrefixedName());
-        assertTokenType(END_ELEMENT, sr.next());
-        assertEquals("xy:elem", sr.getPrefixedName());
-        assertTokenType(END_ELEMENT, sr.next());
-        assertEquals("root", sr.getPrefixedName());
-        assertTokenType(END_DOCUMENT, sr.next());
+        try {
+            assertTokenType(DTD, sr.next());
+            assertEquals("root", sr.getPrefixedName());
+            assertTokenType(START_ELEMENT, sr.next());
+            assertEquals("root", sr.getPrefixedName());
+            assertTokenType(START_ELEMENT, sr.next());
+            assertEquals("xy:elem", sr.getPrefixedName());
+            assertTokenType(PROCESSING_INSTRUCTION, sr.next());
+            assertEquals("proc", sr.getPrefixedName());
+            assertTokenType(START_ELEMENT, sr.next());
+            assertEquals("leaf", sr.getPrefixedName());
+            assertTokenType(END_ELEMENT, sr.next());
+            assertEquals("leaf", sr.getPrefixedName());
+            assertTokenType(START_ELEMENT, sr.next());
+            assertEquals("another:x", sr.getPrefixedName());
+            assertTokenType(END_ELEMENT, sr.next());
+            assertEquals("another:x", sr.getPrefixedName());
+            assertTokenType(END_ELEMENT, sr.next());
+            assertEquals("xy:elem", sr.getPrefixedName());
+            assertTokenType(END_ELEMENT, sr.next());
+            assertEquals("root", sr.getPrefixedName());
+            assertTokenType(END_DOCUMENT, sr.next());
+        } catch (XMLStreamException xse) {
+            fail("Did not expect any problems during parsing, but got: "+xse);
+        }
     }
 
     /*
