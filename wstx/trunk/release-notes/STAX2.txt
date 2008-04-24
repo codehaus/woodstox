@@ -55,3 +55,15 @@ API.
 * Configurable problem (validation error) handling: can collect all
   validation problems, or do fail-fast validation (exception on encountering
   the first problem).
+
+== Typed access (reading and writing simple Schema/Java types)
+
+(for Stax v3.0 and above, i.e. Woodstox 4.0)
+
+* Bi-directional, for stream readers and writers
+* Both for attribute and element content
+* Primitive types (boolean, numeric)
+* List types (lists of ints, doubles)
+* Chunked binary (base64) element content access
+
+

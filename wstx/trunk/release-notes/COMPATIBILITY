@@ -8,6 +8,11 @@
 * Fix for [WSTX-140] changes default for IS_COALESCING to be
   Boolean.FALSE as per Stax specs. 3.0 and earlier were defaulting
   to Boolean.TRUE.
+* XMLStreamReader.getProperty() will no longer throw IllegalArgumentException,
+  if fed an unknown property name. Rather, null is returned.
+  This is thought to be Stax 1.0 compliant, and both more convenient
+  and performant for cases where application needs to offer interoperability
+  with multiple Stax implementations.
 
 === Stream writer ===
 
