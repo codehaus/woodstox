@@ -60,6 +60,12 @@ abstract class CommonConfig
         // Xml:id support:
         sStdProperties.put(XMLStreamProperties.XSP_SUPPORTS_XML11,
                         new Integer(PROP_SUPPORTS_XML11));
+        /* 23-Apr-2008, TSa: Additional interoperability property,
+         *    one that Sun implementation uses. Can map tor Stax2
+         *    property quite easily.
+         */
+        sStdProperties.put("http://java.sun.com/xml/stream/properties/implementation-name",
+                           new Integer(PROP_IMPL_NAME));
     }
 
     protected CommonConfig() { }

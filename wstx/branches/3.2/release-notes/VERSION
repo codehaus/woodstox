@@ -1,9 +1,10 @@
 Version: 3.2.5
 
-Release date: Xx-Apr-2008
+Release date: 23-Apr-2008
 
 Description:
-  Yet another patch release for 3.2.
+  Yet another patch release for 3.2, waiting for 4.0 branch to mature
+  from alpha stage.
 
   Problems fixed:
 
@@ -11,6 +12,13 @@ Description:
     returned by OutputStreamWriter as is; and JDK was reporting
     legacy encodings. Needed to normalize encoding.
     (reported by Jim A)
+
+  Improvements:
+
+  * Added support for property:
+    "http://java.sun.com/xml/stream/properties/implementation-name"
+    it is now recognized as a synonym of XMLStreamProperties2.XSP_IMPLEMENTATION_NAME
+
 
 == History: ==
 
