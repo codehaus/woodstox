@@ -281,6 +281,27 @@ public final class Stax2WriterAdapter
         mDelegate.writeStartElement(prefix, localName, namespaceURI);
     }
 
+    /*
+    /////////////////////////////////////////////////
+    // TypedXMLStreamWriter2 implementation
+    // (Typed Access API, Stax v3.0)
+    /////////////////////////////////////////////////
+     */
+
+    // // // Typed element content write methods
+
+    public void writeBoolean(boolean b) throws XMLStreamException
+    {
+        mDelegate.writeCharacters(b ? "true" : "false");
+    }
+
+    // // // Typed attribute value write methods
+
+    public void writeBooleanAttribute(String prefix, String nsURI, String localName, boolean b) throws XMLStreamException
+    {
+        mDelegate.writeAttribute(prefix, nsURI, localName, b ? "true" : "false");
+    }
+
      /*
     ////////////////////////////////////////////////////
     // XMLStreamWriter2 (StAX2) implementation

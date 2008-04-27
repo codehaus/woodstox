@@ -7,6 +7,11 @@ import org.codehaus.stax2.typed.ValueDecoder;
 /**
  * Default implementation that strives for correctness, but is not
  * ridiculously heavily optimized.
+ *<p>
+ * Note that the default instance is stateless, and hence it is possible
+ * to use a Singleton instance of it. While this may not be true of
+ * sub-classes, this class does define accessor to singleton instance,
+ * for convenience.
  *
  * @author Tatu Saloranta
  */
@@ -19,7 +24,17 @@ public class DefaultValueDecoder
 
     private final static long L_MIN_INT = (long) Integer.MIN_VALUE;
 
+    final static DefaultValueDecoder sSharedInstance = new DefaultValueDecoder();
+
     public DefaultValueDecoder() { }
+
+    /**
+     * Method that can be used to access shared stateless global
+     * instance.
+     */
+    public static DefaultValueDecoder getInstance() {
+        return sSharedInstance;
+    }
 
     /*
     ///////////////////////////////////////////////

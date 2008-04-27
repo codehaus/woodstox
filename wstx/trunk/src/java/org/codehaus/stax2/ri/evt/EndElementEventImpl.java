@@ -122,4 +122,35 @@ public class EndElementEventImpl
     {
         w.writeEndElement();
     }
+
+    /*
+    ///////////////////////////////////////////
+    // Standard method impl
+    ///////////////////////////////////////////
+     */
+
+    public boolean equals(Object o)
+    {
+        if (o == this) return true;
+        if (o == null) return false;
+
+        if (!(o instanceof EndElement)) return false;
+
+        EndElement other = (EndElement) o;
+        // First of all, names must match obviously
+        if (getName().equals(other.getName())) {
+            /* But then, what about namespaces etc? For now,
+             * let's actually not consider namespaces: chances
+             * are corresponding START_ELEMENT must have matched
+             * well enough.
+             */
+            return true;
+        }
+        return false;
+    }
+
+    public int hashCode()
+    {
+        return getName().hashCode();
+    }
 }

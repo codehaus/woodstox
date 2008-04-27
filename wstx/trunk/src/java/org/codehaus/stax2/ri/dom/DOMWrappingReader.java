@@ -37,6 +37,9 @@ import org.codehaus.stax2.ri.EmptyIterator;
 import org.codehaus.stax2.ri.EmptyNamespaceContext;
 import org.codehaus.stax2.ri.SingletonIterator;
 import org.codehaus.stax2.ri.Stax2Util;
+import org.codehaus.stax2.ri.typed.DefaultValueDecoder;
+import org.codehaus.stax2.typed.TypedXMLStreamException;
+import org.codehaus.stax2.typed.ValueDecoder;
 import org.codehaus.stax2.validation.DTDValidationSchema;
 import org.codehaus.stax2.validation.ValidationProblemHandler;
 import org.codehaus.stax2.validation.XMLValidationSchema;
@@ -1014,20 +1017,28 @@ public abstract class DOMWrappingReader
 
     /*
     /////////////////////////////////////////////////
-    // TypedXMLStreamReader2 implementation
+    // TypedXMLStreamReader2 implementation (Stax v3.0)
     /////////////////////////////////////////////////
      */
 
     public boolean getElementAsBoolean() throws XMLStreamException
     {
-        // !!! TBI
-        return false;
+        String value = getElementText();
+        try {
+            return valueDecoder().decodeBoolean(value);
+        } catch (IllegalArgumentException iae) {
+            throw constructTypeException(iae, value);
+        }
     }
 
     public int getElementAsInt() throws XMLStreamException
     {
-        // !!! TBI
-        return 0;
+        String value = getElementText();
+        try {
+            return valueDecoder().decodeInt(value);
+        } catch (IllegalArgumentException iae) {
+            throw constructTypeException(iae, value);
+        }
     }
 
     public int getAttributeIndex(String namespaceURI, String localName)
@@ -1037,14 +1048,22 @@ public abstract class DOMWrappingReader
 
     public boolean getAttributeAsBoolean(int index) throws XMLStreamException
     {
-        // !!! TBI
-        return false;
+        String value = getAttributeValue(index);
+        try {
+            return valueDecoder().decodeBoolean(value);
+        } catch (IllegalArgumentException iae) {
+            throw constructTypeException(iae, value);
+        }
     }
 
     public int getAttributeAsInt(int index) throws XMLStreamException
     {
-        // !!! TBI
-        return 0;
+        String value = getAttributeValue(index);
+        try {
+            return valueDecoder().decodeInt(value);
+        } catch (IllegalArgumentException iae) {
+            throw constructTypeException(iae, value);
+        }
     }
 
     /*
@@ -1580,11 +1599,34 @@ public abstract class DOMWrappingReader
         return loc;
     }
 
+    /**
+     * Method called to wrap or convert given conversion-fail exception
+     * into a full {@link TypedXMLStreamException),
+     *
+     * @param iae Problem as reported by converter
+     * @param lexicalValue Lexical value (element content, attribute value)
+     *    that could not be converted succesfully.
+     */
+    protected TypedXMLStreamException constructTypeException(IllegalArgumentException iae, String lexicalValue)
+    {
+        return new TypedXMLStreamException(lexicalValue, iae.getMessage(), getStartLocation(), iae);
+    }
+
     /*
     ///////////////////////////////////////////////
     // Other internal methods
     ///////////////////////////////////////////////
      */
+
+    /**
+     * This method can be overridden by sub-classes, if an alternate
+     * value decoder instance should be used for handling conversions
+     * needed to implement Typed Access API.
+     */
+    protected ValueDecoder valueDecoder()
+    {
+        return DefaultValueDecoder.getInstance();
+    }
 
     /**
      * Method used to locate error message description to use.

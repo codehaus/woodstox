@@ -67,4 +67,32 @@ public class ProcInstrEventImpl
             w.writeProcessingInstruction(mTarget);
         }
     }
+
+    /*
+    ///////////////////////////////////////////
+    // Standard method impl
+    ///////////////////////////////////////////
+     */
+
+    public boolean equals(Object o)
+    {
+        if (o == this) return true;
+        if (o == null) return false;
+
+        if (!(o instanceof ProcessingInstruction)) return false;
+
+        ProcessingInstruction other = (ProcessingInstruction) o;
+        return mTarget.equals(other.getTarget())
+            && stringsWithNullsEqual(mData, other.getData());
+    }
+
+    public int hashCode()
+    {
+        int hash = mTarget.hashCode();
+        if (mData != null) {
+            hash ^= mData.hashCode();
+        }
+        return hash;
+    }
 }
+

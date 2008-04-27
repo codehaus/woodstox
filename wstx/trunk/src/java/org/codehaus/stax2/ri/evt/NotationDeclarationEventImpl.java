@@ -90,4 +90,33 @@ public class NotationDeclarationEventImpl
          */
         throw new XMLStreamException("Can not write notation declarations using an XMLStreamWriter");
     }
+
+    /*
+    ///////////////////////////////////////////
+    // Standard method impl
+    ///////////////////////////////////////////
+     */
+
+    public boolean equals(Object o)
+    {
+        if (o == this) return true;
+        if (o == null) return false;
+
+        if (!(o instanceof NotationDeclaration)) return false;
+
+        NotationDeclaration other = (NotationDeclaration) o;
+        return stringsWithNullsEqual(getName(), other.getName())
+            && stringsWithNullsEqual(getPublicId(), other.getPublicId())
+            && stringsWithNullsEqual(getSystemId(), other.getSystemId())
+            ;
+    }
+
+    public int hashCode()
+    {
+        int hash = 0;
+        if (mName != null) hash ^= mName.hashCode();
+        if (mPublicId != null) hash ^= mPublicId.hashCode();
+        if (mSystemId != null) hash ^= mSystemId.hashCode();
+        return hash;
+    }
 }

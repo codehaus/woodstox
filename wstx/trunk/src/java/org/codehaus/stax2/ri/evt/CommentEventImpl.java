@@ -51,4 +51,25 @@ public class CommentEventImpl
     {
         w.writeComment(mContent);
     }
+
+    /*
+    ///////////////////////////////////////////
+    // Standard method impl
+    ///////////////////////////////////////////
+     */
+
+    public boolean equals(Object o)
+    {
+        if (o == this) return true;
+        if (o == null) return false;
+        if (!(o instanceof Comment)) return false;
+
+        Comment other = (Comment) o;
+        return mContent.equals(other.getText());
+    }
+
+    public int hashCode()
+    {
+        return mContent.hashCode();
+    }
 }

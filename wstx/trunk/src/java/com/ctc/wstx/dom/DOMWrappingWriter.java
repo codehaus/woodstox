@@ -459,6 +459,29 @@ public class DOMWrappingWriter
     }
 
     /*
+    /////////////////////////////////////////////////
+    // TypedXMLStreamWriter2 implementation
+    // (Typed Access API, Stax v3.0)
+    /////////////////////////////////////////////////
+     */
+
+    // // // Typed element content write methods
+
+    public void writeBoolean(boolean value)
+        throws XMLStreamException
+    {
+        writeCharacters(value ? "true" : "false");
+    }
+
+    // // // Typed attribute value write methods
+
+    public void writeBooleanAttribute(String prefix, String nsURI, String localName, boolean value)
+        throws XMLStreamException
+    {
+        writeAttribute(prefix, nsURI, localName, value ? "true" : "false");
+    }
+
+    /*
     ////////////////////////////////////////////////////
     // XMLStreamWriter2 API (Stax2 v2.0)
     ////////////////////////////////////////////////////

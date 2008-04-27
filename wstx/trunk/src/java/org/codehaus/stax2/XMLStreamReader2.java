@@ -45,6 +45,9 @@ import org.codehaus.stax2.validation.Validatable;
  *    in question does not have much use.
  *  </dt>
  *</dt>
+ *<p>
+ * Since version 3.0, stream writer will also implement "Typed Access API"
+ * on output side.
  */
 public interface XMLStreamReader2
     extends TypedXMLStreamReader,

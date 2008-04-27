@@ -96,4 +96,33 @@ public class EntityDeclarationEventImpl
         writeAsEncodedUnicode(strw);
         w.writeRaw(strw.toString());
     }
+
+    /*
+    ///////////////////////////////////////////
+    // Standard method impl
+    ///////////////////////////////////////////
+     */
+
+    public boolean equals(Object o)
+    {
+        if (o == this) return true;
+        if (o == null) return false;
+
+        if (!(o instanceof EntityDeclaration)) return false;
+
+        EntityDeclaration other = (EntityDeclaration) o;
+        return stringsWithNullsEqual(getName(), other.getName())
+            && stringsWithNullsEqual(getBaseURI(), other.getBaseURI())
+            && stringsWithNullsEqual(getNotationName(), other.getNotationName())
+            && stringsWithNullsEqual(getPublicId(), other.getPublicId())
+            && stringsWithNullsEqual(getReplacementText(), other.getReplacementText())
+            && stringsWithNullsEqual(getSystemId(), other.getSystemId())
+            ;
+    }
+
+    public int hashCode()
+    {
+        // Since we don't have much data, this is easy...
+        return mName.hashCode();
+    }
 }

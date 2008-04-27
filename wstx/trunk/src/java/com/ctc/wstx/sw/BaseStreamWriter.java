@@ -749,6 +749,40 @@ public abstract class BaseStreamWriter
         throws XMLStreamException;
     
     /*
+    /////////////////////////////////////////////////
+    // TypedXMLStreamWriter2 implementation
+    // (Typed Access API, Stax v3.0)
+    /////////////////////////////////////////////////
+     */
+
+    /* There is still some overhead in serializing Strings, compared
+     * to serializing character arrays (as proven by profiling which
+     * resulted in making intermediate copies, which still was faster
+     * than iterating over characters). Because of this, it makes
+     * sense to pre-fetch char arrays for constants we need.
+     */
+
+    final static char[] TYPE_CONST_TRUE = "true".toCharArray();
+    final static char[] TYPE_CONST_FALSE = "false".toCharArray();
+
+    // // // Typed element content write methods
+
+    public void writeBoolean(boolean b)
+        throws XMLStreamException
+    {
+        char[] value = b ? TYPE_CONST_TRUE : TYPE_CONST_FALSE;
+        writeCharacters(value, 0, value.length);
+    }
+
+    // // // Typed attribute value write methods
+
+    public void writeBooleanAttribute(String prefix, String nsURI, String localName, boolean value)
+        throws XMLStreamException
+    {
+        writeAttribute(prefix, nsURI, localName, value ? "true" : "false");
+    }
+
+    /*
     ////////////////////////////////////////////////////
     // XMLStreamWriter2 methods (StAX2)
     ////////////////////////////////////////////////////

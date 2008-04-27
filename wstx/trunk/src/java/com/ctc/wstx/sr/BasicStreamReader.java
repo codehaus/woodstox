@@ -173,12 +173,6 @@ public class BasicStreamReader
 
     final protected static String sPrefixXmlns = DefaultXmlSymbolTable.getXmlnsSymbol();
 
-    /**
-     * We will use a stateless shared decoder if none is explicitly
-     * configured to be used
-     */
-    final static ValueDecoder sDefaultValueDecoder = new DefaultValueDecoder();
-
     /*
     ////////////////////////////////////////////////////
     // Configuration
@@ -213,12 +207,6 @@ public class BasicStreamReader
      * and external subsets).
      */
     final Map mCustomEntities;
-
-    /**
-     * Decoder used to convert textual (lexical) element content
-     * and attribute values into Java types.
-     */
-    protected ValueDecoder mValueDecoder;
 
     /*
     ////////////////////////////////////////////////////
@@ -472,11 +460,6 @@ public class BasicStreamReader
         }
 
         mCustomEntities = cfg.getCustomInternalEntities();
-        mValueDecoder = cfg.getTypedValueDecoder();
-        // If no explicitly set one, we'll use the default one
-        if (mValueDecoder == null) {
-            mValueDecoder = sDefaultValueDecoder;
-        }
 
         // // // Then handling of xml declaration data:
 
@@ -1214,9 +1197,9 @@ public class BasicStreamReader
         String value = collectElementText();
         try {
             if (value == null) {
-                return mTextBuffer.convertToBoolean(mValueDecoder);
+                return mTextBuffer.convertToBoolean(valueDecoder());
             } else {
-                return mValueDecoder.decodeBoolean(value);
+                return valueDecoder().decodeBoolean(value);
             }
         } catch (IllegalArgumentException iae) {
             throw constructTypeException(iae, value);
@@ -1228,9 +1211,9 @@ public class BasicStreamReader
         String value = collectElementText();
         try {
             if (value == null) {
-                return mTextBuffer.convertToInt(mValueDecoder);
+                return mTextBuffer.convertToInt(valueDecoder());
             } else {
-                return mValueDecoder.decodeInt(value);
+                return valueDecoder().decodeInt(value);
             }
         } catch (IllegalArgumentException iae) {
             throw constructTypeException(iae, value);
@@ -1252,7 +1235,7 @@ public class BasicStreamReader
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
         }
         try {
-            return mAttrCollector.getValueAsBoolean(index, mValueDecoder);
+            return mAttrCollector.getValueAsBoolean(index, valueDecoder());
         } catch (IllegalArgumentException iae) {
             throw constructTypeException(iae, mAttrCollector.getValue(index));
         }
@@ -1264,7 +1247,7 @@ public class BasicStreamReader
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
         }
         try {
-            return mAttrCollector.getValueAsInt(index, mValueDecoder);
+            return mAttrCollector.getValueAsInt(index, valueDecoder());
         } catch (IllegalArgumentException iae) {
             throw constructTypeException(iae, mAttrCollector.getValue(index));
         }
@@ -1355,45 +1338,14 @@ public class BasicStreamReader
         return (acc == null) ? text : acc.getAndClear();
     }
 
-    private String collectElementText2()
-        throws XMLStreamException
+    /**
+     * Method that will determine value decoder to use. In future,
+     * we may allow for customizing decoder, but for now we will
+     * use the default implementation from Stax2 RI.
+     */
+    protected ValueDecoder valueDecoder()
     {
-        // First sanity checks to ensure state is as expected
-        if (mCurrToken != START_ELEMENT) {
-            throwParseError(ErrorConsts.ERR_STATE_NOT_STELEM);
-        }
-        /* Ok, now: with START_ELEMENT we know that it's not partially
-         * processed; that we are in-tree (not prolog or epilog).
-         * The only possible complication would be 
-         */
-        if (mStEmptyElem) {
-            // and if so, we'll then get 'virtual' close tag:
-            mStEmptyElem = false;
-            // ... and location info is correct already
-            mCurrToken = END_ELEMENT;
-            mTextBuffer.resetWithEmptyString();
-            return "";
-        }
-
-        /* After that, we should be able to figure out the
-         * following character. This is basically inlined version
-         * of second half of 'nextFromTree()' (first half being
-         * irrelevant for our purposes)
-         *
-         * Note: no need to keep track of token start; it'll get
-         * overwritten by location info for final END_ELEMENT
-         *
-         * Also: we can skip leading space as a minor optimization
-         * (as it will always get trimmed as part of normalization)
-         */
-        int i = getNextAfterWS();
-        if (i < 0) {
-            throwUnexpectedEOF();
-        }
-
-        // !!! TBI
-
-        return null;
+        return DefaultValueDecoder.getInstance();
     }
 
     /*

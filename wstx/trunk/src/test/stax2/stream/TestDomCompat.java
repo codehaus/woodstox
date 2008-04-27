@@ -1,4 +1,4 @@
-package wstxtest.stream;
+package stax2.stream;
 
 import java.io.*;
 
@@ -13,12 +13,19 @@ import org.w3c.dom.Document;
 
 import org.codehaus.stax2.*;
 
+import stax2.BaseStax2Test;
+
 /**
  * Unit test suite that checks that input-side DOM-compatibility
  * features (DOMSource as input) are implemented as expected.
+ *<p>
+ * This test is part of stax2test suite because a reference implementation
+ * of DOM-wrapping/adapting reader is included, and hence it is
+ * reasonable to expect that Stax2 implementations would implement
+ * this part of DOM interoperability support.
  */
 public class TestDomCompat
-    extends BaseStreamTest
+    extends BaseStax2Test
 {
     public void testSimpleDomInput()
         throws Exception
@@ -32,16 +39,7 @@ public class TestDomCompat
             +"</ns:root><?pi-in epilog?>"
             ;
 
-        // First, need to parse using JAXP DOM:
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        dbf.setNamespaceAware(true);
-        DocumentBuilder db = dbf.newDocumentBuilder();
-        Document dom = db.parse(new InputSource(new StringReader(XML)));
-
-        XMLInputFactory2 ifact = getInputFactory();
-        XMLStreamReader sr = ifact.createXMLStreamReader(new DOMSource(dom));
-
-        assertTokenType(START_DOCUMENT, sr.getEventType());
+        XMLStreamReader sr = createDomBasedReader(XML, true);
 
         assertTokenType(COMMENT, sr.next());
         assertEquals("prolog", getAndVerifyText(sr));
@@ -132,19 +130,9 @@ public class TestDomCompat
         throws Exception
     {
         final String XML =
-            "<?xml version='1.0' ?><root>  \n<leaf>\t</leaf>  x </root>"
-            ;
+            "<?xml version='1.0' ?><root>  \n<leaf>\t</leaf>  x </root>";
+        XMLStreamReader sr = createDomBasedReader(XML, true);
 
-        // First, need to parse using JAXP DOM:
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        dbf.setNamespaceAware(true);
-        DocumentBuilder db = dbf.newDocumentBuilder();
-        Document dom = db.parse(new InputSource(new StringReader(XML)));
-
-        XMLInputFactory2 ifact = getInputFactory();
-        XMLStreamReader sr = ifact.createXMLStreamReader(new DOMSource(dom));
-
-        assertTokenType(START_DOCUMENT, sr.getEventType());
         assertTokenType(START_ELEMENT, sr.next());
         assertEquals("root", sr.getLocalName());
         assertTokenType(CHARACTERS, sr.next());
@@ -174,15 +162,11 @@ public class TestDomCompat
     {
         final String XML =
             "<root>Some <![CDATA[content]]> in cdata</root>";
-            ;
 
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        DocumentBuilder db = dbf.newDocumentBuilder();
-        Document dom = db.parse(new InputSource(new StringReader(XML)));
-
+        Document doc = parseDomDoc(XML, true);
         XMLInputFactory2 ifact = getInputFactory();
         setCoalescing(ifact, true);
-        XMLStreamReader sr = ifact.createXMLStreamReader(new DOMSource(dom));
+        XMLStreamReader sr = ifact.createXMLStreamReader(new DOMSource(doc));
         assertTokenType(START_DOCUMENT, sr.getEventType());
         assertTokenType(START_ELEMENT, sr.next());
         assertEquals("root", sr.getLocalName());
@@ -199,13 +183,10 @@ public class TestDomCompat
         final String XML =
             "<root><![CDATA[...]]></root>";
             ;
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        DocumentBuilder db = dbf.newDocumentBuilder();
-        Document dom = db.parse(new InputSource(new StringReader(XML)));
+        Document doc = parseDomDoc(XML, true);
         XMLInputFactory2 ifact = getInputFactory();
         setCoalescing(ifact, true);
-        XMLStreamReader sr = ifact.createXMLStreamReader(new DOMSource(dom));
-        assertTokenType(START_DOCUMENT, sr.getEventType());
+        XMLStreamReader sr = ifact.createXMLStreamReader(new DOMSource(doc));
         assertTokenType(START_ELEMENT, sr.next());
         assertEquals("root", sr.getLocalName());
         // Should always be of type CHARACTERS, even if underlying event is CDATA
@@ -214,5 +195,71 @@ public class TestDomCompat
 
         assertTokenType(END_ELEMENT, sr.next());
         assertTokenType(END_DOCUMENT, sr.next());
+    }
+
+    /*
+    ///////////////////////////////////////////////////
+    // Tests for Stax2 (v3) Typed Access API methods
+    ///////////////////////////////////////////////////
+    */
+
+    public void testPrimitiveTypesBoolean()
+        throws Exception
+    {
+        final String XML = "<root attr='true'>  false  </root>";
+        XMLStreamReader2 sr = createDomBasedReader(XML, true);
+
+        assertTokenType(START_ELEMENT, sr.next());
+        assertEquals("root", sr.getLocalName());
+        assertTrue(sr.getAttributeAsBoolean(0));
+        assertFalse(sr.getElementAsBoolean());
+        // calling above method advances stream to END_ELEMENT
+        assertTokenType(END_ELEMENT, sr.getEventType());
+        assertEquals("root", sr.getLocalName());
+        assertTokenType(END_DOCUMENT, sr.next());
+        sr.close();
+    }
+
+    public void testPrimitiveTypesInt()
+        throws Exception
+    {
+        final String XML = "<root attr='13'>\n\t-123456</root>";
+        XMLStreamReader2 sr = createDomBasedReader(XML, true);
+
+        assertTokenType(START_ELEMENT, sr.next());
+        assertEquals("root", sr.getLocalName());
+        assertEquals(13, sr.getAttributeAsInt(0));
+        assertEquals(-123456, sr.getElementAsInt());
+        // calling above method advances stream to END_ELEMENT
+        assertTokenType(END_ELEMENT, sr.getEventType());
+        assertEquals("root", sr.getLocalName());
+        assertTokenType(END_DOCUMENT, sr.next());
+        sr.close();
+    }
+
+    /*
+    ///////////////////////////////////////////////////
+    // Helper methods
+    ///////////////////////////////////////////////////
+    */
+
+    private XMLStreamReader2 createDomBasedReader(String content, boolean nsAware)
+        throws Exception
+    {
+        XMLInputFactory2 ifact = getInputFactory();
+        XMLStreamReader2 sr = (XMLStreamReader2) ifact.createXMLStreamReader(new DOMSource(parseDomDoc(content, nsAware)));
+        // Let's also check it's properly initialized
+        assertTokenType(START_DOCUMENT, sr.getEventType());
+        return sr;
+    }
+
+    private Document parseDomDoc(String content, boolean nsAware)
+        throws Exception
+    {
+        // First, need to parse using JAXP DOM:
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        dbf.setNamespaceAware(nsAware);
+        DocumentBuilder db = dbf.newDocumentBuilder();
+        return db.parse(new InputSource(new StringReader(content)));
     }
 }

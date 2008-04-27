@@ -6,6 +6,7 @@ import java.io.Writer;
 import java.util.*;
 
 import javax.xml.stream.*;
+import javax.xml.stream.events.DTD;
 
 import org.codehaus.stax2.XMLStreamWriter2;
 import org.codehaus.stax2.evt.DTD2;
@@ -190,6 +191,45 @@ public class DTDEventImpl
 
     public String getInternalSubset() {
         return mInternalSubset;
+    }
+
+    /*
+    ///////////////////////////////////////////
+    // Standard method impl
+    ///////////////////////////////////////////
+     */
+
+    public boolean equals(Object o)
+    {
+        if (o == this) return true;
+        if (o == null) return false;
+        if (!(o instanceof DTD)) return false;
+
+        DTD other = (DTD) o;
+
+        /* Hmmh. Comparison for this event get very
+         * tricky, very fast, if one tries to do it correctly
+         * (partly due to Stax2 incompleteness, but not just
+         * because of that)... let's actually try to minimize
+         * work here
+         */
+        return stringsWithNullsEqual(getDocumentTypeDeclaration(),
+                                     other.getDocumentTypeDeclaration());
+    }
+
+
+    public int hashCode()
+    {
+        int hash = 0;
+        if (mRootName != null) hash ^= mRootName.hashCode();
+        if (mSystemId != null) hash ^= mSystemId.hashCode();
+        if (mPublicId != null) hash ^= mPublicId.hashCode();
+        if (mInternalSubset != null) hash ^= mInternalSubset.hashCode();
+        if (mDTD != null) hash ^= mDTD.hashCode();
+        if (hash == 0 && mFullText != null) {
+            hash ^= mFullText.hashCode();
+        }
+        return hash;
     }
 
     /*

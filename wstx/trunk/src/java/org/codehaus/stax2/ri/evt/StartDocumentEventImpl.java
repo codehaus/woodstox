@@ -144,4 +144,41 @@ public class StartDocumentEventImpl
     {
         w.writeStartDocument();
     }
+
+    /*
+    ///////////////////////////////////////////
+    // Standard method impl
+    ///////////////////////////////////////////
+     */
+
+    public boolean equals(Object o)
+    {
+        if (o == this) return true;
+        if (o == null) return false;
+        if (!(o instanceof StartDocument)) return false;
+
+        StartDocument other = (StartDocument) o;
+
+        return (encodingSet() == other.encodingSet())
+            && (isStandalone() == other.isStandalone())
+            && (standaloneSet() == other.standaloneSet())
+            && stringsWithNullsEqual(getCharacterEncodingScheme(), other.getCharacterEncodingScheme())
+            && stringsWithNullsEqual(getSystemId(), other.getSystemId())
+            && stringsWithNullsEqual(getVersion(), other.getVersion())
+            ;
+    }
+
+
+    public int hashCode()
+    {
+        int hash = 0;
+
+        if (encodingSet()) ++hash;
+        if (isStandalone()) --hash;
+        if (standaloneSet()) hash ^= 1;
+        if (mVersion != null) hash ^= mVersion.hashCode();
+        if (mEncodingScheme != null) hash ^= mEncodingScheme.hashCode();
+        if (mSystemId != null) hash ^= mSystemId.hashCode();
+        return hash;
+    }
 }

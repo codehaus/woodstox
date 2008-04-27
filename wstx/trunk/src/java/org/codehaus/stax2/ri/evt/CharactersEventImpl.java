@@ -150,6 +150,33 @@ public class CharactersEventImpl
 
     /*
     ///////////////////////////////////////////
+    // Standard method impl
+    ///////////////////////////////////////////
+     */
+
+    public boolean equals(Object o)
+    {
+        if (o == this) return true;
+        if (o == null) return false;
+        if (!(o instanceof Characters)) return false;
+
+        Characters other = (Characters) o;
+        // Obviously textual content has to match
+        if (mContent.equals(other.getData())) {
+            // But how about type (CDATA vs CHARACTERS)?
+            // For now, let's require type match too
+            return isCData() == other.isCData();
+        }
+        return false;
+    }
+
+    public int hashCode()
+    {
+        return mContent.hashCode();
+    }
+
+    /*
+    ///////////////////////////////////////////
     // Internal methods
     ///////////////////////////////////////////
      */

@@ -74,4 +74,36 @@ public abstract class WEntityDeclaration
          */
         throw new XMLStreamException("Can not write entity declarations using an XMLStreamWriter");
     }
+
+    /*
+    ///////////////////////////////////////////
+    // Standard method impl: note, copied
+    // from Stax2 RI "EntityDeclarationEventImpl"
+    ///////////////////////////////////////////
+     */
+
+    public boolean equals(Object o)
+    {
+        if (o == this) return true;
+        if (o == null) return false;
+
+        if (!(o instanceof EntityDeclaration)) return false;
+
+        EntityDeclaration other = (EntityDeclaration) o;
+        return stringsWithNullsEqual(getName(), other.getName())
+            && stringsWithNullsEqual(getBaseURI(), other.getBaseURI())
+            && stringsWithNullsEqual(getNotationName(), other.getNotationName())
+            && stringsWithNullsEqual(getPublicId(), other.getPublicId())
+            && stringsWithNullsEqual(getReplacementText(), other.getReplacementText())
+            && stringsWithNullsEqual(getSystemId(), other.getSystemId())
+            ;
+    }
+
+    public int hashCode()
+    {
+        /* Hmmh. Could try using most of the data, but really, name
+         * should be enough for most use cases
+         */
+        return getName().hashCode();
+    }
 }

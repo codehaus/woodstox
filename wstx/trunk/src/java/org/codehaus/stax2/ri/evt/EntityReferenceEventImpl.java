@@ -68,4 +68,26 @@ public class EntityReferenceEventImpl
     {
         w.writeEntityRef(getName());
     }
+
+    /*
+    ///////////////////////////////////////////
+    // Standard method impl
+    ///////////////////////////////////////////
+     */
+
+    public boolean equals(Object o)
+    {
+        if (o == this) return true;
+        if (o == null) return false;
+
+        if (!(o instanceof EntityReference)) return false;
+
+        EntityReference other = (EntityReference) o;
+        return getName().equals(other.getName());
+    }
+
+    public int hashCode()
+    {
+        return getName().hashCode();
+    }
 }

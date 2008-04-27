@@ -8,7 +8,6 @@ import javax.xml.stream.*;
 
 import org.codehaus.stax2.XMLInputFactory2; // for property consts
 import org.codehaus.stax2.XMLStreamProperties; // for property consts
-import org.codehaus.stax2.typed.ValueDecoder;
 import org.codehaus.stax2.validation.DTDValidationSchema;
 
 import org.codehaus.stax2.ri.EmptyIterator;
@@ -73,7 +72,6 @@ public final class ReaderConfig
     // Enum / Object type properties:
     final static int PROP_SUPPORT_XMLID = 26; // shared with WriterConfig
     final static int PROP_DTD_OVERRIDE = 27;
-    final static int PROP_TYPED_VALUE_DECODER = 28;
 
     // // // Constants for additional Wstx properties:
 
@@ -253,8 +251,6 @@ public final class ReaderConfig
                         DataUtil.Integer(PROP_SUPPORT_XMLID));
         sProperties.put(XMLInputFactory2.P_DTD_OVERRIDE,
                         DataUtil.Integer(PROP_DTD_OVERRIDE));
-        sProperties.put(XMLInputFactory2.P_TYPED_VALUE_DECODER,
-                        DataUtil.Integer(PROP_TYPED_VALUE_DECODER));
 
         // Non-standard ones, flags:
 
@@ -348,13 +344,12 @@ public final class ReaderConfig
 
     Object[] mSpecialProperties = null;
 
-    private final static int SPEC_PROC_COUNT = 5;
+    private final static int SPEC_PROC_COUNT = 4;
 
     private final static int SP_IX_CUSTOM_ENTITIES = 0;
     private final static int SP_IX_UNDECL_ENT_RESOLVER = 1;
     private final static int SP_IX_DTD_EVENT_LISTENER = 2;
     private final static int SP_IX_DTD_OVERRIDE = 3;
-    private final static int SP_IX_TYPED_VALUE_DECODER = 4;
 
     /*
     //////////////////////////////////////////////////////////
@@ -648,13 +643,6 @@ public final class ReaderConfig
         return (DTDValidationSchema) getSpecialProperty(SP_IX_DTD_OVERRIDE);
     }
 
-    /**
-     * @since 4.0
-     */
-    public ValueDecoder getTypedValueDecoder() {
-        return (ValueDecoder) getSpecialProperty(SP_IX_TYPED_VALUE_DECODER);
-    }
-
     /*
     //////////////////////////////////////////////////////////
     // Simple mutators
@@ -838,13 +826,6 @@ public final class ReaderConfig
 
     public void setDTDOverride(DTDValidationSchema schema) {
         setSpecialProperty(SP_IX_DTD_OVERRIDE, schema);
-    }
-
-    /**
-     * @since 4.0
-     */
-    public void setTypedValueDecoder(ValueDecoder d) {
-        setSpecialProperty(SP_IX_TYPED_VALUE_DECODER, d);
     }
 
     /*
@@ -1219,8 +1200,6 @@ public final class ReaderConfig
 
         case PROP_DTD_OVERRIDE:
             return getDTDOverride();
-        case PROP_TYPED_VALUE_DECODER:
-            return getTypedValueDecoder();
 
         // // // Then Woodstox custom properties:
 
@@ -1362,10 +1341,6 @@ public final class ReaderConfig
 
         case PROP_DTD_OVERRIDE:
             setDTDOverride((DTDValidationSchema) value);
-            break;
-
-        case PROP_TYPED_VALUE_DECODER:
-            setTypedValueDecoder((ValueDecoder) value);
             break;
 
         // // // And then Woodstox specific, flags

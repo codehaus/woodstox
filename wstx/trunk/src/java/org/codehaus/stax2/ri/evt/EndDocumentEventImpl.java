@@ -40,4 +40,22 @@ public class EndDocumentEventImpl
     {
         w.writeEndDocument();
     }
+
+    /*
+    ///////////////////////////////////////////
+    // Standard method impl
+    ///////////////////////////////////////////
+     */
+
+    public boolean equals(Object o)
+    {
+        if (o == this) return true;
+        if (o == null) return false;
+        return (o instanceof EndDocument);
+    }
+
+    public int hashCode()
+    {
+        return END_DOCUMENT;
+    }
 }

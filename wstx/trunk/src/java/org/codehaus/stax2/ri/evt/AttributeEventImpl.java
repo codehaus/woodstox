@@ -116,6 +116,43 @@ public class AttributeEventImpl
 
     /*
     ///////////////////////////////////////////
+    // Standard method impl
+    ///////////////////////////////////////////
+     */
+
+    public boolean equals(Object o)
+    {
+        if (o == this) return true;
+        if (o == null) return false;
+        if (!(o instanceof Attribute)) return false;
+
+        Attribute other = (Attribute) o;
+        if (mName.equals(other.getName())
+            && mValue.equals(other.getValue())) {
+            /* But now; do we care about compatibility of
+             * DTD/Schema datatype and whether it's created
+             * from attribute defaulting? Let's start by being
+             * conservative and require those to match
+             */
+            if (isSpecified() == other.isSpecified()) {
+                return stringsWithNullsEqual(getDTDType(), other.getDTDType());
+            }
+        }
+        return false;
+    }
+
+    public int hashCode()
+    {
+        /* Hmmh. Definitely need hashCode of name; but how about
+         * value? That's potentially more expensive. But, if
+         * using code wants to avoid value, it should key off name
+         * anyway.
+         */
+        return mName.hashCode() ^ mValue.hashCode();
+    }
+
+    /*
+    ///////////////////////////////////////////
     // Internal methods
     ///////////////////////////////////////////
      */

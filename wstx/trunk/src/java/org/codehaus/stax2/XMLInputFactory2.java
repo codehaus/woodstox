@@ -164,22 +164,6 @@ public abstract class XMLInputFactory2
      */
     public final static String P_DTD_OVERRIDE = "org.codehaus.stax2.propDtdOverride";
 
-    // // // Typed data access configuration
-
-    /**
-     * Property of type {@link  org.codehaus.stax2.typed.ValueDecoder}
-     * which can be set to define value decoder instance used for decoding
-     * typed values from textual (lexical) representation. It is used
-     * by methods defined in
-     * {@link org.codehaus.stax2.typed.TypedXMLStreamReader}.
-     * Defaults to <code>null</code> which means that the implementation
-     * is to use its own default implementation.
-     *
-     * @since 3.0
-     */
-    public final static String P_TYPED_VALUE_DECODER = "org.codehaus.stax2.typed.valueDecoder";
-
-
     /*
     ////////////////////////////////////////////////////
     // Life-cycle

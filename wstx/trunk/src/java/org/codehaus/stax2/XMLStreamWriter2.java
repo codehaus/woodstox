@@ -3,6 +3,7 @@ package org.codehaus.stax2;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
+import org.codehaus.stax2.typed.TypedXMLStreamWriter;
 import org.codehaus.stax2.validation.Validatable;
 
 /**
@@ -12,12 +13,16 @@ import org.codehaus.stax2.validation.Validatable;
  * It also adds limited number of methods that are important for
  * efficient pass-through processing (such as one needed when routing
  * SOAP-messages).
+ *<p>
+ * Since version 3.0, stream writer will also implement "Typed Access API"
+ * on output side.
  *
  * @version 3.0 01/21/2007
  * @author Tatu Saloranta (tatu.saloranta@iki.fi)
  */
 public interface XMLStreamWriter2
-    extends XMLStreamWriter, Validatable
+    extends TypedXMLStreamWriter,
+            Validatable
 {
     /*
     ///////////////////////////

@@ -86,4 +86,7 @@ public class NamespaceEventImpl
 
     //public void writeAsEncodedUnicode(Writer w) throws XMLStreamException
     //public void writeUsing(XMLStreamWriter2 w) throws XMLStreamException
+
+    //public boolean equals(Object o)
+    //public int hashCode()
 }

@@ -141,4 +141,44 @@ abstract class BaseStartElement
     protected abstract void outputNsAndAttr(Writer w) throws IOException;
 
     protected abstract void outputNsAndAttr(XMLStreamWriter w) throws XMLStreamException;
+
+    /*
+    ///////////////////////////////////////////
+    // Standard method implementation
+    //
+    // note: copied from Stax2 RI's StartElementEventImpl
+    ///////////////////////////////////////////
+     */
+
+    public boolean equals(Object o)
+    {
+        if (o == this) return true;
+        if (o == null) return false;
+
+        if (!(o instanceof StartElement)) return false;
+
+        StartElement other = (StartElement) o;
+
+        // First things first: names must match
+        if (mName.equals(other.getName())) {
+            /* Rest is much trickier. I guess the easiest way is to
+             * just blindly iterate through ns decls and attributes.
+             * The main issue is whether ordering should matter; it will,
+             * if just iterating. Would need to sort to get canonical
+             * comparison.
+             */
+            if (iteratedEquals(getNamespaces(), other.getNamespaces())) {
+                return iteratedEquals(getAttributes(), other.getAttributes());
+            }
+        }
+        return false;
+    }
+
+    public int hashCode()
+    {
+        int hash = mName.hashCode();
+        hash = addHash(getNamespaces(), hash);
+        hash = addHash(getAttributes(), hash);
+        return hash;
+    }
 }
