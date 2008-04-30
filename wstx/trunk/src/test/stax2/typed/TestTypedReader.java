@@ -1,6 +1,5 @@
 package stax2.typed;
 
-
 import javax.xml.stream.*;
 
 import org.codehaus.stax2.*;
