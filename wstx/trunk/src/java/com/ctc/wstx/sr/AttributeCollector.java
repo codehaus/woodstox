@@ -283,7 +283,7 @@ public abstract class AttributeCollector
         if (index < 0 || index >= mAttrCount) {
             throwIndex(index);
         }
-        if (mAttrValues == null) {
+        if (mAttrValues != null) {
             String value = mAttrValues[index];
             if (value != null) {
                 return dec.decodeInt(value);

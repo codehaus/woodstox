@@ -184,6 +184,12 @@ public abstract class DOMWrappingReader
      */
     protected List mNsDeclList = null;
 
+    /**
+     * ValueDecoder to use for decoding typed content; lazily
+     * instantiated/accessed if and when needed
+     */
+    protected ValueDecoder mValueDecoder;
+
     /*
     ////////////////////////////////////////////////////
     // Construction
@@ -1609,7 +1615,15 @@ public abstract class DOMWrappingReader
      */
     protected TypedXMLStreamException constructTypeException(IllegalArgumentException iae, String lexicalValue)
     {
-        return new TypedXMLStreamException(lexicalValue, iae.getMessage(), getStartLocation(), iae);
+        String msg = iae.getMessage();
+        if (msg == null) {
+            msg = "";
+        }
+        Location loc = getStartLocation();
+        if (loc == null) {
+            return new TypedXMLStreamException(lexicalValue, msg);
+        }
+        return new TypedXMLStreamException(lexicalValue, msg, getStartLocation(), iae);
     }
 
     /*
@@ -1625,7 +1639,10 @@ public abstract class DOMWrappingReader
      */
     protected ValueDecoder valueDecoder()
     {
-        return DefaultValueDecoder.getInstance();
+        if (mValueDecoder == null) {
+            mValueDecoder = new DefaultValueDecoder();
+        }
+        return mValueDecoder;
     }
 
     /**

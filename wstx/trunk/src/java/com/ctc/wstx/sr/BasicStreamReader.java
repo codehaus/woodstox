@@ -265,7 +265,7 @@ public class BasicStreamReader
 
     /*
     ////////////////////////////////////////////////////
-    // Information about currently open subtree:
+    // Information about currently open subtree, content
     ////////////////////////////////////////////////////
      */
 
@@ -284,6 +284,12 @@ public class BasicStreamReader
      * Object that stores information about currently accessible attributes.
      */
     final protected AttributeCollector mAttrCollector;
+
+    /**
+     * ValueDecoder to use for decoding typed content; lazily
+     * instantiated/accessed if and when needed
+     */
+    protected ValueDecoder mValueDecoder;
 
     /*
     ////////////////////////////////////////////////////
@@ -1345,7 +1351,10 @@ public class BasicStreamReader
      */
     protected ValueDecoder valueDecoder()
     {
-        return DefaultValueDecoder.getInstance();
+        if (mValueDecoder == null) {
+            mValueDecoder = new DefaultValueDecoder();
+        }
+        return mValueDecoder;
     }
 
     /*
