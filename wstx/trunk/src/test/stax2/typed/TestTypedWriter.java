@@ -85,6 +85,63 @@ public class TestTypedWriter
         sr.close();
     }
 
+    public void testSimpleIntElem()
+        throws Exception
+    {
+        int[] values = new int[] {
+            0, 3, -9, 999, -77, 1000000000, -1000000000,
+            Integer.MIN_VALUE, Integer.MAX_VALUE
+        };
+        for (int i = 0; i < values.length; ++i) {
+            int value = values[i];
+            assertEquals("<root>"+value+"</root>", writeIntElemDoc("root", value));
+        }
+    }
+
+    public void testSimpleIntAttr()
+        throws Exception
+    {
+        int[] values = new int[] {
+            0, 3, -7, 123, -102, 1000000, -999999,
+            Integer.MIN_VALUE, Integer.MAX_VALUE
+        };
+        for (int i = 0; i < values.length; ++i) {
+            int value = values[i];
+            assertEquals("<a attr='"+value+"'></a>", writeIntAttrDoc("a", "attr", value));
+        }
+    }
+
+    public void testMultipleIntAttr()
+        throws Exception
+    {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        XMLStreamWriter2 w = getTypedWriter(bos);
+
+        w.writeStartDocument();
+        w.writeStartElement("root");
+
+        w.writeIntAttribute(null, null, "a", 0);
+        w.writeIntAttribute(null, null, "bz", Integer.MAX_VALUE);
+        w.writeIntAttribute(null, null, "___", -1200300400);
+
+        w.writeEndElement();
+        w.writeEndDocument();
+
+        XMLStreamReader2 sr = getRootReader(bos);
+        assertEquals(3, sr.getAttributeCount());
+        int ix1 = sr.getAttributeIndex("", "a");
+        int ix2 = sr.getAttributeIndex("", "bz");
+        int ix3 = sr.getAttributeIndex("", "___");
+        if (ix1 < 0 || ix2 < 0 || ix3 < 0) {
+            fail("Couldn't find indexes of attributes: a="+ix1+", bz="+ix2+", ___="+ix3);
+        }
+        assertEquals(0, sr.getAttributeAsInt(ix1));
+        assertEquals(Integer.MAX_VALUE, sr.getAttributeAsInt(ix2));
+        assertEquals(-1200300400, sr.getAttributeAsInt(ix3));
+
+        sr.close();
+    }
+
     /*
     ////////////////////////////////////////
     // Private methods
@@ -125,6 +182,37 @@ public class TestTypedWriter
         sw.writeBooleanAttribute(null, null, "attr", b);
         sw.writeEndElement();
         sw.writeEndDocument();
+    }
+
+    private String writeIntElemDoc(String elem, int value)
+        throws Exception
+    {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        XMLStreamWriter2 sw = getTypedWriter(bos);
+        // Let's not write start doc, to avoid getting xml declaration
+        //sw.writeStartDocument();
+        sw.writeStartElement(elem);
+        sw.writeInt(value);
+        sw.writeEndElement();
+        sw.writeEndDocument();
+        return bos.toString("UTF-8");
+    }
+
+    private String writeIntAttrDoc(String elem, String attr, int value)
+        throws Exception
+    {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        XMLStreamWriter2 sw = getTypedWriter(bos);
+        // Let's not write start doc, to avoid getting xml declaration
+        //sw.writeStartDocument();
+        sw.writeStartElement(elem);
+        sw.writeIntAttribute(null, null, attr, value);
+        sw.writeCharacters(""); // to avoid empty elem
+        sw.writeEndElement();
+        sw.writeEndDocument();
+        String str = bos.toString("UTF-8");
+        // One twist: need to ensure quotes are single-quotes (for the test)
+        return str.replace('"', '\'');
     }
 
     private XMLStreamWriter2 getTypedWriter(ByteArrayOutputStream out)

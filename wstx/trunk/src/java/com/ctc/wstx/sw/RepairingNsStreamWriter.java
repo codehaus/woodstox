@@ -37,10 +37,9 @@ import com.ctc.wstx.sr.InputElementStack;
  * (add new bindings as necessary), as well as automatically creates
  * namespace declarations as necessary.
  */
-public class RepairingNsStreamWriter
+public final class RepairingNsStreamWriter
     extends BaseNsStreamWriter
 {
-
     /*
     ////////////////////////////////////////////////////
     // Configuration (options, features)
@@ -247,6 +246,18 @@ public class RepairingNsStreamWriter
     }
 
     //public void writeEndElement(QName name) throws XMLStreamException
+
+    protected void writeAttribute(String prefix, String nsURI,
+                                  String localName,
+                                  char[] buf, int offset, int len)
+        throws XMLStreamException
+    {
+        if (!mStartElementOpen) {
+            throwOutputError(ErrorConsts.WERR_ATTR_NO_ELEM);
+        }
+        doWriteAttr(localName, nsURI, findOrCreateAttrPrefix(prefix, nsURI, mCurrElem),
+                    buf, offset, len);
+    }
 
     protected void writeStartOrEmpty(String localName, String nsURI)
         throws XMLStreamException

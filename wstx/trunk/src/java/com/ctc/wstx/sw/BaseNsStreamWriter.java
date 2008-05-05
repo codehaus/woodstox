@@ -443,8 +443,8 @@ public abstract class BaseNsStreamWriter
         }
     }
 
-    protected void doWriteAttr(String localName, String nsURI, String prefix,
-                               String value)
+    protected final void doWriteAttr(String localName, String nsURI, String prefix,
+                                     String value)
         throws XMLStreamException
     {
         if (mCheckAttrs) { // still need to ensure no duplicate attrs?
@@ -482,6 +482,31 @@ public abstract class BaseNsStreamWriter
                 mWriter.writeAttribute(prefix, localName, value);
             } else {
                 mWriter.writeAttribute(localName, value);
+            }
+        } catch (IOException ioe) {
+            throw new WstxIOException(ioe);
+        }
+    }
+
+    protected final void doWriteAttr(String localName, String nsURI, String prefix,
+                                     char[] buf, int start, int len)
+        throws XMLStreamException
+    {
+        if (mCheckAttrs) { // still need to ensure no duplicate attrs?
+            mCurrElem.checkAttrWrite(nsURI, localName, buf, start, len);
+        }
+
+        if (mValidator != null) {
+            /* No need to get it normalized... even if validator does normalize
+             * it, we don't use that for anything
+             */
+            mValidator.validateAttribute(localName, nsURI, prefix, buf, start, len);
+        }
+        try {
+            if (prefix != null && prefix.length() > 0) {
+                mWriter.writeAttribute(prefix, localName, buf, start, len);
+            } else {
+                mWriter.writeAttribute(localName, buf, start, len);
             }
         } catch (IOException ioe) {
             throw new WstxIOException(ioe);

@@ -473,12 +473,36 @@ public class DOMWrappingWriter
         writeCharacters(value ? "true" : "false");
     }
 
+    public void writeInt(int value)
+        throws XMLStreamException
+    {
+        writeCharacters(String.valueOf(value));
+    }
+
+    public void writeLong(long value)
+        throws XMLStreamException
+    {
+        writeCharacters(String.valueOf(value));
+    }
+
     // // // Typed attribute value write methods
 
     public void writeBooleanAttribute(String prefix, String nsURI, String localName, boolean value)
         throws XMLStreamException
     {
         writeAttribute(prefix, nsURI, localName, value ? "true" : "false");
+    }
+
+    public void writeIntAttribute(String prefix, String nsURI, String localName, int value)
+        throws XMLStreamException
+    {
+        writeAttribute(prefix, nsURI, localName, String.valueOf(value));
+    }
+
+    public void writeLongAttribute(String prefix, String nsURI, String localName, long value)
+        throws XMLStreamException
+    {
+        writeAttribute(prefix, nsURI, localName, String.valueOf(value));
     }
 
     /*

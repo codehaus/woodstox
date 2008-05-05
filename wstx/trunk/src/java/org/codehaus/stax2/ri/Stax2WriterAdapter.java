@@ -295,11 +295,31 @@ public final class Stax2WriterAdapter
         mDelegate.writeCharacters(b ? "true" : "false");
     }
 
+    public void writeInt(int value) throws XMLStreamException
+    {
+        mDelegate.writeCharacters(String.valueOf(value));
+    }
+
+    public void writeLong(long value) throws XMLStreamException
+    {
+        mDelegate.writeCharacters(String.valueOf(value));
+    }
+
     // // // Typed attribute value write methods
 
     public void writeBooleanAttribute(String prefix, String nsURI, String localName, boolean b) throws XMLStreamException
     {
         mDelegate.writeAttribute(prefix, nsURI, localName, b ? "true" : "false");
+    }
+
+    public void writeIntAttribute(String prefix, String nsURI, String localName, int value) throws XMLStreamException
+    {
+        mDelegate.writeAttribute(prefix, nsURI, localName, String.valueOf(value));
+    }
+
+    public void writeLongAttribute(String prefix, String nsURI, String localName, long value) throws XMLStreamException
+    {
+        mDelegate.writeAttribute(prefix, nsURI, localName, String.valueOf(value));
     }
 
      /*

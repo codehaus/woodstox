@@ -46,14 +46,6 @@ public class NonNsStreamWriter
 {
     /*
     ////////////////////////////////////////////////////
-    // Configuration (options, features)
-    ////////////////////////////////////////////////////
-     */
-
-    // // // Additional specific config flags base class doesn't have
-
-    /*
-    ////////////////////////////////////////////////////
     // State information
     ////////////////////////////////////////////////////
      */
@@ -284,6 +276,41 @@ public class NonNsStreamWriter
     {
         doWriteEndTag(mCheckStructure ? name.getLocalPart() : null,
                       mCfgAutomaticEmptyElems);
+    }
+
+    protected void writeAttribute(String prefix, String nsURI,
+                                  String localName,
+                                  char[] buf, int offset, int len)
+        throws XMLStreamException
+    {
+        // note: mostly copied from the other writeAttribute() method..
+        if (!mStartElementOpen && mCheckStructure) {
+            reportNwfStructure(ErrorConsts.WERR_ATTR_NO_ELEM);
+        }
+        if (mCheckAttrs) { // doh. Not good, need to construct non-transient value...
+            String value = new String(buf, offset, len);
+            if (mAttrNames == null) {
+                mAttrNames = new TreeMap();
+                mAttrNames.put(localName, value);
+            } else {
+                Object old = mAttrNames.put(localName, value);
+                if (old != null) {
+                    reportNwfAttr("Trying to write attribute '"+localName+"' twice (first value '"+old+"'; second '"+value+"').");
+                }
+            }
+        }
+        if (mValidator != null) {
+            /* No need to get it normalized... even if validator does normalize
+             * it, we don't use that for anything
+             */
+            mValidator.validateAttribute(localName, XmlConsts.ATTR_NO_NS_URI, XmlConsts.ATTR_NO_PREFIX, buf, offset, len);
+        }
+        
+        try {
+            mWriter.writeAttribute(localName, buf, offset, len);
+        } catch (IOException ioe) {
+            throwFromIOE(ioe);
+        }
     }
 
     /**

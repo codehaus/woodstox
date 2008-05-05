@@ -48,6 +48,7 @@ import com.ctc.wstx.sr.StreamReaderImpl;
 import com.ctc.wstx.sr.AttributeCollector;
 import com.ctc.wstx.sr.InputElementStack;
 import com.ctc.wstx.util.DataUtil;
+import com.ctc.wstx.util.NumberUtil;
 import com.ctc.wstx.util.StringUtil;
 
 /**
@@ -285,22 +286,11 @@ public abstract class BaseStreamWriter
     public void flush()
         throws XMLStreamException
     {
-        /* 27-Apr-2005, TSa: As per discussions on stax-dev list, flush()
-         *    is to not only flush the underlying stream, but also to
-         *    'close' events like START_ELEMENT (empty or not). This is
-         *   a state change, meaning no 'writeAttribute' calls can be
-         *   made for the element.
+        /* Note: there have been changes to exact scope of flushing
+         * (with Woodstox versions 2.x and 3.x); but the current 
+         * one of just flushing the underlying OutputStream or Writer
+         * should be the interpretation compatible with the Stax specs.
          */
-        /* 25-May-2006, TSa: On further though, above-mentioned changed
-         *   (which was include in 2.0.x) is wrong: although it may be
-         *   useful for some cases, it is also non-intuitive for most
-         *   developers, who find the new side effect surprising.
-         *   As thus, the behavior is reverted back to only flush buffers,
-         *   and NOT to change output state in any way.
-         */
-        //if (mStartElementOpen) {
-        //    closeStartElement(mEmptyElement);
-        //}
         try {
             mWriter.flush();
         } catch (IOException ie) {
@@ -314,6 +304,10 @@ public abstract class BaseStreamWriter
 
     public Object getProperty(String name)
     {
+        /* These properties just exist for interoperability with
+         * toolkits that were designed to work with Sun's parser (which
+         * introduced properties)
+         */
         if (name.equals(WstxOutputProperties.P_OUTPUT_UNDERLYING_STREAM)) {
             return mWriter.getOutputStream();
         }
@@ -492,10 +486,8 @@ public abstract class BaseStreamWriter
          */
         int len = text.length();
         if (len >= MIN_ARRAYCOPY) {
-            char[] buf = mCopyBuffer;
-            if (buf == null) {
-                mCopyBuffer = buf = mConfig.allocMediumCBuffer(DEFAULT_COPYBUFFER_LEN);
-            }
+            char[] buf = getCopyBuffer();
+
             int offset = 0;
             while (len > 0) {
                 int thisLen = (len > buf.length) ? buf.length : len;
@@ -774,6 +766,64 @@ public abstract class BaseStreamWriter
         writeCharacters(value, 0, value.length);
     }
 
+    public void writeInt(int value)
+        throws XMLStreamException
+    {
+        // Copy buffer always has room for needed (11) chars...
+        char[] buf = getCopyBuffer();
+        int len = NumberUtil.writeInt(value, buf, 0);
+        doWriteTyped(buf, 0, len);
+    }
+
+    public void writeLong(long value)
+        throws XMLStreamException
+    {
+        // Copy buffer always has room for needed (21) chars...
+        char[] buf = getCopyBuffer();
+        int len = NumberUtil.writeLong(value, buf, 0);
+        doWriteTyped(buf, 0, len);
+    }
+
+    /**
+     * Method called when typed content to be written has been
+     * serialized to characters, and can be output using
+     * underlying methods. However, there is still preparation
+     * to do, to enforce constraints and invoke validators if need be.
+     *<p>
+     * For the most part, checks are similar to those done when
+     * calling regular {@link #writeCharacters} method.
+     */
+    protected void doWriteTyped(char[] buffer, int offset, int len)
+        throws XMLStreamException
+    {
+        if (mStartElementOpen) {
+            closeStartElement(mEmptyElement);
+        }
+        // Not legal outside main element tree (won't be all white space)
+        if (mCheckStructure) {
+            if (inPrologOrEpilog()) {
+                reportNwfStructure(ErrorConsts.WERR_PROLOG_NONWS_TEXT);
+            }
+        }
+        if (mVldContent <= XMLValidator.CONTENT_ALLOW_WS) {
+            reportInvalidContent(CHARACTERS);
+        } else if (mVldContent == XMLValidator.CONTENT_ALLOW_VALIDATABLE_TEXT) {
+            if (mValidator != null) {
+                /* Hmmh. Not sure if we can pass 'true' as last arg,
+                 * to indicate it's all output for this element? Seems
+                 * logical; may need to document this with javadocs?
+                 */
+                mValidator.validateText(buffer, offset, len, true);
+            }
+        }
+        try {
+            // We know it won't need quoting, so let's call this method:
+            mWriter.writeRaw(buffer, offset, len);
+        } catch (IOException ioe) {
+            throw new WstxIOException(ioe);
+        }
+    }
+
     // // // Typed attribute value write methods
 
     public void writeBooleanAttribute(String prefix, String nsURI, String localName, boolean value)
@@ -782,8 +832,24 @@ public abstract class BaseStreamWriter
         writeAttribute(prefix, nsURI, localName, value ? "true" : "false");
     }
 
+    public void writeIntAttribute(String prefix, String nsURI, String localName, int value)
+        throws XMLStreamException
+    {
+        char[] buf = getCopyBuffer();
+        int len = NumberUtil.writeInt(value, buf, 0);
+        writeAttribute(prefix, nsURI, localName, buf, 0, len);
+    }
+
+    public void writeLongAttribute(String prefix, String nsURI, String localName, long value)
+        throws XMLStreamException
+    {
+        char[] buf = getCopyBuffer();
+        int len = NumberUtil.writeLong(value, buf, 0);
+        writeAttribute(prefix, nsURI, localName, buf, 0, len);
+    }
+
     /*
-    ////////////////////////////////////////////////////
+2y    ////////////////////////////////////////////////////
     // XMLStreamWriter2 methods (StAX2)
     ////////////////////////////////////////////////////
      */
@@ -1277,6 +1343,10 @@ public abstract class BaseStreamWriter
 
     // // // Attribute access: not yet implemented:
 
+    /* !!! TODO: Implement attribute access (iff validate-attributes
+     *   enabled?
+     */
+
     public int getAttributeCount() { return 0; }
 
     public String getAttributeLocalName(int index) { return null; }
@@ -1411,6 +1481,18 @@ public abstract class BaseStreamWriter
     }
 
     /**
+     *<p>
+     * Note: it could be argued that this method should be added to
+     * Stax2 extension API. For now it is not added, to limit
+     * complexity of API (and thereby, cost of implementing it).
+     */
+    protected abstract void writeAttribute(String prefix, String nsURI,
+                                           String localName,
+                                           char[] buf, int offset, int len)
+        throws XMLStreamException;
+
+
+    /**
      * Method called to close an open start element, when another
      * main-level element (not namespace declaration or attribute)
      * is being output; except for end element which is handled differently.
@@ -1420,6 +1502,39 @@ public abstract class BaseStreamWriter
 
     protected final boolean inPrologOrEpilog() {
         return (mState != STATE_TREE);
+    }
+
+    private final void finishDocument() throws XMLStreamException
+    {
+        // Is tree still open?
+        if (mState != STATE_EPILOG) {
+            if (mCheckStructure  && mState == STATE_PROLOG) {
+                reportNwfStructure("Trying to write END_DOCUMENT when document has no root (ie. trying to output empty document).");
+            }
+            // 20-Jul-2004, TSa: Need to close the open sub-tree, if it exists...
+            // First, do we have an open start element?
+            if (mStartElementOpen) {
+                closeStartElement(mEmptyElement);
+            }
+            // Then, one by one, need to close open scopes:
+            while (mState != STATE_EPILOG) {
+                writeEndElement();
+            }
+        }
+
+        /* And finally, inform the underlying writer that it should flush
+         * and release its buffers, and close components it uses if any.
+         */
+        try {
+            char[] buf = mCopyBuffer;
+            if (buf != null) {
+                mCopyBuffer = null;
+                mConfig.freeMediumCBuffer(buf);
+            }
+            mWriter.close();
+        } catch (IOException ie) {
+            throw new WstxIOException(ie);
+        }
     }
 
     /**
@@ -1608,14 +1723,6 @@ public abstract class BaseStreamWriter
     }
 
     /*
-    protected static void throwIllegalState(String msg)
-        throws IllegalArgumentException
-    {
-        throw new IllegalStateException(msg);
-    }
-    */
-
-    /*
     ///////////////////////////////////////////////////////
     // Package methods, output validation problem reporting
     ///////////////////////////////////////////////////////
@@ -1704,58 +1811,25 @@ public abstract class BaseStreamWriter
         }
     }
 
+    /**
+     * Method needed for error message generation
+     */
     protected abstract String getTopElementDesc();
 
-    private final void finishDocument() throws XMLStreamException
-    {
-        // Is tree still open?
-        if (mState != STATE_EPILOG) {
-            if (mCheckStructure  && mState == STATE_PROLOG) {
-                reportNwfStructure("Trying to write END_DOCUMENT when document has no root (ie. trying to output empty document).");
-            }
-            // 20-Jul-2004, TSa: Need to close the open sub-tree, if it exists...
-            // First, do we have an open start element?
-            if (mStartElementOpen) {
-                closeStartElement(mEmptyElement);
-            }
-            // Then, one by one, need to close open scopes:
-            while (mState != STATE_EPILOG) {
-                writeEndElement();
-            }
-        }
-
-        /* And finally, inform the underlying writer that it should flush
-         * and release its buffers, and close components it uses if any.
-         */
-        try {
-            char[] buf = mCopyBuffer;
-            if (buf != null) {
-                mCopyBuffer = null;
-                mConfig.freeMediumCBuffer(buf);
-            }
-            mWriter.close();
-        } catch (IOException ie) {
-            throw new WstxIOException(ie);
-        }
-    }
-
-    /**
-     * Helper method used for ensuring that each type of a problem is only
-     * reported once per instance. Will be called to see if the specific
-     * type of a problem should be reported; the first time will mark
-     * the problem as being reported, and return true; afterwards, will
-     * return false for the type of the problem
-     */
     /*
-    private boolean needToReportProblem(int problem)
+    ////////////////////////////////////////////////////
+    // Package methods, other
+    ////////////////////////////////////////////////////
+     */
+
+    private final char[] getCopyBuffer()
     {
-        if ((mReportedProblems & problem) != 0) {
-            mReportedProblems |= problem;
-            return true;
+        char[] buf = mCopyBuffer;
+        if (buf == null) {
+            mCopyBuffer = buf = mConfig.allocMediumCBuffer(DEFAULT_COPYBUFFER_LEN);
         }
-        return false;
+        return buf;
     }
-    */
 
     public String toString()
     {

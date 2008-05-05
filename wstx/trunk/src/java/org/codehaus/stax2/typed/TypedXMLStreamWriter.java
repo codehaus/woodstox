@@ -47,9 +47,15 @@ public interface TypedXMLStreamWriter
      * <a href="http://www.w3.org/TR/xmlschema-2/#integer">XML Schema
      * integer</a> data type.
      */
-    //void writeInt(int value) throws XMLStreamException;
+    void writeInt(int value) throws XMLStreamException;
     
-    //void writeLong(long value) throws XMLStreamException;
+    /**
+     * Write an int value to the output as textual element content.
+     * The lexical representation of content is defined by the
+     * <a href="http://www.w3.org/TR/xmlschema-2/#long">XML Schema
+     * integer</a> data type.
+     */
+    void writeLong(long value) throws XMLStreamException;
     
     //void writeFloat(float value) throws XMLStreamException;
     
@@ -122,8 +128,7 @@ public interface TypedXMLStreamWriter
     /**
      * Write a boolean value to the output as attribute value.
      * The lexical representation of content is defined by the
-     * <a href="http://www.w3.org/TR/xmlschema-2/#boolean">XML Schema
-     * boolean</a> data type.
+     * <a href="http://www.w3.org/TR/xmlschema-2/#boolean">XML Schema boolean</a> data type.
      *
      * @param prefix  The attribute's prefix. Null or "" if no prefix is to be used
      * @param namespaceURI  The attribute's URI (can be either null or empty String for "no namespace")
@@ -132,9 +137,29 @@ public interface TypedXMLStreamWriter
      */
     void writeBooleanAttribute(String prefix, String namespaceURI, String localName, boolean value) throws XMLStreamException;
     
-    //void writeIntAttribute(String prefix, String namespaceURI, String localName, int value) throws XMLStreamException;
+    /**
+     * Write an integer value to the output as attribute value.
+     * The lexical representation of content is defined by the
+     * <a href="http://www.w3.org/TR/xmlschema-2/#integer">XML Schema integer</a> data type.
+     *
+     * @param prefix  The attribute's prefix. Null or "" if no prefix is to be used
+     * @param namespaceURI  The attribute's URI (can be either null or empty String for "no namespace")
+     * @param localName  The attribute's local name
+     * @param value  The integer value to write.
+     */
+    void writeIntAttribute(String prefix, String namespaceURI, String localName, int value) throws XMLStreamException;
     
-    //void writeLongAttribute(String prefix, String namespaceURI,  String localName, long value) throws XMLStreamException;
+    /**
+     * Write an long value to the output as attribute value.
+     * The lexical representation of content is defined by the
+     * <a href="http://www.w3.org/TR/xmlschema-2/#long">XML Schema long</a> data type.
+     *
+     * @param prefix  The attribute's prefix. Null or "" if no prefix is to be used
+     * @param namespaceURI  The attribute's URI (can be either null or empty String for "no namespace")
+     * @param localName  The attribute's local name
+     * @param value  The long value to write.
+     */
+    void writeLongAttribute(String prefix, String namespaceURI,  String localName, long value) throws XMLStreamException;
     
     //void writeFloatAttribute(String prefix, String namespaceURI,  String localName, float value) throws XMLStreamException;
     

@@ -271,6 +271,27 @@ public final class SimpleOutputElement
         }
     }
 
+    public void checkAttrWrite(String nsURI, String localName,
+                               char[] buf, int start, int len)
+        throws XMLStreamException
+    {
+        AttrName an = new AttrName(nsURI, localName);
+        /* Doh: need to construct a non-transient value object (caller
+         * does not guarantee immutability of the buffer -- and in fact,
+         * it's most likely a transient working buffer)
+         */
+        String value = new String(buf, start, len);
+        if (mAttrMap == null) {
+            mAttrMap = new HashMap();
+            mAttrMap.put(an, value);
+        } else {
+            Object old = mAttrMap.put(an, value);
+            if (old != null) {
+                throw new XMLStreamException("Duplicate attribute write for attribute '"+an+"' (previous value '"+old+"', new value '"+value+"').");
+            }
+        }
+    }
+
     /*
     ////////////////////////////////////////////
     // Public API, mutators

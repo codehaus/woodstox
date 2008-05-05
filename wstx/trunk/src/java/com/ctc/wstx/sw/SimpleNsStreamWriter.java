@@ -37,7 +37,7 @@ import com.ctc.wstx.sr.InputElementStack;
  * conflicts between prefixes and namespace URIs, or automatically
  * create namespace bindings.
  */
-public class SimpleNsStreamWriter
+public final class SimpleNsStreamWriter
     extends BaseNsStreamWriter
 {
     /*
@@ -222,6 +222,17 @@ public class SimpleNsStreamWriter
 
     //public void writeEndElement(QName name) throws XMLStreamException
 
+    protected void writeAttribute(String prefix, String nsURI,
+                                  String localName,
+                                  char[] buf, int offset, int len)
+        throws XMLStreamException
+    {
+        if (!mStartElementOpen) {
+            throwOutputError(ErrorConsts.WERR_ATTR_NO_ELEM);
+        }
+        doWriteAttr(localName, nsURI, prefix, buf, offset, len);
+    }
+
     protected void writeStartOrEmpty(String localName, String nsURI)
         throws XMLStreamException
     {
@@ -328,9 +339,5 @@ public class SimpleNsStreamWriter
         }
     }
 
-    /*
-    ////////////////////////////////////////////////////
-    // Internal methods
-    ////////////////////////////////////////////////////
-     */
+
 }
