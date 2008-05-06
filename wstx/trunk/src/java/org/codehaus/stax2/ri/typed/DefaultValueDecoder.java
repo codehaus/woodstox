@@ -210,7 +210,6 @@ public class DefaultValueDecoder
     public long decodeLong(char[] lexical, int start, int end)
         throws IllegalArgumentException
     {
-System.err.println("DEBUG: decode '"+new String(lexical, start, end-start)+"'");
         char ch = resetAndTrimLeading(lexical, "long", start, end);
         boolean neg = (ch == '-');
 
@@ -762,7 +761,6 @@ System.err.println("DEBUG: decode '"+new String(lexical, start, end-start)+"'");
     public final static long parseLong(char[] digitChars, int start, int end)
     {
         // Note: caller must ensure length is [10, 18]
-System.err.println("DEBUG: parse '"+new String(digitChars, start, end-start)+"'");
         int start2 = end-9;
         long val = parseInt(digitChars, start, start2) * L_BILLION;
         return val + (long) parseInt(digitChars, start2, end);
@@ -770,7 +768,6 @@ System.err.println("DEBUG: parse '"+new String(digitChars, start, end-start)+"'"
 
     public final static long parseLong(String digitChars, int start, int end)
     {
-System.err.println("DEBUG: parse '"+digitChars.substring(start, end)+"'");
         // Note: caller must ensure length is [10, 18]
         int start2 = end-9;
         long val = parseInt(digitChars, start, start2) * L_BILLION;
