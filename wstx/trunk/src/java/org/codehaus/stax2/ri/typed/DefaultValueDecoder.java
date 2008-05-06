@@ -181,7 +181,7 @@ public class DefaultValueDecoder
 
         // Still simple long? 
         if (len <= 18) {
-            long l = parseLong(lexical, mPtr, mPtr+len+1);
+            long l = parseLong(lexical, mPtr, mPtr+len);
             return neg ? -l : l;
         }
         /* Otherwise, let's just fallback to an expensive option,
@@ -210,8 +210,61 @@ public class DefaultValueDecoder
     public long decodeLong(char[] lexical, int start, int end)
         throws IllegalArgumentException
     {
-        // !!! TBI
-        return 0L;
+System.err.println("DEBUG: decode '"+new String(lexical, start, end-start)+"'");
+        char ch = resetAndTrimLeading(lexical, "long", start, end);
+        boolean neg = (ch == '-');
+
+        int nr = skipSignAndZeroes(lexical, ch, neg || (ch == '+'));
+
+        // Quick check for short (single-digit) values:
+        if (mPtr >= mEnd) {
+            return (long) (neg ? -nr : nr);
+        }
+
+        // Otherwise, need to verify that is [digit*][ws*]
+        int len = trimTrailingAndCheckDigits(lexical);
+        if (len < 1) {
+            if (len == 0) {
+                return (long) (neg ? -nr : nr);
+            }
+            reportInvalidValue(lexical, start);
+        }
+        // Note: len is one less than total length (skipped first digit)
+        // Can parse more cheaply, if it's really just an int...
+        if (len <= 8) { // no overflow
+            int i = parseInt(nr, lexical, mPtr, mPtr+len);
+            return neg ? -i : i;
+        }
+        // At this point, let's just push back the first digit... simpler
+        --mPtr;
+        ++len;
+
+        // Still simple long? 
+        if (len <= 18) {
+            long l = parseLong(lexical, mPtr, mPtr+len);
+            return neg ? -l : l;
+        }
+        /* Otherwise, let's just fallback to an expensive option,
+         * BigInteger. While relatively inefficient, it's simple
+         * to use, reliable etc.
+         */
+        end = mPtr+len;
+        String str = new String(lexical, mPtr, len);
+        BigInteger bi = new BigInteger(str);
+
+        // But we may over/underflow, let's check:
+        if (neg) {
+            bi = bi.negate();
+            if (bi.compareTo(BD_MIN_LONG) >= 0) {
+                return bi.longValue();
+            }
+        } else {
+            if (bi.compareTo(BD_MAX_LONG) <= 0) {
+                return bi.longValue();
+            }
+        }
+
+        throw new IllegalArgumentException("value \""+lexicalDesc(lexical, start)+"\" not a valid 64-bit integer: overflow.");
     }
 
     // Fixed-length floating-point types
@@ -709,6 +762,7 @@ public class DefaultValueDecoder
     public final static long parseLong(char[] digitChars, int start, int end)
     {
         // Note: caller must ensure length is [10, 18]
+System.err.println("DEBUG: parse '"+new String(digitChars, start, end-start)+"'");
         int start2 = end-9;
         long val = parseInt(digitChars, start, start2) * L_BILLION;
         return val + (long) parseInt(digitChars, start2, end);
@@ -716,6 +770,7 @@ public class DefaultValueDecoder
 
     public final static long parseLong(String digitChars, int start, int end)
     {
+System.err.println("DEBUG: parse '"+digitChars.substring(start, end)+"'");
         // Note: caller must ensure length is [10, 18]
         int start2 = end-9;
         long val = parseInt(digitChars, start, start2) * L_BILLION;

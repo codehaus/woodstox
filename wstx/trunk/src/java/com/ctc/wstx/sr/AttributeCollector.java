@@ -294,6 +294,23 @@ public abstract class AttributeCollector
                              mValueBuffer.getOffset(index+1));
     }
 
+    public final long getValueAsLong(int index, ValueDecoder dec)
+        throws IllegalArgumentException
+    {
+        if (index < 0 || index >= mAttrCount) {
+            throwIndex(index);
+        }
+        if (mAttrValues != null) {
+            String value = mAttrValues[index];
+            if (value != null) {
+                return dec.decodeLong(value);
+            }
+        }
+        return dec.decodeLong(mValueBuffer.getCharBuffer(),
+                              mValueBuffer.getOffset(index),
+                              mValueBuffer.getOffset(index+1));
+    }
+
     /*
     ///////////////////////////////////////////////
     // Accessors for accessing helper objects

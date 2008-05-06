@@ -7,6 +7,10 @@ import javax.xml.namespace.NamespaceContext;
 import javax.xml.stream.*;
 import javax.xml.stream.util.StreamReaderDelegate;
 
+import org.codehaus.stax2.typed.TypedXMLStreamException;
+import org.codehaus.stax2.typed.ValueDecoder;
+import org.codehaus.stax2.ri.typed.DefaultValueDecoder;
+
 import org.codehaus.stax2.*;
 import org.codehaus.stax2.validation.*;
 
@@ -35,6 +39,12 @@ public class Stax2ReaderAdapter
                ,DTDInfo
                ,LocationInfo
 {
+    /**
+     * ValueDecoder to use for decoding typed content; lazily
+     * instantiated/accessed if and when needed
+     */
+    protected ValueDecoder mValueDecoder;
+
     /**
      * Number of open (start) elements currently.
      */
@@ -93,14 +103,32 @@ public class Stax2ReaderAdapter
 
     public boolean getElementAsBoolean() throws XMLStreamException
     {
-        // !!! TBI
-        return false;
+        String value = getElementText();
+        try {
+            return valueDecoder().decodeBoolean(value);
+        } catch (IllegalArgumentException iae) {
+            throw constructTypeException(iae, value);
+        }
     }
 
     public int getElementAsInt() throws XMLStreamException
     {
-        // !!! TBI
-        return 0;
+        String value = getElementText();
+        try {
+            return valueDecoder().decodeInt(value);
+        } catch (IllegalArgumentException iae) {
+            throw constructTypeException(iae, value);
+        }
+    }
+
+    public long getElementAsLong() throws XMLStreamException
+    {
+        String value = getElementText();
+        try {
+            return valueDecoder().decodeLong(value);
+        } catch (IllegalArgumentException iae) {
+            throw constructTypeException(iae, value);
+        }
     }
 
     public int getAttributeIndex(String namespaceURI, String localName)
@@ -110,14 +138,32 @@ public class Stax2ReaderAdapter
 
     public boolean getAttributeAsBoolean(int index) throws XMLStreamException
     {
-        // !!! TBI
-        return false;
+        String value = getAttributeValue(index);
+        try {
+            return valueDecoder().decodeBoolean(value);
+        } catch (IllegalArgumentException iae) {
+            throw constructTypeException(iae, value);
+        }
     }
 
     public int getAttributeAsInt(int index) throws XMLStreamException
     {
-        // !!! TBI
-        return 0;
+        String value = getAttributeValue(index);
+        try {
+            return valueDecoder().decodeInt(value);
+        } catch (IllegalArgumentException iae) {
+            throw constructTypeException(iae, value);
+        }
+    }
+
+    public long getAttributeAsLong(int index) throws XMLStreamException
+    {
+        String value = getAttributeValue(index);
+        try {
+            return valueDecoder().decodeLong(value);
+        } catch (IllegalArgumentException iae) {
+            throw constructTypeException(iae, value);
+        }
     }
 
     /*
@@ -470,6 +516,19 @@ public class Stax2ReaderAdapter
     ////////////////////////////////////////////////////
      */
 
+    /**
+     * This method can be overridden by sub-classes, if an alternate
+     * value decoder instance should be used for handling conversions
+     * needed to implement Typed Access API.
+     */
+    protected ValueDecoder valueDecoder()
+    {
+        if (mValueDecoder == null) {
+            mValueDecoder = new DefaultValueDecoder();
+        }
+        return mValueDecoder;
+    }
+
     protected void throwUnsupported()
         throws XMLStreamException
     {
@@ -479,5 +538,26 @@ public class Stax2ReaderAdapter
     protected void throwNotStartElem()
     {
         throw new IllegalStateException("Current state not START_ELEMENT");
+    }
+
+    /**
+     * Method called to wrap or convert given conversion-fail exception
+     * into a full {@link TypedXMLStreamException),
+     *
+     * @param iae Problem as reported by converter
+     * @param lexicalValue Lexical value (element content, attribute value)
+     *    that could not be converted succesfully.
+     */
+    protected TypedXMLStreamException constructTypeException(IllegalArgumentException iae, String lexicalValue)
+    {
+        String msg = iae.getMessage();
+        if (msg == null) {
+            msg = "";
+        }
+        Location loc = getStartLocation();
+        if (loc == null) {
+            return new TypedXMLStreamException(lexicalValue, msg);
+        }
+        return new TypedXMLStreamException(lexicalValue, msg, getStartLocation(), iae);
     }
 }

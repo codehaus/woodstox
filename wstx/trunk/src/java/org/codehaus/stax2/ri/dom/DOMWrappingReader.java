@@ -1047,6 +1047,16 @@ public abstract class DOMWrappingReader
         }
     }
 
+    public long getElementAsLong() throws XMLStreamException
+    {
+        String value = getElementText();
+        try {
+            return valueDecoder().decodeLong(value);
+        } catch (IllegalArgumentException iae) {
+            throw constructTypeException(iae, value);
+        }
+    }
+
     public int getAttributeIndex(String namespaceURI, String localName)
     {
         return findAttributeIndex(namespaceURI, localName);
@@ -1067,6 +1077,16 @@ public abstract class DOMWrappingReader
         String value = getAttributeValue(index);
         try {
             return valueDecoder().decodeInt(value);
+        } catch (IllegalArgumentException iae) {
+            throw constructTypeException(iae, value);
+        }
+    }
+
+    public long getAttributeAsLong(int index) throws XMLStreamException
+    {
+        String value = getAttributeValue(index);
+        try {
+            return valueDecoder().decodeLong(value);
         } catch (IllegalArgumentException iae) {
             throw constructTypeException(iae, value);
         }

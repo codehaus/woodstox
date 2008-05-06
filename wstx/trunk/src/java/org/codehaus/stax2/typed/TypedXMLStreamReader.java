@@ -83,7 +83,7 @@ public interface TypedXMLStreamReader
      * @throws TypedXMLStreamException  If unable to convert the resulting
      *         character sequence into a 64-bit integer value
      */
-    //public long getElementAsLong() throws XMLStreamException;
+    public long getElementAsLong() throws XMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
@@ -270,16 +270,40 @@ public interface TypedXMLStreamReader
     public boolean getAttributeAsBoolean(int index) throws XMLStreamException;
     
     /**
-     * <p><i>[TODO] </i>
-     * Same as {@link #getAttributeAsBoolean(int)} replacing boolean by int.</p>
+     * <p>Read an attribute value as a boolean. The lexical
+     * representation of a boolean is defined by the 
+     * <a href="http://www.w3.org/TR/xmlschema-2/#integer">XML Schema integer</a>
+     * data type. Whitespace MUST be 
+     * <a href="http://www.w3.org/TR/xmlschema-2/datatypes.html#rf-whiteSpace">collapsed</a>
+     * according to the whiteSpace facet for the type.
+     * An exception is thrown if, after whitespace is
+     * collapsed, the resulting sequence of characters is not in 
+     * the lexical space defined by the XML Schema integer data type.</p>
+     * 
+     * @param index  The attribute's index as returned by {@link #getAttributeIndex(String, String)}
+     * @throws java.lang.IllegalStateException If this is not a START_ELEMENT event.
+     * @throws XMLStreamException  If unable to convert the resulting
+     *         character sequence into an XML Schema boolean value.
      */
     public int getAttributeAsInt(int index) throws XMLStreamException;
     
     /**
-     * <p><i>[TODO] </i>
-     * Same as {@link #getAttributeAsBoolean(int)} replacing boolean by long.</p>
+     * <p>Read an attribute value as a boolean. The lexical
+     * representation of a boolean is defined by the 
+     * <a href="http://www.w3.org/TR/xmlschema-2/#long">XML Schema long</a>
+     * data type. Whitespace MUST be 
+     * <a href="http://www.w3.org/TR/xmlschema-2/datatypes.html#rf-whiteSpace">collapsed</a>
+     * according to the whiteSpace facet for the type.
+     * An exception is thrown if, after whitespace is
+     * collapsed, the resulting sequence of characters is not in 
+     * the lexical space defined by the XML Schema long data type.
+     *</p>
+     * @param index  The attribute's index as returned by {@link #getAttributeIndex(String, String)}
+     * @throws java.lang.IllegalStateException If this is not a START_ELEMENT event.
+     * @throws XMLStreamException  If unable to convert the resulting
+     *         character sequence into an XML Schema boolean value.
      */
-    //public long getAttributeAsLong(int index) throws XMLStreamException;
+    public long getAttributeAsLong(int index) throws XMLStreamException;
     
     /**
      * <p><i>[TODO] </i>

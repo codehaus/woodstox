@@ -1226,6 +1226,20 @@ public class BasicStreamReader
         }
     }
 
+    public long getElementAsLong() throws XMLStreamException
+    {
+        String value = collectElementText();
+        try {
+            if (value == null) {
+                return mTextBuffer.convertToLong(valueDecoder());
+            } else {
+                return valueDecoder().decodeLong(value);
+            }
+        } catch (IllegalArgumentException iae) {
+            throw constructTypeException(iae, value);
+        }
+    }
+
     public int getAttributeIndex(String namespaceURI, String localName)
     {
         // Note: cut'n pasted from "getAttributeInfo()"
@@ -1254,6 +1268,18 @@ public class BasicStreamReader
         }
         try {
             return mAttrCollector.getValueAsInt(index, valueDecoder());
+        } catch (IllegalArgumentException iae) {
+            throw constructTypeException(iae, mAttrCollector.getValue(index));
+        }
+    }
+
+    public long getAttributeAsLong(int index) throws XMLStreamException
+    {
+        if (mCurrToken != START_ELEMENT) {
+            throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
+        }
+        try {
+            return mAttrCollector.getValueAsLong(index, valueDecoder());
         } catch (IllegalArgumentException iae) {
             throw constructTypeException(iae, mAttrCollector.getValue(index));
         }

@@ -36,7 +36,7 @@ public class Stax2FilteredStreamReader
 
     /*
     /////////////////////////////////////////////////
-    // API implementation that needs special handling
+    // First methods that need non-trivial handling
     /////////////////////////////////////////////////
      */
 
@@ -70,7 +70,7 @@ public class Stax2FilteredStreamReader
 
     /*
     /////////////////////////////////////////////////
-    // Simple pass-through methods:
+    // Then simple pass-through methods:
     /////////////////////////////////////////////////
      */
 
@@ -275,6 +275,11 @@ public class Stax2FilteredStreamReader
         return mReader.getElementAsInt();
     }
 
+    public long getElementAsLong() throws XMLStreamException
+    {
+        return mReader.getElementAsLong();
+    }
+
     public int getAttributeIndex(String namespaceURI, String localName)
     {
         return mReader.getAttributeIndex(namespaceURI, localName);
@@ -288,6 +293,11 @@ public class Stax2FilteredStreamReader
     public int getAttributeAsInt(int index) throws XMLStreamException
     {
         return mReader.getAttributeAsInt(index);
+    }
+
+    public long getAttributeAsLong(int index) throws XMLStreamException
+    {
+        return mReader.getAttributeAsLong(index);
     }
 
     /*

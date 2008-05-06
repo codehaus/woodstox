@@ -412,6 +412,8 @@ public abstract class XmlWriter
     public abstract void writeAttribute(String prefix, String localName, char[] value, int offset, int len)
         throws IOException, XMLStreamException;
 
+    // // Typed attribute write methods
+
     /*
     ////////////////////////////////////////////////////
     // Location information

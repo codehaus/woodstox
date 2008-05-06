@@ -418,6 +418,19 @@ public final class TextBuffer
         return vd.decodeInt(buf, 0, len);
     }
 
+    public long convertToLong(ValueDecoder vd)
+        throws IllegalArgumentException
+    {
+        if (mInputStart >= 0) { // shared buffer, common case
+            int start = mInputStart;
+            int end = start + mInputLen;
+            return vd.decodeLong(mInputBuffer, start, end);
+        }
+        char[] buf = getTextBuffer();
+        int len = mSegmentSize + mCurrentSize;
+        return vd.decodeLong(buf, 0, len);
+    }
+
     /*
     //////////////////////////////////////////////
     // Accessors:

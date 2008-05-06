@@ -36,8 +36,6 @@ public abstract class ValueDecoder
         throws IllegalArgumentException;
     public abstract int decodeInt(char[] lexical, int first, int last)
         throws IllegalArgumentException;
-
-    /*
     public long decodeLong(String lexical) throws IllegalArgumentException {
         return decodeLong(lexical, 0, lexical.length());
     }
@@ -48,6 +46,7 @@ public abstract class ValueDecoder
 
     // Fixed-length floating-point types
 
+    /*
     public float decodeFloat(String lexical) throws IllegalArgumentException {
         return decodeFloat(lexical, 0, lexical.length());
     }
@@ -94,6 +93,4 @@ public abstract class ValueDecoder
         throws IllegalArgumentException;
     public abstract boolean decodeBoolean(char[] lexical, int first, int last)
         throws IllegalArgumentException;
-
-    // // // Simple numeric types
 }

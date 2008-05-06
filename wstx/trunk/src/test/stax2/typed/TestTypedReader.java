@@ -1,5 +1,8 @@
 package stax2.typed;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
+
 import javax.xml.stream.*;
 
 import org.codehaus.stax2.*;
@@ -17,8 +20,10 @@ public class TestTypedReader
     extends BaseStax2Test
 {
     final static long TOO_BIG_FOR_INT = ((long) Integer.MAX_VALUE)+1L;
-
     final static long TOO_SMALL_FOR_INT = ((long) Integer.MIN_VALUE)-1L;
+
+    final static BigInteger TOO_BIG_FOR_LONG = BigInteger.valueOf(Long.MAX_VALUE).add(BigInteger.valueOf(123));
+    final static BigInteger TOO_SMALL_FOR_LONG = BigInteger.valueOf(Long.MIN_VALUE).subtract(BigInteger.valueOf(123));
 
     /*
     ////////////////////////////////////////
@@ -155,6 +160,82 @@ public class TestTypedReader
         sr.close();
     }
 
+    public void testSimpleLongElem()
+        throws Exception
+    {
+        checkLongElem("<root>000000000000000000000000012</root>", 12);
+
+
+        checkLongElem("<root>0</root>", 0);
+        // with white space normalization
+        checkLongElem("<root>10091\t</root>", 10091);
+        checkLongElem("<root>   \t-1</root>", -1);
+        checkLongElem("<root>39876 </root>", 39876);
+        checkLongElem("<root>  0701 </root>", 701);
+        // with signs, spacing etc
+        checkLongElem("<root>-1234</root>", -1234);
+        checkLongElem("<root>+3</root>", 3);
+        checkLongElem("<root>-0</root>", 0);
+        checkLongElem("<root>-001</root>", -1);
+        checkLongElem("<root>+0</root>", 0);
+        checkLongElem("<root>0000000000000001234567890</root>", 1234567890L);
+        checkLongElem("<root>-00000000</root>", 0);
+        long v = 1200300400500600L;
+        checkLongElem("<root>   \r"+v+"</root>", v);
+        checkLongElem("<root>   \r\n+"+v+"</root>", v);
+        v = -1234567890123456789L;
+        checkLongElem("<root>   \r\n"+v+"</root>", v);
+        checkLongElem("<root> "+Long.MAX_VALUE+"</root>", Long.MAX_VALUE);
+        checkLongElem("<root> "+Long.MIN_VALUE+"</root>", Long.MIN_VALUE);
+
+        // And finally invalid ones
+        checkLongElemException("<root>12a3</root>");
+        checkLongElemException("<root>"+TOO_BIG_FOR_LONG+"</root>"); // overflow as well
+        checkLongElemException("<root>"+TOO_SMALL_FOR_LONG+"</root>"); // underflow as well
+        checkLongElemException("<root>-  </root>");
+        checkLongElemException("<root>+</root>");
+        checkLongElemException("<root> -</root>");
+    }
+
+    public void testSimpleLongAttr()
+        throws Exception
+    {
+        checkLongAttr("<root attr='+0   \t' />", 0);
+        checkLongAttr("<root attr='13' />", 13);
+        checkLongAttr("<root attr='123' />", 123);
+        checkLongAttr("<root attr=\"\t-12\n\r\" />", -12);
+        checkLongAttr("<root attr='+0   \t' />", 0);
+        checkLongAttr("<root attr=\"\r-00\" />", 0);
+        checkLongAttr("<root attr='-000000000000012345' />", -12345);
+        checkLongAttr("<root attr='"+Long.MAX_VALUE+"  ' />", Long.MAX_VALUE);
+        checkLongAttr("<root attr='"+Long.MIN_VALUE+"'  />", Long.MIN_VALUE);
+
+        checkLongAttrException("<root attr=\"abc\" />");
+        checkLongAttrException("<root attr='1c' />");
+        checkLongAttrException("<root attr='\n"+TOO_BIG_FOR_LONG+"' />");
+        checkLongAttrException("<root attr=\""+TOO_SMALL_FOR_LONG+"   \" />");
+        checkLongAttrException("<root attr='-' />");
+        checkLongAttrException("<root attr='  + ' />");
+    }
+
+    public void testMultipleLongAttr()
+        throws Exception
+    {
+        XMLStreamReader2 sr = getRootReader("<root a1='12345678900' b=\"-12345678900\" third='0' />");
+        assertEquals(3, sr.getAttributeCount());
+        int ix1 = sr.getAttributeIndex("", "a1");
+        int ix2 = sr.getAttributeIndex("", "b");
+        int ix3 = sr.getAttributeIndex("", "third");
+        if (ix1 < 0 || ix2 < 0 || ix3 < 0) {
+            fail("Couldn't find indexes of attributes: a1="+ix1+", b="+ix2+", third="+ix3);
+        }
+        assertEquals(12345678900L, sr.getAttributeAsLong(ix1));
+        assertEquals(-12345678900L, sr.getAttributeAsLong(ix2));
+        assertEquals(0L, sr.getAttributeAsLong(ix3));
+
+        sr.close();
+    }
+
     /*
     ////////////////////////////////////////
     // Private methods, second-level tests
@@ -239,6 +320,48 @@ public class TestTypedReader
         XMLStreamReader2 sr = getRootReader(doc);
         try {
             /*int b =*/ sr.getAttributeAsInt(0);
+            fail("Expected exception for invalid input ["+doc+"]");
+        } catch (TypedXMLStreamException xse) {
+            ; // good
+        }
+    }
+
+    private void checkLongElem(String doc, long expState)
+        throws XMLStreamException
+    {
+        XMLStreamReader2 sr = getRootReader(doc);
+        assertEquals(expState, sr.getElementAsLong());
+        sr.close();
+    }
+
+    private void checkLongAttr(String doc, long expState)
+        throws XMLStreamException
+    {
+        XMLStreamReader2 sr = getRootReader(doc);
+        // Assumption is that there's just one attribute...
+        long actState = sr.getAttributeAsLong(0);
+        assertEquals(expState, actState);
+        sr.close();
+    }
+
+    private void checkLongElemException(String doc)
+        throws XMLStreamException
+    {
+        XMLStreamReader2 sr = getRootReader(doc);
+        try {
+            /*long b =*/ sr.getElementAsLong();
+            fail("Expected exception for invalid input ["+doc+"]");
+        } catch (TypedXMLStreamException xse) {
+            ; // good
+        }
+    }
+
+    private void checkLongAttrException(String doc)
+        throws XMLStreamException
+    {
+        XMLStreamReader2 sr = getRootReader(doc);
+        try {
+            /*long b =*/ sr.getAttributeAsLong(0);
             fail("Expected exception for invalid input ["+doc+"]");
         } catch (TypedXMLStreamException xse) {
             ; // good
