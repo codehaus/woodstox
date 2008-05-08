@@ -398,7 +398,7 @@ public class DefaultValueDecoder
 
     /**
      * @param start First character of the lexical value to process
-     * @param pastEnd Pointer character <b>after</b> last valid character
+     * @param end Pointer character <b>after</b> last valid character
      *   of the lexical value
      *
      * @return First non-white space character from the String

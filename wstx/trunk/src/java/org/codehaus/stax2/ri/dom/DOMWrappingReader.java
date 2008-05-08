@@ -1627,7 +1627,7 @@ public abstract class DOMWrappingReader
 
     /**
      * Method called to wrap or convert given conversion-fail exception
-     * into a full {@link TypedXMLStreamException),
+     * into a full {@link TypedXMLStreamException},
      *
      * @param iae Problem as reported by converter
      * @param lexicalValue Lexical value (element content, attribute value)

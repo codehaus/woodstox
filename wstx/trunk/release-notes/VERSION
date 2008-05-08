@@ -1,10 +1,14 @@
-Version: 3.9.2
+Version: 3.9.3
 
-Release date: xx-Mar-2008
+Release date: xx-May-2008
 
 Description:
   Third pre-4.0 version. Bug-fixes, as well as partial implementation
-  of the new Typed Access API.
+  of the new Typed Access API (reading/writing booleans, ints, longs).
+
+== History: ==
+
+3.9.2 [06-May-2008]
 
   Problems fixed:
 
@@ -20,7 +24,8 @@ Description:
   * More complete Stax2 API ref. impl, adding generic XMLEventReader
     implementation.
   * Partial/preliminary Stax2 Typed Access API, implementation (including
-    configurable value encoder)
+    configurable value encoder): supports booleans, ints, longs, for
+    element and attribute content.
   * Added support for property:
     "http://java.sun.com/xml/stream/properties/implementation-name"
     it is now recognized as a synonym of XMLStreamProperties2.XSP_IMPLEMENTATION_NAME
@@ -31,8 +36,6 @@ Description:
     constraints of Stax 1.0 API specification): requesting value of
     an unknown property will now return null, instead of throwing an
     exception.
-
-== History: ==
 
 3.9.1 [16-Mar-2008]
 

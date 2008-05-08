@@ -142,6 +142,67 @@ public class TestTypedWriter
         sr.close();
     }
 
+    public void testSimpleLongElem()
+        throws Exception
+    {
+        long[] values = new long[] {
+            0, 3, -9, 999, -77, 1000000000, -1000000000,
+            123456789012345678L, 
+            -987654321098765423L,
+            Long.MIN_VALUE, Long.MAX_VALUE
+        };
+        for (int i = 0; i < values.length; ++i) {
+            long value = values[i];
+            assertEquals("<root>"+value+"</root>", writeLongElemDoc("root", value));
+        }
+    }
+
+    public void testSimpleLongAttr()
+        throws Exception
+    {
+        long[] values = new long[] {
+            0, 3, -9, 999, -77, 1000000002, -2000000004,
+            123456789012345678L, 
+            -987654321098765423L,
+            Long.MIN_VALUE, Long.MAX_VALUE
+        };
+        for (int i = 0; i < values.length; ++i) {
+            long value = values[i];
+            assertEquals("<a attr='"+value+"'></a>", writeLongAttrDoc("a", "attr", value));
+        }
+    }
+
+    public void testMultipleLongAttr()
+        throws Exception
+    {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        XMLStreamWriter2 w = getTypedWriter(bos);
+
+        w.writeStartDocument();
+        w.writeStartElement("root");
+
+        w.writeLongAttribute(null, null, "a", 0L);
+        w.writeLongAttribute(null, null, "bz", Long.MAX_VALUE);
+        w.writeLongAttribute(null, null, "___", -1200300400L);
+
+        w.writeEndElement();
+        w.writeEndDocument();
+
+        XMLStreamReader2 sr = getRootReader(bos);
+        assertEquals(3, sr.getAttributeCount());
+        int ix1 = sr.getAttributeIndex("", "a");
+        int ix2 = sr.getAttributeIndex("", "bz");
+        int ix3 = sr.getAttributeIndex("", "___");
+        if (ix1 < 0 || ix2 < 0 || ix3 < 0) {
+            fail("Couldn't find indexes of attributes: a="+ix1+", bz="+ix2+", ___="+ix3);
+        }
+        assertEquals(0L, sr.getAttributeAsLong(ix1));
+        assertEquals(Long.MAX_VALUE, sr.getAttributeAsLong(ix2));
+        assertEquals(-1200300400L, sr.getAttributeAsLong(ix3));
+
+        sr.close();
+    }
+
     /*
     ////////////////////////////////////////
     // Private methods
@@ -207,6 +268,37 @@ public class TestTypedWriter
         //sw.writeStartDocument();
         sw.writeStartElement(elem);
         sw.writeIntAttribute(null, null, attr, value);
+        sw.writeCharacters(""); // to avoid empty elem
+        sw.writeEndElement();
+        sw.writeEndDocument();
+        String str = bos.toString("UTF-8");
+        // One twist: need to ensure quotes are single-quotes (for the test)
+        return str.replace('"', '\'');
+    }
+
+    private String writeLongElemDoc(String elem, long value)
+        throws Exception
+    {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        XMLStreamWriter2 sw = getTypedWriter(bos);
+        // Let's not write start doc, to avoid getting xml declaration
+        //sw.writeStartDocument();
+        sw.writeStartElement(elem);
+        sw.writeLong(value);
+        sw.writeEndElement();
+        sw.writeEndDocument();
+        return bos.toString("UTF-8");
+    }
+
+    private String writeLongAttrDoc(String elem, String attr, long value)
+        throws Exception
+    {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        XMLStreamWriter2 sw = getTypedWriter(bos);
+        // Let's not write start doc, to avoid getting xml declaration
+        //sw.writeStartDocument();
+        sw.writeStartElement(elem);
+        sw.writeLongAttribute(null, null, attr, value);
         sw.writeCharacters(""); // to avoid empty elem
         sw.writeEndElement();
         sw.writeEndDocument();
