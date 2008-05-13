@@ -70,7 +70,7 @@ public class DefaultValueDecoder
             if (len == 0) {
                 return neg ? -nr : nr;
             }
-            reportInvalidValue(lexical, start);
+            throw constructInvalidValue(lexical, start);
         }
         // Note: len is one less than total length (skipped first digit)
         if (len <= 8) { // no overflow
@@ -118,7 +118,7 @@ public class DefaultValueDecoder
             if (len == 0) {
                 return neg ? -nr : nr;
             }
-            reportInvalidValue(lexical, start);
+            throw constructInvalidValue(lexical, start);
         }
         // Note: len is one less than total length (skipped first digit)
         if (len <= 8) { // no overflow
@@ -167,7 +167,7 @@ public class DefaultValueDecoder
             if (len == 0) {
                 return (long) (neg ? -nr : nr);
             }
-            reportInvalidValue(lexical, start);
+            throw constructInvalidValue(lexical, start);
         }
         // Note: len is one less than total length (skipped first digit)
         // Can parse more cheaply, if it's really just an int...
@@ -226,7 +226,7 @@ public class DefaultValueDecoder
             if (len == 0) {
                 return (long) (neg ? -nr : nr);
             }
-            reportInvalidValue(lexical, start);
+            throw constructInvalidValue(lexical, start);
         }
         // Note: len is one less than total length (skipped first digit)
         // Can parse more cheaply, if it's really just an int...
@@ -266,50 +266,230 @@ public class DefaultValueDecoder
         throw new IllegalArgumentException("value \""+lexicalDesc(lexical, start)+"\" not a valid 64-bit integer: overflow.");
     }
 
-    // Fixed-length floating-point types
-
     public float decodeFloat(String lexical, int start, int end)
         throws IllegalArgumentException
     {
-        // !!! TBI
-        return 0.0f;
+        mType = "float";
+        start = trimLeading(lexical, start, end);
+        end = trimTrailing(lexical, start, end);
+
+        if (start > 0 || end < lexical.length()) {
+            lexical = lexical.substring(start, end);
+        }
+
+        /* Then, leading digit; or one of 3 well-known constants
+         * (INF, -INF, NaN)
+         */
+        int len = lexical.length();
+        if (len == 3) {
+            char c = lexical.charAt(0);
+            if (c == 'I') {
+                if (lexical.charAt(1) == 'N' && lexical.charAt(2) == 'F') {
+                    return Float.POSITIVE_INFINITY;
+                }
+            } else if (c == 'N') {
+                if (lexical.charAt(1) == 'a' && lexical.charAt(2) == 'N') {
+                    return Float.NaN;
+                }
+            }
+        } else if (len == 4) {
+            char c = lexical.charAt(0);
+            if (c == '-') {
+                if (lexical.charAt(1) == 'I'
+                    && lexical.charAt(2) == 'N'
+                    && lexical.charAt(3) == 'F') {
+                    return Float.NEGATIVE_INFINITY;
+                }
+            }
+        }
+        
+        try {
+            return Float.parseFloat(lexical);
+        } catch (NumberFormatException nex) {
+            throw constructInvalidValue(lexical);
+        }
     }
 
     public float decodeFloat(char[] lexical, int start, int end)
         throws IllegalArgumentException
     {
-        // !!! TBI
-        return 0.0f;
+        mType = "float";
+        start = trimLeading(lexical, start, end);
+        end = trimTrailing(lexical, start, end);
+        int len = end-start;
+
+        if (len == 3) {
+            char c = lexical[start];
+            if (c == 'I') {
+                if (lexical[start+1] == 'N' && lexical[start+2] == 'F') {
+                    return Float.POSITIVE_INFINITY;
+                }
+            } else if (c == 'N') {
+                if (lexical[start+1] == 'a' && lexical[start+2] == 'N') {
+                    return Float.NaN;
+                }
+            }
+        } else if (len == 4) {
+            char c = lexical[start];
+            if (c == '-') {
+                if (lexical[start+1] == 'I'
+                    && lexical[start+2] == 'N'
+                    && lexical[start+3] == 'F') {
+                    return Float.NEGATIVE_INFINITY;
+                }
+            }
+        }
+
+        String lexicalStr = new String(lexical, start, len);
+        try {
+            return Float.parseFloat(lexicalStr);
+        } catch (NumberFormatException nex) {
+            throw constructInvalidValue(lexicalStr);
+        }
     }
 
     public double decodeDouble(String lexical, int start, int end)
         throws IllegalArgumentException
     {
-        // !!! TBI
-        return 0.0;
+        mType = "double";
+        start = trimLeading(lexical, start, end);
+        end = trimTrailing(lexical, start, end);
+
+        if (start > 0 || end < lexical.length()) {
+            lexical = lexical.substring(start, end);
+        }
+
+        /* Then, leading digit; or one of 3 well-known constants
+         * (INF, -INF, NaN)
+         */
+        int len = lexical.length();
+        if (len == 3) {
+            char c = lexical.charAt(0);
+            if (c == 'I') {
+                if (lexical.charAt(1) == 'N' && lexical.charAt(2) == 'F') {
+                    return Double.POSITIVE_INFINITY;
+                }
+            } else if (c == 'N') {
+                if (lexical.charAt(1) == 'a' && lexical.charAt(2) == 'N') {
+                    return Double.NaN;
+                }
+            }
+        } else if (len == 4) {
+            char c = lexical.charAt(0);
+            if (c == '-') {
+                if (lexical.charAt(1) == 'I'
+                    && lexical.charAt(2) == 'N'
+                    && lexical.charAt(3) == 'F') {
+                    return Double.NEGATIVE_INFINITY;
+                }
+            }
+        }
+        
+        try {
+            return Double.parseDouble(lexical);
+        } catch (NumberFormatException nex) {
+            throw constructInvalidValue(lexical);
+        }
     }
 
     public double decodeDouble(char[] lexical, int start, int end)
         throws IllegalArgumentException
     {
-        // !!! TBI
-        return 0.0f;
+        mType = "double";
+        start = trimLeading(lexical, start, end);
+        end = trimTrailing(lexical, start, end);
+        int len = end-start;
+
+        if (len == 3) {
+            char c = lexical[start];
+            if (c == 'I') {
+                if (lexical[start+1] == 'N' && lexical[start+2] == 'F') {
+                    return Double.POSITIVE_INFINITY;
+                }
+            } else if (c == 'N') {
+                if (lexical[start+1] == 'a' && lexical[start+2] == 'N') {
+                    return Double.NaN;
+                }
+            }
+        } else if (len == 4) {
+            char c = lexical[start];
+            if (c == '-') {
+                if (lexical[start+1] == 'I'
+                    && lexical[start+2] == 'N'
+                    && lexical[start+3] == 'F') {
+                    return Double.NEGATIVE_INFINITY;
+                }
+            }
+        }
+
+        String lexicalStr = new String(lexical, start, len);
+        try {
+            return Double.parseDouble(lexicalStr);
+        } catch (NumberFormatException nex) {
+            throw constructInvalidValue(lexicalStr);
+        }
     }
 
-    // Unlimited precision floating-point types
+    // Unlimited precision numeric types
+
+    public BigInteger decodeInteger(String lexical, int start, int end)
+        throws IllegalArgumentException
+    {
+        mType = "integer";
+        start = trimLeading(lexical, start, end);
+        end = trimTrailing(lexical, start, end);
+        if (start > 0 || end < lexical.length()) {
+            lexical = lexical.substring(start, end);
+        }
+        try {
+            return new BigInteger(lexical);
+        } catch (NumberFormatException nex) {
+            throw constructInvalidValue(lexical);
+        }
+    }
+
+    public BigInteger decodeInteger(char[] lexical, int start, int end)
+        throws IllegalArgumentException
+    {
+        mType = "integer";
+        start = trimLeading(lexical, start, end);
+        end = trimTrailing(lexical, start, end);
+        String lexicalStr = new String(lexical, start, (end-start));
+        try {
+            return new BigInteger(lexicalStr);
+        } catch (NumberFormatException nex) {
+            throw constructInvalidValue(lexicalStr);
+        }
+    }
 
     public BigDecimal decodeDecimal(String lexical, int start, int end)
         throws IllegalArgumentException
     {
-        // !!! TBI
-        return null;
+        mType = "decimal";
+        start = trimLeading(lexical, start, end);
+        end = trimTrailing(lexical, start, end);
+        if (start > 0 || end < lexical.length()) {
+            lexical = lexical.substring(start, end);
+        }
+        try {
+            return new BigDecimal(lexical);
+        } catch (NumberFormatException nex) {
+            throw constructInvalidValue(lexical);
+        }
     }
 
     public BigDecimal decodeDecimal(char[] lexical, int start, int end)
         throws IllegalArgumentException
     {
-        // !!! TBI
-        return null;
+        mType = "decimal";
+        start = trimLeading(lexical, start, end);
+        end = trimTrailing(lexical, start, end);
+        int len = end-start;
+        try {
+            return new BigDecimal(lexical, start, len);
+        } catch (NumberFormatException nex) {
+            throw constructInvalidValue(new String(lexical, start, len));
+        }
     }
 
     // Enumerated types
@@ -415,8 +595,25 @@ public class DefaultValueDecoder
                 return c;
             }
         }
-        reportMissingValue();
-        return '?'; // never gets here
+        throw constructMissingValue();
+    }
+
+    protected int trimLeading(String lexical, int start, int end)
+    {
+        while (start < end) {
+            char c = lexical.charAt(start);
+            if (!isSpace(c)) {
+                return start;
+            }
+            ++start;
+        }
+        throw constructMissingValue();
+    }
+
+    protected int trimTrailing(String lexical, int start, int end)
+    {
+        while (--end > start && isSpace(lexical.charAt(start))) { }
+        return end+1;
     }
 
     protected char resetAndTrimLeading(char[] lexical, String type, int start, int end)
@@ -431,8 +628,25 @@ public class DefaultValueDecoder
                 return c;
             }
         }
-        reportMissingValue();
-        return '?'; // never gets here
+        throw constructMissingValue();
+    }
+
+    protected int trimLeading(char[] lexical, int start, int end)
+    {
+        while (start < end) {
+            char c = lexical[start];
+            if (!isSpace(c)) {
+                return start;
+            }
+            ++start;
+        }
+        throw constructMissingValue();
+    }
+
+    protected int trimTrailing(char[] lexical, int start, int end)
+    {
+        while (--end > start && isSpace(lexical[start])) { }
+        return end+1;
     }
 
     /**
@@ -512,7 +726,7 @@ public class DefaultValueDecoder
         // Then optional sign
         if (hasSign) {
             if (ptr >= mEnd) {
-                reportInvalidValue(String.valueOf(ch));
+                throw constructInvalidValue(String.valueOf(ch));
             }
             ch = lexical.charAt(ptr++);
         }
@@ -520,7 +734,7 @@ public class DefaultValueDecoder
         // Has to start with a digit
         int value = ch - '0';
         if (value < 0 || value > 9) {
-            reportInvalidValue(lexical, mPtr-1);
+            throw constructInvalidValue(lexical, mPtr-1);
         }
 
         // Then, leading zero(es) to skip? (or just value zero itself)
@@ -543,7 +757,7 @@ public class DefaultValueDecoder
         // Then optional sign
         if (hasSign) {
             if (ptr >= mEnd) {
-                reportInvalidValue(String.valueOf(ch));
+                throw constructInvalidValue(String.valueOf(ch));
             }
             ch = lexical[ptr++];
         }
@@ -551,7 +765,7 @@ public class DefaultValueDecoder
         // Has to start with a digit
         int value = ch - '0';
         if (value < 0 || value > 9) {
-            reportInvalidValue(lexical, mPtr-1);
+            throw constructInvalidValue(lexical, mPtr-1);
         }
 
         // Then leading zero(es) to skip? (or just value zero itself)
@@ -593,25 +807,25 @@ public class DefaultValueDecoder
     ///////////////////////////////////////////////
      */
 
-    protected void reportMissingValue()
+    protected IllegalArgumentException constructMissingValue()
     {
         throw new IllegalArgumentException("Empty value (all white space) not a valid lexical representation of "+mType);
     }
 
-    protected void reportInvalidValue(String lexical)
+    protected IllegalArgumentException constructInvalidValue(String lexical)
     {
         // !!! Should we escape ctrl+chars etc?
-        throw new IllegalArgumentException("Value \""+lexical+"\" not a valid lexical representation of "+mType);
+        return new IllegalArgumentException("Value \""+lexical+"\" not a valid lexical representation of "+mType);
     }
 
-    protected void reportInvalidValue(String lexical, int startOffset)
+    protected IllegalArgumentException constructInvalidValue(String lexical, int startOffset)
     {
-        throw new IllegalArgumentException("Value \""+lexicalDesc(lexical, startOffset)+"\" not a valid lexical representation of "+mType);
+        return new IllegalArgumentException("Value \""+lexicalDesc(lexical, startOffset)+"\" not a valid lexical representation of "+mType);
     }
 
-    protected void reportInvalidValue(char[] lexical, int startOffset)
+    protected IllegalArgumentException constructInvalidValue(char[] lexical, int startOffset)
     {
-        throw new IllegalArgumentException("Value \""+lexicalDesc(lexical, startOffset)+"\" not a valid lexical representation of "+mType);
+        return new IllegalArgumentException("Value \""+lexicalDesc(lexical, startOffset)+"\" not a valid lexical representation of "+mType);
     }
 
     protected String lexicalDesc(char[] lexical, int startOffset)

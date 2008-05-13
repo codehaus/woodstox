@@ -1,6 +1,8 @@
 package com.ctc.wstx.util;
 
 import java.io.*;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
 
 import org.xml.sax.ContentHandler;
@@ -429,6 +431,58 @@ public final class TextBuffer
         char[] buf = getTextBuffer();
         int len = mSegmentSize + mCurrentSize;
         return vd.decodeLong(buf, 0, len);
+    }
+
+    public float convertToFloat(ValueDecoder vd)
+        throws IllegalArgumentException
+    {
+        if (mInputStart >= 0) { // shared buffer, common case
+            int start = mInputStart;
+            int end = start + mInputLen;
+            return vd.decodeFloat(mInputBuffer, start, end);
+        }
+        char[] buf = getTextBuffer();
+        int len = mSegmentSize + mCurrentSize;
+        return vd.decodeFloat(buf, 0, len);
+    }
+
+    public double convertToDouble(ValueDecoder vd)
+        throws IllegalArgumentException
+    {
+        if (mInputStart >= 0) { // shared buffer, common case
+            int start = mInputStart;
+            int end = start + mInputLen;
+            return vd.decodeDouble(mInputBuffer, start, end);
+        }
+        char[] buf = getTextBuffer();
+        int len = mSegmentSize + mCurrentSize;
+        return vd.decodeDouble(buf, 0, len);
+    }
+
+    public BigInteger convertToInteger(ValueDecoder vd)
+        throws IllegalArgumentException
+    {
+        if (mInputStart >= 0) { // shared buffer, common case
+            int start = mInputStart;
+            int end = start + mInputLen;
+            return vd.decodeInteger(mInputBuffer, start, end);
+        }
+        char[] buf = getTextBuffer();
+        int len = mSegmentSize + mCurrentSize;
+        return vd.decodeInteger(buf, 0, len);
+    }
+
+    public BigDecimal convertToDecimal(ValueDecoder vd)
+        throws IllegalArgumentException
+    {
+        if (mInputStart >= 0) { // shared buffer, common case
+            int start = mInputStart;
+            int end = start + mInputLen;
+            return vd.decodeDecimal(mInputBuffer, start, end);
+        }
+        char[] buf = getTextBuffer();
+        int len = mSegmentSize + mCurrentSize;
+        return vd.decodeDecimal(buf, 0, len);
     }
 
     /*

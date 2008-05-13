@@ -16,6 +16,8 @@
 package com.ctc.wstx.sr;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 
 import javax.xml.stream.XMLStreamException;
 import javax.xml.namespace.QName;
@@ -307,6 +309,74 @@ public abstract class AttributeCollector
             }
         }
         return dec.decodeLong(mValueBuffer.getCharBuffer(),
+                              mValueBuffer.getOffset(index),
+                              mValueBuffer.getOffset(index+1));
+    }
+
+    public final float getValueAsFloat(int index, ValueDecoder dec)
+        throws IllegalArgumentException
+    {
+        if (index < 0 || index >= mAttrCount) {
+            throwIndex(index);
+        }
+        if (mAttrValues != null) {
+            String value = mAttrValues[index];
+            if (value != null) {
+                return dec.decodeFloat(value);
+            }
+        }
+        return dec.decodeFloat(mValueBuffer.getCharBuffer(),
+                              mValueBuffer.getOffset(index),
+                              mValueBuffer.getOffset(index+1));
+    }
+
+    public final double getValueAsDouble(int index, ValueDecoder dec)
+        throws IllegalArgumentException
+    {
+        if (index < 0 || index >= mAttrCount) {
+            throwIndex(index);
+        }
+        if (mAttrValues != null) {
+            String value = mAttrValues[index];
+            if (value != null) {
+                return dec.decodeDouble(value);
+            }
+        }
+        return dec.decodeDouble(mValueBuffer.getCharBuffer(),
+                              mValueBuffer.getOffset(index),
+                              mValueBuffer.getOffset(index+1));
+    }
+
+    public final BigInteger getValueAsInteger(int index, ValueDecoder dec)
+        throws IllegalArgumentException
+    {
+        if (index < 0 || index >= mAttrCount) {
+            throwIndex(index);
+        }
+        if (mAttrValues != null) {
+            String value = mAttrValues[index];
+            if (value != null) {
+                return dec.decodeInteger(value);
+            }
+        }
+        return dec.decodeInteger(mValueBuffer.getCharBuffer(),
+                              mValueBuffer.getOffset(index),
+                              mValueBuffer.getOffset(index+1));
+    }
+
+    public final BigDecimal getValueAsDecimal(int index, ValueDecoder dec)
+        throws IllegalArgumentException
+    {
+        if (index < 0 || index >= mAttrCount) {
+            throwIndex(index);
+        }
+        if (mAttrValues != null) {
+            String value = mAttrValues[index];
+            if (value != null) {
+                return dec.decodeDecimal(value);
+            }
+        }
+        return dec.decodeDecimal(mValueBuffer.getCharBuffer(),
                               mValueBuffer.getOffset(index),
                               mValueBuffer.getOffset(index+1));
     }

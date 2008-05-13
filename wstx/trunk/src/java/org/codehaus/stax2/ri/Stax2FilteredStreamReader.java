@@ -2,6 +2,8 @@ package org.codehaus.stax2.ri;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
@@ -280,6 +282,26 @@ public class Stax2FilteredStreamReader
         return mReader.getElementAsLong();
     }
 
+    public float getElementAsFloat() throws XMLStreamException
+    {
+        return mReader.getElementAsFloat();
+    }
+
+    public double getElementAsDouble() throws XMLStreamException
+    {
+        return mReader.getElementAsDouble();
+    }
+
+    public BigInteger getElementAsInteger() throws XMLStreamException
+    {
+        return mReader.getElementAsInteger();
+    }
+
+    public BigDecimal getElementAsDecimal() throws XMLStreamException
+    {
+        return mReader.getElementAsDecimal();
+    }
+
     public int getAttributeIndex(String namespaceURI, String localName)
     {
         return mReader.getAttributeIndex(namespaceURI, localName);
@@ -298,6 +320,26 @@ public class Stax2FilteredStreamReader
     public long getAttributeAsLong(int index) throws XMLStreamException
     {
         return mReader.getAttributeAsLong(index);
+    }
+
+    public float getAttributeAsFloat(int index) throws XMLStreamException
+    {
+        return mReader.getAttributeAsFloat(index);
+    }
+
+    public double getAttributeAsDouble(int index) throws XMLStreamException
+    {
+        return mReader.getAttributeAsDouble(index);
+    }
+
+    public BigInteger getAttributeAsInteger(int index) throws XMLStreamException
+    {
+        return mReader.getAttributeAsInteger(index);
+    }
+
+    public BigDecimal getAttributeAsDecimal(int index) throws XMLStreamException
+    {
+        return mReader.getAttributeAsDecimal(index);
     }
 
     /*

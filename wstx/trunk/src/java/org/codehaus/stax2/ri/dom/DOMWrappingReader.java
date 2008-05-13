@@ -17,6 +17,8 @@ package org.codehaus.stax2.ri.dom;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.text.MessageFormat;
 import java.util.*;
 
@@ -1057,6 +1059,46 @@ public abstract class DOMWrappingReader
         }
     }
 
+    public float getElementAsFloat() throws XMLStreamException
+    {
+        String value = getElementText();
+        try {
+            return valueDecoder().decodeFloat(value);
+        } catch (IllegalArgumentException iae) {
+            throw constructTypeException(iae, value);
+        }
+    }
+
+    public double getElementAsDouble() throws XMLStreamException
+    {
+        String value = getElementText();
+        try {
+            return valueDecoder().decodeDouble(value);
+        } catch (IllegalArgumentException iae) {
+            throw constructTypeException(iae, value);
+        }
+    }
+
+    public BigInteger getElementAsInteger() throws XMLStreamException
+    {
+        String value = getElementText();
+        try {
+            return valueDecoder().decodeInteger(value);
+        } catch (IllegalArgumentException iae) {
+            throw constructTypeException(iae, value);
+        }
+    }
+
+    public BigDecimal getElementAsDecimal() throws XMLStreamException
+    {
+        String value = getElementText();
+        try {
+            return valueDecoder().decodeDecimal(value);
+        } catch (IllegalArgumentException iae) {
+            throw constructTypeException(iae, value);
+        }
+    }
+
     public int getAttributeIndex(String namespaceURI, String localName)
     {
         return findAttributeIndex(namespaceURI, localName);
@@ -1087,6 +1129,46 @@ public abstract class DOMWrappingReader
         String value = getAttributeValue(index);
         try {
             return valueDecoder().decodeLong(value);
+        } catch (IllegalArgumentException iae) {
+            throw constructTypeException(iae, value);
+        }
+    }
+
+    public float getAttributeAsFloat(int index) throws XMLStreamException
+    {
+        String value = getAttributeValue(index);
+        try {
+            return valueDecoder().decodeFloat(value);
+        } catch (IllegalArgumentException iae) {
+            throw constructTypeException(iae, value);
+        }
+    }
+
+    public double getAttributeAsDouble(int index) throws XMLStreamException
+    {
+        String value = getAttributeValue(index);
+        try {
+            return valueDecoder().decodeDouble(value);
+        } catch (IllegalArgumentException iae) {
+            throw constructTypeException(iae, value);
+        }
+    }
+
+    public BigInteger getAttributeAsInteger(int index) throws XMLStreamException
+    {
+        String value = getAttributeValue(index);
+        try {
+            return valueDecoder().decodeInteger(value);
+        } catch (IllegalArgumentException iae) {
+            throw constructTypeException(iae, value);
+        }
+    }
+
+    public BigDecimal getAttributeAsDecimal(int index) throws XMLStreamException
+    {
+        String value = getAttributeValue(index);
+        try {
+            return valueDecoder().decodeDecimal(value);
         } catch (IllegalArgumentException iae) {
             throw constructTypeException(iae, value);
         }

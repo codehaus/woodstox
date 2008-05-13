@@ -41,8 +41,7 @@ public interface TypedXMLStreamReader
      * representation of a boolean is defined by the 
      * <a href="http://www.w3.org/TR/xmlschema-2/#boolean">XML Schema
      * boolean</a> data type. Whitespace MUST be 
-     * <a href="http://www.w3.org/TR/xmlschema-2/
-     *   datatypes.html#rf-whiteSpace">collapsed</a>
+     * <a href="http://www.w3.org/TR/xmlschema-2/datatypes.html#rf-whiteSpace">collapsed</a>
      * according to the whiteSpace facet for the XML Schema boolean
      * data type.
      * An exception is thrown if, after whitespace is
@@ -67,47 +66,128 @@ public interface TypedXMLStreamReader
     public boolean getElementAsBoolean() throws XMLStreamException;
 
     /**
-     * <p><i>[TODO] </i>
-     * Same as {@link #getElementAsBoolean()} replacing boolean by int.</p>
-     *
+     * <p>Read an element content as a 32-bit integer. The lexical
+     * representation of a integer is defined by the 
+     * <a href="http://www.w3.org/TR/xmlschema-2/#integer">XML Schema
+     * integer</a> data type. Whitespace MUST be 
+     * <a href="http://www.w3.org/TR/xmlschema-2/datatypes.html#rf-whiteSpace">collapsed</a>
+     * according to the whiteSpace facet for the XML Schema integer data type.
+     * An exception is thrown if, after whitespace is
+     * collapsed, the resulting sequence of characters is not in 
+     * the lexical space defined by the XML Schema integer data type.
+     * </p>
+     * <p>These are the pre and post conditions of calling this
+     * method, regardless of whether an exception is thrown or not.
+     * <ul>
+     * <li>Precondition: the current event is START_ELEMENT.</li>
+     * <li>Postcondition: the current event is the corresponding 
+     *     END_ELEMENT.</li>
+     * </ul>
+     * </p>
+     * 
      * @throws XMLStreamException  If unable to access content
      * @throws TypedXMLStreamException  If unable to convert the resulting
-     *         character sequence into a 32-bit integer value
+     *         character sequence into a Java (32-bit) integer.
      */
     public int getElementAsInt() throws XMLStreamException;
     
     /**
-     * <p><i>[TODO] </i>
-     * Same as {@link #getElementAsBoolean()} replacing boolean by long.</p>
+     * <p>Read an element content as a 64-bit integer. The lexical
+     * representation of a integer is defined by the 
+     * <a href="http://www.w3.org/TR/xmlschema-2/#integer">XML Schema
+     * integer</a> data type. Whitespace MUST be 
+     * <a href="http://www.w3.org/TR/xmlschema-2/datatypes.html#rf-whiteSpace">collapsed</a>
+     * according to the whiteSpace facet for the XML Schema integer data type.
+     * An exception is thrown if, after whitespace is
+     * collapsed, the resulting sequence of characters is not in 
+     * the lexical space defined by the XML Schema integer data type.
+     * </p>
+     * <p>These are the pre and post conditions of calling this
+     * method, regardless of whether an exception is thrown or not.
+     * <ul>
+     * <li>Precondition: the current event is START_ELEMENT.</li>
+     * <li>Postcondition: the current event is the corresponding 
+     *     END_ELEMENT.</li>
+     * </ul>
+     * </p>
+     * 
      * @throws XMLStreamException  If unable to access content
      * @throws TypedXMLStreamException  If unable to convert the resulting
-     *         character sequence into a 64-bit integer value
+     *         character sequence into a Java (64-bit) integer.
      */
     public long getElementAsLong() throws XMLStreamException;
     
     /**
-     * <p><i>[TODO] </i>
-     * Same as {@link #getElementAsBoolean()} replacing boolean by float.</p>
+     * <p>Read an element content as a 32-bit floating point value.
+     * The lexical representation is defined by the 
+     * <a href="http://www.w3.org/TR/xmlschema-2/#float">XML Schema
+     * float</a> data type. Whitespace MUST be 
+     * <a href="http://www.w3.org/TR/xmlschema-2/datatypes.html#rf-whiteSpace">collapsed</a>
+     * according to the whiteSpace facet for the XML Schema float data type.
+     * An exception is thrown if, after whitespace is
+     * collapsed, the resulting sequence of characters is not in 
+     * the lexical space defined by the XML Schema integer data type.
+     *
+     * Note that valid representations include basic Java textual
+     * representations, as well as 3 special tokens: "INF", "-INF"
+     * and "NaN"
+     * </p>
+     * <p>These are the pre and post conditions of calling this
+     * method, regardless of whether an exception is thrown or not.
+     * <ul>
+     * <li>Precondition: the current event is START_ELEMENT.</li>
+     * <li>Postcondition: the current event is the corresponding 
+     *     END_ELEMENT.</li>
+     * </ul>
+     * </p>
+     * 
+     * @throws XMLStreamException  If unable to access content
+     * @throws TypedXMLStreamException  If unable to convert the resulting
+     *         character sequence into a Java float
      */
-    //public float getElementAsFloat() throws XMLStreamException;
+    public float getElementAsFloat() throws XMLStreamException;
     
     /**
-     * <p><i>[TODO] </i>
-     * Same as {@link #getElementAsBoolean()} replacing boolean by double.</p>
+     * <p>Read an element content as a 64-bit floating point value.
+     * The lexical representation is defined by the 
+     * <a href="http://www.w3.org/TR/xmlschema-2/#double">XML Schema
+     * double</a> data type. Whitespace MUST be 
+     * <a href="http://www.w3.org/TR/xmlschema-2/datatypes.html#rf-whiteSpace">collapsed</a>
+     * according to the whiteSpace facet for the XML Schema double data type.
+     * An exception is thrown if, after whitespace is
+     * collapsed, the resulting sequence of characters is not in 
+     * the lexical space defined by the XML Schema integer data type.
+     *
+     * Note that valid representations include basic Java textual
+     * representations, as well as 3 special tokens: "INF", "-INF"
+     * and "NaN"
+     * </p>
+     * <p>These are the pre and post conditions of calling this
+     * method, regardless of whether an exception is thrown or not.
+     * <ul>
+     * <li>Precondition: the current event is START_ELEMENT.</li>
+     * <li>Postcondition: the current event is the corresponding 
+     *     END_ELEMENT.</li>
+     * </ul>
+     * </p>
+     * 
+     * @throws XMLStreamException  If unable to access content
+     * @throws TypedXMLStreamException  If unable to convert the resulting
+     *         character sequence into a Java double
      */
-    //public double getElementAsDouble() throws XMLStreamException;
+    public double getElementAsDouble() throws XMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
      * Same as {@link #getElementAsBoolean()} replacing boolean by long.</p>
      */
-    //public BigInteger getElementAsInteger() throws XMLStreamException;
+    public BigInteger getElementAsInteger() throws XMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
      * Same as {@link #getElementAsBoolean()} replacing boolean by decimal.</p>
      */
-    //public BigDecimal getElementAsDecimal() throws XMLStreamException;
+    public BigDecimal getElementAsDecimal() throws XMLStreamException;
     
     /**
      * <p><i>[TODO] </i>
@@ -304,41 +384,18 @@ public interface TypedXMLStreamReader
      *         character sequence into an XML Schema boolean value.
      */
     public long getAttributeAsLong(int index) throws XMLStreamException;
+
+    public float getAttributeAsFloat(int index) throws XMLStreamException;
     
-    /**
-     * <p><i>[TODO] </i>
-     * Same as {@link #getAttributeAsBoolean(int)} replacing boolean by float.</p>
-     */
-    //public float getAttributeAsFloat(int index) throws XMLStreamException;
+    public double getAttributeAsDouble(int index) throws XMLStreamException;
     
-    /**
-     * <p><i>[TODO] </i>
-     * Same as {@link #getAttributeAsBoolean(int)} replacing boolean by double.</p>
-     */
-    //public double getAttributeAsDouble(int index) throws XMLStreamException;
+    public BigInteger getAttributeAsInteger(int index) throws XMLStreamException;
+
+    public BigDecimal getAttributeAsDecimal(int index) throws XMLStreamException;
     
-    /**
-     * <p><i>[TODO] </i>
-     * Same as {@link #getAttributeAsBoolean(int)} replacing boolean by integer.</p>
-     */
-    //public BigInteger getAttributeAsInteger(int index) throws XMLStreamException;
-    
-    /**
-     * <p><i>[TODO] </i>
-     * Same as {@link #getAttributeAsBoolean(int)} replacing boolean by decimal.</p>
-     */
-    //public BigDecimal getAttributeAsDecimal(int index) throws XMLStreamException;
-    
-    /**
-     * <p><i>[TODO] </i>
-     * Same as {@link #getAttributeAsBoolean(int)} replacing boolean by QName.</p>
-     */
     //public QName getAttributeAsQName(int index) throws XMLStreamException;
     
     // !!! 30-Jan-2008, TSa: JDK 1.5 only -- is that ok?
-    /**
-     * <p><i>[TODO] </i>
-     */
     //XMLGregorianCalendar getAttributeAsCalendar(int index) throws XMLStreamException;
     
     /**
@@ -391,21 +448,9 @@ public interface TypedXMLStreamReader
      */
     //public int[] getAttributeAsIntArray(int index) throws XMLStreamException;
     
-    /**
-     * <p><i>[TODO] </i>
-     * Same as {@link #getAttributeAsIntArray(int)} replacing int by long.</p>
-     */
     //public long[] getAttributeAsLongArray(int index) throws XMLStreamException;
-    
-    /**
-     * <p><i>[TODO] </i>
-     * Same as {@link #getAttributeAsIntArray(int)} replacing int by float.</p>
-     */
+
     //public float[] getAttributeAsFloatArray(int index) throws XMLStreamException;    
     
-    /**
-     * <p><i>[TODO] </i>
-     * Same as {@link #getAttributeAsIntArray(int)} replacing int by double.</p>
-     */
     //public double[] getAttributeAsDoubleArray(int index) throws XMLStreamException;    
 }

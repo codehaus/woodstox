@@ -16,6 +16,8 @@
 package com.ctc.wstx.sr;
 
 import java.io.*;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.text.MessageFormat;
 import java.util.Map;
 
@@ -1240,6 +1242,62 @@ public class BasicStreamReader
         }
     }
 
+    public float getElementAsFloat() throws XMLStreamException
+    {
+        String value = collectElementText();
+        try {
+            if (value == null) {
+                return mTextBuffer.convertToFloat(valueDecoder());
+            } else {
+                return valueDecoder().decodeFloat(value);
+            }
+        } catch (IllegalArgumentException iae) {
+            throw constructTypeException(iae, value);
+        }
+    }
+
+    public double getElementAsDouble() throws XMLStreamException
+    {
+        String value = collectElementText();
+        try {
+            if (value == null) {
+                return mTextBuffer.convertToDouble(valueDecoder());
+            } else {
+                return valueDecoder().decodeDouble(value);
+            }
+        } catch (IllegalArgumentException iae) {
+            throw constructTypeException(iae, value);
+        }
+    }
+
+    public BigInteger getElementAsInteger() throws XMLStreamException
+    {
+        String value = collectElementText();
+        try {
+            if (value == null) {
+                return mTextBuffer.convertToInteger(valueDecoder());
+            } else {
+                return valueDecoder().decodeInteger(value);
+            }
+        } catch (IllegalArgumentException iae) {
+            throw constructTypeException(iae, value);
+        }
+    }
+
+    public BigDecimal getElementAsDecimal() throws XMLStreamException
+    {
+        String value = collectElementText();
+        try {
+            if (value == null) {
+                return mTextBuffer.convertToDecimal(valueDecoder());
+            } else {
+                return valueDecoder().decodeDecimal(value);
+            }
+        } catch (IllegalArgumentException iae) {
+            throw constructTypeException(iae, value);
+        }
+    }
+
     public int getAttributeIndex(String namespaceURI, String localName)
     {
         // Note: cut'n pasted from "getAttributeInfo()"
@@ -1280,6 +1338,54 @@ public class BasicStreamReader
         }
         try {
             return mAttrCollector.getValueAsLong(index, valueDecoder());
+        } catch (IllegalArgumentException iae) {
+            throw constructTypeException(iae, mAttrCollector.getValue(index));
+        }
+    }
+
+    public float getAttributeAsFloat(int index) throws XMLStreamException
+    {
+        if (mCurrToken != START_ELEMENT) {
+            throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
+        }
+        try {
+            return mAttrCollector.getValueAsFloat(index, valueDecoder());
+        } catch (IllegalArgumentException iae) {
+            throw constructTypeException(iae, mAttrCollector.getValue(index));
+        }
+    }
+
+    public double getAttributeAsDouble(int index) throws XMLStreamException
+    {
+        if (mCurrToken != START_ELEMENT) {
+            throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
+        }
+        try {
+            return mAttrCollector.getValueAsDouble(index, valueDecoder());
+        } catch (IllegalArgumentException iae) {
+            throw constructTypeException(iae, mAttrCollector.getValue(index));
+        }
+    }
+
+    public BigInteger getAttributeAsInteger(int index) throws XMLStreamException
+    {
+        if (mCurrToken != START_ELEMENT) {
+            throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
+        }
+        try {
+            return mAttrCollector.getValueAsInteger(index, valueDecoder());
+        } catch (IllegalArgumentException iae) {
+            throw constructTypeException(iae, mAttrCollector.getValue(index));
+        }
+    }
+
+    public BigDecimal getAttributeAsDecimal(int index) throws XMLStreamException
+    {
+        if (mCurrToken != START_ELEMENT) {
+            throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
+        }
+        try {
+            return mAttrCollector.getValueAsDecimal(index, valueDecoder());
         } catch (IllegalArgumentException iae) {
             throw constructTypeException(iae, mAttrCollector.getValue(index));
         }
