@@ -50,20 +50,32 @@ public interface TypedXMLStreamWriter
     void writeInt(int value) throws XMLStreamException;
     
     /**
-     * Write an int value to the output as textual element content.
+     * Write a long value to the output as textual element content.
      * The lexical representation of content is defined by the
      * <a href="http://www.w3.org/TR/xmlschema-2/#long">XML Schema
-     * integer</a> data type.
+     * long</a> data type.
      */
     void writeLong(long value) throws XMLStreamException;
-    
-    //void writeFloat(float value) throws XMLStreamException;
-    
-    //void writeDouble(double value) throws XMLStreamException;
 
-    //void writeInteger(BigInteger value) throws XMLStreamException;
+    /**
+     * Write a float value to the output as textual element content.
+     * The lexical representation of content is defined by the
+     * <a href="http://www.w3.org/TR/xmlschema-2/#float">XML Schema
+     * float</a> data type.
+     */
+    void writeFloat(float value) throws XMLStreamException;
     
-    //void writeDecimal(BigDecimal value) throws XMLStreamException;
+    /**
+     * Write a double value to the output as textual element content.
+     * The lexical representation of content is defined by the
+     * <a href="http://www.w3.org/TR/xmlschema-2/#double">XML Schema
+     * double</a> data type.
+     */
+    void writeDouble(double value) throws XMLStreamException;
+
+    void writeInteger(BigInteger value) throws XMLStreamException;
+    
+    void writeDecimal(BigDecimal value) throws XMLStreamException;
     
     //void writeQName(QName value) throws XMLStreamException;
     
@@ -101,25 +113,10 @@ public interface TypedXMLStreamWriter
      */
     //void writeIntArray(int[] value, int from, int length) throws XMLStreamException;
     
-    /**
-     * <p><i>[TODO] </i>
-     * Same as {@link #writeIntArray(int[], int, int)} replacing int 
-     * by long.</p>
-     */
     //void writeLongArray(long[] value, int from, int length) throws XMLStreamException;
     
-    /**
-     * <p><i>[TODO] </i>
-     * Same as {@link #writeIntArray(int[], int, int)} replacing int 
-     * by float.</p>
-     */
     //void writeFloatArray(float[] value, int from, int length) throws XMLStreamException;
     
-    /**
-     * <p><i>[TODO] </i>
-     * Same as {@link #writeIntArray(int[], int, int)} replacing int 
-     * by double.</p>
-     */
     //void writeDoubleArray(double[] value, int from, int length) throws XMLStreamException;
     
  
@@ -161,13 +158,15 @@ public interface TypedXMLStreamWriter
      */
     void writeLongAttribute(String prefix, String namespaceURI,  String localName, long value) throws XMLStreamException;
     
-    //void writeFloatAttribute(String prefix, String namespaceURI,  String localName, float value) throws XMLStreamException;
+    void writeFloatAttribute(String prefix, String namespaceURI,  String localName, float value)
+        throws XMLStreamException;
     
-    //void writeDoubleAttribute(String prefix, String namespaceURI,  String localName, double value) throws XMLStreamException;
+    void writeDoubleAttribute(String prefix, String namespaceURI,  String localName, double value)
+        throws XMLStreamException;
  
-    //void writeIntegerAttribute(String prefix, String namespaceURI, String localName, BigInteger value) throws XMLStreamException;
+    void writeIntegerAttribute(String prefix, String namespaceURI, String localName, BigInteger value) throws XMLStreamException;
 
-    //void writeDecimalAttribute(String prefix, String namespaceURI, String localName, BigDecimal value) throws XMLStreamException;
+    void writeDecimalAttribute(String prefix, String namespaceURI, String localName, BigDecimal value) throws XMLStreamException;
 
     //void writeQNameAttribute(String prefix, String namespaceURI, String localName, QName value) throws XMLStreamException;
 
@@ -211,24 +210,9 @@ public interface TypedXMLStreamWriter
      */
     //void writeIntArrayAttribute(String prefix, String namespaceURI,  String localName, int[] value) throws XMLStreamException;
     
-    /**
-     * <p><i>[TODO] </i>
-     * Same as {@link #writeIntArrayAttribute(String, String, String, int[])} 
-     * replacing int by long.</p>
-     */
     //void writeLongArrayAttribute(String prefix, String namespaceURI, String localName, long[] value) throws XMLStreamException;
     
-    /**
-     * <p><i>[TODO] </i>
-     * Same as {@link #writeIntArrayAttribute(String, String, String, int[])} 
-     * replacing int by float.</p>
-     */
     //void writeFloatArrayAttribute(String prefix, String namespaceURI,  String localName, float[] value) throws XMLStreamException;
     
-    /**
-     * <p><i>[TODO] </i>
-     * Same as {@link #writeIntArrayAttribute(String, String, String, int[])} 
-     * replacing int by double.</p>
-     */
     //void writeDoubleArrayAttribute(String prefix, String namespaceURI, String localName, double[] value) throws XMLStreamException;
 }

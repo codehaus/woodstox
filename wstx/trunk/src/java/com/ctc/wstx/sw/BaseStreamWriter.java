@@ -17,6 +17,8 @@ package com.ctc.wstx.sw;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.text.MessageFormat;
 
 import javax.xml.namespace.NamespaceContext;
@@ -784,10 +786,56 @@ public abstract class BaseStreamWriter
         doWriteTyped(buf, 0, len);
     }
 
+    public void writeFloat(float value)
+        throws XMLStreamException
+    {
+        // Copy buffer always has room for needed (~30) chars
+        char[] buf = getCopyBuffer();
+        int len = NumberUtil.writeFloat(value, buf, 0);
+        doWriteTyped(buf, 0, len);
+    }
+
+    public void writeDouble(double value)
+        throws XMLStreamException
+    {
+        // Copy buffer always has room for needed (~30) chars
+        char[] buf = getCopyBuffer();
+        int len = NumberUtil.writeDouble(value, buf, 0);
+        doWriteTyped(buf, 0, len);
+    }
+
+    public void writeInteger(BigInteger value)
+        throws XMLStreamException
+    {
+        /* No really efficient method exposed by JDK, keep it simple
+         * (esp. considering that length is actually not bound)
+         */
+        doWriteTyped(String.valueOf(value));
+    }
+
+    public void writeDecimal(BigDecimal value)
+        throws XMLStreamException
+    {
+        /* No really efficient method exposed by JDK, keep it simple
+         * (esp. considering that length is actually not bound)
+         */
+        doWriteTyped(String.valueOf(value));
+    }
+
+    protected void doWriteTyped(String value)
+        throws XMLStreamException
+    {
+        int len = value.length();
+        char[] buf = getCopyBuffer(len);
+        value.getChars(0, len, buf, 0);
+        doWriteTyped(buf, 0, len);
+    }
+
     /**
      * Method called when typed content to be written has been
      * serialized to characters, and can be output using
-     * underlying methods. However, there is still preparation
+     * underlying methods without escaping.
+     * However, there is still preparation
      * to do, to enforce constraints and invoke validators if need be.
      *<p>
      * For the most part, checks are similar to those done when
@@ -829,7 +877,8 @@ public abstract class BaseStreamWriter
     public void writeBooleanAttribute(String prefix, String nsURI, String localName, boolean value)
         throws XMLStreamException
     {
-        writeAttribute(prefix, nsURI, localName, value ? "true" : "false");
+        char[] valueCh = value ? TYPE_CONST_TRUE : TYPE_CONST_FALSE;
+        writeEscapedAttribute(prefix, nsURI, localName, valueCh, 0, valueCh.length);
     }
 
     public void writeIntAttribute(String prefix, String nsURI, String localName, int value)
@@ -837,7 +886,7 @@ public abstract class BaseStreamWriter
     {
         char[] buf = getCopyBuffer();
         int len = NumberUtil.writeInt(value, buf, 0);
-        writeAttribute(prefix, nsURI, localName, buf, 0, len);
+        writeEscapedAttribute(prefix, nsURI, localName, buf, 0, len);
     }
 
     public void writeLongAttribute(String prefix, String nsURI, String localName, long value)
@@ -845,7 +894,37 @@ public abstract class BaseStreamWriter
     {
         char[] buf = getCopyBuffer();
         int len = NumberUtil.writeLong(value, buf, 0);
-        writeAttribute(prefix, nsURI, localName, buf, 0, len);
+        writeEscapedAttribute(prefix, nsURI, localName, buf, 0, len);
+    }
+
+    public void writeFloatAttribute(String prefix, String nsURI, String localName, float value)
+        throws XMLStreamException
+    {
+        char[] buf = getCopyBuffer();
+        int len = NumberUtil.writeFloat(value, buf, 0);
+        writeEscapedAttribute(prefix, nsURI, localName, buf, 0, len);
+    }
+
+    public void writeDoubleAttribute(String prefix, String nsURI, String localName, double value)
+        throws XMLStreamException
+    {
+        char[] buf = getCopyBuffer();
+        int len = NumberUtil.writeDouble(value, buf, 0);
+        writeEscapedAttribute(prefix, nsURI, localName, buf, 0, len);
+    }
+
+    public void writeIntegerAttribute(String prefix, String nsURI, String localName, BigInteger value)
+        throws XMLStreamException
+    {
+        // not optimal, but has to do:
+        writeAttribute(prefix, nsURI, localName, value.toString());
+    }
+
+    public void writeDecimalAttribute(String prefix, String nsURI, String localName, BigDecimal value)
+        throws XMLStreamException
+    {
+        // not optimal, but has to do:
+        writeAttribute(prefix, nsURI, localName, value.toString());
     }
 
     /*
@@ -1481,17 +1560,14 @@ public abstract class BaseStreamWriter
     }
 
     /**
-     *<p>
-     * Note: it could be argued that this method should be added to
-     * Stax2 extension API. For now it is not added, to limit
-     * complexity of API (and thereby, cost of implementing it).
+     * Method that will write attribute with value that is known not to
+     * require additional escaping.
      */
-    protected abstract void writeAttribute(String prefix, String nsURI,
-                                           String localName,
-                                           char[] buf, int offset, int len)
+    protected abstract void writeEscapedAttribute(String prefix, String nsURI,
+                                                  String localName,
+                                                  char[] buf, int offset, int len)
         throws XMLStreamException;
-
-
+    
     /**
      * Method called to close an open start element, when another
      * main-level element (not namespace declaration or attribute)
@@ -1827,6 +1903,15 @@ public abstract class BaseStreamWriter
         char[] buf = mCopyBuffer;
         if (buf == null) {
             mCopyBuffer = buf = mConfig.allocMediumCBuffer(DEFAULT_COPYBUFFER_LEN);
+        }
+        return buf;
+    }
+
+    private final char[] getCopyBuffer(int minLen)
+    {
+        char[] buf = mCopyBuffer;
+        if (buf == null || minLen > buf.length) {
+            mCopyBuffer = buf = mConfig.allocMediumCBuffer(Math.max(DEFAULT_COPYBUFFER_LEN, minLen));
         }
         return buf;
     }

@@ -1,5 +1,7 @@
 package com.ctc.wstx.dom;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.text.MessageFormat;
 import java.util.*;
 
@@ -467,22 +469,39 @@ public class DOMWrappingWriter
 
     // // // Typed element content write methods
 
-    public void writeBoolean(boolean value)
-        throws XMLStreamException
+    public void writeBoolean(boolean value) throws XMLStreamException
     {
         writeCharacters(value ? "true" : "false");
     }
 
-    public void writeInt(int value)
-        throws XMLStreamException
+    public void writeInt(int value) throws XMLStreamException
     {
         writeCharacters(String.valueOf(value));
     }
 
-    public void writeLong(long value)
-        throws XMLStreamException
+    public void writeLong(long value) throws XMLStreamException
     {
         writeCharacters(String.valueOf(value));
+    }
+
+    public void writeFloat(float value) throws XMLStreamException
+    {
+        writeCharacters(String.valueOf(value));
+    }
+
+    public void writeDouble(double value) throws XMLStreamException
+    {
+        writeCharacters(String.valueOf(value));
+    }
+
+    public void writeInteger(BigInteger value) throws XMLStreamException
+    {
+        writeCharacters(value.toString());
+    }
+
+    public void writeDecimal(BigDecimal value) throws XMLStreamException
+    {
+        writeCharacters(value.toString());
     }
 
     // // // Typed attribute value write methods
@@ -503,6 +522,30 @@ public class DOMWrappingWriter
         throws XMLStreamException
     {
         writeAttribute(prefix, nsURI, localName, String.valueOf(value));
+    }
+
+    public void writeFloatAttribute(String prefix, String nsURI, String localName, float value)
+        throws XMLStreamException
+    {
+        writeAttribute(prefix, nsURI, localName, String.valueOf(value));
+    }
+
+    public void writeDoubleAttribute(String prefix, String nsURI, String localName, double value)
+        throws XMLStreamException
+    {
+        writeAttribute(prefix, nsURI, localName, String.valueOf(value));
+    }
+
+    public void writeIntegerAttribute(String prefix, String nsURI, String localName, BigInteger value)
+        throws XMLStreamException
+    {
+        writeAttribute(prefix, nsURI, localName, value.toString());
+    }
+
+    public void writeDecimalAttribute(String prefix, String nsURI, String localName, BigDecimal value)
+        throws XMLStreamException
+    {
+        writeAttribute(prefix, nsURI, localName, value.toString());
     }
 
     /*

@@ -278,9 +278,9 @@ public class NonNsStreamWriter
                       mCfgAutomaticEmptyElems);
     }
 
-    protected void writeAttribute(String prefix, String nsURI,
-                                  String localName,
-                                  char[] buf, int offset, int len)
+    protected void writeEscapedAttribute(String prefix, String nsURI,
+                                         String localName,
+                                         char[] buf, int offset, int len)
         throws XMLStreamException
     {
         // note: mostly copied from the other writeAttribute() method..
@@ -307,7 +307,7 @@ public class NonNsStreamWriter
         }
         
         try {
-            mWriter.writeAttribute(localName, buf, offset, len);
+            mWriter.writeEscapedAttribute(localName, buf, offset, len);
         } catch (IOException ioe) {
             throwFromIOE(ioe);
         }

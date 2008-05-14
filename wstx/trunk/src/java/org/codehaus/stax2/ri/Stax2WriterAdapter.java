@@ -14,6 +14,9 @@
  */
 package org.codehaus.stax2.ri;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
+
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.stream.*;
 
@@ -305,6 +308,26 @@ public final class Stax2WriterAdapter
         mDelegate.writeCharacters(String.valueOf(value));
     }
 
+    public void writeFloat(float value) throws XMLStreamException
+    {
+        mDelegate.writeCharacters(String.valueOf(value));
+    }
+
+    public void writeDouble(double value) throws XMLStreamException
+    {
+        mDelegate.writeCharacters(String.valueOf(value));
+    }
+
+    public void writeInteger(BigInteger value) throws XMLStreamException
+    {
+        mDelegate.writeCharacters(value.toString());
+    }
+
+    public void writeDecimal(BigDecimal value) throws XMLStreamException
+    {
+        mDelegate.writeCharacters(value.toString());
+    }
+
     // // // Typed attribute value write methods
 
     public void writeBooleanAttribute(String prefix, String nsURI, String localName, boolean b) throws XMLStreamException
@@ -320,6 +343,26 @@ public final class Stax2WriterAdapter
     public void writeLongAttribute(String prefix, String nsURI, String localName, long value) throws XMLStreamException
     {
         mDelegate.writeAttribute(prefix, nsURI, localName, String.valueOf(value));
+    }
+
+    public void writeFloatAttribute(String prefix, String nsURI, String localName, float value) throws XMLStreamException
+    {
+        mDelegate.writeAttribute(prefix, nsURI, localName, String.valueOf(value));
+    }
+
+    public void writeDoubleAttribute(String prefix, String nsURI, String localName, double value) throws XMLStreamException
+    {
+        mDelegate.writeAttribute(prefix, nsURI, localName, String.valueOf(value));
+    }
+
+    public void writeIntegerAttribute(String prefix, String nsURI, String localName, BigInteger value) throws XMLStreamException
+    {
+        mDelegate.writeAttribute(prefix, nsURI, localName, value.toString());
+    }
+
+    public void writeDecimalAttribute(String prefix, String nsURI, String localName, BigDecimal value) throws XMLStreamException
+    {
+        mDelegate.writeAttribute(prefix, nsURI, localName, value.toString());
     }
 
      /*

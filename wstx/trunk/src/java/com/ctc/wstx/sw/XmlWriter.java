@@ -412,6 +412,32 @@ public abstract class XmlWriter
     public abstract void writeAttribute(String prefix, String localName, char[] value, int offset, int len)
         throws IOException, XMLStreamException;
 
+    /**
+     * Method similar to {@link #writeAttribute(String,char[],int,int)}
+     * but where is known not to require escaping.
+     *<p>
+     * Note: caller is not requir
+     */
+    public /*abstract*/ void writeEscapedAttribute(String localName, char[] value, int offset, int len)
+        throws IOException, XMLStreamException
+    {
+    // !!! TBI
+        writeAttribute(localName, value, offset, len);
+    }
+
+    /**
+     * Method similar to {@link #writeAttribute(String,String,char[],int,int)}
+     * but where is known not to require escaping.
+     *<p>
+     * Note: caller is not requir
+     */
+    public /*abstract*/ void writeEscapedAttribute(String prefix, String localName, char[] value, int offset, int len)
+        throws IOException, XMLStreamException
+    {
+    // !!! TBI
+        writeAttribute(prefix, localName, value, offset, len);
+    }
+
     // // Typed attribute write methods
 
     /*

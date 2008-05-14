@@ -21,6 +21,32 @@ package com.ctc.wstx.util;
  */
 public final class NumberUtil
 {
+    /**
+     * Maximum number of characters in a serialized integer is
+     * 11; one for (minus) sign, and then up to 10 digits
+     */
+    public final static int MAX_INT_CLEN = 11;
+
+    /**
+     * Maximum number of characters in a serialized long is
+     * 21; one for (minus) sign, and then up to 20 digits
+     */
+    public final static int MAX_LONG_CLEN = 21;
+
+    /**
+     * Maximum number of characters in a serialized double is
+     * 26 (at least for Sun JDK; 19 digits for mantissa, 3 for exponent,
+     * signs for mantissa and exponent, decimal point, 'E'):
+     * but let's pad it up a little bit just to play it safe.
+     */
+    public final static int MAX_DOUBLE_CLEN = 32;
+
+    /**
+     * JDK serializes floats same way as doubles, so let's
+     * reserve as much space
+     */
+    public final static int MAX_FLOAT_CLEN = MAX_DOUBLE_CLEN;
+
     private final static char NULL_CHAR = (char) 0;
 
     private static int MILLION = 1000000;
@@ -192,6 +218,24 @@ public final class NumberUtil
         writeLeadingTriplet(ivalue, buffer, origOffset);
 
         return offset;
+    }
+
+    public static int writeFloat(float value, char[] buffer, int offset)
+    {
+        // No real efficient method exposed by JDK, so let's keep it simple
+        String valueStr = String.valueOf(value);
+        int len = valueStr.length();
+        valueStr.getChars(0, len, buffer, offset);
+        return offset+len;
+    }
+
+    public static int writeDouble(double value, char[] buffer, int offset)
+    {
+        // No real efficient method exposed by JDK, so let's keep it simple
+        String valueStr = String.valueOf(value);
+        int len = valueStr.length();
+        valueStr.getChars(0, len, buffer, offset);
+        return offset+len;
     }
 
     /*
