@@ -525,6 +525,32 @@ public abstract class EncodingXmlWriter
         writeAscii(BYTE_QUOT);
     }
 
+    public void writeEscapedAttribute(String localName, char[] value, int offset, int len)
+        throws IOException, XMLStreamException
+    {
+        writeAscii(BYTE_SPACE);
+        writeName(localName);
+        writeAscii(BYTE_EQ, BYTE_QUOT);
+        if (len > 0) {
+            writeRawAscii(value, offset, len);
+        }
+        writeAscii(BYTE_QUOT);
+    }
+
+    public void writeEscapedAttribute(String prefix, String localName, char[] value, int offset, int len)
+        throws IOException, XMLStreamException
+    {
+        writeAscii(BYTE_SPACE);
+        writeName(prefix);
+        writeAscii(BYTE_COLON);
+        writeName(localName);
+        writeAscii(BYTE_EQ, BYTE_QUOT);
+        if (len > 0) {
+            writeRawAscii(value, offset, len);
+        }
+        writeAscii(BYTE_QUOT);
+    }
+
     /*
     ////////////////////////////////////////////////
     // Methods for sub-classes to use
@@ -591,6 +617,28 @@ public abstract class EncodingXmlWriter
         mOutputPtr += len;
         for (int i = 0; i < len; ++i) {
             buf[ptr++] = (byte)str.charAt(i);
+        }
+    }
+
+    public final void writeRawAscii(char[] buf, int offset, int len)
+        throws IOException
+    {
+        if (mSurrogate != 0) {
+            throwUnpairedSurrogate();
+        }
+        int ptr = mOutputPtr;
+        byte[] dst = mOutputBuffer;
+        if ((ptr + len) >= dst.length) {
+            if (len > dst.length) {
+                writeRaw(buf, offset, len);
+                return;
+            }
+            flushBuffer();
+            ptr = mOutputPtr;
+        }
+        mOutputPtr += len;
+        for (int i = 0; i < len; ++i) {
+            dst[ptr+i] = (byte)buf[offset+i];
         }
     }
 

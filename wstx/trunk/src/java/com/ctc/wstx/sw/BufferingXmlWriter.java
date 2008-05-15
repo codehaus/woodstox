@@ -259,6 +259,18 @@ public final class BufferingXmlWriter
         mOut.write(cbuf, offset, len);
     }
 
+    /**
+     * Method called to output typed values (int, long, double, float etc)
+     * that are known not to contain any escapable characters, or anything
+     * else beyond 7-bit ascii range.
+     */
+    public final void writeRawAscii(char[] cbuf, int offset, int len)
+        throws IOException
+    {
+        // Can't optimize any further with buffering writer, so:
+        writeRaw(cbuf, offset, len);
+    }
+
     public void writeRaw(String str)
         throws IOException
     {
@@ -974,13 +986,82 @@ public final class BufferingXmlWriter
             buf[ptr++] = '"';
             mOutputPtr = ptr;
         }
-
         if (vlen > 0) {
             if (mAttrValueWriter != null) { // custom escaping?
                 mAttrValueWriter.write(value, offset, vlen);
             } else { // nope, default
                 writeAttrValue(value, offset, vlen);
             }
+        }
+        fastWriteRaw('"');
+    }
+
+    public void writeEscapedAttribute(String localName, char[] value, int offset, int vlen)
+        throws IOException, XMLStreamException
+    {
+        if (mOut == null) {
+            return;
+        }
+        if (mCheckNames) {
+            verifyNameValidity(localName, mNsAware);
+        }
+        int len = localName.length();
+        if ((mOutputPtr + 3 + len) <= mOutputBufLen) {
+            fastWriteRaw(' ');
+            fastWriteRaw(localName);
+            fastWriteRaw('=', '"');
+        } else {
+            int ptr = mOutputPtr;
+            char[] buf = mOutputBuffer;
+            buf[ptr++] = ' ';
+            localName.getChars(0, len, buf, ptr);
+            ptr += len;
+            buf[ptr++] = '=';
+            buf[ptr++] = '"';
+            mOutputPtr = ptr;
+        }
+        if (vlen > 0) {
+            writeRawAscii(value, offset, vlen);
+        }
+        fastWriteRaw('"');
+    }
+
+    public void writeEscapedAttribute(String prefix, String localName, char[] value, int offset, int vlen)
+        throws IOException, XMLStreamException
+    {
+        if (mOut == null) {
+            return;
+        }
+        if (mCheckNames) {
+            verifyNameValidity(prefix, mNsAware);
+            verifyNameValidity(localName, mNsAware);
+        }
+        int len = prefix.length();
+        if (((mOutputBufLen - mOutputPtr) - (4 + localName.length() + len)) < 0) {
+            fastWriteRaw(' ');
+            if (len > 0) {
+                fastWriteRaw(prefix);
+                fastWriteRaw(':');
+            }
+            fastWriteRaw(localName);
+            fastWriteRaw('=', '"');
+        } else {
+            int ptr = mOutputPtr;
+            char[] buf = mOutputBuffer;
+            buf[ptr++] = ' ';
+            prefix.getChars(0, len, buf, ptr);
+            ptr += len;
+            buf[ptr++] = ':';
+            len = localName.length();
+            localName.getChars(0, len, buf, ptr);
+            ptr += len;
+            buf[ptr++] = '=';
+            buf[ptr++] = '"';
+            mOutputPtr = ptr;
+        }
+
+        if (vlen > 0) {
+            writeRawAscii(value, offset, vlen);
         }
         fastWriteRaw('"');
     }

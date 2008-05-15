@@ -866,7 +866,7 @@ public abstract class BaseStreamWriter
         }
         try {
             // We know it won't need quoting, so let's call this method:
-            mWriter.writeRaw(buffer, offset, len);
+            mWriter.writeRawAscii(buffer, offset, len);
         } catch (IOException ioe) {
             throw new WstxIOException(ioe);
         }

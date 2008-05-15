@@ -255,6 +255,13 @@ public abstract class XmlWriter
     public abstract void writeRaw(char[] cbuf, int offset, int len)
         throws IOException;
 
+    /**
+     * Like {@link #writeRaw}, but caller guarantees that the contents
+     * additionally are known to be in 7-bit ascii range.
+     */
+    public abstract void writeRawAscii(char[] cbuf, int offset, int len)
+        throws IOException;
+
     /*
     ////////////////////////////////////////////////////
     // Raw, non-verifying write methods; used when
@@ -418,12 +425,8 @@ public abstract class XmlWriter
      *<p>
      * Note: caller is not requir
      */
-    public /*abstract*/ void writeEscapedAttribute(String localName, char[] value, int offset, int len)
-        throws IOException, XMLStreamException
-    {
-    // !!! TBI
-        writeAttribute(localName, value, offset, len);
-    }
+    public abstract void writeEscapedAttribute(String localName, char[] value, int offset, int len)
+        throws IOException, XMLStreamException;
 
     /**
      * Method similar to {@link #writeAttribute(String,String,char[],int,int)}
@@ -431,12 +434,8 @@ public abstract class XmlWriter
      *<p>
      * Note: caller is not requir
      */
-    public /*abstract*/ void writeEscapedAttribute(String prefix, String localName, char[] value, int offset, int len)
-        throws IOException, XMLStreamException
-    {
-    // !!! TBI
-        writeAttribute(prefix, localName, value, offset, len);
-    }
+    public abstract void writeEscapedAttribute(String prefix, String localName, char[] value, int offset, int len)
+        throws IOException, XMLStreamException;
 
     // // Typed attribute write methods
 
