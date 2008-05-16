@@ -612,7 +612,7 @@ public class DefaultValueDecoder
 
     protected int trimTrailing(String lexical, int start, int end)
     {
-        while (--end > start && isSpace(lexical.charAt(start))) { }
+        while (--end > start && isSpace(lexical.charAt(end))) { }
         return end+1;
     }
 
@@ -645,7 +645,7 @@ public class DefaultValueDecoder
 
     protected int trimTrailing(char[] lexical, int start, int end)
     {
-        while (--end > start && isSpace(lexical[start])) { }
+        while (--end > start && isSpace(lexical[end])) { }
         return end+1;
     }
 

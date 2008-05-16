@@ -2,6 +2,7 @@ package stax2.typed;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.Random;
 
 import javax.xml.stream.*;
 
@@ -27,7 +28,7 @@ public class TestTypedReader
 
     /*
     ////////////////////////////////////////
-    // Tests for numeric/enum types
+    // Tests for boolean, integral numbers
     ////////////////////////////////////////
      */
 
@@ -238,6 +239,302 @@ public class TestTypedReader
 
     /*
     ////////////////////////////////////////
+    // Tests for floating point numbers
+    ////////////////////////////////////////
+     */
+
+    public void testSimpleFloatElem()
+        throws Exception
+    {
+        checkFloatElem("<root>0.0</root>", 0.0f);
+        checkFloatElem("<root>0</root>", 0.0f);
+        // with white space normalization
+        checkFloatElem("<root>1.0\t</root>", 1.0f);
+        checkFloatElem("<root>   \t-0.1</root>", -0.1f);
+        checkFloatElem("<root>+.001 </root>", 0.001f);
+        checkFloatElem("<root>  -3.1415 </root>", -3.1415f);
+        checkFloatElem("<root>27.3E-01</root>", 2.73e-01f);
+        checkFloatElem("<root> "+Float.MAX_VALUE+"</root>", Float.MAX_VALUE);
+        checkFloatElem("<root> "+Float.MIN_VALUE+"</root>", Float.MIN_VALUE);
+        checkFloatElem("<root> NaN</root>", Float.NaN);
+        checkFloatElem("<root>INF  </root>", Float.POSITIVE_INFINITY);
+        checkFloatElem("<root>\t-INF\t</root>", Float.NEGATIVE_INFINITY);
+
+        // And finally invalid ones
+        checkFloatElemException("<root>abcd</root>");
+        checkFloatElemException("<root>-  </root>");
+        checkFloatElemException("<root>+</root>");
+        checkFloatElemException("<root> -</root>");
+        checkFloatElemException("<root>1e</root>");
+    }
+
+    public void testSimpleFloatAttr()
+        throws Exception
+    {
+        checkFloatAttr("<root attr='+0.1   \t' />", 0.1f);
+        checkFloatAttr("<root attr='13.23' />", 13.23f);
+        checkFloatAttr("<root attr='0.123' />", 0.123f);
+        checkFloatAttr("<root attr=\"\t-12.03\n\r\" />", -12.03f);
+        checkFloatAttr("<root attr='+0   \t' />", 0.0f);
+        checkFloatAttr("<root attr=\"\r-00\" />", 0.0f);
+        checkFloatAttr("<root attr='-000000000000012345' />", -12345f);
+        checkFloatAttr("<root attr='"+Float.MAX_VALUE+"  ' />", Float.MAX_VALUE);
+        checkFloatAttr("<root attr='"+Float.MIN_VALUE+"'  />", Float.MIN_VALUE);
+        checkFloatAttr("<root attr='NaN'/>", Float.NaN);
+        checkFloatAttr("<root attr=' INF' />", Float.POSITIVE_INFINITY);
+        checkFloatAttr("<root attr='-INF  ' />", Float.NEGATIVE_INFINITY);
+
+        checkFloatAttrException("<root attr=\"abc\" />");
+        checkFloatAttrException("<root attr='1c' />");
+        checkFloatAttrException("<root attr='-' />");
+        checkFloatAttrException("<root attr='  + ' />");
+    }
+
+    public void testMultipleFloatAttr()
+        throws Exception
+    {
+        XMLStreamReader2 sr = getRootReader("<root a1='-123.456' b=\"0.003\" third='-0.0' />");
+        assertEquals(3, sr.getAttributeCount());
+        int ix1 = sr.getAttributeIndex("", "a1");
+        int ix2 = sr.getAttributeIndex("", "b");
+        int ix3 = sr.getAttributeIndex("", "third");
+        if (ix1 < 0 || ix2 < 0 || ix3 < 0) {
+            fail("Couldn't find indexes of attributes: a1="+ix1+", b="+ix2+", third="+ix3);
+        }
+        assertEquals(-123.456f, sr.getAttributeAsFloat(ix1));
+        assertEquals(0.003f, sr.getAttributeAsFloat(ix2));
+        assertEquals(-0.0f, sr.getAttributeAsFloat(ix3));
+
+        sr.close();
+    }
+
+    public void testSimpleDoubleElem()
+        throws Exception
+    {
+        checkDoubleElem("<root>0.0</root>", 0.0f);
+        checkDoubleElem("<root>0</root>", 0.0f);
+        // with white space normalization
+        checkDoubleElem("<root>1.0\t</root>", 1.0f);
+        checkDoubleElem("<root>   \t-0.1</root>", -0.1f);
+        checkDoubleElem("<root>+.001 </root>", 0.001f);
+        checkDoubleElem("<root>  -3.1415 </root>", -3.1415f);
+        checkDoubleElem("<root>27.3E-01</root>", 2.73e-01f);
+        checkDoubleElem("<root> "+Double.MAX_VALUE+"</root>", Double.MAX_VALUE);
+        checkDoubleElem("<root> "+Double.MIN_VALUE+"</root>", Double.MIN_VALUE);
+        checkDoubleElem("<root> NaN</root>", Double.NaN);
+        checkDoubleElem("<root>INF  </root>", Double.POSITIVE_INFINITY);
+        checkDoubleElem("<root>\t-INF\t</root>", Double.NEGATIVE_INFINITY);
+
+        // And finally invalid ones
+        checkDoubleElemException("<root>abcd</root>");
+        checkDoubleElemException("<root>-  </root>");
+        checkDoubleElemException("<root>+</root>");
+        checkDoubleElemException("<root> -</root>");
+        checkDoubleElemException("<root>1e</root>");
+    }
+
+    public void testSimpleDoubleAttr()
+        throws Exception
+    {
+        checkDoubleAttr("<root attr='+0.1   \t' />", 0.1f);
+        checkDoubleAttr("<root attr='13.23' />", 13.23f);
+        checkDoubleAttr("<root attr='0.123' />", 0.123f);
+        checkDoubleAttr("<root attr=\"\t-12.03\n\r\" />", -12.03f);
+        checkDoubleAttr("<root attr='+0   \t' />", 0.0f);
+        checkDoubleAttr("<root attr=\"\r-00\" />", 0.0f);
+        checkDoubleAttr("<root attr='-000000000000012345' />", -12345f);
+        checkDoubleAttr("<root attr='"+Double.MAX_VALUE+"  ' />", Double.MAX_VALUE);
+        checkDoubleAttr("<root attr='"+Double.MIN_VALUE+"'  />", Double.MIN_VALUE);
+        checkDoubleAttr("<root attr='NaN'/>", Double.NaN);
+        checkDoubleAttr("<root attr=' INF' />", Double.POSITIVE_INFINITY);
+        checkDoubleAttr("<root attr='-INF  ' />", Double.NEGATIVE_INFINITY);
+
+        checkDoubleAttrException("<root attr=\"abc\" />");
+        checkDoubleAttrException("<root attr='1c' />");
+        checkDoubleAttrException("<root attr='-' />");
+        checkDoubleAttrException("<root attr='  + ' />");
+    }
+
+    public void testMultipleDoubleAttr()
+        throws Exception
+    {
+        XMLStreamReader2 sr = getRootReader("<root a1='-123.456' b=\"0.003\" third='-0.0' />");
+        assertEquals(3, sr.getAttributeCount());
+        int ix1 = sr.getAttributeIndex("", "a1");
+        int ix2 = sr.getAttributeIndex("", "b");
+        int ix3 = sr.getAttributeIndex("", "third");
+        if (ix1 < 0 || ix2 < 0 || ix3 < 0) {
+            fail("Couldn't find indexes of attributes: a1="+ix1+", b="+ix2+", third="+ix3);
+        }
+        assertEquals(-123.456f, sr.getAttributeAsDouble(ix1));
+        assertEquals(0.003f, sr.getAttributeAsDouble(ix2));
+        assertEquals(-0.0f, sr.getAttributeAsDouble(ix3));
+
+        sr.close();
+    }
+
+    /*
+    ////////////////////////////////////////
+    // Tests for "big" numbers
+    ////////////////////////////////////////
+     */
+
+    /**
+     * With unlimited length BigInteger, it's easier to just generate
+     * very big (long) numbers, and test variability that way.
+     */
+    public void testBigInteger()
+        throws Exception
+    {
+        /* Let's just generate reasonably big (up to 200 digits)
+         * numbers, and test some variations
+         */
+        BigInteger I = BigInteger.valueOf(3);
+        Random rnd = new Random(1);
+        for (int i = 1; i < 200; ++i) {
+            // First, regular elem content
+            String doc;
+            String istr = I.toString();
+
+            switch (i % 4) { // some white space variations
+            case 0:
+                istr = " \t "+istr;
+                break;
+            case 1:
+                istr = istr+"\r";
+                break;
+            case 2:
+                istr = "\n"+istr+" ";
+                break;
+            }
+            XMLStreamReader2 sr = getRootReader("<root>"+istr+"</root>");
+            assertEquals(I, sr.getElementAsInteger());
+            sr.close();
+            // Then attribute
+            doc = "<root attr='"+istr+"' />";
+            sr = getRootReader(doc);
+            assertEquals(I, sr.getAttributeAsInteger(0));
+            sr.close();
+
+            // And finally, invalid
+            istr = I.toString();
+
+            switch (i % 3) {
+            case 0:
+                istr = "ab"+istr;
+                break;
+            case 1:
+                istr = istr+"!";
+                break;
+            case 2:
+                istr = istr+".0";
+                break;
+            }
+
+            sr = getRootReader("<root>"+istr+"</root>");
+            try {
+                sr.getElementAsInteger();
+                fail("Expected exception for invalid input ["+doc+"]");
+            } catch (TypedXMLStreamException xse) { ; // good
+            }
+            sr.close();
+
+            sr = getRootReader("<root attr='"+istr+" '/>");
+            try {
+                sr.getAttributeAsInteger(0);
+                fail("Expected exception for invalid input ["+doc+"]");
+            } catch (TypedXMLStreamException xse) { ; // good
+            }
+            sr.close();
+
+            // And then, let's just multiply by 10, add a new digit
+            I = I.multiply(BigInteger.valueOf(10)).add(BigInteger.valueOf(rnd.nextInt() & 0xF));
+
+            // Plus switch sign every now and then
+            if ((i % 3) == 0) {
+                I = I.negate();
+            }
+        }
+    }
+
+    /**
+     * As with BigInteger, we better use number generation with
+     * BigDecimal.
+     */
+    public void testBigDecimal()
+        throws Exception
+    {
+        BigDecimal D = BigDecimal.valueOf(1L);
+        Random rnd = new Random(6);
+        // 200 digits seems ok here too
+        for (int i = 1; i < 200; ++i) {
+            // First, regular elem content
+            String doc;
+            String istr = D.toString();
+
+            switch (i % 4) { // some white space variations
+            case 0:
+                istr = "\t"+istr;
+                break;
+            case 1:
+                istr = istr+"  ";
+                break;
+            case 2:
+                istr = " "+istr+"\r";
+                break;
+            }
+            XMLStreamReader2 sr = getRootReader("<root>"+istr+"</root>");
+            assertEquals(D, sr.getElementAsDecimal());
+            sr.close();
+            // Then attribute
+            doc = "<root attr='"+istr+"' />";
+            sr = getRootReader(doc);
+            assertEquals(D, sr.getAttributeAsDecimal(0));
+            sr.close();
+
+            // And finally, invalid
+            istr = D.toString();
+
+            switch (i % 3) {
+            case 0:
+                istr = "_x"+istr;
+                break;
+            case 1:
+                istr = istr+"?";
+                break;
+            case 2:
+                istr = istr+"e";
+                break;
+            }
+
+            sr = getRootReader("<root>"+istr+"</root>");
+            try {
+                sr.getElementAsDecimal();
+                fail("Expected exception for invalid input ["+doc+"]");
+            } catch (TypedXMLStreamException xse) { ; // good
+            }
+            sr.close();
+
+            sr = getRootReader("<root attr='"+istr+" '/>");
+            try {
+                sr.getAttributeAsDecimal(0);
+                fail("Expected exception for invalid input ["+doc+"]");
+            } catch (TypedXMLStreamException xse) { ; // good
+            }
+            sr.close();
+            
+            // Ok, then, add a small integer, divide by 10 to generate digits
+            D = D.add(BigDecimal.valueOf(rnd.nextInt() & 0xF)).divide(BigDecimal.valueOf(10L));
+            
+            // Plus switch sign every now and then
+            if ((i % 3) == 0) {
+                D = D.negate();
+            }
+        }
+    }
+
+    /*
+    ////////////////////////////////////////
     // Private methods, second-level tests
     ////////////////////////////////////////
      */
@@ -368,11 +665,113 @@ public class TestTypedReader
         }
     }
 
+    private void checkFloatElem(String doc, float expState)
+        throws XMLStreamException
+    {
+        XMLStreamReader2 sr = getRootReader(doc);
+        assertEquals(expState, sr.getElementAsFloat());
+        sr.close();
+    }
+
+    private void checkFloatAttr(String doc, float expState)
+        throws XMLStreamException
+    {
+        XMLStreamReader2 sr = getRootReader(doc);
+        // Assumption is that there's just one attribute...
+        float actState = sr.getAttributeAsFloat(0);
+        assertEquals(expState, actState);
+        sr.close();
+    }
+
+    private void checkFloatElemException(String doc)
+        throws XMLStreamException
+    {
+        XMLStreamReader2 sr = getRootReader(doc);
+        try {
+            /*float b =*/ sr.getElementAsFloat();
+            fail("Expected exception for invalid input ["+doc+"]");
+        } catch (TypedXMLStreamException xse) {
+            ; // good
+        }
+    }
+
+    private void checkFloatAttrException(String doc)
+        throws XMLStreamException
+    {
+        XMLStreamReader2 sr = getRootReader(doc);
+        try {
+            /*float b =*/ sr.getAttributeAsFloat(0);
+            fail("Expected exception for invalid input ["+doc+"]");
+        } catch (TypedXMLStreamException xse) {
+            ; // good
+        }
+    }
+
+    private void checkDoubleElem(String doc, double expState)
+        throws XMLStreamException
+    {
+        XMLStreamReader2 sr = getRootReader(doc);
+        assertEquals(expState, sr.getElementAsDouble());
+        sr.close();
+    }
+
+    private void checkDoubleAttr(String doc, double expState)
+        throws XMLStreamException
+    {
+        XMLStreamReader2 sr = getRootReader(doc);
+        // Assumption is that there's just one attribute...
+        double actState = sr.getAttributeAsDouble(0);
+        assertEquals(expState, actState);
+        sr.close();
+    }
+
+    private void checkDoubleElemException(String doc)
+        throws XMLStreamException
+    {
+        XMLStreamReader2 sr = getRootReader(doc);
+        try {
+            /*double b =*/ sr.getElementAsDouble();
+            fail("Expected exception for invalid input ["+doc+"]");
+        } catch (TypedXMLStreamException xse) {
+            ; // good
+        }
+    }
+
+    private void checkDoubleAttrException(String doc)
+        throws XMLStreamException
+    {
+        XMLStreamReader2 sr = getRootReader(doc);
+        try {
+            /*double b =*/ sr.getAttributeAsDouble(0);
+            fail("Expected exception for invalid input ["+doc+"]");
+        } catch (TypedXMLStreamException xse) {
+            ; // good
+        }
+    }
+
     /*
     ////////////////////////////////////////
-    // Private methods, reader construction
+    // Private methods
     ////////////////////////////////////////
      */
+
+    private void assertEquals(float a, float b)
+    {
+        if (Float.isNaN(a)) {
+            assertTrue(Float.isNaN(b));
+        } else if (a != b) {
+            assertEquals(a, b, 1000.0f); // just to make it fail
+        }
+    }
+
+    private void assertEquals(double a, double b)
+    {
+        if (Double.isNaN(a)) {
+            assertTrue(Double.isNaN(b));
+        } else if (a != b) {
+            assertEquals(a, b, 1000.0f); // just to make it fail
+        }
+    }
 
     // XMLStreamReader2 extends TypedXMLStreamReader
     private XMLStreamReader2 getRootReader(String str)

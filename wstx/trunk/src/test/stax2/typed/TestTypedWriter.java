@@ -1,6 +1,9 @@
 package stax2.typed;
 
 import java.io.*;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.Random;
 
 import javax.xml.stream.*;
 
@@ -203,6 +206,87 @@ public class TestTypedWriter
         sr.close();
     }
 
+    public void testSimpleFloatElem()
+        throws Exception
+    {
+        float[] values = new float[] {
+            0.0f,  10.47f, (float) (1.0 / 3.0), -0.25f,
+            Float.MIN_VALUE, Float.MAX_VALUE,
+            Float.NaN, Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY
+        };
+        for (int i = 0; i < values.length; ++i) {
+            float value = values[i];
+            assertEquals("<root>"+value+"</root>", writeFloatElemDoc("root", value));
+        }
+    }
+
+    public void testSimpleFloatAttr()
+        throws Exception
+    {
+        float[] values = new float[] {
+            0.0f,  10.47f, (float) (1.0 / 3.0), -0.25f,
+            Float.MIN_VALUE, Float.MAX_VALUE,
+            Float.NaN, Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY
+        };
+        for (int i = 0; i < values.length; ++i) {
+            float value = values[i];
+            assertEquals("<a attr='"+value+"'></a>", writeFloatAttrDoc("a", "attr", value));
+        }
+    }
+
+    public void testSimpleDoubleElem()
+        throws Exception
+    {
+        double[] values = new double[] {
+            0.0f,  10.47f, (double) (1.0 / 3.0), -0.25f,
+            Double.MIN_VALUE, Double.MAX_VALUE,
+            Double.NaN, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY
+        };
+        for (int i = 0; i < values.length; ++i) {
+            double value = values[i];
+            assertEquals("<root>"+value+"</root>", writeDoubleElemDoc("root", value));
+        }
+    }
+
+    public void testSimpleDoubleAttr()
+        throws Exception
+    {
+        double[] values = new double[] {
+            0.0f,  10.47f, (double) (1.0 / 3.0), -0.25f,
+            Double.MIN_VALUE, Double.MAX_VALUE,
+            Double.NaN, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY
+        };
+        for (int i = 0; i < values.length; ++i) {
+            double value = values[i];
+            assertEquals("<a attr='"+value+"'></a>", writeDoubleAttrDoc("a", "attr", value));
+        }
+    }
+
+    public void testBigInteger()
+        throws Exception
+    {
+        BigInteger I = BigInteger.valueOf(3);
+        Random rnd = new Random(2);
+        for (int i = 1; i < 200; ++i) {
+            assertEquals("<root>"+I+"</root>", writeIntegerElemDoc("root", I));
+            assertEquals("<a attr='"+I+"'></a>", writeIntegerAttrDoc("a", "attr", I));
+            I = I.multiply(BigInteger.valueOf(10)).add(BigInteger.valueOf(rnd.nextInt() & 0xF));
+        }
+    }
+
+    public void testBigDecimal()
+        throws Exception
+    {
+        BigDecimal D = BigDecimal.valueOf(1L);
+        Random rnd = new Random(9);
+        for (int i = 1; i < 200; ++i) {
+            assertEquals("<root>"+D+"</root>", writeDecimalElemDoc("root", D));
+            assertEquals("<a attr='"+D+"'></a>", writeDecimalAttrDoc("a", "attr", D));
+            // Ok, then, add a small integer, divide by 10 to generate digits
+            D = D.add(BigDecimal.valueOf(rnd.nextInt() & 0xF)).divide(BigDecimal.valueOf(10L));
+        }
+    }
+
     /*
     ////////////////////////////////////////
     // Private methods
@@ -299,6 +383,118 @@ public class TestTypedWriter
         //sw.writeStartDocument();
         sw.writeStartElement(elem);
         sw.writeLongAttribute(null, null, attr, value);
+        sw.writeCharacters(""); // to avoid empty elem
+        sw.writeEndElement();
+        sw.writeEndDocument();
+        String str = bos.toString("UTF-8");
+        // One twist: need to ensure quotes are single-quotes (for the test)
+        return str.replace('"', '\'');
+    }
+
+    private String writeFloatElemDoc(String elem, float value)
+        throws Exception
+    {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        XMLStreamWriter2 sw = getTypedWriter(bos);
+        // Let's not write start doc, to avoid getting xml declaration
+        //sw.writeStartDocument();
+        sw.writeStartElement(elem);
+        sw.writeFloat(value);
+        sw.writeEndElement();
+        sw.writeEndDocument();
+        return bos.toString("UTF-8");
+    }
+
+    private String writeFloatAttrDoc(String elem, String attr, float value)
+        throws Exception
+    {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        XMLStreamWriter2 sw = getTypedWriter(bos);
+        // Let's not write start doc, to avoid getting xml declaration
+        //sw.writeStartDocument();
+        sw.writeStartElement(elem);
+        sw.writeFloatAttribute(null, null, attr, value);
+        sw.writeCharacters(""); // to avoid empty elem
+        sw.writeEndElement();
+        sw.writeEndDocument();
+        String str = bos.toString("UTF-8");
+        // One twist: need to ensure quotes are single-quotes (for the test)
+        return str.replace('"', '\'');
+    }
+
+    private String writeDoubleElemDoc(String elem, double value)
+        throws Exception
+    {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        XMLStreamWriter2 sw = getTypedWriter(bos);
+        sw.writeStartElement(elem);
+        sw.writeDouble(value);
+        sw.writeEndElement();
+        sw.writeEndDocument();
+        return bos.toString("UTF-8");
+    }
+
+    private String writeDoubleAttrDoc(String elem, String attr, double value)
+        throws Exception
+    {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        XMLStreamWriter2 sw = getTypedWriter(bos);
+        sw.writeStartElement(elem);
+        sw.writeDoubleAttribute(null, null, attr, value);
+        sw.writeCharacters(""); // to avoid empty elem
+        sw.writeEndElement();
+        sw.writeEndDocument();
+        String str = bos.toString("UTF-8");
+        // One twist: need to ensure quotes are single-quotes (for the test)
+        return str.replace('"', '\'');
+    }
+
+    private String writeIntegerElemDoc(String elem, BigInteger value)
+        throws Exception
+    {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        XMLStreamWriter2 sw = getTypedWriter(bos);
+        sw.writeStartElement(elem);
+        sw.writeInteger(value);
+        sw.writeEndElement();
+        sw.writeEndDocument();
+        return bos.toString("UTF-8");
+    }
+
+    private String writeIntegerAttrDoc(String elem, String attr, BigInteger value)
+        throws Exception
+    {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        XMLStreamWriter2 sw = getTypedWriter(bos);
+        sw.writeStartElement(elem);
+        sw.writeIntegerAttribute(null, null, attr, value);
+        sw.writeCharacters(""); // to avoid empty elem
+        sw.writeEndElement();
+        sw.writeEndDocument();
+        String str = bos.toString("UTF-8");
+        // One twist: need to ensure quotes are single-quotes (for the test)
+        return str.replace('"', '\'');
+    }
+
+    private String writeDecimalElemDoc(String elem, BigDecimal value)
+        throws Exception
+    {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        XMLStreamWriter2 sw = getTypedWriter(bos);
+        sw.writeStartElement(elem);
+        sw.writeDecimal(value);
+        sw.writeEndElement();
+        sw.writeEndDocument();
+        return bos.toString("UTF-8");
+    }
+
+    private String writeDecimalAttrDoc(String elem, String attr, BigDecimal value)
+        throws Exception
+    {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        XMLStreamWriter2 sw = getTypedWriter(bos);
+        sw.writeStartElement(elem);
+        sw.writeDecimalAttribute(null, null, attr, value);
         sw.writeCharacters(""); // to avoid empty elem
         sw.writeEndElement();
         sw.writeEndDocument();
