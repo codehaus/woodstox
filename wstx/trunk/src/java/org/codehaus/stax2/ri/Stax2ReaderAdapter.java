@@ -10,7 +10,6 @@ import javax.xml.stream.*;
 import javax.xml.stream.util.StreamReaderDelegate;
 
 import org.codehaus.stax2.typed.TypedXMLStreamException;
-import org.codehaus.stax2.typed.ValueDecoder;
 import org.codehaus.stax2.ri.typed.DefaultValueDecoder;
 
 import org.codehaus.stax2.*;
@@ -42,10 +41,10 @@ public class Stax2ReaderAdapter
                ,LocationInfo
 {
     /**
-     * ValueDecoder to use for decoding typed content; lazily
+     * Value decoder to use for decoding typed content; lazily
      * instantiated/accessed if and when needed
      */
-    protected ValueDecoder mValueDecoder;
+    protected DefaultValueDecoder mValueDecoder;
 
     /**
      * Number of open (start) elements currently.
@@ -603,7 +602,7 @@ public class Stax2ReaderAdapter
      * value decoder instance should be used for handling conversions
      * needed to implement Typed Access API.
      */
-    protected ValueDecoder valueDecoder()
+    protected DefaultValueDecoder valueDecoder()
     {
         if (mValueDecoder == null) {
             mValueDecoder = new DefaultValueDecoder();

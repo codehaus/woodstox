@@ -49,9 +49,8 @@ public interface TypedXMLStreamReader
      * the lexical space defined by the XML Schema boolean data type.
      * (note: allowed lexical values are canonicals "true" and
      * "false", as well as non-canonical "0" and "1")
-     * </p>
-     * <p>These are the pre and post conditions of calling this
-     * method, regardless of whether an exception is thrown or not.
+     * </p><p>
+     * These are the pre and post conditions of calling this method:
      * <ul>
      * <li>Precondition: the current event is START_ELEMENT.</li>
      * <li>Postcondition: the current event is the corresponding 
@@ -75,9 +74,8 @@ public interface TypedXMLStreamReader
      * An exception is thrown if, after whitespace is
      * collapsed, the resulting sequence of characters is not in 
      * the lexical space defined by the XML Schema integer data type.
-     * </p>
-     * <p>These are the pre and post conditions of calling this
-     * method, regardless of whether an exception is thrown or not.
+     * </p><p>
+     * These are the pre and post conditions of calling this method:
      * <ul>
      * <li>Precondition: the current event is START_ELEMENT.</li>
      * <li>Postcondition: the current event is the corresponding 
@@ -101,9 +99,8 @@ public interface TypedXMLStreamReader
      * An exception is thrown if, after whitespace is
      * collapsed, the resulting sequence of characters is not in 
      * the lexical space defined by the XML Schema integer data type.
-     * </p>
-     * <p>These are the pre and post conditions of calling this
-     * method, regardless of whether an exception is thrown or not.
+     * </p><p>
+     * These are the pre and post conditions of calling this method:
      * <ul>
      * <li>Precondition: the current event is START_ELEMENT.</li>
      * <li>Postcondition: the current event is the corresponding 
@@ -127,13 +124,13 @@ public interface TypedXMLStreamReader
      * An exception is thrown if, after whitespace is
      * collapsed, the resulting sequence of characters is not in 
      * the lexical space defined by the XML Schema integer data type.
-     *
+     *<br />
      * Note that valid representations include basic Java textual
      * representations, as well as 3 special tokens: "INF", "-INF"
      * and "NaN"
      * </p>
-     * <p>These are the pre and post conditions of calling this
-     * method, regardless of whether an exception is thrown or not.
+     * <p>
+     * These are the pre and post conditions of calling this method:
      * <ul>
      * <li>Precondition: the current event is START_ELEMENT.</li>
      * <li>Postcondition: the current event is the corresponding 
@@ -157,13 +154,12 @@ public interface TypedXMLStreamReader
      * An exception is thrown if, after whitespace is
      * collapsed, the resulting sequence of characters is not in 
      * the lexical space defined by the XML Schema integer data type.
-     *
+     *<br />
      * Note that valid representations include basic Java textual
      * representations, as well as 3 special tokens: "INF", "-INF"
      * and "NaN"
-     * </p>
-     * <p>These are the pre and post conditions of calling this
-     * method, regardless of whether an exception is thrown or not.
+     * </p><p>
+     * These are the pre and post conditions of calling this method:
      * <ul>
      * <li>Precondition: the current event is START_ELEMENT.</li>
      * <li>Postcondition: the current event is the corresponding 
@@ -177,22 +173,10 @@ public interface TypedXMLStreamReader
      */
     public double getElementAsDouble() throws XMLStreamException;
     
-    /**
-     * <p><i>[TODO] </i>
-     * Same as {@link #getElementAsBoolean()} replacing boolean by long.</p>
-     */
     public BigInteger getElementAsInteger() throws XMLStreamException;
     
-    /**
-     * <p><i>[TODO] </i>
-     * Same as {@link #getElementAsBoolean()} replacing boolean by decimal.</p>
-     */
     public BigDecimal getElementAsDecimal() throws XMLStreamException;
     
-    /**
-     * <p><i>[TODO] </i>
-     * Same as {@link #getElementAsBoolean()} replacing boolean by QName.</p>
-     */
     //public QName getElementAsQName() throws XMLStreamException;
     
     // !!! 30-Jan-2008, TSa: JDK 1.5 only -- is that ok?
@@ -206,15 +190,13 @@ public interface TypedXMLStreamReader
      * representation of a byte array is defined by the 
      * <a href="http://www.w3.org/TR/xmlschema-2/#base64Binary">XML Schema
      * base64Binary</a> data type. Whitespace MUST be 
-     * <a href="http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/
-     * datatypes.html#rf-whiteSpace">collapsed</a>
+     * <a href="http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/datatypes.html#rf-whiteSpace">collapsed</a>
      * according to the whiteSpace facet for the XML Schema base64Binary
      * data type. An exception is thrown if, after whitespace is
      * collapsed, the resulting sequence of characters is not in 
      * the lexical space defined by the XML Schema base64Binary data type.</p>
-     *
-     * <p>These are the pre and post conditions of calling this
-     * method:
+     * </p><p>
+     * These are the pre and post conditions of calling this method:
      * <ul>
      * <li>Precondition: the current event is START_ELEMENT.</li>
      * <li>Postcondition: the current event is the corresponding 

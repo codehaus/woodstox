@@ -22,7 +22,7 @@ import java.math.BigInteger;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.namespace.QName;
 
-import org.codehaus.stax2.typed.ValueDecoder;
+import org.codehaus.stax2.ri.typed.DefaultValueDecoder;
 
 import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.exc.WstxException;
@@ -258,7 +258,7 @@ public abstract class AttributeCollector
     //////////////////////////////////////////////////////
      */
 
-    public final boolean getValueAsBoolean(int index, ValueDecoder dec)
+    public final boolean getValueAsBoolean(int index, DefaultValueDecoder dec)
         throws IllegalArgumentException
     {
         if (index < 0 || index >= mAttrCount) {
@@ -279,7 +279,7 @@ public abstract class AttributeCollector
                                  mValueBuffer.getOffset(index+1));
     }
 
-    public final int getValueAsInt(int index, ValueDecoder dec)
+    public final int getValueAsInt(int index, DefaultValueDecoder dec)
         throws IllegalArgumentException
     {
         if (index < 0 || index >= mAttrCount) {
@@ -296,7 +296,7 @@ public abstract class AttributeCollector
                              mValueBuffer.getOffset(index+1));
     }
 
-    public final long getValueAsLong(int index, ValueDecoder dec)
+    public final long getValueAsLong(int index, DefaultValueDecoder dec)
         throws IllegalArgumentException
     {
         if (index < 0 || index >= mAttrCount) {
@@ -313,7 +313,7 @@ public abstract class AttributeCollector
                               mValueBuffer.getOffset(index+1));
     }
 
-    public final float getValueAsFloat(int index, ValueDecoder dec)
+    public final float getValueAsFloat(int index, DefaultValueDecoder dec)
         throws IllegalArgumentException
     {
         if (index < 0 || index >= mAttrCount) {
@@ -330,7 +330,7 @@ public abstract class AttributeCollector
                               mValueBuffer.getOffset(index+1));
     }
 
-    public final double getValueAsDouble(int index, ValueDecoder dec)
+    public final double getValueAsDouble(int index, DefaultValueDecoder dec)
         throws IllegalArgumentException
     {
         if (index < 0 || index >= mAttrCount) {
@@ -347,7 +347,7 @@ public abstract class AttributeCollector
                               mValueBuffer.getOffset(index+1));
     }
 
-    public final BigInteger getValueAsInteger(int index, ValueDecoder dec)
+    public final BigInteger getValueAsInteger(int index, DefaultValueDecoder dec)
         throws IllegalArgumentException
     {
         if (index < 0 || index >= mAttrCount) {
@@ -364,7 +364,7 @@ public abstract class AttributeCollector
                               mValueBuffer.getOffset(index+1));
     }
 
-    public final BigDecimal getValueAsDecimal(int index, ValueDecoder dec)
+    public final BigDecimal getValueAsDecimal(int index, DefaultValueDecoder dec)
         throws IllegalArgumentException
     {
         if (index < 0 || index >= mAttrCount) {

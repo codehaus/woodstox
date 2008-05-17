@@ -9,7 +9,7 @@ import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.ext.LexicalHandler;
 
-import org.codehaus.stax2.typed.ValueDecoder;
+import org.codehaus.stax2.ri.typed.DefaultValueDecoder;
 import org.codehaus.stax2.validation.XMLValidationException;
 import org.codehaus.stax2.validation.XMLValidator;
 
@@ -394,7 +394,7 @@ public final class TextBuffer
     /////////////////////////////////////////////////
      */
 
-    public boolean convertToBoolean(ValueDecoder vd)
+    public boolean convertToBoolean(DefaultValueDecoder vd)
         throws IllegalArgumentException
     {
         if (mInputStart >= 0) { // shared buffer, common case
@@ -407,7 +407,7 @@ public final class TextBuffer
         return vd.decodeBoolean(buf, 0, len);
     }
 
-    public int convertToInt(ValueDecoder vd)
+    public int convertToInt(DefaultValueDecoder vd)
         throws IllegalArgumentException
     {
         if (mInputStart >= 0) { // shared buffer, common case
@@ -420,7 +420,7 @@ public final class TextBuffer
         return vd.decodeInt(buf, 0, len);
     }
 
-    public long convertToLong(ValueDecoder vd)
+    public long convertToLong(DefaultValueDecoder vd)
         throws IllegalArgumentException
     {
         if (mInputStart >= 0) { // shared buffer, common case
@@ -433,7 +433,7 @@ public final class TextBuffer
         return vd.decodeLong(buf, 0, len);
     }
 
-    public float convertToFloat(ValueDecoder vd)
+    public float convertToFloat(DefaultValueDecoder vd)
         throws IllegalArgumentException
     {
         if (mInputStart >= 0) { // shared buffer, common case
@@ -446,7 +446,7 @@ public final class TextBuffer
         return vd.decodeFloat(buf, 0, len);
     }
 
-    public double convertToDouble(ValueDecoder vd)
+    public double convertToDouble(DefaultValueDecoder vd)
         throws IllegalArgumentException
     {
         if (mInputStart >= 0) { // shared buffer, common case
@@ -459,7 +459,7 @@ public final class TextBuffer
         return vd.decodeDouble(buf, 0, len);
     }
 
-    public BigInteger convertToInteger(ValueDecoder vd)
+    public BigInteger convertToInteger(DefaultValueDecoder vd)
         throws IllegalArgumentException
     {
         if (mInputStart >= 0) { // shared buffer, common case
@@ -472,7 +472,7 @@ public final class TextBuffer
         return vd.decodeInteger(buf, 0, len);
     }
 
-    public BigDecimal convertToDecimal(ValueDecoder vd)
+    public BigDecimal convertToDecimal(DefaultValueDecoder vd)
         throws IllegalArgumentException
     {
         if (mInputStart >= 0) { // shared buffer, common case

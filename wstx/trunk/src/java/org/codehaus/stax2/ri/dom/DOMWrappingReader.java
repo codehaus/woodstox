@@ -41,7 +41,6 @@ import org.codehaus.stax2.ri.SingletonIterator;
 import org.codehaus.stax2.ri.Stax2Util;
 import org.codehaus.stax2.ri.typed.DefaultValueDecoder;
 import org.codehaus.stax2.typed.TypedXMLStreamException;
-import org.codehaus.stax2.typed.ValueDecoder;
 import org.codehaus.stax2.validation.DTDValidationSchema;
 import org.codehaus.stax2.validation.ValidationProblemHandler;
 import org.codehaus.stax2.validation.XMLValidationSchema;
@@ -187,10 +186,10 @@ public abstract class DOMWrappingReader
     protected List mNsDeclList = null;
 
     /**
-     * ValueDecoder to use for decoding typed content; lazily
+     * Value decoder to use for decoding typed content; lazily
      * instantiated/accessed if and when needed
      */
-    protected ValueDecoder mValueDecoder;
+    protected DefaultValueDecoder mValueDecoder;
 
     /*
     ////////////////////////////////////////////////////
@@ -1739,7 +1738,7 @@ public abstract class DOMWrappingReader
      * value decoder instance should be used for handling conversions
      * needed to implement Typed Access API.
      */
-    protected ValueDecoder valueDecoder()
+    protected DefaultValueDecoder valueDecoder()
     {
         if (mValueDecoder == null) {
             mValueDecoder = new DefaultValueDecoder();

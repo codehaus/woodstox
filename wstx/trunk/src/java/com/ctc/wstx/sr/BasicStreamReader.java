@@ -38,7 +38,6 @@ import org.codehaus.stax2.XMLStreamLocation2;
 import org.codehaus.stax2.XMLStreamReader2;
 import org.codehaus.stax2.ri.typed.DefaultValueDecoder;
 import org.codehaus.stax2.typed.TypedXMLStreamException;
-import org.codehaus.stax2.typed.ValueDecoder;
 import org.codehaus.stax2.validation.*;
 
 import com.ctc.wstx.api.ReaderConfig;
@@ -288,10 +287,10 @@ public class BasicStreamReader
     final protected AttributeCollector mAttrCollector;
 
     /**
-     * ValueDecoder to use for decoding typed content; lazily
+     * Value decoder to use for decoding typed content; lazily
      * instantiated/accessed if and when needed
      */
-    protected ValueDecoder mValueDecoder;
+    protected DefaultValueDecoder mValueDecoder;
 
     /*
     ////////////////////////////////////////////////////
@@ -1481,7 +1480,7 @@ public class BasicStreamReader
      * we may allow for customizing decoder, but for now we will
      * use the default implementation from Stax2 RI.
      */
-    protected ValueDecoder valueDecoder()
+    protected DefaultValueDecoder valueDecoder()
     {
         if (mValueDecoder == null) {
             mValueDecoder = new DefaultValueDecoder();

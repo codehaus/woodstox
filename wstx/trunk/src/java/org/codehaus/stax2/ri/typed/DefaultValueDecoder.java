@@ -3,8 +3,6 @@ package org.codehaus.stax2.ri.typed;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-import org.codehaus.stax2.typed.ValueDecoder;
-
 /**
  * Default implementation that strives for correctness and reasonable
  * efficiency (at least for simple types). To simplify implementation,
@@ -13,7 +11,6 @@ import org.codehaus.stax2.typed.ValueDecoder;
  * @author Tatu Saloranta
  */
 public class DefaultValueDecoder
-    extends ValueDecoder
 {
     private final static long L_BILLION = 1000000000;
 
@@ -47,9 +44,13 @@ public class DefaultValueDecoder
 
     /*
     ///////////////////////////////////////////////
-    // Public API implementation
+    // Public API
     ///////////////////////////////////////////////
      */
+
+    public final int decodeInt(String lexical) throws IllegalArgumentException {
+        return decodeInt(lexical, 0, lexical.length());
+    }
 
     public int decodeInt(String lexical, int start, int end)
         throws IllegalArgumentException
@@ -146,6 +147,10 @@ public class DefaultValueDecoder
             }
         }
         throw new IllegalArgumentException("value \""+lexicalDesc(lexical, start)+"\" not a valid 32-bit integer: overflow.");
+    }
+
+    public final long decodeLong(String lexical) throws IllegalArgumentException {
+        return decodeLong(lexical, 0, lexical.length());
     }
 
     public long decodeLong(String lexical, int start, int end)
@@ -266,6 +271,10 @@ public class DefaultValueDecoder
         throw new IllegalArgumentException("value \""+lexicalDesc(lexical, start)+"\" not a valid 64-bit integer: overflow.");
     }
 
+    public final float decodeFloat(String lexical) throws IllegalArgumentException {
+        return decodeFloat(lexical, 0, lexical.length());
+    }
+
     public float decodeFloat(String lexical, int start, int end)
         throws IllegalArgumentException
     {
@@ -346,6 +355,10 @@ public class DefaultValueDecoder
         } catch (NumberFormatException nex) {
             throw constructInvalidValue(lexicalStr);
         }
+    }
+
+    public final double decodeDouble(String lexical) throws IllegalArgumentException {
+        return decodeDouble(lexical, 0, lexical.length());
     }
 
     public double decodeDouble(String lexical, int start, int end)
@@ -432,6 +445,10 @@ public class DefaultValueDecoder
 
     // Unlimited precision numeric types
 
+    public final BigInteger decodeInteger(String lexical) throws IllegalArgumentException {
+        return decodeInteger(lexical, 0, lexical.length());
+    }
+
     public BigInteger decodeInteger(String lexical, int start, int end)
         throws IllegalArgumentException
     {
@@ -460,6 +477,10 @@ public class DefaultValueDecoder
         } catch (NumberFormatException nex) {
             throw constructInvalidValue(lexicalStr);
         }
+    }
+
+    public final BigDecimal decodeDecimal(String lexical) throws IllegalArgumentException {
+        return decodeDecimal(lexical, 0, lexical.length());
     }
 
     public BigDecimal decodeDecimal(String lexical, int start, int end)
@@ -493,6 +514,11 @@ public class DefaultValueDecoder
     }
 
     // Enumerated types
+
+    public final boolean decodeBoolean(String lexical) throws IllegalArgumentException {
+        return decodeBoolean(lexical, 0, lexical.length());
+    }
+
 
     public boolean decodeBoolean(String lexical, int start, int end)
         throws IllegalArgumentException
