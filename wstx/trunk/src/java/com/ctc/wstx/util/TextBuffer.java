@@ -10,6 +10,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.ext.LexicalHandler;
 
 import org.codehaus.stax2.ri.typed.DefaultValueDecoder;
+import org.codehaus.stax2.typed.TypedValueDecoder;
 import org.codehaus.stax2.validation.XMLValidationException;
 import org.codehaus.stax2.validation.XMLValidator;
 
@@ -483,6 +484,19 @@ public final class TextBuffer
         char[] buf = getTextBuffer();
         int len = mSegmentSize + mCurrentSize;
         return vd.decodeDecimal(buf, 0, len);
+    }
+
+    public Object convert(TypedValueDecoder tvd)
+        throws IllegalArgumentException
+    {
+        if (mInputStart >= 0) { // shared buffer, common case
+            int start = mInputStart;
+            int end = start + mInputLen;
+            return tvd.decode(mInputBuffer, start, end);
+        }
+        char[] buf = getTextBuffer();
+        int len = mSegmentSize + mCurrentSize;
+        return tvd.decode(buf, 0, len);
     }
 
     /*

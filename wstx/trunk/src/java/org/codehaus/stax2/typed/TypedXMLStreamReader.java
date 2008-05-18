@@ -260,33 +260,25 @@ public interface TypedXMLStreamReader
      * @return        The number of ints actually copied which must
      *                be less or equal than <code>length</code>.
      */
-    //public int getElementAsIntArray(int[] value, int from, int length)
-    //    throws XMLStreamException;
+    //public int getElementAsIntArray(int[] value, int from, int length) throws XMLStreamException;
+    
+    //public int getElementAsLongArray(long[] value, int from, int length) throws XMLStreamException;
+    
+    //public int getElementAsFloatArray(float[] value, int from, int length) throws XMLStreamException;
+    
+    //public int getElementAsDoubleArray(double[] value, int from, int length) throws XMLStreamException;
     
     /**
-     * <p><i>[TODO] </i>
-     * Same as {@link #getElementAsIntArray(int[], int, int)} replacing int 
-     * by long.</p>
+     * Generic non-typesafe method that can be used for efficient
+     * decoding of additional types not support natively
+     * by the typed stream reader. The main benefit of using
+     * this method is that the stream reader can efficient
+     * gather all textual content necessary and pass it
+     * to the decoder, often avoiding construction of intemediate
+     * Strings.
      */
-    //public int getElementAsLongArray(long[] value, int from, int length)
-    //   throws XMLStreamException;
-    
-    /**
-     * <p><i>[TODO] </i>
-     * Same as {@link #getElementAsIntArray(int[], int, int)} replacing int 
-     * by float.</p>
-     */
-    //public int getElementAsFloatArray(float[] value, int from, int length)
-    //    throws XMLStreamException;
-    
-    /**
-     * <p><i>[TODO] </i>
-     * Same as {@link #getElementAsIntArray(int[], int, int)} replacing int 
-     * by double.</p>
-     */
-    //public int getElementAsDoubleArray(double[] value, int from, int length)
-    //    throws XMLStreamException;
-    
+    public Object getElementAs(TypedValueDecoder tvd) throws XMLStreamException;
+
     /*
     //////////////////////////////////////////////////////////
     // Then, typed attribute accessors
@@ -435,4 +427,15 @@ public interface TypedXMLStreamReader
     //public float[] getAttributeAsFloatArray(int index) throws XMLStreamException;    
     
     //public double[] getAttributeAsDoubleArray(int index) throws XMLStreamException;    
+
+    /**
+     * Generic non-typesafe method that can be used for efficient
+     * decoding of additional types not support natively
+     * by the typed stream reader. The main benefit of using
+     * this method is that the stream reader can efficient
+     * gather all textual content necessary and pass it
+     * to the decoder, often avoiding construction of intemediate
+     * Strings.
+     */
+    public Object getAttributeAs(int index, TypedValueDecoder tvd) throws XMLStreamException;
 }

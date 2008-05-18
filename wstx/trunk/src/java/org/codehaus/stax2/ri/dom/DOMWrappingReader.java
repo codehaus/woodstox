@@ -40,6 +40,7 @@ import org.codehaus.stax2.ri.EmptyNamespaceContext;
 import org.codehaus.stax2.ri.SingletonIterator;
 import org.codehaus.stax2.ri.Stax2Util;
 import org.codehaus.stax2.ri.typed.DefaultValueDecoder;
+import org.codehaus.stax2.typed.TypedValueDecoder;
 import org.codehaus.stax2.typed.TypedXMLStreamException;
 import org.codehaus.stax2.validation.DTDValidationSchema;
 import org.codehaus.stax2.validation.ValidationProblemHandler;
@@ -1098,6 +1099,16 @@ public abstract class DOMWrappingReader
         }
     }
 
+    public Object getElementAs(TypedValueDecoder tvd) throws XMLStreamException
+    {
+        String value = getElementText();
+        try {
+            return tvd.decode(value);
+        } catch (IllegalArgumentException iae) {
+            throw constructTypeException(iae, value);
+        }
+    }
+
     public int getAttributeIndex(String namespaceURI, String localName)
     {
         return findAttributeIndex(namespaceURI, localName);
@@ -1168,6 +1179,16 @@ public abstract class DOMWrappingReader
         String value = getAttributeValue(index);
         try {
             return valueDecoder().decodeDecimal(value);
+        } catch (IllegalArgumentException iae) {
+            throw constructTypeException(iae, value);
+        }
+    }
+
+    public Object getAttributeAs(int index, TypedValueDecoder tvd) throws XMLStreamException
+    {
+        String value = getAttributeValue(index);
+        try {
+            return tvd.decode(value);
         } catch (IllegalArgumentException iae) {
             throw constructTypeException(iae, value);
         }

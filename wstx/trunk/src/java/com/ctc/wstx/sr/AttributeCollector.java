@@ -23,6 +23,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.namespace.QName;
 
 import org.codehaus.stax2.ri.typed.DefaultValueDecoder;
+import org.codehaus.stax2.typed.TypedValueDecoder;
 
 import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.exc.WstxException;
@@ -379,6 +380,23 @@ public abstract class AttributeCollector
         return dec.decodeDecimal(mValueBuffer.getCharBuffer(),
                               mValueBuffer.getOffset(index),
                               mValueBuffer.getOffset(index+1));
+    }
+
+    public final Object getValueAs(int index, TypedValueDecoder dec)
+        throws IllegalArgumentException
+    {
+        if (index < 0 || index >= mAttrCount) {
+            throwIndex(index);
+        }
+        if (mAttrValues != null) {
+            String value = mAttrValues[index];
+            if (value != null) {
+                return dec.decode(value);
+            }
+        }
+        return dec.decode(mValueBuffer.getCharBuffer(),
+                          mValueBuffer.getOffset(index),
+                          mValueBuffer.getOffset(index+1));
     }
 
     /*

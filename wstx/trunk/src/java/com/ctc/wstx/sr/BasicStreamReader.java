@@ -37,6 +37,7 @@ import org.codehaus.stax2.LocationInfo;
 import org.codehaus.stax2.XMLStreamLocation2;
 import org.codehaus.stax2.XMLStreamReader2;
 import org.codehaus.stax2.ri.typed.DefaultValueDecoder;
+import org.codehaus.stax2.typed.TypedValueDecoder;
 import org.codehaus.stax2.typed.TypedXMLStreamException;
 import org.codehaus.stax2.validation.*;
 
@@ -1297,6 +1298,20 @@ public class BasicStreamReader
         }
     }
 
+    public Object getElementAs(TypedValueDecoder tvd) throws XMLStreamException
+    {
+        String value = collectElementText();
+        try {
+            if (value == null) {
+                return mTextBuffer.convert(tvd);
+            } else {
+                return tvd.decode(value);
+            }
+        } catch (IllegalArgumentException iae) {
+            throw constructTypeException(iae, value);
+        }
+    }
+
     public int getAttributeIndex(String namespaceURI, String localName)
     {
         // Note: cut'n pasted from "getAttributeInfo()"
@@ -1389,6 +1404,19 @@ public class BasicStreamReader
             throw constructTypeException(iae, mAttrCollector.getValue(index));
         }
     }
+
+    public Object getAttributeAs(int index, TypedValueDecoder tvd) throws XMLStreamException
+    {
+        if (mCurrToken != START_ELEMENT) {
+            throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
+        }
+        try {
+            return mAttrCollector.getValueAs(index, tvd);
+        } catch (IllegalArgumentException iae) {
+            throw constructTypeException(iae, mAttrCollector.getValue(index));
+        }
+    }
+
 
     /**
      * Special implementation of functionality similar to that of

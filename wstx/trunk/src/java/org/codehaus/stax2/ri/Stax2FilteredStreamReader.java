@@ -11,6 +11,7 @@ import javax.xml.stream.*;
 
 import org.codehaus.stax2.*;
 import org.codehaus.stax2.validation.*;
+import org.codehaus.stax2.typed.TypedValueDecoder;
 
 /**
  * Simple straight-forward implementation of a filtering stream reader,
@@ -302,6 +303,11 @@ public class Stax2FilteredStreamReader
         return mReader.getElementAsDecimal();
     }
 
+    public Object getElementAs(TypedValueDecoder tvd) throws XMLStreamException
+    {
+        return mReader.getElementAs(tvd);
+    }
+
     public int getAttributeIndex(String namespaceURI, String localName)
     {
         return mReader.getAttributeIndex(namespaceURI, localName);
@@ -340,6 +346,11 @@ public class Stax2FilteredStreamReader
     public BigDecimal getAttributeAsDecimal(int index) throws XMLStreamException
     {
         return mReader.getAttributeAsDecimal(index);
+    }
+
+    public Object getAttributeAs(int index, TypedValueDecoder tvd) throws XMLStreamException
+    {
+        return mReader.getAttributeAs(index, tvd);
     }
 
     /*
