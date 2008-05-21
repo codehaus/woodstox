@@ -75,6 +75,12 @@ public interface TypedXMLStreamWriter
 
     void writeInteger(BigInteger value) throws XMLStreamException;
     
+    /**
+     * Write a decimal value to the output as textual element content.
+     * The lexical representation of content is defined by the
+     * <a href="http://www.w3.org/TR/xmlschema-2/#decimal">XML Schema
+     * decimal</a> data type.
+     */
     void writeDecimal(BigDecimal value) throws XMLStreamException;
     
     //void writeQName(QName value) throws XMLStreamException;
@@ -83,12 +89,16 @@ public interface TypedXMLStreamWriter
     //void writeCalendar(XMLGregorianCalendar value) throws XMLStreamException;
     
     /**
-     * <p>Write a byte array to the output. The lexical
-     * representation of a byte array is defined by the
+     *<p>
+     * Write binary content as base64 encoded characters to the output.
+     * The lexical representation of a byte array is defined by the
      * <a href="http://www.w3.org/TR/xmlschema-2/#base64Binary">XML Schema
      * base64Binary</a> data type. This method can be called 
-     * multiple times to write the array in chunks.</p>
-     *
+     * multiple times to write the array in chunks; but if so,
+     * callers should write output in chunks divisible by 3 (natural
+     * atomic unit of base64 output, which avoids padding) to
+     * maximize interoperability.
+     * </p>
      * @param value   The array from which to write the bytes.
      * @param from    The index in the array from which writing starts.
      * @param length  The number of bytes to write.
@@ -171,9 +181,6 @@ public interface TypedXMLStreamWriter
     //void writeQNameAttribute(String prefix, String namespaceURI, String localName, QName value) throws XMLStreamException;
 
     // !!! 30-Jan-2008, TSa: JDK 1.5 only -- is that ok?
-    /**
-     * <p><i>[TODO] </i>
-     */
     //void writeCalendarAttribute(String prefix, String namespaceURI, String localName, XMLGregorianCalendar value)  throws XMLStreamException;
 
     /* 25-Apr-2008, tatus: Do we even want to deal with structured

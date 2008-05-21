@@ -16,11 +16,8 @@ import javax.xml.namespace.QName;
  *<p>
  * Implementation notes:
  *
- * 12-Apr-2008, TSa: Commenting out most accessors, leaving just
- *   simplest numeric type accessors.
- *   This is to implement reference implementation
- *   in multiple phases. Next step will be complete list of "simple types",
- *   and then either list type, or binary data accessors.
+ * - As of May 2008, all simple types have been implemented, but
+ *   not list types, or binary content.
  * 
  * @author Santiago.PericasGeertsen@sun.com
  * @author Tatu Saloranta
@@ -186,38 +183,49 @@ public interface TypedXMLStreamReader
     //public XMLGregorianCalendar getElementAsCalendar() throws XMLStreamException;
     
     /**
-     * <p>Read an element content as a byte array. The lexical
-     * representation of a byte array is defined by the 
+     * Read element content as decoded byte sequence; possibly only
+     * reading a fragment of all element content.
+     * The lexical representation of a byte array is defined by the 
      * <a href="http://www.w3.org/TR/xmlschema-2/#base64Binary">XML Schema
      * base64Binary</a> data type. Whitespace MUST be 
      * <a href="http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/datatypes.html#rf-whiteSpace">collapsed</a>
      * according to the whiteSpace facet for the XML Schema base64Binary
-     * data type. An exception is thrown if, after whitespace is
-     * collapsed, the resulting sequence of characters is not in 
+     * data type. An exception is thrown if content is not in 
      * the lexical space defined by the XML Schema base64Binary data type.</p>
+     * </p><p>
+     * Each call will read at least one decoded byte (and no more than
+     * the specified maximum length), if there is any content remaining.
+     * If none is available and END_ELEMENT is encountered, -1 is
+     * returned.
      * </p><p>
      * These are the pre and post conditions of calling this method:
      * <ul>
-     * <li>Precondition: the current event is START_ELEMENT.</li>
+     * <li>Precondition: the current event is either START_ELEMENT,
+     *   or a textual event (CHARACTERS, CDATA), or END_ELEMENT
+     *   (END_ELEMENT is allowed for convenience; if so, no read
+     *   operation is tried, and -1 is returned immediately
+     *   </li>
      * <li>Postcondition: the current event is the corresponding 
-     *     END_ELEMENT or CHARACTERS if only a portion of the 
-     *     array has been copied thus far.</li>
+     *     END_ELEMENT, if all remaining binary content was read,
+     *     or CHARACTERS if only a portion of the array was read
+     *   </li>
      * </ul>
      * This method can be called multiple times until the cursor
      * is positioned at the corresponding END_ELEMENT event. Stated
      * differently, after the method is called for the first time,
      * the cursor will move and remain in the CHARACTERS position while there
-     * are more bytes available for reading. If an exception is thrown,
-     * the cursor will be moved to the END_ELEMENT position.
-     * </p>
+     * are potentially more bytes available for reading.
+     *</p>
      *
      * @param value   The array in which to copy the bytes.
      * @param from    The index in the array from which copying starts.
      * @param length  The maximun number of bytes to copy.
-     * @return        The number of bytes actually copied which must
-     *                be less or equal than <code>length</code>.
+     *
+     * @return        The number of bytes actually copied, if any were
+     *   available; -1 if there is no more content. If content was
+     *  copied, value must be less or equal than <code>length</code>
      */
-    //public int getElementAsBinary(byte[] value, int from, int length)
+    //public int readElementAsBinary(byte[] value, int from, int length)
     //    throws XMLStreamException;
     
     /**
@@ -260,13 +268,13 @@ public interface TypedXMLStreamReader
      * @return        The number of ints actually copied which must
      *                be less or equal than <code>length</code>.
      */
-    //public int getElementAsIntArray(int[] value, int from, int length) throws XMLStreamException;
+    //public int readElementAsIntArray(int[] value, int from, int length) throws XMLStreamException;
     
-    //public int getElementAsLongArray(long[] value, int from, int length) throws XMLStreamException;
+    //public int readElementAsLongArray(long[] value, int from, int length) throws XMLStreamException;
     
-    //public int getElementAsFloatArray(float[] value, int from, int length) throws XMLStreamException;
+    //public int readElementAsFloatArray(float[] value, int from, int length) throws XMLStreamException;
     
-    //public int getElementAsDoubleArray(double[] value, int from, int length) throws XMLStreamException;
+    //public int readElementAsDoubleArray(double[] value, int from, int length) throws XMLStreamException;
     
     /**
      * Generic non-typesafe method that can be used for efficient
@@ -373,7 +381,7 @@ public interface TypedXMLStreamReader
     //XMLGregorianCalendar getAttributeAsCalendar(int index) throws XMLStreamException;
     
     /**
-     * <p>Read an attribute value as a byte array. The lexical
+     *Read an attribute value as a byte array. The lexical
      * representation of a byte array is defined by the 
      * <a href="http://www.w3.org/TR/xmlschema-2/#base64Binary">XML Schema
      * base64Binary</a> data type. Whitespace MUST be 
