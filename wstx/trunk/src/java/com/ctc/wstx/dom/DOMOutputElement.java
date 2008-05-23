@@ -194,9 +194,9 @@ public class DOMOutputElement
         mElement.setAttribute(pname, value);
     }
 
-    protected void addAttribute(String uri, String localName, String value)
+    protected void addAttribute(String uri, String qname, String value)
     {
-        mElement.setAttributeNS(uri, localName, value);
+        mElement.setAttributeNS(uri, qname, value);
     }
 
     public void appendChild(Node n) {

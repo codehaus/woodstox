@@ -23,7 +23,6 @@ import com.ctc.wstx.api.WriterConfig;
 import com.ctc.wstx.api.WstxOutputProperties;
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.sw.OutputElementBase;
-import com.ctc.wstx.util.DefaultXmlSymbolTable;
 import com.ctc.wstx.util.EmptyNamespaceContext;
 
 /* TODO:
@@ -54,9 +53,9 @@ public class DOMWrappingWriter
     ////////////////////////////////////////////////////
      */
 
-    final protected static String sPrefixXml = DefaultXmlSymbolTable.getXmlSymbol();
+    final protected static String sPrefixXml = "xml";
 
-    final protected static String sPrefixXmlns = DefaultXmlSymbolTable.getXmlnsSymbol();
+    final protected static String sPrefixXmlns = "xmlns";
 
     final protected static String ERR_NSDECL_WRONG_STATE =
         "Trying to write a namespace declaration when there is no open start element.";
@@ -271,11 +270,11 @@ public class DOMWrappingWriter
          * mandated by XML NS specification
          */
         {
-            if (prefix.equals(sPrefixXml)) { // prefix "xml"
+            if (prefix.equals("xml")) {
                 if (!uri.equals(XMLConstants.XML_NS_URI)) {
                     throwOutputError(ErrorConsts.ERR_NS_REDECL_XML, uri);
                 }
-            } else if (prefix.equals(sPrefixXmlns)) { // prefix "xmlns"
+            } else if (prefix.equals("xmlns")) { // prefix "xmlns"
                 if (!uri.equals(XMLConstants.XMLNS_ATTRIBUTE_NS_URI)) {
                     throwOutputError(ErrorConsts.ERR_NS_REDECL_XMLNS, uri);
                 }
@@ -400,7 +399,7 @@ public class DOMWrappingWriter
         if (!mNsAware) {
             throwOutputError("Can not set write namespaces with non-namespace writer.");
         }
-        outputAttribute(XMLConstants.XMLNS_ATTRIBUTE_NS_URI, null, prefix, nsURI);
+        outputAttribute(XMLConstants.XMLNS_ATTRIBUTE_NS_URI, "xmlns", prefix, nsURI);
         mCurrElem.addPrefix(prefix, nsURI);
     }
 

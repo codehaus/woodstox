@@ -57,6 +57,42 @@ public class TestDomWrite
         assertEquals("text?<ok>", child.getNodeValue());
     }
 
+    public void testNsOutput()
+        throws Exception
+    {
+        Document doc = createDomDoc(false);
+        XMLOutputFactory of = getFactory(1);
+        XMLStreamWriter sw = of.createXMLStreamWriter(new DOMResult(doc));
+        final String NS_URI = "http://foo";
+
+        sw.writeStartDocument();
+        sw.writeStartElement("ns", "root", NS_URI);
+        sw.writeNamespace("ns", NS_URI);
+        sw.writeAttribute("ns", NS_URI, "attr", "value");
+        sw.writeCharacters("...");
+        sw.writeEndElement();
+        sw.writeEndDocument();
+        sw.close();
+
+        Element root = doc.getDocumentElement();
+
+        assertNotNull(root);
+        assertEquals("ns:root", root.getTagName());
+        NamedNodeMap attrs = root.getAttributes();
+        // DOM includes ns decls as attributes, hence 2:
+        assertEquals(2, attrs.getLength());
+        assertEquals(NS_URI, root.getAttribute("xmlns:ns"));
+        assertEquals("value", root.getAttribute("ns:attr"));
+
+        Node child = root.getFirstChild();
+        assertNotNull(child);
+        assertEquals(Node.TEXT_NODE, child.getNodeType());
+        // Alas, getTextContent() is DOM 3 (Jdk 1.5+)
+        //assertEquals("text?<ok>", child.getTextContent());
+        // ... so we'll use less refined method
+        assertEquals("...", child.getNodeValue());
+    }
+
     public void testRepairingNsOutput()
         throws Exception
     {

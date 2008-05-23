@@ -1,5 +1,7 @@
 Version: 3.9.3
 
+  * [WSTX-148] Implement XMLEvent.equals() and XMLEvent.hashCode()
+
 Release date: xx-May-2008
 
 Description:
@@ -57,7 +59,7 @@ Description:
 
   Clean-up:
 
-  * Stax API specification compatibility improvements:
+  * [WSTX-127] Stax API specification compatibility improvements:
     * Missing prefixes now reported as "", not nulls.
     * "No namespace" now reported as "", not null.
 
