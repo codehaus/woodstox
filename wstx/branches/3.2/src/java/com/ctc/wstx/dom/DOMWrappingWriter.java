@@ -2,6 +2,7 @@ package com.ctc.wstx.dom;
 
 import java.util.*;
 
+import javax.xml.XMLConstants;
 import javax.xml.namespace.*;
 import javax.xml.stream.*;
 import javax.xml.transform.dom.DOMResult;
@@ -295,9 +296,9 @@ public class DOMWrappingWriter
              * mode), but not keep track of bindings.
              */
             if (defNS) {
-                outputAttribute(null, null, "xmlns", nsURI);
+                outputAttribute(XMLConstants.XMLNS_ATTRIBUTE_NS_URI, null, "xmlns", nsURI);
             } else {
-                outputAttribute(null, "xmlns", prefix, nsURI);
+                outputAttribute(XMLConstants.XMLNS_ATTRIBUTE_NS_URI, "xmlns", prefix, nsURI);
             }
         }
     }

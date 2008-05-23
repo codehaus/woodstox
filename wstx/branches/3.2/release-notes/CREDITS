@@ -325,3 +325,8 @@ Matt Gormley:
 Jim Ancona:
   * Reported [WSTX-146], contributed a unit test for verifying fix.
    [3.2.5]
+
+Martin Vanek:
+  * Reported [WSTX-144]: Problem when trying to output namespace declaration
+    using a DOMResult-backed writer.
+   [3.2.6]

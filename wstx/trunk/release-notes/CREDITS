@@ -338,3 +338,9 @@ David Citron:
   * Reported [WSTX-145]: DOMWrappingReader was not implementing coalescing
     mode.
    [4.0]
+
+Martin Vanek:
+  * Reported [WSTX-144]: Problem when trying to output namespace declaration
+    using a DOMResult-backed writer.
+   [4.0]
+ 

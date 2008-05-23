@@ -1,10 +1,19 @@
-Version: 3.2.5
+Version: 3.2.6
 
-Release date: 23-Apr-2008
+Release date: xx-May-2008
 
 Description:
-  Yet another patch release for 3.2, waiting for 4.0 branch to mature
-  from alpha stage.
+  One more patch release for 3.2.
+
+  Problems fixed:
+
+  * [WSTX-144] Problem when trying to output namespace declaration using
+    a DOMResult-backed writer.
+    (reported by Martin V)
+
+== History: ==
+
+3.2.5 [23-Apr-2008]
 
   Problems fixed:
 
@@ -19,8 +28,6 @@ Description:
     "http://java.sun.com/xml/stream/properties/implementation-name"
     it is now recognized as a synonym of XMLStreamProperties2.XSP_IMPLEMENTATION_NAME
 
-
-== History: ==
 
 3.2.4 [17-Jan-2008]
 
