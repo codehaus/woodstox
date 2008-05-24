@@ -20,6 +20,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 
 import javax.xml.stream.XMLStreamException;
+import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
 
 import org.codehaus.stax2.ri.typed.DefaultValueDecoder;
@@ -380,6 +381,25 @@ public abstract class AttributeCollector
         return dec.decodeDecimal(mValueBuffer.getCharBuffer(),
                               mValueBuffer.getOffset(index),
                               mValueBuffer.getOffset(index+1));
+    }
+
+    public final QName getValueAsQName(int index, DefaultValueDecoder dec,
+                                       NamespaceContext nsCtxt)
+        throws IllegalArgumentException
+    {
+        if (index < 0 || index >= mAttrCount) {
+            throwIndex(index);
+        }
+        if (mAttrValues != null) {
+            String value = mAttrValues[index];
+            if (value != null) {
+                return dec.decodeQName(value, nsCtxt);
+            }
+        }
+        return dec.decodeQName(mValueBuffer.getCharBuffer(),
+                               mValueBuffer.getOffset(index),
+                               mValueBuffer.getOffset(index+1),
+                               nsCtxt);
     }
 
     public final Object getValueAs(int index, TypedValueDecoder dec)

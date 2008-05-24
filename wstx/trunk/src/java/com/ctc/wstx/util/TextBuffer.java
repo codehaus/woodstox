@@ -4,6 +4,8 @@ import java.io.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import javax.xml.namespace.NamespaceContext;
+import javax.xml.namespace.QName;
 
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
@@ -484,6 +486,19 @@ public final class TextBuffer
         char[] buf = getTextBuffer();
         int len = mSegmentSize + mCurrentSize;
         return vd.decodeDecimal(buf, 0, len);
+    }
+
+    public QName convertToQName(DefaultValueDecoder vd, NamespaceContext nsCtxt)
+        throws IllegalArgumentException
+    {
+        if (mInputStart >= 0) { // shared buffer, common case
+            int start = mInputStart;
+            int end = start + mInputLen;
+            return vd.decodeQName(mInputBuffer, start, end, nsCtxt);
+        }
+        char[] buf = getTextBuffer();
+        int len = mSegmentSize + mCurrentSize;
+        return vd.decodeQName(buf, 0, len, nsCtxt);
     }
 
     public Object convert(TypedValueDecoder tvd)

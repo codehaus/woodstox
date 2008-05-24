@@ -1099,6 +1099,16 @@ public abstract class DOMWrappingReader
         }
     }
 
+    public QName getElementAsQName() throws XMLStreamException
+    {
+        String value = getElementText();
+        try {
+            return valueDecoder().decodeQName(value, getNamespaceContext());
+        } catch (IllegalArgumentException iae) {
+            throw constructTypeException(iae, value);
+        }
+    }
+
     public Object getElementAs(TypedValueDecoder tvd) throws XMLStreamException
     {
         String value = getElementText();
@@ -1179,6 +1189,16 @@ public abstract class DOMWrappingReader
         String value = getAttributeValue(index);
         try {
             return valueDecoder().decodeDecimal(value);
+        } catch (IllegalArgumentException iae) {
+            throw constructTypeException(iae, value);
+        }
+    }
+
+    public QName getAttributeAsQName(int index) throws XMLStreamException
+    {
+        String value = getAttributeValue(index);
+        try {
+            return valueDecoder().decodeQName(value, getNamespaceContext());
         } catch (IllegalArgumentException iae) {
             throw constructTypeException(iae, value);
         }

@@ -1298,6 +1298,22 @@ public class BasicStreamReader
         }
     }
 
+    public QName getElementAsQName() throws XMLStreamException
+    {
+        String value = collectElementText();
+        QName n;
+        try {
+            if (value == null) {
+                n = mTextBuffer.convertToQName(valueDecoder(), getNamespaceContext());
+            } else {
+                n = valueDecoder().decodeQName(value, getNamespaceContext());
+            }
+        } catch (IllegalArgumentException iae) {
+            throw constructTypeException(iae, value);
+        }
+        return verifyQName(n);
+    }
+
     public Object getElementAs(TypedValueDecoder tvd) throws XMLStreamException
     {
         String value = collectElementText();
@@ -1405,6 +1421,21 @@ public class BasicStreamReader
         }
     }
 
+    public QName getAttributeAsQName(int index) throws XMLStreamException
+    {
+        if (mCurrToken != START_ELEMENT) {
+            throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
+        }
+        QName n;
+        try {
+            n = mAttrCollector.getValueAsQName(index, valueDecoder(),
+                                               getNamespaceContext());
+        } catch (IllegalArgumentException iae) {
+            throw constructTypeException(iae, mAttrCollector.getValue(index));
+        }
+        return verifyQName(n);
+    }
+
     public Object getAttributeAs(int index, TypedValueDecoder tvd) throws XMLStreamException
     {
         if (mCurrToken != START_ELEMENT) {
@@ -1501,6 +1532,28 @@ public class BasicStreamReader
             }
         }
         return (acc == null) ? text : acc.getAndClear();
+    }
+
+    /**
+     * Method called to verify validity of the parsed QName element
+     * or attribute value. At this point binding of a prefixed name
+     * (if qname has a prefix) has been verified, and thereby prefix
+     * also must be valid (since there must have been a preceding
+     * declaration). But local name could still be invalid xml name,
+     * so let's verify that.
+     */
+    protected QName verifyQName(QName n)
+        throws TypedXMLStreamException
+    {
+        String ln = n.getLocalPart();
+        int ix = WstxInputData.findIllegalNameChar(ln, mCfgNsEnabled, mXml11);
+        if (ix >= 0) {
+            String prefix = n.getPrefix();
+            String pname = (prefix != null && prefix.length() > 0) ?
+                (prefix + ":" +ln) : ln;
+            throw constructTypeException("Invalid local name \""+ln+"\" (character at #"+ix+" is invalid)", pname);
+        }
+        return n;
     }
 
     /**
@@ -5788,6 +5841,11 @@ public class BasicStreamReader
     private TypedXMLStreamException constructTypeException(IllegalArgumentException iae, String lexicalValue)
     {
         return new TypedXMLStreamException(lexicalValue, iae.getMessage(), getStartLocation(), iae);
+    }
+
+    private TypedXMLStreamException constructTypeException(String msg, String lexicalValue)
+    {
+        return new TypedXMLStreamException(lexicalValue, msg, getStartLocation());
     }
 
     /**

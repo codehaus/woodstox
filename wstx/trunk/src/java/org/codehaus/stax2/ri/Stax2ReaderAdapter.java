@@ -6,6 +6,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 
 import javax.xml.namespace.NamespaceContext;
+import javax.xml.namespace.QName;
 import javax.xml.stream.*;
 import javax.xml.stream.util.StreamReaderDelegate;
 
@@ -183,6 +184,16 @@ public class Stax2ReaderAdapter
         }
     }
 
+    public QName getElementAsQName() throws XMLStreamException
+    {
+        String value = getElementText();
+        try {
+            return valueDecoder().decodeQName(value, getNamespaceContext());
+        } catch (IllegalArgumentException iae) {
+            throw constructTypeException(iae, value);
+        }
+    }
+
     public int getAttributeIndex(String namespaceURI, String localName)
     {
         return findAttributeIndex(namespaceURI, localName);
@@ -253,6 +264,16 @@ public class Stax2ReaderAdapter
         String value = getAttributeValue(index);
         try {
             return valueDecoder().decodeDecimal(value);
+        } catch (IllegalArgumentException iae) {
+            throw constructTypeException(iae, value);
+        }
+    }
+
+    public QName getAttributeAsQName(int index) throws XMLStreamException
+    {
+        String value = getAttributeValue(index);
+        try {
+            return valueDecoder().decodeQName(value, getNamespaceContext());
         } catch (IllegalArgumentException iae) {
             throw constructTypeException(iae, value);
         }

@@ -3,6 +3,9 @@ package org.codehaus.stax2.ri.typed;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
+import javax.xml.namespace.NamespaceContext;
+import javax.xml.namespace.QName;
+
 /**
  * Default implementation that strives for correctness and reasonable
  * efficiency (at least for simple types). To simplify implementation,
@@ -596,6 +599,76 @@ public class DefaultValueDecoder
         throw new IllegalArgumentException("value \""+lexicalDesc(lexical, start)+"\" not a valid lexical representation of boolean");
     }
 
+    // Name types
+
+    public QName decodeQName(char[] lexical, int start, int end,
+                             NamespaceContext nsCtxt)
+        throws IllegalArgumentException
+    {
+        mType = "QName";
+        start = trimLeading(lexical, start, end);
+        end = trimTrailing(lexical, start, end);
+
+        int i = start;
+        for (; i < end; ++i) {
+            if (lexical[i] == ':') {
+                return resolveQName(nsCtxt,
+                                    new String(lexical, start, i-start),
+                                    new String(lexical, i+1, end-i-1));
+            }
+        }
+        return resolveQName(nsCtxt, new String(lexical, start, end-start));
+    }
+
+    public QName decodeQName(String lexical,
+                             NamespaceContext nsCtxt)
+        throws IllegalArgumentException
+    {
+        mType = "QName";
+        lexical = lexical.trim();
+        if (lexical.length() == 0) {
+            throw constructMissingValue();
+        }
+        int ix = lexical.indexOf(':');
+        if (ix >= 0) { // qualified name
+            return resolveQName(nsCtxt,
+                                lexical.substring(0, ix),
+                                lexical.substring(ix+1));
+        }
+        return resolveQName(nsCtxt, lexical);
+    }
+
+    protected QName resolveQName(NamespaceContext nsCtxt,
+                                 String localName)
+        throws IllegalArgumentException
+    {
+        // No prefix -> default namespace ("element rules")
+        String uri = nsCtxt.getNamespaceURI("");
+        if (uri == null) { // some impls may return null
+            uri = "";
+        }
+        return new QName(uri, localName, "");
+    }
+
+    protected QName resolveQName(NamespaceContext nsCtxt,
+                                 String prefix, String localName)
+        throws IllegalArgumentException
+    {
+        if (prefix.length() == 0 || localName.length() == 0) {
+            // either prefix or local name is empty String, illegal
+            throw constructInvalidValue(prefix+":"+localName);
+        }
+        /* Explicit prefix, must map to a bound namespace; and that
+         * namespace can not be empty (only "no prefix", i.e. 'default
+         * namespace' has empty URI)
+         */
+        String uri = nsCtxt.getNamespaceURI(prefix);
+        if (uri == null || uri.length() == 0) {
+            throw new IllegalArgumentException("Value \""+lexicalDesc(prefix+":"+localName)+"\" not a valid QName: prefix not bound to a namespace");
+        }
+        return new QName(uri, localName, prefix);
+    }
+
     /*
     ///////////////////////////////////////////////
     // Internal methods, trimming/scanning
@@ -867,6 +940,12 @@ public class DefaultValueDecoder
         String str = lexical.substring(startOffset, mEnd);
         // !!! Should we escape ctrl+chars etc?
         return str.trim();
+    }
+
+    protected String lexicalDesc(String lexical)
+    {
+        // !!! Should we escape ctrl+chars etc?
+        return lexical.trim();
     }
 
     /*

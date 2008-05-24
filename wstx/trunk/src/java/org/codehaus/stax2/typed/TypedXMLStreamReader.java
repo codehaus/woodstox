@@ -174,7 +174,7 @@ public interface TypedXMLStreamReader
     
     public BigDecimal getElementAsDecimal() throws XMLStreamException;
     
-    //public QName getElementAsQName() throws XMLStreamException;
+    public QName getElementAsQName() throws XMLStreamException;
     
     // !!! 30-Jan-2008, TSa: JDK 1.5 only -- is that ok?
     /**
@@ -374,8 +374,8 @@ public interface TypedXMLStreamReader
     public BigInteger getAttributeAsInteger(int index) throws XMLStreamException;
 
     public BigDecimal getAttributeAsDecimal(int index) throws XMLStreamException;
-    
-    //public QName getAttributeAsQName(int index) throws XMLStreamException;
+
+    public QName getAttributeAsQName(int index) throws XMLStreamException;
     
     // !!! 30-Jan-2008, TSa: JDK 1.5 only -- is that ok?
     //XMLGregorianCalendar getAttributeAsCalendar(int index) throws XMLStreamException;

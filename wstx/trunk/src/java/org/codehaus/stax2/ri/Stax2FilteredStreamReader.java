@@ -303,6 +303,11 @@ public class Stax2FilteredStreamReader
         return mReader.getElementAsDecimal();
     }
 
+    public QName getElementAsQName() throws XMLStreamException
+    {
+        return mReader.getElementAsQName();
+    }
+
     public Object getElementAs(TypedValueDecoder tvd) throws XMLStreamException
     {
         return mReader.getElementAs(tvd);
@@ -351,6 +356,11 @@ public class Stax2FilteredStreamReader
     public Object getAttributeAs(int index, TypedValueDecoder tvd) throws XMLStreamException
     {
         return mReader.getAttributeAs(index, tvd);
+    }
+
+    public QName getAttributeAsQName(int index) throws XMLStreamException
+    {
+        return mReader.getAttributeAsQName(index);
     }
 
     /*

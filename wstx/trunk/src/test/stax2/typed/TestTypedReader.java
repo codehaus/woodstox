@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Random;
 
+import javax.xml.namespace.QName;
 import javax.xml.stream.*;
 
 import org.codehaus.stax2.*;
@@ -531,6 +532,86 @@ public class TestTypedReader
                 D = D.negate();
             }
         }
+    }
+
+    /*
+    ////////////////////////////////////////
+    // Tests for name type(s)
+    ////////////////////////////////////////
+     */
+
+    public void testValidQNameElem()
+        throws Exception
+    {
+        String URI = "http://test.org/";
+        String XML = "<root xmlns:ns='"+URI+"'>ns:name  </root>";
+        XMLStreamReader2 sr = getRootReader(XML);
+        QName n = sr.getElementAsQName();
+        assertNotNull(n);
+        assertEquals("name", n.getLocalPart());
+        assertEquals("ns", n.getPrefix());
+        assertEquals(URI, n.getNamespaceURI());
+        sr.close();
+    }
+
+    public void testInvalidQNameElem()
+        throws Exception
+    {
+        String XML = "<root>ns:name  </root>";
+        XMLStreamReader2 sr = getRootReader(XML);
+        QName n;
+        // First, unbound namespace prefix
+        try {
+            n = sr.getElementAsQName();
+            fail("Expected an exception for unbound QName prefix");
+        } catch (TypedXMLStreamException tex) { }
+        sr.close();
+
+        // Then, invalid local name
+        XML = "<root xmlns:ns='http://foo'>ns:na?me</root>";
+        sr = getRootReader(XML);
+        try {
+            n = sr.getElementAsQName();
+            fail("Expected an exception for invalid QName (non-xml-name char in the middle");
+        } catch (TypedXMLStreamException tex) { }
+        sr.close();
+    }
+
+    public void testValidQNameAttr()
+        throws Exception
+    {
+        String URI = "http://test.org/";
+        String XML = "<root xmlns:abc='"+URI+"' attr='   abc:x1\n' />";
+        XMLStreamReader2 sr = getRootReader(XML);
+        QName n = sr.getAttributeAsQName(0);
+        assertNotNull(n);
+        assertEquals("x1", n.getLocalPart());
+        assertEquals("abc", n.getPrefix());
+        assertEquals(URI, n.getNamespaceURI());
+        sr.close();
+    }
+
+    public void testInvalidQNameAttr()
+        throws Exception
+    {
+        String XML = "<root attr='ns:name  ' />";
+        XMLStreamReader2 sr = getRootReader(XML);
+        QName n;
+        // First, unbound namespace prefix
+        try {
+            n = sr.getAttributeAsQName(0);
+            fail("Expected an exception for unbound QName prefix");
+        } catch (TypedXMLStreamException tex) { }
+        sr.close();
+
+        // Then, invalid local name
+        XML = "<root xmlns:ns='http://foo' attr='ns:name:too' />";
+        sr = getRootReader(XML);
+        try {
+            n = sr.getAttributeAsQName(0);
+            fail("Expected an exception for invalid QName (non-xml-name char in the middle");
+        } catch (TypedXMLStreamException tex) { }
+        sr.close();
     }
 
     /*
