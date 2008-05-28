@@ -1,9 +1,18 @@
 Version: 3.9.3
 
+  Problems fixed:
+
   * [WSTX-144] Problem when trying to output namespace declaration using
     a DOMResult-backed writer.
     (reported by Martin V)
   * [WSTX-148] Implement XMLEvent.equals() and XMLEvent.hashCode()
+  * [WSTX-153] XMLReporter not getting called for non-fatal validation errors
+    (reported by Eduardo R-R)
+
+  New functionality:
+
+  * [WSTX-151] Generic typed access methods (getElementAs(), getAttributeAs()
+    added to TypedXMLStreamReader.
 
 Release date: xx-May-2008
 
