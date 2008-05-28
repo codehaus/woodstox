@@ -609,7 +609,7 @@ public class TestTypedReader
         sr = getRootReader(XML);
         try {
             n = sr.getAttributeAsQName(0);
-            fail("Expected an exception for invalid QName (non-xml-name char in the middle");
+            fail("Expected an exception for invalid QName (non-xml-name char in the middle)");
         } catch (TypedXMLStreamException tex) { }
         sr.close();
     }
