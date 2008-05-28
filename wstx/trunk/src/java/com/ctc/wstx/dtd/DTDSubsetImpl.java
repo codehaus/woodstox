@@ -25,7 +25,6 @@ import javax.xml.stream.events.NotationDeclaration;
 import org.codehaus.stax2.validation.*;
 
 import com.ctc.wstx.cfg.ErrorConsts;
-import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.exc.WstxParsingException;
 import com.ctc.wstx.sr.InputProblemReporter;
 import com.ctc.wstx.util.DataUtil;
@@ -196,7 +195,7 @@ public final class DTDSubsetImpl
      * producing a single DTD set.
      */
     public DTDSubset combineWithExternalSubset(InputProblemReporter rep, DTDSubset extSubset)
-        throws WstxException
+        throws XMLStreamException
     {
         /* First let's see if we can just reuse GE Map used by int or ext
          * subset; (if only one has contents), or if not, combine them.
@@ -403,7 +402,7 @@ public final class DTDSubsetImpl
      */
 
    public static void throwNotationException(NotationDeclaration oldDecl, NotationDeclaration newDecl)
-        throws WstxException
+        throws XMLStreamException
     {
         throw new WstxParsingException
             (MessageFormat.format(ErrorConsts.ERR_DTD_NOTATION_REDEFD,
@@ -414,7 +413,7 @@ public final class DTDSubsetImpl
     }
 
    public static void throwElementException(DTDElement oldElem, Location loc)
-        throws WstxException
+        throws XMLStreamException
     {
         throw new WstxParsingException
             (MessageFormat.format(ErrorConsts.ERR_DTD_ELEM_REDEFD,
@@ -460,7 +459,7 @@ public final class DTDSubsetImpl
      * not cause problems.
      */
     private void combineElements(InputProblemReporter rep, HashMap intElems, HashMap extElems)
-        throws WstxException
+        throws XMLStreamException
     {
         Iterator it = extElems.entrySet().iterator();
         while (it.hasNext()) {
@@ -507,7 +506,7 @@ public final class DTDSubsetImpl
     }
 
     private static void checkNotations(HashMap fromInt, HashMap fromExt)
-        throws WstxException
+        throws XMLStreamException
     {
         /* Since it's external subset that would try to redefine things
          * defined in internal subset, let's traverse definitions in

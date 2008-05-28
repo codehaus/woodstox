@@ -18,12 +18,12 @@ package com.ctc.wstx.dtd;
 import java.util.*;
 
 import javax.xml.stream.Location;
+import javax.xml.stream.XMLStreamException;
 
 import org.codehaus.stax2.validation.XMLValidator;
 
 import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.cfg.ErrorConsts;
-import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.sr.InputProblemReporter;
 import com.ctc.wstx.util.ExceptionUtil;
 import com.ctc.wstx.util.PrefixedName;
@@ -210,7 +210,7 @@ public final class DTDElement
      */
     public void defineFrom(InputProblemReporter rep, DTDElement definedElem,
                            boolean fullyValidate)
-        throws WstxException
+        throws XMLStreamException
     {
         if (fullyValidate) {
             verifyUndefined();
@@ -239,7 +239,7 @@ public final class DTDElement
                                      PrefixedName attrName, int valueType,
                                      DefaultAttrValue defValue, WordResolver enumValues,
                                      boolean fullyValidate)
-        throws WstxException
+        throws XMLStreamException
     {
         HashMap m = mAttrMap;
         if (m == null) {
@@ -318,7 +318,7 @@ public final class DTDElement
     public DTDAttribute addNsDefault
         (InputProblemReporter rep, PrefixedName attrName, int valueType,
          DefaultAttrValue defValue, boolean fullyValidate)
-        throws WstxException
+        throws XMLStreamException
     {
         /* Let's simplify handling a bit: although theoretically all
          * combinations of value can be used, let's really only differentiate
@@ -356,7 +356,7 @@ public final class DTDElement
 
     public void mergeMissingAttributesFrom(InputProblemReporter rep, DTDElement other,
                                            boolean fullyValidate)
-        throws WstxException
+        throws XMLStreamException
     {
         Map otherMap = other.getAttributes();
         HashMap m = mAttrMap;
@@ -412,7 +412,7 @@ public final class DTDElement
     private DTDAttribute doAddAttribute(Map attrMap, InputProblemReporter rep,
                                         DTDAttribute attr, List specList,
                                         boolean fullyValidate)
-        throws WstxException
+        throws XMLStreamException
     {
         PrefixedName attrName = attr.getName();
 

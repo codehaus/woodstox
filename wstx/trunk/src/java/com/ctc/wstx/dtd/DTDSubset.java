@@ -21,7 +21,6 @@ import javax.xml.stream.XMLStreamException;
 
 import org.codehaus.stax2.validation.*;
 
-import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.sr.InputProblemReporter;
 
 /**
@@ -52,7 +51,7 @@ public abstract class DTDSubset
      */
     public abstract DTDSubset combineWithExternalSubset(InputProblemReporter rep,
                                                         DTDSubset extSubset)
-        throws WstxException;
+        throws XMLStreamException;
 
     /*
     //////////////////////////////////////////////////////
