@@ -21,6 +21,8 @@ Description:
     returned by OutputStreamWriter as is; and JDK was reporting
     legacy encodings. Needed to normalize encoding.
     (reported by Jim A)
+  * [WSTX-153] XMLReporter not getting called for non-fatal validation errors
+    (reported by Eduardo R-R)
 
   Improvements:
 

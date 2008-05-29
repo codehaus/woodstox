@@ -540,13 +540,26 @@ public abstract class StreamScanner
          * reported via XMLReporter, errors and fatal errors result in
          * immediate exceptions.
          */
-        if (prob.getSeverity() >= XMLValidationProblem.SEVERITY_ERROR) {
+        /* 27-May-2008, TSa: [WSTX-153] Above is incorrect: as per Stax
+         *   javadocs for XMLReporter, both warnings and non-fatal errors
+         *   (which includes all validation errors) should be reported via
+         *   XMLReporter interface, and only fatals should cause an
+         *   immediate stream exception (by-passing reporter)
+         */
+        if (prob.getSeverity() > XMLValidationProblem.SEVERITY_ERROR) {
             throw WstxValidationException.create(prob);
         }
         XMLReporter rep = mConfig.getXMLReporter();
         if (rep != null) {
             doReportProblem(rep, ErrorConsts.WT_VALIDATION, prob.getMessage(),
                             prob.getLocation());
+        } else {
+            /* If no reporter, regular non-fatal errors are to be reported
+             * as exceptions as well, for backwards compatibility
+             */
+            if (prob.getSeverity() >= XMLValidationProblem.SEVERITY_ERROR) {
+                throw WstxValidationException.create(prob);
+            }
         }
     }
 

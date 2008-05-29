@@ -330,3 +330,8 @@ Martin Vanek:
   * Reported [WSTX-144]: Problem when trying to output namespace declaration
     using a DOMResult-backed writer.
    [3.2.6]
+
+Eduardo Ribeiro Rodrigues
+  * Reported [WSTX-153]: XMLReporter not getting called for non-fatal
+    validation errors
+    [3.2.6]

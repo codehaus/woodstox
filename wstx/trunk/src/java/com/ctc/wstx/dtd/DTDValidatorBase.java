@@ -32,7 +32,8 @@ import com.ctc.wstx.util.ExceptionUtil;
 import com.ctc.wstx.util.PrefixedName;
 
 /**
- * Shared abstract for Woodstox implementations of {@link XMLValidator}.
+ * Shared abstract base class for Woodstox implementations
+ * of {@link XMLValidator} for DTD validation.
  * Since there are 2 sub-types -- full actual DTD validator, and a dummy
  * one that only adds type information and default values, with no actual
  * validation -- common functionality was refactored into this base
@@ -473,7 +474,7 @@ public abstract class DTDValidatorBase
         if (loc == null) {
             loc = getLocation();
         }
-        throw WstxValidationException.create(msg, loc, XMLValidationProblem.SEVERITY_ERROR);
+        mContext.reportProblem(new XMLValidationProblem(loc, msg, XMLValidationProblem.SEVERITY_ERROR));
     }
 
     protected void doAddDefaultValue(DTDAttribute attr)

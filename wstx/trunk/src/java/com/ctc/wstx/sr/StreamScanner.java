@@ -527,9 +527,9 @@ public abstract class StreamScanner
          * reported via XMLReporter, errors and fatal errors result in
          * immediate exceptions.
          */
-        /* 27-May-2008, TSa: Above is incorrect: as per Stax javadocs
-         *   for XMLReporter, both warnings and non-fatal errors (which
-         *   includes all validation errors) should be reported via
+        /* 27-May-2008, TSa: [WSTX-153] Above is incorrect: as per Stax
+         *   javadocs for XMLReporter, both warnings and non-fatal errors
+         *   (which includes all validation errors) should be reported via
          *   XMLReporter interface, and only fatals should cause an
          *   immediate stream exception (by-passing reporter)
          */
