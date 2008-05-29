@@ -42,6 +42,31 @@ public class TestXMLReporter
         assertEquals(1, rep.getCount());
     }
 
+    /**
+     * This test verifies that exception XMLReporter rethrows gets
+     * properly propagated.
+     */
+    public void testErrorRethrow()
+        throws XMLStreamException
+    {
+        String XML =
+            "<!DOCTYPE root [\n"
+            +" <!ELEMENT root (leaf+)>\n"
+            +"]><root></root>";
+        ;
+        MyReporter rep = new MyReporter();
+        rep.enableThrow();
+        XMLStreamReader sr = getReader(XML, rep);
+        try {
+            streamThrough(sr);
+            fail("Expected a re-thrown exception for invalid content");
+        } catch (XMLStreamException xse) {
+            ;
+        }
+        sr.close();
+        assertEquals(1, rep.getCount());
+    }
+
     /*
     //////////////////////////////////////////////////
     // Helper methods
@@ -64,8 +89,12 @@ public class TestXMLReporter
     {
         int count = 0;
 
+        boolean doThrow = false;
+
         public MyReporter() { }
-        
+
+        public void enableThrow() { doThrow = true; }
+
         public void report(String message,
                            String errorType,
                            Object relatedInformation,
@@ -73,6 +102,9 @@ public class TestXMLReporter
             throws XMLStreamException
         {
             ++count;
+            if (doThrow) {
+                throw new XMLStreamException(message, location);
+            }
         }
 
         public int getCount() { return count; }
