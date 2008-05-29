@@ -10,7 +10,6 @@ import javax.xml.stream.XMLStreamException;
 
 import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.cfg.ErrorConsts;
-import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.sw.XmlWriter;
 import com.ctc.wstx.util.DataUtil;
 import com.ctc.wstx.util.StringVector;
@@ -141,7 +140,7 @@ public final class NsAttributeCollector
      * @return Index of xml:id attribute, if any, -1 if not
      */
     public int resolveNamespaces(InputProblemReporter rep, StringVector ns)
-        throws WstxException
+        throws XMLStreamException
     {
         int attrCount = mAttrCount;
 

@@ -27,7 +27,6 @@ import org.codehaus.stax2.ri.typed.DefaultValueDecoder;
 import org.codehaus.stax2.typed.TypedValueDecoder;
 
 import com.ctc.wstx.api.ReaderConfig;
-import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.sw.XmlWriter;
 import com.ctc.wstx.util.StringVector;
 import com.ctc.wstx.util.TextBuilder;
@@ -538,7 +537,7 @@ public abstract class AttributeCollector
     }
 
     protected void throwDupAttr(InputProblemReporter rep, int index)
-        throws WstxException
+        throws XMLStreamException
     {
         rep.throwParseError("Duplicate attribute '"+getQName(index)+"'.");
     }

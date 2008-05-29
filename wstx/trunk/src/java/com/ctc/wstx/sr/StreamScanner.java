@@ -505,7 +505,10 @@ public abstract class StreamScanner
             try {
                 rep.report(msg, probType, null, loc);
             } catch (XMLStreamException e) {
-                // Hmmh. Weird that a reporter is allowed to do this...
+                /* !!! 27-May-2008, TSa: This WRONG: XMLReporter can and
+                 *   even should throw exceptions in some cases (to signal
+                 *   it considers some problems as actual fatals)
+                 */
                 System.err.println("Internal error - problem reporting a problem: "+e);
             }
         }

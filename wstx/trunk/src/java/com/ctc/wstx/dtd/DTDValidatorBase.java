@@ -438,26 +438,26 @@ public abstract class DTDValidatorBase
     void reportValidationProblem(String msg)
         throws XMLValidationException
     {
-        doReportProblem(msg, null);
+        doReportValidationProblem(msg, null);
     }
 
     void reportValidationProblem(String msg, Location loc)
         throws XMLValidationException
     {
-        doReportProblem(msg, loc);
+        doReportValidationProblem(msg, loc);
     }
 
     void reportValidationProblem(String format, String arg)
         throws XMLValidationException
     {
-        doReportProblem(MessageFormat.format(format, new Object[] { arg }),
+        doReportValidationProblem(MessageFormat.format(format, new Object[] { arg }),
                         null);
     }
 
     void reportValidationProblem(String format, String arg1, String arg2)
         throws XMLValidationException
     {
-        doReportProblem(MessageFormat.format(format, new Object[] { arg1, arg2 }),
+        doReportValidationProblem(MessageFormat.format(format, new Object[] { arg1, arg2 }),
                         null);
     }
 
@@ -467,7 +467,7 @@ public abstract class DTDValidatorBase
     ///////////////////////////////////////
     */
 
-    protected void doReportProblem(String msg, Location loc)
+    protected void doReportValidationProblem(String msg, Location loc)
         throws XMLValidationException
     {
         if (loc == null) {

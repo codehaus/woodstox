@@ -13,7 +13,7 @@ public interface ValidationProblemHandler
      * Method called by validator, when a validation problem is encountered.
      * Impementations can choose to ignore the problem, log something about
      * the problem, store it for later processing, or throw
-     * an {@link XMLValidationException}.
+     * a {@link XMLValidationException}.
      *
      * @param problem Validation problem encountered.
      */

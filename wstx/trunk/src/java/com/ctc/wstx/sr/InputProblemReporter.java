@@ -1,11 +1,10 @@
 package com.ctc.wstx.sr;
 
 import javax.xml.stream.Location;
+import javax.xml.stream.XMLStreamException;
 
 import org.codehaus.stax2.validation.XMLValidationException;
 import org.codehaus.stax2.validation.XMLValidationProblem;
-
-import com.ctc.wstx.exc.WstxException;
 
 /**
  * Interface implemented by input reader, and used by other components to
@@ -20,12 +19,12 @@ public interface InputProblemReporter
      */
 
     public void throwParseError(String msg)
-        throws WstxException;
+        throws XMLStreamException;
 
     public void throwParseError(String msg, Object arg)
-        throws WstxException;
+        throws XMLStreamException;
     public void throwParseError(String msg, Object arg, Object arg2)
-        throws WstxException;
+        throws XMLStreamException;
 
     /*
     ///////////////////////////////////////////////////////

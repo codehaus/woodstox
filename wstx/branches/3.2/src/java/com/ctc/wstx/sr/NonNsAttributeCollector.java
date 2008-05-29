@@ -9,7 +9,6 @@ import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
 
 import com.ctc.wstx.api.ReaderConfig;
-import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.sw.XmlWriter;
 import com.ctc.wstx.util.DataUtil;
 import com.ctc.wstx.util.StringVector;
@@ -72,7 +71,7 @@ public final class NonNsAttributeCollector
      * @return Index of xml:id attribute, if any, -1 if not
      */
     public int resolveValues(InputProblemReporter rep)
-        throws WstxException
+        throws XMLStreamException
     {
         int attrCount = mAttrCount;
 

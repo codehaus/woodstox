@@ -24,7 +24,6 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.namespace.QName;
 
 import com.ctc.wstx.api.ReaderConfig;
-import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.sw.XmlWriter;
 import com.ctc.wstx.util.StringVector;
 import com.ctc.wstx.util.TextBuilder;
@@ -371,7 +370,7 @@ public abstract class AttributeCollector
     }
 
     protected void throwDupAttr(InputProblemReporter rep, int index)
-        throws WstxException
+        throws XMLStreamException
     {
         rep.throwParseError("Duplicate attribute '"+getQName(index)+"'.");
     }
