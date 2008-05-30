@@ -228,37 +228,6 @@ public interface XMLStreamReader2
     public int getText(Writer w, boolean preserveContents)
         throws IOException, XMLStreamException;
 
-    /**
-     * Method similar to {@link #getText()}, except
-     * that onlt a {@link Reader} is returned, which may then be used
-     * by the caller to read all the text.
-     * For further optimization, it may also be allowed to do true
-     * pass-through, thus possibly avoiding one temporary copy of the
-     * data (without allowing that to be done, stream reader still needs
-     * to create a copy of data read, thus negating benefits of using
-     * a simple Reader).
-     *<p>
-     * Method can only be called on states CDATA, CHARACTERS, COMMENT,
-     * DTD, ENTITY_REFERENCE; if called when reader is in another state,
-     * {@link IllegalStateException} will be thrown. Content written
-     * for elements is same as with {@link #getText()}.
-     *
-     * @param preserveContents If true, reader has to preserve contents
-     *   so that further calls to <code>getText</code> will return
-     *   proper conntets. If false, reader is allowed to skip creation
-     *   of such copies: this can improve performance, but it also means
-     *   that further calls to <code>getText</code> is not guaranteed to
-     *   return meaningful data.
-     *
-     * @return Reader through which textual contents of the current event
-     *    can be read.
-     */
-    /* 
-      // 19-Apr-2005, TSa: This method was left out of StAX2 v1.0...
-    public Reader getTextReader(boolean preserveContents)
-        throws IOException, XMLStreamException;
-    */
-
     /*
     ///////////////////////////
     // Other accessors

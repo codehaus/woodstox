@@ -13,6 +13,10 @@ import wstxtest.stream.BaseStreamTest;
 public class TestXMLReporter
     extends BaseStreamTest
 {
+    /**
+     * Basic unit test for verifying that XMLReporter gets validation
+     * errors reported.
+     */
     public void testValidationError()
         throws XMLStreamException
     {
@@ -42,6 +46,101 @@ public class TestXMLReporter
         assertEquals(1, rep.getCount());
     }
 
+    /**
+     * Test for specific validation error, mostly to verify
+     * fix to [WSTX-155] (and guard against regression)
+     */
+    public void testMissingAttrError()
+        throws XMLStreamException
+    {
+        String XML =
+            "<!DOCTYPE root [\n"
+            +" <!ELEMENT root (#PCDATA)>\n"
+            +" <!ATTLIST root attr CDATA #REQUIRED>\n"
+            +"]><root />";
+            ;
+        MyReporter rep = new MyReporter();
+        XMLStreamReader sr = getReader(XML, rep);
+
+        streamThrough(sr);
+        sr.close();
+        assertEquals(1, rep.getCount());
+    }
+
+    public void testInvalidFixedAttr()
+        throws XMLStreamException
+    {
+        // Not ok to have any other value, either completely different
+        String XML = "<!DOCTYPE root [\n"
+            +"<!ELEMENT root EMPTY>\n"
+            +"<!ATTLIST root attr CDATA #FIXED 'fixed'>\n"
+            +"]>\n<root attr='wrong'/>";
+        MyReporter rep = new MyReporter();
+        XMLStreamReader sr = getReader(XML, rep);
+
+        streamThrough(sr);
+        sr.close();
+        assertEquals(1, rep.getCount());
+
+        // Or one with extra white space (CDATA won't get fully normalized)
+        XML = "<!DOCTYPE root [\n"
+            +"<!ELEMENT root EMPTY>\n"
+            +"<!ATTLIST root attr CDATA #FIXED 'fixed'>\n"
+            +"]>\n<root attr=' fixed '/>";
+        rep = new MyReporter();
+        sr = getReader(XML, rep);
+        streamThrough(sr);
+        sr.close();
+        assertEquals(1, rep.getCount());
+    }
+
+
+    public void testInvalidIdAttr()
+        throws XMLStreamException
+    {
+        // Error: undefined id 'someId'
+        String XML = "<!DOCTYPE elem [\n"
+            +"<!ELEMENT elem (elem*)>\n"
+            +"<!ATTLIST elem id ID #IMPLIED>\n"
+            +"<!ATTLIST elem ref IDREF #IMPLIED>\n"
+            +"]>\n<elem ref='someId'/>";
+        MyReporter rep = new MyReporter();
+        XMLStreamReader sr = getReader(XML, rep);
+
+        streamThrough(sr);
+        sr.close();
+        assertEquals(1, rep.getCount());
+
+        // Error: empty idref value
+        XML = "<!DOCTYPE elem [\n"
+            +"<!ELEMENT elem (elem*)>\n"
+            +"<!ATTLIST elem id ID #IMPLIED>\n"
+            +"<!ATTLIST elem ref IDREF #IMPLIED>\n"
+            +"]>\n<elem ref=''/>";
+        rep = new MyReporter();
+        sr = getReader(XML, rep);
+        streamThrough(sr);
+        sr.close();
+        assertEquals(1, rep.getCount());
+    }
+
+    public void testInvalidSimpleChoiceStructure()
+        throws XMLStreamException
+    {
+        String XML = "<!DOCTYPE root [\n"
+            +"<!ELEMENT root (a1 | a2)+>\n"
+            +"<!ELEMENT a1 EMPTY>\n"
+            +"<!ELEMENT a2 (#PCDATA)>\n"
+            +"]>\n"
+            +"<root />";
+        MyReporter rep = new MyReporter();
+        XMLStreamReader sr = getReader(XML, rep);
+
+        streamThrough(sr);
+        sr.close();
+        assertEquals(1, rep.getCount());
+    }
+        
     /**
      * This test verifies that exception XMLReporter rethrows gets
      * properly propagated.

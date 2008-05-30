@@ -1,24 +1,28 @@
 Version: 3.9.3
 
+Release date: xx-May-2008
+
+Description:
+  Third pre-4.0 version. Bug-fixes, as well as partial implementation
+  of the new Typed Access API (reading/writing booleans, ints, longs).
+
   Problems fixed:
 
   * [WSTX-144] Problem when trying to output namespace declaration using
     a DOMResult-backed writer.
     (reported by Martin V)
-  * [WSTX-148] Implement XMLEvent.equals() and XMLEvent.hashCode()
+  * [WSTX-148] Implement XMLEvent.equals() and .hashCode() to allow
+    for easy comparisons.
+    (requested by Sylvain L)
   * [WSTX-153] XMLReporter not getting called for non-fatal validation errors
+    (reported by Eduardo R-R)
+  * [WSTX-155] NPE after reporting a missing #REQUIRED attribute.
     (reported by Eduardo R-R)
 
   New functionality:
 
   * [WSTX-151] Generic typed access methods (getElementAs(), getAttributeAs()
     added to TypedXMLStreamReader.
-
-Release date: xx-May-2008
-
-Description:
-  Third pre-4.0 version. Bug-fixes, as well as partial implementation
-  of the new Typed Access API (reading/writing booleans, ints, longs).
 
 == History: ==
 

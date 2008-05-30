@@ -290,10 +290,16 @@ public class DTDValidator
                 List specAttrs = elem.getSpecialAttrs();
                 DTDAttribute attr = (DTDAttribute) specAttrs.get(ix);
 
+                /* [WSTX-155]: Problems if reportValidationProblem returns
+                 *   ok (which happens if a reporter handles it). So what
+                 *   to do with missing required value? First thought is
+                 *   to just leave it as is.
+                 */
                 if (attr.isRequired()) {
                     reportValidationProblem("Required attribute '"+attr+"' missing from element <"+elem+">");
+                } else {
+                    doAddDefaultValue(attr);
                 }
-                doAddDefaultValue(attr);
                 ix = specBits.nextClearBit(ix+1);
             }
         }

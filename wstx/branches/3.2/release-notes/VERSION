@@ -12,6 +12,8 @@ Description:
     (reported by Martin V)
   * [WSTX-153] XMLReporter not getting called for non-fatal validation errors
     (reported by Eduardo R-R)
+  * [WSTX-155] NPE after reporting a missing #REQUIRED attribute.
+    (reported by Eduardo R-R)
 
 == History: ==
 

@@ -42,6 +42,27 @@ public class TestXMLReporter
         assertEquals(1, rep.getCount());
     }
 
+    /**
+     * Test for specific validation error, mostly to verify
+     * fix to [WSTX-155] (and guard against regression)
+     */
+    public void testMissingAttrError()
+        throws XMLStreamException
+    {
+        String XML =
+            "<!DOCTYPE root [\n"
+            +" <!ELEMENT root (#PCDATA)>\n"
+            +" <!ATTLIST root attr CDATA #REQUIRED>\n"
+            +"]><root />";
+            ;
+        MyReporter rep = new MyReporter();
+        XMLStreamReader sr = getReader(XML, rep);
+
+        streamThrough(sr);
+        sr.close();
+        assertEquals(1, rep.getCount());
+    }
+
     /*
     //////////////////////////////////////////////////
     // Helper methods

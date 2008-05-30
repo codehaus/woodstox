@@ -343,8 +343,15 @@ Martin Vanek:
   * Reported [WSTX-144]: Problem when trying to output namespace declaration
     using a DOMResult-backed writer.
    [3.2.6 / 4.0]
- 
-Eduardo Ribeiro Rodrigues
+
+Sylvain Loiseau:
+  * Requested [WSTX-148]: Implement XMLEvent.equals(), .hashCode(), to allow
+    for easy comparison of XMLEvent instances.
+   [4.0]
+
+Eduardo Ribeiro Rodrigues:
   * Reported [WSTX-153]: XMLReporter not getting called for non-fatal
     validation errors
+    [3.2.6 / 4.0]
+  * Reported [WSTX-154]: NPE after reporting missing #REQUIRED attribute
     [3.2.6 / 4.0]
