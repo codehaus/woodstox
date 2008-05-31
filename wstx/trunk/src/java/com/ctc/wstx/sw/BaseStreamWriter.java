@@ -1390,15 +1390,25 @@ public abstract class BaseStreamWriter
          * reported via XMLReporter, errors and fatal errors result in
          * immediate exceptions.
          */
-        if (prob.getSeverity() >= XMLValidationProblem.SEVERITY_ERROR) {
-            if (isValidating()) {
-                throw WstxValidationException.create(prob);
-            }
+        /* 27-May-2008, TSa: [WSTX-153] Above is incorrect: as per Stax
+         *   javadocs for XMLReporter, both warnings and non-fatal errors
+         *   (which includes all validation errors) should be reported via
+         *   XMLReporter interface, and only fatals should cause an
+         *   immediate stream exception (by-passing reporter)
+         */
+        if (prob.getSeverity() > XMLValidationProblem.SEVERITY_ERROR) {
+            throw WstxValidationException.create(prob);
         }
         XMLReporter rep = mConfig.getProblemReporter();
         if (rep != null) {
-            doReportProblem(rep, ErrorConsts.WT_VALIDATION, prob.getMessage(),
-                            prob.getLocation());
+            doReportProblem(rep, prob);
+        } else {
+            /* If no reporter, regular non-fatal errors are to be reported
+             * as exceptions as well, for backwards compatibility
+             */
+            if (prob.getSeverity() >= XMLValidationProblem.SEVERITY_ERROR) {
+                throw WstxValidationException.create(prob);
+            }
         }
     }
 
@@ -1874,14 +1884,32 @@ public abstract class BaseStreamWriter
         reportProblem(new XMLValidationProblem(getValidationLocation(), msg));
     }
 
-    protected final void doReportProblem(XMLReporter rep, String probType,
-                                         String msg, Location loc)
+    protected void doReportProblem(XMLReporter rep, String probType, String msg, Location loc)
+    {
+        if (loc == null) {
+            loc = getLocation();
+        }
+        doReportProblem(rep, new XMLValidationProblem(loc, msg, XMLValidationProblem.SEVERITY_ERROR, probType));
+    }
+
+    protected void doReportProblem(XMLReporter rep, XMLValidationProblem prob)
     {
         if (rep != null) {
+            Location loc = prob.getLocation();
+            if (loc == null) {
+                loc = getLocation();
+            }
+            // Backwards-compatibility fix: add non-null type, if missing:
+            if (prob.getType() == null) {
+                prob.setType(ErrorConsts.WT_VALIDATION);
+            }
             try {
-                rep.report(msg, probType, null, loc);
+                rep.report(prob.getMessage(), prob.getType(), prob, loc);
             } catch (XMLStreamException e) {
-                // Hmmh. Weird that a reporter is allowed to do this...
+                /* !!! 27-May-2008, TSa: This WRONG: XMLReporter can and
+                 *   even should throw exceptions in some cases (to signal
+                 *   it considers some problems as actual fatals)
+                 */
                 System.err.println("Problem reporting a problem: "+e);
             }
         }

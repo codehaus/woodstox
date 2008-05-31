@@ -468,42 +468,50 @@ public abstract class StreamScanner
         XMLReporter rep = mConfig.getXMLReporter();
         if (rep != null) {
             doReportProblem(rep, probType,
+                            MessageFormat.format(format, new Object[] { arg }), null);
+        }
+    }
+
+    public void reportProblem(String probType, String format, Object arg, Object arg2)
+    {
+        XMLReporter rep = mConfig.getXMLReporter();
+        if (rep != null) {
+            doReportProblem(rep, probType,
+                            MessageFormat.format(format, new Object[] { arg, arg2 }), null);
+        }
+    }
+
+    public void reportProblem(Location loc, String probType, String format, Object arg)
+    {
+        XMLReporter rep = mConfig.getXMLReporter();
+        if (rep != null) {
+            doReportProblem(rep, probType,
                             MessageFormat.format(format, new Object[] { arg }),
-                            null);
-        }
-    }
-
-    public void reportProblem(String probType, String format, Object arg,
-                              Object arg2)
-    {
-        XMLReporter rep = mConfig.getXMLReporter();
-        if (rep != null) {
-            doReportProblem(rep, probType,
-                            MessageFormat.format(format, new Object[] { arg, arg2 }),
-                            null);
-        }
-    }
-
-    public void reportProblem(String probType, String format, Object arg,
-                              Object arg2, Location loc)
-    {
-        XMLReporter rep = mConfig.getXMLReporter();
-        if (rep != null) {
-            doReportProblem(rep, probType,
-                            MessageFormat.format(format, new Object[] { arg, arg2 }),
                             loc);
         }
     }
 
-    protected final void doReportProblem(XMLReporter rep, String probType,
-                                         String msg, Location loc)
+    protected void doReportProblem(XMLReporter rep, String probType, String msg, Location loc)
+    {
+        if (loc == null) {
+            loc = getLastCharLocation();
+        }
+        doReportProblem(rep, new XMLValidationProblem(loc, msg, XMLValidationProblem.SEVERITY_ERROR, probType));
+    }
+
+    protected void doReportProblem(XMLReporter rep, XMLValidationProblem prob)
     {
         if (rep != null) {
+            Location loc = prob.getLocation();
             if (loc == null) {
                 loc = getLastCharLocation();
             }
+            // Backwards-compatibility fix: add non-null type, if missing:
+            if (prob.getType() == null) {
+                prob.setType(ErrorConsts.WT_VALIDATION);
+            }
             try {
-                rep.report(msg, probType, null, loc);
+                rep.report(prob.getMessage(), prob.getType(), prob, loc);
             } catch (XMLStreamException e) {
                 /* !!! 27-May-2008, TSa: This WRONG: XMLReporter can and
                  *   even should throw exceptions in some cases (to signal
@@ -538,8 +546,7 @@ public abstract class StreamScanner
         }
         XMLReporter rep = mConfig.getXMLReporter();
         if (rep != null) {
-            doReportProblem(rep, ErrorConsts.WT_VALIDATION, prob.getMessage(),
-                            prob.getLocation());
+            doReportProblem(rep, prob);
         } else {
             /* If no reporter, regular non-fatal errors are to be reported
              * as exceptions as well, for backwards compatibility
@@ -548,12 +555,6 @@ public abstract class StreamScanner
                 throw WstxValidationException.create(prob);
             }
         }
-    }
-
-    public void reportValidationProblem(String msg, Location loc, int severity)
-        throws XMLValidationException
-    {
-        reportValidationProblem(new XMLValidationProblem(loc, msg, severity));
     }
 
     public void reportValidationProblem(String msg, int severity)

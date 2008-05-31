@@ -3,6 +3,7 @@ package wstxtest.vstream;
 import javax.xml.stream.*;
 
 import org.codehaus.stax2.*;
+import org.codehaus.stax2.validation.XMLValidationProblem;
 
 import wstxtest.stream.BaseStreamTest;
 
@@ -63,6 +64,80 @@ public class TestXMLReporter
         assertEquals(1, rep.getCount());
     }
 
+    public void testInvalidFixedAttr()
+        throws XMLStreamException
+    {
+        // Not ok to have any other value, either completely different
+        String XML = "<!DOCTYPE root [\n"
+            +"<!ELEMENT root EMPTY>\n"
+            +"<!ATTLIST root attr CDATA #FIXED 'fixed'>\n"
+            +"]>\n<root attr='wrong'/>";
+        MyReporter rep = new MyReporter();
+        XMLStreamReader sr = getReader(XML, rep);
+
+        streamThrough(sr);
+        sr.close();
+        assertEquals(1, rep.getCount());
+
+        // Or one with extra white space (CDATA won't get fully normalized)
+        XML = "<!DOCTYPE root [\n"
+            +"<!ELEMENT root EMPTY>\n"
+            +"<!ATTLIST root attr CDATA #FIXED 'fixed'>\n"
+            +"]>\n<root attr=' fixed '/>";
+        rep = new MyReporter();
+        sr = getReader(XML, rep);
+        streamThrough(sr);
+        sr.close();
+        assertEquals(1, rep.getCount());
+    }
+
+
+    public void testInvalidIdAttr()
+        throws XMLStreamException
+    {
+        // Error: undefined id 'someId'
+        String XML = "<!DOCTYPE elem [\n"
+            +"<!ELEMENT elem (elem*)>\n"
+            +"<!ATTLIST elem id ID #IMPLIED>\n"
+            +"<!ATTLIST elem ref IDREF #IMPLIED>\n"
+            +"]>\n<elem ref='someId'/>";
+        MyReporter rep = new MyReporter();
+        XMLStreamReader sr = getReader(XML, rep);
+
+        streamThrough(sr);
+        sr.close();
+        assertEquals(1, rep.getCount());
+
+        // Error: empty idref value
+        XML = "<!DOCTYPE elem [\n"
+            +"<!ELEMENT elem (elem*)>\n"
+            +"<!ATTLIST elem id ID #IMPLIED>\n"
+            +"<!ATTLIST elem ref IDREF #IMPLIED>\n"
+            +"]>\n<elem ref=''/>";
+        rep = new MyReporter();
+        sr = getReader(XML, rep);
+        streamThrough(sr);
+        sr.close();
+        assertEquals(1, rep.getCount());
+    }
+
+    public void testInvalidSimpleChoiceStructure()
+        throws XMLStreamException
+    {
+        String XML = "<!DOCTYPE root [\n"
+            +"<!ELEMENT root (a1 | a2)+>\n"
+            +"<!ELEMENT a1 EMPTY>\n"
+            +"<!ELEMENT a2 (#PCDATA)>\n"
+            +"]>\n"
+            +"<root />";
+        MyReporter rep = new MyReporter();
+        XMLStreamReader sr = getReader(XML, rep);
+
+        streamThrough(sr);
+        sr.close();
+        assertEquals(1, rep.getCount());
+    }
+
     /*
     //////////////////////////////////////////////////
     // Helper methods
@@ -85,15 +160,31 @@ public class TestXMLReporter
     {
         int count = 0;
 
+        boolean doThrow = false;
+
         public MyReporter() { }
-        
+
+        public void enableThrow() { doThrow = true; }
+
         public void report(String message,
                            String errorType,
-                           Object relatedInformation,
+                           Object relatedInfo,
                            Location location)
             throws XMLStreamException
         {
             ++count;
+            if (doThrow) {
+                throw new XMLStreamException(message, location);
+            }
+            /* 30-May-2008, TSa: Need to ensure that extraArg is of
+             *   type XMLValidationProblem; new constraint for Woodstox
+             */
+            if (relatedInfo == null) {
+                throw new IllegalArgumentException("relatedInformation null, should be an instance of XMLValidationProblem");
+            }
+            if (!(relatedInfo instanceof XMLValidationProblem)) {
+                throw new IllegalArgumentException("relatedInformation not an instance of XMLValidationProblem (but "+relatedInfo.getClass().getName()+")");
+            }
         }
 
         public int getCount() { return count; }

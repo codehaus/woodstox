@@ -2473,7 +2473,7 @@ public class FullDTDReader
                 } else {
                     str = "General" + str;
                 }
-                reportWarning(rep, ErrorConsts.WT_ENT_DECL, str, evtLoc, oldED);
+                reportWarning(rep, ErrorConsts.WT_ENT_DECL, str, evtLoc);
             }
         } else {
             m.put(id, ent);
@@ -2796,7 +2796,7 @@ public class FullDTDReader
             XMLReporter rep = mConfig.getXMLReporter();
             if (rep != null) {
                 String msg = MessageFormat.format(ErrorConsts.W_DTD_ATTR_REDECL, new Object[] { attrName, elem });
-                reportWarning(rep, ErrorConsts.WT_ATTR_DECL, msg, loc, elem);
+                reportWarning(rep, ErrorConsts.WT_ATTR_DECL, msg, loc);
             }
         } else {
             if (defVal.hasDefaultValue()) {
@@ -3474,11 +3474,13 @@ public class FullDTDReader
      */
 
     private void reportWarning(XMLReporter rep, String probType, String msg,
-                               Location loc, Object extraArg)
+                               Location loc)
         throws XMLStreamException
     {
         if (rep != null) {
-            rep.report(msg, probType, extraArg, loc);
+            XMLValidationProblem prob = new XMLValidationProblem
+                (loc, msg, XMLValidationProblem.SEVERITY_WARNING, probType);
+            rep.report(msg, probType, prob, loc);
         }
     }
 }

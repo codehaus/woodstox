@@ -17,6 +17,11 @@ public class XMLValidationProblem
     protected final String mMessage;
     protected final int mSeverity;
 
+    /**
+     * @since 3.0
+     */
+    protected String mType;
+
     public XMLValidationProblem(Location loc, String msg)
     {
         this(loc, msg, SEVERITY_ERROR);
@@ -24,12 +29,44 @@ public class XMLValidationProblem
 
     public XMLValidationProblem(Location loc, String msg, int severity)
     {
+        this(loc, msg, severity, null);
+    }
+
+    public XMLValidationProblem(Location loc, String msg, int severity,
+                                String type)
+    {
         mLocation = loc;
         mMessage = msg;
         mSeverity = severity;
+        mType = type;
     }
 
+    /**
+     * @since 3.0
+     */
+    public void setType(String t) { mType = t; }
+
+    /**
+     * @return Reference to location where problem was encountered.
+     */
     public Location getLocation() { return mLocation; }
+
+    /**
+     * @return Human-readable message describing the problem 
+     */
     public String getMessage() { return mMessage; }
+
+    /**
+     * @return One of <code>SEVERITY_</code> constants
+     *   (such as {@link #SEVERITY_WARNING}
+     */
     public int getSeverity() { return mSeverity; }
+
+    /**
+     * @return Generic type (class) of the problem; may be null
+     *   if validator does not provide such details
+     *
+     * @since 3.0
+     */
+    public String getType() { return mType; }
 }

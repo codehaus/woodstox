@@ -22,6 +22,8 @@ import javax.xml.stream.Location;
 import javax.xml.stream.XMLReporter;
 import javax.xml.stream.XMLStreamException;
 
+import org.codehaus.stax2.validation.XMLValidationProblem;
+
 import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.cfg.ParsingErrorMsgs;
@@ -221,11 +223,15 @@ public final class ReaderBootstrapper
         XMLReporter rep = cfg.getXMLReporter();
         if (rep != null) {
             Location loc = getLocation();
-            rep.report(MessageFormat.format(ErrorConsts.W_MIXED_ENCODINGS,
-                                            new Object[] { mFoundEncoding,
-                                                           inputEnc }),
-                       ErrorConsts.WT_XML_DECL,
-                       this, loc);
+            String msg = MessageFormat.format(ErrorConsts.W_MIXED_ENCODINGS,
+                                              new Object[] { mFoundEncoding,
+                                                             inputEnc });
+            String type = ErrorConsts.WT_XML_DECL;
+            /* 30-May-2008, tatus: Should wrap all the info as XMValidationProblem
+             *    since that's Woodstox' contract wrt. relatedInformation field.
+             */
+            XMLValidationProblem prob = new XMLValidationProblem(loc, msg, XMLValidationProblem.SEVERITY_WARNING, type);
+            rep.report(msg, type, prob, loc);
         }
     }
 

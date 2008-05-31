@@ -494,10 +494,11 @@ public final class DTDSubsetImpl
                     /* ??? Should we warn about neither of them being really
                      *   declared?
                      */
-                    rep.reportProblem(ErrorConsts.WT_ENT_DECL,
+                    rep.reportProblem(intElem.getLocation(),
+                                      ErrorConsts.WT_ENT_DECL,
                                       ErrorConsts.W_UNDEFINED_ELEM,
-                                      extElem.getDisplayName(), null,
-                                      intElem.getLocation());
+                                      extElem.getDisplayName());
+                                      
                 } else {
                     intElem.mergeMissingAttributesFrom(rep, extElem, mFullyValidating);
                 }

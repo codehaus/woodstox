@@ -29,6 +29,7 @@ public interface InputProblemReporter
     /*
     ///////////////////////////////////////////////////////
     // Methods for reporting "soft" (recoverable) problems
+    // (possibly validation problems)
     ///////////////////////////////////////////////////////
      */
 
@@ -39,8 +40,7 @@ public interface InputProblemReporter
     public void reportProblem(String probType, String format, Object arg,
                               Object arg2);
 
-    public void reportProblem(String probType, String format, Object arg,
-                              Object arg2, Location loc);
+    public void reportProblem(Location loc, String probType, String format, Object arg);
 
     /*
     ///////////////////////////////////////////////////////
@@ -51,8 +51,6 @@ public interface InputProblemReporter
     public void reportValidationProblem(XMLValidationProblem prob)
         throws XMLValidationException;
     public void reportValidationProblem(String msg)
-        throws XMLValidationException;
-    public void reportValidationProblem(String msg, Location loc, int severity)
         throws XMLValidationException;
     public void reportValidationProblem(String msg, Object arg)
         throws XMLValidationException;

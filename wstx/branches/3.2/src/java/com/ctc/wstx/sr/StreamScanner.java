@@ -510,17 +510,29 @@ public abstract class StreamScanner
         }
     }
 
-    protected final void doReportProblem(XMLReporter rep, String probType,
-                                         String msg, Location loc)
+    protected void doReportProblem(XMLReporter rep, String probType, String msg, Location loc)
+    {
+        if (loc == null) {
+            loc = getLastCharLocation();
+        }
+        doReportProblem(rep, new XMLValidationProblem(loc, msg, XMLValidationProblem.SEVERITY_ERROR), probType);
+    }
+
+    protected void doReportProblem(XMLReporter rep, XMLValidationProblem prob,
+                                   String probType)
     {
         if (rep != null) {
+            Location loc = prob.getLocation();
             if (loc == null) {
                 loc = getLastCharLocation();
             }
             try {
-                rep.report(msg, probType, null, loc);
+                rep.report(prob.getMessage(), probType, prob, loc);
             } catch (XMLStreamException e) {
-                // Hmmh. Weird that a reporter is allowed to do this...
+                /* !!! 27-May-2008, TSa: This WRONG: XMLReporter can and
+                 *   even should throw exceptions in some cases (to signal
+                 *   it considers some problems as actual fatals)
+                 */
                 System.err.println("Internal error - problem reporting a problem: "+e);
             }
         }

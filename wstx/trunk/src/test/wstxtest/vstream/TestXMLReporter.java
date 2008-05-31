@@ -3,6 +3,7 @@ package wstxtest.vstream;
 import javax.xml.stream.*;
 
 import org.codehaus.stax2.*;
+import org.codehaus.stax2.validation.XMLValidationProblem;
 
 import wstxtest.stream.BaseStreamTest;
 
@@ -196,13 +197,22 @@ public class TestXMLReporter
 
         public void report(String message,
                            String errorType,
-                           Object relatedInformation,
+                           Object relatedInfo,
                            Location location)
             throws XMLStreamException
         {
             ++count;
             if (doThrow) {
                 throw new XMLStreamException(message, location);
+            }
+            /* 30-May-2008, TSa: Need to ensure that extraArg is of
+             *   type XMLValidationProblem; new constraint for Woodstox
+             */
+            if (relatedInfo == null) {
+                throw new IllegalArgumentException("relatedInformation null, should be an instance of XMLValidationProblem");
+            }
+            if (!(relatedInfo instanceof XMLValidationProblem)) {
+                throw new IllegalArgumentException("relatedInformation not an instance of XMLValidationProblem (but "+relatedInfo.getClass().getName()+")");
             }
         }
 
