@@ -18,11 +18,7 @@ public interface InputProblemReporter
     ////////////////////////////////////////////////////
      */
 
-    public void throwParseError(String msg)
-        throws XMLStreamException;
-
-    public void throwParseError(String msg, Object arg)
-        throws XMLStreamException;
+    public void throwParseError(String msg) throws XMLStreamException;
     public void throwParseError(String msg, Object arg, Object arg2)
         throws XMLStreamException;
 
@@ -33,14 +29,7 @@ public interface InputProblemReporter
     ///////////////////////////////////////////////////////
      */
 
-    public void reportProblem(String probType, String msg);
-
-    public void reportProblem(String probType, String format, Object arg);
-
-    public void reportProblem(String probType, String format, Object arg,
-                              Object arg2);
-
-    public void reportProblem(Location loc, String probType, String format, Object arg);
+    public void reportProblem(Location loc, String probType, String format, Object arg, Object arg2);
 
     /*
     ///////////////////////////////////////////////////////
@@ -51,8 +40,6 @@ public interface InputProblemReporter
     public void reportValidationProblem(XMLValidationProblem prob)
         throws XMLValidationException;
     public void reportValidationProblem(String msg)
-        throws XMLValidationException;
-    public void reportValidationProblem(String msg, Object arg)
         throws XMLValidationException;
     public void reportValidationProblem(String msg, Object arg, Object arg2)
         throws XMLValidationException;

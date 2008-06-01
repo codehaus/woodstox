@@ -1988,7 +1988,7 @@ public class FullDTDReader
     private void reportWFCViolation(String format, Object arg)
         throws XMLStreamException
     {
-        throwParseError(format, arg);
+        throwParseError(format, arg, null);
     }
 
     private void throwDTDElemError(String msg, Object elem)

@@ -392,7 +392,7 @@ public class ValidatingStreamReader
             /* It's ok to miss it, but it may not be what caller wants. Either
              * way, let's pass the info and continue
              */
-            reportProblem(ErrorConsts.WT_DT_DECL, ErrorConsts.W_MISSING_DTD);
+            reportProblem(null, ErrorConsts.WT_DT_DECL, ErrorConsts.W_MISSING_DTD, null, null);
         }
     }
 
@@ -433,8 +433,7 @@ public class ValidatingStreamReader
          * probably also have some simple catalog resolving facility?
          */
         if (sysId == null) {
-            throwParseError("Can not resolve DTD with public id '"
-                            +mDtdPublicId+"'; missing system identifier.");
+            throwParseError("Can not resolve DTD with public id \"{0}\"; missing system identifier", mDtdPublicId, null);
         }
         WstxInputSource src = null;
 
@@ -457,7 +456,7 @@ public class ValidatingStreamReader
             /* Let's catch and rethrow this just so we get more meaningful
              * description (with input source position etc)
              */
-            throwParseError("(was "+fex.getClass().getName()+") "+fex.getMessage());
+            throwParseError("(was {0}) {1}", fex.getClass().getName(), fex.getMessage());
         } catch (IOException ioe) {
             throwFromIOE(ioe);
         }
@@ -600,7 +599,7 @@ public class ValidatingStreamReader
             break;
         case XMLValidator.CONTENT_ALLOW_WS:
             reportValidationProblem(ErrorConsts.ERR_VLD_NON_MIXED,
-                                    mElementStack.getTopElementDesc());
+                                    mElementStack.getTopElementDesc(), null);
             break;
         case XMLValidator.CONTENT_ALLOW_VALIDATABLE_TEXT:
         case XMLValidator.CONTENT_ALLOW_ANY_TEXT:

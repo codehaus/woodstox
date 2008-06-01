@@ -679,7 +679,7 @@ public class BasicStreamReader
         throws XMLStreamException
     {
         if (mCurrToken != START_ELEMENT) {
-            throwParseError(ErrorConsts.ERR_STATE_NOT_STELEM);
+            throwParseError(ErrorConsts.ERR_STATE_NOT_STELEM, null, null);
         }
         // First need to find a textual event
         while (true) {
@@ -4244,7 +4244,7 @@ public class BasicStreamReader
         if (target.equalsIgnoreCase("xml")) {
             // 07-Oct-2005, TSa: Still legal in multi-doc mode...
             if (!mConfig.inputParsingModeDocuments()) {
-                throwParseError(ErrorConsts.ERR_WF_PI_XML_TARGET, target);
+                throwParseError(ErrorConsts.ERR_WF_PI_XML_TARGET, target, null);
             }
             // Ok, let's just verify we get space then
             char c = getNextCharFromCurrent(SUFFIX_IN_XML_DECL);
@@ -5745,7 +5745,7 @@ public class BasicStreamReader
          */
         if (mDocStandalone == DOC_STANDALONE_YES) {
             if (ed != null && ed.wasDeclaredExternally()) {
-                throwParseError(ErrorConsts.ERR_WF_ENTITY_EXT_DECLARED, ed.getName());
+                throwParseError(ErrorConsts.ERR_WF_ENTITY_EXT_DECLARED, ed.getName(), null);
             }
         }
 
@@ -5758,15 +5758,15 @@ public class BasicStreamReader
         throwParseError(((mDocStandalone == DOC_STANDALONE_YES) ?
                         ErrorConsts.ERR_WF_GE_UNDECLARED_SA :
                         ErrorConsts.ERR_WF_GE_UNDECLARED),
-                        id);
+                        id, null);
     }
 
     protected void handleIncompleteEntityProblem(WstxInputSource closing)
         throws XMLStreamException
     {
         String top = mElementStack.isEmpty() ? "[ROOT]" : mElementStack.getTopElementDesc();
-        throwParseError("Unexpected end of entity expansion for entity &"
-                        +closing.getEntityId()+"; was expecting a close tag for element <"+top+">");
+        throwParseError("Unexpected end of entity expansion for entity &{0}; was expecting a close tag for element <{1}>",
+                        closing.getEntityId(), top);
     } 
 
     protected char handleExpandedSurrogate(char first, char second)

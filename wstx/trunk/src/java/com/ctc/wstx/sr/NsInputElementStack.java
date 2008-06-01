@@ -274,7 +274,7 @@ public final class NsInputElementStack
                         // whereas xml is ok, as long as it's same URI:
                         if (!nsUri.equals(XMLConstants.XML_NS_URI)) {
                             mReporter.throwParseError(ErrorConsts.ERR_NS_REDECL_XML,
-                                                      nsUri);
+                                                      nsUri, null);
                         }
                         /* 09-Feb-2006, TSa: Hmmh. Now, should this explicit
                          *   xml declaration be visible to the app? SAX API
@@ -298,13 +298,13 @@ public final class NsInputElementStack
                          */
                         if (internNsUris) { // identity comparison is ok:
                             if (nsUri == XMLConstants.XML_NS_URI) {
-                                mReporter.throwParseError(ErrorConsts.ERR_NS_REDECL_XML_URI, prefix);
+                                mReporter.throwParseError(ErrorConsts.ERR_NS_REDECL_XML_URI, prefix, null);
                             } else if (nsUri == XMLConstants.XMLNS_ATTRIBUTE_NS_URI) {
                                 mReporter.throwParseError(ErrorConsts.ERR_NS_REDECL_XMLNS_URI);
                             }
                         } else { // need to check equals()
                             if (nsUri.equals(XMLConstants.XML_NS_URI)) {
-                                mReporter.throwParseError(ErrorConsts.ERR_NS_REDECL_XML_URI, prefix);
+                                mReporter.throwParseError(ErrorConsts.ERR_NS_REDECL_XML_URI, prefix, null);
                             } else if (nsUri.equals(XMLConstants.XMLNS_ATTRIBUTE_NS_URI)) {
                                 mReporter.throwParseError(ErrorConsts.ERR_NS_REDECL_XMLNS_URI);
                             }
@@ -341,7 +341,7 @@ public final class NsInputElementStack
              *   let's be bit defensive and allow nulls for the same too
              */
             if (ns == null || ns.length() == 0) {
-                mReporter.throwParseError(ErrorConsts.ERR_NS_UNDECLARED, prefix);
+                mReporter.throwParseError(ErrorConsts.ERR_NS_UNDECLARED, prefix, null);
             }
         }
         mElements[mSize-(ENTRY_SIZE - IX_URI)] = ns;

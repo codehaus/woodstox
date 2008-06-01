@@ -433,6 +433,11 @@ public abstract class StreamScanner
         return ex;
     }
 
+    public void throwParseError(String msg) throws XMLStreamException
+    {
+        throwParseError(msg, null, null);
+    }
+
     /**
      * Throws generic parse error with specified message and current parsing
      * location.
@@ -440,36 +445,12 @@ public abstract class StreamScanner
      * Note: public access only because core code in other packages needs
      * to access it.
      */
-    public void throwParseError(String msg)
-        throws WstxException
-    {
-        throw constructWfcException(msg);
-    }
-
-    public void throwParseError(String format, Object arg)
-        throws WstxException
-    {
-        throw constructWfcException(MessageFormat.format(format, new Object[] { arg }));
-    }
-
     public void throwParseError(String format, Object arg, Object arg2)
-        throws WstxException
+        throws XMLStreamException
     {
-        throw constructWfcException(MessageFormat.format(format, new Object[] { arg, arg2 }));
-    }
-
-    public void reportProblem(String probType, String msg)
-    {
-        doReportProblem(mConfig.getXMLReporter(), probType, msg, null);
-    }
-
-    public void reportProblem(String probType, String format, Object arg)
-    {
-        XMLReporter rep = mConfig.getXMLReporter();
-        if (rep != null) {
-            doReportProblem(rep, probType,
-                            MessageFormat.format(format, new Object[] { arg }), null);
-        }
+        String msg = (arg != null || arg2 != null) ?
+            MessageFormat.format(format, new Object[] { arg, arg2 }) : format;
+        throw constructWfcException(msg);
     }
 
     public void reportProblem(String probType, String format, Object arg, Object arg2)
@@ -481,13 +462,14 @@ public abstract class StreamScanner
         }
     }
 
-    public void reportProblem(Location loc, String probType, String format, Object arg)
+    public void reportProblem(Location loc, String probType,
+                              String format, Object arg, Object arg2)
     {
         XMLReporter rep = mConfig.getXMLReporter();
         if (rep != null) {
-            doReportProblem(rep, probType,
-                            MessageFormat.format(format, new Object[] { arg }),
-                            loc);
+            String msg = (arg != null || arg2 != null) ?
+                MessageFormat.format(format, new Object[] { arg, arg2 }) : format;
+            doReportProblem(rep, probType, msg, loc);
         }
     }
 
@@ -575,24 +557,13 @@ public abstract class StreamScanner
     public void reportValidationProblem(Location loc, String msg)
         throws XMLValidationException
     {
-        reportValidationProblem(new XMLValidationProblem(getLastCharLocation(),
-                                                         msg));
-    }
-
-    public void reportValidationProblem(String format, Object arg)
-        throws XMLValidationException
-    {
-        String msg = MessageFormat.format(format, new Object[] { arg });
-        reportValidationProblem(new XMLValidationProblem(getLastCharLocation(),
-                                                         msg));
+        reportValidationProblem(new XMLValidationProblem(loc, msg));
     }
 
     public void reportValidationProblem(String format, Object arg, Object arg2)
         throws XMLValidationException
     {
-        String msg = MessageFormat.format(format, new Object[] { arg, arg2 });
-        reportValidationProblem(new XMLValidationProblem(getLastCharLocation(),
-                                                         msg));
+        reportValidationProblem(MessageFormat.format(format, new Object[] { arg, arg2 }));
     }
 
     /*
@@ -1579,22 +1550,18 @@ public abstract class StreamScanner
          * not parsed here)
          */
         if (!ed.isParsed()) {
-            throwParseError("Illegal reference to unparsed external entity '"
-                            +id+"'.");
+            throwParseError("Illegal reference to unparsed external entity \"{0}\"", id, null);
         }
 
         // 28-Jun-2004, TSa: Do we support external entity expansion?
         boolean isExt = ed.isExternal();
         if (isExt) {
             if (!allowExt) { // never ok in attribute value...
-                throwParseError("Encountered a reference to external parsed entity '"
-                                +id+"' when expanding attribute value: not legal as per XML 1.0/1.1 #3.1.");
+                throwParseError("Encountered a reference to external parsed entity \"{0}\" when expanding attribute value: not legal as per XML 1.0/1.1 #3.1", id, null);
             }
             if (!mConfig.hasConfigFlags(CFG_SUPPORT_EXTERNAL_ENTITIES)) {
-                throwParseError("Encountered a reference to external entity '"
-                                +id+"', but Reader has feature '"
-                                +XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES
-                                +"' disabled.");
+                throwParseError("Encountered a reference to external entity \"{0}\", but Reader has feature \"{1}\" disabled",
+                                id, XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES);
             }
         }
 
@@ -1608,7 +1575,7 @@ public abstract class StreamScanner
             /* Let's catch and rethrow this just so we get more meaningful
              * description (with input source position etc)
              */
-            throwParseError("(was "+fex.getClass().getName()+") "+fex.getMessage());
+            throwParseError("(was {0}) {1}", fex.getClass().getName(), fex.getMessage());
         } catch (IOException ioe) {
             throw constructFromIOE(ioe);
         }
@@ -1983,7 +1950,7 @@ public abstract class StreamScanner
         // Needs to be followed by a semi-colon, too.. from same input source:
         if (mInputPtr >= mInputEnd) {
             if (!loadMoreFromCurrent()) {
-                throwParseError("Missing semicolon after reference for entity '"+id+"'");
+                throwParseError("Missing semicolon after reference for entity \"{0}\"", id, null);
             }
         }
         c = mInputBuffer[mInputPtr++];
@@ -2355,26 +2322,26 @@ public abstract class StreamScanner
      * is one, and reader is namespace aware.
      */
     private void throwNsColonException(String name)
-        throws WstxException
+        throws XMLStreamException
     {
-        throwParseError("Illegal name '"+name+"' (PI target, entity/notation name): can not contain a colon (XML Namespaces 1.0#6)");
+        throwParseError("Illegal name \"{0}\" (PI target, entity/notation name): can not contain a colon (XML Namespaces 1.0#6)", name, null);
     }
 
     private void throwRecursionError(String entityName)
-        throws WstxException
+        throws XMLStreamException
     {
-        throwParseError("Illegal entity expansion: entity '"+entityName+"' expands itself recursively.");
+        throwParseError("Illegal entity expansion: entity \"{0}\" expands itself recursively.", entityName, null);
     }
 
     private void reportUnicodeOverflow()
-        throws WstxException
+        throws XMLStreamException
     {
-        throwParseError("Illegal character entity: value higher than max allowed (0x"+Integer.toHexString(MAX_UNICODE_CHAR)+")");
+        throwParseError("Illegal character entity: value higher than max allowed (0x{0})", Integer.toHexString(MAX_UNICODE_CHAR), null);
     }
 
     private void reportIllegalChar(int value)
-        throws WstxException
+        throws XMLStreamException
     {
-        throwParseError("Illegal character entity: expansion character (code 0x"+Integer.toHexString(value)+") not a valid XML character");
+        throwParseError("Illegal character entity: expansion character (code 0x{0}", Integer.toHexString(value), null);
     }
 }

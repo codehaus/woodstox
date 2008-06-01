@@ -419,7 +419,7 @@ public final class DTDElement
         // Maybe we already have it? If so, need to ignore
         DTDAttribute old = (DTDAttribute) attrMap.get(attrName);
         if (old != null) {
-            rep.reportProblem(ErrorConsts.WT_ATTR_DECL, ErrorConsts.W_DTD_DUP_ATTR,
+            rep.reportProblem(null, ErrorConsts.WT_ATTR_DECL, ErrorConsts.W_DTD_DUP_ATTR,
                               attrName, mName);
             return old;
         }
@@ -428,7 +428,7 @@ public final class DTDElement
         case DTDAttribute.TYPE_ID:
             // Only one such attribute per element (Specs, 1.0#3.3.1)
             if (fullyValidate && mIdAttr != null) {
-                rep.throwParseError("Invalid id attribute '"+attrName+"' for element <"+mName+">: already had id attribute '"+mIdAttr.getName()+"'");
+                rep.throwParseError("Invalid id attribute \"{0}\" for element <{1}>: already had id attribute \""+mIdAttr.getName()+"\"", attrName, mName);
             }
             mIdAttr = attr;
             break;

@@ -497,7 +497,7 @@ public final class DTDSubsetImpl
                     rep.reportProblem(intElem.getLocation(),
                                       ErrorConsts.WT_ENT_DECL,
                                       ErrorConsts.W_UNDEFINED_ELEM,
-                                      extElem.getDisplayName());
+                                      extElem.getDisplayName(), null);
                                       
                 } else {
                     intElem.mergeMissingAttributesFrom(rep, extElem, mFullyValidating);
