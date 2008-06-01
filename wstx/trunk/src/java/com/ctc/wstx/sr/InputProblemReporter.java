@@ -29,7 +29,8 @@ public interface InputProblemReporter
     ///////////////////////////////////////////////////////
      */
 
-    public void reportProblem(Location loc, String probType, String format, Object arg, Object arg2);
+    public void reportProblem(Location loc, String probType, String format, Object arg, Object arg2)
+        throws XMLValidationException;
 
     /*
     ///////////////////////////////////////////////////////

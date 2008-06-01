@@ -454,6 +454,7 @@ public abstract class StreamScanner
     }
 
     public void reportProblem(String probType, String format, Object arg, Object arg2)
+        throws XMLValidationException
     {
         XMLReporter rep = mConfig.getXMLReporter();
         if (rep != null) {
@@ -464,6 +465,7 @@ public abstract class StreamScanner
 
     public void reportProblem(Location loc, String probType,
                               String format, Object arg, Object arg2)
+        throws XMLValidationException
     {
         XMLReporter rep = mConfig.getXMLReporter();
         if (rep != null) {
@@ -474,6 +476,7 @@ public abstract class StreamScanner
     }
 
     protected void doReportProblem(XMLReporter rep, String probType, String msg, Location loc)
+        throws XMLValidationException
     {
         if (loc == null) {
             loc = getLastCharLocation();
@@ -482,6 +485,7 @@ public abstract class StreamScanner
     }
 
     protected void doReportProblem(XMLReporter rep, XMLValidationProblem prob)
+        throws XMLValidationException
     {
         if (rep != null) {
             Location loc = prob.getLocation();
