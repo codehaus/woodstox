@@ -18,9 +18,9 @@ package com.ctc.wstx.dtd;
 import java.text.MessageFormat;
 
 import javax.xml.stream.Location;
+import javax.xml.stream.XMLStreamException;
 
 import org.codehaus.stax2.validation.ValidationContext;
-import org.codehaus.stax2.validation.XMLValidationException;
 import org.codehaus.stax2.validation.XMLValidationProblem;
 
 import com.ctc.wstx.cfg.ErrorConsts;
@@ -118,7 +118,7 @@ public final class DefaultAttrValue
     }
 
     public void reportUndeclared(ValidationContext ctxt)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         mUndeclaredEntity.reportUndeclared(ctxt);
     }
@@ -205,7 +205,7 @@ public final class DefaultAttrValue
         }
 
         public void reportUndeclared(ValidationContext ctxt)
-            throws XMLValidationException
+            throws XMLStreamException
         {
             String msg = MessageFormat.format(ErrorConsts.ERR_DTD_UNDECLARED_ENTITY, new Object[] { (mIsPe ? "parsed" : "general"), mName });
             ctxt.reportProblem(new XMLValidationProblem

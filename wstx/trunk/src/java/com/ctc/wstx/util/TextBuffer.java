@@ -6,6 +6,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
+import javax.xml.stream.XMLStreamException;
 
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
@@ -13,7 +14,6 @@ import org.xml.sax.ext.LexicalHandler;
 
 import org.codehaus.stax2.ri.typed.DefaultValueDecoder;
 import org.codehaus.stax2.typed.TypedValueDecoder;
-import org.codehaus.stax2.validation.XMLValidationException;
 import org.codehaus.stax2.validation.XMLValidator;
 
 import com.ctc.wstx.api.ReaderConfig;
@@ -907,7 +907,7 @@ public final class TextBuffer
      */
 
     public void validateText(XMLValidator vld, boolean lastSegment)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         // Shared buffer? Let's just pass that
         if (mInputStart >= 0) {

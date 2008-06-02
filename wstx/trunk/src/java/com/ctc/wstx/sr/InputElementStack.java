@@ -25,7 +25,6 @@ import javax.xml.stream.XMLStreamException;
 import org.codehaus.stax2.AttributeInfo;
 import org.codehaus.stax2.validation.ValidationContext;
 import org.codehaus.stax2.validation.XMLValidator;
-import org.codehaus.stax2.validation.XMLValidationException;
 import org.codehaus.stax2.validation.XMLValidationProblem;
 import org.codehaus.stax2.validation.XMLValidationSchema;
 import org.codehaus.stax2.validation.ValidatorPair;
@@ -376,7 +375,7 @@ public abstract class InputElementStack
     }
 
     public void reportProblem(XMLValidationProblem problem)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         mReporter.reportValidationProblem(problem);
     }
@@ -411,7 +410,7 @@ public abstract class InputElementStack
      */
 
     public final void validateText(TextBuffer tb, boolean lastTextSegment)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         tb.validateText(mValidator, lastTextSegment);
     }

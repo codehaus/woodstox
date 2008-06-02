@@ -1,8 +1,7 @@
 package com.ctc.wstx.dtd;
 
 import javax.xml.stream.Location;
-
-import org.codehaus.stax2.validation.XMLValidationException;
+import javax.xml.stream.XMLStreamException;
 
 import com.ctc.wstx.io.WstxInputData;
 import com.ctc.wstx.sr.InputProblemReporter;
@@ -54,7 +53,7 @@ public final class DTDIdRefsAttr
      */
 
     public String validate(DTDValidatorBase v, char[] cbuf, int start, int end, boolean normalize)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         /* Let's skip leading/trailing white space, even if we are not
          * to normalize visible attribute value. This allows for better
@@ -149,7 +148,7 @@ public final class DTDIdRefsAttr
      * let's implement it properly.
      */
     public void validateDefault(InputProblemReporter rep, boolean normalize)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         String def = validateDefaultNames(rep, normalize);
         if (normalize) {

@@ -2,6 +2,7 @@ package org.codehaus.stax2.validation;
 
 import javax.xml.namespace.QName;
 import javax.xml.stream.Location;
+import javax.xml.stream.XMLStreamException;
 
 /**
  * Interface that defines functionality exposed by the "owner" of the
@@ -152,9 +153,14 @@ public interface ValidationContext
      * problem. Implementations are encouraged to allow an optional
      * {@link ValidationProblemHandler} be set by the application,
      * to define handling.
+     *<p>
+     * Note: Stax2 version 2 only allowed throwing instances
+     * of {@link XMLValidationProblem}; version 3 allows generic
+     * base class to be thrown, to support other interfaces such
+     * as basic Stax interface {@link javax.xml.stream.XMLReporter}.
      */
     public void reportProblem(XMLValidationProblem problem)
-        throws XMLValidationException;
+        throws XMLStreamException;
 
     /*
     //////////////////////////////////////////////////////

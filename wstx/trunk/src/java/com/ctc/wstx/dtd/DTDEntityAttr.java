@@ -1,6 +1,6 @@
 package com.ctc.wstx.dtd;
 
-import org.codehaus.stax2.validation.XMLValidationException;
+import javax.xml.stream.XMLStreamException;
 
 import com.ctc.wstx.ent.EntityDecl;
 import com.ctc.wstx.io.WstxInputData;
@@ -57,7 +57,7 @@ public final class DTDEntityAttr
      * for the value.
      */
     public String validate(DTDValidatorBase v, char[] cbuf, int start, int end, boolean normalize)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         while (start < end && WstxInputData.isSpaceChar(cbuf[start])) {
             ++start;
@@ -99,7 +99,7 @@ public final class DTDEntityAttr
      * valid for such type.
      */
     public void validateDefault(InputProblemReporter rep, boolean normalize)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         String normStr = validateDefaultName(rep, normalize);
         if (normalize) {

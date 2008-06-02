@@ -1,6 +1,6 @@
 package com.ctc.wstx.dtd;
 
-import org.codehaus.stax2.validation.XMLValidationException;
+import javax.xml.stream.XMLStreamException;
 
 import com.ctc.wstx.sr.InputProblemReporter;
 import com.ctc.wstx.util.PrefixedName;
@@ -56,7 +56,7 @@ public final class DTDEnumAttr
      * for the value.
      */
    public String validate(DTDValidatorBase v, char[] cbuf, int start, int end, boolean normalize)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         String ok = validateEnumValue(cbuf, start, end, normalize, mEnumValues);
         if (ok == null) {
@@ -73,7 +73,7 @@ public final class DTDEnumAttr
      * valid for such type.
      */
     public void validateDefault(InputProblemReporter rep, boolean normalize)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         String def = validateDefaultNmToken(rep, normalize);
 

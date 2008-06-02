@@ -30,7 +30,7 @@ public interface InputProblemReporter
      */
 
     public void reportProblem(Location loc, String probType, String format, Object arg, Object arg2)
-        throws XMLValidationException;
+        throws XMLStreamException;
 
     /*
     ///////////////////////////////////////////////////////
@@ -39,11 +39,11 @@ public interface InputProblemReporter
      */
 
     public void reportValidationProblem(XMLValidationProblem prob)
-        throws XMLValidationException;
+        throws XMLStreamException;
     public void reportValidationProblem(String msg)
-        throws XMLValidationException;
+        throws XMLStreamException;
     public void reportValidationProblem(String msg, Object arg, Object arg2)
-        throws XMLValidationException;
+        throws XMLStreamException;
 
     /*
     ////////////////////////////////////////////////////

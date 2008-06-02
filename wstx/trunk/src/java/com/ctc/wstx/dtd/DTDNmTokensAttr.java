@@ -1,6 +1,6 @@
 package com.ctc.wstx.dtd;
 
-import org.codehaus.stax2.validation.XMLValidationException;
+import javax.xml.stream.XMLStreamException;
 
 import com.ctc.wstx.io.WstxInputData;
 import com.ctc.wstx.sr.InputProblemReporter;
@@ -55,7 +55,7 @@ public final class DTDNmTokensAttr
      * for the value.
      */
     public String validate(DTDValidatorBase v, char[] cbuf, int start, int end, boolean normalize)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         //int origStart = start;
 
@@ -138,7 +138,7 @@ public final class DTDNmTokensAttr
      * valid for such type.
      */
     public void validateDefault(InputProblemReporter rep, boolean normalize)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         String defValue = mDefValue.getValue();
         int len = defValue.length();

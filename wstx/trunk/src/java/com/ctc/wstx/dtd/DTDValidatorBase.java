@@ -19,6 +19,7 @@ import java.text.MessageFormat;
 import java.util.*;
 
 import javax.xml.stream.Location;
+import javax.xml.stream.XMLStreamException;
 
 import org.codehaus.stax2.validation.*;
 
@@ -236,30 +237,30 @@ public abstract class DTDValidatorBase
      * including checking for attribute value (and existence) compatibility.
      */
     public abstract void validateElementStart(String localName, String uri, String prefix)
-        throws XMLValidationException;
+        throws XMLStreamException;
 
     public abstract String validateAttribute(String localName, String uri,
                                              String prefix, String value)
-        throws XMLValidationException;
+        throws XMLStreamException;
 
     public abstract String validateAttribute(String localName, String uri,
                                     String prefix,
                                     char[] valueChars, int valueStart,
                                     int valueEnd)
-        throws XMLValidationException;
+        throws XMLStreamException;
     
     public abstract int validateElementAndAttributes()
-        throws XMLValidationException;
+        throws XMLStreamException;
 
     /**
      * @return Validation state that should be effective for the parent
      *   element state
      */
     public abstract int validateElementEnd(String localName, String uri, String prefix)
-        throws XMLValidationException;
+        throws XMLStreamException;
 
     public void validateText(String text, boolean lastTextSegment)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         /* This method is a NOP, since basic DTD has no mechanism for
          * validating textual content.
@@ -268,7 +269,7 @@ public abstract class DTDValidatorBase
 
     public void validateText(char[] cbuf, int textStart, int textEnd,
                              boolean lastTextSegment)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         /* This method is a NOP, since basic DTD has no mechanism for
          * validating textual content.
@@ -276,7 +277,7 @@ public abstract class DTDValidatorBase
     }
 
     public abstract void validationCompleted(boolean eod)
-        throws XMLValidationException;
+        throws XMLStreamException;
 
     /*
     ///////////////////////////////////////
@@ -369,7 +370,7 @@ public abstract class DTDValidatorBase
     }
 
     public void checkNsDefaults(InputElementStack nsStack)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         // We only get called if mCurrElem != null, and has defaults
         HashMap m = mCurrElem.getNsDefaults();
@@ -437,26 +438,26 @@ public abstract class DTDValidatorBase
      * list of problems.
      */
     void reportValidationProblem(String msg)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         doReportValidationProblem(msg, null);
     }
 
     void reportValidationProblem(String msg, Location loc)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         doReportValidationProblem(msg, loc);
     }
 
-    void reportValidationProblem(String format, String arg)
-        throws XMLValidationException
+    void reportValidationProblem(String format, Object arg)
+        throws XMLStreamException
     {
         doReportValidationProblem(MessageFormat.format(format, new Object[] { arg }),
                         null);
     }
 
-    void reportValidationProblem(String format, String arg1, String arg2)
-        throws XMLValidationException
+    void reportValidationProblem(String format, Object arg1, Object arg2)
+        throws XMLStreamException
     {
         doReportValidationProblem(MessageFormat.format(format, new Object[] { arg1, arg2 }),
                         null);
@@ -469,7 +470,7 @@ public abstract class DTDValidatorBase
     */
 
     protected void doReportValidationProblem(String msg, Location loc)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         if (loc == null) {
             loc = getLocation();
@@ -478,7 +479,7 @@ public abstract class DTDValidatorBase
     }
 
     protected void doAddDefaultValue(DTDAttribute attr)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         /* If we get here, we should have a non-null (possibly empty) default
          * value:

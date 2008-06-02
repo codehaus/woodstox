@@ -17,7 +17,8 @@ package com.ctc.wstx.dtd;
 
 import java.util.Map;
 
-import org.codehaus.stax2.validation.XMLValidationException;
+import javax.xml.stream.XMLStreamException;
+
 import org.codehaus.stax2.validation.ValidationContext;
 
 import com.ctc.wstx.ent.EntityDecl;
@@ -135,7 +136,7 @@ public abstract class DTDAttribute
     }
 
     public final String getDefaultValue(ValidationContext ctxt)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         String val = mDefValue.getValueIfOk();
         if (val == null) {
@@ -209,7 +210,7 @@ public abstract class DTDAttribute
      */
 
     public abstract String validate(DTDValidatorBase v, char[] cbuf, int start, int end, boolean normalize)
-        throws XMLValidationException;
+        throws XMLStreamException;
 
     /**
      *<p>
@@ -221,7 +222,7 @@ public abstract class DTDAttribute
      * char array)
      */
     public String validate(DTDValidatorBase v, String value, boolean normalize)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         int len = value.length();
         /* Temporary buffer has to come from the validator itself, since
@@ -240,7 +241,7 @@ public abstract class DTDAttribute
      * valid for such type.
      */
     public abstract void validateDefault(InputProblemReporter rep, boolean normalize)
-        throws javax.xml.stream.XMLStreamException;
+        throws XMLStreamException;
 
     /**
      * Method called when no validation is to be done, but value is still
@@ -285,7 +286,7 @@ public abstract class DTDAttribute
      */
 
     protected String validateDefaultName(InputProblemReporter rep, boolean normalize)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         String origDefValue = mDefValue.getValue();
         String defValue = origDefValue.trim();
@@ -314,7 +315,7 @@ public abstract class DTDAttribute
     }
 
     protected String validateDefaultNames(InputProblemReporter rep, boolean normalize)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         String defValue = mDefValue.getValue().trim();
         int len = defValue.length();
@@ -383,7 +384,7 @@ public abstract class DTDAttribute
     }
 
     protected String validateDefaultNmToken(InputProblemReporter rep, boolean normalize)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         String origDefValue = mDefValue.getValue();
         String defValue = origDefValue.trim();
@@ -439,7 +440,7 @@ public abstract class DTDAttribute
 
     protected EntityDecl findEntityDecl(DTDValidatorBase v,
                                         char[] ch, int start, int len, int hash)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         Map entMap = v.getEntityMap();
         /* !!! 13-Nov-2005, TSa: If this was to become a bottle-neck, we
@@ -462,7 +463,7 @@ public abstract class DTDAttribute
      */
 
     protected void checkEntity(InputProblemReporter rep, String id, EntityDecl ent)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         if (ent == null) {
             rep.reportValidationProblem("Referenced entity '"+id+"' not defined");
@@ -478,14 +479,14 @@ public abstract class DTDAttribute
      */
 
     protected String reportInvalidChar(DTDValidatorBase v, char c, String msg)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         reportValidationProblem(v, "Invalid character "+WstxInputData.getCharDesc(c)+": "+msg);
         return null;
     }
 
     protected String reportValidationProblem(DTDValidatorBase v, String msg)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         v.reportValidationProblem("Attribute '"+mName+"': "+msg);
         return null;
@@ -498,16 +499,9 @@ public abstract class DTDAttribute
      * is always thrown.
      */
     protected String reportValidationProblem(InputProblemReporter rep, String msg)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         rep.reportValidationProblem("Attribute definition '"+mName+"': "+msg);
         return null;
     }
-
-    /*
-    ///////////////////////////////////////////////////
-    // Internal methods
-    ///////////////////////////////////////////////////
-     */
-
 }

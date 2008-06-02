@@ -18,6 +18,7 @@ package com.ctc.wstx.msv;
 import java.util.*;
 
 import javax.xml.stream.Location;
+import javax.xml.stream.XMLStreamException;
 
 import org.codehaus.stax2.validation.*;
 
@@ -228,7 +229,7 @@ public final class GenericMsvValidator
      * including checking for attribute value (and existence) compatibility.
      */
     public void validateElementStart(String localName, String uri, String prefix)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         // Very first thing: do we have text collected?
         if (mTextAccumulator.hasText()) {
@@ -268,7 +269,7 @@ public final class GenericMsvValidator
 
     public String validateAttribute(String localName, String uri,
                                     String prefix, String value)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         mCurrAttrLocalName = localName;
         mCurrAttrPrefix = prefix;
@@ -304,7 +305,7 @@ public final class GenericMsvValidator
                                     String prefix,
                                     char[] valueChars, int valueStart,
                                     int valueEnd)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         int len = valueEnd - valueStart;
         /* This is very sub-optimal... but MSV doesn't deal with char
@@ -315,7 +316,7 @@ public final class GenericMsvValidator
     }
     
     public int validateElementAndAttributes()
-        throws XMLValidationException
+        throws XMLStreamException
     {
         // Not handling any attributes
         mCurrAttrLocalName = mCurrAttrPrefix = "";
@@ -350,7 +351,7 @@ public final class GenericMsvValidator
      *   element state
      */
     public int validateElementEnd(String localName, String uri, String prefix)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         // Very first thing: do we have text collected?
         if (mTextAccumulator.hasText()) {
@@ -390,7 +391,7 @@ public final class GenericMsvValidator
     }
 
     public void validateText(String text, boolean lastTextSegment)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         /* If we got here, then it's likely we do need to call onText2().
          * (not guaranteed, though; in case of multiple parallel validators,
@@ -404,7 +405,7 @@ public final class GenericMsvValidator
 
     public void validateText(char[] cbuf, int textStart, int textEnd,
                              boolean lastTextSegment)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         /* If we got here, then it's likely we do need to call onText().
          * (not guaranteed, though; in case of multiple parallel validators,
@@ -417,7 +418,7 @@ public final class GenericMsvValidator
     }
 
     public void validationCompleted(boolean eod)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         /* Ok, so, we should verify that there are no undefined
          * IDREF/IDREFS references. But only if we hit EOF, not
@@ -480,7 +481,7 @@ public final class GenericMsvValidator
     }
 
     void doValidateText(TextAccumulator textAcc)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         if (mCurrAcceptor != null) {
             String str = textAcc.getAndClear();
@@ -493,7 +494,7 @@ public final class GenericMsvValidator
     }
 
     private void reportError(StringRef errorRef)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         String msg = errorRef.str;
         errorRef.str = null;
@@ -504,13 +505,13 @@ public final class GenericMsvValidator
     }
 
     private void reportError(String msg)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         reportError(msg, mContext.getValidationLocation());
     }
 
     private void reportError(String msg, Location loc)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         mContext.reportProblem(new XMLValidationProblem
                                (loc, msg, XMLValidationProblem.SEVERITY_ERROR));

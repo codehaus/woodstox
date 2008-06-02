@@ -454,7 +454,7 @@ public abstract class StreamScanner
     }
 
     public void reportProblem(String probType, String format, Object arg, Object arg2)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         XMLReporter rep = mConfig.getXMLReporter();
         if (rep != null) {
@@ -465,7 +465,7 @@ public abstract class StreamScanner
 
     public void reportProblem(Location loc, String probType,
                               String format, Object arg, Object arg2)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         XMLReporter rep = mConfig.getXMLReporter();
         if (rep != null) {
@@ -476,7 +476,7 @@ public abstract class StreamScanner
     }
 
     protected void doReportProblem(XMLReporter rep, String probType, String msg, Location loc)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         if (loc == null) {
             loc = getLastCharLocation();
@@ -485,26 +485,20 @@ public abstract class StreamScanner
     }
 
     protected void doReportProblem(XMLReporter rep, XMLValidationProblem prob)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         if (rep != null) {
             Location loc = prob.getLocation();
             if (loc == null) {
                 loc = getLastCharLocation();
+                prob.setLocation(loc);
             }
             // Backwards-compatibility fix: add non-null type, if missing:
             if (prob.getType() == null) {
                 prob.setType(ErrorConsts.WT_VALIDATION);
             }
-            try {
-                rep.report(prob.getMessage(), prob.getType(), prob, loc);
-            } catch (XMLStreamException e) {
-                /* !!! 27-May-2008, TSa: This WRONG: XMLReporter can and
-                 *   even should throw exceptions in some cases (to signal
-                 *   it considers some problems as actual fatals)
-                 */
-                System.err.println("Internal error - problem reporting a problem: "+e);
-            }
+            // [WSTX-154]: was catching and dropping thrown exception: shouldn't.
+            rep.report(prob.getMessage(), prob.getType(), prob, loc);
         }
     }
 
@@ -514,9 +508,9 @@ public abstract class StreamScanner
      * <code>ValidationContext</code>
      */
     public void reportValidationProblem(XMLValidationProblem prob)
-        throws XMLValidationException
+        throws XMLStreamException
     {
-        // !!! TBI: Fail-fast vs. deferred modes
+        // !!! TBI: Fail-fast vs. deferred modes?
         /* For now let's implement basic functionality: warnings get
          * reported via XMLReporter, errors and fatal errors result in
          * immediate exceptions.
@@ -544,14 +538,14 @@ public abstract class StreamScanner
     }
 
     public void reportValidationProblem(String msg, int severity)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         reportValidationProblem(new XMLValidationProblem(getLastCharLocation(),
                                                          msg, severity));
     }
 
     public void reportValidationProblem(String msg)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         reportValidationProblem(new XMLValidationProblem(getLastCharLocation(),
                                                          msg,
@@ -559,13 +553,13 @@ public abstract class StreamScanner
     }
 
     public void reportValidationProblem(Location loc, String msg)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         reportValidationProblem(new XMLValidationProblem(loc, msg));
     }
 
     public void reportValidationProblem(String format, Object arg, Object arg2)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         reportValidationProblem(MessageFormat.format(format, new Object[] { arg, arg2 }));
     }

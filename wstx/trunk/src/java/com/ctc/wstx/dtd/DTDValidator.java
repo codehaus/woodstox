@@ -17,6 +17,8 @@ package com.ctc.wstx.dtd;
 
 import java.util.*;
 
+import javax.xml.stream.XMLStreamException;
+
 import org.codehaus.stax2.validation.*;
 
 import com.ctc.wstx.cfg.ErrorConsts;
@@ -120,7 +122,7 @@ public class DTDValidator
      * including checking for attribute value (and existence) compatibility.
      */
     public void validateElementStart(String localName, String uri, String prefix)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         /* Ok, need to find the element definition; if not found (or
          * only implicitly defined), need to throw the exception.
@@ -194,7 +196,7 @@ public class DTDValidator
 
     public String validateAttribute(String localName, String uri,
                                     String prefix, String value)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         DTDAttribute attr = (DTDAttribute) mCurrAttrDefs.get(mTmpKey.reset(prefix, localName));
         if (attr == null) {
@@ -231,7 +233,7 @@ public class DTDValidator
                                     String prefix,
                                     char[] valueChars, int valueStart,
                                     int valueEnd)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         DTDAttribute attr = (DTDAttribute) mCurrAttrDefs.get(mTmpKey.reset(prefix, localName));
         if (attr == null) {
@@ -272,7 +274,7 @@ public class DTDValidator
     }
     
     public int validateElementAndAttributes()
-        throws XMLValidationException
+        throws XMLStreamException
     {
         // Ok: are we fine with the attributes?
         DTDElement elem = mCurrElem;
@@ -296,7 +298,7 @@ public class DTDValidator
                  *   to just leave it as is.
                  */
                 if (attr.isRequired()) {
-                    reportValidationProblem("Required attribute '"+attr+"' missing from element <"+elem+">");
+                    reportValidationProblem("Required attribute \"{0}\" missing from element <{1}>", attr, elem);
                 } else {
                     doAddDefaultValue(attr);
                 }
@@ -312,7 +314,7 @@ public class DTDValidator
      *   element state
      */
     public int validateElementEnd(String localName, String uri, String prefix)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         // First, let's remove the top:
         int ix = --mElemCount;
@@ -342,7 +344,7 @@ public class DTDValidator
     //public void validateText(char[] cbuf, int textStart, int textEnd, boolean lastTextSegment) ;
 
     public void validationCompleted(boolean eod)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         /* Need to now ensure that all IDREF/IDREFS references
          * point to defined ID attributes
@@ -370,7 +372,7 @@ public class DTDValidator
     */
 
     protected void checkIdRefs()
-        throws XMLValidationException
+        throws XMLStreamException
     {
         /* 02-Oct-2004, TSa: Now we can also check that all id references
          *    pointed to ids that actually are defined

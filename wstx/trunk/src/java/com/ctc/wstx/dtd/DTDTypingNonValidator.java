@@ -17,6 +17,8 @@ package com.ctc.wstx.dtd;
 
 import java.util.*;
 
+import javax.xml.stream.XMLStreamException;
+
 import org.codehaus.stax2.validation.*;
 
 import com.ctc.wstx.util.DataUtil;
@@ -110,7 +112,7 @@ public class DTDTypingNonValidator
     //public XMLValidationSchema getSchema()
 
     public void validateElementStart(String localName, String uri, String prefix)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         // Ok, can we find the element definition?
         mTmpKey.reset(prefix, localName);
@@ -172,7 +174,7 @@ public class DTDTypingNonValidator
 
     public String validateAttribute(String localName, String uri,
                                     String prefix, String value)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         /* no need to do any validation; however, need to do following:
          *
@@ -213,7 +215,7 @@ public class DTDTypingNonValidator
                                     String prefix,
                                     char[] valueChars, int valueStart,
                                     int valueEnd)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         // note: cut'n pasted from above...
         DTDAttribute attr = (DTDAttribute) mCurrAttrDefs.get(mTmpKey.reset(prefix, localName));
@@ -237,7 +239,7 @@ public class DTDTypingNonValidator
     }
     
     public int validateElementAndAttributes()
-        throws XMLValidationException
+        throws XMLStreamException
     {
         /* Ok; since we are not really validating, we just need to add possible
          * attribute default values, and return "anything goes"
@@ -269,7 +271,7 @@ public class DTDTypingNonValidator
     }
 
     public int validateElementEnd(String localName, String uri, String prefix)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         /* Since we are not really validating, only need to maintain
          * the element stack, and return "anything goes" as allowable content:
@@ -289,7 +291,7 @@ public class DTDTypingNonValidator
     //public void validateText(char[] cbuf, int textStart, int textEnd, boolean lastTextSegment)
 
     public void validationCompleted(boolean eod)
-        throws XMLValidationException
+        //throws XMLStreamException
     {
         // fine, great, nothing to do...
     }

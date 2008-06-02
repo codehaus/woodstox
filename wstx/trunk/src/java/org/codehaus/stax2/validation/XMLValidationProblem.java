@@ -13,7 +13,8 @@ public class XMLValidationProblem
     public final static int SEVERITY_ERROR = 2;
     public final static int SEVERITY_FATAL = 3;
 
-    protected final Location mLocation;
+    protected Location mLocation;
+
     protected final String mMessage;
     protected final int mSeverity;
 
@@ -44,7 +45,20 @@ public class XMLValidationProblem
     /**
      * @since 3.0
      */
+    public XMLValidationException toException()
+    {
+        return XMLValidationException.createException(this);
+    }
+
+    /**
+     * @since 3.0
+     */
     public void setType(String t) { mType = t; }
+
+    /**
+     * @since 3.0
+     */
+    public void setLocation(Location l) { mLocation = l; }
 
     /**
      * @return Reference to location where problem was encountered.

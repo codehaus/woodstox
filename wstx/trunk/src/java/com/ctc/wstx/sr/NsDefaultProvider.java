@@ -15,7 +15,7 @@
 
 package com.ctc.wstx.sr;
 
-import org.codehaus.stax2.validation.XMLValidationException;
+import javax.xml.stream.XMLStreamException;
 
 /**
  * Interface only used by Woodstox core. The main reason for the interface
@@ -40,5 +40,5 @@ public interface NsDefaultProvider
      * any, using callbacks to the input element stack.
      */
     public void checkNsDefaults(InputElementStack nsStack)
-        throws XMLValidationException;
+        throws XMLStreamException;
 }

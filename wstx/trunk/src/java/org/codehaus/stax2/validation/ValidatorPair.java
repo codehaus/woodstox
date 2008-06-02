@@ -1,5 +1,7 @@
 package org.codehaus.stax2.validation;
 
+import javax.xml.stream.XMLStreamException;
+
 /**
  * Simple utility class that allows chaining of {@link XMLValidator}
  * instances. Since the class itself implements {@link XMLValidator},
@@ -49,7 +51,7 @@ public class ValidatorPair
 
     public void validateElementStart(String localName, String uri,
                                      String prefix)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         mFirst.validateElementStart(localName, uri, prefix);
         mSecond.validateElementStart(localName, uri, prefix);
@@ -57,7 +59,7 @@ public class ValidatorPair
 
     public String validateAttribute(String localName, String uri,
                                     String prefix, String value)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         String retVal =  mFirst.validateAttribute(localName, uri, prefix,
                                                   value);
@@ -71,7 +73,7 @@ public class ValidatorPair
                                     String prefix,
                                     char[] valueChars, int valueStart,
                                     int valueEnd)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         String retVal =  mFirst.validateAttribute(localName, uri, prefix,
                                                   valueChars, valueStart, valueEnd);
@@ -87,7 +89,7 @@ public class ValidatorPair
     }
 
     public int validateElementAndAttributes()
-        throws XMLValidationException
+        throws XMLStreamException
     {
         int textType1 = mFirst.validateElementAndAttributes();
         int textType2 = mSecond.validateElementAndAttributes();
@@ -100,7 +102,7 @@ public class ValidatorPair
     }
 
     public int validateElementEnd(String localName, String uri, String prefix)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         int textType1 = mFirst.validateElementEnd(localName, uri, prefix);
         int textType2 = mSecond.validateElementEnd(localName, uri, prefix);
@@ -110,7 +112,7 @@ public class ValidatorPair
     }
 
     public void validateText(String text, boolean lastTextSegment)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         mFirst.validateText(text, lastTextSegment);
         mSecond.validateText(text, lastTextSegment);
@@ -118,14 +120,14 @@ public class ValidatorPair
 
     public void validateText(char[] cbuf, int textStart, int textEnd,
                              boolean lastTextSegment)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         mFirst.validateText(cbuf, textStart, textEnd, lastTextSegment);
         mSecond.validateText(cbuf, textStart, textEnd, lastTextSegment);
     }
 
     public void validationCompleted(boolean eod)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         mFirst.validationCompleted(eod);
         mSecond.validationCompleted(eod);

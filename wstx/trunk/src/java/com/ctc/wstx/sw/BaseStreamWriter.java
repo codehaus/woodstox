@@ -1378,7 +1378,7 @@ public abstract class BaseStreamWriter
     }
 
     public void reportProblem(XMLValidationProblem prob)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         // Custom handler set? If so, it'll take care of it:
         if (mVldProbHandler != null) {
@@ -1669,7 +1669,7 @@ public abstract class BaseStreamWriter
     }
 
     protected void verifyRootElement(String localName, String prefix)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         /* Note: this check is bit lame, due to DOCTYPE declaration (and DTD
          * in general) being namespace-ignorant...
@@ -1842,20 +1842,20 @@ public abstract class BaseStreamWriter
     }
 
     public void reportValidationProblem(String msg, Location loc, int severity)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         reportProblem(new XMLValidationProblem(loc, msg, severity));
     }
 
     public void reportValidationProblem(String msg, int severity)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         reportProblem(new XMLValidationProblem(getValidationLocation(),
                                                msg, severity));
     }
 
     public void reportValidationProblem(String msg)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         reportProblem(new XMLValidationProblem(getValidationLocation(),
                                                msg,
@@ -1863,14 +1863,13 @@ public abstract class BaseStreamWriter
     }
 
     public void reportValidationProblem(Location loc, String msg)
-        throws XMLValidationException
+        throws XMLStreamException
     {
-        reportProblem(new XMLValidationProblem(getValidationLocation(),
-                                                         msg));
+        reportProblem(new XMLValidationProblem(getValidationLocation(), msg));
     }
 
     public void reportValidationProblem(String format, Object arg)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         String msg = MessageFormat.format(format, new Object[] { arg });
         reportProblem(new XMLValidationProblem(getValidationLocation(),
@@ -1878,13 +1877,14 @@ public abstract class BaseStreamWriter
     }
 
     public void reportValidationProblem(String format, Object arg, Object arg2)
-        throws XMLValidationException
+        throws XMLStreamException
     {
         String msg = MessageFormat.format(format, new Object[] { arg, arg2 });
         reportProblem(new XMLValidationProblem(getValidationLocation(), msg));
     }
 
     protected void doReportProblem(XMLReporter rep, String probType, String msg, Location loc)
+        throws XMLStreamException
     {
         if (loc == null) {
             loc = getLocation();
@@ -1893,25 +1893,20 @@ public abstract class BaseStreamWriter
     }
 
     protected void doReportProblem(XMLReporter rep, XMLValidationProblem prob)
+        throws XMLStreamException
     {
         if (rep != null) {
             Location loc = prob.getLocation();
             if (loc == null) {
                 loc = getLocation();
+                prob.setLocation(loc);
             }
             // Backwards-compatibility fix: add non-null type, if missing:
             if (prob.getType() == null) {
                 prob.setType(ErrorConsts.WT_VALIDATION);
             }
-            try {
-                rep.report(prob.getMessage(), prob.getType(), prob, loc);
-            } catch (XMLStreamException e) {
-                /* !!! 27-May-2008, TSa: This WRONG: XMLReporter can and
-                 *   even should throw exceptions in some cases (to signal
-                 *   it considers some problems as actual fatals)
-                 */
-                System.err.println("Problem reporting a problem: "+e);
-            }
+            // [WSTX-154]: was catching and dropping thrown exception: shouldn't.
+            rep.report(prob.getMessage(), prob.getType(), prob, loc);
         }
     }
 

@@ -1,5 +1,7 @@
 package org.codehaus.stax2.validation;
 
+import javax.xml.stream.XMLStreamException;
+
 /**
  * Class that defines interface that individual (possibly) stateful validator
  * instances have to implement, and that both
@@ -107,7 +109,7 @@ public abstract class XMLValidator
 
     public abstract void validateElementStart(String localName, String uri,
                                               String prefix)
-        throws XMLValidationException;
+        throws XMLStreamException;
 
     /**
      * Callback method called on validator to give it a chance to validate
@@ -123,7 +125,7 @@ public abstract class XMLValidator
      */
     public abstract String validateAttribute(String localName, String uri,
                                              String prefix, String value)
-        throws XMLValidationException;
+        throws XMLStreamException;
 
     /**
      * Callback method called on validator to give it a chance to validate
@@ -149,7 +151,7 @@ public abstract class XMLValidator
                                              String prefix,
                                              char[] valueChars, int valueStart,
                                              int valueEnd)
-        throws XMLValidationException;
+        throws XMLStreamException;
 
     /**
      * Method called after calling {@link #validateAttribute} on all
@@ -161,7 +163,7 @@ public abstract class XMLValidator
      *   to after the element has closed.
      */
     public abstract int validateElementAndAttributes()
-        throws XMLValidationException;
+        throws XMLStreamException;
 
     /**
      * Method called right after encountering an element close tag.
@@ -172,7 +174,7 @@ public abstract class XMLValidator
      */
     public abstract int validateElementEnd(String localName, String uri,
                                            String prefix)
-        throws XMLValidationException;
+        throws XMLStreamException;
 
     /**
      * Method called to validate textual content.
@@ -192,7 +194,7 @@ public abstract class XMLValidator
      *    no more will be sent before the current element closes.
      */
     public abstract void validateText(String text, boolean lastTextSegment)
-        throws XMLValidationException;
+        throws XMLStreamException;
 
     /**
      * Method called to validate textual content.
@@ -218,7 +220,7 @@ public abstract class XMLValidator
      */
     public abstract void validateText(char[] cbuf, int textStart, int textEnd,
                                       boolean lastTextSegment)
-        throws XMLValidationException;
+        throws XMLStreamException;
 
     /**
      * Method called when the validation is completed; either due to the
@@ -230,7 +232,7 @@ public abstract class XMLValidator
      *    requesting end of validation (false).
      */
     public abstract void validationCompleted(boolean eod)
-        throws XMLValidationException;
+        throws XMLStreamException;
 
     /*
     ///////////////////////////////////////////////////

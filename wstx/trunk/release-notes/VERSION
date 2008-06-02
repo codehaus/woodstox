@@ -16,6 +16,8 @@ Description:
     (requested by Sylvain L)
   * [WSTX-153] XMLReporter not getting called for non-fatal validation errors
     (reported by Eduardo R-R)
+  * [WSTX-154] XMLStreamReader, XMLStreamWriter implementations were
+    quietly discarding XMLStreamException thrown by XMLReporter.
   * [WSTX-155] NPE after reporting a missing #REQUIRED attribute.
     (reported by Eduardo R-R)
 
