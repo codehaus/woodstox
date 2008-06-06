@@ -10,23 +10,6 @@ the specification:
 * SAX input (source) and output (result) objects can not be used with
   XMLInputFactory and XMLOutputFactory.
 
-Also, following 3.0 features may be considered non-compliant (either
-regarding Stax 1.0, or XML 1.0), based on discussions on stax-builders
-list:
-
-* Reporting of SPACE outside of the root element seems like the wrong
-  thing (based on xml specs, Infoset, and to lesser degree even Stax
-  javadocs), even though the reference implementation also reports these.
-  Since this is a configurable property, it is easy to just change the
-  default to 'false' (do not report), from its 3.0 setting 'true'.
-  Eventually the feature can also be obsoleted.
-* Returning null for "no namespace", while unspecified (or inconsistently
-  defined) in Stax 1.0, seems incompatible with JDK 1.5 definition of
-  XML handling. 1.5 seems to default to "" everywhere, so perhaps it is
-  best to follow that practice, even though philosophically null seems
-  like a more fitting choice. StaxTest and the ref. impl. should be similarly
-  changed, if this is done: also, this should not be done before 4.0.
-
 Some of open questions regarding exact meaning of the specification
 include:
 

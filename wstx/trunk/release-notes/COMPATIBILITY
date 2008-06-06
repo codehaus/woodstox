@@ -26,6 +26,15 @@
   As a result, *WstxOutputProperties.P_OUTPUT_FIX_CONTENT* was
   default settings was *changed to false*.
 
+=== Validation ===
+
+* Validation methods now consistently allow throwing of XMLStreamException
+  instead of limiting it to just XMLValidationException.
+  The reason is that due to call chaining, XMLReporter (which allows throwing
+  of generic stream exception) may be called from within validation
+  problem reporting methods, and resulting exceptions must
+  be let pass through call stack (see [WSTX-154] for details).
+
 == Changes from 2.0.x to 3.0.x ==
 
 === XML compatibility ===

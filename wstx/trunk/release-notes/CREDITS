@@ -353,5 +353,5 @@ Eduardo Ribeiro Rodrigues:
   * Reported [WSTX-153]: XMLReporter not getting called for non-fatal
     validation errors
     [3.2.6 / 4.0]
-  * Reported [WSTX-154]: NPE after reporting missing #REQUIRED attribute
+  * Reported [WSTX-155]: NPE after reporting missing #REQUIRED attribute
     [3.2.6 / 4.0]
