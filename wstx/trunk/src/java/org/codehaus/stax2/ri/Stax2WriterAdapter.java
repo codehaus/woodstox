@@ -18,6 +18,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 
 import javax.xml.namespace.NamespaceContext;
+import javax.xml.namespace.QName;
 import javax.xml.stream.*;
 
 import org.codehaus.stax2.*;
@@ -328,6 +329,16 @@ public final class Stax2WriterAdapter
         mDelegate.writeCharacters(value.toString());
     }
 
+    public void writeQName(QName name) throws XMLStreamException
+    {
+        String value = name.getLocalPart();
+        String prefix = name.getPrefix();
+        if (prefix != null && prefix.length() > 0) {
+            value = prefix+":"+value;
+        }
+        mDelegate.writeCharacters(value);
+    }
+
     // // // Typed attribute value write methods
 
     public void writeBooleanAttribute(String prefix, String nsURI, String localName, boolean b) throws XMLStreamException
@@ -363,6 +374,16 @@ public final class Stax2WriterAdapter
     public void writeDecimalAttribute(String prefix, String nsURI, String localName, BigDecimal value) throws XMLStreamException
     {
         mDelegate.writeAttribute(prefix, nsURI, localName, value.toString());
+    }
+
+    public void writeQNameAttribute(String prefix, String nsURI, String localName, QName name) throws XMLStreamException
+    {
+        String value = name.getLocalPart();
+        String vp = name.getPrefix();
+        if (vp != null && vp.length() > 0) {
+            value = vp+":"+value;
+        }
+        mDelegate.writeAttribute(prefix, nsURI, localName, value);
     }
 
      /*

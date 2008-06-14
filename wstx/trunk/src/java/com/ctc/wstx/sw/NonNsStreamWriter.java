@@ -414,6 +414,12 @@ public class NonNsStreamWriter
         return mElements.isEmpty() ? "#root" : mElements.getLastString();
     }
 
+    public String validateQNamePrefix(QName name)
+    {
+        // Can either strip prefix out, or return as is
+        return name.getPrefix();
+    }
+
     /*
     ////////////////////////////////////////////////////
     // Internal methods

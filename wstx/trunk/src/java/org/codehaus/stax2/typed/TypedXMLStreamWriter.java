@@ -83,7 +83,7 @@ public interface TypedXMLStreamWriter
      */
     void writeDecimal(BigDecimal value) throws XMLStreamException;
     
-    //void writeQName(QName value) throws XMLStreamException;
+    void writeQName(QName value) throws XMLStreamException;
     
     // !!! 30-Jan-2008, TSa: JDK 1.5 only -- is that ok?
     //void writeCalendar(XMLGregorianCalendar value) throws XMLStreamException;
@@ -178,7 +178,7 @@ public interface TypedXMLStreamWriter
 
     void writeDecimalAttribute(String prefix, String namespaceURI, String localName, BigDecimal value) throws XMLStreamException;
 
-    //void writeQNameAttribute(String prefix, String namespaceURI, String localName, QName value) throws XMLStreamException;
+    void writeQNameAttribute(String prefix, String namespaceURI, String localName, QName value) throws XMLStreamException;
 
     // !!! 30-Jan-2008, TSa: JDK 1.5 only -- is that ok?
     //void writeCalendarAttribute(String prefix, String namespaceURI, String localName, XMLGregorianCalendar value)  throws XMLStreamException;

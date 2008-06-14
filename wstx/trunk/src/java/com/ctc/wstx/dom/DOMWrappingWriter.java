@@ -503,6 +503,16 @@ public class DOMWrappingWriter
         writeCharacters(value.toString());
     }
 
+    public void writeQName(QName name) throws XMLStreamException
+    {
+        String value = name.getLocalPart();
+        String prefix = name.getPrefix();
+        if (prefix != null && prefix.length() > 0) {
+            value = prefix+":"+value;
+        }
+        writeCharacters(value);
+    }
+
     // // // Typed attribute value write methods
 
     public void writeBooleanAttribute(String prefix, String nsURI, String localName, boolean value)
@@ -545,6 +555,17 @@ public class DOMWrappingWriter
         throws XMLStreamException
     {
         writeAttribute(prefix, nsURI, localName, value.toString());
+    }
+
+    public void writeQNameAttribute(String prefix, String nsURI, String localName, QName name)
+        throws XMLStreamException
+    {
+        String value = name.getLocalPart();
+        String vp = name.getPrefix();
+        if (vp != null && vp.length() > 0) {
+            value = vp+":"+value;
+        }
+        writeAttribute(prefix, nsURI, localName, value);
     }
 
     /*

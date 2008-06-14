@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Random;
 
+import javax.xml.namespace.QName;
 import javax.xml.stream.*;
 
 import org.codehaus.stax2.*;
@@ -28,7 +29,7 @@ public class TestTypedWriter
      */
 
     public void testSimpleBooleanElem()
-        throws Exception
+        throws XMLStreamException
     {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         XMLStreamWriter2 w = getTypedWriter(bos);
@@ -43,7 +44,7 @@ public class TestTypedWriter
     }
 
     public void testSimpleBooleanAttr()
-        throws Exception
+        throws XMLStreamException
     {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         XMLStreamWriter2 w = getTypedWriter(bos);
@@ -58,7 +59,7 @@ public class TestTypedWriter
     }
 
     public void testMultipleBooleanAttr()
-        throws Exception
+        throws XMLStreamException
     {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         XMLStreamWriter2 w = getTypedWriter(bos);
@@ -89,7 +90,7 @@ public class TestTypedWriter
     }
 
     public void testSimpleIntElem()
-        throws Exception
+        throws XMLStreamException
     {
         int[] values = new int[] {
             0, 3, -9, 999, -77, 1000000000, -1000000000,
@@ -102,7 +103,7 @@ public class TestTypedWriter
     }
 
     public void testSimpleIntAttr()
-        throws Exception
+        throws XMLStreamException
     {
         int[] values = new int[] {
             0, 3, -7, 123, -102, 1000000, -999999,
@@ -115,7 +116,7 @@ public class TestTypedWriter
     }
 
     public void testMultipleIntAttr()
-        throws Exception
+        throws XMLStreamException
     {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         XMLStreamWriter2 w = getTypedWriter(bos);
@@ -146,7 +147,7 @@ public class TestTypedWriter
     }
 
     public void testSimpleLongElem()
-        throws Exception
+        throws XMLStreamException
     {
         long[] values = new long[] {
             0, 3, -9, 999, -77, 1000000000, -1000000000,
@@ -161,7 +162,7 @@ public class TestTypedWriter
     }
 
     public void testSimpleLongAttr()
-        throws Exception
+        throws XMLStreamException
     {
         long[] values = new long[] {
             0, 3, -9, 999, -77, 1000000002, -2000000004,
@@ -176,7 +177,7 @@ public class TestTypedWriter
     }
 
     public void testMultipleLongAttr()
-        throws Exception
+        throws XMLStreamException
     {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         XMLStreamWriter2 w = getTypedWriter(bos);
@@ -207,7 +208,7 @@ public class TestTypedWriter
     }
 
     public void testSimpleFloatElem()
-        throws Exception
+        throws XMLStreamException
     {
         float[] values = new float[] {
             0.0f,  10.47f, (float) (1.0 / 3.0), -0.25f,
@@ -221,7 +222,7 @@ public class TestTypedWriter
     }
 
     public void testSimpleFloatAttr()
-        throws Exception
+        throws XMLStreamException
     {
         float[] values = new float[] {
             0.0f,  10.47f, (float) (1.0 / 3.0), -0.25f,
@@ -235,7 +236,7 @@ public class TestTypedWriter
     }
 
     public void testSimpleDoubleElem()
-        throws Exception
+        throws XMLStreamException
     {
         double[] values = new double[] {
             0.0f,  10.47f, (double) (1.0 / 3.0), -0.25f,
@@ -249,7 +250,7 @@ public class TestTypedWriter
     }
 
     public void testSimpleDoubleAttr()
-        throws Exception
+        throws XMLStreamException
     {
         double[] values = new double[] {
             0.0f,  10.47f, (double) (1.0 / 3.0), -0.25f,
@@ -263,7 +264,7 @@ public class TestTypedWriter
     }
 
     public void testBigInteger()
-        throws Exception
+        throws XMLStreamException
     {
         BigInteger I = BigInteger.valueOf(3);
         Random rnd = new Random(2);
@@ -275,7 +276,7 @@ public class TestTypedWriter
     }
 
     public void testBigDecimal()
-        throws Exception
+        throws XMLStreamException
     {
         BigDecimal D = BigDecimal.valueOf(1L);
         Random rnd = new Random(9);
@@ -287,9 +288,32 @@ public class TestTypedWriter
         }
     }
 
+    public void testQNameNonRepairing()
+        throws XMLStreamException
+    {
+        doTestQName(false);
+    }
+
+    public void testQNameRepairing()
+        throws XMLStreamException
+    {
+        doTestQName(true);
+    }
+
+    private void doTestQName(boolean repairing)
+        throws XMLStreamException
+    {
+        final String URI = "http://my.uri";
+        QName n = new QName(URI, "elem", "ns");
+
+        assertEquals("<root xmlns:ns='"+URI+"'>ns:elem</root>", writeQNameElemDoc("root", n, repairing));
+        assertEquals("<root xmlns:ns='"+URI+"' attr='ns:elem'></root>",
+                     writeQNameAttrDoc("root", "attr", n, repairing));
+    }
+
     /*
     ////////////////////////////////////////
-    // Private methods
+    // Private methods, checking typed doc
     ////////////////////////////////////////
      */
 
@@ -330,7 +354,7 @@ public class TestTypedWriter
     }
 
     private String writeIntElemDoc(String elem, int value)
-        throws Exception
+        throws XMLStreamException
     {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         XMLStreamWriter2 sw = getTypedWriter(bos);
@@ -340,11 +364,11 @@ public class TestTypedWriter
         sw.writeInt(value);
         sw.writeEndElement();
         sw.writeEndDocument();
-        return bos.toString("UTF-8");
+        return getUTF8(bos);
     }
 
     private String writeIntAttrDoc(String elem, String attr, int value)
-        throws Exception
+        throws XMLStreamException
     {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         XMLStreamWriter2 sw = getTypedWriter(bos);
@@ -355,13 +379,13 @@ public class TestTypedWriter
         sw.writeCharacters(""); // to avoid empty elem
         sw.writeEndElement();
         sw.writeEndDocument();
-        String str = bos.toString("UTF-8");
+        String str = getUTF8(bos);
         // One twist: need to ensure quotes are single-quotes (for the test)
         return str.replace('"', '\'');
     }
 
     private String writeLongElemDoc(String elem, long value)
-        throws Exception
+        throws XMLStreamException
     {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         XMLStreamWriter2 sw = getTypedWriter(bos);
@@ -371,11 +395,11 @@ public class TestTypedWriter
         sw.writeLong(value);
         sw.writeEndElement();
         sw.writeEndDocument();
-        return bos.toString("UTF-8");
+        return getUTF8(bos);
     }
 
     private String writeLongAttrDoc(String elem, String attr, long value)
-        throws Exception
+        throws XMLStreamException
     {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         XMLStreamWriter2 sw = getTypedWriter(bos);
@@ -386,13 +410,13 @@ public class TestTypedWriter
         sw.writeCharacters(""); // to avoid empty elem
         sw.writeEndElement();
         sw.writeEndDocument();
-        String str = bos.toString("UTF-8");
+        String str = getUTF8(bos);
         // One twist: need to ensure quotes are single-quotes (for the test)
         return str.replace('"', '\'');
     }
 
     private String writeFloatElemDoc(String elem, float value)
-        throws Exception
+        throws XMLStreamException
     {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         XMLStreamWriter2 sw = getTypedWriter(bos);
@@ -402,11 +426,11 @@ public class TestTypedWriter
         sw.writeFloat(value);
         sw.writeEndElement();
         sw.writeEndDocument();
-        return bos.toString("UTF-8");
+        return getUTF8(bos);
     }
 
     private String writeFloatAttrDoc(String elem, String attr, float value)
-        throws Exception
+        throws XMLStreamException
     {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         XMLStreamWriter2 sw = getTypedWriter(bos);
@@ -417,13 +441,13 @@ public class TestTypedWriter
         sw.writeCharacters(""); // to avoid empty elem
         sw.writeEndElement();
         sw.writeEndDocument();
-        String str = bos.toString("UTF-8");
+        String str = getUTF8(bos);
         // One twist: need to ensure quotes are single-quotes (for the test)
         return str.replace('"', '\'');
     }
 
     private String writeDoubleElemDoc(String elem, double value)
-        throws Exception
+        throws XMLStreamException
     {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         XMLStreamWriter2 sw = getTypedWriter(bos);
@@ -431,11 +455,11 @@ public class TestTypedWriter
         sw.writeDouble(value);
         sw.writeEndElement();
         sw.writeEndDocument();
-        return bos.toString("UTF-8");
+        return getUTF8(bos);
     }
 
     private String writeDoubleAttrDoc(String elem, String attr, double value)
-        throws Exception
+        throws XMLStreamException
     {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         XMLStreamWriter2 sw = getTypedWriter(bos);
@@ -444,13 +468,13 @@ public class TestTypedWriter
         sw.writeCharacters(""); // to avoid empty elem
         sw.writeEndElement();
         sw.writeEndDocument();
-        String str = bos.toString("UTF-8");
+        String str = getUTF8(bos);
         // One twist: need to ensure quotes are single-quotes (for the test)
         return str.replace('"', '\'');
     }
 
     private String writeIntegerElemDoc(String elem, BigInteger value)
-        throws Exception
+        throws XMLStreamException
     {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         XMLStreamWriter2 sw = getTypedWriter(bos);
@@ -458,11 +482,11 @@ public class TestTypedWriter
         sw.writeInteger(value);
         sw.writeEndElement();
         sw.writeEndDocument();
-        return bos.toString("UTF-8");
+        return getUTF8(bos);
     }
 
     private String writeIntegerAttrDoc(String elem, String attr, BigInteger value)
-        throws Exception
+        throws XMLStreamException
     {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         XMLStreamWriter2 sw = getTypedWriter(bos);
@@ -471,13 +495,13 @@ public class TestTypedWriter
         sw.writeCharacters(""); // to avoid empty elem
         sw.writeEndElement();
         sw.writeEndDocument();
-        String str = bos.toString("UTF-8");
+        String str = getUTF8(bos);
         // One twist: need to ensure quotes are single-quotes (for the test)
         return str.replace('"', '\'');
     }
 
     private String writeDecimalElemDoc(String elem, BigDecimal value)
-        throws Exception
+        throws XMLStreamException
     {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         XMLStreamWriter2 sw = getTypedWriter(bos);
@@ -485,11 +509,11 @@ public class TestTypedWriter
         sw.writeDecimal(value);
         sw.writeEndElement();
         sw.writeEndDocument();
-        return bos.toString("UTF-8");
+        return getUTF8(bos);
     }
 
     private String writeDecimalAttrDoc(String elem, String attr, BigDecimal value)
-        throws Exception
+        throws XMLStreamException
     {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         XMLStreamWriter2 sw = getTypedWriter(bos);
@@ -498,17 +522,65 @@ public class TestTypedWriter
         sw.writeCharacters(""); // to avoid empty elem
         sw.writeEndElement();
         sw.writeEndDocument();
-        String str = bos.toString("UTF-8");
+        String str = getUTF8(bos);
         // One twist: need to ensure quotes are single-quotes (for the test)
         return str.replace('"', '\'');
+    }
+
+    private String writeQNameElemDoc(String elem, QName n, boolean repairing)
+        throws XMLStreamException
+    {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        XMLStreamWriter2 sw = getTypedWriter(bos, repairing);
+        sw.writeStartElement(elem);
+        if (!repairing) {
+            sw.writeNamespace(n.getPrefix(), n.getNamespaceURI());
+        }
+        sw.writeQName(n);
+        sw.writeEndElement();
+        sw.writeEndDocument();
+        String str = getUTF8(bos);
+        return str.replace('"', '\'');
+    }
+
+    private String writeQNameAttrDoc(String elem, String attr, QName n, boolean repairing)
+        throws XMLStreamException
+    {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        XMLStreamWriter2 sw = getTypedWriter(bos, repairing);
+        sw.writeStartElement(elem);
+        if (!repairing) {
+            sw.writeNamespace(n.getPrefix(), n.getNamespaceURI());
+        }
+        sw.writeQNameAttribute(null, null, attr, n);
+        sw.writeCharacters(""); // to avoid empty elem
+        sw.writeEndElement();
+        sw.writeEndDocument();
+        String str = getUTF8(bos);
+        return str.replace('"', '\'');
+    }
+
+    /*
+    ////////////////////////////////////////
+    // Private methods, constructing writers
+    ////////////////////////////////////////
+     */
+
+
+    private XMLStreamWriter2 getTypedWriter(ByteArrayOutputStream out,
+                                            boolean repairing)
+        throws XMLStreamException
+    {
+        out.reset();
+        XMLOutputFactory outf = getOutputFactory();
+        setRepairing(outf, repairing);
+        return (XMLStreamWriter2) outf.createXMLStreamWriter(out, "UTF-8");
     }
 
     private XMLStreamWriter2 getTypedWriter(ByteArrayOutputStream out)
         throws XMLStreamException
     {
-        out.reset();
-        XMLOutputFactory outf = getOutputFactory();
-        return (XMLStreamWriter2) outf.createXMLStreamWriter(out, "UTF-8");
+        return getTypedWriter(out, false);
     }
 
     // XMLStreamReader2 extends TypedXMLStreamReader
@@ -529,5 +601,14 @@ public class TestTypedWriter
         setCoalescing(f, false); // shouldn't really matter
         setNamespaceAware(f, true);
         return (XMLStreamReader2) f.createXMLStreamReader(new ByteArrayInputStream(data));
+    }
+
+    private String getUTF8(ByteArrayOutputStream bos)
+    {
+        try {
+            return bos.toString("UTF-8");
+        } catch (IOException ioe) {
+            throw new IllegalArgumentException(ioe);
+        }
     }
 }

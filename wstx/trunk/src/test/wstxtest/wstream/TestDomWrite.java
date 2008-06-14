@@ -1,11 +1,11 @@
 package wstxtest.wstream;
 
-
 import javax.xml.parsers.*;
 import javax.xml.stream.*;
 import javax.xml.transform.dom.DOMResult;
 import org.w3c.dom.*;
 
+import org.codehaus.stax2.typed.TypedXMLStreamWriter;
 
 /**
  * Unit test suite that checks that output-side DOM-compatibility
@@ -150,6 +150,35 @@ public class TestDomWrite
             fail("Expected 2 or 3 attributes (including namespace declarations), got "+count);
         }
         assertEquals("<value>", elem.getAttributeNS(URI2, "attr2"));
+    }
+
+    public void testTypedOutputInt()
+        throws Exception
+    {
+        Document doc = createDomDoc(false);
+        XMLOutputFactory of = getFactory(0);
+        TypedXMLStreamWriter sw = (TypedXMLStreamWriter) of.createXMLStreamWriter(new DOMResult(doc));
+
+        sw.writeStartDocument();
+        sw.writeStartElement("root");
+        sw.writeIntAttribute(null, null, "attr", -900);
+        sw.writeInt(123);
+        sw.writeEndElement();
+        sw.writeEndDocument();
+        sw.close();
+
+        Element root = doc.getDocumentElement();
+
+        assertNotNull(root);
+        assertEquals("root", root.getTagName());
+        NamedNodeMap attrs = root.getAttributes();
+        assertEquals(1, attrs.getLength());
+        assertEquals("-900", root.getAttribute("attr"));
+
+        Node child = root.getFirstChild();
+        assertNotNull(child);
+        assertEquals(Node.TEXT_NODE, child.getNodeType());
+        assertEquals("123", child.getNodeValue());
     }
 
     /*

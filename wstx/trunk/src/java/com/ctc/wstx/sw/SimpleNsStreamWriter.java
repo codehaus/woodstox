@@ -339,5 +339,9 @@ public final class SimpleNsStreamWriter
         }
     }
 
-
+    public String validateQNamePrefix(QName name)
+    {
+        // Good as is, let's not complicate things
+        return name.getPrefix();
+    }
 }

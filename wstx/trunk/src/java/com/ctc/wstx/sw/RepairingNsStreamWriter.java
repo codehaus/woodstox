@@ -432,6 +432,33 @@ public final class RepairingNsStreamWriter
         }
     }
 
+    public String validateQNamePrefix(QName name)
+        throws XMLStreamException
+    {
+        /* Gets bit more complicated: we need to ensure that given URI
+         * is properly bound...
+         */
+        String uri = name.getNamespaceURI();
+        String suggPrefix = name.getPrefix();
+        String actPrefix = validateElemPrefix(suggPrefix, uri, mCurrElem);
+        if (actPrefix == null) { // no suitable prefix, must bind
+            /* Need to ensure that we'll pass "" as prefix, not null, so
+             * that it is understood as "I want to use the default NS", not
+             * as "whatever prefix, I don't care"
+             */
+            if (suggPrefix == null) {
+                suggPrefix = "";
+            }
+            actPrefix = generateElemPrefix(suggPrefix, uri, mCurrElem);
+            if (actPrefix == null || actPrefix.length() == 0) { // def NS
+                writeDefaultNamespace(uri);
+            } else {
+                writeNamespace(actPrefix, uri);
+            }
+        }
+        return actPrefix;
+    }
+
     /*
     ////////////////////////////////////////////////////
     // Internal methods

@@ -822,6 +822,18 @@ public abstract class BaseStreamWriter
         doWriteTyped(String.valueOf(value));
     }
 
+    public void writeQName(QName name)
+        throws XMLStreamException
+    {
+        String prefix = validateQNamePrefix(name);
+        String value = name.getLocalPart();
+        if (prefix != null && prefix.length() > 0) {
+            // Not efficient... but should be ok
+            value = prefix + ":" + value;
+        }
+        writeCharacters(value);
+    }
+
     protected void doWriteTyped(String value)
         throws XMLStreamException
     {
@@ -925,6 +937,18 @@ public abstract class BaseStreamWriter
     {
         // not optimal, but has to do:
         writeAttribute(prefix, nsURI, localName, value.toString());
+    }
+
+    public void writeQNameAttribute(String prefix, String nsURI, String localName, QName name)
+        throws XMLStreamException
+    {
+        String vp = validateQNamePrefix(name);
+        String value = name.getLocalPart();
+        if (vp != null && vp.length() > 0) {
+            // Not efficient... but should be ok
+            value = vp + ":" + value;
+        }
+        writeAttribute(prefix, nsURI, localName, value);
     }
 
     /*
@@ -1630,6 +1654,19 @@ public abstract class BaseStreamWriter
     public abstract void copyStartElement(InputElementStack elemStack,
                                           AttributeCollector attrCollector)
         throws IOException, XMLStreamException;
+
+    /**
+     * Method called before writing a QName via Typed Access API.
+     * In namespace-repairing mode it should take appropriate actions
+     * to ensure that the given namespace URI is bound to a namespace
+     * and return whatever it maps to. In non-repairing work no additional
+     * work is to be done and methods
+     *
+     * @return Prefix to use when writing out given QName as an element
+     *   or attribute value
+     */
+    public abstract String validateQNamePrefix(QName name)
+        throws XMLStreamException;
 
     /*
     ////////////////////////////////////////////////////
