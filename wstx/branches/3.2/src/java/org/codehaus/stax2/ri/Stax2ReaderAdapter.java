@@ -190,7 +190,14 @@ public class Stax2ReaderAdapter
      * @return Number of open elements in the stack; 0 when parser is in
      *  prolog/epilog, 1 inside root element and so on.
      */
-    public int getDepth() {
+    public int getDepth()
+    {
+        /* 16-Jun-2008, tatus: Need to compensate for the fact
+         *   that END_ELEMENT decrements "too early"
+         */
+        if (getEventType() == END_ELEMENT) {
+            return mDepth+1;
+        }
         return mDepth;
     }
 

@@ -1,9 +1,18 @@
-Version: 3.2.6
+Version: 3.2.7
 
-Release date: xx-May-2008
+Release date: xx-Jul-2008
 
 Description:
   One more patch release for 3.2.
+
+  Problems fixed:
+
+  * Stax2ReaderAdapter.getDepth() was off by one (too low) for
+    END_ELEMENT (causing problems for StaxMate)
+
+== History: ==
+
+3.2.6 [01-Jun-2008]
 
   Problems fixed:
 
@@ -14,8 +23,6 @@ Description:
     (reported by Eduardo R-R)
   * [WSTX-155] NPE after reporting a missing #REQUIRED attribute.
     (reported by Eduardo R-R)
-
-== History: ==
 
 3.2.5 [23-Apr-2008]
 
