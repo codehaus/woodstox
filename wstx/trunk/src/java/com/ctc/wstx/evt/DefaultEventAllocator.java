@@ -282,10 +282,4 @@ public class DefaultEventAllocator
     {
         return new CompactStartElement(loc, name, nsCtxt, attrs);
     }
-
-    /*
-    //////////////////////////////////////////////////////////
-    // Internal methods:
-    //////////////////////////////////////////////////////////
-     */
 }
