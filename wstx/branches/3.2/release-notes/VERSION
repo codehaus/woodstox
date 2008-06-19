@@ -7,6 +7,9 @@ Description:
 
   Problems fixed:
 
+  * [WSTX-158] XMLStreamReader.isWhiteSpace() returns potentially incorrect
+    value when text segments starts with an entity
+    (reported by Daniel R)
   * Stax2ReaderAdapter.getDepth() was off by one (too low) for
     END_ELEMENT (causing problems for StaxMate)
 

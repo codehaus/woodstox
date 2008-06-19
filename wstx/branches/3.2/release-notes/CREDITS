@@ -337,3 +337,11 @@ Eduardo Ribeiro Rodrigues
     [3.2.6]
   * Reported [WSTX-155]: NPE after reporting missing #REQUIRED attribute
     [3.2.6]
+
+Daniel Rodrigue:
+  * Reported [WSTX-158], provided a test: XMLStreamReader.isWhiteSpace()
+    returns potentially incorrect value when text segments starts with an
+    entity
+    (reported by Daniel R)
+    [3.2.7]
+

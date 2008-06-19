@@ -1,6 +1,6 @@
 Version: 3.9.3
 
-Release date: xx-May-2008
+Release date: xx-Jul-2008
 
 Description:
   Third pre-4.0 version. Bug-fixes, as well as partial implementation
@@ -20,11 +20,15 @@ Description:
     quietly discarding XMLStreamException thrown by XMLReporter.
   * [WSTX-155] NPE after reporting a missing #REQUIRED attribute.
     (reported by Eduardo R-R)
+  * [WSTX-158] XMLStreamReader.isWhiteSpace() returns potentially incorrect
+    value when text segments starts with an entity
+    (reported by Daniel R)
 
   New functionality:
 
   * [WSTX-151] Generic typed access methods (getElementAs(), getAttributeAs()
     added to TypedXMLStreamReader.
+  * More Typed Access API support: BigDecimal, BigInteger, QName
 
 == History: ==
 

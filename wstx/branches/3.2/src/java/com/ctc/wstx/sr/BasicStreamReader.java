@@ -2739,6 +2739,8 @@ public class BasicStreamReader
          *   Let's start with char entities; they can kind of be expanded.
          */
         while (i == '&') {
+            mWsStatus = ALL_WS_UNKNOWN;
+
             /* 30-Aug-2004, TSa: In some contexts entities are not
              *    allowed in any way, shape or form:
              */
