@@ -834,6 +834,13 @@ public abstract class BaseStreamWriter
         writeCharacters(value);
     }
 
+    public void writeIntArray(int[] value, int from, int length)
+        throws XMLStreamException
+    {
+        // !!! TBI
+        if (true) throw new XMLStreamException("Not yet implemented");
+    }
+
     protected void doWriteTyped(String value)
         throws XMLStreamException
     {
@@ -949,6 +956,13 @@ public abstract class BaseStreamWriter
             value = vp + ":" + value;
         }
         writeAttribute(prefix, nsURI, localName, value);
+    }
+
+    public void writeIntArrayAttribute(String prefix, String nsURI, String localName, int[] value)
+        throws XMLStreamException
+    {
+        // !!! TBI
+        if (true) throw new XMLStreamException("Not yet implemented");
     }
 
     /*

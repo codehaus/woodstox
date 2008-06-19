@@ -36,7 +36,7 @@ import javax.xml.stream.XMLStreamWriter;
 public class StreamWriterDelegate
 	implements XMLStreamWriter
 {
-    protected XMLStreamWriter mParent;
+    protected XMLStreamWriter mDelegate;
 
     /*
     //////////////////////////////////////////////
@@ -46,17 +46,17 @@ public class StreamWriterDelegate
 
     public StreamWriterDelegate(XMLStreamWriter parentWriter)
     {
-        mParent = parentWriter;
+        mDelegate = parentWriter;
     }
 
     public void setParent(XMLStreamWriter parentWriter)
     {
-        mParent = parentWriter;
+        mDelegate = parentWriter;
     }
 
     public XMLStreamWriter getParent()
     {
-        return mParent;
+        return mDelegate;
     }
 
     /*
@@ -66,165 +66,165 @@ public class StreamWriterDelegate
      */
 
     public void close() throws XMLStreamException {
-        mParent.close();
+        mDelegate.close();
     }
 
     public void flush() throws XMLStreamException {
-        mParent.flush();
+        mDelegate.flush();
 
     }
 
     public NamespaceContext getNamespaceContext() {
-        return mParent.getNamespaceContext();
+        return mDelegate.getNamespaceContext();
     }
 
     public String getPrefix(String ns) throws XMLStreamException {
-        return mParent.getPrefix(ns);
+        return mDelegate.getPrefix(ns);
     }
 
     public Object getProperty(String pname) throws IllegalArgumentException {
-        return mParent.getProperty(pname);
+        return mDelegate.getProperty(pname);
     }
 
     public void setDefaultNamespace(String ns) throws XMLStreamException {
-        mParent.setDefaultNamespace(ns);
+        mDelegate.setDefaultNamespace(ns);
 
     }
 
     public void setNamespaceContext(NamespaceContext nc)
         throws XMLStreamException
     {
-        mParent.setNamespaceContext(nc);
+        mDelegate.setNamespaceContext(nc);
 
     }
 
     public void setPrefix(String prefix, String uri) throws XMLStreamException {
-        mParent.setPrefix(prefix, uri);
+        mDelegate.setPrefix(prefix, uri);
 
     }
 
     public void writeAttribute(String arg0, String arg1) throws XMLStreamException {
-        mParent.writeAttribute(arg0, arg1);
+        mDelegate.writeAttribute(arg0, arg1);
 
     }
 
     public void writeAttribute(String arg0, String arg1, String arg2) throws XMLStreamException {
-        mParent.writeAttribute(arg0, arg1, arg2);
+        mDelegate.writeAttribute(arg0, arg1, arg2);
     }
 
     public void writeAttribute(String arg0, String arg1, String arg2, String arg3) throws XMLStreamException {
-        mParent.writeAttribute(arg0, arg1, arg2, arg3);
+        mDelegate.writeAttribute(arg0, arg1, arg2, arg3);
     }
 
     public void writeCData(String arg0) throws XMLStreamException {
-        mParent.writeCData(arg0);
+        mDelegate.writeCData(arg0);
 
     }
 
     public void writeCharacters(String arg0) throws XMLStreamException {
-        mParent.writeCharacters(arg0);
+        mDelegate.writeCharacters(arg0);
 
     }
 
     public void writeCharacters(char[] arg0, int arg1, int arg2)
         throws XMLStreamException {
-        mParent.writeCharacters(arg0, arg1, arg2);
+        mDelegate.writeCharacters(arg0, arg1, arg2);
 
     }
 
     public void writeComment(String arg0) throws XMLStreamException {
-        mParent.writeComment(arg0);
+        mDelegate.writeComment(arg0);
 
     }
 
     public void writeDTD(String arg0) throws XMLStreamException {
-        mParent.writeDTD(arg0);
+        mDelegate.writeDTD(arg0);
 
     }
 
     public void writeDefaultNamespace(String arg0) throws XMLStreamException {
-        mParent.writeDefaultNamespace(arg0);
+        mDelegate.writeDefaultNamespace(arg0);
 
     }
 
     public void writeEmptyElement(String arg0) throws XMLStreamException {
-        mParent.writeEmptyElement(arg0);
+        mDelegate.writeEmptyElement(arg0);
 
     }
 
     public void writeEmptyElement(String arg0, String arg1) throws XMLStreamException {
-        mParent.writeEmptyElement(arg0, arg1);
+        mDelegate.writeEmptyElement(arg0, arg1);
 
     }
 
     public void writeEmptyElement(String arg0, String arg1, String arg2)
         throws XMLStreamException {
-        mParent.writeEmptyElement(arg0, arg1, arg2);
+        mDelegate.writeEmptyElement(arg0, arg1, arg2);
 
     }
 
     public void writeEndDocument() throws XMLStreamException {
-        mParent.writeEndDocument();
+        mDelegate.writeEndDocument();
 
     }
 
     public void writeEndElement() throws XMLStreamException {
-        mParent.writeEndElement();
+        mDelegate.writeEndElement();
 
     }
 
     public void writeEntityRef(String arg0) throws XMLStreamException {
-        mParent.writeEntityRef(arg0);
+        mDelegate.writeEntityRef(arg0);
 
     }
 
     public void writeNamespace(String arg0, String arg1)
         throws XMLStreamException {
-        mParent.writeNamespace(arg0, arg1);
+        mDelegate.writeNamespace(arg0, arg1);
 
     }
 
     public void writeProcessingInstruction(String arg0)
         throws XMLStreamException {
-        mParent.writeProcessingInstruction(arg0);
+        mDelegate.writeProcessingInstruction(arg0);
 
     }
 
     public void writeProcessingInstruction(String arg0, String arg1)
         throws XMLStreamException {
-        mParent.writeProcessingInstruction(arg0, arg1);
+        mDelegate.writeProcessingInstruction(arg0, arg1);
 
     }
 
     public void writeStartDocument() throws XMLStreamException {
-        mParent.writeStartDocument();
+        mDelegate.writeStartDocument();
 
     }
 
     public void writeStartDocument(String arg0) throws XMLStreamException {
-        mParent.writeStartDocument(arg0);
+        mDelegate.writeStartDocument(arg0);
 
     }
 
     public void writeStartDocument(String arg0, String arg1)
         throws XMLStreamException {
-        mParent.writeStartDocument(arg0, arg1);
+        mDelegate.writeStartDocument(arg0, arg1);
 
     }
 
     public void writeStartElement(String arg0) throws XMLStreamException {
-        mParent.writeStartElement(arg0);
+        mDelegate.writeStartElement(arg0);
 
     }
 
     public void writeStartElement(String arg0, String arg1)
         throws XMLStreamException {
-        mParent.writeStartElement(arg0, arg1);
+        mDelegate.writeStartElement(arg0, arg1);
     }
 
     public void writeStartElement(String arg0, String arg1, String arg2)
         throws XMLStreamException {
-        mParent.writeStartElement(arg0, arg1, arg2);
+        mDelegate.writeStartElement(arg0, arg1, arg2);
     }
 }
 

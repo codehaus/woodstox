@@ -15,6 +15,7 @@ import org.w3c.dom.*;
 import org.codehaus.stax2.XMLStreamLocation2;
 import org.codehaus.stax2.XMLStreamReader2;
 import org.codehaus.stax2.XMLStreamWriter2;
+import org.codehaus.stax2.ri.typed.DefaultValueEncoder;
 import org.codehaus.stax2.validation.ValidationProblemHandler;
 import org.codehaus.stax2.validation.XMLValidationSchema;
 import org.codehaus.stax2.validation.XMLValidator;
@@ -84,6 +85,8 @@ public class DOMWrappingWriter
      * as a NamespaceContet.
      */
     protected NamespaceContext mNsContext;
+
+    protected DefaultValueEncoder mValueEncoder;
 
     /*
     ////////////////////////////////////////////////////
@@ -513,6 +516,15 @@ public class DOMWrappingWriter
         writeCharacters(value);
     }
 
+    public void writeIntArray(int[] value, int from, int length)
+        throws XMLStreamException
+    {
+        /* true -> start with space, to allow for multiple consecutive
+         * to be written
+         */
+        writeCharacters(getValueEncoder().encodeAsString(true, value, from, length));
+    }
+
     // // // Typed attribute value write methods
 
     public void writeBooleanAttribute(String prefix, String nsURI, String localName, boolean value)
@@ -566,6 +578,14 @@ public class DOMWrappingWriter
             value = vp+":"+value;
         }
         writeAttribute(prefix, nsURI, localName, value);
+    }
+
+    public void writeIntArrayAttribute(String prefix, String nsURI, String localName, int[] value)
+        throws XMLStreamException
+    {
+        // false -> no need to start with a space
+        writeAttribute(prefix, nsURI, localName,
+                       getValueEncoder().encodeAsString(false, value, 0, value.length));
     }
 
     /*
@@ -1015,5 +1035,13 @@ public class DOMWrappingWriter
     {
         String msg = MessageFormat.format(format, new Object[] { arg });
         throwOutputError(msg);
+    }
+
+    protected DefaultValueEncoder getValueEncoder()
+    {
+        if (mValueEncoder == null) {
+            mValueEncoder = new DefaultValueEncoder();
+        }
+        return mValueEncoder;
     }
 }

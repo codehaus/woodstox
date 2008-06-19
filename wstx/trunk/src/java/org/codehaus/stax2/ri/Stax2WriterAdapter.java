@@ -22,6 +22,9 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.*;
 
 import org.codehaus.stax2.*;
+import org.codehaus.stax2.ri.typed.DefaultValueEncoder;
+// Not from Stax 1.0, but Stax2 does provide it:
+import org.codehaus.stax2.util.StreamWriterDelegate;
 import org.codehaus.stax2.validation.ValidationProblemHandler;
 import org.codehaus.stax2.validation.XMLValidationSchema;
 import org.codehaus.stax2.validation.XMLValidator;
@@ -44,21 +47,18 @@ import org.codehaus.stax2.validation.XMLValidator;
  *  </li>
  * </ul>
  */
-public final class Stax2WriterAdapter
-    //extends StreamWriterDelegate // such a thing doesn't exist... doh
+public class Stax2WriterAdapter
+    extends StreamWriterDelegate
     implements XMLStreamWriter2 /* From Stax2 */
                ,XMLStreamConstants
 {
     /**
-     * Underlying Stax 1.0 compliant stream writer.
-     */
-    final XMLStreamWriter mDelegate;
-
-    /**
      * Encoding we have determined to be used, according to method
      * calls (write start document etc.)
      */
-    String mEncoding;
+    protected String mEncoding;
+
+    protected DefaultValueEncoder mValueEncoder;
 
     /*
     ////////////////////////////////////////////////////
@@ -66,8 +66,9 @@ public final class Stax2WriterAdapter
     ////////////////////////////////////////////////////
      */
 
-    private Stax2WriterAdapter(XMLStreamWriter sw)
+    protected Stax2WriterAdapter(XMLStreamWriter sw)
     {
+        super(sw);
         mDelegate = sw;
     }
 
@@ -85,204 +86,6 @@ public final class Stax2WriterAdapter
             return (XMLStreamWriter2) sw;
         }
         return new Stax2WriterAdapter(sw);
-    }
-
-    /*
-    ////////////////////////////////////////////////////
-    // Stax 1.0 delegation
-    ////////////////////////////////////////////////////
-     */
-
-    public void close()
-        throws XMLStreamException
-    {
-        mDelegate.close();
-    }
-
-    public void flush()
-        throws XMLStreamException
-    {
-        mDelegate.flush();
-    }
-    
-    public NamespaceContext getNamespaceContext()
-    {
-        return mDelegate.getNamespaceContext();
-    }
-
-    public String getPrefix(String uri)
-        throws XMLStreamException
-    {
-        return mDelegate.getPrefix(uri);
-    }
-
-    public Object getProperty(String name)
-    {
-        return mDelegate.getProperty(name);
-    }
-
-    public void setDefaultNamespace(String uri)
-        throws XMLStreamException
-    {
-        mDelegate.setDefaultNamespace(uri);
-    }
-
-    public void setNamespaceContext(NamespaceContext context)
-        throws XMLStreamException
-    {    
-        mDelegate.setNamespaceContext(context);
-    }
-
-    public void setPrefix(String prefix, String uri)
-        throws XMLStreamException
-    {
-        mDelegate.setPrefix(prefix, uri);
-    
-    }
-
-    public void writeAttribute(String localName, String value)
-        throws XMLStreamException
-    {    
-        mDelegate.writeAttribute(localName, value);
-    }
-
-    public void writeAttribute(String namespaceURI, String localName, String value)
-        throws XMLStreamException
-    {    
-        mDelegate.writeAttribute(namespaceURI, localName, value);
-    }
-
- public void writeAttribute(String prefix, String namespaceURI, String localName, String value)
-        throws XMLStreamException
-    {    
-        mDelegate.writeAttribute(prefix, namespaceURI, localName, value);
-    }
-
-    public void writeCData(String data)
-        throws XMLStreamException
-    {    
-        mDelegate.writeCData(data);
-    }
-
-    public void writeCharacters(char[] text, int start, int len)
-        throws XMLStreamException
-    {    
-        mDelegate.writeCharacters(text, start, len);
-    }
-
-    public void writeCharacters(String text)
-        throws XMLStreamException
-    {    
-        mDelegate.writeCharacters(text);
-    }
-
-    public void writeComment(String data)
-        throws XMLStreamException
-    {    
-        mDelegate.writeComment(data);
-    }
-
-    public void writeDefaultNamespace(String namespaceURI)
-        throws XMLStreamException
-    {    
-        mDelegate.writeDefaultNamespace(namespaceURI);
-    }
-
-    public void writeDTD(String dtd)
-        throws XMLStreamException
-    {    
-        mDelegate.writeDTD(dtd);
-    }
-
-    public void writeEmptyElement(String localName)
-        throws XMLStreamException
-    {    
-        mDelegate.writeEmptyElement(localName);
-    }
-
-    public void writeEmptyElement(String namespaceURI, String localName)
-        throws XMLStreamException
-    {    
-        mDelegate.writeEmptyElement(namespaceURI, localName);
-    }
-    
-    public void writeEmptyElement(String prefix, String localName, String namespaceURI)
-        throws XMLStreamException
-    {    
-        mDelegate.writeEmptyElement(prefix, localName, namespaceURI);
-    }
-
-    public void writeEndDocument()
-        throws XMLStreamException
-    {    
-        mDelegate.writeEndDocument();
-    }
-
-    public void writeEndElement()
-        throws XMLStreamException
-    {    
-        mDelegate.writeEndElement();
-    }
-
-    public void writeEntityRef(String name)
-        throws XMLStreamException
-    {    
-        mDelegate.writeEntityRef(name);
-    }
-
-    public void writeNamespace(String prefix, String namespaceURI)
-        throws XMLStreamException
-    {    
-        mDelegate.writeNamespace(prefix, namespaceURI);
-    }
-
-    public void writeProcessingInstruction(String target)
-        throws XMLStreamException
-    {    
-        mDelegate.writeProcessingInstruction(target);
-    }
-
-    public void writeProcessingInstruction(String target, String data)
-        throws XMLStreamException
-    {    
-        mDelegate.writeProcessingInstruction(target, data);
-    }
-
-    public void writeStartDocument()
-        throws XMLStreamException
-    {    
-        mDelegate.writeStartDocument();
-    }
-
-    public void writeStartDocument(String version)
-        throws XMLStreamException
-    {    
-        mDelegate.writeStartDocument(version);
-    }
-
-    public void writeStartDocument(String encoding, String version)
-        throws XMLStreamException
-    {    
-        mEncoding = encoding;
-        mDelegate.writeStartDocument(encoding, version);
-    }
-
-    public void writeStartElement(String localName)
-        throws XMLStreamException
-    {    
-        mDelegate.writeStartElement(localName);
-    }
-
-    public void writeStartElement(String namespaceURI, String localName)
-        throws XMLStreamException
-    {    
-        mDelegate.writeStartElement(namespaceURI, localName);
-    }
-
-    public void writeStartElement(String prefix, String localName, String namespaceURI) 
-        throws XMLStreamException
-    {    
-        mDelegate.writeStartElement(prefix, localName, namespaceURI);
     }
 
     /*
@@ -339,6 +142,15 @@ public final class Stax2WriterAdapter
         mDelegate.writeCharacters(value);
     }
 
+    public void writeIntArray(int[] value, int from, int length)
+        throws XMLStreamException
+    {
+        /* true -> start with space, to allow for multiple consecutive
+         * to be written
+         */
+        mDelegate.writeCharacters(getValueEncoder().encodeAsString(true, value, from, length));
+    }
+
     // // // Typed attribute value write methods
 
     public void writeBooleanAttribute(String prefix, String nsURI, String localName, boolean b) throws XMLStreamException
@@ -384,6 +196,13 @@ public final class Stax2WriterAdapter
             value = vp+":"+value;
         }
         mDelegate.writeAttribute(prefix, nsURI, localName, value);
+    }
+
+    public void writeIntArrayAttribute(String prefix, String nsURI, String localName, int[] value) throws XMLStreamException
+    {
+        // false -> no need to start with a space
+        mDelegate.writeAttribute(prefix, nsURI, localName,
+                                 getValueEncoder().encodeAsString(false, value, 0, value.length));
     }
 
      /*
@@ -694,5 +513,13 @@ public final class Stax2WriterAdapter
                                sr.getAttributeValue(i));
             }
         }
+    }
+
+    protected DefaultValueEncoder getValueEncoder()
+    {
+        if (mValueEncoder == null) {
+            mValueEncoder = new DefaultValueEncoder();
+        }
+        return mValueEncoder;
     }
 }

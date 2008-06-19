@@ -121,7 +121,7 @@ public interface TypedXMLStreamWriter
      * @param from    The index in the array from which writing starts.
      * @param length  The number of ints to write.
      */
-    //void writeIntArray(int[] value, int from, int length) throws XMLStreamException;
+    void writeIntArray(int[] value, int from, int length) throws XMLStreamException;
     
     //void writeLongArray(long[] value, int from, int length) throws XMLStreamException;
     
@@ -215,7 +215,7 @@ public interface TypedXMLStreamWriter
      * @param localName  The attribute's local name.
      * @param value   The array from which to write the ints.
      */
-    //void writeIntArrayAttribute(String prefix, String namespaceURI,  String localName, int[] value) throws XMLStreamException;
+    void writeIntArrayAttribute(String prefix, String namespaceURI,  String localName, int[] value) throws XMLStreamException;
     
     //void writeLongArrayAttribute(String prefix, String namespaceURI, String localName, long[] value) throws XMLStreamException;
     

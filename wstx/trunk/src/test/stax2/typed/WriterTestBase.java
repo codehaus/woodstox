@@ -14,12 +14,13 @@ import org.codehaus.stax2.typed.*;
 import stax2.BaseStax2Test;
 
 /**
- * Set of simple unit tests to verify implementation
- * of {@link TypedXMLStreamWriter}.
+ * Base class that contains set of simple unit tests to verify implementation
+ * of {@link TypedXMLStreamWriter}. Concrete sub-classes are used to
+ * test both native and wrapped Stax2 implementations.
  *
  * @author Tatu Saloranta
  */
-public class TestTypedWriter
+public abstract class WriterTestBase
     extends BaseStax2Test
 {
     /*
@@ -562,20 +563,19 @@ public class TestTypedWriter
 
     /*
     ////////////////////////////////////////
-    // Private methods, constructing writers
+    // Abstract methods
     ////////////////////////////////////////
      */
 
+    protected abstract XMLStreamWriter2 getTypedWriter(ByteArrayOutputStream out,
+                                                       boolean repairing)
+        throws XMLStreamException;
 
-    private XMLStreamWriter2 getTypedWriter(ByteArrayOutputStream out,
-                                            boolean repairing)
-        throws XMLStreamException
-    {
-        out.reset();
-        XMLOutputFactory outf = getOutputFactory();
-        setRepairing(outf, repairing);
-        return (XMLStreamWriter2) outf.createXMLStreamWriter(out, "UTF-8");
-    }
+    /*
+    ////////////////////////////////////////
+    // Private methods, constructing writers
+    ////////////////////////////////////////
+     */
 
     private XMLStreamWriter2 getTypedWriter(ByteArrayOutputStream out)
         throws XMLStreamException

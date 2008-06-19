@@ -13,12 +13,13 @@ import org.codehaus.stax2.typed.*;
 import stax2.BaseStax2Test;
 
 /**
- * Set of simple unit tests to verify implementation
- * of {@link TypedXMLStreamReader}.
+ * Base class that contains set of simple unit tests to verify implementation
+ * of {@link TypedXMLStreamReader}. Concrete sub-classes are used to
+ * test both native and wrapped Stax2 implementations.
  *
  * @author Tatu Saloranta
  */
-public class TestTypedReader
+public abstract class ReaderTestBase
     extends BaseStax2Test
 {
     final static long TOO_BIG_FOR_INT = ((long) Integer.MAX_VALUE)+1L;
@@ -554,11 +555,10 @@ public class TestTypedReader
         sr.close();
     }
 
-    public void testInvalidQNameElem()
+    public void testInvalidQNameElemUnbound()
         throws Exception
     {
-        String XML = "<root>ns:name  </root>";
-        XMLStreamReader2 sr = getRootReader(XML);
+        XMLStreamReader2 sr = getRootReader("<root>ns:name  </root>");
         QName n;
         // First, unbound namespace prefix
         try {
@@ -566,13 +566,16 @@ public class TestTypedReader
             fail("Expected an exception for unbound QName prefix");
         } catch (TypedXMLStreamException tex) { }
         sr.close();
+    }
 
-        // Then, invalid local name
-        XML = "<root xmlns:ns='http://foo'>ns:na?me</root>";
-        sr = getRootReader(XML);
+    public void testInvalidQNameElemBadChars()
+        throws Exception
+    {
+        XMLStreamReader2 sr = getRootReader("<root xmlns:ns='http://foo'>ns:na?me</root>");
+        QName n;
         try {
             n = sr.getElementAsQName();
-            fail("Expected an exception for invalid QName (non-xml-name char in the middle");
+            fail("Expected an exception for invalid QName (non-xml-name char in the middle)");
         } catch (TypedXMLStreamException tex) { }
         sr.close();
     }
@@ -591,11 +594,10 @@ public class TestTypedReader
         sr.close();
     }
 
-    public void testInvalidQNameAttr()
+    public void testInvalidQNameAttrUnbound()
         throws Exception
     {
-        String XML = "<root attr='ns:name  ' />";
-        XMLStreamReader2 sr = getRootReader(XML);
+        XMLStreamReader2 sr = getRootReader("<root attr='ns:name  ' />");
         QName n;
         // First, unbound namespace prefix
         try {
@@ -603,10 +605,13 @@ public class TestTypedReader
             fail("Expected an exception for unbound QName prefix");
         } catch (TypedXMLStreamException tex) { }
         sr.close();
+    }
 
-        // Then, invalid local name
-        XML = "<root xmlns:ns='http://foo' attr='ns:name:too' />";
-        sr = getRootReader(XML);
+    public void testInvalidQNameAttrBadChars()
+        throws Exception
+    {
+        XMLStreamReader2 sr = getRootReader("<root xmlns:ns='http://foo' attr='ns:name:too' />");
+        QName n;
         try {
             n = sr.getAttributeAsQName(0);
             fail("Expected an exception for invalid QName (non-xml-name char in the middle)");
@@ -832,6 +837,15 @@ public class TestTypedReader
 
     /*
     ////////////////////////////////////////
+    // Abstract methods
+    ////////////////////////////////////////
+     */
+
+    protected abstract XMLStreamReader2 getReader(String contents)
+        throws Exception;
+
+    /*
+    ////////////////////////////////////////
     // Private methods
     ////////////////////////////////////////
      */
@@ -855,22 +869,20 @@ public class TestTypedReader
     }
 
     // XMLStreamReader2 extends TypedXMLStreamReader
-    private XMLStreamReader2 getRootReader(String str)
+    protected XMLStreamReader2 getRootReader(String str)
         throws XMLStreamException
     {
-        XMLStreamReader2 sr = getReader(str);
+        XMLStreamReader2 sr;
+        try {
+            sr = getReader(str);
+        } catch (XMLStreamException xse) {
+            throw xse;
+        } catch (Exception e) {
+            throw new XMLStreamException(e);
+        }
         assertTokenType(START_DOCUMENT, sr.getEventType());
         while (sr.next() != START_ELEMENT) { }
         assertTokenType(START_ELEMENT, sr.getEventType());
         return sr;
-    }
-
-    private XMLStreamReader2 getReader(String contents)
-        throws XMLStreamException
-    {
-        XMLInputFactory f = getInputFactory();
-        setCoalescing(f, false); // shouldn't really matter
-        setNamespaceAware(f, true);
-        return (XMLStreamReader2) constructStreamReader(f, contents);
     }
 }

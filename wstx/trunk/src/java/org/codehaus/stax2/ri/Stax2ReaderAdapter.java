@@ -69,8 +69,7 @@ public class Stax2ReaderAdapter
      * {@link XMLStreamReader2}. Method will check whether the
      * stream reader passed happens to be a {@link XMLStreamReader2};
      * and if it is, return it properly cast. If not, it will create
-     * necessary wrapper to support features needed by StaxMate,
-     * using vanilla Stax 1.0 interface.
+     * necessary wrapper.
      */
     public static XMLStreamReader2 wrapIfNecessary(XMLStreamReader sr)
     {
