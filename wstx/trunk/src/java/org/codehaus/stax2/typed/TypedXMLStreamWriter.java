@@ -123,11 +123,11 @@ public interface TypedXMLStreamWriter
      */
     void writeIntArray(int[] value, int from, int length) throws XMLStreamException;
     
-    //void writeLongArray(long[] value, int from, int length) throws XMLStreamException;
+    void writeLongArray(long[] value, int from, int length) throws XMLStreamException;
     
-    //void writeFloatArray(float[] value, int from, int length) throws XMLStreamException;
+    void writeFloatArray(float[] value, int from, int length) throws XMLStreamException;
     
-    //void writeDoubleArray(double[] value, int from, int length) throws XMLStreamException;
+    void writeDoubleArray(double[] value, int from, int length) throws XMLStreamException;
     
  
     // -- Attributes ------------------------------------------------
@@ -217,9 +217,9 @@ public interface TypedXMLStreamWriter
      */
     void writeIntArrayAttribute(String prefix, String namespaceURI,  String localName, int[] value) throws XMLStreamException;
     
-    //void writeLongArrayAttribute(String prefix, String namespaceURI, String localName, long[] value) throws XMLStreamException;
+    void writeLongArrayAttribute(String prefix, String namespaceURI, String localName, long[] value) throws XMLStreamException;
     
-    //void writeFloatArrayAttribute(String prefix, String namespaceURI,  String localName, float[] value) throws XMLStreamException;
+    void writeFloatArrayAttribute(String prefix, String namespaceURI,  String localName, float[] value) throws XMLStreamException;
     
-    //void writeDoubleArrayAttribute(String prefix, String namespaceURI, String localName, double[] value) throws XMLStreamException;
+    void writeDoubleArrayAttribute(String prefix, String namespaceURI, String localName, double[] value) throws XMLStreamException;
 }

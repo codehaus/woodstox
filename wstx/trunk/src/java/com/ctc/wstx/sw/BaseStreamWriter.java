@@ -841,6 +841,34 @@ public abstract class BaseStreamWriter
         if (true) throw new XMLStreamException("Not yet implemented");
     }
 
+    public void writeLongArray(int[] value, int from, int length)
+        throws XMLStreamException
+    {
+        // !!! TBI
+        if (true) throw new XMLStreamException("Not yet implemented");
+    }
+
+    public void writeLongArray(long[] value, int from, int length)
+        throws XMLStreamException
+    {
+        // !!! TBI
+        if (true) throw new XMLStreamException("Not yet implemented");
+    }
+
+    public void writeFloatArray(float[] value, int from, int length)
+        throws XMLStreamException
+    {
+        // !!! TBI
+        if (true) throw new XMLStreamException("Not yet implemented");
+    }
+
+    public void writeDoubleArray(double[] value, int from, int length)
+        throws XMLStreamException
+    {
+        // !!! TBI
+        if (true) throw new XMLStreamException("Not yet implemented");
+    }
+
     protected void doWriteTyped(String value)
         throws XMLStreamException
     {
@@ -959,6 +987,27 @@ public abstract class BaseStreamWriter
     }
 
     public void writeIntArrayAttribute(String prefix, String nsURI, String localName, int[] value)
+        throws XMLStreamException
+    {
+        // !!! TBI
+        if (true) throw new XMLStreamException("Not yet implemented");
+    }
+
+    public void writeLongArrayAttribute(String prefix, String nsURI, String localName, long[] value)
+        throws XMLStreamException
+    {
+        // !!! TBI
+        if (true) throw new XMLStreamException("Not yet implemented");
+    }
+
+    public void writeFloatArrayAttribute(String prefix, String nsURI, String localName, float[] value)
+        throws XMLStreamException
+    {
+        // !!! TBI
+        if (true) throw new XMLStreamException("Not yet implemented");
+    }
+
+    public void writeDoubleArrayAttribute(String prefix, String nsURI, String localName, double[] value)
         throws XMLStreamException
     {
         // !!! TBI

@@ -525,6 +525,27 @@ public class DOMWrappingWriter
         writeCharacters(getValueEncoder().encodeAsString(true, value, from, length));
     }
 
+    public void writeLongArray(long[] value, int from, int length)
+        throws XMLStreamException
+    {
+        // true -> start with space, for multiple segments
+        writeCharacters(getValueEncoder().encodeAsString(true, value, from, length));
+    }
+
+    public void writeFloatArray(float[] value, int from, int length)
+        throws XMLStreamException
+    {
+        // true -> start with space, for multiple segments
+        writeCharacters(getValueEncoder().encodeAsString(true, value, from, length));
+    }
+
+    public void writeDoubleArray(double[] value, int from, int length)
+        throws XMLStreamException
+    {
+        // true -> start with space, for multiple segments
+        writeCharacters(getValueEncoder().encodeAsString(true, value, from, length));
+    }
+
     // // // Typed attribute value write methods
 
     public void writeBooleanAttribute(String prefix, String nsURI, String localName, boolean value)
@@ -587,6 +608,28 @@ public class DOMWrappingWriter
         writeAttribute(prefix, nsURI, localName,
                        getValueEncoder().encodeAsString(false, value, 0, value.length));
     }
+
+    public void writeLongArrayAttribute(String prefix, String nsURI, String localName, long[] value) throws XMLStreamException
+    {
+        // false -> no need to start with a space
+        writeAttribute(prefix, nsURI, localName,
+                       getValueEncoder().encodeAsString(false, value, 0, value.length));
+    }
+    
+    public void writeFloatArrayAttribute(String prefix, String nsURI, String localName, float[] value) throws XMLStreamException
+    {
+        // false -> no need to start with a space
+        writeAttribute(prefix, nsURI, localName,
+                       getValueEncoder().encodeAsString(false, value, 0, value.length));
+    }
+    
+    public void writeDoubleArrayAttribute(String prefix, String nsURI, String localName, double[] value) throws XMLStreamException
+    {
+        // false -> no need to start with a space
+        writeAttribute(prefix, nsURI, localName,
+                       getValueEncoder().encodeAsString(false, value, 0, value.length));
+    }
+
 
     /*
     ////////////////////////////////////////////////////
