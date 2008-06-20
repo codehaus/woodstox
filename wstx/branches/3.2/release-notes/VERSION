@@ -7,6 +7,8 @@ Description:
 
   Problems fixed:
 
+  * [WSTX-156] Pass XMLValidationProblem as 'relatedInformation' object
+    in call XMLReporter.report(...)
   * [WSTX-158] XMLStreamReader.isWhiteSpace() returns potentially incorrect
     value when text segments starts with an entity
     (reported by Daniel R)

@@ -8,18 +8,11 @@ Description:
 
   Problems fixed:
 
-  * [WSTX-144] Problem when trying to output namespace declaration using
-    a DOMResult-backed writer.
-    (reported by Martin V)
   * [WSTX-148] Implement XMLEvent.equals() and .hashCode() to allow
     for easy comparisons.
     (requested by Sylvain L)
-  * [WSTX-153] XMLReporter not getting called for non-fatal validation errors
-    (reported by Eduardo R-R)
   * [WSTX-154] XMLStreamReader, XMLStreamWriter implementations were
     quietly discarding XMLStreamException thrown by XMLReporter.
-  * [WSTX-155] NPE after reporting a missing #REQUIRED attribute.
-    (reported by Eduardo R-R)
   * [WSTX-158] XMLStreamReader.isWhiteSpace() returns potentially incorrect
     value when text segments starts with an entity
     (reported by Daniel R)
@@ -38,10 +31,6 @@ Description:
 
   * [WSTX-145] DOMWrappingReader was not implementing coalescing mode.
     (reported by David C)
-  * [WSTX-146] XMLStreamWriter implementation was using encoding
-    returned by OutputStreamWriter as is; and JDK was reporting
-    legacy encodings. Needed to normalize encoding.
-    (reported by Jim A)
 
   New features:
 
@@ -111,6 +100,33 @@ Description:
   * [WSTX-105] Transformed the only existing input-side feature
     (FEAT_DTD_OVERRIDE) into matching input-side property
     (XMLInputFactoty2.P_OVERRIDE_DTD).
+
+3.2.6 [01-Jun-2008]
+
+  Problems fixed:
+
+  * [WSTX-144] Problem when trying to output namespace declaration using
+    a DOMResult-backed writer.
+    (reported by Martin V)
+  * [WSTX-153] XMLReporter not getting called for non-fatal validation errors
+    (reported by Eduardo R-R)
+  * [WSTX-155] NPE after reporting a missing #REQUIRED attribute.
+    (reported by Eduardo R-R)
+
+3.2.5 [23-Apr-2008]
+
+  Problems fixed:
+
+  * [WSTX-146] XMLStreamWriter implementation was using encoding
+    returned by OutputStreamWriter as is; and JDK was reporting
+    legacy encodings. Needed to normalize encoding.
+    (reported by Jim A)
+
+  Improvements:
+
+  * Added support for property:
+    "http://java.sun.com/xml/stream/properties/implementation-name"
+    it is now recognized as a synonym of XMLStreamProperties2.XSP_IMPLEMENTATION_NAME
 
 3.2.4 [17-Jan-2008]
 
