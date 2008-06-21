@@ -4,6 +4,7 @@ import java.io.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Random;
+import java.util.StringTokenizer;
 
 import javax.xml.namespace.QName;
 import javax.xml.stream.*;
@@ -312,6 +313,110 @@ public abstract class WriterTestBase
                      writeQNameAttrDoc("root", "attr", n, repairing));
     }
 
+    public void testIntArraysElem()
+        throws XMLStreamException
+    {
+        doTestIntArrays(false);
+    }
+
+    public void testIntArraysAttr()
+        throws XMLStreamException
+    {
+        doTestIntArrays(true);
+    }
+
+    private void doTestIntArrays(boolean testAttr)
+        throws XMLStreamException
+    {
+        final int[] lens = new int[] {
+            3, 8, 27, 120, 16, 99, 253, 1099, 37242
+        };
+        for (int i = 0; i <= lens.length; ++i) {
+            int[] data;
+            if (i == 0) {
+                data = new int[] {
+                    0, -139, 29, Integer.MAX_VALUE, 1, Integer.MIN_VALUE };
+            } else {
+                Random rnd = new Random(9);
+                int len = lens[i-1];
+                data = new int[len];
+                for (int ix = 0; ix < len; ++ix) {
+                    data[ix] = rnd.nextInt();
+                }
+            }
+            String contents;
+            if (testAttr) {
+                contents = getAttributeContent(writeIntArrayAttrDoc("root", "attr", data));
+            } else {
+                contents = getElementContent(writeIntArrayElemDoc("root", data));
+            }
+            StringTokenizer st = new StringTokenizer(contents);
+            int count = 0;
+            while (st.hasMoreTokens()) {
+                String exp = String.valueOf(data[count]);
+                String act = st.nextToken();
+
+                if (!exp.equals(act)) {
+                    fail("Incorrect entry #"+count+"/"+data.length+": act = '"+act+"' (exp '"+exp+"')");
+                }
+                ++count;
+            }
+            assertEquals(data.length, count);
+        }
+    }
+
+    public void testLongArraysElem()
+        throws XMLStreamException
+    {
+        doTestLongArrays(false);
+    }
+
+    public void testLongArraysAttr()
+        throws XMLStreamException
+    {
+        doTestLongArrays(true);
+    }
+
+    private void doTestLongArrays(boolean testAttr)
+        throws XMLStreamException
+    {
+        final int[] lens = new int[] {
+            3, 8, 27, 120, 16, 99, 253, 1099, 37242
+        };
+        for (int i = 0; i <= lens.length; ++i) {
+            long[] data;
+            if (i == 0) {
+                data = new long[] {
+                    0, -139, 29, Long.MAX_VALUE, 1, Long.MIN_VALUE };
+            } else {
+                Random rnd = new Random(9);
+                int len = lens[i-1];
+                data = new long[len];
+                for (int ix = 0; ix < len; ++ix) {
+                    data[ix] = rnd.nextLong();
+                }
+            }
+            String contents;
+            if (testAttr) {
+                contents = getAttributeContent(writeLongArrayAttrDoc("root", "attr", data));
+            } else {
+                contents = getElementContent(writeLongArrayElemDoc("root", data));
+            }
+            StringTokenizer st = new StringTokenizer(contents);
+            int count = 0;
+            while (st.hasMoreTokens()) {
+                String exp = String.valueOf(data[count]);
+                String act = st.nextToken();
+
+                if (!exp.equals(act)) {
+                    fail("Incorrect entry #"+count+"/"+data.length+": act = '"+act+"' (exp '"+exp+"')");
+                }
+                ++count;
+            }
+            assertEquals(data.length, count);
+        }
+    }
+
     /*
     ////////////////////////////////////////
     // Private methods, checking typed doc
@@ -561,6 +666,66 @@ public abstract class WriterTestBase
         return str.replace('"', '\'');
     }
 
+    private byte[] writeIntArrayElemDoc(String elem, int[] values)
+        throws XMLStreamException
+    {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        XMLStreamWriter2 sw = getTypedWriter(bos);
+        sw.writeStartElement(elem);
+        if ((values.length % 2) == 1) { // odd -> single write
+            sw.writeIntArray(values, 0, values.length);
+        } else { // even -> split in halves
+            int offset = values.length / 2;
+            sw.writeIntArray(values, 0, offset);
+            sw.writeIntArray(values, offset, values.length - offset);
+        }
+        sw.writeEndElement();
+        sw.writeEndDocument();
+        return bos.toByteArray();
+    }
+
+    private byte[] writeIntArrayAttrDoc(String elem, String attr, int[] values)
+        throws XMLStreamException
+    {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        XMLStreamWriter2 sw = getTypedWriter(bos);
+        sw.writeStartElement(elem);
+        sw.writeIntArrayAttribute(null, null, attr, values);
+        sw.writeEndElement();
+        sw.writeEndDocument();
+        return bos.toByteArray();
+    }
+
+    private byte[] writeLongArrayElemDoc(String elem, long[] values)
+        throws XMLStreamException
+    {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        XMLStreamWriter2 sw = getTypedWriter(bos);
+        sw.writeStartElement(elem);
+        if ((values.length % 2) == 1) { // odd -> single write
+            sw.writeLongArray(values, 0, values.length);
+        } else { // even -> split in halves
+            int offset = values.length / 2;
+            sw.writeLongArray(values, 0, offset);
+            sw.writeLongArray(values, offset, values.length - offset);
+        }
+        sw.writeEndElement();
+        sw.writeEndDocument();
+        return bos.toByteArray();
+    }
+
+    private byte[] writeLongArrayAttrDoc(String elem, String attr, long[] values)
+        throws XMLStreamException
+    {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        XMLStreamWriter2 sw = getTypedWriter(bos);
+        sw.writeStartElement(elem);
+        sw.writeLongArrayAttribute(null, null, attr, values);
+        sw.writeEndElement();
+        sw.writeEndDocument();
+        return bos.toByteArray();
+    }
+
     /*
     ////////////////////////////////////////
     // Abstract methods
@@ -610,5 +775,30 @@ public abstract class WriterTestBase
         } catch (IOException ioe) {
             throw new IllegalArgumentException(ioe);
         }
+    }
+
+    private String getElementContent(byte[] data)
+        throws XMLStreamException
+    {
+        XMLStreamReader sr = getReader(data);
+        assertTokenType(START_DOCUMENT, sr.getEventType());
+        while (sr.next() != START_ELEMENT) { }
+        assertTokenType(START_ELEMENT, sr.getEventType());
+        String content = sr.getElementText();
+        sr.close();
+        return content;
+    }
+
+    private String getAttributeContent(byte[] data)
+        throws XMLStreamException
+    {
+        XMLStreamReader sr = getReader(data);
+        assertTokenType(START_DOCUMENT, sr.getEventType());
+        while (sr.next() != START_ELEMENT) { }
+        assertTokenType(START_ELEMENT, sr.getEventType());
+        assertEquals(1, sr.getAttributeCount());
+        String content = sr.getAttributeValue(0);
+        sr.close();
+        return content;
     }
 }

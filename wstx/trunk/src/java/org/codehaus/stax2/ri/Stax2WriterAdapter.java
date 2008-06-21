@@ -60,6 +60,8 @@ public class Stax2WriterAdapter
 
     protected DefaultValueEncoder mValueEncoder;
 
+    protected final boolean mNsRepairing;
+
     /*
     ////////////////////////////////////////////////////
     // Life-cycle methods
@@ -70,6 +72,8 @@ public class Stax2WriterAdapter
     {
         super(sw);
         mDelegate = sw;
+        Object value = sw.getProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES);
+        mNsRepairing = (value instanceof Boolean) && ((Boolean) value).booleanValue();
     }
 
     /**

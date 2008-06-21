@@ -28,7 +28,7 @@ public class DefaultValueEncoder
         StringBuffer sb = new StringBuffer(estLen);
         length += from;
 
-        for (int i = from; i < length; ++from) {
+        for (int i = from; i < length; ++i) {
             if (i > from || leadingSpace) {
                 sb.append(' ');
             }
@@ -48,7 +48,7 @@ public class DefaultValueEncoder
         StringBuffer sb = new StringBuffer(estLen);
         length += from;
 
-        for (int i = from; i < length; ++from) {
+        for (int i = from; i < length; ++i) {
             if (i > from || leadingSpace) {
                 sb.append(' ');
             }
@@ -65,7 +65,7 @@ public class DefaultValueEncoder
         StringBuffer sb = new StringBuffer(estLen);
         length += from;
 
-        for (int i = from; i < length; ++from) {
+        for (int i = from; i < length; ++i) {
             if (i > from || leadingSpace) {
                 sb.append(' ');
             }
@@ -82,7 +82,7 @@ public class DefaultValueEncoder
         StringBuffer sb = new StringBuffer(estLen);
         length += from;
 
-        for (int i = from; i < length; ++from) {
+        for (int i = from; i < length; ++i) {
             if (i > from || leadingSpace) {
                 sb.append(' ');
             }

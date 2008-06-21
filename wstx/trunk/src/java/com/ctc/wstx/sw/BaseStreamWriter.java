@@ -837,36 +837,137 @@ public abstract class BaseStreamWriter
     public void writeIntArray(int[] value, int from, int length)
         throws XMLStreamException
     {
-        // !!! TBI
-        if (true) throw new XMLStreamException("Not yet implemented");
-    }
+        boolean hadElem = startTypedWrite();
+        char[] buffer = getCopyBuffer();
+        int ptr = 0;
+        boolean validate = (mVldContent == XMLValidator.CONTENT_ALLOW_VALIDATABLE_TEXT);
 
-    public void writeLongArray(int[] value, int from, int length)
-        throws XMLStreamException
-    {
-        // !!! TBI
-        if (true) throw new XMLStreamException("Not yet implemented");
+        if (!hadElem) {
+            buffer[ptr++] = CHAR_SPACE;
+        }
+        int lastPtr = buffer.length - NumberUtil.MAX_INT_CLEN - 1; // one char for space
+        length += from;
+        while (from < length) {
+            if (ptr > lastPtr) {
+                try {
+                    mWriter.writeRawAscii(buffer, 0, ptr);
+                } catch (IOException ioe) {
+                    throw new WstxIOException(ioe);
+                }
+                ptr = 0;
+            }
+            ptr = NumberUtil.writeInt(value[from++], buffer, ptr);
+            buffer[ptr++] = CHAR_SPACE;
+        }
+        if (ptr > 0) {
+            try { // -1 to remove last space
+                mWriter.writeRawAscii(buffer, 0, ptr-1);
+            } catch (IOException ioe) {
+                throw new WstxIOException(ioe);
+            }
+        }
     }
 
     public void writeLongArray(long[] value, int from, int length)
         throws XMLStreamException
     {
-        // !!! TBI
-        if (true) throw new XMLStreamException("Not yet implemented");
+        boolean hadElem = startTypedWrite();
+        char[] buffer = getCopyBuffer();
+        int ptr = 0;
+        boolean validate = (mVldContent == XMLValidator.CONTENT_ALLOW_VALIDATABLE_TEXT);
+
+        if (!hadElem) {
+            buffer[ptr++] = CHAR_SPACE;
+        }
+        int lastPtr = buffer.length - NumberUtil.MAX_LONG_CLEN - 1; // one char for space
+        length += from;
+        while (from < length) {
+            if (ptr > lastPtr) {
+                try {
+                    mWriter.writeRawAscii(buffer, 0, ptr);
+                } catch (IOException ioe) {
+                    throw new WstxIOException(ioe);
+                }
+                ptr = 0;
+            }
+            ptr = NumberUtil.writeLong(value[from++], buffer, ptr);
+            buffer[ptr++] = CHAR_SPACE;
+        }
+        if (ptr > 0) {
+            try { // -1 to remove last space
+                mWriter.writeRawAscii(buffer, 0, ptr-1);
+            } catch (IOException ioe) {
+                throw new WstxIOException(ioe);
+            }
+        }
     }
 
     public void writeFloatArray(float[] value, int from, int length)
         throws XMLStreamException
     {
-        // !!! TBI
-        if (true) throw new XMLStreamException("Not yet implemented");
+        boolean hadElem = startTypedWrite();
+        char[] buffer = getCopyBuffer();
+        int ptr = 0;
+        boolean validate = (mVldContent == XMLValidator.CONTENT_ALLOW_VALIDATABLE_TEXT);
+
+        if (!hadElem) {
+            buffer[ptr++] = CHAR_SPACE;
+        }
+        int lastPtr = buffer.length - NumberUtil.MAX_FLOAT_CLEN - 1; // one char for space
+        length += from;
+        while (from < length) {
+            if (ptr > lastPtr) {
+                try {
+                    mWriter.writeRawAscii(buffer, 0, ptr);
+                } catch (IOException ioe) {
+                    throw new WstxIOException(ioe);
+                }
+                ptr = 0;
+            }
+            ptr = NumberUtil.writeFloat(value[from++], buffer, ptr);
+            buffer[ptr++] = CHAR_SPACE;
+        }
+        if (ptr > 0) {
+            try { // -1 to remove last space
+                mWriter.writeRawAscii(buffer, 0, ptr-1);
+            } catch (IOException ioe) {
+                throw new WstxIOException(ioe);
+            }
+        }
     }
 
     public void writeDoubleArray(double[] value, int from, int length)
         throws XMLStreamException
     {
-        // !!! TBI
-        if (true) throw new XMLStreamException("Not yet implemented");
+        boolean hadElem = startTypedWrite();
+        char[] buffer = getCopyBuffer();
+        int ptr = 0;
+        boolean validate = (mVldContent == XMLValidator.CONTENT_ALLOW_VALIDATABLE_TEXT);
+
+        if (!hadElem) {
+            buffer[ptr++] = CHAR_SPACE;
+        }
+        int lastPtr = buffer.length - NumberUtil.MAX_DOUBLE_CLEN - 1; // one char for space
+        length += from;
+        while (from < length) {
+            if (ptr > lastPtr) {
+                try {
+                    mWriter.writeRawAscii(buffer, 0, ptr);
+                } catch (IOException ioe) {
+                    throw new WstxIOException(ioe);
+                }
+                ptr = 0;
+            }
+            ptr = NumberUtil.writeDouble(value[from++], buffer, ptr);
+            buffer[ptr++] = CHAR_SPACE;
+        }
+        if (ptr > 0) {
+            try { // -1 to remove last space
+                mWriter.writeRawAscii(buffer, 0, ptr-1);
+            } catch (IOException ioe) {
+                throw new WstxIOException(ioe);
+            }
+        }
     }
 
     protected void doWriteTyped(String value)
@@ -888,7 +989,7 @@ public abstract class BaseStreamWriter
      * For the most part, checks are similar to those done when
      * calling regular {@link #writeCharacters} method.
      */
-    protected void doWriteTyped(char[] buffer, int offset, int len)
+    protected final void doWriteTyped(char[] buffer, int offset, int len)
         throws XMLStreamException
     {
         if (mStartElementOpen) {
@@ -917,6 +1018,31 @@ public abstract class BaseStreamWriter
         } catch (IOException ioe) {
             throw new WstxIOException(ioe);
         }
+    }
+
+
+    /**
+     * @return True, if this is there was an open start tag which was
+     *    completed; false otherwise
+     */
+    protected final boolean startTypedWrite()
+        throws XMLStreamException
+    {
+        boolean startElem = mStartElementOpen;
+        if (startElem) {
+            closeStartElement(mEmptyElement);
+        }
+        // Not legal outside main element tree (won't be all white space)
+        if (mCheckStructure) {
+            if (inPrologOrEpilog()) {
+                reportNwfStructure(ErrorConsts.WERR_PROLOG_NONWS_TEXT);
+            }
+        }
+        // Ok to have content?
+        if (mVldContent <= XMLValidator.CONTENT_ALLOW_WS) {
+            reportInvalidContent(CHARACTERS);
+        }
+        return startElem;
     }
 
     // // // Typed attribute value write methods
