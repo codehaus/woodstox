@@ -840,7 +840,7 @@ public abstract class BaseStreamWriter
         boolean hadElem = startTypedWrite();
         char[] buffer = getCopyBuffer();
         int ptr = 0;
-        boolean validate = (mVldContent == XMLValidator.CONTENT_ALLOW_VALIDATABLE_TEXT);
+        boolean validate = (mVldContent == XMLValidator.CONTENT_ALLOW_VALIDATABLE_TEXT) && (mValidator != null);
 
         if (!hadElem) {
             buffer[ptr++] = CHAR_SPACE;
@@ -849,6 +849,9 @@ public abstract class BaseStreamWriter
         length += from;
         while (from < length) {
             if (ptr > lastPtr) {
+                if (validate) { // false -> not (necessarily) last
+                    mValidator.validateText(buffer, 0, ptr, false);
+                }
                 try {
                     mWriter.writeRawAscii(buffer, 0, ptr);
                 } catch (IOException ioe) {
@@ -860,6 +863,12 @@ public abstract class BaseStreamWriter
             buffer[ptr++] = CHAR_SPACE;
         }
         if (ptr > 0) {
+            /* false -> caller can call this method multiple times
+             * (as fer javadocs), hence not known if we are done yet
+             */
+            if (validate) {
+                mValidator.validateText(buffer, 0, ptr, false);
+            }
             try { // -1 to remove last space
                 mWriter.writeRawAscii(buffer, 0, ptr-1);
             } catch (IOException ioe) {
@@ -874,7 +883,7 @@ public abstract class BaseStreamWriter
         boolean hadElem = startTypedWrite();
         char[] buffer = getCopyBuffer();
         int ptr = 0;
-        boolean validate = (mVldContent == XMLValidator.CONTENT_ALLOW_VALIDATABLE_TEXT);
+        boolean validate = (mVldContent == XMLValidator.CONTENT_ALLOW_VALIDATABLE_TEXT) && (mValidator != null);
 
         if (!hadElem) {
             buffer[ptr++] = CHAR_SPACE;
@@ -883,6 +892,9 @@ public abstract class BaseStreamWriter
         length += from;
         while (from < length) {
             if (ptr > lastPtr) {
+                if (validate) { // false -> not (necessarily) last
+                    mValidator.validateText(buffer, 0, ptr, false);
+                }
                 try {
                     mWriter.writeRawAscii(buffer, 0, ptr);
                 } catch (IOException ioe) {
@@ -894,6 +906,9 @@ public abstract class BaseStreamWriter
             buffer[ptr++] = CHAR_SPACE;
         }
         if (ptr > 0) {
+            if (validate) { // false -> not (necessarily) last
+                mValidator.validateText(buffer, 0, ptr, false);
+            }
             try { // -1 to remove last space
                 mWriter.writeRawAscii(buffer, 0, ptr-1);
             } catch (IOException ioe) {
@@ -908,7 +923,7 @@ public abstract class BaseStreamWriter
         boolean hadElem = startTypedWrite();
         char[] buffer = getCopyBuffer();
         int ptr = 0;
-        boolean validate = (mVldContent == XMLValidator.CONTENT_ALLOW_VALIDATABLE_TEXT);
+        boolean validate = (mVldContent == XMLValidator.CONTENT_ALLOW_VALIDATABLE_TEXT) && (mValidator != null);
 
         if (!hadElem) {
             buffer[ptr++] = CHAR_SPACE;
@@ -917,6 +932,9 @@ public abstract class BaseStreamWriter
         length += from;
         while (from < length) {
             if (ptr > lastPtr) {
+                if (validate) { // false -> not (necessarily) last
+                    mValidator.validateText(buffer, 0, ptr, false);
+                }
                 try {
                     mWriter.writeRawAscii(buffer, 0, ptr);
                 } catch (IOException ioe) {
@@ -928,6 +946,9 @@ public abstract class BaseStreamWriter
             buffer[ptr++] = CHAR_SPACE;
         }
         if (ptr > 0) {
+            if (validate) { // false -> not (necessarily) last
+                mValidator.validateText(buffer, 0, ptr, false);
+            }
             try { // -1 to remove last space
                 mWriter.writeRawAscii(buffer, 0, ptr-1);
             } catch (IOException ioe) {
@@ -942,7 +963,7 @@ public abstract class BaseStreamWriter
         boolean hadElem = startTypedWrite();
         char[] buffer = getCopyBuffer();
         int ptr = 0;
-        boolean validate = (mVldContent == XMLValidator.CONTENT_ALLOW_VALIDATABLE_TEXT);
+        boolean validate = (mVldContent == XMLValidator.CONTENT_ALLOW_VALIDATABLE_TEXT) && (mValidator != null);
 
         if (!hadElem) {
             buffer[ptr++] = CHAR_SPACE;
@@ -951,6 +972,9 @@ public abstract class BaseStreamWriter
         length += from;
         while (from < length) {
             if (ptr > lastPtr) {
+                if (validate) { // false -> not (necessarily) last
+                    mValidator.validateText(buffer, 0, ptr, false);
+                }
                 try {
                     mWriter.writeRawAscii(buffer, 0, ptr);
                 } catch (IOException ioe) {
@@ -962,6 +986,9 @@ public abstract class BaseStreamWriter
             buffer[ptr++] = CHAR_SPACE;
         }
         if (ptr > 0) {
+            if (validate) { // false -> not (necessarily) last
+                mValidator.validateText(buffer, 0, ptr, false);
+            }
             try { // -1 to remove last space
                 mWriter.writeRawAscii(buffer, 0, ptr-1);
             } catch (IOException ioe) {

@@ -24,6 +24,10 @@ import stax2.BaseStax2Test;
 public abstract class WriterTestBase
     extends BaseStax2Test
 {
+    final static int[] ARRAY_TEST_LENGTHS = new int[] {
+        3, 8, 25, 120, 16, 99, 253, 1099, 37242
+    };
+
     /*
     ////////////////////////////////////////
     // Tests for numeric/enum types
@@ -328,17 +332,14 @@ public abstract class WriterTestBase
     private void doTestIntArrays(boolean testAttr)
         throws XMLStreamException
     {
-        final int[] lens = new int[] {
-            3, 8, 27, 120, 16, 99, 253, 1099, 37242
-        };
-        for (int i = 0; i <= lens.length; ++i) {
+        for (int i = 0; i <= ARRAY_TEST_LENGTHS.length; ++i) {
             int[] data;
             if (i == 0) {
                 data = new int[] {
                     0, -139, 29, Integer.MAX_VALUE, 1, Integer.MIN_VALUE };
             } else {
                 Random rnd = new Random(9);
-                int len = lens[i-1];
+                int len = ARRAY_TEST_LENGTHS[i-1];
                 data = new int[len];
                 for (int ix = 0; ix < len; ++ix) {
                     data[ix] = rnd.nextInt();
@@ -380,17 +381,14 @@ public abstract class WriterTestBase
     private void doTestLongArrays(boolean testAttr)
         throws XMLStreamException
     {
-        final int[] lens = new int[] {
-            3, 8, 27, 120, 16, 99, 253, 1099, 37242
-        };
-        for (int i = 0; i <= lens.length; ++i) {
+        for (int i = 0; i <= ARRAY_TEST_LENGTHS.length; ++i) {
             long[] data;
             if (i == 0) {
                 data = new long[] {
                     0, -139, 29, Long.MAX_VALUE, 1, Long.MIN_VALUE };
             } else {
                 Random rnd = new Random(9);
-                int len = lens[i-1];
+                int len = ARRAY_TEST_LENGTHS[i-1];
                 data = new long[len];
                 for (int ix = 0; ix < len; ++ix) {
                     data[ix] = rnd.nextLong();
@@ -401,6 +399,108 @@ public abstract class WriterTestBase
                 contents = getAttributeContent(writeLongArrayAttrDoc("root", "attr", data));
             } else {
                 contents = getElementContent(writeLongArrayElemDoc("root", data));
+            }
+            StringTokenizer st = new StringTokenizer(contents);
+            int count = 0;
+            while (st.hasMoreTokens()) {
+                String exp = String.valueOf(data[count]);
+                String act = st.nextToken();
+
+                if (!exp.equals(act)) {
+                    fail("Incorrect entry #"+count+"/"+data.length+": act = '"+act+"' (exp '"+exp+"')");
+                }
+                ++count;
+            }
+            assertEquals(data.length, count);
+        }
+    }
+
+    public void testFloatArraysElem()
+        throws XMLStreamException
+    {
+        doTestFloatArrays(false);
+    }
+
+    public void testFloatArraysAttr()
+        throws XMLStreamException
+    {
+        doTestFloatArrays(true);
+    }
+
+    private void doTestFloatArrays(boolean testAttr)
+        throws XMLStreamException
+    {
+        for (int i = 0; i <= ARRAY_TEST_LENGTHS.length; ++i) {
+            float[] data;
+            if (i == 0) {
+                data = new float[] {
+                    0, -139, 29, Float.MAX_VALUE, 1, Float.MIN_VALUE };
+            } else {
+                Random rnd = new Random(9);
+                int len = ARRAY_TEST_LENGTHS[i-1];
+                data = new float[len];
+                for (int ix = 0; ix < len; ++ix) {
+                    // Need to scale: nextFloat is [0.0, 1.0[
+                    float value = rnd.nextFloat();
+                    if (rnd.nextBoolean()) {
+                        value = (float) (value * rnd.nextInt());
+                    }
+                    if (rnd.nextBoolean()) {
+                        value = -value;
+                    }
+                    data[ix] = value;
+                }
+            }
+            String contents;
+            if (testAttr) {
+                contents = getAttributeContent(writeFloatArrayAttrDoc("root", "attr", data));
+            } else {
+                contents = getElementContent(writeFloatArrayElemDoc("root", data));
+            }
+            StringTokenizer st = new StringTokenizer(contents);
+            int count = 0;
+            while (st.hasMoreTokens()) {
+                String exp = String.valueOf(data[count]);
+                String act = st.nextToken();
+
+                if (!exp.equals(act)) {
+                    fail("Incorrect entry #"+count+"/"+data.length+": act = '"+act+"' (exp '"+exp+"')");
+                }
+                ++count;
+            }
+            assertEquals(data.length, count);
+        }
+    }
+
+    private void doTestDoubleArrays(boolean testAttr)
+        throws XMLStreamException
+    {
+        for (int i = 0; i <= ARRAY_TEST_LENGTHS.length; ++i) {
+            double[] data;
+            if (i == 0) {
+                data = new double[] {
+                    0, -139, 29, Double.MAX_VALUE, 1, Double.MIN_VALUE };
+            } else {
+                Random rnd = new Random(9);
+                int len = ARRAY_TEST_LENGTHS[i-1];
+                data = new double[len];
+                for (int ix = 0; ix < len; ++ix) {
+                    // Need to scale: nextDouble is [0.0, 1.0[
+                    double value = rnd.nextDouble();
+                    if (rnd.nextBoolean()) {
+                        value = (double) (value * rnd.nextLong());
+                    }
+                    if (rnd.nextBoolean()) {
+                        value = -value;
+                    }
+                    data[ix] = value;
+                }
+            }
+            String contents;
+            if (testAttr) {
+                contents = getAttributeContent(writeDoubleArrayAttrDoc("root", "attr", data));
+            } else {
+                contents = getElementContent(writeDoubleArrayElemDoc("root", data));
             }
             StringTokenizer st = new StringTokenizer(contents);
             int count = 0;
@@ -721,6 +821,66 @@ public abstract class WriterTestBase
         XMLStreamWriter2 sw = getTypedWriter(bos);
         sw.writeStartElement(elem);
         sw.writeLongArrayAttribute(null, null, attr, values);
+        sw.writeEndElement();
+        sw.writeEndDocument();
+        return bos.toByteArray();
+    }
+
+    private byte[] writeFloatArrayElemDoc(String elem, float[] values)
+        throws XMLStreamException
+    {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        XMLStreamWriter2 sw = getTypedWriter(bos);
+        sw.writeStartElement(elem);
+        if ((values.length % 2) == 1) { // odd -> single write
+            sw.writeFloatArray(values, 0, values.length);
+        } else { // even -> split in halves
+            int offset = values.length / 2;
+            sw.writeFloatArray(values, 0, offset);
+            sw.writeFloatArray(values, offset, values.length - offset);
+        }
+        sw.writeEndElement();
+        sw.writeEndDocument();
+        return bos.toByteArray();
+    }
+
+    private byte[] writeFloatArrayAttrDoc(String elem, String attr, float[] values)
+        throws XMLStreamException
+    {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        XMLStreamWriter2 sw = getTypedWriter(bos);
+        sw.writeStartElement(elem);
+        sw.writeFloatArrayAttribute(null, null, attr, values);
+        sw.writeEndElement();
+        sw.writeEndDocument();
+        return bos.toByteArray();
+    }
+
+    private byte[] writeDoubleArrayElemDoc(String elem, double[] values)
+        throws XMLStreamException
+    {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        XMLStreamWriter2 sw = getTypedWriter(bos);
+        sw.writeStartElement(elem);
+        if ((values.length % 2) == 1) { // odd -> single write
+            sw.writeDoubleArray(values, 0, values.length);
+        } else { // even -> split in halves
+            int offset = values.length / 2;
+            sw.writeDoubleArray(values, 0, offset);
+            sw.writeDoubleArray(values, offset, values.length - offset);
+        }
+        sw.writeEndElement();
+        sw.writeEndDocument();
+        return bos.toByteArray();
+    }
+
+    private byte[] writeDoubleArrayAttrDoc(String elem, String attr, double[] values)
+        throws XMLStreamException
+    {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        XMLStreamWriter2 sw = getTypedWriter(bos);
+        sw.writeStartElement(elem);
+        sw.writeDoubleArrayAttribute(null, null, attr, values);
         sw.writeEndElement();
         sw.writeEndDocument();
         return bos.toByteArray();
