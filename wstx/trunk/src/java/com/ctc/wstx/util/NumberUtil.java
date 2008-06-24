@@ -49,10 +49,14 @@ public final class NumberUtil
 
     private final static char NULL_CHAR = (char) 0;
 
-    private static int MILLION = 1000000;
-    private static int BILLION = 1000000000;
-    private static long TEN_BILLION_L = 10000000000L;
-    private static long THOUSAND_L = 1000L;
+    private final static int MILLION = 1000000;
+    private final static int BILLION = 1000000000;
+    private final static long TEN_BILLION_L = 10000000000L;
+    private final static long THOUSAND_L = 1000L;
+
+    private final static byte BYTE_HYPHEN = (byte) '-';
+    private final static byte BYTE_1 = (byte) '1';
+    private final static byte BYTE_2 = (byte) '2';
 
     /**
      *<p>
@@ -167,6 +171,58 @@ public final class NumberUtil
         return offset;
     }
 
+    // Cut'n pasted from above
+    public static int writeInt(int value, byte[] buffer, int offset)
+    {
+        if (value < 0) {
+            if (value == Integer.MIN_VALUE) {
+                return writeLong((long) value, buffer, offset);
+            }
+            buffer[offset++] = BYTE_HYPHEN;
+            value = -value;
+        }
+        if (value < MILLION) {
+            if (value < 1000) {
+                if (value < 10) {
+                    buffer[offset++] = (byte) ('0' + value);
+                } else {
+                    offset = writeLeadingTriplet(value, buffer, offset);
+                }
+            } else {
+                int thousands = value / 1000;
+                value -= (thousands * 1000); // == value % 1000
+                offset = writeLeadingTriplet(thousands, buffer, offset);
+                offset = writeFullTriplet(value, buffer, offset);
+            }
+            return offset;
+        }
+        boolean hasBillions = (value >= BILLION);
+        if (hasBillions) {
+            value -= BILLION;
+            if (value >= BILLION) {
+                value -= BILLION;
+                buffer[offset++] = BYTE_2;
+            } else {
+                buffer[offset++] = BYTE_1;
+            }
+        }
+        int newValue = value / 1000;
+        int ones = (value - (newValue * 1000)); // == value % 1000
+        value = newValue;
+        newValue /= 1000;
+        int thousands = (value - (newValue * 1000));
+        
+        // value now has millions, which have 1, 2 or 3 digits
+        if (hasBillions) {
+            offset = writeFullTriplet(newValue, buffer, offset);
+        } else {
+            offset = writeLeadingTriplet(newValue, buffer, offset);
+        }
+        offset = writeFullTriplet(thousands, buffer, offset);
+        offset = writeFullTriplet(ones, buffer, offset);
+        return offset;
+    }
+
     /**
      *<p>
      * Note: caller must ensure that there is room for least 21 characters
@@ -183,10 +239,7 @@ public final class NumberUtil
             }
             if (value == Long.MIN_VALUE) {
                 // Special case: no matching positive value within range
-                String str = String.valueOf(value);
-                int len = str.length();
-                str.getChars(0, len, buffer, offset);
-                return (offset + len);
+                return getChars(String.valueOf(value), buffer, offset);
             }
             buffer[offset++] = '-';
             value = -value;
@@ -226,22 +279,67 @@ public final class NumberUtil
         return offset;
     }
 
+    // Cut'n pasted from above
+    public static int writeLong(long value, byte[] buffer, int offset)
+    {
+        if (value < 0L) {
+            if (value >= MIN_INT_AS_LONG) {
+                return writeInt((int) value, buffer, offset);
+            }
+            if (value == Long.MIN_VALUE) { // shouldn't be common...
+                return getAsciiBytes(String.valueOf(value), buffer, offset);
+            }
+            buffer[offset++] = BYTE_HYPHEN;
+            value = -value;
+        } else {
+            if (value <= MAX_INT_AS_LONG) {
+                return writeInt((int) value, buffer, offset);
+            }
+        }
+        int origOffset = offset;
+        offset += calcLongStrLength(value);
+        int ptr = offset;
+
+        while (value > MAX_INT_AS_LONG) { // full triplet
+            ptr -= 3;
+            long newValue = value / THOUSAND_L;
+            int triplet = (int) (value - newValue * THOUSAND_L);
+            writeFullTriplet(triplet, buffer, ptr);
+            value = newValue;
+        }
+        int ivalue = (int) value;
+        while (ivalue >= 1000) { // still full triplet
+            ptr -= 3;
+            int newValue = ivalue / 1000;
+            int triplet = ivalue - (newValue * 1000);
+            writeFullTriplet(triplet, buffer, ptr);
+            ivalue = newValue;
+        }
+        writeLeadingTriplet(ivalue, buffer, origOffset);
+        return offset;
+    }
+
     public static int writeFloat(float value, char[] buffer, int offset)
     {
         // No real efficient method exposed by JDK, so let's keep it simple
-        String valueStr = String.valueOf(value);
-        int len = valueStr.length();
-        valueStr.getChars(0, len, buffer, offset);
-        return offset+len;
+        return getChars(String.valueOf(value), buffer, offset);
     }
+
+    public static int writeFloat(float value, byte[] buffer, int offset)
+    {
+        // No real efficient method exposed by JDK, so let's keep it simple
+        return getAsciiBytes(String.valueOf(value), buffer, offset);
+     }
 
     public static int writeDouble(double value, char[] buffer, int offset)
     {
         // No real efficient method exposed by JDK, so let's keep it simple
-        String valueStr = String.valueOf(value);
-        int len = valueStr.length();
-        valueStr.getChars(0, len, buffer, offset);
-        return offset+len;
+        return getChars(String.valueOf(value), buffer, offset);
+    }
+
+    public static int writeDouble(double value, byte[] buffer, int offset)
+    {
+        return getAsciiBytes(String.valueOf(value), buffer, offset);
     }
 
     /*
@@ -266,12 +364,37 @@ public final class NumberUtil
         return offset;
     }
 
+    private static int writeLeadingTriplet(int triplet, byte[] buffer, int offset)
+    {
+        int digitOffset = (triplet << 2);
+        char c = LEADING_TRIPLETS[digitOffset++];
+        if (c != NULL_CHAR) {
+            buffer[offset++] = (byte) c;
+        }
+        c = LEADING_TRIPLETS[digitOffset++];
+        if (c != NULL_CHAR) {
+            buffer[offset++] = (byte) c;
+        }
+        // Last is required to be non-empty
+        buffer[offset++] = (byte) LEADING_TRIPLETS[digitOffset];
+        return offset;
+    }
+
     private static int writeFullTriplet(int triplet, char[] buffer, int offset)
     {
         int digitOffset = (triplet << 2);
         buffer[offset++] = FULL_TRIPLETS[digitOffset++];
         buffer[offset++] = FULL_TRIPLETS[digitOffset++];
         buffer[offset++] = FULL_TRIPLETS[digitOffset];
+        return offset;
+    }
+
+    private static int writeFullTriplet(int triplet, byte[] buffer, int offset)
+    {
+        int digitOffset = (triplet << 2);
+        buffer[offset++] = (byte)FULL_TRIPLETS[digitOffset++];
+        buffer[offset++] = (byte)FULL_TRIPLETS[digitOffset++];
+        buffer[offset++] = (byte)FULL_TRIPLETS[digitOffset];
         return offset;
     }
 
@@ -294,6 +417,21 @@ public final class NumberUtil
             comp = (comp << 3) + (comp << 1); // 10x
         }
         return len;
+    }
+
+    private static int getChars(String str, char[] buffer, int ptr)
+    {
+        int len = str.length();
+        str.getChars(0, len, buffer, ptr);
+        return ptr+len;
+    }
+
+    private static int getAsciiBytes(String str, byte[] buffer, int ptr)
+    {
+        for (int i = 0, len = str.length(); i < len; ++i) {
+            buffer[ptr++] = (byte) str.charAt(i);
+        }
+        return ptr;
     }
 
     /*

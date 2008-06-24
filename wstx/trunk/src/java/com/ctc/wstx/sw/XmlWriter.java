@@ -23,6 +23,7 @@ import java.text.MessageFormat;
 import javax.xml.stream.XMLStreamException;
 
 import org.codehaus.stax2.io.EscapingWriterFactory;
+import org.codehaus.stax2.validation.XMLValidator;
 
 import com.ctc.wstx.api.WriterConfig;
 import com.ctc.wstx.api.WstxOutputProperties;
@@ -261,6 +262,32 @@ public abstract class XmlWriter
      */
     public abstract void writeRawAscii(char[] cbuf, int offset, int len)
         throws IOException;
+
+    /**
+     * Like {@link #writeRaw}, but caller guarantees that the contents
+     * additionally are known to be in 7-bit ascii range, and also
+     * passes an encoder object that will encode values only when
+     * being handed a buffer to append to.
+     *
+     * @param enc Encoder that will produce content
+     */
+    public abstract void writeTypedAscii(AsciiValueEncoder enc)
+        throws IOException;
+    /**
+     * Like {@link #writeRaw}, but caller guarantees that the contents
+     * additionally are known to be in 7-bit ascii range, and also
+     * passes an encoder object that will encode values only when
+     * being handed a buffer to append to.
+     *
+     * @param enc Encoder that will produce content
+     * @param validator Validator to use for validating serialized textual
+     *   content (can not be null)
+     * @param copyBuffer Temporary buffer that writer can use for temporary
+     *   copies as necessary
+     */
+    public abstract void writeTypedAscii(AsciiValueEncoder enc,
+                                         XMLValidator validator, char[] copyBuffer)
+        throws IOException, XMLStreamException;
 
     /*
     ////////////////////////////////////////////////////

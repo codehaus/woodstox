@@ -28,11 +28,71 @@ import com.ctc.wstx.util.NumberUtil;
  */
 public final class ValueEncoderFactory
 {
+    final static byte BYTE_SPACE = (byte) ' ';
+
     // // // Lazily-constructed, recycled encoder instances
 
+    protected TextualScalarEncoder mTextualEncoder = null;
+    protected IntEncoder mIntEncoder = null;
+    protected LongEncoder mLongEncoder = null;
+    protected FloatEncoder mFloatEncoder = null;
+    protected DoubleEncoder mDoubleEncoder = null;
+
     protected IntArrayEncoder mIntArrayEncoder = null;
+    protected LongArrayEncoder mLongArrayEncoder = null;
+    protected FloatArrayEncoder mFloatArrayEncoder = null;
+    protected DoubleArrayEncoder mDoubleArrayEncoder = null;
 
     public ValueEncoderFactory() { }
+
+    // // // Scalar encoder access
+
+    public TextualScalarEncoder getScalarEncoder(String textual)
+    {
+        if (mTextualEncoder == null) {
+            mTextualEncoder = new TextualScalarEncoder();
+        }
+        mTextualEncoder.reset(textual);
+        return mTextualEncoder;
+    }
+
+    public IntEncoder getIntEncoder(int value)
+    {
+        if (mIntEncoder == null) {
+            mIntEncoder = new IntEncoder();
+        }
+        mIntEncoder.reset(value);
+        return mIntEncoder;
+    }
+
+    public LongEncoder getLongEncoder(long value)
+    {
+        if (mLongEncoder == null) {
+            mLongEncoder = new LongEncoder();
+        }
+        mLongEncoder.reset(value);
+        return mLongEncoder;
+    }
+
+    public FloatEncoder getFloatEncoder(float value)
+    {
+        if (mFloatEncoder == null) {
+            mFloatEncoder = new FloatEncoder();
+        }
+        mFloatEncoder.reset(value);
+        return mFloatEncoder;
+    }
+
+    public DoubleEncoder getDoubleEncoder(double value)
+    {
+        if (mDoubleEncoder == null) {
+            mDoubleEncoder = new DoubleEncoder();
+        }
+        mDoubleEncoder.reset(value);
+        return mDoubleEncoder;
+    }
+
+    // // // Array encoder access
 
     public IntArrayEncoder getIntArrayEncoder(int[] values, int from, int length)
     {
@@ -43,10 +103,231 @@ public final class ValueEncoderFactory
         return mIntArrayEncoder;
     }
 
+    public LongArrayEncoder getLongArrayEncoder(long[] values, int from, int length)
+    {
+        if (mLongArrayEncoder == null) {
+            mLongArrayEncoder = new LongArrayEncoder();
+        }
+        mLongArrayEncoder.reset(values, from, length);
+        return mLongArrayEncoder;
+    }
+
+    public FloatArrayEncoder getFloatArrayEncoder(float[] values, int from, int length)
+    {
+        if (mFloatArrayEncoder == null) {
+            mFloatArrayEncoder = new FloatArrayEncoder();
+        }
+        mFloatArrayEncoder.reset(values, from, length);
+        return mFloatArrayEncoder;
+    }
+
+    public DoubleArrayEncoder getDoubleArrayEncoder(double[] values, int from, int length)
+    {
+        if (mDoubleArrayEncoder == null) {
+            mDoubleArrayEncoder = new DoubleArrayEncoder();
+        }
+        mDoubleArrayEncoder.reset(values, from, length);
+        return mDoubleArrayEncoder;
+    }
+
     /*
-    //////////////////////////////////////////////////////////
-    // Implementation classes
-    //////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////
+    // Implementation classes; first, scalar (single-value) encoders
+    ////////////////////////////////////////////////////////////////
+     */
+
+    /**
+     * Intermediate base class for encoders that deal with single
+     * primitive values.
+     *<p>
+     * No default implementations, because textual and typed
+     * (non-textual) sub-classes differ significantly.
+     * In a way, this is just a tag class
+     */
+    abstract static class ScalarEncoder
+        extends AsciiValueEncoder
+    {
+        protected ScalarEncoder() { }
+    }
+
+    /**
+     * Implementation of generic scalar value for which textual
+     * representation is efficient (enough) representation.
+     */
+    final static class TextualScalarEncoder
+        extends ScalarEncoder
+    {
+        String mValue;
+
+        protected TextualScalarEncoder() { super(); }
+
+        protected void reset(String value) {
+            mValue = value;
+        }
+
+        protected int maxElementLength() { return mValue.length(); }
+
+        public final boolean bufferNeedsFlush(int freeChars)
+        {
+            return (mValue != null) && (freeChars < mValue.length());
+        }
+
+        public int encodeMore(char[] buffer, int ptr, int end)
+        {
+            if (mValue != null) {
+                String str = mValue;
+                mValue = null;
+                int len = str.length();
+                str.getChars(0, len, buffer, ptr);
+                ptr += len;
+            }
+            return ptr;
+        }
+
+        public int encodeMore(byte[] buffer, int ptr, int end)
+        {
+            if (mValue != null) {
+                String str = mValue;
+                mValue = null;
+                int len = str.length();
+                for (int i = 0; i < len; ++i) {
+                    buffer[ptr++] = (byte) str.charAt(i);
+                }
+            }
+            return ptr;
+        }
+    }
+
+    /**
+     * Intermediate base class for typed (non-textual) scalar values
+     */
+    abstract static class TypedScalarEncoder
+        extends ScalarEncoder
+    {
+        protected boolean mWritten;
+
+        protected TypedScalarEncoder() { }
+
+        protected void reset() {
+            mWritten = false;
+        }
+
+        public final boolean bufferNeedsFlush(int freeChars)
+        {
+            return !mWritten && (freeChars < maxElementLength());
+        }
+
+        /**
+         * @return Maximum length of an individual element <b>plus one</b>
+         *   (for space separating elements)
+         */
+        protected abstract int maxElementLength();
+    }
+
+    final static class IntEncoder
+        extends TypedScalarEncoder
+    {
+        int mValue;
+
+        protected IntEncoder() { super(); }
+
+        protected void reset(int value) {
+            super.reset();
+            mValue = value;
+        }
+
+        protected int maxElementLength() { return NumberUtil.MAX_INT_CLEN; }
+
+        public int encodeMore(char[] buffer, int ptr, int end)
+        {
+            return NumberUtil.writeInt(mValue, buffer, ptr);
+        }
+
+        public int encodeMore(byte[] buffer, int ptr, int end)
+        {
+            return NumberUtil.writeInt(mValue, buffer, ptr);
+        }
+    }
+
+    final static class LongEncoder
+        extends TypedScalarEncoder
+    {
+        long mValue;
+
+        protected LongEncoder() { super(); }
+
+        protected void reset(long value) {
+            super.reset();
+            mValue = value;
+        }
+
+        protected int maxElementLength() { return NumberUtil.MAX_LONG_CLEN; }
+
+        public int encodeMore(char[] buffer, int ptr, int end)
+        {
+            return NumberUtil.writeLong(mValue, buffer, ptr);
+        }
+
+        public int encodeMore(byte[] buffer, int ptr, int end)
+        {
+            return NumberUtil.writeLong(mValue, buffer, ptr);
+        }
+    }
+
+    final static class FloatEncoder
+        extends TypedScalarEncoder
+    {
+        float mValue;
+
+        protected FloatEncoder() { super(); }
+
+        protected void reset(float value) {
+            super.reset();
+            mValue = value;
+        }
+
+        protected int maxElementLength() { return NumberUtil.MAX_FLOAT_CLEN; }
+
+        public int encodeMore(char[] buffer, int ptr, int end)
+        {
+            return NumberUtil.writeFloat(mValue, buffer, ptr);
+        }
+
+        public int encodeMore(byte[] buffer, int ptr, int end)
+        {
+            return NumberUtil.writeFloat(mValue, buffer, ptr);
+        }
+    }
+
+    final static class DoubleEncoder
+        extends TypedScalarEncoder
+    {
+        double mValue;
+
+        protected DoubleEncoder() { super(); }
+
+        protected void reset(double value) {
+            super.reset();
+            mValue = value;
+        }
+
+        protected int maxElementLength() { return NumberUtil.MAX_DOUBLE_CLEN; }
+
+        public int encodeMore(char[] buffer, int ptr, int end)
+        {
+            return NumberUtil.writeDouble(mValue, buffer, ptr);
+        }
+
+        public int encodeMore(byte[] buffer, int ptr, int end)
+        {
+            return NumberUtil.writeDouble(mValue, buffer, ptr);
+        }
+    }
+
+    /*
+    ////////////////////////////////////////////////////////////////
+    // Implementation classes; array encoders
+    ////////////////////////////////////////////////////////////////
      */
 
     /**
@@ -69,14 +350,15 @@ public final class ValueEncoderFactory
 
         public final boolean bufferNeedsFlush(int freeChars)
         {
-            return (mPtr < mEnd) && (freeChars < maxElementLength());
+            // subtract one for trailing space
+            return (mPtr < mEnd) && (freeChars < (maxElementLength()+1));
         }
 
         public abstract int encodeMore(char[] buffer, int ptr, int end);
 
         /**
-         * @return Maximum length (in characters) of an individual 
-         *   array element
+         * @return Maximum length of an individual element <b>plus one</b>
+         *   (for space separating elements)
          */
         protected abstract int maxElementLength();
     }
@@ -96,13 +378,129 @@ public final class ValueEncoderFactory
             mValues = values;
         }
 
-        protected int maxElementLength() { return NumberUtil.MAX_LONG_CLEN; }
+        protected int maxElementLength() { return 1+NumberUtil.MAX_INT_CLEN; }
 
         public int encodeMore(char[] buffer, int ptr, int end)
         {
             int lastOk = end - maxElementLength();
-            while (mPtr <= lastOk) {
+            while (ptr <= lastOk && mPtr < mEnd) {
+                buffer[ptr++] = ' ';
                 ptr = NumberUtil.writeInt(mValues[mPtr++], buffer, ptr);
+            }
+            return ptr;
+        }
+
+        public int encodeMore(byte[] buffer, int ptr, int end)
+        {
+            int lastOk = end - maxElementLength();
+            while (ptr <= lastOk && mPtr < mEnd) {
+                buffer[ptr++] = BYTE_SPACE;
+                ptr = NumberUtil.writeInt(mValues[mPtr++], buffer, ptr);
+            }
+            return ptr;
+        }
+    }
+
+    final static class LongArrayEncoder
+        extends ArrayEncoder
+    {
+        long[] mValues;
+
+        protected LongArrayEncoder() { super(); }
+
+        protected void reset(long[] values, int from, int length) {
+            super.reset(from, length);
+            mValues = values;
+        }
+
+        protected int maxElementLength() { return NumberUtil.MAX_LONG_CLEN+1; }
+
+        public int encodeMore(char[] buffer, int ptr, int end)
+        {
+            int lastOk = end - maxElementLength();
+            while (ptr <= lastOk && mPtr < mEnd) {
+                buffer[ptr++] = ' ';
+                ptr = NumberUtil.writeLong(mValues[mPtr++], buffer, ptr);
+            }
+            return ptr;
+        }
+
+        public int encodeMore(byte[] buffer, int ptr, int end)
+        {
+            int lastOk = end - maxElementLength();
+            while (ptr <= lastOk && mPtr < mEnd) {
+                buffer[ptr++] = BYTE_SPACE;
+                ptr = NumberUtil.writeLong(mValues[mPtr++], buffer, ptr);
+            }
+            return ptr;
+        }
+    }
+
+    final static class FloatArrayEncoder
+        extends ArrayEncoder
+    {
+        float[] mValues;
+
+        protected FloatArrayEncoder() { super(); }
+
+        protected void reset(float[] values, int from, int length) {
+            super.reset(from, length);
+            mValues = values;
+        }
+
+        protected int maxElementLength() { return NumberUtil.MAX_FLOAT_CLEN+1; }
+
+        public int encodeMore(char[] buffer, int ptr, int end)
+        {
+            int lastOk = end - maxElementLength();
+            while (ptr <= lastOk && mPtr < mEnd) {
+                buffer[ptr++] = ' ';
+                ptr = NumberUtil.writeFloat(mValues[mPtr++], buffer, ptr);
+            }
+            return ptr;
+        }
+
+        public int encodeMore(byte[] buffer, int ptr, int end)
+        {
+            int lastOk = end - maxElementLength();
+            while (ptr <= lastOk && mPtr < mEnd) {
+                buffer[ptr++] = BYTE_SPACE;
+                ptr = NumberUtil.writeFloat(mValues[mPtr++], buffer, ptr);
+            }
+            return ptr;
+        }
+    }
+
+    final static class DoubleArrayEncoder
+        extends ArrayEncoder
+    {
+        double[] mValues;
+
+        protected DoubleArrayEncoder() { super(); }
+
+        protected void reset(double[] values, int from, int length) {
+            super.reset(from, length);
+            mValues = values;
+        }
+
+        protected int maxElementLength() { return NumberUtil.MAX_DOUBLE_CLEN+1; }
+
+        public int encodeMore(char[] buffer, int ptr, int end)
+        {
+            int lastOk = end - maxElementLength();
+            while (ptr <= lastOk && mPtr < mEnd) {
+                buffer[ptr++] = ' ';
+                ptr = NumberUtil.writeDouble(mValues[mPtr++], buffer, ptr);
+            }
+            return ptr;
+        }
+
+        public int encodeMore(byte[] buffer, int ptr, int end)
+        {
+            int lastOk = end - maxElementLength();
+            while (ptr <= lastOk && mPtr < mEnd) {
+                buffer[ptr++] = BYTE_SPACE;
+                ptr = NumberUtil.writeDouble(mValues[mPtr++], buffer, ptr);
             }
             return ptr;
         }

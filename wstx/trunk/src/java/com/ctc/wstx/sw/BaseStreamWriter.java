@@ -105,6 +105,13 @@ public abstract class BaseStreamWriter
      */
     protected char[] mCopyBuffer = null;
 
+    /**
+     * When outputting using Typed Access API, we will need
+     * encoders. If so, they will created by lazily-constructed
+     * factory
+     */
+    protected ValueEncoderFactory mValueEncoderFactory;
+
     /*
     ////////////////////////////////////////////////////
     // Per-factory configuration (options, features)
@@ -266,6 +273,14 @@ public abstract class BaseStreamWriter
         mCfgAutomaticEmptyElems = (flags & OutputConfigFlags.CFG_AUTOMATIC_EMPTY_ELEMS) != 0;
         mCfgCDataAsText = (flags & OutputConfigFlags.CFG_OUTPUT_CDATA_AS_TEXT) != 0;
         mCfgCopyDefaultAttrs = (flags & OutputConfigFlags.CFG_COPY_DEFAULT_ATTRS) != 0;
+    }
+
+    protected final ValueEncoderFactory valueEncoderFactory()
+    {
+        if (mValueEncoderFactory == null) {
+            mValueEncoderFactory = new ValueEncoderFactory();
+        }
+        return mValueEncoderFactory;
     }
 
     /*
@@ -749,59 +764,37 @@ public abstract class BaseStreamWriter
     /////////////////////////////////////////////////
      */
 
-    /* There is still some overhead in serializing Strings, compared
-     * to serializing character arrays (as proven by profiling which
-     * resulted in making intermediate copies, which still was faster
-     * than iterating over characters). Because of this, it makes
-     * sense to pre-fetch char arrays for constants we need.
-     */
-
-    final static char[] TYPE_CONST_TRUE = "true".toCharArray();
-    final static char[] TYPE_CONST_FALSE = "false".toCharArray();
-
     // // // Typed element content write methods
 
     public void writeBoolean(boolean b)
         throws XMLStreamException
     {
-        char[] value = b ? TYPE_CONST_TRUE : TYPE_CONST_FALSE;
-        writeCharacters(value, 0, value.length);
+        doWriteTyped(valueEncoderFactory().getScalarEncoder(b ? "true" : "false"));
     }
 
     public void writeInt(int value)
         throws XMLStreamException
     {
-        // Copy buffer always has room for needed (11) chars...
-        char[] buf = getCopyBuffer();
-        int len = NumberUtil.writeInt(value, buf, 0);
-        doWriteTyped(buf, 0, len);
+        doWriteTyped(valueEncoderFactory().getIntEncoder(value));
     }
 
     public void writeLong(long value)
         throws XMLStreamException
     {
-        // Copy buffer always has room for needed (21) chars...
-        char[] buf = getCopyBuffer();
-        int len = NumberUtil.writeLong(value, buf, 0);
-        doWriteTyped(buf, 0, len);
+        doWriteTyped(valueEncoderFactory().getLongEncoder(value));
     }
 
     public void writeFloat(float value)
         throws XMLStreamException
     {
-        // Copy buffer always has room for needed (~30) chars
-        char[] buf = getCopyBuffer();
-        int len = NumberUtil.writeFloat(value, buf, 0);
-        doWriteTyped(buf, 0, len);
+        doWriteTyped(valueEncoderFactory().getFloatEncoder(value));
     }
 
     public void writeDouble(double value)
         throws XMLStreamException
     {
-        // Copy buffer always has room for needed (~30) chars
-        char[] buf = getCopyBuffer();
-        int len = NumberUtil.writeDouble(value, buf, 0);
-        doWriteTyped(buf, 0, len);
+        doWriteTyped(valueEncoderFactory().getDoubleEncoder(value));
+
     }
 
     public void writeInteger(BigInteger value)
@@ -810,7 +803,7 @@ public abstract class BaseStreamWriter
         /* No really efficient method exposed by JDK, keep it simple
          * (esp. considering that length is actually not bound)
          */
-        doWriteTyped(String.valueOf(value));
+        doWriteTyped(valueEncoderFactory().getScalarEncoder(String.valueOf(value)));
     }
 
     public void writeDecimal(BigDecimal value)
@@ -819,7 +812,7 @@ public abstract class BaseStreamWriter
         /* No really efficient method exposed by JDK, keep it simple
          * (esp. considering that length is actually not bound)
          */
-        doWriteTyped(String.valueOf(value));
+        doWriteTyped(valueEncoderFactory().getScalarEncoder(String.valueOf(value)));
     }
 
     public void writeQName(QName name)
@@ -831,248 +824,75 @@ public abstract class BaseStreamWriter
             // Not efficient... but should be ok
             value = prefix + ":" + value;
         }
+        /* Can't use AsciiValueEncoder, since QNames can contain
+         * non-ascii characters
+         */
         writeCharacters(value);
     }
 
-    public void writeIntArray(int[] value, int from, int length)
+    public final void writeIntArray(int[] value, int from, int length)
         throws XMLStreamException
     {
-        boolean hadElem = startTypedWrite();
-        char[] buffer = getCopyBuffer();
-        int ptr = 0;
-        boolean validate = (mVldContent == XMLValidator.CONTENT_ALLOW_VALIDATABLE_TEXT) && (mValidator != null);
-
-        if (!hadElem) {
-            buffer[ptr++] = CHAR_SPACE;
-        }
-        int lastPtr = buffer.length - NumberUtil.MAX_INT_CLEN - 1; // one char for space
-        length += from;
-        while (from < length) {
-            if (ptr > lastPtr) {
-                if (validate) { // false -> not (necessarily) last
-                    mValidator.validateText(buffer, 0, ptr, false);
-                }
-                try {
-                    mWriter.writeRawAscii(buffer, 0, ptr);
-                } catch (IOException ioe) {
-                    throw new WstxIOException(ioe);
-                }
-                ptr = 0;
-            }
-            ptr = NumberUtil.writeInt(value[from++], buffer, ptr);
-            buffer[ptr++] = CHAR_SPACE;
-        }
-        if (ptr > 0) {
-            /* false -> caller can call this method multiple times
-             * (as fer javadocs), hence not known if we are done yet
-             */
-            if (validate) {
-                mValidator.validateText(buffer, 0, ptr, false);
-            }
-            try { // -1 to remove last space
-                mWriter.writeRawAscii(buffer, 0, ptr-1);
-            } catch (IOException ioe) {
-                throw new WstxIOException(ioe);
-            }
-        }
+        doWriteTyped(valueEncoderFactory().getIntArrayEncoder(value, from, length));
     }
 
     public void writeLongArray(long[] value, int from, int length)
         throws XMLStreamException
     {
-        boolean hadElem = startTypedWrite();
-        char[] buffer = getCopyBuffer();
-        int ptr = 0;
-        boolean validate = (mVldContent == XMLValidator.CONTENT_ALLOW_VALIDATABLE_TEXT) && (mValidator != null);
-
-        if (!hadElem) {
-            buffer[ptr++] = CHAR_SPACE;
-        }
-        int lastPtr = buffer.length - NumberUtil.MAX_LONG_CLEN - 1; // one char for space
-        length += from;
-        while (from < length) {
-            if (ptr > lastPtr) {
-                if (validate) { // false -> not (necessarily) last
-                    mValidator.validateText(buffer, 0, ptr, false);
-                }
-                try {
-                    mWriter.writeRawAscii(buffer, 0, ptr);
-                } catch (IOException ioe) {
-                    throw new WstxIOException(ioe);
-                }
-                ptr = 0;
-            }
-            ptr = NumberUtil.writeLong(value[from++], buffer, ptr);
-            buffer[ptr++] = CHAR_SPACE;
-        }
-        if (ptr > 0) {
-            if (validate) { // false -> not (necessarily) last
-                mValidator.validateText(buffer, 0, ptr, false);
-            }
-            try { // -1 to remove last space
-                mWriter.writeRawAscii(buffer, 0, ptr-1);
-            } catch (IOException ioe) {
-                throw new WstxIOException(ioe);
-            }
-        }
+        doWriteTyped(valueEncoderFactory().getLongArrayEncoder(value, from, length));
     }
 
     public void writeFloatArray(float[] value, int from, int length)
         throws XMLStreamException
     {
-        boolean hadElem = startTypedWrite();
-        char[] buffer = getCopyBuffer();
-        int ptr = 0;
-        boolean validate = (mVldContent == XMLValidator.CONTENT_ALLOW_VALIDATABLE_TEXT) && (mValidator != null);
-
-        if (!hadElem) {
-            buffer[ptr++] = CHAR_SPACE;
-        }
-        int lastPtr = buffer.length - NumberUtil.MAX_FLOAT_CLEN - 1; // one char for space
-        length += from;
-        while (from < length) {
-            if (ptr > lastPtr) {
-                if (validate) { // false -> not (necessarily) last
-                    mValidator.validateText(buffer, 0, ptr, false);
-                }
-                try {
-                    mWriter.writeRawAscii(buffer, 0, ptr);
-                } catch (IOException ioe) {
-                    throw new WstxIOException(ioe);
-                }
-                ptr = 0;
-            }
-            ptr = NumberUtil.writeFloat(value[from++], buffer, ptr);
-            buffer[ptr++] = CHAR_SPACE;
-        }
-        if (ptr > 0) {
-            if (validate) { // false -> not (necessarily) last
-                mValidator.validateText(buffer, 0, ptr, false);
-            }
-            try { // -1 to remove last space
-                mWriter.writeRawAscii(buffer, 0, ptr-1);
-            } catch (IOException ioe) {
-                throw new WstxIOException(ioe);
-            }
-        }
+        doWriteTyped(valueEncoderFactory().getFloatArrayEncoder(value, from, length));
     }
 
     public void writeDoubleArray(double[] value, int from, int length)
         throws XMLStreamException
     {
-        boolean hadElem = startTypedWrite();
-        char[] buffer = getCopyBuffer();
-        int ptr = 0;
-        boolean validate = (mVldContent == XMLValidator.CONTENT_ALLOW_VALIDATABLE_TEXT) && (mValidator != null);
-
-        if (!hadElem) {
-            buffer[ptr++] = CHAR_SPACE;
-        }
-        int lastPtr = buffer.length - NumberUtil.MAX_DOUBLE_CLEN - 1; // one char for space
-        length += from;
-        while (from < length) {
-            if (ptr > lastPtr) {
-                if (validate) { // false -> not (necessarily) last
-                    mValidator.validateText(buffer, 0, ptr, false);
-                }
-                try {
-                    mWriter.writeRawAscii(buffer, 0, ptr);
-                } catch (IOException ioe) {
-                    throw new WstxIOException(ioe);
-                }
-                ptr = 0;
-            }
-            ptr = NumberUtil.writeDouble(value[from++], buffer, ptr);
-            buffer[ptr++] = CHAR_SPACE;
-        }
-        if (ptr > 0) {
-            if (validate) { // false -> not (necessarily) last
-                mValidator.validateText(buffer, 0, ptr, false);
-            }
-            try { // -1 to remove last space
-                mWriter.writeRawAscii(buffer, 0, ptr-1);
-            } catch (IOException ioe) {
-                throw new WstxIOException(ioe);
-            }
-        }
+        doWriteTyped(valueEncoderFactory().getDoubleArrayEncoder(value, from, length));
     }
 
-    protected void doWriteTyped(String value)
-        throws XMLStreamException
-    {
-        int len = value.length();
-        char[] buf = getCopyBuffer(len);
-        value.getChars(0, len, buf, 0);
-        doWriteTyped(buf, 0, len);
-    }
-
-    /**
-     * Method called when typed content to be written has been
-     * serialized to characters, and can be output using
-     * underlying methods without escaping.
-     * However, there is still preparation
-     * to do, to enforce constraints and invoke validators if need be.
-     *<p>
-     * For the most part, checks are similar to those done when
-     * calling regular {@link #writeCharacters} method.
-     */
-    protected final void doWriteTyped(char[] buffer, int offset, int len)
+    protected final void doWriteTyped(AsciiValueEncoder enc)
         throws XMLStreamException
     {
         if (mStartElementOpen) {
             closeStartElement(mEmptyElement);
         }
-        // Not legal outside main element tree (won't be all white space)
+        // How about well-formedness?
         if (mCheckStructure) {
             if (inPrologOrEpilog()) {
                 reportNwfStructure(ErrorConsts.WERR_PROLOG_NONWS_TEXT);
             }
         }
+        // Or validity?
         if (mVldContent <= XMLValidator.CONTENT_ALLOW_WS) {
             reportInvalidContent(CHARACTERS);
-        } else if (mVldContent == XMLValidator.CONTENT_ALLOW_VALIDATABLE_TEXT) {
-            if (mValidator != null) {
-                /* Hmmh. Not sure if we can pass 'true' as last arg,
-                 * to indicate it's all output for this element? Seems
-                 * logical; may need to document this with javadocs?
-                 */
-                mValidator.validateText(buffer, offset, len, true);
-            }
         }
+
+        // So far so good: let's serialize
         try {
-            // We know it won't need quoting, so let's call this method:
-            mWriter.writeRawAscii(buffer, offset, len);
+            XMLValidator vld = (mVldContent == XMLValidator.CONTENT_ALLOW_VALIDATABLE_TEXT) ?
+                mValidator : null;
+            if (vld == null) {
+                mWriter.writeTypedAscii(enc);
+            } else {
+                mWriter.writeTypedAscii(enc, vld, getCopyBuffer());
+            }
         } catch (IOException ioe) {
             throw new WstxIOException(ioe);
         }
     }
 
-
-    /**
-     * @return True, if this is there was an open start tag which was
-     *    completed; false otherwise
-     */
-    protected final boolean startTypedWrite()
-        throws XMLStreamException
-    {
-        boolean startElem = mStartElementOpen;
-        if (startElem) {
-            closeStartElement(mEmptyElement);
-        }
-        // Not legal outside main element tree (won't be all white space)
-        if (mCheckStructure) {
-            if (inPrologOrEpilog()) {
-                reportNwfStructure(ErrorConsts.WERR_PROLOG_NONWS_TEXT);
-            }
-        }
-        // Ok to have content?
-        if (mVldContent <= XMLValidator.CONTENT_ALLOW_WS) {
-            reportInvalidContent(CHARACTERS);
-        }
-        return startElem;
-    }
-
     // // // Typed attribute value write methods
+
+    /* !!! 23-Jul-2008, tatus: Moved here temporarily: remove when
+     *   not needed any more
+     */
+
+    final static char[] TYPE_CONST_TRUE = "true".toCharArray();
+    final static char[] TYPE_CONST_FALSE = "false".toCharArray();
 
     public void writeBooleanAttribute(String prefix, String nsURI, String localName, boolean value)
         throws XMLStreamException

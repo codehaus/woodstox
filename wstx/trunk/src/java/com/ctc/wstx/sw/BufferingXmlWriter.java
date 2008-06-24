@@ -20,6 +20,8 @@ import java.io.*;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 
+import org.codehaus.stax2.validation.XMLValidator;
+
 import com.ctc.wstx.api.WriterConfig;
 import com.ctc.wstx.io.CharsetNames;
 
@@ -335,6 +337,55 @@ public final class BufferingXmlWriter
 
         // And then we'll just write whatever we have left:
         mOut.write(str, offset, len);
+    }
+
+    public final void writeTypedAscii(AsciiValueEncoder enc)
+        throws IOException
+    {
+        if (mOut == null) {
+            return;
+        }
+
+        int free = mOutputBufLen - mOutputPtr;
+        if (enc.bufferNeedsFlush(free)) {
+            flush();
+        }
+        while (true) {
+            mOutputPtr = enc.encodeMore(mOutputBuffer, mOutputPtr, mOutputBufLen);
+            // If no flushing needed, indicates that all data was encoded
+            free = mOutputBufLen - mOutputPtr;
+            if (!enc.bufferNeedsFlush(free)) {
+                break;
+            }
+            flush();
+        }
+    }
+
+    public final void writeTypedAscii(AsciiValueEncoder enc,
+                                      XMLValidator validator, char[] copyBuffer)
+        throws IOException, XMLStreamException
+    {
+        if (mOut == null) {
+            return;
+        }
+        int free = mOutputBufLen - mOutputPtr;
+        if (enc.bufferNeedsFlush(free)) {
+            flush();
+        }
+        int start = mOutputPtr;
+        while (true) {
+            mOutputPtr = enc.encodeMore(mOutputBuffer, mOutputPtr, mOutputBufLen);
+            // False -> can't be sure it's the whole remaining text
+            validator.validateText(mOutputBuffer, start, mOutputPtr, false);
+
+            // If no flushing needed, indicates that all data was encoded
+            free = mOutputBufLen - mOutputPtr;
+            if (!enc.bufferNeedsFlush(free)) {
+                break;
+            }
+            flush();
+            start = mOutputPtr;
+        }
     }
 
     /*

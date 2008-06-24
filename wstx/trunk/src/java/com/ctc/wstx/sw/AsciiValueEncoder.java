@@ -56,12 +56,6 @@ public abstract class AsciiValueEncoder
     public abstract boolean bufferNeedsFlush(int freeChars);
 
     /**
-     * @param vld Validator to use for validation encoded
-     *   content, iff validator exists and content validation
-     *   is needed for current element (i.e. not mixed content).
-     *   Thus, if non-null, its validation method(s) need to
-     *   be called
-     *
      * @return Value of pointer after all remaining data (which
      *   may be "none") that can be encoded (as constrained by
      *   buffer length) has been encoded. Has to exceed 'ptr'
@@ -72,4 +66,16 @@ public abstract class AsciiValueEncoder
      *   method)
      */
     public abstract int encodeMore(char[] buffer, int ptr, int end);
+
+    /**
+     * @return Value of pointer after all remaining data (which
+     *   may be "none") that can be encoded (as constrained by
+     *   buffer length) has been encoded. Has to exceed 'ptr'
+     *   value sent in; will be equal to it if nothing was
+     *   encoded (which should only occur when everything has
+     *   been encoded, as long as {@link #bufferNeedsFlush}
+     *   is appropriately called once before calling this
+     *   method)
+     */
+    public abstract int encodeMore(byte[] buffer, int ptr, int end);
 }

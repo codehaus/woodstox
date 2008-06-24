@@ -16,8 +16,9 @@
 package com.ctc.wstx.sw;
 
 import java.io.*;
-
 import javax.xml.stream.XMLStreamException;
+
+import org.codehaus.stax2.validation.XMLValidator;
 
 import com.ctc.wstx.api.WriterConfig;
 import com.ctc.wstx.cfg.XmlConsts;
@@ -639,6 +640,66 @@ public abstract class EncodingXmlWriter
         mOutputPtr += len;
         for (int i = 0; i < len; ++i) {
             dst[ptr+i] = (byte)buf[offset+i];
+        }
+    }
+
+    /**
+     * Non-validating version of typed write method
+     */
+    public final void writeTypedAscii(AsciiValueEncoder enc)
+        throws IOException
+    {
+        if (mSurrogate != 0) {
+            throwUnpairedSurrogate();
+        }
+        if (enc.bufferNeedsFlush(mOutputBuffer.length - mOutputPtr)) {
+            flush();
+        }
+        while (true) {
+            int outlen = mOutputBuffer.length;
+            mOutputPtr = enc.encodeMore(mOutputBuffer, mOutputPtr, outlen);
+            // If no flushing needed, indicates that all data was encoded
+            if (!enc.bufferNeedsFlush(outlen - mOutputPtr)) {
+                break;
+            }
+            flush();
+        }
+    }
+
+    /**
+     * Validating version of typed write method
+     */
+    public final void writeTypedAscii(AsciiValueEncoder enc,
+                                      XMLValidator validator, char[] copyBuffer)
+        throws IOException, XMLStreamException
+    {
+        if (mSurrogate != 0) {
+            throwUnpairedSurrogate();
+        }
+
+        /* Ok, this gets trickier: can't use efficient direct-to-bytes
+         * encoding since validator won't be able to use it. Instead
+         * have to use temporary copy buffer.
+         */
+        final int copyBufferLen = copyBuffer.length;
+        int ptr = 0;
+
+        // Copy buffer should never be too small, no need to check up front
+        while (true) {
+            ptr = enc.encodeMore(copyBuffer, ptr, copyBufferLen);
+
+            // False -> can't be sure it's the whole remaining text
+            validator.validateText(copyBuffer, 0, ptr, false);
+            writeRawAscii(copyBuffer, 0, ptr);
+
+            /* We still must check for flushing to see if there's more
+             * data
+             */
+            if (!enc.bufferNeedsFlush(copyBufferLen - ptr)) {
+                break;
+            }
+            // actual "flush" done by writeRawAscii, but need to reset ptr
+            ptr = 0;
         }
     }
 
