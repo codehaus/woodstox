@@ -293,10 +293,9 @@ public class NonNsStreamWriter
 
         try {
             if (mValidator == null) {
-                mWriter.writeTypedAttribute(null, localName, enc);
+                mWriter.writeTypedAttribute(localName, enc);
             } else {
-                mWriter.writeTypedAttribute(null, localName, null, enc,
-                                            mValidator, getCopyBuffer());
+                mWriter.writeTypedAttribute(null, localName, null, enc, mValidator, getCopyBuffer());
             }
         } catch (IOException ioe) {
             throwFromIOE(ioe);

@@ -324,10 +324,14 @@ public abstract class BaseNsStreamWriter
         }
         try {
             if (mValidator == null) {
-                mWriter.writeTypedAttribute(prefix, localName, enc);
+                 if (prefix == null || prefix.length() == 0) {
+                     mWriter.writeTypedAttribute(localName, enc);
+                 } else {
+                     mWriter.writeTypedAttribute(prefix, localName, enc);
+                 }
             } else {
-                mWriter.writeTypedAttribute(prefix, localName, nsURI, enc,
-                                            mValidator, getCopyBuffer());
+                mWriter.writeTypedAttribute
+                    (prefix, localName, nsURI, enc, mValidator, getCopyBuffer());
             }
         } catch (IOException ioe) {
             throw new WstxIOException(ioe);

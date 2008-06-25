@@ -167,10 +167,12 @@ public final class ValueEncoderFactory
 
         protected int maxElementLength() { return mValue.length(); }
 
-        public final boolean bufferNeedsFlush(int freeChars)
+        public boolean bufferNeedsFlush(int freeChars)
         {
             return (mValue != null) && (freeChars < mValue.length());
         }
+
+        public boolean isCompleted() { return (mValue == null); }
 
         public int encodeMore(char[] buffer, int ptr, int end)
         {
@@ -217,6 +219,8 @@ public final class ValueEncoderFactory
             return !mWritten && (freeChars < maxElementLength());
         }
 
+        public boolean isCompleted() { return mWritten; }
+
         /**
          * @return Maximum length of an individual element <b>plus one</b>
          *   (for space separating elements)
@@ -240,11 +244,13 @@ public final class ValueEncoderFactory
 
         public int encodeMore(char[] buffer, int ptr, int end)
         {
+            mWritten = true;
             return NumberUtil.writeInt(mValue, buffer, ptr);
         }
 
         public int encodeMore(byte[] buffer, int ptr, int end)
         {
+            mWritten = true;
             return NumberUtil.writeInt(mValue, buffer, ptr);
         }
     }
@@ -265,11 +271,13 @@ public final class ValueEncoderFactory
 
         public int encodeMore(char[] buffer, int ptr, int end)
         {
+            mWritten = true;
             return NumberUtil.writeLong(mValue, buffer, ptr);
         }
 
         public int encodeMore(byte[] buffer, int ptr, int end)
         {
+            mWritten = true;
             return NumberUtil.writeLong(mValue, buffer, ptr);
         }
     }
@@ -290,11 +298,13 @@ public final class ValueEncoderFactory
 
         public int encodeMore(char[] buffer, int ptr, int end)
         {
+            mWritten = true;
             return NumberUtil.writeFloat(mValue, buffer, ptr);
         }
 
         public int encodeMore(byte[] buffer, int ptr, int end)
         {
+            mWritten = true;
             return NumberUtil.writeFloat(mValue, buffer, ptr);
         }
     }
@@ -315,11 +325,13 @@ public final class ValueEncoderFactory
 
         public int encodeMore(char[] buffer, int ptr, int end)
         {
+            mWritten = true;
             return NumberUtil.writeDouble(mValue, buffer, ptr);
         }
 
         public int encodeMore(byte[] buffer, int ptr, int end)
         {
+            mWritten = true;
             return NumberUtil.writeDouble(mValue, buffer, ptr);
         }
     }
@@ -353,6 +365,8 @@ public final class ValueEncoderFactory
             // subtract one for trailing space
             return (mPtr < mEnd) && (freeChars < (maxElementLength()+1));
         }
+
+        public final boolean isCompleted() { return (mPtr >= mEnd); }
 
         public abstract int encodeMore(char[] buffer, int ptr, int end);
 

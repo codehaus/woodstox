@@ -526,31 +526,107 @@ public abstract class EncodingXmlWriter
         writeAscii(BYTE_QUOT);
     }
 
+    /*
+    ////////////////////////////////////////////////
+    // Methods used by Typed Access API
+    ////////////////////////////////////////////////
+     */
+
+    /**
+     * Non-validating version of typed write method
+     */
+    public final void writeTypedElement(AsciiValueEncoder enc)
+        throws IOException
+    {
+        if (mSurrogate != 0) {
+            throwUnpairedSurrogate();
+        }
+        if (enc.bufferNeedsFlush(mOutputBuffer.length - mOutputPtr)) {
+            flush();
+        }
+        while (true) {
+            mOutputPtr = enc.encodeMore(mOutputBuffer, mOutputPtr, mOutputBuffer.length);
+            // If no flushing needed, indicates that all data was encoded
+            if (enc.isCompleted()) {
+                break;
+            }
+            flush();
+        }
+    }
+
+    /**
+     * Validating version of typed write method
+     */
+    public final void writeTypedElement(AsciiValueEncoder enc,
+                                        XMLValidator validator, char[] copyBuffer)
+        throws IOException, XMLStreamException
+    {
+        if (mSurrogate != 0) {
+            throwUnpairedSurrogate();
+        }
+
+        /* Ok, this gets trickier: can't use efficient direct-to-bytes
+         * encoding since validator won't be able to use it. Instead
+         * have to use temporary copy buffer.
+         */
+        final int copyBufferLen = copyBuffer.length;
+
+        // Copy buffer should never be too small, no need to check up front
+        do {
+            int ptr = enc.encodeMore(copyBuffer, 0, copyBufferLen);
+
+            // False -> can't be sure it's the whole remaining text
+            validator.validateText(copyBuffer, 0, ptr, false);
+            writeRawAscii(copyBuffer, 0, ptr);
+        } while (!enc.isCompleted());
+    }
+
+    public void writeTypedAttribute(String localName, AsciiValueEncoder enc)
+        throws IOException, XMLStreamException
+    {
+        writeAscii(BYTE_SPACE);
+        writeName(localName);
+        writeAscii(BYTE_EQ, BYTE_QUOT);
+
+        if (enc.bufferNeedsFlush(mOutputBuffer.length - mOutputPtr)) {
+            flush();
+        }
+        while (true) {
+            mOutputPtr = enc.encodeMore(mOutputBuffer, mOutputPtr, mOutputBuffer.length);
+            if (enc.isCompleted()) {
+                break;
+            }
+            flush();
+        }
+        writeAscii(BYTE_QUOT);
+    }
+
     public void writeTypedAttribute(String prefix, String localName,
                                     AsciiValueEncoder enc)
         throws IOException, XMLStreamException
     {
         writeAscii(BYTE_SPACE);
-        if (prefix != null && prefix.length() != 0) {
-            writeName(prefix);
-            writeAscii(BYTE_COLON);
-        }
+        writeName(prefix);
+        writeAscii(BYTE_COLON);
         writeName(localName);
         writeAscii(BYTE_EQ, BYTE_QUOT);
 
-        // !!! TBI
-        /*
-        if (len > 0) {
-            writeRawAscii(value, offset, len);
+        if (enc.bufferNeedsFlush(mOutputBuffer.length - mOutputPtr)) {
+            flush();
         }
-        */
-
+        while (true) {
+            mOutputPtr = enc.encodeMore(mOutputBuffer, mOutputPtr, mOutputBuffer.length);
+            if (enc.isCompleted()) {
+                break;
+            }
+            flush();
+        }
         writeAscii(BYTE_QUOT);
     }
 
     public void writeTypedAttribute(String prefix, String localName, String nsURI,
-                                    AsciiValueEncoder enc,
-                                    XMLValidator validator, char[] copyBuffer)
+                                      AsciiValueEncoder enc,
+                                      XMLValidator validator, char[] copyBuffer)
         throws IOException, XMLStreamException
     {
         boolean hasPrefix = (prefix != null && prefix.length() > 0);
@@ -560,21 +636,46 @@ public abstract class EncodingXmlWriter
         //validator.validateAttribute(localName, nsURI, (hasPrefix ? prefix: ""), buf, offset, len);
 
         writeAscii(BYTE_SPACE);
-        if (prefix != null && prefix.length() != 0) {
+        if (hasPrefix) {
             writeName(prefix);
             writeAscii(BYTE_COLON);
         }
         writeName(localName);
         writeAscii(BYTE_EQ, BYTE_QUOT);
 
-        // !!! TBI
-        /*
-        if (len > 0) {
-            writeRawAscii(value, offset, len);
+        /* Ok, this gets trickier: can't use efficient direct-to-bytes
+         * encoding since validator won't be able to use it. Instead
+         * have to use temporary copy buffer.
+         * In addition, attributes to validate can not be
+         * split (validators expect complete values). So, if value
+         * won't fit as is, may need to aggregate using StringBuilder
+         */
+        final int copyBufferLen = copyBuffer.length;
+
+        // First, let's see if one call is enough
+        int last = enc.encodeMore(copyBuffer, 0, copyBufferLen);
+        writeRawAscii(copyBuffer, 0, last);
+        if (enc.isCompleted()) {
+            validator.validateAttribute(localName, nsURI, prefix, copyBuffer, 0, last);
+            return;
         }
-        */
+
+        // If not, must combine first
+        StringBuffer sb = new StringBuffer(copyBufferLen << 1);
+        sb.append(copyBuffer, 0, last);
+        do {
+            last = enc.encodeMore(copyBuffer, 0, copyBufferLen);
+            writeRawAscii(copyBuffer, 0, last);
+            sb.append(copyBuffer, 0, last);
+        } while (!enc.isCompleted());
 
         writeAscii(BYTE_QUOT);
+
+        // Then validate
+        String valueStr = sb.toString();
+        validator.validateAttribute(localName, nsURI, prefix, valueStr);
+
+        return;
     }
 
     /*
@@ -665,66 +766,6 @@ public abstract class EncodingXmlWriter
         mOutputPtr += len;
         for (int i = 0; i < len; ++i) {
             dst[ptr+i] = (byte)buf[offset+i];
-        }
-    }
-
-    /**
-     * Non-validating version of typed write method
-     */
-    public final void writeTypedElement(AsciiValueEncoder enc)
-        throws IOException
-    {
-        if (mSurrogate != 0) {
-            throwUnpairedSurrogate();
-        }
-        if (enc.bufferNeedsFlush(mOutputBuffer.length - mOutputPtr)) {
-            flush();
-        }
-        while (true) {
-            int outlen = mOutputBuffer.length;
-            mOutputPtr = enc.encodeMore(mOutputBuffer, mOutputPtr, outlen);
-            // If no flushing needed, indicates that all data was encoded
-            if (!enc.bufferNeedsFlush(outlen - mOutputPtr)) {
-                break;
-            }
-            flush();
-        }
-    }
-
-    /**
-     * Validating version of typed write method
-     */
-    public final void writeTypedElement(AsciiValueEncoder enc,
-                                        XMLValidator validator, char[] copyBuffer)
-        throws IOException, XMLStreamException
-    {
-        if (mSurrogate != 0) {
-            throwUnpairedSurrogate();
-        }
-
-        /* Ok, this gets trickier: can't use efficient direct-to-bytes
-         * encoding since validator won't be able to use it. Instead
-         * have to use temporary copy buffer.
-         */
-        final int copyBufferLen = copyBuffer.length;
-        int ptr = 0;
-
-        // Copy buffer should never be too small, no need to check up front
-        while (true) {
-            ptr = enc.encodeMore(copyBuffer, ptr, copyBufferLen);
-
-            // False -> can't be sure it's the whole remaining text
-            validator.validateText(copyBuffer, 0, ptr, false);
-            writeRawAscii(copyBuffer, 0, ptr);
-
-            /* We still must check for flushing to see if there's more
-             * data
-             */
-            if (!enc.bufferNeedsFlush(copyBufferLen - ptr)) {
-                break;
-            }
-            // actual "flush" done by writeRawAscii, but need to reset ptr
-            ptr = 0;
         }
     }
 

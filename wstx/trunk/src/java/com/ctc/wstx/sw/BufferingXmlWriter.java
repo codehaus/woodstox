@@ -339,55 +339,6 @@ public final class BufferingXmlWriter
         mOut.write(str, offset, len);
     }
 
-    public final void writeTypedElement(AsciiValueEncoder enc)
-        throws IOException
-    {
-        if (mOut == null) {
-            return;
-        }
-
-        int free = mOutputBufLen - mOutputPtr;
-        if (enc.bufferNeedsFlush(free)) {
-            flush();
-        }
-        while (true) {
-            mOutputPtr = enc.encodeMore(mOutputBuffer, mOutputPtr, mOutputBufLen);
-            // If no flushing needed, indicates that all data was encoded
-            free = mOutputBufLen - mOutputPtr;
-            if (!enc.bufferNeedsFlush(free)) {
-                break;
-            }
-            flush();
-        }
-    }
-
-    public final void writeTypedElement(AsciiValueEncoder enc,
-                                        XMLValidator validator, char[] copyBuffer)
-        throws IOException, XMLStreamException
-    {
-        if (mOut == null) {
-            return;
-        }
-        int free = mOutputBufLen - mOutputPtr;
-        if (enc.bufferNeedsFlush(free)) {
-            flush();
-        }
-        int start = mOutputPtr;
-        while (true) {
-            mOutputPtr = enc.encodeMore(mOutputBuffer, mOutputPtr, mOutputBufLen);
-            // False -> can't be sure it's the whole remaining text
-            validator.validateText(mOutputBuffer, start, mOutputPtr, false);
-
-            // If no flushing needed, indicates that all data was encoded
-            free = mOutputBufLen - mOutputPtr;
-            if (!enc.bufferNeedsFlush(free)) {
-                break;
-            }
-            flush();
-            start = mOutputPtr;
-        }
-    }
-
     /*
     ////////////////////////////////////////////////
     // "Trusted" low-level output methods
@@ -1047,93 +998,6 @@ public final class BufferingXmlWriter
         fastWriteRaw('"');
     }
 
-    public void writeTypedAttribute(String prefix, String localName,
-                                    AsciiValueEncoder enc)
-        throws IOException, XMLStreamException
-    {
-        if (mOut == null) {
-            return;
-        }
-        if (mCheckNames) {
-            verifyNameValidity(localName, mNsAware);
-        }
-        int len = localName.length();
-        if ((mOutputPtr + 3 + len) <= mOutputBufLen) {
-            fastWriteRaw(' ');
-            fastWriteRaw(localName);
-            fastWriteRaw('=', '"');
-        } else {
-            int ptr = mOutputPtr;
-            char[] buf = mOutputBuffer;
-            buf[ptr++] = ' ';
-            localName.getChars(0, len, buf, ptr);
-            ptr += len;
-            buf[ptr++] = '=';
-            buf[ptr++] = '"';
-            mOutputPtr = ptr;
-        }
-        // !!! TBI
-        /*
-        if (vlen > 0) {
-            writeRawAscii(value, offset, vlen);
-        }
-        */
-        fastWriteRaw('"');
-    }
-
-    public void writeTypedAttribute(String prefix, String localName, String nsURI,
-                                    AsciiValueEncoder enc,
-                                    XMLValidator validator, char[] copyBuffer)
-        throws IOException, XMLStreamException
-    {
-        if (mOut == null) {
-            return;
-        }
-        if (mCheckNames) {
-            verifyNameValidity(prefix, mNsAware);
-            verifyNameValidity(localName, mNsAware);
-        }
-
-        if (prefix == null) {
-            prefix = "";
-        }
-        if (nsURI == null) {
-            nsURI = "";
-        }
-        //validator.validateAttribute(localName, nsURI, prefix, buf, offset, len)
-        int plen = prefix.length();
-        if (((mOutputBufLen - mOutputPtr) - (4 + localName.length() + plen)) < 0) {
-            fastWriteRaw(' ');
-            if (plen > 0) {
-                fastWriteRaw(prefix);
-                fastWriteRaw(':');
-            }
-            fastWriteRaw(localName);
-            fastWriteRaw('=', '"');
-        } else {
-            int ptr = mOutputPtr;
-            char[] buf = mOutputBuffer;
-            buf[ptr++] = ' ';
-            prefix.getChars(0, plen, buf, ptr);
-            ptr += plen;
-            buf[ptr++] = ':';
-            int llen = localName.length();
-            localName.getChars(0, llen, buf, ptr);
-            ptr += llen;
-            buf[ptr++] = '=';
-            buf[ptr++] = '"';
-            mOutputPtr = ptr;
-        }
-
-        // !!! TBI
-        /*
-        if (vlen > 0) {
-            writeRawAscii(value, offset, vlen);
-        }
-        */
-        fastWriteRaw('"');
-    }
-
     private final void writeAttrValue(String value, int len)
         throws IOException
     {
@@ -1234,6 +1098,235 @@ public final class BufferingXmlWriter
                 writeAsEntity(value[offset-1]);
             }
         }
+    }
+
+    /*
+    ////////////////////////////////////////////////
+    // Methods used by Typed Access API
+    ////////////////////////////////////////////////
+     */
+
+    public final void writeTypedElement(AsciiValueEncoder enc)
+        throws IOException
+    {
+        if (mOut == null) {
+            return;
+        }
+
+        int free = mOutputBufLen - mOutputPtr;
+        if (enc.bufferNeedsFlush(free)) {
+            flush();
+        }
+        while (true) {
+            mOutputPtr = enc.encodeMore(mOutputBuffer, mOutputPtr, mOutputBufLen);
+            // If no flushing needed, indicates that all data was encoded
+            if (enc.isCompleted()) {
+                break;
+            }
+            flush();
+        }
+    }
+
+    public final void writeTypedElement(AsciiValueEncoder enc,
+                                        XMLValidator validator, char[] copyBuffer)
+        throws IOException, XMLStreamException
+    {
+        if (mOut == null) {
+            return;
+        }
+        int free = mOutputBufLen - mOutputPtr;
+        if (enc.bufferNeedsFlush(free)) {
+            flush();
+        }
+        int start = mOutputPtr;
+        while (true) {
+            mOutputPtr = enc.encodeMore(mOutputBuffer, mOutputPtr, mOutputBufLen);
+            // False -> can't be sure it's the whole remaining text
+            validator.validateText(mOutputBuffer, start, mOutputPtr, false);
+            if (enc.isCompleted()) {
+                break;
+            }
+            flush();
+            start = mOutputPtr;
+        }
+    }
+
+    public void writeTypedAttribute(String localName, AsciiValueEncoder enc)
+        throws IOException, XMLStreamException
+    {
+        if (mOut == null) {
+            return;
+        }
+        if (mCheckNames) {
+            verifyNameValidity(localName, mNsAware);
+        }
+        int len = localName.length();
+        if ((mOutputPtr + 3 + len) > mOutputBufLen) {
+            fastWriteRaw(' ');
+            fastWriteRaw(localName);
+            fastWriteRaw('=', '"');
+        } else {
+            int ptr = mOutputPtr;
+            char[] buf = mOutputBuffer;
+            buf[ptr++] = ' ';
+            localName.getChars(0, len, buf, ptr);
+            ptr += len;
+            buf[ptr++] = '=';
+            buf[ptr++] = '"';
+            mOutputPtr = ptr;
+        }
+
+        int free = mOutputBufLen - mOutputPtr;
+        if (enc.bufferNeedsFlush(free)) {
+            flush();
+        }
+        while (true) {
+            mOutputPtr = enc.encodeMore(mOutputBuffer, mOutputPtr, mOutputBufLen);
+            if (enc.isCompleted()) {
+                break;
+            }
+            flush();
+        }
+        fastWriteRaw('"');
+    }
+
+    public void writeTypedAttribute(String prefix, String localName,
+                                    AsciiValueEncoder enc)
+        throws IOException, XMLStreamException
+    {
+        if (mOut == null) {
+            return;
+        }
+        if (mCheckNames) {
+            verifyNameValidity(prefix, mNsAware);
+            verifyNameValidity(localName, mNsAware);
+        }
+        int plen = prefix.length();
+        int llen = localName.length();
+
+        if ((mOutputPtr + 4 + plen + llen) > mOutputBufLen) {
+            writeQName(prefix, localName);
+            fastWriteRaw('=', '"');
+        } else {
+            int ptr = mOutputPtr;
+            char[] buf = mOutputBuffer;
+            buf[ptr++] = ' ';
+            if (plen > 0) {
+                prefix.getChars(0, plen, buf, ptr);
+                ptr += plen;
+                buf[ptr++] = ':';
+
+            }
+            localName.getChars(0, llen, buf, ptr);
+            ptr += llen;
+            buf[ptr++] = '=';
+            buf[ptr++] = '"';
+            mOutputPtr = ptr;
+        }
+
+        int free = mOutputBufLen - mOutputPtr;
+        if (enc.bufferNeedsFlush(free)) {
+            flush();
+        }
+        while (true) {
+            mOutputPtr = enc.encodeMore(mOutputBuffer, mOutputPtr, mOutputBufLen);
+            if (enc.isCompleted()) {
+                break;
+            }
+            flush();
+        }
+
+        fastWriteRaw('"');
+    }
+
+    public void writeTypedAttribute(String prefix, String localName, String nsURI,
+                                    AsciiValueEncoder enc,
+                                    XMLValidator validator, char[] copyBuffer)
+        throws IOException, XMLStreamException
+    {
+        if (mOut == null) {
+            return;
+        }
+        if (prefix == null) {
+            prefix = "";
+        }
+        if (nsURI == null) {
+            nsURI = "";
+        }
+        int plen = prefix.length();
+        if (mCheckNames) {
+            if (plen > 0) {
+                verifyNameValidity(prefix, mNsAware);
+            }
+            verifyNameValidity(localName, mNsAware);
+        }
+        if (((mOutputBufLen - mOutputPtr) - (4 + localName.length() + plen)) < 0) {
+            writeQName(prefix, localName);
+            fastWriteRaw('=', '"');
+        } else {
+            int ptr = mOutputPtr;
+            char[] buf = mOutputBuffer;
+            buf[ptr++] = ' ';
+            if (plen > 0) {
+                prefix.getChars(0, plen, buf, ptr);
+                ptr += plen;
+                buf[ptr++] = ':';
+
+            }
+            int llen = localName.length();
+            localName.getChars(0, llen, buf, ptr);
+            ptr += llen;
+            buf[ptr++] = '=';
+            buf[ptr++] = '"';
+            mOutputPtr = ptr;
+        }
+
+        /* Tricky here is this: attributes to validate can not be
+         * split (validators expect complete values). So, if value
+         * won't fit as is, may need to aggregate using StringBuilder
+         */
+        int free = mOutputBufLen - mOutputPtr;
+        if (enc.bufferNeedsFlush(free)) {
+            flush();
+        }
+        int start = mOutputPtr;
+
+        // First, let's see if one call is enough
+        mOutputPtr = enc.encodeMore(mOutputBuffer, mOutputPtr, mOutputBufLen);
+        if (enc.isCompleted()) { // yup
+            validator.validateAttribute(localName, nsURI, prefix, mOutputBuffer, start, mOutputPtr);
+            return;
+        }
+
+        // If not, must combine first
+        StringBuffer sb = new StringBuffer(mOutputBuffer.length << 1);
+        sb.append(mOutputBuffer, start, mOutputPtr-start);
+        while (true) {
+            flush();
+            start = mOutputPtr;
+            mOutputPtr = enc.encodeMore(mOutputBuffer, mOutputPtr, mOutputBufLen);
+            sb.append(mOutputBuffer, start, mOutputPtr-start);
+            // All done?
+            if (enc.isCompleted()) {
+                break;
+            }
+        }
+        fastWriteRaw('"');
+
+        // Then validate
+        String valueStr = sb.toString();
+        validator.validateAttribute(localName, nsURI, prefix, valueStr);
+    }
+
+    private final void writeQName(String prefix, String localName)
+        throws IOException
+    {
+        fastWriteRaw(' ');
+        if (prefix.length() > 0) {
+            fastWriteRaw(prefix);
+            fastWriteRaw(':');
+        }
+        fastWriteRaw(localName);
     }
 
     /*

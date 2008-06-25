@@ -964,21 +964,21 @@ public abstract class BaseStreamWriter
         throws XMLStreamException
     {
         writeTypedAttribute(prefix, nsURI, localName,
-                              valueEncoderFactory().getEncoder(value, 0, value.length));
+                            valueEncoderFactory().getEncoder(value, 0, value.length));
     }
 
     public void writeFloatArrayAttribute(String prefix, String nsURI, String localName, float[] value)
         throws XMLStreamException
     {
         writeTypedAttribute(prefix, nsURI, localName,
-                              valueEncoderFactory().getEncoder(value, 0, value.length));
+                            valueEncoderFactory().getEncoder(value, 0, value.length));
     }
 
     public void writeDoubleArrayAttribute(String prefix, String nsURI, String localName, double[] value)
         throws XMLStreamException
     {
         writeTypedAttribute(prefix, nsURI, localName,
-                              valueEncoderFactory().getEncoder(value, 0, value.length));
+                            valueEncoderFactory().getEncoder(value, 0, value.length));
     }
 
     /*

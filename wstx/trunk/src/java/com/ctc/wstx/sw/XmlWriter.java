@@ -263,32 +263,6 @@ public abstract class XmlWriter
     public abstract void writeRawAscii(char[] cbuf, int offset, int len)
         throws IOException;
 
-    /**
-     * Like {@link #writeRaw}, but caller guarantees that the contents
-     * additionally are known to be in 7-bit ascii range, and also
-     * passes an encoder object that will encode values only when
-     * being handed a buffer to append to.
-     *
-     * @param enc Encoder that will produce content
-     */
-    public abstract void writeTypedElement(AsciiValueEncoder enc)
-        throws IOException;
-    /**
-     * Like {@link #writeRaw}, but caller guarantees that the contents
-     * additionally are known to be in 7-bit ascii range, and also
-     * passes an encoder object that will encode values only when
-     * being handed a buffer to append to.
-     *
-     * @param enc Encoder that will produce content
-     * @param validator Validator to use for validating serialized textual
-     *   content (can not be null)
-     * @param copyBuffer Temporary buffer that writer can use for temporary
-     *   copies as necessary
-     */
-    public abstract void writeTypedElement(AsciiValueEncoder enc,
-                                           XMLValidator validator, char[] copyBuffer)
-        throws IOException, XMLStreamException;
-
     /*
     ////////////////////////////////////////////////////
     // Raw, non-verifying write methods; used when
@@ -446,6 +420,47 @@ public abstract class XmlWriter
     public abstract void writeAttribute(String prefix, String localName, char[] value, int offset, int len)
         throws IOException, XMLStreamException;
 
+    /*
+    ////////////////////////////////////////////////////
+    // Write methods, Typed Access API support
+    ////////////////////////////////////////////////////
+     */
+
+    /**
+     * Like {@link #writeRaw}, but caller guarantees that the contents
+     * additionally are known to be in 7-bit ascii range, and also
+     * passes an encoder object that will encode values only when
+     * being handed a buffer to append to.
+     *
+     * @param enc Encoder that will produce content
+     */
+    public abstract void writeTypedElement(AsciiValueEncoder enc)
+        throws IOException;
+
+    /**
+     * Like {@link #writeRaw}, but caller guarantees that the contents
+     * additionally are known to be in 7-bit ascii range, and also
+     * passes an encoder object that will encode values only when
+     * being handed a buffer to append to.
+     *
+     * @param enc Encoder that will produce content
+     * @param validator Validator to use for validating serialized textual
+     *   content (can not be null)
+     * @param copyBuffer Temporary buffer that writer can use for temporary
+     *   copies as necessary
+     */
+    public abstract void writeTypedElement(AsciiValueEncoder enc,
+                                           XMLValidator validator, char[] copyBuffer)
+        throws IOException, XMLStreamException;
+
+    /**
+     * Method similar to {@link #writeAttribute(String,String,char[],int,int)}
+     * but where is known not to require escaping.
+     * No validation needs to be performed.
+     */
+    public abstract void writeTypedAttribute(String localName, AsciiValueEncoder enc)
+        throws IOException, XMLStreamException;
+
     /**
      * Method similar to {@link #writeAttribute(String,String,char[],int,int)}
      * but where is known not to require escaping.
@@ -464,8 +479,6 @@ public abstract class XmlWriter
                                              AsciiValueEncoder enc,
                                              XMLValidator validator, char[] copyBuffer)
         throws IOException, XMLStreamException;
-
-    // // Typed attribute write methods
 
     /*
     ////////////////////////////////////////////////////

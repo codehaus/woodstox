@@ -56,6 +56,13 @@ public abstract class AsciiValueEncoder
     public abstract boolean bufferNeedsFlush(int freeChars);
 
     /**
+     * Method that can alternatively be called (instead of
+     * {@link #bufferNeedsFlush} to determine whether encoder
+     * has encoded all data it has.
+     */
+    public abstract boolean isCompleted();
+
+    /**
      * @return Value of pointer after all remaining data (which
      *   may be "none") that can be encoded (as constrained by
      *   buffer length) has been encoded. Has to exceed 'ptr'
