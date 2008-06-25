@@ -27,7 +27,6 @@ import javax.xml.stream.XMLResolver;
 import javax.xml.stream.XMLStreamException;
 
 import org.codehaus.stax2.XMLStreamLocation2;
-import org.codehaus.stax2.validation.XMLValidationException;
 import org.codehaus.stax2.validation.XMLValidationProblem;
 
 import com.ctc.wstx.api.ReaderConfig;

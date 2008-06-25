@@ -25,8 +25,8 @@ public class TestXml11
         assertTokenType(START_ELEMENT, sr.next());
         // This should result in an exception:
         try {
-            int type = sr.next(); // usually fails here
-            type = sr.next(); // but if not, at least here (END_ELEMENT)
+            /*int type =*/ sr.next(); // usually fails here
+            /*type =*/ sr.next(); // but if not, at least here (END_ELEMENT)
             fail("Expected a stream exception due to namespace unbind for xml 1.0 document");
         } catch (XMLStreamException sex) {
             ; //good

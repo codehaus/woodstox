@@ -18,6 +18,7 @@ package com.ctc.wstx.sw;
 import java.io.*;
 import javax.xml.stream.XMLStreamException;
 
+import org.codehaus.stax2.ri.typed.AsciiValueEncoder;
 import org.codehaus.stax2.validation.XMLValidator;
 
 import com.ctc.wstx.api.WriterConfig;

@@ -15,10 +15,7 @@
 
 package com.ctc.wstx.evt;
 
-import java.util.NoSuchElementException;
-
 import javax.xml.stream.*;
-import javax.xml.stream.events.*;
 import javax.xml.stream.util.XMLEventAllocator;
 
 import org.codehaus.stax2.ri.Stax2EventReaderImpl;

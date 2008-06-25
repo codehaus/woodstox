@@ -13,7 +13,8 @@
  * limitations under the License.
  */
 
-package com.ctc.wstx.sw;
+package org.codehaus.stax2.ri.typed;
+
 
 import com.ctc.wstx.util.NumberUtil;
 

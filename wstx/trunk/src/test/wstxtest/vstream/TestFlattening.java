@@ -45,7 +45,7 @@ public class TestFlattening
             +"<!ENTITY a '&#65;'>\n"
             +"<?proc instr?>\r\n"
             ;
-        StringReader strr = new StringReader(DTD);
+        //StringReader strr = new StringReader(DTD);
         ReaderConfig cfg = ReaderConfig.createFullDefaults();
         for (int i = 0; i < 8; ++i) {
             boolean inclComments = (i & 4) != 0;

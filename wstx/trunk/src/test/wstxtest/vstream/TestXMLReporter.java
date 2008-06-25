@@ -2,7 +2,6 @@ package wstxtest.vstream;
 
 import javax.xml.stream.*;
 
-import org.codehaus.stax2.*;
 import org.codehaus.stax2.validation.XMLValidationProblem;
 
 import wstxtest.stream.BaseStreamTest;

@@ -4,8 +4,6 @@ import java.util.StringTokenizer;
 
 import javax.xml.stream.XMLStreamException;
 
-import org.codehaus.stax2.validation.XMLValidationException;
-
 import com.ctc.wstx.ent.EntityDecl;
 import com.ctc.wstx.io.WstxInputData;
 import com.ctc.wstx.sr.InputProblemReporter;

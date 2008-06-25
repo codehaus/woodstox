@@ -44,12 +44,12 @@ public class TestArgUtil
 
         // and then errors:
         try {
-            int x = ArgUtil.convertToInt("test", new HashMap(), 0);
+            /*int x =*/ ArgUtil.convertToInt("test", new HashMap(), 0);
             fail("Expected an IllegalArgumentException");
         } catch (IllegalArgumentException iae) { }
 
         try {
-            int x = ArgUtil.convertToInt("test", "foobar", 0);
+            /*int x =*/ ArgUtil.convertToInt("test", "foobar", 0);
             fail("Expected an IllegalArgumentException");
         } catch (IllegalArgumentException iae) { }
     }

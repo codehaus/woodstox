@@ -37,6 +37,8 @@ import org.codehaus.stax2.DTDInfo;
 import org.codehaus.stax2.XMLStreamLocation2;
 import org.codehaus.stax2.XMLStreamReader2;
 import org.codehaus.stax2.XMLStreamWriter2;
+import org.codehaus.stax2.ri.typed.AsciiValueEncoder;
+import org.codehaus.stax2.ri.typed.ValueEncoderFactory;
 import org.codehaus.stax2.validation.*;
 
 import com.ctc.wstx.api.WriterConfig;
@@ -50,7 +52,6 @@ import com.ctc.wstx.sr.StreamReaderImpl;
 import com.ctc.wstx.sr.AttributeCollector;
 import com.ctc.wstx.sr.InputElementStack;
 import com.ctc.wstx.util.DataUtil;
-import com.ctc.wstx.util.NumberUtil;
 import com.ctc.wstx.util.StringUtil;
 
 /**

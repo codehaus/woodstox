@@ -3,7 +3,6 @@ package com.ctc.wstx.sr;
 import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
 
-import org.codehaus.stax2.validation.XMLValidationException;
 import org.codehaus.stax2.validation.XMLValidationProblem;
 
 /**

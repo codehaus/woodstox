@@ -15,7 +15,7 @@ import org.w3c.dom.*;
 import org.codehaus.stax2.XMLStreamLocation2;
 import org.codehaus.stax2.XMLStreamReader2;
 import org.codehaus.stax2.XMLStreamWriter2;
-import org.codehaus.stax2.ri.typed.DefaultValueEncoder;
+import org.codehaus.stax2.ri.typed.SimpleValueEncoder;
 import org.codehaus.stax2.validation.ValidationProblemHandler;
 import org.codehaus.stax2.validation.XMLValidationSchema;
 import org.codehaus.stax2.validation.XMLValidator;
@@ -86,7 +86,7 @@ public class DOMWrappingWriter
      */
     protected NamespaceContext mNsContext;
 
-    protected DefaultValueEncoder mValueEncoder;
+    protected SimpleValueEncoder mValueEncoder;
 
     /*
     ////////////////////////////////////////////////////
@@ -522,28 +522,28 @@ public class DOMWrappingWriter
         /* true -> start with space, to allow for multiple consecutive
          * to be written
          */
-        writeCharacters(getValueEncoder().encodeAsString(true, value, from, length));
+        writeCharacters(getValueEncoder().encodeAsString(value, from, length));
     }
 
     public void writeLongArray(long[] value, int from, int length)
         throws XMLStreamException
     {
         // true -> start with space, for multiple segments
-        writeCharacters(getValueEncoder().encodeAsString(true, value, from, length));
+        writeCharacters(getValueEncoder().encodeAsString(value, from, length));
     }
 
     public void writeFloatArray(float[] value, int from, int length)
         throws XMLStreamException
     {
         // true -> start with space, for multiple segments
-        writeCharacters(getValueEncoder().encodeAsString(true, value, from, length));
+        writeCharacters(getValueEncoder().encodeAsString(value, from, length));
     }
 
     public void writeDoubleArray(double[] value, int from, int length)
         throws XMLStreamException
     {
         // true -> start with space, for multiple segments
-        writeCharacters(getValueEncoder().encodeAsString(true, value, from, length));
+        writeCharacters(getValueEncoder().encodeAsString(value, from, length));
     }
 
     // // // Typed attribute value write methods
@@ -606,28 +606,28 @@ public class DOMWrappingWriter
     {
         // false -> no need to start with a space
         writeAttribute(prefix, nsURI, localName,
-                       getValueEncoder().encodeAsString(false, value, 0, value.length));
+                       getValueEncoder().encodeAsString(value, 0, value.length));
     }
 
     public void writeLongArrayAttribute(String prefix, String nsURI, String localName, long[] value) throws XMLStreamException
     {
         // false -> no need to start with a space
         writeAttribute(prefix, nsURI, localName,
-                       getValueEncoder().encodeAsString(false, value, 0, value.length));
+                       getValueEncoder().encodeAsString(value, 0, value.length));
     }
     
     public void writeFloatArrayAttribute(String prefix, String nsURI, String localName, float[] value) throws XMLStreamException
     {
         // false -> no need to start with a space
         writeAttribute(prefix, nsURI, localName,
-                       getValueEncoder().encodeAsString(false, value, 0, value.length));
+                       getValueEncoder().encodeAsString(value, 0, value.length));
     }
     
     public void writeDoubleArrayAttribute(String prefix, String nsURI, String localName, double[] value) throws XMLStreamException
     {
         // false -> no need to start with a space
         writeAttribute(prefix, nsURI, localName,
-                       getValueEncoder().encodeAsString(false, value, 0, value.length));
+                       getValueEncoder().encodeAsString(value, 0, value.length));
     }
 
 
@@ -1080,10 +1080,10 @@ public class DOMWrappingWriter
         throwOutputError(msg);
     }
 
-    protected DefaultValueEncoder getValueEncoder()
+    protected SimpleValueEncoder getValueEncoder()
     {
         if (mValueEncoder == null) {
-            mValueEncoder = new DefaultValueEncoder();
+            mValueEncoder = new SimpleValueEncoder();
         }
         return mValueEncoder;
     }

@@ -13,9 +13,7 @@
  * limitations under the License.
  */
 
-package com.ctc.wstx.sw;
-
-import javax.xml.stream.XMLStreamException;
+package org.codehaus.stax2.ri.typed;
 
 /**
  * This base class defines interface used for efficient encoding

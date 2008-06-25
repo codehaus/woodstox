@@ -24,7 +24,6 @@ import javax.xml.stream.XMLStreamException;
 import org.codehaus.stax2.validation.*;
 
 import com.ctc.wstx.api.WstxInputProperties;
-import com.ctc.wstx.exc.WstxValidationException;
 import com.ctc.wstx.sr.NsDefaultProvider;
 import com.ctc.wstx.sr.InputElementStack;
 import com.ctc.wstx.util.DataUtil;

@@ -17,12 +17,11 @@ package org.codehaus.stax2.ri;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
 import javax.xml.stream.*;
 
 import org.codehaus.stax2.*;
-import org.codehaus.stax2.ri.typed.DefaultValueEncoder;
+import org.codehaus.stax2.ri.typed.SimpleValueEncoder;
 // Not from Stax 1.0, but Stax2 does provide it:
 import org.codehaus.stax2.util.StreamWriterDelegate;
 import org.codehaus.stax2.validation.ValidationProblemHandler;
@@ -58,7 +57,7 @@ public class Stax2WriterAdapter
      */
     protected String mEncoding;
 
-    protected DefaultValueEncoder mValueEncoder;
+    protected SimpleValueEncoder mValueEncoder;
 
     protected final boolean mNsRepairing;
 
@@ -150,28 +149,28 @@ public class Stax2WriterAdapter
         throws XMLStreamException
     {
         // true -> start with space, for multiple segments
-        mDelegate.writeCharacters(getValueEncoder().encodeAsString(true, value, from, length));
+        mDelegate.writeCharacters(getValueEncoder().encodeAsString(value, from, length));
     }
 
     public void writeLongArray(long[] value, int from, int length)
         throws XMLStreamException
     {
         // true -> start with space, for multiple segments
-        mDelegate.writeCharacters(getValueEncoder().encodeAsString(true, value, from, length));
+        mDelegate.writeCharacters(getValueEncoder().encodeAsString(value, from, length));
     }
 
     public void writeFloatArray(float[] value, int from, int length)
         throws XMLStreamException
     {
         // true -> start with space, for multiple segments
-        mDelegate.writeCharacters(getValueEncoder().encodeAsString(true, value, from, length));
+        mDelegate.writeCharacters(getValueEncoder().encodeAsString(value, from, length));
     }
 
     public void writeDoubleArray(double[] value, int from, int length)
         throws XMLStreamException
     {
         // true -> start with space, for multiple segments
-        mDelegate.writeCharacters(getValueEncoder().encodeAsString(true, value, from, length));
+        mDelegate.writeCharacters(getValueEncoder().encodeAsString(value, from, length));
     }
 
     // // // Typed attribute value write methods
@@ -225,28 +224,28 @@ public class Stax2WriterAdapter
     {
         // false -> no need to start with a space
         mDelegate.writeAttribute(prefix, nsURI, localName,
-                                 getValueEncoder().encodeAsString(false, value, 0, value.length));
+                                 getValueEncoder().encodeAsString(value, 0, value.length));
     }
 
     public void writeLongArrayAttribute(String prefix, String nsURI, String localName, long[] value) throws XMLStreamException
     {
         // false -> no need to start with a space
         mDelegate.writeAttribute(prefix, nsURI, localName,
-                                 getValueEncoder().encodeAsString(false, value, 0, value.length));
+                                 getValueEncoder().encodeAsString(value, 0, value.length));
     }
 
     public void writeFloatArrayAttribute(String prefix, String nsURI, String localName, float[] value) throws XMLStreamException
     {
         // false -> no need to start with a space
         mDelegate.writeAttribute(prefix, nsURI, localName,
-                                 getValueEncoder().encodeAsString(false, value, 0, value.length));
+                                 getValueEncoder().encodeAsString(value, 0, value.length));
     }
 
     public void writeDoubleArrayAttribute(String prefix, String nsURI, String localName, double[] value) throws XMLStreamException
     {
         // false -> no need to start with a space
         mDelegate.writeAttribute(prefix, nsURI, localName,
-                                 getValueEncoder().encodeAsString(false, value, 0, value.length));
+                                 getValueEncoder().encodeAsString(value, 0, value.length));
     }
 
      /*
@@ -559,10 +558,10 @@ public class Stax2WriterAdapter
         }
     }
 
-    protected DefaultValueEncoder getValueEncoder()
+    protected SimpleValueEncoder getValueEncoder()
     {
         if (mValueEncoder == null) {
-            mValueEncoder = new DefaultValueEncoder();
+            mValueEncoder = new SimpleValueEncoder();
         }
         return mValueEncoder;
     }

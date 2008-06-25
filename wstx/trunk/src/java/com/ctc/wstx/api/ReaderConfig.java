@@ -10,8 +10,6 @@ import org.codehaus.stax2.XMLInputFactory2; // for property consts
 import org.codehaus.stax2.XMLStreamProperties; // for property consts
 import org.codehaus.stax2.validation.DTDValidationSchema;
 
-import org.codehaus.stax2.ri.EmptyIterator;
-
 import com.ctc.wstx.api.WstxInputProperties;
 import com.ctc.wstx.cfg.InputConfigFlags;
 import com.ctc.wstx.dtd.DTDEventListener;

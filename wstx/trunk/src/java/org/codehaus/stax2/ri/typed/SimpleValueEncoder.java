@@ -1,0 +1,68 @@
+package org.codehaus.stax2.ri.typed;
+
+/**
+ * Helper class used for serializing typed values to String.
+ *
+ * @author Tatu Saloranta
+ */
+public class SimpleValueEncoder
+{
+    /**
+     * For efficient encoding, need a working buffer
+     */
+    protected final char[] mBuffer = new char[500];
+
+    protected final ValueEncoderFactory mEncoderFactory;
+
+    public SimpleValueEncoder()
+    {
+        mEncoderFactory = new ValueEncoderFactory();
+    }
+
+    /**
+     * @param leadingSpace If true, lexical value will start with a
+     *   space; if false, spaces are only used between values but not
+     *   before the first value
+     */
+    public String encodeAsString(int[] value, int from, int length)
+    {
+        return encode(mEncoderFactory.getEncoder(value, from, length));
+    }
+
+    public String encodeAsString(long[] value, int from, int length)
+    {
+        return encode(mEncoderFactory.getEncoder(value, from, length));
+    }
+
+    public String encodeAsString(float[] value, int from, int length)
+    {
+        return encode(mEncoderFactory.getEncoder(value, from, length));
+    }
+
+    public String encodeAsString(double[] value, int from, int length)
+    {
+        return encode(mEncoderFactory.getEncoder(value, from, length));
+    }
+
+    /*
+    ///////////////////////////////////////////////////
+    // Internal methods
+    ///////////////////////////////////////////////////
+     */
+
+    protected String encode(AsciiValueEncoder enc)
+    {
+        int last = enc.encodeMore(mBuffer, 0, mBuffer.length);
+        if (enc.isCompleted()) { // fitted in completely?
+            return new String(mBuffer, 0, last);
+        }
+        // !!! TODO: with Java 5, use StringBuilder instead
+        StringBuffer sb = new StringBuffer(mBuffer.length << 1);
+        sb.append(mBuffer, 0, last);
+        do {
+            last = enc.encodeMore(mBuffer, 0, mBuffer.length);
+            sb.append(mBuffer, 0, last);
+        } while (!enc.isCompleted());
+        return sb.toString();
+    }
+}

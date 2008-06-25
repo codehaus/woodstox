@@ -15,8 +15,6 @@
 
 package org.codehaus.stax2.util;
 
-import java.io.IOException;
-
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;

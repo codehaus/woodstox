@@ -23,6 +23,8 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.StartElement;
 
+import org.codehaus.stax2.ri.typed.AsciiValueEncoder;
+
 import com.ctc.wstx.api.WriterConfig;
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.cfg.XmlConsts;

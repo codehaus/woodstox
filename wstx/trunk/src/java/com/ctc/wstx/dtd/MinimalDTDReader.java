@@ -15,8 +15,6 @@
 
 package com.ctc.wstx.dtd;
 
-import java.io.IOException;
-
 import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
 

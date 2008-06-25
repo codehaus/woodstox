@@ -1,10 +1,8 @@
 package stax2.typed;
 
-import javax.xml.namespace.QName;
 import javax.xml.stream.*;
 
 import org.codehaus.stax2.XMLStreamReader2;
-import org.codehaus.stax2.typed.*;
 
 /**
  * Stax2 Typed Access API basic reader tests, using native Stax2
