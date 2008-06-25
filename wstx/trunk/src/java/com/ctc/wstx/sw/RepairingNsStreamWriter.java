@@ -247,16 +247,12 @@ public final class RepairingNsStreamWriter
 
     //public void writeEndElement(QName name) throws XMLStreamException
 
-    protected void writeEscapedAttribute(String prefix, String nsURI,
-                                         String localName,
-                                         char[] buf, int offset, int len)
+    protected void writeTypedAttribute(String prefix, String nsURI, String localName,
+                                       AsciiValueEncoder enc)
         throws XMLStreamException
     {
-        if (!mStartElementOpen) {
-            throwOutputError(ErrorConsts.WERR_ATTR_NO_ELEM);
-        }
-        doWriteEscapedAttr(localName, nsURI, findOrCreateAttrPrefix(prefix, nsURI, mCurrElem),
-                           buf, offset, len);
+        super.writeTypedAttribute(findOrCreateAttrPrefix(prefix, nsURI, mCurrElem),
+                                  nsURI, localName, enc);
     }
 
     protected void writeStartOrEmpty(String localName, String nsURI)

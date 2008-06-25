@@ -271,7 +271,7 @@ public abstract class XmlWriter
      *
      * @param enc Encoder that will produce content
      */
-    public abstract void writeTypedAscii(AsciiValueEncoder enc)
+    public abstract void writeTypedElement(AsciiValueEncoder enc)
         throws IOException;
     /**
      * Like {@link #writeRaw}, but caller guarantees that the contents
@@ -285,8 +285,8 @@ public abstract class XmlWriter
      * @param copyBuffer Temporary buffer that writer can use for temporary
      *   copies as necessary
      */
-    public abstract void writeTypedAscii(AsciiValueEncoder enc,
-                                         XMLValidator validator, char[] copyBuffer)
+    public abstract void writeTypedElement(AsciiValueEncoder enc,
+                                           XMLValidator validator, char[] copyBuffer)
         throws IOException, XMLStreamException;
 
     /*
@@ -447,21 +447,22 @@ public abstract class XmlWriter
         throws IOException, XMLStreamException;
 
     /**
-     * Method similar to {@link #writeAttribute(String,char[],int,int)}
+     * Method similar to {@link #writeAttribute(String,String,char[],int,int)}
      * but where is known not to require escaping.
-     *<p>
-     * Note: caller is not requir
+     * No validation needs to be performed.
      */
-    public abstract void writeEscapedAttribute(String localName, char[] value, int offset, int len)
+    public abstract void writeTypedAttribute(String prefix, String localName, AsciiValueEncoder enc)
         throws IOException, XMLStreamException;
 
     /**
      * Method similar to {@link #writeAttribute(String,String,char[],int,int)}
      * but where is known not to require escaping.
-     *<p>
-     * Note: caller is not requir
+     * Validation of the attribute value must be done by calling given
+     * validator appropriately.
      */
-    public abstract void writeEscapedAttribute(String prefix, String localName, char[] value, int offset, int len)
+    public abstract void writeTypedAttribute(String prefix, String localName, String nsURI,
+                                             AsciiValueEncoder enc,
+                                             XMLValidator validator, char[] copyBuffer)
         throws IOException, XMLStreamException;
 
     // // Typed attribute write methods

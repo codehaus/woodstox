@@ -82,7 +82,7 @@ public final class SimpleOutputElement
      * Map used to check for duplicate attribute declarations, if
      * feature is enabled.
      */
-    protected HashMap mAttrMap = null;
+    protected HashSet mAttrSet = null;
 
     /*
     ////////////////////////////////////////////
@@ -149,7 +149,7 @@ public final class SimpleOutputElement
          * that when a child element has been opened, no more attributes
          * can be output.
          */
-        mAttrMap = null;
+        mAttrSet = null;
         return new SimpleOutputElement(this, null, localName,
                                        mDefaultNsURI, mNsMapping);
     }
@@ -160,7 +160,7 @@ public final class SimpleOutputElement
     protected SimpleOutputElement reuseAsChild(SimpleOutputElement parent,
                                                String localName)
     {
-        mAttrMap = null;
+        mAttrSet = null;
         SimpleOutputElement poolHead = mParent;
         relink(parent, null, localName, mDefaultNsURI);
         return poolHead;
@@ -170,7 +170,7 @@ public final class SimpleOutputElement
                                                String prefix, String localName,
                                                String uri)
     {
-        mAttrMap = null;
+        mAttrSet = null;
         SimpleOutputElement poolHead = mParent;
         relink(parent, prefix, localName, uri);
         return poolHead;
@@ -187,7 +187,7 @@ public final class SimpleOutputElement
          * that when a child element has been opened, no more attributes
          * can be output.
          */
-        mAttrMap = null;
+        mAttrSet = null;
         return new SimpleOutputElement(this, prefix, localName, uri, mNsMapping);
     }
 
@@ -252,43 +252,19 @@ public final class SimpleOutputElement
     ////////////////////////////////////////////
      */
 
-    public void checkAttrWrite(String nsURI, String localName, String value)
+    public void checkAttrWrite(String nsURI, String localName)
         throws XMLStreamException
     {
         AttrName an = new AttrName(nsURI, localName);
-        if (mAttrMap == null) {
+        if (mAttrSet == null) {
             /* 13-Dec-2005, TSa: Should use a more efficient Set/Map value
              *   for this in future -- specifically one that could use
              *   ns/local-name pairs without intermediate objects
              */
-            mAttrMap = new HashMap();
-            mAttrMap.put(an, value);
-        } else {
-            Object old = mAttrMap.put(an, value);
-            if (old != null) {
-                throw new XMLStreamException("Duplicate attribute write for attribute '"+an+"' (previous value '"+old+"', new value '"+value+"').");
-            }
+            mAttrSet = new HashSet();
         }
-    }
-
-    public void checkAttrWrite(String nsURI, String localName,
-                               char[] buf, int start, int len)
-        throws XMLStreamException
-    {
-        AttrName an = new AttrName(nsURI, localName);
-        /* Doh: need to construct a non-transient value object (caller
-         * does not guarantee immutability of the buffer -- and in fact,
-         * it's most likely a transient working buffer)
-         */
-        String value = new String(buf, start, len);
-        if (mAttrMap == null) {
-            mAttrMap = new HashMap();
-            mAttrMap.put(an, value);
-        } else {
-            Object old = mAttrMap.put(an, value);
-            if (old != null) {
-                throw new XMLStreamException("Duplicate attribute write for attribute '"+an+"' (previous value '"+old+"', new value '"+value+"').");
-            }
+        if (!mAttrSet.add(an)) {
+            throw new XMLStreamException("Duplicate attribute write for attribute '"+an+"'");
         }
     }
 
@@ -339,7 +315,7 @@ public final class SimpleOutputElement
         /**
          * Let's cache the hash code, since although hash calculation is
          * fast, hash code is needed a lot as this is always used as a 
-         * HashMap/TreeMap key.
+         * HashSet/TreeMap key.
          */
         final int mHashCode;
 

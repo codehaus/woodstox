@@ -16,8 +16,7 @@
 package com.ctc.wstx.sw;
 
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.TreeMap;
+import java.util.*;
 
 import javax.xml.XMLConstants;
 import javax.xml.namespace.NamespaceContext;
@@ -60,11 +59,11 @@ public class NonNsStreamWriter
      * Container for attribute names for current element; used only
      * if uniqueness of attribute names is to be enforced.
      *<p>
-     * TreeMap is used mostly because clearing it up is faster than
-     * clearing up HashMap or HashSet, and the only access is done by
+     * TreeSet is used mostly because clearing it up is faster than
+     * clearing up HashSet, and the only access is done by
      * adding entries and see if an value was already set.
      */
-    TreeMap mAttrNames;
+    TreeSet mAttrNames;
 
     /*
     ////////////////////////////////////////////////////
@@ -121,13 +120,10 @@ public class NonNsStreamWriter
              *   for this in future.
              */
             if (mAttrNames == null) {
-                mAttrNames = new TreeMap();
-                mAttrNames.put(localName, value);
-            } else {
-                Object old = mAttrNames.put(localName, value);
-                if (old != null) {
-                    reportNwfAttr("Trying to write attribute '"+localName+"' twice (first value '"+old+"'; second '"+value+"').");
-                }
+                mAttrNames = new TreeSet();
+            }
+            if (!mAttrNames.add(localName)) {
+                reportNwfAttr("Trying to write attribute '"+localName+"' twice");
             }
         }
         if (mValidator != null) {
@@ -278,9 +274,8 @@ public class NonNsStreamWriter
                       mCfgAutomaticEmptyElems);
     }
 
-    protected void writeEscapedAttribute(String prefix, String nsURI,
-                                         String localName,
-                                         char[] buf, int offset, int len)
+    protected void writeTypedAttribute(String prefix, String nsURI, String localName,
+                                       AsciiValueEncoder enc)
         throws XMLStreamException
     {
         // note: mostly copied from the other writeAttribute() method..
@@ -288,26 +283,21 @@ public class NonNsStreamWriter
             reportNwfStructure(ErrorConsts.WERR_ATTR_NO_ELEM);
         }
         if (mCheckAttrs) { // doh. Not good, need to construct non-transient value...
-            String value = new String(buf, offset, len);
             if (mAttrNames == null) {
-                mAttrNames = new TreeMap();
-                mAttrNames.put(localName, value);
-            } else {
-                Object old = mAttrNames.put(localName, value);
-                if (old != null) {
-                    reportNwfAttr("Trying to write attribute '"+localName+"' twice (first value '"+old+"'; second '"+value+"').");
-                }
+                mAttrNames = new TreeSet();
+            }
+            if (!mAttrNames.add(localName)) {
+                reportNwfAttr("Trying to write attribute '"+localName+"' twice");
             }
         }
-        if (mValidator != null) {
-            /* No need to get it normalized... even if validator does normalize
-             * it, we don't use that for anything
-             */
-            mValidator.validateAttribute(localName, XmlConsts.ATTR_NO_NS_URI, XmlConsts.ATTR_NO_PREFIX, buf, offset, len);
-        }
-        
+
         try {
-            mWriter.writeEscapedAttribute(localName, buf, offset, len);
+            if (mValidator == null) {
+                mWriter.writeTypedAttribute(null, localName, enc);
+            } else {
+                mWriter.writeTypedAttribute(null, localName, null, enc,
+                                            mValidator, getCopyBuffer());
+            }
         } catch (IOException ioe) {
             throwFromIOE(ioe);
         }

@@ -312,6 +312,28 @@ public abstract class BaseNsStreamWriter
         mEmptyElement = false;
     }
 
+    protected void writeTypedAttribute(String prefix, String nsURI, String localName,
+                                       AsciiValueEncoder enc)
+        throws XMLStreamException
+    {
+        if (!mStartElementOpen) {
+            throwOutputError(ErrorConsts.WERR_ATTR_NO_ELEM);
+        }
+        if (mCheckAttrs) { // still need to ensure no duplicate attrs?
+            mCurrElem.checkAttrWrite(nsURI, localName);
+        }
+        try {
+            if (mValidator == null) {
+                mWriter.writeTypedAttribute(prefix, localName, enc);
+            } else {
+                mWriter.writeTypedAttribute(prefix, localName, nsURI, enc,
+                                            mValidator, getCopyBuffer());
+            }
+        } catch (IOException ioe) {
+            throw new WstxIOException(ioe);
+        }
+    }
+
     /*
     ////////////////////////////////////////////////////
     // Remaining XMLStreamWriter2 methods (StAX2)
@@ -448,7 +470,7 @@ public abstract class BaseNsStreamWriter
         throws XMLStreamException
     {
         if (mCheckAttrs) { // still need to ensure no duplicate attrs?
-            mCurrElem.checkAttrWrite(nsURI, localName, value);
+            mCurrElem.checkAttrWrite(nsURI, localName);
         }
 
         if (mValidator != null) {
@@ -488,34 +510,12 @@ public abstract class BaseNsStreamWriter
         }
     }
 
-    protected final void doWriteEscapedAttr(String localName, String nsURI, String prefix,
-                                            char[] buf, int start, int len)
-        throws XMLStreamException
-    {
-        if (mCheckAttrs) { // still need to ensure no duplicate attrs?
-            mCurrElem.checkAttrWrite(nsURI, localName, buf, start, len);
-        }
-
-        if (mValidator != null) {
-            mValidator.validateAttribute(localName, nsURI, prefix, buf, start, len);
-        }
-        try {
-            if (prefix != null && prefix.length() > 0) {
-                mWriter.writeEscapedAttribute(prefix, localName, buf, start, len);
-            } else {
-                mWriter.writeEscapedAttribute(localName, buf, start, len);
-            }
-        } catch (IOException ioe) {
-            throw new WstxIOException(ioe);
-        }
-    }
-
     protected final void doWriteAttr(String localName, String nsURI, String prefix,
                                      char[] buf, int start, int len)
         throws XMLStreamException
     {
         if (mCheckAttrs) { // still need to ensure no duplicate attrs?
-            mCurrElem.checkAttrWrite(nsURI, localName, buf, start, len);
+            mCurrElem.checkAttrWrite(nsURI, localName);
         }
 
         if (mValidator != null) {

@@ -339,7 +339,7 @@ public final class BufferingXmlWriter
         mOut.write(str, offset, len);
     }
 
-    public final void writeTypedAscii(AsciiValueEncoder enc)
+    public final void writeTypedElement(AsciiValueEncoder enc)
         throws IOException
     {
         if (mOut == null) {
@@ -361,8 +361,8 @@ public final class BufferingXmlWriter
         }
     }
 
-    public final void writeTypedAscii(AsciiValueEncoder enc,
-                                      XMLValidator validator, char[] copyBuffer)
+    public final void writeTypedElement(AsciiValueEncoder enc,
+                                        XMLValidator validator, char[] copyBuffer)
         throws IOException, XMLStreamException
     {
         if (mOut == null) {
@@ -1047,7 +1047,8 @@ public final class BufferingXmlWriter
         fastWriteRaw('"');
     }
 
-    public void writeEscapedAttribute(String localName, char[] value, int offset, int vlen)
+    public void writeTypedAttribute(String prefix, String localName,
+                                    AsciiValueEncoder enc)
         throws IOException, XMLStreamException
     {
         if (mOut == null) {
@@ -1071,13 +1072,18 @@ public final class BufferingXmlWriter
             buf[ptr++] = '"';
             mOutputPtr = ptr;
         }
+        // !!! TBI
+        /*
         if (vlen > 0) {
             writeRawAscii(value, offset, vlen);
         }
+        */
         fastWriteRaw('"');
     }
 
-    public void writeEscapedAttribute(String prefix, String localName, char[] value, int offset, int vlen)
+    public void writeTypedAttribute(String prefix, String localName, String nsURI,
+                                    AsciiValueEncoder enc,
+                                    XMLValidator validator, char[] copyBuffer)
         throws IOException, XMLStreamException
     {
         if (mOut == null) {
@@ -1087,10 +1093,18 @@ public final class BufferingXmlWriter
             verifyNameValidity(prefix, mNsAware);
             verifyNameValidity(localName, mNsAware);
         }
-        int len = prefix.length();
-        if (((mOutputBufLen - mOutputPtr) - (4 + localName.length() + len)) < 0) {
+
+        if (prefix == null) {
+            prefix = "";
+        }
+        if (nsURI == null) {
+            nsURI = "";
+        }
+        //validator.validateAttribute(localName, nsURI, prefix, buf, offset, len)
+        int plen = prefix.length();
+        if (((mOutputBufLen - mOutputPtr) - (4 + localName.length() + plen)) < 0) {
             fastWriteRaw(' ');
-            if (len > 0) {
+            if (plen > 0) {
                 fastWriteRaw(prefix);
                 fastWriteRaw(':');
             }
@@ -1100,20 +1114,23 @@ public final class BufferingXmlWriter
             int ptr = mOutputPtr;
             char[] buf = mOutputBuffer;
             buf[ptr++] = ' ';
-            prefix.getChars(0, len, buf, ptr);
-            ptr += len;
+            prefix.getChars(0, plen, buf, ptr);
+            ptr += plen;
             buf[ptr++] = ':';
-            len = localName.length();
-            localName.getChars(0, len, buf, ptr);
-            ptr += len;
+            int llen = localName.length();
+            localName.getChars(0, llen, buf, ptr);
+            ptr += llen;
             buf[ptr++] = '=';
             buf[ptr++] = '"';
             mOutputPtr = ptr;
         }
 
+        // !!! TBI
+        /*
         if (vlen > 0) {
             writeRawAscii(value, offset, vlen);
         }
+        */
         fastWriteRaw('"');
     }
 

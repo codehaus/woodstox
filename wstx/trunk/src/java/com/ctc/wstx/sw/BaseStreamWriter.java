@@ -769,31 +769,31 @@ public abstract class BaseStreamWriter
     public void writeBoolean(boolean b)
         throws XMLStreamException
     {
-        doWriteTyped(valueEncoderFactory().getScalarEncoder(b ? "true" : "false"));
+        writeTypedElement(valueEncoderFactory().getScalarEncoder(b ? "true" : "false"));
     }
 
     public void writeInt(int value)
         throws XMLStreamException
     {
-        doWriteTyped(valueEncoderFactory().getIntEncoder(value));
+        writeTypedElement(valueEncoderFactory().getEncoder(value));
     }
 
     public void writeLong(long value)
         throws XMLStreamException
     {
-        doWriteTyped(valueEncoderFactory().getLongEncoder(value));
+        writeTypedElement(valueEncoderFactory().getEncoder(value));
     }
 
     public void writeFloat(float value)
         throws XMLStreamException
     {
-        doWriteTyped(valueEncoderFactory().getFloatEncoder(value));
+        writeTypedElement(valueEncoderFactory().getEncoder(value));
     }
 
     public void writeDouble(double value)
         throws XMLStreamException
     {
-        doWriteTyped(valueEncoderFactory().getDoubleEncoder(value));
+        writeTypedElement(valueEncoderFactory().getEncoder(value));
 
     }
 
@@ -803,7 +803,7 @@ public abstract class BaseStreamWriter
         /* No really efficient method exposed by JDK, keep it simple
          * (esp. considering that length is actually not bound)
          */
-        doWriteTyped(valueEncoderFactory().getScalarEncoder(String.valueOf(value)));
+        writeTypedElement(valueEncoderFactory().getScalarEncoder(value.toString()));
     }
 
     public void writeDecimal(BigDecimal value)
@@ -812,7 +812,7 @@ public abstract class BaseStreamWriter
         /* No really efficient method exposed by JDK, keep it simple
          * (esp. considering that length is actually not bound)
          */
-        doWriteTyped(valueEncoderFactory().getScalarEncoder(String.valueOf(value)));
+        writeTypedElement(valueEncoderFactory().getScalarEncoder(value.toString()));
     }
 
     public void writeQName(QName name)
@@ -833,28 +833,28 @@ public abstract class BaseStreamWriter
     public final void writeIntArray(int[] value, int from, int length)
         throws XMLStreamException
     {
-        doWriteTyped(valueEncoderFactory().getIntArrayEncoder(value, from, length));
+        writeTypedElement(valueEncoderFactory().getEncoder(value, from, length));
     }
 
     public void writeLongArray(long[] value, int from, int length)
         throws XMLStreamException
     {
-        doWriteTyped(valueEncoderFactory().getLongArrayEncoder(value, from, length));
+        writeTypedElement(valueEncoderFactory().getEncoder(value, from, length));
     }
 
     public void writeFloatArray(float[] value, int from, int length)
         throws XMLStreamException
     {
-        doWriteTyped(valueEncoderFactory().getFloatArrayEncoder(value, from, length));
+        writeTypedElement(valueEncoderFactory().getEncoder(value, from, length));
     }
 
     public void writeDoubleArray(double[] value, int from, int length)
         throws XMLStreamException
     {
-        doWriteTyped(valueEncoderFactory().getDoubleArrayEncoder(value, from, length));
+        writeTypedElement(valueEncoderFactory().getEncoder(value, from, length));
     }
 
-    protected final void doWriteTyped(AsciiValueEncoder enc)
+    protected final void writeTypedElement(AsciiValueEncoder enc)
         throws XMLStreamException
     {
         if (mStartElementOpen) {
@@ -876,9 +876,9 @@ public abstract class BaseStreamWriter
             XMLValidator vld = (mVldContent == XMLValidator.CONTENT_ALLOW_VALIDATABLE_TEXT) ?
                 mValidator : null;
             if (vld == null) {
-                mWriter.writeTypedAscii(enc);
+                mWriter.writeTypedElement(enc);
             } else {
-                mWriter.writeTypedAscii(enc, vld, getCopyBuffer());
+                mWriter.writeTypedElement(enc, vld, getCopyBuffer());
             }
         } catch (IOException ioe) {
             throw new WstxIOException(ioe);
@@ -887,64 +887,55 @@ public abstract class BaseStreamWriter
 
     // // // Typed attribute value write methods
 
-    /* !!! 23-Jul-2008, tatus: Moved here temporarily: remove when
-     *   not needed any more
-     */
-
-    final static char[] TYPE_CONST_TRUE = "true".toCharArray();
-    final static char[] TYPE_CONST_FALSE = "false".toCharArray();
-
     public void writeBooleanAttribute(String prefix, String nsURI, String localName, boolean value)
         throws XMLStreamException
     {
-        char[] valueCh = value ? TYPE_CONST_TRUE : TYPE_CONST_FALSE;
-        writeEscapedAttribute(prefix, nsURI, localName, valueCh, 0, valueCh.length);
+        writeTypedAttribute(prefix, nsURI, localName,
+                            valueEncoderFactory().getScalarEncoder(value ? "true" : "false"));
     }
 
     public void writeIntAttribute(String prefix, String nsURI, String localName, int value)
         throws XMLStreamException
     {
-        char[] buf = getCopyBuffer();
-        int len = NumberUtil.writeInt(value, buf, 0);
-        writeEscapedAttribute(prefix, nsURI, localName, buf, 0, len);
+        writeTypedAttribute(prefix, nsURI, localName,
+                              valueEncoderFactory().getEncoder(value));
     }
 
     public void writeLongAttribute(String prefix, String nsURI, String localName, long value)
         throws XMLStreamException
     {
-        char[] buf = getCopyBuffer();
-        int len = NumberUtil.writeLong(value, buf, 0);
-        writeEscapedAttribute(prefix, nsURI, localName, buf, 0, len);
+        writeTypedAttribute(prefix, nsURI, localName,
+                              valueEncoderFactory().getEncoder(value));
     }
 
     public void writeFloatAttribute(String prefix, String nsURI, String localName, float value)
         throws XMLStreamException
     {
-        char[] buf = getCopyBuffer();
-        int len = NumberUtil.writeFloat(value, buf, 0);
-        writeEscapedAttribute(prefix, nsURI, localName, buf, 0, len);
+        writeTypedAttribute(prefix, nsURI, localName,
+                              valueEncoderFactory().getEncoder(value));
     }
 
     public void writeDoubleAttribute(String prefix, String nsURI, String localName, double value)
         throws XMLStreamException
     {
-        char[] buf = getCopyBuffer();
-        int len = NumberUtil.writeDouble(value, buf, 0);
-        writeEscapedAttribute(prefix, nsURI, localName, buf, 0, len);
+        writeTypedAttribute(prefix, nsURI, localName,
+                              valueEncoderFactory().getEncoder(value));
     }
 
     public void writeIntegerAttribute(String prefix, String nsURI, String localName, BigInteger value)
         throws XMLStreamException
     {
         // not optimal, but has to do:
-        writeAttribute(prefix, nsURI, localName, value.toString());
+        writeTypedAttribute(prefix, nsURI, localName,
+                              valueEncoderFactory().getScalarEncoder(value.toString()));
     }
 
     public void writeDecimalAttribute(String prefix, String nsURI, String localName, BigDecimal value)
         throws XMLStreamException
     {
         // not optimal, but has to do:
-        writeAttribute(prefix, nsURI, localName, value.toString());
+        writeTypedAttribute(prefix, nsURI, localName,
+                              valueEncoderFactory().getScalarEncoder(value.toString()));
     }
 
     public void writeQNameAttribute(String prefix, String nsURI, String localName, QName name)
@@ -956,35 +947,38 @@ public abstract class BaseStreamWriter
             // Not efficient... but should be ok
             value = vp + ":" + value;
         }
+        /* Can't use AsciiValueEncoder, since QNames can contain
+         * non-ascii characters
+         */
         writeAttribute(prefix, nsURI, localName, value);
     }
 
     public void writeIntArrayAttribute(String prefix, String nsURI, String localName, int[] value)
         throws XMLStreamException
     {
-        // !!! TBI
-        if (true) throw new XMLStreamException("Not yet implemented");
+        writeTypedAttribute(prefix, nsURI, localName,
+                              valueEncoderFactory().getEncoder(value, 0, value.length));
     }
 
     public void writeLongArrayAttribute(String prefix, String nsURI, String localName, long[] value)
         throws XMLStreamException
     {
-        // !!! TBI
-        if (true) throw new XMLStreamException("Not yet implemented");
+        writeTypedAttribute(prefix, nsURI, localName,
+                              valueEncoderFactory().getEncoder(value, 0, value.length));
     }
 
     public void writeFloatArrayAttribute(String prefix, String nsURI, String localName, float[] value)
         throws XMLStreamException
     {
-        // !!! TBI
-        if (true) throw new XMLStreamException("Not yet implemented");
+        writeTypedAttribute(prefix, nsURI, localName,
+                              valueEncoderFactory().getEncoder(value, 0, value.length));
     }
 
     public void writeDoubleArrayAttribute(String prefix, String nsURI, String localName, double[] value)
         throws XMLStreamException
     {
-        // !!! TBI
-        if (true) throw new XMLStreamException("Not yet implemented");
+        writeTypedAttribute(prefix, nsURI, localName,
+                              valueEncoderFactory().getEncoder(value, 0, value.length));
     }
 
     /*
@@ -1633,9 +1627,9 @@ public abstract class BaseStreamWriter
      * Method that will write attribute with value that is known not to
      * require additional escaping.
      */
-    protected abstract void writeEscapedAttribute(String prefix, String nsURI,
-                                                  String localName,
-                                                  char[] buf, int offset, int len)
+    protected abstract void writeTypedAttribute(String prefix, String nsURI,
+                                                String localName,
+                                                AsciiValueEncoder enc)
         throws XMLStreamException;
     
     /**
@@ -1994,7 +1988,7 @@ public abstract class BaseStreamWriter
     ////////////////////////////////////////////////////
      */
 
-    private final char[] getCopyBuffer()
+    protected final char[] getCopyBuffer()
     {
         char[] buf = mCopyBuffer;
         if (buf == null) {
@@ -2003,7 +1997,7 @@ public abstract class BaseStreamWriter
         return buf;
     }
 
-    private final char[] getCopyBuffer(int minLen)
+    protected final char[] getCopyBuffer(int minLen)
     {
         char[] buf = mCopyBuffer;
         if (buf == null || minLen > buf.length) {
@@ -2015,6 +2009,6 @@ public abstract class BaseStreamWriter
     public String toString()
     {
         return "[StreamWriter: "+getClass()+", underlying outputter: "
-            +((mWriter == null) ? "NULL" : mWriter.toString());
+            +((mWriter == null) ? "NULL" : mWriter.toString()+"]");
     }
 }

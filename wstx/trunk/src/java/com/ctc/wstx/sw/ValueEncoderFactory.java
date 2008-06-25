@@ -56,7 +56,7 @@ public final class ValueEncoderFactory
         return mTextualEncoder;
     }
 
-    public IntEncoder getIntEncoder(int value)
+    public IntEncoder getEncoder(int value)
     {
         if (mIntEncoder == null) {
             mIntEncoder = new IntEncoder();
@@ -65,7 +65,7 @@ public final class ValueEncoderFactory
         return mIntEncoder;
     }
 
-    public LongEncoder getLongEncoder(long value)
+    public LongEncoder getEncoder(long value)
     {
         if (mLongEncoder == null) {
             mLongEncoder = new LongEncoder();
@@ -74,7 +74,7 @@ public final class ValueEncoderFactory
         return mLongEncoder;
     }
 
-    public FloatEncoder getFloatEncoder(float value)
+    public FloatEncoder getEncoder(float value)
     {
         if (mFloatEncoder == null) {
             mFloatEncoder = new FloatEncoder();
@@ -83,7 +83,7 @@ public final class ValueEncoderFactory
         return mFloatEncoder;
     }
 
-    public DoubleEncoder getDoubleEncoder(double value)
+    public DoubleEncoder getEncoder(double value)
     {
         if (mDoubleEncoder == null) {
             mDoubleEncoder = new DoubleEncoder();
@@ -94,7 +94,7 @@ public final class ValueEncoderFactory
 
     // // // Array encoder access
 
-    public IntArrayEncoder getIntArrayEncoder(int[] values, int from, int length)
+    public IntArrayEncoder getEncoder(int[] values, int from, int length)
     {
         if (mIntArrayEncoder == null) {
             mIntArrayEncoder = new IntArrayEncoder();
@@ -103,7 +103,7 @@ public final class ValueEncoderFactory
         return mIntArrayEncoder;
     }
 
-    public LongArrayEncoder getLongArrayEncoder(long[] values, int from, int length)
+    public LongArrayEncoder getEncoder(long[] values, int from, int length)
     {
         if (mLongArrayEncoder == null) {
             mLongArrayEncoder = new LongArrayEncoder();
@@ -112,7 +112,7 @@ public final class ValueEncoderFactory
         return mLongArrayEncoder;
     }
 
-    public FloatArrayEncoder getFloatArrayEncoder(float[] values, int from, int length)
+    public FloatArrayEncoder getEncoder(float[] values, int from, int length)
     {
         if (mFloatArrayEncoder == null) {
             mFloatArrayEncoder = new FloatArrayEncoder();
@@ -121,7 +121,7 @@ public final class ValueEncoderFactory
         return mFloatArrayEncoder;
     }
 
-    public DoubleArrayEncoder getDoubleArrayEncoder(double[] values, int from, int length)
+    public DoubleArrayEncoder getEncoder(double[] values, int from, int length)
     {
         if (mDoubleArrayEncoder == null) {
             mDoubleArrayEncoder = new DoubleArrayEncoder();

@@ -526,29 +526,54 @@ public abstract class EncodingXmlWriter
         writeAscii(BYTE_QUOT);
     }
 
-    public void writeEscapedAttribute(String localName, char[] value, int offset, int len)
+    public void writeTypedAttribute(String prefix, String localName,
+                                    AsciiValueEncoder enc)
         throws IOException, XMLStreamException
     {
         writeAscii(BYTE_SPACE);
+        if (prefix != null && prefix.length() != 0) {
+            writeName(prefix);
+            writeAscii(BYTE_COLON);
+        }
         writeName(localName);
         writeAscii(BYTE_EQ, BYTE_QUOT);
+
+        // !!! TBI
+        /*
         if (len > 0) {
             writeRawAscii(value, offset, len);
         }
+        */
+
         writeAscii(BYTE_QUOT);
     }
 
-    public void writeEscapedAttribute(String prefix, String localName, char[] value, int offset, int len)
+    public void writeTypedAttribute(String prefix, String localName, String nsURI,
+                                    AsciiValueEncoder enc,
+                                    XMLValidator validator, char[] copyBuffer)
         throws IOException, XMLStreamException
     {
+        boolean hasPrefix = (prefix != null && prefix.length() > 0);
+        if (nsURI == null) {
+            nsURI = "";
+        }
+        //validator.validateAttribute(localName, nsURI, (hasPrefix ? prefix: ""), buf, offset, len);
+
         writeAscii(BYTE_SPACE);
-        writeName(prefix);
-        writeAscii(BYTE_COLON);
+        if (prefix != null && prefix.length() != 0) {
+            writeName(prefix);
+            writeAscii(BYTE_COLON);
+        }
         writeName(localName);
         writeAscii(BYTE_EQ, BYTE_QUOT);
+
+        // !!! TBI
+        /*
         if (len > 0) {
             writeRawAscii(value, offset, len);
         }
+        */
+
         writeAscii(BYTE_QUOT);
     }
 
@@ -646,7 +671,7 @@ public abstract class EncodingXmlWriter
     /**
      * Non-validating version of typed write method
      */
-    public final void writeTypedAscii(AsciiValueEncoder enc)
+    public final void writeTypedElement(AsciiValueEncoder enc)
         throws IOException
     {
         if (mSurrogate != 0) {
@@ -669,8 +694,8 @@ public abstract class EncodingXmlWriter
     /**
      * Validating version of typed write method
      */
-    public final void writeTypedAscii(AsciiValueEncoder enc,
-                                      XMLValidator validator, char[] copyBuffer)
+    public final void writeTypedElement(AsciiValueEncoder enc,
+                                        XMLValidator validator, char[] copyBuffer)
         throws IOException, XMLStreamException
     {
         if (mSurrogate != 0) {
