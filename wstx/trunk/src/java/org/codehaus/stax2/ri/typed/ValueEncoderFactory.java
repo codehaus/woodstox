@@ -19,9 +19,12 @@ package org.codehaus.stax2.ri.typed;
 import com.ctc.wstx.util.NumberUtil;
 
 /**
- * Factory class used to construct and recycle all
+ * Factory class used to construct all
  * {@link AsciiValueEncoder} instances needed by a single
- * stream writer instance.
+ * stream writer instance. Simple encoders are also recycled
+ * (for the lifetime of an encoder, which is same as its owners,
+ * i.e. stream reader or writer's) to minimize overhead.
+ * More complex ones (array based, long string) are not recycled.
  *<p>
  * Since encoders are recycled, instances are not thread-safe.
  *
@@ -33,28 +36,28 @@ public final class ValueEncoderFactory
 
     // // // Lazily-constructed, recycled encoder instances
 
-    protected TextualScalarEncoder mTextualEncoder = null;
+    protected TokenEncoder mTokenEncoder = null;
     protected IntEncoder mIntEncoder = null;
     protected LongEncoder mLongEncoder = null;
     protected FloatEncoder mFloatEncoder = null;
     protected DoubleEncoder mDoubleEncoder = null;
 
-    protected IntArrayEncoder mIntArrayEncoder = null;
-    protected LongArrayEncoder mLongArrayEncoder = null;
-    protected FloatArrayEncoder mFloatArrayEncoder = null;
-    protected DoubleArrayEncoder mDoubleArrayEncoder = null;
-
     public ValueEncoderFactory() { }
 
     // // // Scalar encoder access
 
-    public TextualScalarEncoder getScalarEncoder(String textual)
+    public ScalarEncoder getScalarEncoder(String value)
     {
-        if (mTextualEncoder == null) {
-            mTextualEncoder = new TextualScalarEncoder();
+        // Short or long?
+        if (value.length() > AsciiValueEncoder.MIN_CHARS_WITHOUT_FLUSH) { // short
+            if (mTokenEncoder == null) {
+                mTokenEncoder = new TokenEncoder();
+            }
+            mTokenEncoder.reset(value);
+            return mTokenEncoder;
         }
-        mTextualEncoder.reset(textual);
-        return mTextualEncoder;
+        // Nope, long: need segmented
+        return new StringEncoder(value);
     }
 
     public IntEncoder getEncoder(int value)
@@ -97,38 +100,22 @@ public final class ValueEncoderFactory
 
     public IntArrayEncoder getEncoder(int[] values, int from, int length)
     {
-        if (mIntArrayEncoder == null) {
-            mIntArrayEncoder = new IntArrayEncoder();
-        }
-        mIntArrayEncoder.reset(values, from, length);
-        return mIntArrayEncoder;
+        return new IntArrayEncoder(values, from, from+length);
     }
 
     public LongArrayEncoder getEncoder(long[] values, int from, int length)
     {
-        if (mLongArrayEncoder == null) {
-            mLongArrayEncoder = new LongArrayEncoder();
-        }
-        mLongArrayEncoder.reset(values, from, length);
-        return mLongArrayEncoder;
+        return new LongArrayEncoder(values, from, from+length);
     }
 
     public FloatArrayEncoder getEncoder(float[] values, int from, int length)
     {
-        if (mFloatArrayEncoder == null) {
-            mFloatArrayEncoder = new FloatArrayEncoder();
-        }
-        mFloatArrayEncoder.reset(values, from, length);
-        return mFloatArrayEncoder;
+        return new FloatArrayEncoder(values, from, from+length);
     }
 
     public DoubleArrayEncoder getEncoder(double[] values, int from, int length)
     {
-        if (mDoubleArrayEncoder == null) {
-            mDoubleArrayEncoder = new DoubleArrayEncoder();
-        }
-        mDoubleArrayEncoder.reset(values, from, length);
-        return mDoubleArrayEncoder;
+        return new DoubleArrayEncoder(values, from, from+length);
     }
 
     /*
@@ -152,50 +139,98 @@ public final class ValueEncoderFactory
     }
 
     /**
-     * Implementation of generic scalar value for which textual
-     * representation is efficient (enough) representation.
+     * Implementation of textual encoder that operates on short
+     * textual values ("tokens"). As such, it can count on being able
+     * to output the whole output in one pass, without tracking
+     * location
      */
-    final static class TextualScalarEncoder
+    final static class TokenEncoder
         extends ScalarEncoder
     {
         String mValue;
 
-        protected TextualScalarEncoder() { super(); }
+        protected TokenEncoder() { super(); }
 
         protected void reset(String value) {
             mValue = value;
-        }
-
-        protected int maxElementLength() { return mValue.length(); }
-
-        public boolean bufferNeedsFlush(int freeChars)
-        {
-            return (mValue != null) && (freeChars < mValue.length());
         }
 
         public boolean isCompleted() { return (mValue == null); }
 
         public int encodeMore(char[] buffer, int ptr, int end)
         {
-            if (mValue != null) {
-                String str = mValue;
-                mValue = null;
-                int len = str.length();
-                str.getChars(0, len, buffer, ptr);
-                ptr += len;
-            }
+            String str = mValue;
+            mValue = null;
+            int len = str.length();
+            str.getChars(0, len, buffer, ptr);
+            ptr += len;
             return ptr;
         }
 
         public int encodeMore(byte[] buffer, int ptr, int end)
         {
-            if (mValue != null) {
+            String str = mValue;
+            mValue = null;
+            int len = str.length();
+            for (int i = 0; i < len; ++i) {
+                buffer[ptr++] = (byte) str.charAt(i);
+            }
+            return ptr;
+        }
+    }
+
+    /**
+     * Implementation of textual encoder that operates on longer
+     * textual values. Because of length, it is possible that output
+     * has to be done in multiple pieces. As a result, there is need
+     * to track current position withing text.
+     *<p>
+     * In addition, instances of this class are not recycled, as
+     * it seems less beneficial (less likely to need to be reused,
+     * or offer performance improvements if they would be)
+     */
+    final static class StringEncoder
+        extends ScalarEncoder
+    {
+        String mValue;
+
+        int mOffset;
+
+        protected StringEncoder(String value) {
+            super();
+            mValue = value;
+        }
+
+        public boolean isCompleted() { return (mValue == null); }
+
+        public int encodeMore(char[] buffer, int ptr, int end)
+        {
+            int left = mValue.length() - mOffset;
+            int free = end-ptr;
+            if (free >= left) { // completed, simple
+                mValue.getChars(mOffset, left, buffer, ptr);
+                mValue = null;
+                return (ptr+left);
+            }
+            mValue.getChars(mOffset, free, buffer, ptr);
+            mOffset += free;
+            return end;
+        }
+
+        public int encodeMore(byte[] buffer, int ptr, int end)
+        {
+            int left = mValue.length() - mOffset;
+            int free = end-ptr;
+            if (free >= left) { // completed, simple
                 String str = mValue;
                 mValue = null;
-                int len = str.length();
-                for (int i = 0; i < len; ++i) {
-                    buffer[ptr++] = (byte) str.charAt(i);
+                for (int last = str.length(), offset = mOffset; offset < last; ++offset) {
+                    buffer[ptr++] = (byte) mValue.charAt(offset);
                 }
+                return ptr;
+            }
+            for (; ptr < end; ++ptr) {
+                buffer[ptr] = (byte) mValue.charAt(mOffset++);
             }
             return ptr;
         }
@@ -207,26 +242,14 @@ public final class ValueEncoderFactory
     abstract static class TypedScalarEncoder
         extends ScalarEncoder
     {
-        protected boolean mWritten;
-
         protected TypedScalarEncoder() { }
 
-        protected void reset() {
-            mWritten = false;
-        }
-
-        public final boolean bufferNeedsFlush(int freeChars)
-        {
-            return !mWritten && (freeChars < maxElementLength());
-        }
-
-        public boolean isCompleted() { return mWritten; }
-
         /**
-         * @return Maximum length of an individual element <b>plus one</b>
-         *   (for space separating elements)
+         * Since scalar typed values are guaranteed to always be
+         * written in one go, they will always be completed by
+         * time method is called./
          */
-        protected abstract int maxElementLength();
+        public final boolean isCompleted() { return true; }
     }
 
     final static class IntEncoder
@@ -237,21 +260,16 @@ public final class ValueEncoderFactory
         protected IntEncoder() { super(); }
 
         protected void reset(int value) {
-            super.reset();
             mValue = value;
         }
 
-        protected int maxElementLength() { return NumberUtil.MAX_INT_CLEN; }
-
         public int encodeMore(char[] buffer, int ptr, int end)
         {
-            mWritten = true;
             return NumberUtil.writeInt(mValue, buffer, ptr);
         }
 
         public int encodeMore(byte[] buffer, int ptr, int end)
         {
-            mWritten = true;
             return NumberUtil.writeInt(mValue, buffer, ptr);
         }
     }
@@ -264,21 +282,16 @@ public final class ValueEncoderFactory
         protected LongEncoder() { super(); }
 
         protected void reset(long value) {
-            super.reset();
             mValue = value;
         }
 
-        protected int maxElementLength() { return NumberUtil.MAX_LONG_CLEN; }
-
         public int encodeMore(char[] buffer, int ptr, int end)
         {
-            mWritten = true;
             return NumberUtil.writeLong(mValue, buffer, ptr);
         }
 
         public int encodeMore(byte[] buffer, int ptr, int end)
         {
-            mWritten = true;
             return NumberUtil.writeLong(mValue, buffer, ptr);
         }
     }
@@ -291,21 +304,16 @@ public final class ValueEncoderFactory
         protected FloatEncoder() { super(); }
 
         protected void reset(float value) {
-            super.reset();
             mValue = value;
         }
 
-        protected int maxElementLength() { return NumberUtil.MAX_FLOAT_CLEN; }
-
         public int encodeMore(char[] buffer, int ptr, int end)
         {
-            mWritten = true;
             return NumberUtil.writeFloat(mValue, buffer, ptr);
         }
 
         public int encodeMore(byte[] buffer, int ptr, int end)
         {
-            mWritten = true;
             return NumberUtil.writeFloat(mValue, buffer, ptr);
         }
     }
@@ -318,21 +326,16 @@ public final class ValueEncoderFactory
         protected DoubleEncoder() { super(); }
 
         protected void reset(double value) {
-            super.reset();
             mValue = value;
         }
 
-        protected int maxElementLength() { return NumberUtil.MAX_DOUBLE_CLEN; }
-
         public int encodeMore(char[] buffer, int ptr, int end)
         {
-            mWritten = true;
             return NumberUtil.writeDouble(mValue, buffer, ptr);
         }
 
         public int encodeMore(byte[] buffer, int ptr, int end)
         {
-            mWritten = true;
             return NumberUtil.writeDouble(mValue, buffer, ptr);
         }
     }
@@ -351,31 +354,17 @@ public final class ValueEncoderFactory
         extends AsciiValueEncoder
     {
         int mPtr;
-        int mEnd;
+        final int mEnd;
 
-        protected ArrayEncoder() { }
-
-        protected void reset(int from, int length)
+        protected ArrayEncoder(int ptr, int end)
         {
-            mPtr = from;
-            mEnd = from+length;
-        }
-
-        public final boolean bufferNeedsFlush(int freeChars)
-        {
-            // subtract one for trailing space
-            return (mPtr < mEnd) && (freeChars < (maxElementLength()+1));
+            mPtr = ptr;
+            mEnd = end;
         }
 
         public final boolean isCompleted() { return (mPtr >= mEnd); }
 
         public abstract int encodeMore(char[] buffer, int ptr, int end);
-
-        /**
-         * @return Maximum length of an individual element <b>plus one</b>
-         *   (for space separating elements)
-         */
-        protected abstract int maxElementLength();
     }
 
     /**
@@ -384,20 +373,17 @@ public final class ValueEncoderFactory
     final static class IntArrayEncoder
         extends ArrayEncoder
     {
-        int[] mValues;
+        final int[] mValues;
 
-        protected IntArrayEncoder() { super(); }
-
-        protected void reset(int[] values, int from, int length) {
-            super.reset(from, length);
+        protected IntArrayEncoder(int[] values, int from, int length)
+        {
+            super(from, length);
             mValues = values;
         }
 
-        protected int maxElementLength() { return 1+NumberUtil.MAX_INT_CLEN; }
-
         public int encodeMore(char[] buffer, int ptr, int end)
         {
-            int lastOk = end - maxElementLength();
+            int lastOk = end - (1+NumberUtil.MAX_INT_CLEN);
             while (ptr <= lastOk && mPtr < mEnd) {
                 buffer[ptr++] = ' ';
                 ptr = NumberUtil.writeInt(mValues[mPtr++], buffer, ptr);
@@ -407,7 +393,7 @@ public final class ValueEncoderFactory
 
         public int encodeMore(byte[] buffer, int ptr, int end)
         {
-            int lastOk = end - maxElementLength();
+            int lastOk = end - (1+NumberUtil.MAX_INT_CLEN);
             while (ptr <= lastOk && mPtr < mEnd) {
                 buffer[ptr++] = BYTE_SPACE;
                 ptr = NumberUtil.writeInt(mValues[mPtr++], buffer, ptr);
@@ -419,20 +405,17 @@ public final class ValueEncoderFactory
     final static class LongArrayEncoder
         extends ArrayEncoder
     {
-        long[] mValues;
+        final long[] mValues;
 
-        protected LongArrayEncoder() { super(); }
-
-        protected void reset(long[] values, int from, int length) {
-            super.reset(from, length);
+        protected LongArrayEncoder(long[] values, int from, int length)
+        {
+            super(from, length);
             mValues = values;
         }
 
-        protected int maxElementLength() { return NumberUtil.MAX_LONG_CLEN+1; }
-
         public int encodeMore(char[] buffer, int ptr, int end)
         {
-            int lastOk = end - maxElementLength();
+            int lastOk = end - (1+NumberUtil.MAX_LONG_CLEN);
             while (ptr <= lastOk && mPtr < mEnd) {
                 buffer[ptr++] = ' ';
                 ptr = NumberUtil.writeLong(mValues[mPtr++], buffer, ptr);
@@ -442,7 +425,7 @@ public final class ValueEncoderFactory
 
         public int encodeMore(byte[] buffer, int ptr, int end)
         {
-            int lastOk = end - maxElementLength();
+            int lastOk = end - (1+NumberUtil.MAX_LONG_CLEN);
             while (ptr <= lastOk && mPtr < mEnd) {
                 buffer[ptr++] = BYTE_SPACE;
                 ptr = NumberUtil.writeLong(mValues[mPtr++], buffer, ptr);
@@ -454,20 +437,17 @@ public final class ValueEncoderFactory
     final static class FloatArrayEncoder
         extends ArrayEncoder
     {
-        float[] mValues;
+        final float[] mValues;
 
-        protected FloatArrayEncoder() { super(); }
-
-        protected void reset(float[] values, int from, int length) {
-            super.reset(from, length);
+        protected FloatArrayEncoder(float[] values, int from, int length)
+        {
+            super(from, length);
             mValues = values;
         }
 
-        protected int maxElementLength() { return NumberUtil.MAX_FLOAT_CLEN+1; }
-
         public int encodeMore(char[] buffer, int ptr, int end)
         {
-            int lastOk = end - maxElementLength();
+            int lastOk = end - (1+NumberUtil.MAX_FLOAT_CLEN);
             while (ptr <= lastOk && mPtr < mEnd) {
                 buffer[ptr++] = ' ';
                 ptr = NumberUtil.writeFloat(mValues[mPtr++], buffer, ptr);
@@ -477,7 +457,7 @@ public final class ValueEncoderFactory
 
         public int encodeMore(byte[] buffer, int ptr, int end)
         {
-            int lastOk = end - maxElementLength();
+            int lastOk = end - (1+NumberUtil.MAX_FLOAT_CLEN);
             while (ptr <= lastOk && mPtr < mEnd) {
                 buffer[ptr++] = BYTE_SPACE;
                 ptr = NumberUtil.writeFloat(mValues[mPtr++], buffer, ptr);
@@ -489,20 +469,17 @@ public final class ValueEncoderFactory
     final static class DoubleArrayEncoder
         extends ArrayEncoder
     {
-        double[] mValues;
+        final double[] mValues;
 
-        protected DoubleArrayEncoder() { super(); }
-
-        protected void reset(double[] values, int from, int length) {
-            super.reset(from, length);
+        protected DoubleArrayEncoder(double[] values, int from, int length)
+        {
+            super(from, length);
             mValues = values;
         }
 
-        protected int maxElementLength() { return NumberUtil.MAX_DOUBLE_CLEN+1; }
-
         public int encodeMore(char[] buffer, int ptr, int end)
         {
-            int lastOk = end - maxElementLength();
+            int lastOk = end - (1+NumberUtil.MAX_DOUBLE_CLEN);
             while (ptr <= lastOk && mPtr < mEnd) {
                 buffer[ptr++] = ' ';
                 ptr = NumberUtil.writeDouble(mValues[mPtr++], buffer, ptr);
@@ -512,7 +489,7 @@ public final class ValueEncoderFactory
 
         public int encodeMore(byte[] buffer, int ptr, int end)
         {
-            int lastOk = end - maxElementLength();
+            int lastOk = end - (1+NumberUtil.MAX_DOUBLE_CLEN);
             while (ptr <= lastOk && mPtr < mEnd) {
                 buffer[ptr++] = BYTE_SPACE;
                 ptr = NumberUtil.writeDouble(mValues[mPtr++], buffer, ptr);

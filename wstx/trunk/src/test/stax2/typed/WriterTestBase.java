@@ -472,6 +472,18 @@ public abstract class WriterTestBase
         }
     }
 
+    public void testDoubleArraysElem()
+        throws XMLStreamException
+    {
+        doTestDoubleArrays(false);
+    }
+
+    public void testDoubleArraysAttr()
+        throws XMLStreamException
+    {
+        doTestDoubleArrays(true);
+    }
+
     private void doTestDoubleArrays(boolean testAttr)
         throws XMLStreamException
     {
