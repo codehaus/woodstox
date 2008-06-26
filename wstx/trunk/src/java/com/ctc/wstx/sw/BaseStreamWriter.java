@@ -855,6 +855,12 @@ public abstract class BaseStreamWriter
         writeTypedElement(valueEncoderFactory().getEncoder(value, from, length));
     }
 
+    public void writeBinary(byte[] value, int from, int length)
+        throws XMLStreamException
+    {
+        writeTypedElement(valueEncoderFactory().getEncoder(value, from, length));
+    }
+
     protected final void writeTypedElement(AsciiValueEncoder enc)
         throws XMLStreamException
     {
@@ -976,6 +982,13 @@ public abstract class BaseStreamWriter
     }
 
     public void writeDoubleArrayAttribute(String prefix, String nsURI, String localName, double[] value)
+        throws XMLStreamException
+    {
+        writeTypedAttribute(prefix, nsURI, localName,
+                            valueEncoderFactory().getEncoder(value, 0, value.length));
+    }
+
+    public void writeBinaryAttribute(String prefix, String nsURI, String localName, byte[] value)
         throws XMLStreamException
     {
         writeTypedAttribute(prefix, nsURI, localName,

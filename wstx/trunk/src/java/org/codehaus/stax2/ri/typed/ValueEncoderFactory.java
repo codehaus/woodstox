@@ -118,6 +118,14 @@ public final class ValueEncoderFactory
         return new DoubleArrayEncoder(values, from, from+length);
     }
 
+    // // // And special one for Base64
+
+    public AsciiValueEncoder getEncoder(byte[] values, int from, int length)
+    {
+        // !!!! TBI
+        return null;
+    }
+
     /*
     ////////////////////////////////////////////////////////////////
     // Implementation classes; first, scalar (single-value) encoders

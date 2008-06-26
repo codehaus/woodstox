@@ -546,6 +546,12 @@ public class DOMWrappingWriter
         writeCharacters(getValueEncoder().encodeAsString(value, from, length));
     }
 
+    public void writeBinary(byte[] value, int from, int length)
+        throws XMLStreamException
+    {
+        writeCharacters(getValueEncoder().encodeAsString(value, from, length));
+    }
+
     // // // Typed attribute value write methods
 
     public void writeBooleanAttribute(String prefix, String nsURI, String localName, boolean value)
@@ -604,32 +610,33 @@ public class DOMWrappingWriter
     public void writeIntArrayAttribute(String prefix, String nsURI, String localName, int[] value)
         throws XMLStreamException
     {
-        // false -> no need to start with a space
         writeAttribute(prefix, nsURI, localName,
                        getValueEncoder().encodeAsString(value, 0, value.length));
     }
 
     public void writeLongArrayAttribute(String prefix, String nsURI, String localName, long[] value) throws XMLStreamException
     {
-        // false -> no need to start with a space
         writeAttribute(prefix, nsURI, localName,
                        getValueEncoder().encodeAsString(value, 0, value.length));
     }
     
     public void writeFloatArrayAttribute(String prefix, String nsURI, String localName, float[] value) throws XMLStreamException
     {
-        // false -> no need to start with a space
         writeAttribute(prefix, nsURI, localName,
                        getValueEncoder().encodeAsString(value, 0, value.length));
     }
     
     public void writeDoubleArrayAttribute(String prefix, String nsURI, String localName, double[] value) throws XMLStreamException
     {
-        // false -> no need to start with a space
         writeAttribute(prefix, nsURI, localName,
                        getValueEncoder().encodeAsString(value, 0, value.length));
     }
 
+    public void writeBinaryAttribute(String prefix, String nsURI, String localName, byte[] value) throws XMLStreamException
+    {
+        writeAttribute(prefix, nsURI, localName,
+                       getValueEncoder().encodeAsString(value, 0, value.length));
+    }
 
     /*
     ////////////////////////////////////////////////////

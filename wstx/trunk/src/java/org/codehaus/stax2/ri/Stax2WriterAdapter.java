@@ -148,28 +148,30 @@ public class Stax2WriterAdapter
     public void writeIntArray(int[] value, int from, int length)
         throws XMLStreamException
     {
-        // true -> start with space, for multiple segments
         mDelegate.writeCharacters(getValueEncoder().encodeAsString(value, from, length));
     }
 
     public void writeLongArray(long[] value, int from, int length)
         throws XMLStreamException
     {
-        // true -> start with space, for multiple segments
         mDelegate.writeCharacters(getValueEncoder().encodeAsString(value, from, length));
     }
 
     public void writeFloatArray(float[] value, int from, int length)
         throws XMLStreamException
     {
-        // true -> start with space, for multiple segments
         mDelegate.writeCharacters(getValueEncoder().encodeAsString(value, from, length));
     }
 
     public void writeDoubleArray(double[] value, int from, int length)
         throws XMLStreamException
     {
-        // true -> start with space, for multiple segments
+        mDelegate.writeCharacters(getValueEncoder().encodeAsString(value, from, length));
+    }
+
+    public void writeBinary(byte[] value, int from, int length)
+        throws XMLStreamException
+    {
         mDelegate.writeCharacters(getValueEncoder().encodeAsString(value, from, length));
     }
 
@@ -222,33 +224,35 @@ public class Stax2WriterAdapter
 
     public void writeIntArrayAttribute(String prefix, String nsURI, String localName, int[] value) throws XMLStreamException
     {
-        // false -> no need to start with a space
         mDelegate.writeAttribute(prefix, nsURI, localName,
                                  getValueEncoder().encodeAsString(value, 0, value.length));
     }
 
     public void writeLongArrayAttribute(String prefix, String nsURI, String localName, long[] value) throws XMLStreamException
     {
-        // false -> no need to start with a space
         mDelegate.writeAttribute(prefix, nsURI, localName,
                                  getValueEncoder().encodeAsString(value, 0, value.length));
     }
 
     public void writeFloatArrayAttribute(String prefix, String nsURI, String localName, float[] value) throws XMLStreamException
     {
-        // false -> no need to start with a space
         mDelegate.writeAttribute(prefix, nsURI, localName,
                                  getValueEncoder().encodeAsString(value, 0, value.length));
     }
 
     public void writeDoubleArrayAttribute(String prefix, String nsURI, String localName, double[] value) throws XMLStreamException
     {
-        // false -> no need to start with a space
         mDelegate.writeAttribute(prefix, nsURI, localName,
                                  getValueEncoder().encodeAsString(value, 0, value.length));
     }
 
-     /*
+    public void writeBinaryAttribute(String prefix, String nsURI, String localName, byte[] value) throws XMLStreamException
+    {
+        mDelegate.writeAttribute(prefix, nsURI, localName,
+                                 getValueEncoder().encodeAsString(value, 0, value.length));
+    }
+
+    /*
     ////////////////////////////////////////////////////
     // XMLStreamWriter2 (StAX2) implementation
     ////////////////////////////////////////////////////

@@ -44,6 +44,11 @@ public class SimpleValueEncoder
         return encode(mEncoderFactory.getEncoder(value, from, length));
     }
 
+    public String encodeAsString(byte[] value, int from, int length)
+    {
+        return encode(mEncoderFactory.getEncoder(value, from, length));
+    }
+
     /*
     ///////////////////////////////////////////////////
     // Internal methods
@@ -52,6 +57,7 @@ public class SimpleValueEncoder
 
     protected String encode(AsciiValueEncoder enc)
     {
+        // note: nothing in buffer, can't flush (thus no need to call to check)
         int last = enc.encodeMore(mBuffer, 0, mBuffer.length);
         if (enc.isCompleted()) { // fitted in completely?
             return new String(mBuffer, 0, last);

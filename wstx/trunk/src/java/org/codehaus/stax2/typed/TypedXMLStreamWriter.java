@@ -103,7 +103,7 @@ public interface TypedXMLStreamWriter
      * @param from    The index in the array from which writing starts.
      * @param length  The number of bytes to write.
      */
-    //void writeBinary(byte[] value, int from, int length) throws XMLStreamException;
+    void writeBinary(byte[] value, int from, int length) throws XMLStreamException;
     
     /**
      * <p>Write int array to the output. The lexical
@@ -198,7 +198,7 @@ public interface TypedXMLStreamWriter
      * @param localName  The attribute's local name.
      * @param value   The array from which to write the bytes.
      */
-    //void writeBinaryAttribute(String prefix, String namespaceURI, String localName, byte[] value) throws XMLStreamException;
+    void writeBinaryAttribute(String prefix, String namespaceURI, String localName, byte[] value) throws XMLStreamException;
 
     /**
      * <p>Write int array attribute. The lexical
