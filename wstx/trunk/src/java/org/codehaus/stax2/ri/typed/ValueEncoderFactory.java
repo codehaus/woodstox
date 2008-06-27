@@ -120,10 +120,9 @@ public final class ValueEncoderFactory
 
     // // // And special one for Base64
 
-    public AsciiValueEncoder getEncoder(byte[] values, int from, int length)
+    public Base64Encoder getEncoder(byte[] data, int from, int length)
     {
-        // !!!! TBI
-        return null;
+        return new Base64Encoder(data, from, from+length);
     }
 
     /*
@@ -503,6 +502,147 @@ public final class ValueEncoderFactory
                 ptr = NumberUtil.writeDouble(mValues[mPtr++], buffer, ptr);
             }
             return ptr;
+        }
+    }
+
+    /*
+    ////////////////////////////////////////////////////////////////
+    // Implementation classes: binary (base64) encoder
+    ////////////////////////////////////////////////////////////////
+     */
+
+    final static class Base64Encoder
+        extends AsciiValueEncoder
+    {
+        /**
+         * As per Base64 specs, need to insert linefeeds after
+         * 76 characters.
+         */
+        final static int CHUNKS_BEFORE_LF = (76 >> 2);
+
+        final static char PAD_CHAR = '=';
+        final static byte PAD_BYTE = (byte) PAD_CHAR;
+
+        /* Hmmh. Base64 specs suggest \r\n... but for xml, \n is the
+         * canonical one. Let's take xml's choice here, more compact too.
+         */
+        final static byte LF_CHAR = '\n';
+        final static byte LF_BYTE = (byte) LF_CHAR;
+
+        final static char[] s64Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/".toCharArray();
+
+        final static byte[] s64Bytes = new byte[64];
+        static {
+            for (int i = 0, len = s64Chars.length; i < len; ++i) {
+                s64Bytes[i] = (byte) s64Chars[i];
+            }
+        }
+
+        final byte[] mData;
+
+        int mPtr;
+
+        final int mEnd;
+
+        /**
+         * We need a counter to know when to add mandatory
+         * linefeed.
+         */
+        int mChunksBeforeLf = CHUNKS_BEFORE_LF;
+
+        protected Base64Encoder(byte[] values, int from, int end)
+        {
+            mData = values;
+            mPtr = from;
+            mEnd = end;
+        }
+
+        public boolean isCompleted() { return (mPtr >= mEnd); }
+
+        public int encodeMore(char[] buffer, int outPtr, int outEnd)
+        {
+            // Encoding is by chunks of 3 input, 4 output chars, so:
+            int inEnd = mEnd-3;
+            // But let's also reserve room for lf char
+            outEnd -= 5;
+
+            while (mPtr <= inEnd) {
+                if (outPtr > outEnd) { // no more room: need to return for flush
+                    return outPtr;
+                }
+                // First, mash 3 bytes into lsb of 32-bit int
+                int b24 = ((int) mData[mPtr++]) << 8;
+                b24 |= ((int) mData[mPtr++]) & 0xFF;
+                b24 = (b24 << 8) | (((int) mData[mPtr++]) & 0xFF);
+                // And then split resulting 4 6-bit segments
+                buffer[outPtr++] = s64Chars[(b24 >> 18) & 0x3F];
+                buffer[outPtr++] = s64Chars[(b24 >> 12) & 0x3F];
+                buffer[outPtr++] = s64Chars[(b24 >> 6) & 0x3F];
+                buffer[outPtr++] = s64Chars[b24 & 0x3F];
+
+                if (--mChunksBeforeLf <= 0) {
+                    buffer[outPtr++] = LF_BYTE;
+                    mChunksBeforeLf = CHUNKS_BEFORE_LF;
+                }
+            }
+            // main stuff done, any leftovers?
+            int left = (mEnd-mPtr);
+            if (left > 0) { // yes, but do we have room for output?
+                if (outPtr <= outEnd) { // yup
+                    int b24 = ((int) mData[mPtr++]) << 16;
+                    if (left == 2) {
+                        b24 |= (((int) mData[mPtr++]) & 0xFF) << 8;
+                    }
+                    buffer[outPtr++] = s64Chars[(b24 >> 18) & 0x3F];
+                    buffer[outPtr++] = s64Chars[(b24 >> 12) & 0x3F];
+                    buffer[outPtr++] = (left == 1) ?
+                        PAD_CHAR : s64Chars[(b24 >> 6) & 0x3F];
+                    buffer[outPtr++] = PAD_CHAR;
+                }
+            }
+            return outPtr;
+        }
+
+        public int encodeMore(byte[] buffer, int outPtr, int outEnd)
+        {
+            int inEnd = mEnd-3;
+            outEnd -= 5;
+
+            while (mPtr <= inEnd) {
+                if (outPtr > outEnd) { // no more room: need to return for flush
+                    return outPtr;
+                }
+                // First, mash 3 bytes into lsb of 32-bit int
+                int b24 = ((int) mData[mPtr++]) << 8;
+                b24 |= ((int) mData[mPtr++]) & 0xFF;
+                b24 = (b24 << 8) | (((int) mData[mPtr++]) & 0xFF);
+                // And then split resulting 4 6-bit segments
+                buffer[outPtr++] = s64Bytes[(b24 >> 18) & 0x3F];
+                buffer[outPtr++] = s64Bytes[(b24 >> 12) & 0x3F];
+                buffer[outPtr++] = s64Bytes[(b24 >> 6) & 0x3F];
+                buffer[outPtr++] = s64Bytes[b24 & 0x3F];
+
+                if (--mChunksBeforeLf <= 0) {
+                    buffer[outPtr++] = LF_BYTE;
+                    mChunksBeforeLf = CHUNKS_BEFORE_LF;
+                }
+            }
+            // main stuff done, any leftovers?
+            int left = (mEnd-mPtr);
+            if (left > 0) { // yes, but do we have room for output?
+                if (outPtr <= outEnd) { // yup
+                    int b24 = ((int) mData[mPtr++]) << 16;
+                    if (left == 2) {
+                        b24 |= (((int) mData[mPtr++]) & 0xFF) << 8;
+                    }
+                    buffer[outPtr++] = s64Bytes[(b24 >> 18) & 0x3F];
+                    buffer[outPtr++] = s64Bytes[(b24 >> 12) & 0x3F];
+                    buffer[outPtr++] = (left == 1) ?
+                        PAD_BYTE : s64Bytes[(b24 >> 6) & 0x3F];
+                    buffer[outPtr++] = PAD_BYTE;
+                }
+            }
+            return outPtr;
         }
     }
 }
