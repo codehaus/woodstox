@@ -28,8 +28,6 @@ public class DefaultValueDecoder
 
     protected String mType;
 
-    protected char[] mValueBuffer;
-
     /**
      * Pointer to the next character to check, within lexical value
      */

@@ -24,6 +24,7 @@ import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
 
 import org.codehaus.stax2.ri.typed.DefaultValueDecoder;
+import org.codehaus.stax2.ri.typed.AsciiValueDecoder;
 import org.codehaus.stax2.typed.TypedValueDecoder;
 
 import com.ctc.wstx.api.ReaderConfig;
@@ -259,6 +260,24 @@ public abstract class AttributeCollector
     //////////////////////////////////////////////////////
      */
 
+    public final void decodeValue(int index, AsciiValueDecoder dec)
+        throws IllegalArgumentException
+    {
+        if (index < 0 || index >= mAttrCount) {
+            throwIndex(index);
+        }
+        if (mAttrValues != null) {
+            String value = mAttrValues[index];
+            if (value != null) {
+                dec.decode(value);
+                return;
+            }
+        }
+        dec.decode(mValueBuffer.getCharBuffer(),
+                   mValueBuffer.getOffset(index),
+                   mValueBuffer.getOffset(index+1));
+    }
+
     public final boolean getValueAsBoolean(int index, DefaultValueDecoder dec)
         throws IllegalArgumentException
     {
@@ -278,23 +297,6 @@ public abstract class AttributeCollector
         return dec.decodeBoolean(mValueBuffer.getCharBuffer(),
                                  mValueBuffer.getOffset(index),
                                  mValueBuffer.getOffset(index+1));
-    }
-
-    public final int getValueAsInt(int index, DefaultValueDecoder dec)
-        throws IllegalArgumentException
-    {
-        if (index < 0 || index >= mAttrCount) {
-            throwIndex(index);
-        }
-        if (mAttrValues != null) {
-            String value = mAttrValues[index];
-            if (value != null) {
-                return dec.decodeInt(value);
-            }
-        }
-        return dec.decodeInt(mValueBuffer.getCharBuffer(),
-                             mValueBuffer.getOffset(index),
-                             mValueBuffer.getOffset(index+1));
     }
 
     public final long getValueAsLong(int index, DefaultValueDecoder dec)

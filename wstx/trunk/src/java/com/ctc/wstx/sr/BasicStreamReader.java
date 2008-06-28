@@ -36,7 +36,9 @@ import org.codehaus.stax2.DTDInfo;
 import org.codehaus.stax2.LocationInfo;
 import org.codehaus.stax2.XMLStreamLocation2;
 import org.codehaus.stax2.XMLStreamReader2;
+import org.codehaus.stax2.ri.typed.AsciiValueDecoder;
 import org.codehaus.stax2.ri.typed.DefaultValueDecoder;
+import org.codehaus.stax2.ri.typed.ValueDecoderFactory;
 import org.codehaus.stax2.typed.TypedValueDecoder;
 import org.codehaus.stax2.typed.TypedXMLStreamException;
 import org.codehaus.stax2.validation.*;
@@ -291,6 +293,8 @@ public class BasicStreamReader
      * instantiated/accessed if and when needed
      */
     protected DefaultValueDecoder mValueDecoder;
+
+    protected ValueDecoderFactory mDecoderFactory;
 
     /*
     ////////////////////////////////////////////////////
@@ -1215,30 +1219,16 @@ public class BasicStreamReader
 
     public int getElementAsInt() throws XMLStreamException
     {
-        String value = collectElementText();
-        try {
-            if (value == null) {
-                return mTextBuffer.convertToInt(valueDecoder());
-            } else {
-                return valueDecoder().decodeInt(value);
-            }
-        } catch (IllegalArgumentException iae) {
-            throw constructTypeException(iae, value);
-        }
+        ValueDecoderFactory.IntDecoder dec = decoderFactory().getIntDecoder();
+        decodeElementText(dec);
+        return dec.getValue();
     }
 
     public long getElementAsLong() throws XMLStreamException
     {
-        String value = collectElementText();
-        try {
-            if (value == null) {
-                return mTextBuffer.convertToLong(valueDecoder());
-            } else {
-                return valueDecoder().decodeLong(value);
-            }
-        } catch (IllegalArgumentException iae) {
-            throw constructTypeException(iae, value);
-        }
+        ValueDecoderFactory.LongDecoder dec = decoderFactory().getLongDecoder();
+        decodeElementText(dec);
+        return dec.getValue();
     }
 
     public float getElementAsFloat() throws XMLStreamException
@@ -1353,11 +1343,13 @@ public class BasicStreamReader
         if (mCurrToken != START_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
         }
+        ValueDecoderFactory.IntDecoder dec = decoderFactory().getIntDecoder();
         try {
-            return mAttrCollector.getValueAsInt(index, valueDecoder());
+            mAttrCollector.decodeValue(index, dec);
         } catch (IllegalArgumentException iae) {
             throw constructTypeException(iae, mAttrCollector.getValue(index));
         }
+        return dec.getValue();
     }
 
     public long getAttributeAsLong(int index) throws XMLStreamException
@@ -1365,11 +1357,13 @@ public class BasicStreamReader
         if (mCurrToken != START_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
         }
+        ValueDecoderFactory.LongDecoder dec = decoderFactory().getLongDecoder();
         try {
-            return mAttrCollector.getValueAsLong(index, valueDecoder());
+            mAttrCollector.decodeValue(index, dec);
         } catch (IllegalArgumentException iae) {
             throw constructTypeException(iae, mAttrCollector.getValue(index));
         }
+        return dec.getValue();
     }
 
     public float getAttributeAsFloat(int index) throws XMLStreamException
@@ -1457,7 +1451,7 @@ public class BasicStreamReader
      * @return Collected String, if any; or null to indicate
      *   contents are in mTextBuffer.
      */
-    private String collectElementText()
+    private final String collectElementText()
         throws XMLStreamException
     {
         if (mCurrToken != START_ELEMENT) {
@@ -1533,6 +1527,103 @@ public class BasicStreamReader
         return (acc == null) ? text : acc.getAndClear();
     }
 
+    private final void decodeElementText(AsciiValueDecoder dec)
+        throws XMLStreamException
+    {
+        if (mCurrToken != START_ELEMENT) {
+            throwParseError(ErrorConsts.ERR_STATE_NOT_STELEM);
+        }
+        /* Ok, now: with START_ELEMENT we know that it's not partially
+         * processed; that we are in-tree (not prolog or epilog).
+         * The only possible complication would be 
+         */
+        if (mStEmptyElem) {
+            // And if so, we'll then get 'virtual' close tag; things
+            // are simple as location info was set when dealing with
+            // empty start element; and likewise, validation (if any)
+            // has been taken care of.
+            mStEmptyElem = false;
+            mCurrToken = END_ELEMENT;
+            try {
+                dec.decode("");
+            } catch (IllegalArgumentException iae) {
+                throw constructTypeException(iae, "");
+            }
+            return;
+        }
+        // First need to find a textual event
+        while (true) {
+            int type = next();
+            if (type == END_ELEMENT) {
+                try {
+                    dec.decode("");
+                } catch (IllegalArgumentException iae) {
+                    throw constructTypeException(iae, "");
+                }
+                return;
+            }
+            if (type == COMMENT || type == PROCESSING_INSTRUCTION) {
+                continue;
+            }
+            if (((1 << type) & MASK_GET_ELEMENT_TEXT) == 0) {
+                throwParseError("Expected a text token, got "+tokenTypeDesc(type)+".");
+            }
+            break;
+        }
+        if (mTokenState < TOKEN_FULL_SINGLE) {
+            readCoalescedText(mCurrToken, false);
+        }
+        /* Ok: then quick check; if it looks like we are directly
+         * followed by the end tag, we need not construct String
+         * quite yet.
+         */
+        if ((mInputPtr + 1) < mInputEnd &&
+            mInputBuffer[mInputPtr] == '<' && mInputBuffer[mInputPtr+1] == '/') {
+            // But first: is textual content validation needed?
+            if (mValidateText) {
+                mElementStack.validateText(mTextBuffer, true);
+            }
+            mInputPtr += 2;
+            mCurrToken = END_ELEMENT;
+            // Can by-pass next(), nextFromTree(), in this case:
+            readEndElem();
+            // And buffer, then, has data for conversion, so:
+            try {
+                mTextBuffer.decode(dec);
+            } catch (IllegalArgumentException iae) {
+                throw constructTypeException(iae, mTextBuffer.contentsAsString());
+            }
+            return;
+        }
+
+        // Otherwise, we'll need to do slower processing
+
+        String text = mTextBuffer.contentsAsString();
+        // Then we'll see if end is nigh...
+        TextAccumulator acc = null;
+        int type;
+        
+        while ((type = next()) != END_ELEMENT) {
+            if (((1 << type) & MASK_GET_ELEMENT_TEXT) != 0) {
+                if (acc == null) {
+                    acc = new TextAccumulator();
+                    acc.addText(text);
+                }
+                acc.addText(getText());
+                continue;
+            }
+            if (type != COMMENT && type != PROCESSING_INSTRUCTION) {
+                throwParseError("Expected a text token, got "+tokenTypeDesc(type)+".");
+            }
+        }
+        String str = (acc == null) ? text : acc.getAndClear();
+        try {
+            dec.decode(str);
+        } catch (IllegalArgumentException iae) {
+            throw constructTypeException(iae, str);
+        }
+    }
+
     /**
      * Method called to verify validity of the parsed QName element
      * or attribute value. At this point binding of a prefixed name
@@ -1566,6 +1657,14 @@ public class BasicStreamReader
             mValueDecoder = new DefaultValueDecoder();
         }
         return mValueDecoder;
+    }
+
+    protected ValueDecoderFactory decoderFactory()
+    {
+        if (mDecoderFactory == null) {
+            mDecoderFactory = new ValueDecoderFactory();
+        }
+        return mDecoderFactory;
     }
 
     /*
