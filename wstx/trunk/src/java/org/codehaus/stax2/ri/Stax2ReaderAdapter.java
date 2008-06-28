@@ -12,7 +12,9 @@ import javax.xml.stream.util.StreamReaderDelegate;
 
 import org.codehaus.stax2.typed.TypedValueDecoder;
 import org.codehaus.stax2.typed.TypedXMLStreamException;
+import org.codehaus.stax2.ri.typed.AsciiValueDecoder;
 import org.codehaus.stax2.ri.typed.DefaultValueDecoder;
+import org.codehaus.stax2.ri.typed.ValueDecoderFactory;
 
 import org.codehaus.stax2.*;
 import org.codehaus.stax2.validation.*;
@@ -47,6 +49,11 @@ public class Stax2ReaderAdapter
      * instantiated/accessed if and when needed
      */
     protected DefaultValueDecoder mValueDecoder;
+
+    /**
+     * Factory used for constructing decoders we need for typed access
+     */
+    protected ValueDecoderFactory mDecoderFactory;
 
     /**
      * Number of open (start) elements currently.
@@ -105,52 +112,62 @@ public class Stax2ReaderAdapter
 
     public boolean getElementAsBoolean() throws XMLStreamException
     {
+        ValueDecoderFactory.BooleanDecoder dec = decoderFactory().getBooleanDecoder();
         String value = getElementText();
         try {
-            return valueDecoder().decodeBoolean(value);
+            dec.decode(value);
         } catch (IllegalArgumentException iae) {
             throw constructTypeException(iae, value);
         }
+        return dec.getValue();
     }
 
     public int getElementAsInt() throws XMLStreamException
     {
+        ValueDecoderFactory.IntDecoder dec = decoderFactory().getIntDecoder();
         String value = getElementText();
         try {
-            return valueDecoder().decodeInt(value);
+            dec.decode(value);
         } catch (IllegalArgumentException iae) {
             throw constructTypeException(iae, value);
         }
+        return dec.getValue();
     }
 
     public long getElementAsLong() throws XMLStreamException
     {
+        ValueDecoderFactory.LongDecoder dec = decoderFactory().getLongDecoder();
         String value = getElementText();
         try {
-            return valueDecoder().decodeLong(value);
+            dec.decode(value);
         } catch (IllegalArgumentException iae) {
             throw constructTypeException(iae, value);
         }
+        return dec.getValue();
     }
 
     public float getElementAsFloat() throws XMLStreamException
     {
+        ValueDecoderFactory.FloatDecoder dec = decoderFactory().getFloatDecoder();
         String value = getElementText();
         try {
-            return valueDecoder().decodeFloat(value);
+            dec.decode(value);
         } catch (IllegalArgumentException iae) {
             throw constructTypeException(iae, value);
         }
+        return dec.getValue();
     }
 
     public double getElementAsDouble() throws XMLStreamException
     {
+        ValueDecoderFactory.DoubleDecoder dec = decoderFactory().getDoubleDecoder();
         String value = getElementText();
         try {
-            return valueDecoder().decodeDouble(value);
+            dec.decode(value);
         } catch (IllegalArgumentException iae) {
             throw constructTypeException(iae, value);
         }
+        return dec.getValue();
     }
 
     public BigInteger getElementAsInteger() throws XMLStreamException
@@ -200,52 +217,62 @@ public class Stax2ReaderAdapter
 
     public boolean getAttributeAsBoolean(int index) throws XMLStreamException
     {
+        ValueDecoderFactory.BooleanDecoder dec = decoderFactory().getBooleanDecoder();
         String value = getAttributeValue(index);
         try {
-            return valueDecoder().decodeBoolean(value);
+            dec.decode(value);
         } catch (IllegalArgumentException iae) {
             throw constructTypeException(iae, value);
         }
+        return dec.getValue();
     }
 
     public int getAttributeAsInt(int index) throws XMLStreamException
     {
+        ValueDecoderFactory.IntDecoder dec = decoderFactory().getIntDecoder();
         String value = getAttributeValue(index);
         try {
-            return valueDecoder().decodeInt(value);
+            dec.decode(value);
         } catch (IllegalArgumentException iae) {
             throw constructTypeException(iae, value);
         }
+        return dec.getValue();
     }
 
     public long getAttributeAsLong(int index) throws XMLStreamException
     {
+        ValueDecoderFactory.LongDecoder dec = decoderFactory().getLongDecoder();
         String value = getAttributeValue(index);
         try {
-            return valueDecoder().decodeLong(value);
+            dec.decode(value);
         } catch (IllegalArgumentException iae) {
             throw constructTypeException(iae, value);
         }
+        return dec.getValue();
     }
 
     public float getAttributeAsFloat(int index) throws XMLStreamException
     {
+        ValueDecoderFactory.FloatDecoder dec = decoderFactory().getFloatDecoder();
         String value = getAttributeValue(index);
         try {
-            return valueDecoder().decodeFloat(value);
+            dec.decode(value);
         } catch (IllegalArgumentException iae) {
             throw constructTypeException(iae, value);
         }
+        return dec.getValue();
     }
 
     public double getAttributeAsDouble(int index) throws XMLStreamException
     {
+        ValueDecoderFactory.DoubleDecoder dec = decoderFactory().getDoubleDecoder();
         String value = getAttributeValue(index);
         try {
-            return valueDecoder().decodeDouble(value);
+            dec.decode(value);
         } catch (IllegalArgumentException iae) {
             throw constructTypeException(iae, value);
         }
+        return dec.getValue();
     }
 
     public BigInteger getAttributeAsInteger(int index) throws XMLStreamException
@@ -649,6 +676,14 @@ public class Stax2ReaderAdapter
             mValueDecoder = new DefaultValueDecoder();
         }
         return mValueDecoder;
+    }
+
+    protected ValueDecoderFactory decoderFactory()
+    {
+        if (mDecoderFactory == null) {
+            mDecoderFactory = new ValueDecoderFactory();
+        }
+        return mDecoderFactory;
     }
 
     protected void throwUnsupported()

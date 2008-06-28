@@ -416,59 +416,6 @@ public final class TextBuffer
         }
     }
 
-
-    public boolean convertToBoolean(DefaultValueDecoder vd)
-        throws IllegalArgumentException
-    {
-        if (mInputStart >= 0) { // shared buffer, common case
-            int start = mInputStart;
-            int end = start + mInputLen;
-            return vd.decodeBoolean(mInputBuffer, start, end);
-        }
-        char[] buf = getTextBuffer();
-        int len = mSegmentSize + mCurrentSize;
-        return vd.decodeBoolean(buf, 0, len);
-    }
-
-    public long convertToLong(DefaultValueDecoder vd)
-        throws IllegalArgumentException
-    {
-        if (mInputStart >= 0) { // shared buffer, common case
-            int start = mInputStart;
-            int end = start + mInputLen;
-            return vd.decodeLong(mInputBuffer, start, end);
-        }
-        char[] buf = getTextBuffer();
-        int len = mSegmentSize + mCurrentSize;
-        return vd.decodeLong(buf, 0, len);
-    }
-
-    public float convertToFloat(DefaultValueDecoder vd)
-        throws IllegalArgumentException
-    {
-        if (mInputStart >= 0) { // shared buffer, common case
-            int start = mInputStart;
-            int end = start + mInputLen;
-            return vd.decodeFloat(mInputBuffer, start, end);
-        }
-        char[] buf = getTextBuffer();
-        int len = mSegmentSize + mCurrentSize;
-        return vd.decodeFloat(buf, 0, len);
-    }
-
-    public double convertToDouble(DefaultValueDecoder vd)
-        throws IllegalArgumentException
-    {
-        if (mInputStart >= 0) { // shared buffer, common case
-            int start = mInputStart;
-            int end = start + mInputLen;
-            return vd.decodeDouble(mInputBuffer, start, end);
-        }
-        char[] buf = getTextBuffer();
-        int len = mSegmentSize + mCurrentSize;
-        return vd.decodeDouble(buf, 0, len);
-    }
-
     public BigInteger convertToInteger(DefaultValueDecoder vd)
         throws IllegalArgumentException
     {

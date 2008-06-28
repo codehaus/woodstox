@@ -36,8 +36,11 @@ public final class ValueDecoderFactory
 {
     // // // Lazily-constructed, recycled decoder instances
 
+    protected BooleanDecoder mBooleanDecoder = null;
     protected IntDecoder mIntDecoder = null;
     protected LongDecoder mLongDecoder = null;
+    protected FloatDecoder mFloatDecoder = null;
+    protected DoubleDecoder mDoubleDecoder = null;
 
     public ValueDecoderFactory() { }
 
@@ -46,6 +49,14 @@ public final class ValueDecoderFactory
     // Factory methods
     /////////////////////////////////////////////////////
     */
+
+    public BooleanDecoder getBooleanDecoder()
+    {
+        if (mBooleanDecoder == null) {
+            mBooleanDecoder = new BooleanDecoder();
+        }
+        return mBooleanDecoder;
+    }
 
     public IntDecoder getIntDecoder()
     {
@@ -61,6 +72,22 @@ public final class ValueDecoderFactory
             mLongDecoder = new LongDecoder();
         }
         return mLongDecoder;
+    }
+
+    public FloatDecoder getFloatDecoder()
+    {
+        if (mFloatDecoder == null) {
+            mFloatDecoder = new FloatDecoder();
+        }
+        return mFloatDecoder;
+    }
+
+    public DoubleDecoder getDoubleDecoder()
+    {
+        if (mDoubleDecoder == null) {
+            mDoubleDecoder = new DoubleDecoder();
+        }
+        return mDoubleDecoder;
     }
 
     /*
@@ -541,6 +568,102 @@ public final class ValueDecoderFactory
     /////////////////////////////////////////////////////
     */
 
+    public final static class BooleanDecoder
+        extends DecoderBase
+    {
+        protected boolean mValue;
+
+        public BooleanDecoder() { }
+
+        public String getType() { return "boolean"; }
+
+        public boolean getValue() { return mValue; }
+
+        public void decode(String lexical)
+            throws IllegalArgumentException
+        {
+            // First, skip leading ws if any
+            char c = resetAndTrimLeading(lexical, 0, lexical.length());
+            int ptr = mPtr;
+            int len = mEnd-ptr;
+            if (c == 't') {
+                if (len >= 3
+                    && lexical.charAt(ptr) == 'r'
+                    && lexical.charAt(++ptr) == 'u'
+                    && lexical.charAt(++ptr) == 'e') {
+                    if (++ptr >= mEnd || allWhitespace(lexical, ptr, mEnd)) {
+                        mValue = true;
+                        return;
+                    }
+                }
+            } else if (c == 'f') {
+                if (len >= 4
+                    && lexical.charAt(ptr) == 'a'
+                    && lexical.charAt(++ptr) == 'l'
+                    && lexical.charAt(++ptr) == 's'
+                    && lexical.charAt(++ptr) == 'e') {
+                    if (++ptr >= mEnd || allWhitespace(lexical, ptr, mEnd)) {
+                        mValue = false;
+                        return;
+                    }
+                }
+            } else if (c == '0') {
+                if (ptr >= mEnd || allWhitespace(lexical, ptr, mEnd)) {
+                    mValue = false;
+                    return;
+                }
+            } else if (c == '1') {
+                if (ptr >= mEnd || allWhitespace(lexical, ptr, mEnd)) {
+                    mValue = true;
+                    return;
+                }
+            }
+            throw constructInvalidValue(lexical);
+        }
+        
+        public void decode(char[] lexical, int start, int end)
+            throws IllegalArgumentException
+        {
+            // First, skip leading ws if any
+            char c = resetAndTrimLeading(lexical, start, end);
+            int ptr = mPtr;
+            int len = mEnd-ptr;
+            if (c == 't') {
+                if (len >= 3
+                    && lexical[ptr] == 'r'
+                    && lexical[++ptr] == 'u'
+                    && lexical[++ptr] == 'e') {
+                    if (++ptr >= mEnd || allWhitespace(lexical, ptr, mEnd)) {
+                        mValue = true;
+                        return;
+                    }
+                }
+            } else if (c == 'f') {
+                if (len >= 4
+                    && lexical[ptr] == 'a'
+                    && lexical[++ptr] == 'l'
+                    && lexical[++ptr] == 's'
+                    && lexical[++ptr] == 'e') {
+                    if (++ptr >= mEnd || allWhitespace(lexical, ptr, mEnd)) {
+                        mValue = false;
+                        return;
+                    }
+                }
+            } else if (c == '0') {
+                if (ptr >= mEnd || allWhitespace(lexical, ptr, mEnd)) {
+                    mValue = false;
+                    return;
+                }
+            } else if (c == '1') {
+                if (ptr >= mEnd || allWhitespace(lexical, ptr, mEnd)) {
+                    mValue = true;
+                    return;
+                }
+            }
+            throw constructInvalidValue(lexical, start);
+        }
+    }
+
     public final static class IntDecoder
         extends DecoderBase
     {
@@ -780,6 +903,204 @@ public final class ValueDecoderFactory
             }
 
             throw new IllegalArgumentException("value \""+lexicalDesc(lexical, 0)+"\" not a valid long: overflow.");
+        }
+    }
+
+    public final static class FloatDecoder
+        extends DecoderBase
+    {
+        protected float mValue;
+
+        public FloatDecoder() { }
+
+        public String getType() { return "float"; }
+
+        public float getValue() { return mValue; }
+
+        public void decode(String lexical)
+            throws IllegalArgumentException
+        {
+            int origEnd = lexical.length();
+            int start = trimLeading(lexical, 0, origEnd);
+            int end = trimTrailing(lexical, start, origEnd);
+
+            if (start > 0 || end < origEnd) {
+                lexical = lexical.substring(start, end);
+            }
+
+            /* Then, leading digit; or one of 3 well-known constants
+             * (INF, -INF, NaN)
+             */
+            int len = lexical.length();
+            if (len == 3) {
+                char c = lexical.charAt(0);
+                if (c == 'I') {
+                    if (lexical.charAt(1) == 'N' && lexical.charAt(2) == 'F') {
+                        mValue = Float.POSITIVE_INFINITY;
+                        return;
+                    }
+                } else if (c == 'N') {
+                    if (lexical.charAt(1) == 'a' && lexical.charAt(2) == 'N') {
+                        mValue = Float.NaN;
+                        return;
+                    }
+                }
+            } else if (len == 4) {
+                char c = lexical.charAt(0);
+                if (c == '-') {
+                    if (lexical.charAt(1) == 'I'
+                        && lexical.charAt(2) == 'N'
+                        && lexical.charAt(3) == 'F') {
+                        mValue = Float.NEGATIVE_INFINITY;
+                        return;
+                    }
+                }
+            }
+            
+            try {
+                mValue = Float.parseFloat(lexical);
+            } catch (NumberFormatException nex) {
+                throw constructInvalidValue(lexical);
+            }
+        }
+
+        public void decode(char[] lexical, int start, int end)
+            throws IllegalArgumentException
+        {
+            start = trimLeading(lexical, start, end);
+            end = trimTrailing(lexical, start, end);
+            int len = end-start;
+            
+            if (len == 3) {
+                char c = lexical[start];
+                if (c == 'I') {
+                    if (lexical[start+1] == 'N' && lexical[start+2] == 'F') {
+                        mValue = Float.POSITIVE_INFINITY;
+                        return;
+                    }
+                } else if (c == 'N') {
+                    if (lexical[start+1] == 'a' && lexical[start+2] == 'N') {
+                        mValue = Float.NaN;
+                        return;
+                    }
+                }
+            } else if (len == 4) {
+                char c = lexical[start];
+                if (c == '-') {
+                    if (lexical[start+1] == 'I'
+                        && lexical[start+2] == 'N'
+                        && lexical[start+3] == 'F') {
+                        mValue = Float.NEGATIVE_INFINITY;
+                        return;
+                    }
+                }
+            }
+            
+            String lexicalStr = new String(lexical, start, len);
+            try {
+                mValue = Float.parseFloat(lexicalStr);
+            } catch (NumberFormatException nex) {
+                throw constructInvalidValue(lexicalStr);
+            }
+        }
+    }
+
+    public final static class DoubleDecoder
+        extends DecoderBase
+    {
+        protected double mValue;
+
+        public DoubleDecoder() { }
+
+        public String getType() { return "double"; }
+
+        public double getValue() { return mValue; }
+
+        public void decode(String lexical)
+            throws IllegalArgumentException
+        {
+            int origEnd = lexical.length();
+            int start = trimLeading(lexical, 0, origEnd);
+            int end = trimTrailing(lexical, start, origEnd);
+            
+            if (start > 0 || end < origEnd) {
+                lexical = lexical.substring(start, end);
+            }
+            
+            /* Then, leading digit; or one of 3 well-known constants
+             * (INF, -INF, NaN)
+             */
+            int len = lexical.length();
+            if (len == 3) {
+                char c = lexical.charAt(0);
+                if (c == 'I') {
+                    if (lexical.charAt(1) == 'N' && lexical.charAt(2) == 'F') {
+                        mValue = Double.POSITIVE_INFINITY;
+                        return;
+                    }
+                } else if (c == 'N') {
+                    if (lexical.charAt(1) == 'a' && lexical.charAt(2) == 'N') {
+                        mValue = Double.NaN;
+                        return;
+                    }
+                }
+            } else if (len == 4) {
+                char c = lexical.charAt(0);
+                if (c == '-') {
+                    if (lexical.charAt(1) == 'I'
+                        && lexical.charAt(2) == 'N'
+                        && lexical.charAt(3) == 'F') {
+                        mValue = Double.NEGATIVE_INFINITY;
+                        return;
+                    }
+                }
+            }
+            
+            try {
+                mValue = Double.parseDouble(lexical);
+            } catch (NumberFormatException nex) {
+                throw constructInvalidValue(lexical);
+            }
+        }
+
+        public void decode(char[] lexical, int start, int end)
+            throws IllegalArgumentException
+        {
+            start = trimLeading(lexical, start, end);
+            end = trimTrailing(lexical, start, end);
+            int len = end-start;
+            
+            if (len == 3) {
+                char c = lexical[start];
+                if (c == 'I') {
+                    if (lexical[start+1] == 'N' && lexical[start+2] == 'F') {
+                        mValue = Double.POSITIVE_INFINITY;
+                        return;
+                    }
+                } else if (c == 'N') {
+                    if (lexical[start+1] == 'a' && lexical[start+2] == 'N') {
+                        mValue = Double.NaN;
+                        return;
+                    }
+                }
+            } else if (len == 4) {
+                char c = lexical[start];
+                if (c == '-') {
+                    if (lexical[start+1] == 'I'
+                        && lexical[start+2] == 'N'
+                        && lexical[start+3] == 'F') {
+                        mValue = Double.NEGATIVE_INFINITY;
+                        return;
+                    }
+                }
+            }
+            
+            String lexicalStr = new String(lexical, start, len);
+            try {
+                mValue = Double.parseDouble(lexicalStr);
+            } catch (NumberFormatException nex) {
+                throw constructInvalidValue(lexicalStr);
+            }
         }
     }
 

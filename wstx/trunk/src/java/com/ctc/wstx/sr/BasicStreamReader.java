@@ -294,6 +294,9 @@ public class BasicStreamReader
      */
     protected DefaultValueDecoder mValueDecoder;
 
+    /**
+     * Factory used for constructing decoders we need for typed access
+     */
     protected ValueDecoderFactory mDecoderFactory;
 
     /*
@@ -1205,16 +1208,9 @@ public class BasicStreamReader
 
     public boolean getElementAsBoolean() throws XMLStreamException
     {
-        String value = collectElementText();
-        try {
-            if (value == null) {
-                return mTextBuffer.convertToBoolean(valueDecoder());
-            } else {
-                return valueDecoder().decodeBoolean(value);
-            }
-        } catch (IllegalArgumentException iae) {
-            throw constructTypeException(iae, value);
-        }
+        ValueDecoderFactory.BooleanDecoder dec = decoderFactory().getBooleanDecoder();
+        decodeElementText(dec);
+        return dec.getValue();
     }
 
     public int getElementAsInt() throws XMLStreamException
@@ -1233,30 +1229,16 @@ public class BasicStreamReader
 
     public float getElementAsFloat() throws XMLStreamException
     {
-        String value = collectElementText();
-        try {
-            if (value == null) {
-                return mTextBuffer.convertToFloat(valueDecoder());
-            } else {
-                return valueDecoder().decodeFloat(value);
-            }
-        } catch (IllegalArgumentException iae) {
-            throw constructTypeException(iae, value);
-        }
+        ValueDecoderFactory.FloatDecoder dec = decoderFactory().getFloatDecoder();
+        decodeElementText(dec);
+        return dec.getValue();
     }
 
     public double getElementAsDouble() throws XMLStreamException
     {
-        String value = collectElementText();
-        try {
-            if (value == null) {
-                return mTextBuffer.convertToDouble(valueDecoder());
-            } else {
-                return valueDecoder().decodeDouble(value);
-            }
-        } catch (IllegalArgumentException iae) {
-            throw constructTypeException(iae, value);
-        }
+        ValueDecoderFactory.DoubleDecoder dec = decoderFactory().getDoubleDecoder();
+        decodeElementText(dec);
+        return dec.getValue();
     }
 
     public BigInteger getElementAsInteger() throws XMLStreamException
@@ -1331,11 +1313,13 @@ public class BasicStreamReader
         if (mCurrToken != START_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
         }
+        ValueDecoderFactory.BooleanDecoder dec = decoderFactory().getBooleanDecoder();
         try {
-            return mAttrCollector.getValueAsBoolean(index, valueDecoder());
+            mAttrCollector.decodeValue(index, dec);
         } catch (IllegalArgumentException iae) {
             throw constructTypeException(iae, mAttrCollector.getValue(index));
         }
+        return dec.getValue();
     }
 
     public int getAttributeAsInt(int index) throws XMLStreamException
@@ -1371,11 +1355,13 @@ public class BasicStreamReader
         if (mCurrToken != START_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
         }
+        ValueDecoderFactory.FloatDecoder dec = decoderFactory().getFloatDecoder();
         try {
-            return mAttrCollector.getValueAsFloat(index, valueDecoder());
+            mAttrCollector.decodeValue(index, dec);
         } catch (IllegalArgumentException iae) {
             throw constructTypeException(iae, mAttrCollector.getValue(index));
         }
+        return dec.getValue();
     }
 
     public double getAttributeAsDouble(int index) throws XMLStreamException
@@ -1383,11 +1369,13 @@ public class BasicStreamReader
         if (mCurrToken != START_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
         }
+        ValueDecoderFactory.DoubleDecoder dec = decoderFactory().getDoubleDecoder();
         try {
-            return mAttrCollector.getValueAsDouble(index, valueDecoder());
+            mAttrCollector.decodeValue(index, dec);
         } catch (IllegalArgumentException iae) {
             throw constructTypeException(iae, mAttrCollector.getValue(index));
         }
+        return dec.getValue();
     }
 
     public BigInteger getAttributeAsInteger(int index) throws XMLStreamException
