@@ -39,7 +39,6 @@ import org.codehaus.stax2.ri.EmptyNamespaceContext;
 import org.codehaus.stax2.ri.SingletonIterator;
 import org.codehaus.stax2.ri.Stax2Util;
 import org.codehaus.stax2.ri.typed.AsciiValueDecoder;
-import org.codehaus.stax2.ri.typed.DefaultValueDecoder;
 import org.codehaus.stax2.ri.typed.ValueDecoderFactory;
 import org.codehaus.stax2.typed.TypedValueDecoder;
 import org.codehaus.stax2.typed.TypedXMLStreamException;
@@ -186,12 +185,6 @@ public abstract class DOMWrappingReader
      * URI it is bound to.
      */
     protected List mNsDeclList = null;
-
-    /**
-     * Value decoder to use for decoding typed content; lazily
-     * instantiated/accessed if and when needed
-     */
-    protected DefaultValueDecoder mValueDecoder;
 
     /**
      * Factory used for constructing decoders we need for typed access
@@ -1097,32 +1090,38 @@ public abstract class DOMWrappingReader
 
     public BigInteger getElementAsInteger() throws XMLStreamException
     {
+        ValueDecoderFactory.IntegerDecoder dec = decoderFactory().getIntegerDecoder();
         String value = getElementText();
         try {
-            return valueDecoder().decodeInteger(value);
+            dec.decode(value);
         } catch (IllegalArgumentException iae) {
             throw constructTypeException(iae, value);
         }
+        return dec.getValue();
     }
 
     public BigDecimal getElementAsDecimal() throws XMLStreamException
     {
+        ValueDecoderFactory.DecimalDecoder dec = decoderFactory().getDecimalDecoder();
         String value = getElementText();
         try {
-            return valueDecoder().decodeDecimal(value);
+            dec.decode(value);
         } catch (IllegalArgumentException iae) {
             throw constructTypeException(iae, value);
         }
+        return dec.getValue();
     }
 
     public QName getElementAsQName() throws XMLStreamException
     {
+        ValueDecoderFactory.QNameDecoder dec = decoderFactory().getQNameDecoder(getNamespaceContext());
         String value = getElementText();
         try {
-            return valueDecoder().decodeQName(value, getNamespaceContext());
+            dec.decode(value);
         } catch (IllegalArgumentException iae) {
             throw constructTypeException(iae, value);
         }
+        return dec.getValue();
     }
 
     public Object getElementAs(TypedValueDecoder tvd) throws XMLStreamException
@@ -1202,32 +1201,38 @@ public abstract class DOMWrappingReader
 
     public BigInteger getAttributeAsInteger(int index) throws XMLStreamException
     {
+        ValueDecoderFactory.IntegerDecoder dec = decoderFactory().getIntegerDecoder();
         String value = getAttributeValue(index);
         try {
-            return valueDecoder().decodeInteger(value);
+            dec.decode(value);
         } catch (IllegalArgumentException iae) {
             throw constructTypeException(iae, value);
         }
+        return dec.getValue();
     }
 
     public BigDecimal getAttributeAsDecimal(int index) throws XMLStreamException
     {
+        ValueDecoderFactory.DecimalDecoder dec = decoderFactory().getDecimalDecoder();
         String value = getAttributeValue(index);
         try {
-            return valueDecoder().decodeDecimal(value);
+            dec.decode(value);
         } catch (IllegalArgumentException iae) {
             throw constructTypeException(iae, value);
         }
+        return dec.getValue();
     }
 
     public QName getAttributeAsQName(int index) throws XMLStreamException
     {
+        ValueDecoderFactory.QNameDecoder dec = decoderFactory().getQNameDecoder(getNamespaceContext());
         String value = getAttributeValue(index);
         try {
-            return valueDecoder().decodeQName(value, getNamespaceContext());
+            dec.decode(value);
         } catch (IllegalArgumentException iae) {
             throw constructTypeException(iae, value);
         }
+        return dec.getValue();
     }
 
     public Object getAttributeAs(int index, TypedValueDecoder tvd) throws XMLStreamException
@@ -1799,19 +1804,6 @@ public abstract class DOMWrappingReader
     // Other internal methods
     ///////////////////////////////////////////////
      */
-
-    /**
-     * This method can be overridden by sub-classes, if an alternate
-     * value decoder instance should be used for handling conversions
-     * needed to implement Typed Access API.
-     */
-    protected DefaultValueDecoder valueDecoder()
-    {
-        if (mValueDecoder == null) {
-            mValueDecoder = new DefaultValueDecoder();
-        }
-        return mValueDecoder;
-    }
 
     protected ValueDecoderFactory decoderFactory()
     {

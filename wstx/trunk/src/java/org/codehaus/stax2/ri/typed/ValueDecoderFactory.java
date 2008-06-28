@@ -90,6 +90,16 @@ public final class ValueDecoderFactory
         return mDoubleDecoder;
     }
 
+    // // // Other scalar decoder: not recycled
+
+    public IntegerDecoder getIntegerDecoder() { return new IntegerDecoder(); }
+
+    public DecimalDecoder getDecimalDecoder() { return new DecimalDecoder(); }
+
+    public QNameDecoder getQNameDecoder(NamespaceContext nsc) {
+        return new QNameDecoder(nsc);
+    }
+
     /*
     /////////////////////////////////////////////////////
     // Shared decoder base class
@@ -100,7 +110,7 @@ public final class ValueDecoderFactory
      * There are some things common to all textual decoders (like
      * white space trimming).
      */
-    abstract static class DecoderBase
+    public abstract static class DecoderBase
         extends AsciiValueDecoder
     {
         final static long L_BILLION = 1000000000;
@@ -564,7 +574,7 @@ public final class ValueDecoderFactory
 
     /*
     /////////////////////////////////////////////////////
-    // Decoders, simple scalar
+    // Decoders, scalar primitives
     /////////////////////////////////////////////////////
     */
 
@@ -1101,6 +1111,172 @@ public final class ValueDecoderFactory
             } catch (NumberFormatException nex) {
                 throw constructInvalidValue(lexicalStr);
             }
+        }
+    }
+
+    /*
+    /////////////////////////////////////////////////////
+    // Decoders, other scalars
+    /////////////////////////////////////////////////////
+    */
+
+    public final static class IntegerDecoder
+        extends DecoderBase
+    {
+        protected BigInteger mValue;
+
+        public IntegerDecoder() { }
+
+        public String getType() { return "integer"; }
+
+        public BigInteger getValue() { return mValue; }
+
+        public void decode(String lexical)
+            throws IllegalArgumentException
+        {
+            int end = lexical.length();
+            int start = trimLeading(lexical, 0, end);
+            end = trimTrailing(lexical, start, end);
+            if (start > 0 || end < lexical.length()) {
+                lexical = lexical.substring(start, end);
+            }
+            try {
+                mValue = new BigInteger(lexical);
+            } catch (NumberFormatException nex) {
+                throw constructInvalidValue(lexical);
+            }
+        }
+
+        public void decode(char[] lexical, int start, int end)
+            throws IllegalArgumentException
+        {
+            start = trimLeading(lexical, start, end);
+            end = trimTrailing(lexical, start, end);
+            String lexicalStr = new String(lexical, start, (end-start));
+            try {
+                mValue = new BigInteger(lexicalStr);
+            } catch (NumberFormatException nex) {
+                throw constructInvalidValue(lexicalStr);
+            }
+        }
+    }
+
+    public final static class DecimalDecoder
+        extends DecoderBase
+    {
+        protected BigDecimal mValue;
+
+        public DecimalDecoder() { }
+
+        public String getType() { return "decimal"; }
+
+        public BigDecimal getValue() { return mValue; }
+
+        public void decode(String lexical)
+            throws IllegalArgumentException
+        {
+            int end = lexical.length();
+            int start = trimLeading(lexical, 0, end);
+            end = trimTrailing(lexical, start, end);
+            if (start > 0 || end < lexical.length()) {
+                lexical = lexical.substring(start, end);
+            }
+            try {
+                mValue = new BigDecimal(lexical);
+            } catch (NumberFormatException nex) {
+                throw constructInvalidValue(lexical);
+            }
+        }
+
+        public void decode(char[] lexical, int start, int end)
+            throws IllegalArgumentException
+        {
+            start = trimLeading(lexical, start, end);
+            end = trimTrailing(lexical, start, end);
+            int len = end-start;
+            try {
+                mValue = new BigDecimal(lexical, start, len);
+            } catch (NumberFormatException nex) {
+                throw constructInvalidValue(new String(lexical, start, len));
+            }
+        }
+    }
+
+    public final static class QNameDecoder
+        extends DecoderBase
+    {
+        final NamespaceContext mNsCtxt;
+
+        protected QName mValue;
+
+        public QNameDecoder(NamespaceContext nsc) {
+            mNsCtxt = nsc;
+        }
+
+        public String getType() { return "QName"; }
+
+        public QName getValue() { return mValue; }
+
+        public void decode(String lexical)
+            throws IllegalArgumentException
+        {
+            lexical = lexical.trim();
+            if (lexical.length() == 0) {
+                throw constructMissingValue();
+            }
+            int ix = lexical.indexOf(':');
+            if (ix >= 0) { // qualified name
+               mValue = resolveQName(lexical.substring(0, ix),
+                                     lexical.substring(ix+1));
+               return;
+            }
+            mValue = resolveQName(lexical);
+        }
+
+        public void decode(char[] lexical, int start, int end)
+            throws IllegalArgumentException
+        {
+            start = trimLeading(lexical, start, end);
+            end = trimTrailing(lexical, start, end);
+            
+            int i = start;
+            for (; i < end; ++i) {
+                if (lexical[i] == ':') {
+                    mValue = resolveQName(new String(lexical, start, i-start),
+                                          new String(lexical, i+1, end-i-1));
+                    return;
+                }
+            }
+            mValue = resolveQName(new String(lexical, start, end-start));
+        }
+
+        protected QName resolveQName(String localName)
+            throws IllegalArgumentException
+        {
+            // No prefix -> default namespace ("element rules")
+            String uri = mNsCtxt.getNamespaceURI("");
+            if (uri == null) { // some impls may return null
+                uri = "";
+            }
+            return new QName(uri, localName, "");
+        }
+
+        protected QName resolveQName(String prefix, String localName)
+            throws IllegalArgumentException
+        {
+            if (prefix.length() == 0 || localName.length() == 0) {
+                // either prefix or local name is empty String, illegal
+                throw constructInvalidValue(prefix+":"+localName);
+            }
+            /* Explicit prefix, must map to a bound namespace; and that
+             * namespace can not be empty (only "no prefix", i.e. 'default
+             * namespace' has empty URI)
+             */
+            String uri = mNsCtxt.getNamespaceURI(prefix);
+            if (uri == null || uri.length() == 0) {
+                throw new IllegalArgumentException("Value \""+lexicalDesc(prefix+":"+localName)+"\" not a valid QName: prefix not bound to a namespace");
+            }
+            return new QName(uri, localName, prefix);
         }
     }
 

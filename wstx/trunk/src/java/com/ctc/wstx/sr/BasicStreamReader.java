@@ -37,7 +37,6 @@ import org.codehaus.stax2.LocationInfo;
 import org.codehaus.stax2.XMLStreamLocation2;
 import org.codehaus.stax2.XMLStreamReader2;
 import org.codehaus.stax2.ri.typed.AsciiValueDecoder;
-import org.codehaus.stax2.ri.typed.DefaultValueDecoder;
 import org.codehaus.stax2.ri.typed.ValueDecoderFactory;
 import org.codehaus.stax2.typed.TypedValueDecoder;
 import org.codehaus.stax2.typed.TypedXMLStreamException;
@@ -287,12 +286,6 @@ public class BasicStreamReader
      * Object that stores information about currently accessible attributes.
      */
     final protected AttributeCollector mAttrCollector;
-
-    /**
-     * Value decoder to use for decoding typed content; lazily
-     * instantiated/accessed if and when needed
-     */
-    protected DefaultValueDecoder mValueDecoder;
 
     /**
      * Factory used for constructing decoders we need for typed access
@@ -1243,46 +1236,23 @@ public class BasicStreamReader
 
     public BigInteger getElementAsInteger() throws XMLStreamException
     {
-        String value = collectElementText();
-        try {
-            if (value == null) {
-                return mTextBuffer.convertToInteger(valueDecoder());
-            } else {
-                return valueDecoder().decodeInteger(value);
-            }
-        } catch (IllegalArgumentException iae) {
-            throw constructTypeException(iae, value);
-        }
+        ValueDecoderFactory.IntegerDecoder dec = decoderFactory().getIntegerDecoder();
+        decodeElementText(dec);
+        return dec.getValue();
     }
 
     public BigDecimal getElementAsDecimal() throws XMLStreamException
     {
-        String value = collectElementText();
-        try {
-            if (value == null) {
-                return mTextBuffer.convertToDecimal(valueDecoder());
-            } else {
-                return valueDecoder().decodeDecimal(value);
-            }
-        } catch (IllegalArgumentException iae) {
-            throw constructTypeException(iae, value);
-        }
+        ValueDecoderFactory.DecimalDecoder dec = decoderFactory().getDecimalDecoder();
+        decodeElementText(dec);
+        return dec.getValue();
     }
 
     public QName getElementAsQName() throws XMLStreamException
     {
-        String value = collectElementText();
-        QName n;
-        try {
-            if (value == null) {
-                n = mTextBuffer.convertToQName(valueDecoder(), getNamespaceContext());
-            } else {
-                n = valueDecoder().decodeQName(value, getNamespaceContext());
-            }
-        } catch (IllegalArgumentException iae) {
-            throw constructTypeException(iae, value);
-        }
-        return verifyQName(n);
+        ValueDecoderFactory.QNameDecoder dec = decoderFactory().getQNameDecoder(getNamespaceContext());
+        decodeElementText(dec);
+        return verifyQName(dec.getValue());
     }
 
     public Object getElementAs(TypedValueDecoder tvd) throws XMLStreamException
@@ -1383,11 +1353,13 @@ public class BasicStreamReader
         if (mCurrToken != START_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
         }
+        ValueDecoderFactory.IntegerDecoder dec = decoderFactory().getIntegerDecoder();
         try {
-            return mAttrCollector.getValueAsInteger(index, valueDecoder());
+            mAttrCollector.decodeValue(index, dec);
         } catch (IllegalArgumentException iae) {
             throw constructTypeException(iae, mAttrCollector.getValue(index));
         }
+        return dec.getValue();
     }
 
     public BigDecimal getAttributeAsDecimal(int index) throws XMLStreamException
@@ -1395,11 +1367,13 @@ public class BasicStreamReader
         if (mCurrToken != START_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
         }
+        ValueDecoderFactory.DecimalDecoder dec = decoderFactory().getDecimalDecoder();
         try {
-            return mAttrCollector.getValueAsDecimal(index, valueDecoder());
+            mAttrCollector.decodeValue(index, dec);
         } catch (IllegalArgumentException iae) {
             throw constructTypeException(iae, mAttrCollector.getValue(index));
         }
+        return dec.getValue();
     }
 
     public QName getAttributeAsQName(int index) throws XMLStreamException
@@ -1407,14 +1381,13 @@ public class BasicStreamReader
         if (mCurrToken != START_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
         }
-        QName n;
+        ValueDecoderFactory.QNameDecoder dec = decoderFactory().getQNameDecoder(getNamespaceContext());
         try {
-            n = mAttrCollector.getValueAsQName(index, valueDecoder(),
-                                               getNamespaceContext());
+            mAttrCollector.decodeValue(index, dec);
         } catch (IllegalArgumentException iae) {
             throw constructTypeException(iae, mAttrCollector.getValue(index));
         }
-        return verifyQName(n);
+        return verifyQName(dec.getValue());
     }
 
     public Object getAttributeAs(int index, TypedValueDecoder tvd) throws XMLStreamException
@@ -1617,8 +1590,8 @@ public class BasicStreamReader
      * or attribute value. At this point binding of a prefixed name
      * (if qname has a prefix) has been verified, and thereby prefix
      * also must be valid (since there must have been a preceding
-     * declaration). But local name could still be invalid xml name,
-     * so let's verify that.
+     * declaration). But local name might still not be a legal
+     * well-formed xml name, so let's verify that.
      */
     protected QName verifyQName(QName n)
         throws TypedXMLStreamException
@@ -1632,19 +1605,6 @@ public class BasicStreamReader
             throw constructTypeException("Invalid local name \""+ln+"\" (character at #"+ix+" is invalid)", pname);
         }
         return n;
-    }
-
-    /**
-     * Method that will determine value decoder to use. In future,
-     * we may allow for customizing decoder, but for now we will
-     * use the default implementation from Stax2 RI.
-     */
-    protected DefaultValueDecoder valueDecoder()
-    {
-        if (mValueDecoder == null) {
-            mValueDecoder = new DefaultValueDecoder();
-        }
-        return mValueDecoder;
     }
 
     protected ValueDecoderFactory decoderFactory()

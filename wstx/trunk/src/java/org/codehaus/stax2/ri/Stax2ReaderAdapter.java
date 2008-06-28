@@ -13,7 +13,6 @@ import javax.xml.stream.util.StreamReaderDelegate;
 import org.codehaus.stax2.typed.TypedValueDecoder;
 import org.codehaus.stax2.typed.TypedXMLStreamException;
 import org.codehaus.stax2.ri.typed.AsciiValueDecoder;
-import org.codehaus.stax2.ri.typed.DefaultValueDecoder;
 import org.codehaus.stax2.ri.typed.ValueDecoderFactory;
 
 import org.codehaus.stax2.*;
@@ -44,12 +43,6 @@ public class Stax2ReaderAdapter
                ,DTDInfo
                ,LocationInfo
 {
-    /**
-     * Value decoder to use for decoding typed content; lazily
-     * instantiated/accessed if and when needed
-     */
-    protected DefaultValueDecoder mValueDecoder;
-
     /**
      * Factory used for constructing decoders we need for typed access
      */
@@ -172,22 +165,38 @@ public class Stax2ReaderAdapter
 
     public BigInteger getElementAsInteger() throws XMLStreamException
     {
+        ValueDecoderFactory.IntegerDecoder dec = decoderFactory().getIntegerDecoder();
         String value = getElementText();
         try {
-            return valueDecoder().decodeInteger(value);
+            dec.decode(value);
         } catch (IllegalArgumentException iae) {
             throw constructTypeException(iae, value);
         }
+        return dec.getValue();
     }
 
     public BigDecimal getElementAsDecimal() throws XMLStreamException
     {
+        ValueDecoderFactory.DecimalDecoder dec = decoderFactory().getDecimalDecoder();
         String value = getElementText();
         try {
-            return valueDecoder().decodeDecimal(value);
+            dec.decode(value);
         } catch (IllegalArgumentException iae) {
             throw constructTypeException(iae, value);
         }
+        return dec.getValue();
+    }
+
+    public QName getElementAsQName() throws XMLStreamException
+    {
+        ValueDecoderFactory.QNameDecoder dec = decoderFactory().getQNameDecoder(getNamespaceContext());
+        String value = getElementText();
+        try {
+            dec.decode(value);
+        } catch (IllegalArgumentException iae) {
+            throw constructTypeException(iae, value);
+        }
+        return dec.getValue();
     }
 
     public Object getElementAs(TypedValueDecoder tvd) throws XMLStreamException
@@ -195,16 +204,6 @@ public class Stax2ReaderAdapter
         String value = getElementText();
         try {
             return tvd.decode(value);
-        } catch (IllegalArgumentException iae) {
-            throw constructTypeException(iae, value);
-        }
-    }
-
-    public QName getElementAsQName() throws XMLStreamException
-    {
-        String value = getElementText();
-        try {
-            return valueDecoder().decodeQName(value, getNamespaceContext());
         } catch (IllegalArgumentException iae) {
             throw constructTypeException(iae, value);
         }
@@ -277,32 +276,38 @@ public class Stax2ReaderAdapter
 
     public BigInteger getAttributeAsInteger(int index) throws XMLStreamException
     {
+        ValueDecoderFactory.IntegerDecoder dec = decoderFactory().getIntegerDecoder();
         String value = getAttributeValue(index);
         try {
-            return valueDecoder().decodeInteger(value);
+            dec.decode(value);
         } catch (IllegalArgumentException iae) {
             throw constructTypeException(iae, value);
         }
+        return dec.getValue();
     }
 
     public BigDecimal getAttributeAsDecimal(int index) throws XMLStreamException
     {
+        ValueDecoderFactory.DecimalDecoder dec = decoderFactory().getDecimalDecoder();
         String value = getAttributeValue(index);
         try {
-            return valueDecoder().decodeDecimal(value);
+            dec.decode(value);
         } catch (IllegalArgumentException iae) {
             throw constructTypeException(iae, value);
         }
+        return dec.getValue();
     }
 
     public QName getAttributeAsQName(int index) throws XMLStreamException
     {
+        ValueDecoderFactory.QNameDecoder dec = decoderFactory().getQNameDecoder(getNamespaceContext());
         String value = getAttributeValue(index);
         try {
-            return valueDecoder().decodeQName(value, getNamespaceContext());
+            dec.decode(value);
         } catch (IllegalArgumentException iae) {
             throw constructTypeException(iae, value);
         }
+        return dec.getValue();
     }
 
     public Object getAttributeAs(int index, TypedValueDecoder tvd) throws XMLStreamException
@@ -664,19 +669,6 @@ public class Stax2ReaderAdapter
     // Internal methods
     ////////////////////////////////////////////////////
      */
-
-    /**
-     * This method can be overridden by sub-classes, if an alternate
-     * value decoder instance should be used for handling conversions
-     * needed to implement Typed Access API.
-     */
-    protected DefaultValueDecoder valueDecoder()
-    {
-        if (mValueDecoder == null) {
-            mValueDecoder = new DefaultValueDecoder();
-        }
-        return mValueDecoder;
-    }
 
     protected ValueDecoderFactory decoderFactory()
     {

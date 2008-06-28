@@ -12,7 +12,6 @@ import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.ext.LexicalHandler;
 
-import org.codehaus.stax2.ri.typed.DefaultValueDecoder;
 import org.codehaus.stax2.ri.typed.AsciiValueDecoder;
 import org.codehaus.stax2.typed.TypedValueDecoder;
 import org.codehaus.stax2.validation.XMLValidator;
@@ -414,45 +413,6 @@ public final class TextBuffer
             int len = mSegmentSize + mCurrentSize;
             vd.decode(buf, 0, len);
         }
-    }
-
-    public BigInteger convertToInteger(DefaultValueDecoder vd)
-        throws IllegalArgumentException
-    {
-        if (mInputStart >= 0) { // shared buffer, common case
-            int start = mInputStart;
-            int end = start + mInputLen;
-            return vd.decodeInteger(mInputBuffer, start, end);
-        }
-        char[] buf = getTextBuffer();
-        int len = mSegmentSize + mCurrentSize;
-        return vd.decodeInteger(buf, 0, len);
-    }
-
-    public BigDecimal convertToDecimal(DefaultValueDecoder vd)
-        throws IllegalArgumentException
-    {
-        if (mInputStart >= 0) { // shared buffer, common case
-            int start = mInputStart;
-            int end = start + mInputLen;
-            return vd.decodeDecimal(mInputBuffer, start, end);
-        }
-        char[] buf = getTextBuffer();
-        int len = mSegmentSize + mCurrentSize;
-        return vd.decodeDecimal(buf, 0, len);
-    }
-
-    public QName convertToQName(DefaultValueDecoder vd, NamespaceContext nsCtxt)
-        throws IllegalArgumentException
-    {
-        if (mInputStart >= 0) { // shared buffer, common case
-            int start = mInputStart;
-            int end = start + mInputLen;
-            return vd.decodeQName(mInputBuffer, start, end, nsCtxt);
-        }
-        char[] buf = getTextBuffer();
-        int len = mSegmentSize + mCurrentSize;
-        return vd.decodeQName(buf, 0, len, nsCtxt);
     }
 
     public Object convert(TypedValueDecoder tvd)

@@ -23,7 +23,6 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
 
-import org.codehaus.stax2.ri.typed.DefaultValueDecoder;
 import org.codehaus.stax2.ri.typed.AsciiValueDecoder;
 import org.codehaus.stax2.typed.TypedValueDecoder;
 
@@ -276,59 +275,6 @@ public abstract class AttributeCollector
         dec.decode(mValueBuffer.getCharBuffer(),
                    mValueBuffer.getOffset(index),
                    mValueBuffer.getOffset(index+1));
-    }
-
-    public final BigInteger getValueAsInteger(int index, DefaultValueDecoder dec)
-        throws IllegalArgumentException
-    {
-        if (index < 0 || index >= mAttrCount) {
-            throwIndex(index);
-        }
-        if (mAttrValues != null) {
-            String value = mAttrValues[index];
-            if (value != null) {
-                return dec.decodeInteger(value);
-            }
-        }
-        return dec.decodeInteger(mValueBuffer.getCharBuffer(),
-                              mValueBuffer.getOffset(index),
-                              mValueBuffer.getOffset(index+1));
-    }
-
-    public final BigDecimal getValueAsDecimal(int index, DefaultValueDecoder dec)
-        throws IllegalArgumentException
-    {
-        if (index < 0 || index >= mAttrCount) {
-            throwIndex(index);
-        }
-        if (mAttrValues != null) {
-            String value = mAttrValues[index];
-            if (value != null) {
-                return dec.decodeDecimal(value);
-            }
-        }
-        return dec.decodeDecimal(mValueBuffer.getCharBuffer(),
-                              mValueBuffer.getOffset(index),
-                              mValueBuffer.getOffset(index+1));
-    }
-
-    public final QName getValueAsQName(int index, DefaultValueDecoder dec,
-                                       NamespaceContext nsCtxt)
-        throws IllegalArgumentException
-    {
-        if (index < 0 || index >= mAttrCount) {
-            throwIndex(index);
-        }
-        if (mAttrValues != null) {
-            String value = mAttrValues[index];
-            if (value != null) {
-                return dec.decodeQName(value, nsCtxt);
-            }
-        }
-        return dec.decodeQName(mValueBuffer.getCharBuffer(),
-                               mValueBuffer.getOffset(index),
-                               mValueBuffer.getOffset(index+1),
-                               nsCtxt);
     }
 
     public final Object getValueAs(int index, TypedValueDecoder dec)
