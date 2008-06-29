@@ -46,8 +46,9 @@ public interface TypedXMLStreamReader
      * the lexical space defined by the XML Schema boolean data type.
      * (note: allowed lexical values are canonicals "true" and
      * "false", as well as non-canonical "0" and "1")
-     * </p><p>
-     * These are the pre and post conditions of calling this method:
+     * </p>
+     *<p>
+     * These are the pre- and post-conditions of calling this method:
      * <ul>
      * <li>Precondition: the current event is START_ELEMENT.</li>
      * <li>Postcondition: the current event is the corresponding 
@@ -246,7 +247,8 @@ public interface TypedXMLStreamReader
      * the lexical space defined by the <code>intArray</code> data 
      * type.</p>
      *
-     * <p>These are the pre and post conditions of calling this
+     *<p>
+     *These are the pre and post conditions of calling this
      * method:
      * <ul>
      * <li>Precondition: the current event is START_ELEMENT.</li>
@@ -277,15 +279,40 @@ public interface TypedXMLStreamReader
     //public int readElementAsDoubleArray(double[] value, int from, int length) throws XMLStreamException;
     
     /**
-     * Generic non-typesafe method that can be used for efficient
+     * Generic decoding method that can be used for efficient
      * decoding of additional types not support natively
-     * by the typed stream reader. The main benefit of using
-     * this method is that the stream reader can efficient
-     * gather all textual content necessary and pass it
-     * to the decoder, often avoiding construction of intemediate
-     * Strings.
+     * by the typed stream reader. When method is called,
+     * stream reader will collect all textual content of
+     * the current element (effectively doing something
+     * similar to a call to {@link #getElementText},
+     * and then call one of decode methods defined in
+     * {@link TypedValueDecoder}. The only difference is that
+     * passed value will be trimmed: that is, any leading or
+     * trailing white space will be removed prior to calling
+     * decode method.
+     * After the call, passed
+     * decoder object will have decoded and stored value
+     * (if succesful) or thrown an exception (if not).
+     *<p>
+     * The main benefit of using this method (over just getting
+     * all content by calling {@link #getElementText}
+     * is efficiency: the stream reader can efficiently gather all textual
+     * content necessary and pass it to the decoder, often avoiding
+     * construction of intemediate Strings.
+     *<p>
+     * These are the pre- and post-conditions of calling this method:
+     * <ul>
+     * <li>Precondition: the current event is START_ELEMENT.</li>
+     * <li>Postcondition: the current event is the corresponding 
+     *     END_ELEMENT.</li>
+     * </ul>
+     * </p>
+     *<p>
+     * Note that caller has to know more specific type of decoder,
+     * since the base interface does not specify methods
+     * for accessing actual decoded value.
      */
-    public Object getElementAs(TypedValueDecoder tvd) throws XMLStreamException;
+    public void getElementAs(TypedValueDecoder tvd) throws XMLStreamException;
 
     /*
     //////////////////////////////////////////////////////////
@@ -437,13 +464,16 @@ public interface TypedXMLStreamReader
     //public double[] getAttributeAsDoubleArray(int index) throws XMLStreamException;    
 
     /**
-     * Generic non-typesafe method that can be used for efficient
+     * Generic access method that can be used for efficient
      * decoding of additional types not support natively
      * by the typed stream reader. The main benefit of using
      * this method is that the stream reader can efficient
      * gather all textual content necessary and pass it
      * to the decoder, often avoiding construction of intemediate
      * Strings.
+     *<p>
+     * As with {@link #getElementAs}, value passed to a decode
+     * method will be trimmed of any leading or trailing white space.
      */
-    public Object getAttributeAs(int index, TypedValueDecoder tvd) throws XMLStreamException;
+    public void getAttributeAs(int index, TypedValueDecoder tvd) throws XMLStreamException;
 }

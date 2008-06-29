@@ -38,7 +38,6 @@ import org.codehaus.stax2.ri.EmptyIterator;
 import org.codehaus.stax2.ri.EmptyNamespaceContext;
 import org.codehaus.stax2.ri.SingletonIterator;
 import org.codehaus.stax2.ri.Stax2Util;
-import org.codehaus.stax2.ri.typed.AsciiValueDecoder;
 import org.codehaus.stax2.ri.typed.ValueDecoderFactory;
 import org.codehaus.stax2.typed.TypedValueDecoder;
 import org.codehaus.stax2.typed.TypedXMLStreamException;
@@ -1031,104 +1030,64 @@ public abstract class DOMWrappingReader
     public boolean getElementAsBoolean() throws XMLStreamException
     {
         ValueDecoderFactory.BooleanDecoder dec = decoderFactory().getBooleanDecoder();
-        String value = getElementText();
-        try {
-            dec.decode(value);
-        } catch (IllegalArgumentException iae) {
-            throw constructTypeException(iae, value);
-        }
+        getElementAs(dec);
         return dec.getValue();
     }
 
     public int getElementAsInt() throws XMLStreamException
     {
         ValueDecoderFactory.IntDecoder dec = decoderFactory().getIntDecoder();
-        String value = getElementText();
-        try {
-            dec.decode(value);
-        } catch (IllegalArgumentException iae) {
-            throw constructTypeException(iae, value);
-        }
+        getElementAs(dec);
         return dec.getValue();
     }
 
     public long getElementAsLong() throws XMLStreamException
     {
         ValueDecoderFactory.LongDecoder dec = decoderFactory().getLongDecoder();
-        String value = getElementText();
-        try {
-            dec.decode(value);
-        } catch (IllegalArgumentException iae) {
-            throw constructTypeException(iae, value);
-        }
+        getElementAs(dec);
         return dec.getValue();
     }
 
     public float getElementAsFloat() throws XMLStreamException
     {
         ValueDecoderFactory.FloatDecoder dec = decoderFactory().getFloatDecoder();
-        String value = getElementText();
-        try {
-            dec.decode(value);
-        } catch (IllegalArgumentException iae) {
-            throw constructTypeException(iae, value);
-        }
+        getElementAs(dec);
         return dec.getValue();
     }
 
     public double getElementAsDouble() throws XMLStreamException
     {
         ValueDecoderFactory.DoubleDecoder dec = decoderFactory().getDoubleDecoder();
-        String value = getElementText();
-        try {
-            dec.decode(value);
-        } catch (IllegalArgumentException iae) {
-            throw constructTypeException(iae, value);
-        }
+        getElementAs(dec);
         return dec.getValue();
     }
 
     public BigInteger getElementAsInteger() throws XMLStreamException
     {
         ValueDecoderFactory.IntegerDecoder dec = decoderFactory().getIntegerDecoder();
-        String value = getElementText();
-        try {
-            dec.decode(value);
-        } catch (IllegalArgumentException iae) {
-            throw constructTypeException(iae, value);
-        }
+        getElementAs(dec);
         return dec.getValue();
     }
 
     public BigDecimal getElementAsDecimal() throws XMLStreamException
     {
         ValueDecoderFactory.DecimalDecoder dec = decoderFactory().getDecimalDecoder();
-        String value = getElementText();
-        try {
-            dec.decode(value);
-        } catch (IllegalArgumentException iae) {
-            throw constructTypeException(iae, value);
-        }
+        getElementAs(dec);
         return dec.getValue();
     }
 
     public QName getElementAsQName() throws XMLStreamException
     {
         ValueDecoderFactory.QNameDecoder dec = decoderFactory().getQNameDecoder(getNamespaceContext());
-        String value = getElementText();
-        try {
-            dec.decode(value);
-        } catch (IllegalArgumentException iae) {
-            throw constructTypeException(iae, value);
-        }
+        getElementAs(dec);
         return dec.getValue();
     }
 
-    public Object getElementAs(TypedValueDecoder tvd) throws XMLStreamException
+    public void getElementAs(TypedValueDecoder tvd) throws XMLStreamException
     {
         String value = getElementText();
         try {
-            return tvd.decode(value);
+            tvd.decode(value);
         } catch (IllegalArgumentException iae) {
             throw constructTypeException(iae, value);
         }
@@ -1142,104 +1101,64 @@ public abstract class DOMWrappingReader
     public boolean getAttributeAsBoolean(int index) throws XMLStreamException
     {
         ValueDecoderFactory.BooleanDecoder dec = decoderFactory().getBooleanDecoder();
-        String value = getAttributeValue(index);
-        try {
-            dec.decode(value);
-        } catch (IllegalArgumentException iae) {
-            throw constructTypeException(iae, value);
-        }
+        getAttributeAs(index, dec);
         return dec.getValue();
     }
 
     public int getAttributeAsInt(int index) throws XMLStreamException
     {
         ValueDecoderFactory.IntDecoder dec = decoderFactory().getIntDecoder();
-        String value = getAttributeValue(index);
-        try {
-            dec.decode(value);
-        } catch (IllegalArgumentException iae) {
-            throw constructTypeException(iae, value);
-        }
+        getAttributeAs(index, dec);
         return dec.getValue();
     }
 
     public long getAttributeAsLong(int index) throws XMLStreamException
     {
         ValueDecoderFactory.LongDecoder dec = decoderFactory().getLongDecoder();
-        String value = getAttributeValue(index);
-        try {
-            dec.decode(value);
-        } catch (IllegalArgumentException iae) {
-            throw constructTypeException(iae, value);
-        }
+        getAttributeAs(index, dec);
         return dec.getValue();
     }
 
     public float getAttributeAsFloat(int index) throws XMLStreamException
     {
         ValueDecoderFactory.FloatDecoder dec = decoderFactory().getFloatDecoder();
-        String value = getAttributeValue(index);
-        try {
-            dec.decode(value);
-        } catch (IllegalArgumentException iae) {
-            throw constructTypeException(iae, value);
-        }
+        getAttributeAs(index, dec);
         return dec.getValue();
     }
 
     public double getAttributeAsDouble(int index) throws XMLStreamException
     {
         ValueDecoderFactory.DoubleDecoder dec = decoderFactory().getDoubleDecoder();
-        String value = getAttributeValue(index);
-        try {
-            dec.decode(value);
-        } catch (IllegalArgumentException iae) {
-            throw constructTypeException(iae, value);
-        }
+        getAttributeAs(index, dec);
         return dec.getValue();
     }
 
     public BigInteger getAttributeAsInteger(int index) throws XMLStreamException
     {
         ValueDecoderFactory.IntegerDecoder dec = decoderFactory().getIntegerDecoder();
-        String value = getAttributeValue(index);
-        try {
-            dec.decode(value);
-        } catch (IllegalArgumentException iae) {
-            throw constructTypeException(iae, value);
-        }
+        getAttributeAs(index, dec);
         return dec.getValue();
     }
 
     public BigDecimal getAttributeAsDecimal(int index) throws XMLStreamException
     {
         ValueDecoderFactory.DecimalDecoder dec = decoderFactory().getDecimalDecoder();
-        String value = getAttributeValue(index);
-        try {
-            dec.decode(value);
-        } catch (IllegalArgumentException iae) {
-            throw constructTypeException(iae, value);
-        }
+        getAttributeAs(index, dec);
         return dec.getValue();
     }
 
     public QName getAttributeAsQName(int index) throws XMLStreamException
     {
         ValueDecoderFactory.QNameDecoder dec = decoderFactory().getQNameDecoder(getNamespaceContext());
-        String value = getAttributeValue(index);
-        try {
-            dec.decode(value);
-        } catch (IllegalArgumentException iae) {
-            throw constructTypeException(iae, value);
-        }
+        getAttributeAs(index, dec);
         return dec.getValue();
     }
 
-    public Object getAttributeAs(int index, TypedValueDecoder tvd) throws XMLStreamException
+    public final void getAttributeAs(int index, TypedValueDecoder tvd) throws XMLStreamException
     {
         String value = getAttributeValue(index);
         try {
-            return tvd.decode(value);
+            tvd.decode(value);
         } catch (IllegalArgumentException iae) {
             throw constructTypeException(iae, value);
         }

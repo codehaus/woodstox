@@ -308,9 +308,9 @@ public class Stax2FilteredStreamReader
         return mReader.getElementAsQName();
     }
 
-    public Object getElementAs(TypedValueDecoder tvd) throws XMLStreamException
+    public void getElementAs(TypedValueDecoder tvd) throws XMLStreamException
     {
-        return mReader.getElementAs(tvd);
+        mReader.getElementAs(tvd);
     }
 
     public int getAttributeIndex(String namespaceURI, String localName)
@@ -353,9 +353,9 @@ public class Stax2FilteredStreamReader
         return mReader.getAttributeAsDecimal(index);
     }
 
-    public Object getAttributeAs(int index, TypedValueDecoder tvd) throws XMLStreamException
+    public void getAttributeAs(int index, TypedValueDecoder tvd) throws XMLStreamException
     {
-        return mReader.getAttributeAs(index, tvd);
+        mReader.getAttributeAs(index, tvd);
     }
 
     public QName getAttributeAsQName(int index) throws XMLStreamException

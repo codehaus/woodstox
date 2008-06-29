@@ -21,6 +21,8 @@ import java.math.BigInteger;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
 
+import org.codehaus.stax2.typed.TypedValueDecoder;
+
 /**
  * Factory class used to construct all
  * {@link AsciiValueDecoder} instances needed by a single
@@ -111,7 +113,7 @@ public final class ValueDecoderFactory
      * white space trimming).
      */
     public abstract static class DecoderBase
-        extends AsciiValueDecoder
+        extends TypedValueDecoder
     {
         final static long L_BILLION = 1000000000;
 

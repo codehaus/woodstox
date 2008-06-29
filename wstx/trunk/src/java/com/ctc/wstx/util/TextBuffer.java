@@ -12,7 +12,6 @@ import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.ext.LexicalHandler;
 
-import org.codehaus.stax2.ri.typed.AsciiValueDecoder;
 import org.codehaus.stax2.typed.TypedValueDecoder;
 import org.codehaus.stax2.validation.XMLValidator;
 
@@ -401,31 +400,18 @@ public final class TextBuffer
      * Generic pass-through method which call given decoder
      * with accumulated data
      */
-    public void decode(AsciiValueDecoder vd)
+    public void decode(TypedValueDecoder tvd)
         throws IllegalArgumentException
     {
         if (mInputStart >= 0) { // shared buffer, common case
             int start = mInputStart;
             int end = start + mInputLen;
-            vd.decode(mInputBuffer, start, end);
-        } else {
-            char[] buf = getTextBuffer();
-            int len = mSegmentSize + mCurrentSize;
-            vd.decode(buf, 0, len);
-        }
-    }
-
-    public Object convert(TypedValueDecoder tvd)
-        throws IllegalArgumentException
-    {
-        if (mInputStart >= 0) { // shared buffer, common case
-            int start = mInputStart;
-            int end = start + mInputLen;
-            return tvd.decode(mInputBuffer, start, end);
+            tvd.decode(mInputBuffer, start, end);
+            return;
         }
         char[] buf = getTextBuffer();
         int len = mSegmentSize + mCurrentSize;
-        return tvd.decode(buf, 0, len);
+        tvd.decode(buf, 0, len);
     }
 
     /*

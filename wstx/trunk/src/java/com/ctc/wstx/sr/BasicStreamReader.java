@@ -36,7 +36,6 @@ import org.codehaus.stax2.DTDInfo;
 import org.codehaus.stax2.LocationInfo;
 import org.codehaus.stax2.XMLStreamLocation2;
 import org.codehaus.stax2.XMLStreamReader2;
-import org.codehaus.stax2.ri.typed.AsciiValueDecoder;
 import org.codehaus.stax2.ri.typed.ValueDecoderFactory;
 import org.codehaus.stax2.typed.TypedValueDecoder;
 import org.codehaus.stax2.typed.TypedXMLStreamException;
@@ -1255,14 +1254,14 @@ public class BasicStreamReader
         return verifyQName(dec.getValue());
     }
 
-    public Object getElementAs(TypedValueDecoder tvd) throws XMLStreamException
+    public void getElementAs(TypedValueDecoder tvd) throws XMLStreamException
     {
         String value = collectElementText();
         try {
             if (value == null) {
-                return mTextBuffer.convert(tvd);
+                mTextBuffer.decode(tvd);
             } else {
-                return tvd.decode(value);
+                tvd.decode(value);
             }
         } catch (IllegalArgumentException iae) {
             throw constructTypeException(iae, value);
@@ -1390,13 +1389,13 @@ public class BasicStreamReader
         return verifyQName(dec.getValue());
     }
 
-    public Object getAttributeAs(int index, TypedValueDecoder tvd) throws XMLStreamException
+    public void getAttributeAs(int index, TypedValueDecoder tvd) throws XMLStreamException
     {
         if (mCurrToken != START_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
         }
         try {
-            return mAttrCollector.getValueAs(index, tvd);
+            mAttrCollector.decodeValue(index, tvd);
         } catch (IllegalArgumentException iae) {
             throw constructTypeException(iae, mAttrCollector.getValue(index));
         }
@@ -1488,7 +1487,7 @@ public class BasicStreamReader
         return (acc == null) ? text : acc.getAndClear();
     }
 
-    private final void decodeElementText(AsciiValueDecoder dec)
+    private final void decodeElementText(TypedValueDecoder dec)
         throws XMLStreamException
     {
         if (mCurrToken != START_ELEMENT) {
