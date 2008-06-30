@@ -1194,7 +1194,7 @@ public class BasicStreamReader
 
     /*
     /////////////////////////////////////////////////
-    // TypedXMLStreamReader2 implementation
+    // TypedXMLStreamReader2 implementation, elements
     /////////////////////////////////////////////////
      */
 
@@ -1267,6 +1267,36 @@ public class BasicStreamReader
             throw constructTypeException(iae, value);
         }
     }
+
+    public int readElementAsIntArray(int[] value, int from, int length) throws XMLStreamException
+    {
+        // !!! TBI
+        return -1;
+    }
+
+    public int readElementAsLongArray(long[] value, int from, int length) throws XMLStreamException
+    {
+        // !!! TBI
+        return -1;
+    }
+
+    public int readElementAsFloatArray(float[] value, int from, int length) throws XMLStreamException
+    {
+        // !!! TBI
+        return -1;
+    }
+
+    public int readElementAsDoubleArray(double[] value, int from, int length) throws XMLStreamException
+    {
+        // !!! TBI
+        return -1;
+    }
+
+    /*
+    /////////////////////////////////////////////////
+    // TypedXMLStreamReader2 implementation, attribute
+    /////////////////////////////////////////////////
+     */
 
     public int getAttributeIndex(String namespaceURI, String localName)
     {

@@ -264,7 +264,7 @@ public class Stax2FilteredStreamReader
 
     /*
     /////////////////////////////////////////////////
-    // TypedXMLStreamReader2
+    // TypedXMLStreamReader2, element
     /////////////////////////////////////////////////
      */
 
@@ -312,6 +312,32 @@ public class Stax2FilteredStreamReader
     {
         mReader.getElementAs(tvd);
     }
+
+    public int readElementAsIntArray(int[] value, int from, int length) throws XMLStreamException
+    {
+        return mReader.readElementAsIntArray(value, from, length);
+    }
+
+    public int readElementAsLongArray(long[] value, int from, int length) throws XMLStreamException
+    {
+        return mReader.readElementAsLongArray(value, from, length);
+    }
+    
+    public int readElementAsFloatArray(float[] value, int from, int length) throws XMLStreamException
+    {
+        return mReader.readElementAsFloatArray(value, from, length);
+    }
+    
+    public int readElementAsDoubleArray(double[] value, int from, int length) throws XMLStreamException
+    {
+        return mReader.readElementAsDoubleArray(value, from, length);
+    }
+    
+    /*
+    /////////////////////////////////////////////////
+    // TypedXMLStreamReader2, attribute
+    /////////////////////////////////////////////////
+     */
 
     public int getAttributeIndex(String namespaceURI, String localName)
     {

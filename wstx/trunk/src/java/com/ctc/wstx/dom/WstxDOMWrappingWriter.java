@@ -1,8 +1,5 @@
 package com.ctc.wstx.dom;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.text.MessageFormat;
 import java.util.*;
 
 import javax.xml.XMLConstants;
@@ -15,7 +12,8 @@ import org.w3c.dom.*;
 import org.codehaus.stax2.XMLStreamLocation2;
 import org.codehaus.stax2.XMLStreamReader2;
 import org.codehaus.stax2.XMLStreamWriter2;
-import org.codehaus.stax2.ri.typed.SimpleValueEncoder;
+import org.codehaus.stax2.ri.EmptyNamespaceContext;
+import org.codehaus.stax2.ri.dom.DOMWrappingWriter;
 import org.codehaus.stax2.validation.ValidationProblemHandler;
 import org.codehaus.stax2.validation.XMLValidationSchema;
 import org.codehaus.stax2.validation.XMLValidator;
@@ -24,7 +22,6 @@ import com.ctc.wstx.api.WriterConfig;
 import com.ctc.wstx.api.WstxOutputProperties;
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.sw.OutputElementBase;
-import com.ctc.wstx.util.EmptyNamespaceContext;
 
 /* TODO:
  *
@@ -45,8 +42,8 @@ import com.ctc.wstx.util.EmptyNamespaceContext;
  * @author Tatu Saloranta
  * @author Dan Diephouse
  */
-public class DOMWrappingWriter
-    implements XMLStreamWriter2
+public class WstxDOMWrappingWriter
+    extends DOMWrappingWriter
 {
     /*
     ////////////////////////////////////////////////////
@@ -69,36 +66,11 @@ public class DOMWrappingWriter
 
     protected final WriterConfig mConfig;
 
-    protected final boolean mNsAware;
-
-    protected final boolean mNsRepairing;
-
-    /**
-     * This member variable is to keep information about encoding
-     * that seems to be used for the document (or fragment) to output,
-     * if known.
-     */
-    protected String mEncoding = null;
-
-    /**
-     * If we are being given info about existing bindings, it'll come
-     * as a NamespaceContet.
-     */
-    protected NamespaceContext mNsContext;
-
-    protected SimpleValueEncoder mValueEncoder;
-
     /*
     ////////////////////////////////////////////////////
     // State
     ////////////////////////////////////////////////////
      */
-
-    /**
-     * We need a reference to the document hosting nodes to
-     * be able to create new nodes
-     */
-    protected final Document mDocument;
 
     /**
      * This element is the current context element, under which
@@ -149,47 +121,30 @@ public class DOMWrappingWriter
     ////////////////////////////////////////////////////
      */
     
-    private DOMWrappingWriter(WriterConfig cfg, Node treeRoot)
+    private WstxDOMWrappingWriter(WriterConfig cfg, Node treeRoot)
         throws XMLStreamException
     {
-        if (treeRoot == null) {
-            throw new IllegalArgumentException("Can not pass null Node for constructing a DOM-based XMLStreamWriter");
-        }
+        super(treeRoot, cfg.willSupportNamespaces(), cfg.automaticNamespacesEnabled());
         mConfig = cfg;
-        mNsAware = cfg.willSupportNamespaces();
-        mNsRepairing = mNsAware && cfg.automaticNamespacesEnabled();
         mAutoNsSeq = null;
         mAutomaticNsPrefix = mNsRepairing ? mConfig.getAutomaticNsPrefix() : null;
-
         Element elem = null;
 
         /* Ok; we need a document node; or an element node; or a document
          * fragment node.
          */
         switch (treeRoot.getNodeType()) {
-        case Node.DOCUMENT_NODE: // fine
-            mDocument = (Document) treeRoot;
-
-            /* Should try to find encoding, version and stand-alone
-             * settings... but is there a standard way of doing that?
-             */
+        case Node.DOCUMENT_NODE:
+        case Node.DOCUMENT_FRAGMENT_NODE:
+            // both are ok, but no current element
             break;
 
         case Node.ELEMENT_NODE: // can make sub-tree... ok
-            mDocument = treeRoot.getOwnerDocument();
             elem = (Element) treeRoot;
-            break;
-
-        case Node.DOCUMENT_FRAGMENT_NODE: // as with element...
-            mDocument = treeRoot.getOwnerDocument();
-            // Above types are fine
             break;
 
         default: // other Nodes not usable
             throw new XMLStreamException("Can not create an XMLStreamWriter for a DOM node of type "+treeRoot.getClass());
-        }
-        if (mDocument == null) {
-            throw new XMLStreamException("Can not create an XMLStreamWriter for given node (of type "+treeRoot.getClass()+"): did not have owner document");
         }
         mCurrElem = DOMOutputElement.createRoot();
         if(elem == null) {
@@ -199,11 +154,11 @@ public class DOMWrappingWriter
         }
     }
 
-    public static DOMWrappingWriter createFrom(WriterConfig cfg, DOMResult dst)
+    public static WstxDOMWrappingWriter createFrom(WriterConfig cfg, DOMResult dst)
         throws XMLStreamException
     {
         Node rootNode = dst.getNode();
-        return new DOMWrappingWriter(cfg, rootNode);
+        return new WstxDOMWrappingWriter(cfg, rootNode);
     }
 
     /*
@@ -212,13 +167,9 @@ public class DOMWrappingWriter
     ////////////////////////////////////////////////////
      */
 
-    public void close() {
-        // NOP
-    }
+    //public void close() { }
+    //public void flush() { }
 
-    public void flush() {
-        // NOP
-    }
 
     public NamespaceContext getNamespaceContext()
     {
@@ -250,9 +201,7 @@ public class DOMWrappingWriter
         mSuggestedDefNs = (uri == null || uri.length() == 0) ? null : uri;
     }
 
-    public void setNamespaceContext(NamespaceContext context) {
-        mNsContext = context;
-    }
+    //public void setNamespaceContext(NamespaceContext context)
 
     public void setPrefix(String prefix, String uri)
         throws XMLStreamException
@@ -461,183 +410,6 @@ public class DOMWrappingWriter
     {
         createStartElem(nsURI, prefix, localName, false);
     }
-
-    /*
-    /////////////////////////////////////////////////
-    // TypedXMLStreamWriter2 implementation
-    // (Typed Access API, Stax v3.0)
-    /////////////////////////////////////////////////
-     */
-
-    // // // Typed element content write methods
-
-    public void writeBoolean(boolean value) throws XMLStreamException
-    {
-        writeCharacters(value ? "true" : "false");
-    }
-
-    public void writeInt(int value) throws XMLStreamException
-    {
-        writeCharacters(String.valueOf(value));
-    }
-
-    public void writeLong(long value) throws XMLStreamException
-    {
-        writeCharacters(String.valueOf(value));
-    }
-
-    public void writeFloat(float value) throws XMLStreamException
-    {
-        writeCharacters(String.valueOf(value));
-    }
-
-    public void writeDouble(double value) throws XMLStreamException
-    {
-        writeCharacters(String.valueOf(value));
-    }
-
-    public void writeInteger(BigInteger value) throws XMLStreamException
-    {
-        writeCharacters(value.toString());
-    }
-
-    public void writeDecimal(BigDecimal value) throws XMLStreamException
-    {
-        writeCharacters(value.toString());
-    }
-
-    public void writeQName(QName name) throws XMLStreamException
-    {
-        String value = name.getLocalPart();
-        String prefix = name.getPrefix();
-        if (prefix != null && prefix.length() > 0) {
-            value = prefix+":"+value;
-        }
-        writeCharacters(value);
-    }
-
-    public void writeIntArray(int[] value, int from, int length)
-        throws XMLStreamException
-    {
-        /* true -> start with space, to allow for multiple consecutive
-         * to be written
-         */
-        writeCharacters(getValueEncoder().encodeAsString(value, from, length));
-    }
-
-    public void writeLongArray(long[] value, int from, int length)
-        throws XMLStreamException
-    {
-        // true -> start with space, for multiple segments
-        writeCharacters(getValueEncoder().encodeAsString(value, from, length));
-    }
-
-    public void writeFloatArray(float[] value, int from, int length)
-        throws XMLStreamException
-    {
-        // true -> start with space, for multiple segments
-        writeCharacters(getValueEncoder().encodeAsString(value, from, length));
-    }
-
-    public void writeDoubleArray(double[] value, int from, int length)
-        throws XMLStreamException
-    {
-        // true -> start with space, for multiple segments
-        writeCharacters(getValueEncoder().encodeAsString(value, from, length));
-    }
-
-    public void writeBinary(byte[] value, int from, int length)
-        throws XMLStreamException
-    {
-        writeCharacters(getValueEncoder().encodeAsString(value, from, length));
-    }
-
-    // // // Typed attribute value write methods
-
-    public void writeBooleanAttribute(String prefix, String nsURI, String localName, boolean value)
-        throws XMLStreamException
-    {
-        writeAttribute(prefix, nsURI, localName, value ? "true" : "false");
-    }
-
-    public void writeIntAttribute(String prefix, String nsURI, String localName, int value)
-        throws XMLStreamException
-    {
-        writeAttribute(prefix, nsURI, localName, String.valueOf(value));
-    }
-
-    public void writeLongAttribute(String prefix, String nsURI, String localName, long value)
-        throws XMLStreamException
-    {
-        writeAttribute(prefix, nsURI, localName, String.valueOf(value));
-    }
-
-    public void writeFloatAttribute(String prefix, String nsURI, String localName, float value)
-        throws XMLStreamException
-    {
-        writeAttribute(prefix, nsURI, localName, String.valueOf(value));
-    }
-
-    public void writeDoubleAttribute(String prefix, String nsURI, String localName, double value)
-        throws XMLStreamException
-    {
-        writeAttribute(prefix, nsURI, localName, String.valueOf(value));
-    }
-
-    public void writeIntegerAttribute(String prefix, String nsURI, String localName, BigInteger value)
-        throws XMLStreamException
-    {
-        writeAttribute(prefix, nsURI, localName, value.toString());
-    }
-
-    public void writeDecimalAttribute(String prefix, String nsURI, String localName, BigDecimal value)
-        throws XMLStreamException
-    {
-        writeAttribute(prefix, nsURI, localName, value.toString());
-    }
-
-    public void writeQNameAttribute(String prefix, String nsURI, String localName, QName name)
-        throws XMLStreamException
-    {
-        String value = name.getLocalPart();
-        String vp = name.getPrefix();
-        if (vp != null && vp.length() > 0) {
-            value = vp+":"+value;
-        }
-        writeAttribute(prefix, nsURI, localName, value);
-    }
-
-    public void writeIntArrayAttribute(String prefix, String nsURI, String localName, int[] value)
-        throws XMLStreamException
-    {
-        writeAttribute(prefix, nsURI, localName,
-                       getValueEncoder().encodeAsString(value, 0, value.length));
-    }
-
-    public void writeLongArrayAttribute(String prefix, String nsURI, String localName, long[] value) throws XMLStreamException
-    {
-        writeAttribute(prefix, nsURI, localName,
-                       getValueEncoder().encodeAsString(value, 0, value.length));
-    }
-    
-    public void writeFloatArrayAttribute(String prefix, String nsURI, String localName, float[] value) throws XMLStreamException
-    {
-        writeAttribute(prefix, nsURI, localName,
-                       getValueEncoder().encodeAsString(value, 0, value.length));
-    }
-    
-    public void writeDoubleArrayAttribute(String prefix, String nsURI, String localName, double[] value) throws XMLStreamException
-    {
-        writeAttribute(prefix, nsURI, localName,
-                       getValueEncoder().encodeAsString(value, 0, value.length));
-    }
-
-    public void writeBinaryAttribute(String prefix, String nsURI, String localName, byte[] value) throws XMLStreamException
-    {
-        writeAttribute(prefix, nsURI, localName,
-                       getValueEncoder().encodeAsString(value, 0, value.length));
-    }
-
     /*
     ////////////////////////////////////////////////////
     // XMLStreamWriter2 API (Stax2 v2.0)
@@ -658,47 +430,14 @@ public class DOMWrappingWriter
         return mConfig.setProperty(name, value);
     }
 
-    public XMLValidator validateAgainst(XMLValidationSchema schema)
-        throws XMLStreamException
-    {
-        // !!! TBI
-        return null;
-    }
+    //public XMLValidator validateAgainst(XMLValidationSchema schema)
+    //public XMLValidator stopValidatingAgainst(XMLValidationSchema schema)
+    //public XMLValidator stopValidatingAgainst(XMLValidator validator)
+    //public ValidationProblemHandler setValidationProblemHandler(ValidationProblemHandler h)
+    //public XMLStreamLocation2 getLocation()
+    //public String getEncoding() {
 
-    public XMLValidator stopValidatingAgainst(XMLValidationSchema schema)
-        throws XMLStreamException
-    {
-        // !!! TBI
-        return null;
-    }
-
-    public XMLValidator stopValidatingAgainst(XMLValidator validator)
-        throws XMLStreamException
-    {
-        // !!! TBI
-        return null;
-    }
-
-    public ValidationProblemHandler setValidationProblemHandler(ValidationProblemHandler h)
-    {
-        // !!! TBI
-        return null;
-    }
-
-    public XMLStreamLocation2 getLocation() {
-        // !!! TBI
-        return null;
-    }
-
-    public String getEncoding() {
-        return mEncoding;
-    }
-
-    public void writeCData(char[] text, int start, int len)
-        throws XMLStreamException
-    {
-        writeCData(new String(text, start, len));
-    }
+    //public void writeCData(char[] text, int start, int len)
 
     public void writeDTD(String rootName, String systemId, String publicId,
                          String internalSubset)
@@ -713,53 +452,14 @@ public class DOMWrappingWriter
         reportUnsupported("writeDTD()");
     }
 
-    public void writeFullEndElement() throws XMLStreamException
-    {
-        // No difference with DOM
-        writeEndElement();
-    }
+    //public void writeFullEndElement() throws XMLStreamException
 
-    public void writeStartDocument(String version, String encoding,
-                                   boolean standAlone)
-        throws XMLStreamException
-    {
-        writeStartDocument(encoding, version);
-    }
+    //public void writeStartDocument(String version, String encoding, boolean standAlone)
 
     /*
-    ///////////////////////////////
-    // Stax2, pass-through methods
-    ///////////////////////////////
-     */
-
-    public void writeRaw(String text)
-        throws XMLStreamException
-    {
-        reportUnsupported("writeRaw()");
-    }
-
-    public void writeRaw(String text, int start, int offset)
-        throws XMLStreamException
-    {
-        reportUnsupported("writeRaw()");
-    }
-
-    public void writeRaw(char[] text, int offset, int length)
-        throws XMLStreamException
-    {
-        reportUnsupported("writeRaw()");
-    }
-
-    public void copyEventFromReader(XMLStreamReader2 r, boolean preserveEventData)
-        throws XMLStreamException
-    {
-        // !!! TBI
-    }
-
-    /*
-    ///////////////////////////////
-    // Internal methods
-    ///////////////////////////////
+    ////////////////////////////////////////////
+    // Impls of abstract methods from base class
+    ////////////////////////////////////////////
      */
 
     protected void appendLeaf(Node n)
@@ -768,6 +468,12 @@ public class DOMWrappingWriter
         mCurrElem.appendNode(n);
         mOpenElement = null;
     }
+
+    /*
+    ///////////////////////////////
+    // Internal methods
+    ///////////////////////////////
+     */
 
     /* Note: copied from regular RepairingNsStreamWriter#writeStartOrEmpty
      * (and its non-repairing counterpart)
@@ -867,11 +573,6 @@ public class DOMWrappingWriter
             }
             mOpenElement.addAttribute(localName, value);
         }
-    }
-
-    private void reportUnsupported(String operName)
-    {
-        throw new UnsupportedOperationException(operName+" can not be used with DOM-backed writer");
     }
 
     private final String validateElemPrefix(String prefix, String nsURI,
@@ -1068,30 +769,4 @@ public class DOMWrappingWriter
     }
     
     
-    /*
-    ////////////////////////////////////////////////////
-    // Package methods, basic output problem reporting
-    ////////////////////////////////////////////////////
-     */
-
-    protected static void throwOutputError(String msg)
-        throws XMLStreamException
-    {
-        throw new XMLStreamException(msg);
-    }
-
-    protected static void throwOutputError(String format, Object arg)
-        throws XMLStreamException
-    {
-        String msg = MessageFormat.format(format, new Object[] { arg });
-        throwOutputError(msg);
-    }
-
-    protected SimpleValueEncoder getValueEncoder()
-    {
-        if (mValueEncoder == null) {
-            mValueEncoder = new SimpleValueEncoder();
-        }
-        return mValueEncoder;
-    }
 }

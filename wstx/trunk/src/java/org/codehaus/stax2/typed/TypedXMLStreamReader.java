@@ -16,8 +16,17 @@ import javax.xml.namespace.QName;
  *<p>
  * Implementation notes:
  *
- * - As of May 2008, all simple types have been implemented, but
- *   not list types, or binary content.
+ * - As of July 2008:
+ *   * Writer-side is completed, including:
+ *     - Primitives (numbers, boolean)
+ *     - Other scalars (QName)
+ *     - Primitive arrays
+ *     - Binary (base64)
+ *   * Reader-side partially completed:
+ *     - Primitives
+ *     - Other scalars
+ *    (meaning that the rest; primitive arrays and binary; have
+ *    not been implemented yet)
  * 
  * @author Santiago.PericasGeertsen@sun.com
  * @author Tatu Saloranta
@@ -270,13 +279,13 @@ public interface TypedXMLStreamReader
      * @return        The number of ints actually copied which must
      *                be less or equal than <code>length</code>.
      */
-    //public int readElementAsIntArray(int[] value, int from, int length) throws XMLStreamException;
+    public int readElementAsIntArray(int[] value, int from, int length) throws XMLStreamException;
     
-    //public int readElementAsLongArray(long[] value, int from, int length) throws XMLStreamException;
+    public int readElementAsLongArray(long[] value, int from, int length) throws XMLStreamException;
     
-    //public int readElementAsFloatArray(float[] value, int from, int length) throws XMLStreamException;
+    public int readElementAsFloatArray(float[] value, int from, int length) throws XMLStreamException;
     
-    //public int readElementAsDoubleArray(double[] value, int from, int length) throws XMLStreamException;
+    public int readElementAsDoubleArray(double[] value, int from, int length) throws XMLStreamException;
     
     /**
      * Generic decoding method that can be used for efficient

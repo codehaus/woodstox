@@ -1023,7 +1023,7 @@ public abstract class DOMWrappingReader
 
     /*
     /////////////////////////////////////////////////
-    // TypedXMLStreamReader2 implementation (Stax v3.0)
+    // TypedXMLStreamReader2 implementation, element
     /////////////////////////////////////////////////
      */
 
@@ -1092,6 +1092,36 @@ public abstract class DOMWrappingReader
             throw constructTypeException(iae, value);
         }
     }
+
+    public int readElementAsIntArray(int[] value, int from, int length) throws XMLStreamException
+    {
+        // !!! TBI
+        return -1;
+    }
+
+    public int readElementAsLongArray(long[] value, int from, int length) throws XMLStreamException
+    {
+        // !!! TBI
+        return -1;
+    }
+
+    public int readElementAsFloatArray(float[] value, int from, int length) throws XMLStreamException
+    {
+        // !!! TBI
+        return -1;
+    }
+
+    public int readElementAsDoubleArray(double[] value, int from, int length) throws XMLStreamException
+    {
+        // !!! TBI
+        return -1;
+    }
+
+    /*
+    /////////////////////////////////////////////////
+    // TypedXMLStreamReader2 implementation, attribute
+    /////////////////////////////////////////////////
+     */
 
     public int getAttributeIndex(String namespaceURI, String localName)
     {

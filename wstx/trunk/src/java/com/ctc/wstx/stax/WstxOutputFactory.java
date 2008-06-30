@@ -33,7 +33,7 @@ import org.codehaus.stax2.ri.Stax2WriterAdapter;
 import com.ctc.wstx.api.WriterConfig;
 import com.ctc.wstx.api.WstxOutputProperties;
 import com.ctc.wstx.cfg.OutputConfigFlags;
-import com.ctc.wstx.dom.DOMWrappingWriter;
+import com.ctc.wstx.dom.WstxDOMWrappingWriter;
 import com.ctc.wstx.exc.WstxIOException;
 import com.ctc.wstx.io.CharsetNames;
 import com.ctc.wstx.io.UTF8Writer;
@@ -315,7 +315,7 @@ public final class WstxOutputFactory
             // !!! TBI
             throw new XMLStreamException("Can not create a STaX writer for a SAXResult -- not implemented.");
         } else if (res instanceof DOMResult) {
-            return DOMWrappingWriter.createFrom(mConfig.createNonShared(), (DOMResult) res);
+            return WstxDOMWrappingWriter.createFrom(mConfig.createNonShared(), (DOMResult) res);
         } else {
             throw new IllegalArgumentException("Can not instantiate a writer for XML result type "+res.getClass()+" (unrecognized type)");
         }

@@ -98,7 +98,7 @@ public class Stax2ReaderAdapter
 
     /*
     /////////////////////////////////////////////////
-    // TypedXMLStreamReader2
+    // TypedXMLStreamReader, element access
     /////////////////////////////////////////////////
      */
 
@@ -167,6 +167,36 @@ public class Stax2ReaderAdapter
             throw constructTypeException(iae, value);
         }
     }
+
+    public int readElementAsIntArray(int[] value, int from, int length) throws XMLStreamException
+    {
+        // !!! TBI
+        return -1;
+    }
+
+    public int readElementAsLongArray(long[] value, int from, int length) throws XMLStreamException
+    {
+        // !!! TBI
+        return -1;
+    }
+
+    public int readElementAsFloatArray(float[] value, int from, int length) throws XMLStreamException
+    {
+        // !!! TBI
+        return -1;
+    }
+
+    public int readElementAsDoubleArray(double[] value, int from, int length) throws XMLStreamException
+    {
+        // !!! TBI
+        return -1;
+    }
+
+    /*
+    /////////////////////////////////////////////////
+    // TypedXMLStreamReader, attribute access
+    /////////////////////////////////////////////////
+     */
 
     public int getAttributeIndex(String namespaceURI, String localName)
     {
