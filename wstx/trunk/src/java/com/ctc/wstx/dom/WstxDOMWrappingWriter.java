@@ -19,7 +19,6 @@ import org.codehaus.stax2.validation.XMLValidationSchema;
 import org.codehaus.stax2.validation.XMLValidator;
 
 import com.ctc.wstx.api.WriterConfig;
-import com.ctc.wstx.api.WstxOutputProperties;
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.sw.OutputElementBase;
 
@@ -265,22 +264,10 @@ public class WstxDOMWrappingWriter
         outputAttribute(nsURI, prefix, localName, value);
     }
 
-    public void writeCData(String data) {
-        appendLeaf(mDocument.createCDATASection(data));
-    }
-
-    public void writeCharacters(char[] text, int start, int len)
-    {
-        writeCharacters(new String(text, start, len));
-    }
-
-    public void writeCharacters(String text) {
-        appendLeaf(mDocument.createTextNode(text));
-    }
-
-    public void writeComment(String data) {
-        appendLeaf(mDocument.createCDATASection(data));
-    }
+    //public void writeCData(String data)
+    //public void writeCharacters(char[] text, int start, int len)
+    //public void writeCharacters(String text)
+    //public void writeComment(String data)
 
     public void writeDefaultNamespace(String nsURI)
     {
@@ -291,11 +278,7 @@ public class WstxDOMWrappingWriter
         mOpenElement.addAttribute(XMLConstants.XMLNS_ATTRIBUTE_NS_URI, "xmlns", nsURI);
     }
 
-    public void writeDTD(String dtd)
-    {
-        // Would have to parse, not worth trying...
-        reportUnsupported("writeDTD()");
-    }
+    //public void writeDTD(String dtd)
 
     public void writeEmptyElement(String localName)
         throws XMLStreamException
@@ -355,43 +338,12 @@ public class WstxDOMWrappingWriter
         mCurrElem.addPrefix(prefix, nsURI);
     }
 
-    public void writeProcessingInstruction(String target) {
-        writeProcessingInstruction(target, null);
-    }
+    //public void writeProcessingInstruction(String target)
+    //public void writeProcessingInstruction(String target, String data)
 
-    public void writeProcessingInstruction(String target, String data) {
-        appendLeaf(mDocument.createProcessingInstruction(target, data));
-    }
-
-    public void writeSpace(char[] text, int start, int len) {
-        writeSpace(new String(text, start, len));
-    }
-
-    public void writeSpace(String text) {
-        /* This won't work all that well, given there's no way to
-         * prevent quoting/escaping. But let's do what we can, since
-         * the alternative (throwing an exception) doesn't seem
-         * especially tempting choice.
-         */
-        writeCharacters(text);
-    }
-
-    public void writeStartDocument()
-    {
-        writeStartDocument(WstxOutputProperties.DEFAULT_OUTPUT_ENCODING,
-                WstxOutputProperties.DEFAULT_XML_VERSION);
-    }
-
-    public void writeStartDocument(String version)
-    {
-        writeStartDocument(null, version);
-    }
-
-    public void writeStartDocument(String encoding, String version)
-    {
-        // Is there anything here we can or should do? No?
-        mEncoding = encoding;
-    }
+    //public void writeStartDocument()
+    //public void writeStartDocument(String version)
+    //public void writeStartDocument(String encoding, String version)
 
     public void writeStartElement(String localName)
         throws XMLStreamException
@@ -453,6 +405,10 @@ public class WstxDOMWrappingWriter
     }
 
     //public void writeFullEndElement() throws XMLStreamException
+
+    //public void writeSpace(char[] text, int start, int len)
+    //public void writeSpace(String text)
+
 
     //public void writeStartDocument(String version, String encoding, boolean standAlone)
 

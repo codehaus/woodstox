@@ -32,9 +32,10 @@ import org.codehaus.stax2.ri.typed.SimpleValueEncoder;
 import org.codehaus.stax2.validation.*;
 
 /**
- * This is an adapter class that implements {@link XMLStreamWriter}
+ * This is an adapter class that partially implements {@link XMLStreamWriter}
  * as a facade on top of  a DOM document or Node, allowing one
  * to basically construct DOM trees via Stax API.
+ * It is meant to serve as basis for a full implementation.
  *<p>
  * Note that the implementation is only to be used for use with
  * <code>javax.xml.transform.dom.DOMSResult</code>. It can however be
@@ -46,6 +47,12 @@ import org.codehaus.stax2.validation.*;
 public abstract class DOMWrappingWriter
     implements XMLStreamWriter2
 {
+    // // Constants to use as defaults for "writeStartDocument"
+
+    final static String DEFAULT_OUTPUT_ENCODING = "UTF-8";
+
+    final static String DEFAULT_XML_VERSION = "1.0";
+
     /*
     ////////////////////////////////////////////////////
     // Configuration
@@ -156,9 +163,118 @@ public abstract class DOMWrappingWriter
         mNsContext = context;
     }
 
+    public void writeCData(String data) {
+        appendLeaf(mDocument.createCDATASection(data));
+    }
+
+    public void writeCharacters(char[] text, int start, int len)
+    {
+        writeCharacters(new String(text, start, len));
+    }
+
+    public void writeCharacters(String text) {
+        appendLeaf(mDocument.createTextNode(text));
+    }
+
+    public void writeComment(String data) {
+        appendLeaf(mDocument.createCDATASection(data));
+    }
+
+    public void writeDTD(String dtd)
+    {
+        /* Would need to parse contents, not easy to do via DOM
+         * in any case.
+         */
+        reportUnsupported("writeDTD()");
+    }
+
+    public void writeProcessingInstruction(String target) {
+        writeProcessingInstruction(target, null);
+    }
+
+    public void writeProcessingInstruction(String target, String data) {
+        appendLeaf(mDocument.createProcessingInstruction(target, data));
+    }
+
+    public void writeStartDocument()
+    {
+        /* Note: while these defaults are not very intuitive, they
+         * are what Stax 1.0 specification clearly mandates:
+         */
+        writeStartDocument(DEFAULT_OUTPUT_ENCODING, DEFAULT_XML_VERSION);
+    }
+
+    public void writeStartDocument(String version)
+    {
+        writeStartDocument(null, version);
+    }
+
+    public void writeStartDocument(String encoding, String version)
+    {
+        // Is there anything here we can or should do? No?
+        mEncoding = encoding;
+    }
+
+
     /*
     ////////////////////////////////////////////////////
-    // XMLStreamWriter2 API (Stax2 v2.0)
+    // XMLStreamWriter2 API (Stax2 v2.0):
+    // additional accessors
+    ////////////////////////////////////////////////////
+     */
+
+    public XMLStreamLocation2 getLocation() {
+        // !!! TBI
+        return null;
+    }
+
+    public String getEncoding() {
+        return mEncoding;
+    }
+
+    /*
+    ////////////////////////////////////////////////////
+    // XMLStreamWriter2 API (Stax2 v2.0):
+    // extended write methods
+    ////////////////////////////////////////////////////
+     */
+
+    public void writeCData(char[] text, int start, int len)
+        throws XMLStreamException
+    {
+        writeCData(new String(text, start, len));
+    }
+
+    //public void writeDTD(String rootName, String systemId, String publicId, String internalSubset)
+
+    public void writeFullEndElement() throws XMLStreamException
+    {
+        // No difference with DOM
+        writeEndElement();
+    }
+
+    public void writeSpace(char[] text, int start, int len) {
+        writeSpace(new String(text, start, len));
+    }
+
+    public void writeSpace(String text) {
+        /* This won't work all that well, given there's no way to
+         * prevent quoting/escaping. But let's do what we can, since
+         * the alternative (throwing an exception) doesn't seem
+         * especially tempting choice.
+         */
+        writeCharacters(text);
+    }
+
+    public void writeStartDocument(String version, String encoding, boolean standAlone)
+        throws XMLStreamException
+    {
+        writeStartDocument(encoding, version);
+    }
+
+    /*
+    ////////////////////////////////////////////////////
+    // XMLStreamWriter2 API (Stax2 v2.0): validation
     ////////////////////////////////////////////////////
      */
 
@@ -187,35 +303,6 @@ public abstract class DOMWrappingWriter
     {
         // !!! TBI
         return null;
-    }
-
-    public XMLStreamLocation2 getLocation() {
-        // !!! TBI
-        return null;
-    }
-
-    public String getEncoding() {
-        return mEncoding;
-    }
-
-    public void writeCData(char[] text, int start, int len)
-        throws XMLStreamException
-    {
-        writeCData(new String(text, start, len));
-    }
-
-    //public void writeDTD(String rootName, String systemId, String publicId, String internalSubset)
-
-    public void writeFullEndElement() throws XMLStreamException
-    {
-        // No difference with DOM
-        writeEndElement();
-    }
-
-    public void writeStartDocument(String version, String encoding, boolean standAlone)
-        throws XMLStreamException
-    {
-        writeStartDocument(encoding, version);
     }
 
     /*
