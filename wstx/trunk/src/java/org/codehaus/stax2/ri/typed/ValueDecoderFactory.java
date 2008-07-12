@@ -48,7 +48,7 @@ public final class ValueDecoderFactory
 
     /*
     /////////////////////////////////////////////////////
-    // Factory methods
+    // Factory methods, scalar decoders
     /////////////////////////////////////////////////////
     */
 
@@ -100,6 +100,17 @@ public final class ValueDecoderFactory
 
     public QNameDecoder getQNameDecoder(NamespaceContext nsc) {
         return new QNameDecoder(nsc);
+    }
+
+    /*
+    /////////////////////////////////////////////////////
+    // Factory methods, array decoders
+    /////////////////////////////////////////////////////
+    */
+
+    public IntArrayDecoder getIntArrayDecoder(int[] result, int offset, int len)
+    {
+        return new IntArrayDecoder(result, offset, len, getIntDecoder());
     }
 
     /*
@@ -1287,6 +1298,54 @@ public final class ValueDecoderFactory
     // Decoders, array
     /////////////////////////////////////////////////////
     */
+
+    abstract static class BaseArrayDecoder
+    {
+        protected final int mStart;
+
+        protected final int mMaxCount;
+
+        protected int mCount = 0;
+
+        protected BaseArrayDecoder(int start, int maxCount)
+        {
+            mStart = start;
+            mMaxCount = maxCount;
+        }
+
+        public final int getCount() { return mCount; }
+        public final boolean hasRoom() { return mCount < mMaxCount; }
+    }
+
+    public final static class IntArrayDecoder
+        extends BaseArrayDecoder
+    {
+        final int[] mResult;
+
+        final IntDecoder mDecoder;
+
+        public IntArrayDecoder(int[] result, int start, int maxCount,
+                               IntDecoder intDecoder)
+        {
+            super(start, maxCount);
+            mResult = result;
+            mDecoder = intDecoder;
+        }
+
+        public boolean decodeElement(String input) throws IllegalArgumentException
+        {
+            mDecoder.decode(input);
+            mResult[mCount++] = mDecoder.getValue();
+            return (mCount >= mMaxCount);
+        }
+
+        public boolean decodeElement(char[] buffer, int start, int end) throws IllegalArgumentException
+        {
+            mDecoder.decode(buffer, start, end);
+            mResult[mCount++] = mDecoder.getValue();
+            return (mCount >= mMaxCount);
+        }
+    }
 
     /*
     /////////////////////////////////////////////////////

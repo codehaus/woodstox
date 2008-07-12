@@ -248,8 +248,7 @@ public interface TypedXMLStreamReader
      *    &lt;/xs:simpleType></pre> 
      * whose lexical space is a list of space-separated ints.
      * Whitespace MUST be 
-     * <a href="http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/
-     * datatypes.html#rf-whiteSpace">collapsed</a>
+     * <a href="http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/datatypes.html#rf-whiteSpace">collapsed</a>
      * according to the whiteSpace facet for the <code>intArray</code>
      * type shown above. An exception is thrown if, after whitespace is
      * collapsed, the resulting sequence of characters is not in 
@@ -260,7 +259,11 @@ public interface TypedXMLStreamReader
      *These are the pre and post conditions of calling this
      * method:
      * <ul>
-     * <li>Precondition: the current event is START_ELEMENT.</li>
+     * <li>Precondition: the current event is either START_ELEMENT,
+     *   or a textual event (CHARACTERS, CDATA), or END_ELEMENT
+     *   (END_ELEMENT is allowed for convenience; if so, no read
+     *   operation is tried, and -1 is returned immediately
+     *   </li>
      * <li>Postcondition: the current event is the corresponding 
      *     END_ELEMENT or CHARACTERS if only a portion of the 
      *     array has been copied thus far.</li>

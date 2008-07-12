@@ -37,7 +37,7 @@ public abstract class TypedValueDecoder
      * It will also never be called with empty content
      * ({@link #handleEmptyValue} is called instead for such cases)
      */
-    public abstract void decode(String input /*, int start, int end*/) throws IllegalArgumentException;
+    public abstract void decode(String input) throws IllegalArgumentException;
 
     /**
      * Method used to invoke decoding functionality, for decoding
@@ -56,7 +56,8 @@ public abstract class TypedValueDecoder
     /**
      * Method called in cases where value to decode would be empty, after
      * trimming leading and trailing white space. Decoder can
-     * then either change its state to return 
+     * then either change its state (to contain value to return)
+     * or throw appropriate exception 
      */
     //public abstract void handleEmptyValue() throws IllegalArgumentException;
 }

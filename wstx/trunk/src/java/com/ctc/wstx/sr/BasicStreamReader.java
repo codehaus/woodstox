@@ -1614,6 +1614,14 @@ public class BasicStreamReader
         }
     }
 
+    private final void decodeElementAsArray(TypedValueDecoder dec)
+        throws XMLStreamException
+    {
+        if (mCurrToken != START_ELEMENT) {
+            throwParseError(ErrorConsts.ERR_STATE_NOT_STELEM);
+        }
+    }
+
     /**
      * Method called to verify validity of the parsed QName element
      * or attribute value. At this point binding of a prefixed name
