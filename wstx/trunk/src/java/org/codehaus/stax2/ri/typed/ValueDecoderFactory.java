@@ -21,6 +21,7 @@ import java.math.BigInteger;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
 
+import org.codehaus.stax2.typed.TypedArrayDecoder;
 import org.codehaus.stax2.typed.TypedValueDecoder;
 
 /**
@@ -37,6 +38,7 @@ import org.codehaus.stax2.typed.TypedValueDecoder;
 public final class ValueDecoderFactory
 {
     // // // Lazily-constructed, recycled decoder instances
+    // // // (only for simple commonly needed types)
 
     protected BooleanDecoder mBooleanDecoder = null;
     protected IntDecoder mIntDecoder = null;
@@ -111,6 +113,22 @@ public final class ValueDecoderFactory
     public IntArrayDecoder getIntArrayDecoder(int[] result, int offset, int len)
     {
         return new IntArrayDecoder(result, offset, len, getIntDecoder());
+    }
+
+    public LongArrayDecoder getLongArrayDecoder(long[] result, int offset, int len)
+    {
+        return new LongArrayDecoder(result, offset, len, getLongDecoder());
+    }
+
+    public FloatArrayDecoder getFloatArrayDecoder(float[] result, int offset, int len)
+    {
+        return new FloatArrayDecoder(result, offset, len, getFloatDecoder());
+    }
+
+
+    public DoubleArrayDecoder getDoubleArrayDecoder(double[] result, int offset, int len)
+    {
+        return new DoubleArrayDecoder(result, offset, len, getDoubleDecoder());
     }
 
     /*
@@ -1300,6 +1318,7 @@ public final class ValueDecoderFactory
     */
 
     abstract static class BaseArrayDecoder
+        extends TypedArrayDecoder
     {
         protected final int mStart;
 
@@ -1330,6 +1349,96 @@ public final class ValueDecoderFactory
             super(start, maxCount);
             mResult = result;
             mDecoder = intDecoder;
+        }
+
+        public boolean decodeValue(String input) throws IllegalArgumentException
+        {
+            mDecoder.decode(input);
+            mResult[mCount++] = mDecoder.getValue();
+            return (mCount >= mMaxCount);
+        }
+
+        public boolean decodeValue(char[] buffer, int start, int end) throws IllegalArgumentException
+        {
+            mDecoder.decode(buffer, start, end);
+            mResult[mCount++] = mDecoder.getValue();
+            return (mCount >= mMaxCount);
+        }
+    }
+
+    public final static class LongArrayDecoder
+        extends BaseArrayDecoder
+    {
+        final long[] mResult;
+
+        final LongDecoder mDecoder;
+
+        public LongArrayDecoder(long[] result, int start, int maxCount,
+                               LongDecoder longDecoder)
+        {
+            super(start, maxCount);
+            mResult = result;
+            mDecoder = longDecoder;
+        }
+
+        public boolean decodeValue(String input) throws IllegalArgumentException
+        {
+            mDecoder.decode(input);
+            mResult[mCount++] = mDecoder.getValue();
+            return (mCount >= mMaxCount);
+        }
+
+        public boolean decodeValue(char[] buffer, int start, int end) throws IllegalArgumentException
+        {
+            mDecoder.decode(buffer, start, end);
+            mResult[mCount++] = mDecoder.getValue();
+            return (mCount >= mMaxCount);
+        }
+    }
+
+    public final static class FloatArrayDecoder
+        extends BaseArrayDecoder
+    {
+        final float[] mResult;
+
+        final FloatDecoder mDecoder;
+
+        public FloatArrayDecoder(float[] result, int start, int maxCount,
+                               FloatDecoder floatDecoder)
+        {
+            super(start, maxCount);
+            mResult = result;
+            mDecoder = floatDecoder;
+        }
+
+        public boolean decodeValue(String input) throws IllegalArgumentException
+        {
+            mDecoder.decode(input);
+            mResult[mCount++] = mDecoder.getValue();
+            return (mCount >= mMaxCount);
+        }
+
+        public boolean decodeValue(char[] buffer, int start, int end) throws IllegalArgumentException
+        {
+            mDecoder.decode(buffer, start, end);
+            mResult[mCount++] = mDecoder.getValue();
+            return (mCount >= mMaxCount);
+        }
+    }
+
+    public final static class DoubleArrayDecoder
+        extends BaseArrayDecoder
+    {
+        final double[] mResult;
+
+        final DoubleDecoder mDecoder;
+
+        public DoubleArrayDecoder(double[] result, int start, int maxCount,
+                               DoubleDecoder doubleDecoder)
+        {
+            super(start, maxCount);
+            mResult = result;
+            mDecoder = doubleDecoder;
         }
 
         public boolean decodeValue(String input) throws IllegalArgumentException

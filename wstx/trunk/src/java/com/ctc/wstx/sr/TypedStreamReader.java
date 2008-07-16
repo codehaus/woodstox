@@ -24,6 +24,7 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
 
 import org.codehaus.stax2.ri.typed.ValueDecoderFactory;
+import org.codehaus.stax2.typed.TypedArrayDecoder;
 import org.codehaus.stax2.typed.TypedValueDecoder;
 import org.codehaus.stax2.typed.TypedXMLStreamException;
 
@@ -160,33 +161,28 @@ public class TypedStreamReader
 
     public int readElementAsIntArray(int[] value, int from, int length) throws XMLStreamException
     {
-        // !!! TBI
-        return -1;
+        return readElementAsArray(decoderFactory().getIntArrayDecoder(value, from, length));
     }
 
     public int readElementAsLongArray(long[] value, int from, int length) throws XMLStreamException
     {
-        // !!! TBI
-        return -1;
+        return readElementAsArray(decoderFactory().getLongArrayDecoder(value, from, length));
     }
 
     public int readElementAsFloatArray(float[] value, int from, int length) throws XMLStreamException
     {
-        // !!! TBI
-        return -1;
+        return readElementAsArray(decoderFactory().getFloatArrayDecoder(value, from, length));
     }
 
     public int readElementAsDoubleArray(double[] value, int from, int length) throws XMLStreamException
     {
-        // !!! TBI
-        return -1;
+        return readElementAsArray(decoderFactory().getDoubleArrayDecoder(value, from, length));
     }
 
-    /*
-    public void readElementAs(TypedArrayDecoder tvd) throws XMLStreamException
+    public void readElementAs(TypedArrayDecoder tad) throws XMLStreamException
     {
+        readElementAsArray(tad);
     }
-    */
 
     /*
     ///////////////////////////////////////////////////////////
@@ -327,91 +323,6 @@ public class TypedStreamReader
         }
     }
 
-    /**
-     * Special implementation of functionality similar to that of
-     * {@link #getElementText}, but optimized for the specific
-     * use case of handling typed element content. This allows for
-     * doing things like trimming leading white space.
-     *
-     * @return Collected String, if any; or null to indicate
-     *   contents are in mTextBuffer.
-     */
-    private final String collectElementText()
-        throws XMLStreamException
-    {
-        if (mCurrToken != START_ELEMENT) {
-            throwParseError(ErrorConsts.ERR_STATE_NOT_STELEM);
-        }
-        /* Ok, now: with START_ELEMENT we know that it's not partially
-         * processed; that we are in-tree (not prolog or epilog).
-         * The only possible complication would be 
-         */
-        if (mStEmptyElem) {
-            // And if so, we'll then get 'virtual' close tag; things
-            // are simple as location info was set when dealing with
-            // empty start element; and likewise, validation (if any)
-            // has been taken care of.
-            mStEmptyElem = false;
-            mCurrToken = END_ELEMENT;
-            return "";
-        }
-        // First need to find a textual event
-        while (true) {
-            int type = next();
-            if (type == END_ELEMENT) {
-                return "";
-            }
-            if (type == COMMENT || type == PROCESSING_INSTRUCTION) {
-                continue;
-            }
-            if (((1 << type) & MASK_GET_ELEMENT_TEXT) == 0) {
-                throwParseError("Expected a text token, got "+tokenTypeDesc(type)+".");
-            }
-            break;
-        }
-        if (mTokenState < TOKEN_FULL_SINGLE) {
-            readCoalescedText(mCurrToken, false);
-        }
-        /* Ok: then quick check; if it looks like we are directly
-         * followed by the end tag, we need not construct String
-         * quite yet.
-         */
-        if ((mInputPtr + 1) < mInputEnd &&
-            mInputBuffer[mInputPtr] == '<' && mInputBuffer[mInputPtr+1] == '/') {
-            // But first: is textual content validation needed?
-            if (mValidateText) {
-                mElementStack.validateText(mTextBuffer, true);
-            }
-            mInputPtr += 2;
-            mCurrToken = END_ELEMENT;
-            // Can by-pass next(), nextFromTree(), in this case:
-            readEndElem();
-            return null;
-        }
-
-        // Otherwise, we'll need to do slower processing
-
-        String text = mTextBuffer.contentsAsString();
-        // Then we'll see if end is nigh...
-        TextAccumulator acc = null;
-        int type;
-        
-        while ((type = next()) != END_ELEMENT) {
-            if (((1 << type) & MASK_GET_ELEMENT_TEXT) != 0) {
-                if (acc == null) {
-                    acc = new TextAccumulator();
-                    acc.addText(text);
-                }
-                acc.addText(getText());
-                continue;
-            }
-            if (type != COMMENT && type != PROCESSING_INSTRUCTION) {
-                throwParseError("Expected a text token, got "+tokenTypeDesc(type)+".");
-            }
-        }
-        return (acc == null) ? text : acc.getAndClear();
-    }
-
     private final void decodeElementText(TypedValueDecoder dec)
         throws XMLStreamException
     {
@@ -429,11 +340,7 @@ public class TypedStreamReader
             // has been taken care of.
             mStEmptyElem = false;
             mCurrToken = END_ELEMENT;
-            try {
-                dec.decode("");
-            } catch (IllegalArgumentException iae) {
-                throw constructTypeException(iae, "");
-            }
+            handleEmptyValue(dec);
             return;
         }
         // First need to find a textual event
@@ -510,12 +417,53 @@ public class TypedStreamReader
     }
 
     /**
-     * Method called to parse array of pritive
+     * Method called to handle value that has empty String
+     * as representation. This will usually either lead to an
+     * exception, or parsing to the default value for the
+     * type in question (null for nullable types and so on).
      */
-    private final int readElementAsArray(TypedValueDecoder dec)
+    private void handleEmptyValue(TypedValueDecoder dec)
         throws XMLStreamException
     {
-        if (mCurrToken != START_ELEMENT) {
+        try {
+            // !!! TBI: call "handleEmptyValue" (or whatever)
+            dec.decode("");
+        } catch (IllegalArgumentException iae) {
+            throw constructTypeException(iae, "");
+        }
+    }
+
+    /**
+     * Method called to parse array of pritive
+     */
+    private final int readElementAsArray(TypedArrayDecoder dec)
+        throws XMLStreamException
+    {
+        // First: check the state
+        if (mCurrToken == END_ELEMENT) {
+            // END_ELEMENT is ok: nothing more to decode
+            return -1;
+        }
+        // If starting (at START_ELEMENT), special handling
+        if (mCurrToken == START_ELEMENT) {
+            // Empty? Can short-cut handling
+            if (mStEmptyElem) {
+                mStEmptyElem = false;
+                mCurrToken = END_ELEMENT;
+
+                /*
+                try {
+                    // !!! TBI: call "handleEmptyValue" (or whatever)
+                    dec.decode("");
+                } catch (IllegalArgumentException iae) {
+                    throw constructTypeException(iae, "");
+                }
+                */
+                return -1;
+            }
+
+            // !!! TBI: init
+        } else { // not START_ELEMENT, must be textual
             throwParseError(ErrorConsts.ERR_STATE_NOT_STELEM);
         }
 
