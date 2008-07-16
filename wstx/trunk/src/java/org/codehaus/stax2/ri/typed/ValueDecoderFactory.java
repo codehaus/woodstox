@@ -1332,14 +1332,14 @@ public final class ValueDecoderFactory
             mDecoder = intDecoder;
         }
 
-        public boolean decodeElement(String input) throws IllegalArgumentException
+        public boolean decodeValue(String input) throws IllegalArgumentException
         {
             mDecoder.decode(input);
             mResult[mCount++] = mDecoder.getValue();
             return (mCount >= mMaxCount);
         }
 
-        public boolean decodeElement(char[] buffer, int start, int end) throws IllegalArgumentException
+        public boolean decodeValue(char[] buffer, int start, int end) throws IllegalArgumentException
         {
             mDecoder.decode(buffer, start, end);
             mResult[mCount++] = mDecoder.getValue();

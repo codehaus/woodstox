@@ -38,7 +38,7 @@ import com.ctc.wstx.io.*;
 import com.ctc.wstx.util.DefaultXmlSymbolTable;
 import com.ctc.wstx.util.SymbolTable;
 import com.ctc.wstx.util.URLUtil;
-import com.ctc.wstx.sr.BasicStreamReader;
+import com.ctc.wstx.sr.TypedStreamReader;
 import com.ctc.wstx.sr.ReaderCreator;
 
 /**
@@ -319,8 +319,7 @@ public class MinimalInputFactory
         throws IOException, XMLStreamException
     {
 	// false -> stream reader never (directly) used by an event reader
-        return BasicStreamReader.createBasicStreamReader
-            (input, this, cfg, bs, false);
+        return TypedStreamReader.createStreamReader(input, this, cfg, bs, false);
     }
 
     /*

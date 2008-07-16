@@ -38,7 +38,7 @@ public interface TypedXMLStreamReader
 {
     /*
     //////////////////////////////////////////////////////////
-    // First, typed element accessors
+    // First, typed element accessors for scaler values
     //////////////////////////////////////////////////////////
      */
     
@@ -193,6 +193,48 @@ public interface TypedXMLStreamReader
     //public XMLGregorianCalendar getElementAsCalendar() throws XMLStreamException;
     
     /**
+     * Generic decoding method that can be used for efficient
+     * decoding of additional types not support natively
+     * by the typed stream reader. When method is called,
+     * stream reader will collect all textual content of
+     * the current element (effectively doing something
+     * similar to a call to {@link #getElementText},
+     * and then call one of decode methods defined in
+     * {@link TypedValueDecoder}. The only difference is that
+     * passed value will be trimmed: that is, any leading or
+     * trailing white space will be removed prior to calling
+     * decode method.
+     * After the call, passed
+     * decoder object will have decoded and stored value
+     * (if succesful) or thrown an exception (if not).
+     *<p>
+     * The main benefit of using this method (over just getting
+     * all content by calling {@link #getElementText}
+     * is efficiency: the stream reader can efficiently gather all textual
+     * content necessary and pass it to the decoder, often avoiding
+     * construction of intemediate Strings.
+     *<p>
+     * These are the pre- and post-conditions of calling this method:
+     * <ul>
+     * <li>Precondition: the current event is START_ELEMENT.</li>
+     * <li>Postcondition: the current event is the corresponding 
+     *     END_ELEMENT.</li>
+     * </ul>
+     * </p>
+     *<p>
+     * Note that caller has to know more specific type of decoder,
+     * since the base interface does not specify methods
+     * for accessing actual decoded value.
+     */
+    public void getElementAs(TypedValueDecoder tvd) throws XMLStreamException;
+    /*
+    //////////////////////////////////////////////////////////
+    // Then streaming/chunked typed element accessors
+    // for non-scalar (array, binary data) values
+    //////////////////////////////////////////////////////////
+     */
+
+    /**
      * Read element content as decoded byte sequence; possibly only
      * reading a fragment of all element content.
      * The lexical representation of a byte array is defined by the 
@@ -283,48 +325,14 @@ public interface TypedXMLStreamReader
      *                be less or equal than <code>length</code>.
      */
     public int readElementAsIntArray(int[] value, int from, int length) throws XMLStreamException;
-    
+
     public int readElementAsLongArray(long[] value, int from, int length) throws XMLStreamException;
     
     public int readElementAsFloatArray(float[] value, int from, int length) throws XMLStreamException;
     
     public int readElementAsDoubleArray(double[] value, int from, int length) throws XMLStreamException;
-    
-    /**
-     * Generic decoding method that can be used for efficient
-     * decoding of additional types not support natively
-     * by the typed stream reader. When method is called,
-     * stream reader will collect all textual content of
-     * the current element (effectively doing something
-     * similar to a call to {@link #getElementText},
-     * and then call one of decode methods defined in
-     * {@link TypedValueDecoder}. The only difference is that
-     * passed value will be trimmed: that is, any leading or
-     * trailing white space will be removed prior to calling
-     * decode method.
-     * After the call, passed
-     * decoder object will have decoded and stored value
-     * (if succesful) or thrown an exception (if not).
-     *<p>
-     * The main benefit of using this method (over just getting
-     * all content by calling {@link #getElementText}
-     * is efficiency: the stream reader can efficiently gather all textual
-     * content necessary and pass it to the decoder, often avoiding
-     * construction of intemediate Strings.
-     *<p>
-     * These are the pre- and post-conditions of calling this method:
-     * <ul>
-     * <li>Precondition: the current event is START_ELEMENT.</li>
-     * <li>Postcondition: the current event is the corresponding 
-     *     END_ELEMENT.</li>
-     * </ul>
-     * </p>
-     *<p>
-     * Note that caller has to know more specific type of decoder,
-     * since the base interface does not specify methods
-     * for accessing actual decoded value.
-     */
-    public void getElementAs(TypedValueDecoder tvd) throws XMLStreamException;
+
+    //public void readElementAs(TypedArrayDecoder tad) throws XMLStreamException;
 
     /*
     //////////////////////////////////////////////////////////

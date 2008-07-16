@@ -16,12 +16,15 @@ package org.codehaus.stax2.typed;
 public abstract class TypedArrayDecoder
 {
     /**
+     * Method called to decode single (element) value that given textual
+     * input contains  and store it in result array.
+     *
      * @return True if decoding is complete, that is, no more
      *   elements can be added to contained array
      */
-    public abstract boolean decodeElement(String input) throws IllegalArgumentException;
+    public abstract boolean decodeValue(String input) throws IllegalArgumentException;
 
-    public abstract boolean decodeElement(char[] buffer, int start, int end) throws IllegalArgumentException;
+    public abstract boolean decodeValue(char[] buffer, int start, int end) throws IllegalArgumentException;
 
     /**
      * @return Number of elements decoded and contained

@@ -37,12 +37,12 @@ import com.ctc.wstx.dtd.FullDTDReader;
 import com.ctc.wstx.util.URLUtil;
 
 /**
- * Implementation of {@link XMLStreamReader} that builds on
- * {@link BasicStreamReader}, but adds full DTD-handling, including
- * DTD validation
+ * Implementation of {@link org.codehaus.stax2.XMLStreamReader2}
+ * that builds on {@link TypedStreamReader} and adds full DTD-handling
+ * including DTD validation
  */
 public class ValidatingStreamReader
-    extends BasicStreamReader
+    extends TypedStreamReader
 {
     /*
     ////////////////////////////////////////////////
