@@ -153,176 +153,6 @@ public class TypedStreamReader
         decodeElementText(tvd);
     }
 
-    /*
-    ////////////////////////////////////////////////////////
-    // TypedXMLStreamReader2 implementation, array elements
-    ////////////////////////////////////////////////////////
-     */
-
-    public int readElementAsIntArray(int[] value, int from, int length) throws XMLStreamException
-    {
-        return readElementAsArray(decoderFactory().getIntArrayDecoder(value, from, length));
-    }
-
-    public int readElementAsLongArray(long[] value, int from, int length) throws XMLStreamException
-    {
-        return readElementAsArray(decoderFactory().getLongArrayDecoder(value, from, length));
-    }
-
-    public int readElementAsFloatArray(float[] value, int from, int length) throws XMLStreamException
-    {
-        return readElementAsArray(decoderFactory().getFloatArrayDecoder(value, from, length));
-    }
-
-    public int readElementAsDoubleArray(double[] value, int from, int length) throws XMLStreamException
-    {
-        return readElementAsArray(decoderFactory().getDoubleArrayDecoder(value, from, length));
-    }
-
-    public void readElementAs(TypedArrayDecoder tad) throws XMLStreamException
-    {
-        readElementAsArray(tad);
-    }
-
-    /*
-    ///////////////////////////////////////////////////////////
-    // TypedXMLStreamReader2 implementation, scalar attributes
-    ///////////////////////////////////////////////////////////
-     */
-
-    public int getAttributeIndex(String namespaceURI, String localName)
-    {
-        // Note: cut'n pasted from "getAttributeInfo()"
-        if (mCurrToken != START_ELEMENT) {
-            throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
-        }
-        return mElementStack.findAttributeIndex(namespaceURI, localName);
-    }
-
-    public boolean getAttributeAsBoolean(int index) throws XMLStreamException
-    {
-        if (mCurrToken != START_ELEMENT) {
-            throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
-        }
-        ValueDecoderFactory.BooleanDecoder dec = decoderFactory().getBooleanDecoder();
-        try {
-            mAttrCollector.decodeValue(index, dec);
-        } catch (IllegalArgumentException iae) {
-            throw constructTypeException(iae, mAttrCollector.getValue(index));
-        }
-        return dec.getValue();
-    }
-
-    public int getAttributeAsInt(int index) throws XMLStreamException
-    {
-        if (mCurrToken != START_ELEMENT) {
-            throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
-        }
-        ValueDecoderFactory.IntDecoder dec = decoderFactory().getIntDecoder();
-        try {
-            mAttrCollector.decodeValue(index, dec);
-        } catch (IllegalArgumentException iae) {
-            throw constructTypeException(iae, mAttrCollector.getValue(index));
-        }
-        return dec.getValue();
-    }
-
-    public long getAttributeAsLong(int index) throws XMLStreamException
-    {
-        if (mCurrToken != START_ELEMENT) {
-            throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
-        }
-        ValueDecoderFactory.LongDecoder dec = decoderFactory().getLongDecoder();
-        try {
-            mAttrCollector.decodeValue(index, dec);
-        } catch (IllegalArgumentException iae) {
-            throw constructTypeException(iae, mAttrCollector.getValue(index));
-        }
-        return dec.getValue();
-    }
-
-    public float getAttributeAsFloat(int index) throws XMLStreamException
-    {
-        if (mCurrToken != START_ELEMENT) {
-            throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
-        }
-        ValueDecoderFactory.FloatDecoder dec = decoderFactory().getFloatDecoder();
-        try {
-            mAttrCollector.decodeValue(index, dec);
-        } catch (IllegalArgumentException iae) {
-            throw constructTypeException(iae, mAttrCollector.getValue(index));
-        }
-        return dec.getValue();
-    }
-
-    public double getAttributeAsDouble(int index) throws XMLStreamException
-    {
-        if (mCurrToken != START_ELEMENT) {
-            throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
-        }
-        ValueDecoderFactory.DoubleDecoder dec = decoderFactory().getDoubleDecoder();
-        try {
-            mAttrCollector.decodeValue(index, dec);
-        } catch (IllegalArgumentException iae) {
-            throw constructTypeException(iae, mAttrCollector.getValue(index));
-        }
-        return dec.getValue();
-    }
-
-    public BigInteger getAttributeAsInteger(int index) throws XMLStreamException
-    {
-        if (mCurrToken != START_ELEMENT) {
-            throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
-        }
-        ValueDecoderFactory.IntegerDecoder dec = decoderFactory().getIntegerDecoder();
-        try {
-            mAttrCollector.decodeValue(index, dec);
-        } catch (IllegalArgumentException iae) {
-            throw constructTypeException(iae, mAttrCollector.getValue(index));
-        }
-        return dec.getValue();
-    }
-
-    public BigDecimal getAttributeAsDecimal(int index) throws XMLStreamException
-    {
-        if (mCurrToken != START_ELEMENT) {
-            throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
-        }
-        ValueDecoderFactory.DecimalDecoder dec = decoderFactory().getDecimalDecoder();
-        try {
-            mAttrCollector.decodeValue(index, dec);
-        } catch (IllegalArgumentException iae) {
-            throw constructTypeException(iae, mAttrCollector.getValue(index));
-        }
-        return dec.getValue();
-    }
-
-    public QName getAttributeAsQName(int index) throws XMLStreamException
-    {
-        if (mCurrToken != START_ELEMENT) {
-            throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
-        }
-        ValueDecoderFactory.QNameDecoder dec = decoderFactory().getQNameDecoder(getNamespaceContext());
-        try {
-            mAttrCollector.decodeValue(index, dec);
-        } catch (IllegalArgumentException iae) {
-            throw constructTypeException(iae, mAttrCollector.getValue(index));
-        }
-        return verifyQName(dec.getValue());
-    }
-
-    public void getAttributeAs(int index, TypedValueDecoder tvd) throws XMLStreamException
-    {
-        if (mCurrToken != START_ELEMENT) {
-            throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
-        }
-        try {
-            mAttrCollector.decodeValue(index, tvd);
-        } catch (IllegalArgumentException iae) {
-            throw constructTypeException(iae, mAttrCollector.getValue(index));
-        }
-    }
-
     private final void decodeElementText(TypedValueDecoder dec)
         throws XMLStreamException
     {
@@ -433,6 +263,38 @@ public class TypedStreamReader
         }
     }
 
+    /*
+    ////////////////////////////////////////////////////////
+    // TypedXMLStreamReader2 implementation, array elements
+    ////////////////////////////////////////////////////////
+     */
+
+    public int readElementAsIntArray(int[] value, int from, int length) throws XMLStreamException
+    {
+        return readElementAsArray(decoderFactory().getIntArrayDecoder(value, from, length));
+    }
+
+    public int readElementAsLongArray(long[] value, int from, int length) throws XMLStreamException
+    {
+        return readElementAsArray(decoderFactory().getLongArrayDecoder(value, from, length));
+    }
+
+    public int readElementAsFloatArray(float[] value, int from, int length) throws XMLStreamException
+    {
+        return readElementAsArray(decoderFactory().getFloatArrayDecoder(value, from, length));
+    }
+
+    public int readElementAsDoubleArray(double[] value, int from, int length) throws XMLStreamException
+    {
+        return readElementAsArray(decoderFactory().getDoubleArrayDecoder(value, from, length));
+    }
+
+    public void readElementAs(TypedArrayDecoder tad) throws XMLStreamException
+    {
+        readElementAsArray(tad);
+    }
+
+
     /**
      * Method called to parse array of pritive
      */
@@ -470,6 +332,95 @@ public class TypedStreamReader
 
         // !!! TBI
         return -1;
+    }
+
+    /*
+    ///////////////////////////////////////////////////////////
+    // TypedXMLStreamReader2 implementation, scalar attributes
+    ///////////////////////////////////////////////////////////
+     */
+
+    public int getAttributeIndex(String namespaceURI, String localName)
+    {
+        // Note: cut'n pasted from "getAttributeInfo()"
+        if (mCurrToken != START_ELEMENT) {
+            throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
+        }
+        return mElementStack.findAttributeIndex(namespaceURI, localName);
+    }
+
+    public boolean getAttributeAsBoolean(int index) throws XMLStreamException
+    {
+        ValueDecoderFactory.BooleanDecoder dec = decoderFactory().getBooleanDecoder();
+        decodeAttrText(index, dec);
+        return dec.getValue();
+    }
+
+    public int getAttributeAsInt(int index) throws XMLStreamException
+    {
+        ValueDecoderFactory.IntDecoder dec = decoderFactory().getIntDecoder();
+        decodeAttrText(index, dec);
+        return dec.getValue();
+    }
+
+    public long getAttributeAsLong(int index) throws XMLStreamException
+    {
+        ValueDecoderFactory.LongDecoder dec = decoderFactory().getLongDecoder();
+        decodeAttrText(index, dec);
+        return dec.getValue();
+    }
+
+    public float getAttributeAsFloat(int index) throws XMLStreamException
+    {
+        ValueDecoderFactory.FloatDecoder dec = decoderFactory().getFloatDecoder();
+        decodeAttrText(index, dec);
+        return dec.getValue();
+    }
+
+    public double getAttributeAsDouble(int index) throws XMLStreamException
+    {
+        ValueDecoderFactory.DoubleDecoder dec = decoderFactory().getDoubleDecoder();
+        decodeAttrText(index, dec);
+        return dec.getValue();
+    }
+
+    public BigInteger getAttributeAsInteger(int index) throws XMLStreamException
+    {
+        ValueDecoderFactory.IntegerDecoder dec = decoderFactory().getIntegerDecoder();
+        decodeAttrText(index, dec);
+        return dec.getValue();
+    }
+
+    public BigDecimal getAttributeAsDecimal(int index) throws XMLStreamException
+    {
+        ValueDecoderFactory.DecimalDecoder dec = decoderFactory().getDecimalDecoder();
+        decodeAttrText(index, dec);
+        return dec.getValue();
+    }
+
+    public QName getAttributeAsQName(int index) throws XMLStreamException
+    {
+        ValueDecoderFactory.QNameDecoder dec = decoderFactory().getQNameDecoder(getNamespaceContext());
+        decodeAttrText(index, dec);
+        return verifyQName(dec.getValue());
+    }
+
+    public void getAttributeAs(int index, TypedValueDecoder tvd) throws XMLStreamException
+    {
+        decodeAttrText(index, tvd);
+    }
+
+    private final void decodeAttrText(int index, TypedValueDecoder tvd)
+        throws XMLStreamException
+    {
+        if (mCurrToken != START_ELEMENT) {
+            throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
+        }
+        try {
+            mAttrCollector.decodeValue(index, tvd);
+        } catch (IllegalArgumentException iae) {
+            throw constructTypeException(iae, mAttrCollector.getValue(index));
+        }
     }
 
     /*
