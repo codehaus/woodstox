@@ -235,7 +235,7 @@ public final class ValueEncoderFactory
                 String str = mValue;
                 mValue = null;
                 for (int last = str.length(), offset = mOffset; offset < last; ++offset) {
-                    buffer[ptr++] = (byte) mValue.charAt(offset);
+                    buffer[ptr++] = (byte) str.charAt(offset);
                 }
                 return ptr;
             }
