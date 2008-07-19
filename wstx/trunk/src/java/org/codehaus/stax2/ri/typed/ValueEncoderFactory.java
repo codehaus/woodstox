@@ -60,6 +60,12 @@ public final class ValueEncoderFactory
         return new StringEncoder(value);
     }
 
+    public ScalarEncoder getEncoder(boolean value)
+    {
+        // !!! TBI: optimize
+        return getScalarEncoder(value ? "true" : "false");
+    }
+
     public IntEncoder getEncoder(int value)
     {
         if (mIntEncoder == null) {

@@ -767,10 +767,10 @@ public abstract class BaseStreamWriter
 
     // // // Typed element content write methods
 
-    public void writeBoolean(boolean b)
+    public void writeBoolean(boolean value)
         throws XMLStreamException
     {
-        writeTypedElement(valueEncoderFactory().getScalarEncoder(b ? "true" : "false"));
+        writeTypedElement(valueEncoderFactory().getEncoder(value));
     }
 
     public void writeInt(int value)
@@ -819,16 +819,10 @@ public abstract class BaseStreamWriter
     public void writeQName(QName name)
         throws XMLStreamException
     {
-        String prefix = validateQNamePrefix(name);
-        String value = name.getLocalPart();
-        if (prefix != null && prefix.length() > 0) {
-            // Not efficient... but should be ok
-            value = prefix + ":" + value;
-        }
         /* Can't use AsciiValueEncoder, since QNames can contain
          * non-ascii characters
          */
-        writeCharacters(value);
+        writeCharacters(serializeQName(name));
     }
 
     public final void writeIntArray(int[] value, int from, int length)
@@ -898,7 +892,7 @@ public abstract class BaseStreamWriter
         throws XMLStreamException
     {
         writeTypedAttribute(prefix, nsURI, localName,
-                            valueEncoderFactory().getScalarEncoder(value ? "true" : "false"));
+                            valueEncoderFactory().getEncoder(value));
     }
 
     public void writeIntAttribute(String prefix, String nsURI, String localName, int value)
@@ -948,16 +942,10 @@ public abstract class BaseStreamWriter
     public void writeQNameAttribute(String prefix, String nsURI, String localName, QName name)
         throws XMLStreamException
     {
-        String vp = validateQNamePrefix(name);
-        String value = name.getLocalPart();
-        if (vp != null && vp.length() > 0) {
-            // Not efficient... but should be ok
-            value = vp + ":" + value;
-        }
         /* Can't use AsciiValueEncoder, since QNames can contain
          * non-ascii characters
          */
-        writeAttribute(prefix, nsURI, localName, value);
+        writeAttribute(prefix, nsURI, localName, serializeQName(name));
     }
 
     public void writeIntArrayAttribute(String prefix, String nsURI, String localName, int[] value)
@@ -995,8 +983,21 @@ public abstract class BaseStreamWriter
                             valueEncoderFactory().getEncoder(value, 0, value.length));
     }
 
+    private String serializeQName(QName name)
+        throws XMLStreamException
+    {
+        String vp = validateQNamePrefix(name);
+        String local = name.getLocalPart();
+        if (vp == null || vp.length() == 0) {
+            return local;
+        }
+
+        // Not efficient... but should be ok
+        return vp + ":" + local;
+    }
+
     /*
-2y    ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
     // XMLStreamWriter2 methods (StAX2)
     ////////////////////////////////////////////////////
      */
