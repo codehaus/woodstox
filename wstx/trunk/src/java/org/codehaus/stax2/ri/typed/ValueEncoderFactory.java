@@ -1,6 +1,6 @@
-/* Woodstox XML processor
+/* StAX2 extension for StAX API (JSR-173).
  *
- * Copyright (c) 2008- Tatu Saloranta, tatu.saloranta@iki.fi
+ * Copyright (c) 2005- Tatu Saloranta, tatu.saloranta@iki.fi
  *
  * Licensed under the License specified in file LICENSE, included with
  * the source code.
@@ -14,9 +14,6 @@
  */
 
 package org.codehaus.stax2.ri.typed;
-
-
-import com.ctc.wstx.util.NumberUtil;
 
 /**
  * Factory class used to construct all

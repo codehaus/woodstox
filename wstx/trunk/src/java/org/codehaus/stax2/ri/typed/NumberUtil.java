@@ -1,6 +1,6 @@
-/* Woodstox XML processor
+/* StAX2 extension for StAX API (JSR-173).
  *
- * Copyright (c) 2005 Tatu Saloranta, tatu.saloranta@iki.fi
+ * Copyright (c) 2005- Tatu Saloranta, tatu.saloranta@iki.fi
  *
  * Licensed under the License specified in file LICENSE, included with
  * the source code.
@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-package com.ctc.wstx.util;
+package org.codehaus.stax2.ri.typed;
 
 /**
  * Helper class that contains method for converting numeric
@@ -433,96 +433,4 @@ public final class NumberUtil
         }
         return ptr;
     }
-
-    /*
-    ////////////////////////////////////////
-    // Helper classes
-    ////////////////////////////////////////
-     */
-
-    /* 20-Jun-2008, tatus: This seemed like a good idea, initially,
-     *   but turns out that lack of "object-ivity" with primitives
-     *   makes it very hard to use generic classes like these...
-     *  So, leaving commented out, just in case it might prove
-     *  useful at some point.
-     */
-
-    /*
-
-    // Base class that defines type-safe (but not very clean...)
-    // API for serializers implemented by the utility class.
-    //<p>
-    // Usage is done by calling one (and only one) of available
-    // methods: which one to call depends on type. This complex
-    // scheme is due to inherent non-OO nature of primitive types,
-    // but is needed for doing efficient callbacks.
-    public static class NumberWriter
-    {
-         /// Maximum number of characters that a value of converted type can occupy
-        final int mMaxLength;
-
-        protected NumberWriter(int maxLen)
-        {
-            mMaxLength = maxLen;
-        }
-
-        public final int getMaxLength() { return mMaxLength; }
-
-        public int write(int i, char[] buffer, int offset) {
-            throw new UnsupportedOperationException();
-        }
-        public int write(long l, char[] buffer, int offset) {
-            throw new UnsupportedOperationException();
-        }
-        public int write(float f, char[] buffer, int offset) {
-            throw new UnsupportedOperationException();
-        }
-        public int write(double d, char[] buffer, int offset) {
-            throw new UnsupportedOperationException();
-        }
-    }
-
-
-    private final static IntWriter sIntWriter = new IntWriter();
-    private final static LongWriter sLongWriter = new LongWriter();
-    private final static FloatWriter sFloatWriter = new FloatWriter();
-    private final static DoubleWriter sDoubleWriter = new DoubleWriter();
-
-    public static IntWriter getIntWriter() { return sIntWriter; }
-    public static LongWriter getLongWriter() { return sLongWriter; }
-    public static FloatWriter getFloatWriter() { return sFloatWriter; }
-    public static DoubleWriter getDoubleWriter() { return sDoubleWriter; }
-
-    final static class IntWriter extends NumberWriter
-    {
-        IntWriter() { super(MAX_INT_CLEN); }
-        public int write(int i, char[] buffer, int offset) {
-            return writeInt(i, buffer, offset);
-        }
-    }
-
-    final static class LongWriter extends NumberWriter
-    {
-        LongWriter() { super(MAX_LONG_CLEN); }
-        public int write(long l, char[] buffer, int offset) {
-            return writeLong(l, buffer, offset);
-        }
-    }
-
-    final static class FloatWriter extends NumberWriter
-    {
-        FloatWriter() { super(MAX_FLOAT_CLEN); }
-        public int write(float f, char[] buffer, int offset) {
-            return writeFloat(f, buffer, offset);
-        }
-    }
-
-    final static class DoubleWriter extends NumberWriter
-    {
-        DoubleWriter() { super(MAX_DOUBLE_CLEN); }
-        public int write(double d, char[] buffer, int offset) {
-            return writeDouble(d, buffer, offset);
-        }
-    }
-    */
 }
