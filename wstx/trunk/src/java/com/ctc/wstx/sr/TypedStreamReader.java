@@ -306,27 +306,32 @@ public class TypedStreamReader
             // END_ELEMENT is ok: nothing more to decode
             return -1;
         }
-        // If starting (at START_ELEMENT), special handling
+
+        /* Next: validation is tricky with token-based parsing... so
+         * let's not try both fast parsing and validation, but rather
+         * offline simpler robust validation thing
+         */
+
+        // If starting (at START_ELEMENT), need bit of special handling
         if (mCurrToken == START_ELEMENT) {
             // Empty? Can short-cut handling
             if (mStEmptyElem) {
                 mStEmptyElem = false;
                 mCurrToken = END_ELEMENT;
-
-                /*
-                try {
-                    // !!! TBI: call "handleEmptyValue" (or whatever)
-                    dec.decode("");
-                } catch (IllegalArgumentException iae) {
-                    throw constructTypeException(iae, "");
-                }
-                */
                 return -1;
             }
+            // Otherwise will need to figure out next event
 
-            // !!! TBI: init
         } else { // not START_ELEMENT, must be textual
-            throwParseError(ErrorConsts.ERR_STATE_NOT_STELEM);
+            if (mCurrToken == CHARACTERS) {
+            } else if (mCurrToken == CDATA) {
+            } else {
+                /* Will occur if entities are unexpanded, too... which
+                 * is probably ok (can add more meaningful specific
+                 * error, if not)
+                 */
+                throwParseError(ErrorConsts.ERR_STATE_NOT_ELEM_OR_TEXT, tokenTypeDesc(mCurrToken), null);
+            }
         }
 
 

@@ -189,14 +189,6 @@ public abstract class BasicStreamReader
      */
     protected final int mShortestTextSegment;
 
-    /**
-     * Map that contains entity id - to - entity declaration entries for
-     * any entities caller wants to prepopulate for the document. Note that
-     * such entities will override any entities read from DTD (both internal
-     * and external subsets).
-     */
-    final Map mCustomEntities;
-
     /*
     ////////////////////////////////////////////////////
     // Symbol handling:
@@ -365,7 +357,6 @@ public abstract class BasicStreamReader
      */
     protected Map mGeneralEntities = null;
 
-
     /**
      * Entity reference stream currently points to; only used when
      * in non-automatically expanding mode.
@@ -447,8 +438,6 @@ public abstract class BasicStreamReader
                 mShortestTextSegment = cfg.getShortestReportedTextSegment();
             }
         }
-
-        mCustomEntities = cfg.getCustomInternalEntities();
 
         // // // Then handling of xml declaration data:
 
@@ -5321,11 +5310,7 @@ public abstract class BasicStreamReader
     protected EntityDecl findEntity(String id, Object arg)
         throws XMLStreamException
     {
-        EntityDecl ed = null;
-
-        if (mCustomEntities != null) {
-            ed = (EntityDecl) mCustomEntities.get(id);
-        }
+        EntityDecl ed = (EntityDecl) mConfig.findCustomInternalEntity(id);
         if (ed == null && mGeneralEntities != null) {
             ed = (EntityDecl) mGeneralEntities.get(id);
         }
@@ -5337,7 +5322,6 @@ public abstract class BasicStreamReader
                 throwParseError(ErrorConsts.ERR_WF_ENTITY_EXT_DECLARED, ed.getName(), null);
             }
         }
-
         return ed;
     }
 

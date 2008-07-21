@@ -600,6 +600,15 @@ public final class ReaderConfig
         return m;
     }
 
+    public EntityDecl findCustomInternalEntity(String id)
+    {
+        Map custEnt = (Map) getSpecialProperty(SP_IX_CUSTOM_ENTITIES);
+        if (custEnt == null) {
+            return null;
+        }
+        return (EntityDecl) custEnt.get(id);
+    }
+
     public XMLReporter getXMLReporter() { return mReporter; }
 
     public XMLResolver getXMLResolver() { return mEntityResolver; }
