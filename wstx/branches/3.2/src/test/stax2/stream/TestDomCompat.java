@@ -215,46 +215,6 @@ public class TestDomCompat
 
     /*
     ///////////////////////////////////////////////////
-    // Tests for Stax2 (v3) Typed Access API methods
-    ///////////////////////////////////////////////////
-    */
-
-    public void testPrimitiveTypesBoolean()
-        throws Exception
-    {
-        final String XML = "<root attr='true'>  false  </root>";
-        XMLStreamReader2 sr = createDomBasedReader(XML, true);
-
-        assertTokenType(START_ELEMENT, sr.next());
-        assertEquals("root", sr.getLocalName());
-        assertTrue(sr.getAttributeAsBoolean(0));
-        assertFalse(sr.getElementAsBoolean());
-        // calling above method advances stream to END_ELEMENT
-        assertTokenType(END_ELEMENT, sr.getEventType());
-        assertEquals("root", sr.getLocalName());
-        assertTokenType(END_DOCUMENT, sr.next());
-        sr.close();
-    }
-
-    public void testPrimitiveTypesInt()
-        throws Exception
-    {
-        final String XML = "<root attr='13'>\n\t-123456</root>";
-        XMLStreamReader2 sr = createDomBasedReader(XML, true);
-
-        assertTokenType(START_ELEMENT, sr.next());
-        assertEquals("root", sr.getLocalName());
-        assertEquals(13, sr.getAttributeAsInt(0));
-        assertEquals(-123456, sr.getElementAsInt());
-        // calling above method advances stream to END_ELEMENT
-        assertTokenType(END_ELEMENT, sr.getEventType());
-        assertEquals("root", sr.getLocalName());
-        assertTokenType(END_DOCUMENT, sr.next());
-        sr.close();
-    }
-
-    /*
-    ///////////////////////////////////////////////////
     // Helper methods
     ///////////////////////////////////////////////////
     */

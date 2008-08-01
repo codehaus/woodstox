@@ -127,6 +127,10 @@ public interface InputConfigFlags
     //final static int CFG_NORMALIZE_LFS  =   0x2000;
     //final static int CFG_NORMALIZE_ATTR_VALUES = 0x4000;
 
+    // // // Entity handling specialities
+
+    final static int CFG_NORMALIZE_ATTR_VALUES = 0x4000;
+
     // // // Caching
 
     /**

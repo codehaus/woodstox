@@ -31,6 +31,7 @@ import org.w3c.dom.*;
 import org.codehaus.stax2.AttributeInfo;
 import org.codehaus.stax2.DTDInfo;
 import org.codehaus.stax2.LocationInfo;
+import org.codehaus.stax2.XMLInputFactory2;
 import org.codehaus.stax2.XMLStreamLocation2;
 import org.codehaus.stax2.XMLStreamReader2;
 import org.codehaus.stax2.validation.DTDValidationSchema;
@@ -93,6 +94,13 @@ public class DOMWrappingReader
 
     protected final boolean mNsAware;
 
+    /**
+     * Whether stream reader is to coalesce adjacent textual
+     * (CHARACTERS, SPACE, CDATA) events (as per property
+     * {@link XMLInputFactory#IS_COALESCING}) or not
+     */
+    protected final boolean mCoalescing;
+
     // // // State:
 
     protected int mCurrEvent = START_DOCUMENT;
@@ -104,6 +112,19 @@ public class DOMWrappingReader
     protected Node mCurrNode;
 
     protected int mDepth = 0;
+
+    /**
+     * In coalescing mode, we may need to combine textual content
+     * from multiple adjacent nodes. Since we shouldn't be modifying
+     * the underlying DOM tree, need to accumulate it into a temporary
+     * variable
+     */
+    protected String mCoalescedText;
+
+    /**
+     * Helper object used for combining segments of text as needed
+     */
+    protected TextAccumulator mTextBuffer = new TextAccumulator();
 
     // // // Attribute/namespace declaration state
 
@@ -150,6 +171,7 @@ public class DOMWrappingReader
 
         mConfig = cfg;
         mNsAware = cfg.willSupportNamespaces();
+        mCoalescing = cfg.willCoalesceText();
         mSystemId = sysId;
         
         /* Ok; we need a document node; or an element node; or a document
@@ -242,6 +264,19 @@ public class DOMWrappingReader
 
     public Object getProperty(String name)
     {
+        if (name.equals("javax.xml.stream.entities")) {
+            // !!! TBI
+            return Collections.EMPTY_LIST;
+        }
+        if (name.equals("javax.xml.stream.notations")) {
+            // !!! TBI
+            return Collections.EMPTY_LIST;
+        }
+        // [WSTX-162]: no way to cleanly enable name/nsURI interning
+        if (XMLInputFactory2.P_INTERN_NAMES.equals(name)
+            || XMLInputFactory2.P_INTERN_NS_URIS.equals(name)) {
+            return Boolean.FALSE;
+        }
         return mConfig.getProperty(name);
     }
 
@@ -410,7 +445,6 @@ public class DOMWrappingReader
         if (mCurrEvent != START_ELEMENT) {
             throwParseError(ErrorConsts.ERR_STATE_NOT_STELEM);
         }
-        TextAccumulator acc = new TextAccumulator();
 
         /**
          * Need to loop to get rid of PIs, comments
@@ -426,9 +460,9 @@ public class DOMWrappingReader
             if (((1 << type) & MASK_GET_ELEMENT_TEXT) == 0) {
                 throwParseError("Expected a text token, got "+ErrorConsts.tokenTypeDesc(type)+".");
             }
-            acc.addText(getText());
+            mTextBuffer.addText(getText());
         }
-        return acc.getAndClear();
+        return mTextBuffer.getAndClear();
     }
 
     /**
@@ -550,6 +584,9 @@ public class DOMWrappingReader
 
     public String getText()
     {
+        if (mCoalescedText != null) {
+            return mCoalescedText;
+        }
         if (((1 << mCurrEvent) & MASK_GET_TEXT) == 0) {
             throwNotTextual(mCurrEvent);
         }
@@ -716,6 +753,8 @@ public class DOMWrappingReader
     public int next()
         throws XMLStreamException
     {
+        mCoalescedText = null;
+
         /* For most events, we just need to find the next sibling; and
          * that failing, close the parent element. But there are couple
          * of special cases, which are handled first:
@@ -814,7 +853,11 @@ public class DOMWrappingReader
         // Ok, need to determine current node type:
         switch (mCurrNode.getNodeType()) {
         case Node.CDATA_SECTION_NODE:
-            mCurrEvent = CDATA;
+            if (mCoalescing) {
+                coalesceText(CDATA);
+            } else {
+                mCurrEvent = CDATA;
+            }
             break;
         case Node.COMMENT_NODE:
             mCurrEvent = COMMENT;
@@ -832,7 +875,11 @@ public class DOMWrappingReader
             mCurrEvent = PROCESSING_INSTRUCTION;
             break;
         case Node.TEXT_NODE:
-            mCurrEvent = CHARACTERS;
+            if (mCoalescing) {
+                coalesceText(CHARACTERS);
+            } else {
+                mCurrEvent = CHARACTERS;
+            }
             break;
 
             // Should not get other nodes (notation/entity decl., attr)
@@ -975,6 +1022,17 @@ public class DOMWrappingReader
         /* Note: can not call local method, since it'll return false for
          * recognized but non-mutable properties
          */
+        if (XMLInputFactory2.P_INTERN_NAMES.equals(name)
+            || XMLInputFactory2.P_INTERN_NS_URIS.equals(name)) {
+            /* [WTSX-162]: Name/Namespace URI interning seemingly enabled,
+             *   isn't. Alas, not easy to enable it, so let's force it to
+             *   always be disabled
+             */
+            if (!(value instanceof Boolean) || ((Boolean) value).booleanValue()) {
+                throw new IllegalArgumentException("DOM-based reader does not support interning of names or namespace URIs");
+            }
+            return true;
+        }
         return mConfig.setProperty(name, value);
     }
 
@@ -1271,6 +1329,31 @@ public class DOMWrappingReader
     {
         // Not implemented by the basic reader
         return null;
+    }
+
+    /*
+    ////////////////////////////////////////////
+    // Internal methods, text gathering
+    ////////////////////////////////////////////
+     */
+
+    protected void coalesceText(int initialType)
+    {
+        mTextBuffer.addText(mCurrNode.getNodeValue());
+
+        Node n;
+        while ((n = mCurrNode.getNextSibling()) != null) {
+            int type = n.getNodeType();
+            if (type != Node.TEXT_NODE && type != Node.CDATA_SECTION_NODE) {
+                break;
+            }
+            mCurrNode = n;
+            mTextBuffer.addText(mCurrNode.getNodeValue());
+        }
+        mCoalescedText = mTextBuffer.getAndClear();
+
+        // Either way, type gets always set to be CHARACTERS
+        mCurrEvent = CHARACTERS;
     }
 
     /*

@@ -5,6 +5,7 @@ import java.util.Collections;
 import javax.xml.stream.*;
 import javax.xml.transform.dom.DOMSource;
 
+import org.codehaus.stax2.XMLInputFactory2;
 import org.codehaus.stax2.ri.dom.DOMWrappingReader;
 
 import com.ctc.wstx.api.ReaderConfig;
@@ -56,6 +57,11 @@ public class WstxDOMWrappingReader
             // !!! TBI
             return Collections.EMPTY_LIST;
         }
+        // [WSTX-162]: no way to cleanly enable name/nsURI interning
+        if (XMLInputFactory2.P_INTERN_NAMES.equals(name)
+            || XMLInputFactory2.P_INTERN_NS_URIS.equals(name)) {
+            return Boolean.FALSE;
+        }
         return mConfig.getProperty(name);
     }
 
@@ -64,6 +70,17 @@ public class WstxDOMWrappingReader
         /* Note: can not call local method, since it'll return false for
          * recognized but non-mutable properties
          */
+        if (XMLInputFactory2.P_INTERN_NAMES.equals(name)
+            || XMLInputFactory2.P_INTERN_NS_URIS.equals(name)) {
+            /* [WTSX-162]: Name/Namespace URI interning seemingly enabled,
+             *   isn't. Alas, not easy to enable it, so let's force it to
+             *   always be disabled
+             */
+            if (!(value instanceof Boolean) || ((Boolean) value).booleanValue()) {
+                throw new IllegalArgumentException("DOM-based reader does not support interning of names or namespace URIs");
+            }
+            return true;
+        }
         return mConfig.setProperty(name, value);
     }
 

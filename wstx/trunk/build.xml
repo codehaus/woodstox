@@ -469,8 +469,7 @@
        <gzip zipfile="${DistDir}/wstx-src-${WSTX_VERSION}.tar.gz" src="${DistDir}/wstx-src-${WSTX_VERSION}.tar" />
        <delete file="${DistDir}/wstx-src-${WSTX_VERSION}.tar" />
 
-       <!-- as well as zip
-          -->
+       <!-- as well as zip -->
        <zip basedir="${basedir}" destfile="${DistDir}/wstx-src-${WSTX_VERSION}.zip">
           <patternset refid="wstx-dist-src-files" />
           <patternset refid="wstx-dist-misc-files" />

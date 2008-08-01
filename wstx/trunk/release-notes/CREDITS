@@ -337,7 +337,7 @@ Jim Ancona:
 David Citron:
   * Reported [WSTX-145]: DOMWrappingReader was not implementing coalescing
     mode.
-   [4.0]
+   [3.2.7 / 4.0]
 
 Martin Vanek:
   * Reported [WSTX-144]: Problem when trying to output namespace declaration
@@ -361,4 +361,9 @@ Daniel Rodrigue:
     returns potentially incorrect value when text segments starts with an
     entity
     (reported by Daniel R)
+    [3.2.7 / 4.0]
+
+Pawel Lipka
+  * [WSTX-162] Name/namespace-URI interning not enabled for DOM-backed
+    readers, getProperty() claims they are
     [3.2.7 / 4.0]

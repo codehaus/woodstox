@@ -1,17 +1,22 @@
 Version: 3.2.7
 
-Release date: xx-Jul-2008
+Release date: xx-Aug-2008
 
 Description:
   One more patch release for 3.2.
 
   Problems fixed:
 
+  * [WSTX-145] DOMWrappingReader was not implementing coalescing mode.
+    (reported by David C)
   * [WSTX-156] Pass XMLValidationProblem as 'relatedInformation' object
     in call XMLReporter.report(...)
   * [WSTX-158] XMLStreamReader.isWhiteSpace() returns potentially incorrect
     value when text segments starts with an entity
     (reported by Daniel R)
+  * [WSTX-162] Name/namespace-URI interning not enabled for DOM-backed
+    readers, getProperty() claims they are
+    (reported by Pawel L)
   * Stax2ReaderAdapter.getDepth() was off by one (too low) for
     END_ELEMENT (causing problems for StaxMate)
 
