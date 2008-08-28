@@ -287,14 +287,23 @@ public final class NsAttributeCollector
     // // // Direct access to attribute/NS prefixes/localnames/URI
 
     public String getPrefix(int index) {
+        if (index < 0 || index >= mAttrCount) {
+            throwIndex(index);
+        }
         return mAttrNames.getString(index << 1);
     }
 
     public String getLocalName(int index) {
+        if (index < 0 || index >= mAttrCount) {
+            throwIndex(index);
+        }
         return mAttrNames.getString((index << 1) + 1);
     }
 
     public String getURI(int index) {
+        if (index < 0 || index >= mAttrCount) {
+            throwIndex(index);
+        }
         return mAttrURIs[index];
     }
 

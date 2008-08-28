@@ -19,6 +19,8 @@ Description:
   * [WSTX-162] Name/namespace-URI interning not enabled for DOM-backed
     readers, getProperty() claims they are
     (reported by Pawel L)
+  * [WSTX-164] Some XMLStreamReader.getAttributeXxx() methods were not
+    properly checking validity of passed-in index argument.
 
   New functionality:
 
