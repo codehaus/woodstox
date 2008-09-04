@@ -1,9 +1,15 @@
 Version: 3.2.7
 
-Release date: xx-Aug-2008
+Release date: 02-Sep-2008
 
 Description:
   One more patch release for 3.2.
+
+  Problems fixed:
+
+== History: ==
+
+3.2.7 [02-Sep-2008]
 
   Problems fixed:
 
@@ -21,8 +27,6 @@ Description:
     END_ELEMENT (causing problems for StaxMate)
   * [WSTX-164] Some XMLStreamReader.getAttributeXxx() methods were not
     properly checking validity of passed-in index argument.
-
-== History: ==
 
 3.2.6 [01-Jun-2008]
 
