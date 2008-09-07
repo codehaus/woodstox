@@ -223,10 +223,8 @@ public final class UTF32Reader
             /* Ok; here we can actually reasonably expect an EOF,
              * so let's do a separate read right away:
              */
-            mPtr = 0;
-            int count = mIn.read(mBuffer);
+            int count = readBytes();
             if (count < 1) {
-                mLength = 0;
                 if (count < 0) { // -1
                     freeBuffers(); // to help GC?
                     return false;
@@ -234,14 +232,13 @@ public final class UTF32Reader
                 // 0 count is no good; let's err out
                 reportStrangeStream();
             }
-            mLength = count;
         }
 
         /* Need at least 4 bytes; if we don't get that many, it's an
          * error.
          */
         while (mLength < 4) {
-            int count = mIn.read(mBuffer, mLength, mBuffer.length - mLength);
+            int count = readBytesAt(mLength);
             if (count < 1) {
                 if (count < 0) { // -1, EOF... no good!
                     freeBuffers(); // to help GC?
@@ -250,7 +247,6 @@ public final class UTF32Reader
                 // 0 count is no good; let's err out
                 reportStrangeStream();
             }
-            mLength += count;
         }
         return true;
     }

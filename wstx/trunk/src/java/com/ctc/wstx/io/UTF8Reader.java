@@ -361,10 +361,8 @@ public final class UTF8Reader
             /* Ok; here we can actually reasonably expect an EOF,
              * so let's do a separate read right away:
              */
-            mPtr = 0;
-            int count = mIn.read(mBuffer);
+            int count = readBytes();
             if (count < 1) {
-                mLength = 0;
                 if (count < 0) { // -1
                     freeBuffers(); // to help GC?
                     return false;
@@ -372,7 +370,6 @@ public final class UTF8Reader
                 // 0 count is no good; let's err out
                 reportStrangeStream();
             }
-            mLength = count;
         }
 
         /* We now have at least one byte... and that allows us to
@@ -403,7 +400,7 @@ public final class UTF8Reader
          * actual decoding here, just load enough bytes.
          */
         while (mLength < needed) {
-            int count = mIn.read(mBuffer, mLength, mBuffer.length - mLength);
+            int count = readBytesAt(mLength);
             if (count < 1) {
                 if (count < 0) { // -1, EOF... no good!
                     freeBuffers();
@@ -412,7 +409,6 @@ public final class UTF8Reader
                 // 0 count is no good; let's err out
                 reportStrangeStream();
             }
-            mLength += count;
         }
         return true;
     }

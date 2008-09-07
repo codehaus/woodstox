@@ -32,6 +32,11 @@ import com.ctc.wstx.dtd.DTDEventListener;
  *    </li>
  * </ul>
  *<p>
+ * Over time more and more cruft has accumulated here, mostly to
+ * support efficient access to collected text. Since access is
+ * easiest to do efficiently using callbacks, this class now needs
+ * to known interfaces of SAX classes and validators.
+ *<p>
  * Notes about usage: for debugging purposes, it's suggested to use 
  * {@link #toString} method, as opposed to
  * {@link #contentsAsArray} or {@link #contentsAsString}. Internally
@@ -57,12 +62,6 @@ public final class TextBuffer
     // // // Configuration:
 
     private final ReaderConfig mConfig;
-
-    /**
-     * Initial allocation size to use, if/when temporary output buffer
-     * is needed.
-     */
-    private final int mInitialBufSize;
 
     // // // Shared read-only input buffer:
 
@@ -142,20 +141,19 @@ public final class TextBuffer
     //////////////////////////////////////////////
      */
 
-    private TextBuffer(int initialSize, ReaderConfig cfg)
+    private TextBuffer(ReaderConfig cfg)
     {
-        mInitialBufSize = initialSize;
         mConfig = cfg;
     }
 
     public static TextBuffer createRecyclableBuffer(ReaderConfig cfg)
     {
-        return new TextBuffer(DEF_INITIAL_BUFFER_SIZE, cfg);
+        return new TextBuffer(cfg);
     }
 
-    public static TextBuffer createTemporaryBuffer(int initialSize)
+    public static TextBuffer createTemporaryBuffer()
     {
-        return new TextBuffer(initialSize, null);
+        return new TextBuffer(null);
     }
 
     /**
@@ -275,7 +273,7 @@ public final class TextBuffer
             clearSegments();
         } else {
             if (mCurrentSegment == null) {
-                mCurrentSegment = allocBuffer(mInitialBufSize);
+                mCurrentSegment = allocBuffer(len);
             }
             mCurrentSize = mSegmentSize = 0;
         }
@@ -290,12 +288,15 @@ public final class TextBuffer
     {
         resetWithEmpty();
         if (mCurrentSegment == null) {
-            mCurrentSegment = allocBuffer(mInitialBufSize);
+            mCurrentSegment = allocBuffer(0);
         }
     }
 
     private final char[] allocBuffer(int needed)
     {
+        if (needed < DEF_INITIAL_BUFFER_SIZE) {
+            needed = DEF_INITIAL_BUFFER_SIZE;
+        }
         char[] buf = null;
         if (mConfig != null) {
             buf = mConfig.allocMediumCBuffer(needed);
@@ -933,7 +934,7 @@ public final class TextBuffer
         } else {
             char[] curr = mCurrentSegment;
             if (curr == null) {
-                mCurrentSegment = allocBuffer(mInitialBufSize);
+                mCurrentSegment = allocBuffer(0);
             } else if (mCurrentSize >= curr.length) {
                 // Plus, we better have room for at least one more char
                 expand(1);
@@ -1004,8 +1005,8 @@ public final class TextBuffer
         // Is buffer big enough, or do we need to reallocate?
         int needed = len+needExtra;
         if (mCurrentSegment == null || needed > mCurrentSegment.length) {
-            mCurrentSegment = allocBuffer((needed > mInitialBufSize) ?
-                                          needed : mInitialBufSize);
+            mCurrentSegment = allocBuffer((needed > DEF_INITIAL_BUFFER_SIZE) ?
+                                          needed : DEF_INITIAL_BUFFER_SIZE);
         }
         if (len > 0) {
             System.arraycopy(inputBuf, start, mCurrentSegment, 0, len);

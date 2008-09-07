@@ -74,8 +74,9 @@ public final class AsciiReader
         // Need to load more data?
         int avail = mLength - mPtr;
         if (avail <= 0) {
+            mCharCount += mLength;
             // Let's always try to read full buffers, actually...
-            int count = mIn.read(mBuffer);
+            int count = readBytes();
             if (count <= 0) {
                 if (count == 0) {
                     reportStrangeStream();
@@ -86,9 +87,7 @@ public final class AsciiReader
                 freeBuffers(); // to help GC?
                 return -1;
             }
-            mLength = avail = count;
-            mCharCount += count;
-            mPtr = 0;
+            avail = count;
         }
 
         // K, have at least one byte == char, good enough:

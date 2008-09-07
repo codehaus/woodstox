@@ -14,7 +14,7 @@ public class TestTextBuffer
     {
         String INPUT = "Whatever input text doesn't really matter but should have some content "
             +"so as not to be too short";
-        TextBuffer tb = TextBuffer.createTemporaryBuffer(50);
+        TextBuffer tb = TextBuffer.createTemporaryBuffer();
         final char[] ch = new char[1];
         for (int i = 0, len = INPUT.length(); i < len; ++i) {
             if ((i & 1) != 0) {

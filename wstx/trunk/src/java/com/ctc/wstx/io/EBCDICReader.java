@@ -74,7 +74,7 @@ public final class EBCDICReader
             r = this;
         } else {
             // Nope, different EBCDIC variant
-            r = new InputStreamReader(mIn, realEncoding);
+            r = new InputStreamReader(getStream(), realEncoding);
         }
         if (ptr < len) {
             return new MergedReader(mConfig, r, charBuffer, ptr, len);
@@ -103,8 +103,9 @@ public final class EBCDICReader
         // Need to load more data?
         int avail = mLength - mPtr;
         if (avail <= 0) {
+            mByteCount += mLength;
             // Let's always try to read full buffers, actually...
-            int count = mIn.read(mBuffer);
+            int count = readBytes();
             if (count <= 0) {
                 if (count == 0) {
                     reportStrangeStream();
@@ -115,9 +116,7 @@ public final class EBCDICReader
                 freeBuffers(); // to help GC?
                 return -1;
             }
-            mLength = avail = count;
-            mByteCount += count;
-            mPtr = 0;
+            avail = count;
         }
 
         // K, have at least one byte == char, good enough:

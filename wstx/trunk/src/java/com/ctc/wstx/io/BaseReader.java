@@ -33,7 +33,7 @@ abstract class BaseReader
 
     protected final ReaderConfig mConfig;
 
-    protected InputStream mIn;
+    private InputStream mIn;
 
     protected byte[] mBuffer;
 
@@ -79,7 +79,6 @@ abstract class BaseReader
     public void close()
         throws IOException
     {
-//System.err.println("DEBUG: BaseReader, close");
         InputStream in = mIn;
 
         if (in != null) {
@@ -113,6 +112,47 @@ abstract class BaseReader
     // Internal/package methods:
     ////////////////////////////////////////
     */
+
+    protected final InputStream getStream() { return mIn; }
+
+    /**
+     * Method for reading as many bytes from the underlying stream as possible
+     * (that fit in the buffer), to the beginning of the buffer.
+     */
+    protected final int readBytes()
+        throws IOException
+    {
+        mPtr = 0;
+        mLength = 0;
+        if (mIn != null) {
+            int count = mIn.read(mBuffer, 0, mBuffer.length);
+            if (count > 0) {
+                mLength = count;
+            }
+            return count;
+        }
+        return -1;
+    }
+
+    /**
+     * Method for reading as many bytes from the underlying stream as possible
+     * (that fit in the buffer considering offset), to the specified offset.
+     *
+     * @return 
+     */
+    protected final int readBytesAt(int offset)
+        throws IOException
+    {
+        // shouldn't modify mPtr, assumed to be 'offset'
+        if (mIn != null) {
+            int count = mIn.read(mBuffer, offset, mBuffer.length - offset);
+            if (count > 0) {
+                mLength += count;
+            }
+            return count;
+        }
+        return -1;
+    }
 
     /**
      * This method should be called along with (or instead of) normal

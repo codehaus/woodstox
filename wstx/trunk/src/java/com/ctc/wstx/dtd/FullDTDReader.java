@@ -67,15 +67,6 @@ public class FullDTDReader
      */
     final static boolean INTERN_SHARED_NAMES = false;
 
-    /**
-     * Expected maximum length of internal entities; balanced to reduce
-     * likelihood of having to grow the array, versus allocating too
-     * big chunks.
-     */
-    final static int EXP_ENTITY_VALUE_LEN = 500;
-
-    final static int EXP_ATTR_VALUE_LEN = 200;
-
     // // // Entity expansion types:
 
     final static Boolean ENTITY_EXP_GE = Boolean.FALSE;
@@ -494,7 +485,7 @@ public class FullDTDReader
     private TextBuffer getTextBuffer()
     {
         if (mTextBuffer == null) {
-            mTextBuffer = TextBuffer.createTemporaryBuffer(200);
+            mTextBuffer = TextBuffer.createTemporaryBuffer();
             mTextBuffer.resetInitialized();
         } else {
             mTextBuffer.resetWithEmpty();
@@ -1410,7 +1401,7 @@ public class FullDTDReader
 
         TextBuffer tb = mValueBuffer;
         if (tb == null) {
-            tb = TextBuffer.createTemporaryBuffer(EXP_ENTITY_VALUE_LEN);
+            tb = TextBuffer.createTemporaryBuffer();
         }
         tb.resetInitialized();
 
@@ -1570,7 +1561,7 @@ public class FullDTDReader
 
         TextBuffer tb = mValueBuffer;
         if (tb == null) {
-            tb = TextBuffer.createTemporaryBuffer(EXP_ENTITY_VALUE_LEN);
+            tb = TextBuffer.createTemporaryBuffer();
         }
         tb.resetInitialized();
 
