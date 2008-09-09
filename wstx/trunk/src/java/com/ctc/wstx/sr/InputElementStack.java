@@ -415,6 +415,12 @@ public abstract class InputElementStack
         tb.validateText(mValidator, lastTextSegment);
     }
 
+    public final void validateText(String contents, boolean lastTextSegment)
+        throws XMLStreamException
+    {
+        mValidator.validateText(contents, lastTextSegment);
+    }
+
     /*
     ///////////////////////////////////////////////////
     // Accessors:

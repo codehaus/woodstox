@@ -459,6 +459,70 @@ public final class TextBuffer
         }
         return mResultString;
     }
+
+    /**
+     * Similar to {@link #contentsAsString}, but constructs a StringBuffer
+     * for further appends.
+     *
+     * @param extraSpace Number of extra characters to preserve in StringBuffer
+     *   beyond space immediately needed to hold the contents
+     */
+    public StringBuffer contentsAsStringBuffer(int extraSpace)
+    {
+        if (mResultString != null) {
+            return new StringBuffer(mResultString);
+        }
+        if (mResultArray != null) {
+            StringBuffer sb = new StringBuffer(mResultArray.length + extraSpace);
+            sb.append(mResultArray, 0, mResultArray.length);
+            return sb;
+        }
+        if (mInputStart >= 0) { // shared array
+            if (mInputLen < 1) {
+                return new StringBuffer();
+            }
+            StringBuffer sb = new StringBuffer(mInputLen + extraSpace);
+            sb.append(mInputBuffer, mInputStart, mInputLen);
+            return sb;
+        }
+        int segLen = mSegmentSize;
+        int currLen = mCurrentSize;
+
+        StringBuffer sb = new StringBuffer(segLen + currLen + extraSpace);
+        // First stored segments
+        if (mSegments != null) {
+            for (int i = 0, len = mSegments.size(); i < len; ++i) {
+                char[] curr = (char[]) mSegments.get(i);
+                sb.append(curr, 0, curr.length);
+            }
+        }
+        // And finally, current segment:
+        sb.append(mCurrentSegment, 0, currLen);
+        return sb;
+    }
+
+    public void contentsToStringBuffer(StringBuffer sb)
+    {
+        if (mResultString != null) {
+            sb.append(mResultString);
+        } else if (mResultArray != null) {
+            sb.append(mResultArray);
+        } else if (mInputStart >= 0) { // shared array
+            if (mInputLen > 0) {
+                sb.append(mInputBuffer, mInputStart, mInputLen);
+            }
+        } else {
+            // First stored segments
+            if (mSegments != null) {
+                for (int i = 0, len = mSegments.size(); i < len; ++i) {
+                    char[] curr = (char[]) mSegments.get(i);
+                    sb.append(curr, 0, curr.length);
+                }
+            }
+            // And finally, current segment:
+            sb.append(mCurrentSegment, 0, mCurrentSize);
+        }
+    }
  
     public char[] contentsAsArray()
     {
@@ -474,8 +538,6 @@ public final class TextBuffer
 
         // Easy to copy from shared buffer:
         if (mInputStart >= 0) {
-//System.out.println("[DEBUG]: is shared, start: "+mInputStart);
-
             int amount = mInputLen - srcStart;
             if (amount > len) {
                 amount = len;
@@ -493,9 +555,6 @@ public final class TextBuffer
          * braindead clients that get full array first, then segments...
          * which hopefully aren't that common
          */
-        
-//System.out.println("[DEBUG]: is NOT shared, segs: "+((mSegments == null) ? 0 : mSegments.size()));
-
         // Copying from segmented array is bit more involved:
         int totalAmount = 0;
         if (mSegments != null) {

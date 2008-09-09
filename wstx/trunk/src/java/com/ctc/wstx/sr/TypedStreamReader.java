@@ -34,7 +34,6 @@ import com.ctc.wstx.cfg.XmlConsts;
 import com.ctc.wstx.io.BranchingReaderSource;
 import com.ctc.wstx.io.InputBootstrapper;
 import com.ctc.wstx.io.WstxInputData;
-import com.ctc.wstx.util.TextAccumulator;
 
 /**
  * Completed implementation of {@link XMLStreamReader2}, including
@@ -161,13 +160,14 @@ public class TypedStreamReader
         }
         /* Ok, now: with START_ELEMENT we know that it's not partially
          * processed; that we are in-tree (not prolog or epilog).
-         * The only possible complication would be 
+         * The only possible complication would be:
          */
         if (mStEmptyElem) {
-            // And if so, we'll then get 'virtual' close tag; things
-            // are simple as location info was set when dealing with
-            // empty start element; and likewise, validation (if any)
-            // has been taken care of.
+            /* And if so, we'll then get 'virtual' close tag; things
+             * are simple as location info was set when dealing with
+             * empty start element; and likewise, validation (if any)
+             * has been taken care of
+             */
             mStEmptyElem = false;
             mCurrToken = END_ELEMENT;
             handleEmptyValue(dec);
@@ -195,16 +195,13 @@ public class TypedStreamReader
         if (mTokenState < TOKEN_FULL_SINGLE) {
             readCoalescedText(mCurrToken, false);
         }
-        /* Ok: then quick check; if it looks like we are directly
+        /* Ok: then a quick check; if it looks like we are directly
          * followed by the end tag, we need not construct String
          * quite yet.
          */
         if ((mInputPtr + 1) < mInputEnd &&
             mInputBuffer[mInputPtr] == '<' && mInputBuffer[mInputPtr+1] == '/') {
-            // But first: is textual content validation needed?
-            if (mValidateText) {
-                mElementStack.validateText(mTextBuffer, true);
-            }
+            // Note: next() has validated text, no need for more validation
             mInputPtr += 2;
             mCurrToken = END_ELEMENT;
             // Can by-pass next(), nextFromTree(), in this case:
@@ -219,26 +216,24 @@ public class TypedStreamReader
         }
 
         // Otherwise, we'll need to do slower processing
-
-        String text = mTextBuffer.contentsAsString();
-        // Then we'll see if end is nigh...
-        TextAccumulator acc = null;
+        int extra = 1 + (mTextBuffer.size() >> 1); // let's add 50% space
+        StringBuffer sb = mTextBuffer.contentsAsStringBuffer(extra);
         int type;
         
         while ((type = next()) != END_ELEMENT) {
             if (((1 << type) & MASK_GET_ELEMENT_TEXT) != 0) {
-                if (acc == null) {
-                    acc = new TextAccumulator();
-                    acc.addText(text);
+                if (mTokenState < mStTextThreshold) {
+                    finishToken(false);
                 }
-                acc.addText(getText());
+                mTextBuffer.contentsToStringBuffer(sb);
                 continue;
             }
             if (type != COMMENT && type != PROCESSING_INSTRUCTION) {
                 throwParseError("Expected a text token, got "+tokenTypeDesc(type)+".");
             }
         }
-        String str = (acc == null) ? text : acc.getAndClear();
+        // Note: calls next() have validated text, no need for more validation
+        String str = sb.toString();
         try {
             dec.decode(str);
         } catch (IllegalArgumentException iae) {
@@ -296,35 +291,73 @@ public class TypedStreamReader
 
 
     /**
-     * Method called to parse array of pritive
+     * Method called to parse array of primitives.
+     *<p>
+     * !!! 05-Sep-2008, tatu: Current implementation is not optimal
+     *   either performance-wise, or from getting accurate Location
+     *   for decoding problems. But it works otherwise, and we need
+     *   to get Woodstox 4.0 out by the end of the year... so it'll
+     *   do, for now.
      */
     private final int readElementAsArray(TypedArrayDecoder dec)
         throws XMLStreamException
     {
-        // First: check the state
+        // First: check the state.
         if (mCurrToken == END_ELEMENT) {
             // END_ELEMENT is ok: nothing more to decode
             return -1;
         }
 
-        /* Next: validation is tricky with token-based parsing... so
-         * let's not try both fast parsing and validation, but rather
-         * offline simpler robust validation thing
+        /* Otherwise either we are just starting (START_ELEMENT), or
+         * have collected all the stuff into mTextBuffer.
          */
-
-        // If starting (at START_ELEMENT), need bit of special handling
         if (mCurrToken == START_ELEMENT) {
-            // Empty? Can short-cut handling
+            // Empty? Not common, but can short-cut handling if occurs
             if (mStEmptyElem) {
                 mStEmptyElem = false;
                 mCurrToken = END_ELEMENT;
                 return -1;
             }
-            // Otherwise will need to figure out next event
+            /* Otherwise we'll need to collect all the contents.
+             * It may be relatively simple (a single text segment),
+             * or get complicated...
+             */
+            while (true) {
+                int type = next();
+                if (type == END_ELEMENT) {
+                    // Simple... no textul content
+                    return -1;
+                }
+                if (type == COMMENT || type == PROCESSING_INSTRUCTION) {
+                    continue;
+                }
+                if (((1 << type) & MASK_GET_ELEMENT_TEXT) == 0) {
+                    throwParseError("Expected a text token, got "+tokenTypeDesc(type)+".");
+                }
+                break;
+            }
+            // Ok, got a text segment, need to complete & coalesce
+            if (mTokenState < TOKEN_FULL_SINGLE) {
+                readCoalescedText(mCurrToken, false);
+            }
+            /* And then... if we are lucky, we'll see the end element?
+             * Unlike with simpler types, we can't yet handle end
+             * element. But we can at least be sure we got all the content,
+             * which is a big plus compared to complications we'll go
+             * through otherwise...
+             */
+            if ((mInputPtr + 1) < mInputEnd &&
+                mInputBuffer[mInputPtr] == '<' && mInputBuffer[mInputPtr+1] == '/') {
+                // ...
+            } else {
+                /* No such luck: it might be the end tag split over buffer
+                 * boundary, or a comment/PI, start element.
+                 */
+            }
 
         } else { // not START_ELEMENT, must be textual
-            if (mCurrToken == CHARACTERS) {
-            } else if (mCurrToken == CDATA) {
+            if (mCurrToken == CHARACTERS || mCurrToken == CDATA) {
+                // !!! Just need to ensure contents are shared
             } else {
                 /* Will occur if entities are unexpanded, too... which
                  * is probably ok (can add more meaningful specific
@@ -334,8 +367,10 @@ public class TypedStreamReader
             }
         }
 
+        // And then actual decoding!
 
-        // !!! TBI
+        // !!!  TBI
+
         return -1;
     }
 

@@ -45,7 +45,6 @@ import com.ctc.wstx.ent.EntityDecl;
 import com.ctc.wstx.exc.WstxException;
 import com.ctc.wstx.io.*;
 import com.ctc.wstx.util.DefaultXmlSymbolTable;
-import com.ctc.wstx.util.TextAccumulator;
 import com.ctc.wstx.util.TextBuffer;
 import com.ctc.wstx.util.TextBuilder;
 
@@ -632,6 +631,20 @@ public abstract class BasicStreamReader
         if (mCurrToken != START_ELEMENT) {
             throwParseError(ErrorConsts.ERR_STATE_NOT_STELEM, null, null);
         }
+        /* Ok, now: with START_ELEMENT we know that it's not partially
+         * processed; that we are in-tree (not prolog or epilog).
+         * The only possible complication would be:
+         */
+        if (mStEmptyElem) {
+            /* And if so, we'll then get 'virtual' close tag; things
+             * are simple as location info was set when dealing with
+             * empty start element; and likewise, validation (if any)
+             * has been taken care of
+             */
+            mStEmptyElem = false;
+            mCurrToken = END_ELEMENT;
+            return "";
+        }
         // First need to find a textual event
         while (true) {
             int type = next();
@@ -649,25 +662,39 @@ public abstract class BasicStreamReader
         if (mTokenState < TOKEN_FULL_SINGLE) {
             readCoalescedText(mCurrToken, false);
         }
-        String text = mTextBuffer.contentsAsString();
-        // Then we'll see if end is nigh...
-        TextAccumulator acc = null;
+        /* Ok: then a quick check; if it looks like we are directly
+         * followed by the end tag, we need not construct String
+         * quite yet.
+         */
+        if ((mInputPtr + 1) < mInputEnd &&
+            mInputBuffer[mInputPtr] == '<' && mInputBuffer[mInputPtr+1] == '/') {
+            // Note: next() has validated text, no need for more validation
+            mInputPtr += 2;
+            mCurrToken = END_ELEMENT;
+            // Can by-pass next(), nextFromTree(), in this case:
+            readEndElem();
+            return mTextBuffer.contentsAsString();
+        }
+
+        // Otherwise, we'll need to do slower processing
+        int extra = 1 + (mTextBuffer.size() >> 1); // let's add 50% space
+        StringBuffer sb = mTextBuffer.contentsAsStringBuffer(extra);
         int type;
         
         while ((type = next()) != END_ELEMENT) {
             if (((1 << type) & MASK_GET_ELEMENT_TEXT) != 0) {
-                if (acc == null) {
-                    acc = new TextAccumulator();
-                    acc.addText(text);
+                if (mTokenState < mStTextThreshold) {
+                    finishToken(false);
                 }
-                acc.addText(getText());
+                mTextBuffer.contentsToStringBuffer(sb);
                 continue;
             }
             if (type != COMMENT && type != PROCESSING_INSTRUCTION) {
                 throwParseError("Expected a text token, got "+tokenTypeDesc(type)+".");
             }
         }
-        return (acc == null) ? text : acc.getAndClear();
+        // Note: calls next() have validated text, no need for more validation
+        return sb.toString();
     }
 
     /**
