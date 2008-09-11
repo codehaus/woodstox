@@ -1328,6 +1328,11 @@ public final class ValueDecoderFactory
 
         protected BaseArrayDecoder(int start, int maxCount)
         {
+            // First, sanity check
+            if (maxCount < 1) {
+                throw new IllegalArgumentException("Number of elements to read can not be less than 1");
+            }
+
             mStart = start;
             mMaxCount = maxCount;
         }

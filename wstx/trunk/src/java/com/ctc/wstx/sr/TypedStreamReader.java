@@ -41,7 +41,6 @@ import com.ctc.wstx.io.WstxInputData;
  * missing is DTD validation, which is provided by a specialized
  * sub-class.
  */
-
 public class TypedStreamReader
     extends BasicStreamReader
 {
@@ -298,6 +297,9 @@ public class TypedStreamReader
      *   for decoding problems. But it works otherwise, and we need
      *   to get Woodstox 4.0 out by the end of the year... so it'll
      *   do, for now.
+     *
+     * @return Number of elements decoded (if any were decoded), or
+     *   -1 to indicate that no more values can be decoded.
      */
     private final int readElementAsArray(TypedArrayDecoder dec)
         throws XMLStreamException
@@ -340,25 +342,8 @@ public class TypedStreamReader
             if (mTokenState < TOKEN_FULL_SINGLE) {
                 readCoalescedText(mCurrToken, false);
             }
-            /* And then... if we are lucky, we'll see the end element?
-             * Unlike with simpler types, we can't yet handle end
-             * element. But we can at least be sure we got all the content,
-             * which is a big plus compared to complications we'll go
-             * through otherwise...
-             */
-            if ((mInputPtr + 1) < mInputEnd &&
-                mInputBuffer[mInputPtr] == '<' && mInputBuffer[mInputPtr+1] == '/') {
-                // ...
-            } else {
-                /* No such luck: it might be the end tag split over buffer
-                 * boundary, or a comment/PI, start element.
-                 */
-            }
-
         } else { // not START_ELEMENT, must be textual
-            if (mCurrToken == CHARACTERS || mCurrToken == CDATA) {
-                // !!! Just need to ensure contents are shared
-            } else {
+            if (mCurrToken != CHARACTERS && mCurrToken != CDATA) {
                 /* Will occur if entities are unexpanded, too... which
                  * is probably ok (can add more meaningful specific
                  * error, if not)
@@ -367,11 +352,39 @@ public class TypedStreamReader
             }
         }
 
-        // And then actual decoding!
+        /* Ok now: we do have a completely read textual event, when we
+         * start.
+         */
+        int count = 0;
 
-        // !!!  TBI
+        decode_loop:
+        while (true) {
+            count += mTextBuffer.decodeElements(dec);
+            if (!dec.hasRoom()) {
+                break;
+            }
+            // Ok, result buffer can hold more; need next textual event!
+            while (true) {
+                int type = next();
+                if (type == END_ELEMENT) {
+                    break decode_loop;
+                }
+                if (type == COMMENT || type == PROCESSING_INSTRUCTION) {
+                    continue;
+                }
+                if (((1 << type) & MASK_GET_ELEMENT_TEXT) == 0) {
+                    throwParseError("Expected a text token, got "+tokenTypeDesc(type)+".");
+                }
+                break;
+            }
+            // Ok, got a text segment, need to complete & coalesce
+            if (mTokenState < TOKEN_FULL_SINGLE) {
+                readCoalescedText(mCurrToken, false);
+            }
+        }
 
-        return -1;
+        // If nothing was found, needs to be indicated via -1, not 0
+        return (count > 0) ? count : -1;
     }
 
     /*

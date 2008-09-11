@@ -12,6 +12,7 @@ import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.ext.LexicalHandler;
 
+import org.codehaus.stax2.typed.TypedArrayDecoder;
 import org.codehaus.stax2.typed.TypedValueDecoder;
 import org.codehaus.stax2.validation.XMLValidator;
 
@@ -59,6 +60,8 @@ public final class TextBuffer
      */
     final static int DEF_INITIAL_BUFFER_SIZE = 500; // 1k
 
+    final static int INT_SPACE = 0x0020;
+
     // // // Configuration:
 
     private final ReaderConfig mConfig;
@@ -79,7 +82,8 @@ public final class TextBuffer
     private int mInputStart;
 
     /**
-     * When using shared buffer, number of characters in buffer
+     * When using shared buffer, offset after the last character in
+     * shared buffer
      */
     private int mInputLen;
 
@@ -415,6 +419,69 @@ public final class TextBuffer
         tvd.decode(buf, 0, len);
     }
 
+    /**
+     * Pass-through decode method called to find find the next token,
+     * decode it, and repeat the process as long as there are more
+     * tokens and the array decoder accepts more entries.
+     * All tokens processed will be "consumed", such that they will
+     * not be visible via buffer.
+     *
+     * @return Number of tokens decoded; 0 means that no (more) tokens
+     *    were found from this buffer.
+     */
+    public int decodeElements(TypedArrayDecoder tad)
+        throws IllegalArgumentException
+    {
+        int count = 0;
+
+        /* First: for simplicity, we require a single flat buffer to
+         * decode from. Second: to be able to update start location
+         * (to keep track of what's available), we need to fake that
+         * we are using a shared buffer (since that has offset)
+         */
+        if (mInputStart < 0) {
+            if (mHasSegments) {
+                mInputBuffer = buildResultArray();
+                mInputLen = mInputBuffer.length;
+                // let's also clear segments since they are not needed any more
+                clearSegments();
+            } else {
+                // just current buffer, easier to fake
+                mInputBuffer = mCurrentSegment;
+                mInputLen = mCurrentSize;
+            }
+            mInputStart = 0;
+        }
+
+        // And then let's decode
+        int ptr = mInputStart;
+        final int end = ptr + mInputLen;
+        final char[] buf = mInputBuffer;
+
+        decode_loop:
+        while (ptr < end) {
+            // First, any space to skip?
+            while (buf[ptr] <= INT_SPACE) {
+                if (++ptr >= end) {
+                    break decode_loop;
+                }
+            }
+            // Then let's figure out non-space char (token)
+            int start = ptr;
+            while (++ptr < end && buf[ptr] > INT_SPACE) {
+                ;
+            }
+            // And there we have it
+            if (tad.decodeValue(buf, start, ptr)) {
+                break;
+            }
+        }
+        mInputStart = ptr;
+        mInputLen = end-ptr;
+
+        return count;
+    }
+
     /*
     //////////////////////////////////////////////
     // Accessors:
@@ -667,7 +734,7 @@ public final class TextBuffer
             int i = mInputStart;
             int last = i + mInputLen;
             for (; i < last; ++i) {
-                if (buf[i] > 0x0020) {
+                if (buf[i] > INT_SPACE) {
                     return false;
                 }
             }
@@ -679,7 +746,7 @@ public final class TextBuffer
             for (int i = 0, len = mSegments.size(); i < len; ++i) {
                 char[] buf = (char[]) mSegments.get(i);
                 for (int j = 0, len2 = buf.length; j < len2; ++j) {
-                    if (buf[j] > 0x0020) {
+                    if (buf[j] > INT_SPACE) {
                         return false;
                     }
                 }
@@ -688,7 +755,7 @@ public final class TextBuffer
         
         char[] buf = mCurrentSegment;
         for (int i = 0, len = mCurrentSize; i < len; ++i) {
-            if (buf[i] > 0x0020) {
+            if (buf[i] > INT_SPACE) {
                 return false;
             }
         }

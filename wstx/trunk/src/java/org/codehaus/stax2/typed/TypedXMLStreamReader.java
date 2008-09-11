@@ -320,7 +320,9 @@ public interface TypedXMLStreamReader
      *
      * @param value   The array in which to copy the ints.
      * @param from    The index in the array from which copying starts.
-     * @param length  The maximun number of ints to copy.
+     * @param length  The maximun number of ints to copy. Minimum value
+     *   is 1; others an {@link IllegalArgumentException} is thrown
+     *
      * @return        The number of ints actually copied which must
      *                be less or equal than <code>length</code>.
      */
