@@ -10,6 +10,7 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.*;
 import javax.xml.stream.util.StreamReaderDelegate;
 
+import org.codehaus.stax2.typed.TypedArrayDecoder;
 import org.codehaus.stax2.typed.TypedValueDecoder;
 import org.codehaus.stax2.typed.TypedXMLStreamException;
 import org.codehaus.stax2.ri.typed.ValueDecoderFactory;
@@ -187,6 +188,12 @@ public class Stax2ReaderAdapter
     }
 
     public int readElementAsDoubleArray(double[] value, int from, int length) throws XMLStreamException
+    {
+        // !!! TBI
+        return -1;
+    }
+
+    public int readElementAsArray(TypedArrayDecoder dec) throws XMLStreamException
     {
         // !!! TBI
         return -1;

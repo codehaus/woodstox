@@ -281,7 +281,7 @@ public interface TypedXMLStreamReader
     //    throws XMLStreamException;
     
     /**
-     * <p>Read an element content as an int array. The lexical
+     * Read an element content as an int array. The lexical
      * representation of a int array is defined by the following
      * XML schema type:
      * <pre>
@@ -324,7 +324,9 @@ public interface TypedXMLStreamReader
      *   is 1; others an {@link IllegalArgumentException} is thrown
      *
      * @return        The number of ints actually copied which must
-     *                be less or equal than <code>length</code>.
+     *                be less or equal than <code>length</code>, but
+     *               at least one if any ints found. If not, -1 is returned
+     *   to signal end of ints to parse.
      */
     public int readElementAsIntArray(int[] value, int from, int length) throws XMLStreamException;
 
@@ -334,7 +336,40 @@ public interface TypedXMLStreamReader
     
     public int readElementAsDoubleArray(double[] value, int from, int length) throws XMLStreamException;
 
-    //public void readElementAs(TypedArrayDecoder tad) throws XMLStreamException;
+    /**
+     * Read an element content as an array of tokens. This is done by
+     * reader tokenizing textual content by white space, and sending
+     * each token to specified decoder for decoding. This is repeated
+     * as long as element content has more tokens and decoder can
+     * accept more values.
+     *<p>
+     *These are the pre- and post-conditions of calling this
+     * method:
+     * <ul>
+     * <li>Precondition: the current event is either START_ELEMENT,
+     *   or a textual event (CHARACTERS, CDATA), or END_ELEMENT
+     *   (END_ELEMENT is allowed for convenience; if so, no read
+     *   operation is tried, and -1 is returned immediately
+     *   </li>
+     * <li>Postcondition: the current event is the corresponding 
+     *     END_ELEMENT or CHARACTERS if only a portion of the 
+     *     array has been copied thus far.</li>
+     * </ul>
+     * This method can be called multiple times until the cursor
+     * is positioned at the corresponding END_ELEMENT event. Stated
+     * differently, after the method is called for the first time,
+     * the cursor will move and remain in the CHARACTERS position while there
+     * are more bytes available for reading. If an exception is thrown,
+     * the cursor will be moved to the END_ELEMENT position.
+     * </p>
+     *<p>
+     * Note: passed decoder must accept at least one value, reader will
+     * not verify capacity before calling it with the first token.
+     * 
+     * @return Number of elements decoded, or -1 to indicate that there
+     *    was no more element content tokens to decode.
+     */
+    public int readElementAsArray(TypedArrayDecoder tad) throws XMLStreamException;
 
     /*
     //////////////////////////////////////////////////////////

@@ -39,6 +39,7 @@ import org.codehaus.stax2.ri.EmptyNamespaceContext;
 import org.codehaus.stax2.ri.SingletonIterator;
 import org.codehaus.stax2.ri.Stax2Util;
 import org.codehaus.stax2.ri.typed.ValueDecoderFactory;
+import org.codehaus.stax2.typed.TypedArrayDecoder;
 import org.codehaus.stax2.typed.TypedValueDecoder;
 import org.codehaus.stax2.typed.TypedXMLStreamException;
 import org.codehaus.stax2.validation.DTDValidationSchema;
@@ -1112,6 +1113,12 @@ public abstract class DOMWrappingReader
     }
 
     public int readElementAsDoubleArray(double[] value, int from, int length) throws XMLStreamException
+    {
+        // !!! TBI
+        return -1;
+    }
+
+    public int readElementAsArray(TypedArrayDecoder dec) throws XMLStreamException
     {
         // !!! TBI
         return -1;

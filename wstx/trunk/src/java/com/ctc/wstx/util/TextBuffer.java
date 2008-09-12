@@ -6,6 +6,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
+import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
 
 import org.xml.sax.ContentHandler;
@@ -14,10 +15,12 @@ import org.xml.sax.ext.LexicalHandler;
 
 import org.codehaus.stax2.typed.TypedArrayDecoder;
 import org.codehaus.stax2.typed.TypedValueDecoder;
+import org.codehaus.stax2.typed.TypedXMLStreamException;
 import org.codehaus.stax2.validation.XMLValidator;
 
 import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.dtd.DTDEventListener;
+import com.ctc.wstx.sr.InputProblemReporter;
 
 /**
  * TextBuffer is a class similar to {@link StringBuffer}, with
@@ -429,8 +432,8 @@ public final class TextBuffer
      * @return Number of tokens decoded; 0 means that no (more) tokens
      *    were found from this buffer.
      */
-    public int decodeElements(TypedArrayDecoder tad)
-        throws IllegalArgumentException
+    public int decodeElements(TypedArrayDecoder tad, InputProblemReporter rep)
+        throws TypedXMLStreamException
     {
         int count = 0;
 
@@ -457,28 +460,42 @@ public final class TextBuffer
         int ptr = mInputStart;
         final int end = ptr + mInputLen;
         final char[] buf = mInputBuffer;
+        int start = ptr;
 
-        decode_loop:
-        while (ptr < end) {
-            // First, any space to skip?
-            while (buf[ptr] <= INT_SPACE) {
-                if (++ptr >= end) {
-                    break decode_loop;
+        try {
+            decode_loop:
+            while (ptr < end) {
+                // First, any space to skip?
+                while (buf[ptr] <= INT_SPACE) {
+                    if (++ptr >= end) {
+                        break decode_loop;
+                    }
+                }
+                // Then let's figure out non-space char (token)
+                start = ptr;
+                while (++ptr < end && buf[ptr] > INT_SPACE) {
+                    ;
+                }
+                ++count;
+                // And there we have it
+                if (tad.decodeValue(buf, start, ptr)) {
+                    break;
                 }
             }
-            // Then let's figure out non-space char (token)
-            int start = ptr;
-            while (++ptr < end && buf[ptr] > INT_SPACE) {
-                ;
-            }
-            // And there we have it
-            if (tad.decodeValue(buf, start, ptr)) {
-                break;
-            }
-        }
-        mInputStart = ptr;
-        mInputLen = end-ptr;
+        } catch (IllegalArgumentException iae) {
+            // Need to convert to a checked stream exception
 
+            /* Hmmh. This is probably not an accurate location... but
+             * we can't do much better as content we have has been
+             * normalized already.
+             */
+            Location loc = rep.getLocation();
+            String lexical = new String(buf, start, (ptr-start));
+            throw new TypedXMLStreamException(lexical, iae.getMessage(), loc, iae);
+        } finally {
+            mInputStart = ptr;
+            mInputLen = end-ptr;
+        }
         return count;
     }
 

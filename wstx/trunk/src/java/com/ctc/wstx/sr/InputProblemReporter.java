@@ -23,16 +23,6 @@ public interface InputProblemReporter
 
     /*
     ///////////////////////////////////////////////////////
-    // Methods for reporting "soft" (recoverable) problems
-    // (possibly validation problems)
-    ///////////////////////////////////////////////////////
-     */
-
-    public void reportProblem(Location loc, String probType, String format, Object arg, Object arg2)
-        throws XMLStreamException;
-
-    /*
-    ///////////////////////////////////////////////////////
     // Reporting validation problems
     ///////////////////////////////////////////////////////
      */
@@ -42,6 +32,15 @@ public interface InputProblemReporter
     public void reportValidationProblem(String msg)
         throws XMLStreamException;
     public void reportValidationProblem(String msg, Object arg, Object arg2)
+        throws XMLStreamException;
+
+    /*
+    ///////////////////////////////////////////////////////
+    // Methods for reporting other "soft" (recoverable) problems
+    ///////////////////////////////////////////////////////
+     */
+
+    public void reportProblem(Location loc, String probType, String format, Object arg, Object arg2)
         throws XMLStreamException;
 
     /*

@@ -11,6 +11,7 @@ import javax.xml.stream.*;
 
 import org.codehaus.stax2.*;
 import org.codehaus.stax2.validation.*;
+import org.codehaus.stax2.typed.TypedArrayDecoder;
 import org.codehaus.stax2.typed.TypedValueDecoder;
 
 /**
@@ -331,6 +332,11 @@ public class Stax2FilteredStreamReader
     public int readElementAsDoubleArray(double[] value, int from, int length) throws XMLStreamException
     {
         return mReader.readElementAsDoubleArray(value, from, length);
+    }
+
+    public int readElementAsArray(TypedArrayDecoder dec) throws XMLStreamException
+    {
+        return mReader.readElementAsArray(dec);
     }
     
     /*

@@ -92,58 +92,58 @@ public class TypedStreamReader
 
     public boolean getElementAsBoolean() throws XMLStreamException
     {
-        ValueDecoderFactory.BooleanDecoder dec = decoderFactory().getBooleanDecoder();
+        ValueDecoderFactory.BooleanDecoder dec = _decoderFactory().getBooleanDecoder();
         decodeElementText(dec);
         return dec.getValue();
     }
 
     public int getElementAsInt() throws XMLStreamException
     {
-        ValueDecoderFactory.IntDecoder dec = decoderFactory().getIntDecoder();
+        ValueDecoderFactory.IntDecoder dec = _decoderFactory().getIntDecoder();
         decodeElementText(dec);
         return dec.getValue();
     }
 
     public long getElementAsLong() throws XMLStreamException
     {
-        ValueDecoderFactory.LongDecoder dec = decoderFactory().getLongDecoder();
+        ValueDecoderFactory.LongDecoder dec = _decoderFactory().getLongDecoder();
         decodeElementText(dec);
         return dec.getValue();
     }
 
     public float getElementAsFloat() throws XMLStreamException
     {
-        ValueDecoderFactory.FloatDecoder dec = decoderFactory().getFloatDecoder();
+        ValueDecoderFactory.FloatDecoder dec = _decoderFactory().getFloatDecoder();
         decodeElementText(dec);
         return dec.getValue();
     }
 
     public double getElementAsDouble() throws XMLStreamException
     {
-        ValueDecoderFactory.DoubleDecoder dec = decoderFactory().getDoubleDecoder();
+        ValueDecoderFactory.DoubleDecoder dec = _decoderFactory().getDoubleDecoder();
         decodeElementText(dec);
         return dec.getValue();
     }
 
     public BigInteger getElementAsInteger() throws XMLStreamException
     {
-        ValueDecoderFactory.IntegerDecoder dec = decoderFactory().getIntegerDecoder();
+        ValueDecoderFactory.IntegerDecoder dec = _decoderFactory().getIntegerDecoder();
         decodeElementText(dec);
         return dec.getValue();
     }
 
     public BigDecimal getElementAsDecimal() throws XMLStreamException
     {
-        ValueDecoderFactory.DecimalDecoder dec = decoderFactory().getDecimalDecoder();
+        ValueDecoderFactory.DecimalDecoder dec = _decoderFactory().getDecimalDecoder();
         decodeElementText(dec);
         return dec.getValue();
     }
 
     public QName getElementAsQName() throws XMLStreamException
     {
-        ValueDecoderFactory.QNameDecoder dec = decoderFactory().getQNameDecoder(getNamespaceContext());
+        ValueDecoderFactory.QNameDecoder dec = _decoderFactory().getQNameDecoder(getNamespaceContext());
         decodeElementText(dec);
-        return verifyQName(dec.getValue());
+        return _verifyQName(dec.getValue());
     }
 
     public void getElementAs(TypedValueDecoder tvd) throws XMLStreamException
@@ -179,7 +179,7 @@ public class TypedStreamReader
                 try {
                     dec.decode("");
                 } catch (IllegalArgumentException iae) {
-                    throw constructTypeException(iae, "");
+                    throw _constructTypeException(iae, "");
                 }
                 return;
             }
@@ -209,7 +209,7 @@ public class TypedStreamReader
             try {
                 mTextBuffer.decode(dec);
             } catch (IllegalArgumentException iae) {
-                throw constructTypeException(iae, mTextBuffer.contentsAsString());
+                throw _constructTypeException(iae, mTextBuffer.contentsAsString());
             }
             return;
         }
@@ -236,7 +236,7 @@ public class TypedStreamReader
         try {
             dec.decode(str);
         } catch (IllegalArgumentException iae) {
-            throw constructTypeException(iae, str);
+            throw _constructTypeException(iae, str);
         }
     }
 
@@ -253,7 +253,7 @@ public class TypedStreamReader
             // !!! TBI: call "handleEmptyValue" (or whatever)
             dec.decode("");
         } catch (IllegalArgumentException iae) {
-            throw constructTypeException(iae, "");
+            throw _constructTypeException(iae, "");
         }
     }
 
@@ -265,29 +265,23 @@ public class TypedStreamReader
 
     public int readElementAsIntArray(int[] value, int from, int length) throws XMLStreamException
     {
-        return readElementAsArray(decoderFactory().getIntArrayDecoder(value, from, length));
+        return readElementAsArray(_decoderFactory().getIntArrayDecoder(value, from, length));
     }
 
     public int readElementAsLongArray(long[] value, int from, int length) throws XMLStreamException
     {
-        return readElementAsArray(decoderFactory().getLongArrayDecoder(value, from, length));
+        return readElementAsArray(_decoderFactory().getLongArrayDecoder(value, from, length));
     }
 
     public int readElementAsFloatArray(float[] value, int from, int length) throws XMLStreamException
     {
-        return readElementAsArray(decoderFactory().getFloatArrayDecoder(value, from, length));
+        return readElementAsArray(_decoderFactory().getFloatArrayDecoder(value, from, length));
     }
 
     public int readElementAsDoubleArray(double[] value, int from, int length) throws XMLStreamException
     {
-        return readElementAsArray(decoderFactory().getDoubleArrayDecoder(value, from, length));
+        return readElementAsArray(_decoderFactory().getDoubleArrayDecoder(value, from, length));
     }
-
-    public void readElementAs(TypedArrayDecoder tad) throws XMLStreamException
-    {
-        readElementAsArray(tad);
-    }
-
 
     /**
      * Method called to parse array of primitives.
@@ -301,7 +295,7 @@ public class TypedStreamReader
      * @return Number of elements decoded (if any were decoded), or
      *   -1 to indicate that no more values can be decoded.
      */
-    private final int readElementAsArray(TypedArrayDecoder dec)
+    public final int readElementAsArray(TypedArrayDecoder dec)
         throws XMLStreamException
     {
         // First: check the state.
@@ -334,7 +328,7 @@ public class TypedStreamReader
                     continue;
                 }
                 if (((1 << type) & MASK_GET_ELEMENT_TEXT) == 0) {
-                    throwParseError("Expected a text token, got "+tokenTypeDesc(type)+".");
+                    throw _constructUnexpectedInTyped(type);
                 }
                 break;
             }
@@ -359,7 +353,7 @@ public class TypedStreamReader
 
         decode_loop:
         while (true) {
-            count += mTextBuffer.decodeElements(dec);
+            count += mTextBuffer.decodeElements(dec, this);
             if (!dec.hasRoom()) {
                 break;
             }
@@ -373,7 +367,7 @@ public class TypedStreamReader
                     continue;
                 }
                 if (((1 << type) & MASK_GET_ELEMENT_TEXT) == 0) {
-                    throwParseError("Expected a text token, got "+tokenTypeDesc(type)+".");
+                    throw _constructUnexpectedInTyped(type);
                 }
                 break;
             }
@@ -382,7 +376,6 @@ public class TypedStreamReader
                 readCoalescedText(mCurrToken, false);
             }
         }
-
         // If nothing was found, needs to be indicated via -1, not 0
         return (count > 0) ? count : -1;
     }
@@ -404,58 +397,58 @@ public class TypedStreamReader
 
     public boolean getAttributeAsBoolean(int index) throws XMLStreamException
     {
-        ValueDecoderFactory.BooleanDecoder dec = decoderFactory().getBooleanDecoder();
+        ValueDecoderFactory.BooleanDecoder dec = _decoderFactory().getBooleanDecoder();
         decodeAttrText(index, dec);
         return dec.getValue();
     }
 
     public int getAttributeAsInt(int index) throws XMLStreamException
     {
-        ValueDecoderFactory.IntDecoder dec = decoderFactory().getIntDecoder();
+        ValueDecoderFactory.IntDecoder dec = _decoderFactory().getIntDecoder();
         decodeAttrText(index, dec);
         return dec.getValue();
     }
 
     public long getAttributeAsLong(int index) throws XMLStreamException
     {
-        ValueDecoderFactory.LongDecoder dec = decoderFactory().getLongDecoder();
+        ValueDecoderFactory.LongDecoder dec = _decoderFactory().getLongDecoder();
         decodeAttrText(index, dec);
         return dec.getValue();
     }
 
     public float getAttributeAsFloat(int index) throws XMLStreamException
     {
-        ValueDecoderFactory.FloatDecoder dec = decoderFactory().getFloatDecoder();
+        ValueDecoderFactory.FloatDecoder dec = _decoderFactory().getFloatDecoder();
         decodeAttrText(index, dec);
         return dec.getValue();
     }
 
     public double getAttributeAsDouble(int index) throws XMLStreamException
     {
-        ValueDecoderFactory.DoubleDecoder dec = decoderFactory().getDoubleDecoder();
+        ValueDecoderFactory.DoubleDecoder dec = _decoderFactory().getDoubleDecoder();
         decodeAttrText(index, dec);
         return dec.getValue();
     }
 
     public BigInteger getAttributeAsInteger(int index) throws XMLStreamException
     {
-        ValueDecoderFactory.IntegerDecoder dec = decoderFactory().getIntegerDecoder();
+        ValueDecoderFactory.IntegerDecoder dec = _decoderFactory().getIntegerDecoder();
         decodeAttrText(index, dec);
         return dec.getValue();
     }
 
     public BigDecimal getAttributeAsDecimal(int index) throws XMLStreamException
     {
-        ValueDecoderFactory.DecimalDecoder dec = decoderFactory().getDecimalDecoder();
+        ValueDecoderFactory.DecimalDecoder dec = _decoderFactory().getDecimalDecoder();
         decodeAttrText(index, dec);
         return dec.getValue();
     }
 
     public QName getAttributeAsQName(int index) throws XMLStreamException
     {
-        ValueDecoderFactory.QNameDecoder dec = decoderFactory().getQNameDecoder(getNamespaceContext());
+        ValueDecoderFactory.QNameDecoder dec = _decoderFactory().getQNameDecoder(getNamespaceContext());
         decodeAttrText(index, dec);
-        return verifyQName(dec.getValue());
+        return _verifyQName(dec.getValue());
     }
 
     public void getAttributeAs(int index, TypedValueDecoder tvd) throws XMLStreamException
@@ -472,7 +465,7 @@ public class TypedStreamReader
         try {
             mAttrCollector.decodeValue(index, tvd);
         } catch (IllegalArgumentException iae) {
-            throw constructTypeException(iae, mAttrCollector.getValue(index));
+            throw _constructTypeException(iae, mAttrCollector.getValue(index));
         }
     }
 
@@ -490,7 +483,7 @@ public class TypedStreamReader
      * declaration). But local name might still not be a legal
      * well-formed xml name, so let's verify that.
      */
-    protected QName verifyQName(QName n)
+    protected QName _verifyQName(QName n)
         throws TypedXMLStreamException
     {
         String ln = n.getLocalPart();
@@ -499,12 +492,12 @@ public class TypedStreamReader
             String prefix = n.getPrefix();
             String pname = (prefix != null && prefix.length() > 0) ?
                 (prefix + ":" +ln) : ln;
-            throw constructTypeException("Invalid local name \""+ln+"\" (character at #"+ix+" is invalid)", pname);
+            throw _constructTypeException("Invalid local name \""+ln+"\" (character at #"+ix+" is invalid)", pname);
         }
         return n;
     }
 
-    protected ValueDecoderFactory decoderFactory()
+    protected ValueDecoderFactory _decoderFactory()
     {
         if (mDecoderFactory == null) {
             mDecoderFactory = new ValueDecoderFactory();
@@ -520,12 +513,12 @@ public class TypedStreamReader
      * @param lexicalValue Lexical value (element content, attribute value)
      *    that could not be converted succesfully.
      */
-    protected TypedXMLStreamException constructTypeException(IllegalArgumentException iae, String lexicalValue)
+    protected TypedXMLStreamException _constructTypeException(IllegalArgumentException iae, String lexicalValue)
     {
         return new TypedXMLStreamException(lexicalValue, iae.getMessage(), getStartLocation(), iae);
     }
 
-    protected TypedXMLStreamException constructTypeException(String msg, String lexicalValue)
+    protected TypedXMLStreamException _constructTypeException(String msg, String lexicalValue)
     {
         return new TypedXMLStreamException(lexicalValue, msg, getStartLocation());
     }

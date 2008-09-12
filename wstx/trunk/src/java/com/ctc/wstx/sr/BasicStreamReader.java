@@ -655,7 +655,7 @@ public abstract class BasicStreamReader
                 continue;
             }
             if (((1 << type) & MASK_GET_ELEMENT_TEXT) == 0) {
-                throwParseError("Expected a text token, got "+tokenTypeDesc(type)+".");
+                throw _constructUnexpectedInTyped(type);
             }
             break;
         }
@@ -690,7 +690,7 @@ public abstract class BasicStreamReader
                 continue;
             }
             if (type != COMMENT && type != PROCESSING_INSTRUCTION) {
-                throwParseError("Expected a text token, got "+tokenTypeDesc(type)+".");
+                throw _constructUnexpectedInTyped(type);
             }
         }
         // Note: calls next() have validated text, no need for more validation
@@ -5428,6 +5428,17 @@ public abstract class BasicStreamReader
         throws WstxException
     {
         throwUnexpectedEOF("; was expecting a close tag for element <"+mElementStack.getTopElementDesc()+">");
+    }
+
+    /**
+     * Method called to report a problem with 
+     */
+    protected XMLStreamException _constructUnexpectedInTyped(int nextToken)
+    {
+        if (nextToken == START_ELEMENT) {
+            return _constructTypeException("Element content can not contain child START_ELEMENT");
+        }
+        return _constructTypeException("Expected a text token, got "+tokenTypeDesc(nextToken));
     }
 
     /**
