@@ -227,6 +227,7 @@ public interface TypedXMLStreamReader
      * for accessing actual decoded value.
      */
     public void getElementAs(TypedValueDecoder tvd) throws XMLStreamException;
+
     /*
     //////////////////////////////////////////////////////////
     // Then streaming/chunked typed element accessors

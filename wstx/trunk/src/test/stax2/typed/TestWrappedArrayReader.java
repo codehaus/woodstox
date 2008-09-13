@@ -6,12 +6,11 @@ import org.codehaus.stax2.XMLStreamReader2;
 import org.codehaus.stax2.ri.Stax2ReaderAdapter;
 
 /**
- * Stax2 Typed Access API basic reader tests, using Stax2 adapter
- * which implements Stax2 functionality non-natively, on top of
- * any regular Stax 1.0 implementation.
+ * Stax2 Typed Access API basic reader tests for array handling,
+ * using native Stax2 typed reader implementation.
  */
-public class TestWrappedReader
-    extends ReaderTestBase
+public class TestWrappedArrayReader
+    extends ReaderArrayTestBase
 {
     protected XMLStreamReader2 getReader(String contents)
         throws XMLStreamException
@@ -27,25 +26,6 @@ public class TestWrappedReader
         return new MyAdapter(constructStreamReader(f, contents));
     }
 
-    /*
-    ///////////////////////////////////////////////////////////////
-    // Need to mask some tests, won't work with current wrapper
-    ///////////////////////////////////////////////////////////////
-     */
-
-    // @Override
-    public void testInvalidQNameElemBadChars()
-        throws Exception
-    {
-        System.out.println("(skipping TestWrappedReader.testInvalidQNameElemBadChars)");
-    }
-
-    // @Override
-    public void testInvalidQNameAttrBadChars()
-    {
-        System.out.println("(skipping TestWrappedReader.testInvalidQNameAttrBadChars)");
-    }
-    
     /**
      * Need a dummy base class to be able to access protected
      * constructor for testing purposes.
@@ -59,5 +39,4 @@ public class TestWrappedReader
         }
     }
 }
-
 

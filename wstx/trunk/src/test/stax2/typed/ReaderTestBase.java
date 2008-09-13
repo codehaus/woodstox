@@ -41,7 +41,7 @@ public abstract class ReaderTestBase
         checkBooleanElem("<root>true</root>", true);
         // with white space normalization
         checkBooleanElem("<root>\tfalse\n\r</root>", false);
-        // Then non-canonical alternatives
+        // Then non9-canonical alternatives
         checkBooleanElem("<root>0   \t</root>", false);
         checkBooleanElem("<root>\r1</root>", true);
 
