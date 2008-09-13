@@ -1030,56 +1030,56 @@ public abstract class DOMWrappingReader
 
     public boolean getElementAsBoolean() throws XMLStreamException
     {
-        ValueDecoderFactory.BooleanDecoder dec = decoderFactory().getBooleanDecoder();
+        ValueDecoderFactory.BooleanDecoder dec = _decoderFactory().getBooleanDecoder();
         getElementAs(dec);
         return dec.getValue();
     }
 
     public int getElementAsInt() throws XMLStreamException
     {
-        ValueDecoderFactory.IntDecoder dec = decoderFactory().getIntDecoder();
+        ValueDecoderFactory.IntDecoder dec = _decoderFactory().getIntDecoder();
         getElementAs(dec);
         return dec.getValue();
     }
 
     public long getElementAsLong() throws XMLStreamException
     {
-        ValueDecoderFactory.LongDecoder dec = decoderFactory().getLongDecoder();
+        ValueDecoderFactory.LongDecoder dec = _decoderFactory().getLongDecoder();
         getElementAs(dec);
         return dec.getValue();
     }
 
     public float getElementAsFloat() throws XMLStreamException
     {
-        ValueDecoderFactory.FloatDecoder dec = decoderFactory().getFloatDecoder();
+        ValueDecoderFactory.FloatDecoder dec = _decoderFactory().getFloatDecoder();
         getElementAs(dec);
         return dec.getValue();
     }
 
     public double getElementAsDouble() throws XMLStreamException
     {
-        ValueDecoderFactory.DoubleDecoder dec = decoderFactory().getDoubleDecoder();
+        ValueDecoderFactory.DoubleDecoder dec = _decoderFactory().getDoubleDecoder();
         getElementAs(dec);
         return dec.getValue();
     }
 
     public BigInteger getElementAsInteger() throws XMLStreamException
     {
-        ValueDecoderFactory.IntegerDecoder dec = decoderFactory().getIntegerDecoder();
+        ValueDecoderFactory.IntegerDecoder dec = _decoderFactory().getIntegerDecoder();
         getElementAs(dec);
         return dec.getValue();
     }
 
     public BigDecimal getElementAsDecimal() throws XMLStreamException
     {
-        ValueDecoderFactory.DecimalDecoder dec = decoderFactory().getDecimalDecoder();
+        ValueDecoderFactory.DecimalDecoder dec = _decoderFactory().getDecimalDecoder();
         getElementAs(dec);
         return dec.getValue();
     }
 
     public QName getElementAsQName() throws XMLStreamException
     {
-        ValueDecoderFactory.QNameDecoder dec = decoderFactory().getQNameDecoder(getNamespaceContext());
+        ValueDecoderFactory.QNameDecoder dec = _decoderFactory().getQNameDecoder(getNamespaceContext());
         getElementAs(dec);
         return dec.getValue();
     }
@@ -1088,7 +1088,12 @@ public abstract class DOMWrappingReader
     {
         String value = getElementText();
         try {
-            tvd.decode(value);
+            if (value.length() == 0) {
+                // !!! TBI: call "handleEmptyValue" (or whatever)
+                tvd.decode("");
+            } else {
+                tvd.decode(value);
+            }
         } catch (IllegalArgumentException iae) {
             throw constructTypeException(iae, value);
         }
@@ -1096,26 +1101,22 @@ public abstract class DOMWrappingReader
 
     public int readElementAsIntArray(int[] value, int from, int length) throws XMLStreamException
     {
-        // !!! TBI
-        return -1;
+        return readElementAsArray(_decoderFactory().getIntArrayDecoder(value, from, length));
     }
 
     public int readElementAsLongArray(long[] value, int from, int length) throws XMLStreamException
     {
-        // !!! TBI
-        return -1;
+        return readElementAsArray(_decoderFactory().getLongArrayDecoder(value, from, length));
     }
 
     public int readElementAsFloatArray(float[] value, int from, int length) throws XMLStreamException
     {
-        // !!! TBI
-        return -1;
+        return readElementAsArray(_decoderFactory().getFloatArrayDecoder(value, from, length));
     }
 
     public int readElementAsDoubleArray(double[] value, int from, int length) throws XMLStreamException
     {
-        // !!! TBI
-        return -1;
+        return readElementAsArray(_decoderFactory().getDoubleArrayDecoder(value, from, length));
     }
 
     public int readElementAsArray(TypedArrayDecoder dec) throws XMLStreamException
@@ -1137,56 +1138,56 @@ public abstract class DOMWrappingReader
 
     public boolean getAttributeAsBoolean(int index) throws XMLStreamException
     {
-        ValueDecoderFactory.BooleanDecoder dec = decoderFactory().getBooleanDecoder();
+        ValueDecoderFactory.BooleanDecoder dec = _decoderFactory().getBooleanDecoder();
         getAttributeAs(index, dec);
         return dec.getValue();
     }
 
     public int getAttributeAsInt(int index) throws XMLStreamException
     {
-        ValueDecoderFactory.IntDecoder dec = decoderFactory().getIntDecoder();
+        ValueDecoderFactory.IntDecoder dec = _decoderFactory().getIntDecoder();
         getAttributeAs(index, dec);
         return dec.getValue();
     }
 
     public long getAttributeAsLong(int index) throws XMLStreamException
     {
-        ValueDecoderFactory.LongDecoder dec = decoderFactory().getLongDecoder();
+        ValueDecoderFactory.LongDecoder dec = _decoderFactory().getLongDecoder();
         getAttributeAs(index, dec);
         return dec.getValue();
     }
 
     public float getAttributeAsFloat(int index) throws XMLStreamException
     {
-        ValueDecoderFactory.FloatDecoder dec = decoderFactory().getFloatDecoder();
+        ValueDecoderFactory.FloatDecoder dec = _decoderFactory().getFloatDecoder();
         getAttributeAs(index, dec);
         return dec.getValue();
     }
 
     public double getAttributeAsDouble(int index) throws XMLStreamException
     {
-        ValueDecoderFactory.DoubleDecoder dec = decoderFactory().getDoubleDecoder();
+        ValueDecoderFactory.DoubleDecoder dec = _decoderFactory().getDoubleDecoder();
         getAttributeAs(index, dec);
         return dec.getValue();
     }
 
     public BigInteger getAttributeAsInteger(int index) throws XMLStreamException
     {
-        ValueDecoderFactory.IntegerDecoder dec = decoderFactory().getIntegerDecoder();
+        ValueDecoderFactory.IntegerDecoder dec = _decoderFactory().getIntegerDecoder();
         getAttributeAs(index, dec);
         return dec.getValue();
     }
 
     public BigDecimal getAttributeAsDecimal(int index) throws XMLStreamException
     {
-        ValueDecoderFactory.DecimalDecoder dec = decoderFactory().getDecimalDecoder();
+        ValueDecoderFactory.DecimalDecoder dec = _decoderFactory().getDecimalDecoder();
         getAttributeAs(index, dec);
         return dec.getValue();
     }
 
     public QName getAttributeAsQName(int index) throws XMLStreamException
     {
-        ValueDecoderFactory.QNameDecoder dec = decoderFactory().getQNameDecoder(getNamespaceContext());
+        ValueDecoderFactory.QNameDecoder dec = _decoderFactory().getQNameDecoder(getNamespaceContext());
         getAttributeAs(index, dec);
         return dec.getValue();
     }
@@ -1761,7 +1762,7 @@ public abstract class DOMWrappingReader
     ///////////////////////////////////////////////
      */
 
-    protected ValueDecoderFactory decoderFactory()
+    protected ValueDecoderFactory _decoderFactory()
     {
         if (mDecoderFactory == null) {
             mDecoderFactory = new ValueDecoderFactory();

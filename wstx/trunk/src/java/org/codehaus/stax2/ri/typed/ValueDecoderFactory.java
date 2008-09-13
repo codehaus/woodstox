@@ -94,7 +94,7 @@ public final class ValueDecoderFactory
         return mDoubleDecoder;
     }
 
-    // // // Other scalar decoder: not recycled
+    // // // Other scalar decoders: not recycled
 
     public IntegerDecoder getIntegerDecoder() { return new IntegerDecoder(); }
 

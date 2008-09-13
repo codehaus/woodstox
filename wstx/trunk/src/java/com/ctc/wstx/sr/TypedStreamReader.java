@@ -93,66 +93,60 @@ public class TypedStreamReader
     public boolean getElementAsBoolean() throws XMLStreamException
     {
         ValueDecoderFactory.BooleanDecoder dec = _decoderFactory().getBooleanDecoder();
-        decodeElementText(dec);
+        getElementAs(dec);
         return dec.getValue();
     }
 
     public int getElementAsInt() throws XMLStreamException
     {
         ValueDecoderFactory.IntDecoder dec = _decoderFactory().getIntDecoder();
-        decodeElementText(dec);
+        getElementAs(dec);
         return dec.getValue();
     }
 
     public long getElementAsLong() throws XMLStreamException
     {
         ValueDecoderFactory.LongDecoder dec = _decoderFactory().getLongDecoder();
-        decodeElementText(dec);
+        getElementAs(dec);
         return dec.getValue();
     }
 
     public float getElementAsFloat() throws XMLStreamException
     {
         ValueDecoderFactory.FloatDecoder dec = _decoderFactory().getFloatDecoder();
-        decodeElementText(dec);
+        getElementAs(dec);
         return dec.getValue();
     }
 
     public double getElementAsDouble() throws XMLStreamException
     {
         ValueDecoderFactory.DoubleDecoder dec = _decoderFactory().getDoubleDecoder();
-        decodeElementText(dec);
+        getElementAs(dec);
         return dec.getValue();
     }
 
     public BigInteger getElementAsInteger() throws XMLStreamException
     {
         ValueDecoderFactory.IntegerDecoder dec = _decoderFactory().getIntegerDecoder();
-        decodeElementText(dec);
+        getElementAs(dec);
         return dec.getValue();
     }
 
     public BigDecimal getElementAsDecimal() throws XMLStreamException
     {
         ValueDecoderFactory.DecimalDecoder dec = _decoderFactory().getDecimalDecoder();
-        decodeElementText(dec);
+        getElementAs(dec);
         return dec.getValue();
     }
 
     public QName getElementAsQName() throws XMLStreamException
     {
         ValueDecoderFactory.QNameDecoder dec = _decoderFactory().getQNameDecoder(getNamespaceContext());
-        decodeElementText(dec);
+        getElementAs(dec);
         return _verifyQName(dec.getValue());
     }
 
     public void getElementAs(TypedValueDecoder tvd) throws XMLStreamException
-    {
-        decodeElementText(tvd);
-    }
-
-    private final void decodeElementText(TypedValueDecoder dec)
-        throws XMLStreamException
     {
         if (mCurrToken != START_ELEMENT) {
             throwParseError(ErrorConsts.ERR_STATE_NOT_STELEM);
@@ -169,7 +163,7 @@ public class TypedStreamReader
              */
             mStEmptyElem = false;
             mCurrToken = END_ELEMENT;
-            handleEmptyValue(dec);
+            handleEmptyValue(tvd);
             return;
         }
         // First need to find a textual event
@@ -177,7 +171,7 @@ public class TypedStreamReader
             int type = next();
             if (type == END_ELEMENT) {
                 try {
-                    dec.decode("");
+                    tvd.decode("");
                 } catch (IllegalArgumentException iae) {
                     throw _constructTypeException(iae, "");
                 }
@@ -207,7 +201,7 @@ public class TypedStreamReader
             readEndElem();
             // And buffer, then, has data for conversion, so:
             try {
-                mTextBuffer.decode(dec);
+                mTextBuffer.decode(tvd);
             } catch (IllegalArgumentException iae) {
                 throw _constructTypeException(iae, mTextBuffer.contentsAsString());
             }
@@ -234,7 +228,7 @@ public class TypedStreamReader
         // Note: calls next() have validated text, no need for more validation
         String str = sb.toString();
         try {
-            dec.decode(str);
+            tvd.decode(str);
         } catch (IllegalArgumentException iae) {
             throw _constructTypeException(iae, str);
         }
