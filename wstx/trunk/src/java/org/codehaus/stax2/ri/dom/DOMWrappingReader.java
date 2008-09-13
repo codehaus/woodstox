@@ -1202,6 +1202,17 @@ public abstract class DOMWrappingReader
         }
     }
 
+    public int[] getAttributeAsIntArray(int index) throws XMLStreamException
+    {
+        // !!! TBI
+        return null;
+    }
+
+    public void getAttributeAsArray(TypedArrayDecoder tad) throws XMLStreamException
+    {
+        // !!! TBI
+    }
+
     /*
     ////////////////////////////////////////////////////
     // XMLStreamReader2 (StAX2) implementation

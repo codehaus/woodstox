@@ -466,6 +466,20 @@ public interface TypedXMLStreamReader
     //XMLGregorianCalendar getAttributeAsCalendar(int index) throws XMLStreamException;
     
     /**
+     * Generic access method that can be used for efficient
+     * decoding of additional types not support natively
+     * by the typed stream reader. The main benefit of using
+     * this method is that the stream reader can efficient
+     * gather all textual content necessary and pass it
+     * to the decoder, often avoiding construction of intemediate
+     * Strings.
+     *<p>
+     * As with {@link #getElementAs}, value passed to a decode
+     * method will be trimmed of any leading or trailing white space.
+     */
+    public void getAttributeAs(int index, TypedValueDecoder tvd) throws XMLStreamException;
+
+    /**
      *Read an attribute value as a byte array. The lexical
      * representation of a byte array is defined by the 
      * <a href="http://www.w3.org/TR/xmlschema-2/#base64Binary">XML Schema
@@ -513,7 +527,7 @@ public interface TypedXMLStreamReader
      * @throws XMLStreamException  If unable to convert the resulting
      *         character sequence into an XML Schema boolean value.
      */
-    //public int[] getAttributeAsIntArray(int index) throws XMLStreamException;
+    public int[] getAttributeAsIntArray(int index) throws XMLStreamException;
     
     //public long[] getAttributeAsLongArray(int index) throws XMLStreamException;
 
@@ -522,16 +536,8 @@ public interface TypedXMLStreamReader
     //public double[] getAttributeAsDoubleArray(int index) throws XMLStreamException;    
 
     /**
-     * Generic access method that can be used for efficient
-     * decoding of additional types not support natively
-     * by the typed stream reader. The main benefit of using
-     * this method is that the stream reader can efficient
-     * gather all textual content necessary and pass it
-     * to the decoder, often avoiding construction of intemediate
-     * Strings.
-     *<p>
-     * As with {@link #getElementAs}, value passed to a decode
-     * method will be trimmed of any leading or trailing white space.
+     * Method that allows reading contents of an attribute as an array
+     * of whitespace-separate tokens, decoded using specified decoder.
      */
-    public void getAttributeAs(int index, TypedValueDecoder tvd) throws XMLStreamException;
+    public void getAttributeAsArray(TypedArrayDecoder tad) throws XMLStreamException;
 }

@@ -2,7 +2,7 @@ package org.codehaus.stax2.typed;
 
 /**
  * Base class that defines decoder used for decoding multiple
- * elements of an array type. Implementations generally use
+ * elements of an array type. Implementations typically use
  * an embedded instance of {@link TypedValueDecoder} for
  * decoding individual values.
  *<p>

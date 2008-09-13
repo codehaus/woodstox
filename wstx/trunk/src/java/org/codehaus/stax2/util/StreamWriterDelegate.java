@@ -32,7 +32,7 @@ import javax.xml.stream.XMLStreamWriter;
  * @since 3.0
  */
 public class StreamWriterDelegate
-	implements XMLStreamWriter
+    implements XMLStreamWriter
 {
     protected XMLStreamWriter mDelegate;
 

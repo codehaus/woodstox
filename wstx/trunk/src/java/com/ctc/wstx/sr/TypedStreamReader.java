@@ -392,66 +392,60 @@ public class TypedStreamReader
     public boolean getAttributeAsBoolean(int index) throws XMLStreamException
     {
         ValueDecoderFactory.BooleanDecoder dec = _decoderFactory().getBooleanDecoder();
-        decodeAttrText(index, dec);
+        getAttributeAs(index, dec);
         return dec.getValue();
     }
 
     public int getAttributeAsInt(int index) throws XMLStreamException
     {
         ValueDecoderFactory.IntDecoder dec = _decoderFactory().getIntDecoder();
-        decodeAttrText(index, dec);
+        getAttributeAs(index, dec);
         return dec.getValue();
     }
 
     public long getAttributeAsLong(int index) throws XMLStreamException
     {
         ValueDecoderFactory.LongDecoder dec = _decoderFactory().getLongDecoder();
-        decodeAttrText(index, dec);
+        getAttributeAs(index, dec);
         return dec.getValue();
     }
 
     public float getAttributeAsFloat(int index) throws XMLStreamException
     {
         ValueDecoderFactory.FloatDecoder dec = _decoderFactory().getFloatDecoder();
-        decodeAttrText(index, dec);
+        getAttributeAs(index, dec);
         return dec.getValue();
     }
 
     public double getAttributeAsDouble(int index) throws XMLStreamException
     {
         ValueDecoderFactory.DoubleDecoder dec = _decoderFactory().getDoubleDecoder();
-        decodeAttrText(index, dec);
+        getAttributeAs(index, dec);
         return dec.getValue();
     }
 
     public BigInteger getAttributeAsInteger(int index) throws XMLStreamException
     {
         ValueDecoderFactory.IntegerDecoder dec = _decoderFactory().getIntegerDecoder();
-        decodeAttrText(index, dec);
+        getAttributeAs(index, dec);
         return dec.getValue();
     }
 
     public BigDecimal getAttributeAsDecimal(int index) throws XMLStreamException
     {
         ValueDecoderFactory.DecimalDecoder dec = _decoderFactory().getDecimalDecoder();
-        decodeAttrText(index, dec);
+        getAttributeAs(index, dec);
         return dec.getValue();
     }
 
     public QName getAttributeAsQName(int index) throws XMLStreamException
     {
         ValueDecoderFactory.QNameDecoder dec = _decoderFactory().getQNameDecoder(getNamespaceContext());
-        decodeAttrText(index, dec);
+        getAttributeAs(index, dec);
         return _verifyQName(dec.getValue());
     }
 
     public void getAttributeAs(int index, TypedValueDecoder tvd) throws XMLStreamException
-    {
-        decodeAttrText(index, tvd);
-    }
-
-    private final void decodeAttrText(int index, TypedValueDecoder tvd)
-        throws XMLStreamException
     {
         if (mCurrToken != START_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
@@ -461,6 +455,17 @@ public class TypedStreamReader
         } catch (IllegalArgumentException iae) {
             throw _constructTypeException(iae, mAttrCollector.getValue(index));
         }
+    }
+
+    public int[] getAttributeAsIntArray(int index) throws XMLStreamException
+    {
+        // !!! TBI
+        return null;
+    }
+
+    public void getAttributeAsArray(TypedArrayDecoder tad) throws XMLStreamException
+    {
+        // !!! TBI
     }
 
     /*
