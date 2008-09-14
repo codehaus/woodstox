@@ -106,5 +106,7 @@ public final class Stax2Util
             }
             return "";
         }
+
+        public boolean isEmpty() { return (mText == null) && (mBuilder == null); }
     }
 }

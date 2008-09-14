@@ -13,15 +13,29 @@ public class XMLValidationProblem
     public final static int SEVERITY_ERROR = 2;
     public final static int SEVERITY_FATAL = 3;
 
+    /**
+     * Location within validated xml stream where the problem occured.
+     */
     protected Location mLocation;
 
     protected final String mMessage;
+
     protected final int mSeverity;
 
     /**
+     * Type of the problem, available types implementation specified.
+     *
      * @since 3.0
      */
     protected String mType;
+
+    /**
+     * Validator instance that reported the problem, if any (may be
+     * null if stream reader or writer itself reported the problem)
+     *
+     * @since 3.0
+     */
+    protected XMLValidator mReporter;
 
     public XMLValidationProblem(Location loc, String msg)
     {
@@ -61,6 +75,11 @@ public class XMLValidationProblem
     public void setLocation(Location l) { mLocation = l; }
 
     /**
+     * @since 3.0
+     */
+    public void setReporter(XMLValidator v) { mReporter = v; }
+
+    /**
      * @return Reference to location where problem was encountered.
      */
     public Location getLocation() { return mLocation; }
@@ -83,4 +102,13 @@ public class XMLValidationProblem
      * @since 3.0
      */
     public String getType() { return mType; }
+
+    /**
+     * Returns the validator that reported the problem if known.
+     *
+     * @return Validator that reported the problem; null if unknown or N/A.
+     *
+     * @since 3.0
+     */
+    public XMLValidator getReporter() { return mReporter; }
 }

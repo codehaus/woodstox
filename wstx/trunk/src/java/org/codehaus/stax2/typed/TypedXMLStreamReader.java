@@ -315,8 +315,7 @@ public interface TypedXMLStreamReader
      * is positioned at the corresponding END_ELEMENT event. Stated
      * differently, after the method is called for the first time,
      * the cursor will move and remain in the CHARACTERS position while there
-     * are more bytes available for reading. If an exception is thrown,
-     * the cursor will be moved to the END_ELEMENT position.
+     * are more bytes available for reading.
      * </p>
      *
      * @param value   The array in which to copy the ints.
@@ -328,6 +327,10 @@ public interface TypedXMLStreamReader
      *                be less or equal than <code>length</code>, but
      *               at least one if any ints found. If not, -1 is returned
      *   to signal end of ints to parse.
+     *
+     * @throws IllegalStateException If called on event other than
+     *   START_ELEMENT, END_ELEMENT, or CHARACTERS (which resulted from
+     *   an earlier call)
      */
     public int readElementAsIntArray(int[] value, int from, int length) throws XMLStreamException;
 
@@ -360,8 +363,7 @@ public interface TypedXMLStreamReader
      * is positioned at the corresponding END_ELEMENT event. Stated
      * differently, after the method is called for the first time,
      * the cursor will move and remain in the CHARACTERS position while there
-     * are more bytes available for reading. If an exception is thrown,
-     * the cursor will be moved to the END_ELEMENT position.
+     * are more bytes available for reading.
      * </p>
      *<p>
      * Note: passed decoder must accept at least one value, reader will
@@ -369,6 +371,10 @@ public interface TypedXMLStreamReader
      * 
      * @return Number of elements decoded, or -1 to indicate that there
      *    was no more element content tokens to decode.
+     *
+     * @throws IllegalStateException If called on event other than
+     *   START_ELEMENT, END_ELEMENT, or CHARACTERS (which resulted from
+     *   an earlier call)
      */
     public int readElementAsArray(TypedArrayDecoder tad) throws XMLStreamException;
 

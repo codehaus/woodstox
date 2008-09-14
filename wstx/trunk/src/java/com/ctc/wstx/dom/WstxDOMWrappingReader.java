@@ -94,6 +94,9 @@ public class WstxDOMWrappingReader
     protected void throwStreamException(String msg, Location loc)
         throws XMLStreamException
     {
+        if (loc == null) {
+            throw new WstxParsingException(msg);
+        }
         throw new WstxParsingException(msg, loc);
     }
 }

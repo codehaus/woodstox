@@ -22,6 +22,7 @@ import javax.xml.stream.XMLStreamException;
 
 import org.codehaus.stax2.validation.ValidationContext;
 import org.codehaus.stax2.validation.XMLValidationProblem;
+import org.codehaus.stax2.validation.XMLValidator;
 
 import com.ctc.wstx.cfg.ErrorConsts;
 
@@ -117,10 +118,10 @@ public final class DefaultAttrValue
         addUndeclaredEntity(name, loc, false);
     }
 
-    public void reportUndeclared(ValidationContext ctxt)
+    public void reportUndeclared(ValidationContext ctxt, XMLValidator dtd)
         throws XMLStreamException
     {
-        mUndeclaredEntity.reportUndeclared(ctxt);
+        mUndeclaredEntity.reportUndeclared(ctxt, dtd);
     }
 
     /*
@@ -204,13 +205,14 @@ public final class DefaultAttrValue
             mLocation = loc;
         }
 
-        public void reportUndeclared(ValidationContext ctxt)
+        public void reportUndeclared(ValidationContext ctxt, XMLValidator dtd)
             throws XMLStreamException
         {
             String msg = MessageFormat.format(ErrorConsts.ERR_DTD_UNDECLARED_ENTITY, new Object[] { (mIsPe ? "parsed" : "general"), mName });
-            ctxt.reportProblem(new XMLValidationProblem
-                               (mLocation, msg,
-                                XMLValidationProblem.SEVERITY_FATAL));
+            XMLValidationProblem prob = new XMLValidationProblem
+                (mLocation, msg, XMLValidationProblem.SEVERITY_FATAL);
+            prob.setReporter(dtd);
+            ctxt.reportProblem(prob);
         }
     }
 }

@@ -49,7 +49,10 @@ import org.codehaus.stax2.validation.XMLValidator;
 
 /**
  * This is an adapter class that presents a DOM document as if it was
- * a regular {@link XMLStreamReader}.
+ * a regular {@link XMLStreamReader}. This is mostly useful for
+ * inter-operability purposes, and should only be used when the
+ * input has to come as a DOM object and the original xml content
+ * is not available as a stream.
  *<p>
  * Note that the implementation is only to be used for use with
  * <code>javax.xml.transform.dom.DOMSource</code>. It can however be
@@ -529,7 +532,9 @@ public abstract class DOMWrappingReader
         return mCurrNode.getNodeName();
     }
 
-    // // // getLocation() defined in StreamScanner
+    public final Location getLocation() {
+        return getStartLocation();
+    }
 
     public QName getName()
     {
@@ -1121,6 +1126,59 @@ public abstract class DOMWrappingReader
 
     public int readElementAsArray(TypedArrayDecoder dec) throws XMLStreamException
     {
+        // First: are we already done?
+        if (mCurrEvent == END_ELEMENT) {
+            return -1;
+        }
+
+        /* Otherwise either we are just starting (START_ELEMENT), or
+         * have collected all the stuff into mTextBuffer.
+         */
+        if (mCurrEvent == START_ELEMENT) {
+            /* This is a bit tricky as we have to collect all the
+             * text up end tag, but can not advance to END_ELEMENT
+             * event itself (except if there is no content)
+             */
+            mTextBuffer.reset();
+            mAttrList = null; // so it will not get reused accidentally
+
+            for (Node n = mCurrNode.getFirstChild(); n != null; n = n.getNextSibling()) {
+                switch (n.getNodeType()) {
+                case Node.ELEMENT_NODE:
+                    // Illegal to have child elements...
+                    throwStreamException("Element content can not contain child START_ELEMENT when using Typed Access methods");
+                case Node.CDATA_SECTION_NODE:
+                case Node.TEXT_NODE:
+                    mTextBuffer.append(n.getNodeValue());
+                    break;
+                    
+                case Node.COMMENT_NODE:
+                case Node.PROCESSING_INSTRUCTION_NODE:
+                    break;
+                    
+                default:
+                    // Otherwise... do we care? For now, let's do
+                    throwStreamException("Unexpected DOM node type ("+n.getNodeType()+") when trying to decode Typed content");
+                }
+            }
+
+            // any content?
+            if (mTextBuffer.isEmpty()) { // nope
+                mCurrEvent = END_ELEMENT;
+                return -1;
+            }
+            /* Otherwise, need to move pointer to point to the last
+             * child node, and fake that it was a textual node
+             */
+            mCurrEvent = CHARACTERS;
+            mCurrNode = mCurrNode.getLastChild();
+            mCoalescedText = mTextBuffer.get();
+        } else {
+            if (mCurrEvent != CHARACTERS && mCurrEvent != CDATA) {
+                throw new IllegalStateException("Current event "+Stax2Util.eventTypeDesc(mCurrEvent)+" not START_ELEMENT, END_ELEMENT, CHARACTERS or CDATA");
+            }
+        }
+
         // !!! TBI
         return -1;
     }
@@ -1519,10 +1577,6 @@ public abstract class DOMWrappingReader
     }
 
     // // // and then the object-based access methods:
-
-    public final Location getLocation() {
-        return getStartLocation();
-    }
 
     public XMLStreamLocation2 getStartLocation()
     {

@@ -33,7 +33,7 @@ import org.codehaus.stax2.typed.TypedValueDecoder;
  *<p>
  * Since encoders may be recycled, instances are not thread-safe.
  *
- * @since 4.0
+ * @since 3.0
  */
 public final class ValueDecoderFactory
 {
@@ -110,9 +110,24 @@ public final class ValueDecoderFactory
     /////////////////////////////////////////////////////
     */
 
+    /**
+     * Method for constructing
+     * integer array value decoder
+     * that uses provided fixed array for storing results.
+     */
     public IntArrayDecoder getIntArrayDecoder(int[] result, int offset, int len)
     {
         return new IntArrayDecoder(result, offset, len, getIntDecoder());
+    }
+
+    /**
+     * Method for constructing
+     * integer array value decoder
+     * that automatically allocates and resizes result array as necessary.
+     */
+    public IntArrayDecoder getIntArrayDecoder()
+    {
+        return new IntArrayDecoder(getIntDecoder());
     }
 
     public LongArrayDecoder getLongArrayDecoder(long[] result, int offset, int len)
@@ -1320,6 +1335,18 @@ public final class ValueDecoderFactory
     abstract static class BaseArrayDecoder
         extends TypedArrayDecoder
     {
+        /**
+         * Let's use some modest array size for allocating initial
+         * result buffer
+         */
+        protected final static int INITIAL_RESULT_BUFFER_SIZE = 40;
+        
+        /**
+         * When expanding 'small' result buffers, we will expand
+         * size by bigger factor than for larger ones.
+         */
+        protected final static int SMALL_RESULT_BUFFER_SIZE = 4000;
+
         protected final int mStart;
 
         protected final int mMaxCount;
@@ -1348,6 +1375,10 @@ public final class ValueDecoderFactory
 
         final IntDecoder mDecoder;
 
+        /**
+         * Constructor used for constructing decoders with fixed pre-allocated
+         * result buffer.
+         */
         public IntArrayDecoder(int[] result, int start, int maxCount,
                                IntDecoder intDecoder)
         {
@@ -1356,9 +1387,21 @@ public final class ValueDecoderFactory
             mDecoder = intDecoder;
         }
 
+        /**
+         * Constructor used for constructing decoders with automatically
+         * adjusting result buffer
+         */
+        public IntArrayDecoder(IntDecoder intDecoder)
+        {
+            super(0, Integer.MAX_VALUE);
+            mResult = new int[INITIAL_RESULT_BUFFER_SIZE];
+            mDecoder = intDecoder;
+        }
+
         public boolean decodeValue(String input) throws IllegalArgumentException
         {
             mDecoder.decode(input);
+            // !!! TBI: automatic resize
             mResult[mCount++] = mDecoder.getValue();
             return (mCount >= mMaxCount);
         }
@@ -1366,6 +1409,7 @@ public final class ValueDecoderFactory
         public boolean decodeValue(char[] buffer, int start, int end) throws IllegalArgumentException
         {
             mDecoder.decode(buffer, start, end);
+            // !!! TBI: automatic resize
             mResult[mCount++] = mDecoder.getValue();
             return (mCount >= mMaxCount);
         }

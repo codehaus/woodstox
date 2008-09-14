@@ -165,7 +165,7 @@ public abstract class ReaderArrayTestBase
                     sr.readElementAsDoubleArray(new double[3], 0, 1);
                     fail("Expected an exception when trying to read at START_DOCUMENT");
                 }
-            } catch (XMLStreamException xse) { }
+            } catch (IllegalStateException ise) { }
             
             sr = getReader("<root><!-- comment --></root>");
             sr.next();
@@ -186,7 +186,7 @@ public abstract class ReaderArrayTestBase
                     sr.readElementAsDoubleArray(new double[3], 0, 1);
                     fail("Expected an exception when trying to read at COMMENT");
                 }
-            } catch (XMLStreamException xse) { }
+            } catch (IllegalStateException ise) { }
         }
     }
 

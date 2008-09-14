@@ -336,7 +336,7 @@ public class TypedStreamReader
                  * is probably ok (can add more meaningful specific
                  * error, if not)
                  */
-                throwParseError(ErrorConsts.ERR_STATE_NOT_ELEM_OR_TEXT, tokenTypeDesc(mCurrToken), null);
+                throwNotTextualOrElem(mCurrToken);
             }
         }
 

@@ -380,7 +380,7 @@ public abstract class DTDValidatorBase
                 String prefix = (String) me.getKey();
                 if (!nsStack.isPrefixLocallyDeclared(prefix)) {
                     DTDAttribute attr = (DTDAttribute) me.getValue();
-                    String uri = attr.getDefaultValue(mContext);
+                    String uri = attr.getDefaultValue(mContext, this);
                     nsStack.addNsBinding(prefix, uri);
                 }
             }
@@ -474,7 +474,9 @@ public abstract class DTDValidatorBase
         if (loc == null) {
             loc = getLocation();
         }
-        mContext.reportProblem(new XMLValidationProblem(loc, msg, XMLValidationProblem.SEVERITY_ERROR));
+        XMLValidationProblem prob = new XMLValidationProblem(loc, msg, XMLValidationProblem.SEVERITY_ERROR);
+        prob.setReporter(this);
+        mContext.reportProblem(prob);
     }
 
     protected void doAddDefaultValue(DTDAttribute attr)
@@ -483,7 +485,7 @@ public abstract class DTDValidatorBase
         /* If we get here, we should have a non-null (possibly empty) default
          * value:
          */
-        String def = attr.getDefaultValue(mContext);
+        String def = attr.getDefaultValue(mContext, this);
         if (def == null) {
             ExceptionUtil.throwInternal("null default attribute value");
         }
@@ -499,7 +501,7 @@ public abstract class DTDValidatorBase
                  * throw a validity exception; even though it really
                  * is more a ns-well-formedness error...
                  */
-                reportValidationProblem("Unbound namespace prefix '"+prefix+"' for default attribute "+attr);
+                reportValidationProblem("Unbound namespace prefix \"{0}\" for default attribute \"{1}\"", prefix, attr);
                 // May continue if we don't throw errors, just collect them to a list
                 uri = "";
             }

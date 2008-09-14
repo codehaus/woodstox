@@ -34,6 +34,10 @@ public final class DataUtil
 
     public static Integer Integer(int i)
     {
+        /* !!! 13-Sep-2008, TSa: JDK 1.5 can use Integer.valueOf(int)
+         *   which does the same. When upgrading baseline, can get rid
+         *   of this method.
+         */
         if (i < 0 || i >= INTS.length) {
             return new Integer(i);
         }

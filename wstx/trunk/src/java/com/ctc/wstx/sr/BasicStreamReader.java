@@ -5412,6 +5412,11 @@ public abstract class BasicStreamReader
                                         +tokenTypeDesc(mCurrToken));
     }
 
+    protected void throwNotTextualOrElem(int type)
+    {
+        throw new IllegalStateException(MessageFormat.format(ErrorConsts.ERR_STATE_NOT_ELEM_OR_TEXT, new Object[] { tokenTypeDesc(type) }));
+    }
+
     private void throwNotWS(char c)
         throws WstxException
     {
@@ -5436,7 +5441,7 @@ public abstract class BasicStreamReader
     protected XMLStreamException _constructUnexpectedInTyped(int nextToken)
     {
         if (nextToken == START_ELEMENT) {
-            return _constructTypeException("Element content can not contain child START_ELEMENT");
+            return _constructTypeException("Element content can not contain child START_ELEMENT when using Typed Access methods");
         }
         return _constructTypeException("Expected a text token, got "+tokenTypeDesc(nextToken));
     }

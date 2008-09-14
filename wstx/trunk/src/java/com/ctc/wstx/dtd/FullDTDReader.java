@@ -3469,6 +3469,9 @@ public class FullDTDReader
         throws XMLStreamException
     {
         if (rep != null) {
+            /* Note: since the problem occurs at DTD (schema) parsing,
+             * not during validation, can not set reporter.
+             */
             XMLValidationProblem prob = new XMLValidationProblem
                 (loc, msg, XMLValidationProblem.SEVERITY_WARNING, probType);
             rep.report(msg, probType, prob, loc);

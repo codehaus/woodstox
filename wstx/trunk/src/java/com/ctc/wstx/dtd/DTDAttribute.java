@@ -20,6 +20,7 @@ import java.util.Map;
 import javax.xml.stream.XMLStreamException;
 
 import org.codehaus.stax2.validation.ValidationContext;
+import org.codehaus.stax2.validation.XMLValidator;
 
 import com.ctc.wstx.ent.EntityDecl;
 import com.ctc.wstx.io.WstxInputData;
@@ -135,12 +136,12 @@ public abstract class DTDAttribute
         return mName.toString();
     }
 
-    public final String getDefaultValue(ValidationContext ctxt)
+    public final String getDefaultValue(ValidationContext ctxt, XMLValidator dtd)
         throws XMLStreamException
     {
         String val = mDefValue.getValueIfOk();
         if (val == null) {
-            mDefValue.reportUndeclared(ctxt);
+            mDefValue.reportUndeclared(ctxt, dtd);
             /* should never get here, but just to be safe, let's use
              * the 'raw' value (one that does not have undeclared entities
              * included, most likely)

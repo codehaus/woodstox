@@ -180,7 +180,7 @@ public final class GenericMsvValidator
      * signals that a validation problem is to be reported.
      * This is obviously messy, but has to do for now.
      */
-	public void onID(Datatype datatype, StringToken idToken)
+    public void onID(Datatype datatype, StringToken idToken)
         throws IllegalArgumentException
     {
         if (mIdDefs == null) {
@@ -198,6 +198,7 @@ public final class GenericMsvValidator
             // We can detect dups by checking if Location is the one we passed:
             if (eid.getLocation() != loc) {
                 mProblem = new XMLValidationProblem(loc, "Duplicate id '"+idStr+"', first declared at "+eid.getLocation());
+                mProblem.setReporter(this);
             }
         } else if (idType == Datatype.ID_TYPE_IDREF) {
             String idStr = idToken.literal.trim();
@@ -513,7 +514,8 @@ public final class GenericMsvValidator
     private void reportError(String msg, Location loc)
         throws XMLStreamException
     {
-        mContext.reportProblem(new XMLValidationProblem
-                               (loc, msg, XMLValidationProblem.SEVERITY_ERROR));
+        XMLValidationProblem prob = new XMLValidationProblem(loc, msg, XMLValidationProblem.SEVERITY_ERROR);
+        prob.setReporter(this);
+        mContext.reportProblem(prob);
     }
 }
