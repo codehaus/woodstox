@@ -291,7 +291,11 @@ public abstract class ReaderArrayTestBase
             fail("Expected number of entries "+expLen+", got "+actLen);
         }
         for (int i = 0; i < expLen; ++i) {
-            assertEquals(Array.get(expArray, i), Array.get(actArray, i));
+            Object e1 = Array.get(expArray, i);
+            Object e2 = Array.get(actArray, i);
+            if (!e1.equals(e2)) {
+                fail("Elements at #"+i+" (len "+expLen+") differ: expected "+e1+", got "+e2);
+            }
         }
     }
 

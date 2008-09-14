@@ -473,12 +473,15 @@ public final class TextBuffer
                 }
                 // Then let's figure out non-space char (token)
                 start = ptr;
-                while (++ptr < end && buf[ptr] > INT_SPACE) {
-                    ;
+                ++ptr;
+                while (ptr < end && buf[ptr] > INT_SPACE) {
+                    ++ptr;
                 }
                 ++count;
+                int tokenEnd = ptr;
+                ++ptr; // to skip trailing space (or, beyond end)
                 // And there we have it
-                if (tad.decodeValue(buf, start, ptr)) {
+                if (tad.decodeValue(buf, start, tokenEnd)) {
                     break;
                 }
             }

@@ -77,6 +77,8 @@ public abstract class DOMWrappingReader
                NamespaceContext,
                XMLStreamConstants
 {
+    final static int INT_SPACE = 0x0020;
+
     // // // Bit masks used for quick type comparisons
 
     final private static int MASK_GET_TEXT = 
@@ -725,7 +727,7 @@ public abstract class DOMWrappingReader
                 /* !!! If xml 1.1 was to be handled, should check for
                  *   LSEP and NEL too?
                  */
-                if (text.charAt(i) > 0x0020) {
+                if (text.charAt(i) > INT_SPACE) {
                     return false;
                 }
             }
@@ -1124,63 +1126,123 @@ public abstract class DOMWrappingReader
         return readElementAsArray(_decoderFactory().getDoubleArrayDecoder(value, from, length));
     }
 
-    public int readElementAsArray(TypedArrayDecoder dec) throws XMLStreamException
+    public int readElementAsArray(TypedArrayDecoder tad) throws XMLStreamException
     {
-        // First: are we already done?
-        if (mCurrEvent == END_ELEMENT) {
-            return -1;
-        }
-
         /* Otherwise either we are just starting (START_ELEMENT), or
          * have collected all the stuff into mTextBuffer.
          */
         if (mCurrEvent == START_ELEMENT) {
-            /* This is a bit tricky as we have to collect all the
-             * text up end tag, but can not advance to END_ELEMENT
-             * event itself (except if there is no content)
-             */
-            mTextBuffer.reset();
-            mAttrList = null; // so it will not get reused accidentally
-
-            for (Node n = mCurrNode.getFirstChild(); n != null; n = n.getNextSibling()) {
-                switch (n.getNodeType()) {
-                case Node.ELEMENT_NODE:
-                    // Illegal to have child elements...
-                    throwStreamException("Element content can not contain child START_ELEMENT when using Typed Access methods");
-                case Node.CDATA_SECTION_NODE:
-                case Node.TEXT_NODE:
-                    mTextBuffer.append(n.getNodeValue());
-                    break;
-                    
-                case Node.COMMENT_NODE:
-                case Node.PROCESSING_INSTRUCTION_NODE:
-                    break;
-                    
-                default:
-                    // Otherwise... do we care? For now, let's do
-                    throwStreamException("Unexpected DOM node type ("+n.getNodeType()+") when trying to decode Typed content");
-                }
-            }
-
-            // any content?
-            if (mTextBuffer.isEmpty()) { // nope
+            // One special case tho: no children:
+            Node fc  = mCurrNode.getFirstChild();
+            if (fc == null) {
                 mCurrEvent = END_ELEMENT;
                 return -1;
             }
-            /* Otherwise, need to move pointer to point to the last
-             * child node, and fake that it was a textual node
-             */
+            mCoalescedText = coalesceTypedText(fc);
             mCurrEvent = CHARACTERS;
             mCurrNode = mCurrNode.getLastChild();
-            mCoalescedText = mTextBuffer.get();
         } else {
             if (mCurrEvent != CHARACTERS && mCurrEvent != CDATA) {
+                // Maybe we are already done?
+                if (mCurrEvent == END_ELEMENT) {
+                    return -1;
+                }
                 throw new IllegalStateException("Current event "+Stax2Util.eventTypeDesc(mCurrEvent)+" not START_ELEMENT, END_ELEMENT, CHARACTERS or CDATA");
             }
+            /* One more thing: do we have the data? It is possible
+             * that caller has advanced to this text node by itself.
+             * We could handle this mostly ok; but that is not a supported
+             * use case as per Typed Access API definition (as it can not
+             * be reliably supported by all implementations), so:
+             */
+            if (mCoalescedText == null) {
+                throw new IllegalStateException("First call to readElementAsArray() must be for a START_ELEMENT, not directly for a textual event");
+            }
+        }
+        /* Otherwise, need to move pointer to point to the last
+         * child node, and fake that it was a textual node
+         */
+        // Ok, so what do we have left?
+        String input = mCoalescedText;
+        final int end = input.length();
+        int ptr = 0;
+        int count = 0;
+        String value = null;
+
+        try {
+            decode_loop:
+            while (ptr < end) {
+                // First, any space to skip?
+                while (input.charAt(ptr) <= INT_SPACE) {
+                    if (++ptr >= end) {
+                        break decode_loop;
+                    }
+                }
+                // Then let's figure out non-space char (token)
+                int start = ptr;
+                ++ptr;
+                while (ptr < end && input.charAt(ptr) > INT_SPACE) {
+                    ++ptr;
+                }
+                ++count;
+                // And there we have it
+                value = input.substring(start, ptr);
+                // Plus, can skip trailing space (or at end, just beyond it)
+                ++ptr;
+                if (tad.decodeValue(value)) {
+                    break;
+                }
+            }
+        } catch (IllegalArgumentException iae) {
+            // Need to convert to a checked stream exception
+            /* Hmmh. This is not an accurate location... but it's
+             * about the best we can do
+             */
+            Location loc = getLocation();
+            throw new TypedXMLStreamException(value, iae.getMessage(), loc, iae);
+        } finally {
+            int len = end-ptr;
+            mCoalescedText = (len < 1) ? "" : mCoalescedText.substring(ptr);
         }
 
-        // !!! TBI
-        return -1;
+        if (count < 1) { // end
+            mCurrEvent = END_ELEMENT;
+            mCurrNode = mCurrNode.getParentNode();
+            return -1;
+        }
+        return count;
+    }
+
+    private String coalesceTypedText(Node firstNode)
+        throws XMLStreamException
+    {
+        /* This is a bit tricky as we have to collect all the
+         * text up end tag, but can not advance to END_ELEMENT
+         * event itself (except if there is no content)
+         */
+        mTextBuffer.reset();
+        mAttrList = null; // so it will not get reused accidentally
+        
+        for (Node n = firstNode; n != null; n = n.getNextSibling()) {
+            switch (n.getNodeType()) {
+            case Node.ELEMENT_NODE:
+                // Illegal to have child elements...
+                throwStreamException("Element content can not contain child START_ELEMENT when using Typed Access methods");
+            case Node.CDATA_SECTION_NODE:
+            case Node.TEXT_NODE:
+                mTextBuffer.append(n.getNodeValue());
+                break;
+                
+            case Node.COMMENT_NODE:
+            case Node.PROCESSING_INSTRUCTION_NODE:
+                break;
+                
+            default:
+                // Otherwise... do we care? For now, let's do
+                throwStreamException("Unexpected DOM node type ("+n.getNodeType()+") when trying to decode Typed content");
+            }
+        }
+        return mTextBuffer.get();
     }
 
     /*
