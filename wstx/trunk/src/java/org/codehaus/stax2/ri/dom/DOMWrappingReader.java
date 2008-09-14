@@ -1202,7 +1202,7 @@ public abstract class DOMWrappingReader
             throw new TypedXMLStreamException(value, iae.getMessage(), loc, iae);
         } finally {
             int len = end-ptr;
-            mCoalescedText = (len < 1) ? "" : mCoalescedText.substring(ptr);
+            mCoalescedText = (len < 1) ? "" : input.substring(ptr);
         }
 
         if (count < 1) { // end

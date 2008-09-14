@@ -292,15 +292,7 @@ public class TypedStreamReader
     public final int readElementAsArray(TypedArrayDecoder dec)
         throws XMLStreamException
     {
-        // First: check the state.
-        if (mCurrToken == END_ELEMENT) {
-            // END_ELEMENT is ok: nothing more to decode
-            return -1;
-        }
-
-        /* Otherwise either we are just starting (START_ELEMENT), or
-         * have collected all the stuff into mTextBuffer.
-         */
+        // Are we just starting (START_ELEMENT)?
         if (mCurrToken == START_ELEMENT) {
             // Empty? Not common, but can short-cut handling if occurs
             if (mStEmptyElem) {
@@ -332,6 +324,11 @@ public class TypedStreamReader
             }
         } else { // not START_ELEMENT, must be textual
             if (mCurrToken != CHARACTERS && mCurrToken != CDATA) {
+                // Maybe we are already done? That'd be ok, nothing more to decode
+                if (mCurrToken == END_ELEMENT) {
+                    return -1;
+                }
+
                 /* Will occur if entities are unexpanded, too... which
                  * is probably ok (can add more meaningful specific
                  * error, if not)

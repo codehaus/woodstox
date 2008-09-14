@@ -43,6 +43,8 @@ public class Stax2ReaderAdapter
                ,DTDInfo
                ,LocationInfo
 {
+    final static int INT_SPACE = 0x0020;
+
     /**
      * Factory used for constructing decoders we need for typed access
      */
@@ -52,6 +54,13 @@ public class Stax2ReaderAdapter
      * Number of open (start) elements currently.
      */
     protected int mDepth = 0;
+
+    /**
+     * Content temporarily cached to be used for decoding typed content
+     * that is in chunked mode (int/long/float/double arrays, base64
+     * encoded binary data)
+     */
+    protected String mTypedContent;
 
     /*
     ////////////////////////////////////////////////////
@@ -88,6 +97,14 @@ public class Stax2ReaderAdapter
     public int next()
         throws XMLStreamException
     {
+        /* First special check: are we in the middle of chunked
+         * decode operation? If so, we'll just end it...
+         */
+        if (mTypedContent != null) {
+            mTypedContent = null;
+            return XMLStreamConstants.END_ELEMENT;
+        }
+
         int type = super.next();
         if (type == XMLStreamConstants.START_ELEMENT) {
             ++mDepth;
@@ -194,10 +211,67 @@ public class Stax2ReaderAdapter
         return readElementAsArray(_decoderFactory().getDoubleArrayDecoder(value, from, length));
     }
 
-    public int readElementAsArray(TypedArrayDecoder dec) throws XMLStreamException
+    public int readElementAsArray(TypedArrayDecoder tad) throws XMLStreamException
     {
-        // !!! TBI
-        return -1;
+        // Are we started?
+        if (mTypedContent == null) { // nope, not yet (or not any more?)
+            int type = getEventType();
+            if (type == END_ELEMENT) { // already done
+                return -1;
+            }
+            if (type != START_ELEMENT) {
+                throw new IllegalStateException("First call to readElementAsArray() must be for a START_ELEMENT");
+            }
+            mTypedContent = getElementText();
+            /* This will move current event to END_ELEMENT, too...
+             * But should we mask it (and claim it's, say, CHARACTERS)
+             * or expose as is? For now, let's do latter, simplest
+             */
+        }
+        // Ok, so what do we have left?
+        String input = mTypedContent;
+        final int end = input.length();
+        int ptr = 0;
+        int count = 0;
+        String value = null;
+
+        try {
+            decode_loop:
+            while (ptr < end) {
+                // First, any space to skip?
+                while (input.charAt(ptr) <= INT_SPACE) {
+                    if (++ptr >= end) {
+                        break decode_loop;
+                    }
+                }
+                // Then let's figure out non-space char (token)
+                int start = ptr;
+                ++ptr;
+                while (ptr < end && input.charAt(ptr) > INT_SPACE) {
+                    ++ptr;
+                }
+                ++count;
+                // And there we have it
+                value = input.substring(start, ptr);
+                // Plus, can skip trailing space (or at end, just beyond it)
+                ++ptr;
+                if (tad.decodeValue(value)) {
+                    break;
+                }
+            }
+        } catch (IllegalArgumentException iae) {
+            // Need to convert to a checked stream exception
+            /* Hmmh. This is not an accurate location... but it's
+             * about the best we can do
+             */
+            Location loc = getLocation();
+            throw new TypedXMLStreamException(value, iae.getMessage(), loc, iae);
+        } finally {
+            int len = end-ptr;
+            // null works well as the marker for complete processing
+            mTypedContent = (len < 1) ? null : input.substring(ptr);
+        }
+        return (count < 1) ? -1 : count;
     }
 
     /*
@@ -285,7 +359,6 @@ public class Stax2ReaderAdapter
 
     public void getAttributeAsArray(TypedArrayDecoder tad) throws XMLStreamException
     {
-        // !!! TBI
     }
 
     /*
