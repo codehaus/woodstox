@@ -13,6 +13,7 @@ import org.codehaus.stax2.*;
 import org.codehaus.stax2.validation.*;
 import org.codehaus.stax2.typed.TypedArrayDecoder;
 import org.codehaus.stax2.typed.TypedValueDecoder;
+import org.codehaus.stax2.util.StreamReader2Delegate;
 
 /**
  * Simple straight-forward implementation of a filtering stream reader,
@@ -20,15 +21,14 @@ import org.codehaus.stax2.typed.TypedValueDecoder;
  * ({@link XMLStreamReader2}).
  */
 public class Stax2FilteredStreamReader
-    implements XMLStreamReader2,
-               XMLStreamConstants
+    extends StreamReader2Delegate
+    implements XMLStreamConstants
 {
-    final XMLStreamReader2 mReader;
     final StreamFilter mFilter;
 
     public Stax2FilteredStreamReader(XMLStreamReader r, StreamFilter f)
     {
-        mReader = Stax2ReaderAdapter.wrapIfNecessary(r);
+        super(Stax2ReaderAdapter.wrapIfNecessary(r));
         mFilter = f;
     }
 
@@ -49,7 +49,7 @@ public class Stax2FilteredStreamReader
     {
         int type;
         do {
-            type = mReader.next();
+            type = mDelegate2.next();
             if (mFilter.accept(this)) {
                 break;
             }
@@ -64,7 +64,7 @@ public class Stax2FilteredStreamReader
         int type;
         // Can be implemented very much like next()
         while (true) {
-            type = mReader.nextTag();
+            type = mDelegate2.nextTag();
             if (mFilter.accept(this)) {
                 break;
             }
@@ -78,6 +78,7 @@ public class Stax2FilteredStreamReader
     /////////////////////////////////////////////////
      */
 
+    /*
     public String getCharacterEncodingScheme() {
         return mReader.getCharacterEncodingScheme();
     }
@@ -263,11 +264,9 @@ public class Stax2FilteredStreamReader
         mReader.close();
     }
 
-    /*
     /////////////////////////////////////////////////
     // TypedXMLStreamReader2, element
     /////////////////////////////////////////////////
-     */
 
     public boolean getElementAsBoolean() throws XMLStreamException
     {
@@ -339,11 +338,9 @@ public class Stax2FilteredStreamReader
         return mReader.readElementAsArray(dec);
     }
     
-    /*
     /////////////////////////////////////////////////
     // TypedXMLStreamReader2, attribute
     /////////////////////////////////////////////////
-     */
 
     public int getAttributeIndex(String namespaceURI, String localName)
     {
@@ -401,16 +398,14 @@ public class Stax2FilteredStreamReader
         return null;
     }
 
-    public void getAttributeAsArray(TypedArrayDecoder tad) throws XMLStreamException
+    public int getAttributeAsArray(int index, TypedArrayDecoder tad) throws XMLStreamException
     {
         // !!! TBI
     }
 
-    /*
     /////////////////////////////////////////////////
     // XMLStreamReader2 impl
     /////////////////////////////////////////////////
-     */
 
     public Object getFeature(String name) {
         return mReader.getFeature(name);
@@ -470,11 +465,9 @@ public class Stax2FilteredStreamReader
         mReader.closeCompletely();
     }
 
-    /*
     /////////////////////////////////////////////////
     // XMLStreamReader2 + Validatable
     /////////////////////////////////////////////////
-     */
 
     public XMLValidator validateAgainst(XMLValidationSchema schema)
         throws XMLStreamException
@@ -498,5 +491,6 @@ public class Stax2FilteredStreamReader
     {
         return mReader.setValidationProblemHandler(h);
     }
+    */
 }
 

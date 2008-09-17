@@ -1,6 +1,6 @@
 Version: 3.9.3
 
-Release date: xx-Jul-2008
+Release date: xx-Sep-2008
 
 Description:
   Third pre-4.0 version. Bug-fixes, as well as partial implementation
@@ -13,73 +13,42 @@ Description:
     (requested by Sylvain L)
   * [WSTX-154] XMLStreamReader, XMLStreamWriter implementations were
     quietly discarding XMLStreamException thrown by XMLReporter.
-  * [WSTX-158] XMLStreamReader.isWhiteSpace() returns potentially incorrect
-    value when text segments starts with an entity
-    (reported by Daniel R)
-  * [WSTX-162] Name/namespace-URI interning not enabled for DOM-backed
-    readers, getProperty() claims they are
-    (reported by Pawel L)
-  * [WSTX-164] Some XMLStreamReader.getAttributeXxx() methods were not
-    properly checking validity of passed-in index argument.
 
   New functionality:
 
-  * [WSTX-151] Generic typed access methods (getElementAs(), getAttributeAs()
+  * [WSTX-150] Add stream reader AND writer delegates for Stax2.
+  * [WSTX-151] Generic typed access methods (getElementAs(), getAttributeAs())
     added to TypedXMLStreamReader.
   * More Typed Access API support: BigDecimal, BigInteger, QName
+  * Implementation of array-based Typed Access API methods, for types
+    supported (int, long, float, double, "generic")
 
 == History: ==
 
+3.9.0 [23-Nov-2007]
+3.9.1 [16-Mar-2008]
 3.9.2 [06-May-2008]
 
-  Problems fixed:
+  New functionality (major):
 
-  * [WSTX-145] DOMWrappingReader was not implementing coalescing mode.
-    (reported by David C)
-
-  New features:
-
-  * More complete Stax2 API ref. impl, adding generic XMLEventReader
-    implementation.
-  * Partial/preliminary Stax2 Typed Access API, implementation (including
-    configurable value encoder): supports booleans, ints, longs, for
-    element and attribute content.
-  * Added support for property:
-    "http://java.sun.com/xml/stream/properties/implementation-name"
-    it is now recognized as a synonym of XMLStreamProperties2.XSP_IMPLEMENTATION_NAME
-
-  Clean-up:
-
-  * Changing behavior of XMLStreamReader.getProperty() slightly (but within
-    constraints of Stax 1.0 API specification): requesting value of
-    an unknown property will now return null, instead of throwing an
-    exception.
-
-3.9.1 [16-Mar-2008]
-
-  Problems fixed:
-
-  * [WSTX-140] Default settings for WstxInputFactory.IS_COALESCING
-    changed to Boolean.FALSE as per Stax specs; was defaulting to
-    true by accident
-  * [WSTX-139] DOMWrappingWriter now implements repairing mode.
-
-  New features:
-
+  * [WSTX-137] Add W3C Schema validation support using MSV.
   * Reference implementation of Stax2 API now included under
     org.codehaus.stax2.ri (implements classes that can be implemented
     in generic way, making use of existing Stax 1.0 implementation
     or other Stax2 classes)
+  * Partial/preliminary Stax2 Typed Access API, implementation (including
+    configurable value encoder): supports booleans, ints, longs, for
+    element and attribute content.
+
+  New functionality (minor):
+
+  * [WSTX-125] Adding of space between empty element, and closing
+    "/>" is now optional, configurable using
+    'WstxOutputProperties.P_ADD_SPACE_AFTER_EMPTY_ELEM'.
   * Converted Woodstox-specific property WstxInputProperties.P_LAZY_PARSING
     to XMLInputFactory2.P_LAZY_PARSING (stax2 API).
-
-  Clean-up:
-
-  * [WSTX-127] Stax API specification compatibility improvements:
-    * Missing prefixes now reported as "", not nulls.
-    * "No namespace" now reported as "", not null.
-
-3.9.0 [23-Nov-2007]
+  * More complete Stax2 API ref. impl, adding generic XMLEventReader
+    implementation.
 
   Problems fixed:
 
@@ -87,13 +56,10 @@ Description:
     maximize interoperability, and to follow "principle of least
     surprise" (i.e. avoid confusion arising from the stream writer
     outsmarting developer)
-
-  New features:
-
-  * [WSTX-125] Adding of space between empty element, and closing
-    "/>" is now optional, configurable using
-    'WstxOutputProperties.P_ADD_SPACE_AFTER_EMPTY_ELEM'.
-  * [WSTX-137] Add W3C Schema validation support using MSV.
+  * [WSTX-139] DOMWrappingWriter now implements repairing mode.
+  * [WSTX-140] Default settings for WstxInputFactory.IS_COALESCING
+    changed to Boolean.FALSE as per Stax specs; was defaulting to
+    true by accident
 
   Clean-up:
 
@@ -105,6 +71,32 @@ Description:
   * [WSTX-105] Transformed the only existing input-side feature
     (FEAT_DTD_OVERRIDE) into matching input-side property
     (XMLInputFactoty2.P_OVERRIDE_DTD).
+  * [WSTX-127] Stax API specification compatibility improvements:
+    * Missing prefixes now reported as "", not nulls.
+    * "No namespace" now reported as "", not null.
+  * Changing behavior of XMLStreamReader.getProperty() slightly (but within
+    constraints of Stax 1.0 API specification): requesting value of
+    an unknown property will now return null, instead of throwing an
+    exception.
+
+3.2.7 [02-Sep-2008]
+
+  Problems fixed:
+
+  * [WSTX-145] DOMWrappingReader was not implementing coalescing mode.
+    (reported by David C)
+  * [WSTX-156] Pass XMLValidationProblem as 'relatedInformation' object
+    in call XMLReporter.report(...)
+  * [WSTX-158] XMLStreamReader.isWhiteSpace() returns potentially incorrect
+    value when text segments starts with an entity
+    (reported by Daniel R)
+  * [WSTX-162] Name/namespace-URI interning not enabled for DOM-backed
+    readers, getProperty() claims they are
+    (reported by Pawel L)
+  * Stax2ReaderAdapter.getDepth() was off by one (too low) for
+    END_ELEMENT (causing problems for StaxMate)
+  * [WSTX-164] Some XMLStreamReader.getAttributeXxx() methods were not
+    properly checking validity of passed-in index argument.
 
 3.2.6 [01-Jun-2008]
 
@@ -169,7 +161,7 @@ Description:
   * [WSTX-104] Added missing support for outputting to a DOM tree (via
     XMLOutputFactory.createXMLStreamWriter(DOMSource)).
 
-  New features:
+  Newfunctionality:
 
   * [WSTX-122] Adding support for EBCDIC encoding(s), using a
     simple bootstrapper to process xml declaration, then use
@@ -204,7 +196,7 @@ Description:
     false collisions
     (reported by Linus E)
 
-  New features:
+  Newfunctionality:
 
   * [WSTX-112] Added access to underlying output stream/writer, via
     XMLStreamReader.getProperty(). Properties added are
@@ -252,7 +244,7 @@ Description:
   * [WSTX-93] System id part of Location reported for expanded external
     entities was not a valid (resolved) URI, now is.
 
-  New features:
+  Newfunctionality:
 
   * [WSTX-33] Woodstox now implements SAX2 interface natively. So, it
     is fair to say that Woodstox is now StAX/SAX implementation.
@@ -280,7 +272,7 @@ Description:
     was found: now will try to honor prefix even at expense of reusing
     existing bindings.
 
-  New features:
+  Newfunctionality:
 
   * [WSTX-22] Basic xml:id (typing) support added. Will only validate
     uniqueness of xml:id attribute values in DTD-validating mode, for now.
@@ -366,7 +358,7 @@ Description:
     OutputStreamWriter was dead slow for almost all use cases).
     Also, added simple buffer recycling, similar to reader side.
 
-  New features:
+  Newfunctionality:
 
   * [WSTX-25]: Added Stax2 interface ValidationProblemHandler, and associated
     methods to XMLStreamReader2 and XMLStreamWriter2: this allows for
@@ -385,7 +377,7 @@ Description:
   * Minor improvements to UTF-8 decoding speed (decoding part maybe 5%
     faster).
 
-  New features:
+  Newfunctionality:
 
   * javax.xml.transform.dom.DOMSource can now be used for constructing
     stream and event readers, i.e. it is possible to traverse DOM
@@ -610,3 +602,6 @@ Description:
     properly for elements, only for attributes.
   * [WSTX-27]: Attribute #FIXED default value was not added (just checked
     for explicit attributes), now it is used properly.
+
+(changes for versions 1.0.x and before not included)
+

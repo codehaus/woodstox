@@ -456,13 +456,44 @@ public class TypedStreamReader
 
     public int[] getAttributeAsIntArray(int index) throws XMLStreamException
     {
-        // !!! TBI
-        return null;
+        ValueDecoderFactory.IntArrayDecoder dec = _decoderFactory().getIntArrayDecoder();
+        getAttributeAsArray(index, dec);
+        return dec.getValues();
     }
 
-    public void getAttributeAsArray(TypedArrayDecoder tad) throws XMLStreamException
+    public long[] getAttributeAsLongArray(int index) throws XMLStreamException
     {
-        // !!! TBI
+        ValueDecoderFactory.LongArrayDecoder dec = _decoderFactory().getLongArrayDecoder();
+        getAttributeAsArray(index, dec);
+        return dec.getValues();
+    }
+
+    public float[] getAttributeAsFloatArray(int index) throws XMLStreamException
+    {
+        ValueDecoderFactory.FloatArrayDecoder dec = _decoderFactory().getFloatArrayDecoder();
+        getAttributeAsArray(index, dec);
+        return dec.getValues();
+    }
+
+    public double[] getAttributeAsDoubleArray(int index) throws XMLStreamException
+    {
+        ValueDecoderFactory.DoubleArrayDecoder dec = _decoderFactory().getDoubleArrayDecoder();
+        getAttributeAsArray(index, dec);
+        return dec.getValues();
+    }
+
+    /**
+     * Method that allows reading contents of an attribute as an array
+     * of whitespace-separate tokens, decoded using specified decoder.
+     *
+     * @return Number of tokens decoded, 0 if none found
+     */
+    public int getAttributeAsArray(int index, TypedArrayDecoder tad) throws XMLStreamException
+    {
+        if (mCurrToken != START_ELEMENT) {
+            throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
+        }
+        return mAttrCollector.decodeValues(index, tad, this);
     }
 
     /*

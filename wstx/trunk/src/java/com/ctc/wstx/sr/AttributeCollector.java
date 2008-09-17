@@ -19,11 +19,15 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
+import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
 
+import org.codehaus.stax2.ri.typed.ValueDecoderFactory;
+import org.codehaus.stax2.typed.TypedArrayDecoder;
 import org.codehaus.stax2.typed.TypedValueDecoder;
+import org.codehaus.stax2.typed.TypedXMLStreamException;
 
 import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.sw.XmlWriter;
@@ -40,6 +44,8 @@ import com.ctc.wstx.util.TextBuilder;
  */
 public abstract class AttributeCollector
 {
+    final static int INT_SPACE = 0x0020;
+
     /**
      * Threshold value that indicates minimum length for lists instances
      * that need a Map structure, for fast attribute access by fully-qualified
@@ -258,6 +264,11 @@ public abstract class AttributeCollector
     //////////////////////////////////////////////////////
      */
 
+    /**
+     * Method called to decode the whole attribute value as a single
+     * typed value.
+     * Decoding is done using the decoder provided.
+     */
     public final void decodeValue(int index, TypedValueDecoder dec)
         throws IllegalArgumentException
     {
@@ -274,6 +285,133 @@ public abstract class AttributeCollector
         dec.decode(mValueBuffer.getCharBuffer(),
                    mValueBuffer.getOffset(index),
                    mValueBuffer.getOffset(index+1));
+    }
+
+    /**
+     * Method called to decode the attribute value that consists of
+     * zero or more space-separated tokens.
+     * Decoding is done using the decoder provided.
+     * @return Number of tokens decoded
+     */
+    public final int decodeValues(int index, TypedArrayDecoder tad,
+                                   InputProblemReporter rep)
+        throws XMLStreamException
+    {
+        if (index < 0 || index >= mAttrCount) {
+            throwIndex(index);
+        }
+        if (mAttrValues != null) {
+            String value = mAttrValues[index];
+            if (value != null) {
+                return decodeValues(tad, rep, value);
+            }
+        }
+        return decodeValues(tad, rep,
+                            mValueBuffer.getCharBuffer(),
+                            mValueBuffer.getOffset(index),
+                            mValueBuffer.getOffset(index+1));
+    }
+
+    private final int decodeValues(TypedArrayDecoder tad,
+                                    InputProblemReporter rep,
+                                    final char[] buf, int ptr, final int end)
+        throws XMLStreamException
+    {
+        int start = ptr;
+        int count = 0;
+
+        try {
+            decode_loop:
+            while (ptr < end) {
+                // First, any space to skip?
+                while (buf[ptr] <= INT_SPACE) {
+                    if (++ptr >= end) {
+                        break decode_loop;
+                    }
+                }
+                // Then let's figure out non-space char (token)
+                start = ptr;
+                ++ptr;
+                while (ptr < end && buf[ptr] > INT_SPACE) {
+                    ++ptr;
+                }
+                int tokenEnd = ptr;
+                ++ptr; // to skip trailing space (or, beyond end)
+                // Ok, decode... any more room?
+                ++count;
+                if (tad.decodeValue(buf, start, tokenEnd)) {
+                    if (!checkExpand(tad)) {
+                        break;
+                    }
+                }
+            }
+        } catch (IllegalArgumentException iae) {
+            // Need to convert to a checked stream exception
+            Location loc = rep.getLocation();
+            String lexical = new String(buf, start, (ptr-start));
+            throw new TypedXMLStreamException(lexical, iae.getMessage(), loc, iae);
+        }
+        return count;
+    }
+
+    private final int decodeValues(TypedArrayDecoder tad,
+                                   InputProblemReporter rep,
+                                   String attrValue)
+        throws XMLStreamException
+    {
+        int ptr = 0;
+        int start = 0;
+        final int end = attrValue.length();
+        String lexical = null;
+        int count = 0;
+
+        try {
+            decode_loop:
+            while (ptr < end) {
+                // First, any space to skip?
+                while (attrValue.charAt(ptr) <= INT_SPACE) {
+                    if (++ptr >= end) {
+                        break decode_loop;
+                    }
+                }
+                // Then let's figure out non-space char (token)
+                start = ptr;
+                ++ptr;
+                while (ptr < end && attrValue.charAt(ptr) > INT_SPACE) {
+                    ++ptr;
+                }
+                int tokenEnd = ptr;
+                ++ptr; // to skip trailing space (or, beyond end)
+                // And there we have it
+                lexical = attrValue.substring(start, tokenEnd);
+                ++count;
+                if (tad.decodeValue(lexical)) {
+                    if (!checkExpand(tad)) {
+                        break;
+                    }
+                }
+            }
+        } catch (IllegalArgumentException iae) {
+            // Need to convert to a checked stream exception
+            Location loc = rep.getLocation();
+            throw new TypedXMLStreamException(lexical, iae.getMessage(), loc, iae);
+        }
+        return count;
+    }
+
+    /**
+     * Internal method used to see if we can expand the buffer that
+     * the array decoder has. Bit messy, but simpler than having
+     * separately typed instances; and called rarely so that performance
+     * downside of instanceof is irrelevant.
+     */
+    private boolean checkExpand(TypedArrayDecoder tad)
+    {
+        if (tad instanceof ValueDecoderFactory.BaseArrayDecoder) {
+            ((ValueDecoderFactory.BaseArrayDecoder) tad).expand();
+            return true;
+        }
+        return false;
     }
 
     /*

@@ -1328,9 +1328,28 @@ public abstract class DOMWrappingReader
         return null;
     }
 
-    public void getAttributeAsArray(TypedArrayDecoder tad) throws XMLStreamException
+    public long[] getAttributeAsLongArray(int index) throws XMLStreamException
     {
         // !!! TBI
+        return null;
+    }
+
+    public float[] getAttributeAsFloatArray(int index) throws XMLStreamException
+    {
+        // !!! TBI
+        return null;
+    }
+
+    public double[] getAttributeAsDoubleArray(int index) throws XMLStreamException
+    {
+        // !!! TBI
+        return null;
+    }
+
+    public int getAttributeAsArray(int index, TypedArrayDecoder tad) throws XMLStreamException
+    {
+        // !!! TBI
+        return -1;
     }
 
     /*

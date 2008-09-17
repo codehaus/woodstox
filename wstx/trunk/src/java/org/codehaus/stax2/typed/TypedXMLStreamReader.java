@@ -535,15 +535,17 @@ public interface TypedXMLStreamReader
      */
     public int[] getAttributeAsIntArray(int index) throws XMLStreamException;
     
-    //public long[] getAttributeAsLongArray(int index) throws XMLStreamException;
+    public long[] getAttributeAsLongArray(int index) throws XMLStreamException;
 
-    //public float[] getAttributeAsFloatArray(int index) throws XMLStreamException;    
+    public float[] getAttributeAsFloatArray(int index) throws XMLStreamException;    
     
-    //public double[] getAttributeAsDoubleArray(int index) throws XMLStreamException;    
+    public double[] getAttributeAsDoubleArray(int index) throws XMLStreamException;    
 
     /**
      * Method that allows reading contents of an attribute as an array
      * of whitespace-separate tokens, decoded using specified decoder.
+     *
+     * @return Number of tokens decoded, 0 if none found
      */
-    public void getAttributeAsArray(TypedArrayDecoder tad) throws XMLStreamException;
+    public int getAttributeAsArray(int index, TypedArrayDecoder tad) throws XMLStreamException;
 }

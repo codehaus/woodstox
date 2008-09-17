@@ -112,16 +112,42 @@ public class StreamReader2Delegate
         mDelegate2.skipElement();
     }
 
-    public void getAttributeAs(int index, TypedValueDecoder tvd)
-        throws XMLStreamException
-    {
-        mDelegate2.getAttributeAs(index, tvd);
+    /*
+    //////////////////////////////////////////////
+    // XMLStreamReader2, Validatable
+    //////////////////////////////////////////////
+     */
+
+    public ValidationProblemHandler setValidationProblemHandler(ValidationProblemHandler h) {
+        return mDelegate2.setValidationProblemHandler(h);
     }
 
-    public void getAttributeAsArray(TypedArrayDecoder tad)
+    public XMLValidator stopValidatingAgainst(XMLValidationSchema schema)
         throws XMLStreamException
     {
-        mDelegate2.getAttributeAsArray(tad);
+        return mDelegate2.stopValidatingAgainst(schema);
+    }
+
+    public XMLValidator stopValidatingAgainst(XMLValidator validator)
+        throws XMLStreamException
+    {
+        return mDelegate2.stopValidatingAgainst(validator);
+    }
+
+    public XMLValidator validateAgainst(XMLValidationSchema schema)
+        throws XMLStreamException
+    {
+        return mDelegate2.validateAgainst(schema);
+    }
+
+    /*
+    //////////////////////////////////////////////
+    // TypedXMLStreamReader implementation
+    //////////////////////////////////////////////
+     */
+
+    public int getAttributeIndex(String namespaceURI, String localName) {
+        return mDelegate2.getAttributeIndex(namespaceURI, localName);
     }
 
     public boolean getAttributeAsBoolean(int index) throws XMLStreamException
@@ -147,10 +173,6 @@ public class StreamReader2Delegate
         return mDelegate2.getAttributeAsInt(index);
     }
 
-    public int[] getAttributeAsIntArray(int index) throws XMLStreamException {
-        return mDelegate2.getAttributeAsIntArray(index);
-    }
-
     public BigInteger getAttributeAsInteger(int index)
         throws XMLStreamException
     {
@@ -165,8 +187,20 @@ public class StreamReader2Delegate
         return mDelegate2.getAttributeAsQName(index);
     }
 
-    public int getAttributeIndex(String namespaceURI, String localName) {
-        return mDelegate2.getAttributeIndex(namespaceURI, localName);
+    public int[] getAttributeAsIntArray(int index) throws XMLStreamException {
+        return mDelegate2.getAttributeAsIntArray(index);
+    }
+
+    public long[] getAttributeAsLongArray(int index) throws XMLStreamException {
+        return mDelegate2.getAttributeAsLongArray(index);
+    }
+
+    public float[] getAttributeAsFloatArray(int index) throws XMLStreamException {
+        return mDelegate2.getAttributeAsFloatArray(index);
+    }
+
+    public double[] getAttributeAsDoubleArray(int index) throws XMLStreamException {
+        return mDelegate2.getAttributeAsDoubleArray(index);
     }
 
     public void getElementAs(TypedValueDecoder tvd) throws XMLStreamException {
@@ -205,10 +239,16 @@ public class StreamReader2Delegate
         return mDelegate2.getElementAsQName();
     }
 
-    public int readElementAsArray(TypedArrayDecoder tad)
+    public void getAttributeAs(int index, TypedValueDecoder tvd)
         throws XMLStreamException
     {
-        return mDelegate2.readElementAsArray(tad);
+        mDelegate2.getAttributeAs(index, tvd);
+    }
+
+    public int getAttributeAsArray(int index, TypedArrayDecoder tad)
+        throws XMLStreamException
+    {
+        return mDelegate2.getAttributeAsArray(index, tad);
     }
 
     public int readElementAsDoubleArray(double[] value, int from, int length)
@@ -234,26 +274,9 @@ public class StreamReader2Delegate
         return mDelegate2.readElementAsLongArray(value, from, length);
     }
 
-    public ValidationProblemHandler setValidationProblemHandler(ValidationProblemHandler h) {
-        return mDelegate2.setValidationProblemHandler(h);
-    }
-
-    public XMLValidator stopValidatingAgainst(XMLValidationSchema schema)
+    public int readElementAsArray(TypedArrayDecoder tad)
         throws XMLStreamException
     {
-        return mDelegate2.stopValidatingAgainst(schema);
+        return mDelegate2.readElementAsArray(tad);
     }
-
-    public XMLValidator stopValidatingAgainst(XMLValidator validator)
-        throws XMLStreamException
-    {
-        return mDelegate2.stopValidatingAgainst(validator);
-    }
-
-    public XMLValidator validateAgainst(XMLValidationSchema schema)
-        throws XMLStreamException
-    {
-        return mDelegate2.validateAgainst(schema);
-    }
-
 }

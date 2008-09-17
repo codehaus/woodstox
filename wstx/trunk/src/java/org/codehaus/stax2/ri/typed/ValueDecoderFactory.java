@@ -135,15 +135,31 @@ public final class ValueDecoderFactory
         return new LongArrayDecoder(result, offset, len, getLongDecoder());
     }
 
+    public LongArrayDecoder getLongArrayDecoder()
+
+    {
+        return new LongArrayDecoder(getLongDecoder());
+    }
+
     public FloatArrayDecoder getFloatArrayDecoder(float[] result, int offset, int len)
     {
         return new FloatArrayDecoder(result, offset, len, getFloatDecoder());
     }
 
+    public FloatArrayDecoder getFloatArrayDecoder()
+
+    {
+        return new FloatArrayDecoder(getFloatDecoder());
+    }
 
     public DoubleArrayDecoder getDoubleArrayDecoder(double[] result, int offset, int len)
     {
         return new DoubleArrayDecoder(result, offset, len, getDoubleDecoder());
+    }
+
+    public DoubleArrayDecoder getDoubleArrayDecoder()
+    {
+        return new DoubleArrayDecoder(getDoubleDecoder());
     }
 
     /*
@@ -1332,7 +1348,14 @@ public final class ValueDecoderFactory
     /////////////////////////////////////////////////////
     */
 
-    abstract static class BaseArrayDecoder
+    /**
+     * Intermediate shared base class for token array decoders.
+     * The most important additional part is the abstract method
+     * that can be used to expand storage space; this is needed
+     * when decoding attribute values when all values must fit
+     * in the result array.
+     */
+    public abstract static class BaseArrayDecoder
         extends TypedArrayDecoder
     {
         /**
@@ -1366,12 +1389,27 @@ public final class ValueDecoderFactory
 
         public final int getCount() { return mCount; }
         public final boolean hasRoom() { return mCount < mMaxCount; }
+
+        /**
+         * Method that can be called if the internal result buffer
+         * fills up (when {@link hasRoom} returns false) and
+         * will expand result buffer to hold at least one more value.
+         */
+        public abstract void expand();
+
+        protected int calcNewSize(int currSize)
+        {
+            if (currSize < SMALL_RESULT_BUFFER_SIZE) {
+                return currSize << 2; // 4 x current for small bufs
+            }
+            return currSize+currSize; // 2x for bigger
+        }
     }
 
     public final static class IntArrayDecoder
         extends BaseArrayDecoder
     {
-        final int[] mResult;
+        int[] mResult;
 
         final IntDecoder mDecoder;
 
@@ -1393,9 +1431,26 @@ public final class ValueDecoderFactory
          */
         public IntArrayDecoder(IntDecoder intDecoder)
         {
-            super(0, Integer.MAX_VALUE);
+            super(0, INITIAL_RESULT_BUFFER_SIZE);
             mResult = new int[INITIAL_RESULT_BUFFER_SIZE];
             mDecoder = intDecoder;
+        }
+
+        public void expand()
+        {
+            int[] old = mResult;
+            int oldLen = old.length;
+            mResult = new int[calcNewSize(oldLen)];
+            System.arraycopy(old, 0, mResult, 0, oldLen);
+        }
+
+        public int[] getValues()
+        {
+            int len = mResult.length;
+            int[] result = new int[len];
+            // !!! TBI: with JDK 6, use Arrays.copyOf:
+            System.arraycopy(mResult, 0, result, 0, len);
+            return result;
         }
 
         public boolean decodeValue(String input) throws IllegalArgumentException
@@ -1413,12 +1468,13 @@ public final class ValueDecoderFactory
             mResult[mCount++] = mDecoder.getValue();
             return (mCount >= mMaxCount);
         }
+
     }
 
     public final static class LongArrayDecoder
         extends BaseArrayDecoder
     {
-        final long[] mResult;
+        long[] mResult;
 
         final LongDecoder mDecoder;
 
@@ -1428,6 +1484,29 @@ public final class ValueDecoderFactory
             super(start, maxCount);
             mResult = result;
             mDecoder = longDecoder;
+        }
+
+        public LongArrayDecoder(LongDecoder longDecoder)
+        {
+            super(0, INITIAL_RESULT_BUFFER_SIZE);
+            mResult = new long[INITIAL_RESULT_BUFFER_SIZE];
+            mDecoder = longDecoder;
+        }
+
+        public void expand()
+        {
+            long[] old = mResult;
+            int oldLen = old.length;
+            mResult = new long[calcNewSize(oldLen)];
+            System.arraycopy(old, 0, mResult, 0, oldLen);
+        }
+
+        public long[] getValues()
+        {
+            int len = mResult.length;
+            long[] result = new long[len];
+            System.arraycopy(mResult, 0, result, 0, len);
+            return result;
         }
 
         public boolean decodeValue(String input) throws IllegalArgumentException
@@ -1448,7 +1527,7 @@ public final class ValueDecoderFactory
     public final static class FloatArrayDecoder
         extends BaseArrayDecoder
     {
-        final float[] mResult;
+        float[] mResult;
 
         final FloatDecoder mDecoder;
 
@@ -1458,6 +1537,29 @@ public final class ValueDecoderFactory
             super(start, maxCount);
             mResult = result;
             mDecoder = floatDecoder;
+        }
+
+        public FloatArrayDecoder(FloatDecoder floatDecoder)
+        {
+            super(0, INITIAL_RESULT_BUFFER_SIZE);
+            mResult = new float[INITIAL_RESULT_BUFFER_SIZE];
+            mDecoder = floatDecoder;
+        }
+
+        public void expand()
+        {
+            float[] old = mResult;
+            int oldLen = old.length;
+            mResult = new float[calcNewSize(oldLen)];
+            System.arraycopy(old, 0, mResult, 0, oldLen);
+        }
+
+        public float[] getValues()
+        {
+            int len = mResult.length;
+            float[] result = new float[len];
+            System.arraycopy(mResult, 0, result, 0, len);
+            return result;
         }
 
         public boolean decodeValue(String input) throws IllegalArgumentException
@@ -1478,7 +1580,7 @@ public final class ValueDecoderFactory
     public final static class DoubleArrayDecoder
         extends BaseArrayDecoder
     {
-        final double[] mResult;
+        double[] mResult;
 
         final DoubleDecoder mDecoder;
 
@@ -1488,6 +1590,29 @@ public final class ValueDecoderFactory
             super(start, maxCount);
             mResult = result;
             mDecoder = doubleDecoder;
+        }
+
+        public DoubleArrayDecoder(DoubleDecoder doubleDecoder)
+        {
+            super(0, INITIAL_RESULT_BUFFER_SIZE);
+            mResult = new double[INITIAL_RESULT_BUFFER_SIZE];
+            mDecoder = doubleDecoder;
+        }
+
+        public void expand()
+        {
+            double[] old = mResult;
+            int oldLen = old.length;
+            mResult = new double[calcNewSize(oldLen)];
+            System.arraycopy(old, 0, mResult, 0, oldLen);
+        }
+
+        public double[] getValues()
+        {
+            int len = mResult.length;
+            double[] result = new double[len];
+            System.arraycopy(mResult, 0, result, 0, len);
+            return result;
         }
 
         public boolean decodeValue(String input) throws IllegalArgumentException

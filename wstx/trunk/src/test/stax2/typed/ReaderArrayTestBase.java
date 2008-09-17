@@ -40,13 +40,22 @@ public abstract class ReaderArrayTestBase
     ////////////////////////////////////////
      */
 
-    public void testSimpleIntArrayElem()
+    public void testSimpleIntArrayElem() throws XMLStreamException
+    {
+        _testSimpleIntArrayElem(true);
+    }
+    public void testSimpleIntArrayElemWithNoise() throws XMLStreamException
+    {
+        _testSimpleIntArrayElem(false);
+    }
+
+    private void _testSimpleIntArrayElem(boolean withNoise)
         throws XMLStreamException
     {
         for (int i = 0; i < COUNTS.length; ++i) {
             int len = COUNTS[i];
             int[] data = intArray(len);
-            String XML = buildDoc(data);
+            String XML = buildDoc(data, withNoise);
 
             // First, full read
             verifyInts(XML, data, len);
@@ -60,10 +69,21 @@ public abstract class ReaderArrayTestBase
     public void testSimpleLongArrayElem()
         throws XMLStreamException
     {
+        _testSimpleLongArrayElem(true);
+    }
+    public void testSimpleLongArrayElemWithNoise()
+        throws XMLStreamException
+    {
+        _testSimpleLongArrayElem(false);
+    }
+
+    private void _testSimpleLongArrayElem(boolean withNoise)
+        throws XMLStreamException
+    {
         for (int i = 0; i < COUNTS.length; ++i) {
             int len = COUNTS[i];
             long[] data = longArray(len);
-            String XML = buildDoc(data);
+            String XML = buildDoc(data, withNoise);
 
             // First, full read
             verifyLongs(XML, data, len);
@@ -77,10 +97,21 @@ public abstract class ReaderArrayTestBase
     public void testSimpleFloatArrayElem()
         throws XMLStreamException
     {
+        _testSimpleFloatArrayElem(true);
+    }
+    public void testSimpleFloatArrayElemWithNoise()
+        throws XMLStreamException
+    {
+        _testSimpleFloatArrayElem(false);
+    }
+
+    private void _testSimpleFloatArrayElem(boolean withNoise)
+        throws XMLStreamException
+    {
         for (int i = 0; i < COUNTS.length; ++i) {
             int len = COUNTS[i];
             float[] data = floatArray(len);
-            String XML = buildDoc(data);
+            String XML = buildDoc(data, withNoise);
 
             // First, full read
             verifyFloats(XML, data, len);
@@ -94,10 +125,21 @@ public abstract class ReaderArrayTestBase
     public void testSimpleDoubleArrayElem()
         throws XMLStreamException
     {
+        _testSimpleDoubleArrayElem(true);
+    }
+    public void testSimpleDoubleArrayElemWithNoise()
+        throws XMLStreamException
+    {
+        _testSimpleDoubleArrayElem(false);
+    }
+
+    private void _testSimpleDoubleArrayElem(boolean withNoise)
+        throws XMLStreamException
+    {
         for (int i = 0; i < COUNTS.length; ++i) {
             int len = COUNTS[i];
             double[] data = doubleArray(len);
-            String XML = buildDoc(data);
+            String XML = buildDoc(data, withNoise);
 
             // First, full read
             verifyDoubles(XML, data, len);
@@ -269,13 +311,23 @@ public abstract class ReaderArrayTestBase
     }
 
 
-    private String buildDoc(Object dataArray)
+    private String buildDoc(Object dataArray, boolean addNoise)
     {
         int len = Array.getLength(dataArray);
         StringBuilder sb = new StringBuilder(len * 8);
         sb.append("<root>");
+        Random r = new Random(Array.get(dataArray, 0).hashCode());
         for (int i = 0; i < len; ++i) {
-            sb.append(Array.get(dataArray, i).toString());
+            Object value = Array.get(dataArray, i).toString();
+            sb.append(value);
+            // Let's add 25% of time
+            if (addNoise && r.nextBoolean() && r.nextBoolean()) {
+                if (r.nextBoolean()) {
+                    sb.append("<!-- comment: "+value+" -->");
+                } else {
+                    sb.append("<?pi "+value+"?>");
+                }
+            }
             sb.append(' ');
         }
         sb.append("</root>");
