@@ -405,7 +405,7 @@ public abstract class AttributeCollector
      * separately typed instances; and called rarely so that performance
      * downside of instanceof is irrelevant.
      */
-    private boolean checkExpand(TypedArrayDecoder tad)
+    private final boolean checkExpand(TypedArrayDecoder tad)
     {
         if (tad instanceof ValueDecoderFactory.BaseArrayDecoder) {
             ((ValueDecoderFactory.BaseArrayDecoder) tad).expand();

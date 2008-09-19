@@ -1370,25 +1370,24 @@ public final class ValueDecoderFactory
          */
         protected final static int SMALL_RESULT_BUFFER_SIZE = 4000;
 
-        protected final int mStart;
+        protected int mStart;
 
-        protected final int mMaxCount;
+        protected int mEnd;
 
         protected int mCount = 0;
 
         protected BaseArrayDecoder(int start, int maxCount)
         {
+            mStart = start;
             // First, sanity check
             if (maxCount < 1) {
                 throw new IllegalArgumentException("Number of elements to read can not be less than 1");
             }
-
-            mStart = start;
-            mMaxCount = maxCount;
+            mEnd = maxCount;
         }
 
         public final int getCount() { return mCount; }
-        public final boolean hasRoom() { return mCount < mMaxCount; }
+        public final boolean hasRoom() { return mCount < mEnd; }
 
         /**
          * Method that can be called if the internal result buffer
@@ -1440,33 +1439,33 @@ public final class ValueDecoderFactory
         {
             int[] old = mResult;
             int oldLen = old.length;
-            mResult = new int[calcNewSize(oldLen)];
-            System.arraycopy(old, 0, mResult, 0, oldLen);
+            int newSize = calcNewSize(oldLen);
+            mResult = new int[newSize];
+            System.arraycopy(old, mStart, mResult, 0, oldLen);
+            mStart = 0;
+            mEnd = newSize;
         }
 
         public int[] getValues()
         {
-            int len = mResult.length;
-            int[] result = new int[len];
+            int[] result = new int[mCount];
             // !!! TBI: with JDK 6, use Arrays.copyOf:
-            System.arraycopy(mResult, 0, result, 0, len);
+            System.arraycopy(mResult, mStart, result, 0, mCount);
             return result;
         }
 
         public boolean decodeValue(String input) throws IllegalArgumentException
         {
             mDecoder.decode(input);
-            // !!! TBI: automatic resize
-            mResult[mCount++] = mDecoder.getValue();
-            return (mCount >= mMaxCount);
+            mResult[mStart+mCount] = mDecoder.getValue();
+            return (++mCount >= mEnd);
         }
 
         public boolean decodeValue(char[] buffer, int start, int end) throws IllegalArgumentException
         {
             mDecoder.decode(buffer, start, end);
-            // !!! TBI: automatic resize
-            mResult[mCount++] = mDecoder.getValue();
-            return (mCount >= mMaxCount);
+            mResult[mStart+mCount] = mDecoder.getValue();
+            return (++mCount >= mEnd);
         }
 
     }
@@ -1497,30 +1496,32 @@ public final class ValueDecoderFactory
         {
             long[] old = mResult;
             int oldLen = old.length;
-            mResult = new long[calcNewSize(oldLen)];
-            System.arraycopy(old, 0, mResult, 0, oldLen);
+            int newSize = calcNewSize(oldLen);
+            mResult = new long[newSize];
+            System.arraycopy(old, mStart, mResult, 0, oldLen);
+            mStart = 0;
+            mEnd = newSize;
         }
 
         public long[] getValues()
         {
-            int len = mResult.length;
-            long[] result = new long[len];
-            System.arraycopy(mResult, 0, result, 0, len);
+            long[] result = new long[mCount];
+            System.arraycopy(mResult, mStart, result, 0, mCount);
             return result;
         }
 
         public boolean decodeValue(String input) throws IllegalArgumentException
         {
             mDecoder.decode(input);
-            mResult[mCount++] = mDecoder.getValue();
-            return (mCount >= mMaxCount);
+            mResult[mStart+mCount] = mDecoder.getValue();
+            return (++mCount >= mEnd);
         }
 
         public boolean decodeValue(char[] buffer, int start, int end) throws IllegalArgumentException
         {
             mDecoder.decode(buffer, start, end);
-            mResult[mCount++] = mDecoder.getValue();
-            return (mCount >= mMaxCount);
+            mResult[mStart+mCount] = mDecoder.getValue();
+            return (++mCount >= mEnd);
         }
     }
 
@@ -1550,30 +1551,32 @@ public final class ValueDecoderFactory
         {
             float[] old = mResult;
             int oldLen = old.length;
-            mResult = new float[calcNewSize(oldLen)];
-            System.arraycopy(old, 0, mResult, 0, oldLen);
+            int newSize = calcNewSize(oldLen);
+            mResult = new float[newSize];
+            System.arraycopy(old, mStart, mResult, 0, oldLen);
+            mStart = 0;
+            mEnd = newSize;
         }
 
         public float[] getValues()
         {
-            int len = mResult.length;
-            float[] result = new float[len];
-            System.arraycopy(mResult, 0, result, 0, len);
+            float[] result = new float[mCount];
+            System.arraycopy(mResult, mStart, result, 0, mCount);
             return result;
         }
 
         public boolean decodeValue(String input) throws IllegalArgumentException
         {
             mDecoder.decode(input);
-            mResult[mCount++] = mDecoder.getValue();
-            return (mCount >= mMaxCount);
+            mResult[mStart+mCount] = mDecoder.getValue();
+            return (++mCount >= mEnd);
         }
 
         public boolean decodeValue(char[] buffer, int start, int end) throws IllegalArgumentException
         {
             mDecoder.decode(buffer, start, end);
-            mResult[mCount++] = mDecoder.getValue();
-            return (mCount >= mMaxCount);
+            mResult[mStart+mCount] = mDecoder.getValue();
+            return (++mCount >= mEnd);
         }
     }
 
@@ -1603,30 +1606,32 @@ public final class ValueDecoderFactory
         {
             double[] old = mResult;
             int oldLen = old.length;
-            mResult = new double[calcNewSize(oldLen)];
-            System.arraycopy(old, 0, mResult, 0, oldLen);
+            int newSize = calcNewSize(oldLen);
+            mResult = new double[newSize];
+            System.arraycopy(old, mStart, mResult, 0, oldLen);
+            mStart = 0;
+            mEnd = newSize;
         }
 
         public double[] getValues()
         {
-            int len = mResult.length;
-            double[] result = new double[len];
-            System.arraycopy(mResult, 0, result, 0, len);
+            double[] result = new double[mCount];
+            System.arraycopy(mResult, mStart, result, 0, mCount);
             return result;
         }
 
         public boolean decodeValue(String input) throws IllegalArgumentException
         {
             mDecoder.decode(input);
-            mResult[mCount++] = mDecoder.getValue();
-            return (mCount >= mMaxCount);
+            mResult[mStart+mCount] = mDecoder.getValue();
+            return (++mCount >= mEnd);
         }
 
         public boolean decodeValue(char[] buffer, int start, int end) throws IllegalArgumentException
         {
             mDecoder.decode(buffer, start, end);
-            mResult[mCount++] = mDecoder.getValue();
-            return (mCount >= mMaxCount);
+            mResult[mStart+mCount] = mDecoder.getValue();
+            return (++mCount >= mEnd);
         }
     }
 

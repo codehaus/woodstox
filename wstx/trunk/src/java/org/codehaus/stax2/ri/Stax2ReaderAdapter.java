@@ -353,32 +353,92 @@ public class Stax2ReaderAdapter
 
     public int[] getAttributeAsIntArray(int index) throws XMLStreamException
     {
-        // !!! TBI
-        return null;
+        ValueDecoderFactory.IntArrayDecoder dec = _decoderFactory().getIntArrayDecoder();
+        _getAttributeAsArray(dec, getAttributeValue(index));
+        return dec.getValues();
     }
 
     public long[] getAttributeAsLongArray(int index) throws XMLStreamException
     {
-        // !!! TBI
-        return null;
+        ValueDecoderFactory.LongArrayDecoder dec = _decoderFactory().getLongArrayDecoder();
+        _getAttributeAsArray(dec, getAttributeValue(index));
+        return dec.getValues();
     }
 
     public float[] getAttributeAsFloatArray(int index) throws XMLStreamException
     {
-        // !!! TBI
-        return null;
+        ValueDecoderFactory.FloatArrayDecoder dec = _decoderFactory().getFloatArrayDecoder();
+        _getAttributeAsArray(dec, getAttributeValue(index));
+        return dec.getValues();
     }
 
     public double[] getAttributeAsDoubleArray(int index) throws XMLStreamException
     {
-        // !!! TBI
-        return null;
+        ValueDecoderFactory.DoubleArrayDecoder dec = _decoderFactory().getDoubleArrayDecoder();
+        _getAttributeAsArray(dec, getAttributeValue(index));
+        return dec.getValues();
     }
 
     public int getAttributeAsArray(int index, TypedArrayDecoder tad) throws XMLStreamException
     {
-        // !!! TBI
-        return -1;
+        return _getAttributeAsArray(tad, getAttributeValue(index));
+    }
+
+    protected int _getAttributeAsArray(TypedArrayDecoder tad, String attrValue) throws XMLStreamException
+    {
+        int ptr = 0;
+        int start = 0;
+        final int end = attrValue.length();
+        String lexical = null;
+        int count = 0;
+
+        try {
+            decode_loop:
+            while (ptr < end) {
+                // First, any space to skip?
+                while (attrValue.charAt(ptr) <= INT_SPACE) {
+                    if (++ptr >= end) {
+                        break decode_loop;
+                    }
+                }
+                // Then let's figure out non-space char (token)
+                start = ptr;
+                ++ptr;
+                while (ptr < end && attrValue.charAt(ptr) > INT_SPACE) {
+                    ++ptr;
+                }
+                int tokenEnd = ptr;
+                ++ptr; // to skip trailing space (or, beyond end)
+                // And there we have it
+                lexical = attrValue.substring(start, tokenEnd);
+                ++count;
+                if (tad.decodeValue(lexical)) {
+                    if (!checkExpand(tad)) {
+                        break;
+                    }
+                }
+            }
+        } catch (IllegalArgumentException iae) {
+            // Need to convert to a checked stream exception
+            Location loc = getLocation();
+            throw new TypedXMLStreamException(lexical, iae.getMessage(), loc, iae);
+        }
+        return count;
+    }
+
+    /**
+     * Internal method used to see if we can expand the buffer that
+     * the array decoder has. Bit messy, but simpler than having
+     * separately typed instances; and called rarely so that performance
+     * downside of instanceof is irrelevant.
+     */
+    private final boolean checkExpand(TypedArrayDecoder tad)
+    {
+        if (tad instanceof ValueDecoderFactory.BaseArrayDecoder) {
+            ((ValueDecoderFactory.BaseArrayDecoder) tad).expand();
+            return true;
+        }
+        return false;
     }
 
     /*

@@ -21,8 +21,11 @@ public abstract class ReaderArrayTestBase
     extends BaseStax2Test
 {
     // Let's test variable length arrays
-    final static int[] COUNTS = new int[] {
+    final static int[] COUNTS_ELEM = new int[] {
         7, 39, 116, 900, 5003
+    };
+    final static int[] COUNTS_ATTR = new int[] {
+        5, 17, 59, 357, 1920
     };
 
     /*
@@ -52,8 +55,8 @@ public abstract class ReaderArrayTestBase
     private void _testSimpleIntArrayElem(boolean withNoise)
         throws XMLStreamException
     {
-        for (int i = 0; i < COUNTS.length; ++i) {
-            int len = COUNTS[i];
+        for (int i = 0; i < COUNTS_ELEM.length; ++i) {
+            int len = COUNTS_ELEM[i];
             int[] data = intArray(len);
             String XML = buildDoc(data, withNoise);
 
@@ -80,8 +83,8 @@ public abstract class ReaderArrayTestBase
     private void _testSimpleLongArrayElem(boolean withNoise)
         throws XMLStreamException
     {
-        for (int i = 0; i < COUNTS.length; ++i) {
-            int len = COUNTS[i];
+        for (int i = 0; i < COUNTS_ELEM.length; ++i) {
+            int len = COUNTS_ELEM[i];
             long[] data = longArray(len);
             String XML = buildDoc(data, withNoise);
 
@@ -108,8 +111,8 @@ public abstract class ReaderArrayTestBase
     private void _testSimpleFloatArrayElem(boolean withNoise)
         throws XMLStreamException
     {
-        for (int i = 0; i < COUNTS.length; ++i) {
-            int len = COUNTS[i];
+        for (int i = 0; i < COUNTS_ELEM.length; ++i) {
+            int len = COUNTS_ELEM[i];
             float[] data = floatArray(len);
             String XML = buildDoc(data, withNoise);
 
@@ -136,8 +139,8 @@ public abstract class ReaderArrayTestBase
     private void _testSimpleDoubleArrayElem(boolean withNoise)
         throws XMLStreamException
     {
-        for (int i = 0; i < COUNTS.length; ++i) {
-            int len = COUNTS[i];
+        for (int i = 0; i < COUNTS_ELEM.length; ++i) {
+            int len = COUNTS_ELEM[i];
             double[] data = doubleArray(len);
             String XML = buildDoc(data, withNoise);
 
@@ -241,21 +244,45 @@ public abstract class ReaderArrayTestBase
     public void testSimpleIntArrayAttr()
         throws XMLStreamException
     {
+        for (int i = 0; i < COUNTS_ATTR.length; ++i) {
+            int len = COUNTS_ATTR[i];
+            int[] data = intArray(len);
+            String XML = buildAttrDoc(data);
+            verifyIntsAttr(XML, data);
+        }
     }
 
     public void testSimpleLongArrayAttr()
         throws XMLStreamException
     {
+        for (int i = 0; i < COUNTS_ATTR.length; ++i) {
+            int len = COUNTS_ATTR[i];
+            long[] data = longArray(len);
+            String XML = buildAttrDoc(data);
+            verifyLongsAttr(XML, data);
+        }
     }
 
     public void testSimpleFloatArrayAttr()
         throws XMLStreamException
     {
+        for (int i = 0; i < COUNTS_ATTR.length; ++i) {
+            int len = COUNTS_ATTR[i];
+            float[] data = floatArray(len);
+            String XML = buildAttrDoc(data);
+            verifyFloatsAttr(XML, data);
+        }
     }
 
     public void testSimpleDoubleArrayAttr()
         throws XMLStreamException
     {
+        for (int i = 0; i < COUNTS_ATTR.length; ++i) {
+            int len = COUNTS_ATTR[i];
+            double[] data = doubleArray(len);
+            String XML = buildAttrDoc(data);
+            verifyDoublesAttr(XML, data);
+        }
     }
 
     /*
@@ -310,7 +337,6 @@ public abstract class ReaderArrayTestBase
         return result;
     }
 
-
     private String buildDoc(Object dataArray, boolean addNoise)
     {
         int len = Array.getLength(dataArray);
@@ -331,6 +357,20 @@ public abstract class ReaderArrayTestBase
             sb.append(' ');
         }
         sb.append("</root>");
+        return sb.toString();
+    }
+
+    private String buildAttrDoc(Object dataArray)
+    {
+        int len = Array.getLength(dataArray);
+        StringBuilder sb = new StringBuilder(len * 8);
+        sb.append("<root attr='");
+        for (int i = 0; i < len; ++i) {
+            Object value = Array.get(dataArray, i).toString();
+            sb.append(value);
+            sb.append(' ');
+        }
+        sb.append("' />");
         return sb.toString();
     }
     
@@ -354,8 +394,8 @@ public abstract class ReaderArrayTestBase
     private void verifyInts(String doc, int[] data, int blockLen)
         throws XMLStreamException
     {
-        Random r = (blockLen < 0) ? new Random(blockLen) : null;
-        int[] buffer = new int[Math.max(blockLen, 256)];
+        Random r = new Random(blockLen);
+        int[] buffer = new int[Math.max(blockLen, 256+16)];
         int[] result = new int[data.length];
         int entries = 0;
 
@@ -364,15 +404,16 @@ public abstract class ReaderArrayTestBase
         assertTokenType(START_ELEMENT, sr.getEventType());
 
         while (true) {
-            int readLen = (r == null) ? blockLen : (1 + r.nextInt() & 0xFF);
-            int got = sr.readElementAsIntArray(buffer, 0, readLen);
+            int readLen = (r == null) ? blockLen : (1 + (r.nextInt() & 0xFF));
+            int offset = (r.nextInt() & 0xF);
+            int got = sr.readElementAsIntArray(buffer, offset, readLen);
             if (got < 0) { 
                 break;
             }
             if ((entries + got) > result.length) {
                 fail("Expected only "+result.length+" entries, already got "+(entries+got));
             }
-            System.arraycopy(buffer, 0, result, entries, got);
+            System.arraycopy(buffer, offset, result, entries, got);
             entries += got;
         }
         assertArraysEqual(data, result);
@@ -460,6 +501,46 @@ public abstract class ReaderArrayTestBase
             entries += got;
         }
         assertArraysEqual(data, result);
+        sr.close();
+    }
+
+    private void verifyIntsAttr(String doc, int[] data)
+        throws XMLStreamException
+    {
+        XMLStreamReader2 sr = getReader(doc);
+        sr.next();
+        assertTokenType(START_ELEMENT, sr.getEventType());
+        assertArraysEqual(data, sr.getAttributeAsIntArray(0));
+        sr.close();
+    }
+
+    private void verifyLongsAttr(String doc, long[] data)
+        throws XMLStreamException
+    {
+        XMLStreamReader2 sr = getReader(doc);
+        sr.next();
+        assertTokenType(START_ELEMENT, sr.getEventType());
+        assertArraysEqual(data, sr.getAttributeAsLongArray(0));
+        sr.close();
+    }
+
+    private void verifyFloatsAttr(String doc, float[] data)
+        throws XMLStreamException
+    {
+        XMLStreamReader2 sr = getReader(doc);
+        sr.next();
+        assertTokenType(START_ELEMENT, sr.getEventType());
+        assertArraysEqual(data, sr.getAttributeAsFloatArray(0));
+        sr.close();
+    }
+
+    private void verifyDoublesAttr(String doc, double[] data)
+        throws XMLStreamException
+    {
+        XMLStreamReader2 sr = getReader(doc);
+        sr.next();
+        assertTokenType(START_ELEMENT, sr.getEventType());
+        assertArraysEqual(data, sr.getAttributeAsDoubleArray(0));
         sr.close();
     }
 }
