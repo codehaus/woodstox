@@ -40,14 +40,14 @@ public class ErrorConsts
 
     public static String ERR_INTERNAL = "Internal error";
     public static String ERR_NULL_ARG = "Illegal to pass null as argument";
-    public static String ERR_UNKNOWN_FEATURE = "Unrecognized feature \"{1}\"";
+    public static String ERR_UNKNOWN_FEATURE = "Unrecognized feature \"{0}\"";
 
     // // // Wrong reader state:
 
-    public static String ERR_STATE_NOT_STELEM = "Current state not START_ELEMENT";
-    public static String ERR_STATE_NOT_ELEM = "Current state not START_ELEMENT or END_ELEMENT";
-    public static String ERR_STATE_NOT_PI = "Current state not PROCESSING_INSTRUCTION";
-    public static String ERR_STATE_NOT_ELEM_OR_TEXT = "Current event {1} not START_ELEMENT, END_ELEMENT, CHARACTERS or CDATA";
+    public static String ERR_STATE_NOT_STELEM = "Current event not START_ELEMENT";
+    public static String ERR_STATE_NOT_ELEM = "Current event not START_ELEMENT or END_ELEMENT";
+    public static String ERR_STATE_NOT_PI = "Current event not PROCESSING_INSTRUCTION";
+    public static String ERR_STATE_NOT_ELEM_OR_TEXT = "Current event ({0}) not START_ELEMENT, END_ELEMENT, CHARACTERS or CDATA";
 
     // // // XML declaration related problems
 

@@ -208,7 +208,6 @@ public final class TextBuffer
      */
     public void resetWithEmpty()
     {
-//System.out.println("[DEBUG] resetWithEmpty");
         mInputBuffer = null;
         mInputStart = -1; // indicates shared buffer not used
         mInputLen = 0;
@@ -249,7 +248,6 @@ public final class TextBuffer
      */
     public void resetWithShared(char[] buf, int start, int len)
     {
-//System.out.println("[DEBUG] resetWithShared, "+len+" chars ("+new String(buf, start, len)+")");
         // Let's first mark things we need about input buffer
         mInputBuffer = buf;
         mInputStart = start;
@@ -267,7 +265,6 @@ public final class TextBuffer
 
     public void resetWithCopy(char[] buf, int start, int len)
     {
-//System.out.println("[DEBUG] resetWithCopy, start "+start+", len "+len);
         mInputBuffer = null;
         mInputStart = -1; // indicates shared buffer not used
         mInputLen = 0;
@@ -493,7 +490,8 @@ public final class TextBuffer
              * normalized already.
              */
             Location loc = rep.getLocation();
-            String lexical = new String(buf, start, (ptr-start));
+            // -1 to move it back after being advanced earlier (to skip trailing space)
+            String lexical = new String(buf, start, (ptr-start-1));
             throw new TypedXMLStreamException(lexical, iae.getMessage(), loc, iae);
         } finally {
             mInputStart = ptr;
@@ -621,8 +619,6 @@ public final class TextBuffer
     }
 
     public int contentsToArray(int srcStart, char[] dst, int dstStart, int len) {
-//System.out.println("[DEBUG]: TextBuffer, contentsToArray, src "+srcStart+", dst "+dstStart+", len "+len);
-
         // Easy to copy from shared buffer:
         if (mInputStart >= 0) {
             int amount = mInputLen - srcStart;
@@ -1140,7 +1136,6 @@ public final class TextBuffer
      */
     public void unshare(int needExtra)
     {
-//System.out.println("[DEBUG] unshare");
         int len = mInputLen;
         mInputLen = 0;
         char[] inputBuf = mInputBuffer;

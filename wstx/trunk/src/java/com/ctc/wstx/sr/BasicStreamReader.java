@@ -4237,7 +4237,7 @@ public abstract class BasicStreamReader
      * @return True if the whole CData section was completely read (we
      *   hit the end marker); false if a shorter segment was returned.
      */
-    private boolean readCDataSecondary(int shortestSegment)
+    protected boolean readCDataSecondary(int shortestSegment)
         throws XMLStreamException
     {
         // Input pointers
@@ -4537,7 +4537,7 @@ public abstract class BasicStreamReader
      *   or in non-entity-expanding mode, a non-char entity); false if
      *   it may still continue
      */
-    private final boolean readTextSecondary(int shortestSegment, boolean deferErrors)
+    protected final boolean readTextSecondary(int shortestSegment, boolean deferErrors)
         throws XMLStreamException
     {
         /* Output pointers; calls will also ensure that the buffer is

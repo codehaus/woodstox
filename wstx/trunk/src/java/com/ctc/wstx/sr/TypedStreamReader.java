@@ -45,6 +45,18 @@ public class TypedStreamReader
     extends BasicStreamReader
 {
     /**
+     * Mask of event types that are legal (starting) states
+     * to call Typed Access API from.
+     * 
+     */
+    final protected static int MASK_TYPED_ACCESS_ARRAY =
+        (1 << START_ELEMENT)
+        | (1 << END_ELEMENT) // just for convenience
+        | (1 << CHARACTERS) | (1 << CDATA) | (1 << SPACE)
+    // Not ok for PI or COMMENT? Let's assume so
+        ;
+
+    /**
      * Factory used for constructing decoders we need for typed access
      */
     protected ValueDecoderFactory mDecoderFactory;
@@ -215,8 +227,8 @@ public class TypedStreamReader
         
         while ((type = next()) != END_ELEMENT) {
             if (((1 << type) & MASK_GET_ELEMENT_TEXT) != 0) {
-                if (mTokenState < mStTextThreshold) {
-                    finishToken(false);
+                if (mTokenState < TOKEN_FULL_SINGLE) {
+                    readCoalescedText(type, false);
                 }
                 mTextBuffer.contentsToStringBuffer(sb);
                 continue;
@@ -292,20 +304,23 @@ public class TypedStreamReader
     public final int readElementAsArray(TypedArrayDecoder dec)
         throws XMLStreamException
     {
+        int type = mCurrToken;
+        // First things first: must be acceptable start state:
+        if (((1 << type) & MASK_TYPED_ACCESS_ARRAY) == 0) {
+            throwNotTextualOrElem(type);
+        }
+
         // Are we just starting (START_ELEMENT)?
-        if (mCurrToken == START_ELEMENT) {
+        if (type == START_ELEMENT) {
             // Empty? Not common, but can short-cut handling if occurs
             if (mStEmptyElem) {
                 mStEmptyElem = false;
                 mCurrToken = END_ELEMENT;
                 return -1;
             }
-            /* Otherwise we'll need to collect all the contents.
-             * It may be relatively simple (a single text segment),
-             * or get complicated...
-             */
+            // Otherwise let's just find the first text segment
             while (true) {
-                int type = next();
+                type = next();
                 if (type == END_ELEMENT) {
                     // Simple... no textul content
                     return -1;
@@ -313,64 +328,68 @@ public class TypedStreamReader
                 if (type == COMMENT || type == PROCESSING_INSTRUCTION) {
                     continue;
                 }
-                if (((1 << type) & MASK_GET_ELEMENT_TEXT) == 0) {
-                    throw _constructUnexpectedInTyped(type);
+                if (type == CHARACTERS || type == CDATA) {
+                    break;
                 }
-                break;
-            }
-            // Ok, got a text segment, need to complete & coalesce
-            if (mTokenState < TOKEN_FULL_SINGLE) {
-                readCoalescedText(mCurrToken, false);
-            }
-        } else { // not START_ELEMENT, must be textual
-            if (mCurrToken != CHARACTERS && mCurrToken != CDATA) {
-                // Maybe we are already done? That'd be ok, nothing more to decode
-                if (mCurrToken == END_ELEMENT) {
-                    return -1;
-                }
-
-                /* Will occur if entities are unexpanded, too... which
-                 * is probably ok (can add more meaningful specific
-                 * error, if not)
-                 */
-                throwNotTextualOrElem(mCurrToken);
+                // otherwise just not legal (how about SPACE, unexpanded entities?)
+                throw _constructUnexpectedInTyped(type);
             }
         }
+        // throwNotTextualOrElem(type);
 
-        /* Ok now: we do have a completely read textual event, when we
-         * start.
-         */
         int count = 0;
 
         decode_loop:
-        while (true) {
+        while (type != END_ELEMENT) {
+            /* Ok then: we will have a valid textual type. Just need to
+             * ensure current segment is completed. Plus, for current impl,
+             * also need to coalesce to prevent artificila CDATA/text
+             * boundary from splitting tokens
+             */
+            if (type == CHARACTERS || type == CDATA) {
+                if (mTokenState < TOKEN_FULL_SINGLE) {
+                    readCoalescedText(type, false);
+                }
+            } else if (type == COMMENT || type == PROCESSING_INSTRUCTION) {
+                type = next();
+                continue;
+            } else {
+                throw _constructUnexpectedInTyped(type);
+            }
             count += mTextBuffer.decodeElements(dec, this);
             if (!dec.hasRoom()) {
                 break;
             }
-            // Ok, result buffer can hold more; need next textual event!
-            while (true) {
-                int type = next();
-                if (type == END_ELEMENT) {
-                    break decode_loop;
-                }
-                if (type == COMMENT || type == PROCESSING_INSTRUCTION) {
-                    continue;
-                }
-                if (((1 << type) & MASK_GET_ELEMENT_TEXT) == 0) {
-                    throw _constructUnexpectedInTyped(type);
-                }
-                break;
-            }
-            // Ok, got a text segment, need to complete & coalesce
-            if (mTokenState < TOKEN_FULL_SINGLE) {
-                readCoalescedText(mCurrToken, false);
-            }
+            type = next();
         }
+
         // If nothing was found, needs to be indicated via -1, not 0
         return (count > 0) ? count : -1;
     }
 
+    /**
+     * Helper method that ensures that a single CHARACTERS segment
+     * is completely read.
+     */
+    private final void verifyCharactersComplete()
+        throws XMLStreamException
+    {
+        if (mTokenState < TOKEN_FULL_SINGLE) {
+            if (!readTextSecondary(Integer.MAX_VALUE, false)) { // sanity check
+                throw new IllegalStateException(ErrorConsts.ERR_INTERNAL);
+            }
+        }
+    }
+
+    private final void verifyCDataComplete()
+        throws XMLStreamException
+    {
+        if (mTokenState < TOKEN_FULL_SINGLE) {
+            if (!readCDataSecondary(Integer.MAX_VALUE)) { // sanity check
+                throw new IllegalStateException(ErrorConsts.ERR_INTERNAL);
+            }
+        }
+    }
     /*
     ///////////////////////////////////////////////////////////
     // TypedXMLStreamReader2 implementation, scalar attributes
