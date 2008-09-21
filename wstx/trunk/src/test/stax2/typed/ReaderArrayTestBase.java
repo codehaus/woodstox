@@ -45,11 +45,11 @@ public abstract class ReaderArrayTestBase
 
     public void testSimpleIntArrayElem() throws XMLStreamException
     {
-        _testSimpleIntArrayElem(true);
+        _testSimpleIntArrayElem(false);
     }
     public void testSimpleIntArrayElemWithNoise() throws XMLStreamException
     {
-        _testSimpleIntArrayElem(false);
+        _testSimpleIntArrayElem(true);
     }
 
     private void _testSimpleIntArrayElem(boolean withNoise)
@@ -72,12 +72,12 @@ public abstract class ReaderArrayTestBase
     public void testSimpleLongArrayElem()
         throws XMLStreamException
     {
-        _testSimpleLongArrayElem(true);
+        _testSimpleLongArrayElem(false);
     }
     public void testSimpleLongArrayElemWithNoise()
         throws XMLStreamException
     {
-        _testSimpleLongArrayElem(false);
+        _testSimpleLongArrayElem(true);
     }
 
     private void _testSimpleLongArrayElem(boolean withNoise)
@@ -100,12 +100,12 @@ public abstract class ReaderArrayTestBase
     public void testSimpleFloatArrayElem()
         throws XMLStreamException
     {
-        _testSimpleFloatArrayElem(true);
+        _testSimpleFloatArrayElem(false);
     }
     public void testSimpleFloatArrayElemWithNoise()
         throws XMLStreamException
     {
-        _testSimpleFloatArrayElem(false);
+        _testSimpleFloatArrayElem(true);
     }
 
     private void _testSimpleFloatArrayElem(boolean withNoise)
@@ -128,12 +128,12 @@ public abstract class ReaderArrayTestBase
     public void testSimpleDoubleArrayElem()
         throws XMLStreamException
     {
-        _testSimpleDoubleArrayElem(true);
+        _testSimpleDoubleArrayElem(false);
     }
     public void testSimpleDoubleArrayElemWithNoise()
         throws XMLStreamException
     {
-        _testSimpleDoubleArrayElem(false);
+        _testSimpleDoubleArrayElem(true);
     }
 
     private void _testSimpleDoubleArrayElem(boolean withNoise)
@@ -406,9 +406,16 @@ public abstract class ReaderArrayTestBase
         while (true) {
             int readLen = (r == null) ? blockLen : (1 + (r.nextInt() & 0xFF));
             int offset = (r.nextInt() & 0xF);
-            int got = sr.readElementAsIntArray(buffer, offset, readLen);
-            if (got < 0) { 
-                break;
+            int got;
+
+            try {
+                got = sr.readElementAsIntArray(buffer, offset, readLen);
+                if (got < 0) { 
+                    break;
+                }
+            } catch (XMLStreamException xse) {
+                fail("Did not expect a failure (readLen "+readLen+", offset "+offset+", total exp elems "+data.length+"), problem: "+xse.getMessage());
+                got = 0; // never gets here, but compiler doesn't know
             }
             if ((entries + got) > result.length) {
                 fail("Expected only "+result.length+" entries, already got "+(entries+got));
