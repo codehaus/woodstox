@@ -38,10 +38,25 @@ public abstract class XMLValidator
 
     /**
      * This value indicates that only white space text content is allowed,
-     * not other kinds of text. Other events may be allowed; validator will
-     * deal with element validation.
+     * not other kinds of text. Other non-text events may be allowed;
+     * validator will deal with element validation.
+     * Value also indicates that if non-white space text content is
+     * encountered, a validation problem is reported
      */
     public final static int CONTENT_ALLOW_WS = 1;
+
+    /**
+     * This value is similar to {@link #CONTENT_ALLOW_WS_NONSTRICT},
+     * but only used for content typing purposes, not for validation.
+     * This means that if non-white space text content is encountered,
+     * no problem is reported.
+     *<p>
+     * This value is currently only used with DTD processors, when in
+     * typing (non-validating) mode.
+     *
+     * @since 3.0
+     */
+    public final static int CONTENT_ALLOW_WS_NONSTRICT = 2;
 
     /**
      * This value indicates that textual content is allowed, but that
@@ -49,7 +64,7 @@ public abstract class XMLValidator
      * validation. Other event types are ok, and elements will need to be
      * validated by the validator as well.
      */
-    public final static int CONTENT_ALLOW_VALIDATABLE_TEXT = 2;
+    public final static int CONTENT_ALLOW_VALIDATABLE_TEXT = 3;
 
     /**
      * This value indicates that any textual content (plain PCTEXT) is
@@ -57,14 +72,14 @@ public abstract class XMLValidator
      * for it. It will, however, need to be called with respect
      * to element events.
      */
-    public final static int CONTENT_ALLOW_ANY_TEXT = 3;
+    public final static int CONTENT_ALLOW_ANY_TEXT = 4;
 
     /**
      * This value is a placeholder that should never be returned by
      * validators, but that can be used internally as an uninitialized
      * value.
      */
-    public final static int CONTENT_ALLOW_UNDEFINED = 4;
+    public final static int CONTENT_ALLOW_UNDEFINED = 5;
 
     /*
     ///////////////////////////////////////////////////

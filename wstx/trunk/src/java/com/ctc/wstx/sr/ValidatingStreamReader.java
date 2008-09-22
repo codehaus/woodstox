@@ -598,6 +598,7 @@ public class ValidatingStreamReader
                                     ErrorConsts.tokenTypeDesc(evtType));
             break;
         case XMLValidator.CONTENT_ALLOW_WS:
+        case XMLValidator.CONTENT_ALLOW_WS_NONSTRICT: // should this ever occur?
             reportValidationProblem(ErrorConsts.ERR_VLD_NON_MIXED,
                                     mElementStack.getTopElementDesc(), null);
             break;

@@ -2656,7 +2656,7 @@ public abstract class BasicStreamReader
         /* 26-Aug-2004, TSa: We have to deal with entities, usually, if
          *   they are the next thing; even in non-expanding mode there
          *   are entities and then there are entities... :-)
-         *   Let's start with char entities; they can kind of be expanded.
+         *   Let's start with char entities; they can be expanded right away.
          */
         while (i == '&') {
             mWsStatus = ALL_WS_UNKNOWN;
@@ -2687,16 +2687,15 @@ public abstract class BasicStreamReader
                 if (mVldContent <= XMLValidator.CONTENT_ALLOW_WS) {
                     // As per xml specs, only straight white space is legal
                     if (c > CHAR_SPACE) {
-                        /* 23-Sep-2006, TSa: ... but only if really validating.
-                         *  !!! Should be properly fixed, for 4.0, when we'll
-                         *   have new content allow type (ALLOW_WS_NONSTRICT
-                         *   or so), so as not to need stack.reallyValidating()
-                         *   method, which is a hack.
+                        /* 21-Sep-2008, TSa: Used to also require a call to
+                         *   'mElementStack.reallyValidating', if only ws
+                         *   allowed, to cover the case where non-typing-dtd
+                         *   was only used to discover SPACE type. But
+                         *   now that we have CONTENT_ALLOW_WS_NONSTRICT,
+                         *   shouldn't be needed.
                          */
-                        if (mVldContent < XMLValidator.CONTENT_ALLOW_WS
-                            || mElementStack.reallyValidating()) {
-                            reportInvalidContent(CHARACTERS);
-                        }
+                        //if (mVldContent < XMLValidator.CONTENT_ALLOW_WS || mElementStack.reallyValidating()) {
+                        reportInvalidContent(CHARACTERS);
                     }
                 }
 
@@ -2774,7 +2773,7 @@ public abstract class BasicStreamReader
         /* But first, do we expect to get ignorable white space (only happens
          * in validating mode)? If so, needs bit different handling:
          */
-        if (mVldContent <= XMLValidator.CONTENT_ALLOW_WS) {
+        if (mVldContent <= XMLValidator.CONTENT_ALLOW_WS_NONSTRICT) {
             if (mVldContent == XMLValidator.CONTENT_ALLOW_NONE) {
                 if (mElementStack.reallyValidating()) {
                     reportInvalidContent(CHARACTERS);
@@ -2793,7 +2792,9 @@ public abstract class BasicStreamReader
                 reportInvalidContent(CHARACTERS);
             }
             /* otherwise, we know it's supposed to contain just space (or
-             * be empty), but we are not validating
+             * be empty), but as we are not validating it's not an error
+             * for this not to be true. Type should be changed to
+             * CHARACTERS tho.
              */
         }
 

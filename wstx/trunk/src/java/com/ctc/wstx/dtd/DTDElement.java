@@ -500,7 +500,7 @@ public final class DTDElement
     {
         int vld = mAllowedContent;
         return (vld <= XMLValidator.CONTENT_ALLOW_WS) ?
-            XMLValidator.CONTENT_ALLOW_WS :
+            XMLValidator.CONTENT_ALLOW_WS_NONSTRICT :
             XMLValidator.CONTENT_ALLOW_ANY_TEXT;
     }
 
