@@ -251,6 +251,11 @@ public class StreamReader2Delegate
         return mDelegate2.getAttributeAsArray(index, tad);
     }
 
+    public byte[] getAttributeAsBinary(int index) throws XMLStreamException
+    {
+        return mDelegate2.getAttributeAsBinary(index);
+    }
+
     public int readElementAsDoubleArray(double[] value, int from, int length)
         throws XMLStreamException
     {
@@ -278,5 +283,11 @@ public class StreamReader2Delegate
         throws XMLStreamException
     {
         return mDelegate2.readElementAsArray(tad);
+    }
+
+    public int readElementAsBinary(byte[] resultBuffer, int offset, int maxLength)
+        throws XMLStreamException
+    {
+        return mDelegate2.readElementAsBinary(resultBuffer, offset, maxLength);
     }
 }

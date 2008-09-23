@@ -1246,6 +1246,19 @@ public abstract class DOMWrappingReader
     }
 
     /*
+    ////////////////////////////////////////////////////////
+    // TypedXMLStreamReader2 implementation, binary data
+    ////////////////////////////////////////////////////////
+     */
+
+    public int readElementAsBinary(byte[] resultBuffer, int offset, int maxLength)
+        throws XMLStreamException
+    {
+        // !!! TBI
+        return -1;
+    }
+
+    /*
     /////////////////////////////////////////////////
     // TypedXMLStreamReader2 implementation, attribute
     /////////////////////////////////////////////////
@@ -1410,6 +1423,12 @@ public abstract class DOMWrappingReader
             return true;
         }
         return false;
+    }
+
+    public byte[] getAttributeAsBinary(int index) throws XMLStreamException
+    {
+        // !!! TBI
+        return null;
     }
 
     /*

@@ -16,7 +16,7 @@ import javax.xml.namespace.QName;
  *<p>
  * Implementation notes:
  *
- * - As of July 2008:
+ * - As of September 2008:
  *   * Writer-side is completed, including:
  *     - Primitives (numbers, boolean)
  *     - Other scalars (QName)
@@ -25,8 +25,8 @@ import javax.xml.namespace.QName;
  *   * Reader-side partially completed:
  *     - Primitives
  *     - Other scalars
- *    (meaning that the rest; primitive arrays and binary; have
- *    not been implemented yet)
+ *     - Primitive arrays
+ *    (only missing binary elements)
  * 
  * @author Santiago.PericasGeertsen@sun.com
  * @author Tatu Saloranta
@@ -244,7 +244,7 @@ public interface TypedXMLStreamReader
      * <a href="http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/datatypes.html#rf-whiteSpace">collapsed</a>
      * according to the whiteSpace facet for the XML Schema base64Binary
      * data type. An exception is thrown if content is not in 
-     * the lexical space defined by the XML Schema base64Binary data type.</p>
+     * the lexical space defined by the XML Schema base64Binary data type.
      * </p><p>
      * Each call will read at least one decoded byte (and no more than
      * the specified maximum length), if there is any content remaining.
@@ -268,18 +268,33 @@ public interface TypedXMLStreamReader
      * differently, after the method is called for the first time,
      * the cursor will move and remain in the CHARACTERS position while there
      * are potentially more bytes available for reading.
+     *</p><p>
+     * One limitation which is based on actual encoding used is that
+     * caller can not request less than 3 bytes at a time: this limitation
+     * is used to allow implementations to handle 3 bytes (triplets) of
+     * content at a time. It also means that the actual number of bytes
+     * returned is not guaranteed to equal <code>maxLength</code> even
+     * if more content is available.
      *</p>
      *
-     * @param value   The array in which to copy the bytes.
-     * @param from    The index in the array from which copying starts.
-     * @param length  The maximun number of bytes to copy.
+     * @param resultBuffer Array in which to copy decoded bytes.
+     * @param offset  Starting offset of the first decoded byte
+     *   within result buffer
+     * @param maxLength  Maximun number of bytes to copy, which <b>must</b>
+     *     be at least <b>3</b> (because of the way base64 decoding works)
      *
      * @return        The number of bytes actually copied, if any were
-     *   available; -1 if there is no more content. If content was
-     *  copied, value must be less or equal than <code>length</code>
+     *   available; -1 if there is no more content. If any content was
+     *  copied, value must be less or equal than <code>maxLength</code>
+     *   Note that this value is not guaranteed to equal <code>maxLength</code>
+     *   even if enough content was available; that is, implementations
+     *   can return shorter sections if they choose to.
+     *
+     * @throws IllegalArgumentException If <code>resultBuffer</code> is
+     *    null, or offset is less than 0, or maxLength is less than 3.
      */
-    //public int readElementAsBinary(byte[] value, int from, int length)
-    //    throws XMLStreamException;
+    public int readElementAsBinary(byte[] resultBuffer, int offset, int maxLength)
+        throws XMLStreamException;
     
     /**
      * Read an element content as an int array. The lexical
@@ -332,13 +347,13 @@ public interface TypedXMLStreamReader
      *   START_ELEMENT, END_ELEMENT, or CHARACTERS (which resulted from
      *   an earlier call)
      */
-    public int readElementAsIntArray(int[] value, int from, int length) throws XMLStreamException;
+    public int readElementAsIntArray(int[] resultBuffer, int offset, int length) throws XMLStreamException;
 
-    public int readElementAsLongArray(long[] value, int from, int length) throws XMLStreamException;
+    public int readElementAsLongArray(long[] resultBuffer, int offset, int length) throws XMLStreamException;
     
-    public int readElementAsFloatArray(float[] value, int from, int length) throws XMLStreamException;
+    public int readElementAsFloatArray(float[] resultBuffer, int offset, int length) throws XMLStreamException;
     
-    public int readElementAsDoubleArray(double[] value, int from, int length) throws XMLStreamException;
+    public int readElementAsDoubleArray(double[] resultBuffer, int offset, int length) throws XMLStreamException;
 
     /**
      * Read an element content as an array of tokens. This is done by
@@ -505,7 +520,7 @@ public interface TypedXMLStreamReader
      * @throws XMLStreamException  If unable to convert the resulting
      *         character sequence into an XML Schema boolean value.
      */
-    //public byte[] getAttributeAsBinary(int index) throws XMLStreamException;
+    public byte[] getAttributeAsBinary(int index) throws XMLStreamException;
     
     /**
      * <p>Read an attribute content as an int array. The lexical

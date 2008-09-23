@@ -500,6 +500,15 @@ public final class TextBuffer
         return count;
     }
 
+    /**
+     * @return Number of base64 encoded bytes decoded
+     */
+    public int decodeBinary(byte[] resultBuffer, int offset, int maxLength)
+    {
+        // !!! TBI
+        return -1;
+    }
+
     /*
     //////////////////////////////////////////////
     // Accessors:

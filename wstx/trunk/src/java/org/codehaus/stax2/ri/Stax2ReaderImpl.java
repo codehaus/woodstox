@@ -16,12 +16,20 @@ package org.codehaus.stax2.ri;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 
 import javax.xml.namespace.NamespaceContext;
+import javax.xml.namespace.QName;
 import javax.xml.stream.*;
 
 import org.codehaus.stax2.*;
+import org.codehaus.stax2.typed.TypedArrayDecoder;
+import org.codehaus.stax2.typed.TypedValueDecoder;
+import org.codehaus.stax2.typed.TypedXMLStreamException;
 import org.codehaus.stax2.validation.*;
+
+import org.codehaus.stax2.ri.typed.ValueDecoderFactory;
 
 /**
  * This is a partial base implementation of {@link XMLStreamReader2},
@@ -33,6 +41,11 @@ public abstract class Stax2ReaderImpl
                ,DTDInfo
                ,LocationInfo
 {
+    /**
+     * Factory used for constructing decoders we need for typed access
+     */
+    protected ValueDecoderFactory _decoderFactory;
+
     /*
     ////////////////////////////////////////////////////
     // Life-cycle methods
@@ -317,6 +330,252 @@ public abstract class Stax2ReaderImpl
     }
 
     public abstract ValidationProblemHandler setValidationProblemHandler(ValidationProblemHandler h);
+
+    /*
+    ////////////////////////////////////////////////////////
+    // TypedXMLStreamReader, scalar elements
+    ////////////////////////////////////////////////////////
+     */
+
+    public boolean getElementAsBoolean() throws XMLStreamException
+    {
+        ValueDecoderFactory.BooleanDecoder dec = _decoderFactory().getBooleanDecoder();
+        getElementAs(dec);
+        return dec.getValue();
+    }
+
+    public int getElementAsInt() throws XMLStreamException
+    {
+        ValueDecoderFactory.IntDecoder dec = _decoderFactory().getIntDecoder();
+        getElementAs(dec);
+        return dec.getValue();
+    }
+
+    public long getElementAsLong() throws XMLStreamException
+    {
+        ValueDecoderFactory.LongDecoder dec = _decoderFactory().getLongDecoder();
+        getElementAs(dec);
+        return dec.getValue();
+    }
+
+    public float getElementAsFloat() throws XMLStreamException
+    {
+        ValueDecoderFactory.FloatDecoder dec = _decoderFactory().getFloatDecoder();
+        getElementAs(dec);
+        return dec.getValue();
+    }
+
+    public double getElementAsDouble() throws XMLStreamException
+    {
+        ValueDecoderFactory.DoubleDecoder dec = _decoderFactory().getDoubleDecoder();
+        getElementAs(dec);
+        return dec.getValue();
+    }
+
+    public BigInteger getElementAsInteger() throws XMLStreamException
+    {
+        ValueDecoderFactory.IntegerDecoder dec = _decoderFactory().getIntegerDecoder();
+        getElementAs(dec);
+        return dec.getValue();
+    }
+
+    public BigDecimal getElementAsDecimal() throws XMLStreamException
+    {
+        ValueDecoderFactory.DecimalDecoder dec = _decoderFactory().getDecimalDecoder();
+        getElementAs(dec);
+        return dec.getValue();
+    }
+
+    public QName getElementAsQName() throws XMLStreamException
+    {
+        ValueDecoderFactory.QNameDecoder dec = _decoderFactory().getQNameDecoder(getNamespaceContext());
+        getElementAs(dec);
+        // !!! Should we try to verify validity of name chars?
+        return dec.getValue();
+    }
+
+    public void getElementAs(TypedValueDecoder tvd) throws XMLStreamException
+    {
+        String value = getElementText();
+        try {
+            tvd.decode(value);
+        } catch (IllegalArgumentException iae) {
+            throw _constructTypeException(iae, value);
+        }
+    }
+
+    /*
+    ////////////////////////////////////////////////////////
+    // TypedXMLStreamReader2 implementation, array elements
+    ////////////////////////////////////////////////////////
+     */
+
+    public int readElementAsIntArray(int[] value, int from, int length) throws XMLStreamException
+    {
+        return readElementAsArray(_decoderFactory().getIntArrayDecoder(value, from, length));
+    }
+
+    public int readElementAsLongArray(long[] value, int from, int length) throws XMLStreamException
+    {
+        return readElementAsArray(_decoderFactory().getLongArrayDecoder(value, from, length));
+    }
+
+    public int readElementAsFloatArray(float[] value, int from, int length) throws XMLStreamException
+    {
+        return readElementAsArray(_decoderFactory().getFloatArrayDecoder(value, from, length));
+    }
+
+    public int readElementAsDoubleArray(double[] value, int from, int length) throws XMLStreamException
+    {
+        return readElementAsArray(_decoderFactory().getDoubleArrayDecoder(value, from, length));
+    }
+
+    /**
+     * Actual implementation needs to implement tokenization and state
+     * keeping.
+     *<p>
+     * !!! TODO: should be possible to implement completely
+     */
+    public abstract int readElementAsArray(TypedArrayDecoder dec)
+        throws XMLStreamException;
+
+    /*
+    ////////////////////////////////////////////////////////
+    // TypedXMLStreamReader2 implementation, binary data
+    ////////////////////////////////////////////////////////
+     */
+
+    public abstract int readElementAsBinary(byte[] resultBuffer, int offset, int maxLength)
+        throws XMLStreamException;
+
+    /*
+    ///////////////////////////////////////////////////////////
+    // TypedXMLStreamReader2 implementation, scalar attributes
+    ///////////////////////////////////////////////////////////
+     */
+
+    public abstract int getAttributeIndex(String namespaceURI, String localName);
+
+    public boolean getAttributeAsBoolean(int index) throws XMLStreamException
+    {
+        ValueDecoderFactory.BooleanDecoder dec = _decoderFactory().getBooleanDecoder();
+        getAttributeAs(index, dec);
+        return dec.getValue();
+    }
+
+    public int getAttributeAsInt(int index) throws XMLStreamException
+    {
+        ValueDecoderFactory.IntDecoder dec = _decoderFactory().getIntDecoder();
+        getAttributeAs(index, dec);
+        return dec.getValue();
+    }
+
+    public long getAttributeAsLong(int index) throws XMLStreamException
+    {
+        ValueDecoderFactory.LongDecoder dec = _decoderFactory().getLongDecoder();
+        getAttributeAs(index, dec);
+        return dec.getValue();
+    }
+
+    public float getAttributeAsFloat(int index) throws XMLStreamException
+    {
+        ValueDecoderFactory.FloatDecoder dec = _decoderFactory().getFloatDecoder();
+        getAttributeAs(index, dec);
+        return dec.getValue();
+    }
+
+    public double getAttributeAsDouble(int index) throws XMLStreamException
+    {
+        ValueDecoderFactory.DoubleDecoder dec = _decoderFactory().getDoubleDecoder();
+        getAttributeAs(index, dec);
+        return dec.getValue();
+    }
+
+    public BigInteger getAttributeAsInteger(int index) throws XMLStreamException
+    {
+        ValueDecoderFactory.IntegerDecoder dec = _decoderFactory().getIntegerDecoder();
+        getAttributeAs(index, dec);
+        return dec.getValue();
+    }
+
+    public BigDecimal getAttributeAsDecimal(int index) throws XMLStreamException
+    {
+        ValueDecoderFactory.DecimalDecoder dec = _decoderFactory().getDecimalDecoder();
+        getAttributeAs(index, dec);
+        return dec.getValue();
+    }
+
+    public QName getAttributeAsQName(int index) throws XMLStreamException
+    {
+        ValueDecoderFactory.QNameDecoder dec = _decoderFactory().getQNameDecoder(getNamespaceContext());
+        getAttributeAs(index, dec);
+        // !!! Should we try to verify validity of name chars?
+        return dec.getValue();
+    }
+
+    public void getAttributeAs(int index, TypedValueDecoder tvd) throws XMLStreamException
+    {
+        String value = getAttributeValue(index);
+        try {
+            tvd.decode(value);
+        } catch (IllegalArgumentException iae) {
+            throw _constructTypeException(iae, value);
+        }
+    }
+
+    public int[] getAttributeAsIntArray(int index) throws XMLStreamException
+    {
+        ValueDecoderFactory.IntArrayDecoder dec = _decoderFactory().getIntArrayDecoder();
+        getAttributeAsArray(index, dec);
+        return dec.getValues();
+    }
+
+    public long[] getAttributeAsLongArray(int index) throws XMLStreamException
+    {
+        ValueDecoderFactory.LongArrayDecoder dec = _decoderFactory().getLongArrayDecoder();
+        getAttributeAsArray(index, dec);
+        return dec.getValues();
+    }
+
+    public float[] getAttributeAsFloatArray(int index) throws XMLStreamException
+    {
+        ValueDecoderFactory.FloatArrayDecoder dec = _decoderFactory().getFloatArrayDecoder();
+        getAttributeAsArray(index, dec);
+        return dec.getValues();
+    }
+
+    public double[] getAttributeAsDoubleArray(int index) throws XMLStreamException
+    {
+        ValueDecoderFactory.DoubleArrayDecoder dec = _decoderFactory().getDoubleArrayDecoder();
+        getAttributeAsArray(index, dec);
+        return dec.getValues();
+    }
+
+    /**
+     * Actual implementation needs to implement tokenization.
+     *<p>
+     * !!! TODO: should be possible to implement completely
+     */
+    public abstract int getAttributeAsArray(int index, TypedArrayDecoder tad) throws XMLStreamException;
+
+    /*
+    ////////////////////////////////////////////////////
+    // Package methods
+    ////////////////////////////////////////////////////
+     */
+
+    protected ValueDecoderFactory _decoderFactory()
+    {
+        if (_decoderFactory == null) {
+            _decoderFactory = new ValueDecoderFactory();
+        }
+        return _decoderFactory;
+    }
+
+    protected TypedXMLStreamException _constructTypeException(IllegalArgumentException iae, String lexicalValue)
+    {
+        return new TypedXMLStreamException(lexicalValue, iae.getMessage(), getStartLocation(), iae);
+    }
 
     /*
     ////////////////////////////////////////////////////

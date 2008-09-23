@@ -23,10 +23,11 @@ import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
 
-import org.codehaus.stax2.ri.typed.ValueDecoderFactory;
 import org.codehaus.stax2.typed.TypedArrayDecoder;
 import org.codehaus.stax2.typed.TypedValueDecoder;
 import org.codehaus.stax2.typed.TypedXMLStreamException;
+
+import org.codehaus.stax2.ri.typed.ValueDecoderFactory;
 
 import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.cfg.ErrorConsts;
@@ -51,15 +52,27 @@ public class TypedStreamReader
      */
     final protected static int MASK_TYPED_ACCESS_ARRAY =
         (1 << START_ELEMENT)
-        | (1 << END_ELEMENT) // just for convenience
+        | (1 << END_ELEMENT) // for convenience
         | (1 << CHARACTERS) | (1 << CDATA) | (1 << SPACE)
     // Not ok for PI or COMMENT? Let's assume so
         ;
 
+    final protected static int MASK_TYPED_ACCESS_BINARY =
+        (1 << START_ELEMENT)
+        | (1 << END_ELEMENT) // for convenience
+        | (1 << CHARACTERS) | (1 << CDATA) | (1 << SPACE)
+        ;
+
+    /**
+     * Minimum length of text chunks to parse before base64 decoding.
+     * Will try to limit it to fit within regular result buffers.
+     */
+    final static int MIN_BINARY_CHUNK = 2000;
+
     /**
      * Factory used for constructing decoders we need for typed access
      */
-    protected ValueDecoderFactory mDecoderFactory;
+    protected ValueDecoderFactory _decoderFactory;
 
     /*
     ////////////////////////////////////////////////////
@@ -346,7 +359,7 @@ public class TypedStreamReader
              * also need to coalesce to prevent artificila CDATA/text
              * boundary from splitting tokens
              */
-            if (type == CHARACTERS || type == CDATA) {
+            if (type == CHARACTERS || type == CDATA || type == SPACE) {
                 if (mTokenState < TOKEN_FULL_SINGLE) {
                     readCoalescedText(type, false);
                 }
@@ -367,10 +380,7 @@ public class TypedStreamReader
         return (count > 0) ? count : -1;
     }
 
-    /**
-     * Helper method that ensures that a single CHARACTERS segment
-     * is completely read.
-     */
+    /*
     private final void verifyCharactersComplete()
         throws XMLStreamException
     {
@@ -390,6 +400,100 @@ public class TypedStreamReader
             }
         }
     }
+    */
+
+    /*
+    ////////////////////////////////////////////////////////
+    // TypedXMLStreamReader2 implementation, binary data
+    ////////////////////////////////////////////////////////
+     */
+
+    public int readElementAsBinary(byte[] resultBuffer, int offset, int maxLength)
+        throws XMLStreamException
+    {
+        if (resultBuffer == null) {
+            throw new IllegalArgumentException("resultBuffer is null");
+        }
+        if (offset < 0) {
+            throw new IllegalArgumentException("Illegal offset ("+offset+"), must be [0, "+resultBuffer.length+"[");
+        }
+        if (maxLength < 3 || (offset + maxLength) > resultBuffer.length) {
+            throw new IllegalArgumentException("Illegal maxLength ("+maxLength+"), has to be at least 3, and offset+maxLength can not exceed"+resultBuffer.length);
+        }
+
+        int type = mCurrToken;
+        // First things first: must be acceptable start state:
+        if (((1 << type) & MASK_TYPED_ACCESS_BINARY) == 0) {
+            throwNotTextualOrElem(type);
+        }
+
+        // Are we just starting (START_ELEMENT)?
+        if (type == START_ELEMENT) {
+            if (mStEmptyElem) { // empty element? simple...
+                mStEmptyElem = false;
+                mCurrToken = END_ELEMENT;
+                return -1;
+            }
+            // Otherwise let's just find the first text segment
+            while (true) {
+                type = next();
+                if (type == END_ELEMENT) {
+                    // Simple... no textul content
+                    return -1;
+                }
+                if (type == COMMENT || type == PROCESSING_INSTRUCTION) {
+                    continue;
+                }
+                if (type == CHARACTERS || type == CDATA) {
+                    break;
+                }
+                // otherwise just not legal (how about SPACE, unexpanded entities?)
+                throw _constructUnexpectedInTyped(type);
+            }
+        }
+        // throwNotTextualOrElem(type);
+
+        int totalCount = 0;
+
+        decode_loop:
+        while (type != END_ELEMENT) {
+            /* Ok then: we will have a valid textual type. Just need to
+             * ensure current segment is completed. Plus, for current impl,
+             * also need to coalesce to prevent artificila CDATA/text
+             * boundary from splitting tokens
+             */
+            if (type == CHARACTERS) {
+                if (mTokenState < mStTextThreshold) {
+                    mTokenState = readTextSecondary(MIN_BINARY_CHUNK, false)
+                        ? TOKEN_FULL_SINGLE : TOKEN_PARTIAL_SINGLE;
+                }
+            } else if (type == CDATA) {
+                if (mTokenState < mStTextThreshold) {
+                    mTokenState = readCDataSecondary(MIN_BINARY_CHUNK)
+                        ? TOKEN_FULL_SINGLE : TOKEN_PARTIAL_SINGLE;
+                }
+            } else if (type == COMMENT || type == PROCESSING_INSTRUCTION
+                       || type == SPACE) { // space is ignorable too
+                type = next();
+                continue;
+            } else {
+                throw _constructUnexpectedInTyped(type);
+            }
+            int count = mTextBuffer.decodeBinary(resultBuffer, offset, maxLength);
+            offset += count;
+            totalCount += count;
+            maxLength -= count;
+            type = next();
+            // Have to request at least 3 bytes with each call, so:
+            if (maxLength < 3) {
+                break;
+            }
+        }
+
+        // If nothing was found, needs to be indicated via -1, not 0
+        return (totalCount > 0) ? totalCount : -1;
+    }
+
     /*
     ///////////////////////////////////////////////////////////
     // TypedXMLStreamReader2 implementation, scalar attributes
@@ -515,6 +619,12 @@ public class TypedStreamReader
         return mAttrCollector.decodeValues(index, tad, this);
     }
 
+    public byte[] getAttributeAsBinary(int index) throws XMLStreamException
+    {
+        // !!! TBI
+        return null;
+    }
+
     /*
     /////////////////////////////////////////////////////
     // Internal helper methods
@@ -545,10 +655,10 @@ public class TypedStreamReader
 
     protected ValueDecoderFactory _decoderFactory()
     {
-        if (mDecoderFactory == null) {
-            mDecoderFactory = new ValueDecoderFactory();
+        if (_decoderFactory == null) {
+            _decoderFactory = new ValueDecoderFactory();
         }
-        return mDecoderFactory;
+        return _decoderFactory;
     }
 
     /**

@@ -275,6 +275,19 @@ public class Stax2ReaderAdapter
     }
 
     /*
+    ////////////////////////////////////////////////////////
+    // TypedXMLStreamReader2 implementation, binary data
+    ////////////////////////////////////////////////////////
+     */
+
+    public int readElementAsBinary(byte[] resultBuffer, int offset, int maxLength)
+        throws XMLStreamException
+    {
+        // !!! TBI
+        return -1;
+    }
+
+    /*
     /////////////////////////////////////////////////
     // TypedXMLStreamReader, attribute access
     /////////////////////////////////////////////////
@@ -439,6 +452,12 @@ public class Stax2ReaderAdapter
             return true;
         }
         return false;
+    }
+
+    public byte[] getAttributeAsBinary(int index) throws XMLStreamException
+    {
+        // !!! TBI
+        return null;
     }
 
     /*
