@@ -35,6 +35,7 @@ import com.ctc.wstx.cfg.XmlConsts;
 import com.ctc.wstx.io.BranchingReaderSource;
 import com.ctc.wstx.io.InputBootstrapper;
 import com.ctc.wstx.io.WstxInputData;
+import com.ctc.wstx.util.Base64Decoder;
 
 /**
  * Completed implementation of {@link XMLStreamReader2}, including
@@ -73,6 +74,11 @@ public class TypedStreamReader
      * Factory used for constructing decoders we need for typed access
      */
     protected ValueDecoderFactory _decoderFactory;
+
+    /**
+     * Lazily-constructed decoder objects.
+     */
+    protected Base64Decoder mBinaryDecoder = null;
 
     /*
     ////////////////////////////////////////////////////
@@ -444,54 +450,66 @@ public class TypedStreamReader
                 if (type == COMMENT || type == PROCESSING_INSTRUCTION) {
                     continue;
                 }
-                if (type == CHARACTERS || type == CDATA) {
-                    break;
-                }
-                // otherwise just not legal (how about SPACE, unexpanded entities?)
-                throw _constructUnexpectedInTyped(type);
+                initBinaryChunks(type);
             }
         }
         // throwNotTextualOrElem(type);
 
         int totalCount = 0;
 
-        decode_loop:
-        while (type != END_ELEMENT) {
-            /* Ok then: we will have a valid textual type. Just need to
-             * ensure current segment is completed. Plus, for current impl,
-             * also need to coalesce to prevent artificila CDATA/text
-             * boundary from splitting tokens
-             */
-            if (type == CHARACTERS) {
-                if (mTokenState < mStTextThreshold) {
-                    mTokenState = readTextSecondary(MIN_BINARY_CHUNK, false)
-                        ? TOKEN_FULL_SINGLE : TOKEN_PARTIAL_SINGLE;
-                }
-            } else if (type == CDATA) {
-                if (mTokenState < mStTextThreshold) {
-                    mTokenState = readCDataSecondary(MIN_BINARY_CHUNK)
-                        ? TOKEN_FULL_SINGLE : TOKEN_PARTIAL_SINGLE;
-                }
-            } else if (type == COMMENT || type == PROCESSING_INSTRUCTION
-                       || type == SPACE) { // space is ignorable too
-                type = next();
-                continue;
-            } else {
-                throw _constructUnexpectedInTyped(type);
-            }
-            int count = mTextBuffer.decodeBinary(resultBuffer, offset, maxLength);
+        main_loop:
+        while (true) {
+            // Ok, decode:
+            int count = mBinaryDecoder.decode(resultBuffer, offset, maxLength);
             offset += count;
             totalCount += count;
             maxLength -= count;
-            type = next();
-            // Have to request at least 3 bytes with each call, so:
+
+            /* And if we filled the buffer (always need room for at least 3
+             * chars), we are done
+             */
             if (maxLength < 3) {
+                break;
+            }
+            // Otherwise need to advance
+            while (true) {
+                type = next();
+                if (type == COMMENT || type == PROCESSING_INSTRUCTION
+                    || type == SPACE) { // space is ignorable too
+                    continue;
+                }
+                if (type == END_ELEMENT) {
+                    break main_loop;
+                }
+                initBinaryChunks(type);
                 break;
             }
         }
 
         // If nothing was found, needs to be indicated via -1, not 0
         return (totalCount > 0) ? totalCount : -1;
+    }
+
+    private final void initBinaryChunks(int type)
+        throws XMLStreamException
+    {
+        if (type == CHARACTERS) {
+            if (mTokenState < mStTextThreshold) {
+                mTokenState = readTextSecondary(MIN_BINARY_CHUNK, false)
+                    ? TOKEN_FULL_SINGLE : TOKEN_PARTIAL_SINGLE;
+            }
+        } else if (type == CDATA) {
+            if (mTokenState < mStTextThreshold) {
+                mTokenState = readCDataSecondary(MIN_BINARY_CHUNK)
+                    ? TOKEN_FULL_SINGLE : TOKEN_PARTIAL_SINGLE;
+            }
+        } else {
+            throw _constructUnexpectedInTyped(type);
+        }
+        if (mBinaryDecoder == null) {
+            mBinaryDecoder = new Base64Decoder();
+        }
+        mTextBuffer.initBinaryChunks(mBinaryDecoder);
     }
 
     /*

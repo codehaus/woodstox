@@ -63,6 +63,14 @@ public final class TextBuffer
      */
     final static int DEF_INITIAL_BUFFER_SIZE = 500; // 1k
 
+    /**
+     * We will also restrict maximum length of individual segments
+     * to allocate (not including cases where we must return a single
+     * segment). Value is somewhat arbitrary, let's use it so that
+     * memory used is no more than 1/2 megabytes.
+     */
+    final static int MAX_SEGMENT_LENGTH = 256 * 1024;
+
     final static int INT_SPACE = 0x0020;
 
     // // // Configuration:
@@ -298,26 +306,24 @@ public final class TextBuffer
 
     private final char[] allocBuffer(int needed)
     {
-        if (needed < DEF_INITIAL_BUFFER_SIZE) {
-            needed = DEF_INITIAL_BUFFER_SIZE;
-        }
+        int size = Math.max(needed, DEF_INITIAL_BUFFER_SIZE);
         char[] buf = null;
         if (mConfig != null) {
-            buf = mConfig.allocMediumCBuffer(needed);
+            buf = mConfig.allocMediumCBuffer(size);
             if (buf != null) {
                 return buf;
             }
         }
-        return new char[needed];
+        return new char[size];
     }
 
     private final void clearSegments()
     {
         mHasSegments = false;
-        /* Let's start using _last_ segment from list; for one, it's
-         * the biggest one, and it's also most likely to be cached
+        /* Since the current segment should be the biggest one
+         * (as we allocate 50% bigger each time), let's retain it,
+         * and clear others
          */
-        mCurrentSegment = (char[]) mSegments.get(mSegments.size() - 1);
         mSegments.clear();
         mCurrentSize = mSegmentSize = 0;
     }
@@ -349,7 +355,6 @@ public final class TextBuffer
 
         // And then reset internal input buffers, if necessary:
         if (mSegments != null && mSegments.size() > 0) {
-            mCurrentSegment = (char[]) mSegments.get(mSegments.size() - 1);
             mSegments.clear();
             mCurrentSize = mSegmentSize = 0;
         }
@@ -501,12 +506,16 @@ public final class TextBuffer
     }
 
     /**
-     * @return Number of base64 encoded bytes decoded
+     * Method that needs to be called to configure given base64 decoder
+     * with textual contents collected by this buffer.
      */
-    public int decodeBinary(byte[] resultBuffer, int offset, int maxLength)
+    public void initBinaryChunks(Base64Decoder dec)
     {
-        // !!! TBI
-        return -1;
+        if (mInputStart < 0) { // non-shared
+            dec.init(mCurrentSegment, 0, mCurrentSize, mSegments);
+        } else { // shared
+            dec.init(mInputBuffer, mInputStart, mInputLen, null);
+        }
     }
 
     /*
@@ -1001,6 +1010,7 @@ public final class TextBuffer
         char[] curr = mCurrentSegment;
         if (mCurrentSize >= curr.length) {
             expand(1);
+            curr = mCurrentSegment;
         }
         curr[mCurrentSize++] = c;
     }
@@ -1111,11 +1121,23 @@ public final class TextBuffer
         mSegments.add(mCurrentSegment);
         int oldLen = mCurrentSegment.length;
         mSegmentSize += oldLen;
-        // Let's grow segments by 50%
-        char[] curr = new char[oldLen + (oldLen >> 1)];
+        char[] curr = new char[calcNewSize(oldLen)];
         mCurrentSize = 0;
         mCurrentSegment = curr;
         return curr;
+    }
+    
+    /**
+     * Method used to determine size of the next segment to
+     * allocate to contain textual content.
+     */
+    private int calcNewSize(int latestSize)
+    {
+        // Let's grow segments by 50%, when over 8k
+        int incr = (latestSize < 8000) ? latestSize : (latestSize >> 1);
+        int size = latestSize + incr;
+        // but let's not create too big chunks
+        return Math.min(size, MAX_SEGMENT_LENGTH);
     }
 
     /*
@@ -1155,8 +1177,7 @@ public final class TextBuffer
         // Is buffer big enough, or do we need to reallocate?
         int needed = len+needExtra;
         if (mCurrentSegment == null || needed > mCurrentSegment.length) {
-            mCurrentSegment = allocBuffer((needed > DEF_INITIAL_BUFFER_SIZE) ?
-                                          needed : DEF_INITIAL_BUFFER_SIZE);
+            mCurrentSegment = allocBuffer(needed);
         }
         if (len > 0) {
             System.arraycopy(inputBuf, start, mCurrentSegment, 0, len);
@@ -1168,8 +1189,11 @@ public final class TextBuffer
     /**
      * Method called when current segment is full, to allocate new
      * segment.
+     *
+     * @param roomNeeded Number of characters that the resulting
+     *   new buffer must have
      */
-    private void expand(int minNewSegmentSize)
+    private void expand(int roomNeeded)
     {
         // First, let's move current segment to segment list:
         if (mSegments == null) {
@@ -1178,14 +1202,10 @@ public final class TextBuffer
         char[] curr = mCurrentSegment;
         mHasSegments = true;
         mSegments.add(curr);
-        mSegmentSize += curr.length;
         int oldLen = curr.length;
-        // Let's grow segments by 50% minimum
-        int sizeAddition = oldLen >> 1;
-        if (sizeAddition < minNewSegmentSize) {
-            sizeAddition = minNewSegmentSize;
-        }
-        curr = new char[oldLen + sizeAddition];
+        mSegmentSize += oldLen;
+        int newSize = Math.max(roomNeeded, calcNewSize(oldLen));
+        curr = new char[newSize];
         mCurrentSize = 0;
         mCurrentSegment = curr;
     }
