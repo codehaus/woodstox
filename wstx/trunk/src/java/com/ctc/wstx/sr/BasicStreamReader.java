@@ -5442,9 +5442,14 @@ public abstract class BasicStreamReader
     protected XMLStreamException _constructUnexpectedInTyped(int nextToken)
     {
         if (nextToken == START_ELEMENT) {
-            return _constructTypeException("Element content can not contain child START_ELEMENT when using Typed Access methods");
+            return _constructTypeException("Element content can not contain child START_ELEMENT when using Typed Access methods", null);
         }
-        return _constructTypeException("Expected a text token, got "+tokenTypeDesc(nextToken));
+        return _constructTypeException("Expected a text token, got "+tokenTypeDesc(nextToken), null);
+    }
+
+    protected TypedXMLStreamException _constructTypeException(String msg, String lexicalValue)
+    {
+        return new TypedXMLStreamException(lexicalValue, msg, getStartLocation());
     }
 
     /**

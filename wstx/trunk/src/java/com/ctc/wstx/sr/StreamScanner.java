@@ -580,11 +580,13 @@ public abstract class StreamScanner
      * caused by a Well-Formedness Constraint or Validation Constraint
      * problem)
      */
+    /*
     protected WstxException _constructTypeException(String msg)
     {
         // Hmmh. Should there be a distinct sub-type?
         return new WstxParsingException(msg, getLastCharLocation());
     }
+    */
 
     protected WstxException constructFromIOE(IOException ioe)
     {

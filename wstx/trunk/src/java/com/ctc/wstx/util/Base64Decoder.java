@@ -9,47 +9,236 @@ import javax.xml.stream.XMLStreamException;
  */
 public final class Base64Decoder
 {
+    final static int INT_SPACE = 0x0020;
+
     /**
-     * Text segment being currently processed
+     * Base64 uses equality sign as padding char
      */
-    char[] mCurrSegment;
+    final static byte CHAR_PADDING = '=';
 
-    int mOffset;
-    int mEnd;
-
-    final ArrayList mOtherSegments = new ArrayList();
-
-    public Base64Decoder() { }
-
-    public void init(char[] lastSegment, int offset, int len,
-                     List segments)
-    {
-        mOtherSegments.clear();
-        if (segments == null || segments.isEmpty()) { // no segments, simple
-            mCurrSegment = lastSegment;
-            mOffset = offset;
-            mEnd = offset+len;
-        } else {
-            Iterator it = segments.iterator();
-            mCurrSegment = (char[]) it.next();
-            mOffset = 0;
-            mEnd = mCurrSegment.length;
-
-            while (it.hasNext()) {
-                mOtherSegments.add(it.next());
-            }
+    /**
+     * Array containing 6-bit values indexed by ascii characters (for
+     * valid base64 characters). Invalid entries are marked by -1.
+     */
+    final static int[] BASE64_BY_CHAR = new int[128];
+    static {
+        Arrays.fill(BASE64_BY_CHAR, -1);
+        String base64Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+        for (int i = 0; i < base64Chars.length(); ++i) {
+            BASE64_BY_CHAR[base64Chars.charAt(i)] = i;
         }
     }
 
-    public int decode(byte[] resultBuffer, int offset, int maxLength)
+    /**
+     * Text segment being currently processed.
+     */
+    char[] mCurrSegment;
+
+    int mCurrSegmentPtr;
+    int mCurrSegmentEnd;
+
+    /**
+     * Number of characters left over from the previous input buffer;
+     * maximum 3.
+     */
+    int mLeftoverCount;
+
+    /**
+     * Decoded partial data contained within characters left over
+     * at the end of the previous input buffer.
+     */
+    int mLeftoverData;
+
+    final ArrayList mNextSegments = new ArrayList();
+
+    /**
+     * Pointer of the next segment to process (after current one stored
+     * in {@link #mCurrSegment}) within {@link #mOtherSegments}.
+     */
+    int mNextSegmentIndex;
+
+    public Base64Decoder() { }
+
+    public void init(boolean firstChunk,
+                     char[] lastSegment, int offset, int len,
+                     List segments)
     {
+        /* Left overs only cleared if it is the first chunk (i.e.
+         * right after START_ELEMENT)
+         */
+        if (firstChunk) {
+            mLeftoverCount = 0;
+        }
+        mNextSegments.clear();
+        if (segments == null || segments.isEmpty()) { // no segments, simple
+            mCurrSegment = lastSegment;
+            mCurrSegmentPtr = offset;
+            mCurrSegmentEnd = offset+len;
+        } else {
+            Iterator it = segments.iterator();
+            mCurrSegment = (char[]) it.next();
+            mCurrSegmentPtr = 0;
+            mCurrSegmentEnd = mCurrSegment.length;
+
+            while (it.hasNext()) {
+                mNextSegments.add(it.next());
+            }
+            mNextSegmentIndex = 0;
+        }
+        mLeftoverCount = 0;
+    }
+
+    /**
+     * @param resultBuffer Buffer in which decoded bytes are returned
+     * @param resultOffset Offset that points to position to put the
+     *   first decoded byte in
+     * @param maxLength Maximum number of bytes to decode: caller guarantees
+     *   that it will be at least 3.
+     *
+     * @return Number of bytes decoded and returned in the result buffer
+     */
+    public int decode(byte[] resultBuffer, int resultOffset, int maxLength)
+        throws IllegalArgumentException
+    {
+        final int origResultOffset = resultOffset;
+
+        // Any leftovers? They need to be merged separately
+        if (mLeftoverCount > 0) {
+            int data = decodePartial();
+            if (data < 0) { // not enough data
+                return 0;
+            }
+            resultBuffer[resultOffset++] = (byte) (data >> 16);
+            resultBuffer[resultOffset++] = (byte) (data >> 8);
+            resultBuffer[resultOffset++] = (byte) data;
+            maxLength -= 3;
+        }
+
         /* We need room for triplets; hence the last valid start
          * pointer will be:
          */
-        final int origStart = offset;
-        final int lastOffset = offset + maxLength - 2;
-        // !!! TBI
-        return -1;
+        final int resultEnd = resultOffset + maxLength - 2;
+
+        // loop for as long as there's input and we have room for a triplet
+        main_loop:
+        while (resultOffset < resultEnd) {
+            int ch;
+            do {
+                if (mCurrSegmentPtr >= mCurrSegmentEnd) {
+                    if (!nextSegment()) {
+                        break main_loop;
+                    }
+                }
+                ch = mCurrSegment[mCurrSegmentPtr++];
+            } while (ch <= INT_SPACE);
+
+            int data;
+
+            if (ch > 128 || (data = BASE64_BY_CHAR[ch]) < 0) {
+                throw reportInvalidChar(ch);
+            }
+
+            // Ok, still need 3 more. So here's second char we need
+            if (mCurrSegmentPtr >= mCurrSegmentEnd) {
+                if (!nextSegment()) {
+                    markPartial(1, data);
+                    break main_loop;
+                }
+            }
+            ch = mCurrSegment[mCurrSegmentPtr++];
+            int bits;
+            if (ch > 128 || (bits = BASE64_BY_CHAR[ch]) < 0) {
+                throw reportInvalidChar(ch);
+            }
+            data = (data << 6) | bits;
+
+            // Then third
+            if (mCurrSegmentPtr >= mCurrSegmentEnd) {
+                if (!nextSegment()) {
+                    markPartial(2, data);
+                    break main_loop;
+                }
+            }
+            ch = mCurrSegment[mCurrSegmentPtr++];
+            if (ch > 128 || (bits = BASE64_BY_CHAR[ch]) < 0) {
+                throw reportInvalidChar(ch);
+            }
+            data = (data << 6) | bits;
+
+            // And then fourth and final
+            if (mCurrSegmentPtr >= mCurrSegmentEnd) {
+                if (!nextSegment()) {
+                    markPartial(3, data);
+                    break main_loop;
+                }
+            }
+            ch = mCurrSegment[mCurrSegmentPtr++];
+            if (ch > 128 || (bits = BASE64_BY_CHAR[ch]) < 0) {
+                throw reportInvalidChar(ch);
+            }
+            data = (data << 6) | bits;
+
+            resultBuffer[resultOffset++] = (byte) (data >> 16);
+            resultBuffer[resultOffset++] = (byte) (data >> 8);
+            resultBuffer[resultOffset++] = (byte) data;
+            maxLength -= 3;
+        }
+        return resultOffset - origResultOffset;
+    }
+
+    /**
+     * @return 3 data bytes (within lower 24 bits of the int) decoded,
+     *   if succesful; or -1 to indicate that there is not enough
+     *   data
+     */
+    private int decodePartial()
+        throws IllegalArgumentException
+    {
+        do {
+            if (mCurrSegmentPtr >= mCurrSegmentEnd) {
+                if (!nextSegment()) {
+                    return -1;
+                }
+            }
+            int ch = mCurrSegment[mCurrSegmentPtr++];
+            int bits;
+            if (ch > 128 || (bits = BASE64_BY_CHAR[ch]) < 0) {
+                throw reportInvalidChar(ch);
+            }
+            mLeftoverData = (mLeftoverData << 6) | bits;
+            ++mLeftoverCount;
+        } while (mLeftoverCount < 4);
+        mLeftoverCount = 0;
+        return mLeftoverData;
+    }
+
+    private void markPartial(int charsGotten, int data)
+    {
+        mLeftoverCount = charsGotten;
+        mLeftoverData = data;
+    }
+
+    /**
+     * @return True if there was another input segment to use
+     */
+    private boolean nextSegment()
+    {
+        if (mNextSegmentIndex < mNextSegments.size()) {
+            mCurrSegment = (char[]) mNextSegments.get(mNextSegmentIndex++);
+            mCurrSegmentPtr = 0;
+            mCurrSegmentEnd = mCurrSegment.length;
+            return true;
+        }
+        return false;
+    }
+
+    private IllegalArgumentException reportInvalidChar(int ch)
+        throws IllegalArgumentException
+    {
+        if (ch <= INT_SPACE) {
+            return new IllegalArgumentException("Illegal white space character (code 0x"+Integer.toHexString(ch)+") in base64 segment");
+        }
+        return new IllegalArgumentException("Illegal base64 character (code 0x"+Integer.toHexString(ch)+")");
     }
 }
 

@@ -508,13 +508,17 @@ public final class TextBuffer
     /**
      * Method that needs to be called to configure given base64 decoder
      * with textual contents collected by this buffer.
+     *
+     * @param dec Decoder that will need data
+     * @param firstChunk Whether this is the first segment fed or not;
+     *    if it is, state needs to be fullt reset; if not, only partially.
      */
-    public void initBinaryChunks(Base64Decoder dec)
+    public void initBinaryChunks(Base64Decoder dec, boolean firstChunk)
     {
         if (mInputStart < 0) { // non-shared
-            dec.init(mCurrentSegment, 0, mCurrentSize, mSegments);
+            dec.init(firstChunk, mCurrentSegment, 0, mCurrentSize, mSegments);
         } else { // shared
-            dec.init(mInputBuffer, mInputStart, mInputLen, null);
+            dec.init(firstChunk, mInputBuffer, mInputStart, mInputLen, null);
         }
     }
 

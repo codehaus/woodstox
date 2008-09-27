@@ -450,7 +450,8 @@ public class TypedStreamReader
                 if (type == COMMENT || type == PROCESSING_INSTRUCTION) {
                     continue;
                 }
-                initBinaryChunks(type);
+                initBinaryChunks(type, true);
+                break;
             }
         }
         // throwNotTextualOrElem(type);
@@ -460,7 +461,14 @@ public class TypedStreamReader
         main_loop:
         while (true) {
             // Ok, decode:
-            int count = mBinaryDecoder.decode(resultBuffer, offset, maxLength);
+            int count;
+            try {
+                count = mBinaryDecoder.decode(resultBuffer, offset, maxLength);
+            } catch (IllegalArgumentException iae) {
+                // !!! 26-Sep-2008, tatus: should try to figure out which char (etc) triggered problem
+                throw _constructTypeException(iae.getMessage(), "");
+            }
+
             offset += count;
             totalCount += count;
             maxLength -= count;
@@ -481,7 +489,7 @@ public class TypedStreamReader
                 if (type == END_ELEMENT) {
                     break main_loop;
                 }
-                initBinaryChunks(type);
+                initBinaryChunks(type, false);
                 break;
             }
         }
@@ -490,7 +498,7 @@ public class TypedStreamReader
         return (totalCount > 0) ? totalCount : -1;
     }
 
-    private final void initBinaryChunks(int type)
+    private final void initBinaryChunks(int type, boolean isFirst)
         throws XMLStreamException
     {
         if (type == CHARACTERS) {
@@ -509,7 +517,7 @@ public class TypedStreamReader
         if (mBinaryDecoder == null) {
             mBinaryDecoder = new Base64Decoder();
         }
-        mTextBuffer.initBinaryChunks(mBinaryDecoder);
+        mTextBuffer.initBinaryChunks(mBinaryDecoder, isFirst);
     }
 
     /*
@@ -691,11 +699,5 @@ public class TypedStreamReader
     {
         return new TypedXMLStreamException(lexicalValue, iae.getMessage(), getStartLocation(), iae);
     }
-
-    protected TypedXMLStreamException _constructTypeException(String msg, String lexicalValue)
-    {
-        return new TypedXMLStreamException(lexicalValue, msg, getStartLocation());
-    }
-
 }
 
