@@ -423,8 +423,11 @@ public class TypedStreamReader
         if (offset < 0) {
             throw new IllegalArgumentException("Illegal offset ("+offset+"), must be [0, "+resultBuffer.length+"[");
         }
-        if (maxLength < 3 || (offset + maxLength) > resultBuffer.length) {
-            throw new IllegalArgumentException("Illegal maxLength ("+maxLength+"), has to be at least 3, and offset+maxLength can not exceed"+resultBuffer.length);
+        if (maxLength < 1 || (offset + maxLength) > resultBuffer.length) {
+            if (maxLength == 0) { // special case, allowed, but won't do anything
+                return 0;
+            }
+            throw new IllegalArgumentException("Illegal maxLength ("+maxLength+"), has to be positive number, and offset+maxLength can not exceed"+resultBuffer.length);
         }
 
         int type = mCurrToken;
@@ -473,13 +476,11 @@ public class TypedStreamReader
             totalCount += count;
             maxLength -= count;
 
-            /* And if we filled the buffer (always need room for at least 3
-             * chars), we are done
-             */
-            if (maxLength < 3) {
+            // And if we filled the buffer we are done
+            if (maxLength < 1) {
                 break;
             }
-            // Otherwise need to advance
+            // Otherwise need to advance to the next event
             while (true) {
                 type = next();
                 if (type == COMMENT || type == PROCESSING_INSTRUCTION

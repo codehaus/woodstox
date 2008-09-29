@@ -268,20 +268,12 @@ public interface TypedXMLStreamReader
      * differently, after the method is called for the first time,
      * the cursor will move and remain in the CHARACTERS position while there
      * are potentially more bytes available for reading.
-     *</p><p>
-     * One limitation which is based on actual encoding used is that
-     * caller can not request less than 3 bytes at a time: this limitation
-     * is used to allow implementations to handle 3 bytes (triplets) of
-     * content at a time. It also means that the actual number of bytes
-     * returned is not guaranteed to equal <code>maxLength</code> even
-     * if more content is available.
      *</p>
      *
      * @param resultBuffer Array in which to copy decoded bytes.
      * @param offset  Starting offset of the first decoded byte
      *   within result buffer
-     * @param maxLength  Maximun number of bytes to copy, which <b>must</b>
-     *     be at least <b>3</b> (because of the way base64 decoding works)
+     * @param maxLength  Maximun number of bytes to decode with this call
      *
      * @return        The number of bytes actually copied, if any were
      *   available; -1 if there is no more content. If any content was
@@ -291,7 +283,7 @@ public interface TypedXMLStreamReader
      *   can return shorter sections if they choose to.
      *
      * @throws IllegalArgumentException If <code>resultBuffer</code> is
-     *    null, or offset is less than 0, or maxLength is less than 3.
+     *    null or offset is less than 0.
      */
     public int readElementAsBinary(byte[] resultBuffer, int offset, int maxLength)
         throws XMLStreamException;

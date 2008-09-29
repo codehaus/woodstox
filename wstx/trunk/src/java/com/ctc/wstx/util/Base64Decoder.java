@@ -29,6 +29,8 @@ public final class Base64Decoder
         }
     }
 
+    // // // Input buffer information
+
     /**
      * Text segment being currently processed.
      */
@@ -36,6 +38,28 @@ public final class Base64Decoder
 
     int mCurrSegmentPtr;
     int mCurrSegmentEnd;
+
+    final ArrayList mNextSegments = new ArrayList();
+
+    /**
+     * Pointer of the next segment to process (after current one stored
+     * in {@link #mCurrSegment}) within {@link #mOtherSegments}.
+     */
+    int mNextSegmentIndex;
+
+    // // // State regarding partial decoding
+
+    /**
+     * Flag that is set to indicate that decoder either has partially
+     * processed input (1 to 3 characters from a previous buffer)
+     * or decoded but not-yet-returned data (1 or 2 bytes of a triplet
+     * that did not fit within the result buffer.
+     */
+    boolean mIncomplete = false;
+
+    int mIncompleteOutputData = 0;
+
+    int mIncompleteOutputLen = 0;
 
     /**
      * Number of characters left over from the previous input buffer;
@@ -49,13 +73,6 @@ public final class Base64Decoder
      */
     int mLeftoverData;
 
-    final ArrayList mNextSegments = new ArrayList();
-
-    /**
-     * Pointer of the next segment to process (after current one stored
-     * in {@link #mCurrSegment}) within {@link #mOtherSegments}.
-     */
-    int mNextSegmentIndex;
 
     public Base64Decoder() { }
 
@@ -102,15 +119,29 @@ public final class Base64Decoder
     {
         final int origResultOffset = resultOffset;
 
-        // Any leftovers? They need to be merged separately
-        if (mLeftoverCount > 0) {
-            int data = decodePartial();
-            if (data < 0) { // not enough data
-                return 0;
+        // Any incomplete input/output to handle first?
+        if (mIncomplete) {
+            // First: partial input from previous buffer?
+            if (mLeftoverCount > 0) {
+                int data = decodePartial();
+                if (data < 0) { // not enough data
+                    return 0;
+                }
+                mIncompleteOutputLen = 3;
+                mIncompleteOutputData = data;
             }
-            resultBuffer[resultOffset++] = (byte) (data >> 16);
-            resultBuffer[resultOffset++] = (byte) (data >> 8);
-            resultBuffer[resultOffset++] = (byte) data;
+            // Ok: 1 to 3 bytes we'll need to output:
+            int count = flushData(resultBuffer, resultOffset, maxLength);
+            maxLength -= count;
+            if (maxLength < 1) { // buffer full
+                return count;
+            }
+            resultOffset += count;
+        }
+
+        final int resultEnd = resultOffset + maxLength;
+
+        // Any leftovers? They need to be merged separately
             maxLength -= 3;
         }
 
@@ -184,6 +215,30 @@ public final class Base64Decoder
             maxLength -= 3;
         }
         return resultOffset - origResultOffset;
+    }
+
+    /**
+     *<p>
+     * Note: we assume there is room for at least one byte, in the output
+     * buffer
+     *
+     * @return Number of bytes written to output
+     */
+    private void flushData(byte[] resultBuffer, int resultOffset, int maxLength)
+    {
+        // 1 or 2 bytes buffered?
+        boolean gotTwo = (mIncompleteOutputLen == 2);
+        if (gotTwo) {
+            resultBuffer[resultOffset++] = (byte) (mIncompleteOutputData >> 8);
+            if (maxLength < 2) {
+                mIncompleteOutputLen = 1;
+                return 1;
+            }
+        }
+        mIncomplete = false;
+        mIncompleteOutputLen = 0;
+        resultBuffer[resultOffset] = (byte) mIncompleteOutputData;
+        return gotTwo ? 2 : 1;
     }
 
     /**
