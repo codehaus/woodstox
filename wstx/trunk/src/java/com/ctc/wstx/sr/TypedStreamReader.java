@@ -479,7 +479,7 @@ public class TypedStreamReader
             maxLength -= count;
 
             // And if we filled the buffer we are done
-            if (maxLength < 1) {
+            if (maxLength < 1 || !mBinaryDecoder.isEmpty()) {
                 break;
             }
             // Otherwise need to advance to the next event

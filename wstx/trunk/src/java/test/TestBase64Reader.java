@@ -18,7 +18,11 @@ public class TestBase64Reader
     {
         System.setProperty("javax.xml.stream.XMLInputFactory", "com.ctc.wstx.stax.WstxInputFactory");
         XMLInputFactory f = XMLInputFactory.newInstance();
-        String xml = "<root>TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ1dCBieSB0aGlz\n"
+        String xml = "<root>"
++"TWFuIGlzIGRpc3Rpbmd1"
++"aXNoZWQsIG5vdCBvbmx5"
++"IGJ5IGhpcyByZWFzb24s"
++"IGJ1dCBieSB0aGlz\n"
 +"IHNpbmd1bGFyIHBhc3Npb24gZnJvbSBvdGhlciBhbmltYWxzLCB3aGljaCBpcyBhIGx1c3Qgb2Yg\n"
 +"dGhlIG1pbmQsIHRoYXQgYnkgYSBwZXJzZXZlcmFuY2Ugb2YgZGVsaWdodCBpbiB0aGUgY29udGlu\n"
 +"dWVkIGFuZCBpbmRlZmF0aWdhYmxlIGdlbmVyYXRpb24gb2Yga25vd2xlZGdlLCBleGNlZWRzIHRo\n"

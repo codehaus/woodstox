@@ -109,8 +109,8 @@ public final class Base64Decoder
      * @param resultBuffer Buffer in which decoded bytes are returned
      * @param resultOffset Offset that points to position to put the
      *   first decoded byte in
-     * @param maxLength Maximum number of bytes to decode: caller guarantees
-     *   that it will be at least 3.
+     * @param maxLength Maximum number of bytes that can be returned
+     *   in given buffer
      *
      * @return Number of bytes decoded and returned in the result buffer
      */
@@ -156,7 +156,7 @@ public final class Base64Decoder
 
             int data;
 
-            if (ch > 128 || (data = BASE64_BY_CHAR[ch]) < 0) {
+            if (ch > 127 || (data = BASE64_BY_CHAR[ch]) < 0) {
                 throw reportInvalidChar(ch);
             }
 
@@ -169,7 +169,7 @@ public final class Base64Decoder
             }
             ch = mCurrSegment[mCurrSegmentPtr++];
             int bits;
-            if (ch > 128 || (bits = BASE64_BY_CHAR[ch]) < 0) {
+            if (ch > 127 || (bits = BASE64_BY_CHAR[ch]) < 0) {
                 throw reportInvalidChar(ch);
             }
             data = (data << 6) | bits;
@@ -182,7 +182,7 @@ public final class Base64Decoder
                 }
             }
             ch = mCurrSegment[mCurrSegmentPtr++];
-            if (ch > 128 || (bits = BASE64_BY_CHAR[ch]) < 0) {
+            if (ch > 127 || (bits = BASE64_BY_CHAR[ch]) < 0) {
                 throw reportInvalidChar(ch);
             }
             data = (data << 6) | bits;
@@ -195,13 +195,13 @@ public final class Base64Decoder
                 }
             }
             ch = mCurrSegment[mCurrSegmentPtr++];
-            if (ch > 128 || (bits = BASE64_BY_CHAR[ch]) < 0) {
+            if (ch > 127 || (bits = BASE64_BY_CHAR[ch]) < 0) {
                 throw reportInvalidChar(ch);
             }
             data = (data << 6) | bits;
 
             // Room in output buffer?
-            if (resultOffset < resultFullEnd) { // yes, simple
+            if (resultOffset <= resultFullEnd) { // yes, simple
                 resultBuffer[resultOffset++] = (byte) (data >> 16);
                 resultBuffer[resultOffset++] = (byte) (data >> 8);
                 resultBuffer[resultOffset++] = (byte) data;
@@ -221,6 +221,18 @@ public final class Base64Decoder
             break main_loop;
         }
         return resultOffset - origResultOffset;
+    }
+
+    /**
+     * Method that can be called to check whether this decoder has
+     * used up all available input data or not.
+     *
+     * @return True if this decoder has no more input it can use
+     *   for decoding.
+     */
+    public boolean isEmpty()
+    {
+        return (mNextSegmentIndex >= mNextSegments.size());
     }
 
     /**
@@ -268,7 +280,7 @@ public final class Base64Decoder
             }
             int ch = mCurrSegment[mCurrSegmentPtr++];
             int bits;
-            if (ch > 128 || (bits = BASE64_BY_CHAR[ch]) < 0) {
+            if (ch > 127 || (bits = BASE64_BY_CHAR[ch]) < 0) {
                 throw reportInvalidChar(ch);
             }
             mLeftoverData = (mLeftoverData << 6) | bits;
