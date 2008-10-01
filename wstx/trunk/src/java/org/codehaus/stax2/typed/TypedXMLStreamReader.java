@@ -275,12 +275,15 @@ public interface TypedXMLStreamReader
      *   within result buffer
      * @param maxLength  Maximun number of bytes to decode with this call
      *
-     * @return        The number of bytes actually copied, if any were
-     *   available; -1 if there is no more content. If any content was
-     *  copied, value must be less or equal than <code>maxLength</code>
-     *   Note that this value is not guaranteed to equal <code>maxLength</code>
-     *   even if enough content was available; that is, implementations
-     *   can return shorter sections if they choose to.
+     * @return        The number of bytes actually decoded and returned,
+     *  if any were available; -1 if there is no more content.
+     *  If any content was copied, value must be less or equal than
+     * <code>maxLength</code>
+     *  Note that this value is not guaranteed to equal <code>maxLength</code>
+     *  even if enough content was available; that is, implementations
+     *  can return shorter sections if they choose to, down to and including
+     *  returning zero (0) if it was not possible to decode a full base64
+     *  triplet (3 output bytes from 4 input characters).
      *
      * @throws IllegalArgumentException If <code>resultBuffer</code> is
      *    null or offset is less than 0.

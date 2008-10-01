@@ -59,8 +59,7 @@ public class TypedStreamReader
         ;
 
     final protected static int MASK_TYPED_ACCESS_BINARY =
-        (1 << START_ELEMENT)
-        | (1 << END_ELEMENT) // for convenience
+        (1 << START_ELEMENT) //  note: END_ELEMENT handled separately
         | (1 << CHARACTERS) | (1 << CDATA) | (1 << SPACE)
         ;
 
@@ -433,6 +432,9 @@ public class TypedStreamReader
         int type = mCurrToken;
         // First things first: must be acceptable start state:
         if (((1 << type) & MASK_TYPED_ACCESS_BINARY) == 0) {
+            if (type == END_ELEMENT) {
+                return -1;
+            }
             throwNotTextualOrElem(type);
         }
 
@@ -447,7 +449,7 @@ public class TypedStreamReader
             while (true) {
                 type = next();
                 if (type == END_ELEMENT) {
-                    // Simple... no textul content
+                    // Simple... no textual content
                     return -1;
                 }
                 if (type == COMMENT || type == PROCESSING_INSTRUCTION) {

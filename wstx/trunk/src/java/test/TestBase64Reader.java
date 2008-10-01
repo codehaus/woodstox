@@ -24,7 +24,8 @@ public class TestBase64Reader
 +"dWVkIGFuZCBpbmRlZmF0aWdhYmxlIGdlbmVyYXRpb24gb2Yga25vd2xlZGdlLCBleGNlZWRzIHRo\n"
 +"ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4="
             +"</root>";
-        byte[] buffer = new byte[20];
+        final int CHUNK_LEN = 7;
+        byte[] buffer = new byte[CHUNK_LEN];
         TypedXMLStreamReader sr = (TypedXMLStreamReader) f.createXMLStreamReader(new StringReader(xml));
         sr.next();
 
@@ -34,9 +35,11 @@ public class TestBase64Reader
             if (count < 0) {
                 break;
             }
+            System.out.print('"');
             for (int i = 0; i < count; ++i) {
                 System.out.print((char) buffer[i]);
             }
+            System.out.print('"');
             System.out.println();
         }
         System.out.println("DONE!");

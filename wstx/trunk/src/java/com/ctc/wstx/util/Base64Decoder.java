@@ -123,12 +123,10 @@ public final class Base64Decoder
         if (mIncomplete) {
             // First: partial input from previous buffer?
             if (mLeftoverCount > 0) {
-                int data = decodePartial();
-                if (data < 0) { // not enough data
+                if (!decodePartial()) { // not enough data
                     return 0;
                 }
-                mIncompleteOutputLen = 3;
-                mIncompleteOutputData = data;
+                // otherwise we'll have incomplete output data now
             }
             // Ok: 1 to 3 bytes we'll need to output:
             int count = flushData(resultBuffer, resultOffset, maxLength);
@@ -139,21 +137,14 @@ public final class Base64Decoder
             resultOffset += count;
         }
 
-        final int resultEnd = resultOffset + maxLength;
-
-        // Any leftovers? They need to be merged separately
-            maxLength -= 3;
-        }
-
-        /* We need room for triplets; hence the last valid start
-         * pointer will be:
-         */
-        final int resultEnd = resultOffset + maxLength - 2;
+        // Ok: now we can work with one triplet at a time
+        final int resultFullEnd = resultOffset + maxLength - 3;
 
         // loop for as long as there's input and we have room for a triplet
         main_loop:
-        while (resultOffset < resultEnd) {
+        while (true) {
             int ch;
+            // first, we'll skip preceding white space, if any
             do {
                 if (mCurrSegmentPtr >= mCurrSegmentEnd) {
                     if (!nextSegment()) {
@@ -172,7 +163,7 @@ public final class Base64Decoder
             // Ok, still need 3 more. So here's second char we need
             if (mCurrSegmentPtr >= mCurrSegmentEnd) {
                 if (!nextSegment()) {
-                    markPartial(1, data);
+                    markPartialInput(1, data);
                     break main_loop;
                 }
             }
@@ -186,7 +177,7 @@ public final class Base64Decoder
             // Then third
             if (mCurrSegmentPtr >= mCurrSegmentEnd) {
                 if (!nextSegment()) {
-                    markPartial(2, data);
+                    markPartialInput(2, data);
                     break main_loop;
                 }
             }
@@ -199,7 +190,7 @@ public final class Base64Decoder
             // And then fourth and final
             if (mCurrSegmentPtr >= mCurrSegmentEnd) {
                 if (!nextSegment()) {
-                    markPartial(3, data);
+                    markPartialInput(3, data);
                     break main_loop;
                 }
             }
@@ -209,50 +200,70 @@ public final class Base64Decoder
             }
             data = (data << 6) | bits;
 
-            resultBuffer[resultOffset++] = (byte) (data >> 16);
-            resultBuffer[resultOffset++] = (byte) (data >> 8);
-            resultBuffer[resultOffset++] = (byte) data;
-            maxLength -= 3;
+            // Room in output buffer?
+            if (resultOffset < resultFullEnd) { // yes, simple
+                resultBuffer[resultOffset++] = (byte) (data >> 16);
+                resultBuffer[resultOffset++] = (byte) (data >> 8);
+                resultBuffer[resultOffset++] = (byte) data;
+                continue;
+            }
+
+            // Nope: need to do partial output
+            int roomFor = (resultFullEnd+3) - resultOffset;
+
+            if (roomFor > 0) {
+                resultBuffer[resultOffset++] = (byte) (data >> 16);
+                if (roomFor > 1) {
+                    resultBuffer[resultOffset++] = (byte) (data >> 8);
+                }
+            }
+            markPartialOutput(3 - roomFor, data);
+            break main_loop;
         }
         return resultOffset - origResultOffset;
     }
 
     /**
      *<p>
-     * Note: we assume there is room for at least one byte, in the output
-     * buffer
+     * Note: we assume that the output buffer has room for at least one byte.
      *
      * @return Number of bytes written to output
      */
-    private void flushData(byte[] resultBuffer, int resultOffset, int maxLength)
+    private int flushData(byte[] resultBuffer, int resultOffset, int maxLength)
     {
-        // 1 or 2 bytes buffered?
-        boolean gotTwo = (mIncompleteOutputLen == 2);
-        if (gotTwo) {
+        // Can have 1, 2 or 3 bytes to output
+        int origOffset = resultOffset;
+        if (--mIncompleteOutputLen > 0) {
+            if (mIncompleteOutputLen > 1) { // 3 bytes
+                resultBuffer[resultOffset++] = (byte) (mIncompleteOutputData >> 16);
+                --mIncompleteOutputLen;
+                if (--maxLength < 1) {
+                    return 1;
+                }
+            }
             resultBuffer[resultOffset++] = (byte) (mIncompleteOutputData >> 8);
-            if (maxLength < 2) {
-                mIncompleteOutputLen = 1;
-                return 1;
+            --mIncompleteOutputLen;
+            if (--maxLength < 1) {
+                return (resultOffset - origOffset);
             }
         }
+        resultBuffer[resultOffset++] = (byte) mIncompleteOutputData;
         mIncomplete = false;
         mIncompleteOutputLen = 0;
-        resultBuffer[resultOffset] = (byte) mIncompleteOutputData;
-        return gotTwo ? 2 : 1;
+        return (resultOffset - origOffset);
     }
 
     /**
-     * @return 3 data bytes (within lower 24 bits of the int) decoded,
-     *   if succesful; or -1 to indicate that there is not enough
-     *   data
+     * @return True if we managed to decode a full triplet; false if
+     *    there wasn't enough data for decoding
      */
-    private int decodePartial()
+    private boolean decodePartial()
         throws IllegalArgumentException
     {
         do {
-            if (mCurrSegmentPtr >= mCurrSegmentEnd) {
+            while (mCurrSegmentPtr >= mCurrSegmentEnd) {
                 if (!nextSegment()) {
-                    return -1;
+                    return false;
                 }
             }
             int ch = mCurrSegment[mCurrSegmentPtr++];
@@ -263,14 +274,24 @@ public final class Base64Decoder
             mLeftoverData = (mLeftoverData << 6) | bits;
             ++mLeftoverCount;
         } while (mLeftoverCount < 4);
+        mIncompleteOutputLen = 3;
+        mIncompleteOutputData = mLeftoverData;
         mLeftoverCount = 0;
-        return mLeftoverData;
+        return true;
     }
 
-    private void markPartial(int charsGotten, int data)
+    private void markPartialInput(int charsGotten, int data)
     {
         mLeftoverCount = charsGotten;
         mLeftoverData = data;
+        mIncomplete = true;
+    }
+
+    private void markPartialOutput(int bytesBuffered, int data)
+    {
+        mIncompleteOutputLen = bytesBuffered;
+        mIncompleteOutputData = data;
+        mIncomplete = true;
     }
 
     /**

@@ -82,23 +82,20 @@ public abstract class ReaderBinaryTestBase
             XMLStreamReader2 sr = getElemReader(buildDoc(r, data, addNoise));
 
             switch (readMethod) {
-            case 1: // minimal reads: but note, smallest max length is 3
+            case 1: // minimal reads, single byte at a time
                 {
                     byte[] buffer = new byte[5];
                     int ptr = 0;
                     int count;
 
-                    while ((count = sr.readElementAsBinary(buffer, 1, 3)) > 0) {
-                        if ((ptr + count) > size) {
-                            ptr += count;
-                            break;
-                        }
-                        for (int i = 0; i < count; ++i) {
-                            if (data[ptr] != buffer[1 + i]) {
-                                fail("Corrupt decode at #"+ptr+", expected "+data[ptr]+", got "+buffer[1+i]);
+                    while ((count = sr.readElementAsBinary(buffer, 2, 1)) > 0) {
+                        assertEquals(1, count);
+                        if ((ptr+1) < size) {
+                            if (data[ptr] != buffer[2]) {
+                                fail("Corrupt decode at #"+ptr+", expected "+data[ptr]+", got "+buffer[2]);
                             }
-                            ++ptr;
                         }
+                        ++ptr;
                     }
                     if (ptr != size) {
                         fail("Expected to get "+size+" bytes, got "+ptr);
