@@ -14,7 +14,7 @@ public final class Base64Decoder
     /**
      * Base64 uses equality sign as padding char
      */
-    final static byte CHAR_PADDING = '=';
+    final static char CHAR_PADDING = '=';
 
     /**
      * Array containing 6-bit values indexed by ascii characters (for
@@ -73,6 +73,12 @@ public final class Base64Decoder
      */
     int mLeftoverData;
 
+    /**
+     * Flag that indicates that a padding character is expected
+     * after left over characters already seen (of which there must
+     * be exactly 3, and hence just one byte to output)
+     */
+    boolean mLeftoverPadding;
 
     public Base64Decoder() { }
 
@@ -80,11 +86,15 @@ public final class Base64Decoder
                      char[] lastSegment, int offset, int len,
                      List segments)
     {
+        int size = (segments == null) ? 0 : segments.size();
+
         /* Left overs only cleared if it is the first chunk (i.e.
          * right after START_ELEMENT)
          */
         if (firstChunk) {
             mLeftoverCount = 0;
+            mIncompleteOutputLen = 0;
+            mIncomplete = false;
         }
         mNextSegments.clear();
         if (segments == null || segments.isEmpty()) { // no segments, simple
@@ -102,7 +112,6 @@ public final class Base64Decoder
             }
             mNextSegmentIndex = 0;
         }
-        mLeftoverCount = 0;
     }
 
     /**
@@ -159,11 +168,10 @@ public final class Base64Decoder
             if (ch > 127 || (data = BASE64_BY_CHAR[ch]) < 0) {
                 throw reportInvalidChar(ch);
             }
-
             // Ok, still need 3 more. So here's second char we need
             if (mCurrSegmentPtr >= mCurrSegmentEnd) {
                 if (!nextSegment()) {
-                    markPartialInput(1, data);
+                    markPartialInput(1, data, false);
                     break main_loop;
                 }
             }
@@ -174,15 +182,19 @@ public final class Base64Decoder
             }
             data = (data << 6) | bits;
 
-            // Then third
+            // Then third, can be '=' at the end
             if (mCurrSegmentPtr >= mCurrSegmentEnd) {
                 if (!nextSegment()) {
-                    markPartialInput(2, data);
+                    markPartialInput(2, data, false);
                     break main_loop;
                 }
             }
             ch = mCurrSegment[mCurrSegmentPtr++];
             if (ch > 127 || (bits = BASE64_BY_CHAR[ch]) < 0) {
+                if (ch == CHAR_PADDING) {
+                    resultOffset += decodePadded1(resultBuffer, resultOffset, resultFullEnd+3, data);
+                    break main_loop;
+                }
                 throw reportInvalidChar(ch);
             }
             data = (data << 6) | bits;
@@ -190,12 +202,28 @@ public final class Base64Decoder
             // And then fourth and final
             if (mCurrSegmentPtr >= mCurrSegmentEnd) {
                 if (!nextSegment()) {
-                    markPartialInput(3, data);
+                    markPartialInput(3, data, false);
                     break main_loop;
                 }
             }
             ch = mCurrSegment[mCurrSegmentPtr++];
             if (ch > 127 || (bits = BASE64_BY_CHAR[ch]) < 0) {
+                if (ch == CHAR_PADDING) {
+                    // 2 bytes already in, but need to re-align
+                    data >>= 2; // 3x6 bits == 18, 2 zeroes at the end
+                    int end = resultFullEnd + 3;
+                    if (resultOffset < end) {
+                        resultBuffer[resultOffset++] = (byte) (data >> 8);
+                        if (resultOffset < end) {
+                            resultBuffer[resultOffset++] = (byte) data;
+                        } else {
+                            markPartialOutput(1, data);
+                        }
+                    } else {
+                        markPartialOutput(2, data);
+                    }
+                    break main_loop;
+                }
                 throw reportInvalidChar(ch);
             }
             data = (data << 6) | bits;
@@ -221,6 +249,33 @@ public final class Base64Decoder
             break main_loop;
         }
         return resultOffset - origResultOffset;
+    }
+
+    /**
+     * @return Number of bytes output (0 or 1)
+     */
+    public int decodePadded1(byte[] resultBuffer, int resultOffset, int resultEnd,
+                             int data)
+        throws IllegalArgumentException
+    {
+        if (mCurrSegmentPtr >= mCurrSegmentEnd) {
+            if (!nextSegment()) {
+                markPartialInput(3, data, true);
+                return 0;
+            }
+        }
+        char ch = mCurrSegment[mCurrSegmentPtr++];
+        if (ch != CHAR_PADDING) {
+            throw reportInvalidChar(ch, "expected padding character '='");
+        }
+        // Ok, just a single byte to output; but it needs re-alignment
+        data >>= 4; // need to unwind last 4 zero bits
+        if (resultOffset < resultEnd) {
+            resultBuffer[resultOffset++] = (byte) data;
+            return 1;
+        }
+        markPartialOutput(1, data);
+        return 0;
     }
 
     /**
@@ -272,6 +327,8 @@ public final class Base64Decoder
     private boolean decodePartial()
         throws IllegalArgumentException
     {
+        // !!! TBI: ensure padding
+
         do {
             while (mCurrSegmentPtr >= mCurrSegmentEnd) {
                 if (!nextSegment()) {
@@ -292,11 +349,12 @@ public final class Base64Decoder
         return true;
     }
 
-    private void markPartialInput(int charsGotten, int data)
+    private void markPartialInput(int charsGotten, int data, boolean needPadding)
     {
         mLeftoverCount = charsGotten;
         mLeftoverData = data;
         mIncomplete = true;
+        mLeftoverPadding = needPadding;
     }
 
     private void markPartialOutput(int bytesBuffered, int data)
@@ -323,10 +381,22 @@ public final class Base64Decoder
     private IllegalArgumentException reportInvalidChar(int ch)
         throws IllegalArgumentException
     {
+        return reportInvalidChar(ch, null);
+    }
+
+    private IllegalArgumentException reportInvalidChar(int ch, String msg)
+        throws IllegalArgumentException
+    {
+        String base;
         if (ch <= INT_SPACE) {
-            return new IllegalArgumentException("Illegal white space character (code 0x"+Integer.toHexString(ch)+") in base64 segment");
+             base = "Illegal white space character (code 0x"+Integer.toHexString(ch)+") in base64 segment";
+        } else {
+            base = "Illegal base64 character (code 0x"+Integer.toHexString(ch)+")";
         }
-        return new IllegalArgumentException("Illegal base64 character (code 0x"+Integer.toHexString(ch)+")");
+        if (msg != null) {
+            base = base + ": " + msg;
+        }
+        return new IllegalArgumentException(base);
     }
 }
 

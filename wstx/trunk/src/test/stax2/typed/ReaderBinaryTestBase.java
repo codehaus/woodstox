@@ -79,7 +79,9 @@ public abstract class ReaderBinaryTestBase
             int size = LEN_ELEM[x];
             Random r = new Random(size);
             byte[] data = generateData(r, size);
-            XMLStreamReader2 sr = getElemReader(buildDoc(r, data, addNoise));
+            String doc = buildDoc(r, data, addNoise);
+
+            XMLStreamReader2 sr = getElemReader(doc);
 
             switch (readMethod) {
             case 1: // minimal reads, single byte at a time

@@ -33,9 +33,11 @@ public class TestBase64Reader
         TypedXMLStreamReader sr = (TypedXMLStreamReader) f.createXMLStreamReader(new StringReader(xml));
         sr.next();
 
+        int offset = 0;
+
         while (true) {
             int count = sr.readElementAsBinary(buffer, 0, buffer.length);
-            System.out.println("Result("+count+"): ");
+            System.out.print("Result("+offset+"+"+count+"): ");
             if (count < 0) {
                 break;
             }
@@ -44,6 +46,7 @@ public class TestBase64Reader
                 System.out.print((char) buffer[i]);
             }
             System.out.print('"');
+            offset += count;
             System.out.println();
         }
         System.out.println("DONE!");
