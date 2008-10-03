@@ -28,12 +28,17 @@ public class TestTypedWriter
 
         sw.writeStartDocument();
 
-        byte[] data = "Let's test this base64 thing with some arbitrary test data gotten out of this String as UTF-8 encoded".getBytes("UTF-8");
+        final String STR =
+            //"Let's test this base64 thing with some arbitrary test data gotten out of this String as UTF-8 encoded"
+"1234567"
+            ;
+        byte[] data = STR.getBytes("UTF-8");
 
         sw.writeStartElement("root");
+        //sw.writeCharacters("\n");
+        sw.writeBinary(data, 0, data.length);
+        sw.writeEndElement();
         sw.writeCharacters("\n");
-        sw.writeBinary(data, 0, data.length);
-        sw.writeBinary(data, 0, data.length);
         sw.writeEndDocument();
 
         sw.flush();

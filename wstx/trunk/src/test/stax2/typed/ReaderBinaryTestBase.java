@@ -169,7 +169,8 @@ public abstract class ReaderBinaryTestBase
 
         // Without noise it's quite easy, just need enough space:
         if (!addNoise) {
-            char[] buffer = new char[data.length * 3 / 2];
+            // Base64 adds 33% overhead, but let's be generous
+            char[] buffer = new char[4 + (data.length * 3 / 2)];
             int len = enc.encodeMore(buffer, 0, buffer.length);
             sb.append(buffer, 0, len);
         } else {
