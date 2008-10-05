@@ -1782,7 +1782,9 @@ public abstract class BasicStreamReader
       
       StringBuffer sb = new StringBuffer(expected.length() + 16);
       sb.append(expected.substring(0, ptr));
-      sb.append(c);
+      if (ptr < len) {
+          sb.append(c);
+      }
 
       while (true) {
           if (mInputPtr < mInputEnd) {

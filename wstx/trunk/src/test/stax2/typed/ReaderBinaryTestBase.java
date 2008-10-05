@@ -24,7 +24,7 @@ public abstract class ReaderBinaryTestBase
 {
     // Let's test variable length arrays
     final static int[] LEN_ELEM = new int[] {
-        1, 2, 3, 4, 7, 39, 116, 400, 900, 5003, 17045
+        1, 2, 3, 4, 7, 39, 116, 400, 900, 5003, 17045, 125000, 499999
     };
     final static int[] LEN_ATTR = new int[] {
         1, 2, 3, 5, 17, 59, 357, 1920
@@ -264,21 +264,47 @@ public abstract class ReaderBinaryTestBase
             sb.append(buffer, 0, len);
         } else {
             // but with noise, need bit different approach
-            char[] buffer = new char[200];
+            char[] buffer = new char[300];
 
             while (!enc.isCompleted()) {
                 int offset = r.nextInt() & 0xF;
-                int len = 20 + (r.nextInt() & 127);
+                int len;
+                int rn = r.nextInt() & 15;
+
+                switch (rn) {
+                case 1:
+                case 2:
+                case 3:
+                case 4:
+                    len = rn;
+                    break;
+                case 5:
+                case 6:
+                case 7:
+                    len = 3 + (r.nextInt() & 15);
+                    break;
+                default:
+                    len = 20 + (r.nextInt() & 127);
+                    break;
+                }
                 int end = enc.encodeMore(buffer, offset, offset+len);
+
+                // regular or CDATA?
+                boolean cdata = r.nextBoolean() && r.nextBoolean();
+
+                if (cdata) {
+                    sb.append("<![CDATA[");
+                } 
                 sb.append(buffer, offset, end-offset);
+                if (cdata) {
+                    sb.append("]]>");
+                } 
 
                 // Let's add noise 25% of time
                 if (r.nextBoolean() && r.nextBoolean()) {
-                    if (r.nextBoolean()) {
-                        sb.append("<!-- comment: "+len+" -->");
-                    } else {
-                        sb.append("<?pi "+len+"?>");
-                    }
+                    sb.append("<!-- comment: "+len+" -->");
+                } else {
+                    sb.append("<?pi "+len+"?>");
                 }
             }
         }
