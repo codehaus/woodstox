@@ -303,16 +303,16 @@ public final class Base64Decoder
         if (--mIncompleteOutputLen > 0) {
             if (mIncompleteOutputLen > 1) { // 3 bytes
                 resultBuffer[resultOffset++] = (byte) (mIncompleteOutputData >> 16);
-                --mIncompleteOutputLen;
                 if (--maxLength < 1) {
                     return 1;
                 }
+                --mIncompleteOutputLen;
             }
             resultBuffer[resultOffset++] = (byte) (mIncompleteOutputData >> 8);
-            --mIncompleteOutputLen;
             if (--maxLength < 1) {
                 return (resultOffset - origOffset);
             }
+            --mIncompleteOutputLen;
         }
         resultBuffer[resultOffset++] = (byte) mIncompleteOutputData;
         mIncomplete = false;
@@ -343,6 +343,7 @@ public final class Base64Decoder
             mLeftoverData = (mLeftoverData << 6) | bits;
             ++mLeftoverCount;
         } while (mLeftoverCount < 4);
+        // Let's temporarily buffer output, too; will usually be written right away
         mIncompleteOutputLen = 3;
         mIncompleteOutputData = mLeftoverData;
         mLeftoverCount = 0;

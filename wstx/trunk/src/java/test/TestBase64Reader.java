@@ -28,10 +28,17 @@ public class TestBase64Reader
 +"dWVkIGFuZCBpbmRlZmF0aWdhYmxlIGdlbmVyYXRpb24gb2Yga25vd2xlZGdlLCBleGNlZWRzIHRo\n"
 +"ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4="
             +"</root>";
-        final int CHUNK_LEN = 7;
+
+        final int CHUNK_LEN = 17;
         byte[] buffer = new byte[CHUNK_LEN];
         TypedXMLStreamReader sr = (TypedXMLStreamReader) f.createXMLStreamReader(new StringReader(xml));
+        // First, advance to root START_ELEMENT
         sr.next();
+
+        // and then may try to move to CHARACTERS?
+        if (sr.next() != XMLStreamConstants.CHARACTERS) {
+            throw new IllegalStateException("State not CHARACTERS, but "+sr.getEventType());
+        }
 
         int offset = 0;
 
@@ -44,6 +51,7 @@ public class TestBase64Reader
             System.out.print('"');
             for (int i = 0; i < count; ++i) {
                 System.out.print((char) buffer[i]);
+                //System.out.print(" 0x"+Integer.toHexString(buffer[i] & 0xFF));
             }
             System.out.print('"');
             offset += count;

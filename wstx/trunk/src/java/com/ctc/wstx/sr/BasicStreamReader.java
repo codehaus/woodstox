@@ -4515,7 +4515,6 @@ public abstract class BasicStreamReader
             }
             c = inputBuf[ptr++];
         }
-
         mInputPtr = ptr;
 
         /* If we end up here, we either ran out of input, or hit something

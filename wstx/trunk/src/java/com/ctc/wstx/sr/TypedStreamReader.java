@@ -75,9 +75,10 @@ public class TypedStreamReader
     protected ValueDecoderFactory _decoderFactory;
 
     /**
-     * Lazily-constructed decoder objects.
+     * Lazily-constructed decoder object for decoding base64 encoded
+     * binary content.
      */
-    protected Base64Decoder mBinaryDecoder = null;
+    protected Base64Decoder _base64Decoder = null;
 
     /*
     ////////////////////////////////////////////////////
@@ -462,24 +463,24 @@ public class TypedStreamReader
         // throwNotTextualOrElem(type);
 
         int totalCount = 0;
+        final Base64Decoder dec = _base64Decoder();
 
         main_loop:
         while (true) {
             // Ok, decode:
             int count;
             try {
-                count = mBinaryDecoder.decode(resultBuffer, offset, maxLength);
+                count = dec.decode(resultBuffer, offset, maxLength);
             } catch (IllegalArgumentException iae) {
                 // !!! 26-Sep-2008, tatus: should try to figure out which char (etc) triggered problem
                 throw _constructTypeException(iae.getMessage(), "");
             }
-
             offset += count;
             totalCount += count;
             maxLength -= count;
 
             // And if we filled the buffer we are done
-            if (maxLength < 1 || !mBinaryDecoder.isEmpty()) {
+            if (maxLength < 1 || !dec.isEmpty()) {
                 break;
             }
             // Otherwise need to advance to the next event
@@ -517,10 +518,7 @@ public class TypedStreamReader
         } else {
             throw _constructUnexpectedInTyped(type);
         }
-        if (mBinaryDecoder == null) {
-            mBinaryDecoder = new Base64Decoder();
-        }
-        mTextBuffer.initBinaryChunks(mBinaryDecoder, isFirst);
+        mTextBuffer.initBinaryChunks(_base64Decoder(), isFirst);
     }
 
     /*
@@ -688,6 +686,14 @@ public class TypedStreamReader
             _decoderFactory = new ValueDecoderFactory();
         }
         return _decoderFactory;
+    }
+
+    protected Base64Decoder _base64Decoder()
+    {
+        if (_base64Decoder == null) {
+            _base64Decoder = new Base64Decoder();
+        }
+        return _base64Decoder;
     }
 
     /**

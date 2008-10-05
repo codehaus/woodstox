@@ -263,6 +263,13 @@ public interface TypedXMLStreamReader
      *     or CHARACTERS if only a portion of the array was read
      *   </li>
      * </ul>
+     *<p>
+     * Additionally, caller <b>MUST</b> start decoding at START_ELEMENT;
+     * if the first decode calls is at CHARACTERS or CDATA event, results
+     * are not defined: result may be an exception, or invalid data being
+     * returned. Implementations are encouraged to throw an exception
+     * if possible, to make it easier to figure out the problem.
+     *<p>
      * This method can be called multiple times until the cursor
      * is positioned at the corresponding END_ELEMENT event. Stated
      * differently, after the method is called for the first time,
