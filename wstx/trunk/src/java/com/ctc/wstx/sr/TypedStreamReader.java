@@ -472,7 +472,7 @@ public class TypedStreamReader
             try {
                 count = dec.decode(resultBuffer, offset, maxLength);
             } catch (IllegalArgumentException iae) {
-                // !!! 26-Sep-2008, tatus: should try to figure out which char (etc) triggered problem
+                // !!! 26-Sep-2008, tatus: should try to figure out which char (etc) triggered problem to pass with typed exception
                 throw _constructTypeException(iae.getMessage(), "");
             }
             offset += count;

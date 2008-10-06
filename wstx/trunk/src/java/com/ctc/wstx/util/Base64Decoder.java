@@ -117,8 +117,7 @@ public final class Base64Decoder
     /**
      * @param resultBuffer Buffer in which decoded bytes are returned
      * @param resultOffset Offset that points to position to put the
-     *   first decoded byte in
-     * @param maxLength Maximum number of bytes that can be returned
+     *   first decoded byte in maxLength Maximum number of bytes that can be returned
      *   in given buffer
      *
      * @return Number of bytes decoded and returned in the result buffer
@@ -192,7 +191,13 @@ public final class Base64Decoder
             ch = mCurrSegment[mCurrSegmentPtr++];
             if (ch > 127 || (bits = BASE64_BY_CHAR[ch]) < 0) {
                 if (ch == CHAR_PADDING) {
-                    resultOffset += decodePadded1(resultBuffer, resultOffset, resultFullEnd+3, data);
+                    // can we decode tripled and output results?
+                    if (decodePadded1(resultBuffer, resultOffset, resultFullEnd+3, data)) {
+                        // if yes, can continue
+                        ++resultOffset;
+                        continue main_loop;
+                    }
+                    // if not, need to bail out
                     break main_loop;
                 }
                 throw reportInvalidChar(ch);
@@ -216,6 +221,7 @@ public final class Base64Decoder
                         resultBuffer[resultOffset++] = (byte) (data >> 8);
                         if (resultOffset < end) {
                             resultBuffer[resultOffset++] = (byte) data;
+                            continue main_loop;
                         } else {
                             markPartialOutput(1, data);
                         }
@@ -252,16 +258,21 @@ public final class Base64Decoder
     }
 
     /**
-     * @return Number of bytes output (0 or 1)
+     * Method used to decode 'partial' base64 triplet, which contains
+     * information for just one byte. This is the case when there are
+     * 2 base64 data characters followed by 2 padding characters.
+     *
+     * @return True if decoding and outputting succeeded; false if at
+     *   least one failed due to lacking input or room for output.
      */
-    public int decodePadded1(byte[] resultBuffer, int resultOffset, int resultEnd,
+    public boolean decodePadded1(byte[] resultBuffer, int resultOffset, int resultEnd,
                              int data)
         throws IllegalArgumentException
     {
         if (mCurrSegmentPtr >= mCurrSegmentEnd) {
             if (!nextSegment()) {
                 markPartialInput(3, data, true);
-                return 0;
+                return false;
             }
         }
         char ch = mCurrSegment[mCurrSegmentPtr++];
@@ -270,12 +281,12 @@ public final class Base64Decoder
         }
         // Ok, just a single byte to output; but it needs re-alignment
         data >>= 4; // need to unwind last 4 zero bits
-        if (resultOffset < resultEnd) {
-            resultBuffer[resultOffset++] = (byte) data;
-            return 1;
+        if (resultOffset >= resultEnd) {
+            markPartialOutput(1, data);
+            return false;
         }
-        markPartialOutput(1, data);
-        return 0;
+        resultBuffer[resultOffset] = (byte) data;
+        return true;
     }
 
     /**

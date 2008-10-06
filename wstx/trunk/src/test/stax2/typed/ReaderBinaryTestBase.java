@@ -34,6 +34,8 @@ public abstract class ReaderBinaryTestBase
         4, 7, 16
     };
 
+    final static int METHOD_SINGLE = 1;
+    final static int METHOD_FULL = 2;
 
     /*
     ////////////////////////////////////////
@@ -75,7 +77,6 @@ public abstract class ReaderBinaryTestBase
         _testBinaryElem(3, false);
         _testBinaryElem(3, true);
     }
-
 
     public void testBinaryElemSegmented() throws XMLStreamException
     {
@@ -119,6 +120,75 @@ public abstract class ReaderBinaryTestBase
         }
     }
 
+    /**
+     * Test that uses 'mixed' segments (CHARACTERS and CDATA), in
+     * which base64 units (4 chars producing 3 bytes) can be split
+     * between segments.
+     */
+    public void testBinaryMixedSegments() throws XMLStreamException
+    {
+        // We'll do just one long test
+        Random r = new Random(123);
+        //final int SIZE = 128000;
+        final int SIZE = 1280;
+        byte[] data = generateData(r, SIZE);
+        char[] buffer = new char[100];
+
+        StringBuffer b64 = new StringBuffer(data.length * 2);
+
+        /* Ok, first, let's first just generate long String of base64
+         * data:
+         */
+        int ptr = 0;
+        do {
+            int chunkLen = 1 + (r.nextInt() & 0x7);
+            AsciiValueEncoder enc = new ValueEncoderFactory().getEncoder(data, ptr, chunkLen);
+            ptr += chunkLen;
+            int len = enc.encodeMore(buffer, 0, buffer.length);
+            b64.append(buffer, 0, len);
+        } while (b64.length() < SIZE);
+        // And then create document, with split content
+
+        // But first: let's verify content is encoded correctly:
+        {
+            String doc = "<root>"+b64.toString()+"</root>";
+
+System.err.println("DEBUG, doc = ["+doc+"]");
+
+            XMLStreamReader2 sr = getElemReader(doc);
+            _verifyElemData(sr, r, data, ptr, METHOD_FULL);
+            sr.close();
+        }
+
+        StringBuilder sb = new StringBuilder(b64.length() * 2);
+        sb.append("<root>");
+
+        ptr = 0;
+        boolean cdata = false;
+
+        while (ptr < b64.length()) {
+            int segLen = 1 + (r.nextInt() & 0x7);
+            if (cdata) {
+                sb.append("<![CDATA[");
+            }
+            segLen = Math.min(segLen, (b64.length() - ptr));
+            for (int i = 0; i < segLen; ++i) {
+                sb.append(b64.charAt(ptr++));
+            }
+            if (cdata) {
+                sb.append("]]>");
+            }
+            cdata = !cdata;
+        }
+
+        sb.append("</root>");
+
+        XMLStreamReader2 sr = getElemReader(sb.toString());
+        // should be enough to verify byte-by-byte?
+        _verifyElemData(sr, r, data, ptr, 1);
+        sr.close();
+    }
+
     private void _testBinaryElem(int readMethod, boolean addNoise)
         throws XMLStreamException
     {
@@ -129,16 +199,14 @@ public abstract class ReaderBinaryTestBase
             String doc = buildDoc(r, data, addNoise);
 
             XMLStreamReader2 sr = getElemReader(doc);
-            _verifyElemData(sr, r, data, readMethod);
+            _verifyElemData(sr, r, data, data.length, readMethod);
             sr.close();
         }
     }
 
-    private void _verifyElemData(XMLStreamReader2 sr, Random r, byte[] data, int readMethod)
+    private void _verifyElemData(XMLStreamReader2 sr, Random r, byte[] data, int dataLen, int readMethod)
         throws XMLStreamException
     {
-        final int size = data.length;
-
         switch (readMethod) {
         case 1: // minimal reads, single byte at a time
             {
@@ -148,29 +216,29 @@ public abstract class ReaderBinaryTestBase
                 
                 while ((count = sr.readElementAsBinary(buffer, 2, 1)) > 0) {
                     assertEquals(1, count);
-                    if ((ptr+1) < size) {
+                    if ((ptr+1) < dataLen) {
                         if (data[ptr] != buffer[2]) {
-                            fail("Corrupt decode at #"+ptr+"/"+size+", expected "+displayByte(data[ptr])+", got "+displayByte(buffer[2]));
+                            fail("Corrupt decode at #"+ptr+"/"+dataLen+", expected "+displayByte(data[ptr])+", got "+displayByte(buffer[2]));
                         }
                     }
                     ++ptr;
                 }
-                if (ptr != size) {
-                    fail("Expected to get "+size+" bytes, got "+ptr);
+                if (ptr != dataLen) {
+                    fail("Expected to get "+dataLen+" bytes, got "+ptr);
                 }
             }
             break;
         case 2: // full read
             {
-                byte[] buffer = new byte[size + 100];
+                byte[] buffer = new byte[dataLen + 100];
                 /* Let's assume reader will actually read it all:
                  * while not absolutely required, in practice it should
                  * happen. If this is not true, need to change unit
                  * test to reflect it.
                  */
                 int count = sr.readElementAsBinary(buffer, 3, buffer.length-3);
-                assertEquals(size, count);
-                for (int i = 0; i < size; ++i) {
+                assertEquals(dataLen, count);
+                for (int i = 0; i < dataLen; ++i) {
                     if (buffer[3+i] != data[i]) {
                         fail("Corrupt decode at #"+i+", expected "+displayByte(data[i])+", got "+displayByte(buffer[3+i]));
                     }
@@ -192,20 +260,20 @@ public abstract class ReaderBinaryTestBase
                     if (count < 0) {
                         break;
                     }
-                    if ((ptr + count) > size) {
+                    if ((ptr + count) > dataLen) {
                         ptr += count;
                         break;
                     }
                     for (int i = 0; i < count; ++i) {
                         if (data[ptr+i] != buffer[i]) {
-                            fail("Corrupt decode at #"+(ptr+i)+"/"+size+" (read len: "+len+"; got "+count+"), expected "+displayByte(data[ptr+i])+", got "+displayByte(buffer[i]));
+                            fail("Corrupt decode at #"+(ptr+i)+"/"+dataLen+" (read len: "+len+"; got "+count+"), expected "+displayByte(data[ptr+i])+", got "+displayByte(buffer[i]));
                         }
                     }
                     ptr += count;
                 }
                 
-                if (ptr != size) {
-                    fail("Expected "+size+" bytes, got "+ptr);
+                if (ptr != dataLen) {
+                    fail("Expected "+dataLen+" bytes, got "+ptr);
                 }
             }
         }
@@ -250,7 +318,7 @@ public abstract class ReaderBinaryTestBase
 
     private String buildDoc(Random r, byte[] data, boolean addNoise)
     {
-        // Hmmh. Let's actually use base64 codec from RI here:
+        // Let's use base64 codec from RI here:
         AsciiValueEncoder enc = new ValueEncoderFactory().getEncoder(data, 0, data.length);
 
         StringBuffer sb = new StringBuffer(data.length * 2);
