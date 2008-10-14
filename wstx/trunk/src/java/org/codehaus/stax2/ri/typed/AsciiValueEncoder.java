@@ -1,6 +1,6 @@
-/* Woodstox XML processor
+/* StAX2 extension for StAX API (JSR-173).
  *
- * Copyright (c) 2004- Tatu Saloranta, tatu.saloranta@iki.fi
+ * Copyright (c) 2005- Tatu Saloranta, tatu.saloranta@iki.fi
  *
  * Licensed under the License specified in file LICENSE, included with
  * the source code.
@@ -27,7 +27,7 @@ package org.codehaus.stax2.ri.typed;
  * General contract for encoding is that caller must call things
  * in following sequence:
  * <ol>
- *  <li>First, {@link #bufferNeedsFlushing} is called once; and
+ *  <li>First, {@link #bufferNeedsFlush} is called once; and
  *   if indicated by return value of true, caller must flush
  *   its buffer so it is completely empty (buffer also must have
  *   size of at at least <code>MIN_CHARS_WITHOUT_FLUSH)
@@ -101,7 +101,7 @@ public abstract class AsciiValueEncoder
     /**
      * Method that can alternatively be called to determine whether encoder
      * has encoded all data it has. Generally called right after
-     * a call to {@link encodeMore}, to figure out whether buffer flush
+     * a call to {@link #encodeMore}, to figure out whether buffer flush
      * is needed (there is more data), or encoding is complete.
      */
     public abstract boolean isCompleted();

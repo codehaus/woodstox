@@ -19,11 +19,6 @@ public class SimpleValueEncoder
         mEncoderFactory = new ValueEncoderFactory();
     }
 
-    /**
-     * @param leadingSpace If true, lexical value will start with a
-     *   space; if false, spaces are only used between values but not
-     *   before the first value
-     */
     public String encodeAsString(int[] value, int from, int length)
     {
         return encode(mEncoderFactory.getEncoder(value, from, length));

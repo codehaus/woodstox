@@ -138,7 +138,8 @@ abstract class BaseReader
      * Method for reading as many bytes from the underlying stream as possible
      * (that fit in the buffer considering offset), to the specified offset.
      *
-     * @return 
+     * @return Number of bytes read, if any; -1 to indicate none available
+     *  (that is, end of input)
      */
     protected final int readBytesAt(int offset)
         throws IOException

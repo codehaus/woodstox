@@ -28,6 +28,7 @@ import org.codehaus.stax2.typed.TypedValueDecoder;
 import org.codehaus.stax2.typed.TypedXMLStreamException;
 
 import org.codehaus.stax2.ri.typed.ValueDecoderFactory;
+import org.codehaus.stax2.ri.typed.CharArrayBase64Decoder;
 
 import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.cfg.ErrorConsts;
@@ -35,13 +36,12 @@ import com.ctc.wstx.cfg.XmlConsts;
 import com.ctc.wstx.io.BranchingReaderSource;
 import com.ctc.wstx.io.InputBootstrapper;
 import com.ctc.wstx.io.WstxInputData;
-import com.ctc.wstx.util.Base64Decoder;
 
 /**
- * Completed implementation of {@link XMLStreamReader2}, including
- * Typed Access API (Stax2 v3.0) implementation. Only functionality
- * missing is DTD validation, which is provided by a specialized
- * sub-class.
+ * Complete implementation of {@link org.codehaus.stax2.XMLStreamReader2},
+ * including  Typed Access API (Stax2 v3.0) implementation.
+ * Only functionality  missing is DTD validation, which is provided by a
+ * specialized sub-class.
  */
 public class TypedStreamReader
     extends BasicStreamReader
@@ -78,7 +78,7 @@ public class TypedStreamReader
      * Lazily-constructed decoder object for decoding base64 encoded
      * binary content.
      */
-    protected Base64Decoder _base64Decoder = null;
+    protected CharArrayBase64Decoder _base64Decoder = null;
 
     /*
     ////////////////////////////////////////////////////
@@ -463,7 +463,7 @@ public class TypedStreamReader
         // throwNotTextualOrElem(type);
 
         int totalCount = 0;
-        final Base64Decoder dec = _base64Decoder();
+        final CharArrayBase64Decoder dec = _base64Decoder();
 
         main_loop:
         while (true) {
@@ -480,7 +480,7 @@ public class TypedStreamReader
             maxLength -= count;
 
             // And if we filled the buffer we are done
-            if (maxLength < 1 || !dec.isEmpty()) {
+            if (maxLength < 1) {
                 break;
             }
             // Otherwise need to advance to the next event
@@ -491,6 +491,13 @@ public class TypedStreamReader
                     continue;
                 }
                 if (type == END_ELEMENT) {
+                    /* just need to verify we don't have partial stuff
+                     * (missing one to three characters of a full quartet
+                     * that encodes 1 - 3 bytes)
+                     */
+                    if (!dec.okToGetEndElement()) {
+                        throw _constructTypeException("Incomplete base64 triplet at the end of decoded content", "");
+                    }
                     break main_loop;
                 }
                 initBinaryChunks(type, false);
@@ -688,17 +695,17 @@ public class TypedStreamReader
         return _decoderFactory;
     }
 
-    protected Base64Decoder _base64Decoder()
+    protected CharArrayBase64Decoder _base64Decoder()
     {
         if (_base64Decoder == null) {
-            _base64Decoder = new Base64Decoder();
+            _base64Decoder = new CharArrayBase64Decoder();
         }
         return _base64Decoder;
     }
 
     /**
      * Method called to wrap or convert given conversion-fail exception
-     * into a full {@link TypedXMLStreamException),
+     * into a full {@link TypedXMLStreamException},
      *
      * @param iae Problem as reported by converter
      * @param lexicalValue Lexical value (element content, attribute value)

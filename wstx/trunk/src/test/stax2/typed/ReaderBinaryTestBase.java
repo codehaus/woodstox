@@ -152,9 +152,6 @@ public abstract class ReaderBinaryTestBase
         // But first: let's verify content is encoded correctly:
         {
             String doc = "<root>"+b64.toString()+"</root>";
-
-System.err.println("DEBUG, doc = ["+doc+"]");
-
             XMLStreamReader2 sr = getElemReader(doc);
             _verifyElemData(sr, r, data, ptr, METHOD_FULL);
             sr.close();

@@ -18,6 +18,8 @@ import org.codehaus.stax2.typed.TypedValueDecoder;
 import org.codehaus.stax2.typed.TypedXMLStreamException;
 import org.codehaus.stax2.validation.XMLValidator;
 
+import org.codehaus.stax2.ri.typed.CharArrayBase64Decoder;
+
 import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.dtd.DTDEventListener;
 import com.ctc.wstx.sr.InputProblemReporter;
@@ -513,7 +515,7 @@ public final class TextBuffer
      * @param firstChunk Whether this is the first segment fed or not;
      *    if it is, state needs to be fullt reset; if not, only partially.
      */
-    public void initBinaryChunks(Base64Decoder dec, boolean firstChunk)
+    public void initBinaryChunks(CharArrayBase64Decoder dec, boolean firstChunk)
     {
         if (mInputStart < 0) { // non-shared
             dec.init(firstChunk, mCurrentSegment, 0, mCurrentSize, mSegments);

@@ -26,8 +26,10 @@ import org.codehaus.stax2.typed.TypedValueDecoder;
 
 /**
  * Factory class used to construct all
- * {@link AsciiValueDecoder} instances needed by a single
- * stream reader instance. Some decoders are also recycled
+ * {@link org.codehaus.stax2.typed.TypedValueDecoder}
+ * (and {@link org.codehaus.stax2.typed.TypedArrayDecoder})
+ * instances needed by a
+ * single stream reader instance. Some decoders are also recycled
  * (for the lifetime of an encoder, which is same as its owners,
  * i.e. stream reader or writer's) to minimize overhead.
  *<p>
@@ -1391,7 +1393,7 @@ public final class ValueDecoderFactory
 
         /**
          * Method that can be called if the internal result buffer
-         * fills up (when {@link hasRoom} returns false) and
+         * fills up (when {@link #hasRoom} returns false) and
          * will expand result buffer to hold at least one more value.
          */
         public abstract void expand();

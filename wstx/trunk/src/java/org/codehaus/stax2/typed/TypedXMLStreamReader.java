@@ -335,8 +335,8 @@ public interface TypedXMLStreamReader
      * are more bytes available for reading.
      * </p>
      *
-     * @param value   The array in which to copy the ints.
-     * @param from    The index in the array from which copying starts.
+     * @param resultBuffer The array in which to copy the ints.
+     * @param offset The index in the array from which copying starts.
      * @param length  The maximun number of ints to copy. Minimum value
      *   is 1; others an {@link IllegalArgumentException} is thrown
      *
