@@ -129,8 +129,7 @@ public abstract class ReaderBinaryTestBase
     {
         // We'll do just one long test
         Random r = new Random(123);
-        //final int SIZE = 128000;
-        final int SIZE = 1280;
+        final int SIZE = 128000;
         byte[] data = generateData(r, SIZE);
         char[] buffer = new char[100];
 
@@ -149,15 +148,17 @@ public abstract class ReaderBinaryTestBase
         } while (b64.length() < SIZE);
         // And then create document, with split content
 
+        final int byteLen = ptr;
+        String refDoc = "<root>"+b64.toString()+"</root>";
+
         // But first: let's verify content is encoded correctly:
         {
-            String doc = "<root>"+b64.toString()+"</root>";
-            XMLStreamReader2 sr = getElemReader(doc);
-            _verifyElemData(sr, r, data, ptr, METHOD_FULL);
+            XMLStreamReader2 sr = getElemReader(refDoc);
+            _verifyElemData(sr, r, data, byteLen, METHOD_FULL);
             sr.close();
         }
 
-        StringBuilder sb = new StringBuilder(b64.length() * 2);
+        StringBuffer sb = new StringBuffer(b64.length() * 2);
         sb.append("<root>");
 
         ptr = 0;
@@ -175,14 +176,14 @@ public abstract class ReaderBinaryTestBase
             if (cdata) {
                 sb.append("]]>");
             }
-            cdata = !cdata;
+            //            cdata = !cdata;
         }
-
         sb.append("</root>");
+        String actualDoc = sb.toString();
 
-        XMLStreamReader2 sr = getElemReader(sb.toString());
+        XMLStreamReader2 sr = getElemReader(actualDoc);
         // should be enough to verify byte-by-byte?
-        _verifyElemData(sr, r, data, ptr, 1);
+        _verifyElemData(sr, r, data, byteLen, METHOD_SINGLE);
         sr.close();
     }
 
@@ -285,6 +286,124 @@ public abstract class ReaderBinaryTestBase
         assertEquals(data[0], buffer[1]);
     }
         
+    /*
+    ////////////////////////////////////////
+    // Test methods, elem, invalid
+    ////////////////////////////////////////
+     */
+
+    /**
+     * Rules for padding are quite simple: you can use one or two padding
+     * characters, which indicate 1 or 2 bytes instead full 3 for the
+     * decode unit.
+     */
+    public void testInvalidPadding()
+        throws XMLStreamException
+    {
+        // Let's try out couple of arbitrary broken ones...
+        final String[] INVALID = new String[] {
+            "AAAA====", "AAAAB===", "AA=A"
+        };
+        final byte[] resultBuffer = new byte[20];
+
+        for (int i = 0; i < INVALID.length; ++i) {
+            String doc = "<root>"+INVALID[i]+"</root>";
+            XMLStreamReader2 sr = getElemReader(doc);
+            try {
+                /*int count = */ sr.readElementAsBinary(resultBuffer, 0, resultBuffer.length);
+                fail("Should have received an exception for invalid padding");
+            } catch (TypedXMLStreamException ex) {
+                // any way to check that it's the excepted message? not right now
+            }
+            sr.close();
+        }
+    }
+
+    /**
+     * Whitespace is allowed within base64, but only to separate 4 characters
+     * base64 units. Ideally (and by the spec) they should be used every
+     * 76 characters (== every 19 units), but it'd be hard to enforce this
+     * as well as fail on much of existing supposedly base64 compliant
+     * systems. So, we will just verify that white space can not be used
+     * within 4 char units.
+     */
+    public void testInvalidWhitespace()
+        throws XMLStreamException
+    {
+        // Let's try out couple of arbitrary broken ones...
+        final String[] INVALID = new String[] {
+            "AAA A", "AAAA BBBB C CCC", "ABCD ABCD AB CD"
+        };
+        final byte[] resultBuffer = new byte[20];
+
+        for (int i = 0; i < INVALID.length; ++i) {
+            String doc = "<root>"+INVALID[i]+"</root>";
+            XMLStreamReader2 sr = getElemReader(doc);
+            try {
+                /*int count = */ sr.readElementAsBinary(resultBuffer, 0, resultBuffer.length);
+                fail("Should have received an exception for white space used 'inside' 4-char base64 unit");
+            } catch (TypedXMLStreamException ex) {
+                // any way to check that it's the excepted message? not right now
+            }
+            sr.close();
+        }
+    }
+
+    public void testInvalidWeirdChars()
+        throws XMLStreamException
+    {
+        // Let's try out couple of arbitrary broken ones...
+        final String[] INVALID = new String[] {
+            "AAA?", "AAAA@@@@", "ABCD\u00A0BCD"
+        };
+        final byte[] resultBuffer = new byte[20];
+
+        for (int i = 0; i < INVALID.length; ++i) {
+            String doc = "<root>"+INVALID[i]+"</root>";
+            XMLStreamReader2 sr = getElemReader(doc);
+            try {
+                /*int count = */ sr.readElementAsBinary(resultBuffer, 0, resultBuffer.length);
+                fail("Should have received an exception for invalid base64 character");
+            } catch (TypedXMLStreamException ex) {
+                // any way to check that it's the excepted message? not right now
+            }
+            sr.close();
+        }
+    }
+
+    public void testIncompleteInvalid()
+        throws XMLStreamException
+    {
+        // Let's just try with short partial segments, data used doesn't matter
+        final byte[] data = new byte[6];
+        final byte[] resultBuffer = new byte[20];
+
+        // So first we'll encode 1 to 6 bytes as base64
+        for (int i = 1; i <= data.length; ++i) {
+            AsciiValueEncoder enc = new ValueEncoderFactory().getEncoder(data, 0, i);
+            char[] cbuf = new char[20];
+            int clen = enc.encodeMore(cbuf, 0, cbuf.length);
+
+            // and use all byte last 1, 2 or 3 chars
+            for (int j = 1; j <= 3; ++j) {
+                int testLen = clen-j;
+                StringBuffer sb = new StringBuffer();
+                sb.append("<root>");
+                sb.append(cbuf, 0, testLen);
+                sb.append("</root>");
+
+                XMLStreamReader2 sr = getElemReader(sb.toString());
+                try {
+                    /*int count = */ sr.readElementAsBinary(resultBuffer, 0, resultBuffer.length);
+                    fail("Should have received an exception for incomplete base64 unit");
+                } catch (TypedXMLStreamException ex) {
+                    // any way to check that it's the excepted message? not right now
+                }
+                sr.close();
+            }
+        }
+    }
+
     /*
     ////////////////////////////////////////
     // Test methods, attr, valid
