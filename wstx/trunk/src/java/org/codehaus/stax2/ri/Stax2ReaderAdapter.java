@@ -338,7 +338,7 @@ public class Stax2ReaderAdapter
                 if (((1 << type) & MASK_GET_ELEMENT_TEXT) == 0) {
                     throwNotStartElemOrTextual(type);
                 }
-                dec.init(getText());
+                dec.init(true, getText());
                 break;
             }
         }
@@ -382,7 +382,7 @@ public class Stax2ReaderAdapter
                 if (((1 << type) & MASK_GET_ELEMENT_TEXT) == 0) {
                     throwNotStartElemOrTextual(type);
                 }
-                dec.init(getText());
+                dec.init(false, getText());
                 break;
             }
         }

@@ -39,9 +39,11 @@ public final class StringBase64Decoder
 
     public StringBase64Decoder() { super(); }
 
-    public void init(String segment)
+    public void init(boolean firstChunk, String segment)
     {
-        mState = STATE_INITIAL;
+        if (firstChunk) {
+            mState = STATE_INITIAL;
+        }
         mCurrSegment = segment;
         mCurrSegmentPtr = 0;
         mCurrSegmentEnd = segment.length();

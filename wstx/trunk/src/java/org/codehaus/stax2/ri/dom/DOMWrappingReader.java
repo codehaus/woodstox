@@ -1306,7 +1306,7 @@ public abstract class DOMWrappingReader
                 if (((1 << type) & MASK_GET_ELEMENT_TEXT) == 0) {
                     reportParseProblem(ERR_STATE_NOT_TEXTUAL);
                 }
-                dec.init(getText());
+                dec.init(true, getText());
                 break;
             }
         }
@@ -1350,7 +1350,7 @@ public abstract class DOMWrappingReader
                 if (((1 << type) & MASK_GET_ELEMENT_TEXT) == 0) {
                     reportParseProblem(ERR_STATE_NOT_TEXTUAL);
                 }
-                dec.init(getText());
+                dec.init(false, getText());
                 break;
             }
         }

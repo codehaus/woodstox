@@ -176,7 +176,7 @@ public abstract class ReaderBinaryTestBase
             if (cdata) {
                 sb.append("]]>");
             }
-            //            cdata = !cdata;
+            cdata = !cdata;
         }
         sb.append("</root>");
         String actualDoc = sb.toString();
