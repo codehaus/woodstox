@@ -29,6 +29,7 @@ import org.codehaus.stax2.typed.TypedXMLStreamException;
 
 import org.codehaus.stax2.ri.typed.ValueDecoderFactory;
 import org.codehaus.stax2.ri.typed.CharArrayBase64Decoder;
+import org.codehaus.stax2.ri.typed.StringBase64Decoder;
 
 import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.cfg.ErrorConsts;
@@ -76,7 +77,7 @@ public class TypedStreamReader
 
     /**
      * Lazily-constructed decoder object for decoding base64 encoded
-     * binary content.
+     * element binary content.
      */
     protected CharArrayBase64Decoder _base64Decoder = null;
 
@@ -439,6 +440,8 @@ public class TypedStreamReader
             throwNotTextualOrElem(type);
         }
 
+        final CharArrayBase64Decoder dec = _base64Decoder();
+
         // Are we just starting (START_ELEMENT)?
         if (type == START_ELEMENT) {
             if (mStEmptyElem) { // empty element? simple...
@@ -456,14 +459,13 @@ public class TypedStreamReader
                 if (type == COMMENT || type == PROCESSING_INSTRUCTION) {
                     continue;
                 }
-                initBinaryChunks(type, true);
+                initBinaryChunks(dec, type, true);
                 break;
             }
         }
         // throwNotTextualOrElem(type);
 
         int totalCount = 0;
-        final CharArrayBase64Decoder dec = _base64Decoder();
 
         main_loop:
         while (true) {
@@ -500,7 +502,7 @@ public class TypedStreamReader
                     }
                     break main_loop;
                 }
-                initBinaryChunks(type, false);
+                initBinaryChunks(dec, type, false);
                 break;
             }
         }
@@ -509,7 +511,7 @@ public class TypedStreamReader
         return (totalCount > 0) ? totalCount : -1;
     }
 
-    private final void initBinaryChunks(int type, boolean isFirst)
+    private final void initBinaryChunks(CharArrayBase64Decoder dec, int type, boolean isFirst)
         throws XMLStreamException
     {
         if (type == CHARACTERS) {
@@ -525,7 +527,7 @@ public class TypedStreamReader
         } else {
             throw _constructUnexpectedInTyped(type);
         }
-        mTextBuffer.initBinaryChunks(_base64Decoder(), isFirst);
+        mTextBuffer.initBinaryChunks(dec, isFirst);
     }
 
     /*

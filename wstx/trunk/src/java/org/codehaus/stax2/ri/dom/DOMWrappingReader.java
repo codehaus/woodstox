@@ -38,6 +38,7 @@ import org.codehaus.stax2.ri.EmptyIterator;
 import org.codehaus.stax2.ri.EmptyNamespaceContext;
 import org.codehaus.stax2.ri.SingletonIterator;
 import org.codehaus.stax2.ri.Stax2Util;
+import org.codehaus.stax2.ri.typed.StringBase64Decoder;
 import org.codehaus.stax2.ri.typed.ValueDecoderFactory;
 import org.codehaus.stax2.typed.TypedArrayDecoder;
 import org.codehaus.stax2.typed.TypedValueDecoder;
@@ -92,6 +93,11 @@ public abstract class DOMWrappingReader
         (1 << CHARACTERS) | (1 << CDATA) | (1 << SPACE)
         | (1 << ENTITY_REFERENCE);
 
+    final protected static int MASK_TYPED_ACCESS_BINARY =
+        (1 << START_ELEMENT) //  note: END_ELEMENT handled separately
+        | (1 << CHARACTERS) | (1 << CDATA) | (1 << SPACE)
+        ;
+
     // // // Enumerated error case ids
 
     /**
@@ -119,8 +125,9 @@ public abstract class DOMWrappingReader
      */
     protected final static int ERR_STATE_NOT_TEXTUAL_XXX = 5;
 
-    protected final static int ERR_STATE_NO_LOCALNAME = 6;
+    protected final static int ERR_STATE_NOT_TEXTUAL_OR_ELEM = 6;
 
+    protected final static int ERR_STATE_NO_LOCALNAME = 7;
 
     // // // Configuration:
 
@@ -195,6 +202,12 @@ public abstract class DOMWrappingReader
      * Factory used for constructing decoders we need for typed access
      */
     protected ValueDecoderFactory mDecoderFactory;
+
+    /**
+     * Lazily-constructed decoder object for decoding base64 encoded
+     * binary content.
+     */
+    protected StringBase64Decoder _base64Decoder = null;
 
     /*
     ////////////////////////////////////////////////////
@@ -1102,7 +1115,7 @@ public abstract class DOMWrappingReader
                 tvd.decode(value);
             }
         } catch (IllegalArgumentException iae) {
-            throw constructTypeException(iae, value);
+            throw _constructTypeException(iae, value);
         }
     }
 
@@ -1132,7 +1145,7 @@ public abstract class DOMWrappingReader
          * have collected all the stuff into mTextBuffer.
          */
         if (mCurrEvent == START_ELEMENT) {
-            // One special case tho: no children:
+            // One special case, no children:
             Node fc  = mCurrNode.getFirstChild();
             if (fc == null) {
                 mCurrEvent = END_ELEMENT;
@@ -1147,7 +1160,7 @@ public abstract class DOMWrappingReader
                 if (mCurrEvent == END_ELEMENT) {
                     return -1;
                 }
-                throw new IllegalStateException("Current event "+Stax2Util.eventTypeDesc(mCurrEvent)+" not START_ELEMENT, END_ELEMENT, CHARACTERS or CDATA");
+                reportWrongState(ERR_STATE_NOT_TEXTUAL_OR_ELEM);
             }
             /* One more thing: do we have the data? It is possible
              * that caller has advanced to this text node by itself.
@@ -1254,8 +1267,96 @@ public abstract class DOMWrappingReader
     public int readElementAsBinary(byte[] resultBuffer, int offset, int maxLength)
         throws XMLStreamException
     {
-        // !!! TBI
-        return -1;
+        if (resultBuffer == null) {
+            throw new IllegalArgumentException("resultBuffer is null");
+        }
+        if (offset < 0) {
+            throw new IllegalArgumentException("Illegal offset ("+offset+"), must be [0, "+resultBuffer.length+"[");
+        }
+        if (maxLength < 1 || (offset + maxLength) > resultBuffer.length) {
+            if (maxLength == 0) { // special case, allowed, but won't do anything
+                return 0;
+            }
+            throw new IllegalArgumentException("Illegal maxLength ("+maxLength+"), has to be positive number, and offset+maxLength can not exceed"+resultBuffer.length);
+        }
+
+        int type = mCurrEvent;
+        // First things first: must be acceptable start state:
+        if (((1 << type) & MASK_TYPED_ACCESS_BINARY) == 0) {
+            if (type == END_ELEMENT) {
+                return -1;
+            }
+            reportWrongState(ERR_STATE_NOT_TEXTUAL_OR_ELEM);
+        }
+
+        final StringBase64Decoder dec = _base64Decoder();
+
+        // Are we just starting (START_ELEMENT)?
+        if (type == START_ELEMENT) {
+            // Just need to locate the first text segment (or reach END_ELEMENT)
+            while (true) {
+                type = next();
+                if (type == END_ELEMENT) {
+                    // Simple... no textual content
+                    return -1;
+                }
+                if (type == COMMENT || type == PROCESSING_INSTRUCTION) {
+                    continue;
+                }
+                if (((1 << type) & MASK_GET_ELEMENT_TEXT) == 0) {
+                    reportParseProblem(ERR_STATE_NOT_TEXTUAL);
+                }
+                dec.init(getText());
+                break;
+            }
+        }
+
+        int totalCount = 0;
+
+        main_loop:
+        while (true) {
+            // Ok, decode:
+            int count;
+            try {
+                count = dec.decode(resultBuffer, offset, maxLength);
+            } catch (IllegalArgumentException iae) {
+                throw _constructTypeException(iae, "");
+            }
+            offset += count;
+            totalCount += count;
+            maxLength -= count;
+
+            // And if we filled the buffer we are done
+            if (maxLength < 1) {
+                break;
+            }
+            // Otherwise need to advance to the next event
+            while (true) {
+                type = next();
+                if (type == COMMENT || type == PROCESSING_INSTRUCTION
+                    || type == SPACE) { // space is ignorable too
+                    continue;
+                }
+                if (type == END_ELEMENT) {
+                    /* just need to verify we don't have partial stuff
+                     * (missing one to three characters of a full quartet
+                     * that encodes 1 - 3 bytes)
+                     */
+                    if (!dec.okToGetEndElement()) {
+                        throw _constructTypeException("Incomplete base64 triplet at the end of decoded content", "");
+                    }
+                    break main_loop;
+                }
+                if (((1 << type) & MASK_GET_ELEMENT_TEXT) == 0) {
+                    reportParseProblem(ERR_STATE_NOT_TEXTUAL);
+                }
+                dec.init(getText());
+                break;
+            }
+        }
+
+        // If nothing was found, needs to be indicated via -1, not 0
+        return (totalCount > 0) ? totalCount : -1;
     }
 
     /*
@@ -1331,7 +1432,7 @@ public abstract class DOMWrappingReader
         try {
             tvd.decode(value);
         } catch (IllegalArgumentException iae) {
-            throw constructTypeException(iae, value);
+            throw _constructTypeException(iae, value);
         }
     }
 
@@ -1968,7 +2069,7 @@ public abstract class DOMWrappingReader
      * @param lexicalValue Lexical value (element content, attribute value)
      *    that could not be converted succesfully.
      */
-    protected TypedXMLStreamException constructTypeException(IllegalArgumentException iae, String lexicalValue)
+    protected TypedXMLStreamException _constructTypeException(IllegalArgumentException iae, String lexicalValue)
     {
         String msg = iae.getMessage();
         if (msg == null) {
@@ -1976,9 +2077,18 @@ public abstract class DOMWrappingReader
         }
         Location loc = getStartLocation();
         if (loc == null) {
+            return new TypedXMLStreamException(lexicalValue, msg, iae);
+        }
+        return new TypedXMLStreamException(lexicalValue, msg, loc);
+    }
+
+    protected TypedXMLStreamException _constructTypeException(String msg, String lexicalValue)
+    {
+        Location loc = getStartLocation();
+        if (loc == null) {
             return new TypedXMLStreamException(lexicalValue, msg);
         }
-        return new TypedXMLStreamException(lexicalValue, msg, getStartLocation(), iae);
+        return new TypedXMLStreamException(lexicalValue, msg, loc);
     }
 
     /*
@@ -1993,6 +2103,14 @@ public abstract class DOMWrappingReader
             mDecoderFactory = new ValueDecoderFactory();
         }
         return mDecoderFactory;
+    }
+
+    protected StringBase64Decoder _base64Decoder()
+    {
+        if (_base64Decoder == null) {
+            _base64Decoder = new StringBase64Decoder();
+        }
+        return _base64Decoder;
     }
 
     /**
@@ -2011,10 +2129,12 @@ public abstract class DOMWrappingReader
         case ERR_STATE_NO_LOCALNAME:
             return "Current event ("+evtDesc+") has no local name";
         case ERR_STATE_NOT_PI:
-            return "Current event "+evtDesc+", needs to be PROCESSING_INSTRUCTION";
+            return "Current event ("+evtDesc+") needs to be PROCESSING_INSTRUCTION";
 
         case ERR_STATE_NOT_TEXTUAL:
             return "Current event ("+evtDesc+") not a textual event";
+        case ERR_STATE_NOT_TEXTUAL_OR_ELEM:
+            return "Current event ("+evtDesc+" not START_ELEMENT, END_ELEMENT, CHARACTERS or CDATA";
         case ERR_STATE_NOT_TEXTUAL_XXX:
             return "Current event "+evtDesc+", needs to be one of CHARACTERS, CDATA, SPACE or COMMENT";
         }

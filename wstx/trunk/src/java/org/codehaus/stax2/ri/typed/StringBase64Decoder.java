@@ -59,7 +59,7 @@ public final class StringBase64Decoder
         throws IllegalArgumentException
     {
         final int origResultOffset = resultOffset;
-        final int resultBufferEnd = mCurrSegment.length();
+        final int resultBufferEnd = resultOffset + maxLength;
 
         main_loop:
         while (true) {

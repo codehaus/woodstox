@@ -36,7 +36,12 @@ public class TestBase64Reader
 
         final int CHUNK_LEN = 7;
         byte[] buffer = new byte[CHUNK_LEN];
+
         TypedXMLStreamReader sr = (TypedXMLStreamReader) f.createXMLStreamReader(new StringReader(xml));
+
+        // TEST: to see if Stax2 reader adapter works, let's try this:
+        sr = new TestAdapter(sr);
+
         // First, advance to root START_ELEMENT
         sr.next();
 
@@ -72,5 +77,12 @@ public class TestBase64Reader
         throws Exception
     {
         new TestBase64Reader().test();
+    }
+
+    // Need a sub-class, as base class constructor is not public
+    final static class TestAdapter
+        extends org.codehaus.stax2.ri.Stax2ReaderAdapter
+    {
+        public TestAdapter(XMLStreamReader sr) { super(sr); }
     }
 }
