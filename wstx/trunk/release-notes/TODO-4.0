@@ -2,6 +2,24 @@
 Planned stuff for 4.0
 ------------------------------------
 
+* Remaining Jira entries that must be tackled:
+  * [WSTX-152]: Basic OSGi headers in Manifest
+  * [WSTX-157]: Add XMLReporter2 to Stax2 (or not)
+  * [WSTX-163]: XMLStreamWriter2.closeCompletely()
+  * [WSTX-166]: Full support for Stax2ByteArraySource for faster parsing
+  * [WSTX-167]: Auto-suppresson of control chars for XMLStreamWriter2
+  * [WSTX-169]: Support for non-standard base64 modes
+  * [WSTX-171]: Contributor guidelines
+
+* Nice-to-have Jira entries:
+  * [WSTX-160]: Problems with multiple Schemas...
+  * [WSTX-162]: DOM-reader, P_INTERN_NAMES, default to 'false' for DOM?
+  * [WSTX-165]: Disable automatic writing of END_ELEMENT for non-closed
+
+* Misc internal improvements:
+  * Add simple Typed Value cleanup (trim leading/trailing space) within
+    readers so that decoders need not worry about it.
+
 * Optimizations/improvements:
   * Try to move more of async unchecked (runtime) exceptions into
     deferred synchronous (XMLStreamException) exceptions: similar to
@@ -13,7 +31,7 @@ Planned stuff for 4.0
     Simplifies access patterns
 
 * Bugs / incomplete handling:
-  * XMLEvent: should it implement equals(), hashCode()?
+[DONE, ri]  * XMLEvent: should it implement equals(), hashCode()?
   * More optimal check for "]]>" in content. Now over 99% reliable, but
     theoretically could miss if combination on input buffer boundary.
   * XMLTest failures:
@@ -26,7 +44,7 @@ Planned stuff for 4.0
       (needed to pass some of SAXTest test cases)
 
 * Validation interface improvements:
-  * Stax2: add new allowed-content type, CONTENT_ALLOW_WS_NONSTRICT
+[Partial] * Stax2: add new allowed-content type, CONTENT_ALLOW_WS_NONSTRICT
     (or such), to cover the case where content _should_ be (ignorable)
     space (for purposes of distinguishing CHARACTERS and SPACE events),
     but if not, that's not a validation error. This is needed for
@@ -40,18 +58,12 @@ Planned stuff for 4.0
     allow zero-copy wrapping of parsed textual content.
   * XMLStreamReader2.hasPendingException and/or getPendingException
     (to check for deferred exceptions)?
-  * Char[] attribute accessors for XMLStreamReader
-  * Char[] attribute write methods for XMLStreamWriter
+  * Char[] attribute accessors for XMLStreamReader?
+  * Char[] attribute write methods for XMLStreamWriter?
 
 * Stax2, typed API:
-  * Reader side:
-    * Simple types
-    * List types
-    * Binary
-  * Writer side:
-    * Simple types
-    * List types
-    * Binary
+[DONE] * Reader side: simple types, list/array types, binary (base64)
+[DONE] * Writer side: simple types, list/array types, binary (base64)
 
 * Removing cruft:
 [DONE]  * Remove support for pre-JDK-1.4
@@ -76,7 +88,7 @@ Planned stuff for 4.0
       * DOMWrappingWriter: implement Stax2 validation API
 
 * XML validation:
-   * Finish incomplete support methods that RNG validation uses;
+[Partial?] * Finish incomplete support methods that RNG validation uses;
      InputElementStack's isNotationDeclared, isUnparsedEntityDeclared,
      getBaseUri().
 [DONE] * Integrate Multi-Schema Validator's W3C Schema validator

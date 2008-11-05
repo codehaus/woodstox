@@ -27,9 +27,9 @@ import org.codehaus.stax2.typed.TypedArrayDecoder;
 import org.codehaus.stax2.typed.TypedValueDecoder;
 import org.codehaus.stax2.typed.TypedXMLStreamException;
 
+import org.codehaus.stax2.ri.Stax2Util;
 import org.codehaus.stax2.ri.typed.ValueDecoderFactory;
 import org.codehaus.stax2.ri.typed.CharArrayBase64Decoder;
-import org.codehaus.stax2.ri.typed.StringBase64Decoder;
 
 import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.cfg.ErrorConsts;
@@ -176,6 +176,27 @@ public class TypedStreamReader
         ValueDecoderFactory.QNameDecoder dec = _decoderFactory().getQNameDecoder(getNamespaceContext());
         getElementAs(dec);
         return _verifyQName(dec.getValue());
+    }
+
+    public byte[] getElementAsBinary() throws XMLStreamException
+    {
+        // note: code here is similar to Base64DecoderBase.aggregateAll(), see comments there
+        Stax2Util.ByteAggregator aggr = _base64Decoder().getByteAggregator();
+        byte[] buffer = aggr.startAggregation();
+        while (true) {
+            int offset = 0;
+            int len = buffer.length;
+
+            do {
+                int readCount = readElementAsBinary(buffer, offset, len);
+                if (readCount < 1) { // all done!
+                    return aggr.aggregateAll(buffer, offset);
+                }
+                offset += readCount;
+                len -= readCount;
+            } while (len > 0);
+            buffer = aggr.addFullBlock(buffer);
+        }
     }
 
     public void getElementAs(TypedValueDecoder tvd) throws XMLStreamException
@@ -657,8 +678,7 @@ public class TypedStreamReader
 
     public byte[] getAttributeAsBinary(int index) throws XMLStreamException
     {
-        // !!! TBI
-        return null;
+        return mAttrCollector.decodeBinary(index, _base64Decoder(), this);
     }
 
     /*

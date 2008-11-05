@@ -1104,6 +1104,26 @@ public abstract class DOMWrappingReader
         return dec.getValue();
     }
 
+    public byte[] getElementAsBinary() throws XMLStreamException
+    {
+        // note: code here is similar to Base64DecoderBase.aggregateAll(), see comments there
+        Stax2Util.ByteAggregator aggr = _base64Decoder().getByteAggregator();
+        byte[] buffer = aggr.startAggregation();
+        while (true) {
+            int offset = 0;
+            int len = buffer.length;
+            do {
+                int readCount = readElementAsBinary(buffer, offset, len);
+                if (readCount < 1) { // all done!
+                    return aggr.aggregateAll(buffer, offset);
+                }
+                offset += readCount;
+                len -= readCount;
+            } while (len > 0);
+            buffer = aggr.addFullBlock(buffer);
+        }
+    }
+
     public void getElementAs(TypedValueDecoder tvd) throws XMLStreamException
     {
         String value = getElementText();
@@ -1528,8 +1548,14 @@ public abstract class DOMWrappingReader
 
     public byte[] getAttributeAsBinary(int index) throws XMLStreamException
     {
-        // !!! TBI
-        return null;
+        String lexical = getAttributeValue(index);
+        final StringBase64Decoder dec = _base64Decoder();
+        dec.init(true, lexical);
+        try {
+            return dec.decodeCompletely();
+        } catch (IllegalArgumentException iae) {
+            throw _constructTypeException(iae, lexical);
+        }
     }
 
     /*

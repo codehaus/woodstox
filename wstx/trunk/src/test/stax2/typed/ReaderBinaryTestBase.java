@@ -27,15 +27,41 @@ public abstract class ReaderBinaryTestBase
         1, 2, 3, 4, 7, 39, 116, 400, 900, 5003, 17045, 125000, 499999
     };
     final static int[] LEN_ATTR = new int[] {
-        1, 2, 3, 5, 17, 59, 357, 1920
+        1, 2, 3, 5, 17, 59, 357, 1920, 9000, 63000, 257010
     };
 
     final static int[] LEN_ELEM_MULTIPLE = new int[] {
-        4, 7, 16
+        4, 7, 16, 99, 458, 3000, 12888, 79003, 145000
     };
 
     final static int METHOD_SINGLE = 1;
     final static int METHOD_FULL = 2;
+    final static int METHOD_2BYTES = 3;
+    final static int METHOD_SEGMENTED = 4;
+    final static int METHOD_FULL_CONVENIENT = 5;
+
+    /**
+     * Padding characters are only legal as last one or two characters
+     * of 4-char units.
+     */
+    final static String[] INVALID_PADDING = new String[] {
+        "AAAA====", "AAAAB===", "AA=A"
+    };
+
+    /**
+     * White space is only allowed between 4-char units, not within.
+     */
+    final static String[] INVALID_WS = new String[] {
+        "AAA A", "AAAA BBBB C CCC", "ABCD ABCD AB CD"
+    };
+
+    /**
+     * And there are unlimited number of illegal characters within
+     * base64 sections, too
+     */
+    final String[] INVALID_WEIRD_CHARS = new String[] {
+        "AAA?", "AAAA@@@@", "ABCD\u00A0BCD"
+    };
 
     /*
     ////////////////////////////////////////
@@ -62,26 +88,32 @@ public abstract class ReaderBinaryTestBase
 
     public void testBinaryElemByteByByte() throws XMLStreamException
     {
-        _testBinaryElem(1, false);
-        _testBinaryElem(1, true);
+        _testBinaryElem(METHOD_SINGLE, false);
+        _testBinaryElem(METHOD_SINGLE, true);
     }
 
     public void testBinaryElemFull() throws XMLStreamException
     {
-        _testBinaryElem(2, false);
-        _testBinaryElem(2, true);
+        _testBinaryElem(METHOD_FULL, false);
+        _testBinaryElem(METHOD_FULL, true);
     }
 
     public void testBinaryElem2Bytes() throws XMLStreamException
     {
-        _testBinaryElem(3, false);
-        _testBinaryElem(3, true);
+        _testBinaryElem(METHOD_2BYTES, false);
+        _testBinaryElem(METHOD_2BYTES, true);
     }
 
     public void testBinaryElemSegmented() throws XMLStreamException
     {
-        _testBinaryElem(4, false);
-        _testBinaryElem(4, true);
+        _testBinaryElem(METHOD_SEGMENTED, false);
+        _testBinaryElem(METHOD_SEGMENTED, true);
+    }
+
+    public void testBinaryElemFullConvenient() throws XMLStreamException
+    {
+        _testBinaryElem(METHOD_FULL_CONVENIENT, false);
+        _testBinaryElem(METHOD_FULL_CONVENIENT, true);
     }
 
     /**
@@ -113,8 +145,9 @@ public abstract class ReaderBinaryTestBase
                 if (sr.getEventType() == END_ELEMENT) {
                     fail("Should not have yet advanced to END_ELEMENT, when decoding not finished");
                 }
-                // but needs to if we advance
-                assertTokenType(END_ELEMENT, sr.next());
+                // but needs to if we advance; can see CHARACTERS in between tho
+                while (CHARACTERS == sr.next()) { }
+                assertTokenType(END_ELEMENT, sr.getEventType());
             }
             sr.close();
         }
@@ -206,7 +239,7 @@ public abstract class ReaderBinaryTestBase
         throws XMLStreamException
     {
         switch (readMethod) {
-        case 1: // minimal reads, single byte at a time
+        case METHOD_SINGLE: // minimal reads, single byte at a time
             {
                 byte[] buffer = new byte[5];
                 int ptr = 0;
@@ -226,7 +259,7 @@ public abstract class ReaderBinaryTestBase
                 }
             }
             break;
-        case 2: // full read
+        case METHOD_FULL: // full read
             {
                 byte[] buffer = new byte[dataLen + 100];
                 /* Let's assume reader will actually read it all:
@@ -244,10 +277,22 @@ public abstract class ReaderBinaryTestBase
             }
             break;
             
-        case 3: // 2 bytes at a time
+        case METHOD_FULL_CONVENIENT: // full read
+            {
+                byte[] result = sr.getElementAsBinary();
+                assertEquals(dataLen, result.length);
+                for (int i = 0; i < dataLen; ++i) {
+                    if (result[i] != data[i]) {
+                        fail("Corrupt decode at #"+i+", expected "+displayByte(data[i])+", got "+displayByte(result[i]));
+                    }
+                }
+            }
+            break;
+
+        case METHOD_2BYTES: // 2 bytes at a time
         default: // misc sizes
             {
-                boolean random = (readMethod > 3);
+                boolean random = (readMethod != METHOD_2BYTES);
                 
                 byte[] buffer = new byte[200];
                 int ptr = 0;
@@ -297,17 +342,14 @@ public abstract class ReaderBinaryTestBase
      * characters, which indicate 1 or 2 bytes instead full 3 for the
      * decode unit.
      */
-    public void testInvalidPadding()
+    public void testInvalidElemPadding()
         throws XMLStreamException
     {
         // Let's try out couple of arbitrary broken ones...
-        final String[] INVALID = new String[] {
-            "AAAA====", "AAAAB===", "AA=A"
-        };
         final byte[] resultBuffer = new byte[20];
 
-        for (int i = 0; i < INVALID.length; ++i) {
-            String doc = "<root>"+INVALID[i]+"</root>";
+        for (int i = 0; i < INVALID_PADDING.length; ++i) {
+            String doc = "<root>"+INVALID_PADDING[i]+"</root>";
             XMLStreamReader2 sr = getElemReader(doc);
             try {
                 /*int count = */ sr.readElementAsBinary(resultBuffer, 0, resultBuffer.length);
@@ -331,13 +373,10 @@ public abstract class ReaderBinaryTestBase
         throws XMLStreamException
     {
         // Let's try out couple of arbitrary broken ones...
-        final String[] INVALID = new String[] {
-            "AAA A", "AAAA BBBB C CCC", "ABCD ABCD AB CD"
-        };
         final byte[] resultBuffer = new byte[20];
 
-        for (int i = 0; i < INVALID.length; ++i) {
-            String doc = "<root>"+INVALID[i]+"</root>";
+        for (int i = 0; i < INVALID_WS.length; ++i) {
+            String doc = "<root>"+INVALID_WS[i]+"</root>";
             XMLStreamReader2 sr = getElemReader(doc);
             try {
                 /*int count = */ sr.readElementAsBinary(resultBuffer, 0, resultBuffer.length);
@@ -352,14 +391,10 @@ public abstract class ReaderBinaryTestBase
     public void testInvalidWeirdChars()
         throws XMLStreamException
     {
-        // Let's try out couple of arbitrary broken ones...
-        final String[] INVALID = new String[] {
-            "AAA?", "AAAA@@@@", "ABCD\u00A0BCD"
-        };
         final byte[] resultBuffer = new byte[20];
 
-        for (int i = 0; i < INVALID.length; ++i) {
-            String doc = "<root>"+INVALID[i]+"</root>";
+        for (int i = 0; i < INVALID_WEIRD_CHARS.length; ++i) {
+            String doc = "<root>"+INVALID_WEIRD_CHARS[i]+"</root>";
             XMLStreamReader2 sr = getElemReader(doc);
             try {
                 /*int count = */ sr.readElementAsBinary(resultBuffer, 0, resultBuffer.length);
@@ -371,7 +406,7 @@ public abstract class ReaderBinaryTestBase
         }
     }
 
-    public void testIncompleteInvalid()
+    public void testIncompleteInvalidElem()
         throws XMLStreamException
     {
         // Let's just try with short partial segments, data used doesn't matter
@@ -409,6 +444,122 @@ public abstract class ReaderBinaryTestBase
     // Test methods, attr, valid
     ////////////////////////////////////////
      */
+
+    /**
+     * API to access attribute values is much simpler; hence fewer
+     * things need testing
+     */
+
+    public void testBinaryAttrValid() throws XMLStreamException
+    {
+        final int REPS = 3;
+        for (int j = 0; j < REPS; ++j) {
+            for (int i = 0; i < LEN_ATTR.length; ++i) {
+                int size = LEN_ATTR[i];
+                byte[] data = generateData(new Random(size), size);
+                char[] buffer = new char[4 + (data.length * 3 / 2)];
+                AsciiValueEncoder enc = new ValueEncoderFactory().getEncoder(data, 0, data.length);
+                int len = enc.encodeMore(buffer, 0, buffer.length);
+                StringBuilder sb = new StringBuilder(buffer.length + 32);
+                sb.append("<root attr='");
+                sb.append(buffer, 0, len);
+                sb.append("' />");
+                XMLStreamReader2 sr = getElemReader(sb.toString());
+                byte[] actData = sr.getAttributeAsBinary(0);
+
+                assertNotNull(actData);
+                assertEquals(data.length, actData.length);
+                for (int x = 0; x < data.length; ++x) {
+                    if (data[x] != actData[x]) {
+                        fail("Corrupt decode at #"+x+"/"+data.length+", expected "+displayByte(data[x])+", got "+displayByte(actData[x]));
+                        }
+                }
+            }
+        }
+    }
+
+    /*
+    ////////////////////////////////////////
+    // Test methods, attr, invalid
+    ////////////////////////////////////////
+     */
+
+    public void testInvalidAttrPadding()
+        throws XMLStreamException
+    {
+        for (int i = 0; i < INVALID_PADDING.length; ++i) {
+            String doc = "<root attr='"+INVALID_PADDING[i]+"' />";
+            XMLStreamReader2 sr = getElemReader(doc);
+            try {
+                /*byte[] data = */ sr.getAttributeAsBinary(0);
+                fail("Should have received an exception for invalid padding");
+            } catch (TypedXMLStreamException ex) {
+                // any way to check that it's the excepted message? not right now
+            }
+            sr.close();
+        }
+    }
+
+    public void testInvalidAttrWhitespace()
+        throws XMLStreamException
+    {
+        for (int i = 0; i < INVALID_WS.length; ++i) {
+            String doc = "<root x='"+INVALID_WS[i]+"' />";
+            XMLStreamReader2 sr = getElemReader(doc);
+            try {
+                /*byte[] data = */ sr.getAttributeAsBinary(0);
+                fail("Should have received an exception for white space used 'inside' 4-char base64 unit");
+            } catch (TypedXMLStreamException ex) {
+                // any way to check that it's the excepted message? not right now
+            }
+            sr.close();
+        }
+    }
+
+    public void testInvalidAttrWeirdChars()
+        throws XMLStreamException
+    {
+        for (int i = 0; i < INVALID_WEIRD_CHARS.length; ++i) {
+            String doc = "<root abc='"+INVALID_WEIRD_CHARS[i]+"'/>";
+            XMLStreamReader2 sr = getElemReader(doc);
+            try {
+                /*byte[] data = */ sr.getAttributeAsBinary(0);
+                fail("Should have received an exception for invalid base64 character");
+            } catch (TypedXMLStreamException ex) {
+                // any way to check that it's the excepted message? not right now
+            }
+            sr.close();
+        }
+    }
+
+    public void testInvalidAttrIncomplete()
+        throws XMLStreamException
+    {
+        // Let's just try with short partial segments, data used doesn't matter
+        final byte[] data = new byte[6];
+
+        // So first we'll encode 1 to 6 bytes as base64
+        for (int i = 1; i <= data.length; ++i) {
+            AsciiValueEncoder enc = new ValueEncoderFactory().getEncoder(data, 0, i);
+            char[] cbuf = new char[20];
+            int clen = enc.encodeMore(cbuf, 0, cbuf.length);
+
+            // and use all byte last 1, 2 or 3 chars
+            for (int j = 1; j <= 3; ++j) {
+                int testLen = clen-j;
+                StringBuffer sb = new StringBuffer();
+                sb.append("<root attr='").append(cbuf, 0, testLen).append("'/>");
+                XMLStreamReader2 sr = getElemReader(sb.toString());
+                try {
+                    /*byte[] data = */ sr.getAttributeAsBinary(0);
+                    fail("Should have received an exception for incomplete base64 unit");
+                } catch (TypedXMLStreamException ex) {
+                    // any way to check that it's the excepted message? not right now
+                }
+                sr.close();
+            }
+        }
+    }
 
     /*
     ////////////////////////////////////////

@@ -15,11 +15,18 @@
 
 package org.codehaus.stax2.ri.typed;
 
+import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
+
+import org.codehaus.stax2.ri.Stax2Util;
 
 /**
  * Abstract base class used to share functionality between concrete
  * base64 decoders.
+ *<p>
+ * Mostly what follows is just shared definitions of the state machine
+ * states to use, but there is also shared convenience functionality
+ * for convenience decoding into simple byte arrays.
  */
 abstract class Base64DecoderBase
 {
@@ -112,6 +119,12 @@ abstract class Base64DecoderBase
      */
     int mDecodedData;
 
+    // // // Reused state for convenience byte[] accessors
+
+    Stax2Util.ByteAggregator mByteAggr = null;
+
+    // // // Constructor(s)
+
     protected Base64DecoderBase() { }
 
     /*
@@ -119,6 +132,9 @@ abstract class Base64DecoderBase
     // Shared base API
     //////////////////////////////////////////////////////////////
      */
+
+    public abstract int decode(byte[] resultBuffer, int resultOffset, int maxLength)
+        throws IllegalArgumentException;
 
     /**
      * Method that can be called to check whether decoder state is
@@ -137,6 +153,52 @@ abstract class Base64DecoderBase
             ;
     }
 
+    /*
+    //////////////////////////////////////////////////////////////
+    // Convenience accessors
+    //////////////////////////////////////////////////////////////
+     */
+
+    /**
+     * Method that can be called to completely decode content that this
+     * decoder has been initialized with.
+     */
+    public byte[] decodeCompletely()
+    {
+        Stax2Util.ByteAggregator aggr = getByteAggregator();
+        byte[] buffer = aggr.startAggregation();
+        while (true) {
+            // Ok let's read full buffers each round
+            int offset = 0;
+            int len = buffer.length;
+
+            do {
+                int readCount = decode(buffer, offset, len);
+                // note: can return 0; converted to -1 by front-end
+                if (readCount < 1) { // all done!
+                    // but we must be in a valid state too:
+                    if (!okToGetEndElement()) {
+                        throw new IllegalArgumentException("Incomplete base64 triplet at the end of decoded content");
+                    }
+                    return aggr.aggregateAll(buffer, offset);
+                }
+                offset += readCount;
+                len -= readCount;
+            } while (len > 0);
+
+            // and if we got it, hand out results, get a new buffer
+            buffer = aggr.addFullBlock(buffer);
+        }
+    }
+
+    public Stax2Util.ByteAggregator getByteAggregator()
+    {
+        if (mByteAggr == null) {
+            mByteAggr = new Stax2Util.ByteAggregator();
+        }
+        return mByteAggr;
+    }
+        
     /*
     //////////////////////////////////////////////////////////////
     // Internal helper methods error reporting

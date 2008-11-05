@@ -239,6 +239,10 @@ public class StreamReader2Delegate
         return mDelegate2.getElementAsQName();
     }
 
+    public byte[] getElementAsBinary() throws XMLStreamException {
+        return mDelegate2.getElementAsBinary();
+    }
+
     public void getAttributeAs(int index, TypedValueDecoder tvd)
         throws XMLStreamException
     {

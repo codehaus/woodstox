@@ -16,17 +16,17 @@ import javax.xml.namespace.QName;
  *<p>
  * Implementation notes:
  *
- * - As of September 2008:
- *   * Writer-side is completed, including:
+ * - As of November 2008:
+ *   * Writer-side is complete, including:
  *     - Primitives (numbers, boolean)
  *     - Other scalars (QName)
  *     - Primitive arrays
  *     - Binary (base64)
- *   * Reader-side partially completed:
+ *   * Reader-side complete as well!
  *     - Primitives
  *     - Other scalars
  *     - Primitive arrays
- *    (only missing binary elements)
+ *     - Binary elements:
  * 
  * @author Santiago.PericasGeertsen@sun.com
  * @author Tatu Saloranta
@@ -191,6 +191,17 @@ public interface TypedXMLStreamReader
      * <p><i>[TODO] </i>
      */
     //public XMLGregorianCalendar getElementAsCalendar() throws XMLStreamException;
+
+    /**
+     * Convenience method that can be used similar to read binary content
+     * instead of
+     * {@link #readElementAsBinary}, in cases where neither performance nor
+     * memory usage is a big concern.
+     *
+     * @see #readElementAsBinary
+     */
+    public byte[] getElementAsBinary()
+        throws XMLStreamException;
     
     /**
      * Generic decoding method that can be used for efficient

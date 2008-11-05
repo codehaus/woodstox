@@ -8,7 +8,6 @@ Perhaps we can combine SymbolTable, and name validation access
 such that we only store valid names in SymbolTable. As such,
 validity only needs to be checked if there's no hit.
 
-
 ==== 1.1 Integrate char decoding and scanning ====
 
 (BIG EFFORT)

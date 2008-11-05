@@ -24,6 +24,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
 
+import org.codehaus.stax2.ri.typed.CharArrayBase64Decoder;
 import org.codehaus.stax2.ri.typed.ValueDecoderFactory;
 import org.codehaus.stax2.typed.TypedArrayDecoder;
 import org.codehaus.stax2.typed.TypedValueDecoder;
@@ -310,6 +311,29 @@ public abstract class AttributeCollector
                             mValueBuffer.getCharBuffer(),
                             mValueBuffer.getOffset(index),
                             mValueBuffer.getOffset(index+1));
+    }
+
+    public final byte[] decodeBinary(int index, CharArrayBase64Decoder dec,
+                                  InputProblemReporter rep)
+        throws XMLStreamException
+    {
+        if (index < 0 || index >= mAttrCount) {
+            throwIndex(index);
+        }
+        /* No point in trying to use String representation, even if one
+         * available, faster to process from char[]
+         */
+        char[] cbuf = mValueBuffer.getCharBuffer();
+        int offset = mValueBuffer.getOffset(index);
+        int len = mValueBuffer.getOffset(index+1) - offset;
+        dec.init(true, cbuf, offset, len, null);
+        try {
+            return dec.decodeCompletely();
+        } catch (IllegalArgumentException iae) {
+            // Need to convert to a checked stream exception
+            String lexical = new String(cbuf, offset, len);
+            throw new TypedXMLStreamException(lexical, iae.getMessage(), rep.getLocation(), iae);
+        }
     }
 
     private final int decodeValues(TypedArrayDecoder tad,
