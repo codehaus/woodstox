@@ -51,7 +51,7 @@ import com.ctc.wstx.util.ArgUtil;
  *  </li>
  *</ul>
  */
-public final class WstxOutputFactory
+public class WstxOutputFactory
     extends XMLOutputFactory2
     implements OutputConfigFlags
 {

@@ -13,6 +13,7 @@ Description:
     (requested by Sylvain L)
   * [WSTX-154] XMLStreamReader, XMLStreamWriter implementations were
     quietly discarding XMLStreamException thrown by XMLReporter.
+  * [WSTX-172] WstxInputFactory and WstxOutputFactory were final, should not be.
 
   New functionality:
 

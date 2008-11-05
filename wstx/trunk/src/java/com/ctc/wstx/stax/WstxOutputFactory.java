@@ -50,7 +50,7 @@ import com.ctc.wstx.sw.*;
  *  </li>
  *</ul>
  */
-public final class WstxOutputFactory
+public class WstxOutputFactory
     extends XMLOutputFactory2
     implements OutputConfigFlags
 {

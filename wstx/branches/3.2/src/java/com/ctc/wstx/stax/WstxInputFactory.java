@@ -77,7 +77,7 @@ import com.ctc.wstx.util.URLUtil;
  *  </li>
  *</ul>
  */
-public final class WstxInputFactory
+public class WstxInputFactory
     extends XMLInputFactory2
     implements ReaderCreator,
                InputConfigFlags

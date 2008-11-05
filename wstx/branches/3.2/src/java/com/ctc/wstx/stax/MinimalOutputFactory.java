@@ -47,7 +47,7 @@ import com.ctc.wstx.util.ArgUtil;
  * (cut'n pasted code) with {@link com.ctc.wstx.stax.WstxOutputFactory}.
  * Hopefully in future this problem can be resolved.
  */
-public final class MinimalOutputFactory
+public class MinimalOutputFactory
     //extends XMLOutputFactory
     implements OutputConfigFlags
 {
