@@ -17,7 +17,7 @@ import org.codehaus.stax2.validation.Validatable;
  * Since version 3.0, stream writer will also implement "Typed Access API"
  * on output side.
  *
- * @version 3.0 01/21/2007
+ * @version 3.0.1 06-Nov-2008
  * @author Tatu Saloranta (tatu.saloranta@iki.fi)
  */
 public interface XMLStreamWriter2
@@ -218,5 +218,25 @@ public interface XMLStreamWriter2
      *   full no-copy streaming of data, especially textual contents.
      */
     public void copyEventFromReader(XMLStreamReader2 r, boolean preserveEventData)
+        throws XMLStreamException;
+
+    /*
+    ///////////////////////////
+    // Output handling
+    ///////////////////////////
+    */
+
+    /**
+     * Method similar to
+     * {@link javax.xml.stream.XMLStreamWriter#close()},
+     * except that this method also does close the underlying output
+     * destination (stream) if it has not yet been closed.
+     * It is specifically necessary to call this method if the parsing ends
+     * in an exception to ensure that the output destination does get
+     * properly closed, even if the stream writer would otherwise close
+     * it (as is the case for destinations it manages where calling
+     * application has no access)
+     */
+    public void closeCompletely()
         throws XMLStreamException;
 }

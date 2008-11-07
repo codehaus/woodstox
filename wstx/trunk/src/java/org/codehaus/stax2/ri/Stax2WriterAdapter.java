@@ -475,6 +475,21 @@ public class Stax2WriterAdapter
 
     /*
     ///////////////////////////////
+    // Stax2, output handling
+    ///////////////////////////////
+    */
+
+    public void closeCompletely() throws XMLStreamException
+    {
+        /* 06-Nov-2008, TSa: alas, there is no way to properly implement
+         *   this. Should we throw an exception? For now, let's just call
+         *   regular close; not quite the same, but better than nothing
+         */
+        close();
+    }
+
+    /*
+    ///////////////////////////////
     // Stax2, validation
     ///////////////////////////////
     */

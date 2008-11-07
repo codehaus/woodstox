@@ -218,24 +218,6 @@ public abstract class BaseStreamWriter
 
     /*
     ////////////////////////////////////////////////////
-    // Problem reporting state
-    ////////////////////////////////////////////////////
-     */
-
-    // // These are bit masks used for ensuring only one of each problem
-    // // type is reported via a single stream writer instance
-
-    //final static int PROB_NS_WRITE = 0x0001;
-
-    /**
-     * Bit mask used to ensure certain problems are only reported the
-     * first time they occur
-     */
-    //int mReportedProblems = 0;
-
-
-    /*
-    ////////////////////////////////////////////////////
     // State needed for efficient copy-through output
     // (copyEventFromReader)
     ////////////////////////////////////////////////////
@@ -1178,6 +1160,19 @@ public abstract class BaseStreamWriter
 
         throw new XMLStreamException("Unrecognized event type ("
                                      +sr.getEventType()+"); not sure how to copy");
+    }
+
+    /*
+    ////////////////////////////////////////////////////
+    // StAX2, output handling
+    ////////////////////////////////////////////////////
+     */
+
+    public void closeCompletely()
+        throws XMLStreamException
+    {
+        // !!! TBI
+        close();
     }
 
     /*

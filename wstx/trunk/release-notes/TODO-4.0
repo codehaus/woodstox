@@ -14,7 +14,6 @@ Planned stuff for 4.0
 * Nice-to-have Jira entries:
   * [WSTX-160]: Problems with multiple Schemas...
   * [WSTX-162]: DOM-reader, P_INTERN_NAMES, default to 'false' for DOM?
-  * [WSTX-165]: Disable automatic writing of END_ELEMENT for non-closed
 
 * Misc internal improvements:
   * Add simple Typed Value cleanup (trim leading/trailing space) within

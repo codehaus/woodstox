@@ -335,6 +335,16 @@ public abstract class DOMWrappingWriter
         // !!! TBI
     }
 
+    /*
+    ///////////////////////////////
+    // Stax2, output handling
+    ///////////////////////////////
+    */
+
+    public void closeCompletely()
+    {
+        // NOP
+    }
 
     /*
     /////////////////////////////////////////////////

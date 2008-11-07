@@ -43,6 +43,11 @@ public class StreamWriter2Delegate
     //////////////////////////////////////////////
      */
 
+    public void closeCompletely() throws XMLStreamException
+    {
+        mDelegate2.closeCompletely();
+    }
+
     public void copyEventFromReader(XMLStreamReader2 r, boolean preserveEventData)
         throws XMLStreamException
     {
