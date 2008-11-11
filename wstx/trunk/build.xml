@@ -44,7 +44,7 @@
     <property name="STAX2_VENDOR" value="http://www.cowtowncoder.com" />
 
     <!-- jars needed for compilation -->
-    <path id="compile-classpath">
+    <path id="classpath.compile">
         <fileset dir="${LibDir}" includes="stax-api*.jar" />
         <fileset dir="${LibDir}" includes="sax2.jar" />
         <!-- these are needed for optional MSV-based validators -->
@@ -52,7 +52,7 @@
     </path>
     <path id="junit-libs">
        <fileset dir="${LibDir}">
-            <include name="junit/junit*.jar" />
+            <include name="test/junit*.jar" />
        </fileset>
     </path>
 
@@ -141,15 +141,14 @@
         <echo message = "---------------------------------------------------" />
         <echo message = "1)  readme - Displays this information (default target)." />
         <echo message = "2)  clean - Remove any generated files/directories." />
-        <echo message = "3)  compile - Compile all non-test ${ant.project.name} code." />
+        <echo message = "3)  compile - Compile all ${ant.project.name} code (including tests and samples)" />
         <echo message = "4)  jars - Compile and create all jars for non-test ${ant.project.name} code (see build.xml for specific ones)." />
         <echo message = "5)  javadoc - Generate ${ant.project.name} code documentation." />
-        <echo message = "6)  test.compile - Compile ${ant.project.name} code and test code" />
         <echo message = "       for JUnit tests." />
-        <echo message = "7a)  test - Run Woodstox-specific JUnit tests." />
-        <echo message = "7b)  staxtest - Run generic Stax JUnit tests." />
-        <echo message = "8)  dist - Create distribution directory and copy necessary files there" />
-        <echo message = "9) all - Run the clean, compile, javadoc," />
+        <echo message = "6a)  test - Run Woodstox-specific JUnit tests." />
+        <echo message = "6b)  staxtest - Run generic Stax JUnit tests." />
+        <echo message = "7)  dist - Create distribution directory and copy necessary files there" />
+        <echo message = "8) all - Run the clean, compile, javadoc," />
         <echo message = "         test and dist targets." />  
         <echo message = "" />
         <echo message = "Available command-line arguments:" />
@@ -218,7 +217,9 @@
         <delete file="coverage.ec" />
     </target>
 
-    <target name="compile" depends="prepare,copy-resources">
+    <target name="compile" depends="compile.core, compile.samples, compile.test" />
+
+    <target name="compile.core" depends="prepare,copy-resources">
         <javac SrcDir="${JavaSrcDir}" destdir="${BuildClassesDir}"
             source="1.4" target="1.4"
             debug="true"
@@ -232,15 +233,18 @@
             <include name="org/codehaus/stax2/**/*.java" />
             <include name="com/ctc/**/*.java" />
             <include name="test/**/*.java" />
-            <classpath refid="compile-classpath" />
+            <classpath refid="classpath.compile" />
         </javac>
+    </target>
+
+    <target name="compile.samples" depends="compile.core">
         <!-- 03-Aug-2006, TSa: Let's also compile samples, to ensure they
                won't get obsolete with impl/api changes
           -->
         <javac SrcDir="${JavaSamplesDir}" destdir="${BuildClassesDir}"
             source="1.4" target="1.4">
             <include name="*.java" />
-            <classpath refid="compile-classpath" />
+            <classpath refid="classpath.compile" />
         </javac>
     </target>
 
@@ -355,7 +359,7 @@ jar.stax2, jar.stax2test, jar.wstx.lgpl, jar.wstx.asl" />
     </target> 
 
     <target name="jar.stax2" depends="compile">
-        <jar jarfile="${BuildDir}/stax2-${STAX2_VERSION}.jar" filesonly="true" >
+        <jar jarfile="${BuildDir}/stax2-api-${STAX2_VERSION}.jar" filesonly="true" >
           <manifest>
             <attribute name="Built-By" value="${user.name}"/>
             <attribute name="Specification-Title"   value="${STAX2_TITLE}"/>
@@ -374,7 +378,7 @@ jar.stax2, jar.stax2test, jar.wstx.lgpl, jar.wstx.asl" />
     <!-- 15-Mar-2008, TSa: Let's also package up Stax2 compatibility
          test suite, for other stax2 impls to use
       -->
-    <target name="jar.stax2test" depends="test.compile">
+    <target name="jar.stax2test" depends="compile.test">
         <jar jarfile="${BuildDir}/stax2test-${STAX2_VERSION}.jar" filesonly="true" >
           <manifest>
             <attribute name="Built-By" value="${user.name}"/>
@@ -443,11 +447,11 @@ jar.stax2, jar.stax2test, jar.wstx.lgpl, jar.wstx.asl" />
                 <include name="org/codehaus/stax2/**" />
                 <include name="com/ctc/**" />
             </packageset>
-            <classpath refid="compile-classpath" />
+            <classpath refid="classpath.compile" />
         </javadoc>
     </target> 
  
-    <target name="dist" depends="compile,test.compile,jars,javadoc"
+    <target name="dist" depends="compile,jars,javadoc"
     >
        <!-- First, let's copy the binary jars to dist -->
        <copy todir="${DistDir}">
@@ -508,7 +512,7 @@ jar.stax2, jar.stax2test, jar.wstx.lgpl, jar.wstx.asl" />
             </filterset>
        </copy>
        <copy todir="${DistDir}">
-            <fileset dir="${SrcDir}/maven" includes="stax2.pom" />
+            <fileset dir="${SrcDir}/maven" includes="stax2*.pom" />
             <globmapper from="*.pom" to="*-${STAX2_VERSION}.pom" />
             <filterset>
               <filter token="VERSION" value="${STAX2_VERSION}" />
@@ -538,7 +542,7 @@ jar.stax2, jar.stax2test, jar.wstx.lgpl, jar.wstx.asl" />
                 </fileset>
             </batchtest>
             <formatter type="xml" />
-            <classpath refid="compile-classpath" />
+            <classpath refid="classpath.compile" />
             <classpath path="${StaxTestClassesDir}" />
             <classpath>
               <pathelement path="${BuildClassesDir}" />
@@ -577,13 +581,13 @@ jar.stax2, jar.stax2test, jar.wstx.lgpl, jar.wstx.asl" />
        - (including, for now, Stax2 tests)
       -->
 
-    <target name="test.compile" depends="compile">
+    <target name="compile.test" depends="compile.core">
         <javac SrcDir="${TestSrcDir}" destdir="${TestClassesDir}"
             source="1.4" target="1.4"
             debug="true"
         >
             <include name="**/*.java" />
-            <classpath refid="compile-classpath" />
+            <classpath refid="classpath.compile" />
             <classpath>
                 <pathelement path="${BuildClassesDir}"/>  
                 <path refid="junit-libs"/>
@@ -592,7 +596,7 @@ jar.stax2, jar.stax2test, jar.wstx.lgpl, jar.wstx.asl" />
     </target>
 
 
-    <target name="test" depends="test.compile">
+    <target name="test" depends="compile.test">
        <!-- showoutput 'yes' to allow outputting debug msgs... -->
         <junit fork="yes" forkmode="once" maxmemory="128M"
          printsummary="yes" haltonfailure="no" showoutput="yes">
@@ -604,7 +608,7 @@ jar.stax2, jar.stax2test, jar.wstx.lgpl, jar.wstx.asl" />
                 </fileset>
             </batchtest>
             <formatter type="xml" />
-            <classpath refid="compile-classpath" />
+            <classpath refid="classpath.compile" />
             <classpath>
                 <pathelement path="${BuildClassesDir}" />
                 <pathelement location="${TestClassesDir}" /> 
@@ -620,7 +624,7 @@ jar.stax2, jar.stax2test, jar.wstx.lgpl, jar.wstx.asl" />
         </junitreport>
     </target>
 
-    <target name="test-emma" depends="test.compile, prepare-staxtest">
+    <target name="test-emma" depends="compile.test, prepare-staxtest">
 
       <!-- First, need to instrument using Emma -->
       <property name="emma.instr.dir" value="${BuildDir}/emma-instr" />
@@ -676,7 +680,7 @@ jar.stax2, jar.stax2test, jar.wstx.lgpl, jar.wstx.asl" />
             </batchtest>
             <formatter type="xml" />
             <!-- Stax API: -->
-            <classpath refid="compile-classpath" />
+            <classpath refid="classpath.compile" />
             <!-- Actual tests: -->
             <classpath path="${TestClassesDir}" />
             <classpath path="${StaxTestClassesDir}" />
@@ -724,7 +728,7 @@ jar.stax2, jar.stax2test, jar.wstx.lgpl, jar.wstx.asl" />
          Cobertura...
       -->
 
-    <target name="test-cobertura" depends="test.compile, prepare-staxtest">
+    <target name="test-cobertura" depends="compile.test, prepare-staxtest">
       <!-- First, need to instrument classes -->
       <property name="cobertura.instr.dir" value="${BuildDir}/cobertura-instr" />
       <cobertura-instrument todir="${cobertura.instr.dir}">
@@ -754,7 +758,7 @@ jar.stax2, jar.stax2test, jar.wstx.lgpl, jar.wstx.asl" />
             <classpath location="${cobertura.instr.dir}" />
 
             <!-- Stax API: -->
-            <classpath refid="compile-classpath" />
+            <classpath refid="classpath.compile" />
             <!-- Actual tests: -->
             <classpath path="${TestClassesDir}" />
             <classpath path="${StaxTestClassesDir}" />

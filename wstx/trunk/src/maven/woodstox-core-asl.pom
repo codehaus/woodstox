@@ -29,7 +29,7 @@ implements Stax (JSR-173) and SAX2 APIs</description>
       -->
     <dependency>
       <groupId>org.codehaus.woodstox</groupId>
-      <artifactId>stax2</artifactId>
+      <artifactId>stax2-api</artifactId>
       <version>[3.0.0,4.0.0)</version>
     </dependency>
   </dependencies>
