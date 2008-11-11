@@ -2,11 +2,8 @@ package test;
 
 import java.io.*;
 
-import javax.xml.XMLConstants;
 import javax.xml.stream.*;
 
-import org.codehaus.stax2.XMLOutputFactory2;
-import org.codehaus.stax2.XMLStreamProperties;
 import org.codehaus.stax2.typed.*;
 
 /**

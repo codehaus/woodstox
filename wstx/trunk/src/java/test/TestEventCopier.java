@@ -1,15 +1,8 @@
 package test;
 
 import java.io.*;
-import java.util.Iterator;
 
-import javax.xml.namespace.QName;
 import javax.xml.stream.*;
-import javax.xml.stream.events.*;
-
-import org.codehaus.stax2.XMLInputFactory2;
-
-import com.ctc.wstx.api.WstxInputProperties;
 
 public class TestEventCopier
 {

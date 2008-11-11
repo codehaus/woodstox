@@ -15,10 +15,6 @@
 
 package org.codehaus.stax2.ri.typed;
 
-import java.util.*;
-
-import javax.xml.stream.XMLStreamException;
-
 /**
  * Base64 decoder that can be used to decode base64 encoded content that
  * is passed as a Single string.

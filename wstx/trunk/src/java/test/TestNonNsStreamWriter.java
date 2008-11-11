@@ -10,7 +10,6 @@ import org.codehaus.stax2.XMLStreamWriter2;
 import org.codehaus.stax2.validation.*;
 
 import com.ctc.wstx.api.WstxOutputProperties;
-import com.ctc.wstx.sw.BaseStreamWriter;
 
 /**
  * Simple non-automated unit test for outputting non-namespace-aware XML

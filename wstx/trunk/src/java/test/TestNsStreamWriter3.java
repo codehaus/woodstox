@@ -4,13 +4,8 @@ import java.io.*;
 
 import javax.xml.stream.*;
 
-import org.codehaus.stax2.XMLOutputFactory2;
 import org.codehaus.stax2.XMLStreamWriter2;
 import org.codehaus.stax2.XMLStreamProperties;
-import org.codehaus.stax2.validation.*;
-
-import com.ctc.wstx.api.WstxOutputProperties;
-import com.ctc.wstx.sw.BaseStreamWriter;
 
 /**
  * Simple non-automated unit test for outputting namespace-aware XML

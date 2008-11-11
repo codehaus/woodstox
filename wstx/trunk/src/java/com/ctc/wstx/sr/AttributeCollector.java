@@ -16,12 +16,9 @@
 package com.ctc.wstx.sr;
 
 import java.io.IOException;
-import java.math.BigDecimal;
-import java.math.BigInteger;
 
 import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
-import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
 
 import org.codehaus.stax2.ri.typed.CharArrayBase64Decoder;

@@ -4,7 +4,6 @@ import java.io.*;
 
 import javax.xml.stream.*;
 
-import org.codehaus.stax2.XMLStreamReader2;
 import org.codehaus.stax2.typed.TypedXMLStreamReader;
 
 /**

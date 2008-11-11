@@ -4,7 +4,6 @@ import java.io.*;
 
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
-import javax.xml.stream.*;
 
 import org.xml.sax.*;
 import org.xml.sax.ext.DeclHandler;

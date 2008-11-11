@@ -3,7 +3,6 @@ package test;
 import java.io.*;
 import java.util.Iterator;
 
-import javax.xml.namespace.QName;
 import javax.xml.stream.*;
 import javax.xml.stream.events.*;
 

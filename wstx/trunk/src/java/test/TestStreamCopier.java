@@ -1,16 +1,12 @@
 package test;
 
 import java.io.*;
-import java.net.URL;
 import java.util.zip.GZIPInputStream;
 
 import javax.xml.stream.*;
 
 import org.codehaus.stax2.*;
 import org.codehaus.stax2.validation.*;
-
-import com.ctc.wstx.api.WstxInputProperties;
-import com.ctc.wstx.api.WstxOutputProperties;
 
 /**
  * Simple test driver for testing pass-through copying using new StAX2

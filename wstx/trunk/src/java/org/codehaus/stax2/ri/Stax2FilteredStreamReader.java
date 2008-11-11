@@ -1,18 +1,8 @@
 package org.codehaus.stax2.ri;
 
-import java.io.IOException;
-import java.io.Writer;
-import java.math.BigDecimal;
-import java.math.BigInteger;
-
-import javax.xml.namespace.NamespaceContext;
-import javax.xml.namespace.QName;
 import javax.xml.stream.*;
 
 import org.codehaus.stax2.*;
-import org.codehaus.stax2.validation.*;
-import org.codehaus.stax2.typed.TypedArrayDecoder;
-import org.codehaus.stax2.typed.TypedValueDecoder;
 import org.codehaus.stax2.util.StreamReader2Delegate;
 
 /**

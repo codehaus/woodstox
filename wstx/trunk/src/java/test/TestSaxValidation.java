@@ -1,12 +1,9 @@
 package test;
 
 import java.io.*;
-import java.util.*;
 import javax.xml.parsers.*; // TRAX, for creating parsers
 
-import org.w3c.dom.*;
 import org.xml.sax.*;
-import org.xml.sax.helpers.DefaultHandler;
 
 /**
  * Simple test class used to check how other validation xml parsers (like

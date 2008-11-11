@@ -1,14 +1,9 @@
 package test;
 
 import java.io.*;
-import java.util.List;
-import java.util.zip.GZIPInputStream;
 
 import javax.xml.stream.*;
-import javax.xml.transform.Source;
-import javax.xml.transform.stream.StreamSource;
 
-import org.codehaus.stax2.XMLStreamReader2;
 import org.codehaus.stax2.typed.TypedXMLStreamReader;
 
 import com.ctc.wstx.stax.WstxInputFactory;

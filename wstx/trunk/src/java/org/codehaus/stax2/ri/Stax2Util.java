@@ -15,8 +15,6 @@
 
 package org.codehaus.stax2.ri;
 
-import java.util.*;
-
 import javax.xml.stream.XMLStreamConstants;
 
 public final class Stax2Util

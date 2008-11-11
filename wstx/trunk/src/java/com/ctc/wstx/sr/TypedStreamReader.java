@@ -15,11 +15,9 @@
 
 package com.ctc.wstx.sr;
 
-import java.io.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
 
@@ -33,7 +31,6 @@ import org.codehaus.stax2.ri.typed.CharArrayBase64Decoder;
 
 import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.cfg.ErrorConsts;
-import com.ctc.wstx.cfg.XmlConsts;
 import com.ctc.wstx.io.BranchingReaderSource;
 import com.ctc.wstx.io.InputBootstrapper;
 import com.ctc.wstx.io.WstxInputData;
@@ -380,7 +377,7 @@ public class TypedStreamReader
 
         int count = 0;
 
-        decode_loop:
+        //decode_loop:
         while (type != END_ELEMENT) {
             /* Ok then: we will have a valid textual type. Just need to
              * ensure current segment is completed. Plus, for current impl,

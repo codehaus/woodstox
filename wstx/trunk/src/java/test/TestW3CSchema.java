@@ -8,11 +8,6 @@ import javax.xml.stream.*;
 import org.codehaus.stax2.*;
 import org.codehaus.stax2.validation.*;
 
-import com.ctc.wstx.api.WstxInputProperties;
-
-import com.ctc.wstx.sr.BasicStreamReader;
-import com.ctc.wstx.sr.InputElementStack;
-
 /**
  * Simple non-automated testing class used for checking that W3C Schema
  * validation features work ok.

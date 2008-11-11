@@ -9,14 +9,8 @@ import javax.xml.transform.dom.DOMResult;
 
 import org.w3c.dom.*;
 
-import org.codehaus.stax2.XMLStreamLocation2;
-import org.codehaus.stax2.XMLStreamReader2;
-import org.codehaus.stax2.XMLStreamWriter2;
 import org.codehaus.stax2.ri.EmptyNamespaceContext;
 import org.codehaus.stax2.ri.dom.DOMWrappingWriter;
-import org.codehaus.stax2.validation.ValidationProblemHandler;
-import org.codehaus.stax2.validation.XMLValidationSchema;
-import org.codehaus.stax2.validation.XMLValidator;
 
 import com.ctc.wstx.api.WriterConfig;
 import com.ctc.wstx.cfg.ErrorConsts;

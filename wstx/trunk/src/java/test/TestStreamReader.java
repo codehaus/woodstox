@@ -5,11 +5,8 @@ import java.util.List;
 import java.util.zip.GZIPInputStream;
 
 import javax.xml.stream.*;
-import javax.xml.transform.Source;
-import javax.xml.transform.stream.StreamSource;
 
 import org.codehaus.stax2.DTDInfo;
-import org.codehaus.stax2.LocationInfo;
 import org.codehaus.stax2.XMLInputFactory2;
 import org.codehaus.stax2.XMLStreamReader2;
 

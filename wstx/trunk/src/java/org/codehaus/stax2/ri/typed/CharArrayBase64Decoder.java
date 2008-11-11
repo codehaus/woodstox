@@ -17,8 +17,6 @@ package org.codehaus.stax2.ri.typed;
 
 import java.util.*;
 
-import javax.xml.stream.XMLStreamException;
-
 /**
  * Base64 decoder that can be used to decode base64 encoded content that
  * is passed as char arrays.
@@ -50,8 +48,6 @@ public final class CharArrayBase64Decoder
                      char[] lastSegment, int offset, int len,
                      List segments)
     {
-        int size = (segments == null) ? 0 : segments.size();
-
         /* Left overs only cleared if it is the first chunk (i.e.
          * right after START_ELEMENT)
          */

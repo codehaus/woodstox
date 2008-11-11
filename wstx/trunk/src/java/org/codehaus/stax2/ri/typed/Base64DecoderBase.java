@@ -15,7 +15,6 @@
 
 package org.codehaus.stax2.ri.typed;
 
-import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
 
 import org.codehaus.stax2.ri.Stax2Util;

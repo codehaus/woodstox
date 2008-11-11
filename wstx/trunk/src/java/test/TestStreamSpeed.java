@@ -1,16 +1,12 @@
 package test;
 
 import java.io.*;
-import java.util.List;
 import java.util.zip.GZIPInputStream;
 
 import javax.xml.stream.*;
 
-import org.codehaus.stax2.LocationInfo;
 import org.codehaus.stax2.XMLInputFactory2;
 import org.codehaus.stax2.XMLStreamReader2;
-
-import com.ctc.wstx.api.WstxInputProperties;
 
 /**
  * Simple stream speed stress test, useful for profiling, as well as for

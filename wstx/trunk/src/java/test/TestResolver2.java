@@ -1,7 +1,5 @@
 package test;
 
-import java.net.URL;
-
 import javax.xml.stream.*;
 
 /**
