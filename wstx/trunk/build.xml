@@ -1,16 +1,5 @@
 <?xml version="1.0" standalone='yes'?>
-
     <project name="Woodstox XML processor" basedir="." default="readme">
-
-    <property name="ProjectName" value="Woodstox XML processor" />
-
-    <!-- Hmmh... Jikes is better at finding semantic problems
-      than basic javac (not to mention faster). But is this a personal
-      preference?
-      Also, don't want to have a dependency to Jikes...
-    <property name="build.compiler" value="jikes" />
-    -->
-
     <!-- Source directories -->
     <property name="SrcDir" location="${basedir}/src" />
     <property name="JavaSrcDir" location="${SrcDir}/java" />
@@ -41,17 +30,17 @@
     <!-- Version information -->
 
     <!-- Woodstox version -->
-    <property name="STAX_TITLE" value="StAX 1.0 API" />
+    <property name="STAX_TITLE" value="Stax 1.0 API" />
     <property name="STAX_VERSION" value="1.0" />
     <property name="STAX_VENDOR" value="http://jcp.org/en/jsr/detail?id=173" />
-    <property name="WSTX_TITLE" value="Woodstox XML-processor" />
-    <property name="WSTX_VERSION" value="3.9.3" />
-    <property name="WSTX_VENDOR" value="woodstox.codehaus.org" />
+    <property name="WOODSTOX_TITLE" value="Woodstox XML-processor" />
+    <property name="WOODSTOX_VERSION" value="3.9.3" />
+    <property name="WOODSTOX_VENDOR" value="woodstox.codehaus.org" />
 
-    <!-- Extended API, working title "StAX2" (not version 2.0, but 2/squared)
+    <!-- Extended API, working title "Stax2" (not version 2.0, but 2/squared)
       -->
-    <property name="STAX2_TITLE" value="StAX2 API" />
-    <property name="STAX2_VERSION" value="3.0pr1" />
+    <property name="STAX2_TITLE" value="Stax2 API" />
+    <property name="STAX2_VERSION" value="3.0.0pr1" />
     <property name="STAX2_VENDOR" value="http://www.cowtowncoder.com" />
 
     <!-- jars needed for compilation -->
@@ -100,7 +89,7 @@
         <include name="META-INF/services/org.codehaus.stax2.*" />
     </patternset>
 
-    <!-- StAX2 class files common to all license flavours: -->
+    <!-- Stax2 class files common to all license flavours: -->
     <patternset id="stax2-dist-class-files">
         <include name="org/codehaus/stax2/*.class" />
         <include name="org/codehaus/stax2/**/*.class" />
@@ -148,20 +137,17 @@
     <!-- supported by this ant build file                                    -->
     <!--*********************************************************************-->
     <target name="readme">
-        <echo message = "${ProjectName}'s Available Targets" />
+        <echo message = "${ant.project.name}'s Available Targets" />
         <echo message = "---------------------------------------------------" />
         <echo message = "1)  readme - Displays this information (default target)." />
         <echo message = "2)  clean - Remove any generated files/directories." />
-        <echo message = "3)  compile - Compile all non-test ${ProjectName} code." />
-        <echo message = "4)  jars - Compile and create all jars for non-test ${ProjectName} code (see below for specific ones)." />
-        <echo message = "4a)  jar.wstx.lgpl - Compile and create jar for non-test ${ProjectName} cod, under LGPL license." />
-        <echo message = "4b)  jar.wstx.asp - Compile and create jar for non-test ${ProjectName} cod, under Apache (2.0) license." />
-        <echo message = "4b)  jar.j2me - Compile and create minimal non-test jar of ${ProjectName}, that implements J2ME subset of StAX." />
-        <echo message = "5)  javadoc - Generate ${ProjectName} code documentation." />
-        <echo message = "6)  test.compile - Compile ${ProjectName} code and test code" />
+        <echo message = "3)  compile - Compile all non-test ${ant.project.name} code." />
+        <echo message = "4)  jars - Compile and create all jars for non-test ${ant.project.name} code (see build.xml for specific ones)." />
+        <echo message = "5)  javadoc - Generate ${ant.project.name} code documentation." />
+        <echo message = "6)  test.compile - Compile ${ant.project.name} code and test code" />
         <echo message = "       for JUnit tests." />
         <echo message = "7a)  test - Run Woodstox-specific JUnit tests." />
-        <echo message = "7b)  staxtest - Run generic StAX JUnit tests." />
+        <echo message = "7b)  staxtest - Run generic Stax JUnit tests." />
         <echo message = "8)  dist - Create distribution directory and copy necessary files there" />
         <echo message = "9) all - Run the clean, compile, javadoc," />
         <echo message = "         test and dist targets." />  
@@ -269,87 +255,101 @@
     </target>
 
     <!-- Dummy target that just includes all individual jars... --> 
-    <target name="jars"
-       depends="jar.stax2, jar.wstx.lgpl, jar.wstx.asl, jar.resources, jar.stax2test"
-    />
+    <target name="jars" depends="jar.resources,
+jar.stax2, jar.stax2test, jar.wstx.lgpl, jar.wstx.asl" />
 
     <target name="jars.j2me"
        depends="jar.j2me_input_min, jar.j2me_output_min, jar.j2me_both_min"
     />
 
     <target name="jar.wstx.lgpl" depends="compile,copy-resources">
-        <jar jarfile="${BuildDir}/wstx-lgpl-${WSTX_VERSION}.jar" filesonly="true" >
+        <!-- 10-Nov-2008, TSa: Let's build both "core" and "full"
+           And for now, leave 'full' jar name as plain old 'wstx': can
+           rename this if there's consensus on user/dev lists
+          -->
+        <jar jarfile="${BuildDir}/woodstox-core-lgpl-${WOODSTOX_VERSION}.jar" filesonly="true" >
           <manifest>
             <attribute name="Built-By" value="${user.name}"/>
             <attribute name="Specification-Title"   value="${STAX_TITLE}"/>
             <attribute name="Specification-Version" value="${STAX_VERSION}"/>
             <attribute name="Specification-Vendor"  value="${STAX_VENDOR}"/>
-            <attribute name="Implementation-Title"   value="${WSTX_TITLE}"/>
-            <attribute name="Implementation-Version" value="${WSTX_VERSION}"/>
-            <attribute name="Implementation-Vendor"  value="${WSTX_VENDOR}"/>
+            <attribute name="Implementation-Title"   value="${WOODSTOX_TITLE}"/>
+            <attribute name="Implementation-Version" value="${WOODSTOX_VERSION}"/>
+            <attribute name="Implementation-Vendor"  value="${WOODSTOX_VENDOR}"/>
           </manifest>
           <fileset dir="${BuildClassesDir}">
-              <patternset refid="wstx-dist-class-files" />
-              <patternset refid="stax2-dist-class-files" />
-          </fileset>
-          <!-- 14-Sep-2007, TSa: Seems like Mavenistas like to see this
-                  file under META-INF. Since jar specs do not care, let's
-                  put it there.
-            -->
-          <metainf dir="${RelNotesDir}/lgpl">
-            <include name="LICENSE" />
-            <include name="NOTICE" />
-            <include name="LGPL2.1" />
-          </metainf>
-        </jar>
-    </target> 
-
-    <target name="jar.wstx.asl" depends="compile,copy-resources">
-        <jar jarfile="${BuildDir}/wstx-asl-${WSTX_VERSION}.jar"
-         filesonly="true" >
-          <manifest>
-            <attribute name="Built-By" value="${user.name}"/>
-            <attribute name="Specification-Title"   value="${STAX_TITLE}"/>
-            <attribute name="Specification-Version" value="${STAX_VERSION}"/>
-            <attribute name="Specification-Vendor"  value="${STAX_VENDOR}"/>
-            <attribute name="Implementation-Title"   value="${WSTX_TITLE}"/>
-            <attribute name="Implementation-Version" value="${WSTX_VERSION}"/>
-            <attribute name="Implementation-Vendor"  value="${WSTX_VENDOR}"/>
-          </manifest>
-          <fileset dir="${BuildClassesDir}">
-              <patternset refid="wstx-dist-class-files" />
-              <patternset refid="stax2-dist-class-files" />
+            <patternset refid="wstx-dist-class-files" />
           </fileset>
           <!-- 14-Sep-2007, TSa: Seems like Mavenricks like to see this
                   file under META-INF. Since jar specs do not care, let's
                   put it there.
             -->
-          <metainf dir="${RelNotesDir}/asl">
-            <include name="LICENSE" />
-            <include name="NOTICE" />
-            <include name="ASL2.0" />
-          </metainf>
+          <metainf dir="${RelNotesDir}/lgpl" includes="*" />
         </jar>
-    </target> 
-
-    <!-- This jar is only needed for testing purposes, to specify 
-       - which StAX implementation to use
-      -->
-    <target name="jar.resources" depends="compile,copy-resources">
-        <jar jarfile="${BuildDir}/wstx-api-${WSTX_VERSION}.jar"
-         filesonly="true" >
+        <jar jarfile="${BuildDir}/wstx-lgpl-${WOODSTOX_VERSION}.jar" filesonly="true" >
           <manifest>
             <attribute name="Built-By" value="${user.name}"/>
             <attribute name="Specification-Title"   value="${STAX_TITLE}"/>
             <attribute name="Specification-Version" value="${STAX_VERSION}"/>
             <attribute name="Specification-Vendor"  value="${STAX_VENDOR}"/>
-            <attribute name="Implementation-Title"   value="${WSTX_TITLE}"/>
-            <attribute name="Implementation-Version" value="${WSTX_VERSION}"/>
-            <attribute name="Implementation-Vendor"  value="${WSTX_VENDOR}"/>
+            <attribute name="Implementation-Title"   value="${WOODSTOX_TITLE}"/>
+            <attribute name="Implementation-Version" value="${WOODSTOX_VERSION}"/>
+            <attribute name="Implementation-Vendor"  value="${WOODSTOX_VENDOR}"/>
           </manifest>
           <fileset dir="${BuildClassesDir}">
-              <include name="META-INF/services/javax.xml.stream.*" />
-              <include name="META-INF/services/org.codehaus.stax2.*" />
+            <patternset refid="wstx-dist-class-files" />
+            <patternset refid="stax2-dist-class-files" />
+          </fileset>
+          <metainf dir="${RelNotesDir}/lgpl" includes="*" />
+        </jar>
+    </target> 
+
+    <target name="jar.wstx.asl" depends="compile,copy-resources">
+        <!-- 10-Nov-2008, TSa: Let's build both "core" and "full"
+           And for now, leave 'full' jar name as plain old 'wstx': can
+           rename this if there's consensus on user/dev lists
+          -->
+        <jar jarfile="${BuildDir}/woodstox-core-asl-${WOODSTOX_VERSION}.jar" filesonly="true" >
+          <manifest>
+            <attribute name="Built-By" value="${user.name}"/>
+            <attribute name="Specification-Title"   value="${STAX_TITLE}"/>
+            <attribute name="Specification-Version" value="${STAX_VERSION}"/>
+            <attribute name="Specification-Vendor"  value="${STAX_VENDOR}"/>
+            <attribute name="Implementation-Title"   value="${WOODSTOX_TITLE}"/>
+            <attribute name="Implementation-Version" value="${WOODSTOX_VERSION}"/>
+            <attribute name="Implementation-Vendor"  value="${WOODSTOX_VENDOR}"/>
+          </manifest>
+          <fileset dir="${BuildClassesDir}">
+            <patternset refid="wstx-dist-class-files" />
+            <patternset refid="stax2-dist-class-files" />
+          </fileset>
+          <metainf dir="${RelNotesDir}/asl" includes="*" />
+        </jar>
+        <jar jarfile="${BuildDir}/wstx-asl-${WOODSTOX_VERSION}.jar" filesonly="true" >
+          <manifest>
+            <attribute name="Built-By" value="${user.name}"/>
+            <attribute name="Specification-Title"   value="${STAX_TITLE}"/>
+            <attribute name="Specification-Version" value="${STAX_VERSION}"/>
+            <attribute name="Specification-Vendor"  value="${STAX_VENDOR}"/>
+            <attribute name="Implementation-Title"   value="${WOODSTOX_TITLE}"/>
+            <attribute name="Implementation-Version" value="${WOODSTOX_VERSION}"/>
+            <attribute name="Implementation-Vendor"  value="${WOODSTOX_VENDOR}"/>
+          </manifest>
+          <fileset dir="${BuildClassesDir}">
+            <patternset refid="wstx-dist-class-files" />
+            <patternset refid="stax2-dist-class-files" />
+          </fileset>
+          <metainf dir="${RelNotesDir}/asl" includes="*" />
+        </jar>
+    </target> 
+
+    <!-- This jar is only needed for testing purposes, to specify 
+       - which Stax implementation to use
+      -->
+    <target name="jar.resources" depends="compile,copy-resources">
+        <jar jarfile="${BuildDir}/service-def-${WOODSTOX_VERSION}.jar" filesonly="true" >
+          <fileset dir="${BuildClassesDir}">
+              <include name="META-INF/services/*" />
           </fileset>
         </jar>
     </target> 
@@ -435,7 +435,7 @@
 
     <target name="javadoc" depends="prepare">
         <!-- Build a dirpath that contains just the "source" tree -->
-        <javadoc windowtitle="${ProjectName}"
+        <javadoc windowtitle="${ant.project.name}"
             destdir="${JavaDocDir}" 
             author="true" 
             version="true">
@@ -452,8 +452,8 @@
        <!-- First, let's copy the binary jars to dist -->
        <copy todir="${DistDir}">
           <fileset dir="${BuildDir}" includes="wstx*.jar" />
+          <fileset dir="${BuildDir}" includes="woodstox*.jar" />
           <fileset dir="${BuildDir}" includes="stax2*.jar" />
-          <fileset dir="${BuildDir}" includes="sax2.jar" />
        </copy>
        <!-- Including MSV jars?
          -->
@@ -462,26 +462,26 @@
        </copy>
        <!-- Then let's create the source distribution tar package
           -->
-       <tar basedir="${basedir}" destfile="${DistDir}/wstx-src-${WSTX_VERSION}.tar">
+       <tar basedir="${basedir}" destfile="${DistDir}/wstx-src-${WOODSTOX_VERSION}.tar">
           <patternset refid="wstx-dist-src-files" />
           <patternset refid="wstx-dist-misc-files" />
        </tar>
-       <gzip zipfile="${DistDir}/wstx-src-${WSTX_VERSION}.tar.gz" src="${DistDir}/wstx-src-${WSTX_VERSION}.tar" />
-       <delete file="${DistDir}/wstx-src-${WSTX_VERSION}.tar" />
+       <gzip zipfile="${DistDir}/wstx-src-${WOODSTOX_VERSION}.tar.gz" src="${DistDir}/wstx-src-${WOODSTOX_VERSION}.tar" />
+       <delete file="${DistDir}/wstx-src-${WOODSTOX_VERSION}.tar" />
 
        <!-- as well as zip -->
-       <zip basedir="${basedir}" destfile="${DistDir}/wstx-src-${WSTX_VERSION}.zip">
+       <zip basedir="${basedir}" destfile="${DistDir}/wstx-src-${WOODSTOX_VERSION}.zip">
           <patternset refid="wstx-dist-src-files" />
           <patternset refid="wstx-dist-misc-files" />
        </zip>
 
        <!-- And create source jars for IDE support -->
-       <jar jarfile="${DistDir}/wstx-asl-${WSTX_VERSION}-sources.jar" filesonly="true" >
+       <jar jarfile="${DistDir}/wstx-asl-${WOODSTOX_VERSION}-sources.jar" filesonly="true" >
           <fileset dir="${basedir}">
               <patternset refid="wstx-dist-src-files" />
           </fileset>
        </jar>
-       <jar jarfile="${DistDir}/wstx-lgpl-${WSTX_VERSION}-sources.jar" filesonly="true" >
+       <jar jarfile="${DistDir}/wstx-lgpl-${WOODSTOX_VERSION}-sources.jar" filesonly="true" >
           <fileset dir="${basedir}">
               <patternset refid="wstx-dist-src-files" />
           </fileset>
@@ -501,10 +501,17 @@
        </copy>
        <!-- And also additional Maven stuff -->
        <copy todir="${DistDir}">
-            <fileset dir="${SrcDir}/maven" includes="*.pom" />
-            <globmapper from="*.pom" to="*-${WSTX_VERSION}.pom" />
+            <fileset dir="${SrcDir}/maven" includes="w*.pom" />
+            <globmapper from="*.pom" to="*-${WOODSTOX_VERSION}.pom" />
             <filterset>
-              <filter token="VERSION" value="${WSTX_VERSION}" />
+              <filter token="VERSION" value="${WOODSTOX_VERSION}" />
+            </filterset>
+       </copy>
+       <copy todir="${DistDir}">
+            <fileset dir="${SrcDir}/maven" includes="stax2.pom" />
+            <globmapper from="*.pom" to="*-${STAX2_VERSION}.pom" />
+            <filterset>
+              <filter token="VERSION" value="${STAX2_VERSION}" />
             </filterset>
        </copy>
     </target>
@@ -518,7 +525,7 @@
     <!--*********************************************************************-->
     <target name="all-tests" depends="test,staxtest" />
 
-    <!-- Running generic StAX tests -->
+    <!-- Running generic Stax tests -->
     <target name="staxtest" depends="prepare-staxtest">
        <!-- showoutput 'yes' to allow outputting debug msgs... -->
         <junit fork="yes" forkmode="once" maxmemory="128M"
@@ -536,10 +543,10 @@
             <classpath>
               <pathelement path="${BuildClassesDir}" />
              <!-- Note: need to add the dummy wstx.jar, since it has properties
-                -  to point StAX to use correct implementation classes!
+                -  to point Stax to use correct implementation classes!
                -->
               <fileset dir="${BuildDir}">
-                <include name="wstx-api-*.jar" />
+                <include name="service-def-*.jar" />
               </fileset> 
               <path refid="junit-libs"/>
            </classpath>  
@@ -567,7 +574,7 @@
     </target>
 
     <!-- Compiling and running Woodstox-specific tests
-       - (including, for now, StAX2 tests)
+       - (including, for now, Stax2 tests)
       -->
 
     <target name="test.compile" depends="compile">
@@ -655,7 +662,7 @@
       <junit fork="yes" printsummary="yes" haltonfailure="no"
          showoutput="yes">
             <batchtest fork="no" todir="${TestXmlResultsDir}">
-                <!-- Generic StAX tests -->
+                <!-- Generic Stax tests -->
                 <fileset dir="${StaxTestClassesDir}">
                     <!-- Need to exclude inner classes... -->
                     <exclude name="**/*$*.class"/>
@@ -668,7 +675,7 @@
                 </fileset>
             </batchtest>
             <formatter type="xml" />
-            <!-- StAX API: -->
+            <!-- Stax API: -->
             <classpath refid="compile-classpath" />
             <!-- Actual tests: -->
             <classpath path="${TestClassesDir}" />
@@ -681,7 +688,7 @@
                    - impl to use
                  -->
                 <fileset dir="${BuildDir}">
-                  <include name="wstx-api-*.jar" />
+                  <include name="service-def-*.jar" />
                 </fileset>
                 <path refid="junit-libs"/>
             </classpath>     
@@ -736,7 +743,7 @@
                     <exclude name="**/*$*.class"/>
                     <include name="**/Test*.class"/>
                 </fileset>
-                <!-- Generic StAX tests -->
+                <!-- Generic Stax tests -->
                 <fileset dir="${StaxTestClassesDir}">
                     <exclude name="**/*$*.class"/>
                     <include name="org/codehaus/**/Test*.class"/>
@@ -746,7 +753,7 @@
             <!-- Order is important: must first have instrumented classes -->
             <classpath location="${cobertura.instr.dir}" />
 
-            <!-- StAX API: -->
+            <!-- Stax API: -->
             <classpath refid="compile-classpath" />
             <!-- Actual tests: -->
             <classpath path="${TestClassesDir}" />
@@ -761,7 +768,7 @@
                   -->
                 <pathelement path="${BuildClassesDir}" />
                 <fileset dir="${BuildDir}">
-                  <include name="wstx-api-*.jar" />
+                  <include name="service-def-*.jar" />
                 </fileset>
                 <path refid="junit-libs"/>
             </classpath>     

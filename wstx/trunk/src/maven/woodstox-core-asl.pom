@@ -1,26 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
-
  <!-- General information -->
-
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.codehaus.woodstox</groupId>
-  <artifactId>wstx-lgpl</artifactId>
+  <artifactId>woodstox-core-asl</artifactId>
   <packaging>jar</packaging>
   <name>Woodstox</name>
   <version>@VERSION@</version>
   <description>Woodstox is a high-performance XML processor that
 implements Stax (JSR-173) and SAX2 APIs</description>
 
- <!-- Contact information -->
-
+  <!-- Contact information -->
   <url>http://woodstox.codehaus.org</url>
-  <issueManagement>
-    <url>http://jira.codehaus.org/browse/WSTX</url>
-  </issueManagement>
+  <issueManagement><url>http://jira.codehaus.org/browse/WSTX</url></issueManagement>
 
- <!-- Dependency information -->
- 
+  <!-- Dependency information -->
   <dependencies>
     <!-- Stax API jar is needed; 1.0.1 preferable over vanilla 1.0, since
          it contains one critical bug fix to implementation auto-detection
@@ -28,15 +22,23 @@ implements Stax (JSR-173) and SAX2 APIs</description>
     <dependency>
       <groupId>stax</groupId>
       <artifactId>stax-api</artifactId>
-      <version>[1.0.1,</version>
+      <version>[1.0.1,)</version>
+    </dependency>
+    <!-- Stax2 API (and matching RI), too, is required, not included,
+         We need version 3.x of it
+      -->
+    <dependency>
+      <groupId>org.codehaus.woodstox</groupId>
+      <artifactId>stax2</artifactId>
+      <version>[3.0.0,4.0.0)</version>
     </dependency>
   </dependencies>
 
   <!-- Licensing (joy!) -->
   <licenses>
     <license>
-      <name>GNU Lesser General Public License (LGPL), Version 2.1</name>
-      <url>http://www.fsf.org/licensing/licenses/lgpl.txt</url>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
       <distribution>repo</distribution>
     </license>
   </licenses>
@@ -45,4 +47,5 @@ implements Stax (JSR-173) and SAX2 APIs</description>
     <name>Codehaus</name>
     <url>http://www.codehaus.org/</url>
   </organization>
+
 </project>

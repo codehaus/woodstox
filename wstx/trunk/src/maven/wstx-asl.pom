@@ -6,6 +6,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.codehaus.woodstox</groupId>
   <artifactId>wstx-asl</artifactId>
+  <packaging>jar</packaging>
   <name>Woodstox</name>
   <version>@VERSION@</version>
   <description>Woodstox is a high-performance XML processor that
