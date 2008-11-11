@@ -1,0 +1,25 @@
+Woodstox Contributor Agreement
+
+Version: 0.1, 09-Nov-2008
+Last-modified: 09-Nov-2008 (by Tatu Saloranta)
+
+---
+
+This Agreement is between Contributors who provide the code, and the Woodstox Project that may incorporate the code as part of Open Source Woodstox Xml-processor and distributed it as part of source and executable code distributions.
+
+All code to be stored in the main Woodstox source code repository (not including possible other areas) and distributed as part of the Woodstox distributables (jars, source code bundles) has to be  by resolved to an artifact confirming acceptance of this agreement. Single agreement by the Contributor is sufficient for any amount of code. The preferred form of acceptance is an email to the Project Admins. Acceptance artifacts may be stored in the source code repository along with the source code itself.
+
+Terms that the Contributor has to agree to for the code to be included are as follows:
+
+1. I agree to contribute the code to the Woodstox project, to be licensed as open source under one or more of commonly accepted Open Source licenses (as defined by the Open Source Initiative,
+see http://www.opensource.org/). This includes licenses currently used, such as:
+
+  * Apache License 2.0 (core Woodstox)
+  * LGPL 2.1 (core Woodstox)
+  * BSD (for Stax2 API jar that core depends on)
+
+  but can also include other licenses in future (or not be used for licenses listed above). The contribution is non-exclusive: the author does not transfer copurights, or limit his or her options for other uses.
+
+2. I wrote all the code AND have the right to contribute it to the Woodstox project.
+
+3. I will use appropriate annotations (such as @author javadoc tags) to indicate classes and/or Java packages that contain Code I have contributed.
