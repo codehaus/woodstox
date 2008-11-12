@@ -50,7 +50,7 @@ public class TestStreamSpeed
                    msg = "[JDK, ISO-Latin1]";
                    break;
                case 1:
-                   r = new ISOLatinReader(null, in, new byte[WSTX_LEN], 0, 0);
+                   r = new ISOLatinReader(null, in, new byte[WSTX_LEN], 0, 0, false);
                    msg = "[Custom, ISO-Latin1]";
                    break;
                case 2:
@@ -62,7 +62,7 @@ public class TestStreamSpeed
                    msg = "[JDK, UTF-8]";
                    break;
                case 4:
-                   r = new UTF8Reader(null, in, new byte[WSTX_LEN], 0, 0);
+                   r = new UTF8Reader(null, in, new byte[WSTX_LEN], 0, 0, false);
                    msg = "[Custom, UTF-8]";
                    break;
                default:

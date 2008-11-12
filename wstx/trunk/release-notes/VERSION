@@ -20,9 +20,8 @@ Description:
   * [WSTX-150] Add stream reader AND writer delegates for Stax2.
   * [WSTX-151] Generic typed access methods (getElementAs(), getAttributeAs())
     added to TypedXMLStreamReader.
-  * More Typed Access API support: BigDecimal, BigInteger, QName
-  * Implementation of array-based Typed Access API methods, for types
-    supported (int, long, float, double, "generic")
+  * [WSTX-166] Add direct support for Stax2ByteArraySource for improved
+    performance. Measured speedup 5-10% compared to using ByteArrayInputStream.
 
 == History: ==
 
