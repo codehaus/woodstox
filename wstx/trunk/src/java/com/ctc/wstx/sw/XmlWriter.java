@@ -26,6 +26,7 @@ import org.codehaus.stax2.io.EscapingWriterFactory;
 import org.codehaus.stax2.ri.typed.AsciiValueEncoder;
 import org.codehaus.stax2.validation.XMLValidator;
 
+import com.ctc.wstx.api.InvalidCharHandler;
 import com.ctc.wstx.api.WriterConfig;
 import com.ctc.wstx.api.WstxOutputProperties;
 import com.ctc.wstx.cfg.ErrorConsts;
@@ -601,37 +602,22 @@ public abstract class XmlWriter
         throwOutputError(msg);
     }
 
-    protected void throwInvalidChar(int c)
+    /**
+     * Method called to handle invalid character in textual content requested
+     * to be output. Content may be part of textual events (CHARACTER, CDATA),
+     * attribute value, COMMENT content or PROCESSING_INSTRUCTION data.
+     * The default behavior is to just throw an exception, but this can
+     * be configured via property {@link WstxInputProperties#P_OUTPUT_INVALID_CHAR_HANDLER}.
+     */
+    protected char handleInvalidChar(int c)
         throws IOException
     {
         // First, let's flush any output we may have, to make debugging easier
         flush();
-
-        /* 17-May-2006, TSa: Would really be useful if we could throw
-         *   XMLStreamExceptions; esp. to indicate actual output location.
-         *   However, this causes problem with methods that call us and
-         *   can only throw IOExceptions (when invoked via Writer proxy).
-         *   Need to figure out how to resolve this.
-         */
-        if (c == 0) {
-            throw new IOException("Invalid null character in text to output");
+        InvalidCharHandler h = mConfig.getInvalidCharHandler();
+        if (h == null) {
+            h = InvalidCharHandler.FailingHandler.getInstance();
         }
-        if (c < ' ' || (c >= 0x7F && c <= 0x9F)) {
-            String msg = "Invalid white space character (0x"+Integer.toHexString(c)+") in text to output";
-            if (mXml11) {
-                msg += " (can only be output using character entity)";
-            }
-            throw new IOException(msg);
-        }
-        if (c > 0x10FFFF) {
-            throw new IOException("Illegal unicode character point (0x"+Integer.toHexString(c)+") to output; max is 0x10FFFF as per RFC 3629");
-        }
-        /* Surrogate pair in non-quotable (not text or attribute value)
-         * content, and non-unicode encoding (ISO-8859-x, Ascii)?
-         */
-        if (c >= SURR1_FIRST && c <= SURR2_LAST) {
-            throw new IOException("Illegal surrogate pair -- can only be output via character entities, which are not allowed in this content");
-        }
-        throw new IOException("Invalid XML character (0x"+Integer.toHexString(c)+") in text to output");
+        return h.convertInvalidChar(c);
     }
 }

@@ -10,8 +10,8 @@ import javax.xml.stream.XMLStreamWriter; // only for javadoc
 import org.codehaus.stax2.io.EscapingWriterFactory;
 
 /**
- * Extension of {@link javax.xml.stream.XMLInputFactory} to add missing functionality
- * (which currently means 'nothing'...)
+ * Extension of {@link javax.xml.stream.XMLInputFactory} to add
+ * missing functionality.
  *<p>
  * Also contains extended standard properties that conforming stream
  * writer factory and instance implementations should at least

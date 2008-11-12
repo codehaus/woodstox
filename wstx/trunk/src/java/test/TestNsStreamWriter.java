@@ -7,6 +7,7 @@ import javax.xml.stream.*;
 import org.codehaus.stax2.XMLOutputFactory2;
 import org.codehaus.stax2.XMLStreamProperties;
 
+import com.ctc.wstx.api.InvalidCharHandler;
 import com.ctc.wstx.api.WstxOutputProperties;
 
 /**
@@ -48,12 +49,17 @@ public class TestNsStreamWriter
                       Boolean.TRUE);
                       //Boolean.FALSE);
 
+        /* 11-Nov-2008, TSa: Let's try out this new property, created
+         *   for [WSTX-167]:
+         */
+        f.setProperty(WstxOutputProperties.P_OUTPUT_INVALID_CHAR_HANDLER, new InvalidCharHandler.ReplacingHandler('X'));
+
         //Writer w = new PrintWriter(System.out);
         //XMLStreamWriter sw = f.createXMLStreamWriter(w);
 
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        //XMLStreamWriter sw = f.createXMLStreamWriter(bos, ENCODING);
-        XMLStreamWriter sw = f.createXMLStreamWriter(bos);
+        XMLStreamWriter sw = f.createXMLStreamWriter(bos, ENCODING);
+        //XMLStreamWriter sw = f.createXMLStreamWriter(bos);
 
         sw.writeStartDocument();
 
@@ -73,7 +79,8 @@ public class TestNsStreamWriter
 
         //sw.writeAttribute("attr", "Invalid also: \0");
 
-        sw.writeCharacters("Need to quote this too: ]]>");
+        sw.writeCharacters("Need to quote this too: ]]> plus invalid... {\u0012}");
+
         /*
         sw.writeEmptyElement("alpha");
         sw.writeNamespace("ns", "uri:foo");

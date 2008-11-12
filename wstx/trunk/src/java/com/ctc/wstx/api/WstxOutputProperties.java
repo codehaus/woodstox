@@ -107,6 +107,15 @@ public final class WstxOutputProperties
      */
     public final static String P_OUTPUT_ESCAPE_CR = "com.ctc.wstx.outputEscapeCr";
 
+    /**
+     * Property that defines a {@link InvalidCharHandler} used to determine
+     * what to do with a Java character that app tries to output but which
+     * is not a valid xml character. Alternatives are converting it to
+     * another character or throw an exception: default implementations
+     * exist for both behaviors.
+     */
+    public final static String P_OUTPUT_INVALID_CHAR_HANDLER = "com.ctc.wstx.outputInvalidCharHandler";
+
     // // // Per-instance access to underlying output objects
 
     /**

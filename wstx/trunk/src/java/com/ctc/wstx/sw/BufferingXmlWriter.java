@@ -41,7 +41,7 @@ import com.ctc.wstx.io.CharsetNames;
  */
 public final class BufferingXmlWriter
     extends XmlWriter
-            implements XMLStreamConstants
+    implements XMLStreamConstants
 {
     /**
      * Let's use a typical default to have a compromise between large
@@ -465,9 +465,10 @@ public final class BufferingXmlWriter
                                 }
                             } else {
                                 if (!mXml11 || c == 0) {
-                                    throwInvalidChar(c);
+                                    c = handleInvalidChar(c); // throws an error usualyl
+                                } else {
+                                    break inner_loop; // need quoting
                                 }
-                                break inner_loop; // need quoting ok
                             }
                         }
                     } else if (c == '<') {
@@ -543,9 +544,11 @@ public final class BufferingXmlWriter
                                 }
                             } else {
                                 if (!mXml11 || c == 0) {
-                                    throwInvalidChar(c);
+                                    c = handleInvalidChar(c);
+                                    // Hmmh. This is very inefficient, but...
+                                    ent = String.valueOf((char) c);
                                 }
-                                break; // need quoting ok
+                                break; // need quoting
                             }
                         }
                     } else if (c >= highChar) {
@@ -1018,12 +1021,12 @@ public final class BufferingXmlWriter
                 char c = value.charAt(inPtr++);
                 if (c <= HIGHEST_ENCODABLE_ATTR_CHAR) { // special char?
                     if (c < 0x0020) { // tab, cr/lf need encoding too
-                        if (c != '\n' && c != '\r' && c != '\t') {
-                            if (!mXml11 || c == 0) {
-                                throwInvalidChar(c);
-                            }
+                        if (c != '\n' && c != '\r' && c != '\t'
+                            && (!mXml11 || c == 0)) {
+                            c = handleInvalidChar(c);
+                        } else {
+                            break inner_loop; // need quoting
                         }
-                        break inner_loop; // need quoting ok
                     } else if (c == qchar) {
                         ent = mEncQuoteEntity;
                         break inner_loop;
@@ -1069,12 +1072,12 @@ public final class BufferingXmlWriter
                 char c = value[offset++];
                 if (c <= HIGHEST_ENCODABLE_ATTR_CHAR) { // special char?
                     if (c < 0x0020) { // tab, cr/lf need encoding too
-                        if (c != '\n' && c != '\r' && c != '\t') {
-                            if (!mXml11 || c == 0) {
-                                throwInvalidChar(c);
-                            }
+                        if (c != '\n' && c != '\r' && c != '\t'
+                            && (!mXml11 || c == 0)) {
+                            c = handleInvalidChar(c);
+                        } else {
+                            break inner_loop; // need quoting
                         }
-                        break inner_loop; // need quoting ok
                     } else if (c == qchar) {
                         ent = mEncQuoteEntity;
                         break inner_loop;

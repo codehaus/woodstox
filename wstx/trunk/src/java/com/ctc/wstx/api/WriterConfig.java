@@ -63,6 +63,10 @@ public final class WriterConfig
     final static int PROP_VALIDATE_NAMES = 18;
     final static int PROP_FIX_CONTENT = 19;
 
+    // Other:
+
+    final static int PROP_OUTPUT_INVALID_CHAR_HANDLER = 20;
+
     // Per-writer instance information
 
     final static int PROP_UNDERLYING_STREAM = 30;
@@ -188,6 +192,8 @@ public final class WriterConfig
         sProperties.put(WstxOutputProperties.P_ADD_SPACE_AFTER_EMPTY_ELEM
 ,
                         DataUtil.Integer(PROP_ADD_SPACE_AFTER_EMPTY_ELEM));
+        sProperties.put(WstxOutputProperties.P_OUTPUT_INVALID_CHAR_HANDLER,
+                        DataUtil.Integer(PROP_OUTPUT_INVALID_CHAR_HANDLER));
 
         // Validation settings:
         sProperties.put(WstxOutputProperties.P_OUTPUT_VALIDATE_STRUCTURE,
@@ -228,15 +234,17 @@ public final class WriterConfig
     //protected EscapingWriterFactory mTextEscaperFactory = null;
     //protected EscapingWriterFactory mAttrValueEscaperFactory = null;
     //protected XMLReporter mProblemReporter = null;
+    //protected InvalidCharHandler mInvalidCharHandler = null;
 
     Object[] mSpecialProperties = null;
 
-    private final static int SPEC_PROC_COUNT = 4;
+    private final static int SPEC_PROC_COUNT = 5;
 
     private final static int SP_IX_AUTO_NS_PREFIX = 0;
     private final static int SP_IX_TEXT_ESCAPER_FACTORY = 1;
     private final static int SP_IX_ATTR_VALUE_ESCAPER_FACTORY = 2;
     private final static int SP_IX_PROBLEM_REPORTER = 3;
+    private final static int SP_IX_INVALID_CHAR_HANDLER = 4;
 
     /*
     //////////////////////////////////////////////////////////
@@ -374,7 +382,8 @@ public final class WriterConfig
             return willValidateNames() ? Boolean.TRUE : Boolean.FALSE;
         case PROP_FIX_CONTENT:
             return willFixContent() ? Boolean.TRUE : Boolean.FALSE;
-
+        case PROP_OUTPUT_INVALID_CHAR_HANDLER:
+            return getInvalidCharHandler();
 
             // And then per-instance properties: not valid via config object
         case PROP_UNDERLYING_STREAM:
@@ -452,6 +461,9 @@ public final class WriterConfig
             break;
         case PROP_FIX_CONTENT:
             doFixContent(ArgUtil.convertToBoolean(name, value));
+            break;
+        case PROP_OUTPUT_INVALID_CHAR_HANDLER:
+            setInvalidCharHandler((InvalidCharHandler) value);
             break;
 
         case PROP_UNDERLYING_STREAM:
@@ -553,6 +565,10 @@ public final class WriterConfig
         return (XMLReporter) getSpecialProperty(SP_IX_PROBLEM_REPORTER);
     }
 
+    public InvalidCharHandler getInvalidCharHandler() {
+        return (InvalidCharHandler) getSpecialProperty(SP_IX_INVALID_CHAR_HANDLER);
+    }
+
     // // // Mutators:
 
     // Standard properies:
@@ -627,6 +643,10 @@ public final class WriterConfig
         setSpecialProperty(SP_IX_PROBLEM_REPORTER, rep);
     }
 
+    public void setInvalidCharHandler(InvalidCharHandler h) {
+        setSpecialProperty(SP_IX_INVALID_CHAR_HANDLER, h);
+    }
+
     /*
     //////////////////////////////////////////////////////////
     // Extended Woodstox API, profiles
@@ -690,7 +710,6 @@ public final class WriterConfig
      */
     public char[] allocMediumCBuffer(int minSize)
     {
-//System.err.println("DEBUG: cfg, allocCMedium: "+mCurrRecycler);
         if (mCurrRecycler != null) {
             char[] result = mCurrRecycler.getMediumCBuffer(minSize);
             if (result != null) {
@@ -702,7 +721,6 @@ public final class WriterConfig
 
     public void freeMediumCBuffer(char[] buffer)
     {
-//System.err.println("DEBUG: cfg, freeCMedium: "+buffer);
         // Need to create (and assign) the buffer?
         if (mCurrRecycler == null) {
             mCurrRecycler = createRecycler();
@@ -712,7 +730,6 @@ public final class WriterConfig
 
     public char[] allocFullCBuffer(int minSize)
     {
-//System.err.println("DEBUG: cfg, allocCFull: "+mCurrRecycler);
         if (mCurrRecycler != null) {
             char[] result = mCurrRecycler.getFullCBuffer(minSize);
             if (result != null) {
@@ -724,7 +741,6 @@ public final class WriterConfig
 
     public void freeFullCBuffer(char[] buffer)
     {
-//System.err.println("DEBUG: cfg, freeCFull: "+buffer);
         // Need to create (and assign) the buffer?
         if (mCurrRecycler == null) {
             mCurrRecycler = createRecycler();
@@ -734,7 +750,6 @@ public final class WriterConfig
 
     public byte[] allocFullBBuffer(int minSize)
     {
-//System.err.println("DEBUG: cfg, allocBFull: "+mCurrRecycler);
         if (mCurrRecycler != null) {
             byte[] result = mCurrRecycler.getFullBBuffer(minSize);
             if (result != null) {
@@ -746,7 +761,6 @@ public final class WriterConfig
 
     public void freeFullBBuffer(byte[] buffer)
     {
-//System.err.println("DEBUG: cfg, freeBFull: "+buffer);
         // Need to create (and assign) the buffer?
         if (mCurrRecycler == null) {
             mCurrRecycler = createRecycler();
@@ -760,7 +774,6 @@ public final class WriterConfig
     {
         BufferRecycler recycler = new BufferRecycler();
         // No way to reuse/reset SoftReference, have to create new always:
-//System.err.println("DEBUG: RefCount: "+(++Counter));
         mRecyclerRef.set(new SoftReference(recycler));
         return recycler;
     }

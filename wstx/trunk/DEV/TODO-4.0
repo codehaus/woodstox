@@ -2,22 +2,31 @@
 Planned stuff for 4.0
 ------------------------------------
 
+* BUGS:
+  * Entity/Notation declaration order?
+  * QName validation for writing
+  * MSV error messages
+
 * Remaining Jira entries that must be tackled:
   * [WSTX-152]: Basic OSGi headers in Manifest
   * [WSTX-157]: Add XMLReporter2 to Stax2 (or not)
   * [WSTX-163]: XMLStreamWriter2.closeCompletely()
-  * [WSTX-166]: Full support for Stax2ByteArraySource for faster parsing
-  * [WSTX-167]: Auto-suppresson of control chars for XMLStreamWriter2
   * [WSTX-169]: Support for non-standard base64 modes
   * [WSTX-171]: Contributor guidelines
+DONE  * [WSTX-166]: Full support for Stax2ByteArraySource for faster parsing
+DONE  * [WSTX-167]: Auto-suppression of control chars for XMLStreamWriter2
 
 * Nice-to-have Jira entries:
   * [WSTX-160]: Problems with multiple Schemas...
   * [WSTX-162]: DOM-reader, P_INTERN_NAMES, default to 'false' for DOM?
 
 * Misc internal improvements:
-  * Add simple Typed Value cleanup (trim leading/trailing space) within
-    readers so that decoders need not worry about it.
+  * Typed Access API, reader:
+    * Add simple Typed Value cleanup (trim leading/trailing space) within
+      readers so that decoders need not worry about it.
+    * handleEmptyValue
+  * Typed Access API, writer:
+    * separate encoders for short scalar values (ints etc), no need to loop
 
 * Optimizations/improvements:
   * Try to move more of async unchecked (runtime) exceptions into

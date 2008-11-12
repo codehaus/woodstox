@@ -64,14 +64,15 @@ public final class AsciiXmlWriter
                         } else if (c == '\r') {
                             // !!! TBI: line nr (and skipping \n that may follow)
                         } else if (c != '\t') {
-                            throwInvalidChar(c);
+                            mOutputPtr = ptr;
+                            c = handleInvalidChar(c);
                         }
                     } else if (c > 0x7E) {
                         mOutputPtr = ptr;
                         if (c > 0x7F) { // 0x7F invalid in xml11
-                            throwInvalidAsciiChar(c);
+                            handleInvalidAsciiChar(c);
                         } else if (mXml11) {
-                            throwInvalidChar(c);
+                            c = handleInvalidChar(c);
                         }
                     }
                     mOutputBuffer[ptr++] = (byte) c;
@@ -114,14 +115,15 @@ public final class AsciiXmlWriter
                         } else if (c == '\r') {
                             // !!! TBI: line nr (and skipping \n that may follow)
                         } else if (c != '\t') {
-                            throwInvalidChar(c);
+                            mOutputPtr = ptr;
+                            c = handleInvalidChar(c);
                         }
                     } else if (c > 0x7E) {
                         mOutputPtr = ptr;
                         if (c > 0x7F) { // 0x7F invalid in xml11
-                            throwInvalidAsciiChar(c);
+                            handleInvalidAsciiChar(c);
                         } else if (mXml11) {
-                            throwInvalidChar(c);
+                            c = handleInvalidChar(c);
                         }
                     }
                     mOutputBuffer[ptr++] = (byte) c;
@@ -176,7 +178,9 @@ public final class AsciiXmlWriter
                     if (mCheckContent) {
                         if (c != '\n' && c != '\r' && c != '\t'
                             && (!mXml11 || c == 0)) {
-                            throwInvalidChar(c);
+                            c = handleInvalidChar(c);
+                            mOutputBuffer[ptr++] = (byte) c;
+                            continue;
                         }
                     }
                     // fall-through to char entity output
@@ -249,7 +253,9 @@ public final class AsciiXmlWriter
                     if (mCheckContent) {
                         if (c != '\n' && c != '\r' && c != '\t'
                             && (!mXml11 || c == 0)) {
-                            throwInvalidChar(c);
+                            c = handleInvalidChar(c);
+                            mOutputBuffer[ptr++] = (byte) c;
+                            continue;
                         }
                     }
                     // fall-through to char entity output
@@ -318,14 +324,15 @@ public final class AsciiXmlWriter
                     } else if (c == '\r') {
                         // !!! TBI: line nr (and skipping \n that may follow)
                     } else if (c != '\t') {
-                        throwInvalidChar(c);
+                        mOutputPtr = ptr;
+                        c = handleInvalidChar(c);
                     }
                 } else if (c > 0x7E) {
                     mOutputPtr = ptr;
                     if (c > 0x7F) { // 0x7F invalid in xml11
-                        throwInvalidAsciiChar(c);
+                        handleInvalidAsciiChar(c);
                     } else if (mXml11) {
-                        throwInvalidChar(c);
+                        c = handleInvalidChar(c);
                     }
                 } else if (c == '>') { // embedded "]]>"?
                     if (offset > 2 && data.charAt(offset-2) == ']'
@@ -390,14 +397,15 @@ public final class AsciiXmlWriter
                     } else if (c == '\r') {
                         // !!! TBI: line nr (and skipping \n that may follow)
                     } else if (c != '\t') {
-                        throwInvalidChar(c);
+                        mOutputPtr = ptr;
+                        c = handleInvalidChar(c);
                     }
                 } else if (c > 0x7E) {
                     mOutputPtr = ptr;
                     if (c > 0x7F) { // 0x7F invalid in xml11
-                        throwInvalidAsciiChar(c);
+                        handleInvalidAsciiChar(c);
                     } else if (mXml11) {
-                        throwInvalidChar(c);
+                        c = handleInvalidChar(c);
                     }
                 } else if (c == '>') { // embedded "]]>"?
                     if (offset >= (start+3) && cbuf[offset-2] == ']'
@@ -463,14 +471,15 @@ public final class AsciiXmlWriter
                     } else if (c == '\r') {
                         // !!! TBI: line nr (and skipping \n that may follow)
                     } else if (c != '\t') {
-                        throwInvalidChar(c);
+                        mOutputPtr = ptr;
+                        c = handleInvalidChar(c);
                     }
                 } else if (c > 0x7E) {
                     mOutputPtr = ptr;
                     if (c > 0x7F) { // 0x7F invalid in xml11
-                        throwInvalidAsciiChar(c);
+                        handleInvalidAsciiChar(c);
                     } else if (mXml11) {
-                        throwInvalidChar(c);
+                        c = handleInvalidChar(c);
                     }
                 } else if (c == '-') { // embedded "--"?
                     if (offset > 1 && data.charAt(offset-2) == '-') {
@@ -538,14 +547,15 @@ public final class AsciiXmlWriter
                     } else if (c == '\r') {
                         // !!! TBI: line nr (and skipping \n that may follow)
                     } else if (c != '\t') {
-                        throwInvalidChar(c);
+                        mOutputPtr = ptr;
+                        c = handleInvalidChar(c);
                     }
                 } else if (c > 0x7E) {
                     mOutputPtr = ptr;
                     if (c > 0x7F) { // 0x7F invalid in xml11
-                        throwInvalidAsciiChar(c);
+                        handleInvalidAsciiChar(c);
                     } else if (mXml11) {
-                        throwInvalidChar(c);
+                        c = handleInvalidChar(c);
                     }
                 } else if (c == '>') { // enclosed end marker ("?>")?
                     if (offset > 0 && data.charAt(offset-1) == '?') {
@@ -599,7 +609,9 @@ public final class AsciiXmlWriter
                         }
                     } else  if (!mXml11 || c == 0) { // ok in xml1.1, as entity
                         if (mCheckContent) {
-                            throwInvalidChar(c);
+                            c = handleInvalidChar(c);
+                            mOutputBuffer[mOutputPtr++] = (byte) c;
+                            continue;
                         }
                         // otherwise... well, I guess we can just escape it
                     }
@@ -671,9 +683,11 @@ public final class AsciiXmlWriter
                         }
                     } else if (!mXml11 || c == 0) { // ok in xml1.1, as entity
                         if (mCheckContent) {
-                            throwInvalidChar(c);
+                            c = handleInvalidChar(c);
+                            mOutputBuffer[mOutputPtr++] = (byte) c;
+                            continue;
                         }
-                        // otherwise... well, I guess we can just escape it
+                        // otherwise... well, I guess we can just try to escape it
                     }
                     // \r, or xml1.1 + other whitespace, need to escape
                 } else if (c < 0x7F) {
@@ -716,7 +730,7 @@ public final class AsciiXmlWriter
     ////////////////////////////////////////////////////
      */
 
-    protected void throwInvalidAsciiChar(int c)
+    protected void handleInvalidAsciiChar(int c)
         throws IOException
     {
         // First, let's flush any output we may have, to make debugging easier

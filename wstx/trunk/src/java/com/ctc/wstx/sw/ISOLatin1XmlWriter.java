@@ -68,16 +68,17 @@ public final class ISOLatin1XmlWriter
                         } else if (c == '\r') {
                             // !!! TBI: line nr (and skipping \n that may follow)
                         } else if (c != '\t') {
-                            throwInvalidChar(c);
+                            mOutputPtr = ptr;
+                            c = handleInvalidChar(c);
                         }
                     } else if (c > 0x7E) {
                         if (c > 0xFF) {
                             mOutputPtr = ptr;
-                            throwInvalidLatinChar(c);
+                            handleInvalidLatinChar(c);
                         } else if (mXml11) {
                             if (c < 0x9F && c != 0x85) {
                                 mOutputPtr = ptr;
-                                throwInvalidChar(c);
+                                c = handleInvalidChar(c);
                             }
                         }
                     }
@@ -121,16 +122,17 @@ public final class ISOLatin1XmlWriter
                         } else if (c == '\r') {
                             // !!! TBI: line nr (and skipping \n that may follow)
                         } else if (c != '\t') {
-                            throwInvalidChar(c);
+                            mOutputPtr = ptr;
+                            c = handleInvalidChar(c);
                         }
                     } else if (c > 0x7E) {
                         if (c > 0xFF) {
                             mOutputPtr = ptr;
-                            throwInvalidLatinChar(c);
+                            handleInvalidLatinChar(c);
                         } else if (mXml11) {
                             if (c < 0x9F && c != 0x85) {
                                 mOutputPtr = ptr;
-                                throwInvalidChar(c);
+                                c = handleInvalidChar(c);
                             }
                         }
                     }
@@ -186,7 +188,9 @@ public final class ISOLatin1XmlWriter
                     if (mCheckContent) {
                         if (c != '\n' && c != '\r' && c != '\t'
                             && (!mXml11 || c == 0)) {
-                            throwInvalidChar(c);
+                            c = handleInvalidChar(c);
+                            mOutputBuffer[ptr++] = (byte) c;
+                            continue;
                         }
                     }
                     // fall-through to char entity output
@@ -262,7 +266,9 @@ public final class ISOLatin1XmlWriter
                     if (mCheckContent) {
                         if (c != '\n' && c != '\r' && c != '\t'
                             && (!mXml11 || c == 0)) {
-                            throwInvalidChar(c);
+                            c = handleInvalidChar(c);
+                            mOutputBuffer[ptr++] = (byte) c;
+                            continue;
                         }
                     }
                     // fall-through to char entity output
@@ -334,16 +340,17 @@ public final class ISOLatin1XmlWriter
                     } else if (c == '\r') {
                         // !!! TBI: line nr (and skipping \n that may follow)
                     } else if (c != '\t') {
-                        throwInvalidChar(c);
+                        mOutputPtr = ptr;
+                        c = handleInvalidChar(c);
                     }
                 } else if (c > 0x7E) {
                     if (c > 0xFF) {
                         mOutputPtr = ptr;
-                        throwInvalidLatinChar(c);
+                        handleInvalidLatinChar(c);
                     } else if (mXml11) {
                         if (c < 0x9F && c != 0x85) {
                             mOutputPtr = ptr;
-                            throwInvalidChar(c);
+                            c = handleInvalidChar(c);
                         }
                     }
                 } else if (c == '>') { // embedded "]]>"?
@@ -409,16 +416,17 @@ public final class ISOLatin1XmlWriter
                     } else if (c == '\r') {
                         // !!! TBI: line nr (and skipping \n that may follow)
                     } else if (c != '\t') {
-                        throwInvalidChar(c);
+                        mOutputPtr = ptr;
+                        c = handleInvalidChar(c);
                     }
                 } else if (c > 0x7E) {
                     if (c > 0xFF) {
                         mOutputPtr = ptr;
-                        throwInvalidLatinChar(c);
+                        handleInvalidLatinChar(c);
                     } else if (mXml11) {
                         if (c < 0x9F && c != 0x85) {
                             mOutputPtr = ptr;
-                            throwInvalidChar(c);
+                            c = handleInvalidChar(c);
                         }
                     }
                 } else if (c == '>') { // embedded "]]>"?
@@ -485,16 +493,17 @@ public final class ISOLatin1XmlWriter
                     } else if (c == '\r') {
                         // !!! TBI: line nr (and skipping \n that may follow)
                     } else if (c != '\t') {
-                        throwInvalidChar(c);
+                        mOutputPtr = ptr;
+                        c = handleInvalidChar(c);
                     }
                 } else if (c > 0x7E) {
                     if (c > 0xFF) {
                         mOutputPtr = ptr;
-                        throwInvalidLatinChar(c);
+                        handleInvalidLatinChar(c);
                     } else if (mXml11) {
                         if (c < 0x9F && c != 0x85) {
                             mOutputPtr = ptr;
-                            throwInvalidChar(c);
+                            c = handleInvalidChar(c);
                         }
                     }
                 } else if (c == '-') { // embedded "--"?
@@ -563,16 +572,17 @@ public final class ISOLatin1XmlWriter
                     } else if (c == '\r') {
                         // !!! TBI: line nr (and skipping \n that may follow)
                     } else if (c != '\t') {
-                        throwInvalidChar(c);
+                        mOutputPtr = ptr;
+                        c = handleInvalidChar(c);
                     }
                 } else if (c > 0x7E) {
                     if (c > 0xFF) {
                         mOutputPtr = ptr;
-                        throwInvalidLatinChar(c);
+                        handleInvalidLatinChar(c);
                     } else if (mXml11) {
                         if (c < 0x9F && c != 0x85) {
                             mOutputPtr = ptr;
-                            throwInvalidChar(c);
+                            c = handleInvalidChar(c);
                         }
                     }
                 } else if (c == '>') { // enclosed end marker ("?>")?
@@ -627,7 +637,9 @@ public final class ISOLatin1XmlWriter
                         }
                     } else if (!mXml11 || c == 0) { // ok in xml1.1, as entity
                         if (mCheckContent) {
-                            throwInvalidChar(c);
+                            c = handleInvalidChar(c);
+                            mOutputBuffer[mOutputPtr++] = (byte) c;
+                            continue;
                         }
                         // otherwise... well, I guess we can just escape it
                     }
@@ -702,7 +714,9 @@ public final class ISOLatin1XmlWriter
                         }
                     } else if (!mXml11 || c == 0) { // ok in xml1.1, as entity
                         if (mCheckContent) {
-                            throwInvalidChar(c);
+                            c = handleInvalidChar(c);
+                            mOutputBuffer[mOutputPtr++] = (byte) c;
+                            continue;
                         }
                         // otherwise... well, I guess we can just escape it
                     }
@@ -750,7 +764,7 @@ public final class ISOLatin1XmlWriter
     ////////////////////////////////////////////////////
      */
 
-    protected void throwInvalidLatinChar(int c)
+    protected void handleInvalidLatinChar(int c)
         throws IOException
     {
         // First, let's flush any output we may have, to make debugging easier
