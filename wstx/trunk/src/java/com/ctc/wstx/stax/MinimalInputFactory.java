@@ -45,13 +45,13 @@ import com.ctc.wstx.sr.ReaderCreator;
  * Minimalistic input factory, which implements just the basic XML
  * parsing functionality, including namespace handling. It does not
  * support any DTD handling beyond simple skipping of internal subset;
- * it also does not implement the Event API part of StAX specs.
- * It is intended as the smallest valid (J2ME) subset of StAX as
+ * it also does not implement the Event API part of Stax specs.
+ * It is intended as the smallest valid (J2ME) subset of Stax as
  * suggested by the specs.
  *<p>
- * Unfortunately, the way StAX 1.0 is defined, this class can NOT be
+ * Unfortunately, the way Stax 1.0 is defined, this class can NOT be
  * the base class of the full input factory, without getting references
- * to most of StAX event classes. It does however have lots of shared
+ * to most of Stax event classes. It does however have lots of shared
  * (cut'n pasted code) with {@link com.ctc.wstx.stax.WstxInputFactory}.
  * Hopefully in future this problem can be resolved.
  *<p>
@@ -60,7 +60,7 @@ import com.ctc.wstx.sr.ReaderCreator;
  * minimal subset.
  *<p>
  * Implementation note: since entity objects are built directly on top
- * of StAX events Objects, couple of event classes (specifically,
+ * of Stax events Objects, couple of event classes (specifically,
  * {@link javax.xml.stream.events.EntityDeclaration} and the generic
  * base class, {@link javax.xml.stream.events.XMLEvent}, and Woodstox
  * classes that implement them) will still need to be included in the
@@ -193,7 +193,7 @@ public class MinimalInputFactory
     public XMLStreamReader createXMLStreamReader(InputStream in)
         throws XMLStreamException
     {
-        return createSR(null, StreamBootstrapper.getInstance(in, null, null));
+        return createSR(null, StreamBootstrapper.getInstance(null, null, in));
     }
 
     public XMLStreamReader createXMLStreamReader(InputStream in, String enc)
@@ -205,7 +205,7 @@ public class MinimalInputFactory
 
         try {
             return createSR(null, ReaderBootstrapper.getInstance
-                            (new InputStreamReader(in, enc), null, null, enc));
+                            (null, null, new InputStreamReader(in, enc), enc));
         } catch (UnsupportedEncodingException ex) {
             throw new WstxIOException(ex);
         }
@@ -226,14 +226,14 @@ public class MinimalInputFactory
     public XMLStreamReader createXMLStreamReader(String systemId, InputStream in)
         throws XMLStreamException
     {
-        return createSR(systemId, StreamBootstrapper.getInstance(in, null, systemId));
+        return createSR(systemId, StreamBootstrapper.getInstance(null, systemId, in));
     }
 
     public XMLStreamReader createXMLStreamReader(String systemId, Reader r)
         throws XMLStreamException
     {
         return createSR(systemId,
-                        ReaderBootstrapper.getInstance(r, null, systemId, null));
+                        ReaderBootstrapper.getInstance(null, systemId, r, null));
     }
 
     /*
@@ -385,13 +385,13 @@ public class MinimalInputFactory
             if (r == null) {
                 InputStream in = ss.getInputStream();
                 if (in == null) {
-                    throw new XMLStreamException("Can not create StAX reader for a StreamSource -- neither reader nor input stream was set.");
+                    throw new XMLStreamException("Can not create Stax reader for a StreamSource -- neither reader nor input stream was set.");
                 }
                 bs = StreamBootstrapper.getInstance
-                    (in, ss.getPublicId(), ss.getSystemId());
+                    (ss.getPublicId(), ss.getSystemId(), in);
             } else {
                 bs = ReaderBootstrapper.getInstance
-                    (r, ss.getPublicId(), ss.getSystemId(), null);
+                    (ss.getPublicId(), ss.getSystemId(), r, null);
             }
             return createSR(src.getSystemId(), bs);
         }
@@ -399,16 +399,16 @@ public class MinimalInputFactory
         if (src instanceof SAXSource) {
             //SAXSource sr = (SAXSource) src;
             // !!! TBI
-            throw new XMLStreamException("Can not create a STaX reader for a SAXSource -- not (yet) implemented.");
+            throw new XMLStreamException("Can not create a Stax reader for a SAXSource -- not (yet) implemented.");
         }
 
         if (src instanceof DOMSource) {
             //DOMSource sr = (DOMSource) src;
             // !!! TBI
-            throw new XMLStreamException("Can not create a STaX reader for a DOMSource -- not (yet) implemented.");
+            throw new XMLStreamException("Can not create a Stax reader for a DOMSource -- not (yet) implemented.");
         }
 
-        throw new IllegalArgumentException("Can not instantiate StAX reader for XML source type "+src.getClass()+" (unknown type)");
+        throw new IllegalArgumentException("Can not instantiate Stax reader for XML source type "+src.getClass()+" (unknown type)");
     }
     
     private void throwUnsupported(String msg) {

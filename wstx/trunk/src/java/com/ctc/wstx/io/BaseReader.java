@@ -35,10 +35,25 @@ abstract class BaseReader
 
     private InputStream mIn;
 
-    protected byte[] mBuffer;
+    protected byte[] mByteBuffer;
 
-    protected int mPtr;
-    protected int mLength;
+    /**
+     * Pointer to the next available byte (if any), iff less than
+     * <code>mByteBufferEnd</code>
+     */
+    protected int mBytePtr;
+
+    /**
+     * Pointed to the end marker, that is, position one after the last
+     * valid available byte.
+     */
+    protected int mByteBufferEnd;
+
+    /**
+     * Flag that indicates whether the read buffer is to be recycled
+     * when Reader is closed or not.
+     */
+    private final boolean mRecycleBuffer;
 
     /*
     ////////////////////////////////////////
@@ -46,13 +61,15 @@ abstract class BaseReader
     ////////////////////////////////////////
     */
 
-    protected BaseReader(ReaderConfig cfg, InputStream in, byte[] buf, int ptr, int len)
+    protected BaseReader(ReaderConfig cfg, InputStream in, byte[] buf, int ptr, int len,
+			 boolean recycleBuffer)
     {
         mConfig = cfg;
         mIn = in;
-        mBuffer = buf;
-        mPtr = ptr;
-        mLength = len;
+        mByteBuffer = buf;
+        mBytePtr = ptr;
+        mByteBufferEnd = len;
+	mRecycleBuffer = recycleBuffer;
     }
 
     /*
@@ -69,6 +86,16 @@ abstract class BaseReader
      * and both more and less restricted characters).
      */
     public abstract void setXmlCompliancy(int xmlVersion);
+
+    /**
+     * Method that can be used to see if we can actually modify the
+     * underlying buffer. This is the case if we are managing the buffer,
+     * but not if it was just given to us.
+     */
+    protected final boolean canModifyBuffer()
+    {
+	return mRecycleBuffer;
+    }
 
     /*
     ////////////////////////////////////////
@@ -122,12 +149,12 @@ abstract class BaseReader
     protected final int readBytes()
         throws IOException
     {
-        mPtr = 0;
-        mLength = 0;
+        mBytePtr = 0;
+        mByteBufferEnd = 0;
         if (mIn != null) {
-            int count = mIn.read(mBuffer, 0, mBuffer.length);
+            int count = mIn.read(mByteBuffer, 0, mByteBuffer.length);
             if (count > 0) {
-                mLength = count;
+                mByteBufferEnd = count;
             }
             return count;
         }
@@ -144,11 +171,11 @@ abstract class BaseReader
     protected final int readBytesAt(int offset)
         throws IOException
     {
-        // shouldn't modify mPtr, assumed to be 'offset'
+        // shouldn't modify mBytePtr, assumed to be 'offset'
         if (mIn != null) {
-            int count = mIn.read(mBuffer, offset, mBuffer.length - offset);
+            int count = mIn.read(mByteBuffer, offset, mByteBuffer.length - offset);
             if (count > 0) {
-                mLength += count;
+                mByteBufferEnd += count;
             }
             return count;
         }
@@ -166,13 +193,15 @@ abstract class BaseReader
          *   recycled by the next stream reader instantiated by this
          *   thread (if any).
          */
-        byte[] buf = mBuffer;
-        if (buf != null) {
-            mBuffer = null;
-            if (mConfig != null) {
-                mConfig.freeFullBBuffer(buf);
-            }
-        }
+	if (mRecycleBuffer) {
+	    byte[] buf = mByteBuffer;
+	    if (buf != null) {
+		mByteBuffer = null;
+		if (mConfig != null) {
+		    mConfig.freeFullBBuffer(buf);
+		}
+	    }
+	}
     }
 
     protected void reportBounds(char[] cbuf, int start, int len)

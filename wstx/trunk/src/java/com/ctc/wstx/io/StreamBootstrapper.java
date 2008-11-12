@@ -39,7 +39,8 @@ public final class StreamBootstrapper
     */
 
     /**
-     * Underlying InputStream to use for reading content.
+     * Underlying InputStream to use for reading content. May be null
+     * if the actual data source is not stream-based but a block source.
      */
     final InputStream mIn;
 
@@ -51,10 +52,13 @@ public final class StreamBootstrapper
 
     private byte[] mByteBuffer;
 
+    /**
+     * Whether byte buffer is recyclable or not
+     */
+    private final boolean mRecycleBuffer;
+
     private int mInputPtr;
-
-    private int mInputLen;
-
+    private int mInputEnd;
     /*
     ///////////////////////////////////////////////////////////////
     // Physical encoding properties found so far
@@ -97,11 +101,26 @@ public final class StreamBootstrapper
     ////////////////////////////////////////
     */
 
-    private StreamBootstrapper(InputStream in, String pubId, String sysId)
+    private StreamBootstrapper(String pubId, String sysId, InputStream in)
     {
         super(pubId, sysId);
         mIn = in;
-        mInputPtr = mInputLen = 0;
+        mInputPtr = mInputEnd = 0;
+	mRecycleBuffer = true;
+    }
+
+    /**
+     * @param start Pointer to the first valid byte in the buffer
+     * @param end Pointer to the offset <b>after</b> last valid byte in the buffer
+     */
+    private StreamBootstrapper(String pubId, String sysId, byte[] data, int start, int end)
+    {
+        super(pubId, sysId);
+        mIn = null;
+	mRecycleBuffer = false;
+	mByteBuffer = data;
+	mInputPtr = start;
+	mInputEnd = end;
     }
 
     /*
@@ -110,9 +129,24 @@ public final class StreamBootstrapper
     ////////////////////////////////////////
     */
 
-    public static StreamBootstrapper getInstance(InputStream in, String pubId, String sysId)
+    /**
+     * Factory method used when the underlying data provider is an 
+     * actual stream.
+     */
+    public static StreamBootstrapper getInstance(String pubId, String sysId, InputStream in)
     {
-        return new StreamBootstrapper(in, pubId, sysId);
+        return new StreamBootstrapper(pubId, sysId, in);
+    }
+
+    /**
+     * Factory method used when the underlying data provider is a pre-allocated
+     * block source, and no stream is used.
+     * Additionally the buffer passed is not owned by the bootstrapper
+     * or Reader that is created, so it is not to be recycled.
+     */
+    public static StreamBootstrapper getInstance(String pubId, String sysId, byte[] data, int start, int end)
+    {
+        return new StreamBootstrapper(pubId, sysId, data, start, end);
     }
 
     public Reader bootstrapInput(ReaderConfig cfg, boolean mainDoc, int xmlVersion)
@@ -125,7 +159,9 @@ public final class StreamBootstrapper
         if (bufSize < MIN_BUF_SIZE) {
             bufSize = MIN_BUF_SIZE;
         }
-        mByteBuffer = cfg.allocFullBBuffer(bufSize);
+	if (mByteBuffer == null) { // non-null if we were passed a buffer
+	    mByteBuffer = cfg.allocFullBBuffer(bufSize);
+	}
 
         resolveStreamEncoding();
 
@@ -179,24 +215,24 @@ public final class StreamBootstrapper
 
         // Normalized, can thus use straight equality checks now
         if (normEnc == CharsetNames.CS_UTF8) {
-            r = new UTF8Reader(cfg, mIn, mByteBuffer, mInputPtr, mInputLen);
+            r = new UTF8Reader(cfg, mIn, mByteBuffer, mInputPtr, mInputEnd, mRecycleBuffer);
         } else if (normEnc == CharsetNames.CS_ISO_LATIN1) {
-            r = new ISOLatinReader(cfg, mIn, mByteBuffer, mInputPtr, mInputLen);
+            r = new ISOLatinReader(cfg, mIn, mByteBuffer, mInputPtr, mInputEnd, mRecycleBuffer);
         } else if (normEnc == CharsetNames.CS_US_ASCII) {
-            r = new AsciiReader(cfg, mIn, mByteBuffer, mInputPtr, mInputLen);
+            r = new AsciiReader(cfg, mIn, mByteBuffer, mInputPtr, mInputEnd, mRecycleBuffer);
         } else if (normEnc.startsWith(CharsetNames.CS_UTF32)) {
             // let's augment with actual endianness info
             if (normEnc == CharsetNames.CS_UTF32) {
                 mInputEncoding = mBigEndian ? CharsetNames.CS_UTF32BE : CharsetNames.CS_UTF32LE;
             }
-            r = new UTF32Reader(cfg, mIn, mByteBuffer, mInputPtr, mInputLen,
-                                mBigEndian);
+            r = new UTF32Reader(cfg, mIn, mByteBuffer, mInputPtr, mInputEnd,
+				mRecycleBuffer, mBigEndian);
         } else {
             // Nah, JDK needs to try it
             // Ok; first, do we need to merge stuff back?
             InputStream in = mIn;
-            if (mInputPtr < mInputLen) {
-                in = new MergedStream(cfg, in, mByteBuffer, mInputPtr, mInputLen);
+            if (mInputPtr < mInputEnd) {
+                in = new MergedStream(cfg, in, mByteBuffer, mInputPtr, mInputEnd);
             }
             /* 20-Jan-2006, TSa: Ok; although it is possible to declare
              *   stream as 'UTF-16', JDK may need help in figuring out
@@ -437,14 +473,13 @@ public final class StreamBootstrapper
         /* Let's assume here buffer has enough room -- this will always
          * be true for the limited used this method gets
          */
-        int gotten = (mInputLen - mInputPtr);
+        int gotten = (mInputEnd - mInputPtr);
         while (gotten < minimum) {
-            int count = mIn.read(mByteBuffer, mInputLen,
-                                 mByteBuffer.length - mInputLen);
+            int count = (mIn == null) ? -1 : mIn.read(mByteBuffer, mInputEnd, mByteBuffer.length - mInputEnd);
             if (count < 1) {
                 return false;
             }
-            mInputLen += count;
+            mInputEnd += count;
             gotten += count;
         }
         return true;
@@ -460,12 +495,12 @@ public final class StreamBootstrapper
         /* Note: at this point these are all in bytes, not chars (for multibyte
          * encodings)
          */
-        mInputProcessed += mInputLen;
-        mInputRowStart -= mInputLen;
+        mInputProcessed += mInputEnd;
+        mInputRowStart -= mInputEnd;
 
         mInputPtr = 0;
-        mInputLen = mIn.read(mByteBuffer, 0, mByteBuffer.length);
-        if (mInputLen < 1) {
+        mInputEnd = (mIn == null) ? -1 : mIn.read(mByteBuffer, 0, mByteBuffer.length);
+        if (mInputEnd < 1) {
             throw new WstxEOFException(ParsingErrorMsgs.SUFFIX_IN_XML_DECL,
                                        getLocation());
         }
@@ -494,7 +529,7 @@ public final class StreamBootstrapper
             }
             return nextMultiByte();
         }
-        byte b = (mInputPtr < mInputLen) ?
+        byte b = (mInputPtr < mInputEnd) ?
             mByteBuffer[mInputPtr++] : nextByte();
         return (b & 0xFF);
     }
@@ -526,7 +561,7 @@ public final class StreamBootstrapper
             }
             return nextMultiByte();
         }
-        byte b = (mInputPtr < mInputLen) ?
+        byte b = (mInputPtr < mInputEnd) ?
             mByteBuffer[mInputPtr++] : nextByte();
         return (b & 0xFF);
     }
@@ -559,7 +594,7 @@ public final class StreamBootstrapper
             int c;
 
             if (simple) {
-                byte b = (mInputPtr < mInputLen) ?
+                byte b = (mInputPtr < mInputEnd) ?
                     mByteBuffer[mInputPtr++] : nextByte();
                 if (b == BYTE_NULL) {
                     reportNull();
@@ -686,7 +721,7 @@ public final class StreamBootstrapper
     protected byte nextByte()
         throws IOException, WstxException
     {
-        if (mInputPtr >= mInputLen) {
+        if (mInputPtr >= mInputEnd) {
             loadMore();
         }
         return mByteBuffer[mInputPtr++];
@@ -698,7 +733,7 @@ public final class StreamBootstrapper
         int count = 0;
 
         while (true) {
-            byte b = (mInputPtr < mInputLen) ?
+            byte b = (mInputPtr < mInputEnd) ?
                 mByteBuffer[mInputPtr++] : nextByte();
 
             if ((b & 0xFF) > CHAR_SPACE) {
@@ -719,7 +754,7 @@ public final class StreamBootstrapper
         throws IOException, WstxException
     {
         if (lfByte == BYTE_CR) {
-            byte b = (mInputPtr < mInputLen) ?
+            byte b = (mInputPtr < mInputEnd) ?
                 mByteBuffer[mInputPtr++] : nextByte();
             if (b != BYTE_LF) {
                 --mInputPtr; // pushback if not 2-char/byte lf
@@ -739,7 +774,7 @@ public final class StreamBootstrapper
         int len = expected.length();
         
         for (int ptr = 1; ptr < len; ++ptr) {
-            byte b = (mInputPtr < mInputLen) ?
+            byte b = (mInputPtr < mInputEnd) ?
                 mByteBuffer[mInputPtr++] : nextByte();
             
             if (b == BYTE_NULL) {
@@ -762,9 +797,9 @@ public final class StreamBootstrapper
     protected int nextMultiByte()
         throws IOException, WstxException
     {
-        byte b = (mInputPtr < mInputLen) ?
+        byte b = (mInputPtr < mInputEnd) ?
             mByteBuffer[mInputPtr++] : nextByte();
-        byte b2 = (mInputPtr < mInputLen) ?
+        byte b2 = (mInputPtr < mInputEnd) ?
             mByteBuffer[mInputPtr++] : nextByte();
         int c;
 
@@ -776,9 +811,9 @@ public final class StreamBootstrapper
             }
         } else {
             // Has to be 4 bytes
-            byte b3 = (mInputPtr < mInputLen) ?
+            byte b3 = (mInputPtr < mInputEnd) ?
                 mByteBuffer[mInputPtr++] : nextByte();
-            byte b4 = (mInputPtr < mInputLen) ?
+            byte b4 = (mInputPtr < mInputEnd) ?
                 mByteBuffer[mInputPtr++] : nextByte();
             
             if (mBigEndian) {
@@ -800,7 +835,7 @@ public final class StreamBootstrapper
     protected int nextTranslated()
         throws IOException, WstxException
     {
-        byte b = (mInputPtr < mInputLen) ?
+        byte b = (mInputPtr < mInputEnd) ?
             mByteBuffer[mInputPtr++] : nextByte();
         int ch = mSingleByteTranslation[b & 0xFF];
         if (ch < 0) { // special char... won't care for now

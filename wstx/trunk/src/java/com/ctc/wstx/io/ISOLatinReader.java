@@ -43,9 +43,10 @@ public final class ISOLatinReader
     ////////////////////////////////////////
     */
 
-    public ISOLatinReader(ReaderConfig cfg, InputStream in, byte[] buf, int ptr, int len)
+    public ISOLatinReader(ReaderConfig cfg, InputStream in, byte[] buf, int ptr, int len,
+			 boolean recycleBuffer)
     {
-        super(cfg, in, buf, ptr, len);
+        super(cfg, in, buf, ptr, len, recycleBuffer);
     }
 
     public void setXmlCompliancy(int xmlVersion)
@@ -62,19 +63,22 @@ public final class ISOLatinReader
     public int read(char[] cbuf, int start, int len)
         throws IOException
     {
-        // Already EOF?
-        if (mBuffer == null) {
-            return -1;
-        }
         // Let's then ensure there's enough room...
         if (start < 0 || (start+len) > cbuf.length) {
             reportBounds(cbuf, start, len);
         }
+        // Already EOF?
+        if (mByteBuffer == null) {
+            return -1;
+        }
+        if (len < 1) { // dummy call?
+            return 0;
+        }
 
         // Need to load more data?
-        int avail = mLength - mPtr;
+        int avail = mByteBufferEnd - mBytePtr;
         if (avail <= 0) {
-            mByteCount += mLength;
+            mByteCount += mByteBufferEnd;
             // Let's always (try to) read full buffers
             int count = readBytes();
             if (count <= 0) {
@@ -97,12 +101,12 @@ public final class ISOLatinReader
         if (len > avail) {
             len = avail;
         }
-        int i = mPtr;
+        int i = mBytePtr;
         int last = i + len;
 
         if (mXml11) {
             for (; i < last; ) {
-                char c = (char) (mBuffer[i++] & 0xFF);
+                char c = (char) (mByteBuffer[i++] & 0xFF);
                 if (c >= CHAR_DEL) {
                     if (c <= 0x9F) {
                         if (c == 0x85) { // NEL, let's convert?
@@ -118,11 +122,11 @@ public final class ISOLatinReader
             }
         } else {
             for (; i < last; ) {
-                cbuf[start++] = (char) (mBuffer[i++] & 0xFF);
+                cbuf[start++] = (char) (mByteBuffer[i++] & 0xFF);
             }
         }
 
-        mPtr = last;
+        mBytePtr = last;
         return len;
     }
 }

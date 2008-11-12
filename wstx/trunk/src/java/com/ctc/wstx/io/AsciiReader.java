@@ -43,9 +43,10 @@ public final class AsciiReader
     ////////////////////////////////////////
     */
 
-    public AsciiReader(ReaderConfig cfg, InputStream in, byte[] buf, int ptr, int len)
+    public AsciiReader(ReaderConfig cfg, InputStream in, byte[] buf, int ptr, int len,
+		       boolean recycleBuffer)
     {
-        super(cfg, in, buf, ptr, len);
+        super(cfg, in, buf, ptr, len, recycleBuffer);
     }
 
     public void setXmlCompliancy(int xmlVersion)
@@ -62,19 +63,22 @@ public final class AsciiReader
     public int read(char[] cbuf, int start, int len)
         throws IOException
     {
-        // Already EOF?
-        if (mBuffer == null) {
-            return -1;
-        }
-        // Let's then ensure there's enough room...
+        // Let's first ensure there's enough room...
         if (start < 0 || (start+len) > cbuf.length) {
             reportBounds(cbuf, start, len);
         }
+        // Already EOF?
+        if (mByteBuffer == null) {
+            return -1;
+        }
+        if (len < 1) {
+            return 0;
+        }
 
         // Need to load more data?
-        int avail = mLength - mPtr;
+        int avail = mByteBufferEnd - mBytePtr;
         if (avail <= 0) {
-            mCharCount += mLength;
+            mCharCount += mByteBufferEnd;
             // Let's always try to read full buffers, actually...
             int count = readBytes();
             if (count <= 0) {
@@ -95,17 +99,17 @@ public final class AsciiReader
         if (len > avail) {
             len = avail;
         }
-        int i = mPtr;
+        int i = mBytePtr;
         int last = i + len;
 
         for (; i < last; ) {
-            char c = (char) mBuffer[i++];
+            char c = (char) mByteBuffer[i++];
             if (c >= CHAR_DEL) {
                 if (c > CHAR_DEL) {
                     reportInvalidAscii(c);
                 } else {
                     if (mXml11) {
-                        int pos = mCharCount + mPtr;
+                        int pos = mCharCount + mBytePtr;
                         reportInvalidXml11(c, pos, pos);
                     }
                 }
@@ -113,7 +117,7 @@ public final class AsciiReader
             cbuf[start++] = c;
         }
 
-        mPtr = last;
+        mBytePtr = last;
         return len;
     }
 
@@ -126,7 +130,7 @@ public final class AsciiReader
     private void reportInvalidAscii(char c)
         throws IOException
     {
-        throw new CharConversionException("Invalid ascii byte; value above 7-bit ascii range ("+((int) c)+"; at pos #"+(mCharCount + mPtr)+")");
+        throw new CharConversionException("Invalid ascii byte; value above 7-bit ascii range ("+((int) c)+"; at pos #"+(mCharCount + mBytePtr)+")");
     }
 }
 

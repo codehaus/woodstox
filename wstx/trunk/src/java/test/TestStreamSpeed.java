@@ -143,18 +143,13 @@ public class TestStreamSpeed
         XMLInputFactory2 f = (XMLInputFactory2) mInputFactory;
         XMLStreamReader2 sr;
 
-        /*
         if (bdata != null) {
-            sr = (XMLStreamReader2) f.createXMLStreamReader
-                (new ByteArrayInputStream(bdata)
-                 //,"ISO-8859-1"
-                 //,"UTF-8"
-                 );
+            //sr = (XMLStreamReader2) f.createXMLStreamReader(new ByteArrayInputStream(bdata));
+            sr = (XMLStreamReader2) f.createXMLStreamReader(new org.codehaus.stax2.io.Stax2ByteArraySource(bdata, 0, bdata.length));
         } else {
             sr = (XMLStreamReader2) f.createXMLStreamReader(new CharArrayReader(cdata));
         }
-        */
-        sr = (XMLStreamReader2) f.createXMLStreamReader(file);
+        //sr = (XMLStreamReader2) f.createXMLStreamReader(file);
 
         int result = 0;
 
@@ -165,6 +160,7 @@ public class TestStreamSpeed
             }
             result += type; // so it won't be optimized out...
         }
+	sr.close();
         return result;
     }
 

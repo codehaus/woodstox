@@ -30,6 +30,7 @@ import org.codehaus.stax2.XMLEventReader2;
 import org.codehaus.stax2.XMLInputFactory2;
 import org.codehaus.stax2.XMLStreamReader2;
 import org.codehaus.stax2.io.Stax2Source;
+import org.codehaus.stax2.io.Stax2ByteArraySource;
 import org.codehaus.stax2.ri.Stax2FilteredStreamReader;
 import org.codehaus.stax2.ri.evt.Stax2FilteredEventReader;
 
@@ -52,7 +53,7 @@ import com.ctc.wstx.util.SymbolTable;
 import com.ctc.wstx.util.URLUtil;
 
 /**
- * Factory for creating various StAX objects (stream/event reader,
+ * Factory for creating various Stax objects (stream/event reader,
  * writer).
  *
  *<p>
@@ -106,7 +107,7 @@ public class WstxInputFactory
      */
     protected final ReaderConfig mConfig;
 
-    // // // StAX - mandated objects:
+    // // // Stax - mandated objects:
 
     protected XMLEventAllocator mAllocator = null;
 
@@ -222,7 +223,7 @@ public class WstxInputFactory
 
     /*
     /////////////////////////////////////////////////////
-    // StAX, XMLInputFactory; factory methods
+    // Stax, XMLInputFactory; factory methods
     /////////////////////////////////////////////////////
      */
 
@@ -355,7 +356,7 @@ public class WstxInputFactory
 
     /*
     /////////////////////////////////////////////////////
-    // StAX, XMLInputFactory; generic accessors/mutators
+    // Stax, XMLInputFactory; generic accessors/mutators
     /////////////////////////////////////////////////////
      */
 
@@ -417,11 +418,11 @@ public class WstxInputFactory
 
     /*
     /////////////////////////////////////////////////////
-    // StAX2 implementation
+    // Stax2 implementation
     /////////////////////////////////////////////////////
      */
 
-    // // // StAX2, additional factory methods:
+    // // // Stax2, additional factory methods:
 
     public XMLEventReader2 createXMLEventReader(URL src)
         throws XMLStreamException
@@ -465,7 +466,7 @@ public class WstxInputFactory
         return createSR(f, false, true);
     }
 
-    // // // StAX2 "Profile" mutators
+    // // // Stax2 "Profile" mutators
 
     public void configureForXmlConformance()
     {
@@ -608,7 +609,7 @@ public class WstxInputFactory
         ReaderConfig cfg = createPrivateConfig();
         if (enc == null || enc.length() == 0) {
             return createSR(cfg, systemId, StreamBootstrapper.getInstance
-                            (in, null, systemId), forER, autoCloseInput);
+                            (null, systemId, in), forER, autoCloseInput);
         }
 
         /* !!! 17-Feb-2006, TSa: We don't yet know if it's xml 1.0 or 1.1;
@@ -618,7 +619,7 @@ public class WstxInputFactory
          */
         Reader r = DefaultInputResolver.constructOptimizedReader(cfg, in, false, enc);
         return createSR(cfg, systemId, ReaderBootstrapper.getInstance
-                        (r, null, systemId, enc), forER, autoCloseInput);
+                        (null, systemId, r, enc), forER, autoCloseInput);
     }
 
     protected XMLStreamReader2 createSR(ReaderConfig cfg, URL src, boolean forER, boolean autoCloseInput)
@@ -639,8 +640,8 @@ public class WstxInputFactory
     {
         String systemId = src.toExternalForm();
         return doCreateSR(cfg, systemId,
-                        StreamBootstrapper.getInstance(in, null, systemId),
-                        src, forER, autoCloseInput);
+			  StreamBootstrapper.getInstance(null, systemId, in),
+			  src, forER, autoCloseInput);
     }
 
     protected XMLStreamReader2 createSR(String systemId, Reader r,
@@ -650,7 +651,7 @@ public class WstxInputFactory
     {
         return createSR(createPrivateConfig(), systemId,
                         ReaderBootstrapper.getInstance
-                        (r, null, systemId, null), forER, autoCloseInput);
+                        (null, systemId, r, null), forER, autoCloseInput);
     }
 
     protected XMLStreamReader2 createSR(File f, boolean forER,
@@ -683,19 +684,27 @@ public class WstxInputFactory
         String encoding = null;
         boolean autoCloseInput;
 
+        InputBootstrapper bs = null;
+
         if (src instanceof Stax2Source) {
-            /* 16-Aug-2006, TSa: Should have more optimized handling
-             *   for specific types
-             */
             Stax2Source ss = (Stax2Source) src;
             sysId = ss.getSystemId();
             pubId = ss.getPublicId();
             encoding = ss.getEncoding();
+
             try {
-                in = ss.constructInputStream();
-                if (in == null) {
-                    r = ss.constructReader();
-                }
+		/* 11-Nov-2008, TSa: Let's add optimized handling for byte-block
+		 *   source
+		 */
+		if (src instanceof Stax2ByteArraySource) {
+		    Stax2ByteArraySource bas = (Stax2ByteArraySource) src;
+		    bs = StreamBootstrapper.getInstance(pubId, sysId, bas.getBuffer(), bas.getBufferStart(), bas.getBufferEnd());
+		} else {
+		    in = ss.constructInputStream();
+		    if (in == null) {
+			r = ss.constructReader();
+		    }
+		}
             } catch (IOException ioe) {
                 throw new WstxIOException(ioe);
             }
@@ -739,25 +748,25 @@ public class WstxInputFactory
             // SymbolTable not used by the DOM-based 'reader':
             return WstxDOMWrappingReader.createFrom(domSrc, cfg);
         } else {
-            throw new IllegalArgumentException("Can not instantiate StAX reader for XML source type "+src.getClass()+" (unrecognized type)");
+            throw new IllegalArgumentException("Can not instantiate Stax reader for XML source type "+src.getClass()+" (unrecognized type)");
         }
 
-        InputBootstrapper bs;
-
-        if (r != null) { 
-            bs = ReaderBootstrapper.getInstance(r, pubId, sysId, encoding);
-        } else if (in != null) {
-            bs = StreamBootstrapper.getInstance(in, pubId, sysId);
-        } else if (sysId != null) {
-            try {
-                return createSR(cfg, URLUtil.urlFromSystemId(sysId),
-                                forER, autoCloseInput);
-            } catch (IOException ioe) {
-                throw new WstxIOException(ioe);
-            }
-        } else {
-            throw new XMLStreamException("Can not create StAX reader for the Source passed -- neither reader, input stream nor system id was accessible; can not use other types of sources (like embedded SAX streams)");
-        }
+	if (bs == null) { // may have already created boostrapper...
+	    if (r != null) { 
+		bs = ReaderBootstrapper.getInstance(pubId, sysId, r, encoding);
+	    } else if (in != null) {
+		bs = StreamBootstrapper.getInstance(pubId, sysId, in);
+	    } else if (sysId != null) {
+		try {
+		    return createSR(cfg, URLUtil.urlFromSystemId(sysId),
+				    forER, autoCloseInput);
+		} catch (IOException ioe) {
+		    throw new WstxIOException(ioe);
+		}
+	    } else {
+		throw new XMLStreamException("Can not create Stax reader for the Source passed -- neither reader, input stream nor system id was accessible; can not use other types of sources (like embedded SAX streams)");
+	    }
+	}
         return createSR(cfg, sysId, bs, forER, autoCloseInput);
     }
 

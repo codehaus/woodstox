@@ -107,7 +107,7 @@ public class DTDSchemaFactory
     {
         ReaderConfig rcfg = createPrivateReaderConfig();
         return doCreateSchema(rcfg, StreamBootstrapper.getInstance
-                              (in, publicId, systemId), publicId, systemId, null);
+                              (publicId, systemId, in), publicId, systemId, null);
     }
 
     public XMLValidationSchema createSchema(Reader r, String publicId,
@@ -116,7 +116,7 @@ public class DTDSchemaFactory
     {
         ReaderConfig rcfg = createPrivateReaderConfig();
         return doCreateSchema(rcfg, ReaderBootstrapper.getInstance
-                              (r, publicId, systemId, null), publicId, systemId, null);
+                              (publicId, systemId, r, null), publicId, systemId, null);
     }
 
     public XMLValidationSchema createSchema(URL url)
@@ -126,7 +126,7 @@ public class DTDSchemaFactory
         try {
             InputStream in = URLUtil.optimizedStreamFromURL(url);
             return doCreateSchema(rcfg, StreamBootstrapper.getInstance
-                                  (in, null, null),
+                                  (null, null, in),
                                   null, url.toExternalForm(), url);
         } catch (IOException ioe) {
             throw new WstxIOException(ioe);
@@ -140,7 +140,7 @@ public class DTDSchemaFactory
         try {
             URL url = f.toURL();
             return doCreateSchema(rcfg, StreamBootstrapper.getInstance
-                                  (new FileInputStream(f), null, null),
+                                  (null, null, new FileInputStream(f)),
                                   null, url.toExternalForm(), url);
         } catch (IOException ioe) {
             throw new WstxIOException(ioe);

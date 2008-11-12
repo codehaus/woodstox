@@ -175,15 +175,17 @@ public final class DefaultInputResolver
         String normEnc = CharsetNames.normalize(encoding);
         BaseReader r;
 
+	// All of these use real InputStream, and use recyclable buffer
+	boolean recycleBuffer = true;
         if (normEnc == CharsetNames.CS_UTF8) {
-            r = new UTF8Reader(cfg, in, cfg.allocFullBBuffer(inputBufLen), 0, 0);
+            r = new UTF8Reader(cfg, in, cfg.allocFullBBuffer(inputBufLen), 0, 0, recycleBuffer);
         } else if (normEnc == CharsetNames.CS_ISO_LATIN1) {
-            r = new ISOLatinReader(cfg, in, cfg.allocFullBBuffer(inputBufLen), 0, 0);
+            r = new ISOLatinReader(cfg, in, cfg.allocFullBBuffer(inputBufLen), 0, 0, recycleBuffer);
         } else if (normEnc == CharsetNames.CS_US_ASCII) {
-            r = new AsciiReader(cfg, in, cfg.allocFullBBuffer(inputBufLen), 0, 0);
+            r = new AsciiReader(cfg, in, cfg.allocFullBBuffer(inputBufLen), 0, 0, recycleBuffer);
         } else if (normEnc.startsWith(CharsetNames.CS_UTF32)) {
             boolean isBE = (normEnc == CharsetNames.CS_UTF32BE);
-            r = new UTF32Reader(cfg, in, cfg.allocFullBBuffer(inputBufLen), 0, 0, isBE);
+            r = new UTF32Reader(cfg, in, cfg.allocFullBBuffer(inputBufLen), 0, 0, recycleBuffer, isBE);
         } else {
             try {
                 return new InputStreamReader(in, encoding);
@@ -222,13 +224,13 @@ public final class DefaultInputResolver
             InputStream in = ssrc.getInputStream();
             if (in == null) { // Need to try just resolving the system id then
                 if (url == null) {
-                    throw new IllegalArgumentException("Can not create StAX reader for a StreamSource -- neither reader, input stream nor system id was set.");
+                    throw new IllegalArgumentException("Can not create Stax reader for a StreamSource -- neither reader, input stream nor system id was set.");
                 }
                 in = URLUtil.optimizedStreamFromURL(url);
             }
-            bs = StreamBootstrapper.getInstance(in, pubId, sysId);
+            bs = StreamBootstrapper.getInstance(pubId, sysId, in);
         } else {
-            bs = ReaderBootstrapper.getInstance(r, pubId, sysId, null);
+            bs = ReaderBootstrapper.getInstance(pubId, sysId, r, null);
         }
         
         Reader r2 = bs.bootstrapInput(cfg, false, xmlVersion);
@@ -251,7 +253,7 @@ public final class DefaultInputResolver
          */
         InputStream in = URLUtil.optimizedStreamFromURL(url);
         String sysId = url.toExternalForm();
-        StreamBootstrapper bs = StreamBootstrapper.getInstance(in, pubId, sysId);
+        StreamBootstrapper bs = StreamBootstrapper.getInstance(pubId, sysId, in);
         Reader r = bs.bootstrapInput(cfg, false, xmlVersion);
         return InputSourceFactory.constructEntitySource
             (cfg, parent, refName, bs, pubId, sysId, xmlVersion, url, r);
@@ -287,7 +289,7 @@ public final class DefaultInputResolver
                                                 String pubId, String sysId)
         throws IOException, XMLStreamException
     {
-        StreamBootstrapper bs = StreamBootstrapper.getInstance(is, pubId, sysId);
+        StreamBootstrapper bs = StreamBootstrapper.getInstance(pubId, sysId, is);
         Reader r = bs.bootstrapInput(cfg, false, xmlVersion);
         URL ctxt = parent.getSource();
 
@@ -308,7 +310,7 @@ public final class DefaultInputResolver
         /* Last null -> no app-provided encoding (doesn't matter for non-
          * main-level handling)
          */
-        ReaderBootstrapper rbs = ReaderBootstrapper.getInstance(r, pubId, sysId, null);
+        ReaderBootstrapper rbs = ReaderBootstrapper.getInstance(pubId, sysId, r, null);
         // null -> no xml reporter... should have one?
         Reader r2 = rbs.bootstrapInput(cfg, false, xmlVersion);
         URL ctxt = (parent == null) ? null : parent.getSource();

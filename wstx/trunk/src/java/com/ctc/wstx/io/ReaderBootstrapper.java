@@ -79,8 +79,7 @@ public final class ReaderBootstrapper
     ////////////////////////////////////////
     */
 
-    private ReaderBootstrapper(Reader r, String pubId, String sysId,
-                               String appEncoding)
+    private ReaderBootstrapper(String pubId, String sysId, Reader r, String appEncoding)
     {
         super(pubId, sysId);
         mIn = r;
@@ -106,10 +105,10 @@ public final class ReaderBootstrapper
      *   incompatibility reported as a potential (but not necessarily fatal)
      *   problem.
      */
-    public static ReaderBootstrapper getInstance(Reader r, String pubId, String sysId,
-                                                 String appEncoding)
+    public static ReaderBootstrapper getInstance(String pubId, String sysId,
+                                                 Reader r, String appEncoding)
     {
-        return new ReaderBootstrapper(r, pubId, sysId, appEncoding);
+        return new ReaderBootstrapper(pubId, sysId, r, appEncoding);
     }
 
     /**

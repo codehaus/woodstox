@@ -55,9 +55,10 @@ public final class UTF32Reader
     */
 
     public UTF32Reader(ReaderConfig cfg, InputStream in, byte[] buf, int ptr, int len,
+		       boolean recycleBuffer,
                        boolean isBigEndian)
     {
-        super(cfg, in, buf, ptr, len);
+        super(cfg, in, buf, ptr, len, recycleBuffer);
         mBigEndian = isBigEndian;
     }
 
@@ -75,16 +76,16 @@ public final class UTF32Reader
     public int read(char[] cbuf, int start, int len)
         throws IOException
     {
+        // Let's first ensure there's enough room...
+        if (start < 0 || (start+len) > cbuf.length) {
+            reportBounds(cbuf, start, len);
+        }
         // Already EOF?
-        if (mBuffer == null) {
+        if (mByteBuffer == null) {
             return -1;
         }
         if (len < 1) {
-            return len;
-        }
-        // Let's then ensure there's enough room...
-        if (start < 0 || (start+len) > cbuf.length) {
-            reportBounds(cbuf, start, len);
+            return 0;
         }
 
         len += start;
@@ -99,7 +100,7 @@ public final class UTF32Reader
             /* Note: we'll try to avoid blocking as much as possible. As a
              * result, we only need to get 4 bytes for a full char.
              */
-            int left = (mLength - mPtr);
+            int left = (mByteBufferEnd - mBytePtr);
             if (left < 4) {
                 if (!loadMore(left)) { // (legal) EOF?
                     return -1;
@@ -107,11 +108,11 @@ public final class UTF32Reader
             }
         }
 
-        byte[] buf = mBuffer;
+        byte[] buf = mByteBuffer;
 
         main_loop:
         while (outPtr < len) {
-            int ptr = mPtr;
+            int ptr = mBytePtr;
             int ch;
 
             if (mBigEndian) {
@@ -121,7 +122,7 @@ public final class UTF32Reader
                 ch = (buf[ptr] & 0xFF) | ((buf[ptr+1] & 0xFF) << 8)
                     | ((buf[ptr+2] & 0xFF) << 16) | (buf[ptr+3] << 24);
             }
-            mPtr += 4;
+            mBytePtr += 4;
 
             // Does it need to be split to surrogates?
             // (also, we can and need to verify illegal chars)
@@ -161,7 +162,7 @@ public final class UTF32Reader
                 }
             }
             cbuf[outPtr++] = (char) ch;
-            if (mPtr >= mLength) {
+            if (mBytePtr >= mByteBufferEnd) {
                 break main_loop;
             }
         }
@@ -191,7 +192,7 @@ public final class UTF32Reader
     private void reportInvalid(int value, int offset, String msg)
         throws IOException
     {
-        int bytePos = mByteCount + mPtr - 1;
+        int bytePos = mByteCount + mBytePtr - 1;
         int charPos = mCharCount + offset;
 
         throw new CharConversionException("Invalid UTF-32 character 0x"
@@ -208,17 +209,20 @@ public final class UTF32Reader
     private boolean loadMore(int available)
         throws IOException
     {
-        mByteCount += (mLength - available);
+        mByteCount += (mByteBufferEnd - available);
 
         // Bytes that need to be moved to the beginning of buffer?
         if (available > 0) {
-            if (mPtr > 0) {
+	    /* 11-Nov-2008, TSa: can only move if we own the buffer; otherwise
+	     *   we are stuck with the data.
+	     */
+            if (mBytePtr > 0 && canModifyBuffer()) {
                 for (int i = 0; i < available; ++i) {
-                    mBuffer[i] = mBuffer[mPtr+i];
+                    mByteBuffer[i] = mByteBuffer[mBytePtr+i];
                 }
-                mPtr = 0;
+                mBytePtr = 0;
+		mByteBufferEnd = available;
             }
-            mLength = available;
         } else {
             /* Ok; here we can actually reasonably expect an EOF,
              * so let's do a separate read right away:
@@ -237,12 +241,12 @@ public final class UTF32Reader
         /* Need at least 4 bytes; if we don't get that many, it's an
          * error.
          */
-        while (mLength < 4) {
-            int count = readBytesAt(mLength);
+        while (mByteBufferEnd < 4) {
+            int count = readBytesAt(mByteBufferEnd);
             if (count < 1) {
                 if (count < 0) { // -1, EOF... no good!
                     freeBuffers(); // to help GC?
-                    reportUnexpectedEOF(mLength, 4);
+                    reportUnexpectedEOF(mByteBufferEnd, 4);
                 }
                 // 0 count is no good; let's err out
                 reportStrangeStream();

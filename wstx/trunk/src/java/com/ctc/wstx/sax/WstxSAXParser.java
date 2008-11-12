@@ -426,9 +426,9 @@ public class WstxSAXParser
             String inputEnc = input.getEncoding();
             String publicId = input.getPublicId();
             if (r != null) {
-                bs = ReaderBootstrapper.getInstance(r, publicId, systemId, inputEnc);
+                bs = ReaderBootstrapper.getInstance(publicId, systemId, r, inputEnc);
             } else {
-                bs = StreamBootstrapper.getInstance(is, publicId, systemId);
+                bs = StreamBootstrapper.getInstance(publicId, systemId, is);
             }
             /* Note: since we are reusing the same config instance, need to
              * make sure state is not carried forward. Thus:

@@ -46,9 +46,10 @@ public final class EBCDICReader
     ////////////////////////////////////////
     */
 
-    public EBCDICReader(ReaderConfig cfg, InputStream in, byte[] buf, int ptr, int len)
+    public EBCDICReader(ReaderConfig cfg, InputStream in, byte[] buf, int ptr, int len,
+			boolean recycleBuffer)
     {
-        super(cfg, in, buf, ptr, len);
+        super(cfg, in, buf, ptr, len, recycleBuffer);
         // Should determine actual real code page...
         mToUnicode = EBCDICCodec.getCp037Mapping();
     }
@@ -91,19 +92,22 @@ public final class EBCDICReader
     public int read(char[] cbuf, int start, int len)
         throws IOException
     {
-        // Already EOF?
-        if (mBuffer == null) {
-            return -1;
-        }
-        // Let's then ensure there's enough room...
+        // Let's first ensure there's enough room...
         if (start < 0 || (start+len) > cbuf.length) {
             reportBounds(cbuf, start, len);
         }
+        // Already EOF?
+        if (mByteBuffer == null) {
+            return -1;
+        }
+        if (len < 1) { // dummy call?
+            return 0;
+        }
 
         // Need to load more data?
-        int avail = mLength - mPtr;
+        int avail = mByteBufferEnd - mBytePtr;
         if (avail <= 0) {
-            mByteCount += mLength;
+            mByteCount += mByteBufferEnd;
             // Let's always try to read full buffers, actually...
             int count = readBytes();
             if (count <= 0) {
@@ -124,14 +128,14 @@ public final class EBCDICReader
         if (len > avail) {
             len = avail;
         }
-        int i = mPtr;
+        int i = mBytePtr;
         int last = i + len;
 
         final int[] mapping = mToUnicode;
 
         for (; i < last; ) {
-            int ch = mapping[mBuffer[i++] & 0xFF];
-//System.out.println("Char #"+(i-1)+", 0x"+Integer.toHexString(mBuffer[i-1])+" -> 0x"+Integer.toHexString(ch));
+            int ch = mapping[mByteBuffer[i++] & 0xFF];
+//System.out.println("Char #"+(i-1)+", 0x"+Integer.toHexString(mByteBuffer[i-1])+" -> 0x"+Integer.toHexString(ch));
             if (ch < 0) { // special) {
                 ch = -ch;
                 // With xml 1.0 they are ok; with 1.1 not necessarily
@@ -147,7 +151,7 @@ public final class EBCDICReader
             cbuf[start++] = (char) ch;
         }
 
-        mPtr = last;
+        mBytePtr = last;
         return len;
     }
 }

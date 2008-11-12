@@ -80,8 +80,16 @@ public class TestReaderConstruction
         XMLInputFactory2 ifact = getInputFactory();
         setCoalescing(ifact, true);
         String xml = generateXML("ByteArraySource");
-        byte[] b = xml.getBytes("UTF-8");
+        byte[] orig = xml.getBytes("UTF-8");
+	byte[] b = (byte[]) orig.clone();
         verifyXML(ifact.createXMLStreamReader(new Stax2ByteArraySource(b, 0, b.length)), "ByteArraySource");
+
+	// Also: let's check that non-0 offset works...
+	final int OFFSET = 29;
+	final int DOCLEN  = b.length;
+	byte[] b2 = new byte[OFFSET + DOCLEN + 50];
+	System.arraycopy(b, 0, b2, OFFSET, DOCLEN);
+        verifyXML(ifact.createXMLStreamReader(new Stax2ByteArraySource(b2, OFFSET, DOCLEN)), "ByteArraySource");
     }
 
     /*
@@ -100,7 +108,8 @@ public class TestReaderConstruction
         assertTokenType(START_ELEMENT, sr.next());
         assertEquals("root", sr.getLocalName());
         assertTokenType(CHARACTERS, sr.next());
-        assertEquals(textValue, getAndVerifyText(sr));
+	String str = getAndVerifyText(sr);
+        assertEquals(textValue, str);
         assertTokenType(END_ELEMENT, sr.next());
         assertEquals("root", sr.getLocalName());
         assertTokenType(END_DOCUMENT, sr.next());

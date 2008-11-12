@@ -16,6 +16,8 @@ import java.io.*;
 public class Stax2ByteArraySource
     extends Stax2BlockSource
 {
+    private final static String DEFAULT_ENCODING = "UTF-8";
+
     final byte[] mBuffer;
     final int mStart;
     final int mLength;
@@ -33,16 +35,21 @@ public class Stax2ByteArraySource
     /////////////////////////////////////////
      */
 
+    /**
+     * Note: if encoding is not explicitly defined, UTF-8 is assumed.
+     */
     public Reader constructReader()
         throws IOException
     {
         String enc = getEncoding();
         InputStream in = constructInputStream();
-        if (enc != null && enc.length() > 0) {
-            return new InputStreamReader(in, enc);
-        }
-        // Sub-optimal; really shouldn't use the platform default encoding
-        return new InputStreamReader(in);
+        if (enc == null && enc.length() == 0) {
+	    /* 11-Nov-2008, TSa: Used to rely on platform default encoding, which
+	     *   doesn't make sense. XML assumes UTF-8 anyway.
+	     */
+	    enc = DEFAULT_ENCODING;
+	}
+	return new InputStreamReader(in, enc);
     }
 
     public InputStream constructInputStream()
@@ -67,5 +74,13 @@ public class Stax2ByteArraySource
 
     public int getBufferLength() {
         return mLength;
+    }
+
+    public int getBufferEnd() {
+        int end = mStart;
+	if (mLength > 0) {
+	    end += mLength;
+	}
+	return end;
     }
 }

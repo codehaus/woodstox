@@ -49,9 +49,10 @@ public final class UTF8Reader
     ////////////////////////////////////////
     */
 
-    public UTF8Reader(ReaderConfig cfg, InputStream in, byte[] buf, int ptr, int len)
+    public UTF8Reader(ReaderConfig cfg, InputStream in, byte[] buf, int ptr, int len,
+		      boolean recycleBuffer)
     {
-        super(cfg, in, buf, ptr, len);
+        super(cfg, in, buf, ptr, len, recycleBuffer);
     }
 
     public void setXmlCompliancy(int xmlVersion)
@@ -68,16 +69,16 @@ public final class UTF8Reader
     public int read(char[] cbuf, int start, int len)
         throws IOException
     {
-        // Already EOF?
-        if (mBuffer == null) {
-            return -1;
-        }
-        if (len < 1) {
-            return len;
-        }
-        // Let's then ensure there's enough room...
+        // Let's first ensure there's enough room...
         if (start < 0 || (start+len) > cbuf.length) {
             reportBounds(cbuf, start, len);
+        }
+        // Already EOF?
+        if (mByteBuffer == null) {
+            return -1;
+        }
+        if (len < 1) { // dummy call?
+            return 0;
         }
 
         len += start;
@@ -92,7 +93,7 @@ public final class UTF8Reader
             /* To prevent unnecessary blocking (esp. with network streams),
              * we'll only require decoding of a single char
              */
-            int left = (mLength - mPtr);
+            int left = (mByteBufferEnd - mBytePtr);
 
             /* So; only need to load more if we can't provide at least
              * one more character. We need not do thorough check here,
@@ -106,7 +107,7 @@ public final class UTF8Reader
 
             if (left < 4) {
                 // Need to load more?
-                if (left < 1 || mBuffer[mPtr] < 0) {
+                if (left < 1 || mByteBuffer[mBytePtr] < 0) {
                     if (!loadMore(left)) { // (legal) EOF?
                         return -1;
                     }
@@ -118,9 +119,9 @@ public final class UTF8Reader
          * (if and when HotSpot properly gets things running) than
          * member variable...
          */
-        byte[] buf = mBuffer;
-        int inPtr = mPtr;
-        int inBufLen = mLength;
+        byte[] buf = mByteBuffer;
+        int inPtr = mBytePtr;
+        int inBufLen = mByteBufferEnd;
 
         main_loop:
         while (outPtr < len) {
@@ -280,7 +281,7 @@ public final class UTF8Reader
             }
         }
 
-        mPtr = inPtr;
+        mBytePtr = inPtr;
         len = outPtr - start;
         mCharCount += len;
         return len;
@@ -296,7 +297,7 @@ public final class UTF8Reader
         throws IOException
     {
         // input (byte) ptr has been advanced by one, by now:
-        int bytePos = mByteCount + mPtr - 1;
+        int bytePos = mByteCount + mBytePtr - 1;
         int charPos = mCharCount + offset + 1;
 
         throw new CharConversionException("Invalid UTF-8 start byte 0x"
@@ -307,7 +308,7 @@ public final class UTF8Reader
     private void reportInvalidOther(int mask, int offset)
         throws IOException
     {
-        int bytePos = mByteCount + mPtr - 1;
+        int bytePos = mByteCount + mBytePtr - 1;
         int charPos = mCharCount + offset;
 
         throw new CharConversionException("Invalid UTF-8 middle byte 0x"
@@ -329,7 +330,7 @@ public final class UTF8Reader
     private void reportInvalid(int value, int offset, String msg)
         throws IOException
     { 
-        int bytePos = mByteCount + mPtr - 1;
+        int bytePos = mByteCount + mBytePtr - 1;
         int charPos = mCharCount + offset;
 
         throw new CharConversionException("Invalid UTF-8 character 0x"
@@ -346,17 +347,20 @@ public final class UTF8Reader
     private boolean loadMore(int available)
         throws IOException
     {
-        mByteCount += (mLength - available);
+        mByteCount += (mByteBufferEnd - available);
 
         // Bytes that need to be moved to the beginning of buffer?
         if (available > 0) {
-            if (mPtr > 0) {
+	    /* 11-Nov-2008, TSa: can only move if we own the buffer; otherwise
+	     *   we are stuck with the data.
+	     */
+            if (mBytePtr > 0 && canModifyBuffer()) {
                 for (int i = 0; i < available; ++i) {
-                    mBuffer[i] = mBuffer[mPtr+i];
+                    mByteBuffer[i] = mByteBuffer[mBytePtr+i];
                 }
-                mPtr = 0;
+                mBytePtr = 0;
+		mByteBufferEnd = available;
             }
-            mLength = available;
         } else {
             /* Ok; here we can actually reasonably expect an EOF,
              * so let's do a separate read right away:
@@ -375,7 +379,7 @@ public final class UTF8Reader
         /* We now have at least one byte... and that allows us to
          * calculate exactly how many bytes we need!
          */
-        int c = (int) mBuffer[0];
+        int c = (int) mByteBuffer[mBytePtr];
         if (c >= 0) { // single byte (ascii) char... cool, can return
             return true;
         }
@@ -399,12 +403,12 @@ public final class UTF8Reader
          * if an EOF is hit, that'll be an error. But we need not do
          * actual decoding here, just load enough bytes.
          */
-        while (mLength < needed) {
-            int count = readBytesAt(mLength);
+        while ((mBytePtr + needed) > mByteBufferEnd) {
+            int count = readBytesAt(mByteBufferEnd);
             if (count < 1) {
                 if (count < 0) { // -1, EOF... no good!
                     freeBuffers();
-                    reportUnexpectedEOF(mLength, needed);
+                    reportUnexpectedEOF(mByteBufferEnd, needed);
                 }
                 // 0 count is no good; let's err out
                 reportStrangeStream();
