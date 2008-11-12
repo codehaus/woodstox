@@ -52,7 +52,7 @@ public class TestNsStreamWriter
         /* 11-Nov-2008, TSa: Let's try out this new property, created
          *   for [WSTX-167]:
          */
-        f.setProperty(WstxOutputProperties.P_OUTPUT_INVALID_CHAR_HANDLER, new InvalidCharHandler.ReplacingHandler('X'));
+        //f.setProperty(WstxOutputProperties.P_OUTPUT_INVALID_CHAR_HANDLER, new InvalidCharHandler.ReplacingHandler('X'));
 
         //Writer w = new PrintWriter(System.out);
         //XMLStreamWriter sw = f.createXMLStreamWriter(w);

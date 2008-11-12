@@ -465,7 +465,7 @@ public final class BufferingXmlWriter
                                 }
                             } else {
                                 if (!mXml11 || c == 0) {
-                                    c = handleInvalidChar(c); // throws an error usualyl
+                                    c = handleInvalidChar(c); // throws an error usually
                                 } else {
                                     break inner_loop; // need quoting
                                 }
@@ -1427,7 +1427,7 @@ public final class BufferingXmlWriter
         if (c != null) {
             start += 2;
             /* Let's do simple optimization for search...
-             * (bayer-moore search algorithm)
+             * (simple bayer-moore - like algorithm) 
              */
             while (start < end) {
                 char ch = c[start];

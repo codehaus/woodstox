@@ -300,7 +300,8 @@ public abstract class XmlWriter
      * @param data Contents of the CDATA section to write out
 
      * @return offset of the (first) illegal content segment ("]]>") in 
-     *   passed content, if not in repairing mode; or -1 if none
+     *   passed content and not in repairing mode; or -1 if none or is
+     *   repairing
      */
     public abstract int writeCData(String data)
         throws IOException, XMLStreamException;
