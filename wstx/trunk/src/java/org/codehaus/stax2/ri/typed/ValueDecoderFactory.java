@@ -189,17 +189,24 @@ public final class ValueDecoderFactory
         /**
          * Pointer to the next character to check, within lexical value
          */
-        protected int mPtr;
-        
-        /**
-         * Pointer to the pointer in lexical value <b>after</b> last
-         * included character.
-         */
-        protected int mEnd;
+        protected int mNextPtr;
 
         protected DecoderBase() { }
 
         public abstract String getType();
+
+        /**
+         * Method called if the value to decode does not contain
+         * any non-white space characters (including the case where
+         * typed accessor is called for an empty element).
+         */
+        public void handleEmptyValue()
+        {
+            /* Defalt behavior for all types implemented within
+             * this class is to just throw an exception
+             */
+            throw new IllegalArgumentException("Empty value (all white space) not a valid lexical representation of "+getType());
+        }
 
         /*
         //////////////////////////////////////////////////
@@ -208,150 +215,29 @@ public final class ValueDecoderFactory
          */
 
         /**
-         *<p>
-         * Note that it is assumed that any "weird" white space
-         * (xml 1.1 LSEP and NEL) have been replaced by canonical
-         * alternatives (linefeed for element content, regular space
-         * for attributes)
-         */
-        protected final boolean isSpace(char c)
-        {
-            return ((int) c) <= 0x0020;
-        }
-
-        /**
-         * @param start First character of the lexical value to process
-         * @param end Pointer character <b>after</b> last valid character
-         *   of the lexical value
-         *
-         * @return First non-white space character from the String
-         */
-        protected char resetAndTrimLeading(String lexical, int start, int end)
-        {
-            mEnd = end;
-            
-            while (start < end) {
-                char c = lexical.charAt(start++);
-                if (!isSpace(c)) {
-                    mPtr = start;
-                    return c;
-                }
-            }
-            throw constructMissingValue();
-        }
-
-        protected int trimLeading(String lexical, int start, int end)
-        {
-            while (start < end) {
-                char c = lexical.charAt(start);
-                if (!isSpace(c)) {
-                    return start;
-                }
-                ++start;
-            }
-            throw constructMissingValue();
-        }
-        
-        protected int trimTrailing(String lexical, int start, int end)
-        {
-            while (--end > start && isSpace(lexical.charAt(end))) { }
-            return end+1;
-        }
-        
-        protected char resetAndTrimLeading(char[] lexical, int start, int end)
-        {
-            mEnd = end;
-            while (start < end) {
-                char c = lexical[start++];
-                if (!isSpace(c)) {
-                    mPtr = start;
-                    return c;
-                }
-            }
-            throw constructMissingValue();
-        }
-        
-        protected int trimLeading(char[] lexical, int start, int end)
-        {
-            while (start < end) {
-                char c = lexical[start];
-                if (!isSpace(c)) {
-                    return start;
-                }
-                ++start;
-            }
-            throw constructMissingValue();
-        }
-
-        protected int trimTrailing(char[] lexical, int start, int end)
-        {
-            while (--end > start && isSpace(lexical[end])) { }
-            return end+1;
-        }
-
-        /**
          * Method called to check that remaining String consists of zero or
-         * more digits, followed by zero or more white space, and nothing else;
-         * and to trim trailing white space, if any.
+         * more digits
          *
          * @return Number of valid digits found; or -1 to indicate invalid
          *   input
          */
-        protected int trimTrailingAndCheckDigits(String lexical)
+        protected void verifyDigits(String lexical, int start, int end)
         {
-            // Let's start from beginning
-            int ptr = mPtr;
-            
-            // Note: caller won't call this with empty String
-            char ch = lexical.charAt(ptr);
-            
-            // First, skim through digits
-            while (ch <= '9' && ch >= '0') {
-                if (++ptr >= mEnd) { // no trailing white space, valid
-                    return (ptr - mPtr);
+            for (; start < end; ++start) {
+                char ch = lexical.charAt(start);
+                if (ch > '9' || ch < '0') {
+                    throw constructInvalidValue(lexical);
                 }
-                ch = lexical.charAt(ptr);
-            }
-            
-            // And then see what follows digits...
-            int len = ptr - mPtr;
-            while (true) {
-                if (!isSpace(ch)) { // garbage following white space (or digits)
-                    return -1;
-                }
-                if (++ptr >= mEnd) {
-                    return len;
-            }
-                ch = lexical.charAt(ptr);
             }
         }
         
-        protected int trimTrailingAndCheckDigits(char[] lexical)
+        protected void verifyDigits(char[] lexical, int start, int end, int ptr)
         {
-            // Let's start from beginning
-            int ptr = mPtr;
-            
-            // Note: caller won't call this with empty String
-            char ch = lexical[ptr];
-            
-            // First, skim through digits
-            while (ch <= '9' && ch >= '0') {
-                if (++ptr >= mEnd) { // no trailing white space, valid
-                    return (ptr - mPtr);
+            for (; ptr < end; ++ptr) {
+                char ch = lexical[ptr];
+                if (ch > '9' || ch < '0') {
+                    throw constructInvalidValue(lexical, start, end);
                 }
-                ch = lexical[ptr];
-            }
-            
-            // And then see what follows digits...
-            int len = ptr - mPtr;
-            while (true) {
-                if (!isSpace(ch)) { // garbage following white space (or digits)
-                    return -1;
-                }
-                if (++ptr >= mEnd) {
-                    return len;
-                }
-                ch = lexical[ptr];
             }
         }
 
@@ -359,26 +245,28 @@ public final class ValueDecoderFactory
          * @return Numeric value of the first non-zero character (or, in
          *   case of a zero value, zero)
          */
-        protected int skipSignAndZeroes(String lexical, char ch, boolean hasSign)
+        protected int skipSignAndZeroes(String lexical, char ch, boolean hasSign, final int end)
         {
-            int ptr = mPtr;
-            
+            int ptr;
             // Then optional sign
             if (hasSign) {
-                if (ptr >= mEnd) {
-                    throw constructInvalidValue(String.valueOf(ch));
+                ptr = 1;
+                if (ptr >= end) {
+                    throw constructInvalidValue(lexical);
                 }
                 ch = lexical.charAt(ptr++);
+            } else {
+                ptr = 1;
             }
             
             // Has to start with a digit
             int value = ch - '0';
             if (value < 0 || value > 9) {
-                throw constructInvalidValue(lexical, mPtr-1);
+                throw constructInvalidValue(lexical);
             }
             
             // Then, leading zero(es) to skip? (or just value zero itself)
-            while (value == 0 && ptr < mEnd) {
+            while (value == 0 && ptr < end) {
                 int v2 = lexical.charAt(ptr) - '0';
                 if (v2 < 0 || v2 > 9) {
                     break;
@@ -386,18 +274,16 @@ public final class ValueDecoderFactory
                 ++ptr;
                 value = v2;
             }
-            mPtr = ptr;
+            mNextPtr = ptr;
             return value;
         }
         
-        protected int skipSignAndZeroes(char[] lexical, char ch, boolean hasSign)
+        protected int skipSignAndZeroes(char[] lexical, char ch, boolean hasSign, final int start, final int end)
         {
-            int ptr = mPtr;
-            
-            // Then optional sign
+            int ptr = start+1;
             if (hasSign) {
-                if (ptr >= mEnd) {
-                    throw constructInvalidValue(String.valueOf(ch));
+                if (ptr >= end) {
+                    throw constructInvalidValue(lexical, start, end);
                 }
                 ch = lexical[ptr++];
             }
@@ -405,11 +291,11 @@ public final class ValueDecoderFactory
             // Has to start with a digit
             int value = ch - '0';
             if (value < 0 || value > 9) {
-                throw constructInvalidValue(lexical, mPtr-1);
+                throw constructInvalidValue(lexical, start, end);
             }
             
             // Then leading zero(es) to skip? (or just value zero itself)
-            while (value == 0 && ptr < mEnd) {
+            while (value == 0 && ptr < end) {
                 int v2 = lexical[ptr] - '0';
                 if (v2 < 0 || v2 > 9) {
                     break;
@@ -417,28 +303,8 @@ public final class ValueDecoderFactory
                 ++ptr;
                 value = v2;
             }
-            mPtr = ptr;
+            mNextPtr = ptr;
             return value;
-        }
-        
-        protected final boolean allWhitespace(String lexical, int start, int end)
-        {
-            while (start < end) {
-                if (!isSpace(lexical.charAt(start++))) {
-                    return false;
-                }
-            }
-            return true;
-        }
-        
-        protected final boolean allWhitespace(char[] lexical, int start, int end)
-        {
-            while (start < end) {
-                if (!isSpace(lexical[start++])) {
-                    return false;
-                }
-            }
-            return true;
         }
         
         /*
@@ -592,47 +458,32 @@ public final class ValueDecoderFactory
         // Shared methods, error reporting
         ///////////////////////////////////////////////
         */
-
-        protected IllegalArgumentException constructMissingValue()
-        {
-            throw new IllegalArgumentException("Empty value (all white space) not a valid lexical representation of "+getType());
-        }
         
         protected IllegalArgumentException constructInvalidValue(String lexical)
         {
             // !!! Should we escape ctrl+chars etc?
             return new IllegalArgumentException("Value \""+lexical+"\" not a valid lexical representation of "+getType());
         }
-        
-        protected IllegalArgumentException constructInvalidValue(String lexical, int startOffset)
+
+        protected IllegalArgumentException constructInvalidValue(char[] lexical, int startOffset, int end)
         {
-            return new IllegalArgumentException("Value \""+lexicalDesc(lexical, startOffset)+"\" not a valid lexical representation of "+getType());
+            return new IllegalArgumentException("Value \""+lexicalDesc(lexical, startOffset, end)+"\" not a valid lexical representation of "+getType());
         }
         
-        protected IllegalArgumentException constructInvalidValue(char[] lexical, int startOffset)
+        protected String lexicalDesc(char[] lexical, int startOffset, int end)
         {
-            return new IllegalArgumentException("Value \""+lexicalDesc(lexical, startOffset)+"\" not a valid lexical representation of "+getType());
-        }
-        
-        protected String lexicalDesc(char[] lexical, int startOffset)
-        {
-            int len = mEnd-startOffset;
-            String str = new String(lexical, startOffset, len);
-            // !!! Should we escape ctrl+chars etc?
-            return str.trim();
-        }
-        
-        protected String lexicalDesc(String lexical, int startOffset)
-        {
-            String str = lexical.substring(startOffset);
-            // !!! Should we escape ctrl+chars etc?
-            return str.trim();
+            return _clean(new String(lexical, startOffset, end-startOffset));
         }
         
         protected String lexicalDesc(String lexical)
         {
+            return _clean(lexical);
+        }
+
+        protected String _clean(String str)
+        {
             // !!! Should we escape ctrl+chars etc?
-            return lexical.trim();
+            return str.trim();
         }
     }
 
@@ -656,38 +507,32 @@ public final class ValueDecoderFactory
         public void decode(String lexical)
             throws IllegalArgumentException
         {
-            // First, skip leading ws if any
-            char c = resetAndTrimLeading(lexical, 0, lexical.length());
-            int ptr = mPtr;
-            int len = mEnd-ptr;
+            int len = lexical.length();
+            char c = lexical.charAt(0);
             if (c == 't') {
-                if (len >= 3
-                    && lexical.charAt(ptr) == 'r'
-                    && lexical.charAt(++ptr) == 'u'
-                    && lexical.charAt(++ptr) == 'e') {
-                    if (++ptr >= mEnd || allWhitespace(lexical, ptr, mEnd)) {
-                        mValue = true;
-                        return;
-                    }
+                if (len == 4
+                    && lexical.charAt(1) == 'r'
+                    && lexical.charAt(2) == 'u'
+                    && lexical.charAt(3) == 'e') {
+                    mValue = true;
+                    return;
                 }
             } else if (c == 'f') {
-                if (len >= 4
-                    && lexical.charAt(ptr) == 'a'
-                    && lexical.charAt(++ptr) == 'l'
-                    && lexical.charAt(++ptr) == 's'
-                    && lexical.charAt(++ptr) == 'e') {
-                    if (++ptr >= mEnd || allWhitespace(lexical, ptr, mEnd)) {
-                        mValue = false;
-                        return;
-                    }
+                if (len == 5
+                    && lexical.charAt(1) == 'a'
+                    && lexical.charAt(2) == 'l'
+                    && lexical.charAt(3) == 's'
+                    && lexical.charAt(4) == 'e') {
+                    mValue = false;
+                    return;
                 }
             } else if (c == '0') {
-                if (ptr >= mEnd || allWhitespace(lexical, ptr, mEnd)) {
+                if (len == 1) {
                     mValue = false;
                     return;
                 }
             } else if (c == '1') {
-                if (ptr >= mEnd || allWhitespace(lexical, ptr, mEnd)) {
+                if (len == 1) {
                     mValue = true;
                     return;
                 }
@@ -699,42 +544,37 @@ public final class ValueDecoderFactory
             throws IllegalArgumentException
         {
             // First, skip leading ws if any
-            char c = resetAndTrimLeading(lexical, start, end);
-            int ptr = mPtr;
-            int len = mEnd-ptr;
+            int len = end-start;
+            char c = lexical[start];
             if (c == 't') {
-                if (len >= 3
-                    && lexical[ptr] == 'r'
-                    && lexical[++ptr] == 'u'
-                    && lexical[++ptr] == 'e') {
-                    if (++ptr >= mEnd || allWhitespace(lexical, ptr, mEnd)) {
-                        mValue = true;
-                        return;
-                    }
+                if (len == 4
+                    && lexical[start+1] == 'r'
+                    && lexical[start+2] == 'u'
+                    && lexical[start+3] == 'e') {
+                    mValue = true;
+                    return;
                 }
             } else if (c == 'f') {
-                if (len >= 4
-                    && lexical[ptr] == 'a'
-                    && lexical[++ptr] == 'l'
-                    && lexical[++ptr] == 's'
-                    && lexical[++ptr] == 'e') {
-                    if (++ptr >= mEnd || allWhitespace(lexical, ptr, mEnd)) {
-                        mValue = false;
-                        return;
-                    }
+                if (len == 5
+                    && lexical[start+1] == 'a'
+                    && lexical[start+2] == 'l'
+                    && lexical[start+3] == 's'
+                    && lexical[start+4] == 'e') {
+                    mValue = false;
+                    return;
                 }
             } else if (c == '0') {
-                if (ptr >= mEnd || allWhitespace(lexical, ptr, mEnd)) {
+                if (len == 1) {
                     mValue = false;
                     return;
                 }
             } else if (c == '1') {
-                if (ptr >= mEnd || allWhitespace(lexical, ptr, mEnd)) {
+                if (len == 1) {
                     mValue = true;
                     return;
                 }
             }
-            throw constructInvalidValue(lexical, start);
+            throw constructInvalidValue(lexical, start, end);
         }
     }
 
@@ -752,39 +592,39 @@ public final class ValueDecoderFactory
         public void decode(String lexical)
             throws IllegalArgumentException
         {
-            char ch = resetAndTrimLeading(lexical, 0, lexical.length());
+            final int end = lexical.length();
+            char ch = lexical.charAt(0);
             boolean neg = (ch == '-');
-            int nr = skipSignAndZeroes(lexical, ch, neg || (ch == '+'));
+            int nr;
 
-            // Quick check for short (single-digit) values:
-            if (mPtr >= mEnd) {
+            if (neg || (ch == '+')) {
+                nr = skipSignAndZeroes(lexical, ch, true, end);
+            } else {
+                nr = skipSignAndZeroes(lexical, ch, false, end);
+            }
+            int ptr = mNextPtr;
+
+            // Otherwise, need to verify that is [digit*][ws*]
+            int charsLeft = end-ptr;
+            if (charsLeft == 0) {
                 mValue = neg ? -nr : nr;
                 return;
             }
-
-            // Otherwise, need to verify that is [digit*][ws*]
-            int len = trimTrailingAndCheckDigits(lexical);
-            if (len < 1) {
-                if (len == 0) {
-                    mValue = neg ? -nr : nr;
-                    return;
-                }
-                throw constructInvalidValue(lexical, 0);
-            }
-            // Note: len is one less than total length (skipped first digit)
-            if (len <= 8) { // no overflow
-                int i = parseInt(nr, lexical, mPtr, mPtr+len);
+            verifyDigits(lexical, ptr, end);
+            // Note: charsLeft one less than total length (skipped first digit)
+            if (charsLeft <= 8) { // no overflow
+                int i = parseInt(nr, lexical, ptr, ptr+charsLeft);
                 mValue = neg ? -i : i;
                 return;
             }
             // Otherwise, may have overflow
             // Max 10 digits for a legal int
-            if (len == 9 && nr < 3) { // min/max is ~2 billion (+/-)
+            if (charsLeft == 9 && nr < 3) { // min/max is ~2 billion (+/-)
                 long base = L_BILLION;
                 if (nr == 2) {
                     base += L_BILLION;
                 }
-                int i = parseInt(lexical, mPtr, mPtr+len);
+                int i = parseInt(lexical, ptr, ptr+charsLeft);
                 long l = base + (long) i;
                 if (neg) {
                     l = -l;
@@ -799,46 +639,46 @@ public final class ValueDecoderFactory
                     }
                 }
             }
-            throw new IllegalArgumentException("value \""+lexicalDesc(lexical, 0)+"\" not a valid 32-bit integer: overflow.");
+            throw new IllegalArgumentException("value \""+lexicalDesc(lexical)+"\" not a valid 32-bit integer: overflow.");
 
         }
         
-        public void decode(char[] lexical, int start, int end)
+        public void decode(char[] lexical, final int start, final int end)
             throws IllegalArgumentException
         {
-            char ch = resetAndTrimLeading(lexical, start, end);
+            char ch = lexical[start];
             boolean neg = (ch == '-');
-            int nr = skipSignAndZeroes(lexical, ch, neg || (ch == '+'));
+            int nr;
+
+            if (neg || (ch == '+')) {
+                nr = skipSignAndZeroes(lexical, ch, true, start, end);
+            } else {
+                nr = skipSignAndZeroes(lexical, ch, false, start, end);
+            }
+            int ptr = mNextPtr;
 
             // Quick check for short (single-digit) values:
-            if (mPtr >= mEnd) {
+            int charsLeft = end-ptr;
+            if (charsLeft == 0) {
                 mValue = neg ? -nr : nr;
                 return;
             }
-
-            // Otherwise, need to verify that is [digit*][ws*]
-            int len = trimTrailingAndCheckDigits(lexical);
-            if (len < 1) {
-                if (len == 0) {
-                    mValue = neg ? -nr : nr;
-                    return;
-                }
-                throw constructInvalidValue(lexical, start);
-            }
-            // Note: len is one less than total length (skipped first digit)
-            if (len <= 8) { // no overflow
-                int i = parseInt(nr, lexical, mPtr, mPtr+len);
+            verifyDigits(lexical, start, end, ptr);
+            // Note: charsLeft one less than total length (skipped first digit)
+            // Can parse more cheaply, if it's really just an int...
+            if (charsLeft <= 8) { // no overflow
+                int i = parseInt(nr, lexical, ptr, ptr+charsLeft);
                 mValue = neg ? -i : i;
                 return;
             }
             // Otherwise, may have overflow
             // Max 10 digits for a legal int
-            if (len == 9 && nr < 3) { // min/max is ~2 billion (+/-)
+            if (charsLeft == 9 && nr < 3) { // min/max is ~2 billion (+/-)
                 long base = L_BILLION;
                 if (nr == 2) {
                     base += L_BILLION;
                 }
-                int i = parseInt(lexical, mPtr, mPtr+len);
+                int i = parseInt(lexical, ptr, ptr+charsLeft);
                 long l = base + (long) i;
                 if (neg) {
                     l = -l;
@@ -853,7 +693,7 @@ public final class ValueDecoderFactory
                     }
                 }
             }
-            throw new IllegalArgumentException("value \""+lexicalDesc(lexical, start)+"\" not a valid 32-bit integer: overflow.");
+            throw new IllegalArgumentException("value \""+lexicalDesc(lexical, start, end)+"\" not a valid 32-bit integer: overflow.");
         }
     }
 
@@ -871,40 +711,39 @@ public final class ValueDecoderFactory
         public void decode(String lexical)
             throws IllegalArgumentException
         {
-            char ch = resetAndTrimLeading(lexical, 0, lexical.length());
+            final int end = lexical.length();
+            char ch = lexical.charAt(0);
             boolean neg = (ch == '-');
-
-            int nr = skipSignAndZeroes(lexical, ch, neg || (ch == '+'));
+            int nr;
             
+            if (neg || (ch == '+')) {
+                nr = skipSignAndZeroes(lexical, ch, true, end);
+            } else {
+                nr = skipSignAndZeroes(lexical, ch, false, end);
+            }
+            int ptr = mNextPtr;
+
             // Quick check for short (single-digit) values:
-            if (mPtr >= mEnd) {
+            int charsLeft = end-ptr;
+            if (charsLeft == 0) {
                 mValue = (long) (neg ? -nr : nr);
                 return;
             }
-
-            // Otherwise, need to verify that is [digit*][ws*]
-            int len = trimTrailingAndCheckDigits(lexical);
-            if (len < 1) {
-                if (len == 0) {
-                    mValue = (long) (neg ? -nr : nr);
-                    return;
-                }
-                throw constructInvalidValue(lexical, 0);
-            }
-            // Note: len is one less than total length (skipped first digit)
+            verifyDigits(lexical, ptr, end);
+            // Note: charsLeft one less than total length (skipped first digit)
             // Can parse more cheaply, if it's really just an int...
-            if (len <= 8) { // no overflow
-                int i = parseInt(nr, lexical, mPtr, mPtr+len);
+            if (charsLeft <= 8) { // no overflow
+                int i = parseInt(nr, lexical, ptr, ptr+charsLeft);
                 mValue = (long) (neg ? -i : i);
                 return;
             }
             // At this point, let's just push back the first digit... simpler
-            --mPtr;
-            ++len;
-            
+            --ptr;
+            ++charsLeft;
+
             // Still simple long? 
-            if (len <= 18) {
-                long l = parseLong(lexical, mPtr, mPtr+len);
+            if (charsLeft <= 18) {
+                long l = parseLong(lexical, ptr, ptr+charsLeft);
                 mValue = neg ? -l : l;
                 return;
             }
@@ -912,52 +751,50 @@ public final class ValueDecoderFactory
              * BigInteger. While relatively inefficient, it's simple
              * to use, reliable etc.
              */
-            mValue = parseUsingBD(lexical.substring(mPtr, mPtr+len), neg);
+            mValue = parseUsingBD(lexical.substring(ptr, ptr+charsLeft), neg);
         }
 
-        public void decode(char[] lexical, int start, int end)
+        public void decode(char[] lexical, final int start, final int end)
             throws IllegalArgumentException
         {
-            char ch = resetAndTrimLeading(lexical, start, end);
+            char ch = lexical[start];
             boolean neg = (ch == '-');
-            
-            int nr = skipSignAndZeroes(lexical, ch, neg || (ch == '+'));
+            int nr;
+
+            if (neg || (ch == '+')) {
+                nr = skipSignAndZeroes(lexical, ch, true, start, end);
+            } else {
+                nr = skipSignAndZeroes(lexical, ch, false, start, end);
+            }
+            int ptr = mNextPtr;
             
             // Quick check for short (single-digit) values:
-            if (mPtr >= mEnd) {
+            int charsLeft = end-ptr;
+            if (charsLeft == 0) {
                 mValue = (long) (neg ? -nr : nr);
                 return;
             }
-            
-            // Otherwise, need to verify that is [digit*][ws*]
-            int len = trimTrailingAndCheckDigits(lexical);
-            if (len < 1) {
-                if (len == 0) {
-                    mValue = (long) (neg ? -nr : nr);
-                    return;
-                }
-                throw constructInvalidValue(lexical, start);
-            }
-            // Note: len is one less than total length (skipped first digit)
+            verifyDigits(lexical, start, end, ptr);
+            // Note: charsLeft one less than total length (skipped first digit)
             // Can parse more cheaply, if it's really just an int...
-            if (len <= 8) { // no overflow
-                int i = parseInt(nr, lexical, mPtr, mPtr+len);
+            if (charsLeft <= 8) { // no overflow
+                int i = parseInt(nr, lexical, ptr, ptr+charsLeft);
                 mValue = neg ? -i : i;
                 return;
             }
             // At this point, let's just push back the first digit... simpler
-            --mPtr;
-            ++len;
+            --ptr;
+            ++charsLeft;
             
             // Still simple long? 
-            if (len <= 18) {
-                long l = parseLong(lexical, mPtr, mPtr+len);
+            if (charsLeft <= 18) {
+                long l = parseLong(lexical, ptr, ptr+charsLeft);
                 mValue = neg ? -l : l;
                 return;
             }
 
             // Otherwise, let's just fallback to an expensive option
-            mValue = parseUsingBD(new String(lexical, mPtr, len), neg);
+            mValue = parseUsingBD(new String(lexical, ptr, charsLeft), neg);
         }
 
         private long parseUsingBD(String lexical, boolean neg)
@@ -976,7 +813,7 @@ public final class ValueDecoderFactory
                 }
             }
 
-            throw new IllegalArgumentException("value \""+lexicalDesc(lexical, 0)+"\" not a valid long: overflow.");
+            throw new IllegalArgumentException("value \""+lexicalDesc(lexical)+"\" not a valid long: overflow.");
         }
     }
 
@@ -994,14 +831,6 @@ public final class ValueDecoderFactory
         public void decode(String lexical)
             throws IllegalArgumentException
         {
-            int origEnd = lexical.length();
-            int start = trimLeading(lexical, 0, origEnd);
-            int end = trimTrailing(lexical, start, origEnd);
-
-            if (start > 0 || end < origEnd) {
-                lexical = lexical.substring(start, end);
-            }
-
             /* Then, leading digit; or one of 3 well-known constants
              * (INF, -INF, NaN)
              */
@@ -1041,8 +870,6 @@ public final class ValueDecoderFactory
         public void decode(char[] lexical, int start, int end)
             throws IllegalArgumentException
         {
-            start = trimLeading(lexical, start, end);
-            end = trimTrailing(lexical, start, end);
             int len = end-start;
             
             if (len == 3) {
@@ -1093,14 +920,6 @@ public final class ValueDecoderFactory
         public void decode(String lexical)
             throws IllegalArgumentException
         {
-            int origEnd = lexical.length();
-            int start = trimLeading(lexical, 0, origEnd);
-            int end = trimTrailing(lexical, start, origEnd);
-            
-            if (start > 0 || end < origEnd) {
-                lexical = lexical.substring(start, end);
-            }
-            
             /* Then, leading digit; or one of 3 well-known constants
              * (INF, -INF, NaN)
              */
@@ -1140,8 +959,6 @@ public final class ValueDecoderFactory
         public void decode(char[] lexical, int start, int end)
             throws IllegalArgumentException
         {
-            start = trimLeading(lexical, start, end);
-            end = trimTrailing(lexical, start, end);
             int len = end-start;
             
             if (len == 3) {
@@ -1195,15 +1012,8 @@ public final class ValueDecoderFactory
 
         public BigInteger getValue() { return mValue; }
 
-        public void decode(String lexical)
-            throws IllegalArgumentException
+        public void decode(String lexical) throws IllegalArgumentException
         {
-            int end = lexical.length();
-            int start = trimLeading(lexical, 0, end);
-            end = trimTrailing(lexical, start, end);
-            if (start > 0 || end < lexical.length()) {
-                lexical = lexical.substring(start, end);
-            }
             try {
                 mValue = new BigInteger(lexical);
             } catch (NumberFormatException nex) {
@@ -1211,11 +1021,8 @@ public final class ValueDecoderFactory
             }
         }
 
-        public void decode(char[] lexical, int start, int end)
-            throws IllegalArgumentException
+        public void decode(char[] lexical, int start, int end) throws IllegalArgumentException
         {
-            start = trimLeading(lexical, start, end);
-            end = trimTrailing(lexical, start, end);
             String lexicalStr = new String(lexical, start, (end-start));
             try {
                 mValue = new BigInteger(lexicalStr);
@@ -1236,15 +1043,8 @@ public final class ValueDecoderFactory
 
         public BigDecimal getValue() { return mValue; }
 
-        public void decode(String lexical)
-            throws IllegalArgumentException
+        public void decode(String lexical) throws IllegalArgumentException
         {
-            int end = lexical.length();
-            int start = trimLeading(lexical, 0, end);
-            end = trimTrailing(lexical, start, end);
-            if (start > 0 || end < lexical.length()) {
-                lexical = lexical.substring(start, end);
-            }
             try {
                 mValue = new BigDecimal(lexical);
             } catch (NumberFormatException nex) {
@@ -1252,11 +1052,8 @@ public final class ValueDecoderFactory
             }
         }
 
-        public void decode(char[] lexical, int start, int end)
-            throws IllegalArgumentException
+        public void decode(char[] lexical, int start, int end) throws IllegalArgumentException
         {
-            start = trimLeading(lexical, start, end);
-            end = trimTrailing(lexical, start, end);
             int len = end-start;
             try {
                 mValue = new BigDecimal(lexical, start, len);
@@ -1281,28 +1078,19 @@ public final class ValueDecoderFactory
 
         public QName getValue() { return mValue; }
 
-        public void decode(String lexical)
-            throws IllegalArgumentException
+        public void decode(String lexical) throws IllegalArgumentException
         {
-            lexical = lexical.trim();
-            if (lexical.length() == 0) {
-                throw constructMissingValue();
-            }
             int ix = lexical.indexOf(':');
             if (ix >= 0) { // qualified name
                mValue = resolveQName(lexical.substring(0, ix),
                                      lexical.substring(ix+1));
-               return;
+            } else {
+                mValue = resolveQName(lexical);
             }
-            mValue = resolveQName(lexical);
         }
 
-        public void decode(char[] lexical, int start, int end)
-            throws IllegalArgumentException
+        public void decode(char[] lexical, int start, int end) throws IllegalArgumentException
         {
-            start = trimLeading(lexical, start, end);
-            end = trimTrailing(lexical, start, end);
-            
             int i = start;
             for (; i < end; ++i) {
                 if (lexical[i] == ':') {
@@ -1314,8 +1102,7 @@ public final class ValueDecoderFactory
             mValue = resolveQName(new String(lexical, start, end-start));
         }
 
-        protected QName resolveQName(String localName)
-            throws IllegalArgumentException
+        protected QName resolveQName(String localName) throws IllegalArgumentException
         {
             // No prefix -> default namespace ("element rules")
             String uri = mNsCtxt.getNamespaceURI("");
@@ -1636,10 +1423,4 @@ public final class ValueDecoderFactory
             return (++mCount >= mEnd);
         }
     }
-
-    /*
-    /////////////////////////////////////////////////////
-    // Decoder(s), binary (base64)
-    /////////////////////////////////////////////////////
-    */
 }

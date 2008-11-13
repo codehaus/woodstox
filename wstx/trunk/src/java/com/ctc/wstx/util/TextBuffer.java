@@ -19,6 +19,7 @@ import org.codehaus.stax2.ri.typed.CharArrayBase64Decoder;
 import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.dtd.DTDEventListener;
 import com.ctc.wstx.sr.InputProblemReporter;
+import com.ctc.wstx.util.StringUtil;
 
 /**
  * TextBuffer is a class similar to {@link StringBuffer}, with
@@ -411,15 +412,33 @@ public final class TextBuffer
     public void decode(TypedValueDecoder tvd)
         throws IllegalArgumentException
     {
+        char[] buf;
+        int start, end;
+
         if (mInputStart >= 0) { // shared buffer, common case
-            int start = mInputStart;
-            int end = start + mInputLen;
-            tvd.decode(mInputBuffer, start, end);
-            return;
+            buf = mInputBuffer;
+            start = mInputStart;
+            end = start + mInputLen;
+        } else {
+            buf = getTextBuffer();
+            start = 0;
+            end = mSegmentSize + mCurrentSize;
         }
-        char[] buf = getTextBuffer();
-        int len = mSegmentSize + mCurrentSize;
-        tvd.decode(buf, 0, len);
+
+        // Need to trim first
+        while (true) {
+            if (start >= end) {
+                tvd.handleEmptyValue();
+                return;
+            }
+            if (!StringUtil.isSpace(buf[start])) {
+                break;
+            }
+            ++start;
+        }
+        // Trailing space?
+        while (--end > start && StringUtil.isSpace(buf[end])) { }
+        tvd.decode(buf, start, end+1);
     }
 
     /**

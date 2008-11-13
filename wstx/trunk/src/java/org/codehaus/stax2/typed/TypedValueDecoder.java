@@ -59,6 +59,5 @@ public abstract class TypedValueDecoder
      * then either change its state (to contain value to return)
      * or throw appropriate exception 
      */
-    //public abstract void handleEmptyValue() throws IllegalArgumentException;
+    public abstract void handleEmptyValue() throws IllegalArgumentException;
 }
-

@@ -324,4 +324,16 @@ public final class StringUtil
         }
         return true;
     }
+
+    /**
+     *<p>
+     * Note that it is assumed that any "weird" white space
+     * (xml 1.1 LSEP and NEL) have been replaced by canonical
+     * alternatives (linefeed for element content, regular space
+     * for attributes)
+     */
+    public final static boolean isSpace(char c)
+    {
+        return ((int) c) <= 0x0020;
+    }
 }

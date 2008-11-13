@@ -29,6 +29,7 @@ import org.codehaus.stax2.typed.TypedXMLStreamException;
 
 import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.sw.XmlWriter;
+import com.ctc.wstx.util.StringUtil;
 import com.ctc.wstx.util.StringVector;
 import com.ctc.wstx.util.TextBuilder;
 
@@ -267,22 +268,33 @@ public abstract class AttributeCollector
      * typed value.
      * Decoding is done using the decoder provided.
      */
-    public final void decodeValue(int index, TypedValueDecoder dec)
+    public final void decodeValue(int index, TypedValueDecoder tvd)
         throws IllegalArgumentException
     {
         if (index < 0 || index >= mAttrCount) {
             throwIndex(index);
         }
-        if (mAttrValues != null) {
-            String value = mAttrValues[index];
-            if (value != null) {
-                dec.decode(value);
+        /* Should be faster to pass the char array even if we might
+         * have a String
+         */
+        // Either way, need to trim before passing:
+        char[] buf = mValueBuffer.getCharBuffer();
+        int start = mValueBuffer.getOffset(index);
+        int end = mValueBuffer.getOffset(index+1);
+
+        while (true) {
+            if (start >= end) {
+                tvd.handleEmptyValue();
                 return;
             }
+            if (!StringUtil.isSpace(buf[start])) {
+                break;
+            }
+            ++start;
         }
-        dec.decode(mValueBuffer.getCharBuffer(),
-                   mValueBuffer.getOffset(index),
-                   mValueBuffer.getOffset(index+1));
+        // Trailing space?
+        while (--end > start && StringUtil.isSpace(buf[end])) { }
+        tvd.decode(buf, start, end+1);
     }
 
     /**
@@ -298,12 +310,7 @@ public abstract class AttributeCollector
         if (index < 0 || index >= mAttrCount) {
             throwIndex(index);
         }
-        if (mAttrValues != null) {
-            String value = mAttrValues[index];
-            if (value != null) {
-                return decodeValues(tad, rep, value);
-            }
-        }
+        // Char[] faster than String... and no need to trim here:
         return decodeValues(tad, rep,
                             mValueBuffer.getCharBuffer(),
                             mValueBuffer.getOffset(index),

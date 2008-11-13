@@ -56,7 +56,50 @@ public final class Stax2Util
         }
         return "["+type+"]";
     }                                                                                
+    /**
+     * Method called to trim leading and/or trailing space that given
+     * lexical value has.
+     *
+     * @return Trimmed value if <code>lexical</code> had at least one
+     *   non-space character; null otherwise
+     */
+    public static String trimSpaces(String lexical)
+    {
+        int end = lexical.length();
+        int start = 0;
 
+        while (true) {
+            if (start >= end) {
+                return null;
+            }
+            if (!_isSpace(lexical.charAt(start))) {
+                break;
+            }
+            ++start;
+        }
+        // No trailing space? Either original String as is, or just trim leading
+        --end;
+        if (!_isSpace(lexical.charAt(end))) {
+            return (start == 0) ? lexical : lexical.substring(start);
+        }
+
+        // Otherwise, at least some trailing ws...
+        while (--end > start && _isSpace(lexical.charAt(end))) { }
+
+        return lexical.substring(start, end+1);
+    }
+
+    /**
+     *<p>
+     * Note that it is assumed that any "weird" white space
+     * (xml 1.1 LSEP and NEL) have been replaced by canonical
+     * alternatives (linefeed for element content, regular space
+     * for attributes)
+     */
+    private final static boolean _isSpace(char c)
+    {
+        return ((int) c) <= 0x0020;
+    }
 
     /**
      * Helper class used to simplify text gathering while keeping

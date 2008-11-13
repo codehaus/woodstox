@@ -1127,10 +1127,10 @@ public abstract class DOMWrappingReader
     public void getElementAs(TypedValueDecoder tvd) throws XMLStreamException
     {
         String value = getElementText();
+        value = Stax2Util.trimSpaces(value);
         try {
-            if (value.length() == 0) {
-                // !!! TBI: call "handleEmptyValue" (or whatever)
-                tvd.decode("");
+            if (value == null) {
+                tvd.handleEmptyValue();
             } else {
                 tvd.decode(value);
             }
@@ -1449,8 +1449,13 @@ public abstract class DOMWrappingReader
     public final void getAttributeAs(int index, TypedValueDecoder tvd) throws XMLStreamException
     {
         String value = getAttributeValue(index);
+        value = Stax2Util.trimSpaces(value);
         try {
-            tvd.decode(value);
+            if (value == null) {
+                tvd.handleEmptyValue();
+            } else {
+                tvd.decode(value);
+            }
         } catch (IllegalArgumentException iae) {
             throw _constructTypeException(iae, value);
         }

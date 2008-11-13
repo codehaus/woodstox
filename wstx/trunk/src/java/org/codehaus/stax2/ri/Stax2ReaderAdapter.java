@@ -13,6 +13,7 @@ import javax.xml.stream.util.StreamReaderDelegate;
 import org.codehaus.stax2.typed.TypedArrayDecoder;
 import org.codehaus.stax2.typed.TypedValueDecoder;
 import org.codehaus.stax2.typed.TypedXMLStreamException;
+import org.codehaus.stax2.ri.Stax2Util;
 import org.codehaus.stax2.ri.typed.StringBase64Decoder;
 import org.codehaus.stax2.ri.typed.ValueDecoderFactory;
 
@@ -215,10 +216,10 @@ public class Stax2ReaderAdapter
     public void getElementAs(TypedValueDecoder tvd) throws XMLStreamException
     {
         String value = getElementText();
+        value = Stax2Util.trimSpaces(value);
         try {
-            if (value.length() == 0) {
-                // !!! TBI: call "handleEmptyValue" (or whatever)
-                tvd.decode("");
+            if (value == null) {
+                tvd.handleEmptyValue();
             } else {
                 tvd.decode(value);
             }
@@ -481,8 +482,13 @@ public class Stax2ReaderAdapter
     public void getAttributeAs(int index, TypedValueDecoder tvd) throws XMLStreamException
     {
         String value = getAttributeValue(index);
+        value = Stax2Util.trimSpaces(value);
         try {
-            tvd.decode(value);
+            if (value == null) {
+                tvd.handleEmptyValue();
+            } else {
+                tvd.decode(value);
+            }
         } catch (IllegalArgumentException iae) {
             throw _constructTypeException(iae, value);
         }

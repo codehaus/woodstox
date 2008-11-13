@@ -4,8 +4,7 @@ Planned stuff for 4.0
 
 * BUGS:
   * Entity/Notation declaration order?
-  * QName validation for writing
-  * MSV error messages
+[Partial: commented out]  * MSV error messages
 
 * Remaining Jira entries that must be tackled:
   * [WSTX-152]: Basic OSGi headers in Manifest
@@ -13,20 +12,19 @@ Planned stuff for 4.0
   * [WSTX-163]: XMLStreamWriter2.closeCompletely()
   * [WSTX-169]: Support for non-standard base64 modes
   * [WSTX-171]: Contributor guidelines
-DONE  * [WSTX-166]: Full support for Stax2ByteArraySource for faster parsing
-DONE  * [WSTX-167]: Auto-suppression of control chars for XMLStreamWriter2
+DONE * [WSTX-166]: Full support for Stax2ByteArraySource for faster parsing
+DONE * [WSTX-167]: Auto-suppression of control chars for XMLStreamWriter2
 
 * Nice-to-have Jira entries:
   * [WSTX-160]: Problems with multiple Schemas...
   * [WSTX-162]: DOM-reader, P_INTERN_NAMES, default to 'false' for DOM?
 
 * Misc internal improvements:
-  * Typed Access API, reader:
-    * Add simple Typed Value cleanup (trim leading/trailing space) within
-      readers so that decoders need not worry about it.
-    * handleEmptyValue
   * Typed Access API, writer:
     * separate encoders for short scalar values (ints etc), no need to loop
+
+* 4.0 Docs/test:
+  * Perf test, sample code, for base64-based transfer (file upload?)
 
 * Optimizations/improvements:
   * Try to move more of async unchecked (runtime) exceptions into
@@ -39,7 +37,6 @@ DONE  * [WSTX-167]: Auto-suppression of control chars for XMLStreamWriter2
     Simplifies access patterns
 
 * Bugs / incomplete handling:
-[DONE, ri]  * XMLEvent: should it implement equals(), hashCode()?
   * More optimal check for "]]>" in content. Now over 99% reliable, but
     theoretically could miss if combination on input buffer boundary.
   * XMLTest failures:
@@ -61,7 +58,6 @@ DONE  * [WSTX-167]: Auto-suppression of control chars for XMLStreamWriter2
     has been implemented, but in less clean way]
 
 * Stax2 improvements:
-[DONE] * XMLStreamWriter2.writeSpace()
   * Add getText()-like method that returns java.lang.CharSequence? Could
     allow zero-copy wrapping of parsed textual content.
   * XMLStreamReader2.hasPendingException and/or getPendingException
@@ -69,18 +65,7 @@ DONE  * [WSTX-167]: Auto-suppression of control chars for XMLStreamWriter2
   * Char[] attribute accessors for XMLStreamReader?
   * Char[] attribute write methods for XMLStreamWriter?
 
-* Stax2, typed API:
-[DONE] * Reader side: simple types, list/array types, binary (base64)
-[DONE] * Writer side: simple types, list/array types, binary (base64)
-
-* Removing cruft:
-[DONE]  * Remove support for pre-JDK-1.4
-[DONE]  * Remove non-normalizing (attr, text) modes
-
 * Stax compatibility:
-[DONE] * Return "" instead of null for 'default' (or 'no') namespace (for 4.0)
-[DONE] * Change default for 'report SPACE outside root element' to false, from
-    true (basically revert to pre-3.0 state)
   * Minimize unchecked (lazy) exceptions, by deferring throwing of some
     exceptions (at least any problems in CHARACTERS segment which are
     easy)
@@ -91,7 +76,6 @@ DONE  * [WSTX-167]: Auto-suppression of control chars for XMLStreamWriter2
 
 * Interoperability:
    * DOM:
-[DONE] * Implement DOMTarget (DOMWrappingWriter)
       * DOMWrappingReader: implement Stax2 validation API
       * DOMWrappingWriter: implement Stax2 validation API
 
@@ -99,13 +83,11 @@ DONE  * [WSTX-167]: Auto-suppression of control chars for XMLStreamWriter2
 [Partial?] * Finish incomplete support methods that RNG validation uses;
      InputElementStack's isNotationDeclared, isUnparsedEntityDeclared,
      getBaseUri().
-[DONE] * Integrate Multi-Schema Validator's W3C Schema validator
    * How about DTD++? Data types should be reasonably easy...?
      Would also allow partial W3C Schema and RelaxNG implementations
      natively?
 
 * XML standards:
-[DONE, 3.1] * Xml:id support (is there need to disable it?)
   * XInclude
   * XML Catalog support
   * Canonicalization?
@@ -120,3 +102,4 @@ DONE  * [WSTX-167]: Auto-suppression of control chars for XMLStreamWriter2
       * Jars: for 1.3/1.2 SAX(2) and DOM API jars?
    * FAQ:
       * Output streaming; use of 'writeCharacters("");', flush()
+      * Feature for replacing illegal (control) characters on output

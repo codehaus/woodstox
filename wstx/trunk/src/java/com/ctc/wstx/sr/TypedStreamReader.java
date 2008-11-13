@@ -213,18 +213,14 @@ public class TypedStreamReader
              */
             mStEmptyElem = false;
             mCurrToken = END_ELEMENT;
-            handleEmptyValue(tvd);
+            _handleEmptyValue(tvd);
             return;
         }
         // First need to find a textual event
         while (true) {
             int type = next();
             if (type == END_ELEMENT) {
-                try {
-                    tvd.decode("");
-                } catch (IllegalArgumentException iae) {
-                    throw _constructTypeException(iae, "");
-                }
+                _handleEmptyValue(tvd);
                 return;
             }
             if (type == COMMENT || type == PROCESSING_INSTRUCTION) {
@@ -277,27 +273,15 @@ public class TypedStreamReader
         }
         // Note: calls next() have validated text, no need for more validation
         String str = sb.toString();
-        try {
-            tvd.decode(str);
-        } catch (IllegalArgumentException iae) {
-            throw _constructTypeException(iae, str);
-        }
-    }
-
-    /**
-     * Method called to handle value that has empty String
-     * as representation. This will usually either lead to an
-     * exception, or parsing to the default value for the
-     * type in question (null for nullable types and so on).
-     */
-    private void handleEmptyValue(TypedValueDecoder dec)
-        throws XMLStreamException
-    {
-        try {
-            // !!! TBI: call "handleEmptyValue" (or whatever)
-            dec.decode("");
-        } catch (IllegalArgumentException iae) {
-            throw _constructTypeException(iae, "");
+        String tstr = Stax2Util.trimSpaces(str);
+        if (tstr == null) {
+            _handleEmptyValue(tvd);
+        } else {
+            try {
+                tvd.decode(tstr);
+            } catch (IllegalArgumentException iae) {
+                throw _constructTypeException(iae, str);
+            }
         }
     }
 
@@ -406,28 +390,6 @@ public class TypedStreamReader
     }
 
     /*
-    private final void verifyCharactersComplete()
-        throws XMLStreamException
-    {
-        if (mTokenState < TOKEN_FULL_SINGLE) {
-            if (!readTextSecondary(Integer.MAX_VALUE, false)) { // sanity check
-                throw new IllegalStateException(ErrorConsts.ERR_INTERNAL);
-            }
-        }
-    }
-
-    private final void verifyCDataComplete()
-        throws XMLStreamException
-    {
-        if (mTokenState < TOKEN_FULL_SINGLE) {
-            if (!readCDataSecondary(Integer.MAX_VALUE)) { // sanity check
-                throw new IllegalStateException(ErrorConsts.ERR_INTERNAL);
-            }
-        }
-    }
-    */
-
-    /*
     ////////////////////////////////////////////////////////
     // TypedXMLStreamReader2 implementation, binary data
     ////////////////////////////////////////////////////////
@@ -477,11 +439,10 @@ public class TypedStreamReader
                 if (type == COMMENT || type == PROCESSING_INSTRUCTION) {
                     continue;
                 }
-                initBinaryChunks(dec, type, true);
+                _initBinaryChunks(dec, type, true);
                 break;
             }
         }
-        // throwNotTextualOrElem(type);
 
         int totalCount = 0;
 
@@ -520,7 +481,7 @@ public class TypedStreamReader
                     }
                     break main_loop;
                 }
-                initBinaryChunks(dec, type, false);
+                _initBinaryChunks(dec, type, false);
                 break;
             }
         }
@@ -529,7 +490,7 @@ public class TypedStreamReader
         return (totalCount > 0) ? totalCount : -1;
     }
 
-    private final void initBinaryChunks(CharArrayBase64Decoder dec, int type, boolean isFirst)
+    private final void _initBinaryChunks(CharArrayBase64Decoder dec, int type, boolean isFirst)
         throws XMLStreamException
     {
         if (type == CHARACTERS) {
@@ -720,6 +681,22 @@ public class TypedStreamReader
             _base64Decoder = new CharArrayBase64Decoder();
         }
         return _base64Decoder;
+    }
+
+    /**
+     * Method called to handle value that has empty String
+     * as representation. This will usually either lead to an
+     * exception, or parsing to the default value for the
+     * type in question (null for nullable types and so on).
+     */
+    private void _handleEmptyValue(TypedValueDecoder dec)
+        throws XMLStreamException
+    {
+        try { // default action is to throw an exception
+            dec.handleEmptyValue();
+        } catch (IllegalArgumentException iae) {
+            throw _constructTypeException(iae, "");
+        }
     }
 
     /**
