@@ -44,39 +44,39 @@ public class TestDOMReader
     public void testValidQNameElem()
     {
         // Ugh: due to missing NS lookups, even this would fail...
-        System.out.println("(skipping TestDOMReader.testValidQNameElem()");
+        warn("(skipping TestDOMReader.testValidQNameElem()");
     }
 
     // @Override
     public void testInvalidQNameElemBadChars()
     {
-        System.out.println("(skipping TestDOMReader.testInvalidQNameElemBadChars)");
+        warn("(skipping TestDOMReader.testInvalidQNameElemBadChars)");
     }
 
     // @Override
     public void testInvalidQNameElemUnbound()
     {
         // Need DOM3 to support namespace lookups
-        System.out.println("(skipping TestDOMReader.testInvalidQNameElemUnbound()");
+        warn("(skipping TestDOMReader.testInvalidQNameElemUnbound()");
     }
 
     // @Override
     public void testValidQNameAttr()
     {
-        System.out.println("(skipping TestDOMReader.testValidQNameAttr()");
+        warn("(skipping TestDOMReader.testValidQNameAttr()");
     }
 
     // @Override
     public void testInvalidQNameAttrBadChars()
     {
-        System.out.println("(skipping TestDOMReader.testInvalidQNameAttrBadChars)");
+        warn("(skipping TestDOMReader.testInvalidQNameAttrBadChars)");
     }
 
     // @Override
     public void testInvalidQNameAttrUnbound()
     {
         // Need DOM3 to support namespace lookups
-        System.out.println("(skipping TestDOMReader.testInvalidQNameAttrUnbound()");
+        warn("(skipping TestDOMReader.testInvalidQNameAttrUnbound()");
     }
 }
 

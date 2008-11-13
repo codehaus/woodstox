@@ -326,7 +326,7 @@ public class WstxDOMWrappingWriter
             return;
         }
         if (!mNsAware) {
-            throwOutputError("Can not set write namespaces with non-namespace writer.");
+            throwOutputError("Can not write namespaces with non-namespace writer.");
         }
         outputAttribute(XMLConstants.XMLNS_ATTRIBUTE_NS_URI, "xmlns", prefix, nsURI);
         mCurrElem.addPrefix(prefix, nsURI);
@@ -426,7 +426,13 @@ public class WstxDOMWrappingWriter
      */
 
     /* Note: copied from regular RepairingNsStreamWriter#writeStartOrEmpty
-     * (and its non-repairing counterpart)
+     * (and its non-repairing counterpart).
+     */
+
+    /**
+     *  Method called by all start element write methods.
+     *
+     * @param nsURI Namespace URI to use: null and empty String denote 'no namespace'
      */
     protected void createStartElem(String nsURI, String prefix, String localName, boolean isEmpty)
         throws XMLStreamException
@@ -441,8 +447,12 @@ public class WstxDOMWrappingWriter
         } else {
             if (mNsRepairing) {
                 String actPrefix = validateElemPrefix(prefix, nsURI, mCurrElem);
-                if(actPrefix != null && actPrefix.length() != 0) {// fine, an existing binding we can use:
-                    elem = mCurrElem.createChild(mDocument.createElementNS(nsURI, actPrefix+":"+localName));
+                if (actPrefix != null) { // fine, an existing binding we can use:
+		    if (actPrefix.length() != 0) {
+			elem = mCurrElem.createChild(mDocument.createElementNS(nsURI, actPrefix+":"+localName));
+		    } else {
+			elem = mCurrElem.createChild(mDocument.createElementNS(nsURI, localName));
+		    }
                 } else { // nah, need to create a new binding...
                     /* Need to ensure that we'll pass "" as prefix, not null,
                      * so it is understood as "I want to use the default NS",
@@ -476,9 +486,9 @@ public class WstxDOMWrappingWriter
             } else {
                 /* Non-repairing; if non-null prefix (including "" to
                  * indicate "no prefix") passed, use as is, otherwise
-                 * try to locate the prefix
+                 * try to locate the prefix if got namespace.
                  */
-                if (prefix == null) {
+                if (prefix == null && nsURI != null && nsURI.length() > 0) {
                     if (nsURI == null) {
                         nsURI = "";
                     }
@@ -486,8 +496,8 @@ public class WstxDOMWrappingWriter
                     if (prefix == null) {
                         throwOutputError("Can not find prefix for namespace \""+nsURI+"\"");
                     }
-                }
-                if (prefix.length() != 0) {
+		}
+                if (prefix != null && prefix.length() != 0) {
                     localName = prefix + ":" +localName;
                 }
                 elem = mCurrElem.createChild(mDocument.createElementNS(nsURI, localName));

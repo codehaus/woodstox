@@ -3,6 +3,7 @@ package wstxtest.wstream;
 import javax.xml.parsers.*;
 import javax.xml.stream.*;
 import javax.xml.transform.dom.DOMResult;
+
 import org.w3c.dom.*;
 
 import org.codehaus.stax2.typed.TypedXMLStreamWriter;

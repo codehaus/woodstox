@@ -40,13 +40,13 @@ public abstract class WriterTestBase
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         XMLStreamWriter2 w = getTypedWriter(bos);
         writeBooleanElem(w, true);
-        w.close();
-        checkBooleanElem(bos, true);
+	byte[] data = closeWriter(w, bos);
+        checkBooleanElem(data, true);
 
         w = getTypedWriter(bos);
         writeBooleanElem(w, false);
-        w.close();
-        checkBooleanElem(bos, false);
+	data = closeWriter(w, bos);
+        checkBooleanElem(data, false);
     }
 
     public void testSimpleBooleanAttr()
@@ -55,13 +55,13 @@ public abstract class WriterTestBase
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         XMLStreamWriter2 w = getTypedWriter(bos);
         writeBooleanAttr(w, true);
-        w.close();
-        checkBooleanAttr(bos, true);
+	byte[] data = closeWriter(w, bos);
+        checkBooleanAttr(data, true);
 
         w = getTypedWriter(bos);
         writeBooleanAttr(w, false);
-        w.close();
-        checkBooleanAttr(bos, false);
+	data = closeWriter(w, bos);
+        checkBooleanAttr(data, false);
     }
 
     public void testMultipleBooleanAttr()
@@ -80,7 +80,8 @@ public abstract class WriterTestBase
         w.writeEndElement();
         w.writeEndDocument();
 
-        XMLStreamReader2 sr = getRootReader(bos);
+	byte[] data = closeWriter(w, bos);
+        XMLStreamReader2 sr = getRootReader(data);
         assertEquals(3, sr.getAttributeCount());
         int ix1 = sr.getAttributeIndex("", "a1");
         int ix2 = sr.getAttributeIndex("", "xyz");
@@ -104,7 +105,7 @@ public abstract class WriterTestBase
         };
         for (int i = 0; i < values.length; ++i) {
             int value = values[i];
-            assertEquals("<root>"+value+"</root>", writeIntElemDoc("root", value));
+            assertXML("<root>"+value+"</root>", writeIntElemDoc("root", value));
         }
     }
 
@@ -117,7 +118,7 @@ public abstract class WriterTestBase
         };
         for (int i = 0; i < values.length; ++i) {
             int value = values[i];
-            assertEquals("<a attr='"+value+"'></a>", writeIntAttrDoc("a", "attr", value));
+            assertXML("<a attr='"+value+"'></a>", writeIntAttrDoc("a", "attr", value));
         }
     }
 
@@ -137,7 +138,8 @@ public abstract class WriterTestBase
         w.writeEndElement();
         w.writeEndDocument();
 
-        XMLStreamReader2 sr = getRootReader(bos);
+	byte[] data = closeWriter(w, bos);
+        XMLStreamReader2 sr = getRootReader(data);
         assertEquals(3, sr.getAttributeCount());
         int ix1 = sr.getAttributeIndex("", "a");
         int ix2 = sr.getAttributeIndex("", "bz");
@@ -163,7 +165,7 @@ public abstract class WriterTestBase
         };
         for (int i = 0; i < values.length; ++i) {
             long value = values[i];
-            assertEquals("<root>"+value+"</root>", writeLongElemDoc("root", value));
+            assertXML("<root>"+value+"</root>", writeLongElemDoc("root", value));
         }
     }
 
@@ -178,7 +180,7 @@ public abstract class WriterTestBase
         };
         for (int i = 0; i < values.length; ++i) {
             long value = values[i];
-            assertEquals("<a attr='"+value+"'></a>", writeLongAttrDoc("a", "attr", value));
+            assertXML("<a attr='"+value+"'></a>", writeLongAttrDoc("a", "attr", value));
         }
     }
 
@@ -198,7 +200,8 @@ public abstract class WriterTestBase
         w.writeEndElement();
         w.writeEndDocument();
 
-        XMLStreamReader2 sr = getRootReader(bos);
+	byte[] data = closeWriter(w, bos);
+        XMLStreamReader2 sr = getRootReader(data);
         assertEquals(3, sr.getAttributeCount());
         int ix1 = sr.getAttributeIndex("", "a");
         int ix2 = sr.getAttributeIndex("", "bz");
@@ -223,7 +226,7 @@ public abstract class WriterTestBase
         };
         for (int i = 0; i < values.length; ++i) {
             float value = values[i];
-            assertEquals("<root>"+value+"</root>", writeFloatElemDoc("root", value));
+            assertXML("<root>"+value+"</root>", writeFloatElemDoc("root", value));
         }
     }
 
@@ -237,7 +240,7 @@ public abstract class WriterTestBase
         };
         for (int i = 0; i < values.length; ++i) {
             float value = values[i];
-            assertEquals("<a attr='"+value+"'></a>", writeFloatAttrDoc("a", "attr", value));
+            assertXML("<a attr='"+value+"'></a>", writeFloatAttrDoc("a", "attr", value));
         }
     }
 
@@ -251,7 +254,7 @@ public abstract class WriterTestBase
         };
         for (int i = 0; i < values.length; ++i) {
             double value = values[i];
-            assertEquals("<root>"+value+"</root>", writeDoubleElemDoc("root", value));
+            assertXML("<root>"+value+"</root>", writeDoubleElemDoc("root", value));
         }
     }
 
@@ -265,7 +268,7 @@ public abstract class WriterTestBase
         };
         for (int i = 0; i < values.length; ++i) {
             double value = values[i];
-            assertEquals("<a attr='"+value+"'></a>", writeDoubleAttrDoc("a", "attr", value));
+            assertXML("<a attr='"+value+"'></a>", writeDoubleAttrDoc("a", "attr", value));
         }
     }
 
@@ -275,8 +278,8 @@ public abstract class WriterTestBase
         BigInteger I = BigInteger.valueOf(3);
         Random rnd = new Random(2);
         for (int i = 1; i < 200; ++i) {
-            assertEquals("<root>"+I+"</root>", writeIntegerElemDoc("root", I));
-            assertEquals("<a attr='"+I+"'></a>", writeIntegerAttrDoc("a", "attr", I));
+            assertXML("<root>"+I+"</root>", writeIntegerElemDoc("root", I));
+            assertXML("<a attr='"+I+"'></a>", writeIntegerAttrDoc("a", "attr", I));
             I = I.multiply(BigInteger.valueOf(10)).add(BigInteger.valueOf(rnd.nextInt() & 0xF));
         }
     }
@@ -287,8 +290,8 @@ public abstract class WriterTestBase
         BigDecimal D = BigDecimal.valueOf(1L);
         Random rnd = new Random(9);
         for (int i = 1; i < 200; ++i) {
-            assertEquals("<root>"+D+"</root>", writeDecimalElemDoc("root", D));
-            assertEquals("<a attr='"+D+"'></a>", writeDecimalAttrDoc("a", "attr", D));
+            assertXML("<root>"+D+"</root>", writeDecimalElemDoc("root", D));
+            assertXML("<a attr='"+D+"'></a>", writeDecimalAttrDoc("a", "attr", D));
             // Ok, then, add a small integer, divide by 10 to generate digits
             D = D.add(BigDecimal.valueOf(rnd.nextInt() & 0xF)).divide(BigDecimal.valueOf(10L));
         }
@@ -312,8 +315,8 @@ public abstract class WriterTestBase
         final String URI = "http://my.uri";
         QName n = new QName(URI, "elem", "ns");
 
-        assertEquals("<root xmlns:ns='"+URI+"'>ns:elem</root>", writeQNameElemDoc("root", n, repairing));
-        assertEquals("<root xmlns:ns='"+URI+"' attr='ns:elem'></root>",
+        assertXML("<root xmlns:ns='"+URI+"'>ns:elem</root>", writeQNameElemDoc("root", n, repairing));
+        assertXML("<root xmlns:ns='"+URI+"' attr='ns:elem'></root>",
                      writeQNameAttrDoc("root", "attr", n, repairing));
     }
 
@@ -535,18 +538,18 @@ public abstract class WriterTestBase
     ////////////////////////////////////////
      */
 
-    private void checkBooleanElem(ByteArrayOutputStream src, boolean expState)
+    private void checkBooleanElem(byte[] data, boolean expState)
         throws XMLStreamException
     {
-        XMLStreamReader2 sr = getRootReader(src);
+        XMLStreamReader2 sr = getRootReader(data);
         assertEquals(expState, sr.getElementAsBoolean());
         sr.close();
     }
 
-    private void checkBooleanAttr(ByteArrayOutputStream src, boolean expState)
+    private void checkBooleanAttr(byte[] data, boolean expState)
         throws XMLStreamException
     {
-        XMLStreamReader2 sr = getRootReader(src);
+        XMLStreamReader2 sr = getRootReader(data);
         assertEquals(expState, sr.getAttributeAsBoolean(0));
         sr.close();
     }
@@ -582,7 +585,7 @@ public abstract class WriterTestBase
         sw.writeInt(value);
         sw.writeEndElement();
         sw.writeEndDocument();
-        return getUTF8(bos);
+        return getUTF8(sw, bos);
     }
 
     private String writeIntAttrDoc(String elem, String attr, int value)
@@ -597,7 +600,7 @@ public abstract class WriterTestBase
         sw.writeCharacters(""); // to avoid empty elem
         sw.writeEndElement();
         sw.writeEndDocument();
-        String str = getUTF8(bos);
+        String str = getUTF8(sw, bos);
         // One twist: need to ensure quotes are single-quotes (for the test)
         return str.replace('"', '\'');
     }
@@ -613,7 +616,7 @@ public abstract class WriterTestBase
         sw.writeLong(value);
         sw.writeEndElement();
         sw.writeEndDocument();
-        return getUTF8(bos);
+        return getUTF8(sw, bos);
     }
 
     private String writeLongAttrDoc(String elem, String attr, long value)
@@ -628,7 +631,7 @@ public abstract class WriterTestBase
         sw.writeCharacters(""); // to avoid empty elem
         sw.writeEndElement();
         sw.writeEndDocument();
-        String str = getUTF8(bos);
+        String str = getUTF8(sw, bos);
         // One twist: need to ensure quotes are single-quotes (for the test)
         return str.replace('"', '\'');
     }
@@ -644,7 +647,7 @@ public abstract class WriterTestBase
         sw.writeFloat(value);
         sw.writeEndElement();
         sw.writeEndDocument();
-        return getUTF8(bos);
+        return getUTF8(sw, bos);
     }
 
     private String writeFloatAttrDoc(String elem, String attr, float value)
@@ -659,7 +662,7 @@ public abstract class WriterTestBase
         sw.writeCharacters(""); // to avoid empty elem
         sw.writeEndElement();
         sw.writeEndDocument();
-        String str = getUTF8(bos);
+        String str = getUTF8(sw, bos);
         // One twist: need to ensure quotes are single-quotes (for the test)
         return str.replace('"', '\'');
     }
@@ -673,7 +676,7 @@ public abstract class WriterTestBase
         sw.writeDouble(value);
         sw.writeEndElement();
         sw.writeEndDocument();
-        return getUTF8(bos);
+        return getUTF8(sw, bos);
     }
 
     private String writeDoubleAttrDoc(String elem, String attr, double value)
@@ -686,7 +689,7 @@ public abstract class WriterTestBase
         sw.writeCharacters(""); // to avoid empty elem
         sw.writeEndElement();
         sw.writeEndDocument();
-        String str = getUTF8(bos);
+        String str = getUTF8(sw, bos);
         // One twist: need to ensure quotes are single-quotes (for the test)
         return str.replace('"', '\'');
     }
@@ -700,7 +703,7 @@ public abstract class WriterTestBase
         sw.writeInteger(value);
         sw.writeEndElement();
         sw.writeEndDocument();
-        return getUTF8(bos);
+        return getUTF8(sw, bos);
     }
 
     private String writeIntegerAttrDoc(String elem, String attr, BigInteger value)
@@ -713,7 +716,7 @@ public abstract class WriterTestBase
         sw.writeCharacters(""); // to avoid empty elem
         sw.writeEndElement();
         sw.writeEndDocument();
-        String str = getUTF8(bos);
+        String str = getUTF8(sw, bos);
         // One twist: need to ensure quotes are single-quotes (for the test)
         return str.replace('"', '\'');
     }
@@ -727,7 +730,7 @@ public abstract class WriterTestBase
         sw.writeDecimal(value);
         sw.writeEndElement();
         sw.writeEndDocument();
-        return getUTF8(bos);
+        return getUTF8(sw, bos);
     }
 
     private String writeDecimalAttrDoc(String elem, String attr, BigDecimal value)
@@ -740,7 +743,7 @@ public abstract class WriterTestBase
         sw.writeCharacters(""); // to avoid empty elem
         sw.writeEndElement();
         sw.writeEndDocument();
-        String str = getUTF8(bos);
+        String str = getUTF8(sw, bos);
         // One twist: need to ensure quotes are single-quotes (for the test)
         return str.replace('"', '\'');
     }
@@ -757,7 +760,7 @@ public abstract class WriterTestBase
         sw.writeQName(n);
         sw.writeEndElement();
         sw.writeEndDocument();
-        String str = getUTF8(bos);
+        String str = getUTF8(sw, bos);
         return str.replace('"', '\'');
     }
 
@@ -774,7 +777,7 @@ public abstract class WriterTestBase
         sw.writeCharacters(""); // to avoid empty elem
         sw.writeEndElement();
         sw.writeEndDocument();
-        String str = getUTF8(bos);
+        String str = getUTF8(sw, bos);
         return str.replace('"', '\'');
     }
 
@@ -793,7 +796,7 @@ public abstract class WriterTestBase
         }
         sw.writeEndElement();
         sw.writeEndDocument();
-        return bos.toByteArray();
+	return closeWriter(sw, bos);
     }
 
     private byte[] writeIntArrayAttrDoc(String elem, String attr, int[] values)
@@ -805,7 +808,7 @@ public abstract class WriterTestBase
         sw.writeIntArrayAttribute(null, null, attr, values);
         sw.writeEndElement();
         sw.writeEndDocument();
-        return bos.toByteArray();
+	return closeWriter(sw, bos);
     }
 
     private byte[] writeLongArrayElemDoc(String elem, long[] values)
@@ -823,7 +826,7 @@ public abstract class WriterTestBase
         }
         sw.writeEndElement();
         sw.writeEndDocument();
-        return bos.toByteArray();
+	return closeWriter(sw, bos);
     }
 
     private byte[] writeLongArrayAttrDoc(String elem, String attr, long[] values)
@@ -835,7 +838,7 @@ public abstract class WriterTestBase
         sw.writeLongArrayAttribute(null, null, attr, values);
         sw.writeEndElement();
         sw.writeEndDocument();
-        return bos.toByteArray();
+	return closeWriter(sw, bos);
     }
 
     private byte[] writeFloatArrayElemDoc(String elem, float[] values)
@@ -853,7 +856,7 @@ public abstract class WriterTestBase
         }
         sw.writeEndElement();
         sw.writeEndDocument();
-        return bos.toByteArray();
+	return closeWriter(sw, bos);
     }
 
     private byte[] writeFloatArrayAttrDoc(String elem, String attr, float[] values)
@@ -865,7 +868,7 @@ public abstract class WriterTestBase
         sw.writeFloatArrayAttribute(null, null, attr, values);
         sw.writeEndElement();
         sw.writeEndDocument();
-        return bos.toByteArray();
+	return closeWriter(sw, bos);
     }
 
     private byte[] writeDoubleArrayElemDoc(String elem, double[] values)
@@ -883,7 +886,7 @@ public abstract class WriterTestBase
         }
         sw.writeEndElement();
         sw.writeEndDocument();
-        return bos.toByteArray();
+	return closeWriter(sw, bos);
     }
 
     private byte[] writeDoubleArrayAttrDoc(String elem, String attr, double[] values)
@@ -895,7 +898,7 @@ public abstract class WriterTestBase
         sw.writeDoubleArrayAttribute(null, null, attr, values);
         sw.writeEndElement();
         sw.writeEndDocument();
-        return bos.toByteArray();
+	return closeWriter(sw, bos);
     }
 
     /*
@@ -906,6 +909,9 @@ public abstract class WriterTestBase
 
     protected abstract XMLStreamWriter2 getTypedWriter(ByteArrayOutputStream out,
                                                        boolean repairing)
+        throws XMLStreamException;
+
+    protected abstract byte[] closeWriter(XMLStreamWriter sw, ByteArrayOutputStream out)
         throws XMLStreamException;
 
     /*
@@ -921,10 +927,10 @@ public abstract class WriterTestBase
     }
 
     // XMLStreamReader2 extends TypedXMLStreamReader
-    private XMLStreamReader2 getRootReader(ByteArrayOutputStream src)
+    private XMLStreamReader2 getRootReader(byte[] data)
         throws XMLStreamException
     {
-        XMLStreamReader2 sr = getReader(src.toByteArray());
+        XMLStreamReader2 sr = getReader(data);
         assertTokenType(START_DOCUMENT, sr.getEventType());
         while (sr.next() != START_ELEMENT) { }
         assertTokenType(START_ELEMENT, sr.getEventType());
@@ -940,10 +946,12 @@ public abstract class WriterTestBase
         return (XMLStreamReader2) f.createXMLStreamReader(new ByteArrayInputStream(data));
     }
 
-    private String getUTF8(ByteArrayOutputStream bos)
+    private String getUTF8(XMLStreamWriter sw, ByteArrayOutputStream bos)
+	throws XMLStreamException
     {
+	byte[] data = closeWriter(sw, bos);
         try {
-            return bos.toString("UTF-8");
+	    return new String(data, "UTF-8");
         } catch (IOException ioe) {
             throw new IllegalArgumentException(ioe);
         }
@@ -972,5 +980,43 @@ public abstract class WriterTestBase
         String content = sr.getAttributeValue(0);
         sr.close();
         return content;
+    }
+
+    /**
+     * Helper method to contain modifications we may need to
+     * reliably compare equivalency of result xml to expected
+     * results.
+     */
+    void assertXML(String exp, String act)
+    {
+	// First: let's trim out xml decl, if any
+	act = act.trim();
+	if (act.startsWith("<?xml")) {
+	    int ix = act.indexOf("?>");
+	    act = act.substring(ix+2);
+	}
+	// Usually this is enough:
+	if (exp.equals(act)) {
+	    return;
+	}
+	/* If not, let's see if we can still find them equal;
+	 * given simplicity of docs, we only need to be concerned
+	 * with '<a></a>' -> '<a/>' change it seems. Expected
+	 * results seem to only differ by that much, for now...
+	 */
+	int ix = act.indexOf("/>");
+	if (ix > 0) {
+	    // ugh. this is ugly, yes... if it breaks, should just rewrite completely
+	    String prefix = act.substring(0, ix).trim();
+	    String suffix = act.substring(ix+2); // probably empty tho
+
+	    ix = prefix.lastIndexOf("<");
+	    int ix2 = prefix.indexOf(' ', ix);
+	    // If it was just name it'd be simpler, but there may be attr(s)
+	    String name = (ix2 < 0) ? prefix.substring(ix+1) : prefix.substring(ix+1, ix2);
+
+	    act = prefix + "></" + name + ">"+suffix;
+	}
+	assertEquals(exp, act);
     }
 }

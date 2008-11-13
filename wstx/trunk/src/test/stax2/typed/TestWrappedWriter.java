@@ -25,6 +25,13 @@ public class TestWrappedWriter
         return new MyAdapter(outf.createXMLStreamWriter(out, "UTF-8"));
     }
 
+    protected byte[] closeWriter(XMLStreamWriter sw, ByteArrayOutputStream out)
+        throws XMLStreamException
+    {
+	sw.close();
+	return out.toByteArray();
+    }
+
     /*
     ////////////////////////////////////////
     // Helper class
@@ -44,5 +51,3 @@ public class TestWrappedWriter
         }
     }
 }
-
-

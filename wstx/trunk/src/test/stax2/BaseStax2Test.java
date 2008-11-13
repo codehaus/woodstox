@@ -506,6 +506,11 @@ public class BaseStax2Test
     //////////////////////////////////////////////////
      */
 
+    public static void warn(String msg)
+    {
+	System.err.println("WARN: "+msg);
+    }
+
     public static String printable(char ch)
     {
         if (ch == '\n') {

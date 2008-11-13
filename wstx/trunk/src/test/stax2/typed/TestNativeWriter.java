@@ -11,7 +11,7 @@ import org.codehaus.stax2.*;
  * typed writer implementation.
  *<p>
  * Note: currently some functionality is only supported with native
- * readers
+ * writers
  */
 public class TestNativeWriter
     extends WriterTestBase
@@ -25,5 +25,11 @@ public class TestNativeWriter
         setRepairing(outf, repairing);
         return (XMLStreamWriter2) outf.createXMLStreamWriter(out, "UTF-8");
     }
-}
 
+    protected byte[] closeWriter(XMLStreamWriter sw, ByteArrayOutputStream out)
+        throws XMLStreamException
+    {
+	sw.close();
+	return out.toByteArray();
+    }
+}
