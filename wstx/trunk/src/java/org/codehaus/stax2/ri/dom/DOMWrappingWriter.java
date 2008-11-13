@@ -37,10 +37,14 @@ import org.codehaus.stax2.validation.*;
  * to basically construct DOM trees via Stax API.
  * It is meant to serve as basis for a full implementation.
  *<p>
- * Note that the implementation is only to be used for use with
- * <code>javax.xml.transform.dom.DOMSResult</code>. It can however be
+ * Note that the implementation is only to be used with
+ * <code>javax.xml.transform.dom.DOMResult</code>. It can however be
  * used for both full documents, and single element root fragments,
  * depending on what node is passed as the argument.
+ *>p>
+ * One more implementation note: much code is identical to one
+ * used by {@link org.codehaus.stax.ri.Stax2WriterAdapter}.
+ * Alas it is hard to reuse it without cut'n pasting.
  *
  * @since 3.0
  */
@@ -392,12 +396,7 @@ public abstract class DOMWrappingWriter
 
     public void writeQName(QName name) throws XMLStreamException
     {
-        String value = name.getLocalPart();
-        String prefix = name.getPrefix();
-        if (prefix != null && prefix.length() > 0) {
-            value = prefix+":"+value;
-        }
-        writeCharacters(value);
+        writeCharacters(serializeQNameValue(name));
     }
 
     public void writeIntArray(int[] value, int from, int length)
@@ -483,12 +482,7 @@ public abstract class DOMWrappingWriter
     public void writeQNameAttribute(String prefix, String nsURI, String localName, QName name)
         throws XMLStreamException
     {
-        String value = name.getLocalPart();
-        String vp = name.getPrefix();
-        if (vp != null && vp.length() > 0) {
-            value = vp+":"+value;
-        }
-        writeAttribute(prefix, nsURI, localName, value);
+        writeAttribute(prefix, nsURI, localName, serializeQNameValue(name));
     }
 
     public void writeIntArrayAttribute(String prefix, String nsURI, String localName, int[] value)
@@ -537,6 +531,48 @@ public abstract class DOMWrappingWriter
     // Shared package methods
     ////////////////////////////////////////////////////
      */
+
+    /**
+     * Method called to serialize given qualified name into valid
+     * String serialization, taking into account existing namespace
+     * bindings.
+     */
+    protected String serializeQNameValue(QName name)
+        throws XMLStreamException
+    {
+        String prefix;
+        // Ok as is? In repairing mode need to ensure it's properly bound
+        if (mNsRepairing) {
+            String uri = name.getNamespaceURI();
+            // First: let's see if a valid binding already exists:
+            NamespaceContext ctxt = getNamespaceContext();
+            prefix = (ctxt == null) ? null : ctxt.getPrefix(uri);
+            if (prefix == null) {
+                // nope: need to (try to) bind
+                String origPrefix = name.getPrefix();
+                if (origPrefix == null || origPrefix.length() == 0) {
+                    prefix = "";
+                    /* note: could cause a namespace conflict... but
+                     * there is nothing we can do with just stax1 stream
+                     * writer
+                     */
+                    writeDefaultNamespace(uri);
+                } else {
+                    prefix = origPrefix;
+                    writeNamespace(prefix, uri);
+                }
+            }
+        } else { // in non-repairing, good as is
+            prefix = name.getPrefix();
+        }
+        String local = name.getLocalPart();
+        if (prefix == null || prefix.length() == 0) {
+            return local;
+        }
+
+        // Not efficient... but should be ok
+        return prefix + ":" + local;
+    }
 
     protected SimpleValueEncoder getValueEncoder()
     {

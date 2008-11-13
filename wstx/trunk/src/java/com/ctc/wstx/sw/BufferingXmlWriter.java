@@ -1209,7 +1209,7 @@ public final class BufferingXmlWriter
         int llen = localName.length();
 
         if ((mOutputPtr + 4 + plen + llen) > mOutputBufLen) {
-            writeQName(prefix, localName);
+            writePrefixedName(prefix, localName);
             fastWriteRaw('=', '"');
         } else {
             int ptr = mOutputPtr;
@@ -1265,7 +1265,7 @@ public final class BufferingXmlWriter
             verifyNameValidity(localName, mNsAware);
         }
         if (((mOutputBufLen - mOutputPtr) - (4 + localName.length() + plen)) < 0) {
-            writeQName(prefix, localName);
+            writePrefixedName(prefix, localName);
             fastWriteRaw('=', '"');
         } else {
             int ptr = mOutputPtr;
@@ -1322,7 +1322,7 @@ public final class BufferingXmlWriter
         validator.validateAttribute(localName, nsURI, prefix, valueStr);
     }
 
-    private final void writeQName(String prefix, String localName)
+    protected final void writePrefixedName(String prefix, String localName)
         throws IOException
     {
         fastWriteRaw(' ');
