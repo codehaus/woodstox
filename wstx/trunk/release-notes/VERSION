@@ -8,6 +8,7 @@ Description:
 
   Problems fixed:
 
+  * [WTSX-121] Ordering of NOTATION definitions, references, should not matter
   * [WSTX-148] Implement XMLEvent.equals() and .hashCode() to allow
     for easy comparisons.
     (requested by Sylvain L)

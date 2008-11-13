@@ -47,7 +47,6 @@ public class TestStreamReader
         f.setProperty(XMLInputFactory.IS_VALIDATING, Boolean.FALSE);
         //f.setProperty(XMLInputFactory.IS_VALIDATING, Boolean.TRUE);
 
-        f.setProperty(XMLInputFactory.REPORTER, new TestReporter());
         f.setProperty(XMLInputFactory.RESOLVER, new TestResolver1());
         if (f.isPropertySupported(XMLInputFactory2.P_REPORT_PROLOG_WHITESPACE)) {
             f.setProperty(XMLInputFactory2.P_REPORT_PROLOG_WHITESPACE,

@@ -31,6 +31,9 @@ public class TestValidation
                           new Integer(2000));
         }
 
+        // Do we want to handle validation problems gracefully?
+        //f.setProperty(XMLInputFactory.REPORTER, new TestReporter());
+
         return f;
     }
 

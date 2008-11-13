@@ -183,14 +183,14 @@ public class FullDTDReader
      * Keys are entity name Strings; values are instances of
      * NotationDecl objects
      */
-    HashMap mNotations;
+    HashMap/*<String,NotationDeclaration>*/ mNotations;
 
     /**
      * Notations already parsed before current subset; that is,
      * notations from the internal subset if we are currently
      * parsing matching external subset.
      */
-    final HashMap mPredefdNotations;
+    final HashMap/*<String,NotationDeclaration>*/ mPredefdNotations;
 
     /**
      * Flag used to keep track of whether current (external) subset
@@ -198,6 +198,13 @@ public class FullDTDReader
      * subset. If so, can not cache the external subset
      */
     boolean mUsesPredefdNotations = false;
+
+    /**
+     * Finally, we need to keep track of Notation references that were
+     * made prior to declaration. This is needed to ensure that all
+     * references can be properly resolved.
+     */
+    HashMap/*<String,Location>*/ mNotationForwardRefs;
 
     /*
     //////////////////////////////////////////////////
@@ -631,6 +638,13 @@ public class FullDTDReader
             throwUnexpectedEOF(getErrorMsg()+"; expected closing marker for "+suffix);
         }
 
+        /* First check: have all notation references been resolved?
+         * (related to [WSTX-121])
+         */
+        if (mNotationForwardRefs != null && mNotationForwardRefs.size() > 0) {
+            _reportUndefinedNotationRefs();
+        }
+
         // Ok; time to construct and return DTD data object.
         DTDSubset ss;
 
@@ -954,9 +968,9 @@ public class FullDTDReader
         loadMore(getErrorMsg());
         // Did we get out of the scope?
         if (check && (mInput != currScope)) {
-            reportWFCViolation("Unterminated entity value for entity '"
-                               +entityName+"' (definition started at "
-                               +loc+")");
+            _reportWFCViolation("Unterminated entity value for entity '"
+                                +entityName+"' (definition started at "
+                                +loc+")");
         }
     }
         
@@ -1249,7 +1263,7 @@ public class FullDTDReader
             errId = readDTDKeyword(String.valueOf(c));
         }
 
-        reportWFCViolation("Unrecognized keyword '"+errId+"'; expected 'PUBLIC' or 'SYSTEM'");
+        _reportWFCViolation("Unrecognized keyword '"+errId+"'; expected 'PUBLIC' or 'SYSTEM'");
         return false; // never gets here
     }
 
@@ -1580,7 +1594,7 @@ public class FullDTDReader
                 loadMore(getErrorMsg());
                 // Did we get out of the scope?
                 if (check && (mInput != currScope)) {
-                    reportWFCViolation("Unterminated attribute default value for attribute '"
+                    _reportWFCViolation("Unterminated attribute default value for attribute '"
                                     +attrName+"' (definition started at "
                                     +loc+")");
                 }
@@ -1690,10 +1704,10 @@ public class FullDTDReader
     {
         String target = parseFullName();
         if (target.length() == 0) {
-            reportWFCViolation(ErrorConsts.ERR_WF_PI_MISSING_TARGET);
+            _reportWFCViolation(ErrorConsts.ERR_WF_PI_MISSING_TARGET);
         }
         if (target.equalsIgnoreCase("xml")) {
-            reportWFCViolation(ErrorConsts.ERR_WF_PI_XML_TARGET, target);
+            _reportWFCViolation(ErrorConsts.ERR_WF_PI_XML_TARGET, target);
         }
 
         char c = dtdNextFromCurr();
@@ -1852,7 +1866,7 @@ public class FullDTDReader
          *   entity...
          */
         if (!mIsExternal && mInput == mRootInput) {
-            reportWFCViolation("Internal DTD subset can not use (INCLUDE/IGNORE) directives (except via external entities)");
+            _reportWFCViolation("Internal DTD subset can not use (INCLUDE/IGNORE) directives (except via external entities)");
         }
 
         char c = skipDtdWs(true);
@@ -1882,7 +1896,7 @@ public class FullDTDReader
         }
 
         // If we get here, it was an error...
-        reportWFCViolation("Unrecognized directive '"+keyword+"'; expected either 'IGNORE' or 'INCLUDE'");
+        _reportWFCViolation("Unrecognized directive '"+keyword+"'; expected either 'IGNORE' or 'INCLUDE'");
     }
 
     private void handleIncluded()
@@ -1945,17 +1959,27 @@ public class FullDTDReader
     //////////////////////////////////////////////////
      */
 
-    private void reportBadDirective(String dir)
+    private void _reportUndefinedNotationRefs()
+        throws XMLStreamException
+    {
+        int count = mNotationForwardRefs.size();
+
+        String id = (String) mNotationForwardRefs.keySet().iterator().next();
+        String msg = ""+count+" referenced notation"+((count == 1) ? "":"s")+" undefined: first one '"+id+"'";
+        _reportVCViolation(msg);
+    }
+
+    private void _reportBadDirective(String dir)
         throws XMLStreamException
     {
         String msg = "Unrecognized DTD directive '<!"+dir+" >'; expected ATTLIST, ELEMENT, ENTITY or NOTATION";
         if (mCfgSupportDTDPP) {
             msg += " (or, for DTD++, TARGETNS)";
         }
-        reportWFCViolation(msg);
+        _reportWFCViolation(msg);
     }
 
-    private void reportVCViolation(String msg)
+    private void _reportVCViolation(String msg)
         throws XMLStreamException
     {
         /* 01-Sep-2006, TSa: Not 100% sure what's the right way to do it --
@@ -1970,13 +1994,13 @@ public class FullDTDReader
         }
     }
 
-    private void reportWFCViolation(String msg)
+    private void _reportWFCViolation(String msg)
         throws XMLStreamException
     {
         throwParseError(msg);
     }
 
-    private void reportWFCViolation(String format, Object arg)
+    private void _reportWFCViolation(String format, Object arg)
         throws XMLStreamException
     {
         throwParseError(format, arg, null);
@@ -1985,13 +2009,13 @@ public class FullDTDReader
     private void throwDTDElemError(String msg, Object elem)
         throws XMLStreamException
     {
-        reportWFCViolation(elemDesc(elem) + ": " + msg);
+        _reportWFCViolation(elemDesc(elem) + ": " + msg);
     }
 
     private void throwDTDAttrError(String msg, DTDElement elem, PrefixedName attrName)
         throws XMLStreamException
     {
-        reportWFCViolation(attrDesc(elem, attrName) + ": " + msg);
+        _reportWFCViolation(attrDesc(elem, attrName) + ": " + msg);
     }
 
     private void throwDTDUnexpectedChar(int i, String extraMsg)
@@ -2006,7 +2030,7 @@ public class FullDTDReader
     private void throwForbiddenPE()
         throws XMLStreamException
     {
-        reportWFCViolation("Can not have parameter entities in the internal subset, except for defining complete declarations (XML 1.0, #2.8, WFC 'PEs In Internal Subset')");
+        _reportWFCViolation("Can not have parameter entities in the internal subset, except for defining complete declarations (XML 1.0, #2.8, WFC 'PEs In Internal Subset')");
     }
 
     private String elemDesc(Object elem) {
@@ -2098,7 +2122,7 @@ public class FullDTDReader
                 }
 
                 // If we got this far, we got a problem...
-                reportBadDirective(keyw);
+                _reportBadDirective(keyw);
             } while (false);
             /* Ok: now, the current input can not have been started
              * within the scope... so:
@@ -2152,7 +2176,7 @@ public class FullDTDReader
                 keyw = readDTDKeyword("E");
             }
         }
-        reportBadDirective(keyw);
+        _reportBadDirective(keyw);
     }
 
     /**
@@ -2275,7 +2299,7 @@ public class FullDTDReader
                     --mInputPtr;
                     keyw = readDTDKeyword(String.valueOf(c));
                 }
-                reportWFCViolation("Unrecognized DTD content spec keyword '"
+                _reportWFCViolation("Unrecognized DTD content spec keyword '"
                                 +keyw+"' (for element <"+elemName+">); expected ANY or EMPTY");
              } while (false);
         } else {
@@ -2464,7 +2488,7 @@ public class FullDTDReader
                 } else {
                     str = "General" + str;
                 }
-                reportWarning(rep, ErrorConsts.WT_ENT_DECL, str, evtLoc);
+                _reportWarning(rep, ErrorConsts.WT_ENT_DECL, str, evtLoc);
             }
         } else {
             m.put(id, ent);
@@ -2557,6 +2581,10 @@ public class FullDTDReader
                 DTDSubsetImpl.throwNotationException(oldDecl, nd);
             }
         }
+        // Does this resolve a dangling reference?
+        if (mNotationForwardRefs != null) {
+            mNotationForwardRefs.remove(id);
+        }
         m.put(id, nd);
     }
 
@@ -2586,7 +2614,7 @@ public class FullDTDReader
         // Either way, should now get a quote:
         if (c != '"' && c != '\'') {
             if (c == '>') { // slightly more accurate error
-                reportWFCViolation("Missing namespace URI for TARGETNS directive");
+                _reportWFCViolation("Missing namespace URI for TARGETNS directive");
             }
             throwDTDUnexpectedChar(c, "; expected a single or double quote to enclose the namespace URI");
         }
@@ -2787,7 +2815,7 @@ public class FullDTDReader
             XMLReporter rep = mConfig.getXMLReporter();
             if (rep != null) {
                 String msg = MessageFormat.format(ErrorConsts.W_DTD_ATTR_REDECL, new Object[] { attrName, elem });
-                reportWarning(rep, ErrorConsts.WT_ATTR_DECL, msg, loc);
+                _reportWarning(rep, ErrorConsts.WT_ATTR_DECL, msg, loc);
             }
         } else {
             if (defVal.hasDefaultValue()) {
@@ -2830,7 +2858,7 @@ public class FullDTDReader
             }
         }
 
-        String id = isNotation ? readNotationEntry(c, attrName)
+        String id = isNotation ? readNotationEntry(c, attrName, elem.getLocation())
             : readEnumEntry(c, sharedEnums);
         set.add(id);
         
@@ -2843,7 +2871,7 @@ public class FullDTDReader
                 throwDTDUnexpectedChar(c, "; missing '|' separator?");
             }
             c = skipDtdWs(true);
-            id = isNotation ? readNotationEntry(c, attrName)
+            id = isNotation ? readNotationEntry(c, attrName, elem.getLocation())
                 : readEnumEntry(c, sharedEnums);
             if (!set.add(id)) {
                 /* 03-Feb-2006, TSa: Hmmh. Apparently all other XML parsers
@@ -2861,7 +2889,7 @@ public class FullDTDReader
     }
 
     /**
-     * Method called to read a notation referency entry; done both for
+     * Method called to read a notation reference entry; done both for
      * attributes of type NOTATION, and for external unparsed entities
      * that refer to a notation. In both cases, notation referenced
      * needs to have been defined earlier; but only if we are building
@@ -2869,12 +2897,21 @@ public class FullDTDReader
      * of a minimal DTD in DTD-aware mode, which does no validation
      * but allows attribute defaulting and normalization, as well as
      * access to entity and notation declarations).
+     *
+     * @param refLoc Starting location of the DTD component that contains
+     *   the reference
      */
-    private String readNotationEntry(char c, PrefixedName attrName)
+    private String readNotationEntry(char c, PrefixedName attrName, Location refLoc)
         throws XMLStreamException
     {
         String id = readDTDName(c);
 
+        /* Need to check whether we have a reference to a "pre-defined"
+         * notation: pre-defined here means that it was defined in the
+         * internal subset (prior to this parsing which then would external
+         * subset). This is needed to know if the subset can be cached or
+         * not.
+         */
         if (mPredefdNotations != null) {
             NotationDeclaration decl = (NotationDeclaration) mPredefdNotations.get(id);
             if (decl != null) {
@@ -2886,19 +2923,15 @@ public class FullDTDReader
         NotationDeclaration decl = (mNotations == null) ? null :
             (NotationDeclaration) mNotations.get(id);
         if (decl == null) {
-            // In validating mode, this is a problem:
+            // In validating mode, this may be a problem (otherwise not)
             if (mCfgFullyValidating) {
-                String msg = "Notation '"+id+"' not defined; ";
-                if (attrName == null) { // reference from entity
-                    reportVCViolation(msg+"can not be referenced by an entity");
+                if (mNotationForwardRefs == null) {
+                    mNotationForwardRefs = new LinkedHashMap();
                 }
-                // reference from attribute
-                reportVCViolation(msg+"can not be used as value for attribute list of '"+attrName+"'");
-            } else { // but in non-validating, it is not...
-                return id;
+                mNotationForwardRefs.put(id, refLoc);
             }
+            return id;
         }
-
         return decl.getName();
     }
 
@@ -2938,7 +2971,7 @@ public class FullDTDReader
     {
         String keyw = checkDTDKeyword("PCDATA");
         if (keyw != null) {
-            reportWFCViolation("Unrecognized directive #"+keyw+"'; expected #PCDATA (or element name)");
+            _reportWFCViolation("Unrecognized directive #"+keyw+"'; expected #PCDATA (or element name)");
         }
 
         HashMap m = new LinkedHashMap();
@@ -2976,7 +3009,7 @@ public class FullDTDReader
             mInputBuffer[mInputPtr++] : getNextChar(getErrorMsg());
         if (c != '*') {
             if (m.size() > 0) {
-                reportWFCViolation("Missing trailing '*' after a non-empty mixed content specification");
+                _reportWFCViolation("Missing trailing '*' after a non-empty mixed content specification");
             }
             --mInputPtr; // need to push it back
         }
@@ -3012,7 +3045,7 @@ public class FullDTDReader
             if (c == ')') {
                 // Need to have had at least one entry...
                 if (subSpecs.isEmpty()) {
-                    reportWFCViolation("Empty content specification for '"+elemName+"' (need at least one entry)");
+                    _reportWFCViolation("Empty content specification for '"+elemName+"' (need at least one entry)");
                 }
                 break;
             }
@@ -3023,7 +3056,7 @@ public class FullDTDReader
                     choiceSet = true;
                 } else {
                     if (isChoice != newChoice) {
-                        reportWFCViolation("Can not mix content spec separators ('|' and ','); need to use parenthesis groups");
+                        _reportWFCViolation("Can not mix content spec separators ('|' and ','); need to use parenthesis groups");
                     }
                 }
                 c = skipDtdWs(true);
@@ -3151,7 +3184,7 @@ public class FullDTDReader
              * SGML does NOT require system id after public one...
              */
             if (c == '>') {
-                reportWFCViolation("Unexpected end of ENTITY declaration (expected a system id after public id): trying to use an SGML DTD instead of XML one?");
+                _reportWFCViolation("Unexpected end of ENTITY declaration (expected a system id after public id): trying to use an SGML DTD instead of XML one?");
             }
         } else {
             // Just need some white space here
@@ -3198,10 +3231,10 @@ public class FullDTDReader
                 }
                 String keyw = checkDTDKeyword("DATA");
                 if (keyw != null) {
-                    reportWFCViolation("Unrecognized keyword '"+keyw+"'; expected NOTATION (or closing '>')");
+                    _reportWFCViolation("Unrecognized keyword '"+keyw+"'; expected NOTATION (or closing '>')");
                 }
                 c = skipObligatoryDtdWs();
-                notationId = readNotationEntry(c, null);
+                notationId = readNotationEntry(c, null, evtLoc);
                 c = skipDtdWs(true);
             }
         }
@@ -3350,7 +3383,7 @@ public class FullDTDReader
     protected void handleUndeclaredEntity(String id)
         throws XMLStreamException
     {
-        reportVCViolation("Undeclared parameter entity '"+id+"'.");
+        _reportVCViolation("Undeclared parameter entity '"+id+"'.");
         if (mCurrAttrDefault != null) {
             Location loc = getLastCharLocation();
             if (mExpandingPE) {
@@ -3381,12 +3414,12 @@ public class FullDTDReader
         // Did it start outside of declaration?
         if (closing.getScopeId() == 0) { // yup
             // and being WFC, need not be validating
-            reportWFCViolation(entityDesc(closing) + ": "
+            _reportWFCViolation(entityDesc(closing) + ": "
                           +"Incomplete PE: has to fully contain a declaration (as per xml 1.0.3, section 2.8, WFC 'PE Between Declarations')");
         } else {
             // whereas the other one is only sent in validating mode..
             if (mCfgFullyValidating) {
-                reportVCViolation(entityDesc(closing) + ": "
+                _reportVCViolation(entityDesc(closing) + ": "
                               +"Incomplete PE: has to be fully contained in a declaration (as per xml 1.0.3, section 2.8, VC 'Proper Declaration/PE Nesting')");
             }
         }
@@ -3397,7 +3430,7 @@ public class FullDTDReader
     {
         // Here it can only be of VC kind...
         if (mCfgFullyValidating) { // since it's a VC, not WFC
-            reportWFCViolation(entityDesc(input) + ": " + 
+            _reportWFCViolation(entityDesc(input) + ": " + 
                               "Unbalanced PE: has to be fully contained in a declaration (as per xml 1.0.3, section 2.8, VC 'Proper Declaration/PE Nesting')");
         }
     }
@@ -3446,7 +3479,7 @@ public class FullDTDReader
         }
         
         if (!ok) {
-            reportVCViolation(ErrorConsts.ERR_DTD_XML_SPACE);
+            _reportVCViolation(ErrorConsts.ERR_DTD_XML_SPACE);
         }
     }
 
@@ -3454,7 +3487,7 @@ public class FullDTDReader
         throws XMLStreamException
     {
         if (type != DTDAttribute.TYPE_ID) {
-            reportVCViolation(ErrorConsts.ERR_DTD_XML_ID);
+            _reportVCViolation(ErrorConsts.ERR_DTD_XML_ID);
         }
     }
 
@@ -3464,7 +3497,7 @@ public class FullDTDReader
     ///////////////////////////////////////////////////////
      */
 
-    private void reportWarning(XMLReporter rep, String probType, String msg,
+    private void _reportWarning(XMLReporter rep, String probType, String msg,
                                Location loc)
         throws XMLStreamException
     {
