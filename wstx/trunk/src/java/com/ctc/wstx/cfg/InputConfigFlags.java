@@ -84,12 +84,26 @@ public interface InputConfigFlags
     // // // String interning:
 
     /**
+     * If true, will guarantee that all names (attribute/element local names
+     * have been intern()ed. If false, this is not guaranteed although
+     * implementation may still choose to do it.
+     */
+    final static int CFG_INTERN_NAMES = 0x0400;
+
+    /**
+     * If true, indicates that the application has explicitly configured
+     * name interning to its current value. If false, value is the default
+     * the implementation has (which is not dictated by Stax2 specs)
+     */
+    final static int CFG_INTERN_NAMES_EXPLICIT = 0x0800;
+
+    /**
      * It true, will call intern() on all namespace URIs parsed; otherwise
      * will just use 'regular' Strings created from parsed contents. Interning
      * makes namespace-based access faster, but has initial overhead of
      * intern() call.
      */
-    final static int CFG_INTERN_NS_URIS = 0x0400;
+    final static int CFG_INTERN_NS_URIS = 0x1000;
 
     // // // Lazy/incomplete parsing
 
@@ -103,7 +117,7 @@ public interface InputConfigFlags
      * of location information for error reporting purposes; it's only
      * Event objects that are affected.
      */
-    final static int CFG_PRESERVE_LOCATION = 0x0800;
+    final static int CFG_PRESERVE_LOCATION = 0x2000;
 
     // // // Input source handling
 
@@ -113,7 +127,7 @@ public interface InputConfigFlags
      * when it doesn't need it any more (reaching EOF, hitting an
      * unrecoverable exception).
      */
-    final static int CFG_AUTO_CLOSE_INPUT = 0x1000;
+    final static int CFG_AUTO_CLOSE_INPUT = 0x4000;
 
     /*
     //////////////////////////////////////////////////////

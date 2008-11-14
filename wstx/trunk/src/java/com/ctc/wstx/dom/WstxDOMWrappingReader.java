@@ -27,6 +27,9 @@ public class WstxDOMWrappingReader
     {
         super(src, cfg.willSupportNamespaces(), cfg.willCoalesceText());
         mConfig = cfg;
+        // [WSTX-162]: allow enabling/disabling name/ns intern()ing
+        setInternNames(cfg.willInternNames());
+        setInternNsURIs(cfg.willInternNsURIs());
     }
 
     public static WstxDOMWrappingReader createFrom(DOMSource src, ReaderConfig cfg)
@@ -57,30 +60,12 @@ public class WstxDOMWrappingReader
             // !!! TBI
             return Collections.EMPTY_LIST;
         }
-        // [WSTX-162]: no way to cleanly enable name/nsURI interning
-        if (XMLInputFactory2.P_INTERN_NAMES.equals(name)
-            || XMLInputFactory2.P_INTERN_NS_URIS.equals(name)) {
-            return Boolean.FALSE;
-        }
         return mConfig.getProperty(name);
     }
 
     public boolean setProperty(String name, Object value)
     {
-        /* Note: can not call local method, since it'll return false for
-         * recognized but non-mutable properties
-         */
-        if (XMLInputFactory2.P_INTERN_NAMES.equals(name)
-            || XMLInputFactory2.P_INTERN_NS_URIS.equals(name)) {
-            /* [WTSX-162]: Name/Namespace URI interning seemingly enabled,
-             *   isn't. Alas, not easy to enable it, so let's force it to
-             *   always be disabled
-             */
-            if (!(value instanceof Boolean) || ((Boolean) value).booleanValue()) {
-                throw new IllegalArgumentException("DOM-based reader does not support interning of names or namespace URIs");
-            }
-            return true;
-        }
+        // Basic config accessor works just fine...
         return mConfig.setProperty(name, value);
     }
 

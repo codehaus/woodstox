@@ -16,7 +16,6 @@ DONE * [WSTX-167]: Auto-suppression of control chars for XMLStreamWriter2
 
 * Nice-to-have Jira entries:
   * [WSTX-160]: Problems with multiple Schemas...
-  * [WSTX-162]: DOM-reader, P_INTERN_NAMES, default to 'false' for DOM?
 
 * Misc internal improvements:
   * Typed Access API, writer:

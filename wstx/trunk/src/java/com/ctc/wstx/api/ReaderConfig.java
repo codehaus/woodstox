@@ -62,14 +62,18 @@ public final class ReaderConfig
     // Simple flags:
     final static int PROP_INTERN_NS_URIS = 20;
     final static int PROP_INTERN_NAMES = 21;
-    final static int PROP_REPORT_CDATA = 22;
-    final static int PROP_REPORT_PROLOG_WS = 23;
-    final static int PROP_PRESERVE_LOCATION = 24;
-    final static int PROP_AUTO_CLOSE_INPUT = 25;
+    /**
+     * 13-Nov-2008, tatus: Need to be able to 
+     */
+    final static int PROP_INTERN_NAMES_EXPLICIT = 22;
+    final static int PROP_REPORT_CDATA = 23;
+    final static int PROP_REPORT_PROLOG_WS = 24;
+    final static int PROP_PRESERVE_LOCATION = 25;
+    final static int PROP_AUTO_CLOSE_INPUT = 26;
 
     // Enum / Object type properties:
-    final static int PROP_SUPPORT_XMLID = 26; // shared with WriterConfig
-    final static int PROP_DTD_OVERRIDE = 27;
+    final static int PROP_SUPPORT_XMLID = 27; // shared with WriterConfig
+    final static int PROP_DTD_OVERRIDE = 28;
 
     // // // Constants for additional Wstx properties:
 
@@ -148,6 +152,7 @@ public final class ReaderConfig
         // and then custom setting defaults:
 
         // and namespace URI interning
+        | CFG_INTERN_NAMES
         | CFG_INTERN_NS_URIS
 
         // we will also accurately report CDATA, by default
@@ -495,85 +500,81 @@ public final class ReaderConfig
     // // // "Raw" accessors for on/off properties:
 
     public int getConfigFlags() { return mConfigFlags; }
-    public boolean hasConfigFlags(int flags) {
-        return (mConfigFlags & flags) == flags;
-    }
 
     // // // Standard StAX on/off property accessors
 
     public boolean willCoalesceText() {
-        return hasConfigFlags(CFG_COALESCE_TEXT);
+        return _hasConfigFlag(CFG_COALESCE_TEXT);
     }
 
     public boolean willSupportNamespaces() {
-        return hasConfigFlags(CFG_NAMESPACE_AWARE);
+        return _hasConfigFlag(CFG_NAMESPACE_AWARE);
     }
 
     public boolean willReplaceEntityRefs() {
-        return hasConfigFlags(CFG_REPLACE_ENTITY_REFS);
+        return _hasConfigFlag(CFG_REPLACE_ENTITY_REFS);
     }
 
     public boolean willSupportExternalEntities() {
-        return hasConfigFlags(CFG_SUPPORT_EXTERNAL_ENTITIES);
+        return _hasConfigFlag(CFG_SUPPORT_EXTERNAL_ENTITIES);
     }
 
     public boolean willSupportDTDs() {
-        return hasConfigFlags(CFG_SUPPORT_DTD);
+        return _hasConfigFlag(CFG_SUPPORT_DTD);
     }
 
     public boolean willValidateWithDTD() {
-        return hasConfigFlags(CFG_VALIDATE_AGAINST_DTD);
+        return _hasConfigFlag(CFG_VALIDATE_AGAINST_DTD);
     }
 
     // // // Woodstox on/off property accessors
 
     public boolean willInternNames() {
-	// 17-Apr-2005, TSa: NOP, we'll always intern them...
-        return true;
+        return _hasConfigFlag(CFG_INTERN_NAMES);
     }
 
     public boolean willInternNsURIs() {
-        return hasConfigFlags(CFG_INTERN_NS_URIS);
+        return _hasConfigFlag(CFG_INTERN_NS_URIS);
     }
 
     public boolean willReportCData() {
-        return hasConfigFlags(CFG_REPORT_CDATA);
+        return _hasConfigFlag(CFG_REPORT_CDATA);
     }
 
     public boolean willReportPrologWhitespace() {
-        return hasConfigFlags(CFG_REPORT_PROLOG_WS);
+        return _hasConfigFlag(CFG_REPORT_PROLOG_WS);
     }
 
     public boolean willCacheDTDs() {
-        return hasConfigFlags(CFG_CACHE_DTDS);
+        return _hasConfigFlag(CFG_CACHE_DTDS);
     }
 
     public boolean willCacheDTDsByPublicId() {
-        return hasConfigFlags(CFG_CACHE_DTDS_BY_PUBLIC_ID);
+        return _hasConfigFlag(CFG_CACHE_DTDS_BY_PUBLIC_ID);
     }
 
     public boolean willParseLazily() {
-        return hasConfigFlags(CFG_LAZY_PARSING);
+        return _hasConfigFlag(CFG_LAZY_PARSING);
     }
 
     public boolean willDoXmlIdTyping() {
-        return hasConfigFlags(CFG_XMLID_TYPING);
+        return _hasConfigFlag(CFG_XMLID_TYPING);
     }
 
     public boolean willDoXmlIdUniqChecks() {
-        return hasConfigFlags(CFG_XMLID_UNIQ_CHECKS);
+        return _hasConfigFlag(CFG_XMLID_UNIQ_CHECKS);
     }
 
     public boolean willPreserveLocation() {
-        return hasConfigFlags(CFG_PRESERVE_LOCATION);
+        return _hasConfigFlag(CFG_PRESERVE_LOCATION);
     }
 
     public boolean willAutoCloseInput() {
-        return hasConfigFlags(CFG_AUTO_CLOSE_INPUT);
+        return _hasConfigFlag(CFG_AUTO_CLOSE_INPUT);
     }
 
     public boolean willSupportDTDPP() {
-        return hasConfigFlags(CFG_SUPPORT_DTDPP);
+        return _hasConfigFlag(CFG_SUPPORT_DTDPP);
     }
 
     public int getInputBufferLength() { return mInputBufferLen; }
@@ -582,7 +583,7 @@ public final class ReaderConfig
 
     public Map getCustomInternalEntities()
     {
-        Map custEnt = (Map) getSpecialProperty(SP_IX_CUSTOM_ENTITIES);
+        Map custEnt = (Map) _getSpecialProperty(SP_IX_CUSTOM_ENTITIES);
         if (custEnt == null) {
             return Collections.EMPTY_MAP;
         }
@@ -602,7 +603,7 @@ public final class ReaderConfig
 
     public EntityDecl findCustomInternalEntity(String id)
     {
-        Map custEnt = (Map) getSpecialProperty(SP_IX_CUSTOM_ENTITIES);
+        Map custEnt = (Map) _getSpecialProperty(SP_IX_CUSTOM_ENTITIES);
         if (custEnt == null) {
             return null;
         }
@@ -616,7 +617,7 @@ public final class ReaderConfig
     public XMLResolver getDtdResolver() { return mDtdResolver; }
     public XMLResolver getEntityResolver() { return mEntityResolver; }
     public XMLResolver getUndeclaredEntityResolver() {
-        return (XMLResolver) getSpecialProperty(SP_IX_UNDECL_ENT_RESOLVER);
+        return (XMLResolver) _getSpecialProperty(SP_IX_UNDECL_ENT_RESOLVER);
     }
 
     public URL getBaseURL() { return mBaseURL; }
@@ -643,11 +644,20 @@ public final class ReaderConfig
     }
 
     public DTDEventListener getDTDEventListener() {
-        return (DTDEventListener) getSpecialProperty(SP_IX_DTD_EVENT_LISTENER);
+        return (DTDEventListener) _getSpecialProperty(SP_IX_DTD_EVENT_LISTENER);
     }
 
     public DTDValidationSchema getDTDOverride() {
-        return (DTDValidationSchema) getSpecialProperty(SP_IX_DTD_OVERRIDE);
+        return (DTDValidationSchema) _getSpecialProperty(SP_IX_DTD_OVERRIDE);
+    }
+
+    /**
+     * Special accessor to use to verify whether name interning has
+     * explicitly been enabled; true if call was been made to set
+     * it to true; false otherwise (default, or set to false)
+     */
+    public boolean hasInternNamesBeenEnabled() {
+        return _hasConfigFlag(CFG_INTERN_NAMES) && _hasConfigFlag(CFG_INTERN_NAMES_EXPLICIT);
     }
 
     /*
@@ -655,10 +665,6 @@ public final class ReaderConfig
     // Simple mutators
     //////////////////////////////////////////////////////////
      */
-
-    public void setConfigFlags(int flags) {
-        mConfigFlags = flags;
-    }
 
     public void setConfigFlag(int flag) {
         mConfigFlags |= flag;
@@ -697,7 +703,17 @@ public final class ReaderConfig
     // // // Mutators for Woodstox-specific properties
 
     public void doInternNames(boolean state) {
-        // 17-Apr-2005, TSa: NOP, we'll always intern them...
+        /* 13-Nov-2008, TSa: We will track state of this
+         *   setting from now (4.0) on (see [WSTX-162]); but its
+         *   usage depends on kind of stream reader we create. We
+         *   will default to 'false' for DOM-based readers; and we
+         *   will honor settings if enabled. For native stream readers
+         *   we will always treat it as 'true'; and for wrapped/adapted
+         *   readers we will use whatever underlying impl has.
+         */
+        setConfigFlag(CFG_INTERN_NAMES, state);
+        // Plus this call makes setting explicit:
+        setConfigFlag(CFG_INTERN_NAMES_EXPLICIT, true);
     }
 
     public void doInternNsURIs(boolean state) {
@@ -785,7 +801,7 @@ public final class ReaderConfig
                 entMap.put(name, IntEntity.create(name, ch));
             }
         }
-        setSpecialProperty(SP_IX_CUSTOM_ENTITIES, entMap);
+        _setSpecialProperty(SP_IX_CUSTOM_ENTITIES, entMap);
     }
 
     public void setXMLReporter(XMLReporter r) {
@@ -810,7 +826,7 @@ public final class ReaderConfig
     }
 
     public void setUndeclaredEntityResolver(XMLResolver r) {
-        setSpecialProperty(SP_IX_UNDECL_ENT_RESOLVER, r);
+        _setSpecialProperty(SP_IX_UNDECL_ENT_RESOLVER, r);
     }
 
     public void setBaseURL(URL baseURL) { mBaseURL = baseURL; }
@@ -828,11 +844,11 @@ public final class ReaderConfig
     }
 
     public void setDTDEventListener(DTDEventListener l) {
-        setSpecialProperty(SP_IX_DTD_EVENT_LISTENER, l);
+        _setSpecialProperty(SP_IX_DTD_EVENT_LISTENER, l);
     }
 
     public void setDTDOverride(DTDValidationSchema schema) {
-        setSpecialProperty(SP_IX_DTD_OVERRIDE, schema);
+        _setSpecialProperty(SP_IX_DTD_OVERRIDE, schema);
     }
 
     /*
@@ -1219,10 +1235,10 @@ public final class ReaderConfig
             return willParseLazily() ? Boolean.TRUE : Boolean.FALSE;
         case PROP_SUPPORT_XMLID:
             {
-                if (!hasConfigFlags(CFG_XMLID_TYPING)) {
+                if (!_hasConfigFlag(CFG_XMLID_TYPING)) {
                     return XMLStreamProperties.XSP_V_XMLID_NONE;
                 }
-                return hasConfigFlags(CFG_XMLID_UNIQ_CHECKS) ?
+                return _hasConfigFlag(CFG_XMLID_UNIQ_CHECKS) ?
                     XMLStreamProperties.XSP_V_XMLID_FULL :
                     XMLStreamProperties.XSP_V_XMLID_TYPING;
             }
@@ -1405,7 +1421,11 @@ public final class ReaderConfig
         return true;
     }
 
-    private final Object getSpecialProperty(int ix)
+    private boolean _hasConfigFlag(int flags) {
+        return (mConfigFlags & flags) != 0;
+    }
+
+    private final Object _getSpecialProperty(int ix)
     {
         if (mSpecialProperties == null) {
             return null;
@@ -1413,7 +1433,7 @@ public final class ReaderConfig
         return mSpecialProperties[ix];
     }
 
-    private final void setSpecialProperty(int ix, Object value)
+    private final void _setSpecialProperty(int ix, Object value)
     {
         if (mSpecialProperties == null) {
             mSpecialProperties = new Object[SPEC_PROC_COUNT];

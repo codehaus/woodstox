@@ -148,6 +148,10 @@ public abstract class DOMWrappingReader
      */
     protected final boolean mCoalescing;
 
+    protected boolean mInternNames = false;
+
+    protected boolean mInternNsURIs = false;
+
     // // // State:
 
     protected int mCurrEvent = START_DOCUMENT;
@@ -211,7 +215,7 @@ public abstract class DOMWrappingReader
 
     /*
     ////////////////////////////////////////////////////
-    // Construction
+    // Construction, configuration
     ////////////////////////////////////////////////////
      */
 
@@ -256,6 +260,9 @@ public abstract class DOMWrappingReader
         }
         mRootNode = mCurrNode = treeRoot;
     }
+
+    protected void setInternNames(boolean state) { mInternNames = state; }
+    protected void setInternNsURIs(boolean state) { mInternNsURIs = state; }
 
     /*
     ////////////////////////////////////////////////////
@@ -353,7 +360,7 @@ public abstract class DOMWrappingReader
             reportWrongState(ERR_STATE_NOT_START_ELEM);
         }
         if (mAttrList == null) {
-            calcNsAndAttrLists(true);
+            _calcNsAndAttrLists(true);
         }
         return mAttrList.size();
     }
@@ -364,14 +371,14 @@ public abstract class DOMWrappingReader
             reportWrongState(ERR_STATE_NOT_START_ELEM);
         }
         if (mAttrList == null) {
-            calcNsAndAttrLists(true);
+            _calcNsAndAttrLists(true);
         }
         if (index >= mAttrList.size() || index < 0) {
             handleIllegalAttrIndex(index);
             return null;
         }
         Attr attr = (Attr) mAttrList.get(index);
-        return safeGetLocalName(attr);
+        return _internName(_safeGetLocalName(attr));
     }
 
     public QName getAttributeName(int index)
@@ -380,15 +387,14 @@ public abstract class DOMWrappingReader
             reportWrongState(ERR_STATE_NOT_START_ELEM);
         }
         if (mAttrList == null) {
-            calcNsAndAttrLists(true);
+            _calcNsAndAttrLists(true);
         }
         if (index >= mAttrList.size() || index < 0) {
             handleIllegalAttrIndex(index);
             return null;
         }
         Attr attr = (Attr) mAttrList.get(index);
-        return constructQName(attr.getNamespaceURI(), safeGetLocalName(attr),
-                              attr.getPrefix());
+        return _constructQName(attr.getNamespaceURI(), _safeGetLocalName(attr), attr.getPrefix());
     }
 
     public String getAttributeNamespace(int index)
@@ -397,14 +403,14 @@ public abstract class DOMWrappingReader
             reportWrongState(ERR_STATE_NOT_START_ELEM);
         }
         if (mAttrList == null) {
-            calcNsAndAttrLists(true);
+            _calcNsAndAttrLists(true);
         }
         if (index >= mAttrList.size() || index < 0) {
             handleIllegalAttrIndex(index);
             return null;
         }
         Attr attr = (Attr) mAttrList.get(index);
-        return attr.getNamespaceURI();
+        return _internNsURI(attr.getNamespaceURI());
     }
 
     public String getAttributePrefix(int index)
@@ -413,14 +419,14 @@ public abstract class DOMWrappingReader
             reportWrongState(ERR_STATE_NOT_START_ELEM);
         }
         if (mAttrList == null) {
-            calcNsAndAttrLists(true);
+            _calcNsAndAttrLists(true);
         }
         if (index >= mAttrList.size() || index < 0) {
             handleIllegalAttrIndex(index);
             return null;
         }
         Attr attr = (Attr) mAttrList.get(index);
-        return attr.getPrefix();
+        return _internName(attr.getPrefix());
     }
 
     public String getAttributeType(int index)
@@ -429,7 +435,7 @@ public abstract class DOMWrappingReader
             reportWrongState(ERR_STATE_NOT_START_ELEM);
         }
         if (mAttrList == null) {
-            calcNsAndAttrLists(true);
+            _calcNsAndAttrLists(true);
         }
         if (index >= mAttrList.size() || index < 0) {
             handleIllegalAttrIndex(index);
@@ -458,7 +464,7 @@ public abstract class DOMWrappingReader
             reportWrongState(ERR_STATE_NOT_START_ELEM);
         }
         if (mAttrList == null) {
-            calcNsAndAttrLists(true);
+            _calcNsAndAttrLists(true);
         }
         if (index >= mAttrList.size() || index < 0) {
             handleIllegalAttrIndex(index);
@@ -539,12 +545,12 @@ public abstract class DOMWrappingReader
     public String getLocalName()
     {
         if (mCurrEvent == START_ELEMENT || mCurrEvent == END_ELEMENT) {
-            return safeGetLocalName(mCurrNode);
+            return _internName(_safeGetLocalName(mCurrNode));
         }
         if (mCurrEvent != ENTITY_REFERENCE) {
             reportWrongState(ERR_STATE_NO_LOCALNAME);
         }
-        return mCurrNode.getNodeName();
+        return _internName(mCurrNode.getNodeName());
     }
 
     public final Location getLocation() {
@@ -556,7 +562,7 @@ public abstract class DOMWrappingReader
         if (mCurrEvent != START_ELEMENT && mCurrEvent != END_ELEMENT) {
             reportWrongState(ERR_STATE_NOT_START_ELEM);
         }
-        return constructQName(mCurrNode.getNamespaceURI(), safeGetLocalName(mCurrNode), mCurrNode.getPrefix());
+        return _constructQName(mCurrNode.getNamespaceURI(), _safeGetLocalName(mCurrNode), mCurrNode.getPrefix());
     }
 
     // // // Namespace access
@@ -574,7 +580,7 @@ public abstract class DOMWrappingReader
             if (!mNsAware) {
                 return 0;
             }
-            calcNsAndAttrLists(mCurrEvent == START_ELEMENT);
+            _calcNsAndAttrLists(mCurrEvent == START_ELEMENT);
         }
         return mNsDeclList.size() / 2;
     }
@@ -592,11 +598,12 @@ public abstract class DOMWrappingReader
             if (!mNsAware) {
                 handleIllegalNsIndex(index);
             }
-            calcNsAndAttrLists(mCurrEvent == START_ELEMENT);
+            _calcNsAndAttrLists(mCurrEvent == START_ELEMENT);
         }
         if (index < 0 || (index + index) >= mNsDeclList.size()) {
             handleIllegalNsIndex(index);
         }
+        // Note: mNsDeclList entries have been appropriately intern()ed if need be
         return (String) mNsDeclList.get(index + index);
     }
 
@@ -604,7 +611,7 @@ public abstract class DOMWrappingReader
         if (mCurrEvent != START_ELEMENT && mCurrEvent != END_ELEMENT) {
             reportWrongState(ERR_STATE_NOT_ELEM);
         }
-        return mCurrNode.getNamespaceURI();
+        return _internNsURI(mCurrNode.getNamespaceURI());
     }
 
     public String getNamespaceURI(int index) {
@@ -615,11 +622,12 @@ public abstract class DOMWrappingReader
             if (!mNsAware) {
                 handleIllegalNsIndex(index);
             }
-            calcNsAndAttrLists(mCurrEvent == START_ELEMENT);
+            _calcNsAndAttrLists(mCurrEvent == START_ELEMENT);
         }
         if (index < 0 || (index + index) >= mNsDeclList.size()) {
             handleIllegalNsIndex(index);
         }
+        // Note: mNsDeclList entries have been appropriately intern()ed if need be
         return (String) mNsDeclList.get(index + index + 1);
     }
 
@@ -637,14 +645,14 @@ public abstract class DOMWrappingReader
         if (mCurrEvent != PROCESSING_INSTRUCTION) {
             reportWrongState(ERR_STATE_NOT_PI);
         }
-        return mCurrNode.getNodeName();
+        return _internName(mCurrNode.getNodeName());
     }
 
     public String getPrefix() {
         if (mCurrEvent != START_ELEMENT && mCurrEvent != END_ELEMENT) {
             reportWrongState(ERR_STATE_NOT_ELEM);
         }
-        return mCurrNode.getPrefix();
+        return _internName(mCurrNode.getPrefix());
     }
 
     public String getText()
@@ -1003,7 +1011,7 @@ public abstract class DOMWrappingReader
 
     public String getNamespaceURI(String prefix)
     {
-        /* 26-Apr-2006, TSa: Alas, these methods are DOM Level 3,
+        /* !!! 26-Apr-2006, TSa: Alas, these methods are DOM Level 3,
          *   i.e. require JDK 1.5 or higher
          */
         /*
@@ -1017,7 +1025,7 @@ public abstract class DOMWrappingReader
 
     public String getPrefix(String namespaceURI)
     {
-        /* 26-Apr-2006, TSa: Alas, these methods are DOM Level 3,
+        /* !!! 26-Apr-2006, TSa: Alas, these methods are DOM Level 3,
          *   i.e. require JDK 1.5 or higher
          */
         /*
@@ -1630,7 +1638,7 @@ public abstract class DOMWrappingReader
         // Ugh. Horrible clumsy code. But has to do...
         for (int i = 0, len = attrs.getLength(); i < len; ++i) {
             Node attr = attrs.item(i);
-            String ln = safeGetLocalName(attr);
+            String ln = _safeGetLocalName(attr);
             if (localName.equals(ln)) {
                 String thisUri = attr.getNamespaceURI();
                 boolean isEmpty = (thisUri == null) || thisUri.length() == 0;
@@ -1761,17 +1769,17 @@ public abstract class DOMWrappingReader
         case START_ELEMENT:
         case END_ELEMENT:
             {
-                String prefix = getPrefix();
-                String ln = getLocalName();
+                String prefix = mCurrNode.getPrefix();
+                String ln = _safeGetLocalName(mCurrNode);
 
                 if (prefix == null) {
-                    return ln;
+                    return _internName(ln);
                 }
                 StringBuffer sb = new StringBuffer(ln.length() + 1 + prefix.length());
                 sb.append(prefix);
                 sb.append(':');
                 sb.append(ln);
-                return sb.toString();
+                return _internName(sb.toString());
             }
         case ENTITY_REFERENCE:
             return getLocalName();
@@ -1801,7 +1809,7 @@ public abstract class DOMWrappingReader
 
     public String getDTDRootName() {
         if (mCurrEvent == DTD) {
-            return ((DocumentType) mCurrNode).getName();
+            return _internName(((DocumentType) mCurrNode).getName());
         }
         return null;
     }
@@ -1954,18 +1962,17 @@ public abstract class DOMWrappingReader
     ////////////////////////////////////////////
      */
 
-    private QName constructQName(String uri, String ln, String prefix)
+    private QName _constructQName(String uri, String ln, String prefix)
     {
         // Stupid QName impls barf on nulls...
-        return new QName((uri == null) ? "" : uri, ln,
-                         (prefix == null) ? "" : prefix);
+        return new QName(_internNsURI(uri), _internName(ln), _internName(prefix));
     }
 
     /**
      * @param attrsToo Whether to include actual attributes too, or
      *   just namespace declarations
      */
-    private void calcNsAndAttrLists(boolean attrsToo)
+    private void _calcNsAndAttrLists(boolean attrsToo)
     {
         NamedNodeMap attrsIn = mCurrNode.getAttributes();
 
@@ -2005,7 +2012,7 @@ public abstract class DOMWrappingReader
                     }
                     continue;
                 }
-                prefix = "";
+                prefix = null;
             } else { // explicit ns decl?
                 if (!"xmlns".equals(prefix)) { // nope
                     if (attrsToo) {
@@ -2021,8 +2028,8 @@ public abstract class DOMWrappingReader
             if (nsOut == null) {
                 nsOut = new ArrayList((len - i) * 2);
             }
-            nsOut.add(prefix);
-            nsOut.add(attr.getNodeValue());
+            nsOut.add(_internName(prefix));
+            nsOut.add(_internNsURI(attr.getNodeValue()));
         }
 
         mAttrList = (attrsOut == null) ? Collections.EMPTY_LIST : attrsOut;
@@ -2051,7 +2058,7 @@ public abstract class DOMWrappingReader
      * directly; but at any rate, should contain some logic for handling
      * problem cases.
      */
-    private String safeGetLocalName(Node n)
+    private String _safeGetLocalName(Node n)
     {
         String ln = n.getLocalName();
         if (ln == null) {
@@ -2171,6 +2178,26 @@ public abstract class DOMWrappingReader
         }
         // should never happen, but it'd be bad to throw another exception...
         return "Internal error (unrecognized error type: "+errorType+")";
+    }
+
+    /**
+     * Method called to do additional intern()ing for a name, if and as
+     * necessary
+     */
+    protected String _internName(String name)
+    {
+        if (name == null) {
+            return "";
+        }
+        return mInternNames ? name.intern() : name;
+    }
+
+    protected String _internNsURI(String uri)
+    {
+        if (uri == null) {
+            return "";
+        }
+        return mInternNsURIs ? uri.intern() : uri;
     }
 }
 

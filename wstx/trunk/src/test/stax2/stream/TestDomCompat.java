@@ -54,11 +54,11 @@ public class TestDomCompat
         
         assertEquals(1, sr.getAttributeCount());
         assertEquals("attr", sr.getAttributeLocalName(0));
-        assertNull(sr.getAttributePrefix(0));
-        assertNull(sr.getAttributeNamespace(0));
+        assertEquals("", sr.getAttributePrefix(0));
+        assertEquals("", sr.getAttributeNamespace(0));
         n = sr.getAttributeName(0);
-        assertEquals("attr", n.getLocalPart());
         assertNotNull(n);
+        assertEquals("attr", n.getLocalPart());
         assertEquals("value", sr.getAttributeValue(0));
 
         assertEquals(1, sr.getNamespaceCount());
@@ -79,8 +79,8 @@ public class TestDomCompat
 
         assertTokenType(START_ELEMENT, sr.next());
         assertEquals("leaf", sr.getLocalName());
-        assertNull(sr.getPrefix());
-        assertNull(sr.getNamespaceURI());
+        assertEquals("", sr.getPrefix());
+        assertEquals("", sr.getNamespaceURI());
         assertEquals(1, sr.getAttributeCount());
         assertEquals("attr", sr.getAttributeLocalName(0));
         assertEquals("ns", sr.getAttributePrefix(0));
@@ -89,8 +89,8 @@ public class TestDomCompat
 
         assertTokenType(END_ELEMENT, sr.next());
         assertEquals("leaf", sr.getLocalName());
-        assertNull(sr.getPrefix());
-        assertNull(sr.getNamespaceURI());
+        assertEquals("", sr.getPrefix());
+        assertEquals("", sr.getNamespaceURI());
         assertEquals(0, sr.getNamespaceCount());
 
         assertTokenType(PROCESSING_INSTRUCTION, sr.next());
@@ -198,58 +198,119 @@ public class TestDomCompat
     }
 
     /**
-     * For some resolution of [WSTX-162], let's just check that
-     * interning is not enabled...
+     * First test regarding [WSTX-162], let's check that we can
+     * actually enable/disable interning on reader instances
+     * (independent of whether settings take effect or not)
      */
     public void testDomInternProperties()
         throws Exception
     {
-        final String XML = "<root />";
-        Document doc = parseDomDoc(XML, true);
+        Document doc = parseDomDoc("<root />", true);
         XMLInputFactory2 ifact = getInputFactory();
-        XMLStreamReader sr = ifact.createXMLStreamReader(new DOMSource(doc));
+        XMLStreamReader2 sr = (XMLStreamReader2) ifact.createXMLStreamReader(new DOMSource(doc));
 
+        sr.setProperty(XMLInputFactory2.P_INTERN_NAMES, Boolean.TRUE);
+        assertEquals(Boolean.TRUE, sr.getProperty(XMLInputFactory2.P_INTERN_NAMES));
+        sr.setProperty(XMLInputFactory2.P_INTERN_NAMES, Boolean.FALSE);
         assertEquals(Boolean.FALSE, sr.getProperty(XMLInputFactory2.P_INTERN_NAMES));
+
+        sr.setProperty(XMLInputFactory2.P_INTERN_NS_URIS, Boolean.TRUE);
+        assertEquals(Boolean.TRUE, sr.getProperty(XMLInputFactory2.P_INTERN_NS_URIS));
+        sr.setProperty(XMLInputFactory2.P_INTERN_NS_URIS, Boolean.FALSE);
         assertEquals(Boolean.FALSE, sr.getProperty(XMLInputFactory2.P_INTERN_NS_URIS));
     }
 
-    /*
-    ///////////////////////////////////////////////////
-    // Tests for Stax2 (v3) Typed Access API methods
-    ///////////////////////////////////////////////////
-    */
-
-    public void testPrimitiveTypesBoolean()
+    /**
+     * Test for checking that [WSTX-162] has been addressed,
+     * regarding names.
+     */
+    public void testDomInternNames()
         throws Exception
     {
-        final String XML = "<root attr='true'>  false  </root>";
-        XMLStreamReader2 sr = createDomBasedReader(XML, true);
+        final String ELEM = "root";
+        final String PREFIX = "ns";
+        final String ATTR = "attr";
+        final String URI = "http://foo";
+        final String XML = "<"+PREFIX+":"+ELEM+" attr='1' xmlns:"+PREFIX+"='"+URI+"' />";
+        Document doc = parseDomDoc(XML, true);
+        XMLInputFactory2 ifact = getInputFactory();
 
+        /* Ok, so: let's first ensure that local names ARE intern()ed
+         * when we request them to be:
+         */
+        ifact.setProperty(XMLInputFactory2.P_INTERN_NAMES, Boolean.TRUE);
+        XMLStreamReader sr = ifact.createXMLStreamReader(new DOMSource(doc));
         assertTokenType(START_ELEMENT, sr.next());
-        assertEquals("root", sr.getLocalName());
-        assertTrue(sr.getAttributeAsBoolean(0));
-        assertFalse(sr.getElementAsBoolean());
-        // calling above method advances stream to END_ELEMENT
-        assertTokenType(END_ELEMENT, sr.getEventType());
-        assertEquals("root", sr.getLocalName());
-        assertTokenType(END_DOCUMENT, sr.next());
+        assertEquals(ELEM, sr.getLocalName());
+        assertSame(ELEM, sr.getLocalName());
+
+        assertEquals(ATTR, sr.getAttributeLocalName(0));
+        assertSame(ATTR, sr.getAttributeLocalName(0));
+
+        assertEquals(PREFIX, sr.getPrefix());
+        assertSame(PREFIX, sr.getPrefix());
+        sr.close();
+
+        /* And then also that the impl does honor disabling of
+         * the feature: while optional, ref. impl. makes this
+         * easy so there's no excuse not to.
+         */
+        ifact.setProperty(XMLInputFactory2.P_INTERN_NAMES, Boolean.FALSE);
+        sr = ifact.createXMLStreamReader(new DOMSource(doc));
+        assertTokenType(START_ELEMENT, sr.next());
+        assertEquals(ELEM, sr.getLocalName());
+        // Xerces won't force intern() of element names
+        assertNotSame(ELEM, sr.getLocalName());
+
+        // But does intern attribute names
+        /*
+        assertEquals(ATTR, sr.getAttributeLocalName(0));
+        assertNotSame(ATTR, sr.getAttributeLocalName(0));
+        */
+
+        assertEquals(PREFIX, sr.getPrefix());
+        assertNotSame(PREFIX, sr.getPrefix());
         sr.close();
     }
 
-    public void testPrimitiveTypesInt()
+    /**
+     * Test for checking that [WSTX-162] has been addressed,
+     * regarding names.
+     */
+    public void testDomInternNsURIs()
         throws Exception
     {
-        final String XML = "<root attr='13'>\n\t-123456</root>";
-        XMLStreamReader2 sr = createDomBasedReader(XML, true);
+        final String ELEM = "root";
+        final String URI = "http://foo";
+        final String XML = "<"+ELEM+" xmlns='"+URI+"' />";
+        Document doc = parseDomDoc(XML, true);
+        XMLInputFactory2 ifact = getInputFactory();
 
+        /* Ok, so: let's first ensure that URIs are intern()ed
+         * when we request them to be:
+         */
+        ifact.setProperty(XMLInputFactory2.P_INTERN_NS_URIS, Boolean.TRUE);
+        XMLStreamReader sr = ifact.createXMLStreamReader(new DOMSource(doc));
         assertTokenType(START_ELEMENT, sr.next());
-        assertEquals("root", sr.getLocalName());
-        assertEquals(13, sr.getAttributeAsInt(0));
-        assertEquals(-123456, sr.getElementAsInt());
-        // calling above method advances stream to END_ELEMENT
-        assertTokenType(END_ELEMENT, sr.getEventType());
-        assertEquals("root", sr.getLocalName());
-        assertTokenType(END_DOCUMENT, sr.next());
+        assertEquals(ELEM, sr.getLocalName());
+        assertEquals(URI, sr.getNamespaceURI());
+        assertSame(URI, sr.getNamespaceURI());
+        sr.close();
+
+        /* Beyond this we can't say much: it all depends on whether
+         * the backing DOM impl uses intern() or not.
+         */
+        ifact.setProperty(XMLInputFactory2.P_INTERN_NS_URIS, Boolean.FALSE);
+        sr = ifact.createXMLStreamReader(new DOMSource(doc));
+        assertTokenType(START_ELEMENT, sr.next());
+        assertEquals(ELEM, sr.getLocalName());
+        assertEquals(URI, sr.getNamespaceURI());
+
+        // Ok, looks like Xerces does intern namespace URIs? Weird...
+        /*
+        assertNotSame(URI, sr.getNamespaceURI());
+        */
+
         sr.close();
     }
 

@@ -8,7 +8,10 @@ Description:
 
   Problems fixed:
 
-  * [WTSX-121] Ordering of NOTATION definitions, references, should not matter
+  * [WTSX-121] Ordering of NOTATION definitions and ATTLIST references
+    should not matter
+  * [WTSX-142] Ordering of NOTATION definitions and ENTITY references
+    should not matter
   * [WSTX-148] Implement XMLEvent.equals() and .hashCode() to allow
     for easy comparisons.
     (requested by Sylvain L)
@@ -76,6 +79,7 @@ Description:
     (FEAT_DTD_OVERRIDE) into matching input-side property
     (XMLInputFactoty2.P_OVERRIDE_DTD).
   * [WSTX-127] Stax API specification compatibility improvements:
+    (also resolves [WSTX-57])
     * Missing prefixes now reported as "", not nulls.
     * "No namespace" now reported as "", not null.
   * Changing behavior of XMLStreamReader.getProperty() slightly (but within

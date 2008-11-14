@@ -98,18 +98,22 @@ public abstract class XMLInputFactory2
  
     /**
      * Whether name symbols (element, attribute, entity and notation names,
-     * namespace prefixes) should be interned or not (or when
-     * querying an instance, whether the instance will guarantee that
-     * the names will be intern()ed).
+     * namespace prefixes)
+     * stream reader returns are guaranteed to have been String.intern()ed.
      * Interning generally makes access faster (both internal and externally),
-     * and saves memory, but may add some overhead for processing.
+     * and saves memory, but can add some overhead for processing.
+     * It may also be problematic for large symbol spaces; especially
+     * if xml content has unbounded value space for names.
+     *<p>
+     * Default value for this setting is implementation dependant.
+     * Additionally implementations may have use different default for
+     * different types of stream readers.
      */
     public final static String P_INTERN_NAMES = "org.codehaus.stax2.internNames";
 
     /**
-     * Whether namespace URIs parsed should be interned or not (or when
-     * querying an instance, whether the instance will guarantee that
-     * the URIs will be intern()ed).
+     * Whether namespace URIs 
+     * stream reader returns are guaranteed to have been String.intern()ed.
      * Interning can make access by fully-qualified name faster as well
      * as save memory, but it can also add
      * some overhead when encountering a namespace URI for the first

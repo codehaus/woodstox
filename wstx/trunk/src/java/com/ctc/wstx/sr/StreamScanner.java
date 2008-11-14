@@ -1570,8 +1570,8 @@ public abstract class StreamScanner
             if (!allowExt) { // never ok in attribute value...
                 throwParseError("Encountered a reference to external parsed entity \"{0}\" when expanding attribute value: not legal as per XML 1.0/1.1 #3.1", id, null);
             }
-            if (!mConfig.hasConfigFlags(CFG_SUPPORT_EXTERNAL_ENTITIES)) {
-                throwParseError("Encountered a reference to external entity \"{0}\", but Reader has feature \"{1}\" disabled",
+            if (!mConfig.willSupportExternalEntities()) {
+                throwParseError("Encountered a reference to external entity \"{0}\", but stream reader has feature \"{1}\" disabled",
                                 id, XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES);
             }
         }
