@@ -4,13 +4,13 @@ import java.io.IOException;
 import java.io.Writer;
 
 import javax.xml.stream.*;
-import javax.xml.stream.events.NotationDeclaration;
 
 import org.codehaus.stax2.XMLStreamWriter2;
+import org.codehaus.stax2.evt.NotationDeclaration2;
 
 public class NotationDeclarationEventImpl
     extends BaseEventImpl
-    implements NotationDeclaration
+    implements NotationDeclaration2
 {
     /**
      * Name/id of the notation, used to reference declaration.
@@ -40,6 +40,14 @@ public class NotationDeclarationEventImpl
 
     public String getSystemId() {
         return mSystemId;
+    }
+
+    /**
+     * Empty base implementation: sub-classes should implement
+     */
+    public String getBaseURI()
+    {
+        return "";
     }
 
     /*
@@ -102,12 +110,14 @@ public class NotationDeclarationEventImpl
         if (o == this) return true;
         if (o == null) return false;
 
-        if (!(o instanceof NotationDeclaration)) return false;
+        if (!(o instanceof NotationDeclaration2)) return false;
 
-        NotationDeclaration other = (NotationDeclaration) o;
+        NotationDeclaration2 other = (NotationDeclaration2) o;
+        // should we consider Base URI here?
         return stringsWithNullsEqual(getName(), other.getName())
             && stringsWithNullsEqual(getPublicId(), other.getPublicId())
             && stringsWithNullsEqual(getSystemId(), other.getSystemId())
+            && stringsWithNullsEqual(getBaseURI(), other.getBaseURI())
             ;
     }
 

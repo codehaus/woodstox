@@ -13,6 +13,7 @@ Planned stuff for 4.0
   * [WSTX-171]: Contributor guidelines
 
 * Nice-to-have Jira entries:
+  * [WSTX-50]: Add Base URI for Notation declarations
 (invalid bug?) * [WSTX-160]: Problems with multiple Schemas...
 
 * Misc internal improvements:

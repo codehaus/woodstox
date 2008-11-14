@@ -33,7 +33,7 @@ public class EntityDeclarationEventImpl
 
     public String getBaseURI()
     {
-        return null;
+        return "";
     }
 
     public String getName()
