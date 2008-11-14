@@ -11,11 +11,9 @@ Planned stuff for 4.0
   * [WSTX-163]: XMLStreamWriter2.closeCompletely()
   * [WSTX-169]: Support for non-standard base64 modes
   * [WSTX-171]: Contributor guidelines
-DONE * [WSTX-166]: Full support for Stax2ByteArraySource for faster parsing
-DONE * [WSTX-167]: Auto-suppression of control chars for XMLStreamWriter2
 
 * Nice-to-have Jira entries:
-  * [WSTX-160]: Problems with multiple Schemas...
+(invalid bug?) * [WSTX-160]: Problems with multiple Schemas...
 
 * Misc internal improvements:
   * Typed Access API, writer:

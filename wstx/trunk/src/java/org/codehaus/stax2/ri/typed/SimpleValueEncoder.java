@@ -1,7 +1,9 @@
 package org.codehaus.stax2.ri.typed;
 
 /**
- * Helper class used for serializing typed values to String.
+ * Helper class used for serializing typed values to String. Mostly
+ * used for "non-native" stream writers; things like DOM-backed
+ * stream writer, or stax (v1) adapter.
  *
  * @author Tatu Saloranta
  */

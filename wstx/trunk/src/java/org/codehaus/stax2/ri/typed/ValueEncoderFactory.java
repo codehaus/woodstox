@@ -1,4 +1,5 @@
-/* StAX2 extension for StAX API (JSR-173).
+/* Reference Implementation of
+ * Stax2 extension API (for basic Stax API, JSR-173)
  *
  * Copyright (c) 2005- Tatu Saloranta, tatu.saloranta@iki.fi
  *
@@ -25,7 +26,7 @@ package org.codehaus.stax2.ri.typed;
  *<p>
  * Since encoders are recycled, instances are not thread-safe.
  *
- * @since 4.0
+ * @since 3.0
  */
 public final class ValueEncoderFactory
 {

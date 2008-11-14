@@ -1,6 +1,7 @@
-/* StAX2 extension for StAX API (JSR-173).
+/* Reference Implementation of
+ * Stax2 extension API (for basic Stax API, JSR-173)
  *
- * Copyright (c) 2005- Tatu Saloranta, tatu.saloranta@iki.fi
+ * Copyright (c) 2008- Tatu Saloranta, tatu.saloranta@iki.fi
  *
  * Licensed under the License specified in file LICENSE, included with
  * the source code.
@@ -56,7 +57,7 @@ package org.codehaus.stax2.ri.typed;
  * implementation handles this using an encoder factory
  * that knows construction details.
  *
- * @since 4.0
+ * @since 3.0
  */
 public abstract class AsciiValueEncoder
 {

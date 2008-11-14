@@ -36,7 +36,7 @@ import com.ctc.wstx.util.DefaultXmlSymbolTable;
  * shared functionality between repairing and non-repairing implementations.
  */
 public abstract class BaseNsStreamWriter
-    extends BaseStreamWriter
+    extends TypedStreamWriter
 {
     /*
     ////////////////////////////////////////////////////

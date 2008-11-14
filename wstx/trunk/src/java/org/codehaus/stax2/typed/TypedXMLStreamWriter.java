@@ -2,7 +2,8 @@ package org.codehaus.stax2.typed;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-// !!! 30-Jan-2008, TSa: JDK 1.5 only -- is that ok?
+
+// !!! 30-Jan-2008, TSa: JDK 1.5 only, can't add yet
 //import javax.xml.datatype.XMLGregorianCalendar;
 
 import javax.xml.namespace.QName;
@@ -29,13 +30,12 @@ import javax.xml.stream.XMLStreamWriter;
 public interface TypedXMLStreamWriter
     extends XMLStreamWriter
 {
-    // -- Elements --------------------------------------------------
+    // -- Elements --
     
     /**
      * Write a boolean value to the output as textual element content.
      * The lexical representation of content is defined by the
-     * <a href="http://www.w3.org/TR/xmlschema-2/#boolean">XML Schema
-     * boolean</a> data type.
+     * <a href="http://www.w3.org/TR/xmlschema-2/#boolean">XML Schema boolean</a> data type.
      *
      * @param value  The boolean value to write.
      */
@@ -44,32 +44,28 @@ public interface TypedXMLStreamWriter
     /**
      * Write an int value to the output as textual element content.
      * The lexical representation of content is defined by the
-     * <a href="http://www.w3.org/TR/xmlschema-2/#integer">XML Schema
-     * integer</a> data type.
+     * <a href="http://www.w3.org/TR/xmlschema-2/#integer">XML Schema integer</a> data type.
      */
     void writeInt(int value) throws XMLStreamException;
     
     /**
      * Write a long value to the output as textual element content.
      * The lexical representation of content is defined by the
-     * <a href="http://www.w3.org/TR/xmlschema-2/#long">XML Schema
-     * long</a> data type.
+     * <a href="http://www.w3.org/TR/xmlschema-2/#long">XML Schema long</a> data type.
      */
     void writeLong(long value) throws XMLStreamException;
 
     /**
      * Write a float value to the output as textual element content.
      * The lexical representation of content is defined by the
-     * <a href="http://www.w3.org/TR/xmlschema-2/#float">XML Schema
-     * float</a> data type.
+     * <a href="http://www.w3.org/TR/xmlschema-2/#float">XML Schema float</a> data type.
      */
     void writeFloat(float value) throws XMLStreamException;
     
     /**
      * Write a double value to the output as textual element content.
      * The lexical representation of content is defined by the
-     * <a href="http://www.w3.org/TR/xmlschema-2/#double">XML Schema
-     * double</a> data type.
+     * <a href="http://www.w3.org/TR/xmlschema-2/#double">XML Schema double</a> data type.
      */
     void writeDouble(double value) throws XMLStreamException;
 
@@ -78,22 +74,20 @@ public interface TypedXMLStreamWriter
     /**
      * Write a decimal value to the output as textual element content.
      * The lexical representation of content is defined by the
-     * <a href="http://www.w3.org/TR/xmlschema-2/#decimal">XML Schema
-     * decimal</a> data type.
+     * <a href="http://www.w3.org/TR/xmlschema-2/#decimal">XML Schema decimal</a> data type.
      */
     void writeDecimal(BigDecimal value) throws XMLStreamException;
     
     void writeQName(QName value) throws XMLStreamException;
     
-    // !!! 30-Jan-2008, TSa: JDK 1.5 only -- is that ok?
+    // !!! 30-Jan-2008, TSa: JDK 1.5 only, can't add yet
     //void writeCalendar(XMLGregorianCalendar value) throws XMLStreamException;
     
     /**
      *<p>
      * Write binary content as base64 encoded characters to the output.
      * The lexical representation of a byte array is defined by the
-     * <a href="http://www.w3.org/TR/xmlschema-2/#base64Binary">XML Schema
-     * base64Binary</a> data type. This method can be called 
+     * <a href="http://www.w3.org/TR/xmlschema-2/#base64Binary">XML Schema base64Binary</a> data type. This method can be called 
      * multiple times to write the array in chunks; but if so,
      * callers should write output in chunks divisible by 3 (natural
      * atomic unit of base64 output, which avoids padding) to
@@ -130,7 +124,7 @@ public interface TypedXMLStreamWriter
     void writeDoubleArray(double[] value, int from, int length) throws XMLStreamException;
     
  
-    // -- Attributes ------------------------------------------------
+    // -- Attributes --
     
     /**
      * Write a boolean value to the output as attribute value.
@@ -190,8 +184,7 @@ public interface TypedXMLStreamWriter
     /**
      * <p>Write a byte array attribute. The lexical
      * representation of a byte array is defined by the
-     * <a href="http://www.w3.org/TR/xmlschema-2/#base64Binary">XML Schema
-     * base64Binary</a> data type.</p>
+     * <a href="http://www.w3.org/TR/xmlschema-2/#base64Binary">XML Schema base64Binary</a> data type.</p>
      *
      * @param prefix  The attribute's prefix.
      * @param namespaceURI  The attribute's URI.

@@ -1,4 +1,4 @@
-/* StAX2 extension for StAX API (JSR-173).
+/* Stax2 extension for basic Stax API (JSR-173).
  *
  * Copyright (c) 2005- Tatu Saloranta, tatu.saloranta@iki.fi
  *

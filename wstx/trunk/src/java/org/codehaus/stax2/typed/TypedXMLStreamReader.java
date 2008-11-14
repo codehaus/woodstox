@@ -1,3 +1,18 @@
+/* Stax2 extension for basic Stax API (JSR-173).
+ *
+ * Copyright (c) 2005- Tatu Saloranta, tatu.saloranta@iki.fi
+ *
+ * Licensed under the License specified in file LICENSE, included with
+ * the source code.
+ * You may not use this file except in compliance with the License.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.codehaus.stax2.typed;
 
 import javax.xml.stream.XMLStreamException;
@@ -6,27 +21,14 @@ import javax.xml.stream.XMLStreamReader;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import javax.xml.namespace.QName;
-// !!! 30-Jan-2008, TSa: JDK 1.5 only -- is that ok?
+
+// !!! 30-Jan-2008, TSa: JDK 1.5 only, can't add yet
 //import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
  * This interface provides a typed extension to 
  * {@link javax.xml.stream.XMLStreamReader}. It defines methods for
  * reading XML data and converting it into Java types.
- *<p>
- * Implementation notes:
- *
- * - As of November 2008:
- *   * Writer-side is complete, including:
- *     - Primitives (numbers, boolean)
- *     - Other scalars (QName)
- *     - Primitive arrays
- *     - Binary (base64)
- *   * Reader-side complete as well!
- *     - Primitives
- *     - Other scalars
- *     - Primitive arrays
- *     - Binary elements:
  * 
  * @author Santiago.PericasGeertsen@sun.com
  * @author Tatu Saloranta
@@ -186,10 +188,7 @@ public interface TypedXMLStreamReader
     
     public QName getElementAsQName() throws XMLStreamException;
     
-    // !!! 30-Jan-2008, TSa: JDK 1.5 only -- is that ok?
-    /**
-     * <p><i>[TODO] </i>
-     */
+    // !!! 30-Jan-2008, TSa: JDK 1.5 only, can't add yet
     //public XMLGregorianCalendar getElementAsCalendar() throws XMLStreamException;
 
     /**

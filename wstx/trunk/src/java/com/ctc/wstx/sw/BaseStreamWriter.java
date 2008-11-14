@@ -17,8 +17,6 @@ package com.ctc.wstx.sw;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.text.MessageFormat;
 
 import javax.xml.namespace.NamespaceContext;
@@ -37,8 +35,6 @@ import org.codehaus.stax2.DTDInfo;
 import org.codehaus.stax2.XMLStreamLocation2;
 import org.codehaus.stax2.XMLStreamReader2;
 import org.codehaus.stax2.XMLStreamWriter2;
-import org.codehaus.stax2.ri.typed.AsciiValueEncoder;
-import org.codehaus.stax2.ri.typed.ValueEncoderFactory;
 import org.codehaus.stax2.validation.*;
 
 import com.ctc.wstx.api.WriterConfig;
@@ -105,13 +101,6 @@ public abstract class BaseStreamWriter
      * for longer buffers).
      */
     protected char[] mCopyBuffer = null;
-
-    /**
-     * When outputting using Typed Access API, we will need
-     * encoders. If so, they will created by lazily-constructed
-     * factory
-     */
-    protected ValueEncoderFactory mValueEncoderFactory;
 
     /*
     ////////////////////////////////////////////////////
@@ -238,7 +227,7 @@ public abstract class BaseStreamWriter
 
     /*
     ////////////////////////////////////////////////////
-    // Life-cycle (ctors)
+    // Life-cycle
     ////////////////////////////////////////////////////
      */
 
@@ -256,14 +245,6 @@ public abstract class BaseStreamWriter
         mCfgAutomaticEmptyElems = (flags & OutputConfigFlags.CFG_AUTOMATIC_EMPTY_ELEMS) != 0;
         mCfgCDataAsText = (flags & OutputConfigFlags.CFG_OUTPUT_CDATA_AS_TEXT) != 0;
         mCfgCopyDefaultAttrs = (flags & OutputConfigFlags.CFG_COPY_DEFAULT_ATTRS) != 0;
-    }
-
-    protected final ValueEncoderFactory valueEncoderFactory()
-    {
-        if (mValueEncoderFactory == null) {
-            mValueEncoderFactory = new ValueEncoderFactory();
-        }
-        return mValueEncoderFactory;
     }
 
     /*
@@ -740,244 +721,6 @@ public abstract class BaseStreamWriter
                                            String nsURI)
         throws XMLStreamException;
     
-    /*
-    /////////////////////////////////////////////////
-    // TypedXMLStreamWriter2 implementation
-    // (Typed Access API, Stax v3.0)
-    /////////////////////////////////////////////////
-     */
-
-    // // // Typed element content write methods
-
-    public void writeBoolean(boolean value)
-        throws XMLStreamException
-    {
-        writeTypedElement(valueEncoderFactory().getEncoder(value));
-    }
-
-    public void writeInt(int value)
-        throws XMLStreamException
-    {
-        writeTypedElement(valueEncoderFactory().getEncoder(value));
-    }
-
-    public void writeLong(long value)
-        throws XMLStreamException
-    {
-        writeTypedElement(valueEncoderFactory().getEncoder(value));
-    }
-
-    public void writeFloat(float value)
-        throws XMLStreamException
-    {
-        writeTypedElement(valueEncoderFactory().getEncoder(value));
-    }
-
-    public void writeDouble(double value)
-        throws XMLStreamException
-    {
-        writeTypedElement(valueEncoderFactory().getEncoder(value));
-
-    }
-
-    public void writeInteger(BigInteger value)
-        throws XMLStreamException
-    {
-        /* No really efficient method exposed by JDK, keep it simple
-         * (esp. considering that length is actually not bound)
-         */
-        writeTypedElement(valueEncoderFactory().getScalarEncoder(value.toString()));
-    }
-
-    public void writeDecimal(BigDecimal value)
-        throws XMLStreamException
-    {
-        /* No really efficient method exposed by JDK, keep it simple
-         * (esp. considering that length is actually not bound)
-         */
-        writeTypedElement(valueEncoderFactory().getScalarEncoder(value.toString()));
-    }
-
-    public void writeQName(QName name)
-        throws XMLStreamException
-    {
-        /* Can't use AsciiValueEncoder, since QNames can contain
-         * non-ascii characters
-         */
-        writeCharacters(serializeQName(name));
-    }
-
-    public final void writeIntArray(int[] value, int from, int length)
-        throws XMLStreamException
-    {
-        writeTypedElement(valueEncoderFactory().getEncoder(value, from, length));
-    }
-
-    public void writeLongArray(long[] value, int from, int length)
-        throws XMLStreamException
-    {
-        writeTypedElement(valueEncoderFactory().getEncoder(value, from, length));
-    }
-
-    public void writeFloatArray(float[] value, int from, int length)
-        throws XMLStreamException
-    {
-        writeTypedElement(valueEncoderFactory().getEncoder(value, from, length));
-    }
-
-    public void writeDoubleArray(double[] value, int from, int length)
-        throws XMLStreamException
-    {
-        writeTypedElement(valueEncoderFactory().getEncoder(value, from, length));
-    }
-
-    public void writeBinary(byte[] value, int from, int length)
-        throws XMLStreamException
-    {
-        writeTypedElement(valueEncoderFactory().getEncoder(value, from, length));
-    }
-
-    protected final void writeTypedElement(AsciiValueEncoder enc)
-        throws XMLStreamException
-    {
-        if (mStartElementOpen) {
-            closeStartElement(mEmptyElement);
-        }
-        // How about well-formedness?
-        if (mCheckStructure) {
-            if (inPrologOrEpilog()) {
-                reportNwfStructure(ErrorConsts.WERR_PROLOG_NONWS_TEXT);
-            }
-        }
-        // Or validity?
-        if (mVldContent <= XMLValidator.CONTENT_ALLOW_WS) {
-            reportInvalidContent(CHARACTERS);
-        }
-
-        // So far so good: let's serialize
-        try {
-            XMLValidator vld = (mVldContent == XMLValidator.CONTENT_ALLOW_VALIDATABLE_TEXT) ?
-                mValidator : null;
-            if (vld == null) {
-                mWriter.writeTypedElement(enc);
-            } else {
-                mWriter.writeTypedElement(enc, vld, getCopyBuffer());
-            }
-        } catch (IOException ioe) {
-            throw new WstxIOException(ioe);
-        }
-    }
-
-    // // // Typed attribute value write methods
-
-    public void writeBooleanAttribute(String prefix, String nsURI, String localName, boolean value)
-        throws XMLStreamException
-    {
-        writeTypedAttribute(prefix, nsURI, localName,
-                            valueEncoderFactory().getEncoder(value));
-    }
-
-    public void writeIntAttribute(String prefix, String nsURI, String localName, int value)
-        throws XMLStreamException
-    {
-        writeTypedAttribute(prefix, nsURI, localName,
-                              valueEncoderFactory().getEncoder(value));
-    }
-
-    public void writeLongAttribute(String prefix, String nsURI, String localName, long value)
-        throws XMLStreamException
-    {
-        writeTypedAttribute(prefix, nsURI, localName,
-                              valueEncoderFactory().getEncoder(value));
-    }
-
-    public void writeFloatAttribute(String prefix, String nsURI, String localName, float value)
-        throws XMLStreamException
-    {
-        writeTypedAttribute(prefix, nsURI, localName,
-                              valueEncoderFactory().getEncoder(value));
-    }
-
-    public void writeDoubleAttribute(String prefix, String nsURI, String localName, double value)
-        throws XMLStreamException
-    {
-        writeTypedAttribute(prefix, nsURI, localName,
-                              valueEncoderFactory().getEncoder(value));
-    }
-
-    public void writeIntegerAttribute(String prefix, String nsURI, String localName, BigInteger value)
-        throws XMLStreamException
-    {
-        // not optimal, but has to do:
-        writeTypedAttribute(prefix, nsURI, localName,
-                              valueEncoderFactory().getScalarEncoder(value.toString()));
-    }
-
-    public void writeDecimalAttribute(String prefix, String nsURI, String localName, BigDecimal value)
-        throws XMLStreamException
-    {
-        // not optimal, but has to do:
-        writeTypedAttribute(prefix, nsURI, localName,
-                              valueEncoderFactory().getScalarEncoder(value.toString()));
-    }
-
-    public void writeQNameAttribute(String prefix, String nsURI, String localName, QName name)
-        throws XMLStreamException
-    {
-        /* Can't use AsciiValueEncoder, since QNames can contain
-         * non-ascii characters
-         */
-        writeAttribute(prefix, nsURI, localName, serializeQName(name));
-    }
-
-    public void writeIntArrayAttribute(String prefix, String nsURI, String localName, int[] value)
-        throws XMLStreamException
-    {
-        writeTypedAttribute(prefix, nsURI, localName,
-                              valueEncoderFactory().getEncoder(value, 0, value.length));
-    }
-
-    public void writeLongArrayAttribute(String prefix, String nsURI, String localName, long[] value)
-        throws XMLStreamException
-    {
-        writeTypedAttribute(prefix, nsURI, localName,
-                            valueEncoderFactory().getEncoder(value, 0, value.length));
-    }
-
-    public void writeFloatArrayAttribute(String prefix, String nsURI, String localName, float[] value)
-        throws XMLStreamException
-    {
-        writeTypedAttribute(prefix, nsURI, localName,
-                            valueEncoderFactory().getEncoder(value, 0, value.length));
-    }
-
-    public void writeDoubleArrayAttribute(String prefix, String nsURI, String localName, double[] value)
-        throws XMLStreamException
-    {
-        writeTypedAttribute(prefix, nsURI, localName,
-                            valueEncoderFactory().getEncoder(value, 0, value.length));
-    }
-
-    public void writeBinaryAttribute(String prefix, String nsURI, String localName, byte[] value)
-        throws XMLStreamException
-    {
-        writeTypedAttribute(prefix, nsURI, localName,
-                            valueEncoderFactory().getEncoder(value, 0, value.length));
-    }
-
-    private String serializeQName(QName name)
-        throws XMLStreamException
-    {
-        String vp = validateQNamePrefix(name);
-        String local = name.getLocalPart();
-        if (vp == null || vp.length() == 0) {
-            return local;
-        }
-
-        // Not efficient... but should be ok
-        return vp + ":" + local;
-    }
-
     /*
     ////////////////////////////////////////////////////
     // XMLStreamWriter2 methods (StAX2)
@@ -1632,15 +1375,6 @@ public abstract class BaseStreamWriter
             throw new WstxIOException(ioe);
         }
     }
-
-    /**
-     * Method that will write attribute with value that is known not to
-     * require additional escaping.
-     */
-    protected abstract void writeTypedAttribute(String prefix, String nsURI,
-                                                String localName,
-                                                AsciiValueEncoder enc)
-        throws XMLStreamException;
     
     /**
      * Method called to close an open start element, when another

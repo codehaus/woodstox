@@ -43,7 +43,7 @@ import com.ctc.wstx.util.StringVector;
  * output, they are output using attribute writing methods.
  */
 public class NonNsStreamWriter
-    extends BaseStreamWriter
+    extends TypedStreamWriter
 {
     /*
     ////////////////////////////////////////////////////

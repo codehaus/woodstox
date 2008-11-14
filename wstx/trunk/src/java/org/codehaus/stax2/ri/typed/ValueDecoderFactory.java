@@ -1,4 +1,5 @@
-/* Woodstox XML processor
+/* Reference Implementation of
+ * Stax2 extension API (for basic Stax API, JSR-173)
  *
  * Copyright (c) 2008- Tatu Saloranta, tatu.saloranta@iki.fi
  *
