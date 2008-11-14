@@ -261,7 +261,7 @@ public abstract class BaseStreamWriter
          *    element, if one exists, and then closing scopes by adding
          *    matching end elements.
          */
-        finishDocument();
+        _finishDocument(false);
     }
 
     public void flush()
@@ -550,7 +550,7 @@ public abstract class BaseStreamWriter
 
     public void writeEndDocument() throws XMLStreamException
     {
-        finishDocument();
+        _finishDocument(false);
     }
 
     public abstract void writeEndElement() throws XMLStreamException;
@@ -914,8 +914,7 @@ public abstract class BaseStreamWriter
     public void closeCompletely()
         throws XMLStreamException
     {
-        // !!! TBI
-        close();
+        _finishDocument(true);
     }
 
     /*
@@ -1388,7 +1387,14 @@ public abstract class BaseStreamWriter
         return (mState != STATE_TREE);
     }
 
-    private final void finishDocument() throws XMLStreamException
+    /**
+     * @param forceRealClose If true, will force calling of close() on the
+     *   underlying physical result (stream, writer). If false, will let
+     *   XmlWriter decide whether to call close(); will be done if auto-closing
+     *   enabled, but not otherwise.
+     */
+    private final void _finishDocument(boolean forceRealClose)
+        throws XMLStreamException
     {
         // Is tree still open?
         if (mState != STATE_EPILOG) {
@@ -1409,13 +1415,13 @@ public abstract class BaseStreamWriter
         /* And finally, inform the underlying writer that it should flush
          * and release its buffers, and close components it uses if any.
          */
+        char[] buf = mCopyBuffer;
+        if (buf != null) {
+            mCopyBuffer = null;
+            mConfig.freeMediumCBuffer(buf);
+        }
         try {
-            char[] buf = mCopyBuffer;
-            if (buf != null) {
-                mCopyBuffer = null;
-                mConfig.freeMediumCBuffer(buf);
-            }
-            mWriter.close();
+            mWriter.close(forceRealClose);
         } catch (IOException ie) {
             throw new WstxIOException(ie);
         }

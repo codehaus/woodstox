@@ -4,9 +4,20 @@ import java.io.*;
 
 import com.ctc.wstx.api.WriterConfig;
 
+/**
+ * Specialized buffering UTF-8 writer used by
+ * {@link com.ctc.wstx.sw.XmlWriter}.
+ * The main reason for custom version is to allow for efficient
+ * buffer recycling; the second benefit is that encoder has less
+ * overhead for short content encoding (compared to JDK default
+ * codecs).
+ */
 public final class UTF8Writer
     extends Writer
+    implements CompletelyCloseable
 {
+    private final static int DEFAULT_BUF_LEN = 4000;
+
     final static int SURR1_FIRST = 0xD800;
     final static int SURR1_LAST = 0xDBFF;
     final static int SURR2_FIRST = 0xDC00;
@@ -16,7 +27,7 @@ public final class UTF8Writer
 
     final boolean mAutoCloseOutput;
 
-    OutputStream mOut;
+    final OutputStream mOut;
 
     byte[] mOutBuffer;
 
@@ -36,7 +47,7 @@ public final class UTF8Writer
         mConfig = cfg;
         mAutoCloseOutput = autoclose;
         mOut = out;
-        mOutBuffer = cfg.allocFullBBuffer(4000);
+        mOutBuffer = (mConfig == null) ? new byte[DEFAULT_BUF_LEN] : cfg.allocFullBBuffer(DEFAULT_BUF_LEN);
         /* Max. expansion for a single char (in unmodified UTF-8) is
          * 4 bytes (or 3 depending on how you view it -- 4 when recombining
          * surrogate pairs)
@@ -44,6 +55,23 @@ public final class UTF8Writer
         mOutBufferLast = mOutBuffer.length - 4;
         mOutPtr = 0;
     }
+
+    /*
+    ////////////////////////////////////////////////////////
+    // CompletelyCloseable impl
+    ////////////////////////////////////////////////////////
+     */
+
+    public void closeCompletely() throws IOException
+    {
+        _close(true);
+    }
+
+    /*
+    ////////////////////////////////////////////////////////
+    // java.io.Writer implementation
+    ////////////////////////////////////////////////////////
+     */
 
     /* !!! 30-Nov-2006, TSa: Due to co-variance between Appendable and
      *    Writer, this would not compile with javac 1.5, in 1.4 mode
@@ -60,39 +88,15 @@ public final class UTF8Writer
     }
     */
 
-    public void close()
-        throws IOException
+    public void close() throws IOException
     {
-        if (mOut != null) {
-            if (mOutPtr > 0) {
-                mOut.write(mOutBuffer, 0, mOutPtr);
-                mOutPtr = 0;
-            }
-            OutputStream out = mOut;
-            mOut = null;
-            byte[] buf = mOutBuffer;
-            mOutBuffer = null;
-
-            if (mAutoCloseOutput) {
-                out.close();
-            }
-            mConfig.freeFullBBuffer(buf);
-
-            /* Let's 'flush' orphan surrogate, no matter what; but only
-             * after cleanly closing everything else.
-             */
-            int code = mSurrogate;
-            mSurrogate = 0;
-            if (code > 0) {
-                throwIllegal(code);
-            }
-        }
+        _close(mAutoCloseOutput);
     }
 
     public void flush()
         throws IOException
     {
-        if (mOutPtr > 0) {
+        if (mOutPtr > 0 && mOutBuffer != null) {
             mOut.write(mOutBuffer, 0, mOutPtr);
             mOutPtr = 0;
         }
@@ -119,7 +123,7 @@ public final class UTF8Writer
         if (mSurrogate > 0) {
             char second = cbuf[off++];
             --len;
-            write(convertSurrogate(second));
+            write(_convertSurrogate(second));
             // will have at least one more char
         }
 
@@ -187,7 +191,7 @@ public final class UTF8Writer
                 if (off >= len) { // unless we hit the end?
                     break;
                 }
-                c = convertSurrogate(cbuf[off++]);
+                c = _convertSurrogate(cbuf[off++]);
                 if (c > 0x10FFFF) { // illegal, as per RFC 3629
                     mOutPtr = outPtr;
                     throwIllegal(c);
@@ -206,7 +210,7 @@ public final class UTF8Writer
     {
         // First; do we have a left over surrogate?
         if (mSurrogate > 0) {
-            c = convertSurrogate(c);
+            c = _convertSurrogate(c);
             // If not, do we start with a surrogate?
         } else if (c >= SURR1_FIRST && c <= SURR2_LAST) {
             // Illegal to get second part without first:
@@ -267,7 +271,7 @@ public final class UTF8Writer
         if (mSurrogate > 0) {
             char second = str.charAt(off++);
             --len;
-            write(convertSurrogate(second));
+            write(_convertSurrogate(second));
             // will have at least one more char (case of 1 char was checked earlier on)
         }
 
@@ -335,7 +339,7 @@ public final class UTF8Writer
                 if (off >= len) { // unless we hit the end?
                     break;
                 }
-                c = convertSurrogate(str.charAt(off++));
+                c = _convertSurrogate(str.charAt(off++));
                 if (c > 0x10FFFF) { // illegal, as per RFC 3629
                     mOutPtr = outPtr;
                     throwIllegal(c);
@@ -355,10 +359,39 @@ public final class UTF8Writer
     ////////////////////////////////////////////////////////////
      */
 
+    private final void _close(boolean forceClosing)
+        throws IOException
+    {
+        byte[] buf = mOutBuffer;
+        if (buf != null) {
+            mOutBuffer = null;
+            if (mOutPtr > 0) {
+                mOut.write(buf, 0, mOutPtr);
+                mOutPtr = 0;
+            }
+            if (mConfig != null) {
+                mConfig.freeFullBBuffer(buf);
+            }
+        }
+
+        if (forceClosing) {
+            mOut.close();
+        }
+        
+        /* Let's 'flush' orphan surrogate, no matter what; but only
+         * after cleanly closing everything else.
+         */
+        int code = mSurrogate;
+        if (code > 0) {
+            mSurrogate = 0;
+            throwIllegal(code);
+        }
+    }
+
     /**
      * Method called to calculate UTF codepoint, from a surrogate pair.
      */
-    private int convertSurrogate(int secondPart)
+    private final int _convertSurrogate(int secondPart)
         throws IOException
     {
         int firstPart = mSurrogate;

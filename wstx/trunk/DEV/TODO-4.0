@@ -8,7 +8,6 @@ Planned stuff for 4.0
 * Remaining Jira entries that must be tackled:
   * [WSTX-152]: Basic OSGi headers in Manifest
   * [WSTX-157]: Add XMLReporter2 to Stax2 (or not)
-  * [WSTX-163]: XMLStreamWriter2.closeCompletely()
   * [WSTX-169]: Support for non-standard base64 modes
   * [WSTX-171]: Contributor guidelines
 

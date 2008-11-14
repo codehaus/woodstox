@@ -333,10 +333,7 @@ public class WstxInputFactory
     public XMLStreamReader createXMLStreamReader(javax.xml.transform.Source src)
         throws XMLStreamException
     {
-        /* true for auto-close, since caller has no (guaranteed) access to
-         * the underlying input stream/reader (source object may hand
-         * different readers for each call)
-         */
+        // false -> not for event. No definition for auto-close; called method will decide
         return createSR(src, false);
     }
 
@@ -514,8 +511,7 @@ public class WstxInputFactory
      * (via other createSR() methods and directly)
      *
      * @param forER True, if the reader is being constructed to be used
-     *   by an event reader; false if it is not (or the purpose is not
-     *   known)
+     *   by an event reader; false if it is not (or the purpose is not known)
      * @param autoCloseInput Whether the underlying input source should be
      *   actually closed when encountering EOF, or when <code>close()</code>
      *   is called. Will be true for input sources that are automatically
@@ -671,6 +667,9 @@ public class WstxInputFactory
      * Source base type. One thing worth noting is that 'auto-closing'
      * will be enabled if the input source or Reader is constructed (and
      * thus owned) by Woodstox.
+     *
+     * @param forER True, if the reader is being constructed to be used
+     *   by an event reader; false if it is not (or the purpose is not known)
      */
     protected XMLStreamReader2 createSR(javax.xml.transform.Source src,
                                         boolean forER)
@@ -750,7 +749,6 @@ public class WstxInputFactory
         } else {
             throw new IllegalArgumentException("Can not instantiate Stax reader for XML source type "+src.getClass()+" (unrecognized type)");
         }
-
 	if (bs == null) { // may have already created boostrapper...
 	    if (r != null) { 
 		bs = ReaderBootstrapper.getInstance(pubId, sysId, r, encoding);

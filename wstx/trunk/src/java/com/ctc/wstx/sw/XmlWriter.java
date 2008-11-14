@@ -239,9 +239,10 @@ public abstract class XmlWriter
 
     /**
      * Method called to flush the buffer(s), and close the output
-     * sink (stream or writer).
+     * sink (stream or writer) if enabled (auto-closing) or
+     * forced.
      */
-    public abstract void close() throws IOException;
+    public abstract void close(boolean forceRealClose) throws IOException;
 
     public abstract void flush()
         throws IOException;

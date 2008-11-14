@@ -126,6 +126,9 @@ public interface InputConfigFlags
      * input source, either when it is asked to (.close() is called), or
      * when it doesn't need it any more (reaching EOF, hitting an
      * unrecoverable exception).
+     * As per Stax 1.0 specification, automatic closing is NOT enabled by
+     * default; except if the caller has no access to the target (i.e.
+     * when factory created it)
      */
     final static int CFG_AUTO_CLOSE_INPUT = 0x4000;
 

@@ -577,6 +577,22 @@ jar.stax2, jar.stax2test, jar.wstx.lgpl, jar.wstx.asl" />
         </unzip>
     </target>
 
+    <!-- Running a single Unit Test -->
+    <target name="test.single" depends="compile.test">
+         <fail unless="testname" message="Must define -Dtestname" />
+       <!-- showoutput 'yes' to allow outputting debug msgs... -->
+        <junit fork="no" maxmemory="128M" showoutput="no" printsummary="yes">
+          <formatter type="plain" usefile="no" />
+          <test name="${testname}" />
+          <classpath refid="classpath.compile" />
+          <classpath>
+                <pathelement path="${BuildClassesDir}" />
+                <pathelement location="${TestClassesDir}" /> 
+                <path refid="junit-libs"/>
+          </classpath>     
+        </junit>
+    </target>
+
     <!-- Compiling and running Woodstox-specific tests
        - (including, for now, Stax2 tests)
       -->

@@ -25,6 +25,7 @@ import org.codehaus.stax2.validation.XMLValidator;
 
 import com.ctc.wstx.api.WriterConfig;
 import com.ctc.wstx.io.CharsetNames;
+import com.ctc.wstx.io.CompletelyCloseable;
 
 /**
  * Concrete implementation of {@link XmlWriter} that will dispatch writes
@@ -80,10 +81,8 @@ public final class BufferingXmlWriter
 
     /**
      * Actual Writer to use for outputting buffered data as appropriate.
-     * During active usage, remains as the writer initially set; set to
-     * null when this writer is closed.
      */
-    protected Writer mOut;
+    protected final Writer mOut;
 
     protected char[] mOutputBuffer;
 
@@ -100,8 +99,11 @@ public final class BufferingXmlWriter
 
     /**
      * Actual physical stream that the writer is using, if known.
+     * Not used for actual output, only needed so that calling
+     * application may (try to) figure out the original
+     * source.
      */
-    protected OutputStream mUnderlyingStream;
+    protected final OutputStream mUnderlyingStream;
 
     /*
     ////////////////////////////////////////////////
@@ -190,21 +192,28 @@ public final class BufferingXmlWriter
     ////////////////////////////////////////////////
      */
 
-    public void close()
+    public void close(boolean forceRealClose)
         throws IOException
     {
-        if (mOut != null) { // just in case it's called multiple times
-            flush();
-            Writer w = mOut;
-            mOut = null;
-            mUnderlyingStream = null;
-            mTextWriter = null;
-            mAttrValueWriter = null;
-            char[] buf = mOutputBuffer;
+        flush();
+        mTextWriter = null;
+        mAttrValueWriter = null;
+
+        // Buffers to free?
+        char[] buf = mOutputBuffer;
+        if (buf != null) {
             mOutputBuffer = null;
             mConfig.freeFullCBuffer(buf);
-            if (mAutoCloseOutput) {
-                w.close();
+        }
+        // Plus may need to close the actual writer
+        if (forceRealClose || mAutoCloseOutput) {
+            /* 14-Nov-2008, TSa: To resolve [WSTX-163], need to have a way
+             *   to force UTF8Writer to close the underlying stream...
+             */
+            if (mOut instanceof CompletelyCloseable) {
+                ((CompletelyCloseable)mOut).closeCompletely();
+            } else {
+                mOut.close();
             }
         }
     }
@@ -212,10 +221,8 @@ public final class BufferingXmlWriter
     public final void flush()
         throws IOException
     {
-        if (mOut != null) {
-            flushBuffer();
-            mOut.flush();
-        }
+        flushBuffer();
+        mOut.flush();
     }
 
     public void writeRaw(char[] cbuf, int offset, int len)
@@ -1342,7 +1349,7 @@ public final class BufferingXmlWriter
     private final void flushBuffer()
         throws IOException
     {
-        if (mOutputPtr > 0 && mOut != null) {
+        if (mOutputPtr > 0 && mOutputBuffer != null) {
             int ptr = mOutputPtr;
             // Need to update location info, to keep it in sync
             mLocPastChars += ptr;

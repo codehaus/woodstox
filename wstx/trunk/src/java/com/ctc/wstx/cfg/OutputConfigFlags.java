@@ -85,4 +85,14 @@ public interface OutputConfigFlags
      */
     final static int CFG_FIX_CONTENT =   0x1000;
 
+    /**
+     * Property that enables/disables stream write to close the underlying
+     * output target, either when it is asked to (.close() is called), or
+     * when it doesn't need it any more (reaching EOF, hitting an
+     * unrecoverable exception).
+     * As per Stax 1.0 specification, automatic closing is NOT enabled by
+     * default; except if the caller has no access to the target (i.e.
+     * when factory created it)
+     */
+    final static int CFG_AUTO_CLOSE_OUTPUT = 0x2000;
 }

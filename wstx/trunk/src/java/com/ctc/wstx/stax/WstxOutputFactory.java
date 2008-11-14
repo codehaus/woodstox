@@ -44,9 +44,8 @@ import com.ctc.wstx.sw.*;
  *<p>
  * TODO:
  *<ul>
- * <li>Implement outputter that creates SAX events
- *  </li>
- * <li>Implement outputter that builds DOM trees
+ * <li>Implement outputter that creates SAX events (DOM-backed
+ *   writer exists as of Woodstox 3.2)
  *  </li>
  *</ul>
  */
@@ -154,11 +153,11 @@ public class WstxOutputFactory
 
     /*
     /////////////////////////////////////////
-    // StAX2 extensions
+    // Stax2 extensions
     /////////////////////////////////////////
      */
 
-    // // // StAX2 additional (encoding-aware) factory methods
+    // // // Stax2 additional (encoding-aware) factory methods
 
     public XMLEventWriter createXMLEventWriter(Writer w, String enc)
         throws XMLStreamException
@@ -179,7 +178,7 @@ public class WstxOutputFactory
         return createSW(null, w, enc, false);
     }
 
-    // // // StAX2 "Profile" mutators
+    // // // Stax2 "Profile" mutators
 
     public void configureForXmlConformance()
     {
@@ -216,11 +215,12 @@ public class WstxOutputFactory
      * Bottleneck factory method used internally; needs to take care of passing
      * proper settings to stream writer.
      *
-     * @param autoCloseOutput Whether writer should automatically close the
-     *   output stream or Writer, when close() is called on stream writer.
+     * @param requireAutoClose Whether this result will always require
+     *   auto-close be enabled (true); or only if application has
+     *   requested it (false)
      */
     private XMLStreamWriter2 createSW(OutputStream out, Writer w, String enc,
-                                      boolean autoCloseOutput)
+                                      boolean requireAutoClose)
         throws XMLStreamException
     {
         /* Need to ensure that the configuration object is not shared
@@ -229,6 +229,8 @@ public class WstxOutputFactory
          */
         WriterConfig cfg = mConfig.createNonShared();
         XmlWriter xw;
+
+        boolean autoCloseOutput = requireAutoClose || mConfig.willAutoCloseOutput();
 
         if (w == null) {
             if (enc == null) {
@@ -246,12 +248,8 @@ public class WstxOutputFactory
 
             try {
                 if (enc == CharsetNames.CS_UTF8) {
-                    /* 16-Aug-2006, TSa: Note: utf8 writer may or may not
-                     *   need to close the stream it has, but buffering
-                     *   xml writer must call close on utf8 writer. Thus:
-                     */
                     w = new UTF8Writer(cfg, out, autoCloseOutput);
-                    xw = new BufferingXmlWriter(w, cfg, enc, true, out, 16);
+                    xw = new BufferingXmlWriter(w, cfg, enc, autoCloseOutput, out, 16);
                 } else if (enc == CharsetNames.CS_ISO_LATIN1) {
                     xw = new ISOLatin1XmlWriter(out, cfg, autoCloseOutput);
                 } else if (enc == CharsetNames.CS_US_ASCII) {
@@ -290,7 +288,7 @@ public class WstxOutputFactory
         OutputStream out = null;
         Writer w = null;
         String encoding = null;
-        boolean autoclose;
+        boolean requireAutoClose;
 
         if (res instanceof Stax2Result) {
             Stax2Result sr = (Stax2Result) res;
@@ -302,18 +300,20 @@ public class WstxOutputFactory
             } catch (IOException ioe) {
                 throw new WstxIOException(ioe);
             }
-            autoclose = true;
+            // yes, it's required since caller has no access to stream/writer:
+            requireAutoClose = true;
         } else if (res instanceof StreamResult) {
             StreamResult sr = (StreamResult) res;
             out = sr.getOutputStream();
             if (out == null) {
                 w = sr.getWriter();
             }
-            autoclose = false; // caller still owns it, no automatic close
+            // Caller owns it, only auto-close if requested to do so:
+            requireAutoClose = false;
         } else if (res instanceof SAXResult) {
             //SAXResult sr = (SAXResult) res;
             // !!! TBI
-            throw new XMLStreamException("Can not create a STaX writer for a SAXResult -- not implemented.");
+            throw new XMLStreamException("Can not create a stream writer for a SAXResult -- not implemented.");
         } else if (res instanceof DOMResult) {
             return WstxDOMWrappingWriter.createFrom(mConfig.createNonShared(), (DOMResult) res);
         } else {
@@ -321,11 +321,11 @@ public class WstxOutputFactory
         }
 
         if (out != null) {
-            return createSW(out, null, encoding, autoclose);
+            return createSW(out, null, encoding, requireAutoClose);
         }
         if (w != null) {
-            return createSW(null, w, encoding, autoclose);
+            return createSW(null, w, encoding, requireAutoClose);
         }
-        throw new XMLStreamException("Can not create StAX writer for passed-in Result -- neither writer nor output stream was accessible");
+        throw new XMLStreamException("Can not create Stax writer for passed-in Result -- neither writer nor output stream was accessible");
     }
 }

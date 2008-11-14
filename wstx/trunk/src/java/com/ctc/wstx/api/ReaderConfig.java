@@ -63,7 +63,9 @@ public final class ReaderConfig
     final static int PROP_INTERN_NS_URIS = 20;
     final static int PROP_INTERN_NAMES = 21;
     /**
-     * 13-Nov-2008, tatus: Need to be able to 
+     * 13-Nov-2008, tatus: Need to be able to keep track of whether
+     *    name-interning has been explicitly enabled/disable or not
+     *    (not if it's whatever defaults we have)
      */
     final static int PROP_INTERN_NAMES_EXPLICIT = 22;
     final static int PROP_REPORT_CDATA = 23;
@@ -186,6 +188,10 @@ public final class ReaderConfig
          * can be turned off for maximum performance
          */
         | CFG_PRESERVE_LOCATION
+
+        // As per Stax 1.0 specs, we can not enable this by default:
+        //| CFG_AUTO_CLOSE_INPUT);
+
         /* Also, let's enable dtd++ support (shouldn't hurt with non-dtd++
          * dtds)
          */

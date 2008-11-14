@@ -48,13 +48,13 @@ public abstract class XmlWriterWrapper
     public final void close()
         throws IOException
     {
-        mWriter.close();
+        mWriter.close(false);
     }
 
     public final void flush()
         throws IOException
     {
-        mWriter.close();
+        mWriter.flush();
     }
 
     /* !!! 30-Nov-2006, TSa: Due to co-variance between Appendable and

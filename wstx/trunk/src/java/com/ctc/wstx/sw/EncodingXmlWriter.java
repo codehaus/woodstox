@@ -23,6 +23,7 @@ import org.codehaus.stax2.validation.XMLValidator;
 
 import com.ctc.wstx.api.WriterConfig;
 import com.ctc.wstx.cfg.XmlConsts;
+import com.ctc.wstx.io.CompletelyCloseable;
 
 /**
  * Intermediate base class used when outputting to streams that use
@@ -89,7 +90,7 @@ public abstract class EncodingXmlWriter
      * Actual output stream to use for outputting encoded content as
      * bytes.
      */
-    protected OutputStream mOut;
+    private final OutputStream mOut;
 
     protected byte[] mOutputBuffer;
 
@@ -144,29 +145,32 @@ public abstract class EncodingXmlWriter
         return null;
     }
 
-    public void close()
+    public void close(boolean forceRealClose)
         throws IOException
     {
         flush();
-        OutputStream out = mOut;
-        mOut = null;
-        if (out != null) { // checked so it can be called multiple times
-            byte[] buf = mOutputBuffer;
+
+        // Buffers to free?
+        byte[] buf = mOutputBuffer;
+        if (buf != null) {
             mOutputBuffer = null;
             mConfig.freeFullBBuffer(buf);
-            if (mAutoCloseOutput) {
-                out.close();
-            }
+        }
+        // Plus may need to close the actual stream
+        if (forceRealClose || mAutoCloseOutput) {
+            /* 14-Nov-2008, TSa: Wrt [WSTX-163]; no need to
+             *   check whether mOut implements CompletelyCloseable
+             *   (unlike with BufferingXmlWriter)
+             */
+            mOut.close();
         }
     }
 
     public final void flush()
         throws IOException
     {
-        if (mOut != null) {
-            flushBuffer();
-            mOut.flush();
-        }
+        flushBuffer();
+        mOut.flush();
     }
 
     public abstract void writeRaw(char[] cbuf, int offset, int len)
@@ -688,7 +692,7 @@ public abstract class EncodingXmlWriter
     protected final void flushBuffer()
         throws IOException
     {
-        if (mOutputPtr > 0) {
+        if (mOutputPtr > 0 && mOutputBuffer != null) {
             int ptr = mOutputPtr;
             mOutputPtr = 0;
             mOut.write(mOutputBuffer, 0, ptr);

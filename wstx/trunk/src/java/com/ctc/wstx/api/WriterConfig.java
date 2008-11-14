@@ -35,14 +35,15 @@ public final class WriterConfig
 
     // General output settings
     final static int PROP_AUTOMATIC_EMPTY_ELEMS = 2;
+    final static int PROP_AUTO_CLOSE_OUTPUT = 3;
     // Namespace settings:
-    final static int PROP_ENABLE_NS = 3;
-    final static int PROP_AUTOMATIC_NS_PREFIX = 4;
+    final static int PROP_ENABLE_NS = 4;
+    final static int PROP_AUTOMATIC_NS_PREFIX = 5;
     // Escaping text content/attr values:
-    final static int PROP_TEXT_ESCAPER = 5;
-    final static int PROP_ATTR_VALUE_ESCAPER = 6;
+    final static int PROP_TEXT_ESCAPER = 6;
+    final static int PROP_ATTR_VALUE_ESCAPER = 7;
     // Problem checking/reporting options
-    final static int PROP_PROBLEM_REPORTER = 7;
+    final static int PROP_PROBLEM_REPORTER = 8;
 
     // // // And then custom Wstx properties:
 
@@ -73,14 +74,6 @@ public final class WriterConfig
     final static int PROP_UNDERLYING_WRITER = 31;
 
     // // // Default settings for additional properties:
-
-    final static boolean DEFAULT_ENABLE_NS = true;
-
-    /* 27-Apr-2005, TSa: Changed the default to 'true' for 2.0rc1,
-     *   since usually it is beneficial to still allow for empty
-     *   elements...
-     */
-    final static boolean DEFAULT_AUTOMATIC_EMPTY_ELEMS = true;
 
     final static boolean DEFAULT_OUTPUT_CDATA_AS_TEXT = false;
     final static boolean DEFAULT_COPY_DEFAULT_ATTRS = false;
@@ -125,10 +118,17 @@ public final class WriterConfig
      * to conform to StAX 1.0 specifications.
      */
     final static int DEFAULT_FLAGS_J2ME =
-        0 // | CFG_AUTOMATIC_NS
-        | (DEFAULT_ENABLE_NS ? CFG_ENABLE_NS : 0)
+        0
 
-        | (DEFAULT_AUTOMATIC_EMPTY_ELEMS ? CFG_AUTOMATIC_EMPTY_ELEMS : 0)
+        // Stax 1.0 mandated:
+
+        // namespace-awareness assumed; repairing disabled by default:
+        // | CFG_AUTOMATIC_NS
+        | CFG_ENABLE_NS
+
+        // Usually it's good to allow writer to produce empty elems
+        // (note: default for woodstox 1.x was false)
+        | CFG_AUTOMATIC_EMPTY_ELEMS
 
         | (DEFAULT_OUTPUT_CDATA_AS_TEXT ? CFG_OUTPUT_CDATA_AS_TEXT : 0)
         | (DEFAULT_COPY_DEFAULT_ATTRS ? CFG_COPY_DEFAULT_ATTRS : 0)
@@ -140,6 +140,9 @@ public final class WriterConfig
         | (DEFAULT_VALIDATE_ATTR ? CFG_VALIDATE_ATTR : 0)
         | (DEFAULT_VALIDATE_NAMES ? CFG_VALIDATE_NAMES : 0)
         | (DEFAULT_FIX_CONTENT ? CFG_FIX_CONTENT : 0)
+
+        // As per Stax 1.0 specs, we can not enable this by default:
+        //| CFG_AUTO_CLOSE_INPUT);
         ;
 
     /**
@@ -168,6 +171,8 @@ public final class WriterConfig
         // Generic output
         sProperties.put(XMLOutputFactory2.P_AUTOMATIC_EMPTY_ELEMENTS,
                         DataUtil.Integer(PROP_AUTOMATIC_EMPTY_ELEMS));
+        sProperties.put(XMLOutputFactory2.P_AUTO_CLOSE_OUTPUT,
+                        DataUtil.Integer(PROP_AUTO_CLOSE_OUTPUT));
         // Namespace support
         sProperties.put(XMLOutputFactory2.P_AUTOMATIC_NS_PREFIX,
                         DataUtil.Integer(PROP_AUTOMATIC_NS_PREFIX));
@@ -354,6 +359,8 @@ public final class WriterConfig
             // Then output-specific properties:
         case PROP_AUTOMATIC_EMPTY_ELEMS:
             return automaticEmptyElementsEnabled() ? Boolean.TRUE : Boolean.FALSE;
+        case PROP_AUTO_CLOSE_OUTPUT:
+            return willAutoCloseOutput() ? Boolean.TRUE : Boolean.FALSE;
         case PROP_AUTOMATIC_NS_PREFIX:
             return getAutomaticNsPrefix();
         case PROP_TEXT_ESCAPER:
@@ -419,6 +426,11 @@ public final class WriterConfig
         case PROP_AUTOMATIC_EMPTY_ELEMS:
             enableAutomaticEmptyElements(ArgUtil.convertToBoolean(name, value));
             break;
+
+        case PROP_AUTO_CLOSE_OUTPUT:
+            doAutoCloseOutput(ArgUtil.convertToBoolean(name, value));
+            break;
+
         case PROP_AUTOMATIC_NS_PREFIX:
             // value should be a String, but let's verify that:
             setAutomaticNsPrefix(value.toString());
@@ -498,6 +510,10 @@ public final class WriterConfig
 
     public boolean automaticEmptyElementsEnabled() {
         return hasConfigFlag(CFG_AUTOMATIC_EMPTY_ELEMS);
+    }
+
+public boolean willAutoCloseOutput() {
+    return hasConfigFlag(CFG_AUTO_CLOSE_OUTPUT);
     }
 
     public boolean willSupportNamespaces() {
@@ -581,6 +597,10 @@ public final class WriterConfig
 
     public void enableAutomaticEmptyElements(boolean state) {
         setConfigFlag(CFG_AUTOMATIC_EMPTY_ELEMS, state);
+    }
+
+    public void doAutoCloseOutput(boolean state) {
+        setConfigFlag(CFG_AUTO_CLOSE_OUTPUT, state);
     }
 
     public void doSupportNamespaces(boolean state) {

@@ -3,6 +3,7 @@ package test;
 import java.io.*;
 
 import javax.xml.stream.*;
+import javax.xml.transform.stream.StreamResult;
 
 import org.codehaus.stax2.XMLOutputFactory2;
 import org.codehaus.stax2.XMLStreamProperties;
@@ -37,8 +38,19 @@ public class TestNonNsStreamWriter
                       Boolean.TRUE);
         f.setProperty(WstxOutputProperties.P_OUTPUT_VALIDATE_NAMES,
                       Boolean.TRUE);
-        Writer w = new PrintWriter(System.out);
-        XMLStreamWriter2 sw = (XMLStreamWriter2) f.createXMLStreamWriter(w);
+
+        StringWriter w = new StringWriter()
+            /*
+              {
+                public void close() {
+                    if (true) throw new Error();
+                }
+            }
+            */
+            ;
+
+        //XMLStreamWriter2 sw = (XMLStreamWriter2) f.createXMLStreamWriter(w);
+        XMLStreamWriter2 sw = (XMLStreamWriter2) f.createXMLStreamWriter(new StreamResult(w));
 
         final String dtdStr =
             "<!ELEMENT root (elem, elem3)>\n"
@@ -57,7 +69,7 @@ public class TestNonNsStreamWriter
         sw.writeStartDocument();
         sw.writeComment("Comment!");
         sw.writeCharacters("\r");
-        sw.writeStartElement("root?");
+        sw.writeStartElement("root");
         sw.writeAttribute("attr", "value");
         sw.writeAttribute("another", "this & that");
         //sw.writeAttribute("attr", "whatever"); // error!
@@ -78,7 +90,8 @@ public class TestNonNsStreamWriter
         sw.flush();
         sw.close();
 
-        w.close();
+        System.out.println("DOC = ["+w.toString()+"]");
+        //System.out.println("sw = "+sw);
     }
 
     public static void main(String[] args)
