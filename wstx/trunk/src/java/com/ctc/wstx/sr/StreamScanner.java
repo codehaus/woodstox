@@ -26,6 +26,7 @@ import javax.xml.stream.XMLReporter;
 import javax.xml.stream.XMLResolver;
 import javax.xml.stream.XMLStreamException;
 
+import org.codehaus.stax2.XMLReporter2;
 import org.codehaus.stax2.XMLStreamLocation2;
 import org.codehaus.stax2.validation.XMLValidationProblem;
 
@@ -457,7 +458,7 @@ public abstract class StreamScanner
     {
         XMLReporter rep = mConfig.getXMLReporter();
         if (rep != null) {
-            doReportProblem(rep, probType,
+            _reportProblem(rep, probType,
                             MessageFormat.format(format, new Object[] { arg, arg2 }), null);
         }
     }
@@ -470,20 +471,20 @@ public abstract class StreamScanner
         if (rep != null) {
             String msg = (arg != null || arg2 != null) ?
                 MessageFormat.format(format, new Object[] { arg, arg2 }) : format;
-            doReportProblem(rep, probType, msg, loc);
+            _reportProblem(rep, probType, msg, loc);
         }
     }
 
-    protected void doReportProblem(XMLReporter rep, String probType, String msg, Location loc)
+    protected void _reportProblem(XMLReporter rep, String probType, String msg, Location loc)
         throws XMLStreamException
     {
         if (loc == null) {
             loc = getLastCharLocation();
         }
-        doReportProblem(rep, new XMLValidationProblem(loc, msg, XMLValidationProblem.SEVERITY_ERROR, probType));
+        _reportProblem(rep, new XMLValidationProblem(loc, msg, XMLValidationProblem.SEVERITY_ERROR, probType));
     }
 
-    protected void doReportProblem(XMLReporter rep, XMLValidationProblem prob)
+    protected void _reportProblem(XMLReporter rep, XMLValidationProblem prob)
         throws XMLStreamException
     {
         if (rep != null) {
@@ -497,7 +498,12 @@ public abstract class StreamScanner
                 prob.setType(ErrorConsts.WT_VALIDATION);
             }
             // [WSTX-154]: was catching and dropping thrown exception: shouldn't.
-            rep.report(prob.getMessage(), prob.getType(), prob, loc);
+            // [WTSX-157]: need to support XMLReporter2
+            if (rep instanceof XMLReporter2) {
+                ((XMLReporter2) rep).report(prob);
+            } else {
+                rep.report(prob.getMessage(), prob.getType(), prob, loc);
+            }
         }
     }
 
@@ -525,7 +531,7 @@ public abstract class StreamScanner
         }
         XMLReporter rep = mConfig.getXMLReporter();
         if (rep != null) {
-            doReportProblem(rep, prob);
+            _reportProblem(rep, prob);
         } else {
             /* If no reporter, regular non-fatal errors are to be reported
              * as exceptions as well, for backwards compatibility

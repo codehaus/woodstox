@@ -355,8 +355,8 @@ public class ValidatingStreamReader
                 /* Also, let's warn if using non-native DTD implementation,
                  * since entities and notations can not be accessed
                  */
-                doReportProblem(mConfig.getXMLReporter(), ErrorConsts.WT_DT_DECL,
-                                "Value to set for feature "+FEATURE_DTD_OVERRIDE+" not a native Woodstox DTD implementation (but "+mDTD.getClass()+"): can not access full entity or notation information", null);
+                _reportProblem(mConfig.getXMLReporter(), ErrorConsts.WT_DT_DECL,
+                               "Value to set for feature "+FEATURE_DTD_OVERRIDE+" not a native Woodstox DTD implementation (but "+mDTD.getClass()+"): can not access full entity or notation information", null);
             }
             /* 16-Jan-2006, TSa: Actually, we have both fully-validating mode,
              *   and non-validating-but-DTD-aware mode. In latter case, we'll

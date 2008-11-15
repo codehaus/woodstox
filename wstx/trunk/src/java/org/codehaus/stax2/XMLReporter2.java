@@ -8,6 +8,17 @@ import org.codehaus.stax2.validation.XMLValidationProblem;
 /**
  * Extension of {@link XMLReporter} to allow for better access to
  * information about the actual problem.
+ *<p>
+ * Note on type of problems reported: although type is
+ * {@link XMLValidationProblem}, it is not strictly related to (optional)
+ * validation process. That is, non-fatal problems related to well-formedness
+ * (mostly in areas of DTD definition, or in some cases problems that would
+ * be fatal normally but have been suppressed by the calling app) will
+ * also be reported through this interface if registered.
+ *<p>
+ * Stax2 implementations are encouraged to always try to call the improved
+ * <code>report</code> method, and only call the base interface version if
+ * registered report is not of type {@link XMLReporter2}.
  *
  * @since 3.0
  */

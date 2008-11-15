@@ -3,7 +3,7 @@ package org.codehaus.stax2.validation;
 import javax.xml.stream.Location;
 
 /**
- * Simple container class used to store validation problem (error),
+ * Simple container class used to store a non-fatal problem
  * either to be returned as is, or to use for creating and throwing
  * a validation exception.
  */
@@ -57,6 +57,13 @@ public class XMLValidationProblem
     }
 
     /**
+     * Convenience method for constructing a {@link XMLValidationException}
+     * to throw based on information contained in this object.
+     * Base implementation is equivalent to:
+     *<pre>
+     *  return XMLValidationException.createException(this);
+     *</pre>
+     *
      * @since 3.0
      */
     public XMLValidationException toException()
@@ -75,6 +82,11 @@ public class XMLValidationProblem
     public void setLocation(Location l) { mLocation = l; }
 
     /**
+     * Get the validator object that reported this problem, if known.
+     *
+     * @return Validator object that reported this problem, if known.
+     *   Null if not known, or not applicable.
+     *
      * @since 3.0
      */
     public void setReporter(XMLValidator v) { mReporter = v; }
