@@ -1,0 +1,9 @@
+------------------------------------
+Planned stuff for 4.0
+------------------------------------
+
+* Change baseline to JDK 1.5, to:
+  - Use generics throughout (and eliminate Eclipse warnings...)
+  - Use StringBuilder instead of StringBuffer
+
+

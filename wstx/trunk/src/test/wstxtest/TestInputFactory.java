@@ -6,7 +6,6 @@ import org.codehaus.stax2.*;
 
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.api.ReaderConfig;
-import com.ctc.wstx.stax.MinimalInputFactory;
 import com.ctc.wstx.stax.WstxInputFactory;
 
 /**
@@ -17,34 +16,6 @@ import com.ctc.wstx.stax.WstxInputFactory;
 public class TestInputFactory
     extends BaseWstxTest
 {
-    public void testSubsetFactories()
-    {
-        MinimalInputFactory f = MinimalInputFactory.newMinimalInstance();
-
-        ReaderConfig cfg = f.getConfig();
-        assertNotNull(cfg);
-
-        assertNull(f.getXMLResolver());
-        assertNull(f.getXMLReporter());
-        MyReporter rep = new MyReporter();
-        f.setXMLReporter(rep);
-        assertEquals(rep, f.getXMLReporter());
-
-        assertFalse(f.isPropertySupported("foobar"));
-    }
-
-    public void testStreamConstructors()
-        throws XMLStreamException
-    {
-        // !!! TBI
-    }
-
-    public void testEventConstructors()
-        throws XMLStreamException
-    {
-        // !!! TBI
-    }
-
     public void testConfig()
         throws XMLStreamException
     {

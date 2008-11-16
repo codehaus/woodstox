@@ -7,7 +7,6 @@ import org.codehaus.stax2.*;
 import com.ctc.wstx.api.WriterConfig;
 import com.ctc.wstx.api.WstxInputProperties;
 import com.ctc.wstx.api.WstxOutputProperties;
-import com.ctc.wstx.stax.MinimalOutputFactory;
 import com.ctc.wstx.stax.WstxOutputFactory;
 
 /**
@@ -18,28 +17,6 @@ import com.ctc.wstx.stax.WstxOutputFactory;
 public class TestOutputFactory
     extends BaseWstxTest
 {
-    public void testSubsetFactories()
-    {
-        MinimalOutputFactory f = MinimalOutputFactory.newMinimalInstance();
-
-        WriterConfig cfg = f.getConfig();
-        assertNotNull(cfg);
-
-        assertFalse(f.isPropertySupported("foobar"));
-    }
-
-    public void testStreamConstructors()
-        throws XMLStreamException
-    {
-        // !!! TBI
-    }
-
-    public void testEventConstructors()
-        throws XMLStreamException
-    {
-        // !!! TBI
-    }
-
     public void testConfig()
         throws XMLStreamException
     {
