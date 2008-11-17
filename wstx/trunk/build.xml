@@ -271,17 +271,25 @@
 
     <!-- Dummy target that just includes all individual jars... --> 
     <target name="jars" depends="jar.resources,
-jar.stax2, jar.stax2test, jar.wstx.lgpl, jar.wstx.asl" />
+jar.stax2, jar.stax2test, jar.wstx.lgpl, jar.wstx.asl, jar.osgi" />
 
-    <property name="OSGI_BASENAME" value="org.codehaus.woodstox.woodstox-core" />
+    <target name="jar.osgi" depends="osgi-stax2, osgi-woodstox" />
+
+    <property name="OSGI_STAX2_BASENAME" value="org.codehaus.woodstox.stax2-api" />
+    <property name="OSGI_WSTX_BASENAME" value="org.codehaus.woodstox.woodstox-core" />
     <target name="osgi-stax2" depends="compile.stax2">
+      <!-- Open questions:
+           * include version nr in filename? (can't/shouldn't in bundle)
+           * for core (woodstox): OSGi-activate to set system props?
+        -->
       <osgify
          outputdir="${dir.build}"
-         bundleName="Woodstox"
-         bundleSymbolicName="${OSGI_BASENAME}-lgpl"
-         exportpackage="org.codehaus.stax2*"
-         bundleLicense="lgpl"
-         filename="${OSGI_BASENAME}-lgpl-${IMPL_VERSION}"
+         bundleName="{$STAX2_TITLE}"
+         bundleVendor="${STAX2_VENDOR}"
+         bundleSymbolicName="${OSGI_STAX2_BASENAME}"
+         bundleVersion="${STAX2_VERSION}"
+         exportpackage="org.codehaus.stax2*;version=${STAX2_VERSION}"
+         bundleLicense="http://www.opensource.org/licenses/bsd-license.php"
       >
         <classpath>
               <pathelement path="${dir.build.classes.stax2}" />
@@ -290,13 +298,29 @@ jar.stax2, jar.stax2test, jar.wstx.lgpl, jar.wstx.asl" />
     </target>
 
     <target name="osgi-woodstox" depends="compile.woodstox,copy-resources">
+      <!-- 15-Nov-2008, TSa: One oddity: looks like we must use
+           "privatepackage"  to get deps to be properly resolved...
+          plus, using "*" gives a weird error message, can't use
+        -->
       <osgify
-         outputdir="${dir.build}"
-         bundleName="Woodstox"
-         bundleSymbolicName="${OSGI_BASENAME}-lgpl"
-         exportpackage="com.ctc.wstx.stax, com.ctc.wstx.api"
-         bundleLicense="lgpl"
-         filename="${OSGI_BASENAME}-lgpl-${IMPL_VERSION}"
+         outputDir="${dir.build}"
+         bundleName="${IMPL_TITLE}"
+         bundleVendor="${IMPL_VENDOR}"
+         bundleSymbolicName="${OSGI_WSTX_BASENAME}-asl"
+         bundleVersion="${IMPL_VERSION}"
+         importPackage="
+javax.xml*
+,org.xml.sax*
+,org.w3c.dom
+,org.codehaus.stax2*
+,com.sun.msv*;resolution=optional
+,org.relaxng.datatype;resolution=optional
+"
+         exportPackage="com.ctc.wstx.stax;version=${IMPL_VERSION}, com.ctc.wstx.api;version=${IMPL_VERSION}"
+         privatePackage="!com.ctc.wstx.stax, !com.ctc.wstx.api, !test, *"
+         includeResource="src/resources"
+         includeIncludeResourceHeader="false"
+         bundleLicense="http://www.apache.org/licenses/LICENSE-2.0.txt"
       >
         <classpath>
               <pathelement path="${dir.build.classes.woodstox}" />
@@ -340,6 +364,8 @@ jar.stax2, jar.stax2test, jar.wstx.lgpl, jar.wstx.asl" />
           </manifest>
           <fileset dir="${dir.build.classes.woodstox}">
             <patternset refid="wstx-dist-class-files" />
+          </fileset>
+          <fileset dir="${dir.build.classes.stax2}">
             <patternset refid="stax2-dist-class-files" />
           </fileset>
           <metainf dir="${dir.releasenotes}/lgpl" includes="*" />
@@ -363,7 +389,6 @@ jar.stax2, jar.stax2test, jar.wstx.lgpl, jar.wstx.asl" />
           </manifest>
           <fileset dir="${dir.build.classes.woodstox}">
             <patternset refid="wstx-dist-class-files" />
-            <patternset refid="stax2-dist-class-files" />
           </fileset>
           <metainf dir="${dir.releasenotes}/asl" includes="*" />
         </jar>
@@ -379,6 +404,8 @@ jar.stax2, jar.stax2test, jar.wstx.lgpl, jar.wstx.asl" />
           </manifest>
           <fileset dir="${dir.build.classes.woodstox}">
             <patternset refid="wstx-dist-class-files" />
+          </fileset>
+          <fileset dir="${dir.build.classes.stax2}">
             <patternset refid="stax2-dist-class-files" />
           </fileset>
           <metainf dir="${dir.releasenotes}/asl" includes="*" />
