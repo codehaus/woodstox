@@ -358,4 +358,10 @@ Pawel Lipka
 Arash Amiri:
   * [WSTX-174] Some old App servers have broken QName impl, are missing
     3-arg constructor.
-    [3.2.8 / 4.0]
+    [3.2.8]
+
+Ian Brandt:
+  * [WSTX-165] Add property (WstxOutputProperties.P_AUTOMATIC_END_ELEMENTS)
+    to allow enabling/disabling automatic addition of end elements
+    when closing stream writer 
+    [3.2.8]

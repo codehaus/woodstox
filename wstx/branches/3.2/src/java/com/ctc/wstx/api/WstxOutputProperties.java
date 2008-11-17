@@ -38,6 +38,20 @@ public final class WstxOutputProperties
      */
     public final static String P_COPY_DEFAULT_ATTRS = "com.ctc.wstx.copyDefaultAttrs";
 
+    /**
+     * Whether stream writer is to automatically add end elements that are
+     * needed to properly close the output tree, when the stream is closed
+     * (either explicitly by a call to <code>close</code> or
+     * <code>closeCompletely</code>, or implicitly by a call
+     * to <code>writeEndDocument</code>.
+     *<p>
+     * The default value is 'true' as of Woodstox 4.x.
+     * Prior to 4.0, this feature was always enabled and there was no
+     * way to disable it)
+     *
+     * @since 3.2.8
+     */
+    public final static String P_AUTOMATIC_END_ELEMENTS = "com.ctc.wstx.automaticEndElements";
 
     // // // Validation options:
 

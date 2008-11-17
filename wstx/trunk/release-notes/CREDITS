@@ -1,11 +1,12 @@
 Here are people who have contributed to Woodstox development:
-(version numbers in brackets indicate release in which the problem was fixed)
+(version numbers in brackets indicate release in which the contribution was applied)
 
 Tatu Saloranta, tatu.saloranta@iki.fi: Author
 
 Christian Niles:
-  * Pointed out the improvement to wstx.jar, that will set system properties
-    necessary to automatically make Woodstox the default StAX implementation
+  * Pointed out an improvement to the woodstox.jar to add service
+    entries under META-INF so that Woodstox will auto-register
+    as a Stax implementation.
     to use
     [0.8.3]
 
@@ -89,17 +90,17 @@ Ron Yang:
 Ulrich Callmeier:
   * Reported a bug with START_DOCUMENT handling of XMLStreamWriter
     implementation
-    [1.0.7/2.0]
+    [1.0.7/2.0.0]
   * Reported a bug with the input factory: entity and dtd resolvers were
     not being properly passed to instances
-    [1.0.7/2.0]
+    [1.0.7/2.0.0]
   * Report a bug with WriterBase, base class for all encoding writers
     (attribute, element text): an NPE was thrown when trying to output
     encoded characters.
-    [2.0.1/2.5]
+    [2.0.1/3.0.0]
   * Reported a bug in DTD-handling; DTDs that had enumerated value "-"
     (or "--"), were throwing an exception.
-    [2.0.1/2.5]
+    [2.0.1/3.0.0]
 
 Peter Tauter:
   * Reported a bug with WriterBase; see the entry next to Ulrich for details.
@@ -107,30 +108,30 @@ Peter Tauter:
 Linus Ericson:
   * Reported bugs:
     * [WSTX-3]: WDTD.java was missing one double quote from output
-      [2.0.2/2.6]
+      [2.0.2/3.0.0]
     * [WSTX-7] SimpleNsStreamWriter was stripping out attribute namespaces
-      [2.0.3/2.7]
+      [2.0.3/3.0.0]
     * [WSTX-114]: Handling of ID attribute values broken, in non-namespace
       mode: last character was dropped.
-      [3.2/4.0]
+      [3.2.0/4.0.0]
 
 Patrick D'Cruze:
   * Reported [WSTX-8]; nextTag() followed by peek() at the start of a
     document did not work.
-    [2.0.3/2.7]
+    [2.0.3/3.0.0]
 
 Erik Smith:
   * Reported [WSTX-9] (sr.getTextCharacters() problems)
-    [2.0.3/2.7]
+    [2.0.3/3.0.0]
 
 Kevin Vargo:
   * Reported [WSTX-9] (sr.getTextCharacters() problems)
-    [2.0.3/2.7]
+    [2.0.3/3.0.0]
 
 Heinz Drews:
   * Reported [WSTX-10] (handling of 3-byte UTF-8 Byte Order Marker did
     not work properly when XMLStreamReader was constructed for a Reader)
-    [2.0.3/2.7]
+    [2.0.3/3.0.0]
   * Reported [WSTX-19] (unnecessary default namespace declarations written
     in repairing mode)
     [2.0.4/2.8.1]
@@ -148,26 +149,26 @@ Wolfgang Hoschek:
     significantly.
   * Reported [WSTX-65], [WSTX-66] and [WSTX-67], regarding event handling
     problems.
-    [3.0]
+    [3.0.0]
   * Pointed out compilation problem on JDK 1.4 with SAX2 API
-    [3.2]
+    [3.2.0]
   * Reported [WSTX-96]
-    [3.2]
+    [3.2.0]
 
 Bartlomiej Rymkowski:
   * Reported [WSTX-28] (broken handling of property
     (WstxInputProperties.P_CUSTOM_INTERNAL_ENTITIES)
-    [2.0.5/2.8.2]
+    [2.0.5/3.0.0]
 
 Arjen Poutsma:
   * Reported [WSTX-45] (WstxEventReader#peek() throwing EOF instead
     of returning null), pointed out fix.
-    [2.0.6/2.9.2]
+    [2.0.6/3.0.0]
 
 John Kristian:
   * Reported [WSTX-46]: Trying to write another root element produced an
     incorrect error message
-    [2.0.6/2.9.2]
+    [2.0.6/3.0.0]
 
 Steve Yost:
   * Reported a problem with setting P_VALIDATE_STRUCTURE
@@ -187,17 +188,17 @@ Lucian Holland:
     [3.0.0]
   * Reported a stax incompliancy wrt. XMLStreamReader.next() not throwing
     NoSuchElementException after END_DOCUMENT event.
-    [3.0.1/3.1]
+    [3.0.1/3.1.0]
 
 Matt Solnit:
   * Reported [WSTX-72]: Output streams/writers sometimes closed when they
     should not be.
-    [3.0.1/3.1]
+    [3.0.1/3.1.0]
 
 Michael Kay:
   * Reported [WSTX-69]: Incorrect types returned by XMLStreamReader, when
     notations/entities are requested.
-    [3.0.1/3.1]
+    [3.0.1/3.1.0]
   * Reported [WSTX-70]: External parsed entity reference resolution was
     not functioning correctly, was using wrong path context.
     [3.2.0]
@@ -207,35 +208,35 @@ Michael Kay:
 Vim de Rammelaere:
   * Reported [WSTX-77]: Bug in DTDValidator.validateAttribute() -- wrong
     arguments passed to StringUtil.matches()
-    [3.0.1/3.1] 
+    [3.0.1/3.1.0] 
 
 Mickael Goujon:
   * Reported [WSTX-81], contributed a patch for it: Calculation of
     char/byte offsets was buggy.
-    [3.0.2/3.1]
+    [3.0.2/3.1.0]
 
 Christian Bering:
   * Reported [WSTX-82], contributed a patch for it: URL handling code
     had problems on Windows, when referring to files on network drives.
-    [3.0.2/3.1]
+    [3.0.2/3.1.0]
 
 Oleg Rudenko:
   * Reported [WSTX-83], contributed a patch for it: NPE in ElemAttrs
     for namespace URI checks.
-    [3.0.2/3.1]
+    [3.0.2/3.1.0]
 
 Pavol Vaskovic:
   * Reported [WSTX-87], and documented the problem (including a unit test)
     which allowed otherwise hard-to-track problem to be quite easily
     resolved. Problem was that event writer could produce non-wellformed
     output for medium/large-sized content, when using Latin1 encoding.
-    [3.0.3/3.1]
+    [3.0.3/3.1.0]
 
 Michael Haeusler:
   * Reported [WSTX-88], suggested fix; Latin1 output wasn't working
     correctly: some characters in range 0x80 - 0xFF were output both
     as is, and as character entities
-    [3.0.3/3.1]
+    [3.0.3/3.1.0]
 
 Frank Baxter:
   * Reported [WSTX-89], with sample document that exhibits the problem:
@@ -249,17 +250,17 @@ Frank Baxter:
   * Reported [WSTX-141], supplied test case demonstrate it:
     Copying of CDATA events using XMLEventWriter was producing
     garbled output.
-    [3.2.4/3.9.1]
+    [3.2.4/4.0.0]
 
 Davanum Srinivas:
   * Reported [WSTX-90], submitted a patch (used as the guideline for
     the changes): output writing efficiency could be improved by
     using System.arraycopy() instead of basic character copying.
     Can improve speed even for relatively short strings, it turns out.
-    [3.2]
+    [3.2.0]
   * Reported [WSTX-91], submitted patch (regression caused by changes
     for [WSTX-90]); array index of bounds on stream writer.
-    [3.2]
+    [3.2.0]
 
 Werner Donné:
   * Reported [WSTX-102], submitted patch to fix it: WStartDocument
@@ -269,7 +270,7 @@ Werner Donné:
 Michael Allman: 
   * [WSTX-103] Repairing writer had a bug that could result in wrong
     prefix being reported/output.
-    [3.0.4 / 3.1.2 / 3.2]
+    [3.0.4 / 3.1.2]
 
 Wayne Fay:
   * Suggested good improvements wrt [WSTX-85], for improving Maven
@@ -279,95 +280,101 @@ Wayne Fay:
 Sami Dalouche:
   * Pointed out [WSTX-106], unhelpful XMLStreamException being thrown
     when trying to write illegal attribute value characters
-   [3.2.1 / 4.0]
+   [3.2.1 / 4.0.0]
 
 Daniel Kulp:
   * Pointed out [WSTX-108] (Maven pom missing info), helped resolve
-   [3.2.1 / 4.0]
+   [3.2.1 / 4.0.0]
   * Reported [WSTX-113] (problems with DOMSource when DOM parsed in
     non-namespace mode)
-   [3.2.1 / 4.0]
+   [3.2.1 / 4.0.0]
 
 Abde Sassi:
   * Reported [WSTX-109], a bug in xml declaration handling in multi-doc
     mode.
-   [3.2.1 / 4.0]
+   [3.2.1 / 4.0.0]
 
 Erik Bergersjö:
   * Reported [WSTX-110], problems regarding Exception root cause setting.
-   [3.2.1 / 4.0]
+   [3.2.1 / 4.0.0]
 
 Santiago Pericas-Geertsen:
   * Pointed out [WSTX-111], Stax TCK non-compliancy, regarding filtered stream
     reader.
-   [3.2.1 / 4.0]
+   [3.2.1 / 4.0.0]
 
 Wouter Cordewiner:
   * Pointed out [WSTX-122], helped in adding EBCDIC support.
-   [3.2.2 / 4.0]
+   [3.2.2 / 4.0.0]
   * Pointed out [WSTX-138], confusing error msg for xml declaration /
     physical encoding inconsistency (EBCDIC vs UTF-x)
-   [3.2.3 / 4.0]
+   [3.2.3 / 4.0.0]
 
 Lukasz Wielek:
   * Reported [WSTX-132], NPE when event writer was passing null namespace
     URI
-   [3.2.3 / 4.0]
+   [3.2.3 / 4.0.0]
 
 Yoon-Je Choi:
   * Reported [WSTX-134]: DOMWrapperingReader.isWhiteSpace was using
     incorrect check, suggested fix.
-   [3.2.3 / 4.0]
+   [3.2.3 / 4.0.0]
   * Reported [WSTX-135]: Repairing stream writer was associating namespace
     bindings with parent element, pointed out solution.
-   [3.2.3 / 4.0]
+   [3.2.3 / 4.0.0]
   * Reported [WSTX-139]: DOMWrappingWriter did not support namespace-repairing
    mode: contributed a working solution
-   [4.0]
+   [4.0.0]
 
 Matt Gormley:
   * Reported [WSTX-143], bug in handling of DEL char in UTF8Reader,
     suggested fix, submitted unit test.
-   [3.2.4 / 4.0]
+   [3.2.4 / 4.0.0]
 
 Jim Ancona:
   * Reported [WSTX-146], contributed a unit test for verifying fix.
-   [3.2.5 / 4.0]
+   [3.2.5 / 4.0.0]
 
 David Citron:
   * Reported [WSTX-145]: DOMWrappingReader was not implementing coalescing
     mode.
-   [3.2.7 / 4.0]
+   [3.2.7 / 4.0.0]
 
 Martin Vanek:
   * Reported [WSTX-144]: Problem when trying to output namespace declaration
     using a DOMResult-backed writer.
-   [3.2.6 / 4.0]
+   [3.2.6 / 4.0.0]
 
 Sylvain Loiseau:
   * Requested [WSTX-148]: Implement XMLEvent.equals(), .hashCode(), to allow
     for easy comparison of XMLEvent instances.
-   [4.0]
+   [4.0.0]
 
 Eduardo Ribeiro Rodrigues:
   * Reported [WSTX-153]: XMLReporter not getting called for non-fatal
     validation errors
-    [3.2.6 / 4.0]
+    [3.2.6 / 4.0.0]
   * Reported [WSTX-155]: NPE after reporting missing #REQUIRED attribute
-    [3.2.6 / 4.0]
+    [3.2.6 / 4.0.0]
 
 Daniel Rodrigue:
   * Reported [WSTX-158], provided a test: XMLStreamReader.isWhiteSpace()
     returns potentially incorrect value when text segments starts with an
     entity.
-    [3.2.7 / 4.0]
+    [3.2.7 / 4.0.0]
 
 Pawel Lipka:
   * [WSTX-162] Name/namespace-URI interning not enabled for DOM-backed
     readers, getProperty() claims they are.
-    [3.2.7 / 4.0]
+    [3.2.7 / 4.0.0]
 
 Arash Amiri:
   * [WSTX-174] Some old App servers have broken QName impl, are missing
     3-arg constructor.
-    [3.2.8 / 4.0]
+    [3.2.8 / 4.0.0]
+
+Ian Brandt:
+  * [WSTX-165] Add property (WstxOutputProperties.P_AUTOMATIC_END_ELEMENTS)
+    to allow enabling/disabling automatic addition of end elements
+    when closing stream writer 
+    [3.2.8 / 4.0.0]

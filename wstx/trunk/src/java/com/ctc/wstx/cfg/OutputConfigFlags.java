@@ -16,7 +16,7 @@ public interface OutputConfigFlags
     final static int CFG_AUTOMATIC_NS =        0x0002;
 
     /// Flag that indicates we can output 'automatic' empty elements.
-    final static int CFG_AUTOMATIC_EMPTY_ELEMS =  0x0004;
+    final static int CFG_AUTOMATIC_EMPTY_ELEMENTS =  0x0004;
 
     /**
      * Whether writer should just automatically convert all calls that
@@ -47,8 +47,15 @@ public interface OutputConfigFlags
      */
     final static int CFG_ADD_SPACE_AFTER_EMPTY_ELEM =  0x0040;
 
-    /// Flag that indicates we should check validity of namespace/prefix mappings.
-    //final static int CFG_VALIDATE_NS = ;
+    /**
+     * Flag that indicates we can output 'automatic' empty elements; 
+     * end elements needed to close the logical output tree when
+     * stream writer is closed (by closing it explicitly, or by writing
+     * end-document event)
+     *
+     * @since 3.2.8
+     */
+    final static int CFG_AUTOMATIC_END_ELEMENTS =  0x0080;
 
     /// Flag that indicates we should check validity of output XML structure.
     final static int CFG_VALIDATE_STRUCTURE =  0x0100;

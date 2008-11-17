@@ -242,7 +242,7 @@ public abstract class BaseStreamWriter
         mCheckStructure = (flags & OutputConfigFlags.CFG_VALIDATE_STRUCTURE) != 0;
         mCheckAttrs = (flags & OutputConfigFlags.CFG_VALIDATE_ATTR) != 0;
 
-        mCfgAutomaticEmptyElems = (flags & OutputConfigFlags.CFG_AUTOMATIC_EMPTY_ELEMS) != 0;
+        mCfgAutomaticEmptyElems = (flags & OutputConfigFlags.CFG_AUTOMATIC_EMPTY_ELEMENTS) != 0;
         mCfgCDataAsText = (flags & OutputConfigFlags.CFG_OUTPUT_CDATA_AS_TEXT) != 0;
         mCfgCopyDefaultAttrs = (flags & OutputConfigFlags.CFG_COPY_DEFAULT_ATTRS) != 0;
     }
@@ -1407,8 +1407,13 @@ public abstract class BaseStreamWriter
                 closeStartElement(mEmptyElement);
             }
             // Then, one by one, need to close open scopes:
-            while (mState != STATE_EPILOG) {
-                writeEndElement();
+            /* 17-Nov-2008, TSa: that is, if we are allowed to do it
+             *   (see [WSTX-165])
+             */
+            if (mState != STATE_EPILOG && mConfig.automaticEndElementsEnabled()) {
+                do {
+                    writeEndElement();
+                } while (mState != STATE_EPILOG);
             }
         }
 

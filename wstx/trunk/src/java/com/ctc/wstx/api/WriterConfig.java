@@ -23,18 +23,18 @@ public final class WriterConfig
     extends CommonConfig
     implements OutputConfigFlags
 {
-    // // // Constants for standard StAX properties:
+    // // // Constants for standard Stax properties:
 
     protected final static String DEFAULT_AUTOMATIC_NS_PREFIX = "wstxns";
 
-    // // // First, standard StAX writer properties
+    // // // First, standard Stax writer properties
 
     final static int PROP_AUTOMATIC_NS = 1; // standard property ("repairing")
 
-    // // // And then additional StAX2 properties:
+    // // // And then additional Stax2 properties:
 
     // General output settings
-    final static int PROP_AUTOMATIC_EMPTY_ELEMS = 2;
+    final static int PROP_AUTOMATIC_EMPTY_ELEMENTS = 2;
     final static int PROP_AUTO_CLOSE_OUTPUT = 3;
     // Namespace settings:
     final static int PROP_ENABLE_NS = 4;
@@ -56,17 +56,19 @@ public final class WriterConfig
 
     final static int PROP_ADD_SPACE_AFTER_EMPTY_ELEM = 14;
 
+    final static int PROP_AUTOMATIC_END_ELEMENTS = 15;
+
     // Validation flags:
 
-    final static int PROP_VALIDATE_STRUCTURE = 15; 
-    final static int PROP_VALIDATE_CONTENT = 16;
-    final static int PROP_VALIDATE_ATTR = 17;
-    final static int PROP_VALIDATE_NAMES = 18;
-    final static int PROP_FIX_CONTENT = 19;
+    final static int PROP_VALIDATE_STRUCTURE = 16; 
+    final static int PROP_VALIDATE_CONTENT = 17;
+    final static int PROP_VALIDATE_ATTR = 18;
+    final static int PROP_VALIDATE_NAMES = 19;
+    final static int PROP_FIX_CONTENT = 20;
 
     // Other:
 
-    final static int PROP_OUTPUT_INVALID_CHAR_HANDLER = 20;
+    final static int PROP_OUTPUT_INVALID_CHAR_HANDLER = 21;
 
     // Per-writer instance information
 
@@ -115,7 +117,7 @@ public final class WriterConfig
 
     /**
      * Default config flags are converted from individual settings,
-     * to conform to StAX 1.0 specifications.
+     * to conform to Stax 1.0 specifications.
      */
     final static int DEFAULT_FLAGS_J2ME =
         0
@@ -128,12 +130,13 @@ public final class WriterConfig
 
         // Usually it's good to allow writer to produce empty elems
         // (note: default for woodstox 1.x was false)
-        | CFG_AUTOMATIC_EMPTY_ELEMS
+        | CFG_AUTOMATIC_EMPTY_ELEMENTS
 
         | (DEFAULT_OUTPUT_CDATA_AS_TEXT ? CFG_OUTPUT_CDATA_AS_TEXT : 0)
         | (DEFAULT_COPY_DEFAULT_ATTRS ? CFG_COPY_DEFAULT_ATTRS : 0)
         | (DEFAULT_ESCAPE_CR ? CFG_ESCAPE_CR : 0)
         | (DEFAULT_ADD_SPACE_AFTER_EMPTY_ELEM ? CFG_ESCAPE_CR : 0)
+        | CFG_AUTOMATIC_END_ELEMENTS
 
         | (DEFAULT_VALIDATE_STRUCTURE ? CFG_VALIDATE_STRUCTURE : 0)
         | (DEFAULT_VALIDATE_CONTENT ? CFG_VALIDATE_CONTENT : 0)
@@ -158,11 +161,11 @@ public final class WriterConfig
      */
     final static HashMap sProperties = new HashMap(8);
     static {
-        // // StAX (1.0) standard ones:
+        // // Stax (1.0) standard ones:
         sProperties.put(XMLOutputFactory.IS_REPAIRING_NAMESPACES,
                         DataUtil.Integer(PROP_AUTOMATIC_NS));
 
-        // // StAX2 standard ones:
+        // // Stax2 standard ones:
 
         // Namespace support
         sProperties.put(XMLStreamProperties.XSP_NAMESPACE_AWARE,
@@ -170,7 +173,7 @@ public final class WriterConfig
 
         // Generic output
         sProperties.put(XMLOutputFactory2.P_AUTOMATIC_EMPTY_ELEMENTS,
-                        DataUtil.Integer(PROP_AUTOMATIC_EMPTY_ELEMS));
+                        DataUtil.Integer(PROP_AUTOMATIC_EMPTY_ELEMENTS));
         sProperties.put(XMLOutputFactory2.P_AUTO_CLOSE_OUTPUT,
                         DataUtil.Integer(PROP_AUTO_CLOSE_OUTPUT));
         // Namespace support
@@ -197,6 +200,8 @@ public final class WriterConfig
         sProperties.put(WstxOutputProperties.P_ADD_SPACE_AFTER_EMPTY_ELEM
 ,
                         DataUtil.Integer(PROP_ADD_SPACE_AFTER_EMPTY_ELEM));
+        sProperties.put(WstxOutputProperties.P_AUTOMATIC_END_ELEMENTS,
+                        DataUtil.Integer(PROP_AUTOMATIC_END_ELEMENTS));
         sProperties.put(WstxOutputProperties.P_OUTPUT_INVALID_CHAR_HANDLER,
                         DataUtil.Integer(PROP_OUTPUT_INVALID_CHAR_HANDLER));
 
@@ -357,7 +362,7 @@ public final class WriterConfig
             return getProblemReporter();
 
             // Then output-specific properties:
-        case PROP_AUTOMATIC_EMPTY_ELEMS:
+        case PROP_AUTOMATIC_EMPTY_ELEMENTS:
             return automaticEmptyElementsEnabled() ? Boolean.TRUE : Boolean.FALSE;
         case PROP_AUTO_CLOSE_OUTPUT:
             return willAutoCloseOutput() ? Boolean.TRUE : Boolean.FALSE;
@@ -378,6 +383,8 @@ public final class WriterConfig
             return willEscapeCr() ? Boolean.TRUE : Boolean.FALSE;
         case PROP_ADD_SPACE_AFTER_EMPTY_ELEM:
             return willAddSpaceAfterEmptyElem() ? Boolean.TRUE : Boolean.FALSE;
+        case PROP_AUTOMATIC_END_ELEMENTS:
+            return automaticEndElementsEnabled() ? Boolean.TRUE : Boolean.FALSE;
 
         case PROP_VALIDATE_STRUCTURE:
             return willValidateStructure() ? Boolean.TRUE : Boolean.FALSE;
@@ -423,7 +430,7 @@ public final class WriterConfig
             setProblemReporter((XMLReporter) value);
             break;
 
-        case PROP_AUTOMATIC_EMPTY_ELEMS:
+        case PROP_AUTOMATIC_EMPTY_ELEMENTS:
             enableAutomaticEmptyElements(ArgUtil.convertToBoolean(name, value));
             break;
 
@@ -458,7 +465,9 @@ public final class WriterConfig
         case PROP_ADD_SPACE_AFTER_EMPTY_ELEM:
             doAddSpaceAfterEmptyElem(ArgUtil.convertToBoolean(name, value));
             break;
-
+        case PROP_AUTOMATIC_END_ELEMENTS:
+            enableAutomaticEndElements(ArgUtil.convertToBoolean(name, value));
+            break;
         case PROP_VALIDATE_STRUCTURE:
             doValidateStructure(ArgUtil.convertToBoolean(name, value));
             break;
@@ -509,7 +518,7 @@ public final class WriterConfig
     // // // Accessors, Woodstox properties:
 
     public boolean automaticEmptyElementsEnabled() {
-        return hasConfigFlag(CFG_AUTOMATIC_EMPTY_ELEMS);
+        return hasConfigFlag(CFG_AUTOMATIC_EMPTY_ELEMENTS);
     }
 
 public boolean willAutoCloseOutput() {
@@ -534,6 +543,10 @@ public boolean willAutoCloseOutput() {
 
     public boolean willAddSpaceAfterEmptyElem() {
         return hasConfigFlag(CFG_ADD_SPACE_AFTER_EMPTY_ELEM);
+    }
+
+    public boolean automaticEndElementsEnabled() {
+        return hasConfigFlag(CFG_AUTOMATIC_END_ELEMENTS);
     }
 
     public boolean willValidateStructure() {
@@ -596,7 +609,7 @@ public boolean willAutoCloseOutput() {
     // Wstx properies:
 
     public void enableAutomaticEmptyElements(boolean state) {
-        setConfigFlag(CFG_AUTOMATIC_EMPTY_ELEMS, state);
+        setConfigFlag(CFG_AUTOMATIC_EMPTY_ELEMENTS, state);
     }
 
     public void doAutoCloseOutput(boolean state) {
@@ -621,6 +634,10 @@ public boolean willAutoCloseOutput() {
 
     public void doAddSpaceAfterEmptyElem(boolean state) {
         setConfigFlag(CFG_ADD_SPACE_AFTER_EMPTY_ELEM, state);
+    }
+
+    public void enableAutomaticEndElements(boolean state) {
+        setConfigFlag(CFG_AUTOMATIC_END_ELEMENTS, state);
     }
 
     public void doValidateStructure(boolean state) {
