@@ -1110,7 +1110,7 @@ public final class ValueDecoderFactory
             if (uri == null) { // some impls may return null
                 uri = "";
             }
-            return new QName(uri, localName, "");
+            return new QName(uri, localName);
         }
 
         protected QName resolveQName(String prefix, String localName)

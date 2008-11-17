@@ -359,11 +359,15 @@ Eduardo Ribeiro Rodrigues:
 Daniel Rodrigue:
   * Reported [WSTX-158], provided a test: XMLStreamReader.isWhiteSpace()
     returns potentially incorrect value when text segments starts with an
-    entity
-    (reported by Daniel R)
+    entity.
     [3.2.7 / 4.0]
 
-Pawel Lipka
+Pawel Lipka:
   * [WSTX-162] Name/namespace-URI interning not enabled for DOM-backed
-    readers, getProperty() claims they are
+    readers, getProperty() claims they are.
     [3.2.7 / 4.0]
+
+Arash Amiri:
+  * [WSTX-174] Some old App servers have broken QName impl, are missing
+    3-arg constructor.
+    [3.2.8 / 4.0]

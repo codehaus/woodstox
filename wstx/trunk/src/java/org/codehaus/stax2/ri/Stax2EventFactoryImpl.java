@@ -13,11 +13,17 @@ import org.codehaus.stax2.evt.DTD2;
 import org.codehaus.stax2.ri.evt.*;
 
 /**
- * This is a plain vanilla implementation of {@link XMLEventFactory2},
- * suitable for using as is, or as a building block for more optimal
- * implementations.
+ * This is an abstract almost complete plain vanilla implementation of
+ * {@link XMLEventFactory2}.
+ * It can be used as a building block for concrete implementations:
+ * the minimal requirement is to implement <code>createQName</code>
+ * methods.
+ *
+ * @author Tatu Saloranta
+ *
+ * @since 3.0
  */
-public class Stax2EventFactoryImpl
+public abstract class Stax2EventFactoryImpl
     extends XMLEventFactory2
 {
     protected Location mLocation;
@@ -76,13 +82,13 @@ public class Stax2EventFactoryImpl
     public EndElement createEndElement(String prefix, String nsURI,
                                        String localName)
     {
-        return createEndElement(new QName(nsURI, localName), null);
+        return createEndElement(createQName(nsURI, localName), null);
     }
 
     public EndElement createEndElement(String prefix, String nsURI,
                                        String localName, Iterator ns)
     {
-        return createEndElement(new QName(nsURI, localName, prefix), ns);
+        return createEndElement(createQName(nsURI, localName, prefix), ns);
     }
 
     public EntityReference createEntityReference(String name, EntityDeclaration decl)
@@ -135,7 +141,7 @@ public class Stax2EventFactoryImpl
 
     public StartElement createStartElement(String prefix, String nsURI, String localName)
     {
-        return createStartElement(new QName(nsURI, localName, prefix),
+        return createStartElement(createQName(nsURI, localName, prefix),
                                   null, null, null);
     }
 
@@ -143,7 +149,7 @@ public class Stax2EventFactoryImpl
                                            String localName, Iterator attr,
                                            Iterator ns)
     {
-        return createStartElement(new QName(nsURI, localName, prefix), attr, ns,
+        return createStartElement(createQName(nsURI, localName, prefix), attr, ns,
                                   null);
     }
 
@@ -151,7 +157,7 @@ public class Stax2EventFactoryImpl
                                            String localName, Iterator attr,
                                            Iterator ns, NamespaceContext nsCtxt)
     {
-        return createStartElement(new QName(nsURI, localName, prefix),
+        return createStartElement(createQName(nsURI, localName, prefix),
                                   attr, ns, nsCtxt);
     }
 
@@ -181,12 +187,16 @@ public class Stax2EventFactoryImpl
 
     /*
     /////////////////////////////////////////////////////////////
-    // Internal methods
+    // Helper methods, overridable
     /////////////////////////////////////////////////////////////
      */
 
-    private StartElementEventImpl createStartElement(QName name, Iterator attr,
-                                                     Iterator ns, NamespaceContext ctxt)
+    protected abstract QName createQName(String nsURI, String localName);
+
+    protected abstract QName createQName(String nsURI, String localName, String prefix);
+
+    protected StartElement createStartElement(QName name, Iterator attr,
+                                              Iterator ns, NamespaceContext ctxt)
     {
         return StartElementEventImpl.construct(mLocation, name, attr, ns, ctxt);
     }

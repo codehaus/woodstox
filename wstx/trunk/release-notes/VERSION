@@ -12,21 +12,24 @@ Description:
     should not matter
   * [WTSX-142] Ordering of NOTATION definitions and ENTITY references
     should not matter
-  * [WSTX-148] Implement XMLEvent.equals() and .hashCode() to allow
-    for easy comparisons.
-    (requested by Sylvain L)
   * [WSTX-154] XMLStreamReader, XMLStreamWriter implementations were
     quietly discarding XMLStreamException thrown by XMLReporter.
-  * [WSTX-157] Add XMLReporter2 to allow for extended access to
-    information about non-fatal problems (including validation probs)
-  * [WSTX-163] Add XMLStreamWriter2.closeCompletely()
   * [WSTX-172] WstxInputFactory and WstxOutputFactory were final, should not be.
+  * [WSTX-174] Some old App servers have broken QName impl, are missing
+    3-arg constructor
+   (requested by Arash A)
 
   New functionality:
 
+  * [WSTX-148] Implement XMLEvent.equals() and .hashCode() to allow
+    for easy comparisons.
+    (requested by Sylvain L)
   * [WSTX-150] Add stream reader AND writer delegates for Stax2.
   * [WSTX-151] Generic typed access methods (getElementAs(), getAttributeAs())
     added to TypedXMLStreamReader.
+  * [WSTX-157] Add XMLReporter2 to allow for extended access to
+    information about non-fatal problems (including validation probs)
+  * [WSTX-163] Add XMLStreamWriter2.closeCompletely()
   * [WSTX-166] Add direct support for Stax2ByteArraySource for improved
     performance. Measured speedup 5-10% compared to using ByteArrayInputStream.
   * [WSTX-167] Add new property (WstxOutputProperties.P_OUTPUT_INVALID_CHAR_HANDLER)

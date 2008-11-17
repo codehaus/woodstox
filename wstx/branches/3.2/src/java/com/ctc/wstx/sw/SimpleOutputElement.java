@@ -25,6 +25,7 @@ import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
 
+import com.ctc.wstx.compat.QNameCreator;
 import com.ctc.wstx.util.BijectiveNsMap;
 import com.ctc.wstx.util.EmptyIterator;
 
@@ -316,7 +317,7 @@ public final class SimpleOutputElement
     }
 
     public QName getName() {
-        return new QName(mURI, mLocalName, mPrefix);
+        return QNameCreator.create(mURI, mLocalName, mPrefix);
     }
 
     /*

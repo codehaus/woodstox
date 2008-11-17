@@ -25,6 +25,7 @@ import javax.xml.stream.events.*;
 import org.codehaus.stax2.evt.XMLEventFactory2;
 import org.codehaus.stax2.evt.DTD2;
 
+import com.ctc.wstx.compat.QNameCreator;
 import com.ctc.wstx.dtd.DTDSubset;
 import com.ctc.wstx.evt.*;
 
@@ -102,7 +103,7 @@ public final class WstxEventFactory
     public EndElement createEndElement(String prefix, String nsURI,
                                        String localName, Iterator ns)
     {
-        return createEndElement(new QName(nsURI, localName, prefix), ns);
+        return createEndElement(QNameCreator.create(nsURI, localName, prefix), ns);
     }
 
     public EntityReference createEntityReference(String name, EntityDeclaration decl)
@@ -155,7 +156,7 @@ public final class WstxEventFactory
 
     public StartElement createStartElement(String prefix, String nsURI, String localName)
     {
-        return createStartElement(new QName(nsURI, localName, prefix),
+        return createStartElement(QNameCreator.create(nsURI, localName, prefix),
                                   null, null, null);
     }
 
@@ -163,15 +164,15 @@ public final class WstxEventFactory
                                            String localName, Iterator attr,
                                            Iterator ns)
     {
-        return createStartElement(new QName(nsURI, localName, prefix), attr, ns,
-                                  null);
+        return createStartElement(QNameCreator.create(nsURI, localName, prefix),
+                                  attr, ns, null);
     }
 
     public StartElement createStartElement(String prefix, String nsURI,
                                            String localName, Iterator attr,
                                            Iterator ns, NamespaceContext nsCtxt)
     {
-        return createStartElement(new QName(nsURI, localName, prefix),
+        return createStartElement(QNameCreator.create(nsURI, localName, prefix),
                                   attr, ns, nsCtxt);
     }
 

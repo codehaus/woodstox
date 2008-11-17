@@ -30,6 +30,7 @@ import org.codehaus.stax2.validation.XMLValidator;
 import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.cfg.XmlConsts;
+import com.ctc.wstx.compat.QNameCreator;
 import com.ctc.wstx.util.*;
 
 /**
@@ -632,7 +633,7 @@ public final class NsInputElementStack
         } else {
             return mLastName;
         }
-        QName n = new QName(nsURI, ln, prefix);
+        QName n = QNameCreator.create(nsURI, ln, prefix);
         mLastName = n;
         return n;
     }

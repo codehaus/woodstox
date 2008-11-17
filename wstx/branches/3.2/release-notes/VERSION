@@ -8,6 +8,9 @@ Description:
   Problems fixed:
 
   * [WSTX-172] WstxInputFactory and WstxOutputFactory were final, should not be.
+  * [WSTX-174] Some old App servers have broken QName impl, are missing
+    3-arg constructor
+   (requested by Arash A)
 
 == History: ==
 

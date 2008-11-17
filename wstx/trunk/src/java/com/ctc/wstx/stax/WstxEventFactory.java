@@ -24,6 +24,7 @@ import javax.xml.stream.events.*;
 
 import org.codehaus.stax2.ri.Stax2EventFactoryImpl;
 
+import com.ctc.wstx.compat.QNameCreator;
 import com.ctc.wstx.evt.*;
 
 /**
@@ -81,41 +82,36 @@ public final class WstxEventFactory
     //public StartDocument createStartDocument(String encoding, String version)
     //public StartDocument createStartDocument(String encoding, String version, boolean standalone)
 
-    public StartElement createStartElement(QName name, Iterator attr, Iterator ns)
-    {
-        return createStartElement(name, attr, ns, null);
-    }
+    //public StartElement createStartElement(QName name, Iterator attr, Iterator ns)
 
-    public StartElement createStartElement(String prefix, String nsURI, String localName)
-    {
-        return createStartElement(new QName(nsURI, localName, prefix),
-                                  null, null, null);
-    }
+    //public StartElement createStartElement(String prefix, String nsURI, String localName)
 
-    public StartElement createStartElement(String prefix, String nsURI,
-                                           String localName, Iterator attr,
-                                           Iterator ns)
-    {
-        return createStartElement(new QName(nsURI, localName, prefix), attr, ns,
-                                  null);
-    }
+    //public StartElement createStartElement(String prefix, String nsURI, String localName, Iterator attr, Iterator ns)
 
-    public StartElement createStartElement(String prefix, String nsURI,
-                                           String localName, Iterator attr,
-                                           Iterator ns, NamespaceContext nsCtxt)
-    {
-        return createStartElement(new QName(nsURI, localName, prefix),
-                                  attr, ns, nsCtxt);
-    }
+    //public StartElement createStartElement(String prefix, String nsURI, String localName, Iterator attr, Iterator ns, NamespaceContext nsCtxt)
 
     /*
     /////////////////////////////////////////////////////////////
-    // Internal methods
+    // Internal/helper methods
     /////////////////////////////////////////////////////////////
      */
 
-    private StartElement createStartElement(QName name, Iterator attr,
-					    Iterator ns, NamespaceContext ctxt)
+    protected QName createQName(String nsURI, String localName) {
+        return new QName(nsURI, localName);
+    }
+
+    protected QName createQName(String nsURI, String localName, String prefix) {
+        // [WSTX-174]: some old app servers missing 3-arg QName ctor
+        return QNameCreator.create(nsURI, localName, prefix);
+    }
+
+    /**
+     * Must override this method to use a more efficient StartElement
+     * implementation
+     */
+    //@Override
+    protected StartElement createStartElement(QName name, Iterator attr,
+                                              Iterator ns, NamespaceContext ctxt)
     {
         return SimpleStartElement.construct(mLocation, name, attr, ns, ctxt);
     }

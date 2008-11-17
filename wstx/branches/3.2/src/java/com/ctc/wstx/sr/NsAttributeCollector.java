@@ -10,6 +10,7 @@ import javax.xml.stream.XMLStreamException;
 
 import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.cfg.ErrorConsts;
+import com.ctc.wstx.compat.QNameCreator;
 import com.ctc.wstx.sw.XmlWriter;
 import com.ctc.wstx.util.DataUtil;
 import com.ctc.wstx.util.StringVector;
@@ -324,7 +325,7 @@ public final class NsAttributeCollector
         if (prefix == null) { // QName barfs on null...
             prefix = "";
         }
-        return new QName(getURI(index), getLocalName(index), prefix);
+        return QNameCreator.create(getURI(index), getLocalName(index), prefix);
     }
 
     public String getValue(String nsURI, String localName)
