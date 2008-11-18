@@ -1,13 +1,16 @@
 package wstxtest.evt;
 
+import java.net.URL;
 import java.util.*;
 
 import javax.xml.stream.*;
 import javax.xml.stream.events.DTD;
 import javax.xml.stream.events.XMLEvent;
 
+import org.codehaus.stax2.XMLEventReader2;
 import org.codehaus.stax2.evt.NotationDeclaration2;
 
+import com.ctc.wstx.api.WstxInputProperties;
 import com.ctc.wstx.exc.*;
 
 /**
@@ -111,8 +114,10 @@ public class TestEventReader
      * populated.
      */
     public void testDtdNotations()
-        throws XMLStreamException
+        throws Exception
     {
+        final String URI = "http://test";
+
         /* Ok. And here we should just check that we do not get 2 adjacent
          * separate Characters event. We can try to trigger this by long
          * segment and a set of char entities...
@@ -125,7 +130,9 @@ public class TestEventReader
             +"<root/>";
 	
         // Need to disable coalescing though for test to work:
-        XMLEventReader er = getReader(XML, false);
+        XMLEventReader2 er = getReader(XML, false);
+        // Need to set Base URI; can do it for factory or instance
+        er.setProperty(WstxInputProperties.P_BASE_URL, new URL(URI));
         assertTrue(er.nextEvent().isStartDocument());
         XMLEvent evt = er.nextEvent(); // DTD
         assertTokenType(DTD, evt.getEventType());
@@ -135,7 +142,7 @@ public class TestEventReader
         assertEquals(1, nots.size());
         NotationDeclaration2 notDecl = (NotationDeclaration2) nots.get(0);
 
-        assertEquals("foo", notDecl.getBaseURI());
+        assertEquals(URI, notDecl.getBaseURI());
     }
 
     /*
@@ -144,7 +151,7 @@ public class TestEventReader
     //////////////////////////////////////////////////////
     */
 
-    private XMLEventReader getReader(String contents, boolean coalescing)
+    private XMLEventReader2 getReader(String contents, boolean coalescing)
         throws XMLStreamException
     {
         XMLInputFactory f = getInputFactory();
@@ -152,7 +159,7 @@ public class TestEventReader
         setCoalescing(f, coalescing);
         setLazyParsing(f, true); // shouldn't have effect for event readers!
         setMinTextSegment(f, 8); // likewise
-        return constructEventReader(f, contents);
+        return(XMLEventReader2) constructEventReader(f, contents);
     }
 }
 

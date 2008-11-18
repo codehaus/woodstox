@@ -86,9 +86,9 @@ public abstract class Stax2EventReaderImpl
     ///////////////////////////////////////////
      */
 
-    private final XMLEventAllocator mAllocator;
+    protected final XMLEventAllocator mAllocator;
 
-    private final XMLStreamReader mReader;
+    protected final XMLStreamReader mReader;
 
     /**
      * Event that has been peeked, ie. loaded without call to
@@ -127,6 +127,10 @@ public abstract class Stax2EventReaderImpl
     // Abstract methods sub-classes have to implement
     //////////////////////////////////////////////////////
      */
+
+    public abstract boolean isPropertySupported(String name);
+
+    public abstract boolean setProperty(String name, Object value);
 
     /**
      * Method called upon encountering a problem that should result
@@ -465,6 +469,17 @@ public abstract class Stax2EventReaderImpl
             throw new XMLStreamException(msg);
         }
         throw new XMLStreamException(msg, loc);
+    }
+
+    /*
+    ///////////////////////////////////////////////
+    // Package methods for sub-classes
+    ///////////////////////////////////////////////
+     */
+
+    protected XMLStreamReader getStreamReader()
+    {
+        return mReader;
     }
 
     /*

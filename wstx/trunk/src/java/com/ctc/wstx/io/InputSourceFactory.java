@@ -50,6 +50,13 @@ public final class InputSourceFactory
     {
         BranchingReaderSource rs = new BranchingReaderSource
             (cfg, pubId, sysId, src, r, realClose);
+        /* To resolve [WSTX-50] need to ensure that P_BASE_URL overrides
+         * the defaults if/as necessary
+         */
+        URL url = cfg.getBaseURL();
+        if (url != null) {
+            src = url;
+        }
         if (bs != null) {
             rs.setInputOffsets(bs.getInputTotal(), bs.getInputRow(),
                                -bs.getInputColumn());

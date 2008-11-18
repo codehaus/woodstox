@@ -71,6 +71,35 @@ public interface XMLStreamReader2
     */
 
     /**
+     * Method similar to {@link javax.xml.stream.XMLInputFactory#isPropertySupported}, used
+     * to determine whether a property is supported by the Reader
+     * <b>instance</b>. This means that this method may return false
+     * for some properties that the input factory does support: specifically,
+     * it should only return true if the value is mutable on per-instance
+     * basis. False means that either the property is not recognized, or
+     * is not mutable via reader instance.
+     */
+    public boolean isPropertySupported(String name);
+
+    /**
+     * Method that can be used to set per-reader properties; a subset of
+     * properties one can set via matching
+     * {@link org.codehaus.stax2.XMLInputFactory2}
+     * instance. Exactly which methods are mutable is implementation
+     * specific.
+     *
+     * @param name Name of the property to set
+     * @param value Value to set property to.
+     *
+     * @return True, if the specified property was <b>succesfully</b>
+     *    set to specified value; false if its value was not changed
+     *
+     * @throws InvalidArgumentException if the property is not supported
+     *   (or recognized) by the stream reader implementation
+     */
+    public boolean setProperty(String name, Object value);
+
+    /**
      * Method that can be used to get per-reader values; both generic
      * ones (names for which are defined as constants in this class),
      * and implementation dependant ones.
@@ -104,35 +133,6 @@ public interface XMLStreamReader2
      * @param value Value to set feature to.
      */
     public void setFeature(String name, Object value);
-
-    /**
-     * Method similar to {@link javax.xml.stream.XMLInputFactory#isPropertySupported}, used
-     * to determine whether a property is supported by the Reader
-     * <b>instance</b>. This means that this method may return false
-     * for some properties that the input factory does support: specifically,
-     * it should only return true if the value is mutable on per-instance
-     * basis. False means that either the property is not recognized, or
-     * is not mutable via reader instance.
-     */
-    public boolean isPropertySupported(String name);
-
-    /**
-     * Method that can be used to set per-reader properties; a subset of
-     * properties one can set via matching
-     * {@link org.codehaus.stax2.XMLInputFactory2}
-     * instance. Exactly which methods are mutable is implementation
-     * specific.
-     *
-     * @param name Name of the property to set
-     * @param value Value to set property to.
-     *
-     * @return True, if the specified property was <b>succesfully</b>
-     *    set to specified value; false if its value was not changed
-     *
-     * @throws InvalidArgumentException if the property is not supported
-     *   (or recognized) by the stream reader implementation
-     */
-    public boolean setProperty(String name, Object value);
 
     /*
     /////////////////////////////////

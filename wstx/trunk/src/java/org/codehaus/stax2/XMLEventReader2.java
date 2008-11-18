@@ -6,7 +6,7 @@ import javax.xml.stream.XMLStreamException;
 /**
  * Extended interface that implements functionality that is missing
  * from {@link XMLEventReader}, based on findings on trying to
- * implement StAX API v1.0.
+ * implement Stax API v1.0.
  */
 public interface XMLEventReader2
     extends XMLEventReader
@@ -17,7 +17,45 @@ public interface XMLEventReader2
      * since the underlying stream reader is allowed to throw such an
      * exception when its
      * <code>hasNext()</code> gets called.
-     *
      */
     public boolean hasNextEvent() throws XMLStreamException;
+
+    /*
+    ///////////////////////////
+    // Configuration
+    ///////////////////////////
+    */
+
+    /**
+     * Method similar to {@link javax.xml.stream.XMLInputFactory#isPropertySupported}, used
+     * to determine whether a property is supported by the Reader
+     * <b>instance</b>. This means that this method may return false
+     * for some properties that the input factory does support: specifically,
+     * it should only return true if the value is mutable on per-instance
+     * basis. False means that either the property is not recognized, or
+     * is not mutable via reader instance.
+     *
+     * @since 3.0
+     */
+    public boolean isPropertySupported(String name);
+
+    /**
+     * Method that can be used to set per-reader properties; a subset of
+     * properties one can set via matching
+     * {@link org.codehaus.stax2.XMLInputFactory2}
+     * instance. Exactly which methods are mutable is implementation
+     * specific.
+     *
+     * @param name Name of the property to set
+     * @param value Value to set property to.
+     *
+     * @return True, if the specified property was <b>succesfully</b>
+     *    set to specified value; false if its value was not changed
+     *
+     * @throws InvalidArgumentException if the property is not supported
+     *   (or recognized) by the stream reader implementation
+     *
+     * @since 3.0
+     */
+    public boolean setProperty(String name, Object value);
 }

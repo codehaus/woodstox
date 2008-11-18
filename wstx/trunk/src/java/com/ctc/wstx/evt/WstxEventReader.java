@@ -18,6 +18,7 @@ package com.ctc.wstx.evt;
 import javax.xml.stream.*;
 import javax.xml.stream.util.XMLEventAllocator;
 
+import org.codehaus.stax2.XMLStreamReader2;
 import org.codehaus.stax2.ri.Stax2EventReaderImpl;
 
 import com.ctc.wstx.cfg.ErrorConsts;
@@ -56,6 +57,17 @@ public class WstxEventReader
         }
         return null;
     }
+
+    public boolean isPropertySupported(String name)
+    {
+        return ((XMLStreamReader2)getStreamReader()).isPropertySupported(name);
+    }
+
+    public boolean setProperty(String name, Object value)
+    {
+        return ((XMLStreamReader2)getStreamReader()).setProperty(name, value);
+    }
+
 
     /*
     //////////////////////////////////////////////////////
