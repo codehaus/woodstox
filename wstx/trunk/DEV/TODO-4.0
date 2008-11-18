@@ -3,15 +3,9 @@ Planned stuff for 4.0
 ------------------------------------
 
 * Remaining Jira entries that must be tackled:
-  * [WSTX-174]: Work-around for old BEA WebLogic, QName prob
   * [WSTX-152]: Basic OSGi headers in Manifest
-  * [WSTX-50]: Add Base URI for Notation declarations
   * [WSTX-169]: Support for non-standard base64 modes
   * [WSTX-171]: Contributor guidelines
-
-* Possible:
-  * [WTSX-165]: Property for disabling closing of open element trees
-
 (invalid bug?) * [WSTX-160]: Problems with multiple Schemas...
 
 * Misc internal improvements:

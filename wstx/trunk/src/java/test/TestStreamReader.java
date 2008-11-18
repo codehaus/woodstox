@@ -9,6 +9,7 @@ import javax.xml.stream.*;
 import org.codehaus.stax2.DTDInfo;
 import org.codehaus.stax2.XMLInputFactory2;
 import org.codehaus.stax2.XMLStreamReader2;
+import org.codehaus.stax2.evt.NotationDeclaration2;
 
 import com.ctc.wstx.api.WstxInputProperties;
 
@@ -115,7 +116,6 @@ public class TestStreamReader
     {
         XMLInputFactory2 f = getFactory();
 
-
         System.out.print("Coalesce: "+f.getProperty(XMLInputFactory.IS_COALESCING));
         System.out.println("NS-aware: "+f.getProperty(XMLInputFactory.IS_NAMESPACE_AWARE));
         System.out.print("Entity-expanding: "+f.getProperty(XMLInputFactory.IS_REPLACING_ENTITY_REFERENCES));
@@ -142,6 +142,8 @@ public class TestStreamReader
             //sr = (XMLStreamReader2) f.createXMLStreamReader(new InputStreamReader(new FileInputStream(file), "IBM500"));
             //sr = (XMLStreamReader2) f.createXMLStreamReader(new StreamSource(file));
         }
+
+        sr.setProperty(WstxInputProperties.P_BASE_URL, "http://foo");
 
         int type = sr.getEventType();
 
@@ -210,6 +212,13 @@ public class TestStreamReader
                     int notCount = (notations == null) ? -1 : notations.size();
                     System.out.print("  ("+entCount+" entities, "+notCount
                                        +" notations), sysid ");
+                    if (notCount > 0) {
+                        System.out.println();
+                        for (int i = 0; i < notCount; ++i) {
+                            NotationDeclaration2 nd = (NotationDeclaration2)notations.get(i);
+                            System.out.println(" notation '"+nd.getName()+"', base: ["+nd.getBaseURI()+"]");
+                        }
+                    }
                     System.out.print(", declaration = <<");
                     System.out.print(text);
                     System.out.println(">>");

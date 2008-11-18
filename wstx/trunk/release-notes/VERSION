@@ -21,6 +21,7 @@ Description:
 
   New functionality:
 
+  * [WSTX-50] Improve handling of base URIs; notation and entity declarations, doc property.
   * [WSTX-148] Implement XMLEvent.equals() and .hashCode() to allow
     for easy comparisons.
     (requested by Sylvain L)

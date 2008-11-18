@@ -18,8 +18,11 @@ public abstract class BaseInputSource
      * URL that points to original source of input, if known; null if not
      * known (source constructed with just a stream or reader). Used for
      * resolving references from the input that's read from this source.
+     * Can be overridden by reader; done if P_BASE_URL is changed on
+     * stream reader for which this input source is the currently
+     * active input source.
      */
-    final URL mSource;
+    protected URL mSource;
     
     /**
      * Input buffer this input source uses, if any.
@@ -69,6 +72,11 @@ public abstract class BaseInputSource
         super(parent, fromEntity);
         mSystemId = systemId;
         mPublicId = publicId;
+        mSource = src;
+    }
+
+    public void overrideSource(URL src)
+    {
         mSource = src;
     }
 

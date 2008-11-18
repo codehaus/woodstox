@@ -47,11 +47,26 @@ public abstract class WstxInputSource
      */
     int mScopeId = 0;
 
+    /*
+    //////////////////////////////////////////////////////////
+    // Life-cycle:
+    //////////////////////////////////////////////////////////
+     */
+
     protected WstxInputSource(WstxInputSource parent, String fromEntity)
     {
         mParent = parent;
         mFromEntity = fromEntity;
     }
+
+    /**
+     * Method that can be called to override originally defined source.
+     *
+     * @param url New base URL to set; may be null.
+     *
+     * @since 4.0
+     */
+    public abstract void overrideSource(URL url);
     
     /*
     //////////////////////////////////////////////////////////

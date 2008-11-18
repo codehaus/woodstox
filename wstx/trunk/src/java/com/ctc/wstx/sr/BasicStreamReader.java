@@ -38,6 +38,7 @@ import org.codehaus.stax2.typed.TypedXMLStreamException;
 import org.codehaus.stax2.validation.*;
 
 import com.ctc.wstx.api.ReaderConfig;
+import com.ctc.wstx.api.WstxInputProperties;
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.cfg.XmlConsts;
 import com.ctc.wstx.dtd.MinimalDTDReader;
@@ -1208,10 +1209,16 @@ public abstract class BasicStreamReader
      */
     public boolean setProperty(String name, Object value)
     {
-        /* Note: can not call local method, since it'll return false for
-         * recognized but non-mutable properties
+        boolean ok = mConfig.setProperty(name, value);
+        /* To make [WSTX-50] work fully dynamically (i.e. allow
+         * setting BASE_URL after stream reader has been constructed)
+         * need to force
          */
-        return mConfig.setProperty(name, value);
+        if (ok && WstxInputProperties.P_BASE_URL.equals(name)) {
+            // Easiest to just access from config: may come in as a String etc
+            mInput.overrideSource(mConfig.getBaseURL());
+        }
+        return ok;
     }
 
     // // // StAX2, additional traversal methods
