@@ -650,13 +650,22 @@ public class WstxInputFactory
                         (null, systemId, r, null), forER, autoCloseInput);
     }
 
-    protected XMLStreamReader2 createSR(File f, boolean forER,
-                                       boolean autoCloseInput)
+    protected XMLStreamReader2 createSR(File f, boolean forER, boolean autoCloseInput)
         throws XMLStreamException
     {
+        ReaderConfig cfg = createPrivateConfig();
         try {
-            return createSR(createPrivateConfig(), f.toURL(), new FileInputStream(f),
-                            forER, autoCloseInput);
+            /* 18-Nov-2008, TSa: If P_BASE_URL is set, and File reference is
+             *   relative, let's resolve against base...
+             */
+            if (!f.isAbsolute()) {
+                URL base = cfg.getBaseURL();
+                if (base != null) {
+                    URL src = new URL(base, f.getPath());
+                    return createSR(cfg, src, URLUtil.optimizedStreamFromURL(src), forER, autoCloseInput);
+                }
+            }
+            return createSR(cfg, f.toURL(), new FileInputStream(f), forER, autoCloseInput);
         } catch (IOException ie) {
             throw new WstxIOException(ie);
         }

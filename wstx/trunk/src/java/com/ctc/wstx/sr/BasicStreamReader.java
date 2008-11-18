@@ -538,6 +538,14 @@ public abstract class BasicStreamReader
 
     public Object getProperty(String name)
     {
+        /* 18-Nov-2008, TSa: As per [WSTX-50], should report the
+         *   actual Base URL. It can be overridden by matching
+         *   setProperty, but if not, is set to actual source
+         *   of content being parsed.
+         */
+        if (WstxInputProperties.P_BASE_URL.equals(name)) {
+            return mInput.getSource();
+        }
         /* 23-Apr-2008, TSa: Let's NOT throw IllegalArgumentException
          *   for unknown property; JavaDocs do not suggest it needs
          *   to be done (different from that of XMLInputFactory

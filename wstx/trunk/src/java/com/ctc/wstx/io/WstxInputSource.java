@@ -19,11 +19,12 @@ import java.io.IOException;
 import java.net.URL;
 
 /**
- * Interface that defines API actual parsers (or, "readers"
- * in StAX lingo) can use to read input from various input sources. Needed to
- * abstract out details of getting input from primary input files, secondary
- * (potentially cached) referenced documents, and from parsed entities, as
- * well as for allowing hierarchic location information for error reporting.
+ * Interface that defines API actual parsers (stream readers)
+ * can use to read input from various input sources.
+ * Needed to abstract out details of getting input from primary input
+ * files, secondary (potentially cached) referenced documents, and from
+ * parsed entities, as well as for allowing hierarchic location
+ * information for error reporting.
  */
 public abstract class WstxInputSource
 {

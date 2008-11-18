@@ -116,17 +116,13 @@ public class TestStreamReader
     {
         XMLInputFactory2 f = getFactory();
 
+        //f.setProperty(WstxInputProperties.P_BASE_URL, "file:///tmp/");
+
         System.out.print("Coalesce: "+f.getProperty(XMLInputFactory.IS_COALESCING));
         System.out.println("NS-aware: "+f.getProperty(XMLInputFactory.IS_NAMESPACE_AWARE));
         System.out.print("Entity-expanding: "+f.getProperty(XMLInputFactory.IS_REPLACING_ENTITY_REFERENCES));
         System.out.println("Validating: "+f.getProperty(XMLInputFactory.IS_VALIDATING));
         System.out.println("Xml-id support: "+f.getProperty(XMLInputFactory2.XSP_SUPPORT_XMLID));
-
-        /*
-        if (f.isPropertySupported(WstxInputProperties.P_BASE_URL)) {
-            f.setProperty(WstxInputProperties.P_BASE_URL, file.toURL());
-        }
-        */
 
         int total = 0;
         XMLStreamReader2 sr;
@@ -143,15 +139,15 @@ public class TestStreamReader
             //sr = (XMLStreamReader2) f.createXMLStreamReader(new StreamSource(file));
         }
 
-        sr.setProperty(WstxInputProperties.P_BASE_URL, "http://foo");
+        //sr.setProperty(WstxInputProperties.P_BASE_URL, "file:///tmp");
+
+        System.err.println("Base URL: "+sr.getProperty(WstxInputProperties.P_BASE_URL));
 
         int type = sr.getEventType();
 
         System.out.println("START: version = '"+sr.getVersion()
                            +"', xml-encoding = '"+sr.getCharacterEncodingScheme()
                            +"', input encoding = '"+sr.getEncoding()+"'");
-
-
 
         //while (sr.hasNext()) {
         while (type != END_DOCUMENT) {
