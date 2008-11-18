@@ -82,10 +82,7 @@ public class XMLValidationProblem
     public void setLocation(Location l) { mLocation = l; }
 
     /**
-     * Get the validator object that reported this problem, if known.
-     *
-     * @return Validator object that reported this problem, if known.
-     *   Null if not known, or not applicable.
+     * Set the validator object that reported this problem, if known.
      *
      * @since 3.0
      */

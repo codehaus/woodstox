@@ -23,7 +23,7 @@ import org.codehaus.stax2.validation.ValidationContext;
  * It is needed by some MSV components (specifically, W3C Schema Validator)
  * for limited access to attribute values during start element validation.
  */
-public final class AttributeProxy
+final class AttributeProxy
     implements org.xml.sax.Attributes
 {
     private final ValidationContext mContext;

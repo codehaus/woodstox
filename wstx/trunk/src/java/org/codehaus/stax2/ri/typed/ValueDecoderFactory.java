@@ -218,9 +218,6 @@ public final class ValueDecoderFactory
         /**
          * Method called to check that remaining String consists of zero or
          * more digits
-         *
-         * @return Number of valid digits found; or -1 to indicate invalid
-         *   input
          */
         protected void verifyDigits(String lexical, int start, int end)
         {

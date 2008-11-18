@@ -43,8 +43,10 @@ import org.codehaus.stax2.validation.*;
  * depending on what node is passed as the argument.
  *>p>
  * One more implementation note: much code is identical to one
- * used by {@link org.codehaus.stax.ri.Stax2WriterAdapter}.
+ * used by {@link org.codehaus.stax2.ri.Stax2WriterAdapter}.
  * Alas it is hard to reuse it without cut'n pasting.
+ *
+ * @author Tatu Saloranta
  *
  * @since 3.0
  */

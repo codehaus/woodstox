@@ -75,7 +75,7 @@ public class WstxSAXParserFactory
             // !!! TODO:
             return false;
         } else if (stdFeat == SAXFeature.STRING_INTERNING) {
-            return true;
+            return mStaxFactory.getConfig().willInternNames();
         } else if (stdFeat == SAXFeature.UNICODE_NORMALIZATION_CHECKING) {
             return false;
         } else if (stdFeat == SAXFeature.USE_ATTRIBUTES2) {
@@ -152,20 +152,6 @@ public class WstxSAXParserFactory
             throw new SAXNotSupportedException("Trying to set invalid value for feature '"+name+"', '"+value+"'");
         }
     }
-
-    /*
-    /////////////////////////////////////////////////
-    // Helper methods
-    /////////////////////////////////////////////////
-     */
-
-    public static void main(String [] args)
-    {
-        WstxSAXParserFactory f = 
-            new WstxSAXParserFactory();
-        System.out.println("Ns -> "+f.isNamespaceAware());
-    }
-
 }
 
 

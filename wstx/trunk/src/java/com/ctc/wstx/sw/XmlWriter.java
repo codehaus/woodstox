@@ -609,7 +609,7 @@ public abstract class XmlWriter
      * to be output. Content may be part of textual events (CHARACTER, CDATA),
      * attribute value, COMMENT content or PROCESSING_INSTRUCTION data.
      * The default behavior is to just throw an exception, but this can
-     * be configured via property {@link WstxInputProperties#P_OUTPUT_INVALID_CHAR_HANDLER}.
+     * be configured via property {@link WstxOutputProperties#P_OUTPUT_INVALID_CHAR_HANDLER}.
      */
     protected char handleInvalidChar(int c)
         throws IOException
