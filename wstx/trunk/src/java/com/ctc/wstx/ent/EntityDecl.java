@@ -63,7 +63,7 @@ public abstract class EntityDecl
     }
 
     public final String getBaseURI() {
-        return mContext.toString();
+        return mContext.toExternalForm();
     }
 
     public final String getName() {

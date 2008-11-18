@@ -1413,7 +1413,25 @@ public final class ReaderConfig
             break;
 
         case PROP_BASE_URL:
-            setBaseURL((URL) value);
+            /* 17-Nov-2008, TSa: Let's make it bit more versatile; if it's not
+             *   a URL per se, let's assume it is something that we can convert
+             *   to URL
+             */
+            {
+                URL u;
+                if (value == null) {
+                    u = null;
+                } else if (value instanceof URL) {
+                    u = (URL) value;
+                } else {
+                    try {
+                        u = new URL(value.toString());
+                    } catch (Exception ioe) { // MalformedURLException actually...
+                        throw new IllegalArgumentException(ioe.getMessage(), ioe);
+                    }
+                }
+                setBaseURL(u);
+            }
             break;
 
         case PROP_INPUT_PARSING_MODE:

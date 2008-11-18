@@ -26,7 +26,6 @@ import javax.xml.stream.XMLReporter;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.NotationDeclaration;
 
-import org.codehaus.stax2.ri.evt.NotationDeclarationEventImpl;
 import org.codehaus.stax2.validation.XMLValidationProblem;
 import org.codehaus.stax2.validation.XMLValidator;
 
@@ -34,6 +33,7 @@ import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.cfg.XmlConsts;
 import com.ctc.wstx.ent.*;
+import com.ctc.wstx.evt.WNotationDeclaration;
 import com.ctc.wstx.io.WstxInputData;
 import com.ctc.wstx.io.WstxInputSource;
 import com.ctc.wstx.util.*;
@@ -2547,10 +2547,11 @@ public class FullDTDReader
         if (c != '>') {
             throwDTDUnexpectedChar(c, "; expected closing '>' after NOTATION declaration");
         }
+        URL baseURL = mInput.getSource();
 
         // Any external listeners?
         if (mEventListener != null) {
-            mEventListener.dtdNotationDecl(id, pubId, sysId, mInput.getSource());
+            mEventListener.dtdNotationDecl(id, pubId, sysId, baseURL);
         }
 
         /* Ok, event needs to know its exact starting point (opening '<'
@@ -2558,7 +2559,7 @@ public class FullDTDReader
          * earlier)
          */
         Location evtLoc = getStartLocation();
-        NotationDeclaration nd = new NotationDeclarationEventImpl(evtLoc, id, pubId, sysId);
+        NotationDeclaration nd = new WNotationDeclaration(evtLoc, id, pubId, sysId, baseURL);
 
         // Any definitions from the internal subset?
         if (mPredefdNotations != null) {

@@ -1,7 +1,12 @@
 package wstxtest.evt;
 
+import java.util.*;
+
 import javax.xml.stream.*;
+import javax.xml.stream.events.DTD;
 import javax.xml.stream.events.XMLEvent;
+
+import org.codehaus.stax2.evt.NotationDeclaration2;
 
 import com.ctc.wstx.exc.*;
 
@@ -98,6 +103,39 @@ public class TestEventReader
                 fail("Unexpected event object type after CHARACTERS: "+evt.getClass());
             }
         }
+    }
+
+    /**
+     * As of Stax 3.0 (Woodstox 4.0+), there is additional info for
+     * NotationDeclarations (base URI). Let's verify it gets properly
+     * populated.
+     */
+    public void testDtdNotations()
+        throws XMLStreamException
+    {
+        /* Ok. And here we should just check that we do not get 2 adjacent
+         * separate Characters event. We can try to trigger this by long
+         * segment and a set of char entities...
+         */
+        final String XML = "<?xml version='1.0'?>"
+            +"<!DOCTYPE root [\n"
+            +"<!ELEMENT root EMPTY>\n"
+            +"<!NOTATION not PUBLIC 'some-public-id'>\n"
+            +"]>"
+            +"<root/>";
+	
+        // Need to disable coalescing though for test to work:
+        XMLEventReader er = getReader(XML, false);
+        assertTrue(er.nextEvent().isStartDocument());
+        XMLEvent evt = er.nextEvent(); // DTD
+        assertTokenType(DTD, evt.getEventType());
+
+        DTD dtd = (DTD) evt;
+        List nots = dtd.getNotations();
+        assertEquals(1, nots.size());
+        NotationDeclaration2 notDecl = (NotationDeclaration2) nots.get(0);
+
+        assertEquals("foo", notDecl.getBaseURI());
     }
 
     /*
