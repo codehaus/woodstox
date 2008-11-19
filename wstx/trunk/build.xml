@@ -60,12 +60,15 @@
     </path>
 
     <!-- Source files to include in source packages (tar, zip) -->
-    <patternset id="wstx-dist-src-files">
-          <include name="src/java/**/*.java" />
+    <patternset id="woodstox-dist-src-files">
+          <include name="src/java/com/**/*.java" />
           <include name="src/samples/**/*.java" />
           <include name="src/resources/*" />
           <include name="build.xml" />
           <include name="project.xml" />
+    </patternset>
+    <patternset id="stax2-dist-src-files">
+          <include name="src/java/org/codehaus/**/*.java" />
     </patternset>
 
     <patternset id="wstx-dist-misc-files">
@@ -269,13 +272,23 @@
     </target>
 
     <!-- Dummy target that just includes all individual jars... --> 
-    <target name="jars" depends="jar.resources,
-jar.stax2, jar.stax2test, jar.wstx.lgpl, jar.wstx.asl, jar.osgi" />
+    <target name="jars" depends="jars.osgi, jar.stax2test" />
 
-    <target name="jar.osgi" depends="osgi-stax2, osgi-woodstox" />
+    <target name="jars.osgi" depends="osgi-stax2, osgi-woodstox-asl, osgi-woodstox-lgpl" />
 
+    <!-- 18-Nov-2008, TSa: although recommended naming would
+      use reversed domain name (essentially, Maven groupId + artifactId),
+      let's for now only use artifactId to keep shorter and more
+      Maven-like
+     -->
+    <!--
     <property name="OSGI_STAX2_BASENAME" value="org.codehaus.woodstox.stax2-api" />
     <property name="OSGI_WSTX_BASENAME" value="org.codehaus.woodstox.woodstox-core" />
+    -->
+
+    <property name="OSGI_STAX2_BASENAME" value="stax2-api" />
+    <property name="OSGI_WSTX_BASENAME" value="woodstox-core" />
+
     <target name="osgi-stax2" depends="compile.stax2">
       <!-- Open questions:
            * is there any problem from using "non-standard" filename for bundle?
@@ -283,65 +296,119 @@ jar.stax2, jar.stax2test, jar.wstx.lgpl, jar.wstx.asl, jar.osgi" />
         -->
       <osgify
          outputdir="${dir.build}"
-         bundleName="{$STAX2_TITLE}"
+         bundleName="${STAX2_TITLE}"
          bundleVendor="${STAX2_VENDOR}"
          bundleSymbolicName="${OSGI_STAX2_BASENAME}"
          bundleVersion="${STAX2_VERSION}"
+         filename="${OSGI_STAX2_BASENAME}-${STAX2_VERSION}"
          exportpackage="org.codehaus.stax2*;version=${STAX2_VERSION}"
          bundleLicense="http://www.opensource.org/licenses/bsd-license.php"
       >
         <classpath>
               <pathelement path="${dir.build.classes.stax2}" />
         </classpath>
+        <manifest>
+            <attribute name="Built-By" value="${user.name}"/>
+            <attribute name="Implementation-Title"   value="${STAX2_TITLE}"/>
+            <attribute name="Implementation-Version" value="${STAX2_VERSION}"/>
+            <attribute name="Implementation-Vendor"  value="${STAX2_VENDOR}"/>
+            <attribute name="Specification-Title"   value="${STAX2_TITLE}"/>
+            <attribute name="Specification-Version" value="${STAX2_VERSION}"/>
+            <attribute name="Specification-Vendor"  value="${STAX2_VENDOR}"/>
+        </manifest>
       </osgify>
     </target>
 
-    <target name="osgi-woodstox" depends="compile.woodstox,copy-resources">
-      <!-- 15-Nov-2008, TSa: One oddity: looks like we must use
-           "privatepackage"  to get deps to be properly resolved...
-          plus, using "*" gives a weird error message, can't use
-        -->
-      <osgify
-         outputDir="${dir.build}"
+    <target name="osgi-woodstox-asl" depends="compile.woodstox,copy-resources">
+      <osgify outputDir="${dir.build}"
          bundleName="${IMPL_TITLE}"
          bundleVendor="${IMPL_VENDOR}"
          bundleSymbolicName="${OSGI_WSTX_BASENAME}-asl"
          bundleVersion="${IMPL_VERSION}"
-         importPackage="javax.xml*
-,org.xml.sax*
-,org.w3c.dom
-,org.codehaus.stax2*
-,com.sun.msv*;resolution=optional
-,org.relaxng.datatype;resolution=optional
+         filename="${OSGI_WSTX_BASENAME}-asl-${IMPL_VERSION}"
+         importPackage="
+javax.xml*,
+org.xml.sax*,
+org.w3c.dom,
+org.codehaus.stax2*"
+         dynamicImportPackage="
+com.sun.msv.*,
+org.relaxng.datatype"
+         exportPackage="
+com.ctc.wstx.api;version=${IMPL_VERSION},
+com.ctc.wstx.msv;version=${IMPL_VERSION},
+com.ctc.wstx.sax;version=${IMPL_VERSION},
+com.ctc.wstx.stax;version=${IMPL_VERSION}
 "
-         exportPackage="com.ctc.wstx.api;version=${IMPL_VERSION}
-,com.ctc.wstx.msv;version=${IMPL_VERSION}
-,com.ctc.wstx.sax;version=${IMPL_VERSION}
-,com.ctc.wstx.stax;version=${IMPL_VERSION}
-"
-         privatePackage="
-!com.ctc.wstx.api
-,!com.ctc.wstx.msv
-,!com.ctc.wstx.sax
-,!com.ctc.wstx.stax
-,!test
-,*"
-         includeResource="META-INF/services=src/resources
-, META-INF=release-notes/asl"
+         privatePackage="!com.ctc.wstx.api, !com.ctc.wstx.msv, !com.ctc.wstx.sax
+,!com.ctc.wstx.stax, !test,*"
+         includeResource="META-INF/services=src/resources, META-INF=release-notes/asl"
          includeIncludeResourceHeader="false"
          bundleLicense="http://www.apache.org/licenses/LICENSE-2.0.txt"
       >
         <classpath>
               <pathelement path="${dir.build.classes.woodstox}" />
         </classpath>
+        <manifest>
+            <attribute name="Built-By" value="${user.name}"/>
+            <attribute name="Implementation-Title"   value="${IMPL_TITLE}"/>
+            <attribute name="Implementation-Version" value="${IMPL_VERSION}"/>
+            <attribute name="Implementation-Vendor"  value="${IMPL_VENDOR}"/>
+            <attribute name="Specification-Title"   value="${API_TITLE}"/>
+            <attribute name="Specification-Version" value="${API_VERSION}"/>
+            <attribute name="Specification-Vendor"  value="${API_VENDOR}"/>
+        </manifest>
       </osgify>
     </target>
 
-    <target name="jar.wstx.lgpl" depends="compile,copy-resources">
+    <target name="osgi-woodstox-lgpl" depends="compile.woodstox,copy-resources">
+      <osgify outputDir="${dir.build}"
+         bundleName="${IMPL_TITLE}"
+         bundleVendor="${IMPL_VENDOR}"
+         bundleSymbolicName="${OSGI_WSTX_BASENAME}-lgpl"
+         bundleVersion="${IMPL_VERSION}"
+         filename="${OSGI_WSTX_BASENAME}-lgpl-${IMPL_VERSION}"
+         importPackage="
+javax.xml*,
+org.xml.sax*,
+org.w3c.dom,
+org.codehaus.stax2*"
+         dynamicImportPackage="
+com.sun.msv.*,
+org.relaxng.datatype"
+         exportPackage="
+com.ctc.wstx.api;version=${IMPL_VERSION},
+com.ctc.wstx.msv;version=${IMPL_VERSION},
+com.ctc.wstx.sax;version=${IMPL_VERSION},
+com.ctc.wstx.stax;version=${IMPL_VERSION}
+"
+         privatePackage="!com.ctc.wstx.api, !com.ctc.wstx.msv, !com.ctc.wstx.sax
+,!com.ctc.wstx.stax, !test,*"
+         includeResource="META-INF/services=src/resources, META-INF=release-notes/lgpl"
+         includeIncludeResourceHeader="false"
+         bundleLicense="http://www.gnu.org/licenses/lgpl-2.1.html"
+      >
+        <classpath>
+              <pathelement path="${dir.build.classes.woodstox}" />
+        </classpath>
+        <manifest>
+            <attribute name="Built-By" value="${user.name}"/>
+            <attribute name="Implementation-Title"   value="${IMPL_TITLE}"/>
+            <attribute name="Implementation-Version" value="${IMPL_VERSION}"/>
+            <attribute name="Implementation-Vendor"  value="${IMPL_VENDOR}"/>
+            <attribute name="Specification-Title"   value="${API_TITLE}"/>
+            <attribute name="Specification-Version" value="${API_VERSION}"/>
+            <attribute name="Specification-Vendor"  value="${API_VENDOR}"/>
+        </manifest>
+      </osgify>
+    </target>
+
         <!-- 17-Nov-2008, TSa: Let's only build "core" jar;
              if a flattened version (stax2-api bundled) is
              requested, can add. But hopefully not.
           -->
+<!--
+    <target name="jar.wstx.lgpl" depends="compile,copy-resources">
         <jar jarfile="${dir.build}/woodstox-core-lgpl-${IMPL_VERSION}.jar" filesonly="true" >
           <manifest>
             <attribute name="Built-By" value="${user.name}"/>
@@ -355,19 +422,17 @@ jar.stax2, jar.stax2test, jar.wstx.lgpl, jar.wstx.asl, jar.osgi" />
           <fileset dir="${dir.build.classes.woodstox}">
             <patternset refid="wstx-dist-class-files" />
           </fileset>
-          <!-- 14-Sep-2007, TSa: Seems like Mavenricks like to see this
+          <! 14-Sep-2007, TSa: Seems like Mavenricks like to see this
                   file under META-INF. Since jar specs do not care, let's
                   put it there.
-            -->
+            >
           <metainf dir="${dir.releasenotes}/lgpl" includes="*" />
         </jar>
     </target> 
+-->
 
+<!--
     <target name="jar.wstx.asl" depends="compile,copy-resources">
-        <!-- 17-Nov-2008, TSa: Let's only build "core" jar;
-             if a flattened version (stax2-api bundled) is
-             requested, can add. But hopefully not.
-          -->
         <jar jarfile="${dir.build}/woodstox-core-asl-${IMPL_VERSION}.jar" filesonly="true" >
           <manifest>
             <attribute name="Built-By" value="${user.name}"/>
@@ -384,6 +449,7 @@ jar.stax2, jar.stax2test, jar.wstx.lgpl, jar.wstx.asl, jar.osgi" />
           <metainf dir="${dir.releasenotes}/asl" includes="*" />
         </jar>
     </target> 
+-->
 
     <!-- This jar is only needed for testing purposes, to specify 
        - which Stax implementation to use
@@ -396,6 +462,7 @@ jar.stax2, jar.stax2test, jar.wstx.lgpl, jar.wstx.asl, jar.osgi" />
         </jar>
     </target> 
 
+<!--
     <target name="jar.stax2" depends="compile">
         <jar jarfile="${dir.build}/stax2-api-${STAX2_VERSION}.jar" filesonly="true" >
           <manifest>
@@ -412,6 +479,7 @@ jar.stax2, jar.stax2test, jar.wstx.lgpl, jar.wstx.asl, jar.osgi" />
           </fileset>
         </jar>
     </target> 
+-->
 
     <!-- 15-Mar-2008, TSa: Let's also package up Stax2 compatibility
          test suite, for other stax2 impls to use
@@ -460,30 +528,48 @@ jar.stax2, jar.stax2test, jar.wstx.lgpl, jar.wstx.asl, jar.osgi" />
        <copy todir="${dir.dist}">
           <fileset dir="${dir.lib}" includes="msv/*.jar" />
        </copy>
-       <!-- Then let's create the source distribution tar package
+
+       <!-- Then let's create the source distribution tar packages
           -->
-       <tar basedir="${basedir}" destfile="${dir.dist}/wstx-src-${IMPL_VERSION}.tar">
-          <patternset refid="wstx-dist-src-files" />
+       <property name="SRC_CORE" value="woodstox-core-src-${IMPL_VERSION}" />
+       <property name="SRC_STAX2" value="stax2-api-src-${STAX2_VERSION}" />
+
+       <tar basedir="${basedir}" destfile="${dir.dist}/${SRC_CORE}.tar">
+          <patternset refid="woodstox-dist-src-files" />
           <patternset refid="wstx-dist-misc-files" />
        </tar>
-       <gzip zipfile="${dir.dist}/wstx-src-${IMPL_VERSION}.tar.gz" src="${dir.dist}/wstx-src-${IMPL_VERSION}.tar" />
-       <delete file="${dir.dist}/wstx-src-${IMPL_VERSION}.tar" />
+       <gzip zipfile="${dir.dist}/${SRC_CORE}.tar.gz" src="${dir.dist}/${SRC_CORE}.tar" />
+       <delete  file="${dir.dist}/${SRC_CORE}.tar" />
+
+       <tar basedir="${basedir}" destfile="${dir.dist}/${SRC_STAX2}.tar">
+          <patternset refid="stax2-dist-src-files" />
+       </tar>
+       <gzip zipfile="${dir.dist}/${SRC_STAX2}.tar.gz" src="${dir.dist}/${SRC_STAX2}.tar" />
+       <delete  file="${dir.dist}/${SRC_STAX2}.tar" />
 
        <!-- as well as zip -->
-       <zip basedir="${basedir}" destfile="${dir.dist}/wstx-src-${IMPL_VERSION}.zip">
-          <patternset refid="wstx-dist-src-files" />
+       <zip basedir="${basedir}" destfile="${dir.dist}/${SRC_CORE}.zip">
+          <patternset refid="woodstox-dist-src-files" />
           <patternset refid="wstx-dist-misc-files" />
+       </zip>
+       <zip basedir="${basedir}" destfile="${dir.dist}/${SRC_STAX2}.zip">
+          <patternset refid="stax2-dist-src-files" />
        </zip>
 
        <!-- And create source jars for IDE support -->
-       <jar jarfile="${dir.dist}/wstx-asl-${IMPL_VERSION}-sources.jar" filesonly="true" >
+       <jar jarfile="${dir.dist}/woodstox-core-asl-${IMPL_VERSION}-sources.jar" filesonly="true" >
           <fileset dir="${basedir}">
-              <patternset refid="wstx-dist-src-files" />
+              <patternset refid="woodstox-dist-src-files" />
           </fileset>
        </jar>
-       <jar jarfile="${dir.dist}/wstx-lgpl-${IMPL_VERSION}-sources.jar" filesonly="true" >
+       <jar jarfile="${dir.dist}/woodstox-core-lgpl-${IMPL_VERSION}-sources.jar" filesonly="true" >
           <fileset dir="${basedir}">
-              <patternset refid="wstx-dist-src-files" />
+              <patternset refid="woodstox-dist-src-files" />
+          </fileset>
+       </jar>
+       <jar jarfile="${dir.dist}/stax2-api-${IMPL_VERSION}-sources.jar" filesonly="true" >
+          <fileset dir="${basedir}">
+              <patternset refid="stax2-dist-src-files" />
           </fileset>
        </jar>
 
