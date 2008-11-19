@@ -1,5 +1,5 @@
 <?xml version="1.0" standalone='yes'?>
-    <project name="Woodstox XML processor" basedir="." default="readme">
+<project name="Woodstox XML processor" basedir="." default="readme">
     <!-- Source directories -->
     <property name="dir.src" location="${basedir}/src" />
     <property name="dir.src.java" location="${dir.src}/java" />
@@ -16,7 +16,6 @@
     <property name="dir.build.classes.stax2" location="${dir.build.classes}/stax2" />
     <property name="dir.build.classes.woodstox" location="${dir.build.classes}/woodstox" />
     <property name="dir.build.classes.samples" location="${dir.build.classes}/samples" />
-    <property name="dir.classes.emma" location="${dir.build}/emma-classes" />
 
     <!-- Documentation -->
     <property name="dir.doc" location="${basedir}/doc" />
@@ -35,7 +34,7 @@
     <!-- Woodstox version info: -->
     <property name="IMPL_TITLE" value="Woodstox XML-processor" />
     <property name="IMPL_VERSION" value="3.9.9-1" />
-    <property name="IMPL_VENDOR" value="woodstox.codehaus.org" />
+    <property name="IMPL_VENDOR" value="http://woodstox.codehaus.org" />
     <property name="API_TITLE" value="Stax 1.0 API" />
     <property name="API_VERSION" value="1.0.0" />
     <property name="API_VENDOR" value="http://jcp.org/en/jsr/detail?id=173" />
@@ -44,7 +43,18 @@
       -->
     <property name="STAX2_TITLE" value="Stax2 API" />
     <property name="STAX2_VERSION" value="2.9.9-1" />
-    <property name="STAX2_VENDOR" value="http://www.cowtowncoder.com" />
+    <property name="STAX2_VENDOR" value="http://woodstox.codehaus.org" />
+
+    <!-- And finally version dependency spec between Woodstox core
+         and Stax API package.
+
+         For pre-release candidate, needs to be strict; for official
+         releases less so
+      -->
+    <property name="REQ_STAX2_VERSION" value="${STAX2_VERSION}" />
+    <!-- real release wll have:
+    <property name="REQ_STAX2_VERSION" value="[3.0,3.1)" />
+    -->
 
     <!-- jars needed for compilation -->
     <path id="classpath.compile">
@@ -99,32 +109,8 @@
         <include name="org/codehaus/**/*.class" />
     </patternset>
 
-
-    <!-- Need BND task for OSGi bundle/metadata creation -->
-    <taskdef name="osgify" classname="net.luminis.build.plugin.bnd.BuildTask">
-      <classpath>
-       <fileset dir="${dir.lib}/ant" includes="bndtask*.jar" />
-      </classpath>
-    </taskdef>
-
-    <!-- Enabling support for Emma (http://emma.sourceforge.net) code
-       - coverage library
-      -->
-    <property name="emma.dir" value="${dir.lib}/coverage" />
-    <property name="emma.coverage.dir" value="${dir.build}/coverage" />
-    <path id="emma.lib">
-      <pathelement location="${emma.dir}/emma.jar" />
-      <pathelement location="${emma.dir}/emma_ant.jar" />
-    </path>
-    <taskdef resource="emma_ant.properties" classpathref="emma.lib" />
-
-
-    <!-- And/or support for Cobertura code coverage tool -->
-    <property name="cobertura.coverage.dir" value="${dir.build}/coverage" />
-    <path id="cobertura.lib">
-      <fileset dir="${dir.lib}/cobertura" includes="*.jar" />
-    </path>
-    <taskdef classpathref="cobertura.lib" resource="tasks.properties" />
+    <import file="build-osgi.xml" />
+    <import file="build-coverage.xml" />
 
     <!--*********************************************************************-->
     <!-- The readme target shows a brief description of all targets          -->
@@ -157,9 +143,6 @@
         <mkdir dir="${dir.build.classes.stax2}" />
         <mkdir dir="${dir.build.classes.woodstox}" />
         <mkdir dir="${dir.build.classes.samples}" />
-        <mkdir dir="${dir.classes.emma}" />
-        <mkdir dir="${emma.coverage.dir}" />
-        <mkdir dir="${cobertura.coverage.dir}" />
 
         <!-- make docs directories -->
         <mkdir dir="${dir.doc}" />
@@ -271,137 +254,12 @@
         </copy>
     </target>
 
-    <!-- Dummy target that just includes all individual jars... --> 
+    <!-- Dummy target that just includes all individual jars...
+         (OSGi ones from included file)
+      --> 
     <target name="jars" depends="jars.osgi, jar.stax2test" />
 
     <target name="jars.osgi" depends="osgi-stax2, osgi-woodstox-asl, osgi-woodstox-lgpl" />
-
-    <!-- 18-Nov-2008, TSa: although recommended naming would
-      use reversed domain name (essentially, Maven groupId + artifactId),
-      let's for now only use artifactId to keep shorter and more
-      Maven-like
-     -->
-    <!--
-    <property name="OSGI_STAX2_BASENAME" value="org.codehaus.woodstox.stax2-api" />
-    <property name="OSGI_WSTX_BASENAME" value="org.codehaus.woodstox.woodstox-core" />
-    -->
-
-    <property name="OSGI_STAX2_BASENAME" value="stax2-api" />
-    <property name="OSGI_WSTX_BASENAME" value="woodstox-core" />
-
-    <target name="osgi-stax2" depends="compile.stax2">
-      <!-- Open questions:
-           * is there any problem from using "non-standard" filename for bundle?
-           * for core (woodstox): OSGi-activate to set system props?
-        -->
-      <osgify
-         outputdir="${dir.build}"
-         bundleName="${STAX2_TITLE}"
-         bundleVendor="${STAX2_VENDOR}"
-         bundleSymbolicName="${OSGI_STAX2_BASENAME}"
-         bundleVersion="${STAX2_VERSION}"
-         filename="${OSGI_STAX2_BASENAME}-${STAX2_VERSION}"
-         exportpackage="org.codehaus.stax2*;version=${STAX2_VERSION}"
-         bundleLicense="http://www.opensource.org/licenses/bsd-license.php"
-      >
-        <classpath>
-              <pathelement path="${dir.build.classes.stax2}" />
-        </classpath>
-        <manifest>
-            <attribute name="Built-By" value="${user.name}"/>
-            <attribute name="Implementation-Title"   value="${STAX2_TITLE}"/>
-            <attribute name="Implementation-Version" value="${STAX2_VERSION}"/>
-            <attribute name="Implementation-Vendor"  value="${STAX2_VENDOR}"/>
-            <attribute name="Specification-Title"   value="${STAX2_TITLE}"/>
-            <attribute name="Specification-Version" value="${STAX2_VERSION}"/>
-            <attribute name="Specification-Vendor"  value="${STAX2_VENDOR}"/>
-        </manifest>
-      </osgify>
-    </target>
-
-    <target name="osgi-woodstox-asl" depends="compile.woodstox,copy-resources">
-      <osgify outputDir="${dir.build}"
-         bundleName="${IMPL_TITLE}"
-         bundleVendor="${IMPL_VENDOR}"
-         bundleSymbolicName="${OSGI_WSTX_BASENAME}-asl"
-         bundleVersion="${IMPL_VERSION}"
-         filename="${OSGI_WSTX_BASENAME}-asl-${IMPL_VERSION}"
-         importPackage="
-javax.xml*,
-org.xml.sax*,
-org.w3c.dom,
-org.codehaus.stax2*"
-         dynamicImportPackage="
-com.sun.msv.*,
-org.relaxng.datatype"
-         exportPackage="
-com.ctc.wstx.api;version=${IMPL_VERSION},
-com.ctc.wstx.msv;version=${IMPL_VERSION},
-com.ctc.wstx.sax;version=${IMPL_VERSION},
-com.ctc.wstx.stax;version=${IMPL_VERSION}
-"
-         privatePackage="!com.ctc.wstx.api, !com.ctc.wstx.msv, !com.ctc.wstx.sax
-,!com.ctc.wstx.stax, !test,*"
-         includeResource="META-INF/services=src/resources, META-INF=release-notes/asl"
-         includeIncludeResourceHeader="false"
-         bundleLicense="http://www.apache.org/licenses/LICENSE-2.0.txt"
-      >
-        <classpath>
-              <pathelement path="${dir.build.classes.woodstox}" />
-        </classpath>
-        <manifest>
-            <attribute name="Built-By" value="${user.name}"/>
-            <attribute name="Implementation-Title"   value="${IMPL_TITLE}"/>
-            <attribute name="Implementation-Version" value="${IMPL_VERSION}"/>
-            <attribute name="Implementation-Vendor"  value="${IMPL_VENDOR}"/>
-            <attribute name="Specification-Title"   value="${API_TITLE}"/>
-            <attribute name="Specification-Version" value="${API_VERSION}"/>
-            <attribute name="Specification-Vendor"  value="${API_VENDOR}"/>
-        </manifest>
-      </osgify>
-    </target>
-
-    <target name="osgi-woodstox-lgpl" depends="compile.woodstox,copy-resources">
-      <osgify outputDir="${dir.build}"
-         bundleName="${IMPL_TITLE}"
-         bundleVendor="${IMPL_VENDOR}"
-         bundleSymbolicName="${OSGI_WSTX_BASENAME}-lgpl"
-         bundleVersion="${IMPL_VERSION}"
-         filename="${OSGI_WSTX_BASENAME}-lgpl-${IMPL_VERSION}"
-         importPackage="
-javax.xml*,
-org.xml.sax*,
-org.w3c.dom,
-org.codehaus.stax2*"
-         dynamicImportPackage="
-com.sun.msv.*,
-org.relaxng.datatype"
-         exportPackage="
-com.ctc.wstx.api;version=${IMPL_VERSION},
-com.ctc.wstx.msv;version=${IMPL_VERSION},
-com.ctc.wstx.sax;version=${IMPL_VERSION},
-com.ctc.wstx.stax;version=${IMPL_VERSION}
-"
-         privatePackage="!com.ctc.wstx.api, !com.ctc.wstx.msv, !com.ctc.wstx.sax
-,!com.ctc.wstx.stax, !test,*"
-         includeResource="META-INF/services=src/resources, META-INF=release-notes/lgpl"
-         includeIncludeResourceHeader="false"
-         bundleLicense="http://www.gnu.org/licenses/lgpl-2.1.html"
-      >
-        <classpath>
-              <pathelement path="${dir.build.classes.woodstox}" />
-        </classpath>
-        <manifest>
-            <attribute name="Built-By" value="${user.name}"/>
-            <attribute name="Implementation-Title"   value="${IMPL_TITLE}"/>
-            <attribute name="Implementation-Version" value="${IMPL_VERSION}"/>
-            <attribute name="Implementation-Vendor"  value="${IMPL_VENDOR}"/>
-            <attribute name="Specification-Title"   value="${API_TITLE}"/>
-            <attribute name="Specification-Version" value="${API_VERSION}"/>
-            <attribute name="Specification-Vendor"  value="${API_VENDOR}"/>
-        </manifest>
-      </osgify>
-    </target>
 
         <!-- 17-Nov-2008, TSa: Let's only build "core" jar;
              if a flattened version (stax2-api bundled) is
@@ -696,7 +554,6 @@ com.ctc.wstx.stax;version=${IMPL_VERSION}
         </javac>
     </target>
 
-
     <target name="test" depends="compile.test">
        <!-- showoutput 'yes' to allow outputting debug msgs... -->
         <junit fork="yes" forkmode="once" maxmemory="128M"
@@ -725,180 +582,4 @@ com.ctc.wstx.stax;version=${IMPL_VERSION}
             <report todir="${dir.test.results}" />
         </junitreport>
     </target>
-
-    <target name="test-emma" depends="compile.test, prepare-staxtest">
-
-      <!-- First, need to instrument using Emma -->
-      <property name="emma.instr.dir" value="${dir.build}/emma-instr" />
-      <!-- 20-Dec-2005, TSa: How the hell do I exclude specific sub-dirs
-         -    from being instrumented? Ugh. There has to be a way... but
-         -    so far nothing has worked to just exclude test.* classes.
-         -
-         -    Will probably just need to copy the real classes to a temporary
-         -    location to make it work
-        --> 
-      <property name="emma.tmp.dir" value="${dir.build}/emma-tmp" />
-      <mkdir dir="${emma.tmp.dir}" />
-      <copy toDir="${emma.tmp.dir}">
-        <fileset dir="${dir.build.classes.stax2}">
-          <include name="org/codehaus/stax2/**/*.class" />
-        </fileset>           	
-        <fileset dir="${dir.build.classes.woodstox}">
-          <include name="com/ctc/**/*.class" />
-        </fileset>           	
-      </copy>
-      <path id="emma-classpath">
-          <pathelement location="${emma.tmp.dir}">
-          </pathelement>
-      </path>
-      <mkdir dir="${emma.instr.dir}" />
-      <emma enabled="true"> <!--  verbosity="verbose" -->
-        <instr instrpathref="emma-classpath"
-             destdir="${dir.classes.emma}"	
-             metadatafile="${emma.coverage.dir}/metadata.emma"
-             merge="true"
- mode="fullcopy"
-        />
-      </emma>
-      <!-- Ok, so let's just nuke the stupid test classes...
-        -  ... for which there are 2 possible locations...
-        -->
-      <delete dir="${dir.classes.emma}/classes/test"/>
-      <delete dir="${dir.classes.emma}/test"/>
-
-      <!-- Then run tests. Note: need to fork for Emma to work...? -->
-      <junit fork="yes" printsummary="yes" haltonfailure="no"
-         showoutput="yes">
-            <batchtest fork="no" todir="${dir.test.xmlresults}">
-                <!-- Generic Stax tests -->
-                <fileset dir="${dir.classes.staxtest}">
-                    <!-- Need to exclude inner classes... -->
-                    <exclude name="**/*$*.class"/>
-                    <include name="org/codehaus/**/Test*.class"/>
-                </fileset>
-                <!-- Woodstox-specific tests -->
-                <fileset dir="${dir.classes.test}">
-                    <exclude name="**/*$*.class"/>
-                    <include name="**/Test*.class"/>
-                </fileset>
-            </batchtest>
-            <formatter type="xml" />
-            <!-- Stax API: -->
-            <classpath refid="classpath.compile" />
-            <!-- Actual tests: -->
-            <classpath path="${dir.classes.test}" />
-            <classpath path="${dir.classes.staxtest}" />
-            <!-- Emma jars: -->
-            <classpath>
-                <pathelement path="${dir.classes.emma}/classes" />
-                <pathelement location="${dir.lib}/emma.jar" /> 
-                <!-- need resource (service) files so stax(2) knows which
-                   - impl to use
-                 -->
-                <fileset dir="${dir.build}">
-                  <include name="service-def-*.jar" />
-                </fileset>
-                <path refid="junit-libs"/>
-            </classpath>     
-        </junit>
-
-       <!-- Then Emma coverage reporting... -->
-
-       <emma enabled="true"> <!-- verbosity="verbose" -->
-        <report sourcepath="${dir.src.java}" >
-          <fileset dir="${emma.coverage.dir}" >
-            <include name="*.emma" />
-          </fileset>
-          <fileset dir="${basedir}" >
-            <include name="coverage.ec" />
-          </fileset>
-         <txt outfile="${emma.coverage.dir}/coverage.txt" />
-         <html outfile="${emma.coverage.dir}/coverage.html" />
-        </report>
-       </emma>
-
-        <!-- Don't really need actual JUnit output do we? -->
-        <junitreport todir="${dir.test.results}">
-            <fileset dir="${dir.test.xmlresults}">
-                <include name="TEST-*.xml" />
-            </fileset>
-            <report todir="${dir.test.results}" />
-        </junitreport>
-        <!--
-        -->
-    </target>
-
-    <!-- Instead of (or in addition to?) Emma, we can also try
-         Cobertura...
-      -->
-
-    <target name="test-cobertura" depends="compile.test, prepare-staxtest">
-      <!-- First, need to instrument classes -->
-      <property name="cobertura.instr.dir" value="${dir.build}/cobertura-instr" />
-      <cobertura-instrument todir="${cobertura.instr.dir}">
-        <fileset dir="${dir.build.classes.stax2}">
-          <include name="**/*.class"/>
-        </fileset>
-        <fileset dir="${dir.build.classes.woodstox}">
-          <include name="com/**/*.class"/>
-        </fileset>
-      </cobertura-instrument>
-
-      <junit fork="once" printsummary="yes" haltonfailure="no" showoutput="yes"
-        maxmemory="500M"
-      >
-        <sysproperty key="net.sourceforge.cobertura.datafile" file="${basedir}/cobertura.ser" />
-            <batchtest fork="no" todir="${dir.test.xmlresults}">
-                <!-- Woodstox-specific tests -->
-                <fileset dir="${dir.classes.test}">
-                    <exclude name="**/*$*.class"/>
-                    <include name="**/Test*.class"/>
-                </fileset>
-                <!-- Generic Stax tests -->
-                <fileset dir="${dir.classes.staxtest}">
-                    <exclude name="**/*$*.class"/>
-                    <include name="org/codehaus/**/Test*.class"/>
-                </fileset>
-            </batchtest>
-            <formatter type="xml" />
-            <!-- Order is important: must first have instrumented classes -->
-            <classpath location="${cobertura.instr.dir}" />
-
-            <!-- Stax API: -->
-            <classpath refid="classpath.compile" />
-            <!-- Actual tests: -->
-            <classpath path="${dir.classes.test}" />
-            <classpath path="${dir.classes.staxtest}" />
-            <!-- Cobertura support: -->
-            <classpath refid="cobertura.lib" />
-            <classpath>
-                <!-- Note: while this may seem superfluous, it is actually
-                     needed because Cobertura does not instrument things
-                     like interfaces. So some of the class files are
-                     needed from non-instrumented location
-                  -->
-                <pathelement path="${dir.build.classes.stax2}" />
-                <pathelement path="${dir.build.classes.woodstox}" />
-                <fileset dir="${dir.build}">
-                  <include name="service-def-*.jar" />
-                </fileset>
-                <path refid="junit-libs"/>
-            </classpath>     
-        </junit>
-        <!-- and then reporting -->
-        <cobertura-report format="html" destdir="${cobertura.coverage.dir}" >
-          <fileset dir="${dir.src.java}">
-            <include name="**/*.java" />
-          </fileset>
-        </cobertura-report>
-
-        <!-- Let's also report junit results? (at least if they fail) -->
-        <junitreport todir="${dir.test.results}">
-            <fileset dir="${dir.test.xmlresults}">
-                <include name="TEST-*.xml" />
-            </fileset>
-            <report todir="${dir.test.results}" />
-        </junitreport>
-    </target>
-
 </project>
