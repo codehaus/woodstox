@@ -51,7 +51,7 @@
          For pre-release candidate, needs to be strict; for official
          releases less so
       -->
-    <property name="REQ_STAX2_VERSION" value="${STAX2_VERSION}" />
+    <property name="REQ_STAX2_VERSION" value="2.9.9-1" />
     <!-- real release wll have:
     <property name="REQ_STAX2_VERSION" value="[3.0,3.1)" />
     -->
