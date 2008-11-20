@@ -111,6 +111,7 @@
 
     <import file="build-osgi.xml" />
     <import file="build-coverage.xml" />
+    <import file="repackage-msv.xml" />
 
     <!--*********************************************************************-->
     <!-- The readme target shows a brief description of all targets          -->
@@ -257,7 +258,7 @@
     <!-- Dummy target that just includes all individual jars...
          (OSGi ones from included file)
       --> 
-    <target name="jars" depends="jars.osgi, jar.stax2test" />
+    <target name="jars" depends="jars.osgi, jar.stax2test, repackage-msv" />
 
     <target name="jars.osgi" depends="osgi-stax2, osgi-woodstox-asl, osgi-woodstox-lgpl" />
 
@@ -373,18 +374,16 @@
         </javadoc>
     </target> 
  
-    <target name="dist" depends="compile,jars,javadoc"
-    >
+    <target name="dist" depends="compile,jars,javadoc">
        <!-- First, let's copy the binary jars to dist -->
        <copy todir="${dir.dist}">
-          <fileset dir="${dir.build}" includes="wstx*.jar" />
           <fileset dir="${dir.build}" includes="woodstox*.jar" />
           <fileset dir="${dir.build}" includes="stax2*.jar" />
        </copy>
-       <!-- Including MSV jars?
+       <!-- Including MSV jars (note: ones we have repackaged)
          -->
        <copy todir="${dir.dist}">
-          <fileset dir="${dir.lib}" includes="msv/*.jar" />
+          <fileset dir="${dir.build}" includes="woodstox-msv-*.jar" />
        </copy>
 
        <!-- Then let's create the source distribution tar packages
