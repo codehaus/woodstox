@@ -23,6 +23,10 @@
 
     <property name="OSGI_STAX2_BASENAME" value="stax2-api" />
     <property name="OSGI_WSTX_BASENAME" value="woodstox-core" />
+    <!-- As of Woodstox 4.x, Stax2-api 3.x, we need JDK 1.4
+        (and for next major version at least 1.5, possibly 1.6)
+     -->
+    <property name="REQ_JDK_VERSION" value="J2SE-1.4" />
 
     <target name="osgi-stax2" depends="compile.stax2">
       <!-- Open questions:
@@ -35,9 +39,10 @@
          bundleVendor="${STAX2_VENDOR}"
          bundleSymbolicName="${OSGI_STAX2_BASENAME}"
          bundleVersion="${STAX2_VERSION}"
+         bundleLicense="http://www.opensource.org/licenses/bsd-license.php"
+         bundleRequiredExecutionEnvironment="${REQ_JDK_VERSION}"
          filename="${OSGI_STAX2_BASENAME}-${STAX2_VERSION}"
          exportpackage="org.codehaus.stax2*;version=${STAX2_VERSION}"
-         bundleLicense="http://www.opensource.org/licenses/bsd-license.php"
       >
         <classpath>
               <pathelement path="${dir.build.classes.stax2}" />
@@ -60,6 +65,8 @@
          bundleVendor="${IMPL_VENDOR}"
          bundleSymbolicName="${OSGI_WSTX_BASENAME}-asl"
          bundleVersion="${IMPL_VERSION}"
+         bundleLicense="http://www.apache.org/licenses/LICENSE-2.0.txt"
+         bundleRequiredExecutionEnvironment="${REQ_JDK_VERSION}"
          filename="${OSGI_WSTX_BASENAME}-asl-${IMPL_VERSION}"
          importPackage="
 javax.xml*,
@@ -79,7 +86,6 @@ com.ctc.wstx.stax;version=${IMPL_VERSION}
 ,!com.ctc.wstx.stax, !test,*"
          includeResource="META-INF/services=src/resources, META-INF=release-notes/asl"
          includeIncludeResourceHeader="false"
-         bundleLicense="http://www.apache.org/licenses/LICENSE-2.0.txt"
       >
         <classpath>
               <pathelement path="${dir.build.classes.woodstox}" />
@@ -102,6 +108,8 @@ com.ctc.wstx.stax;version=${IMPL_VERSION}
          bundleVendor="${IMPL_VENDOR}"
          bundleSymbolicName="${OSGI_WSTX_BASENAME}-lgpl"
          bundleVersion="${IMPL_VERSION}"
+         bundleLicense="http://www.gnu.org/licenses/lgpl-2.1.html"
+         bundleRequiredExecutionEnvironment="${REQ_JDK_VERSION}"
          filename="${OSGI_WSTX_BASENAME}-lgpl-${IMPL_VERSION}"
          importPackage="
 javax.xml*,
@@ -121,7 +129,6 @@ com.ctc.wstx.stax;version=${IMPL_VERSION}
 ,!com.ctc.wstx.stax, !test,*"
          includeResource="META-INF/services=src/resources, META-INF=release-notes/lgpl"
          includeIncludeResourceHeader="false"
-         bundleLicense="http://www.gnu.org/licenses/lgpl-2.1.html"
       >
         <classpath>
               <pathelement path="${dir.build.classes.woodstox}" />
