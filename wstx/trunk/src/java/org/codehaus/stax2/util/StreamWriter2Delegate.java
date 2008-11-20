@@ -10,6 +10,7 @@ import javax.xml.stream.XMLStreamWriter;
 import org.codehaus.stax2.XMLStreamLocation2;
 import org.codehaus.stax2.XMLStreamReader2;
 import org.codehaus.stax2.XMLStreamWriter2;
+import org.codehaus.stax2.typed.Base64Variant;
 import org.codehaus.stax2.validation.ValidationProblemHandler;
 import org.codehaus.stax2.validation.XMLValidationSchema;
 import org.codehaus.stax2.validation.XMLValidator;
@@ -120,9 +121,20 @@ public class StreamWriter2Delegate
         mDelegate2.writeBinary(value, from, length);
     }
 
+    public void writeBinary(Base64Variant v, byte[] value, int from, int length)
+        throws XMLStreamException
+    {
+        mDelegate2.writeBinary(v, value, from, length);
+    }
+
     public void writeBinaryAttribute(String prefix, String namespaceURI,
                                      String localName, byte[] value) throws XMLStreamException {
         mDelegate2.writeBinaryAttribute(prefix,  namespaceURI, localName, value);
+    }
+
+    public void writeBinaryAttribute(Base64Variant v, String prefix, String namespaceURI,
+                                     String localName, byte[] value) throws XMLStreamException {
+        mDelegate2.writeBinaryAttribute(v, prefix,  namespaceURI, localName, value);
     }
 
     public void writeBoolean(boolean value) throws XMLStreamException {

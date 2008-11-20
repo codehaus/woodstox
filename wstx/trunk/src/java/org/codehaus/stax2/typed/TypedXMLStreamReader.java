@@ -40,15 +40,14 @@ public interface TypedXMLStreamReader
 {
     /*
     //////////////////////////////////////////////////////////
-    // First, typed element accessors for scaler values
+    // First, typed element accessors for scalar values
     //////////////////////////////////////////////////////////
      */
     
     /**
      * <p>Read an element content as a boolean. The lexical
      * representation of a boolean is defined by the 
-     * <a href="http://www.w3.org/TR/xmlschema-2/#boolean">XML Schema
-     * boolean</a> data type. Whitespace MUST be 
+     * <a href="http://www.w3.org/TR/xmlschema-2/#boolean">XML Schema boolean</a> data type. Whitespace MUST be 
      * <a href="http://www.w3.org/TR/xmlschema-2/datatypes.html#rf-whiteSpace">collapsed</a>
      * according to the whiteSpace facet for the XML Schema boolean
      * data type.
@@ -76,8 +75,7 @@ public interface TypedXMLStreamReader
     /**
      * <p>Read an element content as a 32-bit integer. The lexical
      * representation of a integer is defined by the 
-     * <a href="http://www.w3.org/TR/xmlschema-2/#integer">XML Schema
-     * integer</a> data type. Whitespace MUST be 
+     * <a href="http://www.w3.org/TR/xmlschema-2/#integer">XML Schema integer</a> data type. Whitespace MUST be 
      * <a href="http://www.w3.org/TR/xmlschema-2/datatypes.html#rf-whiteSpace">collapsed</a>
      * according to the whiteSpace facet for the XML Schema integer data type.
      * An exception is thrown if, after whitespace is
@@ -101,8 +99,7 @@ public interface TypedXMLStreamReader
     /**
      * <p>Read an element content as a 64-bit integer. The lexical
      * representation of a integer is defined by the 
-     * <a href="http://www.w3.org/TR/xmlschema-2/#integer">XML Schema
-     * integer</a> data type. Whitespace MUST be 
+     * <a href="http://www.w3.org/TR/xmlschema-2/#integer">XML Schema integer</a> data type. Whitespace MUST be 
      * <a href="http://www.w3.org/TR/xmlschema-2/datatypes.html#rf-whiteSpace">collapsed</a>
      * according to the whiteSpace facet for the XML Schema integer data type.
      * An exception is thrown if, after whitespace is
@@ -126,8 +123,7 @@ public interface TypedXMLStreamReader
     /**
      * <p>Read an element content as a 32-bit floating point value.
      * The lexical representation is defined by the 
-     * <a href="http://www.w3.org/TR/xmlschema-2/#float">XML Schema
-     * float</a> data type. Whitespace MUST be 
+     * <a href="http://www.w3.org/TR/xmlschema-2/#float">XML Schema float</a> data type. Whitespace MUST be 
      * <a href="http://www.w3.org/TR/xmlschema-2/datatypes.html#rf-whiteSpace">collapsed</a>
      * according to the whiteSpace facet for the XML Schema float data type.
      * An exception is thrown if, after whitespace is
@@ -156,8 +152,7 @@ public interface TypedXMLStreamReader
     /**
      * <p>Read an element content as a 64-bit floating point value.
      * The lexical representation is defined by the 
-     * <a href="http://www.w3.org/TR/xmlschema-2/#double">XML Schema
-     * double</a> data type. Whitespace MUST be 
+     * <a href="http://www.w3.org/TR/xmlschema-2/#double">XML Schema double</a> data type. Whitespace MUST be 
      * <a href="http://www.w3.org/TR/xmlschema-2/datatypes.html#rf-whiteSpace">collapsed</a>
      * according to the whiteSpace facet for the XML Schema double data type.
      * An exception is thrown if, after whitespace is
@@ -196,10 +191,26 @@ public interface TypedXMLStreamReader
      * instead of
      * {@link #readElementAsBinary}, in cases where neither performance nor
      * memory usage is a big concern.
+     *<p>
+     * Note: base64 variant defaults to {@link Base64Variant#MIME}.
      *
      * @see #readElementAsBinary
      */
     public byte[] getElementAsBinary()
+        throws XMLStreamException;
+
+    /**
+     * Convenience method that can be used similar to read binary content
+     * instead of
+     * {@link #readElementAsBinary}, in cases where neither performance nor
+     * memory usage is a big concern.
+     *
+     * @param variant Base64 variant content is in; needed to decode
+     *   alternative variants ("modified base64")
+     *
+     * @see #readElementAsBinary
+     */
+    public byte[] getElementAsBinary(Base64Variant variant)
         throws XMLStreamException;
     
     /**
@@ -249,8 +260,7 @@ public interface TypedXMLStreamReader
      * Read element content as decoded byte sequence; possibly only
      * reading a fragment of all element content.
      * The lexical representation of a byte array is defined by the 
-     * <a href="http://www.w3.org/TR/xmlschema-2/#base64Binary">XML Schema
-     * base64Binary</a> data type. Whitespace MUST be 
+     * <a href="http://www.w3.org/TR/xmlschema-2/#base64Binary">XML Schema base64Binary</a> data type. Whitespace MUST be 
      * <a href="http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/datatypes.html#rf-whiteSpace">collapsed</a>
      * according to the whiteSpace facet for the XML Schema base64Binary
      * data type. An exception is thrown if content is not in 
@@ -305,6 +315,9 @@ public interface TypedXMLStreamReader
      * @throws IllegalArgumentException If <code>resultBuffer</code> is
      *    null or offset is less than 0.
      */
+    public int readElementAsBinary(Base64Variant variant, byte[] resultBuffer, int offset, int maxLength)
+        throws XMLStreamException;
+
     public int readElementAsBinary(byte[] resultBuffer, int offset, int maxLength)
         throws XMLStreamException;
     
@@ -515,8 +528,7 @@ public interface TypedXMLStreamReader
     /**
      *Read an attribute value as a byte array. The lexical
      * representation of a byte array is defined by the 
-     * <a href="http://www.w3.org/TR/xmlschema-2/#base64Binary">XML Schema
-     * base64Binary</a> data type. Whitespace MUST be 
+     * <a href="http://www.w3.org/TR/xmlschema-2/#base64Binary">XML Schema base64Binary</a> data type. Whitespace MUST be 
      * <a href="http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/
      * datatypes.html#rf-whiteSpace">collapsed</a>
      * according to the whiteSpace facet for the XML Schema base64Binary
@@ -533,6 +545,8 @@ public interface TypedXMLStreamReader
      *         character sequence into an XML Schema boolean value.
      */
     public byte[] getAttributeAsBinary(int index) throws XMLStreamException;
+
+    public byte[] getAttributeAsBinary(Base64Variant v, int index) throws XMLStreamException;
     
     /**
      * <p>Read an attribute content as an int array. The lexical

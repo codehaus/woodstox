@@ -174,7 +174,7 @@ public abstract class ReaderBinaryTestBase
         int ptr = 0;
         do {
             int chunkLen = 1 + (r.nextInt() & 0x7);
-            AsciiValueEncoder enc = new ValueEncoderFactory().getEncoder(data, ptr, chunkLen);
+            AsciiValueEncoder enc = new ValueEncoderFactory().getEncoder(Base64Variants.MIME, data, ptr, chunkLen);
             ptr += chunkLen;
             int len = enc.encodeMore(buffer, 0, buffer.length);
             b64.append(buffer, 0, len);
@@ -415,7 +415,7 @@ public abstract class ReaderBinaryTestBase
 
         // So first we'll encode 1 to 6 bytes as base64
         for (int i = 1; i <= data.length; ++i) {
-            AsciiValueEncoder enc = new ValueEncoderFactory().getEncoder(data, 0, i);
+            AsciiValueEncoder enc = new ValueEncoderFactory().getEncoder(Base64Variants.MIME, data, 0, i);
             char[] cbuf = new char[20];
             int clen = enc.encodeMore(cbuf, 0, cbuf.length);
 
@@ -458,7 +458,7 @@ public abstract class ReaderBinaryTestBase
                 int size = LEN_ATTR[i];
                 byte[] data = generateData(new Random(size), size);
                 char[] buffer = new char[4 + (data.length * 3 / 2)];
-                AsciiValueEncoder enc = new ValueEncoderFactory().getEncoder(data, 0, data.length);
+                AsciiValueEncoder enc = new ValueEncoderFactory().getEncoder(Base64Variants.MIME, data, 0, data.length);
                 int len = enc.encodeMore(buffer, 0, buffer.length);
                 StringBuilder sb = new StringBuilder(buffer.length + 32);
                 sb.append("<root attr='");
@@ -540,7 +540,7 @@ public abstract class ReaderBinaryTestBase
 
         // So first we'll encode 1 to 6 bytes as base64
         for (int i = 1; i <= data.length; ++i) {
-            AsciiValueEncoder enc = new ValueEncoderFactory().getEncoder(data, 0, i);
+            AsciiValueEncoder enc = new ValueEncoderFactory().getEncoder(Base64Variants.MIME, data, 0, i);
             char[] cbuf = new char[20];
             int clen = enc.encodeMore(cbuf, 0, cbuf.length);
 
@@ -586,7 +586,7 @@ public abstract class ReaderBinaryTestBase
     private String buildDoc(Random r, byte[] data, boolean addNoise)
     {
         // Let's use base64 codec from RI here:
-        AsciiValueEncoder enc = new ValueEncoderFactory().getEncoder(data, 0, data.length);
+        AsciiValueEncoder enc = new ValueEncoderFactory().getEncoder(Base64Variants.MIME, data, 0, data.length);
 
         StringBuffer sb = new StringBuffer(data.length * 2);
         sb.append("<root>");
@@ -654,7 +654,7 @@ public abstract class ReaderBinaryTestBase
         for (int i = 0; i < dataTable.length; ++i) {
             byte[] data = dataTable[i];
             char[] buffer = new char[4 + (data.length * 3 / 2)];
-            AsciiValueEncoder enc = new ValueEncoderFactory().getEncoder(data, 0, data.length);
+            AsciiValueEncoder enc = new ValueEncoderFactory().getEncoder(Base64Variants.MIME, data, 0, data.length);
             int len = enc.encodeMore(buffer, 0, buffer.length);
             sb.append("<a>");
             sb.append(buffer, 0, len);

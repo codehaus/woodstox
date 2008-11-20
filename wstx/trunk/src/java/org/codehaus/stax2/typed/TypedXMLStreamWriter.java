@@ -30,7 +30,11 @@ import javax.xml.stream.XMLStreamWriter;
 public interface TypedXMLStreamWriter
     extends XMLStreamWriter
 {
-    // -- Elements --
+    /*
+    //////////////////////////////////////////////////////////
+    // First, typed element write methods for scalar values
+    //////////////////////////////////////////////////////////
+     */
     
     /**
      * Write a boolean value to the output as textual element content.
@@ -83,6 +87,13 @@ public interface TypedXMLStreamWriter
     // !!! 30-Jan-2008, TSa: JDK 1.5 only, can't add yet
     //void writeCalendar(XMLGregorianCalendar value) throws XMLStreamException;
     
+    /*
+    //////////////////////////////////////////////////////////
+    // Then streaming/chunked typed element write methods
+    // for non-scalar (array, binary data) values
+    //////////////////////////////////////////////////////////
+     */
+
     /**
      *<p>
      * Write binary content as base64 encoded characters to the output.
@@ -93,11 +104,16 @@ public interface TypedXMLStreamWriter
      * atomic unit of base64 output, which avoids padding) to
      * maximize interoperability.
      * </p>
+     *<p>
+     * Note: base64 variant defaults to {@link Base64Variant#MIME}.
+     *
      * @param value   The array from which to write the bytes.
      * @param from    The index in the array from which writing starts.
      * @param length  The number of bytes to write.
      */
     void writeBinary(byte[] value, int from, int length) throws XMLStreamException;
+
+    void writeBinary(Base64Variant variant, byte[] value, int from, int length) throws XMLStreamException;
     
     /**
      * <p>Write int array to the output. The lexical
@@ -185,6 +201,8 @@ public interface TypedXMLStreamWriter
      * <p>Write a byte array attribute. The lexical
      * representation of a byte array is defined by the
      * <a href="http://www.w3.org/TR/xmlschema-2/#base64Binary">XML Schema base64Binary</a> data type.</p>
+     *<p>
+     * Note: base64 variant defaults to {@link Base64Variant#MIME}.
      *
      * @param prefix  The attribute's prefix.
      * @param namespaceURI  The attribute's URI.
@@ -192,6 +210,8 @@ public interface TypedXMLStreamWriter
      * @param value   The array from which to write the bytes.
      */
     void writeBinaryAttribute(String prefix, String namespaceURI, String localName, byte[] value) throws XMLStreamException;
+
+    void writeBinaryAttribute(Base64Variant variant, String prefix, String namespaceURI, String localName, byte[] value) throws XMLStreamException;
 
     /**
      * <p>Write int array attribute. The lexical

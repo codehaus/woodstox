@@ -15,6 +15,8 @@
 
 package org.codehaus.stax2.ri.typed;
 
+import org.codehaus.stax2.typed.Base64Variant;
+
 /**
  * Base64 decoder that can be used to decode base64 encoded content that
  * is passed as a Single string.
@@ -27,22 +29,23 @@ public final class StringBase64Decoder
     /**
      * Base64 content String being currently processed.
      */
-    String mCurrSegment;
+    String _currSegment;
 
-    int mCurrSegmentPtr;
+    int _currSegmentPtr;
 
-    int mCurrSegmentEnd;
+    int _currSegmentEnd;
 
     public StringBase64Decoder() { super(); }
 
-    public void init(boolean firstChunk, String segment)
+    public void init(Base64Variant variant, boolean firstChunk, String segment)
     {
+        _variant = variant;
         if (firstChunk) {
-            mState = STATE_INITIAL;
+            _state = STATE_INITIAL;
         }
-        mCurrSegment = segment;
-        mCurrSegmentPtr = 0;
-        mCurrSegmentEnd = segment.length();
+        _currSegment = segment;
+        _currSegmentPtr = 0;
+        _currSegmentEnd = segment.length();
     }
 
     /**
@@ -61,71 +64,73 @@ public final class StringBase64Decoder
 
         main_loop:
         while (true) {
-            switch (mState) {
+            switch (_state) {
             case STATE_INITIAL:
                 // first, we'll skip preceding white space, if any
                 {
                     char ch;
                     do {
-                        if (mCurrSegmentPtr >= mCurrSegmentEnd) {
+                        if (_currSegmentPtr >= _currSegmentEnd) {
                             break main_loop;
                         }
-                        ch = mCurrSegment.charAt(mCurrSegmentPtr++);
+                        ch = _currSegment.charAt(_currSegmentPtr++);
                     } while (ch <= INT_SPACE);
-                    if (ch > 127 || (mDecodedData = BASE64_BY_CHAR[ch]) < 0) {
+                    int bits = _variant.decodeBase64Char(ch);
+                    if (bits < 0) {
                         throw reportInvalidChar(ch, 0);
                     }
+                    _decodedData = bits;
                 }
                 // fall through, "fast" path
 
             case STATE_VALID_1:
                 // then second base64 char; can't get padding yet, nor ws
                 {
-                    if (mCurrSegmentPtr >= mCurrSegmentEnd) {
-                        mState = STATE_VALID_1; // to cover fall-through case
+                    if (_currSegmentPtr >= _currSegmentEnd) {
+                        _state = STATE_VALID_1; // to cover fall-through case
                         break main_loop;
                     }
-                    char ch = mCurrSegment.charAt(mCurrSegmentPtr++);
-                    int bits;
-                    if (ch > 127 || (bits = BASE64_BY_CHAR[ch]) < 0) {
+                    char ch = _currSegment.charAt(_currSegmentPtr++);
+                    int bits = _variant.decodeBase64Char(ch);
+                    if (bits < 0) {
                         throw reportInvalidChar(ch, 1);
                     }
-                    mDecodedData = (mDecodedData << 6) | bits;
+                    _decodedData = (_decodedData << 6) | bits;
                 }
                 // fall through, "fast path"
 
             case STATE_VALID_2:
                 // third base64 char; can be padding, but not ws
                 {
-                    if (mCurrSegmentPtr >= mCurrSegmentEnd) {
-                        mState = STATE_VALID_2; // to cover fall-through case
+                    if (_currSegmentPtr >= _currSegmentEnd) {
+                        _state = STATE_VALID_2; // to cover fall-through case
                         break main_loop;
                     }
-                    char ch = mCurrSegment.charAt(mCurrSegmentPtr++);
-                    int bits;
-                    if (ch > 127 || (bits = BASE64_BY_CHAR[ch]) < 0) {
-                        if (ch != CHAR_PADDING) {
+                    char ch = _currSegment.charAt(_currSegmentPtr++);
+                    int bits = _variant.decodeBase64Char(ch);
+                    if (bits < 0) {
+                        if (bits != Base64Variant.BASE64_VALUE_PADDING) {
                             throw reportInvalidChar(ch, 2);
                         }
                         // Padding is off the "fast path", so:
-                        mState = STATE_VALID_2_AND_PADDING;
+                        _state = STATE_VALID_2_AND_PADDING;
                         continue main_loop;
                     }
-                    mDecodedData = (mDecodedData << 6) | bits;
+                    _decodedData = (_decodedData << 6) | bits;
                 }
                 // fall through, "fast path"
 
             case STATE_VALID_3:
                 // fourth and last base64 char; can be padding, but not ws
                 {
-                    if (mCurrSegmentPtr >= mCurrSegmentEnd) {
-                        mState = STATE_VALID_3; // to cover fall-through case
+                    if (_currSegmentPtr >= _currSegmentEnd) {
+                        _state = STATE_VALID_3; // to cover fall-through case
                         break main_loop;
                     }
-                    char ch = mCurrSegment.charAt(mCurrSegmentPtr++);
-                    int bits;
-                    if (ch > 127 || (bits = BASE64_BY_CHAR[ch]) < 0) {
-                        if (ch != CHAR_PADDING) {
+                    char ch = _currSegment.charAt(_currSegmentPtr++);
+                    int bits = _variant.decodeBase64Char(ch);
+                    if (bits < 0) {
+                        if (bits != Base64Variant.BASE64_VALUE_PADDING) {
                             throw reportInvalidChar(ch, 3);
                         }
                         /* With padding we only get 2 bytes; but we have
@@ -134,59 +139,59 @@ public final class StringBase64Decoder
                          * 3 chars gives 3x6 == 18 bits, of which 2 are
                          * dummies, need to discard:
                          */
-                        mDecodedData >>= 2;
-                        mState = STATE_OUTPUT_2;
+                        _decodedData >>= 2;
+                        _state = STATE_OUTPUT_2;
                         continue main_loop;
                     }
                     // otherwise, our triple is now complete
-                    mDecodedData = (mDecodedData << 6) | bits;
+                    _decodedData = (_decodedData << 6) | bits;
                 }
                 // still along fast path
 
             case STATE_OUTPUT_3:
                 if (resultOffset >= resultBufferEnd) { // no room
-                    mState = STATE_OUTPUT_3;
+                    _state = STATE_OUTPUT_3;
                     break main_loop;
                 }
-                resultBuffer[resultOffset++] = (byte) (mDecodedData >> 16);
+                resultBuffer[resultOffset++] = (byte) (_decodedData >> 16);
                 // fall through
 
             case STATE_OUTPUT_2:
                 if (resultOffset >= resultBufferEnd) { // no room
-                    mState = STATE_OUTPUT_2;
+                    _state = STATE_OUTPUT_2;
                     break main_loop;
                 }
-                resultBuffer[resultOffset++] = (byte) (mDecodedData >> 8);
+                resultBuffer[resultOffset++] = (byte) (_decodedData >> 8);
                 // fall through
 
             case STATE_OUTPUT_1:
                 if (resultOffset >= resultBufferEnd) { // no room
-                    mState = STATE_OUTPUT_1;
+                    _state = STATE_OUTPUT_1;
                     break main_loop;
                 }
-                resultBuffer[resultOffset++] = (byte) mDecodedData;
-                mState = STATE_INITIAL;
+                resultBuffer[resultOffset++] = (byte) _decodedData;
+                _state = STATE_INITIAL;
                 continue main_loop;
 
             case STATE_VALID_2_AND_PADDING:
                 {
-                    if (mCurrSegmentPtr >= mCurrSegmentEnd) {
+                    if (_currSegmentPtr >= _currSegmentEnd) {
                         // must have valid state already (can't get in via fall-through)
                         break main_loop;
                     }
-                    char ch = mCurrSegment.charAt(mCurrSegmentPtr++);
-                    if (ch != CHAR_PADDING) {
+                    char ch = _currSegment.charAt(_currSegmentPtr++);
+                    if (!_variant.usesPaddingChar(ch)) {
                         throw reportInvalidChar(ch, 3, "expected padding character '='");
                     }
                     // Got 12 bits, only need 8, need to shift
-                    mState = STATE_OUTPUT_1;
-                    mDecodedData >>= 4;
+                    _state = STATE_OUTPUT_1;
+                    _decodedData >>= 4;
                 }
                 continue main_loop;
 
             default:
                 // sanity check: should never happen
-                throw new IllegalStateException("Illegal internal state "+mState);
+                throw new IllegalStateException("Illegal internal state "+_state);
             }
         }
         return resultOffset - origResultOffset;

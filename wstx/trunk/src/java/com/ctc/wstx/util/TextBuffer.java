@@ -9,6 +9,7 @@ import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.ext.LexicalHandler;
 
+import org.codehaus.stax2.typed.Base64Variant;
 import org.codehaus.stax2.typed.TypedArrayDecoder;
 import org.codehaus.stax2.typed.TypedValueDecoder;
 import org.codehaus.stax2.typed.TypedXMLStreamException;
@@ -530,12 +531,12 @@ public final class TextBuffer
      * @param firstChunk Whether this is the first segment fed or not;
      *    if it is, state needs to be fullt reset; if not, only partially.
      */
-    public void initBinaryChunks(CharArrayBase64Decoder dec, boolean firstChunk)
+    public void initBinaryChunks(Base64Variant v, CharArrayBase64Decoder dec, boolean firstChunk)
     {
         if (mInputStart < 0) { // non-shared
-            dec.init(firstChunk, mCurrentSegment, 0, mCurrentSize, mSegments);
+            dec.init(v, firstChunk, mCurrentSegment, 0, mCurrentSize, mSegments);
         } else { // shared
-            dec.init(firstChunk, mInputBuffer, mInputStart, mInputLen, null);
+            dec.init(v, firstChunk, mInputBuffer, mInputStart, mInputLen, null);
         }
     }
 

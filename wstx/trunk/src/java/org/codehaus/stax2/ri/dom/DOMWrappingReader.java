@@ -40,6 +40,8 @@ import org.codehaus.stax2.ri.SingletonIterator;
 import org.codehaus.stax2.ri.Stax2Util;
 import org.codehaus.stax2.ri.typed.StringBase64Decoder;
 import org.codehaus.stax2.ri.typed.ValueDecoderFactory;
+import org.codehaus.stax2.typed.Base64Variant;
+import org.codehaus.stax2.typed.Base64Variants;
 import org.codehaus.stax2.typed.TypedArrayDecoder;
 import org.codehaus.stax2.typed.TypedValueDecoder;
 import org.codehaus.stax2.typed.TypedXMLStreamException;
@@ -1114,6 +1116,11 @@ public abstract class DOMWrappingReader
 
     public byte[] getElementAsBinary() throws XMLStreamException
     {
+        return getElementAsBinary(Base64Variants.getDefaultVariant());
+    }
+
+    public byte[] getElementAsBinary(Base64Variant v) throws XMLStreamException
+    {
         // note: code here is similar to Base64DecoderBase.aggregateAll(), see comments there
         Stax2Util.ByteAggregator aggr = _base64Decoder().getByteAggregator();
         byte[] buffer = aggr.startAggregation();
@@ -1121,7 +1128,7 @@ public abstract class DOMWrappingReader
             int offset = 0;
             int len = buffer.length;
             do {
-                int readCount = readElementAsBinary(buffer, offset, len);
+                int readCount = readElementAsBinary(v, buffer, offset, len);
                 if (readCount < 1) { // all done!
                     return aggr.aggregateAll(buffer, offset);
                 }
@@ -1295,6 +1302,12 @@ public abstract class DOMWrappingReader
     public int readElementAsBinary(byte[] resultBuffer, int offset, int maxLength)
         throws XMLStreamException
     {
+        return readElementAsBinary(Base64Variants.getDefaultVariant(), resultBuffer, offset, maxLength);
+    }
+
+public int readElementAsBinary(Base64Variant v, byte[] resultBuffer, int offset, int maxLength)
+        throws XMLStreamException
+    {
         if (resultBuffer == null) {
             throw new IllegalArgumentException("resultBuffer is null");
         }
@@ -1334,7 +1347,7 @@ public abstract class DOMWrappingReader
                 if (((1 << type) & MASK_GET_ELEMENT_TEXT) == 0) {
                     reportParseProblem(ERR_STATE_NOT_TEXTUAL);
                 }
-                dec.init(true, getText());
+                dec.init(v, true, getText());
                 break;
             }
         }
@@ -1378,7 +1391,7 @@ public abstract class DOMWrappingReader
                 if (((1 << type) & MASK_GET_ELEMENT_TEXT) == 0) {
                     reportParseProblem(ERR_STATE_NOT_TEXTUAL);
                 }
-                dec.init(false, getText());
+                dec.init(v, false, getText());
                 break;
             }
         }
@@ -1561,9 +1574,14 @@ public abstract class DOMWrappingReader
 
     public byte[] getAttributeAsBinary(int index) throws XMLStreamException
     {
+        return getAttributeAsBinary(Base64Variants.getDefaultVariant(), index);
+    }
+
+    public byte[] getAttributeAsBinary(Base64Variant v, int index) throws XMLStreamException
+    {
         String lexical = getAttributeValue(index);
         final StringBase64Decoder dec = _base64Decoder();
-        dec.init(true, lexical);
+        dec.init(v, true, lexical);
         try {
             return dec.decodeCompletely();
         } catch (IllegalArgumentException iae) {

@@ -15,6 +15,7 @@ import org.codehaus.stax2.AttributeInfo;
 import org.codehaus.stax2.DTDInfo;
 import org.codehaus.stax2.LocationInfo;
 import org.codehaus.stax2.XMLStreamReader2;
+import org.codehaus.stax2.typed.Base64Variant;
 import org.codehaus.stax2.typed.TypedArrayDecoder;
 import org.codehaus.stax2.typed.TypedValueDecoder;
 import org.codehaus.stax2.validation.ValidationProblemHandler;
@@ -243,6 +244,10 @@ public class StreamReader2Delegate
         return mDelegate2.getElementAsBinary();
     }
 
+    public byte[] getElementAsBinary(Base64Variant v) throws XMLStreamException {
+        return mDelegate2.getElementAsBinary(v);
+    }
+
     public void getAttributeAs(int index, TypedValueDecoder tvd)
         throws XMLStreamException
     {
@@ -258,6 +263,11 @@ public class StreamReader2Delegate
     public byte[] getAttributeAsBinary(int index) throws XMLStreamException
     {
         return mDelegate2.getAttributeAsBinary(index);
+    }
+
+    public byte[] getAttributeAsBinary(Base64Variant v, int index) throws XMLStreamException
+    {
+        return mDelegate2.getAttributeAsBinary(v, index);
     }
 
     public int readElementAsDoubleArray(double[] value, int from, int length)
@@ -293,5 +303,11 @@ public class StreamReader2Delegate
         throws XMLStreamException
     {
         return mDelegate2.readElementAsBinary(resultBuffer, offset, maxLength);
+    }
+
+    public int readElementAsBinary(Base64Variant v, byte[] resultBuffer, int offset, int maxLength)
+        throws XMLStreamException
+    {
+        return mDelegate2.readElementAsBinary(v, resultBuffer, offset, maxLength);
     }
 }

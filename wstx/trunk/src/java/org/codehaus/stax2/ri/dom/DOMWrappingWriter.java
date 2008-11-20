@@ -29,6 +29,8 @@ import org.codehaus.stax2.XMLStreamLocation2;
 import org.codehaus.stax2.XMLStreamReader2;
 import org.codehaus.stax2.XMLStreamWriter2;
 import org.codehaus.stax2.ri.typed.SimpleValueEncoder;
+import org.codehaus.stax2.typed.Base64Variant;
+import org.codehaus.stax2.typed.Base64Variants;
 import org.codehaus.stax2.validation.*;
 
 /**
@@ -434,7 +436,13 @@ public abstract class DOMWrappingWriter
     public void writeBinary(byte[] value, int from, int length)
         throws XMLStreamException
     {
-        writeCharacters(getValueEncoder().encodeAsString(value, from, length));
+        writeBinary(Base64Variants.getDefaultVariant(), value, from, length);
+    }
+
+    public void writeBinary(Base64Variant v, byte[] value, int from, int length)
+        throws XMLStreamException
+    {
+        writeCharacters(getValueEncoder().encodeAsString(v, value, from, length));
     }
 
     // // // Typed attribute value write methods
@@ -514,8 +522,13 @@ public abstract class DOMWrappingWriter
 
     public void writeBinaryAttribute(String prefix, String nsURI, String localName, byte[] value) throws XMLStreamException
     {
+        writeBinaryAttribute(Base64Variants.getDefaultVariant(), prefix, nsURI, localName, value);
+    }
+
+    public void writeBinaryAttribute(Base64Variant v, String prefix, String nsURI, String localName, byte[] value) throws XMLStreamException
+    {
         writeAttribute(prefix, nsURI, localName,
-                       getValueEncoder().encodeAsString(value, 0, value.length));
+                       getValueEncoder().encodeAsString(v, value, 0, value.length));
     }
 
 

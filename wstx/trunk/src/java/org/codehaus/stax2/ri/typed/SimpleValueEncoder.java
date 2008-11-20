@@ -1,5 +1,7 @@
 package org.codehaus.stax2.ri.typed;
 
+import org.codehaus.stax2.typed.Base64Variant;
+
 /**
  * Helper class used for serializing typed values to String. Mostly
  * used for "non-native" stream writers; things like DOM-backed
@@ -41,9 +43,9 @@ public class SimpleValueEncoder
         return encode(mEncoderFactory.getEncoder(value, from, length));
     }
 
-    public String encodeAsString(byte[] value, int from, int length)
+    public String encodeAsString(Base64Variant v, byte[] value, int from, int length)
     {
-        return encode(mEncoderFactory.getEncoder(value, from, length));
+        return encode(mEncoderFactory.getEncoder(v, value, from, length));
     }
 
     /*

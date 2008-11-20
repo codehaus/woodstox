@@ -10,6 +10,8 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.*;
 import javax.xml.stream.util.StreamReaderDelegate;
 
+import org.codehaus.stax2.typed.Base64Variant;
+import org.codehaus.stax2.typed.Base64Variants;
 import org.codehaus.stax2.typed.TypedArrayDecoder;
 import org.codehaus.stax2.typed.TypedValueDecoder;
 import org.codehaus.stax2.typed.TypedXMLStreamException;
@@ -195,6 +197,11 @@ public class Stax2ReaderAdapter
 
     public byte[] getElementAsBinary() throws XMLStreamException
     {
+        return getElementAsBinary(Base64Variants.getDefaultVariant());
+    }
+
+    public byte[] getElementAsBinary(Base64Variant v) throws XMLStreamException
+    {
         // note: code here is similar to Base64DecoderBase.aggregateAll(), see comments there
         Stax2Util.ByteAggregator aggr = _base64Decoder().getByteAggregator();
         byte[] buffer = aggr.startAggregation();
@@ -202,7 +209,7 @@ public class Stax2ReaderAdapter
             int offset = 0;
             int len = buffer.length;
             do {
-                int readCount = readElementAsBinary(buffer, offset, len);
+                int readCount = readElementAsBinary(v, buffer, offset, len);
                 if (readCount < 1) { // all done!
                     return aggr.aggregateAll(buffer, offset);
                 }
@@ -320,6 +327,13 @@ public class Stax2ReaderAdapter
     public int readElementAsBinary(byte[] resultBuffer, int offset, int maxLength)
         throws XMLStreamException
     {
+        return readElementAsBinary(Base64Variants.getDefaultVariant(), resultBuffer, offset, maxLength);
+    }
+
+
+    public int readElementAsBinary(Base64Variant v, byte[] resultBuffer, int offset, int maxLength)
+        throws XMLStreamException
+    {
         if (resultBuffer == null) {
             throw new IllegalArgumentException("resultBuffer is null");
         }
@@ -359,7 +373,7 @@ public class Stax2ReaderAdapter
                 if (((1 << type) & MASK_GET_ELEMENT_TEXT) == 0) {
                     throwNotStartElemOrTextual(type);
                 }
-                dec.init(true, getText());
+                dec.init(v, true, getText());
                 break;
             }
         }
@@ -403,7 +417,7 @@ public class Stax2ReaderAdapter
                 if (((1 << type) & MASK_GET_ELEMENT_TEXT) == 0) {
                     throwNotStartElemOrTextual(type);
                 }
-                dec.init(false, getText());
+                dec.init(v, false, getText());
                 break;
             }
         }
@@ -586,9 +600,14 @@ public class Stax2ReaderAdapter
 
     public byte[] getAttributeAsBinary(int index) throws XMLStreamException
     {
+        return getAttributeAsBinary(Base64Variants.getDefaultVariant(), index);
+    }
+
+    public byte[] getAttributeAsBinary(Base64Variant v, int index) throws XMLStreamException
+    {
         String lexical = getAttributeValue(index);
         final StringBase64Decoder dec = _base64Decoder();
-        dec.init(true, lexical);
+        dec.init(v, true, lexical);
         try {
             return dec.decodeCompletely();
         } catch (IllegalArgumentException iae) {

@@ -17,6 +17,7 @@ package org.codehaus.stax2.ri.typed;
 
 import java.util.Arrays;
 
+import org.codehaus.stax2.typed.Base64Variant;
 import org.codehaus.stax2.ri.Stax2Util;
 
 /**
@@ -81,34 +82,25 @@ abstract class Base64DecoderBase
      */
     final static int STATE_VALID_2_AND_PADDING = 7;
 
-    // // // Charaacter constants
+    // // // Character constants
 
     final static int INT_SPACE = 0x0020;
 
-    /**
-     * Base64 uses equality sign as padding char
-     */
-    final static char CHAR_PADDING = '=';
+    // // // Base64 variant info
 
     /**
-     * Array containing 6-bit values indexed by ascii characters (for
-     * valid base64 characters). Invalid entries are marked by -1.
+     * Details of base64 variant (alphabet in use, padding, line length)
+     * are contained in and accessed via this object. It is passed
+     * through init methods.
      */
-    final static int[] BASE64_BY_CHAR = new int[128];
-    static {
-        Arrays.fill(BASE64_BY_CHAR, -1);
-        String base64Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-        for (int i = 0; i < base64Chars.length(); ++i) {
-            BASE64_BY_CHAR[base64Chars.charAt(i)] = i;
-        }
-    }
+    Base64Variant _variant;
 
     // // // Decoding State
 
     /**
      * State of the state machine
      */
-    int mState = STATE_INITIAL;
+    int _state = STATE_INITIAL;
 
     /**
      * Data decoded and/or ready to be output. Alignment and storage format
@@ -116,13 +108,17 @@ abstract class Base64DecoderBase
      * significant bits, and during output, flushed from more significant
      * bytes.
      */
-    int mDecodedData;
+    int _decodedData;
 
     // // // Reused state for convenience byte[] accessors
 
-    Stax2Util.ByteAggregator mByteAggr = null;
+    Stax2Util.ByteAggregator _byteAggr = null;
 
-    // // // Constructor(s)
+    /*
+    //////////////////////////////////////////////////////////////
+    // Life-cycle
+    //////////////////////////////////////////////////////////////
+     */
 
     protected Base64DecoderBase() { }
 
@@ -145,10 +141,10 @@ abstract class Base64DecoderBase
      */
     public final boolean okToGetEndElement()
     {
-        return (mState == STATE_INITIAL)
-            || (mState == STATE_OUTPUT_3)
-            || (mState == STATE_OUTPUT_2)
-            || (mState == STATE_OUTPUT_1)
+        return (_state == STATE_INITIAL)
+            || (_state == STATE_OUTPUT_3)
+            || (_state == STATE_OUTPUT_2)
+            || (_state == STATE_OUTPUT_1)
             ;
     }
 
@@ -192,10 +188,10 @@ abstract class Base64DecoderBase
 
     public Stax2Util.ByteAggregator getByteAggregator()
     {
-        if (mByteAggr == null) {
-            mByteAggr = new Stax2Util.ByteAggregator();
+        if (_byteAggr == null) {
+            _byteAggr = new Stax2Util.ByteAggregator();
         }
-        return mByteAggr;
+        return _byteAggr;
     }
         
     /*
@@ -220,8 +216,8 @@ abstract class Base64DecoderBase
         String base;
         if (ch <= INT_SPACE) {
             base = "Illegal white space character (code 0x"+Integer.toHexString(ch)+") as character #"+(bindex+1)+" of 4-char base64 unit: can only used between units";
-        } else if (ch == CHAR_PADDING) {
-            base = "Unexpected padding character ('"+CHAR_PADDING+"') as character #"+(bindex+1)+" of 4-char base64 unit: padding only legal as 3rd or 4th character";
+        } else if (_variant.usesPaddingChar(ch)) {
+            base = "Unexpected padding character ('"+_variant.getPaddingChar()+"') as character #"+(bindex+1)+" of 4-char base64 unit: padding only legal as 3rd or 4th character";
         } else if (!Character.isDefined(ch) || Character.isISOControl(ch)) {
             // Not sure if we can really get here... ? (most illegal xml chars are caught at lower level)
             base = "Illegal character (code 0x"+Integer.toHexString(ch)+") in base64 content";

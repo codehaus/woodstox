@@ -22,6 +22,8 @@ import java.math.BigInteger;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
 
+import org.codehaus.stax2.typed.Base64Variant;
+import org.codehaus.stax2.typed.Base64Variants;
 import org.codehaus.stax2.ri.typed.AsciiValueEncoder;
 import org.codehaus.stax2.ri.typed.ValueEncoderFactory;
 import org.codehaus.stax2.validation.XMLValidator;
@@ -158,7 +160,14 @@ public abstract class TypedStreamWriter
     public void writeBinary(byte[] value, int from, int length)
         throws XMLStreamException
     {
-        writeTypedElement(valueEncoderFactory().getEncoder(value, from, length));
+        Base64Variant v = Base64Variants.getDefaultVariant();
+        writeTypedElement(valueEncoderFactory().getEncoder(v, value, from, length));
+    }
+
+    public void writeBinary(Base64Variant v, byte[] value, int from, int length)
+        throws XMLStreamException
+    {
+        writeTypedElement(valueEncoderFactory().getEncoder(v, value, from, length));
     }
 
     protected final void writeTypedElement(AsciiValueEncoder enc)
@@ -285,8 +294,16 @@ public abstract class TypedStreamWriter
     public void writeBinaryAttribute(String prefix, String nsURI, String localName, byte[] value)
         throws XMLStreamException
     {
+        Base64Variant v = Base64Variants.getDefaultVariant();
         writeTypedAttribute(prefix, nsURI, localName,
-                            valueEncoderFactory().getEncoder(value, 0, value.length));
+                            valueEncoderFactory().getEncoder(v, value, 0, value.length));
+    }
+
+    public void writeBinaryAttribute(Base64Variant v, String prefix, String nsURI, String localName, byte[] value)
+        throws XMLStreamException
+    {
+        writeTypedAttribute(prefix, nsURI, localName,
+                            valueEncoderFactory().getEncoder(v, value, 0, value.length));
     }
 
     /**

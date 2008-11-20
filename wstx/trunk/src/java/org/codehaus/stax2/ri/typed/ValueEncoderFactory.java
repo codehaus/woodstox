@@ -16,6 +16,8 @@
 
 package org.codehaus.stax2.ri.typed;
 
+import org.codehaus.stax2.typed.Base64Variant;
+
 /**
  * Factory class used to construct all
  * {@link AsciiValueEncoder} instances needed by a single
@@ -34,11 +36,11 @@ public final class ValueEncoderFactory
 
     // // // Lazily-constructed, recycled encoder instances
 
-    protected TokenEncoder mTokenEncoder = null;
-    protected IntEncoder mIntEncoder = null;
-    protected LongEncoder mLongEncoder = null;
-    protected FloatEncoder mFloatEncoder = null;
-    protected DoubleEncoder mDoubleEncoder = null;
+    protected TokenEncoder _tokenEncoder = null;
+    protected IntEncoder _intEncoder = null;
+    protected LongEncoder _longEncoder = null;
+    protected FloatEncoder _floatEncoder = null;
+    protected DoubleEncoder _doubleEncoder = null;
 
     public ValueEncoderFactory() { }
 
@@ -48,11 +50,11 @@ public final class ValueEncoderFactory
     {
         // Short or long?
         if (value.length() > AsciiValueEncoder.MIN_CHARS_WITHOUT_FLUSH) { // short
-            if (mTokenEncoder == null) {
-                mTokenEncoder = new TokenEncoder();
+            if (_tokenEncoder == null) {
+                _tokenEncoder = new TokenEncoder();
             }
-            mTokenEncoder.reset(value);
-            return mTokenEncoder;
+            _tokenEncoder.reset(value);
+            return _tokenEncoder;
         }
         // Nope, long: need segmented
         return new StringEncoder(value);
@@ -66,38 +68,38 @@ public final class ValueEncoderFactory
 
     public IntEncoder getEncoder(int value)
     {
-        if (mIntEncoder == null) {
-            mIntEncoder = new IntEncoder();
+        if (_intEncoder == null) {
+            _intEncoder = new IntEncoder();
         }
-        mIntEncoder.reset(value);
-        return mIntEncoder;
+        _intEncoder.reset(value);
+        return _intEncoder;
     }
 
     public LongEncoder getEncoder(long value)
     {
-        if (mLongEncoder == null) {
-            mLongEncoder = new LongEncoder();
+        if (_longEncoder == null) {
+            _longEncoder = new LongEncoder();
         }
-        mLongEncoder.reset(value);
-        return mLongEncoder;
+        _longEncoder.reset(value);
+        return _longEncoder;
     }
 
     public FloatEncoder getEncoder(float value)
     {
-        if (mFloatEncoder == null) {
-            mFloatEncoder = new FloatEncoder();
+        if (_floatEncoder == null) {
+            _floatEncoder = new FloatEncoder();
         }
-        mFloatEncoder.reset(value);
-        return mFloatEncoder;
+        _floatEncoder.reset(value);
+        return _floatEncoder;
     }
 
     public DoubleEncoder getEncoder(double value)
     {
-        if (mDoubleEncoder == null) {
-            mDoubleEncoder = new DoubleEncoder();
+        if (_doubleEncoder == null) {
+            _doubleEncoder = new DoubleEncoder();
         }
-        mDoubleEncoder.reset(value);
-        return mDoubleEncoder;
+        _doubleEncoder.reset(value);
+        return _doubleEncoder;
     }
 
     // // // Array encoder access
@@ -124,9 +126,9 @@ public final class ValueEncoderFactory
 
     // // // And special one for Base64
 
-    public Base64Encoder getEncoder(byte[] data, int from, int length)
+    public Base64Encoder getEncoder(Base64Variant v, byte[] data, int from, int length)
     {
-        return new Base64Encoder(data, from, from+length);
+        return new Base64Encoder(v, data, from, from+length);
     }
 
     /*
@@ -158,20 +160,20 @@ public final class ValueEncoderFactory
     final static class TokenEncoder
         extends ScalarEncoder
     {
-        String mValue;
+        String _value;
 
         protected TokenEncoder() { super(); }
 
         protected void reset(String value) {
-            mValue = value;
+            _value = value;
         }
 
-        public boolean isCompleted() { return (mValue == null); }
+        public boolean isCompleted() { return (_value == null); }
 
         public int encodeMore(char[] buffer, int ptr, int end)
         {
-            String str = mValue;
-            mValue = null;
+            String str = _value;
+            _value = null;
             int len = str.length();
             str.getChars(0, len, buffer, ptr);
             ptr += len;
@@ -180,8 +182,8 @@ public final class ValueEncoderFactory
 
         public int encodeMore(byte[] buffer, int ptr, int end)
         {
-            String str = mValue;
-            mValue = null;
+            String str = _value;
+            _value = null;
             int len = str.length();
             for (int i = 0; i < len; ++i) {
                 buffer[ptr++] = (byte) str.charAt(i);
@@ -203,45 +205,45 @@ public final class ValueEncoderFactory
     final static class StringEncoder
         extends ScalarEncoder
     {
-        String mValue;
+        String _value;
 
-        int mOffset;
+        int _offset;
 
         protected StringEncoder(String value) {
             super();
-            mValue = value;
+            _value = value;
         }
 
-        public boolean isCompleted() { return (mValue == null); }
+        public boolean isCompleted() { return (_value == null); }
 
         public int encodeMore(char[] buffer, int ptr, int end)
         {
-            int left = mValue.length() - mOffset;
+            int left = _value.length() - _offset;
             int free = end-ptr;
             if (free >= left) { // completed, simple
-                mValue.getChars(mOffset, left, buffer, ptr);
-                mValue = null;
+                _value.getChars(_offset, left, buffer, ptr);
+                _value = null;
                 return (ptr+left);
             }
-            mValue.getChars(mOffset, free, buffer, ptr);
-            mOffset += free;
+            _value.getChars(_offset, free, buffer, ptr);
+            _offset += free;
             return end;
         }
 
         public int encodeMore(byte[] buffer, int ptr, int end)
         {
-            int left = mValue.length() - mOffset;
+            int left = _value.length() - _offset;
             int free = end-ptr;
             if (free >= left) { // completed, simple
-                String str = mValue;
-                mValue = null;
-                for (int last = str.length(), offset = mOffset; offset < last; ++offset) {
+                String str = _value;
+                _value = null;
+                for (int last = str.length(), offset = _offset; offset < last; ++offset) {
                     buffer[ptr++] = (byte) str.charAt(offset);
                 }
                 return ptr;
             }
             for (; ptr < end; ++ptr) {
-                buffer[ptr] = (byte) mValue.charAt(mOffset++);
+                buffer[ptr] = (byte) _value.charAt(_offset++);
             }
             return ptr;
         }
@@ -266,88 +268,88 @@ public final class ValueEncoderFactory
     final static class IntEncoder
         extends TypedScalarEncoder
     {
-        int mValue;
+        int _value;
 
         protected IntEncoder() { super(); }
 
         protected void reset(int value) {
-            mValue = value;
+            _value = value;
         }
 
         public int encodeMore(char[] buffer, int ptr, int end)
         {
-            return NumberUtil.writeInt(mValue, buffer, ptr);
+            return NumberUtil.writeInt(_value, buffer, ptr);
         }
 
         public int encodeMore(byte[] buffer, int ptr, int end)
         {
-            return NumberUtil.writeInt(mValue, buffer, ptr);
+            return NumberUtil.writeInt(_value, buffer, ptr);
         }
     }
 
     final static class LongEncoder
         extends TypedScalarEncoder
     {
-        long mValue;
+        long _value;
 
         protected LongEncoder() { super(); }
 
         protected void reset(long value) {
-            mValue = value;
+            _value = value;
         }
 
         public int encodeMore(char[] buffer, int ptr, int end)
         {
-            return NumberUtil.writeLong(mValue, buffer, ptr);
+            return NumberUtil.writeLong(_value, buffer, ptr);
         }
 
         public int encodeMore(byte[] buffer, int ptr, int end)
         {
-            return NumberUtil.writeLong(mValue, buffer, ptr);
+            return NumberUtil.writeLong(_value, buffer, ptr);
         }
     }
 
     final static class FloatEncoder
         extends TypedScalarEncoder
     {
-        float mValue;
+        float _value;
 
         protected FloatEncoder() { super(); }
 
         protected void reset(float value) {
-            mValue = value;
+            _value = value;
         }
 
         public int encodeMore(char[] buffer, int ptr, int end)
         {
-            return NumberUtil.writeFloat(mValue, buffer, ptr);
+            return NumberUtil.writeFloat(_value, buffer, ptr);
         }
 
         public int encodeMore(byte[] buffer, int ptr, int end)
         {
-            return NumberUtil.writeFloat(mValue, buffer, ptr);
+            return NumberUtil.writeFloat(_value, buffer, ptr);
         }
     }
 
     final static class DoubleEncoder
         extends TypedScalarEncoder
     {
-        double mValue;
+        double _value;
 
         protected DoubleEncoder() { super(); }
 
         protected void reset(double value) {
-            mValue = value;
+            _value = value;
         }
 
         public int encodeMore(char[] buffer, int ptr, int end)
         {
-            return NumberUtil.writeDouble(mValue, buffer, ptr);
+            return NumberUtil.writeDouble(_value, buffer, ptr);
         }
 
         public int encodeMore(byte[] buffer, int ptr, int end)
         {
-            return NumberUtil.writeDouble(mValue, buffer, ptr);
+            return NumberUtil.writeDouble(_value, buffer, ptr);
         }
     }
 
@@ -364,16 +366,16 @@ public final class ValueEncoderFactory
     abstract static class ArrayEncoder
         extends AsciiValueEncoder
     {
-        int mPtr;
-        final int mEnd;
+        int _ptr;
+        final int _end;
 
         protected ArrayEncoder(int ptr, int end)
         {
-            mPtr = ptr;
-            mEnd = end;
+            _ptr = ptr;
+            _end = end;
         }
 
-        public final boolean isCompleted() { return (mPtr >= mEnd); }
+        public final boolean isCompleted() { return (_ptr >= _end); }
 
         public abstract int encodeMore(char[] buffer, int ptr, int end);
     }
@@ -384,20 +386,20 @@ public final class ValueEncoderFactory
     final static class IntArrayEncoder
         extends ArrayEncoder
     {
-        final int[] mValues;
+        final int[] _values;
 
         protected IntArrayEncoder(int[] values, int from, int length)
         {
             super(from, length);
-            mValues = values;
+            _values = values;
         }
 
         public int encodeMore(char[] buffer, int ptr, int end)
         {
             int lastOk = end - (1+NumberUtil.MAX_INT_CLEN);
-            while (ptr <= lastOk && mPtr < mEnd) {
+            while (ptr <= lastOk && _ptr < _end) {
                 buffer[ptr++] = ' ';
-                ptr = NumberUtil.writeInt(mValues[mPtr++], buffer, ptr);
+                ptr = NumberUtil.writeInt(_values[_ptr++], buffer, ptr);
             }
             return ptr;
         }
@@ -405,9 +407,9 @@ public final class ValueEncoderFactory
         public int encodeMore(byte[] buffer, int ptr, int end)
         {
             int lastOk = end - (1+NumberUtil.MAX_INT_CLEN);
-            while (ptr <= lastOk && mPtr < mEnd) {
+            while (ptr <= lastOk && _ptr < _end) {
                 buffer[ptr++] = BYTE_SPACE;
-                ptr = NumberUtil.writeInt(mValues[mPtr++], buffer, ptr);
+                ptr = NumberUtil.writeInt(_values[_ptr++], buffer, ptr);
             }
             return ptr;
         }
@@ -416,20 +418,20 @@ public final class ValueEncoderFactory
     final static class LongArrayEncoder
         extends ArrayEncoder
     {
-        final long[] mValues;
+        final long[] _values;
 
         protected LongArrayEncoder(long[] values, int from, int length)
         {
             super(from, length);
-            mValues = values;
+            _values = values;
         }
 
         public int encodeMore(char[] buffer, int ptr, int end)
         {
             int lastOk = end - (1+NumberUtil.MAX_LONG_CLEN);
-            while (ptr <= lastOk && mPtr < mEnd) {
+            while (ptr <= lastOk && _ptr < _end) {
                 buffer[ptr++] = ' ';
-                ptr = NumberUtil.writeLong(mValues[mPtr++], buffer, ptr);
+                ptr = NumberUtil.writeLong(_values[_ptr++], buffer, ptr);
             }
             return ptr;
         }
@@ -437,9 +439,9 @@ public final class ValueEncoderFactory
         public int encodeMore(byte[] buffer, int ptr, int end)
         {
             int lastOk = end - (1+NumberUtil.MAX_LONG_CLEN);
-            while (ptr <= lastOk && mPtr < mEnd) {
+            while (ptr <= lastOk && _ptr < _end) {
                 buffer[ptr++] = BYTE_SPACE;
-                ptr = NumberUtil.writeLong(mValues[mPtr++], buffer, ptr);
+                ptr = NumberUtil.writeLong(_values[_ptr++], buffer, ptr);
             }
             return ptr;
         }
@@ -448,20 +450,20 @@ public final class ValueEncoderFactory
     final static class FloatArrayEncoder
         extends ArrayEncoder
     {
-        final float[] mValues;
+        final float[] _values;
 
         protected FloatArrayEncoder(float[] values, int from, int length)
         {
             super(from, length);
-            mValues = values;
+            _values = values;
         }
 
         public int encodeMore(char[] buffer, int ptr, int end)
         {
             int lastOk = end - (1+NumberUtil.MAX_FLOAT_CLEN);
-            while (ptr <= lastOk && mPtr < mEnd) {
+            while (ptr <= lastOk && _ptr < _end) {
                 buffer[ptr++] = ' ';
-                ptr = NumberUtil.writeFloat(mValues[mPtr++], buffer, ptr);
+                ptr = NumberUtil.writeFloat(_values[_ptr++], buffer, ptr);
             }
             return ptr;
         }
@@ -469,9 +471,9 @@ public final class ValueEncoderFactory
         public int encodeMore(byte[] buffer, int ptr, int end)
         {
             int lastOk = end - (1+NumberUtil.MAX_FLOAT_CLEN);
-            while (ptr <= lastOk && mPtr < mEnd) {
+            while (ptr <= lastOk && _ptr < _end) {
                 buffer[ptr++] = BYTE_SPACE;
-                ptr = NumberUtil.writeFloat(mValues[mPtr++], buffer, ptr);
+                ptr = NumberUtil.writeFloat(_values[_ptr++], buffer, ptr);
             }
             return ptr;
         }
@@ -480,20 +482,20 @@ public final class ValueEncoderFactory
     final static class DoubleArrayEncoder
         extends ArrayEncoder
     {
-        final double[] mValues;
+        final double[] _values;
 
         protected DoubleArrayEncoder(double[] values, int from, int length)
         {
             super(from, length);
-            mValues = values;
+            _values = values;
         }
 
         public int encodeMore(char[] buffer, int ptr, int end)
         {
             int lastOk = end - (1+NumberUtil.MAX_DOUBLE_CLEN);
-            while (ptr <= lastOk && mPtr < mEnd) {
+            while (ptr <= lastOk && _ptr < _end) {
                 buffer[ptr++] = ' ';
-                ptr = NumberUtil.writeDouble(mValues[mPtr++], buffer, ptr);
+                ptr = NumberUtil.writeDouble(_values[_ptr++], buffer, ptr);
             }
             return ptr;
         }
@@ -501,9 +503,9 @@ public final class ValueEncoderFactory
         public int encodeMore(byte[] buffer, int ptr, int end)
         {
             int lastOk = end - (1+NumberUtil.MAX_DOUBLE_CLEN);
-            while (ptr <= lastOk && mPtr < mEnd) {
+            while (ptr <= lastOk && _ptr < _end) {
                 buffer[ptr++] = BYTE_SPACE;
-                ptr = NumberUtil.writeDouble(mValues[mPtr++], buffer, ptr);
+                ptr = NumberUtil.writeDouble(_values[_ptr++], buffer, ptr);
             }
             return ptr;
         }
@@ -518,12 +520,6 @@ public final class ValueEncoderFactory
     final static class Base64Encoder
         extends AsciiValueEncoder
     {
-        /**
-         * As per Base64 specs, need to insert linefeeds after
-         * 76 characters.
-         */
-        final static int CHUNKS_BEFORE_LF = (76 >> 2);
-
         final static char PAD_CHAR = '=';
         final static byte PAD_BYTE = (byte) PAD_CHAR;
 
@@ -533,75 +529,62 @@ public final class ValueEncoderFactory
         final static byte LF_CHAR = '\n';
         final static byte LF_BYTE = (byte) LF_CHAR;
 
-        final static char[] s64Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/".toCharArray();
+        final Base64Variant _variant;
 
-        final static byte[] s64Bytes = new byte[64];
-        static {
-            for (int i = 0, len = s64Chars.length; i < len; ++i) {
-                s64Bytes[i] = (byte) s64Chars[i];
-            }
-        }
+        final byte[] _input;
 
-        final byte[] mData;
+        int _inputPtr;
 
-        int mPtr;
-
-        final int mEnd;
+        final int _inputEnd;
 
         /**
          * We need a counter to know when to add mandatory
          * linefeed.
          */
-        int mChunksBeforeLf = CHUNKS_BEFORE_LF;
+        int _chunksBeforeLf;
 
-        protected Base64Encoder(byte[] values, int from, int end)
+        protected Base64Encoder(Base64Variant v, byte[] values, int from, int end)
         {
-            mData = values;
-            mPtr = from;
-            mEnd = end;
+            _variant = v;
+            _input = values;
+            _inputPtr = from;
+            _inputEnd = end;
+            _chunksBeforeLf = _variant.getMaxLineLength() >> 2;
         }
 
-        public boolean isCompleted() { return (mPtr >= mEnd); }
+        public boolean isCompleted() { return (_inputPtr >= _inputEnd); }
 
         public int encodeMore(char[] buffer, int outPtr, int outEnd)
         {
             // Encoding is by chunks of 3 input, 4 output chars, so:
-            int inEnd = mEnd-3;
+            int inEnd = _inputEnd-3;
             // But let's also reserve room for lf char
             outEnd -= 5;
 
-            while (mPtr <= inEnd) {
+            while (_inputPtr <= inEnd) {
                 if (outPtr > outEnd) { // no more room: need to return for flush
                     return outPtr;
                 }
                 // First, mash 3 bytes into lsb of 32-bit int
-                int b24 = ((int) mData[mPtr++]) << 8;
-                b24 |= ((int) mData[mPtr++]) & 0xFF;
-                b24 = (b24 << 8) | (((int) mData[mPtr++]) & 0xFF);
-                // And then split resulting 4 6-bit segments
-                buffer[outPtr++] = s64Chars[(b24 >> 18) & 0x3F];
-                buffer[outPtr++] = s64Chars[(b24 >> 12) & 0x3F];
-                buffer[outPtr++] = s64Chars[(b24 >> 6) & 0x3F];
-                buffer[outPtr++] = s64Chars[b24 & 0x3F];
+                int b24 = ((int) _input[_inputPtr++]) << 8;
+                b24 |= ((int) _input[_inputPtr++]) & 0xFF;
+                b24 = (b24 << 8) | (((int) _input[_inputPtr++]) & 0xFF);
+                outPtr = _variant.encodeBase64Chunk(b24, buffer, outPtr);
 
-                if (--mChunksBeforeLf <= 0) {
+                if (--_chunksBeforeLf <= 0) {
                     buffer[outPtr++] = LF_BYTE;
-                    mChunksBeforeLf = CHUNKS_BEFORE_LF;
+                    _chunksBeforeLf = _variant.getMaxLineLength() >> 2;
                 }
             }
-            // main stuff done, any leftovers?
-            int left = (mEnd-mPtr);
-            if (left > 0) { // yes, but do we have room for output?
-                if (outPtr <= outEnd) { // yup
-                    int b24 = ((int) mData[mPtr++]) << 16;
-                    if (left == 2) {
-                        b24 |= (((int) mData[mPtr++]) & 0xFF) << 8;
+            // main stuff done, any partial data to output?
+            int inputLeft = (_inputEnd-_inputPtr); // 0, 1 or 2
+            if (inputLeft > 0) { // yes, but do we have room for output?
+                if (outPtr <= outEnd) { // yup (and we do have room for it all)
+                    int b24 = ((int) _input[_inputPtr++]) << 16;
+                    if (inputLeft == 2) {
+                        b24 |= (((int) _input[_inputPtr++]) & 0xFF) << 8;
                     }
-                    buffer[outPtr++] = s64Chars[(b24 >> 18) & 0x3F];
-                    buffer[outPtr++] = s64Chars[(b24 >> 12) & 0x3F];
-                    buffer[outPtr++] = (left == 1) ?
-                        PAD_CHAR : s64Chars[(b24 >> 6) & 0x3F];
-                    buffer[outPtr++] = PAD_CHAR;
+                    outPtr = _variant.encodeBase64Partial(b24, inputLeft, buffer, outPtr);
                 }
             }
             return outPtr;
@@ -609,41 +592,33 @@ public final class ValueEncoderFactory
 
         public int encodeMore(byte[] buffer, int outPtr, int outEnd)
         {
-            int inEnd = mEnd-3;
+            int inEnd = _inputEnd-3;
             outEnd -= 5;
 
-            while (mPtr <= inEnd) {
+            while (_inputPtr <= inEnd) {
                 if (outPtr > outEnd) { // no more room: need to return for flush
                     return outPtr;
                 }
                 // First, mash 3 bytes into lsb of 32-bit int
-                int b24 = ((int) mData[mPtr++]) << 8;
-                b24 |= ((int) mData[mPtr++]) & 0xFF;
-                b24 = (b24 << 8) | (((int) mData[mPtr++]) & 0xFF);
-                // And then split resulting 4 6-bit segments
-                buffer[outPtr++] = s64Bytes[(b24 >> 18) & 0x3F];
-                buffer[outPtr++] = s64Bytes[(b24 >> 12) & 0x3F];
-                buffer[outPtr++] = s64Bytes[(b24 >> 6) & 0x3F];
-                buffer[outPtr++] = s64Bytes[b24 & 0x3F];
+                int b24 = ((int) _input[_inputPtr++]) << 8;
+                b24 |= ((int) _input[_inputPtr++]) & 0xFF;
+                b24 = (b24 << 8) | (((int) _input[_inputPtr++]) & 0xFF);
+                outPtr = _variant.encodeBase64Chunk(b24, buffer, outPtr);
 
-                if (--mChunksBeforeLf <= 0) {
+                if (--_chunksBeforeLf <= 0) {
                     buffer[outPtr++] = LF_BYTE;
-                    mChunksBeforeLf = CHUNKS_BEFORE_LF;
+                    _chunksBeforeLf = _variant.getMaxLineLength() >> 2;
                 }
             }
             // main stuff done, any leftovers?
-            int left = (mEnd-mPtr);
-            if (left > 0) { // yes, but do we have room for output?
+            int inputLeft = (_inputEnd-_inputPtr);
+            if (inputLeft > 0) { // yes, but do we have room for output?
                 if (outPtr <= outEnd) { // yup
-                    int b24 = ((int) mData[mPtr++]) << 16;
-                    if (left == 2) {
-                        b24 |= (((int) mData[mPtr++]) & 0xFF) << 8;
+                    int b24 = ((int) _input[_inputPtr++]) << 16;
+                    if (inputLeft == 2) {
+                        b24 |= (((int) _input[_inputPtr++]) & 0xFF) << 8;
                     }
-                    buffer[outPtr++] = s64Bytes[(b24 >> 18) & 0x3F];
-                    buffer[outPtr++] = s64Bytes[(b24 >> 12) & 0x3F];
-                    buffer[outPtr++] = (left == 1) ?
-                        PAD_BYTE : s64Bytes[(b24 >> 6) & 0x3F];
-                    buffer[outPtr++] = PAD_BYTE;
+                    outPtr = _variant.encodeBase64Partial(b24, inputLeft, buffer, outPtr);
                 }
             }
             return outPtr;

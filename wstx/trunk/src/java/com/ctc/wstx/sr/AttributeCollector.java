@@ -23,6 +23,7 @@ import javax.xml.namespace.QName;
 
 import org.codehaus.stax2.ri.typed.CharArrayBase64Decoder;
 import org.codehaus.stax2.ri.typed.ValueDecoderFactory;
+import org.codehaus.stax2.typed.Base64Variant;
 import org.codehaus.stax2.typed.TypedArrayDecoder;
 import org.codehaus.stax2.typed.TypedValueDecoder;
 import org.codehaus.stax2.typed.TypedXMLStreamException;
@@ -317,8 +318,8 @@ public abstract class AttributeCollector
                             mValueBuffer.getOffset(index+1));
     }
 
-    public final byte[] decodeBinary(int index, CharArrayBase64Decoder dec,
-                                  InputProblemReporter rep)
+    public final byte[] decodeBinary(Base64Variant v, int index, CharArrayBase64Decoder dec,
+                                     InputProblemReporter rep)
         throws XMLStreamException
     {
         if (index < 0 || index >= mAttrCount) {
@@ -330,7 +331,7 @@ public abstract class AttributeCollector
         char[] cbuf = mValueBuffer.getCharBuffer();
         int offset = mValueBuffer.getOffset(index);
         int len = mValueBuffer.getOffset(index+1) - offset;
-        dec.init(true, cbuf, offset, len, null);
+        dec.init(v, true, cbuf, offset, len, null);
         try {
             return dec.decodeCompletely();
         } catch (IllegalArgumentException iae) {
@@ -341,8 +342,8 @@ public abstract class AttributeCollector
     }
 
     private final int decodeValues(TypedArrayDecoder tad,
-                                    InputProblemReporter rep,
-                                    final char[] buf, int ptr, final int end)
+                                   InputProblemReporter rep,
+                                   final char[] buf, int ptr, final int end)
         throws XMLStreamException
     {
         int start = ptr;

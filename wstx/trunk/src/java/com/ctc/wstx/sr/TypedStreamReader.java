@@ -21,6 +21,8 @@ import java.math.BigInteger;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
 
+import org.codehaus.stax2.typed.Base64Variant;
+import org.codehaus.stax2.typed.Base64Variants;
 import org.codehaus.stax2.typed.TypedArrayDecoder;
 import org.codehaus.stax2.typed.TypedValueDecoder;
 import org.codehaus.stax2.typed.TypedXMLStreamException;
@@ -175,7 +177,12 @@ public class TypedStreamReader
         return _verifyQName(dec.getValue());
     }
 
-    public byte[] getElementAsBinary() throws XMLStreamException
+    public final byte[] getElementAsBinary() throws XMLStreamException
+    {
+        return getElementAsBinary(Base64Variants.getDefaultVariant());
+    }
+
+    public byte[] getElementAsBinary(Base64Variant v) throws XMLStreamException
     {
         // note: code here is similar to Base64DecoderBase.aggregateAll(), see comments there
         Stax2Util.ByteAggregator aggr = _base64Decoder().getByteAggregator();
@@ -185,7 +192,7 @@ public class TypedStreamReader
             int len = buffer.length;
 
             do {
-                int readCount = readElementAsBinary(buffer, offset, len);
+                int readCount = readElementAsBinary(v, buffer, offset, len);
                 if (readCount < 1) { // all done!
                     return aggr.aggregateAll(buffer, offset);
                 }
@@ -395,7 +402,14 @@ public class TypedStreamReader
     ////////////////////////////////////////////////////////
      */
 
-    public int readElementAsBinary(byte[] resultBuffer, int offset, int maxLength)
+
+    public final int readElementAsBinary(byte[] resultBuffer, int offset, int maxLength)
+        throws XMLStreamException
+    {
+        return readElementAsBinary(Base64Variants.getDefaultVariant(), resultBuffer, offset, maxLength);
+    }
+
+    public int readElementAsBinary(Base64Variant v, byte[] resultBuffer, int offset, int maxLength)
         throws XMLStreamException
     {
         if (resultBuffer == null) {
@@ -439,7 +453,7 @@ public class TypedStreamReader
                 if (type == COMMENT || type == PROCESSING_INSTRUCTION) {
                     continue;
                 }
-                _initBinaryChunks(dec, type, true);
+                _initBinaryChunks(v, dec, type, true);
                 break;
             }
         }
@@ -481,7 +495,7 @@ public class TypedStreamReader
                     }
                     break main_loop;
                 }
-                _initBinaryChunks(dec, type, false);
+                _initBinaryChunks(v, dec, type, false);
                 break;
             }
         }
@@ -490,7 +504,7 @@ public class TypedStreamReader
         return (totalCount > 0) ? totalCount : -1;
     }
 
-    private final void _initBinaryChunks(CharArrayBase64Decoder dec, int type, boolean isFirst)
+    private final void _initBinaryChunks(Base64Variant v, CharArrayBase64Decoder dec, int type, boolean isFirst)
         throws XMLStreamException
     {
         if (type == CHARACTERS) {
@@ -506,7 +520,7 @@ public class TypedStreamReader
         } else {
             throw _constructUnexpectedInTyped(type);
         }
-        mTextBuffer.initBinaryChunks(dec, isFirst);
+        mTextBuffer.initBinaryChunks(v, dec, isFirst);
     }
 
     /*
@@ -636,7 +650,12 @@ public class TypedStreamReader
 
     public byte[] getAttributeAsBinary(int index) throws XMLStreamException
     {
-        return mAttrCollector.decodeBinary(index, _base64Decoder(), this);
+        return getAttributeAsBinary(Base64Variants.getDefaultVariant(), index);
+    }
+
+    public byte[] getAttributeAsBinary(Base64Variant v, int index) throws XMLStreamException
+    {
+        return mAttrCollector.decodeBinary(v, index, _base64Decoder(), this);
     }
 
     /*

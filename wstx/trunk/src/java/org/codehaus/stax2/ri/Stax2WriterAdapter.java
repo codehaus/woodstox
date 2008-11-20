@@ -23,6 +23,8 @@ import javax.xml.stream.*;
 
 import org.codehaus.stax2.*;
 import org.codehaus.stax2.ri.typed.SimpleValueEncoder;
+import org.codehaus.stax2.typed.Base64Variant;
+import org.codehaus.stax2.typed.Base64Variants;
 // Not from Stax 1.0, but Stax2 does provide it:
 import org.codehaus.stax2.util.StreamWriterDelegate;
 import org.codehaus.stax2.validation.ValidationProblemHandler;
@@ -165,10 +167,16 @@ public class Stax2WriterAdapter
         mDelegate.writeCharacters(getValueEncoder().encodeAsString(value, from, length));
     }
 
+    public void writeBinary(Base64Variant v, byte[] value, int from, int length)
+        throws XMLStreamException
+    {
+        mDelegate.writeCharacters(getValueEncoder().encodeAsString(v, value, from, length));
+    }
+
     public void writeBinary(byte[] value, int from, int length)
         throws XMLStreamException
     {
-        mDelegate.writeCharacters(getValueEncoder().encodeAsString(value, from, length));
+        writeBinary(Base64Variants.getDefaultVariant(), value, from, length);
     }
 
     // // // Typed attribute value write methods
@@ -239,8 +247,13 @@ public class Stax2WriterAdapter
 
     public void writeBinaryAttribute(String prefix, String nsURI, String localName, byte[] value) throws XMLStreamException
     {
+        writeBinaryAttribute(Base64Variants.getDefaultVariant(), prefix, nsURI, localName, value);
+    }
+
+    public void writeBinaryAttribute(Base64Variant v, String prefix, String nsURI, String localName, byte[] value) throws XMLStreamException
+    {
         mDelegate.writeAttribute(prefix, nsURI, localName,
-                                 getValueEncoder().encodeAsString(value, 0, value.length));
+                                 getValueEncoder().encodeAsString(v, value, 0, value.length));
     }
 
     /*
