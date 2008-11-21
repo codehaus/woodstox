@@ -22,6 +22,25 @@ import stax2.BaseStax2Test;
 public abstract class ReaderBinaryTestBase
     extends BaseStax2Test
 {
+    /**
+     * For good testing let's try all alternative variants, in addition
+     * to the default one (MIME)
+     */
+    final static Base64Variant[] sBase64Variants = new Base64Variant[] {
+        Base64Variants.MIME,
+        Base64Variants.PEM,
+        Base64Variants.MODIFIED_FOR_URL
+    };
+
+    final static Base64Variant[] sPaddingVariants = new Base64Variant[] {
+        Base64Variants.MIME,
+        Base64Variants.PEM
+    };
+
+    final static Base64Variant[] sNonPaddingVariants = new Base64Variant[] {
+        Base64Variants.MODIFIED_FOR_URL
+    };
+
     // Let's test variable length arrays
     final static int[] LEN_ELEM = new int[] {
         1, 2, 3, 4, 7, 39, 116, 400, 900, 5003, 17045, 125000, 499999
@@ -129,27 +148,31 @@ public abstract class ReaderBinaryTestBase
          * calls
          */
         final int REPS = 3;
-        for (int x = 0; x < LEN_ELEM_MULTIPLE.length; ++x) {
-            int size = LEN_ELEM_MULTIPLE[x];
-            Random r = new Random(size+1);
-            byte[][] dataTable = generateDataTable(r, size, REPS);
-            String doc = buildMultiElemDoc(dataTable);
-            // First, get access to root elem
-            XMLStreamReader2 sr = getElemReader(doc);
 
-            // single-byte check should uncover problems
-            for (int i = 0; i < REPS; ++i) {
-                assertTokenType(START_ELEMENT, sr.next());
-                _verifyElemData1(sr, dataTable[i]);
-                // Should not have hit END_ELEMENT yet
-                if (sr.getEventType() == END_ELEMENT) {
-                    fail("Should not have yet advanced to END_ELEMENT, when decoding not finished");
+        for (int bv = 0; bv < sBase64Variants.length; ++bv) {
+            Base64Variant b64variant = sBase64Variants[bv];
+            for (int x = 0; x < LEN_ELEM_MULTIPLE.length; ++x) {
+                int size = LEN_ELEM_MULTIPLE[x];
+                Random r = new Random(size+1);
+                byte[][] dataTable = generateDataTable(r, size, REPS);
+                String doc = buildMultiElemDoc(b64variant, dataTable);
+                // First, get access to root elem
+                XMLStreamReader2 sr = getElemReader(doc);
+                
+                // single-byte check should uncover problems
+                for (int i = 0; i < REPS; ++i) {
+                    assertTokenType(START_ELEMENT, sr.next());
+                    _verifyElemData1(sr, b64variant, dataTable[i]);
+                    // Should not have hit END_ELEMENT yet
+                    if (sr.getEventType() == END_ELEMENT) {
+                        fail("Should not have yet advanced to END_ELEMENT, when decoding not finished");
+                    }
+                    // but needs to if we advance; can see CHARACTERS in between tho
+                    while (CHARACTERS == sr.next()) { }
+                    assertTokenType(END_ELEMENT, sr.getEventType());
                 }
-                // but needs to if we advance; can see CHARACTERS in between tho
-                while (CHARACTERS == sr.next()) { }
-                assertTokenType(END_ELEMENT, sr.getEventType());
+                sr.close();
             }
-            sr.close();
         }
     }
 
@@ -157,6 +180,11 @@ public abstract class ReaderBinaryTestBase
      * Test that uses 'mixed' segments (CHARACTERS and CDATA), in
      * which base64 units (4 chars producing 3 bytes) can be split
      * between segments.
+     *<p>
+     * It is not clear if and how non-padding variants could
+     * be mixed, so this test only covers padding variants
+     * (it is likely that mixing would make sense whatsoever; but
+     * at least additional spacing would have to be provided)
      */
     public void testBinaryMixedSegments() throws XMLStreamException
     {
@@ -166,76 +194,85 @@ public abstract class ReaderBinaryTestBase
         byte[] data = generateData(r, SIZE);
         char[] buffer = new char[100];
 
-        StringBuffer b64 = new StringBuffer(data.length * 2);
-
-        /* Ok, first, let's first just generate long String of base64
-         * data:
+        /* 20-Nov-2008, tatus: Let's test all available base64
+         *   variants too:
          */
-        int ptr = 0;
-        do {
-            int chunkLen = 1 + (r.nextInt() & 0x7);
-            AsciiValueEncoder enc = new ValueEncoderFactory().getEncoder(Base64Variants.MIME, data, ptr, chunkLen);
-            ptr += chunkLen;
-            int len = enc.encodeMore(buffer, 0, buffer.length);
-            b64.append(buffer, 0, len);
-        } while (b64.length() < SIZE);
-        // And then create document, with split content
-
-        final int byteLen = ptr;
-        String refDoc = "<root>"+b64.toString()+"</root>";
-
-        // But first: let's verify content is encoded correctly:
-        {
-            XMLStreamReader2 sr = getElemReader(refDoc);
-            _verifyElemData(sr, r, data, byteLen, METHOD_FULL);
+        for (int bv = 0; bv < sPaddingVariants.length; ++bv) {
+            Base64Variant b64variant = sPaddingVariants[bv];
+            StringBuffer b64 = new StringBuffer(data.length * 2);
+            
+            /* Ok, first, let's first just generate long String of base64
+             * data:
+             */
+            int ptr = 0;
+            do {
+                int chunkLen = 1 + (r.nextInt() & 0x7);
+                AsciiValueEncoder enc = new ValueEncoderFactory().getEncoder(b64variant, data, ptr, chunkLen);
+                ptr += chunkLen;
+                int len = enc.encodeMore(buffer, 0, buffer.length);
+                b64.append(buffer, 0, len);
+            } while (b64.length() < SIZE);
+            // And then create document, with split content
+            
+            final int byteLen = ptr;
+            String refDoc = "<root>"+b64.toString()+"</root>";
+            
+            // But first: let's verify content is encoded correctly:
+            {
+                XMLStreamReader2 sr = getElemReader(refDoc);
+                _verifyElemData(sr, b64variant, r, data, byteLen, METHOD_FULL);
+                sr.close();
+            }
+            
+            StringBuffer sb = new StringBuffer(b64.length() * 2);
+            sb.append("<root>");
+            
+            ptr = 0;
+            boolean cdata = false;
+            
+            while (ptr < b64.length()) {
+                int segLen = 1 + (r.nextInt() & 0x7);
+                if (cdata) {
+                    sb.append("<![CDATA[");
+                }
+                segLen = Math.min(segLen, (b64.length() - ptr));
+                for (int i = 0; i < segLen; ++i) {
+                    sb.append(b64.charAt(ptr++));
+                }
+                if (cdata) {
+                    sb.append("]]>");
+                }
+                cdata = !cdata;
+            }
+            sb.append("</root>");
+            String actualDoc = sb.toString();
+            
+            XMLStreamReader2 sr = getElemReader(actualDoc);
+            // should be enough to verify byte-by-byte?
+            _verifyElemData(sr, b64variant, r, data, byteLen, METHOD_SINGLE);
             sr.close();
         }
-
-        StringBuffer sb = new StringBuffer(b64.length() * 2);
-        sb.append("<root>");
-
-        ptr = 0;
-        boolean cdata = false;
-
-        while (ptr < b64.length()) {
-            int segLen = 1 + (r.nextInt() & 0x7);
-            if (cdata) {
-                sb.append("<![CDATA[");
-            }
-            segLen = Math.min(segLen, (b64.length() - ptr));
-            for (int i = 0; i < segLen; ++i) {
-                sb.append(b64.charAt(ptr++));
-            }
-            if (cdata) {
-                sb.append("]]>");
-            }
-            cdata = !cdata;
-        }
-        sb.append("</root>");
-        String actualDoc = sb.toString();
-
-        XMLStreamReader2 sr = getElemReader(actualDoc);
-        // should be enough to verify byte-by-byte?
-        _verifyElemData(sr, r, data, byteLen, METHOD_SINGLE);
-        sr.close();
     }
-
+        
     private void _testBinaryElem(int readMethod, boolean addNoise)
         throws XMLStreamException
     {
-        for (int x = 0; x < LEN_ELEM.length; ++x) {
-            int size = LEN_ELEM[x];
-            Random r = new Random(size);
-            byte[] data = generateData(r, size);
-            String doc = buildDoc(r, data, addNoise);
-
-            XMLStreamReader2 sr = getElemReader(doc);
-            _verifyElemData(sr, r, data, data.length, readMethod);
-            sr.close();
+        for (int bv = 0; bv < sBase64Variants.length; ++bv) {
+            Base64Variant b64variant = sBase64Variants[bv];
+            for (int x = 0; x < LEN_ELEM.length; ++x) {
+                int size = LEN_ELEM[x];
+                Random r = new Random(size);
+                byte[] data = generateData(r, size);
+                String doc = buildDoc(b64variant, r, data, addNoise);
+                
+                XMLStreamReader2 sr = getElemReader(doc);
+                _verifyElemData(sr, b64variant, r, data, data.length, readMethod);
+                sr.close();
+            }
         }
     }
-
-    private void _verifyElemData(XMLStreamReader2 sr, Random r, byte[] data, int dataLen, int readMethod)
+    
+    private void _verifyElemData(XMLStreamReader2 sr, Base64Variant b64variant, Random r, byte[] data, int dataLen, int readMethod)
         throws XMLStreamException
     {
         switch (readMethod) {
@@ -245,7 +282,7 @@ public abstract class ReaderBinaryTestBase
                 int ptr = 0;
                 int count;
                 
-                while ((count = sr.readElementAsBinary(buffer, 2, 1)) > 0) {
+                while ((count = sr.readElementAsBinary(b64variant, buffer, 2, 1)) > 0) {
                     assertEquals(1, count);
                     if ((ptr+1) < dataLen) {
                         if (data[ptr] != buffer[2]) {
@@ -267,7 +304,7 @@ public abstract class ReaderBinaryTestBase
                  * happen. If this is not true, need to change unit
                  * test to reflect it.
                  */
-                int count = sr.readElementAsBinary(buffer, 3, buffer.length-3);
+                int count = sr.readElementAsBinary(b64variant, buffer, 3, buffer.length-3);
                 assertEquals(dataLen, count);
                 for (int i = 0; i < dataLen; ++i) {
                     if (buffer[3+i] != data[i]) {
@@ -279,7 +316,7 @@ public abstract class ReaderBinaryTestBase
             
         case METHOD_FULL_CONVENIENT: // full read
             {
-                byte[] result = sr.getElementAsBinary();
+                byte[] result = sr.getElementAsBinary(b64variant);
                 assertEquals(dataLen, result.length);
                 for (int i = 0; i < dataLen; ++i) {
                     if (result[i] != data[i]) {
@@ -299,7 +336,7 @@ public abstract class ReaderBinaryTestBase
                 
                 while (true) {
                     int len = random ? (20 + (r.nextInt() & 127)) : 2;
-                    int count = sr.readElementAsBinary(buffer, 0, len);
+                    int count = sr.readElementAsBinary(b64variant, buffer, 0, len);
                     if (count < 0) {
                         break;
                     }
@@ -323,11 +360,11 @@ public abstract class ReaderBinaryTestBase
         assertTokenType(END_ELEMENT, sr.getEventType());
     }
 
-    private void _verifyElemData1(XMLStreamReader2 sr, byte[] data)
+    private void _verifyElemData1(XMLStreamReader2 sr, Base64Variant b64variant, byte[] data)
         throws XMLStreamException
     {
         byte[] buffer = new byte[5];
-        assertEquals(1, sr.readElementAsBinary(buffer, 1, 1));
+        assertEquals(1, sr.readElementAsBinary(b64variant, buffer, 1, 1));
         assertEquals(data[0], buffer[1]);
     }
         
@@ -348,16 +385,21 @@ public abstract class ReaderBinaryTestBase
         // Let's try out couple of arbitrary broken ones...
         final byte[] resultBuffer = new byte[20];
 
-        for (int i = 0; i < INVALID_PADDING.length; ++i) {
-            String doc = "<root>"+INVALID_PADDING[i]+"</root>";
-            XMLStreamReader2 sr = getElemReader(doc);
-            try {
-                /*int count = */ sr.readElementAsBinary(resultBuffer, 0, resultBuffer.length);
-                fail("Should have received an exception for invalid padding");
-            } catch (TypedXMLStreamException ex) {
-                // any way to check that it's the excepted message? not right now
+        // Hmmh. Here we need to skip testing of non-padded variants...
+        // (ideally would also test non-padding ones, but using different method)
+        for (int bv = 0; bv < sPaddingVariants.length; ++bv) {
+            Base64Variant b64variant = sPaddingVariants[bv];
+            for (int i = 0; i < INVALID_PADDING.length; ++i) {
+                String doc = "<root>"+INVALID_PADDING[i]+"</root>";
+                XMLStreamReader2 sr = getElemReader(doc);
+                try {
+                    /*int count = */ sr.readElementAsBinary(b64variant, resultBuffer, 0, resultBuffer.length);
+                    fail("Should have received an exception for invalid padding");
+                } catch (TypedXMLStreamException ex) {
+                    // any way to check that it's the excepted message? not right now
+                }
+                sr.close();
             }
-            sr.close();
         }
     }
 
@@ -375,16 +417,19 @@ public abstract class ReaderBinaryTestBase
         // Let's try out couple of arbitrary broken ones...
         final byte[] resultBuffer = new byte[20];
 
-        for (int i = 0; i < INVALID_WS.length; ++i) {
-            String doc = "<root>"+INVALID_WS[i]+"</root>";
-            XMLStreamReader2 sr = getElemReader(doc);
-            try {
-                /*int count = */ sr.readElementAsBinary(resultBuffer, 0, resultBuffer.length);
-                fail("Should have received an exception for white space used 'inside' 4-char base64 unit");
-            } catch (TypedXMLStreamException ex) {
-                // any way to check that it's the excepted message? not right now
+        for (int bv = 0; bv < sBase64Variants.length; ++bv) {
+            Base64Variant b64variant = sBase64Variants[bv];
+            for (int i = 0; i < INVALID_WS.length; ++i) {
+                String doc = "<root>"+INVALID_WS[i]+"</root>";
+                XMLStreamReader2 sr = getElemReader(doc);
+                try {
+                    /*int count = */ sr.readElementAsBinary(b64variant, resultBuffer, 0, resultBuffer.length);
+                    fail("Should have received an exception for white space used 'inside' 4-char base64 unit");
+                } catch (TypedXMLStreamException ex) {
+                    // any way to check that it's the excepted message? not right now
+                }
+                sr.close();
             }
-            sr.close();
         }
     }
 
@@ -393,16 +438,19 @@ public abstract class ReaderBinaryTestBase
     {
         final byte[] resultBuffer = new byte[20];
 
-        for (int i = 0; i < INVALID_WEIRD_CHARS.length; ++i) {
-            String doc = "<root>"+INVALID_WEIRD_CHARS[i]+"</root>";
-            XMLStreamReader2 sr = getElemReader(doc);
-            try {
-                /*int count = */ sr.readElementAsBinary(resultBuffer, 0, resultBuffer.length);
-                fail("Should have received an exception for invalid base64 character");
-            } catch (TypedXMLStreamException ex) {
-                // any way to check that it's the excepted message? not right now
+        for (int bv = 0; bv < sBase64Variants.length; ++bv) {
+            Base64Variant b64variant = sBase64Variants[bv];
+            for (int i = 0; i < INVALID_WEIRD_CHARS.length; ++i) {
+                String doc = "<root>"+INVALID_WEIRD_CHARS[i]+"</root>";
+                XMLStreamReader2 sr = getElemReader(doc);
+                try {
+                    /*int count = */ sr.readElementAsBinary(b64variant, resultBuffer, 0, resultBuffer.length);
+                    fail("Should have received an exception for invalid base64 character");
+                } catch (TypedXMLStreamException ex) {
+                    // any way to check that it's the excepted message? not right now
+                }
+                sr.close();
             }
-            sr.close();
         }
     }
 
@@ -412,29 +460,33 @@ public abstract class ReaderBinaryTestBase
         // Let's just try with short partial segments, data used doesn't matter
         final byte[] data = new byte[6];
         final byte[] resultBuffer = new byte[20];
+        // plus also skip non-padded variants, for now
 
         // So first we'll encode 1 to 6 bytes as base64
-        for (int i = 1; i <= data.length; ++i) {
-            AsciiValueEncoder enc = new ValueEncoderFactory().getEncoder(Base64Variants.MIME, data, 0, i);
-            char[] cbuf = new char[20];
-            int clen = enc.encodeMore(cbuf, 0, cbuf.length);
-
-            // and use all byte last 1, 2 or 3 chars
-            for (int j = 1; j <= 3; ++j) {
-                int testLen = clen-j;
-                StringBuffer sb = new StringBuffer();
-                sb.append("<root>");
-                sb.append(cbuf, 0, testLen);
-                sb.append("</root>");
-
-                XMLStreamReader2 sr = getElemReader(sb.toString());
-                try {
-                    /*int count = */ sr.readElementAsBinary(resultBuffer, 0, resultBuffer.length);
-                    fail("Should have received an exception for incomplete base64 unit");
-                } catch (TypedXMLStreamException ex) {
-                    // any way to check that it's the excepted message? not right now
+        for (int bv = 0; bv < sPaddingVariants.length; ++bv) {
+            Base64Variant b64variant = sPaddingVariants[bv];
+            for (int i = 1; i <= data.length; ++i) {
+                AsciiValueEncoder enc = new ValueEncoderFactory().getEncoder(b64variant, data, 0, i);
+                char[] cbuf = new char[20];
+                int clen = enc.encodeMore(cbuf, 0, cbuf.length);
+                
+                // and use all byte last 1, 2 or 3 chars
+                for (int j = 1; j <= 3; ++j) {
+                    int testLen = clen-j;
+                    StringBuffer sb = new StringBuffer();
+                    sb.append("<root>");
+                    sb.append(cbuf, 0, testLen);
+                    sb.append("</root>");
+                    
+                    XMLStreamReader2 sr = getElemReader(sb.toString());
+                    try {
+                        /*int count = */ sr.readElementAsBinary(b64variant, resultBuffer, 0, resultBuffer.length);
+                        fail("Should have received an exception for incomplete base64 unit");
+                    } catch (TypedXMLStreamException ex) {
+                        // any way to check that it's the excepted message? not right now
+                    }
+                    sr.close();
                 }
-                sr.close();
             }
         }
     }
@@ -449,30 +501,32 @@ public abstract class ReaderBinaryTestBase
      * API to access attribute values is much simpler; hence fewer
      * things need testing
      */
-
     public void testBinaryAttrValid() throws XMLStreamException
     {
         final int REPS = 3;
         for (int j = 0; j < REPS; ++j) {
-            for (int i = 0; i < LEN_ATTR.length; ++i) {
-                int size = LEN_ATTR[i];
-                byte[] data = generateData(new Random(size), size);
-                char[] buffer = new char[4 + (data.length * 3 / 2)];
-                AsciiValueEncoder enc = new ValueEncoderFactory().getEncoder(Base64Variants.MIME, data, 0, data.length);
-                int len = enc.encodeMore(buffer, 0, buffer.length);
-                StringBuilder sb = new StringBuilder(buffer.length + 32);
-                sb.append("<root attr='");
-                sb.append(buffer, 0, len);
-                sb.append("' />");
-                XMLStreamReader2 sr = getElemReader(sb.toString());
-                byte[] actData = sr.getAttributeAsBinary(0);
-
-                assertNotNull(actData);
-                assertEquals(data.length, actData.length);
-                for (int x = 0; x < data.length; ++x) {
-                    if (data[x] != actData[x]) {
-                        fail("Corrupt decode at #"+x+"/"+data.length+", expected "+displayByte(data[x])+", got "+displayByte(actData[x]));
+            for (int bv = 0; bv < sBase64Variants.length; ++bv) {
+                Base64Variant b64variant = sBase64Variants[bv];
+                for (int i = 0; i < LEN_ATTR.length; ++i) {
+                    int size = LEN_ATTR[i];
+                    byte[] data = generateData(new Random(size), size);
+                    char[] buffer = new char[4 + (data.length * 3 / 2)];
+                    AsciiValueEncoder enc = new ValueEncoderFactory().getEncoder(b64variant, data, 0, data.length);
+                    int len = enc.encodeMore(buffer, 0, buffer.length);
+                    StringBuilder sb = new StringBuilder(buffer.length + 32);
+                    sb.append("<root attr='");
+                    sb.append(buffer, 0, len);
+                    sb.append("' />");
+                    XMLStreamReader2 sr = getElemReader(sb.toString());
+                    byte[] actData = sr.getAttributeAsBinary(b64variant, 0);
+                    
+                    assertNotNull(actData);
+                    assertEquals(data.length, actData.length);
+                    for (int x = 0; x < data.length; ++x) {
+                        if (data[x] != actData[x]) {
+                            fail("Corrupt decode at #"+x+"/"+data.length+", expected "+displayByte(data[x])+", got "+displayByte(actData[x]));
                         }
+                    }
                 }
             }
         }
@@ -487,48 +541,59 @@ public abstract class ReaderBinaryTestBase
     public void testInvalidAttrPadding()
         throws XMLStreamException
     {
-        for (int i = 0; i < INVALID_PADDING.length; ++i) {
-            String doc = "<root attr='"+INVALID_PADDING[i]+"' />";
-            XMLStreamReader2 sr = getElemReader(doc);
-            try {
-                /*byte[] data = */ sr.getAttributeAsBinary(0);
-                fail("Should have received an exception for invalid padding");
-            } catch (TypedXMLStreamException ex) {
-                // any way to check that it's the excepted message? not right now
+        // Hmmh. Here we need to skip testing of non-padded variants...
+        for (int bv = 0; bv < sPaddingVariants.length; ++bv) {
+            Base64Variant b64variant = sPaddingVariants[bv];
+            
+            for (int i = 0; i < INVALID_PADDING.length; ++i) {
+                String doc = "<root attr='"+INVALID_PADDING[i]+"' />";
+                XMLStreamReader2 sr = getElemReader(doc);
+                try {
+                    /*byte[] data = */ sr.getAttributeAsBinary(0);
+                    fail("Should have received an exception for invalid padding");
+                } catch (TypedXMLStreamException ex) {
+                    // any way to check that it's the excepted message? not right now
+                }
+                sr.close();
             }
-            sr.close();
         }
     }
 
     public void testInvalidAttrWhitespace()
         throws XMLStreamException
     {
-        for (int i = 0; i < INVALID_WS.length; ++i) {
-            String doc = "<root x='"+INVALID_WS[i]+"' />";
-            XMLStreamReader2 sr = getElemReader(doc);
-            try {
-                /*byte[] data = */ sr.getAttributeAsBinary(0);
-                fail("Should have received an exception for white space used 'inside' 4-char base64 unit");
-            } catch (TypedXMLStreamException ex) {
-                // any way to check that it's the excepted message? not right now
+        for (int bv = 0; bv < sBase64Variants.length; ++bv) {
+            Base64Variant b64variant = sBase64Variants[bv];
+            for (int i = 0; i < INVALID_WS.length; ++i) {
+                String doc = "<root x='"+INVALID_WS[i]+"' />";
+                XMLStreamReader2 sr = getElemReader(doc);
+                try {
+                    /*byte[] data = */ sr.getAttributeAsBinary(b64variant, 0);
+                    fail("Should have received an exception for white space used 'inside' 4-char base64 unit");
+                } catch (TypedXMLStreamException ex) {
+                    // any way to check that it's the excepted message? not right now
+                }
+                sr.close();
             }
-            sr.close();
         }
     }
 
     public void testInvalidAttrWeirdChars()
         throws XMLStreamException
     {
-        for (int i = 0; i < INVALID_WEIRD_CHARS.length; ++i) {
-            String doc = "<root abc='"+INVALID_WEIRD_CHARS[i]+"'/>";
-            XMLStreamReader2 sr = getElemReader(doc);
-            try {
-                /*byte[] data = */ sr.getAttributeAsBinary(0);
-                fail("Should have received an exception for invalid base64 character");
-            } catch (TypedXMLStreamException ex) {
-                // any way to check that it's the excepted message? not right now
+        for (int bv = 0; bv < sBase64Variants.length; ++bv) {
+            Base64Variant b64variant = sBase64Variants[bv];
+            for (int i = 0; i < INVALID_WEIRD_CHARS.length; ++i) {
+                String doc = "<root abc='"+INVALID_WEIRD_CHARS[i]+"'/>";
+                XMLStreamReader2 sr = getElemReader(doc);
+                try {
+                    /*byte[] data = */ sr.getAttributeAsBinary(b64variant, 0);
+                    fail("Should have received an exception for invalid base64 character");
+                } catch (TypedXMLStreamException ex) {
+                    // any way to check that it's the excepted message? not right now
+                }
+                sr.close();
             }
-            sr.close();
         }
     }
 
@@ -537,26 +602,31 @@ public abstract class ReaderBinaryTestBase
     {
         // Let's just try with short partial segments, data used doesn't matter
         final byte[] data = new byte[6];
+        // plus also skip non-padded variants, for now
 
-        // So first we'll encode 1 to 6 bytes as base64
-        for (int i = 1; i <= data.length; ++i) {
-            AsciiValueEncoder enc = new ValueEncoderFactory().getEncoder(Base64Variants.MIME, data, 0, i);
-            char[] cbuf = new char[20];
-            int clen = enc.encodeMore(cbuf, 0, cbuf.length);
+        for (int bv = 0; bv < sPaddingVariants.length; ++bv) {
+            Base64Variant b64variant = sPaddingVariants[bv];
 
-            // and use all byte last 1, 2 or 3 chars
-            for (int j = 1; j <= 3; ++j) {
-                int testLen = clen-j;
-                StringBuffer sb = new StringBuffer();
-                sb.append("<root attr='").append(cbuf, 0, testLen).append("'/>");
-                XMLStreamReader2 sr = getElemReader(sb.toString());
-                try {
-                    /*byte[] data = */ sr.getAttributeAsBinary(0);
-                    fail("Should have received an exception for incomplete base64 unit");
-                } catch (TypedXMLStreamException ex) {
-                    // any way to check that it's the excepted message? not right now
+            // So first we'll encode 1 to 6 bytes as base64
+            for (int i = 1; i <= data.length; ++i) {
+                AsciiValueEncoder enc = new ValueEncoderFactory().getEncoder(b64variant, data, 0, i);
+                char[] cbuf = new char[20];
+                int clen = enc.encodeMore(cbuf, 0, cbuf.length);
+                
+                // and use all byte last 1, 2 or 3 chars
+                for (int j = 1; j <= 3; ++j) {
+                    int testLen = clen-j;
+                    StringBuffer sb = new StringBuffer();
+                    sb.append("<root attr='").append(cbuf, 0, testLen).append("'/>");
+                    XMLStreamReader2 sr = getElemReader(sb.toString());
+                    try {
+                        /*byte[] data = */ sr.getAttributeAsBinary(b64variant, 0);
+                        fail("Should have received an exception for incomplete base64 unit");
+                    } catch (TypedXMLStreamException ex) {
+                        // any way to check that it's the excepted message? not right now
+                    }
+                    sr.close();
                 }
-                sr.close();
             }
         }
     }
@@ -583,10 +653,10 @@ public abstract class ReaderBinaryTestBase
         return table;
     }
 
-    private String buildDoc(Random r, byte[] data, boolean addNoise)
+    private String buildDoc(Base64Variant b64variant, Random r, byte[] data, boolean addNoise)
     {
         // Let's use base64 codec from RI here:
-        AsciiValueEncoder enc = new ValueEncoderFactory().getEncoder(Base64Variants.MIME, data, 0, data.length);
+        AsciiValueEncoder enc = new ValueEncoderFactory().getEncoder(b64variant, data, 0, data.length);
 
         StringBuffer sb = new StringBuffer(data.length * 2);
         sb.append("<root>");
@@ -647,14 +717,14 @@ public abstract class ReaderBinaryTestBase
         return sb.toString();
     }
 
-    private String buildMultiElemDoc(byte[][] dataTable)
+    private String buildMultiElemDoc(Base64Variant b64variant, byte[][] dataTable)
     {
         StringBuffer sb = new StringBuffer(16 + dataTable.length * dataTable[0].length);
         sb.append("<root>");
         for (int i = 0; i < dataTable.length; ++i) {
             byte[] data = dataTable[i];
             char[] buffer = new char[4 + (data.length * 3 / 2)];
-            AsciiValueEncoder enc = new ValueEncoderFactory().getEncoder(Base64Variants.MIME, data, 0, data.length);
+            AsciiValueEncoder enc = new ValueEncoderFactory().getEncoder(b64variant, data, 0, data.length);
             int len = enc.encodeMore(buffer, 0, buffer.length);
             sb.append("<a>");
             sb.append(buffer, 0, len);

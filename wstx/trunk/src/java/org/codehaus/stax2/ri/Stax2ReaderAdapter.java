@@ -39,6 +39,8 @@ import org.codehaus.stax2.validation.*;
  *   that missing parts are not needed
  *  </li>
  * </ul>
+ *
+ * @author Tatu Saloranta
  */
 public class Stax2ReaderAdapter
     extends StreamReaderDelegate /* from Stax 1.0 */
@@ -61,7 +63,7 @@ public class Stax2ReaderAdapter
     /**
      * Factory used for constructing decoders we need for typed access
      */
-    protected ValueDecoderFactory mDecoderFactory;
+    protected ValueDecoderFactory _decoderFactory;
 
     /**
      * Lazily-constructed decoder object for decoding base64 encoded
@@ -72,14 +74,14 @@ public class Stax2ReaderAdapter
     /**
      * Number of open (start) elements currently.
      */
-    protected int mDepth = 0;
+    protected int _depth = 0;
 
     /**
      * Content temporarily cached to be used for decoding typed content
      * that is in chunked mode (int/long/float/double arrays, base64
      * encoded binary data)
      */
-    protected String mTypedContent;
+    protected String _typedContent;
 
     /*
     ////////////////////////////////////////////////////
@@ -119,16 +121,16 @@ public class Stax2ReaderAdapter
         /* First special check: are we in the middle of chunked
          * decode operation? If so, we'll just end it...
          */
-        if (mTypedContent != null) {
-            mTypedContent = null;
+        if (_typedContent != null) {
+            _typedContent = null;
             return XMLStreamConstants.END_ELEMENT;
         }
 
         int type = super.next();
         if (type == XMLStreamConstants.START_ELEMENT) {
-            ++mDepth;
+            ++_depth;
         } else if (type == XMLStreamConstants.END_ELEMENT) {
-            --mDepth;
+            --_depth;
         }
         return type;
     }
@@ -258,7 +260,7 @@ public class Stax2ReaderAdapter
     public int readElementAsArray(TypedArrayDecoder tad) throws XMLStreamException
     {
         // Are we started?
-        if (mTypedContent == null) { // nope, not yet (or not any more?)
+        if (_typedContent == null) { // nope, not yet (or not any more?)
             int type = getEventType();
             if (type == END_ELEMENT) { // already done
                 return -1;
@@ -266,14 +268,14 @@ public class Stax2ReaderAdapter
             if (type != START_ELEMENT) {
                 throw new IllegalStateException("First call to readElementAsArray() must be for a START_ELEMENT");
             }
-            mTypedContent = getElementText();
+            _typedContent = getElementText();
             /* This will move current event to END_ELEMENT, too...
              * But should we mask it (and claim it's, say, CHARACTERS)
              * or expose as is? For now, let's do latter, simplest
              */
         }
         // Ok, so what do we have left?
-        String input = mTypedContent;
+        String input = _typedContent;
         final int end = input.length();
         int ptr = 0;
         int count = 0;
@@ -313,7 +315,7 @@ public class Stax2ReaderAdapter
         } finally {
             int len = end-ptr;
             // null works well as the marker for complete processing
-            mTypedContent = (len < 1) ? null : input.substring(ptr);
+            _typedContent = (len < 1) ? null : input.substring(ptr);
         }
         return (count < 1) ? -1 : count;
     }
@@ -393,8 +395,10 @@ public class Stax2ReaderAdapter
             totalCount += count;
             maxLength -= count;
 
-            // And if we filled the buffer we are done
-            if (maxLength < 1) {
+            /* And if we filled the buffer we are done. Or, an edge
+             * case: reached END_ELEMENT (for non-padded variant)
+             */
+            if (maxLength < 1 || getEventType() == END_ELEMENT) {
                 break;
             }
             // Otherwise need to advance to the next event
@@ -405,13 +409,19 @@ public class Stax2ReaderAdapter
                     continue;
                 }
                 if (type == END_ELEMENT) {
-                    /* just need to verify we don't have partial stuff
+                    /* Just need to verify we don't have partial stuff
                      * (missing one to three characters of a full quartet
-                     * that encodes 1 - 3 bytes)
+                     * that encodes 1 - 3 bytes). Also: non-padding
+                     * variants can be in incomplete state, from which
+                     * data may need to be flushed...
                      */
-                    if (!dec.okToGetEndElement()) {
+                    int left = dec.endOfContent();
+                    if (left < 0) { // incomplete, error
                         throw _constructTypeException("Incomplete base64 triplet at the end of decoded content", "");
+                    } else if (left > 0) { // 1 or 2 more bytes of data, loop some more
+                        continue main_loop;
                     }
+                    // Otherwise, no more data, we are done
                     break main_loop;
                 }
                 if (((1 << type) & MASK_GET_ELEMENT_TEXT) == 0) {
@@ -721,7 +731,7 @@ public class Stax2ReaderAdapter
      *  prolog/epilog, 1 inside root element and so on.
      */
     public int getDepth() {
-        return mDepth;
+        return _depth;
     }
 
     /**
@@ -967,10 +977,10 @@ public class Stax2ReaderAdapter
 
     protected ValueDecoderFactory _decoderFactory()
     {
-        if (mDecoderFactory == null) {
-            mDecoderFactory = new ValueDecoderFactory();
+        if (_decoderFactory == null) {
+            _decoderFactory = new ValueDecoderFactory();
         }
-        return mDecoderFactory;
+        return _decoderFactory;
     }
 
     protected StringBase64Decoder _base64Decoder()

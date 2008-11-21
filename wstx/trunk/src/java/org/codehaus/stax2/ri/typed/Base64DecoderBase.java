@@ -128,8 +128,54 @@ abstract class Base64DecoderBase
     //////////////////////////////////////////////////////////////
      */
 
+    /**
+     * Method that does actual decoding
+     */
     public abstract int decode(byte[] resultBuffer, int resultOffset, int maxLength)
         throws IllegalArgumentException;
+
+    /**
+     * Method called to indicate that we have no more encoded content to
+     * process, and decoding is to finish. Depending base64 variant in
+     * use, this means one of three things:
+     *<ul>
+     * <li>We are waiting for start of a new segment; no data to decode,
+     *   ok to quit (returns 0)
+     *  </li>
+     * <li>We are half-way through decoding for padding variant (or,
+     *   non-padding with just partial byte [single char]); error case.
+     *  (returns -1)
+     * <li>We are half-way through decoding for non-padding variant, and
+     *    thereby have 1 or 2 bytes of data (which was not earlier recognized
+     *    because of missing padding characters)
+     *  (returns 1 or 2, number of bytes made available)
+     *  </li>
+     *</ul>
+     */
+    public final int endOfContent()
+    {
+        if (okToGetEndElement()) { // at valid complete end state, can leave
+            return 0;
+        }
+        // Otherwise, only ok if no padding is used
+        if (_variant.usesPadding()) {
+            return -1;
+        }
+        // We do have 2 possible valid incomplete states
+        if (_state == STATE_VALID_2) { // 2 chars -> 1 output byte
+            // Got 12 bits, only need 8, need to shift
+            _state = STATE_OUTPUT_1;
+            _decodedData >>= 4;
+            return 1;
+        } else if (_state == STATE_VALID_3) { // 3 chars -> 2 output bytes
+            // Got 18 bits, of which 16 data
+            _decodedData >>= 2;
+            _state = STATE_OUTPUT_2;
+            return 2;
+        } else { // other states either handled, or can not be valid terminal states (STATE_VALID1)
+            return -1;
+        }
+    }
 
     /**
      * Method that can be called to check whether decoder state is
@@ -139,8 +185,12 @@ abstract class Base64DecoderBase
      * where we are to output bytes (which also implies decoding
      * for a triplet has succeeded)
      */
-    public final boolean okToGetEndElement()
+    private final boolean okToGetEndElement()
     {
+        /* Note: although it would seem like non-padding variants could
+         * allow end in other states, this is not true: in cases where
+         * partial end is reached, state should be moved to STATE_INITIAL.
+         */
         return (_state == STATE_INITIAL)
             || (_state == STATE_OUTPUT_3)
             || (_state == STATE_OUTPUT_2)

@@ -474,8 +474,10 @@ public class TypedStreamReader
             totalCount += count;
             maxLength -= count;
 
-            // And if we filled the buffer we are done
-            if (maxLength < 1) {
+            /* And if we filled the buffer we are done. Or, an edge
+             * case: reached END_ELEMENT (for non-padded variant)
+             */
+            if (maxLength < 1 || mCurrToken == END_ELEMENT) {
                 break;
             }
             // Otherwise need to advance to the next event
@@ -486,13 +488,19 @@ public class TypedStreamReader
                     continue;
                 }
                 if (type == END_ELEMENT) {
-                    /* just need to verify we don't have partial stuff
+                    /* Just need to verify we don't have partial stuff
                      * (missing one to three characters of a full quartet
-                     * that encodes 1 - 3 bytes)
+                     * that encodes 1 - 3 bytes). Also: non-padding
+                     * variants can be in incomplete state, from which
+                     * data may need to be flushed...
                      */
-                    if (!dec.okToGetEndElement()) {
+                    int left = dec.endOfContent();
+                    if (left < 0) { // incomplete, error
                         throw _constructTypeException("Incomplete base64 triplet at the end of decoded content", "");
+                    } else if (left > 0) { // 1 or 2 more bytes of data, loop some more
+                        continue main_loop;
                     }
+                    // Otherwise, no more data, we are done
                     break main_loop;
                 }
                 _initBinaryChunks(v, dec, type, false);

@@ -133,38 +133,38 @@ public abstract class DOMWrappingReader
 
     // // // Configuration:
 
-    protected final String mSystemId;
+    protected final String _systemId;
 
-    protected final Node mRootNode;
+    protected final Node _rootNode;
 
     /**
      * Whether stream reader is to be namespace aware (as per property
      * {@link XMLInputFactory#IS_NAMESPACE_AWARE}) or not
      */
-    protected final boolean mNsAware;
+    protected final boolean _cfgNsAware;
 
     /**
      * Whether stream reader is to coalesce adjacent textual
      * (CHARACTERS, SPACE, CDATA) events (as per property
      * {@link XMLInputFactory#IS_COALESCING}) or not
      */
-    protected final boolean mCoalescing;
+    protected final boolean _coalescing;
 
-    protected boolean mInternNames = false;
+    protected boolean _cfgInternNames = false;
 
-    protected boolean mInternNsURIs = false;
+    protected boolean _cfgInternNsURIs = false;
 
     // // // State:
 
-    protected int mCurrEvent = START_DOCUMENT;
+    protected int _currEvent = START_DOCUMENT;
 
     /**
      * Current node is the DOM node that contains information
      * regarding the current event.
      */
-    protected Node mCurrNode;
+    protected Node _currNode;
 
-    protected int mDepth = 0;
+    protected int _depth = 0;
 
     /**
      * In coalescing mode, we may need to combine textual content
@@ -172,12 +172,12 @@ public abstract class DOMWrappingReader
      * the underlying DOM tree, need to accumulate it into a temporary
      * variable
      */
-    protected String mCoalescedText;
+    protected String _coalescedText;
 
     /**
      * Helper object used for combining segments of text as needed
      */
-    protected Stax2Util.TextBuffer mTextBuffer = new Stax2Util.TextBuffer();
+    protected Stax2Util.TextBuffer _textBuffer = new Stax2Util.TextBuffer();
 
     // // // Attribute/namespace declaration state
 
@@ -193,7 +193,7 @@ public abstract class DOMWrappingReader
      * As such, elements are {@link org.w3c.dom.Attr} instances.
      *<p>
      */
-    protected List mAttrList = null;
+    protected List _attrList = null;
 
     /**
      * Lazily instantiated String pairs of all namespace declarations for the
@@ -202,12 +202,12 @@ public abstract class DOMWrappingReader
      * (empty String for the default namespace declaration), and second
      * URI it is bound to.
      */
-    protected List mNsDeclList = null;
+    protected List _nsDeclList = null;
 
     /**
      * Factory used for constructing decoders we need for typed access
      */
-    protected ValueDecoderFactory mDecoderFactory;
+    protected ValueDecoderFactory _decoderFactory;
 
     /**
      * Lazily-constructed decoder object for decoding base64 encoded
@@ -237,9 +237,9 @@ public abstract class DOMWrappingReader
         if (treeRoot == null) {
             throw new IllegalArgumentException("Can not pass null Node for constructing a DOM-based XMLStreamReader");
         }
-        mNsAware = nsAware;
-        mCoalescing = coalescing;
-        mSystemId = src.getSystemId();
+        _cfgNsAware = nsAware;
+        _coalescing = coalescing;
+        _systemId = src.getSystemId();
         
         /* Ok; we need a document node; or an element node; or a document
          * fragment node.
@@ -260,11 +260,11 @@ public abstract class DOMWrappingReader
         default: // other Nodes not usable
             throw new XMLStreamException("Can not create an XMLStreamReader for a DOM node of type "+treeRoot.getClass());
         }
-        mRootNode = mCurrNode = treeRoot;
+        _rootNode = _currNode = treeRoot;
     }
 
-    protected void setInternNames(boolean state) { mInternNames = state; }
-    protected void setInternNsURIs(boolean state) { mInternNsURIs = state; }
+    protected void setInternNames(boolean state) { _cfgInternNames = state; }
+    protected void setInternNsURIs(boolean state) { _cfgInternNsURIs = state; }
 
     /*
     ////////////////////////////////////////////////////
@@ -358,92 +358,92 @@ public abstract class DOMWrappingReader
 
     public int getAttributeCount()
     {
-        if (mCurrEvent != START_ELEMENT) {
+        if (_currEvent != START_ELEMENT) {
             reportWrongState(ERR_STATE_NOT_START_ELEM);
         }
-        if (mAttrList == null) {
+        if (_attrList == null) {
             _calcNsAndAttrLists(true);
         }
-        return mAttrList.size();
+        return _attrList.size();
     }
 
     public String getAttributeLocalName(int index)
     {
-        if (mCurrEvent != START_ELEMENT) {
+        if (_currEvent != START_ELEMENT) {
             reportWrongState(ERR_STATE_NOT_START_ELEM);
         }
-        if (mAttrList == null) {
+        if (_attrList == null) {
             _calcNsAndAttrLists(true);
         }
-        if (index >= mAttrList.size() || index < 0) {
+        if (index >= _attrList.size() || index < 0) {
             handleIllegalAttrIndex(index);
             return null;
         }
-        Attr attr = (Attr) mAttrList.get(index);
+        Attr attr = (Attr) _attrList.get(index);
         return _internName(_safeGetLocalName(attr));
     }
 
     public QName getAttributeName(int index)
     {
-        if (mCurrEvent != START_ELEMENT) {
+        if (_currEvent != START_ELEMENT) {
             reportWrongState(ERR_STATE_NOT_START_ELEM);
         }
-        if (mAttrList == null) {
+        if (_attrList == null) {
             _calcNsAndAttrLists(true);
         }
-        if (index >= mAttrList.size() || index < 0) {
+        if (index >= _attrList.size() || index < 0) {
             handleIllegalAttrIndex(index);
             return null;
         }
-        Attr attr = (Attr) mAttrList.get(index);
+        Attr attr = (Attr) _attrList.get(index);
         return _constructQName(attr.getNamespaceURI(), _safeGetLocalName(attr), attr.getPrefix());
     }
 
     public String getAttributeNamespace(int index)
     {
-        if (mCurrEvent != START_ELEMENT) {
+        if (_currEvent != START_ELEMENT) {
             reportWrongState(ERR_STATE_NOT_START_ELEM);
         }
-        if (mAttrList == null) {
+        if (_attrList == null) {
             _calcNsAndAttrLists(true);
         }
-        if (index >= mAttrList.size() || index < 0) {
+        if (index >= _attrList.size() || index < 0) {
             handleIllegalAttrIndex(index);
             return null;
         }
-        Attr attr = (Attr) mAttrList.get(index);
+        Attr attr = (Attr) _attrList.get(index);
         return _internNsURI(attr.getNamespaceURI());
     }
 
     public String getAttributePrefix(int index)
     {
-        if (mCurrEvent != START_ELEMENT) {
+        if (_currEvent != START_ELEMENT) {
             reportWrongState(ERR_STATE_NOT_START_ELEM);
         }
-        if (mAttrList == null) {
+        if (_attrList == null) {
             _calcNsAndAttrLists(true);
         }
-        if (index >= mAttrList.size() || index < 0) {
+        if (index >= _attrList.size() || index < 0) {
             handleIllegalAttrIndex(index);
             return null;
         }
-        Attr attr = (Attr) mAttrList.get(index);
+        Attr attr = (Attr) _attrList.get(index);
         return _internName(attr.getPrefix());
     }
 
     public String getAttributeType(int index)
     {
-        if (mCurrEvent != START_ELEMENT) {
+        if (_currEvent != START_ELEMENT) {
             reportWrongState(ERR_STATE_NOT_START_ELEM);
         }
-        if (mAttrList == null) {
+        if (_attrList == null) {
             _calcNsAndAttrLists(true);
         }
-        if (index >= mAttrList.size() || index < 0) {
+        if (index >= _attrList.size() || index < 0) {
             handleIllegalAttrIndex(index);
             return null;
         }
-        //Attr attr = (Attr) mAttrList.get(index);
+        //Attr attr = (Attr) _attrList.get(index);
         // First, a special case, ID... since it's potentially most useful
         /* 26-Apr-2006, TSa: Turns out that following methods are
          *    DOM Level3, and as such not available in JDK 1.4 and prior.
@@ -462,26 +462,26 @@ public abstract class DOMWrappingReader
 
     public String getAttributeValue(int index)
     {
-        if (mCurrEvent != START_ELEMENT) {
+        if (_currEvent != START_ELEMENT) {
             reportWrongState(ERR_STATE_NOT_START_ELEM);
         }
-        if (mAttrList == null) {
+        if (_attrList == null) {
             _calcNsAndAttrLists(true);
         }
-        if (index >= mAttrList.size() || index < 0) {
+        if (index >= _attrList.size() || index < 0) {
             handleIllegalAttrIndex(index);
             return null;
         }
-        Attr attr = (Attr) mAttrList.get(index);
+        Attr attr = (Attr) _attrList.get(index);
         return attr.getValue();
     }
 
     public String getAttributeValue(String nsURI, String localName)
     {
-        if (mCurrEvent != START_ELEMENT) {
+        if (_currEvent != START_ELEMENT) {
             reportWrongState(ERR_STATE_NOT_START_ELEM);
         }
-        Element elem = (Element) mCurrNode;
+        Element elem = (Element) _currNode;
         NamedNodeMap attrs = elem.getAttributes();
         /* Hmmh. DOM javadocs claim "Per [XML Namespaces], applications
          * must use the value null as the namespaceURI parameter for methods
@@ -509,14 +509,14 @@ public abstract class DOMWrappingReader
     public String getElementText()
         throws XMLStreamException
     {
-        if (mCurrEvent != START_ELEMENT) {
+        if (_currEvent != START_ELEMENT) {
             /* Quite illogical: this is not an IllegalStateException
              * like other similar ones, but rather an XMLStreamException.
              * But that's how Stax JavaDocs outline how it should be.
              */
             reportParseProblem(ERR_STATE_NOT_START_ELEM);
         }
-        mTextBuffer.reset();
+        _textBuffer.reset();
 
         // Need to loop to get rid of PIs, comments
         while (true) {
@@ -530,9 +530,9 @@ public abstract class DOMWrappingReader
             if (((1 << type) & MASK_GET_ELEMENT_TEXT) == 0) {
                 reportParseProblem(ERR_STATE_NOT_TEXTUAL);
             }
-            mTextBuffer.append(getText());
+            _textBuffer.append(getText());
         }
-        return mTextBuffer.get();
+        return _textBuffer.get();
     }
 
     /**
@@ -541,18 +541,18 @@ public abstract class DOMWrappingReader
      */
     public int getEventType()
     {
-        return mCurrEvent;
+        return _currEvent;
     }
     
     public String getLocalName()
     {
-        if (mCurrEvent == START_ELEMENT || mCurrEvent == END_ELEMENT) {
-            return _internName(_safeGetLocalName(mCurrNode));
+        if (_currEvent == START_ELEMENT || _currEvent == END_ELEMENT) {
+            return _internName(_safeGetLocalName(_currNode));
         }
-        if (mCurrEvent != ENTITY_REFERENCE) {
+        if (_currEvent != ENTITY_REFERENCE) {
             reportWrongState(ERR_STATE_NO_LOCALNAME);
         }
-        return _internName(mCurrNode.getNodeName());
+        return _internName(_currNode.getNodeName());
     }
 
     public final Location getLocation() {
@@ -561,10 +561,10 @@ public abstract class DOMWrappingReader
 
     public QName getName()
     {
-        if (mCurrEvent != START_ELEMENT && mCurrEvent != END_ELEMENT) {
+        if (_currEvent != START_ELEMENT && _currEvent != END_ELEMENT) {
             reportWrongState(ERR_STATE_NOT_START_ELEM);
         }
-        return _constructQName(mCurrNode.getNamespaceURI(), _safeGetLocalName(mCurrNode), mCurrNode.getPrefix());
+        return _constructQName(_currNode.getNamespaceURI(), _safeGetLocalName(_currNode), _currNode.getPrefix());
     }
 
     // // // Namespace access
@@ -575,16 +575,16 @@ public abstract class DOMWrappingReader
 
     public int getNamespaceCount()
     {
-        if (mCurrEvent != START_ELEMENT && mCurrEvent != END_ELEMENT) {
+        if (_currEvent != START_ELEMENT && _currEvent != END_ELEMENT) {
             reportWrongState(ERR_STATE_NOT_ELEM);
         }
-        if (mNsDeclList == null) {
-            if (!mNsAware) {
+        if (_nsDeclList == null) {
+            if (!_cfgNsAware) {
                 return 0;
             }
-            _calcNsAndAttrLists(mCurrEvent == START_ELEMENT);
+            _calcNsAndAttrLists(_currEvent == START_ELEMENT);
         }
-        return mNsDeclList.size() / 2;
+        return _nsDeclList.size() / 2;
     }
 
     /**
@@ -593,79 +593,79 @@ public abstract class DOMWrappingReader
      * there are no declarations.
      */
     public String getNamespacePrefix(int index) {
-        if (mCurrEvent != START_ELEMENT && mCurrEvent != END_ELEMENT) {
+        if (_currEvent != START_ELEMENT && _currEvent != END_ELEMENT) {
             reportWrongState(ERR_STATE_NOT_ELEM);
         }
-        if (mNsDeclList == null) {
-            if (!mNsAware) {
+        if (_nsDeclList == null) {
+            if (!_cfgNsAware) {
                 handleIllegalNsIndex(index);
             }
-            _calcNsAndAttrLists(mCurrEvent == START_ELEMENT);
+            _calcNsAndAttrLists(_currEvent == START_ELEMENT);
         }
-        if (index < 0 || (index + index) >= mNsDeclList.size()) {
+        if (index < 0 || (index + index) >= _nsDeclList.size()) {
             handleIllegalNsIndex(index);
         }
-        // Note: mNsDeclList entries have been appropriately intern()ed if need be
-        return (String) mNsDeclList.get(index + index);
+        // Note: _nsDeclList entries have been appropriately intern()ed if need be
+        return (String) _nsDeclList.get(index + index);
     }
 
     public String getNamespaceURI() {
-        if (mCurrEvent != START_ELEMENT && mCurrEvent != END_ELEMENT) {
+        if (_currEvent != START_ELEMENT && _currEvent != END_ELEMENT) {
             reportWrongState(ERR_STATE_NOT_ELEM);
         }
-        return _internNsURI(mCurrNode.getNamespaceURI());
+        return _internNsURI(_currNode.getNamespaceURI());
     }
 
     public String getNamespaceURI(int index) {
-        if (mCurrEvent != START_ELEMENT && mCurrEvent != END_ELEMENT) {
+        if (_currEvent != START_ELEMENT && _currEvent != END_ELEMENT) {
             reportWrongState(ERR_STATE_NOT_ELEM);
         }
-        if (mNsDeclList == null) {
-            if (!mNsAware) {
+        if (_nsDeclList == null) {
+            if (!_cfgNsAware) {
                 handleIllegalNsIndex(index);
             }
-            _calcNsAndAttrLists(mCurrEvent == START_ELEMENT);
+            _calcNsAndAttrLists(_currEvent == START_ELEMENT);
         }
-        if (index < 0 || (index + index) >= mNsDeclList.size()) {
+        if (index < 0 || (index + index) >= _nsDeclList.size()) {
             handleIllegalNsIndex(index);
         }
-        // Note: mNsDeclList entries have been appropriately intern()ed if need be
-        return (String) mNsDeclList.get(index + index + 1);
+        // Note: _nsDeclList entries have been appropriately intern()ed if need be
+        return (String) _nsDeclList.get(index + index + 1);
     }
 
     // Note: implemented as part of NamespaceContext
     //public String getNamespaceURI(String prefix)
 
     public String getPIData() {
-        if (mCurrEvent != PROCESSING_INSTRUCTION) {
+        if (_currEvent != PROCESSING_INSTRUCTION) {
             reportWrongState(ERR_STATE_NOT_PI);
         }
-        return mCurrNode.getNodeValue();
+        return _currNode.getNodeValue();
     }
 
     public String getPITarget() {
-        if (mCurrEvent != PROCESSING_INSTRUCTION) {
+        if (_currEvent != PROCESSING_INSTRUCTION) {
             reportWrongState(ERR_STATE_NOT_PI);
         }
-        return _internName(mCurrNode.getNodeName());
+        return _internName(_currNode.getNodeName());
     }
 
     public String getPrefix() {
-        if (mCurrEvent != START_ELEMENT && mCurrEvent != END_ELEMENT) {
+        if (_currEvent != START_ELEMENT && _currEvent != END_ELEMENT) {
             reportWrongState(ERR_STATE_NOT_ELEM);
         }
-        return _internName(mCurrNode.getPrefix());
+        return _internName(_currNode.getPrefix());
     }
 
     public String getText()
     {
-        if (mCoalescedText != null) {
-            return mCoalescedText;
+        if (_coalescedText != null) {
+            return _coalescedText;
         }
-        if (((1 << mCurrEvent) & MASK_GET_TEXT) == 0) {
+        if (((1 << _currEvent) & MASK_GET_TEXT) == 0) {
             reportWrongState(ERR_STATE_NOT_TEXTUAL);
         }
-        return mCurrNode.getNodeValue();
+        return _currNode.getNodeValue();
     }
 
     public char[] getTextCharacters()
@@ -676,7 +676,7 @@ public abstract class DOMWrappingReader
 
     public int getTextCharacters(int sourceStart, char[] target, int targetStart, int len)
     {
-        if (((1 << mCurrEvent) & MASK_GET_TEXT_XXX) == 0) {
+        if (((1 << _currEvent) & MASK_GET_TEXT_XXX) == 0) {
             reportWrongState(ERR_STATE_NOT_TEXTUAL_XXX);
         }
         String text = getText();
@@ -689,7 +689,7 @@ public abstract class DOMWrappingReader
 
     public int getTextLength()
     {
-        if (((1 << mCurrEvent) & MASK_GET_TEXT_XXX) == 0) {
+        if (((1 << _currEvent) & MASK_GET_TEXT_XXX) == 0) {
             reportWrongState(ERR_STATE_NOT_TEXTUAL_XXX);
         }
         return getText().length();
@@ -697,30 +697,30 @@ public abstract class DOMWrappingReader
 
     public int getTextStart()
     {
-        if (((1 << mCurrEvent) & MASK_GET_TEXT_XXX) == 0) {
+        if (((1 << _currEvent) & MASK_GET_TEXT_XXX) == 0) {
             reportWrongState(ERR_STATE_NOT_TEXTUAL_XXX);
         }
         return 0;
     }
 
     public boolean hasName() {
-        return (mCurrEvent == START_ELEMENT) || (mCurrEvent == END_ELEMENT);
+        return (_currEvent == START_ELEMENT) || (_currEvent == END_ELEMENT);
     }
 
     public boolean hasNext() {
-        return (mCurrEvent != END_DOCUMENT);
+        return (_currEvent != END_DOCUMENT);
     }
 
     public boolean hasText() {
-        return (((1 << mCurrEvent) & MASK_GET_TEXT) != 0);
+        return (((1 << _currEvent) & MASK_GET_TEXT) != 0);
     }
 
     public boolean isAttributeSpecified(int index)
     {
-        if (mCurrEvent != START_ELEMENT) {
+        if (_currEvent != START_ELEMENT) {
             reportWrongState(ERR_STATE_NOT_START_ELEM);
         }
-        Element elem = (Element) mCurrNode;
+        Element elem = (Element) _currNode;
         Attr attr = (Attr) elem.getAttributes().item(index);
         if (attr == null) {
             handleIllegalAttrIndex(index);
@@ -731,20 +731,20 @@ public abstract class DOMWrappingReader
 
     public boolean isCharacters()
     {
-        return (mCurrEvent == CHARACTERS);
+        return (_currEvent == CHARACTERS);
     }
 
     public boolean isEndElement() {
-        return (mCurrEvent == END_ELEMENT);
+        return (_currEvent == END_ELEMENT);
     }
 
     public boolean isStartElement() {
-        return (mCurrEvent == START_ELEMENT);
+        return (_currEvent == START_ELEMENT);
     }
 
     public boolean isWhiteSpace()
     {
-        if (mCurrEvent == CHARACTERS || mCurrEvent == CDATA) {
+        if (_currEvent == CHARACTERS || _currEvent == CDATA) {
             String text = getText();
             for (int i = 0, len = text.length(); i < len; ++i) {
                 /* !!! If xml 1.1 was to be handled, should check for
@@ -756,13 +756,13 @@ public abstract class DOMWrappingReader
             }
             return true;
         }
-        return (mCurrEvent == SPACE);
+        return (_currEvent == SPACE);
     }
     
     public void require(int type, String nsUri, String localName)
         throws XMLStreamException
     {
-        int curr = mCurrEvent;
+        int curr = _currEvent;
 
         /* There are some special cases; specifically, SPACE and CDATA
          * are sometimes reported as CHARACTERS. Let's be lenient by
@@ -785,7 +785,7 @@ public abstract class DOMWrappingReader
         if (localName != null) {
             if (curr != START_ELEMENT && curr != END_ELEMENT
                 && curr != ENTITY_REFERENCE) {
-                throwStreamException("Required a non-null local name, but current token not a START_ELEMENT, END_ELEMENT or ENTITY_REFERENCE (was "+Stax2Util.eventTypeDesc(mCurrEvent)+")");
+                throwStreamException("Required a non-null local name, but current token not a START_ELEMENT, END_ELEMENT or ENTITY_REFERENCE (was "+Stax2Util.eventTypeDesc(_currEvent)+")");
             }
             String n = getLocalName();
             if (n != localName && !n.equals(localName)) {
@@ -822,31 +822,31 @@ public abstract class DOMWrappingReader
     public int next()
         throws XMLStreamException
     {
-        mCoalescedText = null;
+        _coalescedText = null;
 
         /* For most events, we just need to find the next sibling; and
          * that failing, close the parent element. But there are couple
          * of special cases, which are handled first:
          */
-        switch (mCurrEvent) {
+        switch (_currEvent) {
 
         case START_DOCUMENT: // initial state
             /* What to do here depends on what kind of node we started
              * with...
              */
-            switch (mCurrNode.getNodeType()) {
+            switch (_currNode.getNodeType()) {
             case Node.DOCUMENT_NODE:
             case Node.DOCUMENT_FRAGMENT_NODE:
                 // For doc, fragment, need to find first child
-                mCurrNode = mCurrNode.getFirstChild();
+                _currNode = _currNode.getFirstChild();
                 break;
 
             case Node.ELEMENT_NODE:
                 // For element, curr node is fine:
-                return (mCurrEvent = START_ELEMENT);
+                return (_currEvent = START_ELEMENT);
 
             default:
-                throw new XMLStreamException("Internal error: unexpected DOM root node type "+mCurrNode.getNodeType()+" for node '"+mCurrNode+"'");
+                throw new XMLStreamException("Internal error: unexpected DOM root node type "+_currNode.getNodeType()+" for node '"+_currNode+"'");
             }
             break;
             
@@ -854,39 +854,39 @@ public abstract class DOMWrappingReader
             throw new java.util.NoSuchElementException("Can not call next() after receiving END_DOCUMENT");
             
         case START_ELEMENT: // element returned, need to traverse children, if any
-            ++mDepth;
-            mAttrList = null; // so it will not get reused accidentally
+            ++_depth;
+            _attrList = null; // so it will not get reused accidentally
             {
-                Node firstChild = mCurrNode.getFirstChild();
+                Node firstChild = _currNode.getFirstChild();
                 if (firstChild == null) { // empty? need to return virtual END_ELEMENT
                     /* Note: need not clear namespace declarations, because
                      * it'll be the same as for the start elem!
                      */
-                    return (mCurrEvent = END_ELEMENT);
+                    return (_currEvent = END_ELEMENT);
                 }
-                mNsDeclList = null;
+                _nsDeclList = null;
 
                 /* non-empty is easy: let's just swap curr node, and
                  * fall through to regular handling
                  */
-                mCurrNode = firstChild;
+                _currNode = firstChild;
                 break;
             }
 
         case END_ELEMENT:
             
-            --mDepth;
+            --_depth;
             // Need to clear these lists
-            mAttrList = null;
-            mNsDeclList = null;
+            _attrList = null;
+            _nsDeclList = null;
 
             /* One special case: if we hit the end of children of
              * the root element (when tree constructed with Element,
              * instead of Document or DocumentFragment). If so, it'll
              * be END_DOCUMENT:
              */
-            if (mCurrNode == mRootNode) {
-                return (mCurrEvent = END_DOCUMENT);
+            if (_currNode == _rootNode) {
+                return (_currEvent = END_DOCUMENT);
             }
             // Otherwise need to fall through to default handling:
 
@@ -895,59 +895,59 @@ public abstract class DOMWrappingReader
              * following sibling.
              */
             {
-                Node next = mCurrNode.getNextSibling();
+                Node next = _currNode.getNextSibling();
                 // If sibling, let's just assign and fall through
                 if (next != null) {
-                    mCurrNode = next;
+                    _currNode = next;
                     break;
                 }
-                /* Otherwise, need to climb up the stack and either
+                /* Otherwise, need to climb up _the stack and either
                  * return END_ELEMENT (if parent is element) or
                  * END_DOCUMENT (if not; needs to be root, then)
                  */
-                mCurrNode = mCurrNode.getParentNode();
-                int type = mCurrNode.getNodeType();
+                _currNode = _currNode.getParentNode();
+                int type = _currNode.getNodeType();
                 if (type == Node.ELEMENT_NODE) {
-                    return (mCurrEvent = END_ELEMENT);
+                    return (_currEvent = END_ELEMENT);
                 }
                 // Let's do sanity check; should really be Doc/DocFragment
-                if (mCurrNode != mRootNode ||
+                if (_currNode != _rootNode ||
                     (type != Node.DOCUMENT_NODE && type != Node.DOCUMENT_FRAGMENT_NODE)) {
                     throw new XMLStreamException("Internal error: non-element parent node ("+type+") that is not the initial root node");
                 }
-                return (mCurrEvent = END_DOCUMENT);
+                return (_currEvent = END_DOCUMENT);
             }
         }
 
         // Ok, need to determine current node type:
-        switch (mCurrNode.getNodeType()) {
+        switch (_currNode.getNodeType()) {
         case Node.CDATA_SECTION_NODE:
-            if (mCoalescing) {
+            if (_coalescing) {
                 coalesceText(CDATA);
             } else {
-                mCurrEvent = CDATA;
+                _currEvent = CDATA;
             }
             break;
         case Node.COMMENT_NODE:
-            mCurrEvent = COMMENT;
+            _currEvent = COMMENT;
             break;
         case Node.DOCUMENT_TYPE_NODE:
-            mCurrEvent = DTD;
+            _currEvent = DTD;
             break;
         case Node.ELEMENT_NODE:
-            mCurrEvent = START_ELEMENT;
+            _currEvent = START_ELEMENT;
             break;
         case Node.ENTITY_REFERENCE_NODE:
-            mCurrEvent = ENTITY_REFERENCE;
+            _currEvent = ENTITY_REFERENCE;
             break;
         case Node.PROCESSING_INSTRUCTION_NODE:
-            mCurrEvent = PROCESSING_INSTRUCTION;
+            _currEvent = PROCESSING_INSTRUCTION;
             break;
         case Node.TEXT_NODE:
-            if (mCoalescing) {
+            if (_coalescing) {
                 coalesceText(CHARACTERS);
             } else {
-                mCurrEvent = CHARACTERS;
+                _currEvent = CHARACTERS;
             }
             break;
 
@@ -955,13 +955,13 @@ public abstract class DOMWrappingReader
         case Node.ATTRIBUTE_NODE:
         case Node.ENTITY_NODE:
         case Node.NOTATION_NODE:
-            throw new XMLStreamException("Internal error: unexpected DOM node type "+mCurrNode.getNodeType()+" (attr/entity/notation?), for node '"+mCurrNode+"'");
+            throw new XMLStreamException("Internal error: unexpected DOM node type "+_currNode.getNodeType()+" (attr/entity/notation?), for node '"+_currNode+"'");
 
         default:
-            throw new XMLStreamException("Internal error: unrecognized DOM node type "+mCurrNode.getNodeType()+", for node '"+mCurrNode+"'");
+            throw new XMLStreamException("Internal error: unrecognized DOM node type "+_currNode.getNodeType()+", for node '"+_currNode+"'");
         }
 
-        return mCurrEvent;
+        return _currEvent;
     }
 
     public int nextTag()
@@ -1018,9 +1018,9 @@ public abstract class DOMWrappingReader
          */
         /*
         if (prefix.length() == 0) { // def NS
-            return mCurrNode.lookupNamespaceURI(null);
+            return _currNode.lookupNamespaceURI(null);
         }
-        return mCurrNode.lookupNamespaceURI(prefix);
+        return _currNode.lookupNamespaceURI(prefix);
         */
         return null;
     }
@@ -1031,9 +1031,9 @@ public abstract class DOMWrappingReader
          *   i.e. require JDK 1.5 or higher
          */
         /*
-        String prefix = mCurrNode.lookupPrefix(namespaceURI);
+        String prefix = _currNode.lookupPrefix(namespaceURI);
         if (prefix == null) { // maybe default NS?
-            String defURI = mCurrNode.lookupNamespaceURI(null);
+            String defURI = _currNode.lookupNamespaceURI(null);
             if (defURI != null && defURI.equals(namespaceURI)) {
                 return "";
             }
@@ -1177,22 +1177,22 @@ public abstract class DOMWrappingReader
     public int readElementAsArray(TypedArrayDecoder tad) throws XMLStreamException
     {
         /* Otherwise either we are just starting (START_ELEMENT), or
-         * have collected all the stuff into mTextBuffer.
+         * have collected all the stuff into _textBuffer.
          */
-        if (mCurrEvent == START_ELEMENT) {
+        if (_currEvent == START_ELEMENT) {
             // One special case, no children:
-            Node fc  = mCurrNode.getFirstChild();
+            Node fc  = _currNode.getFirstChild();
             if (fc == null) {
-                mCurrEvent = END_ELEMENT;
+                _currEvent = END_ELEMENT;
                 return -1;
             }
-            mCoalescedText = coalesceTypedText(fc);
-            mCurrEvent = CHARACTERS;
-            mCurrNode = mCurrNode.getLastChild();
+            _coalescedText = coalesceTypedText(fc);
+            _currEvent = CHARACTERS;
+            _currNode = _currNode.getLastChild();
         } else {
-            if (mCurrEvent != CHARACTERS && mCurrEvent != CDATA) {
+            if (_currEvent != CHARACTERS && _currEvent != CDATA) {
                 // Maybe we are already done?
-                if (mCurrEvent == END_ELEMENT) {
+                if (_currEvent == END_ELEMENT) {
                     return -1;
                 }
                 reportWrongState(ERR_STATE_NOT_TEXTUAL_OR_ELEM);
@@ -1203,7 +1203,7 @@ public abstract class DOMWrappingReader
              * use case as per Typed Access API definition (as it can not
              * be reliably supported by all implementations), so:
              */
-            if (mCoalescedText == null) {
+            if (_coalescedText == null) {
                 throw new IllegalStateException("First call to readElementAsArray() must be for a START_ELEMENT, not directly for a textual event");
             }
         }
@@ -1211,7 +1211,7 @@ public abstract class DOMWrappingReader
          * child node, and fake that it was a textual node
          */
         // Ok, so what do we have left?
-        String input = mCoalescedText;
+        String input = _coalescedText;
         final int end = input.length();
         int ptr = 0;
         int count = 0;
@@ -1250,12 +1250,12 @@ public abstract class DOMWrappingReader
             throw new TypedXMLStreamException(value, iae.getMessage(), loc, iae);
         } finally {
             int len = end-ptr;
-            mCoalescedText = (len < 1) ? "" : input.substring(ptr);
+            _coalescedText = (len < 1) ? "" : input.substring(ptr);
         }
 
         if (count < 1) { // end
-            mCurrEvent = END_ELEMENT;
-            mCurrNode = mCurrNode.getParentNode();
+            _currEvent = END_ELEMENT;
+            _currNode = _currNode.getParentNode();
             return -1;
         }
         return count;
@@ -1268,8 +1268,8 @@ public abstract class DOMWrappingReader
          * text up end tag, but can not advance to END_ELEMENT
          * event itself (except if there is no content)
          */
-        mTextBuffer.reset();
-        mAttrList = null; // so it will not get reused accidentally
+        _textBuffer.reset();
+        _attrList = null; // so it will not get reused accidentally
         
         for (Node n = firstNode; n != null; n = n.getNextSibling()) {
             switch (n.getNodeType()) {
@@ -1278,7 +1278,7 @@ public abstract class DOMWrappingReader
                 throwStreamException("Element content can not contain child START_ELEMENT when using Typed Access methods");
             case Node.CDATA_SECTION_NODE:
             case Node.TEXT_NODE:
-                mTextBuffer.append(n.getNodeValue());
+                _textBuffer.append(n.getNodeValue());
                 break;
                 
             case Node.COMMENT_NODE:
@@ -1290,7 +1290,7 @@ public abstract class DOMWrappingReader
                 throwStreamException("Unexpected DOM node type ("+n.getNodeType()+") when trying to decode Typed content");
             }
         }
-        return mTextBuffer.get();
+        return _textBuffer.get();
     }
 
     /*
@@ -1321,7 +1321,7 @@ public int readElementAsBinary(Base64Variant v, byte[] resultBuffer, int offset,
             throw new IllegalArgumentException("Illegal maxLength ("+maxLength+"), has to be positive number, and offset+maxLength can not exceed"+resultBuffer.length);
         }
 
-        int type = mCurrEvent;
+        int type = _currEvent;
         // First things first: must be acceptable start state:
         if (((1 << type) & MASK_TYPED_ACCESS_BINARY) == 0) {
             if (type == END_ELEMENT) {
@@ -1367,8 +1367,10 @@ public int readElementAsBinary(Base64Variant v, byte[] resultBuffer, int offset,
             totalCount += count;
             maxLength -= count;
 
-            // And if we filled the buffer we are done
-            if (maxLength < 1) {
+            /* And if we filled the buffer we are done. Or, an edge
+             * case: reached END_ELEMENT (for non-padded variant)
+             */
+            if (maxLength < 1 || _currEvent == END_ELEMENT) {
                 break;
             }
             // Otherwise need to advance to the next event
@@ -1379,13 +1381,19 @@ public int readElementAsBinary(Base64Variant v, byte[] resultBuffer, int offset,
                     continue;
                 }
                 if (type == END_ELEMENT) {
-                    /* just need to verify we don't have partial stuff
+                    /* Just need to verify we don't have partial stuff
                      * (missing one to three characters of a full quartet
-                     * that encodes 1 - 3 bytes)
+                     * that encodes 1 - 3 bytes). Also: non-padding
+                     * variants can be in incomplete state, from which
+                     * data may need to be flushed...
                      */
-                    if (!dec.okToGetEndElement()) {
+                    int left = dec.endOfContent();
+                    if (left < 0) { // incomplete, error
                         throw _constructTypeException("Incomplete base64 triplet at the end of decoded content", "");
+                    } else if (left > 0) { // 1 or 2 more bytes of data, loop some more
+                        continue main_loop;
                     }
+                    // Otherwise, no more data, we are done
                     break main_loop;
                 }
                 if (((1 << type) & MASK_GET_ELEMENT_TEXT) == 0) {
@@ -1612,7 +1620,7 @@ public int readElementAsBinary(Base64Variant v, byte[] resultBuffer, int offset,
 
     public void skipElement() throws XMLStreamException
     {
-        if (mCurrEvent != START_ELEMENT) {
+        if (_currEvent != START_ELEMENT) {
             reportWrongState(ERR_STATE_NOT_START_ELEM);
         }
         int nesting = 1; // need one more end elements than start elements
@@ -1633,7 +1641,7 @@ public int readElementAsBinary(Base64Variant v, byte[] resultBuffer, int offset,
 
     public AttributeInfo getAttributeInfo() throws XMLStreamException
     {
-        if (mCurrEvent != START_ELEMENT) {
+        if (_currEvent != START_ELEMENT) {
             reportWrongState(ERR_STATE_NOT_START_ELEM);
         }
         return this;
@@ -1645,10 +1653,10 @@ public int readElementAsBinary(Base64Variant v, byte[] resultBuffer, int offset,
 
     public int findAttributeIndex(String nsURI, String localName)
     {
-        if (mCurrEvent != START_ELEMENT) {
+        if (_currEvent != START_ELEMENT) {
             reportWrongState(ERR_STATE_NOT_START_ELEM);
         }
-        Element elem = (Element) mCurrNode;
+        Element elem = (Element) _currNode;
         NamedNodeMap attrs = elem.getAttributes();
         if (nsURI != null && nsURI.length() == 0) {
             nsURI = null;
@@ -1703,7 +1711,7 @@ public int readElementAsBinary(Base64Variant v, byte[] resultBuffer, int offset,
         /* Let's not allow it to be accessed during other events -- that
          * way callers won't count on it being available afterwards.
          */
-        if (mCurrEvent != DTD) {
+        if (_currEvent != DTD) {
             return null;
         }
         return this;
@@ -1757,7 +1765,7 @@ public int readElementAsBinary(Base64Variant v, byte[] resultBuffer, int offset,
      *  prolog/epilog, 1 inside root element and so on.
      */
     public int getDepth() {
-        return mDepth;
+        return _depth;
     }
 
     /**
@@ -1783,12 +1791,12 @@ public int readElementAsBinary(Base64Variant v, byte[] resultBuffer, int offset,
 
     public String getPrefixedName()
     {
-        switch (mCurrEvent) {
+        switch (_currEvent) {
         case START_ELEMENT:
         case END_ELEMENT:
             {
-                String prefix = mCurrNode.getPrefix();
-                String ln = _safeGetLocalName(mCurrNode);
+                String prefix = _currNode.getPrefix();
+                String ln = _safeGetLocalName(_currNode);
 
                 if (prefix == null) {
                     return _internName(ln);
@@ -1807,7 +1815,7 @@ public int readElementAsBinary(Base64Variant v, byte[] resultBuffer, int offset,
             return getDTDRootName();
 
         }
-        throw new IllegalStateException("Current state ("+Stax2Util.eventTypeDesc(mCurrEvent)+") not START_ELEMENT, END_ELEMENT, ENTITY_REFERENCE, PROCESSING_INSTRUCTION or DTD");
+        throw new IllegalStateException("Current state ("+Stax2Util.eventTypeDesc(_currEvent)+") not START_ELEMENT, END_ELEMENT, ENTITY_REFERENCE, PROCESSING_INSTRUCTION or DTD");
     }
 
     public void closeCompletely() throws XMLStreamException
@@ -1826,22 +1834,22 @@ public int readElementAsBinary(Base64Variant v, byte[] resultBuffer, int offset,
     }
 
     public String getDTDRootName() {
-        if (mCurrEvent == DTD) {
-            return _internName(((DocumentType) mCurrNode).getName());
+        if (_currEvent == DTD) {
+            return _internName(((DocumentType) _currNode).getName());
         }
         return null;
     }
 
     public String getDTDPublicId() {
-        if (mCurrEvent == DTD) {
-            return ((DocumentType) mCurrNode).getPublicId();
+        if (_currEvent == DTD) {
+            return ((DocumentType) _currNode).getPublicId();
         }
         return null;
     }
 
     public String getDTDSystemId() {
-        if (mCurrEvent == DTD) {
-            return ((DocumentType) mCurrNode).getSystemId();
+        if (_currEvent == DTD) {
+            return ((DocumentType) _currNode).getSystemId();
         }
         return null;
     }
@@ -1956,22 +1964,22 @@ public int readElementAsBinary(Base64Variant v, byte[] resultBuffer, int offset,
 
     protected void coalesceText(int initialType)
     {
-        mTextBuffer.reset();
-        mTextBuffer.append(mCurrNode.getNodeValue());
+        _textBuffer.reset();
+        _textBuffer.append(_currNode.getNodeValue());
 
         Node n;
-        while ((n = mCurrNode.getNextSibling()) != null) {
+        while ((n = _currNode.getNextSibling()) != null) {
             int type = n.getNodeType();
             if (type != Node.TEXT_NODE && type != Node.CDATA_SECTION_NODE) {
                 break;
             }
-            mCurrNode = n;
-            mTextBuffer.append(mCurrNode.getNodeValue());
+            _currNode = n;
+            _textBuffer.append(_currNode.getNodeValue());
         }
-        mCoalescedText = mTextBuffer.get();
+        _coalescedText = _textBuffer.get();
 
         // Either way, type gets always set to be CHARACTERS
-        mCurrEvent = CHARACTERS;
+        _currEvent = CHARACTERS;
     }
 
     /*
@@ -1992,21 +2000,21 @@ public int readElementAsBinary(Base64Variant v, byte[] resultBuffer, int offset,
      */
     private void _calcNsAndAttrLists(boolean attrsToo)
     {
-        NamedNodeMap attrsIn = mCurrNode.getAttributes();
+        NamedNodeMap attrsIn = _currNode.getAttributes();
 
         // A common case: neither attrs nor ns decls, can use short-cut
         int len = attrsIn.getLength();
         if (len == 0) {
-            mAttrList = mNsDeclList = Collections.EMPTY_LIST;
+            _attrList = _nsDeclList = Collections.EMPTY_LIST;
             return;
         }
 
-        if (!mNsAware) {
-            mAttrList = new ArrayList(len);
+        if (!_cfgNsAware) {
+            _attrList = new ArrayList(len);
             for (int i = 0; i < len; ++i) {
-                mAttrList.add(attrsIn.item(i));
+                _attrList.add(attrsIn.item(i));
             }
-            mNsDeclList = Collections.EMPTY_LIST;
+            _nsDeclList = Collections.EMPTY_LIST;
             return;
         }
 
@@ -2050,13 +2058,13 @@ public int readElementAsBinary(Base64Variant v, byte[] resultBuffer, int offset,
             nsOut.add(_internNsURI(attr.getNodeValue()));
         }
 
-        mAttrList = (attrsOut == null) ? Collections.EMPTY_LIST : attrsOut;
-        mNsDeclList = (nsOut == null) ? Collections.EMPTY_LIST : nsOut;
+        _attrList = (attrsOut == null) ? Collections.EMPTY_LIST : attrsOut;
+        _nsDeclList = (nsOut == null) ? Collections.EMPTY_LIST : nsOut;
     }
 
     private void handleIllegalAttrIndex(int index)
     {
-        Element elem = (Element) mCurrNode;
+        Element elem = (Element) _currNode;
         NamedNodeMap attrs = elem.getAttributes();
         int len = attrs.getLength();
         String msg = "Illegal attribute index "+index+"; element <"+elem.getNodeName()+"> has "+((len == 0) ? "no" : String.valueOf(len))+" attributes";
@@ -2093,13 +2101,13 @@ public int readElementAsBinary(Base64Variant v, byte[] resultBuffer, int offset,
 
     protected void reportWrongState(int errorType)
     {
-        throw new IllegalStateException(findErrorDesc(errorType, mCurrEvent));
+        throw new IllegalStateException(findErrorDesc(errorType, _currEvent));
     }
 
     protected void reportParseProblem(int errorType)
         throws XMLStreamException
     {
-        throwStreamException(findErrorDesc(errorType, mCurrEvent));
+        throwStreamException(findErrorDesc(errorType, _currEvent));
     }
 
     protected void throwStreamException(String msg)
@@ -2155,10 +2163,10 @@ public int readElementAsBinary(Base64Variant v, byte[] resultBuffer, int offset,
 
     protected ValueDecoderFactory _decoderFactory()
     {
-        if (mDecoderFactory == null) {
-            mDecoderFactory = new ValueDecoderFactory();
+        if (_decoderFactory == null) {
+            _decoderFactory = new ValueDecoderFactory();
         }
-        return mDecoderFactory;
+        return _decoderFactory;
     }
 
     protected StringBase64Decoder _base64Decoder()
@@ -2207,7 +2215,7 @@ public int readElementAsBinary(Base64Variant v, byte[] resultBuffer, int offset,
         if (name == null) {
             return "";
         }
-        return mInternNames ? name.intern() : name;
+        return _cfgInternNames ? name.intern() : name;
     }
 
     protected String _internNsURI(String uri)
@@ -2215,7 +2223,7 @@ public int readElementAsBinary(Base64Variant v, byte[] resultBuffer, int offset,
         if (uri == null) {
             return "";
         }
-        return mInternNsURIs ? uri.intern() : uri;
+        return _cfgInternNsURIs ? uri.intern() : uri;
     }
 }
 
