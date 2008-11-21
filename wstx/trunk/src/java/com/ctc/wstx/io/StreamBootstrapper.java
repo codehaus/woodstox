@@ -189,9 +189,9 @@ public final class StreamBootstrapper
                 if (mFoundEncoding == null || mFoundEncoding.length() == 0) {
                     reportXmlProblem("Missing encoding declaration: underlying encoding looks like an EBCDIC variant, but no xml encoding declaration found");
                 }
-            }
-
-            if (mBytesPerChar == 2) { // UTF-16, BE/LE
+                // Hmmh. What should be the canonical name? Let's just use found encoding?
+                normEnc = mFoundEncoding;
+            } else if (mBytesPerChar == 2) { // UTF-16, BE/LE
                 normEnc = mBigEndian ? CharsetNames.CS_UTF16BE : CharsetNames.CS_UTF16LE;
             } else if (mBytesPerChar == 4) { // UCS-4... ?
                 /* 22-Mar-2005, TSa: JDK apparently has no way of dealing
