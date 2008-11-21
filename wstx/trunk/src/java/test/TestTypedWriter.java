@@ -36,11 +36,19 @@ public class TestTypedWriter
         sw.writeStartElement("root");
         //sw.writeCharacters("\n");
 
+        sw.writeBinaryAttribute(Base64Variants.
+                                //MIME
+                                //MIME_NO_LINEFEEDS
+                                MODIFIED_FOR_URL
+                                , null, null, "attr", data);
+
+        /*
         sw.writeBinary(Base64Variants.
                        //MIME
                        MODIFIED_FOR_URL
                        //PEM
                        , data, 0, data.length);
+        */
 
         sw.writeEndElement();
         sw.writeCharacters("\n");

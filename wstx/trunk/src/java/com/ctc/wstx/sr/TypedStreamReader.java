@@ -425,19 +425,19 @@ public class TypedStreamReader
             throw new IllegalArgumentException("Illegal maxLength ("+maxLength+"), has to be positive number, and offset+maxLength can not exceed"+resultBuffer.length);
         }
 
+        final CharArrayBase64Decoder dec = _base64Decoder();
         int type = mCurrToken;
         // First things first: must be acceptable start state:
         if (((1 << type) & MASK_TYPED_ACCESS_BINARY) == 0) {
             if (type == END_ELEMENT) {
-                return -1;
+                // Minor complication: may have unflushed stuff (non-padded versions)
+                if (!dec.hasData()) {
+                    return -1;
+                }
+            } else {
+                throwNotTextualOrElem(type);
             }
-            throwNotTextualOrElem(type);
-        }
-
-        final CharArrayBase64Decoder dec = _base64Decoder();
-
-        // Are we just starting (START_ELEMENT)?
-        if (type == START_ELEMENT) {
+        } else if (type == START_ELEMENT) { // just starting (START_ELEMENT)?
             if (mStEmptyElem) { // empty element? simple...
                 mStEmptyElem = false;
                 mCurrToken = END_ELEMENT;

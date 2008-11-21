@@ -28,6 +28,8 @@ Description:
   * [WSTX-150] Add stream reader AND writer delegates for Stax2.
   * [WSTX-151] Generic typed access methods (getElementAs(), getAttributeAs())
     added to TypedXMLStreamReader.
+  * [WSTX-152] Add OSGi headers to the jar manifest.
+    (requested by Romain D)
   * [WSTX-157] Add XMLReporter2 to allow for extended access to
     information about non-fatal problems (including validation probs)
   * [WSTX-163] Add XMLStreamWriter2.closeCompletely()
@@ -40,6 +42,9 @@ Description:
   * [WSTX-167] Add new property (WstxOutputProperties.P_OUTPUT_INVALID_CHAR_HANDLER)
     which can be used to replace invalid characters (such as Ascii control
     characters) from within content to output.
+  * [WSTX-169] Add support for alternative (non-standard) Base64 encoding
+    variants.
+  * [WSTX-175] Add OSGi support for bundled MSV jars.
 
 == History: ==
 

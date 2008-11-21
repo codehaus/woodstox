@@ -149,6 +149,16 @@ public final class Base64Variant
 
     /**
      * "Copy constructor" that can be used when the base alphabet is identical
+     * to one used by another variant except for the maximum line length
+     * (and obviously, name).
+     */
+    public Base64Variant(Base64Variant base, String name, int maxLineLength)
+    {
+        this(base, name, base._usesPadding, base._paddingChar, maxLineLength);
+    }
+
+    /**
+     * "Copy constructor" that can be used when the base alphabet is identical
      * to one used by another variant, but other details (padding, maximum
      * line length) differ
      */

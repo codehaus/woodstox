@@ -349,16 +349,19 @@ public class Stax2ReaderAdapter
             throw new IllegalArgumentException("Illegal maxLength ("+maxLength+"), has to be positive number, and offset+maxLength can not exceed"+resultBuffer.length);
         }
 
+        final StringBase64Decoder dec = _base64Decoder();
         int type = getEventType();
         // First things first: must be acceptable start state:
         if (((1 << type) & MASK_TYPED_ACCESS_BINARY) == 0) {
             if (type == END_ELEMENT) {
-                return -1;
+                // Minor complication: may have unflushed stuff (non-padded versions)
+                if (!dec.hasData()) {
+                    return -1;
+                }
+            } else {
+                throwNotStartElemOrTextual(type);
             }
-            throwNotStartElemOrTextual(type);
         }
-
-        final StringBase64Decoder dec = _base64Decoder();
 
         // Are we just starting (START_ELEMENT)?
         if (type == START_ELEMENT) {

@@ -33,10 +33,10 @@ public class TestBase64Reader
 +"dWVkIGFuZCBpbmRlZmF0aWdhYmxlIGdlbmVyYXRpb24gb2Yga25vd2xlZGdlLCBleGNlZWRzIHRo\n"
 +"ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4="
             */
-            "cw"
+            "abc"
             +"</root>";
 
-        final int CHUNK_LEN = 7;
+        final int CHUNK_LEN = 1;
         byte[] buffer = new byte[CHUNK_LEN];
 
         TypedXMLStreamReader sr = (TypedXMLStreamReader) f.createXMLStreamReader(new StringReader(xml));

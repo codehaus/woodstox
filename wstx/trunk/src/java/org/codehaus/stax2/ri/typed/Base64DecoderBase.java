@@ -135,6 +135,15 @@ abstract class Base64DecoderBase
         throws IllegalArgumentException;
 
     /**
+     * Method that can be called to check if this decoder is in has unflushed
+     * data ready to be returned.
+     */
+    public final boolean hasData()
+    {
+        return (_state >= STATE_OUTPUT_3) && (_state <= STATE_OUTPUT_1);
+    }
+
+    /**
      * Method called to indicate that we have no more encoded content to
      * process, and decoding is to finish. Depending base64 variant in
      * use, this means one of three things:

@@ -376,5 +376,10 @@ Arash Amiri:
 Ian Brandt:
   * [WSTX-165] Add property (WstxOutputProperties.P_AUTOMATIC_END_ELEMENTS)
     to allow enabling/disabling automatic addition of end elements
-    when closing stream writer 
+    when closing stream writer.
     [3.2.8 / 4.0.0]
+
+Romain Deltour:
+  * Requested [WTSX-152], suggested a way to solve it: Add OSGi headers to
+    the jar manifest.
+    [4.0.0]

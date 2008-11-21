@@ -36,8 +36,34 @@ public final class Base64Variants
         MIME = new Base64Variant("MIME", STD_BASE64_ALPHABET, true, '=', 76);
     }
 
+    /**
+     * Slightly non-standard modification of {@link #MIME} which does not
+     * use linefeeds (max line length set to infinite). Useful when linefeeds
+     * wouldn't work well (possibly in attributes), or for minor space savings
+     * (save 1 linefeed per 76 data chars, ie. ~1.4% savings).
+     */
+    public final static Base64Variant MIME_NO_LINEFEEDS;
+    static {
+        MIME_NO_LINEFEEDS = new Base64Variant(MIME, "MIME-NO-LINEFEEDS", Integer.MAX_VALUE);
+    }
+
+    /**
+     * This variant is the one that predates {@link #MIME}: it is otherwise
+     * identical, except that it mandates shorter line length.
+     */
     public final static Base64Variant PEM = new Base64Variant(MIME, "PEM", true, '=', 64);
 
+    /**
+     * This non-standard variant is usually used when encoded data needs to be
+     * passed via URLs (such as part of GET request). It differs from the
+     * base {@link #MIME} variant in multiple ways.
+     * First, no padding is used: this also means that it generally can not
+     * be written in multiple separate but adjacent chunks (which would not
+     * be the usual use case in any case). Also, no linefeeds are used (max
+     * line length set to infinite). And finally, two characters (plus and
+     * slash) that would need quoting in URLs are replaced with more
+     * optimal alternatives (hyphen and underscore, respectively).
+     */
     public final static Base64Variant MODIFIED_FOR_URL;
     static {
         StringBuffer sb = new StringBuffer(STD_BASE64_ALPHABET);

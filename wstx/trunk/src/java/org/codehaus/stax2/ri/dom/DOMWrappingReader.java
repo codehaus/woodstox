@@ -1321,16 +1321,19 @@ public int readElementAsBinary(Base64Variant v, byte[] resultBuffer, int offset,
             throw new IllegalArgumentException("Illegal maxLength ("+maxLength+"), has to be positive number, and offset+maxLength can not exceed"+resultBuffer.length);
         }
 
+        final StringBase64Decoder dec = _base64Decoder();
         int type = _currEvent;
         // First things first: must be acceptable start state:
         if (((1 << type) & MASK_TYPED_ACCESS_BINARY) == 0) {
             if (type == END_ELEMENT) {
-                return -1;
+                // Minor complication: may have unflushed stuff (non-padded versions)
+                if (!dec.hasData()) {
+                    return -1;
+                }
+            } else {
+                reportWrongState(ERR_STATE_NOT_TEXTUAL_OR_ELEM);
             }
-            reportWrongState(ERR_STATE_NOT_TEXTUAL_OR_ELEM);
         }
-
-        final StringBase64Decoder dec = _base64Decoder();
 
         // Are we just starting (START_ELEMENT)?
         if (type == START_ELEMENT) {
