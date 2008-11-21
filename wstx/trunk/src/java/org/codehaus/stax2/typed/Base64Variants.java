@@ -33,10 +33,10 @@ public final class Base64Variants
      */
     public final static Base64Variant MIME;
     static {
-        MIME = new Base64Variant(STD_BASE64_ALPHABET, true, '=', 76);
+        MIME = new Base64Variant("MIME", STD_BASE64_ALPHABET, true, '=', 76);
     }
 
-    public final static Base64Variant PEM = new Base64Variant(MIME, true, '=', 64);
+    public final static Base64Variant PEM = new Base64Variant(MIME, "PEM", true, '=', 64);
 
     public final static Base64Variant MODIFIED_FOR_URL;
     static {
@@ -47,7 +47,7 @@ public final class Base64Variants
         /* And finally, let's not split lines either, wouldn't work too
          * well with URLs
          */
-        MODIFIED_FOR_URL = new Base64Variant(sb.toString(), false, Base64Variant.PADDING_CHAR_NONE, Integer.MAX_VALUE);
+        MODIFIED_FOR_URL = new Base64Variant("MODIFIED-FOR-URL", sb.toString(), false, Base64Variant.PADDING_CHAR_NONE, Integer.MAX_VALUE);
     }
 
     /**

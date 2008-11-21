@@ -286,13 +286,13 @@ public abstract class ReaderBinaryTestBase
                     assertEquals(1, count);
                     if ((ptr+1) < dataLen) {
                         if (data[ptr] != buffer[2]) {
-                            fail("Corrupt decode at #"+ptr+"/"+dataLen+", expected "+displayByte(data[ptr])+", got "+displayByte(buffer[2]));
+                            fail("(base64 variant "+b64variant+") Corrupt decode at #"+ptr+"/"+dataLen+", expected "+displayByte(data[ptr])+", got "+displayByte(buffer[2]));
                         }
                     }
                     ++ptr;
                 }
                 if (ptr != dataLen) {
-                    fail("Expected to get "+dataLen+" bytes, got "+ptr);
+                    fail("(base64 variant "+b64variant+") Expected to get "+dataLen+" bytes, got "+ptr);
                 }
             }
             break;
@@ -308,7 +308,7 @@ public abstract class ReaderBinaryTestBase
                 assertEquals(dataLen, count);
                 for (int i = 0; i < dataLen; ++i) {
                     if (buffer[3+i] != data[i]) {
-                        fail("Corrupt decode at #"+i+", expected "+displayByte(data[i])+", got "+displayByte(buffer[3+i]));
+                        fail("(base64 variant "+b64variant+") Corrupt decode at #"+i+", expected "+displayByte(data[i])+", got "+displayByte(buffer[3+i]));
                     }
                 }
             }
@@ -320,7 +320,7 @@ public abstract class ReaderBinaryTestBase
                 assertEquals(dataLen, result.length);
                 for (int i = 0; i < dataLen; ++i) {
                     if (result[i] != data[i]) {
-                        fail("Corrupt decode at #"+i+", expected "+displayByte(data[i])+", got "+displayByte(result[i]));
+                        fail("(base64 variant "+b64variant+") Corrupt decode at #"+i+", expected "+displayByte(data[i])+", got "+displayByte(result[i]));
                     }
                 }
             }
@@ -346,14 +346,14 @@ public abstract class ReaderBinaryTestBase
                     }
                     for (int i = 0; i < count; ++i) {
                         if (data[ptr+i] != buffer[i]) {
-                            fail("Corrupt decode at #"+(ptr+i)+"/"+dataLen+" (read len: "+len+"; got "+count+"), expected "+displayByte(data[ptr+i])+", got "+displayByte(buffer[i]));
+                            fail("(base64 variant "+b64variant+") Corrupt decode at #"+(ptr+i)+"/"+dataLen+" (read len: "+len+"; got "+count+"), expected "+displayByte(data[ptr+i])+", got "+displayByte(buffer[i]));
                         }
                     }
                     ptr += count;
                 }
                 
                 if (ptr != dataLen) {
-                    fail("Expected "+dataLen+" bytes, got "+ptr);
+                    fail("(base64 variant "+b64variant+") Expected "+dataLen+" bytes, got "+ptr);
                 }
             }
         }
@@ -518,8 +518,13 @@ public abstract class ReaderBinaryTestBase
                     sb.append(buffer, 0, len);
                     sb.append("' />");
                     XMLStreamReader2 sr = getElemReader(sb.toString());
-                    byte[] actData = sr.getAttributeAsBinary(b64variant, 0);
-                    
+                    byte[] actData = null;
+                    try {
+                        actData = sr.getAttributeAsBinary(b64variant, 0);
+                    } catch (TypedXMLStreamException e) {
+                        fail("Failed for variant "+b64variant+", input '"+e.getLexical()+"': "+e.getMessage());
+                    }
+ 
                     assertNotNull(actData);
                     assertEquals(data.length, actData.length);
                     for (int x = 0; x < data.length; ++x) {

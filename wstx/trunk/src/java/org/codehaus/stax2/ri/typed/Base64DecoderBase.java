@@ -154,7 +154,9 @@ abstract class Base64DecoderBase
      */
     public final int endOfContent()
     {
-        if (okToGetEndElement()) { // at valid complete end state, can leave
+        // If we are in a state where we don't have partial triplet, we are good to go
+        if ((_state == STATE_INITIAL) || (_state == STATE_OUTPUT_3)
+            || (_state == STATE_OUTPUT_2) || (_state == STATE_OUTPUT_1)) {
             return 0;
         }
         // Otherwise, only ok if no padding is used
@@ -175,27 +177,6 @@ abstract class Base64DecoderBase
         } else { // other states either handled, or can not be valid terminal states (STATE_VALID1)
             return -1;
         }
-    }
-
-    /**
-     * Method that can be called to check whether decoder state is
-     * such that hitting an END_ELEMENT is acceptable. This is the
-     * case if decoder state is not one where we only have partially
-     * decoded triplet: such as in the initial state, or state
-     * where we are to output bytes (which also implies decoding
-     * for a triplet has succeeded)
-     */
-    private final boolean okToGetEndElement()
-    {
-        /* Note: although it would seem like non-padding variants could
-         * allow end in other states, this is not true: in cases where
-         * partial end is reached, state should be moved to STATE_INITIAL.
-         */
-        return (_state == STATE_INITIAL)
-            || (_state == STATE_OUTPUT_3)
-            || (_state == STATE_OUTPUT_2)
-            || (_state == STATE_OUTPUT_1)
-            ;
     }
 
     /*
@@ -222,8 +203,17 @@ abstract class Base64DecoderBase
                 // note: can return 0; converted to -1 by front-end
                 if (readCount < 1) { // all done!
                     // but we must be in a valid state too:
-                    if (!okToGetEndElement()) {
+                    /* Just need to verify we don't have partial stuff
+                     * (missing one to three characters of a full quartet
+                     * that encodes 1 - 3 bytes). Also: non-padding
+                     * variants can be in incomplete state, from which
+                     * data may need to be flushed...
+                     */
+                    int left = endOfContent();
+                    if (left < 0) { // incomplete, error
                         throw new IllegalArgumentException("Incomplete base64 triplet at the end of decoded content");
+                    } else if (left > 0) { // 1 or 2 more bytes of data to add
+                        continue;
                     }
                     return aggr.aggregateAll(buffer, offset);
                 }

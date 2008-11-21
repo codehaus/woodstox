@@ -87,6 +87,11 @@ public final class Base64Variant
      */
 
     /**
+     * Symbolic name of variant; used for diagnostics/debugging.
+     */
+    final String _name;
+
+    /**
      * Whether this variant uses padding or not.
      */
     final boolean _usesPadding;
@@ -112,8 +117,9 @@ public final class Base64Variant
     ////////////////////////////////////////////////////
      */
 
-    public Base64Variant(String base64Alphabet, boolean usesPadding, char paddingChar, int maxLineLength)
+    public Base64Variant(String name, String base64Alphabet, boolean usesPadding, char paddingChar, int maxLineLength)
     {
+        _name = name;
         _usesPadding = usesPadding;
         _paddingChar = paddingChar;
         _maxLineLength = maxLineLength;
@@ -146,8 +152,9 @@ public final class Base64Variant
      * to one used by another variant, but other details (padding, maximum
      * line length) differ
      */
-    public Base64Variant(Base64Variant base, boolean usesPadding, char paddingChar, int maxLineLength)
+    public Base64Variant(Base64Variant base, String name, boolean usesPadding, char paddingChar, int maxLineLength)
     {
+        _name = name;
         byte[] srcB = base._base64ToAsciiB;
         System.arraycopy(srcB, 0, this._base64ToAsciiB, 0, srcB.length);
         char[] srcC = base._base64ToAsciiC;
@@ -165,6 +172,8 @@ public final class Base64Variant
     // Public accessors
     ////////////////////////////////////////////////////
      */
+
+    public String getName() { return _name; }
 
     public boolean usesPadding() { return _usesPadding; }
     public boolean usesPaddingChar(char c) { return c == _paddingChar; }
@@ -288,5 +297,14 @@ public final class Base64Variant
         }
         return outPtr;
     }
+
+    /*
+    ////////////////////////////////////////////////////
+    // other methods
+    ////////////////////////////////////////////////////
+     */
+
+    // @Override
+    public String toString() { return _name; }
 }
 
