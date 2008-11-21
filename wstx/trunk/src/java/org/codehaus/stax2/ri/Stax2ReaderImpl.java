@@ -24,6 +24,8 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.*;
 
 import org.codehaus.stax2.*;
+import org.codehaus.stax2.typed.Base64Variant;
+import org.codehaus.stax2.typed.Base64Variants;
 import org.codehaus.stax2.typed.TypedArrayDecoder;
 import org.codehaus.stax2.typed.TypedValueDecoder;
 import org.codehaus.stax2.typed.TypedXMLStreamException;
@@ -394,6 +396,14 @@ public abstract class Stax2ReaderImpl
         return dec.getValue();
     }
 
+    public byte[] getElementAsBinary() throws XMLStreamException
+    {
+        return getElementAsBinary(Base64Variants.getDefaultVariant());
+    }
+
+    // !!! TODO: copy code from Stax2ReaderAdapter?
+    public abstract byte[] getElementAsBinary(Base64Variant v) throws XMLStreamException;
+
     public void getElementAs(TypedValueDecoder tvd) throws XMLStreamException
     {
         String value = getElementText();
@@ -445,7 +455,13 @@ public abstract class Stax2ReaderImpl
     ////////////////////////////////////////////////////////
      */
 
-    public abstract int readElementAsBinary(byte[] resultBuffer, int offset, int maxLength)
+    public int readElementAsBinary(byte[] resultBuffer, int offset, int maxLength)
+        throws XMLStreamException
+    {
+        return readElementAsBinary(Base64Variants.getDefaultVariant(), resultBuffer, offset, maxLength);
+    }
+
+    public abstract int readElementAsBinary(Base64Variant b64variant, byte[] resultBuffer, int offset, int maxLength)
         throws XMLStreamException;
 
     /*
@@ -557,6 +573,13 @@ public abstract class Stax2ReaderImpl
      * !!! TODO: should be possible to implement completely
      */
     public abstract int getAttributeAsArray(int index, TypedArrayDecoder tad) throws XMLStreamException;
+
+    public byte[] getAttributeAsBinary(int index) throws XMLStreamException
+    {
+        return getAttributeAsBinary(Base64Variants.getDefaultVariant(), index);
+    }
+
+    public abstract byte[] getAttributeAsBinary(Base64Variant v, int index) throws XMLStreamException;
 
     /*
     ////////////////////////////////////////////////////

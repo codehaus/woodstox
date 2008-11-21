@@ -195,7 +195,6 @@
         <delete dir="${dir.doc}"/>
         <delete dir="${dir.test}"/>
         <delete dir="${dir.dist}"/>
-        <delete file="coverage.ec" />
         <delete file="cobertura.ser" />
     </target>
 

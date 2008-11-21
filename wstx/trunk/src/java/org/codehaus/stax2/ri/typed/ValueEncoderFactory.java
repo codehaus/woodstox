@@ -572,7 +572,7 @@ public final class ValueEncoderFactory
                 outPtr = _variant.encodeBase64Chunk(b24, buffer, outPtr);
 
                 if (--_chunksBeforeLf <= 0) {
-                    buffer[outPtr++] = LF_BYTE;
+                    buffer[outPtr++] = LF_CHAR;
                     _chunksBeforeLf = _variant.getMaxLineLength() >> 2;
                 }
             }

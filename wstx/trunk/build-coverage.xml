@@ -4,17 +4,6 @@
      code coverage analysis
   -->
 <project name="Code coverage tasks for Woodstox" basedir=".">
-    <!-- Enabling support for Emma (http://emma.sourceforge.net) code
-       - coverage library
-      -->
-    <property name="dir.emma" value="${dir.lib}/coverage" />
-    <property name="dir.emma.coverage" value="${dir.build}/coverage" />
-    <path id="emma.lib">
-      <pathelement location="${dir.emma}/emma.jar" />
-      <pathelement location="${dir.emma}/emma_ant.jar" />
-    </path>
-    <property name="dir.classes.emma" location="${dir.build}/emma-classes" />
-    <taskdef resource="emma_ant.properties" classpathref="emma.lib" />
 
     <!-- And/or support for Cobertura code coverage tool -->
     <property name="cobertura.coverage.dir" value="${dir.build}/coverage" />
@@ -23,114 +12,10 @@
     </path>
     <taskdef classpathref="cobertura.lib" resource="tasks.properties" />
 
-    <target name="init.emma" depends="compile.test, prepare-staxtest">
-      <mkdir dir="${dir.emma.coverage}" />
-      <mkdir dir="${dir.classes.emma}" />
-    </target>
+    <target name="build.coverage" depends="build.coverage.cobertura" />
 
-    <target name="build.coverage.emma" depends="init.emma">
-      <!-- First, need to instrument using Emma -->
-      <property name="emma.instr.dir" value="${dir.build}/emma-instr" />
-      <!-- 20-Dec-2005, TSa: How the hell do I exclude specific sub-dirs
-         -    from being instrumented? Ugh. There has to be a way... but
-         -    so far nothing has worked to just exclude test.* classes.
-         -
-         -    Will probably just need to copy the real classes to a temporary
-         -    location to make it work
-        --> 
-      <property name="emma.tmp.dir" value="${dir.build}/emma-tmp" />
-      <mkdir dir="${emma.tmp.dir}" />
-      <copy toDir="${emma.tmp.dir}">
-        <fileset dir="${dir.build.classes.stax2}">
-          <include name="org/codehaus/stax2/**/*.class" />
-        </fileset>           	
-        <fileset dir="${dir.build.classes.woodstox}">
-          <include name="com/ctc/**/*.class" />
-        </fileset>           	
-      </copy>
-      <path id="emma-classpath">
-          <pathelement location="${emma.tmp.dir}">
-          </pathelement>
-      </path>
-      <mkdir dir="${emma.instr.dir}" />
-      <emma enabled="true"> <!--  verbosity="verbose" -->
-        <instr instrpathref="emma-classpath"
-             destdir="${dir.classes.emma}"	
-             metadatafile="${dir.emma.coverage}/metadata.emma"
-             merge="true"
- mode="fullcopy"
-        />
-      </emma>
-      <!-- Ok, so let's just nuke the stupid test classes...
-        -  ... for which there are 2 possible locations...
-        -->
-      <delete dir="${dir.classes.emma}/classes/test"/>
-      <delete dir="${dir.classes.emma}/test"/>
-
-      <!-- Then run tests. Note: need to fork for Emma to work...? -->
-      <junit fork="yes" printsummary="yes" haltonfailure="no"
-         showoutput="yes">
-            <batchtest fork="no" todir="${dir.test.xmlresults}">
-                <!-- Generic Stax tests -->
-                <fileset dir="${dir.classes.staxtest}">
-                    <!-- Need to exclude inner classes... -->
-                    <exclude name="**/*$*.class"/>
-                    <include name="org/codehaus/**/Test*.class"/>
-                </fileset>
-                <!-- Woodstox-specific tests -->
-                <fileset dir="${dir.classes.test}">
-                    <exclude name="**/*$*.class"/>
-                    <include name="**/Test*.class"/>
-                </fileset>
-            </batchtest>
-            <formatter type="xml" />
-            <!-- Stax API: -->
-            <classpath refid="classpath.compile" />
-            <!-- Actual tests: -->
-            <classpath path="${dir.classes.test}" />
-            <classpath path="${dir.classes.staxtest}" />
-            <!-- Emma jars: -->
-            <classpath>
-                <pathelement path="${dir.classes.emma}/classes" />
-                <pathelement location="${dir.lib}/emma.jar" /> 
-                <!-- need resource (service) files so stax(2) knows which
-                   - impl to use
-                 -->
-                <fileset dir="${dir.build}">
-                  <include name="service-def-*.jar" />
-                </fileset>
-                <path refid="junit-libs"/>
-            </classpath>     
-        </junit>
-
-       <!-- Then Emma coverage reporting... -->
-
-       <emma enabled="true"> <!-- verbosity="verbose" -->
-        <report sourcepath="${dir.src.java}" >
-          <fileset dir="${dir.emma.coverage}" >
-            <include name="*.emma" />
-          </fileset>
-          <fileset dir="${basedir}" >
-            <include name="coverage.ec" />
-          </fileset>
-         <txt outfile="${dir.emma.coverage}/coverage.txt" />
-         <html outfile="${dir.emma.coverage}/coverage.html" />
-        </report>
-       </emma>
-
-        <!-- Don't really need actual JUnit output do we? -->
-        <junitreport todir="${dir.test.results}">
-            <fileset dir="${dir.test.xmlresults}">
-                <include name="TEST-*.xml" />
-            </fileset>
-            <report todir="${dir.test.results}" />
-        </junitreport>
-        <!--
-        -->
-    </target>
-
-    <!-- Instead of (or in addition to?) Emma, we can also try
-         Cobertura...
+    <!-- For now we'll use Cobertura for coverage analysis
+        (used to use Emma, but had problems)
       -->
 
     <target name="build.coverage.cobertura" depends="compile.test, prepare-staxtest">

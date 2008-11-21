@@ -192,7 +192,7 @@ public interface TypedXMLStreamReader
      * {@link #readElementAsBinary}, in cases where neither performance nor
      * memory usage is a big concern.
      *<p>
-     * Note: base64 variant defaults to {@link Base64Variant#MIME}.
+     * Note: base64 variant defaults to {@link Base64Variants#MIME}.
      *
      * @see #readElementAsBinary
      */

@@ -105,7 +105,7 @@ public interface TypedXMLStreamWriter
      * maximize interoperability.
      * </p>
      *<p>
-     * Note: base64 variant defaults to {@link Base64Variant#MIME}.
+     * Note: base64 variant defaults to {@link Base64Variants#MIME}.
      *
      * @param value   The array from which to write the bytes.
      * @param from    The index in the array from which writing starts.
@@ -202,7 +202,7 @@ public interface TypedXMLStreamWriter
      * representation of a byte array is defined by the
      * <a href="http://www.w3.org/TR/xmlschema-2/#base64Binary">XML Schema base64Binary</a> data type.</p>
      *<p>
-     * Note: base64 variant defaults to {@link Base64Variant#MIME}.
+     * Note: base64 variant defaults to {@link Base64Variants#MIME}.
      *
      * @param prefix  The attribute's prefix.
      * @param namespaceURI  The attribute's URI.
