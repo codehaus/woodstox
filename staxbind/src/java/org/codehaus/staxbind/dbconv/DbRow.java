@@ -1,0 +1,85 @@
+package org.codehaus.staxbind.dbconv;
+
+import java.util.*;
+
+/**
+ * Simple bean class to contain one row-full of data that is part
+ * of {@link DbData} data set.
+ */
+public final class DbRow
+{
+    int _id, _zip;
+
+    String _firstname, _lastname;
+    String _street, _city, _state;
+
+    public DbRow() { }
+
+    /*
+    ///////////////////////////////////////////////////
+    // Mutators
+    ///////////////////////////////////////////////////
+     */
+
+    public void setId(int v) { _id = v; }
+    public void setZip(int v) { _zip = v; }
+
+    public void setFirstname(String v) { _firstname = v; }
+    public void setLastname(String v) { _lastname = v; }
+    public void setStreet(String v) { _street = v; }
+    public void setCity(String v) { _city = v; }
+    public void setState(String v) { _state = v; }
+
+    /*
+    ///////////////////////////////////////////////////
+    // Accessors
+    ///////////////////////////////////////////////////
+     */
+
+    public int getId() { return _id; }
+    public int getZip() { return _zip; }
+
+    public String getFirstname() { return _firstname; }
+    public String getLastname() { return _lastname; }
+    public String getStreet() { return _street; }
+    public String getCity() { return _city; }
+    public String getState() { return _state; }
+
+    /*
+    ///////////////////////////////////////////////////
+    // Std methods
+    ///////////////////////////////////////////////////
+     */
+
+    @Override
+        public boolean equals(Object o)
+    {
+        if (o == this) return true;
+        if (o == null) return false;
+        if (o.getClass() != getClass()) return false;
+
+        DbRow other = DbRow.class.cast(o);
+        return (this._id == other._id)
+            && (this._zip == other._zip)
+            && (this._firstname.equals(other._firstname))
+            && (this._lastname.equals(other._lastname))
+            && (this._street.equals(other._street))
+            && (this._city.equals(other._city))
+            && (this._state.equals(other._state))
+            ;
+    }
+
+    @Override
+    public String toString()
+    {
+        StringBuilder sb = new StringBuilder();
+        sb.append("[DBRow:");
+        sb.append(" id: ").append(_id);
+        sb.append(" name: ").append(_firstname).append(' ').append(_lastname);
+        sb.append(" address: ");
+        sb.append(_street).append(' ').append(_city).append(' ').append(_state);
+        sb.append(' ').append(_zip);
+        sb.append("]");
+        return sb.toString();
+    }
+}
