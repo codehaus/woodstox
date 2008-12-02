@@ -5,17 +5,27 @@ import java.util.*;
 
 import javax.xml.stream.*;
 
-public class StaxXmlConverter
+// stax2 api:
+import org.codehaus.stax2.XMLInputFactory2;
+import org.codehaus.stax2.XMLOutputFactory2;
+import org.codehaus.stax2.XMLStreamReader2;
+import org.codehaus.stax2.XMLStreamWriter2;
+
+/**
+ * Converter that uses Stax2 extension API (v3+) and specifically
+ * its Typed Access API for more optimal data binding
+ */
+public class Stax2XmlConverter
     extends DbConverter
 {
-    final XMLInputFactory _staxInFactory;
-    final XMLOutputFactory _staxOutFactory;
+    final XMLInputFactory2 _staxInFactory;
+    final XMLOutputFactory2 _staxOutFactory;
 
-    public StaxXmlConverter(String infClass, String outfClass)
+    public Stax2XmlConverter(String infClass, String outfClass)
     {
         try {
-            _staxInFactory = (XMLInputFactory) Class.forName(infClass).newInstance();
-            _staxOutFactory = (XMLOutputFactory) Class.forName(outfClass).newInstance();
+            _staxInFactory = (XMLInputFactory2) Class.forName(infClass).newInstance();
+            _staxOutFactory = (XMLOutputFactory2) Class.forName(outfClass).newInstance();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -24,7 +34,7 @@ public class StaxXmlConverter
     public DbData readData(InputStream in)
         throws XMLStreamException
     {
-        XMLStreamReader sr = _staxInFactory.createXMLStreamReader(in);
+        XMLStreamReader2 sr = (XMLStreamReader2) _staxInFactory.createXMLStreamReader(in);
         DbData result = new DbData();
 
         sr.nextTag();
@@ -42,39 +52,57 @@ public class StaxXmlConverter
         return result;
     }
 
-    private final DbRow readRow(XMLStreamReader sr)
+    private final DbRow readRow(XMLStreamReader2 sr)
         throws XMLStreamException
     {
         expectTag(FIELD_ROW, sr);
         DbRow row = new DbRow();
         while (sr.nextTag() == XMLStreamReader.START_ELEMENT) {
             String elemName = sr.getLocalName();
-            String value = sr.getElementText();
-            
-            try {
-                if (!row.assign(elemName, value)) {
-                    throw new XMLStreamException("Unexpected element <"+elemName+">: not one of recognized field names");
-                }
-            } catch (IllegalArgumentException iae) {
-                throw new XMLStreamException("Typed access problem with input '"+value+"': "+iae.getMessage(), sr.getLocation(), iae);
+            DbRow.Field f = DbRow.fieldByName(elemName);
+            if (f == null) { // sanity check
+                throw new XMLStreamException("Unexpected element <"+elemName+">: not one of recognized field names");
+            }
+            switch (f) {
+            case id:
+                row.setId(sr.getElementAsLong());
+                break;
+            case firstname:
+                row.setFirstname(sr.getElementText());
+                break;
+            case lastname:
+                row.setLastname(sr.getElementText());
+                break;
+            case zip:
+                row.setZip(sr.getElementAsInt());
+                break;
+            case street:
+                row.setStreet(sr.getElementText());
+                break;
+            case city:
+                row.setCity(sr.getElementText());
+                break;
+            case state:
+                row.setState(sr.getElementText());
+                break;
             }
         }
         return row;
     }
-
+    
     public int writeData(OutputStream out, DbData data) throws Exception
     {
-        XMLStreamWriter sw = _staxOutFactory.createXMLStreamWriter(out, "UTF-8");
-        sw.close();
+        XMLStreamWriter2 sw = (XMLStreamWriter2) _staxOutFactory.createXMLStreamWriter(out, "UTF-8");
         sw.writeStartDocument();
         sw.writeStartElement(FIELD_TABLE);
         Iterator<DbRow> it = data.rows();
+
         while (it.hasNext()) {
             DbRow row = it.next();
             sw.writeStartElement(FIELD_ROW); // <row>
 
             sw.writeStartElement(DbRow.Field.id.name());
-            sw.writeCharacters(String.valueOf(row.getId()));
+            sw.writeLong(row.getId());
             sw.writeEndElement();
 
             sw.writeStartElement(DbRow.Field.firstname.name());
@@ -86,7 +114,7 @@ public class StaxXmlConverter
             sw.writeEndElement();
 
             sw.writeStartElement(DbRow.Field.zip.name());
-            sw.writeCharacters(String.valueOf(row.getZip()));
+            sw.writeInt(row.getZip());
             sw.writeEndElement();
 
             sw.writeStartElement(DbRow.Field.street.name());

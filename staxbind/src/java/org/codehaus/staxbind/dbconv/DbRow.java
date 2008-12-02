@@ -8,10 +8,6 @@ import java.util.*;
  */
 public final class DbRow
 {
-    public enum Type {
-        INT, LONG, STRING
-    }
-
     public enum Field {
         id {
             public void setValue(DbRow row, String value) { row.setId(Long.parseLong(value)); }
@@ -44,7 +40,7 @@ public final class DbRow
     final static HashMap<String, Field> _fields = new HashMap<String,Field>();
     static {
         for (Field f : Field.values()) {
-            _fields.put(f.toString(), f);
+            _fields.put(f.name(), f);
         }
     }
 
@@ -55,6 +51,17 @@ public final class DbRow
     String _street, _city, _state;
 
     public DbRow() { }
+
+    /*
+    ///////////////////////////////////////////////////
+    // Static helper methods
+    ///////////////////////////////////////////////////
+     */
+
+    public static Field fieldByName(String name)
+    {
+        return _fields.get(name);
+    }
 
     /*
     ///////////////////////////////////////////////////

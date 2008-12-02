@@ -26,7 +26,7 @@ Micro-benchmark for testing simple data binding
 
 <!-- Both -->
 <testCase name='read-map-write'>
-      <param name='japex.operation' value='READWRITE' />
+      <param name='japex.operation' value='READ_WRITE' />
 </testCase>
 
 </testSuite>

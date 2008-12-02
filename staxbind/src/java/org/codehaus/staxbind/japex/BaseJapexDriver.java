@@ -55,14 +55,15 @@ public abstract class BaseJapexDriver<E extends Enum>
     @Override
     public void prepare(TestCase testCase)
     {
+        E op = null;
         try {
             String operStr = testCase.getParam("japex.operation");
             try {
-                _operation = (E) Enum.valueOf(_enumType, operStr);
+                op = (E) Enum.valueOf(_enumType, operStr);
             } catch (Exception e) { // unrecognized/null etc
                 ;
             }
-            if (_operation == null) {
+            if (op == null) {
                 throw new IllegalArgumentException("Invalid or missing value for japex.itemOperation (value: ["+operStr+"]), has to be one of valid alternatives for type "+_enumType);
             }
             loadTestData(testCase, _operation);
@@ -71,6 +72,7 @@ public abstract class BaseJapexDriver<E extends Enum>
                 (RuntimeException) e : new RuntimeException(e);
             throw re;
         }
+        _operation = op;
     }
 
     @Override

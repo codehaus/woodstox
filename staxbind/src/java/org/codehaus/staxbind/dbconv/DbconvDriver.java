@@ -28,8 +28,35 @@ public abstract class DbconvDriver
 
     protected int runTest(DbConverter.Operation oper) throws Exception
     {
-        // !!! TBI
-        return -1;
+        final boolean doRead = (oper != DbConverter.Operation.WRITE);
+        final boolean doWrite = (oper != DbConverter.Operation.READ);
+
+        // read or read-write?
+        if (doRead) {
+            int result = 0;
+            final ByteArrayOutputStream bos = new ByteArrayOutputStream(16000);
+            for (byte[] input : _readableData) {
+                DbData dd = _converter.readData(new ByteArrayInputStream(input));
+                result += dd.size();
+                _totalLength += input.length;
+                if (doWrite) {
+                    result += _converter.writeData(bos, dd);
+                    _totalLength += bos.size();
+                    bos.reset();
+                }
+            }
+            return result;
+        }
+
+        // write-only:
+        final ByteArrayOutputStream bos = new ByteArrayOutputStream(16000);
+        int result = 0;
+        for (DbData input : _writableData) {
+            result += _converter.writeData(bos, input);
+            _totalLength += bos.size();
+            bos.reset();
+        }
+        return result;
     }
 
     protected void doLoadTestData(DbConverter.Operation oper, File dir) throws Exception
@@ -42,7 +69,11 @@ public abstract class DbconvDriver
         ByteArrayOutputStream tmpStream = new ByteArrayOutputStream(DEFAULT_BUF_SIZE);
         _totalLength = 0;
 
-        File[] files = dir.listFiles();
+        File[] files = dir.listFiles(new FilenameFilter() {
+                public boolean accept(File dir, String name) {
+                    return name.endsWith(".xml");
+                }
+            });
 
         DbConverter stdConverter = getStdConverter();
         _readableData = (oper == DbConverter.Operation.WRITE) ?
@@ -86,6 +117,7 @@ public abstract class DbconvDriver
 
     protected DbConverter getStdConverter()
     {
-        return WstxDriver.getConverter();
+        // Let's use Woodstox 3 driver as the trusted one...
+        return Wstx3Driver.getConverter();
     }
 }

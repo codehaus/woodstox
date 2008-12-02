@@ -12,12 +12,21 @@
 
         -->
 
-      <driver name="Xml/text/wstx">
-        <description><div xmlns=""><p>Test driver for XML(text) that uses Woodstox</p></div></description>
-        <param name="japex.driverClass" value="org.codehaus.staxbind.dbconv.WstxDriver" />
+      <driver name="Xml/text/wstx3">
+        <description><div xmlns=""><p>Test driver for XML(text) that uses Woodstox 3.2.x</p></div></description>
+        <param name="japex.driverClass" value="org.codehaus.staxbind.dbconv.Wstx3Driver" />
         <param name="japex.classPath" value="build/classes"/>
         <param name="japex.classPath" value="lib/*.jar"/>
-        <param name="japex.classPath" value="lib/wstx/*.jar"/>
+        <param name="japex.classPath" value="lib/wstx3/*.jar"/>
+      </driver>
+
+      <driver name="Xml/text/wstx4-typed">
+        <description><div xmlns=""><p>Test driver for XML(text) that uses Woodstox 4.0</p></div></description>
+        <param name="japex.driverClass" value="org.codehaus.staxbind.dbconv.Wstx4Driver" />
+        <param name="japex.classPath" value="build/classes"/>
+        <param name="japex.classPath" value="lib/*.jar"/>
+        <param name="japex.classPath" value="lib/stax2/*.jar"/>
+        <param name="japex.classPath" value="lib/wstx4/*.jar"/>
       </driver>
 
 </driverGroup>

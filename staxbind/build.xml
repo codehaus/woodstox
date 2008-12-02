@@ -26,6 +26,7 @@
       <classpath>
         <path path="${build.classpath}"/>
         <fileset dir="${dir.lib}" includes="*.jar" />
+        <fileset dir="${dir.lib}/stax2" includes="*.jar" />
        </classpath>
     </javac>
   </target>

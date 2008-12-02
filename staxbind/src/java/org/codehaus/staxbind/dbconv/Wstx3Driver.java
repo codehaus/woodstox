@@ -3,10 +3,10 @@ package org.codehaus.staxbind.dbconv;
 import java.io.*;
 import java.util.*;
 
-public final class WstxDriver
+public final class Wstx3Driver
     extends DbconvDriver
 {
-    public WstxDriver()
+    public Wstx3Driver()
     {
         super(getConverter());
     }
