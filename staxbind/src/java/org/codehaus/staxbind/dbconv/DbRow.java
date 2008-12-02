@@ -8,9 +8,50 @@ import java.util.*;
  */
 public final class DbRow
 {
-    int _id, _zip;
+    public enum Type {
+        INT, LONG, STRING
+    }
+
+    public enum Field {
+        id {
+            public void setValue(DbRow row, String value) { row.setId(Long.parseLong(value)); }
+        }
+        ,firstname {
+            public void setValue(DbRow row, String value) { row.setFirstname(value); }
+        }
+        ,lastname {
+            public void setValue(DbRow row, String value) { row.setLastname(value); }
+        }
+        ,zip {
+            public void setValue(DbRow row, String value) { row.setZip(Integer.parseInt(value)); }
+        }
+        ,street {
+            public void setValue(DbRow row, String value) { row.setStreet(value); }
+        }
+        ,city {
+            public void setValue(DbRow row, String value) { row.setCity(value); }
+        }
+        ,state {
+            public void setValue(DbRow row, String value) { row.setState(value); }
+        }
+        ;
+
+        private Field() { }
+
+        public abstract void setValue(DbRow row, String value);
+    }
+
+    final static HashMap<String, Field> _fields = new HashMap<String,Field>();
+    static {
+        for (Field f : Field.values()) {
+            _fields.put(f.toString(), f);
+        }
+    }
+
+    long _id;
 
     String _firstname, _lastname;
+    int _zip;
     String _street, _city, _state;
 
     public DbRow() { }
@@ -21,7 +62,7 @@ public final class DbRow
     ///////////////////////////////////////////////////
      */
 
-    public void setId(int v) { _id = v; }
+    public void setId(long v) { _id = v; }
     public void setZip(int v) { _zip = v; }
 
     public void setFirstname(String v) { _firstname = v; }
@@ -30,13 +71,27 @@ public final class DbRow
     public void setCity(String v) { _city = v; }
     public void setState(String v) { _state = v; }
 
+    /**
+     * Non-type-safe method that can be used for convenient by-name
+     * assignmend
+     */
+    public boolean assign(String fieldName, String valueStr)
+    {
+        Field f = _fields.get(fieldName);
+        if (f != null) {
+            f.setValue(this, valueStr);
+            return true;
+        }
+        return false;
+    }
+
     /*
     ///////////////////////////////////////////////////
     // Accessors
     ///////////////////////////////////////////////////
      */
 
-    public int getId() { return _id; }
+    public long getId() { return _id; }
     public int getZip() { return _zip; }
 
     public String getFirstname() { return _firstname; }

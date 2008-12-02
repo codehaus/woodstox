@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Definition of all testable data format drivers
+  -->
+
+<driverGroup name="xmlDrivers"
+ xmlns="http://www.sun.com/japex/testSuite">
+
+   <!--
+
+        Streaming textual XML drivers, stax/wstx, staxmate/wstx
+
+        -->
+
+      <driver name="Xml/text/wstx">
+        <description><div xmlns=""><p>Test driver for XML(text) that uses Woodstox</p></div></description>
+        <param name="japex.driverClass" value="org.codehaus.staxbind.dbconv.WstxDriver" />
+        <param name="japex.classPath" value="build/classes"/>
+        <param name="japex.classPath" value="lib/*.jar"/>
+        <param name="japex.classPath" value="lib/wstx/*.jar"/>
+      </driver>
+
+</driverGroup>

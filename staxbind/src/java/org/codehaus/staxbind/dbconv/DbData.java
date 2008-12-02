@@ -28,6 +28,8 @@ public final class DbData
 
     public int size() { return (_rows == null) ? 0 : _rows.size(); }
 
+    public Iterator<DbRow> rows() { return getRow().iterator(); }
+
     /**
      *<p>
      * Note: name uses singular row just to make life easier with

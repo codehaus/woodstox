@@ -1,0 +1,96 @@
+<?xml version="1.0"?>
+
+<project name="StaxBind" basedir="." default="release">
+
+  <property name="dir.src" value="${basedir}/src"/>
+  <property name="dir.lib" value="lib"/>
+  <property name="dir.bin" value="${basedir}/bin"/>
+  <property name="dir.src.java" value="${dir.src}/java"/>
+  <property name="dir.build" value="build" />
+  <property name="dir.build.classes" value="${dir.build}/classes"/>
+
+  <target name="init">
+    <mkdir dir="${dir.build.classes}" />
+  </target>
+
+  <target name="clean">
+    <delete dir="${dir.build}"/>
+  </target>
+
+  <target name="compile" depends="init">
+    <javac srcdir="${dir.src.java}" destdir="${dir.build.classes}"
+           source="1.5" target="1.5" debug="on">
+<!--
+      <compilerarg value="-Xlint:unchecked"/>
+-->
+      <classpath>
+        <path path="${build.classpath}"/>
+        <fileset dir="${dir.lib}" includes="*.jar" />
+       </classpath>
+    </javac>
+  </target>
+
+  <!-- Running Japex performance tests: configurable to
+       run different kinds of tests, as well as over 
+       different data sets
+    -->
+
+  <!-- First, generic global settings common to all cases -->
+  <property name="japex.numberOfThreads" value=""/>
+  <property name="japex.reportsDirectory" value="reports" />
+
+    <property name='japex.warmupTime' value='7'/>
+    <property name='japex.runTime' value='25'/>
+    <property name='japex.warmupsPerDriver' value='1'/>
+    <property name='japex.runsPerDriver' value='3'/>    
+
+  <!-- Then driver settings: -->
+  <target name="all-drivers">
+    <property name="japex.config" value="japex-cfg/drivers.xml"/>
+  </target>
+
+  <target name="ion-binary-driver">
+    <property name="japex.config" value="japex-cfg/driver-ion-b.xml"/>
+  </target>
+  <target name="ion-text-driver">
+    <property name="japex.config" value="japex-cfg/driver-ion-t.xml"/>
+  </target>
+
+  <!-- And operation (type of test to run) settings -->
+  <target name="set-japex">
+      <property name="japex.inputDir" value="japex-testdata/all-items" />
+  </target>
+
+  <!-- Then actual targets for running generic tests:
+    -->
+  <target name="run-japex-full" depends="set-japex, all-drivers, run" />
+
+  <target name="run-japex-ion-b" depends="set-japex, ion-binary-driver, run" />
+  <target name="run-japex-ion-y" depends="set-japex, ion-text-driver, run" />
+
+
+  <target name="run"
+    description="Run tests using ${config} file (use -Dconfig=...) to override"
+    depends="compile"
+>
+        <java dir="." fork="true" maxmemory="128m"
+            classname="com.sun.japex.Japex" failonerror="true">
+            <jvmarg line="-Djapex.runsPerDriver=${japex.runsPerDriver}"/>
+            <jvmarg line="-Djapex.numberOfThreads=${japex.numberOfThreads}"/>
+            <jvmarg line="-Djapex.reportsDirectory=${japex.reportsDirectory}"/>
+
+            <jvmarg line="-Djapex.warmupTime=${japex.warmupTime}"/>
+            <jvmarg line="-Djapex.runTime=${japex.runTime}"/>
+            <jvmarg line="-Djapex.warmupsPerDriver=${japex.warmupsPerDriver}"/>
+            <jvmarg line="-Djapex.runsPerDriver=${japex.runsPerDriver}"/>
+
+            <jvmarg line="-Djapex.inputDir=${japex.inputDir}"/>
+
+            <classpath>
+              <path path="${run.classpath}"/>
+                <fileset dir="${dir.lib}" includes="*.jar" />
+            </classpath>
+            <arg line="-last ${japex.config}"/>
+        </java>
+  </target>
+</project>

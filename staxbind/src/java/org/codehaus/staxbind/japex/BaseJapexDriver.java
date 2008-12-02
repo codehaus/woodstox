@@ -56,7 +56,7 @@ public abstract class BaseJapexDriver<E extends Enum>
     public void prepare(TestCase testCase)
     {
         try {
-            String operStr = testCase.getParam("japex.itemOperation");
+            String operStr = testCase.getParam("japex.operation");
             try {
                 _operation = (E) Enum.valueOf(_enumType, operStr);
             } catch (Exception e) { // unrecognized/null etc

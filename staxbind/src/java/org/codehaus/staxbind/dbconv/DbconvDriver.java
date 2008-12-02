@@ -86,7 +86,6 @@ public abstract class DbconvDriver
 
     protected DbConverter getStdConverter()
     {
-        return new StaxXmlConverter("com.ctc.wstx.stax.WstxInputFactory",
-                                    "com.ctc.wstx.stax.WstxOutputFactory");
+        return WstxDriver.getConverter();
     }
 }

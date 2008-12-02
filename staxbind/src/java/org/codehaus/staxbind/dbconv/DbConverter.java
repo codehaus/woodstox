@@ -9,6 +9,19 @@ import java.util.*;
  */
 public abstract class DbConverter
 {
+    final static String FIELD_TABLE = "table";
+    final static String FIELD_ROW = "row";
+
+    /*
+    final static String FIELD_ID = "id";
+    final static String FIELD_FIRSTNAME = "firstname";
+    final static String FIELD_LASTNAME = "lastname";
+    final static String FIELD_ZIP = "zip";
+    final static String FIELD_STREET = "street";
+    final static String FIELD_CITY = "city";
+    final static String FIELD_STATE = "state";
+    */
+
     public enum Operation {
         READ, WRITE, READ_WRITE
     }
