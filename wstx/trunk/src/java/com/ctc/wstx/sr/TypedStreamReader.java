@@ -250,14 +250,18 @@ public class TypedStreamReader
             // Note: next() has validated text, no need for more validation
             mInputPtr += 2;
             mCurrToken = END_ELEMENT;
-            // Can by-pass next(), nextFromTree(), in this case:
-            readEndElem();
-            // And buffer, then, has data for conversion, so:
-            try {
+            /* Can by-pass next(), nextFromTree(), in this case.
+             * However, must do decoding first, and only then call
+             * readEndElem(), since this latter call may invalidate
+             * underlying input buffer (when end tag is at buffer
+             * boundary)
+             */
+            try { // buffer now has all the data
                 mTextBuffer.decode(tvd);
             } catch (IllegalArgumentException iae) {
                 throw _constructTypeException(iae, mTextBuffer.contentsAsString());
             }
+            readEndElem();
             return;
         }
 

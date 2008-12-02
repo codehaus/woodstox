@@ -680,9 +680,12 @@ public abstract class BasicStreamReader
             // Note: next() has validated text, no need for more validation
             mInputPtr += 2;
             mCurrToken = END_ELEMENT;
+            // must first get text, as call to readEndElem may break it:
+            String result = mTextBuffer.contentsAsString();
             // Can by-pass next(), nextFromTree(), in this case:
             readEndElem();
-            return mTextBuffer.contentsAsString();
+            // and then return results
+            return result;
         }
 
         // Otherwise, we'll need to do slower processing

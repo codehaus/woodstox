@@ -92,7 +92,7 @@ public class TestGetElement
         assertEquals(elem, sr.getLocalName());
         String actValue = sr.getElementText();
         if (!value.equals(actValue)) {
-            fail("Expected value '"+value+"', got '"+actValue+"' (len "+actValue.length()+"): location "+sr.getLocation());
+            fail("Expected value '"+value+"' (for element '"+elem+"'), got '"+actValue+"' (len "+actValue.length()+"): location "+sr.getLocation());
         }
         assertTokenType(END_ELEMENT, sr.getEventType());
     }

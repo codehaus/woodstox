@@ -7,6 +7,10 @@ Description:
 
   Problems fixed:
 
+  * [WTSX-179] Problem with XMLStreamReader.getElementText(), where
+    data may be corrupt under some situations (could also affect
+    typed access methods similarly).
+
 == History: ==
 
 3.9.9-1 [21-Nov-2008] (first 4.0 pre-release)
