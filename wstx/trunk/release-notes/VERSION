@@ -1,10 +1,15 @@
-Version: 3.9.3
+Version: 3.9.9-2
 
-Release date: xx-Nov-2008
+Release date: xx-Dec-2008
 
 Description:
-  Third pre-4.0 version. Bug-fixes, as well as partial implementation
-  of the new Typed Access API (reading/writing booleans, ints, longs).
+  Second 4.0 pre-release version. Bug-fixes.
+
+  Problems fixed:
+
+== History: ==
+
+3.9.9-1 [21-Nov-2008] (first 4.0 pre-release)
 
   Problems fixed:
 
@@ -46,11 +51,9 @@ Description:
     variants.
   * [WSTX-175] Add OSGi support for bundled MSV jars.
 
-== History: ==
-
-3.9.0 [23-Nov-2007]
-3.9.1 [16-Mar-2008]
 3.9.2 [06-May-2008]
+3.9.1 [16-Mar-2008]
+3.9.0 [23-Nov-2007]
 
   New functionality (major):
 
@@ -227,7 +230,7 @@ Description:
     'WstxOutputProperties.P_OUTPUT_UNDERLYING_STREAM' and
     'WstxOutputProperties.P_OUTPUT_UNDERLYING_WRITER'.
 
-3.2 [28-Dec-2006]
+3.2.0 [28-Dec-2006]
 
   Problems fixed:
 

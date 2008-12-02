@@ -33,7 +33,7 @@
 
     <!-- Woodstox version info: -->
     <property name="IMPL_TITLE" value="Woodstox XML-processor" />
-    <property name="IMPL_VERSION" value="3.9.9-1" />
+    <property name="IMPL_VERSION" value="3.9.9-2" />
     <property name="IMPL_VENDOR" value="http://woodstox.codehaus.org" />
     <property name="API_TITLE" value="Stax 1.0 API" />
     <property name="API_VERSION" value="1.0.0" />
@@ -42,7 +42,7 @@
     <!-- Extended API, working title "Stax2" (not version 2.0, but 2/squared)
       -->
     <property name="STAX2_TITLE" value="Stax2 API" />
-    <property name="STAX2_VERSION" value="2.9.9-1" />
+    <property name="STAX2_VERSION" value="2.9.9-2" />
     <property name="STAX2_VENDOR" value="http://woodstox.codehaus.org" />
 
     <!-- And finally version dependency spec between Woodstox core
@@ -518,11 +518,11 @@
 
     <!-- Running a single Unit Test -->
     <target name="test.single" depends="compile.test">
-         <fail unless="testname" message="Must define -Dtestname" />
+         <fail unless="test" message="Must define -Dtest" />
        <!-- showoutput 'yes' to allow outputting debug msgs... -->
         <junit fork="no" maxmemory="128M" showoutput="no" printsummary="yes">
           <formatter type="plain" usefile="no" />
-          <test name="${testname}" />
+          <test name="${test}" />
           <classpath refid="classpath.compile" />
           <classpath>
                 <pathelement path="${dir.build.classes.stax2}" />

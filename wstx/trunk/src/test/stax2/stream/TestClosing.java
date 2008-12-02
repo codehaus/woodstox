@@ -13,6 +13,10 @@ import stax2.BaseStax2Test;
 /**
  * This unit test suite verifies that the auto-closing feature works
  * as expected (both explicitly, and via Source object being passed).
+ *
+ * @author Tatu Saloranta
+ *
+ * @since 3.0
  */
 public class TestClosing
     extends BaseStax2Test

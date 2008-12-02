@@ -1,24 +1,29 @@
-Woodstox Contributor Agreement
+Woodstox Project Contributor Agreement
 
-Version: 0.1, 09-Nov-2008
-Last-modified: 09-Nov-2008 (by Tatu Saloranta)
+Version: 0.2, 01-Dec-2008
+Last-modified: 01-Dec-2008 (by Tatu Saloranta)
 
 ---
 
-This Agreement is between Contributors who provide the code, and the Woodstox Project that may incorporate the code as part of Open Source Woodstox Xml-processor and distributed it as part of source and executable code distributions.
+This Agreement is between the Woodstox XML-processor Project ("the Project") and authors ("the Contributors") of code and code-related artifacts ("the Artifacts") used by the Project.
+The intention of this agreement is to authorize the Project to use these artifacts by:
 
-All code to be stored in the main Woodstox source code repository (not including possible other areas) and distributed as part of the Woodstox distributables (jars, source code bundles) has to be  by resolved to an artifact confirming acceptance of this agreement. Single agreement by the Contributor is sufficient for any amount of code. The preferred form of acceptance is an email to the Project Admins. Acceptance artifacts may be stored in the source code repository along with the source code itself.
+* incorporating submitted contributions within the project source repository ("the Repository"), to build the necessary project artifacts
+* distributing artifacts as the project sees fit under Open Source licenses the Project chooses; in form of various distributable components ("the Distributables")
+
+All code to be stored in the main Repository (not including possible other areas, submissions to which may be governed by other agreements) and published by the Project as distributables (jars, source code bundles) has to be verifiable such that it can be linked to an artifact confirming acceptance of this agreement.
+Single agreement by the Contributor is sufficient for any amount of contributions. The preferred form of acceptance is an email to the Project Admins.
+Acceptance artifacts may be stored in the source code repository along with the source code itself.
 
 Terms that the Contributor has to agree to for the code to be included are as follows:
 
-1. I agree to contribute the code to the Woodstox project, to be licensed as open source under one or more of commonly accepted Open Source licenses (as defined by the Open Source Initiative,
-see http://www.opensource.org/). This includes licenses currently used, such as:
+1. I agree to contribute the submitted artifacts to the Woodstox project, to be licensed as open source under one or more of commonly accepted Open Source licenses (as defined by the Open Source Initiative, see http://www.opensource.org/). This includes licenses currently used, such as:
 
   * Apache License 2.0 (core Woodstox)
   * LGPL 2.1 (core Woodstox)
   * BSD (for Stax2 API jar that core depends on)
 
-  but can also include other licenses in future (or not be used for licenses listed above). The contribution is non-exclusive: the author does not transfer copurights, or limit his or her options for other uses.
+  but can also include other licenses in future (or exclude one or more of licenses listed above). The contribution is non-exclusive: the author does not transfer copyrights, or limit his or her options for other uses.
 
 2. I wrote all the code AND have the right to contribute it to the Woodstox project.
 
