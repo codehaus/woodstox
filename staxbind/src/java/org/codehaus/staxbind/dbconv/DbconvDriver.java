@@ -28,6 +28,10 @@ public abstract class DbconvDriver
 
     protected int runTest(DbConverter.Operation oper) throws Exception
     {
+        if (oper == null) {
+            throw new RuntimeException("Internal exception: no operation passed");
+        }
+
         final boolean doRead = (oper != DbConverter.Operation.WRITE);
         final boolean doWrite = (oper != DbConverter.Operation.READ);
 
@@ -79,7 +83,7 @@ public abstract class DbconvDriver
         _readableData = (oper == DbConverter.Operation.WRITE) ?
             null : new byte[files.length][];
         _writableData = (oper == DbConverter.Operation.WRITE) ?
-            _writableData = new DbData[files.length] : null;
+            new DbData[files.length] : null;
 
         for (int i = 0, len = files.length; i < len; ++i) {
             File f = files[i];

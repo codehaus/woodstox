@@ -28,8 +28,6 @@ public abstract class BaseJapexDriver<E extends Enum>
      */
     protected int _totalLength;
 
-    protected E _operation;
-
     /*
     /////////////////////////////////////////////////
     // Life-cycle
@@ -55,24 +53,13 @@ public abstract class BaseJapexDriver<E extends Enum>
     @Override
     public void prepare(TestCase testCase)
     {
-        E op = null;
         try {
-            String operStr = testCase.getParam("japex.operation");
-            try {
-                op = (E) Enum.valueOf(_enumType, operStr);
-            } catch (Exception e) { // unrecognized/null etc
-                ;
-            }
-            if (op == null) {
-                throw new IllegalArgumentException("Invalid or missing value for japex.itemOperation (value: ["+operStr+"]), has to be one of valid alternatives for type "+_enumType);
-            }
-            loadTestData(testCase, _operation);
+            loadTestData(testCase, getOperation(testCase));
         } catch (Exception e) {
             RuntimeException re = (e instanceof RuntimeException) ?
                 (RuntimeException) e : new RuntimeException(e);
             throw re;
         }
-        _operation = op;
     }
 
     @Override
@@ -93,8 +80,10 @@ public abstract class BaseJapexDriver<E extends Enum>
         _bogusResult = -1;
         _totalLength = 0;
 
+        E oper = getOperation(testCase);
+
         try {
-            _bogusResult = runTest(_operation);
+            _bogusResult = runTest(oper);
         } catch (Exception e) {
             if (e instanceof RuntimeException) {
                 throw (RuntimeException) e;
@@ -129,6 +118,22 @@ public abstract class BaseJapexDriver<E extends Enum>
     // Accessors for sub-classes
     /////////////////////////////////////////////////
     */
+
+    protected E getOperation(TestCase testCase)
+    {
+        String operStr = testCase.getParam("japex.operation");
+        E op = null;
+        try {
+            op = (E) Enum.valueOf(_enumType, operStr);
+        } catch (Exception e) { // unrecognized/null etc
+            ;
+        }
+        if (op == null) {
+            throw new IllegalArgumentException("Invalid or missing value for japex.itemOperation (value: ["+operStr+"]), has to be one of valid alternatives for type "+_enumType);
+        }
+        return op;
+    }
+
 
     /*
     /////////////////////////////////////////////////
