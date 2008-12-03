@@ -2,6 +2,8 @@ package org.codehaus.staxbind.dbconv;
 
 import java.util.*;
 
+import javax.xml.bind.annotation.*;
+
 /**
  * Simple bean class to contain all "DB data" read from data files.
  *<p>
@@ -15,6 +17,7 @@ import java.util.*;
  *  </li>
  *</ul>
  */
+@XmlRootElement(name="table")
 public final class DbData
 {
     List<DbRow> rows;

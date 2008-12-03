@@ -10,7 +10,6 @@ public final class Wstx3Driver
 
     final static DbConverter getConverter()
     {
-        return new StaxXmlConverter("com.ctc.wstx.stax.WstxInputFactory",
-                                    "com.ctc.wstx.stax.WstxOutputFactory");
+        return new StaxXmlConverter(DbConverter.WSTX_INPUT_FACTORY, DbConverter.WSTX_OUTPUT_FACTORY);
     }
 }

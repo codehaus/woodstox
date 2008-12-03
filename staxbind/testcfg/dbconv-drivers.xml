@@ -12,6 +12,16 @@
 
         -->
 
+      <!-- JAXB 2.0 -->
+      <driver name="Xml/text/JAXB2">
+        <description><div xmlns=""><p>Test driver for XML(text) that uses JAXB (2.x) on Stax</p></div></description>
+        <param name="japex.driverClass" value="org.codehaus.staxbind.dbconv.JaxbDriver" />
+        <param name="japex.classPath" value="build/classes"/>
+        <param name="japex.classPath" value="lib/*.jar"/>
+        <param name="japex.classPath" value="lib/jaxb2/*.jar"/>
+        <param name="japex.classPath" value="lib/wstx3/*.jar"/>
+      </driver>
+
       <!-- XStream -->
       <driver name="Xml/text/xstream">
         <description><div xmlns=""><p>Test driver for XML(text) that uses Xstream (1.3) on Stax</p></div></description>

@@ -11,6 +11,9 @@ public abstract class DbConverter
     final static String FIELD_TABLE = "table";
     final static String FIELD_ROW = "row";
 
+    protected final static String WSTX_INPUT_FACTORY = "com.ctc.wstx.stax.WstxInputFactory";
+    protected final static String WSTX_OUTPUT_FACTORY = "com.ctc.wstx.stax.WstxOutputFactory";
+
     /*
     final static String FIELD_ID = "id";
     final static String FIELD_FIRSTNAME = "firstname";

@@ -24,6 +24,13 @@ public class StaxXmlConverter
         }
     }
 
+    /*
+    ////////////////////////////////////////
+    // DbConverter impl
+    ////////////////////////////////////////
+     */
+
+    @Override
     public DbData readData(InputStream in)
         throws XMLStreamException
     {
@@ -43,26 +50,6 @@ public class StaxXmlConverter
 
         sr.close();
         return result;
-    }
-
-    private final DbRow readRow(XMLStreamReader sr)
-        throws XMLStreamException
-    {
-        expectTag(FIELD_ROW, sr);
-        DbRow row = new DbRow();
-        while (sr.nextTag() == XMLStreamReader.START_ELEMENT) {
-            String elemName = sr.getLocalName();
-            String value = sr.getElementText();
-            
-            try {
-                if (!row.assign(elemName, value)) {
-                    throw new XMLStreamException("Unexpected element <"+elemName+">: not one of recognized field names");
-                }
-            } catch (IllegalArgumentException iae) {
-                throw new XMLStreamException("Typed access problem with input '"+value+"': "+iae.getMessage(), sr.getLocation(), iae);
-            }
-        }
-        return row;
     }
 
     public int writeData(OutputStream out, DbData data) throws Exception
@@ -109,6 +96,32 @@ public class StaxXmlConverter
         sw.writeEndDocument();
         sw.close();
         return -1;
+    }
+
+    /*
+    ////////////////////////////////////////
+    // Helper methods
+    ////////////////////////////////////////
+     */
+
+    private final DbRow readRow(XMLStreamReader sr)
+        throws XMLStreamException
+    {
+        expectTag(FIELD_ROW, sr);
+        DbRow row = new DbRow();
+        while (sr.nextTag() == XMLStreamReader.START_ELEMENT) {
+            String elemName = sr.getLocalName();
+            String value = sr.getElementText();
+            
+            try {
+                if (!row.assign(elemName, value)) {
+                    throw new XMLStreamException("Unexpected element <"+elemName+">: not one of recognized field names");
+                }
+            } catch (IllegalArgumentException iae) {
+                throw new XMLStreamException("Typed access problem with input '"+value+"': "+iae.getMessage(), sr.getLocation(), iae);
+            }
+        }
+        return row;
     }
 
     private final void expectTag(String expElem, XMLStreamReader sr)
