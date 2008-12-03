@@ -6,11 +6,16 @@
 <driverGroup name="xmlDrivers"
  xmlns="http://www.sun.com/japex/testSuite">
 
-   <!--
-
-        Streaming textual XML drivers, stax/wstx, staxmate/wstx
-
-        -->
+      <!-- Jackson json processor (0.9.4) -->
+      <driver name="Json/jackson">
+        <description><div xmlns=""><p>Test driver for JSON (text) that uses Jackson json processor</p></div></description>
+        <param name="japex.driverClass" value="org.codehaus.staxbind.dbconv.JacksonDriver" />
+        <param name="japex.classPath" value="build/classes"/>
+        <param name="japex.classPath" value="lib/*.jar"/>
+        <param name="japex.classPath" value="lib/jackson/*.jar"/>
+        <!-- still need Woodstox for loading test data -->
+        <param name="japex.classPath" value="lib/wstx3/*.jar"/>
+      </driver>
 
       <!-- JAXB 2.0 -->
       <driver name="Xml/text/JAXB2">
