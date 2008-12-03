@@ -1,7 +1,6 @@
 package org.codehaus.staxbind.dbconv;
 
 import java.io.*;
-import java.util.*;
 
 /**
  * Base class for per-format converters used for "DB Converter" performance

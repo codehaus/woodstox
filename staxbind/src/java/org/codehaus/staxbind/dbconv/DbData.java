@@ -4,10 +4,20 @@ import java.util.*;
 
 /**
  * Simple bean class to contain all "DB data" read from data files.
+ *<p>
+ * Some implementation notes:
+ *<ul>
+ * <li>Field names do not use prefix/suffix, to make life easier
+ *    for XStream
+ *  </li>
+ * <li>Plural name "rows" has been changed to "row", because the
+ *   canonical xml format uses "row" as tag.
+ *  </li>
+ *</ul>
  */
 public final class DbData
 {
-    List<DbRow> _rows;
+    List<DbRow> rows;
 
     public DbData() { }
 
@@ -17,7 +27,7 @@ public final class DbData
     ///////////////////////////////////////////////////
      */
 
-    public void setRow(List<DbRow> rows) { _rows = rows; }
+    public void setRow(List<DbRow> r) { rows = r; }
     public void addRow(DbRow row) { getRow().add(row); }
 
     /*
@@ -26,7 +36,7 @@ public final class DbData
     ///////////////////////////////////////////////////
      */
 
-    public int size() { return (_rows == null) ? 0 : _rows.size(); }
+    public int size() { return (rows == null) ? 0 : rows.size(); }
 
     public Iterator<DbRow> rows() { return getRow().iterator(); }
 
@@ -35,13 +45,13 @@ public final class DbData
      * Note: name uses singular row just to make life easier with
      * JAXB and other name convention based tools.
      */
-    public List getRow()
+    public List<DbRow> getRow()
     {
         // must return non-null for JAXB to work
-        if (_rows == null) {
-            _rows = new ArrayList<DbRow>(100);
+        if (rows == null) {
+            rows = new ArrayList<DbRow>(100);
         }
-        return _rows;
+        return rows;
     }
 
     /*
@@ -58,7 +68,17 @@ public final class DbData
         if (o.getClass() != getClass()) return false;
 
         DbData other = DbData.class.cast(o);
-        return other.getRow().equals(getRow());
+        List<DbRow> rows1 = this.getRow();
+        List<DbRow> rows2 = other.getRow();
+        if (rows1.size() != rows2.size()) {
+            return false;
+        }
+        for (int i = 0, len = rows1.size(); i < len; ++i) {
+            if (!rows1.get(i).equals(rows2.get(i))) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override

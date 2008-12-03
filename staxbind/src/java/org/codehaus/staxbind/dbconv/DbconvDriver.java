@@ -1,7 +1,6 @@
 package org.codehaus.staxbind.dbconv;
 
 import java.io.*;
-import java.util.*;
 
 import org.codehaus.staxbind.japex.BaseJapexDriver;
 
@@ -23,6 +22,9 @@ public abstract class DbconvDriver
     protected DbconvDriver(DbConverter conv)
     {
         super(DbConverter.Operation.READ);
+        if (conv == null) {
+            throw new IllegalArgumentException();
+        }
         _converter = conv;
     }
 
@@ -41,6 +43,9 @@ public abstract class DbconvDriver
             final ByteArrayOutputStream bos = new ByteArrayOutputStream(16000);
             for (byte[] input : _readableData) {
                 DbData dd = _converter.readData(new ByteArrayInputStream(input));
+                if (dd == null) {
+                    throw new IllegalStateException("Deserialized doc to null");
+                }
                 result += dd.size();
                 _totalLength += input.length;
                 if (doWrite) {
@@ -87,10 +92,10 @@ public abstract class DbconvDriver
 
         for (int i = 0, len = files.length; i < len; ++i) {
             File f = files[i];
-            // Read file contents, bind to in-memory object:
+            // Read file contents, bind to in-memory object (using std conv)
             readAll(f, readBuffer, tmpStream);
             byte[] fileData = tmpStream.toByteArray();
-            DbData origData = _converter.readData(new ByteArrayInputStream(fileData));
+            DbData origData = stdConverter.readData(new ByteArrayInputStream(fileData));
             if (_writableData != null) {
                 _writableData[i] = origData;
             }

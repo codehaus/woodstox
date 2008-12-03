@@ -1,8 +1,5 @@
 package org.codehaus.staxbind.dbconv;
 
-import java.io.*;
-import java.util.*;
-
 public final class Wstx3Driver
     extends DbconvDriver
 {

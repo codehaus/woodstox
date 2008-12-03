@@ -5,6 +5,12 @@ import java.util.*;
 /**
  * Simple bean class to contain one row-full of data that is part
  * of {@link DbData} data set.
+ *<p>
+ * Some implementation notes:
+ *<ul>
+ * <li>Field names do not use prefix/suffix, to make life easier
+ *    for XStream
+ *  </li>
  */
 public final class DbRow
 {
@@ -44,11 +50,11 @@ public final class DbRow
         }
     }
 
-    long _id;
+    long id;
 
-    String _firstname, _lastname;
-    int _zip;
-    String _street, _city, _state;
+    String firstname, lastname;
+    int zip;
+    String street, city, state;
 
     public DbRow() { }
 
@@ -69,14 +75,14 @@ public final class DbRow
     ///////////////////////////////////////////////////
      */
 
-    public void setId(long v) { _id = v; }
-    public void setZip(int v) { _zip = v; }
+    public void setId(long v) { id = v; }
+    public void setZip(int v) { zip = v; }
 
-    public void setFirstname(String v) { _firstname = v; }
-    public void setLastname(String v) { _lastname = v; }
-    public void setStreet(String v) { _street = v; }
-    public void setCity(String v) { _city = v; }
-    public void setState(String v) { _state = v; }
+    public void setFirstname(String v) { firstname = v; }
+    public void setLastname(String v) { lastname = v; }
+    public void setStreet(String v) { street = v; }
+    public void setCity(String v) { city = v; }
+    public void setState(String v) { state = v; }
 
     /**
      * Non-type-safe method that can be used for convenient by-name
@@ -98,14 +104,14 @@ public final class DbRow
     ///////////////////////////////////////////////////
      */
 
-    public long getId() { return _id; }
-    public int getZip() { return _zip; }
+    public long getId() { return id; }
+    public int getZip() { return zip; }
 
-    public String getFirstname() { return _firstname; }
-    public String getLastname() { return _lastname; }
-    public String getStreet() { return _street; }
-    public String getCity() { return _city; }
-    public String getState() { return _state; }
+    public String getFirstname() { return firstname; }
+    public String getLastname() { return lastname; }
+    public String getStreet() { return street; }
+    public String getCity() { return city; }
+    public String getState() { return state; }
 
     /*
     ///////////////////////////////////////////////////
@@ -121,13 +127,13 @@ public final class DbRow
         if (o.getClass() != getClass()) return false;
 
         DbRow other = DbRow.class.cast(o);
-        return (this._id == other._id)
-            && (this._zip == other._zip)
-            && (this._firstname.equals(other._firstname))
-            && (this._lastname.equals(other._lastname))
-            && (this._street.equals(other._street))
-            && (this._city.equals(other._city))
-            && (this._state.equals(other._state))
+        return (this.id == other.id)
+            && (this.zip == other.zip)
+            && (this.firstname.equals(other.firstname))
+            && (this.lastname.equals(other.lastname))
+            && (this.street.equals(other.street))
+            && (this.city.equals(other.city))
+            && (this.state.equals(other.state))
             ;
     }
 
@@ -136,11 +142,11 @@ public final class DbRow
     {
         StringBuilder sb = new StringBuilder();
         sb.append("[DBRow:");
-        sb.append(" id: ").append(_id);
-        sb.append(" name: ").append(_firstname).append(' ').append(_lastname);
+        sb.append(" id: ").append(id);
+        sb.append(" name: ").append(firstname).append(' ').append(lastname);
         sb.append(" address: ");
-        sb.append(_street).append(' ').append(_city).append(' ').append(_state);
-        sb.append(' ').append(_zip);
+        sb.append(street).append(' ').append(city).append(' ').append(state);
+        sb.append(' ').append(zip);
         sb.append("]");
         return sb.toString();
     }

@@ -1,7 +1,6 @@
 package org.codehaus.staxbind.japex;
 
 import java.io.*;
-import java.util.*;
 
 import com.sun.japex.JapexDriverBase;
 import com.sun.japex.TestCase;
@@ -15,7 +14,7 @@ public abstract class BaseJapexDriver<E extends Enum>
 {
     protected final static int DEFAULT_BUF_SIZE = 4000;
 
-    protected final Class<? extends Enum> _enumType;
+    protected final Class<E> _enumType;
 
     /**
      * We will keep track of fake result, just in case JIT might
@@ -39,9 +38,10 @@ public abstract class BaseJapexDriver<E extends Enum>
      *   ok -- we need the actual Enum class object, to convert
      *   from String to Enum
      */
-    protected BaseJapexDriver(E dummyOperation)
+    @SuppressWarnings("unchecked")
+	protected BaseJapexDriver(E dummyOperation)
     {
-        _enumType = dummyOperation.getClass();
+        _enumType = (Class<E>) dummyOperation.getClass();
     }
 
     /*
@@ -119,7 +119,8 @@ public abstract class BaseJapexDriver<E extends Enum>
     /////////////////////////////////////////////////
     */
 
-    protected E getOperation(TestCase testCase)
+    @SuppressWarnings("unchecked")
+	protected E getOperation(TestCase testCase)
     {
         String operStr = testCase.getParam("japex.operation");
         E op = null;
