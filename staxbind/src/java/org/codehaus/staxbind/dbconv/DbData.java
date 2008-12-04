@@ -19,6 +19,7 @@ import javax.xml.bind.annotation.*;
  */
 @XmlRootElement(name="table")
 public final class DbData
+    implements java.io.Serializable // hessian needs this, as does jdk seri
 {
     List<DbRow> rows;
 

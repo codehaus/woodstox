@@ -6,6 +6,19 @@
 <driverGroup name="xmlDrivers"
  xmlns="http://www.sun.com/japex/testSuite">
 
+      <!-- Caucho/Hessian (3.2.0, format v2) -->
+      <driver name="Hessian/caucho">
+        <description><div xmlns=""><p>Test driver for Hessian format (binary)
+using implementation by Caucho
+</p></div></description>
+        <param name="japex.driverClass" value="org.codehaus.staxbind.dbconv.HessianDriver" />
+        <param name="japex.classPath" value="build/classes"/>
+        <param name="japex.classPath" value="lib/*.jar"/>
+        <param name="japex.classPath" value="lib/hessian/*.jar"/>
+        <!-- still need Woodstox for loading test data -->
+        <param name="japex.classPath" value="lib/wstx3/*.jar"/>
+      </driver>
+
       <!-- Jackson json processor (0.9.4) -->
       <driver name="Json/jackson">
         <description><div xmlns=""><p>Test driver for JSON (text) that uses Jackson json processor</p></div></description>

@@ -30,6 +30,7 @@
         <fileset dir="${dir.lib}/xstream" includes="*.jar" />
         <fileset dir="${dir.lib}/jaxb2" includes="*.jar" />
         <fileset dir="${dir.lib}/jackson" includes="*.jar" />
+        <fileset dir="${dir.lib}/hessian" includes="*.jar" />
        </classpath>
     </javac>
   </target>

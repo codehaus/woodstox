@@ -13,6 +13,7 @@ import java.util.*;
  *  </li>
  */
 public final class DbRow
+    implements java.io.Serializable // hessian needs this, as does jdk seri
 {
     public enum Field {
         id {
