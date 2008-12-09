@@ -42,7 +42,7 @@
 
   <!-- First, generic global settings common to all cases -->
   <property name="japex.numberOfThreads" value=""/>
-  <property name="japex.reportsDirectory" value="reports" />
+  <property name="japex.reportsDirectory" value="japex-reports" />
 
     <property name='japex.warmupTime' value='7'/>
     <property name='japex.runTime' value='25'/>

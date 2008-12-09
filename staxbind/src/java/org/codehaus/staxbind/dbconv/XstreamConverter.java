@@ -2,8 +2,13 @@ package org.codehaus.staxbind.dbconv;
 
 import java.io.*;
 
+import com.sun.japex.Params;
+
 import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.converters.reflection.CGLIBEnhancedConverter;
 import com.thoughtworks.xstream.io.xml.StaxDriver;
+import com.thoughtworks.xstream.mapper.CGLIBMapper;
+import com.thoughtworks.xstream.mapper.MapperWrapper;
 
 /**
  * Converter that uses XStream on top of regular Stax 1
@@ -16,11 +21,31 @@ public class XstreamConverter
      * Root-level 'factory' object should be thread-safe, since it
      * carries no state.
      */
-    final XStream _xstream;
+    private XStream _xstream;
 
-    public XstreamConverter()
+    public XstreamConverter() {
+        // nothing to set as we need access to params...
+    }
+
+    public void prepare(Params driverParams)
     {
-        _xstream = new XStream(new StaxDriver());
+        /* Hmmh. Looks like prepare() does get called multiple
+         * times on a single driver; once per each test case.
+         */
+
+        /* 09-Dec-2008, tatus: Let's allow enabling/disabling
+         *   of CGLIB proxies; supposedly adds measurable
+         *   overhead
+         */
+        String prop = driverParams.getParam("xstream.enableCglib");
+        if (prop != null && "true".equalsIgnoreCase(prop)) {
+            System.out.print("[Xstream, WITH Cglib support]");
+            _xstream = new CglibXStream();
+        } else {
+            System.out.print("[Xstream, with NO Cglib support]");
+            _xstream = new XStream(new StaxDriver());
+        }
+
         // No need to resolve refs, won't have cycles
         _xstream.setMode(XStream.NO_REFERENCES);
         // Also, XStream needs to know main-level binding:
@@ -39,4 +64,25 @@ public class XstreamConverter
         _xstream.toXML(data, out);
         return data.size();
     }
+
+    /*
+    ///////////////////////////////////////////////
+    // Helper class for testing CGLIB support
+    ///////////////////////////////////////////////
+     */
+
+    final static class CglibXStream
+        extends XStream
+    {
+        public CglibXStream()
+        {
+            super(new StaxDriver());
+            registerConverter(new CGLIBEnhancedConverter(getMapper(), getReflectionProvider()));
+        }
+
+        protected MapperWrapper wrapMapper(MapperWrapper next) {
+            return new CGLIBMapper(next);
+        }
+    }
 }
+

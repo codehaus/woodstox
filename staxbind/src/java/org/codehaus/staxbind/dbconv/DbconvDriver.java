@@ -2,6 +2,8 @@ package org.codehaus.staxbind.dbconv;
 
 import java.io.*;
 
+import com.sun.japex.TestCase;
+
 import org.codehaus.staxbind.japex.BaseJapexDriver;
 
 public abstract class DbconvDriver

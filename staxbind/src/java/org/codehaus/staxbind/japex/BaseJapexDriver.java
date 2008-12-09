@@ -102,7 +102,7 @@ public abstract class BaseJapexDriver<E extends Enum>
         getTestSuite().setParam("japex.dummyResult", String.valueOf(_bogusResult));
 
         // Set file size in KB on X axis
-        testCase.setDoubleParam("japex.resultValueX", (double) (_totalLength >> 10));
+        testCase.setDoubleParam("japex.resultValueX", ((double) _totalLength) / 1024.0);
         getTestSuite().setParam("japex.resultUnitX", "KB");
 
         /* TPS or MBps? For now, TPS seems more useful, given that input
