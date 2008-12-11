@@ -114,7 +114,6 @@ public abstract class DbconvDriver
             if (_readableData != null) {
                 _readableData[i] = convData;
             }
-
             DbData convResults = _converter.readData(new ByteArrayInputStream(convData));
             if (!convResults.equals(origData)) {
                 // Not very clean, but let's output for debugging:
