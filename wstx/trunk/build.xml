@@ -260,55 +260,6 @@
     <target name="jars" depends="jars.osgi, jar.stax2test, repackage-msv" />
 
     <target name="jars.osgi" depends="osgi-stax2, osgi-woodstox-asl, osgi-woodstox-lgpl" />
-
-        <!-- 17-Nov-2008, TSa: Let's only build "core" jar;
-             if a flattened version (stax2-api bundled) is
-             requested, can add. But hopefully not.
-          -->
-<!--
-    <target name="jar.wstx.lgpl" depends="compile,copy-resources">
-        <jar jarfile="${dir.build}/woodstox-core-lgpl-${IMPL_VERSION}.jar" filesonly="true" >
-          <manifest>
-            <attribute name="Built-By" value="${user.name}"/>
-            <attribute name="Implementation-Title"   value="${IMPL_TITLE}"/>
-            <attribute name="Implementation-Version" value="${IMPL_VERSION}"/>
-            <attribute name="Implementation-Vendor"  value="${IMPL_VENDOR}"/>
-            <attribute name="Specification-Title"   value="${API_TITLE}"/>
-            <attribute name="Specification-Version" value="${API_VERSION}"/>
-            <attribute name="Specification-Vendor"  value="${API_VENDOR}"/>
-          </manifest>
-          <fileset dir="${dir.build.classes.woodstox}">
-            <patternset refid="wstx-dist-class-files" />
-          </fileset>
-          <! 14-Sep-2007, TSa: Seems like Mavenricks like to see this
-                  file under META-INF. Since jar specs do not care, let's
-                  put it there.
-            >
-          <metainf dir="${dir.releasenotes}/lgpl" includes="*" />
-        </jar>
-    </target> 
--->
-
-<!--
-    <target name="jar.wstx.asl" depends="compile,copy-resources">
-        <jar jarfile="${dir.build}/woodstox-core-asl-${IMPL_VERSION}.jar" filesonly="true" >
-          <manifest>
-            <attribute name="Built-By" value="${user.name}"/>
-            <attribute name="Implementation-Title"   value="${IMPL_TITLE}"/>
-            <attribute name="Implementation-Version" value="${IMPL_VERSION}"/>
-            <attribute name="Implementation-Vendor"  value="${IMPL_VENDOR}"/>
-            <attribute name="Specification-Title"   value="${API_TITLE}"/>
-            <attribute name="Specification-Version" value="${API_VERSION}"/>
-            <attribute name="Specification-Vendor"  value="${API_VENDOR}"/>
-          </manifest>
-          <fileset dir="${dir.build.classes.woodstox}">
-            <patternset refid="wstx-dist-class-files" />
-          </fileset>
-          <metainf dir="${dir.releasenotes}/asl" includes="*" />
-        </jar>
-    </target> 
--->
-
     <!-- This jar is only needed for testing purposes, to specify 
        - which Stax implementation to use
       -->
@@ -319,25 +270,6 @@
           </fileset>
         </jar>
     </target> 
-
-<!--
-    <target name="jar.stax2" depends="compile">
-        <jar jarfile="${dir.build}/stax2-api-${STAX2_VERSION}.jar" filesonly="true" >
-          <manifest>
-            <attribute name="Built-By" value="${user.name}"/>
-            <attribute name="Specification-Title"   value="${STAX2_TITLE}"/>
-            <attribute name="Specification-Version" value="${STAX2_VERSION}"/>
-            <attribute name="Specification-Vendor"  value="${STAX2_VENDOR}"/>
-            <attribute name="Implementation-Title"   value="${STAX2_TITLE}"/>
-            <attribute name="Implementation-Version" value="${STAX2_VERSION}"/>
-            <attribute name="Implementation-Vendor"  value="${STAX2_VENDOR}"/>
-          </manifest>
-          <fileset dir="${dir.build.classes.stax2}">
-             <include name="org/codehaus/stax2/**/*.class" />
-          </fileset>
-        </jar>
-    </target> 
--->
 
     <!-- 15-Mar-2008, TSa: Let's also package up Stax2 compatibility
          test suite, for other stax2 impls to use
@@ -390,44 +322,66 @@
        <property name="SRC_CORE" value="woodstox-core-src-${IMPL_VERSION}" />
        <property name="SRC_STAX2" value="stax2-api-src-${STAX2_VERSION}" />
 
-       <tar basedir="${basedir}" destfile="${dir.dist}/${SRC_CORE}.tar">
-          <patternset refid="woodstox-dist-src-files" />
-          <patternset refid="wstx-dist-misc-files" />
-       </tar>
-       <gzip zipfile="${dir.dist}/${SRC_CORE}.tar.gz" src="${dir.dist}/${SRC_CORE}.tar" />
-       <delete  file="${dir.dist}/${SRC_CORE}.tar" />
+       <!-- Need to first copy to a tmp dir, to get the additional
+          directory (so tar/zip contents won't explode directly
+          in current dir)
+        -->
+       <property name="DIR_CORE" value="woodstox-${IMPL_VERSION}" />
+       <property name="DIR_STAX2" value="stax2-${STAX2_VERSION}" />
+       <delete dir="${dir.build}/${DIR_CORE}" />
+       <mkdir dir="${dir.build}/${DIR_CORE}" />
+       <delete dir="${dir.build}/${DIR_STAX2}" />
+       <mkdir dir="${dir.build}/${DIR_STAX2}" />
 
-       <tar basedir="${basedir}" destfile="${dir.dist}/${SRC_STAX2}.tar">
-          <patternset refid="stax2-dist-src-files" />
-       </tar>
-       <gzip zipfile="${dir.dist}/${SRC_STAX2}.tar.gz" src="${dir.dist}/${SRC_STAX2}.tar" />
-       <delete  file="${dir.dist}/${SRC_STAX2}.tar" />
+       <copy todir="${dir.build}/${DIR_CORE}">
+          <fileset dir="${basedir}">
+            <patternset refid="woodstox-dist-src-files" />
+            <patternset refid="wstx-dist-misc-files" />
+          </fileset>
+       </copy>
+       <copy todir="${dir.build}/${DIR_STAX2}">
+          <fileset dir="${basedir}">
+            <patternset refid="stax2-dist-src-files" />
+          </fileset>
+       </copy>
+
+       <delete file="${dir.dist}/${SRC_CORE}.tar.gz" />
+       <tar basedir="${dir.build}"
+        includes="${DIR_CORE}/**"
+        destfile="${dir.dist}/${SRC_CORE}.tar.gz"
+        compression="gzip"
+      />
+       <delete file="${dir.dist}/${SRC_STAX2}.tar.gz" />
+       <tar basedir="${dir.build}"
+        includes="${DIR_STAX2}/**"
+        destfile="${dir.dist}/${SRC_STAX2}.tar"
+        compression="gzip"
+      />
 
        <!-- as well as zip -->
-       <zip basedir="${basedir}" destfile="${dir.dist}/${SRC_CORE}.zip">
-          <patternset refid="woodstox-dist-src-files" />
-          <patternset refid="wstx-dist-misc-files" />
-       </zip>
-       <zip basedir="${basedir}" destfile="${dir.dist}/${SRC_STAX2}.zip">
-          <patternset refid="stax2-dist-src-files" />
-       </zip>
+       <zip basedir="${dir.build}"
+        includes="${DIR_CORE}/**"
+        destfile="${dir.dist}/${SRC_CORE}.zip"
+      />
+       <zip basedir="${dir.build}"
+        includes="${DIR_STAX2}/**"
+        destfile="${dir.dist}/${SRC_STAX2}.zip"
+      />
 
        <!-- And create source jars for IDE support -->
-       <jar jarfile="${dir.dist}/woodstox-core-asl-${IMPL_VERSION}-sources.jar" filesonly="true" >
-          <fileset dir="${basedir}">
-              <patternset refid="woodstox-dist-src-files" />
-          </fileset>
-       </jar>
-       <jar jarfile="${dir.dist}/woodstox-core-lgpl-${IMPL_VERSION}-sources.jar" filesonly="true" >
-          <fileset dir="${basedir}">
-              <patternset refid="woodstox-dist-src-files" />
-          </fileset>
-       </jar>
-       <jar jarfile="${dir.dist}/stax2-api-${IMPL_VERSION}-sources.jar" filesonly="true" >
-          <fileset dir="${basedir}">
-              <patternset refid="stax2-dist-src-files" />
-          </fileset>
-       </jar>
+       <!-- Can't really use patternset, as that'd include "src/java" -->
+       <jar basedir="${dir.src.java}" filesonly="true" compress="true"
+         destfile="${dir.dist}/woodstox-core-asl-${IMPL_VERSION}-sources.jar"
+         includes="com/**/*.java"
+      />
+       <jar basedir="${dir.src.java}" filesonly="true" compress="true"
+         destfile="${dir.dist}/woodstox-core-lgpl-${IMPL_VERSION}-sources.jar"
+         includes="com/ctc/wstx/**/*.java"
+      />
+       <jar basedir="${dir.src.java}" filesonly="true" compress="true"
+         destfile="${dir.dist}/stax2-api-${STAX2_VERSION}-sources.jar"
+         includes="org/codehaus/stax2/**/*.java"
+      />
 
        <!-- Then copy javadocs -->
        <copy todir="${dir.dist}">

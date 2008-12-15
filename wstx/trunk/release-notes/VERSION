@@ -7,6 +7,8 @@ Description:
 
   Problems fixed:
 
+  * [WSTX-178] Source code distribution did not have an intervening "[artifact]-[version]"
+    directory, which means that when unexpanding, contents may spill in unexpected places
   * [WTSX-179] Problem with XMLStreamReader.getElementText(), where
     data may be corrupt under some situations (could also affect
     typed access methods similarly).

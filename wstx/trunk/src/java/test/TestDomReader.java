@@ -7,7 +7,7 @@ import javax.xml.transform.Source;
 import javax.xml.transform.dom.*;
 import javax.xml.stream.*;
 
-import org.w3c.dom.Document;
+import org.w3c.dom.*;
 import org.xml.sax.InputSource;
 
 public class TestDomReader
@@ -21,6 +21,13 @@ public class TestDomReader
         dbf.setValidating(false);
         DocumentBuilder builder = dbf.newDocumentBuilder();
         Document doc = builder.parse(new InputSource(new StringReader(XML)));
+
+        // to see if Xerces (etc) mind illegal chars, try:
+        /*
+        Text txt = doc.createTextNode("Invalid: \u000C./"+((char) 0)+"..");
+        doc.getDocumentElement().appendChild(txt);
+        */
+
         Source source = new DOMSource(doc);
         System.setProperty("javax.xml.stream.XMLInputFactory",
                            "com.ctc.wstx.stax.WstxInputFactory");
