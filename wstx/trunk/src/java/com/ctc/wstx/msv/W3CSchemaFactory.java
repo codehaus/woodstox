@@ -47,7 +47,7 @@ public class W3CSchemaFactory
 
     public W3CSchemaFactory()
     {
-        super();
+        super(XMLValidationSchema.SCHEMA_ID_RELAXNG);
     }
 
     /*

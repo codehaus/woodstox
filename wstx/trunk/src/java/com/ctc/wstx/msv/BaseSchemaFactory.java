@@ -43,8 +43,9 @@ public abstract class BaseSchemaFactory
      */
     protected final ValidatorConfig mConfig;
 
-    protected BaseSchemaFactory()
+    protected BaseSchemaFactory(String schemaType)
     {
+        super(schemaType);
         mConfig = ValidatorConfig.createDefaults();
     }
 

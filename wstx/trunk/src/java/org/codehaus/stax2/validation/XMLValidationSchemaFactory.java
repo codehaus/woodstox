@@ -78,7 +78,19 @@ public abstract class XMLValidationSchemaFactory
      */
     public static final String P_ENABLE_CACHING = "org.codehaus2.stax2.validation.enableCaching";
 
-    protected XMLValidationSchemaFactory() { }
+    /**
+     * Schema type this factory instance supports.
+     */
+    protected final String mSchemaType;
+
+    /**
+     * @param st Schema type this factory supports; one of 
+     *   <code>SCHEMA_ID_xxx</code> constants.
+     */
+    protected XMLValidationSchemaFactory(String st)
+    {
+        mSchemaType = st;
+    }
 
     /*
     ////////////////////////////////////////////////////////
@@ -262,12 +274,11 @@ public abstract class XMLValidationSchemaFactory
 
     public abstract Object getProperty(String propName);
 
-    /*
-    public abstract boolean isFeatureSupported(String featureName);
-    public abstract boolean disableFeature(String featureName);
-    public abstract boolean enableFeature(String featureName);
-    public abstract boolean isFeatureEnabled(String featureName);
-    */
+    /**
+     * @return Name of schema type (one of <code>SCHEMA_ID_xxx</code>
+     *    constants) that this factory supports.
+     */
+    public final String getSchemaType() { return mSchemaType; }
 
     /*
     ///////////////////////////////////////////////////////

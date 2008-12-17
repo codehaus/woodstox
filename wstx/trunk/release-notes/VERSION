@@ -3,10 +3,13 @@ Version: 3.9.9-2
 Release date: xx-Dec-2008
 
 Description:
-  Second 4.0 pre-release version. Bug-fixes.
+  Second 4.0 pre-release version. Bug-fixes, minor features that require API
+  changes (to freeze down API for 4.0)
 
   Problems fixed:
 
+  * [WSTX-177] Added support for accessing Stax2 factories (input, output,
+    validation schema) through OSGi services interface.
   * [WSTX-178] Source code distribution did not have an intervening "[artifact]-[version]"
     directory, which means that when unexpanding, contents may spill in unexpected places
   * [WTSX-179] Problem with XMLStreamReader.getElementText(), where

@@ -62,6 +62,10 @@
         <fileset dir="${dir.lib}" includes="sax2.jar" />
         <!-- these are needed for optional MSV-based validators -->
         <fileset dir="${dir.lib}/msv" includes="*.jar" />
+        <!-- 17-Dec-2008, tatu: adding OSGi bundle activation
+         support, to register providers as services
+        -->
+        <fileset dir="${dir.lib}/osgi" includes="*.jar" />
     </path>
     <path id="junit-libs">
        <fileset dir="${dir.lib}">

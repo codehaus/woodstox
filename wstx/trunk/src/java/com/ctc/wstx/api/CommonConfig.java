@@ -142,6 +142,18 @@ abstract class CommonConfig
         return getStdProperty(id);
     }
 
+    /**
+     * Method used to figure out the official implementation name
+     * for input/output/validation factories.
+     */
+    public static String getImplName() { return IMPL_NAME; }
+
+    /**
+     * Method used to figure out the official implementation version
+     * for input/output/validation factories.
+     */
+    public static String getImplVersion() { return IMPL_VERSION; }
+
     /*
     //////////////////////////////////////////////////////////
     // Interface sub-classes have to implement / can override

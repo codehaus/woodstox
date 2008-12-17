@@ -69,7 +69,9 @@ public class DTDSchemaFactory
      */
     protected final ReaderConfig mReaderConfig;
 
-    public DTDSchemaFactory() {
+    public DTDSchemaFactory()
+    {
+        super(XMLValidationSchema.SCHEMA_ID_DTD);
         mReaderConfig = ReaderConfig.createFullDefaults();
         mSchemaConfig = ValidatorConfig.createDefaults();
     }

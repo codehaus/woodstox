@@ -47,7 +47,7 @@ public class RelaxNGSchemaFactory
 
     public RelaxNGSchemaFactory()
     {
-        super();
+        super(XMLValidationSchema.SCHEMA_ID_RELAXNG);
     }
 
     /*
