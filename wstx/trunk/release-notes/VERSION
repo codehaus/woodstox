@@ -1,10 +1,18 @@
-Version: 3.9.9-2
+Version: 3.9.9-3
 
 Release date: xx-Dec-2008
 
 Description:
-  Second 4.0 pre-release version. Bug-fixes, minor features that require API
-  changes (to freeze down API for 4.0)
+  Third 4.0 pre-release version. Minor API changes.
+
+  API changes:
+
+  * Changed passing of Base64Variant argument: since it's an optional argument
+    it should come after mandatory ones (wasn't with earlier RCs).
+
+== History: ==
+
+3.9.9-2 [17-Dec-2008]
 
   Problems fixed:
 
@@ -16,9 +24,7 @@ Description:
     data may be corrupt under some situations (could also affect
     typed access methods similarly).
 
-== History: ==
-
-3.9.9-1 [21-Nov-2008] (first 4.0 pre-release)
+3.9.9-1 [21-Nov-2008]
 
   Problems fixed:
 

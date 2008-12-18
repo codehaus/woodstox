@@ -1123,7 +1123,7 @@ public final class ValueDecoderFactory
              */
             String uri = mNsCtxt.getNamespaceURI(prefix);
             if (uri == null || uri.length() == 0) {
-                throw new IllegalArgumentException("Value \""+lexicalDesc(prefix+":"+localName)+"\" not a valid QName: prefix not bound to a namespace");
+                throw new IllegalArgumentException("Value \""+lexicalDesc(prefix+":"+localName)+"\" not a valid QName: prefix '"+prefix+"' not bound to a namespace");
             }
             return new QName(uri, localName, prefix);
         }

@@ -167,28 +167,54 @@ public abstract class DOMWrappingWriter
         // NOP
     }
 
+    public abstract NamespaceContext getNamespaceContext();
+    public abstract String getPrefix(String uri);
+    public abstract Object getProperty(String name);
+    public abstract void setDefaultNamespace(String uri);
+
     public void setNamespaceContext(NamespaceContext context) {
         mNsContext = context;
     }
 
-    public void writeCData(String data) {
+    public abstract void setPrefix(String prefix, String uri)
+        throws XMLStreamException;
+
+    public abstract void writeAttribute(String localName, String value)
+        throws XMLStreamException;
+    public abstract void writeAttribute(String nsURI, String localName, String value)
+        throws XMLStreamException;
+    public abstract void writeAttribute(String prefix, String nsURI, String localName, String value)
+        throws XMLStreamException;
+
+    public void writeCData(String data)
+        throws XMLStreamException
+    {
         appendLeaf(mDocument.createCDATASection(data));
     }
 
     public void writeCharacters(char[] text, int start, int len)
+        throws XMLStreamException
     {
         writeCharacters(new String(text, start, len));
     }
 
-    public void writeCharacters(String text) {
+    public void writeCharacters(String text)
+        throws XMLStreamException
+    {
         appendLeaf(mDocument.createTextNode(text));
     }
 
-    public void writeComment(String data) {
+    public void writeComment(String data)
+        throws XMLStreamException
+    {
         appendLeaf(mDocument.createCDATASection(data));
     }
 
+    public abstract void writeDefaultNamespace(String nsURI)
+        throws XMLStreamException;
+
     public void writeDTD(String dtd)
+        throws XMLStreamException
     {
         /* Would need to parse contents, not easy to do via DOM
          * in any case.
@@ -196,15 +222,34 @@ public abstract class DOMWrappingWriter
         reportUnsupported("writeDTD()");
     }
 
-    public void writeProcessingInstruction(String target) {
+    public abstract void writeEmptyElement(String localName)
+        throws XMLStreamException;
+    public abstract void writeEmptyElement(String nsURI, String localName)
+        throws XMLStreamException;
+    public abstract void writeEmptyElement(String prefix, String localName, String nsURI)  
+        throws XMLStreamException;
+
+    public abstract void writeEndDocument() throws XMLStreamException;
+
+    public void writeEntityRef(String name) throws XMLStreamException
+    {
+        appendLeaf(mDocument.createEntityReference(name));
+    }
+
+    public void writeProcessingInstruction(String target)
+        throws XMLStreamException
+    {
         writeProcessingInstruction(target, null);
     }
 
-    public void writeProcessingInstruction(String target, String data) {
+    public void writeProcessingInstruction(String target, String data)
+        throws XMLStreamException
+    {
         appendLeaf(mDocument.createProcessingInstruction(target, data));
     }
 
     public void writeStartDocument()
+        throws XMLStreamException
     {
         /* Note: while these defaults are not very intuitive, they
          * are what Stax 1.0 specification clearly mandates:
@@ -213,11 +258,13 @@ public abstract class DOMWrappingWriter
     }
 
     public void writeStartDocument(String version)
+        throws XMLStreamException
     {
         writeStartDocument(null, version);
     }
 
     public void writeStartDocument(String encoding, String version)
+        throws XMLStreamException
     {
         // Is there anything here we can or should do? No?
         mEncoding = encoding;
@@ -226,7 +273,7 @@ public abstract class DOMWrappingWriter
 
     /*
     ////////////////////////////////////////////////////
-    // XMLStreamWriter2 API (Stax2 v2.0):
+    // XMLStreamWriter2 API (Stax2 v3.0):
     // additional accessors
     ////////////////////////////////////////////////////
      */
@@ -239,6 +286,9 @@ public abstract class DOMWrappingWriter
     public String getEncoding() {
         return mEncoding;
     }
+
+    public abstract boolean isPropertySupported(String name);
+    public abstract boolean setProperty(String name, Object value);
 
     /*
     ////////////////////////////////////////////////////
@@ -253,6 +303,10 @@ public abstract class DOMWrappingWriter
         writeCData(new String(text, start, len));
     }
 
+    public abstract void writeDTD(String rootName, String systemId, String publicId,
+                                  String internalSubset)
+        throws XMLStreamException;
+
     //public void writeDTD(String rootName, String systemId, String publicId, String internalSubset)
 
     public void writeFullEndElement() throws XMLStreamException
@@ -261,11 +315,15 @@ public abstract class DOMWrappingWriter
         writeEndElement();
     }
 
-    public void writeSpace(char[] text, int start, int len) {
+    public void writeSpace(char[] text, int start, int len)
+        throws XMLStreamException
+    {
         writeSpace(new String(text, start, len));
     }
 
-    public void writeSpace(String text) {
+    public void writeSpace(String text)
+        throws XMLStreamException
+    {
         /* This won't work all that well, given there's no way to
          * prevent quoting/escaping. But let's do what we can, since
          * the alternative (throwing an exception) doesn't seem

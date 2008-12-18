@@ -40,7 +40,7 @@ public interface Stax2ValidationSchemaFactoryProvider
     /**
      * Service property that defines type of Schemas (one of constants from
      * {@link org.codehaus.stax2.validation.XMLValidationSchema},
-     * such as {@link XMLValidationSchema#SCHEMA_ID_DTD})
+     * such as {@link org.codehaus.stax2.validation.XMLValidationSchema#SCHEMA_ID_DTD})
      * that the schema factory this provider handles supports. Can be used
      * to locate proper provider for the schema type.
      */

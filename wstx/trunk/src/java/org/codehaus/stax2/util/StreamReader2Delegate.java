@@ -265,9 +265,9 @@ public class StreamReader2Delegate
         return mDelegate2.getAttributeAsBinary(index);
     }
 
-    public byte[] getAttributeAsBinary(Base64Variant v, int index) throws XMLStreamException
+    public byte[] getAttributeAsBinary(int index, Base64Variant v) throws XMLStreamException
     {
-        return mDelegate2.getAttributeAsBinary(v, index);
+        return mDelegate2.getAttributeAsBinary(index, v);
     }
 
     public int readElementAsDoubleArray(double[] value, int from, int length)
@@ -305,9 +305,10 @@ public class StreamReader2Delegate
         return mDelegate2.readElementAsBinary(resultBuffer, offset, maxLength);
     }
 
-    public int readElementAsBinary(Base64Variant v, byte[] resultBuffer, int offset, int maxLength)
+    public int readElementAsBinary(byte[] resultBuffer, int offset, int maxLength,
+                                   Base64Variant v)
         throws XMLStreamException
     {
-        return mDelegate2.readElementAsBinary(v, resultBuffer, offset, maxLength);
+        return mDelegate2.readElementAsBinary(resultBuffer, offset, maxLength, v);
     }
 }

@@ -30,6 +30,8 @@ import com.ctc.wstx.sw.OutputElementBase;
  *<p>
  * Some notes regarding missing/incomplete functionality:
  * <ul>
+ *  <li>Validation functionality not implemented
+ *   </li>
  *  </ul>
  *
  * @author Tatu Saloranta
@@ -43,10 +45,6 @@ public class WstxDOMWrappingWriter
     // Constants
     ////////////////////////////////////////////////////
      */
-
-    final protected static String sPrefixXml = "xml";
-
-    final protected static String sPrefixXmlns = "xmlns";
 
     final protected static String ERR_NSDECL_WRONG_STATE =
         "Trying to write a namespace declaration when there is no open start element.";
@@ -223,6 +221,8 @@ public class WstxDOMWrappingWriter
                 if (!uri.equals(XMLConstants.XMLNS_ATTRIBUTE_NS_URI)) {
                     throwOutputError(ErrorConsts.ERR_NS_REDECL_XMLNS, uri);
                 }
+                // At any rate; we are NOT to output it
+                return;
             } else {
                 // Neither of prefixes.. but how about URIs?
                 if (uri.equals(XMLConstants.XML_NS_URI)) {
@@ -315,9 +315,7 @@ public class WstxDOMWrappingWriter
         mCurrElem = mCurrElem.getParent();
     }
 
-    public void writeEntityRef(String name) {
-        appendLeaf(mDocument.createEntityReference(name));
-    }
+    //public void writeEntityRef(String name)
 
     public void writeNamespace(String prefix, String nsURI) throws XMLStreamException
     {
@@ -356,11 +354,16 @@ public class WstxDOMWrappingWriter
     {
         createStartElem(nsURI, prefix, localName, false);
     }
+
     /*
     ////////////////////////////////////////////////////
-    // XMLStreamWriter2 API (Stax2 v2.0)
+    // XMLStreamWriter2 API (Stax2 v3.0):
+    // additional accessors
     ////////////////////////////////////////////////////
      */
+
+    //public XMLStreamLocation2 getLocation()
+    //public String getEncoding()
 
     public boolean isPropertySupported(String name)
     {
@@ -376,12 +379,12 @@ public class WstxDOMWrappingWriter
         return mConfig.setProperty(name, value);
     }
 
-    //public XMLValidator validateAgainst(XMLValidationSchema schema)
-    //public XMLValidator stopValidatingAgainst(XMLValidationSchema schema)
-    //public XMLValidator stopValidatingAgainst(XMLValidator validator)
-    //public ValidationProblemHandler setValidationProblemHandler(ValidationProblemHandler h)
-    //public XMLStreamLocation2 getLocation()
-    //public String getEncoding() {
+    /*
+    ////////////////////////////////////////////////////
+    // XMLStreamWriter2 API (Stax2 v2.0):
+    // extended write methods
+    ////////////////////////////////////////////////////
+     */
 
     //public void writeCData(char[] text, int start, int len)
 
@@ -405,6 +408,17 @@ public class WstxDOMWrappingWriter
 
 
     //public void writeStartDocument(String version, String encoding, boolean standAlone)
+
+    /*
+    ////////////////////////////////////////////////////
+    // XMLStreamWriter2 API (Stax2 v2.0): validation
+    ////////////////////////////////////////////////////
+     */
+
+    //public XMLValidator validateAgainst(XMLValidationSchema schema)
+    //public XMLValidator stopValidatingAgainst(XMLValidationSchema schema)
+    //public XMLValidator stopValidatingAgainst(XMLValidator validator)
+    //public ValidationProblemHandler setValidationProblemHandler(ValidationProblemHandler h)
 
     /*
     ////////////////////////////////////////////
@@ -727,6 +741,4 @@ public class WstxDOMWrappingWriter
         writeNamespace(prefix, nsURI);
         return prefix;
     }
-    
-    
 }

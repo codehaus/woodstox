@@ -57,7 +57,7 @@ public class TestBase64Reader
         int offset = 0;
 
         while (true) {
-            int count = sr.readElementAsBinary(Base64Variants.MODIFIED_FOR_URL, buffer, 0, buffer.length);
+            int count = sr.readElementAsBinary(buffer, 0, buffer.length, Base64Variants.MODIFIED_FOR_URL);
             System.out.print("Result("+offset+"+"+count+"): ");
             if (count < 0) {
                 break;

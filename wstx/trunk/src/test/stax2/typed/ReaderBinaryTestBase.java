@@ -282,7 +282,7 @@ public abstract class ReaderBinaryTestBase
                 int ptr = 0;
                 int count;
                 
-                while ((count = sr.readElementAsBinary(b64variant, buffer, 2, 1)) > 0) {
+                while ((count = sr.readElementAsBinary(buffer, 2, 1, b64variant)) > 0) {
                     assertEquals(1, count);
                     if ((ptr+1) < dataLen) {
                         if (data[ptr] != buffer[2]) {
@@ -304,7 +304,7 @@ public abstract class ReaderBinaryTestBase
                  * happen. If this is not true, need to change unit
                  * test to reflect it.
                  */
-                int count = sr.readElementAsBinary(b64variant, buffer, 3, buffer.length-3);
+                int count = sr.readElementAsBinary(buffer, 3, buffer.length-3, b64variant);
                 assertEquals(dataLen, count);
                 for (int i = 0; i < dataLen; ++i) {
                     if (buffer[3+i] != data[i]) {
@@ -336,7 +336,7 @@ public abstract class ReaderBinaryTestBase
                 
                 while (true) {
                     int len = random ? (20 + (r.nextInt() & 127)) : 2;
-                    int count = sr.readElementAsBinary(b64variant, buffer, 0, len);
+                    int count = sr.readElementAsBinary(buffer, 0, len, b64variant);
                     if (count < 0) {
                         break;
                     }
@@ -364,7 +364,7 @@ public abstract class ReaderBinaryTestBase
         throws XMLStreamException
     {
         byte[] buffer = new byte[5];
-        assertEquals(1, sr.readElementAsBinary(b64variant, buffer, 1, 1));
+        assertEquals(1, sr.readElementAsBinary(buffer, 1, 1, b64variant));
         assertEquals(data[0], buffer[1]);
     }
         
@@ -393,7 +393,7 @@ public abstract class ReaderBinaryTestBase
                 String doc = "<root>"+INVALID_PADDING[i]+"</root>";
                 XMLStreamReader2 sr = getElemReader(doc);
                 try {
-                    /*int count = */ sr.readElementAsBinary(b64variant, resultBuffer, 0, resultBuffer.length);
+                    /*int count = */ sr.readElementAsBinary(resultBuffer, 0, resultBuffer.length, b64variant);
                     fail("Should have received an exception for invalid padding");
                 } catch (TypedXMLStreamException ex) {
                     // any way to check that it's the excepted message? not right now
@@ -423,7 +423,7 @@ public abstract class ReaderBinaryTestBase
                 String doc = "<root>"+INVALID_WS[i]+"</root>";
                 XMLStreamReader2 sr = getElemReader(doc);
                 try {
-                    /*int count = */ sr.readElementAsBinary(b64variant, resultBuffer, 0, resultBuffer.length);
+                    /*int count = */ sr.readElementAsBinary(resultBuffer, 0, resultBuffer.length, b64variant);
                     fail("Should have received an exception for white space used 'inside' 4-char base64 unit");
                 } catch (TypedXMLStreamException ex) {
                     // any way to check that it's the excepted message? not right now
@@ -444,7 +444,7 @@ public abstract class ReaderBinaryTestBase
                 String doc = "<root>"+INVALID_WEIRD_CHARS[i]+"</root>";
                 XMLStreamReader2 sr = getElemReader(doc);
                 try {
-                    /*int count = */ sr.readElementAsBinary(b64variant, resultBuffer, 0, resultBuffer.length);
+                    /*int count = */ sr.readElementAsBinary(resultBuffer, 0, resultBuffer.length, b64variant);
                     fail("Should have received an exception for invalid base64 character");
                 } catch (TypedXMLStreamException ex) {
                     // any way to check that it's the excepted message? not right now
@@ -480,7 +480,7 @@ public abstract class ReaderBinaryTestBase
                     
                     XMLStreamReader2 sr = getElemReader(sb.toString());
                     try {
-                        /*int count = */ sr.readElementAsBinary(b64variant, resultBuffer, 0, resultBuffer.length);
+                        /*int count = */ sr.readElementAsBinary(resultBuffer, 0, resultBuffer.length, b64variant);
                         fail("Should have received an exception for incomplete base64 unit");
                     } catch (TypedXMLStreamException ex) {
                         // any way to check that it's the excepted message? not right now
@@ -520,7 +520,7 @@ public abstract class ReaderBinaryTestBase
                     XMLStreamReader2 sr = getElemReader(sb.toString());
                     byte[] actData = null;
                     try {
-                        actData = sr.getAttributeAsBinary(b64variant, 0);
+                        actData = sr.getAttributeAsBinary(0, b64variant);
                     } catch (TypedXMLStreamException e) {
                         fail("Failed for variant "+b64variant+", input '"+e.getLexical()+"': "+e.getMessage());
                     }
@@ -573,7 +573,7 @@ public abstract class ReaderBinaryTestBase
                 String doc = "<root x='"+INVALID_WS[i]+"' />";
                 XMLStreamReader2 sr = getElemReader(doc);
                 try {
-                    /*byte[] data = */ sr.getAttributeAsBinary(b64variant, 0);
+                    /*byte[] data = */ sr.getAttributeAsBinary(0, b64variant);
                     fail("Should have received an exception for white space used 'inside' 4-char base64 unit");
                 } catch (TypedXMLStreamException ex) {
                     // any way to check that it's the excepted message? not right now
@@ -592,7 +592,7 @@ public abstract class ReaderBinaryTestBase
                 String doc = "<root abc='"+INVALID_WEIRD_CHARS[i]+"'/>";
                 XMLStreamReader2 sr = getElemReader(doc);
                 try {
-                    /*byte[] data = */ sr.getAttributeAsBinary(b64variant, 0);
+                    /*byte[] data = */ sr.getAttributeAsBinary(0, b64variant);
                     fail("Should have received an exception for invalid base64 character");
                 } catch (TypedXMLStreamException ex) {
                     // any way to check that it's the excepted message? not right now
@@ -625,7 +625,7 @@ public abstract class ReaderBinaryTestBase
                     sb.append("<root attr='").append(cbuf, 0, testLen).append("'/>");
                     XMLStreamReader2 sr = getElemReader(sb.toString());
                     try {
-                        /*byte[] data = */ sr.getAttributeAsBinary(b64variant, 0);
+                        /*byte[] data = */ sr.getAttributeAsBinary(0, b64variant);
                         fail("Should have received an exception for incomplete base64 unit");
                     } catch (TypedXMLStreamException ex) {
                         // any way to check that it's the excepted message? not right now

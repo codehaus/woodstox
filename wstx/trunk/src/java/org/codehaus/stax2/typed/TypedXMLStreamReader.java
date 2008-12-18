@@ -315,7 +315,8 @@ public interface TypedXMLStreamReader
      * @throws IllegalArgumentException If <code>resultBuffer</code> is
      *    null or offset is less than 0.
      */
-    public int readElementAsBinary(Base64Variant variant, byte[] resultBuffer, int offset, int maxLength)
+    public int readElementAsBinary(byte[] resultBuffer, int offset, int maxLength,
+                                   Base64Variant variant) 
         throws XMLStreamException;
 
     public int readElementAsBinary(byte[] resultBuffer, int offset, int maxLength)
@@ -546,7 +547,7 @@ public interface TypedXMLStreamReader
      */
     public byte[] getAttributeAsBinary(int index) throws XMLStreamException;
 
-    public byte[] getAttributeAsBinary(Base64Variant v, int index) throws XMLStreamException;
+    public byte[] getAttributeAsBinary(int index, Base64Variant v) throws XMLStreamException;
     
     /**
      * <p>Read an attribute content as an int array. The lexical

@@ -318,7 +318,7 @@ public abstract class AttributeCollector
                             mValueBuffer.getOffset(index+1));
     }
 
-    public final byte[] decodeBinary(Base64Variant v, int index, CharArrayBase64Decoder dec,
+    public final byte[] decodeBinary(int index, Base64Variant v, CharArrayBase64Decoder dec,
                                      InputProblemReporter rep)
         throws XMLStreamException
     {

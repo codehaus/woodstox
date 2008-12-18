@@ -192,7 +192,7 @@ public class TypedStreamReader
             int len = buffer.length;
 
             do {
-                int readCount = readElementAsBinary(v, buffer, offset, len);
+                int readCount = readElementAsBinary(buffer, offset, len, v);
                 if (readCount < 1) { // all done!
                     return aggr.aggregateAll(buffer, offset);
                 }
@@ -410,10 +410,10 @@ public class TypedStreamReader
     public final int readElementAsBinary(byte[] resultBuffer, int offset, int maxLength)
         throws XMLStreamException
     {
-        return readElementAsBinary(Base64Variants.getDefaultVariant(), resultBuffer, offset, maxLength);
+        return readElementAsBinary(resultBuffer, offset, maxLength, Base64Variants.getDefaultVariant());
     }
 
-    public int readElementAsBinary(Base64Variant v, byte[] resultBuffer, int offset, int maxLength)
+    public int readElementAsBinary(byte[] resultBuffer, int offset, int maxLength, Base64Variant v)
         throws XMLStreamException
     {
         if (resultBuffer == null) {
@@ -662,12 +662,12 @@ public class TypedStreamReader
 
     public byte[] getAttributeAsBinary(int index) throws XMLStreamException
     {
-        return getAttributeAsBinary(Base64Variants.getDefaultVariant(), index);
+        return getAttributeAsBinary(index, Base64Variants.getDefaultVariant());
     }
 
-    public byte[] getAttributeAsBinary(Base64Variant v, int index) throws XMLStreamException
+    public byte[] getAttributeAsBinary(int index, Base64Variant v) throws XMLStreamException
     {
-        return mAttrCollector.decodeBinary(v, index, _base64Decoder(), this);
+        return mAttrCollector.decodeBinary(index, v, _base64Decoder(), this);
     }
 
     /*
