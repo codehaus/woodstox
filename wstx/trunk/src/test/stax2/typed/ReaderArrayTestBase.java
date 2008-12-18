@@ -379,11 +379,9 @@ public abstract class ReaderArrayTestBase
         return sb.toString();
     }
     
-    private void assertArraysEqual(Object expArray, Object actArray)
+    private void assertArraysEqual(Object expArray, Object actArray, int actLen)
     {
         int expLen = Array.getLength(expArray);
-        int actLen = Array.getLength(actArray);
-
         if (expLen != actLen) {
             fail("Expected number of entries "+expLen+", got "+actLen);
         }
@@ -436,7 +434,7 @@ public abstract class ReaderArrayTestBase
             System.arraycopy(buffer, offset, result, entries, got);
             entries += got;
         }
-        assertArraysEqual(data, result);
+        assertArraysEqual(data, result, entries);
         sr.close();
     }
 
@@ -464,7 +462,7 @@ public abstract class ReaderArrayTestBase
             System.arraycopy(buffer, 0, result, entries, got);
             entries += got;
         }
-        assertArraysEqual(data, result);
+        assertArraysEqual(data, result, entries);
         sr.close();
     }
 
@@ -492,7 +490,7 @@ public abstract class ReaderArrayTestBase
             System.arraycopy(buffer, 0, result, entries, got);
             entries += got;
         }
-        assertArraysEqual(data, result);
+        assertArraysEqual(data, result, entries);
         sr.close();
     }
 
@@ -520,7 +518,7 @@ public abstract class ReaderArrayTestBase
             System.arraycopy(buffer, 0, result, entries, got);
             entries += got;
         }
-        assertArraysEqual(data, result);
+        assertArraysEqual(data, result, entries);
         sr.close();
     }
 
@@ -530,7 +528,8 @@ public abstract class ReaderArrayTestBase
         XMLStreamReader2 sr = getReader(doc);
         sr.next();
         assertTokenType(START_ELEMENT, sr.getEventType());
-        assertArraysEqual(data, sr.getAttributeAsIntArray(0));
+        int[] result = sr.getAttributeAsIntArray(0);
+        assertArraysEqual(data, result, result.length);
         sr.close();
     }
 
@@ -540,7 +539,8 @@ public abstract class ReaderArrayTestBase
         XMLStreamReader2 sr = getReader(doc);
         sr.next();
         assertTokenType(START_ELEMENT, sr.getEventType());
-        assertArraysEqual(data, sr.getAttributeAsLongArray(0));
+        long[] result = sr.getAttributeAsLongArray(0);
+        assertArraysEqual(data, result, result.length);
         sr.close();
     }
 
@@ -550,7 +550,8 @@ public abstract class ReaderArrayTestBase
         XMLStreamReader2 sr = getReader(doc);
         sr.next();
         assertTokenType(START_ELEMENT, sr.getEventType());
-        assertArraysEqual(data, sr.getAttributeAsFloatArray(0));
+        float[] result = sr.getAttributeAsFloatArray(0);
+        assertArraysEqual(data, result, result.length);
         sr.close();
     }
 
@@ -560,7 +561,8 @@ public abstract class ReaderArrayTestBase
         XMLStreamReader2 sr = getReader(doc);
         sr.next();
         assertTokenType(START_ELEMENT, sr.getEventType());
-        assertArraysEqual(data, sr.getAttributeAsDoubleArray(0));
+        double[] result = sr.getAttributeAsDoubleArray(0);
+        assertArraysEqual(data, result, result.length);
         sr.close();
     }
 }
