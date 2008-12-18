@@ -62,20 +62,14 @@ public final class ReaderConfig
     // Simple flags:
     final static int PROP_INTERN_NS_URIS = 20;
     final static int PROP_INTERN_NAMES = 21;
-    /**
-     * 13-Nov-2008, tatus: Need to be able to keep track of whether
-     *    name-interning has been explicitly enabled/disable or not
-     *    (not if it's whatever defaults we have)
-     */
-    final static int PROP_INTERN_NAMES_EXPLICIT = 22;
-    final static int PROP_REPORT_CDATA = 23;
-    final static int PROP_REPORT_PROLOG_WS = 24;
-    final static int PROP_PRESERVE_LOCATION = 25;
-    final static int PROP_AUTO_CLOSE_INPUT = 26;
+    final static int PROP_REPORT_CDATA = 22;
+    final static int PROP_REPORT_PROLOG_WS = 23;
+    final static int PROP_PRESERVE_LOCATION = 24;
+    final static int PROP_AUTO_CLOSE_INPUT = 25;
 
     // Enum / Object type properties:
-    final static int PROP_SUPPORT_XMLID = 27; // shared with WriterConfig
-    final static int PROP_DTD_OVERRIDE = 28;
+    final static int PROP_SUPPORT_XMLID = 26; // shared with WriterConfig
+    final static int PROP_DTD_OVERRIDE = 27;
 
     // // // Constants for additional Wstx properties:
 
@@ -302,7 +296,28 @@ public final class ReaderConfig
 
     final SymbolTable mSymbols;
 
+    /**
+     * Bitset that contains state of on/off properties; initialized
+     * to defaults, but can be set/cleared.
+     */
     int mConfigFlags;
+
+    /**
+     * Bitset that indicates explicit changes to {@link #mConfigFlags}
+     * through calls; empty bit means that the corresponding property
+     * has its default value, set bit that an explicit call has been
+     * made.
+     */
+    int mConfigFlagMods;
+
+    /**
+     * 13-Nov-2008, tatus: Need to be able to keep track of whether
+     *    name-interning has been explicitly enabled/disable or not
+     *    (not if it's whatever defaults we have)
+     */
+    final static int PROP_INTERN_NAMES_EXPLICIT = 26;
+    final static int PROP_INTERN_NS_URIS_EXPLICIT = 27;
+
 
     int mInputBufferLen;
     int mMinTextSegmentLen;
@@ -388,7 +403,7 @@ public final class ReaderConfig
      */
 
     private ReaderConfig(boolean j2meSubset, SymbolTable symbols,
-                         int configFlags,
+                         int configFlags, int configFlagMods,
                          int inputBufLen,
                          int minTextSegmentLen)
     {
@@ -396,6 +411,7 @@ public final class ReaderConfig
         mSymbols = symbols;
 
         mConfigFlags = configFlags;
+        mConfigFlagMods = configFlagMods;
 
         mInputBufferLen = inputBufLen;
         mMinTextSegmentLen = minTextSegmentLen;
@@ -418,7 +434,7 @@ public final class ReaderConfig
          * default, on assumption lower memory usage is desireable:
          */
         ReaderConfig rc = new ReaderConfig
-            (true, null, DEFAULT_FLAGS_J2ME,
+            (true, null, DEFAULT_FLAGS_J2ME, 0,
              // 4k input buffer (2000 chars):
              2000,
              DEFAULT_SHORTEST_TEXT_SEGMENT);
@@ -431,7 +447,7 @@ public final class ReaderConfig
          * overall performance.
          */
         ReaderConfig rc = new ReaderConfig
-            (false, null, DEFAULT_FLAGS_FULL,
+            (false, null, DEFAULT_FLAGS_FULL, 0,
              // 8k input buffer (4000 chars):
              4000,
              DEFAULT_SHORTEST_TEXT_SEGMENT);
@@ -443,7 +459,7 @@ public final class ReaderConfig
         // should we throw an exception?
         //if (sym == null) { }
         ReaderConfig rc = new ReaderConfig(mIsJ2MESubset, sym,
-                                           mConfigFlags,
+                                           mConfigFlags, mConfigFlagMods,
                                            mInputBufferLen,
                                            mMinTextSegmentLen);
         rc.mReporter = mReporter;
@@ -665,7 +681,11 @@ public final class ReaderConfig
      * it to true; false otherwise (default, or set to false)
      */
     public boolean hasInternNamesBeenEnabled() {
-        return _hasConfigFlag(CFG_INTERN_NAMES) && _hasConfigFlag(CFG_INTERN_NAMES_EXPLICIT);
+        return _hasExplicitConfigFlag(CFG_INTERN_NAMES);
+    }
+
+    public boolean hasInternNsURIsBeenEnabled() {
+        return _hasExplicitConfigFlag(CFG_INTERN_NS_URIS);
     }
 
     /*
@@ -676,10 +696,12 @@ public final class ReaderConfig
 
     public void setConfigFlag(int flag) {
         mConfigFlags |= flag;
+        mConfigFlagMods |= flag;
     }
 
     public void clearConfigFlag(int flag) {
         mConfigFlags &= ~flag;
+        mConfigFlagMods |= flag;
     }
 
     // // // Mutators for standard StAX properties
@@ -711,17 +733,7 @@ public final class ReaderConfig
     // // // Mutators for Woodstox-specific properties
 
     public void doInternNames(boolean state) {
-        /* 13-Nov-2008, TSa: We will track state of this
-         *   setting from now (4.0) on (see [WSTX-162]); but its
-         *   usage depends on kind of stream reader we create. We
-         *   will default to 'false' for DOM-based readers; and we
-         *   will honor settings if enabled. For native stream readers
-         *   we will always treat it as 'true'; and for wrapped/adapted
-         *   readers we will use whatever underlying impl has.
-         */
         setConfigFlag(CFG_INTERN_NAMES, state);
-        // Plus this call makes setting explicit:
-        setConfigFlag(CFG_INTERN_NAMES_EXPLICIT, true);
     }
 
     public void doInternNsURIs(boolean state) {
@@ -1176,12 +1188,14 @@ public final class ReaderConfig
     /////////////////////////////////////////////////////
      */
 
-    private void setConfigFlag(int flag, boolean state) {
+    private void setConfigFlag(int flag, boolean state)
+    {
         if (state) {
             mConfigFlags |= flag;
         } else {
             mConfigFlags &= ~flag;
         }
+        mConfigFlagMods |= flag;
     }
 
     public Object getProperty(int id)
@@ -1447,8 +1461,17 @@ public final class ReaderConfig
         return true;
     }
 
-    private boolean _hasConfigFlag(int flags) {
-        return (mConfigFlags & flags) != 0;
+    protected boolean _hasConfigFlag(int flag) {
+        return (mConfigFlags & flag) != 0;
+    }
+
+    /**
+     * Method similar to {@link #_hasConfigFlag}, but that will only
+     * return true if in addition to being set, flag has been explicitly
+     * modified (i.e. setProperty has been called to modify it)
+     */
+    protected boolean _hasExplicitConfigFlag(int flag) {
+        return _hasConfigFlag(flag) && (mConfigFlagMods & flag) != 0;
     }
 
     private final Object _getSpecialProperty(int ix)

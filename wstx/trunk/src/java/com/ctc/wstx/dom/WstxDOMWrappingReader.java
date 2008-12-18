@@ -28,8 +28,12 @@ public class WstxDOMWrappingReader
         super(src, cfg.willSupportNamespaces(), cfg.willCoalesceText());
         mConfig = cfg;
         // [WSTX-162]: allow enabling/disabling name/ns intern()ing
-        setInternNames(cfg.willInternNames());
-        setInternNsURIs(cfg.willInternNsURIs());
+        if (cfg.hasInternNamesBeenEnabled()) {
+            setInternNames(true);
+        }
+        if (cfg.hasInternNsURIsBeenEnabled()) {
+            setInternNsURIs(true);
+        }
     }
 
     public static WstxDOMWrappingReader createFrom(DOMSource src, ReaderConfig cfg)

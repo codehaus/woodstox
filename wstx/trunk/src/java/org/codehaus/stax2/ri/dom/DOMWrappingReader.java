@@ -150,8 +150,16 @@ public abstract class DOMWrappingReader
      */
     protected final boolean _coalescing;
 
+    /**
+     * By default we do not force interning of names: can be
+     * reset by sub-classes.
+     */
     protected boolean _cfgInternNames = false;
 
+    /**
+     * By default we do not force interning of namespace URIs: can be
+     * reset by sub-classes.
+     */
     protected boolean _cfgInternNsURIs = false;
 
     // // // State:

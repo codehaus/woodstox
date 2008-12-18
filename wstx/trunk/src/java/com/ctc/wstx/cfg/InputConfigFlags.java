@@ -91,19 +91,12 @@ public interface InputConfigFlags
     final static int CFG_INTERN_NAMES = 0x0400;
 
     /**
-     * If true, indicates that the application has explicitly configured
-     * name interning to its current value. If false, value is the default
-     * the implementation has (which is not dictated by Stax2 specs)
-     */
-    final static int CFG_INTERN_NAMES_EXPLICIT = 0x0800;
-
-    /**
      * It true, will call intern() on all namespace URIs parsed; otherwise
      * will just use 'regular' Strings created from parsed contents. Interning
      * makes namespace-based access faster, but has initial overhead of
      * intern() call.
      */
-    final static int CFG_INTERN_NS_URIS = 0x1000;
+    final static int CFG_INTERN_NS_URIS = 0x0800;
 
     // // // Lazy/incomplete parsing
 
@@ -117,7 +110,7 @@ public interface InputConfigFlags
      * of location information for error reporting purposes; it's only
      * Event objects that are affected.
      */
-    final static int CFG_PRESERVE_LOCATION = 0x2000;
+    final static int CFG_PRESERVE_LOCATION = 0x1000;
 
     // // // Input source handling
 
@@ -130,7 +123,7 @@ public interface InputConfigFlags
      * default; except if the caller has no access to the target (i.e.
      * when factory created it)
      */
-    final static int CFG_AUTO_CLOSE_INPUT = 0x4000;
+    final static int CFG_AUTO_CLOSE_INPUT = 0x2000;
 
     /*
     //////////////////////////////////////////////////////
@@ -143,10 +136,6 @@ public interface InputConfigFlags
     // 20-Jan-2007, TSa: These properties removed from 4.0, deprecated:
     //final static int CFG_NORMALIZE_LFS  =   0x2000;
     //final static int CFG_NORMALIZE_ATTR_VALUES = 0x4000;
-
-    // // // Entity handling specialities
-
-    final static int CFG_NORMALIZE_ATTR_VALUES = 0x4000;
 
     // // // Caching
 
