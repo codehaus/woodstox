@@ -305,7 +305,7 @@ public abstract class AttributeCollector
      * @return Number of tokens decoded
      */
     public final int decodeValues(int index, TypedArrayDecoder tad,
-                                   InputProblemReporter rep)
+                                  InputProblemReporter rep)
         throws XMLStreamException
     {
         if (index < 0 || index >= mAttrCount) {
@@ -378,51 +378,6 @@ public abstract class AttributeCollector
             // Need to convert to a checked stream exception
             Location loc = rep.getLocation();
             String lexical = new String(buf, start, (ptr-start));
-            throw new TypedXMLStreamException(lexical, iae.getMessage(), loc, iae);
-        }
-        return count;
-    }
-
-    private final int decodeValues(TypedArrayDecoder tad,
-                                   InputProblemReporter rep,
-                                   String attrValue)
-        throws XMLStreamException
-    {
-        int ptr = 0;
-        int start = 0;
-        final int end = attrValue.length();
-        String lexical = null;
-        int count = 0;
-
-        try {
-            decode_loop:
-            while (ptr < end) {
-                // First, any space to skip?
-                while (attrValue.charAt(ptr) <= INT_SPACE) {
-                    if (++ptr >= end) {
-                        break decode_loop;
-                    }
-                }
-                // Then let's figure out non-space char (token)
-                start = ptr;
-                ++ptr;
-                while (ptr < end && attrValue.charAt(ptr) > INT_SPACE) {
-                    ++ptr;
-                }
-                int tokenEnd = ptr;
-                ++ptr; // to skip trailing space (or, beyond end)
-                // And there we have it
-                lexical = attrValue.substring(start, tokenEnd);
-                ++count;
-                if (tad.decodeValue(lexical)) {
-                    if (!checkExpand(tad)) {
-                        break;
-                    }
-                }
-            }
-        } catch (IllegalArgumentException iae) {
-            // Need to convert to a checked stream exception
-            Location loc = rep.getLocation();
             throw new TypedXMLStreamException(lexical, iae.getMessage(), loc, iae);
         }
         return count;
