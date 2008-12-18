@@ -533,7 +533,15 @@ public final class ReaderConfig
         return _hasConfigFlag(CFG_VALIDATE_AGAINST_DTD);
     }
 
-    // // // Woodstox on/off property accessors
+    // // // Stax2 on/off property accessors
+
+    public boolean willReportCData() {
+        return _hasConfigFlag(CFG_REPORT_CDATA);
+    }
+
+    public boolean willParseLazily() {
+        return _hasConfigFlag(CFG_LAZY_PARSING);
+    }
 
     public boolean willInternNames() {
         return _hasConfigFlag(CFG_INTERN_NAMES);
@@ -543,9 +551,15 @@ public final class ReaderConfig
         return _hasConfigFlag(CFG_INTERN_NS_URIS);
     }
 
-    public boolean willReportCData() {
-        return _hasConfigFlag(CFG_REPORT_CDATA);
+    public boolean willPreserveLocation() {
+        return _hasConfigFlag(CFG_PRESERVE_LOCATION);
     }
+
+    public boolean willAutoCloseInput() {
+        return _hasConfigFlag(CFG_AUTO_CLOSE_INPUT);
+    }
+
+    // // // Woodstox on/off property accessors
 
     public boolean willReportPrologWhitespace() {
         return _hasConfigFlag(CFG_REPORT_PROLOG_WS);
@@ -559,24 +573,12 @@ public final class ReaderConfig
         return _hasConfigFlag(CFG_CACHE_DTDS_BY_PUBLIC_ID);
     }
 
-    public boolean willParseLazily() {
-        return _hasConfigFlag(CFG_LAZY_PARSING);
-    }
-
     public boolean willDoXmlIdTyping() {
         return _hasConfigFlag(CFG_XMLID_TYPING);
     }
 
     public boolean willDoXmlIdUniqChecks() {
         return _hasConfigFlag(CFG_XMLID_UNIQ_CHECKS);
-    }
-
-    public boolean willPreserveLocation() {
-        return _hasConfigFlag(CFG_PRESERVE_LOCATION);
-    }
-
-    public boolean willAutoCloseInput() {
-        return _hasConfigFlag(CFG_AUTO_CLOSE_INPUT);
     }
 
     public boolean willSupportDTDPP() {

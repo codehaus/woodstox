@@ -209,14 +209,18 @@ public class TestDomCompat
         XMLInputFactory2 ifact = getInputFactory();
         XMLStreamReader2 sr = (XMLStreamReader2) ifact.createXMLStreamReader(new DOMSource(doc));
 
-        sr.setProperty(XMLInputFactory2.P_INTERN_NAMES, Boolean.TRUE);
+        boolean okSet = sr.setProperty(XMLInputFactory2.P_INTERN_NAMES, Boolean.TRUE);
+        assertTrue(okSet);
         assertEquals(Boolean.TRUE, sr.getProperty(XMLInputFactory2.P_INTERN_NAMES));
-        sr.setProperty(XMLInputFactory2.P_INTERN_NAMES, Boolean.FALSE);
+        okSet = sr.setProperty(XMLInputFactory2.P_INTERN_NAMES, Boolean.FALSE);
+        assertTrue(okSet);
         assertEquals(Boolean.FALSE, sr.getProperty(XMLInputFactory2.P_INTERN_NAMES));
 
-        sr.setProperty(XMLInputFactory2.P_INTERN_NS_URIS, Boolean.TRUE);
+        okSet = sr.setProperty(XMLInputFactory2.P_INTERN_NS_URIS, Boolean.TRUE);
+        assertTrue(okSet);
         assertEquals(Boolean.TRUE, sr.getProperty(XMLInputFactory2.P_INTERN_NS_URIS));
-        sr.setProperty(XMLInputFactory2.P_INTERN_NS_URIS, Boolean.FALSE);
+        okSet = sr.setProperty(XMLInputFactory2.P_INTERN_NS_URIS, Boolean.FALSE);
+        assertTrue(okSet);
         assertEquals(Boolean.FALSE, sr.getProperty(XMLInputFactory2.P_INTERN_NS_URIS));
     }
 
