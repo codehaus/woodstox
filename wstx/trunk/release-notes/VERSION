@@ -1,6 +1,6 @@
 Version: 3.9.9-3
 
-Release date: xx-Dec-2008
+Release date: 17-Dec-2008
 
 Description:
   Third 4.0 pre-release version. Minor API changes.
@@ -286,7 +286,7 @@ Description:
   * [WSTX-93] System id part of Location reported for expanded external
     entities was not a valid (resolved) URI, now is.
 
-  Newfunctionality:
+  New functionality:
 
   * [WSTX-33] Woodstox now implements SAX2 interface natively. So, it
     is fair to say that Woodstox is now StAX/SAX implementation.
@@ -608,7 +608,7 @@ Description:
     up to 10 - 15% faster parsing in this mode (depending on usage patterns
     and length of segments), without change to non-coalescing mode.
 
-2.0.1 - 2.0.4: [10-Aug-2005 - xx-Dec-2005]
+2.0.1 - 2.0.4: [10-Aug-2005 - 28-Dec-2005]
 
   Problems fixed:
 

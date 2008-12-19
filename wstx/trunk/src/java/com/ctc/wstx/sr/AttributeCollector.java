@@ -341,9 +341,9 @@ public abstract class AttributeCollector
         }
     }
 
-    private final int decodeValues(TypedArrayDecoder tad,
-                                   InputProblemReporter rep,
-                                   final char[] buf, int ptr, final int end)
+    private final static int decodeValues(TypedArrayDecoder tad,
+                                          InputProblemReporter rep,
+                                          final char[] buf, int ptr, final int end)
         throws XMLStreamException
     {
         int start = ptr;
@@ -389,7 +389,7 @@ public abstract class AttributeCollector
      * separately typed instances; and called rarely so that performance
      * downside of instanceof is irrelevant.
      */
-    private final boolean checkExpand(TypedArrayDecoder tad)
+    private final static boolean checkExpand(TypedArrayDecoder tad)
     {
         if (tad instanceof ValueDecoderFactory.BaseArrayDecoder) {
             ((ValueDecoderFactory.BaseArrayDecoder) tad).expand();

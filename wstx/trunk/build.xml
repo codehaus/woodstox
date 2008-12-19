@@ -51,7 +51,7 @@
          For pre-release candidate, needs to be strict; for official
          releases less so
       -->
-    <property name="REQ_STAX2_VERSION" value="2.9.9-1" />
+    <property name="REQ_STAX2_VERSION" value="2.9.9-2" />
     <!-- real release wll have:
     <property name="REQ_STAX2_VERSION" value="[3.0,3.1)" />
     -->
@@ -100,17 +100,6 @@
             -->
           <include name="lib/*.jar" />
           <include name="lib/msv/*.jar" />
-    </patternset>
-
-    <!-- Core Woodstox class files common to all license flavours: -->
-    <patternset id="wstx-dist-class-files">
-        <include name="com/ctc/**/*.class" />
-        <include name="META-INF/**/*" />
-    </patternset>
-
-    <!-- Stax2 class files common to all license flavours: -->
-    <patternset id="stax2-dist-class-files">
-        <include name="org/codehaus/**/*.class" />
     </patternset>
 
     <import file="build-osgi.xml" />
@@ -263,7 +252,6 @@
       --> 
     <target name="jars" depends="jars.osgi, jar.stax2test, repackage-msv" />
 
-    <target name="jars.osgi" depends="osgi-stax2, osgi-woodstox-asl, osgi-woodstox-lgpl" />
     <!-- This jar is only needed for testing purposes, to specify 
        - which Stax implementation to use
       -->
@@ -279,7 +267,7 @@
          test suite, for other stax2 impls to use
       -->
     <target name="jar.stax2test" depends="compile.test">
-        <jar jarfile="${dir.build}/stax2test-${STAX2_VERSION}.jar" filesonly="true" >
+        <jar jarfile="${dir.build}/stax2test-${STAX2_VERSION}.jar" filesonly="true" compress="true">
           <manifest>
             <attribute name="Built-By" value="${user.name}"/>
             <attribute name="Specification-Title"   value="${STAX2_TITLE}"/>
@@ -405,6 +393,7 @@
             <globmapper from="*.pom" to="*-${IMPL_VERSION}.pom" />
             <filterset>
               <filter token="VERSION" value="${IMPL_VERSION}" />
+              <filter token="REQ_STAX2_VERSION" value="${REQ_STAX2_VERSION}" />
             </filterset>
        </copy>
        <copy todir="${dir.dist}">
@@ -412,6 +401,7 @@
             <globmapper from="*.pom" to="*-${STAX2_VERSION}.pom" />
             <filterset>
               <filter token="VERSION" value="${STAX2_VERSION}" />
+              <filter token="REQ_STAX2_VERSION" value="${REQ_STAX2_VERSION}" />
             </filterset>
        </copy>
     </target>

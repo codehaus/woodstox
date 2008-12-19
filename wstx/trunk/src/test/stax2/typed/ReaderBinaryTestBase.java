@@ -264,7 +264,6 @@ public abstract class ReaderBinaryTestBase
                 Random r = new Random(size);
                 byte[] data = generateData(r, size);
                 String doc = buildDoc(b64variant, r, data, addNoise);
-                
                 XMLStreamReader2 sr = getElemReader(doc);
                 _verifyElemData(sr, b64variant, r, data, data.length, readMethod);
                 sr.close();

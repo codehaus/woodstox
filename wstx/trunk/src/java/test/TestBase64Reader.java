@@ -42,7 +42,7 @@ public class TestBase64Reader
         TypedXMLStreamReader sr = (TypedXMLStreamReader) f.createXMLStreamReader(new StringReader(xml));
 
         // TEST: to see if Stax2 reader adapter works, let's try this:
-        sr = new TestAdapter(sr);
+        //sr = new TestAdapter(sr);
 
         // First, advance to root START_ELEMENT
         sr.next();

@@ -28,6 +28,8 @@
      -->
     <property name="REQ_JDK_VERSION" value="J2SE-1.4" />
 
+    <target name="jars.osgi" depends="osgi-stax2, osgi-woodstox-lgpl, osgi-woodstox-asl" />
+
     <target name="osgi-stax2" depends="compile.stax2">
       <!-- Open questions:
            * is there any problem from using "non-standard" filename for bundle?

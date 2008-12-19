@@ -1054,7 +1054,12 @@ public final class ValueDecoderFactory
         {
             int len = end-start;
             try {
-                mValue = new BigDecimal(lexical, start, len);
+                /* !!! 21-Nov-2008, TSa: This constructor was added in JDK1.5
+                 *   so can't yet be used (As of Woodstox 4.x).
+                 *   Need to use the older constructor for now
+                 */
+                //mValue = new BigDecimal(lexical, start, len);
+                mValue = new BigDecimal(new String(lexical, start, len));
             } catch (NumberFormatException nex) {
                 throw constructInvalidValue(new String(lexical, start, len));
             }

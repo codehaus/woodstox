@@ -172,6 +172,7 @@ abstract class Base64DecoderBase
         if (_variant.usesPadding()) {
             return -1;
         }
+
         // We do have 2 possible valid incomplete states
         if (_state == STATE_VALID_2) { // 2 chars -> 1 output byte
             // Got 12 bits, only need 8, need to shift
