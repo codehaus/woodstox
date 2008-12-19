@@ -10,6 +10,8 @@ import javax.xml.stream.*;
 import org.codehaus.stax2.*;
 import org.codehaus.stax2.evt.*;
 
+import org.codehaus.stax2.ri.Stax2ReaderAdapter;
+
 /**
  * Base unit test class to be inherited by all unit tests that test
  * StAX2 API compatibility.
@@ -185,6 +187,17 @@ public class BaseStax2Test
         setNamespaceAware(f, false);
         setCoalescing(f, coal);
         return (XMLStreamReader2) f.createXMLStreamReader(new StringReader(content));
+    }
+
+    /**
+     * Method to force constructing a wrapper for given stream reader.
+     * Have to use this method to work around natural resistance by
+     * the wrapper to apply itself on what it considered "unnecessary"
+     * target.
+     */
+    protected XMLStreamReader2 wrapWithAdapter(XMLStreamReader sr)
+    {
+        return new ForcedAdapter(sr);
     }
 
     /*
@@ -608,6 +621,25 @@ public class BaseStax2Test
             return "[0]''";
         }
         return "[len: "+str.length()+"] '"+printable(str)+"'";
+    }
+
+    /*
+    //////////////////////////////////////////////////
+    // Helper classes
+    //////////////////////////////////////////////////
+     */
+
+    /**
+     * Need a dummy base class to be able to access protected
+     * constructor for testing purposes.
+     */
+    final static class ForcedAdapter
+        extends Stax2ReaderAdapter
+    {
+        public ForcedAdapter(XMLStreamReader sr)
+        {
+            super(sr);
+        }
     }
 }
 

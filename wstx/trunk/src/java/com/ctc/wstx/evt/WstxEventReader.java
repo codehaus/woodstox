@@ -31,7 +31,7 @@ import com.ctc.wstx.exc.WstxParsingException;
 public class WstxEventReader
     extends Stax2EventReaderImpl
 {
-    public WstxEventReader(XMLEventAllocator a, XMLStreamReader r)
+    public WstxEventReader(XMLEventAllocator a, XMLStreamReader2 r)
     {
         super(a, r);
     }

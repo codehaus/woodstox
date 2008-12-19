@@ -14,9 +14,13 @@ public interface XMLEventReader2
     /**
      * Method that is similar to {@link #hasNext}, except that it can
      * throw a {@link XMLStreamException}. This is important distinction,
-     * since the underlying stream reader is allowed to throw such an
+     * since the underlying stream reader is NOT allowed to throw such an
      * exception when its
-     * <code>hasNext()</code> gets called.
+     * <code>hasNext()</code> gets called; but the underlying parser
+     * may well need to advance the input stream and in doing so may
+     * encounter an exception. This exception should be propagated to
+     * the caller, as it may signal a problem with the input stream
+     * or xml content.
      */
     public boolean hasNextEvent() throws XMLStreamException;
 

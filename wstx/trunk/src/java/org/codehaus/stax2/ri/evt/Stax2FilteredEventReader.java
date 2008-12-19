@@ -3,6 +3,8 @@ package org.codehaus.stax2.ri.evt;
 import javax.xml.stream.*;
 import javax.xml.stream.events.*;
 
+import org.codehaus.stax2.XMLEventReader2;
+
 /**
  *<p>
  * Some notes about implemention:
@@ -13,13 +15,13 @@ import javax.xml.stream.events.*;
  *</ul>
  */
 public class Stax2FilteredEventReader
-    implements XMLEventReader,
+    implements XMLEventReader2,
                XMLStreamConstants
 {
-    final XMLEventReader mReader;
+    final XMLEventReader2 mReader;
     final EventFilter mFilter;
 
-    public Stax2FilteredEventReader(XMLEventReader r, EventFilter f)
+    public Stax2FilteredEventReader(XMLEventReader2 r, EventFilter f)
     {
         mReader = r;
         mFilter = f;
@@ -113,6 +115,28 @@ public class Stax2FilteredEventReader
      */
     public void remove() { // let's let underlying impl fail on it
         mReader.remove();
+    }
+
+    /*
+    ////////////////////////////////////////////////////
+    // XMLEventReader2 implementation
+    ////////////////////////////////////////////////////
+     */
+
+    public boolean hasNextEvent()
+        throws XMLStreamException
+    {
+        return (peek() != null);
+    }
+
+    public boolean isPropertySupported(String name)
+    {
+        return mReader.isPropertySupported(name);
+    }
+
+    public boolean setProperty(String name, Object value)
+    {
+        return mReader.setProperty(name, value);
     }
 }
 

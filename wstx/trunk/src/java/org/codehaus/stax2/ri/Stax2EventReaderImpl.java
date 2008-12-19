@@ -22,6 +22,7 @@ import javax.xml.stream.events.*;
 import javax.xml.stream.util.XMLEventAllocator;
 
 import org.codehaus.stax2.XMLEventReader2;
+import org.codehaus.stax2.XMLStreamReader2;
 
 /**
  * Almost complete implementation of {@link XMLEventReader2}, built on top of
@@ -88,7 +89,13 @@ public abstract class Stax2EventReaderImpl
 
     protected final XMLEventAllocator mAllocator;
 
-    protected final XMLStreamReader mReader;
+    protected final XMLStreamReader2 mReader;
+
+    /*
+    ///////////////////////////////////////////
+    // State
+    ///////////////////////////////////////////
+     */
 
     /**
      * Event that has been peeked, ie. loaded without call to
@@ -116,7 +123,13 @@ public abstract class Stax2EventReaderImpl
      */
     protected int mPrePeekEvent = START_DOCUMENT;
 
-    protected Stax2EventReaderImpl(XMLEventAllocator a, XMLStreamReader r)
+    /*
+    ///////////////////////////////////////////
+    // Construction
+    ///////////////////////////////////////////
+     */
+
+    protected Stax2EventReaderImpl(XMLEventAllocator a, XMLStreamReader2 r)
     {
         mAllocator = a;
         mReader = r;
@@ -358,7 +371,8 @@ public abstract class Stax2EventReaderImpl
     }
 
     /**
-     * Note: only here because we implement Iterator interface
+     * Note: only here because we implement Iterator interface. Will not
+     * work, don't bother calling it.
      */
     public void remove() {
         throw new UnsupportedOperationException("Can not remove events from XMLEventReader.");

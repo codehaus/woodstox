@@ -24,7 +24,7 @@ public class TestWrappedReader
          *  let's force wrapping via constructor 
          * (i.e. not call "wrapIfNecessary")
          */
-        return new MyAdapter(constructStreamReader(f, contents));
+        return wrapWithAdapter(constructStreamReader(f, contents));
     }
 
     /*
@@ -44,19 +44,6 @@ public class TestWrappedReader
     public void testInvalidQNameAttrBadChars()
     {
         System.out.println("(skipping TestWrappedReader.testInvalidQNameAttrBadChars)");
-    }
-    
-    /**
-     * Need a dummy base class to be able to access protected
-     * constructor for testing purposes.
-     */
-    final static class MyAdapter
-        extends Stax2ReaderAdapter
-    {
-        public MyAdapter(XMLStreamReader sr)
-        {
-            super(sr);
-        }
     }
 }
 
