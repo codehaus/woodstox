@@ -1,6 +1,6 @@
 Version: 3.2.8
 
-Release date: xx-Nov-2008
+Release date: 12-Dec-2008
 
 Description:
   One more patch release for 3.2.
@@ -11,6 +11,7 @@ Description:
   * [WSTX-174] Some old App servers have broken QName impl, are missing
     3-arg constructor
    (requested by Arash A)
+
   New features:
 
   * [WSTX-165] Add property (WstxOutputProperties.P_AUTOMATIC_END_ELEMENTS)
