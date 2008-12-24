@@ -119,7 +119,6 @@ public class WstxDOMWrappingWriter
         mConfig = cfg;
         mAutoNsSeq = null;
         mAutomaticNsPrefix = mNsRepairing ? mConfig.getAutomaticNsPrefix() : null;
-        Element elem = null;
 
         /* Ok; we need a document node; or an element node; or a document
          * fragment node.
@@ -128,20 +127,21 @@ public class WstxDOMWrappingWriter
         case Node.DOCUMENT_NODE:
         case Node.DOCUMENT_FRAGMENT_NODE:
             // both are ok, but no current element
+            mCurrElem = DOMOutputElement.createRoot();
+            mOpenElement = null;
             break;
 
         case Node.ELEMENT_NODE: // can make sub-tree... ok
-            elem = (Element) treeRoot;
+            {
+                // still need a virtual root node as parent
+                DOMOutputElement root = DOMOutputElement.createRoot();
+                Element elem = (Element) treeRoot;
+                mOpenElement = mCurrElem = root.createChild(elem);
+            }
             break;
 
         default: // other Nodes not usable
             throw new XMLStreamException("Can not create an XMLStreamWriter for a DOM node of type "+treeRoot.getClass());
-        }
-        mCurrElem = DOMOutputElement.createRoot();
-        if(elem == null) {
-            mOpenElement = null;
-        } else {
-            mOpenElement = mCurrElem = mCurrElem.createChild(elem);
         }
     }
 
@@ -457,15 +457,15 @@ public class WstxDOMWrappingWriter
             if(nsURI != null && nsURI.length() > 0) {
                 throwOutputError("Can not specify non-empty uri/prefix in non-namespace mode");
             }
-            elem =  mCurrElem.createChild(mDocument.createElement(localName));
+            elem =  mCurrElem.createAndAttachChild(mDocument.createElement(localName));
         } else {
             if (mNsRepairing) {
                 String actPrefix = validateElemPrefix(prefix, nsURI, mCurrElem);
                 if (actPrefix != null) { // fine, an existing binding we can use:
 		    if (actPrefix.length() != 0) {
-			elem = mCurrElem.createChild(mDocument.createElementNS(nsURI, actPrefix+":"+localName));
+			elem = mCurrElem.createAndAttachChild(mDocument.createElementNS(nsURI, actPrefix+":"+localName));
 		    } else {
-			elem = mCurrElem.createChild(mDocument.createElementNS(nsURI, localName));
+			elem = mCurrElem.createAndAttachChild(mDocument.createElementNS(nsURI, localName));
 		    }
                 } else { // nah, need to create a new binding...
                     /* Need to ensure that we'll pass "" as prefix, not null,
@@ -480,7 +480,7 @@ public class WstxDOMWrappingWriter
                     if (hasPrefix) {
                         localName = actPrefix + ":" + localName;
                     }
-                    elem = mCurrElem.createChild(mDocument.createElementNS(nsURI, localName));
+                    elem = mCurrElem.createAndAttachChild(mDocument.createElementNS(nsURI, localName));
                     /* Hmmh. writeNamespace method requires open element
                      * to be defined. So we'll need to set it first
                      * (will be set again at a later point -- would be
@@ -514,7 +514,7 @@ public class WstxDOMWrappingWriter
                 if (prefix != null && prefix.length() != 0) {
                     localName = prefix + ":" +localName;
                 }
-                elem = mCurrElem.createChild(mDocument.createElementNS(nsURI, localName));
+                elem = mCurrElem.createAndAttachChild(mDocument.createElementNS(nsURI, localName));
             }
         }
         /* Got the element; need to make it the open element, and

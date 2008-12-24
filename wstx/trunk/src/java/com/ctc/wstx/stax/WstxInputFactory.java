@@ -306,8 +306,7 @@ public class WstxInputFactory
     public XMLEventReader createXMLEventReader(XMLStreamReader sr)
         throws XMLStreamException
     {
-        XMLStreamReader2 sr2 = Stax2ReaderAdapter.wrapIfNecessary(sr);
-        return new WstxEventReader(createEventAllocator(), sr2);
+        return new WstxEventReader(createEventAllocator(), Stax2ReaderAdapter.wrapIfNecessary(sr));
     }
 
     // // // Stream reader factory methods

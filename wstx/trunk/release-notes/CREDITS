@@ -383,3 +383,8 @@ Romain Deltour:
   * Requested [WTSX-152], suggested a way to solve it: Add OSGi headers to
     the jar manifest.
     [4.0.0]
+
+Christopher Paul Simmons:
+  * Reported [WSTX-183], problem with creating stream/event writer
+    with a DOM Element (instead of document), contributed unit tests.
+    [4.0.0]

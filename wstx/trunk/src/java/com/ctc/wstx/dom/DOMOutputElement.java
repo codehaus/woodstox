@@ -12,10 +12,10 @@ import com.ctc.wstx.util.BijectiveNsMap;
  * Context object that holds information about an open element
  * (one for which START_ELEMENT has been sent, but no END_ELEMENT)
  *
- * @author Yoon-Je Choi
  * @author Tatu Saloranta
+ * @author Yoon-Je Choi
  */
-public class DOMOutputElement
+public final class DOMOutputElement
     extends OutputElementBase
 {
     /**
@@ -86,20 +86,22 @@ public class DOMOutputElement
      * Simplest factory method, which gets called when a 1-argument
      * element output method is called. It is, then, assumed to
      * use the default namespace.
+     * Will both create the child element and attach it to parent element,
+     * or lacking own owner document.
      */
-    protected DOMOutputElement createChild(Element element)
+    protected DOMOutputElement createAndAttachChild(Element element)
     {
         if(isRoot()) {
             element.getOwnerDocument().appendChild(element);
         } else {
             mElement.appendChild(element);
         }
-        return new DOMOutputElement(this, element, mNsMapping);
+        return createChild(element);
     }
-    
-    protected DOMOutputElement createChild()
+
+    protected DOMOutputElement createChild(Element element)
     {
-        return new DOMOutputElement(this, null, mNsMapping);
+        return new DOMOutputElement(this, element, mNsMapping);
     }
 
     /**

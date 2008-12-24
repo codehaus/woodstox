@@ -206,11 +206,27 @@ public class BaseStax2Test
     //////////////////////////////////////////////////
      */
 
-    protected static void setNamespaceAware(XMLInputFactory f, boolean state)
+    protected static boolean setNamespaceAware(XMLInputFactory f, boolean state)
         throws XMLStreamException
     {
-        // will always succeed for woodstox factories...
-        f.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.valueOf(state));
+        /* Let's not assert, but see if it sticks. Some implementations
+         * might choose to silently ignore setting, at least for 'false'?
+         */
+        try {
+            f.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, state ? Boolean.TRUE : Boolean.FALSE);
+            return (isNamespaceAware(f) == state);
+        } catch (IllegalArgumentException e) {
+            /* Let's assume, then, that the property (or specific value for it)
+             * is NOT supported...
+             */
+            return false;
+        }
+    }
+
+    protected static boolean isNamespaceAware(XMLInputFactory f)
+        throws XMLStreamException
+    {
+        return ((Boolean) f.getProperty(XMLInputFactory.IS_NAMESPACE_AWARE)).booleanValue();
     }
 
     protected static void setCoalescing(XMLInputFactory f, boolean state)
@@ -264,9 +280,27 @@ public class BaseStax2Test
                       Boolean.valueOf(state));
     }
 
-    protected static void setNamespaceAware(XMLOutputFactory f, boolean state)
+    protected static boolean setNamespaceAware(XMLOutputFactory f, boolean state)
+        throws XMLStreamException
     {
-        f.setProperty(XMLStreamProperties.XSP_NAMESPACE_AWARE, Boolean.valueOf(state));
+        /* Let's not assert, but see if it sticks. Some implementations
+         * might choose to silently ignore setting, at least for 'false'?
+         */
+        try {
+            f.setProperty(XMLStreamProperties.XSP_NAMESPACE_AWARE, state ? Boolean.TRUE : Boolean.FALSE);
+            return (isNamespaceAware(f) == state);
+        } catch (IllegalArgumentException e) {
+            /* Let's assume, then, that the property (or specific value for it)
+             * is NOT supported...
+             */
+            return false;
+        }
+    }
+
+    protected static boolean isNamespaceAware(XMLOutputFactory f)
+        throws XMLStreamException
+    {
+        return ((Boolean) f.getProperty(XMLStreamProperties.XSP_NAMESPACE_AWARE)).booleanValue();
     }
 
     /*

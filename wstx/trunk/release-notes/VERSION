@@ -10,6 +10,12 @@ Description:
   * Changed passing of Base64Variant argument: since it's an optional argument
     it should come after mandatory ones (wasn't with earlier RCs).
 
+  Problems fixed:
+
+  * [WSTX-183] Trying to create DOM-backed writer with DOM Element (as opposed
+     to Document) failed, due to trying to attach the element.
+    (reported by Christoper P-S)
+
 == History: ==
 
 3.9.9-2 [17-Dec-2008]

@@ -1,4 +1,4 @@
-package wstxtest.wstream;
+package stax2.wstream;
 
 import javax.xml.parsers.*;
 import javax.xml.stream.*;
@@ -15,11 +15,23 @@ import org.codehaus.stax2.typed.TypedXMLStreamWriter;
 public class TestDomWrite
     extends BaseWriterTest
 {
+    final static int TYPE_NON_NS = 0;
+    final static int TYPE_NS = 1;
+    final static int TYPE_NS_REPAIRING = 2;
+    
     public void testNonNsOutput()
         throws Exception
     {
+        /* 23-Dec-2008, TSa: Not all Stax2 impls support non-namespace-aware
+         *  modes: need to first ensure one tested does...
+         */
+        XMLOutputFactory of = getFactory(TYPE_NON_NS);
+        if (of == null) {
+            System.err.println("Skipping "+getClass().getName()+"#testNonNsOutput: non-namespace-aware mode not supported");
+            return;
+        }
+
         Document doc = createDomDoc(false);
-        XMLOutputFactory of = getFactory(0);
         XMLStreamWriter sw = of.createXMLStreamWriter(new DOMResult(doc));
 
         sw.writeStartDocument();
@@ -62,7 +74,7 @@ public class TestDomWrite
         throws Exception
     {
         Document doc = createDomDoc(false);
-        XMLOutputFactory of = getFactory(1);
+        XMLOutputFactory of = getFactory(TYPE_NS);
         XMLStreamWriter sw = of.createXMLStreamWriter(new DOMResult(doc));
         final String NS_URI = "http://foo";
 
@@ -101,7 +113,7 @@ public class TestDomWrite
         final String URI2 = "urn:2";
 
         Document doc = createDomDoc(false);
-        XMLOutputFactory of = getFactory(2);
+        XMLOutputFactory of = getFactory(TYPE_NS_REPAIRING);
         XMLStreamWriter sw = of.createXMLStreamWriter(new DOMResult(doc));
 
         sw.writeStartDocument();
@@ -157,7 +169,8 @@ public class TestDomWrite
         throws Exception
     {
         Document doc = createDomDoc(false);
-        XMLOutputFactory of = getFactory(0);
+        // let's use namespace-aware just because some impls might not support non-ns
+        XMLOutputFactory of = getFactory(TYPE_NS);
         TypedXMLStreamWriter sw = (TypedXMLStreamWriter) of.createXMLStreamWriter(new DOMResult(doc));
 
         sw.writeStartDocument();
@@ -201,7 +214,13 @@ public class TestDomWrite
     {
         XMLOutputFactory f = getOutputFactory();
         // type 0 -> non-ns, 1 -> ns, non-repairing, 2 -> ns, repairing
-        setNamespaceAware(f, type > 0); 
+        boolean ns = (type > 0);
+        /* 23-Dec-2008, TSa: Not all Stax2 impls support non-namespace-aware
+         *  modes: need to first ensure one tested does...
+         */
+        if (!setNamespaceAware(f, ns) && !ns) {
+            return null;
+        }
         setRepairing(f, type > 1); 
         return f;
     }
