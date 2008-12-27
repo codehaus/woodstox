@@ -67,16 +67,7 @@ import com.ctc.wstx.util.URLUtil;
  * See {@link WstxInputProperties} for further explanation of these 'custom'
  * properties.
  *
- *<p>
- * TODO:
- *<ul>
- * <li>Pass XMLResolver for readers
- *  </li>
- * <li>Try to implement reader that takes SAX events as input? (hard to do?)
- *  </li>
- * <li>Implement reader that takes DOM tree as input
- *  </li>
- *</ul>
+ * @author Tatu Saloranta
  */
 public class WstxInputFactory
     extends XMLInputFactory2
@@ -624,7 +615,7 @@ public class WstxInputFactory
         throws XMLStreamException
     {
         try {
-            return createSR(cfg, src, URLUtil.optimizedStreamFromURL(src),
+            return createSR(cfg, src, URLUtil.inputStreamFromURL(src),
                             forER, autoCloseInput);
         } catch (IOException ioe) {
             throw new WstxIOException(ioe);
@@ -664,7 +655,7 @@ public class WstxInputFactory
                 URL base = cfg.getBaseURL();
                 if (base != null) {
                     URL src = new URL(base, f.getPath());
-                    return createSR(cfg, src, URLUtil.optimizedStreamFromURL(src), forER, autoCloseInput);
+                    return createSR(cfg, src, URLUtil.inputStreamFromURL(src), forER, autoCloseInput);
                 }
             }
             return createSR(cfg, f.toURL(), new FileInputStream(f), forER, autoCloseInput);
@@ -739,10 +730,9 @@ public class WstxInputFactory
             /* 28-Jan-2006, TSa: Not a complete implementation, but maybe
              *   even this might help...
              */
+            sysId = ss.getSystemId();
             InputSource isrc = ss.getInputSource();
             if (isrc != null) {
-                sysId = isrc.getSystemId();
-                pubId = isrc.getPublicId();
                 encoding = isrc.getEncoding();
                 in = isrc.getByteStream();
                 if (in == null) {
@@ -765,7 +755,12 @@ public class WstxInputFactory
 		bs = ReaderBootstrapper.getInstance(pubId, sysId, r, encoding);
 	    } else if (in != null) {
 		bs = StreamBootstrapper.getInstance(pubId, sysId, in);
-	    } else if (sysId != null) {
+	    } else if (sysId != null && sysId.length() > 0) {
+                /* 26-Dec-2008, TSa: If we must construct URL from system id,
+                 *   it means caller will not have access to resulting
+                 *   stream, thus we will force auto-closing.
+                 */
+                autoCloseInput = true;
 		try {
 		    return createSR(cfg, URLUtil.urlFromSystemId(sysId),
 				    forER, autoCloseInput);

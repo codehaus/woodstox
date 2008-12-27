@@ -385,6 +385,9 @@ Romain Deltour:
     [4.0.0]
 
 Christopher Paul Simmons:
+  * Reported [WSTX-182], inability to use StreamResult that only has
+    SystemId set.
+    [4.0.0]
   * Reported [WSTX-183], problem with creating stream/event writer
     with a DOM Element (instead of document), contributed unit tests.
     [4.0.0]

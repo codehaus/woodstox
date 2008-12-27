@@ -126,7 +126,7 @@ public class DTDSchemaFactory
     {
         ReaderConfig rcfg = createPrivateReaderConfig();
         try {
-            InputStream in = URLUtil.optimizedStreamFromURL(url);
+            InputStream in = URLUtil.inputStreamFromURL(url);
             return doCreateSchema(rcfg, StreamBootstrapper.getInstance
                                   (null, null, in),
                                   null, url.toExternalForm(), url);

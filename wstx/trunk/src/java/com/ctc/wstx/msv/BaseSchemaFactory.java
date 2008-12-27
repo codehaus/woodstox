@@ -101,7 +101,7 @@ public abstract class BaseSchemaFactory
         throws XMLStreamException
     {
         try {
-            InputStream in = URLUtil.optimizedStreamFromURL(url);
+            InputStream in = URLUtil.inputStreamFromURL(url);
             InputSource src = new InputSource(in);
             src.setSystemId(url.toExternalForm());
             return loadSchema(src, url);

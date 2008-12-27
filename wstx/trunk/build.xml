@@ -52,7 +52,7 @@
          releases less so
       -->
     <property name="REQ_STAX2_VERSION" value="2.9.9-3" />
-    <!-- real release wll have:
+    <!-- real release will have:
     <property name="REQ_STAX2_VERSION" value="[3.0,3.1)" />
     -->
 

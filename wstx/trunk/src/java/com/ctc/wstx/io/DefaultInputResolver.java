@@ -226,7 +226,7 @@ public final class DefaultInputResolver
                 if (url == null) {
                     throw new IllegalArgumentException("Can not create Stax reader for a StreamSource -- neither reader, input stream nor system id was set.");
                 }
-                in = URLUtil.optimizedStreamFromURL(url);
+                in = URLUtil.inputStreamFromURL(url);
             }
             bs = StreamBootstrapper.getInstance(pubId, sysId, in);
         } else {
@@ -251,7 +251,7 @@ public final class DefaultInputResolver
          * caching, halving the speed due to copy operations needed), so
          * let's avoid it.
          */
-        InputStream in = URLUtil.optimizedStreamFromURL(url);
+        InputStream in = URLUtil.inputStreamFromURL(url);
         String sysId = url.toExternalForm();
         StreamBootstrapper bs = StreamBootstrapper.getInstance(pubId, sysId, in);
         Reader r = bs.bootstrapInput(cfg, false, xmlVersion);

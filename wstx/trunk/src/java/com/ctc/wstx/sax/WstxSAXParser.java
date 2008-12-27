@@ -407,7 +407,7 @@ public class WstxSAXParser
                 }
                 try {
                     srcUrl = URLUtil.urlFromSystemId(systemId);
-                    is = URLUtil.optimizedStreamFromURL(srcUrl);
+                    is = URLUtil.inputStreamFromURL(srcUrl);
                 } catch (IOException ioe) {
                     SAXException saxe = new SAXException(ioe);
                     saxe.initCause(ioe);

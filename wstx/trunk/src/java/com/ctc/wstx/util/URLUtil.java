@@ -1,9 +1,6 @@
 package com.ctc.wstx.util;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.URL;
 import java.net.MalformedURLException;
 
@@ -90,11 +87,13 @@ public final class URLUtil
     }
 
     /**
-     * Method that tries to get optimal stream to read from the specified
-     * URL. Currently it just means creating a simple file stream if the
-     * URL points to a (local) file.
+     * Method that tries to get a stream (ideally, optimal one) to read from
+     * the specified URL.
+     * Currently it just means creating a simple file input stream if the
+     * URL points to a (local) file, and otherwise relying on URL classes
+     * input stream creation method.
      */
-    public static InputStream optimizedStreamFromURL(URL url)
+    public static InputStream inputStreamFromURL(URL url)
         throws IOException
     {
         if ("file".equals(url.getProtocol())) {
@@ -104,11 +103,34 @@ public final class URLUtil
              * matter a lot: performance penalty of extra wrapping is more
              * relevant when accessing local file system.
              */
-            if (url.getHost() == null) {
+            String host = url.getHost();
+            if (host == null || host.length() == 0) {
                 return new FileInputStream(url.getPath());
             }
         }
         return url.openStream();
+    }
+
+    /**
+     * Method that tries to get a stream (ideally, optimal one) to write to
+     * the resource specified by given URL.
+     * Currently it just means creating a simple file output stream if the
+     * URL points to a (local) file, and otherwise relying on URL classes
+     * input stream creation method.
+     */
+    public static OutputStream outputStreamFromURL(URL url)
+        throws IOException
+    {
+        if ("file".equals(url.getProtocol())) {
+            /* As per [WSTX-82], can not do this if the path refers
+             * to a network drive on windows.
+             */
+            String host = url.getHost();
+            if (host == null || host.length() == 0) {
+                return new FileOutputStream(url.getPath());
+            }
+        }
+        return url.openConnection().getOutputStream();
     }
 
     /*

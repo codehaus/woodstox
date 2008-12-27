@@ -16,6 +16,7 @@
 package com.ctc.wstx.stax;
 
 import java.io.*;
+import java.net.URL;
 
 import javax.xml.transform.Result;
 import javax.xml.transform.dom.DOMResult;
@@ -38,6 +39,7 @@ import com.ctc.wstx.exc.WstxIOException;
 import com.ctc.wstx.io.CharsetNames;
 import com.ctc.wstx.io.UTF8Writer;
 import com.ctc.wstx.sw.*;
+import com.ctc.wstx.util.URLUtil;
 
 /**
  * Implementation of {@link XMLOutputFactory} for Wstx.
@@ -289,6 +291,7 @@ public class WstxOutputFactory
         Writer w = null;
         String encoding = null;
         boolean requireAutoClose;
+        String sysId = null;
 
         if (res instanceof Stax2Result) {
             Stax2Result sr = (Stax2Result) res;
@@ -305,15 +308,22 @@ public class WstxOutputFactory
         } else if (res instanceof StreamResult) {
             StreamResult sr = (StreamResult) res;
             out = sr.getOutputStream();
+            sysId = sr.getSystemId();
             if (out == null) {
                 w = sr.getWriter();
             }
-            // Caller owns it, only auto-close if requested to do so:
+            /* Caller owns it, only auto-close if requested to do so:
+             * (except that for system-id-only, it'll still be required,
+             * see code below)
+             */
             requireAutoClose = false;
         } else if (res instanceof SAXResult) {
-            //SAXResult sr = (SAXResult) res;
-            // !!! TBI
-            throw new XMLStreamException("Can not create a stream writer for a SAXResult -- not implemented.");
+            SAXResult sr = (SAXResult) res;
+            sysId = sr.getSystemId();
+            if (sysId == null || sysId.length() == 0) {
+                throw new XMLStreamException("Can not create a stream writer for a SAXResult that does not have System Id (support for using SAX input source not implemented)");
+            }
+            requireAutoClose = true;
         } else if (res instanceof DOMResult) {
             return WstxDOMWrappingWriter.createFrom(mConfig.createNonShared(), (DOMResult) res);
         } else {
@@ -326,6 +336,19 @@ public class WstxOutputFactory
         if (w != null) {
             return createSW(null, w, encoding, requireAutoClose);
         }
-        throw new XMLStreamException("Can not create Stax writer for passed-in Result -- neither writer nor output stream was accessible");
+        if (sysId != null && sysId.length() > 0) {
+            /* 26-Dec-2008, TSa: If we must construct URL from system id,
+             *   it means caller will not have access to resulting
+             *   stream, thus we will force auto-closing.
+             */
+            requireAutoClose = true;
+            try {
+                out = URLUtil.outputStreamFromURL(URLUtil.urlFromSystemId(sysId));
+            } catch (IOException ioe) {
+                throw new WstxIOException(ioe);
+            }
+            return createSW(out, null, encoding, requireAutoClose);
+        }
+        throw new XMLStreamException("Can not create Stax writer for passed-in Result -- neither writer, output stream or system id was accessible");
     }
 }
