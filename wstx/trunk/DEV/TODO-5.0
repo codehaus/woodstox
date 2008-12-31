@@ -6,4 +6,7 @@ Planned stuff for 4.0
   - Use generics throughout (and eliminate Eclipse warnings...)
   - Use StringBuilder instead of StringBuffer
 
-
+* XMLStreamReader: (etc)
+  - Rename com.ctc.wstx.sr.StreamReaderImpl to something more
+    accurate (StreamInfoAccess?)
+ 

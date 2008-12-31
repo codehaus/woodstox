@@ -3,15 +3,8 @@ Planned stuff for 4.0
 ------------------------------------
 
 * Remaining Jira entries that must be tackled:
-  * [WSTX-152]: Basic OSGi headers in Manifest
-  * [WSTX-169]: Support for non-standard base64 modes
   * [WSTX-171]: Contributor guidelines
 (invalid bug?) * [WSTX-160]: Problems with multiple Schemas...
-
-* Misc internal improvements:
-  * Typed Access API, writer:
-[SKIP] * separate encoders for short scalar values (ints etc), no need to loop
- (would only ignore a single call)
 
 * BUGS:
 [Partial: commented out]  * MSV error messages
