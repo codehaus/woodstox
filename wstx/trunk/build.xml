@@ -343,7 +343,7 @@
        <delete file="${dir.dist}/${SRC_STAX2}.tar.gz" />
        <tar basedir="${dir.build}"
         includes="${DIR_STAX2}/**"
-        destfile="${dir.dist}/${SRC_STAX2}.tar"
+        destfile="${dir.dist}/${SRC_STAX2}.tar.gz"
         compression="gzip"
       />
 
