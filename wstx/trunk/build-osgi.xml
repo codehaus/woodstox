@@ -75,7 +75,7 @@ javax.xml*,
 org.xml.sax*,
 org.w3c.dom,
 org.osgi.framework,
-org.codehaus.stax2*;version=${REQ_STAX2_VERSION}"
+org.codehaus.stax2*;version='${REQ_STAX2_VERSION}'"
          dynamicImportPackage="
 com.sun.msv.*,
 org.relaxng.datatype"
@@ -126,7 +126,7 @@ javax.xml*,
 org.xml.sax*,
 org.w3c.dom,
 org.osgi.framework,
-org.codehaus.stax2*;version=${REQ_STAX2_VERSION}"
+org.codehaus.stax2*;version='${REQ_STAX2_VERSION}'"
          dynamicImportPackage="
 com.sun.msv.*,
 org.relaxng.datatype"

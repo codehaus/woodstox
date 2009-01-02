@@ -1,9 +1,61 @@
-Version: 3.9.9-3
+Version: 4.0.0 "Tequila"
 
-Release date: 26-Dec-2008
+Release date: 01-Jan-2009
 
 Description:
-  Third (and final?) release candidate for 4.0.0.
+  The official 4.0 release, "Tequila".
+
+  Differences from the previous major branch (3.2) are summarized below.
+  For details refer to release notes for preceding release candidates.
+
+  Major new functionality:
+
+  * W3C Schema Validation support
+  * Typed Access API (org.codehaus.stax2.typed.*), including:
+    * TypedXMLStreamReader, TypedXMLStreamWriter (reading and writing)
+    * Types based on W3C Schema Datatypes, supporting:
+      * Simple values (int, long, float, double, boolean, QName)
+      * Array values of integral numeric types
+      * Binary support for base64 encoded content
+      * Additional extension methods for efficient custom decoding.
+
+  Interoperability improvements:
+
+  * DOM-compatibility: Namespace-repairing mode implemented for DOM-backed
+    stream writers (ones built for DOMResult)
+  * OSGi: Woodstox jars are now OSGi bundles (as well as supporting MSV
+    jars when needed for validation)
+  * Maven: split core woodstox jar and stax2 api jar, relationship now
+    properly modelled (including dependencies to MSV jars)
+
+  New configuration properties:
+
+  * WstxOutputProperties.P_ADD_SPACE_AFTER_EMPTY_ELEM: whether to add space
+    between name of empty tag and following "/>".
+  * WstxOutputProperties.P_AUTOMATIC_END_ELEMENTS: whether stream writers
+    closes open xml tree upon stream writer close:
+  * WstxOutputProperties.P_OUTPUT_INVALID_CHAR_HANDLER to allow for
+    replacing "invalid XML characters" on output.
+
+  Other improvements:
+
+  * Implement XMLEvent.equals() and .hashCode() to allow for reliable
+    comparisons of event objects.
+  * Add direct support for Stax2ByteArraySource for improved performance
+    when used instead of ByteArrayInputStream.
+
+  Compatibility changes:
+
+  * JDK: minimum required now 1.4
+  * Stax 1.0 API:
+    * All empty/missing namespace/prefix values now reported as "", not null
+    * WstxInputFactory.IS_COALESCING defaults to 'false' (was erroneously
+      defaulting to 'true')
+    * Removed deprecated properties P_NORMALIZE_LFS and P_NORMALIZE_ATTR_VALUES
+
+== History: ==
+
+3.9.9-3 [26-Dec-2008]
 
   API changes:
 
@@ -17,8 +69,6 @@ Description:
   * [WSTX-183] Trying to create DOM-backed writer with DOM Element (as opposed
      to Document) failed, due to trying to attach the element.
     (reported by Christoper P-S)
-
-== History: ==
 
 3.9.9-2 [17-Dec-2008]
 
@@ -42,10 +92,6 @@ Description:
     should not matter
   * [WSTX-154] XMLStreamReader, XMLStreamWriter implementations were
     quietly discarding XMLStreamException thrown by XMLReporter.
-  * [WSTX-172] WstxInputFactory and WstxOutputFactory were final, should not be.
-  * [WSTX-174] Some old App servers have broken QName impl, are missing
-    3-arg constructor
-   (requested by Arash A)
 
   New functionality:
 
@@ -128,6 +174,15 @@ Description:
     constraints of Stax 1.0 API specification): requesting value of
     an unknown property will now return null, instead of throwing an
     exception.
+
+3.2.8 [26-Dec-2008]
+
+  Problems fixed:
+
+  * [WSTX-172] WstxInputFactory and WstxOutputFactory were final, should not be.
+  * [WSTX-174] Some old App servers have broken QName impl, are missing
+    3-arg constructor
+   (requested by Arash A)
 
 3.2.7 [02-Sep-2008]
 

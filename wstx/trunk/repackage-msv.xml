@@ -71,7 +71,7 @@ org.relaxng.datatype.helpers;version="[1.0,1.1)"
   </target>
 
   <target name="repackage-msv-core">
-      <property name="MSV_TITLE" value="XML Schema datatypes library" />
+      <property name="MSV_TITLE" value="Sun Multi-Schema Validator core" />
       <property name="MSV_VERSION" value="2.0.0" />
       <property name="MSV_VENDOR" value="http://msv.dev.java.net" />
       <!-- Note on packages: Xerces classes are fully optional; could

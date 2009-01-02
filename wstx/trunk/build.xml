@@ -33,7 +33,7 @@
 
     <!-- Woodstox version info: -->
     <property name="IMPL_TITLE" value="Woodstox XML-processor" />
-    <property name="IMPL_VERSION" value="3.9.9-3" />
+    <property name="IMPL_VERSION" value="4.0.0" />
     <property name="IMPL_VENDOR" value="http://woodstox.codehaus.org" />
     <property name="API_TITLE" value="Stax 1.0 API" />
     <property name="API_VERSION" value="1.0.0" />
@@ -42,7 +42,7 @@
     <!-- Extended API, working title "Stax2" (not version 2.0, but 2/squared)
       -->
     <property name="STAX2_TITLE" value="Stax2 API" />
-    <property name="STAX2_VERSION" value="2.9.9-3" />
+    <property name="STAX2_VERSION" value="3.0.0" />
     <property name="STAX2_VENDOR" value="http://woodstox.codehaus.org" />
 
     <!-- And finally version dependency spec between Woodstox core
@@ -51,10 +51,7 @@
          For pre-release candidate, needs to be strict; for official
          releases less so
       -->
-    <property name="REQ_STAX2_VERSION" value="2.9.9-3" />
-    <!-- real release will have:
     <property name="REQ_STAX2_VERSION" value="[3.0,3.1)" />
-    -->
 
     <!-- jars needed for compilation -->
     <path id="classpath.compile">
