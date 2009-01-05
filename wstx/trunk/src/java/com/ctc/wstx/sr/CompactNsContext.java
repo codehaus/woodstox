@@ -68,15 +68,19 @@ public final class CompactNsContext
         mFirstLocalNs = firstLocal;
     }
 
+    /**
+     * @param prefix Non-null, non-empty prefix (base-class verifies these
+     *  constraints) to find namespace URI for.
+     */
     public String doGetNamespaceURI(String prefix)
     {
         /* Let's search from beginning towards end; this way we'll first
          * find the innermost (or, in case of same-level declaration, last)
          * declaration for prefix.
          */
-        // (note: default namespace will be there too...)
+        // (note: default namespace will be there too)
         String[] ns = mNamespaces;
-        if (prefix == null || prefix.length() == 0) {
+        if (prefix.length() == 0) {
             for (int i = mNsLength-2; i >= 0; i -= 2) {
                 if (ns[i] == null) {
                     return ns[i+1];
@@ -114,7 +118,7 @@ public final class CompactNsContext
                         continue main_loop; // was masked!
                     }
                 }
-                String uri = mNamespaces[i-1];
+                String uri = ns[i-1];
                 /* 19-Mar-2006, TSa: Empty namespaces are represented by
                  *    null prefixes; but need to be represented as empty
                  *    strings (to distinguish from unbound URIs).
