@@ -6,7 +6,7 @@
 <driverGroup name="xmlDrivers"
  xmlns="http://www.sun.com/japex/testSuite">
 
-      <!-- Jackson json processor (0.9.4); manual, automatic -->
+      <!-- Jackson json processor (0.9.6); manual, automatic -->
       <driver name="Json/jackson/automatic">
         <description><div xmlns=""><p>Test driver for JSON (text) that uses Jackson json processor (AUTO)</p></div></description>
         <param name="japex.driverClass" value="org.codehaus.staxbind.dbconv.JacksonDriverAutomatic" />
@@ -67,6 +67,10 @@ using implementation by Caucho
         <param name="xstream.enableCglib" value="false"/>
       </driver>
 
+<!-- 12-Jan-2009, tatu: enable only if you really care about
+  this slower option...
+-->
+<!--
       <driver name="Xml/text/xstream-1.3.1+CGLIB">
         <description><div xmlns=""><p>Test driver for XML(text) that uses Xstream (1.3.1) on Stax, CGLIB-support ENABLED</p></div></description>
         <param name="japex.driverClass" value="org.codehaus.staxbind.dbconv.XstreamDriver" />
@@ -76,6 +80,7 @@ using implementation by Caucho
         <param name="japex.classPath" value="lib/wstx3/*.jar"/>
         <param name="xstream.enableCglib" value="true"/>
       </driver>
+-->
 
       <!-- "Raw" Stax drivers -->
       <driver name="Xml/text/wstx3">
