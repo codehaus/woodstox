@@ -4,6 +4,8 @@ import java.util.*;
 
 import javax.xml.bind.annotation.*;
 
+import org.codehaus.staxbind.std.StdItem;
+
 /**
  * Simple bean class to contain all "DB data" read from data files.
  *<p>
@@ -17,9 +19,9 @@ import javax.xml.bind.annotation.*;
  *  </li>
  *</ul>
  */
-@XmlRootElement(name="table")
+@XmlRootElement(name="table") // needed by JAXB
 public final class DbData
-    implements java.io.Serializable // hessian needs this, as does jdk seri
+    extends StdItem<DbData>
 {
     List<DbRow> rows;
 
@@ -65,13 +67,8 @@ public final class DbData
      */
 
     @Override
-        public boolean equals(Object o)
+        public boolean _equals(DbData other)
     {
-        if (o == this) return true;
-        if (o == null) return false;
-        if (o.getClass() != getClass()) return false;
-
-        DbData other = DbData.class.cast(o);
         List<DbRow> rows1 = this.getRow();
         List<DbRow> rows2 = other.getRow();
         if (rows1.size() != rows2.size()) {
@@ -94,4 +91,3 @@ public final class DbData
         return sb.toString();
     }
 }
-

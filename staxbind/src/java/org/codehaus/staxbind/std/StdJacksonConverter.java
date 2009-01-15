@@ -1,7 +1,6 @@
-package org.codehaus.staxbind.dbconv;
+package org.codehaus.staxbind.std;
 
 import java.io.*;
-import java.util.*;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -10,26 +9,28 @@ import org.codehaus.jackson.map.ObjectMapper;
  * Converter that uses Jackson JSON processor for data binding,
  * using automatic bindings for serialization and deserialization.
  */
-public class JacksonConverterAutomatic
-    extends DbConverter
+public class StdJacksonConverter<T extends StdItem>
+    extends StdConverter<T>
 {
     final JsonFactory _jsonFactory;
 
     final ObjectMapper _mapper;
 
-    public JacksonConverterAutomatic()
+    final Class<T> _itemClass;
+
+    public StdJacksonConverter(Class<T> itemClass)
     {
         _jsonFactory = new JsonFactory();
         _mapper = new ObjectMapper();
+        _itemClass = itemClass;
     }
 
-    public DbData readData(InputStream in)
-        throws IOException
+    public T readData(InputStream in) throws IOException
     {
-        return _mapper.readValue(in, DbData.class);
+        return _mapper.readValue(in, _itemClass);
     }
     
-    public int writeData(OutputStream out, DbData data) throws Exception
+    public int writeData(OutputStream out, T data) throws Exception
     {
         JsonGenerator jg = _jsonFactory.createJsonGenerator(out, JsonEncoding.UTF8);
         _mapper.writeValue(jg, data);

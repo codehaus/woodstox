@@ -2,11 +2,15 @@ package org.codehaus.staxbind.dbconv;
 
 import java.io.*;
 
+import org.codehaus.staxbind.std.StdConverter;
+import org.codehaus.staxbind.std.StdItem;
+
 /**
  * Base class for per-format converters used for "DB Converter" performance
  * test suite.
  */
 public abstract class DbConverter
+    extends StdConverter<DbData>
 {
     final static String FIELD_TABLE = "table";
     final static String FIELD_ROW = "row";
@@ -23,10 +27,6 @@ public abstract class DbConverter
     final static String FIELD_CITY = "city";
     final static String FIELD_STATE = "state";
     */
-
-    public enum Operation {
-        READ, WRITE, READ_WRITE
-    }
 
     /**
      * Method that is to read all the data and convert it to

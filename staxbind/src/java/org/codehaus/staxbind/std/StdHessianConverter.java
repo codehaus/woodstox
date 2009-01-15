@@ -1,4 +1,4 @@
-package org.codehaus.staxbind.dbconv;
+package org.codehaus.staxbind.std;
 
 import java.io.*;
 import java.util.*;
@@ -8,21 +8,18 @@ import com.caucho.hessian.io.*;
 /**
  * Converter that uses Hessian protocol (and Caucho impl) for binding.
  */
-public class HessianConverter
-    extends DbConverter
+public class StdHessianConverter<T extends StdItem>
+    extends StdConverter<T>
 {
-    public HessianConverter()
-    {
-    }
+    public StdHessianConverter() { }
 
-    public DbData readData(InputStream in)
-        throws IOException
+    public T readData(InputStream in) throws IOException
     {
         Hessian2StreamingInput hin = new Hessian2StreamingInput(in);
-        return (DbData) hin.readObject();
+        return (T) hin.readObject();
     }
     
-    public int writeData(OutputStream out, DbData data) throws Exception
+    public int writeData(OutputStream out, T data) throws Exception
     {
         Hessian2StreamingOutput hout = new Hessian2StreamingOutput(out);
         hout.writeObject(data);

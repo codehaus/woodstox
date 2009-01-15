@@ -4,85 +4,30 @@ import java.io.*;
 
 import com.sun.japex.Params;
 
-import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.converters.reflection.CGLIBEnhancedConverter;
-import com.thoughtworks.xstream.io.xml.StaxDriver;
-import com.thoughtworks.xstream.mapper.CGLIBMapper;
-import com.thoughtworks.xstream.mapper.MapperWrapper;
+import org.codehaus.staxbind.std.StdXstreamConverter;
 
 /**
  * Converter that uses XStream on top of regular Stax 1
  * implementation (such as Woodstox).
  */
 public class XstreamConverter
-    extends DbConverter
+    extends StdXstreamConverter<DbData>
 {
-    /**
-     * Root-level 'factory' object should be thread-safe, since it
-     * carries no state.
-     */
-    private XStream _xstream;
+    public XstreamConverter() { }
 
-    public XstreamConverter() {
-        // nothing to set as we need access to params...
-    }
-
+    @Override
     public void prepare(Params driverParams)
     {
-        /* Hmmh. Looks like prepare() does get called multiple
-         * times on a single driver; once per each test case.
+        super.prepare(driverParams);
+
+        /* Let's slightly optimize output by giving aliases; can not
+         * be done generically in base class:
          */
 
-        /* 09-Dec-2008, tatus: Let's allow enabling/disabling
-         *   of CGLIB proxies; supposedly adds measurable
-         *   overhead
-         */
-        String prop = driverParams.getParam("xstream.enableCglib");
-        if (prop != null && "true".equalsIgnoreCase(prop)) {
-            System.out.print("[Xstream, WITH Cglib support]");
-            _xstream = new CglibXStream();
-        } else {
-            System.out.print("[Xstream, with NO Cglib support]");
-            _xstream = new XStream(new StaxDriver());
-        }
-
-        // No need to resolve refs, won't have cycles
-        _xstream.setMode(XStream.NO_REFERENCES);
         // Also, XStream needs to know main-level binding:
         _xstream.alias("table", DbData.class);
         // ... and it looks like row class too... not sure why
         _xstream.alias("row", DbRow.class);
-    }
-
-    public DbData readData(InputStream in) throws Exception
-    {
-        return (DbData) _xstream.fromXML(in);
-    }
-    
-    public int writeData(OutputStream out, DbData data) throws Exception
-    {
-        _xstream.toXML(data, out);
-        return data.size();
-    }
-
-    /*
-    ///////////////////////////////////////////////
-    // Helper class for testing CGLIB support
-    ///////////////////////////////////////////////
-     */
-
-    final static class CglibXStream
-        extends XStream
-    {
-        public CglibXStream()
-        {
-            super(new StaxDriver());
-            registerConverter(new CGLIBEnhancedConverter(getMapper(), getReflectionProvider()));
-        }
-
-        protected MapperWrapper wrapMapper(MapperWrapper next) {
-            return new CGLIBMapper(next);
-        }
     }
 }
 

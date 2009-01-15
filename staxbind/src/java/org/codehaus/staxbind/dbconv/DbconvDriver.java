@@ -5,11 +5,13 @@ import java.io.*;
 import com.sun.japex.TestCase;
 
 import org.codehaus.staxbind.japex.BaseJapexDriver;
+import org.codehaus.staxbind.std.StdConverter;
+import org.codehaus.staxbind.std.StdItem;
 
 public abstract class DbconvDriver
     extends BaseJapexDriver<DbConverter.Operation>
 {
-    final DbConverter _converter;
+    final StdConverter _converter;
 
     /**
      * For write tests, we hold serializable objects here
@@ -21,30 +23,30 @@ public abstract class DbconvDriver
      */
     byte[][] _readableData;
 
-    protected DbconvDriver(DbConverter conv)
+    protected DbconvDriver(StdConverter conv)
     {
-        super(DbConverter.Operation.READ);
+        super(StdConverter.Operation.READ);
         if (conv == null) {
             throw new IllegalArgumentException();
         }
         _converter = conv;
     }
 
-    protected int runTest(DbConverter.Operation oper) throws Exception
+    protected int runTest(StdConverter.Operation oper) throws Exception
     {
         if (oper == null) {
             throw new RuntimeException("Internal exception: no operation passed");
         }
 
-        final boolean doRead = (oper != DbConverter.Operation.WRITE);
-        final boolean doWrite = (oper != DbConverter.Operation.READ);
+        final boolean doRead = (oper != StdConverter.Operation.WRITE);
+        final boolean doWrite = (oper != StdConverter.Operation.READ);
 
         // read or read-write?
         if (doRead) {
             int result = 0;
             final ByteArrayOutputStream bos = new ByteArrayOutputStream(16000);
             for (byte[] input : _readableData) {
-                DbData dd = _converter.readData(new ByteArrayInputStream(input));
+                DbData dd = (DbData) _converter.readData(new ByteArrayInputStream(input));
                 if (dd == null) {
                     throw new IllegalStateException("Deserialized doc to null");
                 }
@@ -70,7 +72,7 @@ public abstract class DbconvDriver
         return result;
     }
 
-    protected void doLoadTestData(DbConverter.Operation oper, File dir) throws Exception
+    protected void doLoadTestData(StdConverter.Operation oper, File dir) throws Exception
     {
         /* First of all, read in all the data, bind to in-memory object(s),
          * and then (if read test), convert to the specific type converter
@@ -86,10 +88,10 @@ public abstract class DbconvDriver
                 }
             });
 
-        DbConverter stdConverter = getStdConverter();
-        _readableData = (oper == DbConverter.Operation.WRITE) ?
+        StdConverter stdConverter = getStdConverter();
+        _readableData = (oper == StdConverter.Operation.WRITE) ?
             null : new byte[files.length][];
-        _writableData = (oper == DbConverter.Operation.WRITE) ?
+        _writableData = (oper == StdConverter.Operation.WRITE) ?
             new DbData[files.length] : null;
 
         for (int i = 0, len = files.length; i < len; ++i) {
@@ -97,7 +99,7 @@ public abstract class DbconvDriver
             // Read file contents, bind to in-memory object (using std conv)
             readAll(f, readBuffer, tmpStream);
             byte[] fileData = tmpStream.toByteArray();
-            DbData origData = stdConverter.readData(new ByteArrayInputStream(fileData));
+            DbData origData = (DbData) stdConverter.readData(new ByteArrayInputStream(fileData));
             if (_writableData != null) {
                 _writableData[i] = origData;
             }
@@ -114,7 +116,7 @@ public abstract class DbconvDriver
             if (_readableData != null) {
                 _readableData[i] = convData;
             }
-            DbData convResults = _converter.readData(new ByteArrayInputStream(convData));
+            DbData convResults = (DbData)_converter.readData(new ByteArrayInputStream(convData));
             if (!convResults.equals(origData)) {
                 // Not very clean, but let's output for debugging:
                 System.err.println("Incorrect mapping");
@@ -125,7 +127,7 @@ public abstract class DbconvDriver
         }
     }
 
-    protected DbConverter getStdConverter()
+    protected StdConverter getStdConverter()
     {
         // Let's use Woodstox 3 driver as the trusted one...
         return Wstx3Driver.getConverter();

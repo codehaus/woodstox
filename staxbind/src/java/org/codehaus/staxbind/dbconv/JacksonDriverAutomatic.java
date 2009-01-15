@@ -1,5 +1,7 @@
 package org.codehaus.staxbind.dbconv;
 
+import org.codehaus.staxbind.std.StdJacksonConverter;
+
 /**
  * Driver that uses "automatic" (bean/annotation-based) serialization with
  * Jackson (compared to hand-written one)
@@ -9,6 +11,6 @@ public final class JacksonDriverAutomatic
 {
     public JacksonDriverAutomatic() throws Exception
     {
-        super(new JacksonConverterAutomatic());
+        super(new StdJacksonConverter(DbData.class));
     }
 }

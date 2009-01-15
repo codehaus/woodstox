@@ -37,6 +37,15 @@ using implementation by Caucho
         <param name="japex.classPath" value="lib/wstx3/*.jar"/>
       </driver>
 
+      <!-- JDK Serialization -->
+      <driver name="Binary/JDK-serialize">
+        <description><div xmlns=""><p>Test driver that uses default JDK (binary) serialization</p></div></description>
+        <param name="japex.driverClass" value="org.codehaus.staxbind.dbconv.JdkDriver" />
+        <param name="japex.classPath" value="build/classes"/>
+        <param name="japex.classPath" value="lib/*.jar"/>
+        <param name="japex.classPath" value="lib/wstx3/*.jar"/>
+      </driver>
+
       <!-- JAXB 2.0 -->
       <driver name="Xml/text/JAXB2">
         <description><div xmlns=""><p>Test driver for XML(text) that uses JAXB (2.x) on Stax</p></div></description>
