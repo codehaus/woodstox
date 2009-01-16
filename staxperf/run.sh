@@ -4,8 +4,10 @@
 # Note: only one of wstx jars should be there...
 
 #-server\
+#-XX:CompileThreshold=2000 \
 
-java -XX:CompileThreshold=2000 -Xmx64m \
+java \
+ -Xmx128m \
  -server\
- -cp build/classes:lib/\* \
+ -cp build/classes:lib/\*:lib/xsl/\* \
  $*

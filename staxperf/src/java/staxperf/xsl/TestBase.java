@@ -13,7 +13,7 @@ import staxperf.TestUtil;
  * processor implementations. Basic operation is as follows:
  *<ul>
  * <li>First implementation is set up, and then <b>warmed up</b>, by doing
- *   couple (30) of repetitions over test document. This ensures JIT has
+ *   a couple (50) of repetitions over test document. This ensures JIT has
  *   had a chance to use hot spot compilation of performance bottlenecks
  *  </li>
  * <li>Main testing loop iterates over parsing as many times as possible,
@@ -25,7 +25,7 @@ import staxperf.TestUtil;
 abstract class TestBase
 {
     private final static int DEFAULT_TEST_SECS = 30;
-    private final static int WARMUP_ROUNDS = 30;
+    private final static int WARMUP_ROUNDS = 50;
 
     protected TransformerFactory _factory;
 
@@ -35,7 +35,8 @@ abstract class TestBase
 
     protected abstract TransformerFactory getFactory();
 
-    protected abstract StreamResult getResult(ByteArrayOutputStream bos);
+    protected abstract StreamResult getResult(ByteArrayOutputStream bos)
+        throws IOException;
 
     protected void init()
     {
@@ -51,6 +52,12 @@ abstract class TestBase
         int ret = _outStream.size();
         in.close();
         _outStream.close();
+
+        if (false) { // change for testing
+            System.out.println("DOC = '"+_outStream.toString("UTF-8")+"'");
+            throw new Error();
+        }
+
         return ret;
     }
 
@@ -99,7 +106,7 @@ abstract class TestBase
             // Let's allow some slack time between iterations
             try {  Thread.sleep(100L); } catch (InterruptedException ie) { }
         }
-        System.out.println(" (batch size "+_batchSize+")");
+        System.out.println(" (batch size "+_batchSize+"); total = "+total+"]");
 
         /* Let's try to ensure GC is done so that real test can start from
          * a clean state.
@@ -157,7 +164,7 @@ abstract class TestBase
             }
         }
 
-        System.out.println("Total iterations done: "+count+" [done "+total+"]");
+        System.out.println("Total iterations done: "+count+" [total "+total+"]");
     }
 }
 

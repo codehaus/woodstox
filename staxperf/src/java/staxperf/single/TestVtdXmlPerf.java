@@ -27,7 +27,6 @@ public class TestVtdXmlPerf
         return vg.hashCode();
     }
 
-
     public static void main(String[] args) throws Exception
     {
         new TestVtdXmlPerf().test(args);
