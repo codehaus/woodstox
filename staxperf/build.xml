@@ -24,6 +24,7 @@
 
     <path id="classpath">
         <fileset dir="${LibDir}" includes="*.jar" />
+        <fileset dir="${LibDir}/xsl" includes="*.jar" />
     </path>
 
     <!--*********************************************************************-->

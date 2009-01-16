@@ -8,11 +8,7 @@ import com.ximpleware.parser.*;
 public class TestVtdXmlPerf
     extends BasePerfTest
 {
-    javolution.xml.stream.XMLInputFactory mJIF;
-
-    private TestVtdXmlPerf()
-    {
-    }
+    private TestVtdXmlPerf() { }
 
     protected javax.xml.stream.XMLInputFactory getFactory()
     {

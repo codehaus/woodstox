@@ -6,7 +6,7 @@ public class TestUtil
 {
     protected TestUtil() { }
 
-    protected int calcBatchSize(long time)
+    public static int calcBatchSize(long time)
     {
         /* Let's aim at 10 of such batches per second (== 100 ms per batch);
          * however, for fastest cases, may need to relax that restriction

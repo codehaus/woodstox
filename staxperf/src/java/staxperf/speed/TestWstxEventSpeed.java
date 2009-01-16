@@ -10,7 +10,9 @@ import javax.xml.stream.events.*;
 import com.ctc.wstx.stax.*;
 
 public class TestWstxEventSpeed
-    extends BaseSpeedTest
+// 16-Jan-2009, tatu: not sure where this went... renamed?
+//extends BaseSpeedTest
+    extends TestWstxSpeed
 {
     final XMLInputFactory mFactory;
 
