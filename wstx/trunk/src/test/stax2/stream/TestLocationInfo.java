@@ -44,13 +44,12 @@ public class TestLocationInfo
         super(name);
     }
 
-    public void testInitialLocation()
+    public void testInitialLocationNoDecl()
         throws XMLStreamException
     {
         // First, let's test 'missing' start doc:
         XMLStreamReader2 sr = getReader("<root />", false);
-        LocationInfo loc;
-        loc = sr.getLocationInfo();
+        LocationInfo loc = sr.getLocationInfo();
         assertLocation(sr, loc.getStartLocation(), 1, 1,
                        0, loc.getStartingByteOffset(),
                        0, loc.getStartingCharOffset());
@@ -58,10 +57,14 @@ public class TestLocationInfo
                        0, loc.getEndingByteOffset(),
                        0, loc.getEndingCharOffset());
         sr.close();
+    }
 
+    public void testInitialLocationWithDecl()
+        throws XMLStreamException
+    {
         // and then a real one
-        sr = getReader("<?xml version='1.0'\r\n?>", false);
-        loc = sr.getLocationInfo();
+        XMLStreamReader2 sr = getReader("<?xml version='1.0'\r\n?>", false);
+        LocationInfo loc = sr.getLocationInfo();
         assertLocation(sr, loc.getStartLocation(), 1, 1,
                        0, loc.getStartingByteOffset(),
                        0, loc.getStartingCharOffset());

@@ -1,4 +1,4 @@
-package stax2.stream;
+package stax2.dtd;
 
 import javax.xml.stream.*;
 

@@ -368,15 +368,12 @@ public class TypedStreamReader
                 throw _constructUnexpectedInTyped(type);
             }
         }
-        // throwNotTextualOrElem(type);
 
         int count = 0;
-
-        //decode_loop:
         while (type != END_ELEMENT) {
             /* Ok then: we will have a valid textual type. Just need to
              * ensure current segment is completed. Plus, for current impl,
-             * also need to coalesce to prevent artificila CDATA/text
+             * also need to coalesce to prevent artificial CDATA/text
              * boundary from splitting tokens
              */
             if (type == CHARACTERS || type == CDATA || type == SPACE) {
@@ -405,7 +402,6 @@ public class TypedStreamReader
     // TypedXMLStreamReader2 implementation, binary data
     ////////////////////////////////////////////////////////
      */
-
 
     public final int readElementAsBinary(byte[] resultBuffer, int offset, int maxLength)
         throws XMLStreamException
