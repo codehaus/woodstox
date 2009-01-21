@@ -13,7 +13,7 @@ import stax2.BaseStax2Test;
 public class TestLocationInfo
     extends BaseStax2Test
 {
-    final static String TEST_DOC =
+    final static String TEST_DTD_DOC =
         "<?xml version='1.0'?>"
         +"<!DOCTYPE root [\n" // first char: 21; row 1
         +"<!ENTITY ent 'simple\ntext'>\n" // fc: 38; row 2
@@ -25,8 +25,6 @@ public class TestLocationInfo
         +"&ent2;" // fc: 137; row 7
         +"</root>"; // fc: 144; row 7
     // EOF, fc: 150; row 7
-
-    final static String TEST_SHORT_DOC = "<root />";
 
     /**
      * This document fragment tries ensure that linefeed handling works ok
@@ -46,49 +44,11 @@ public class TestLocationInfo
         super(name);
     }
 
-    public void testLocations()
-        throws XMLStreamException
-    {
-        XMLStreamReader2 sr = getReader(TEST_DOC);
-        LocationInfo loc;
-        loc = sr.getLocationInfo();
-        assertLocation(sr, loc.getStartLocation(), 1, 1,
-                       0, loc.getStartingByteOffset(),
-                       0, loc.getStartingCharOffset());
-        assertLocation(sr, loc.getEndLocation(), 22, 1,
-                       21, loc.getEndingByteOffset(),
-                       21, loc.getEndingCharOffset());
-
-        assertTokenType(DTD, sr.next());
-        loc = sr.getLocationInfo();
-        assertLocation(sr, loc.getStartLocation(), 22, 1,
-                       21, loc.getStartingByteOffset(),
-                       21, loc.getStartingCharOffset());
-        assertLocation(sr, loc.getEndLocation(), 3, 5,
-                       100, loc.getEndingByteOffset(),
-                       100, loc.getEndingCharOffset());
-
-        // Let's ignore text/space, if there is one:
-        while (sr.next() != START_ELEMENT) {
-            ;
-        }
-
-        loc = sr.getLocationInfo();
-        assertLocation(sr, loc.getStartLocation(), 1, 6,
-                       101, loc.getStartingByteOffset(),
-                       101, loc.getStartingCharOffset());
-        assertLocation(sr, loc.getEndLocation(), 7, 6,
-                       107, loc.getEndingByteOffset(),
-                       107, loc.getEndingCharOffset());
-
-        // !!! TBI
-    }
-
     public void testInitialLocation()
         throws XMLStreamException
     {
         // First, let's test 'missing' start doc:
-        XMLStreamReader2 sr = getReader("<root />");
+        XMLStreamReader2 sr = getReader("<root />", false);
         LocationInfo loc;
         loc = sr.getLocationInfo();
         assertLocation(sr, loc.getStartLocation(), 1, 1,
@@ -100,7 +60,7 @@ public class TestLocationInfo
         sr.close();
 
         // and then a real one
-        sr = getReader("<?xml version='1.0'\r\n?>");
+        sr = getReader("<?xml version='1.0'\r\n?>", false);
         loc = sr.getLocationInfo();
         assertLocation(sr, loc.getStartLocation(), 1, 1,
                        0, loc.getStartingByteOffset(),
@@ -114,7 +74,7 @@ public class TestLocationInfo
     public void testRowAccuracy()
         throws XMLStreamException
     {
-        XMLStreamReader2 sr = getReader(TEST_LF_DOC);
+        XMLStreamReader2 sr = getReader(TEST_LF_DOC, false);
 
         assertRow(sr, 1, 1); // (missing) xml decl
 
@@ -164,6 +124,53 @@ public class TestLocationInfo
         sr.close();
     }
 
+    /**
+     * Test that uses a document with internal DTD subset, to verify that
+     * location info is still valid.
+     */
+    public void testLocationsWithDTD()
+        throws XMLStreamException
+    {
+        XMLStreamReader2 sr = getReader(TEST_DTD_DOC, true);
+        // will return null if SUPPORT_DTD fails:
+        if (sr == null) {
+            System.err.println("WARN: SupportDTD can not be enabled, need to skip test");
+            return;
+        }
+
+        LocationInfo loc = sr.getLocationInfo();
+        assertLocation(sr, loc.getStartLocation(), 1, 1,
+                       0, loc.getStartingByteOffset(),
+                       0, loc.getStartingCharOffset());
+        assertLocation(sr, loc.getEndLocation(), 22, 1,
+                       21, loc.getEndingByteOffset(),
+                       21, loc.getEndingCharOffset());
+
+        assertTokenType(DTD, sr.next());
+        loc = sr.getLocationInfo();
+        assertLocation(sr, loc.getStartLocation(), 22, 1,
+                       21, loc.getStartingByteOffset(),
+                       21, loc.getStartingCharOffset());
+        assertLocation(sr, loc.getEndLocation(), 3, 5,
+                       100, loc.getEndingByteOffset(),
+                       100, loc.getEndingCharOffset());
+
+        // Let's ignore text/space, if there is one:
+        while (sr.next() != START_ELEMENT) {
+            ;
+        }
+
+        loc = sr.getLocationInfo();
+        assertLocation(sr, loc.getStartLocation(), 1, 6,
+                       101, loc.getStartingByteOffset(),
+                       101, loc.getStartingCharOffset());
+        assertLocation(sr, loc.getEndLocation(), 7, 6,
+                       107, loc.getEndingByteOffset(),
+                       107, loc.getEndingCharOffset());
+
+        // !!! TBI
+    }
+
     /*
     ////////////////////////////////////////
     // Private methods
@@ -202,13 +209,15 @@ public class TestLocationInfo
         }
     }
 
-    private XMLStreamReader2 getReader(String contents)
+    private XMLStreamReader2 getReader(String contents, boolean needDTD)
         throws XMLStreamException
     {
         XMLInputFactory f = getInputFactory();
         setCoalescing(f, false); // shouldn't really matter
         setNamespaceAware(f, true);
-        setSupportDTD(f, true);
+        if (!setSupportDTD(f, true)) {
+            return null;
+        }
         // No need to validate, just need entities
         setValidating(f, false);
         return (XMLStreamReader2) constructStreamReader(f, contents);

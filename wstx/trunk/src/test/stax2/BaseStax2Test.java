@@ -241,10 +241,22 @@ public class BaseStax2Test
         f.setProperty(XMLInputFactory.IS_VALIDATING, Boolean.valueOf(state));
     }
 
-    protected static void setSupportDTD(XMLInputFactory f, boolean state)
+    protected static boolean setSupportDTD(XMLInputFactory f, boolean state)
         throws XMLStreamException
     {
-        f.setProperty(XMLInputFactory.SUPPORT_DTD, Boolean.valueOf(state));
+        try {
+            f.setProperty(XMLInputFactory.SUPPORT_DTD, Boolean.valueOf(state));
+            return (willSupportDTD(f) == state);
+        } catch (IllegalArgumentException e) {
+            // Let's assume that the property (or specific value) is NOT supported...
+            return false;
+        }
+    }
+
+    protected static boolean willSupportDTD(XMLInputFactory f)
+        throws XMLStreamException
+    {
+        return ((Boolean) f.getProperty(XMLInputFactory.SUPPORT_DTD)).booleanValue();
     }
 
     protected static void setReplaceEntities(XMLInputFactory f, boolean state)
