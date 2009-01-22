@@ -38,6 +38,9 @@ public final class CharArrayBase64Decoder
 
     final ArrayList _nextSegments = new ArrayList();
 
+    int _lastSegmentOffset;
+    int _lastSegmentEnd;
+
     /**
      * Pointer of the next segment to process (after current one stored
      * in {@link #_currSegment}) within {@link #mOtherSegments}.
@@ -47,7 +50,7 @@ public final class CharArrayBase64Decoder
     public CharArrayBase64Decoder() { super(); }
 
     public void init(Base64Variant variant, boolean firstChunk,
-                     char[] lastSegment, int offset, int len,
+                     char[] lastSegment, int lastOffset, int lastLen,
                      List segments)
     {
         _variant = variant;
@@ -60,9 +63,13 @@ public final class CharArrayBase64Decoder
         _nextSegments.clear();
         if (segments == null || segments.isEmpty()) { // no segments, simple
             _currSegment = lastSegment;
-            _currSegmentPtr = offset;
-            _currSegmentEnd = offset+len;
+            _currSegmentPtr = lastOffset;
+            _currSegmentEnd = lastOffset+lastLen;
         } else {
+            if (lastSegment == null) { // sanity check
+                throw new IllegalArgumentException();
+            }
+
             Iterator it = segments.iterator();
             _currSegment = (char[]) it.next();
             _currSegmentPtr = 0;
@@ -72,6 +79,11 @@ public final class CharArrayBase64Decoder
                 _nextSegments.add(it.next());
             }
             _nextSegmentIndex = 0;
+
+            // Plus, still need to add the last segment
+            _nextSegments.add(lastSegment);
+            _lastSegmentOffset = lastOffset;
+            _lastSegmentEnd = lastOffset+lastLen;
         }
     }
 
@@ -244,8 +256,14 @@ public final class CharArrayBase64Decoder
     {
         if (_nextSegmentIndex < _nextSegments.size()) {
             _currSegment = (char[]) _nextSegments.get(_nextSegmentIndex++);
-            _currSegmentPtr = 0;
-            _currSegmentEnd = _currSegment.length;
+            // last segment may have non-zero ptr, slack at end
+            if (_nextSegmentIndex == _nextSegments.size()) {
+                _currSegmentPtr = _lastSegmentOffset;
+                _currSegmentEnd = _lastSegmentEnd;
+            } else {
+                _currSegmentPtr = 0;
+                _currSegmentEnd = _currSegment.length;
+            }
             return true;
         }
         return false;

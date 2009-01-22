@@ -3,10 +3,23 @@ Version: 4.0.0 "Tequila"
 Release date: 01-Jan-2009
 
 Description:
-  The official 4.0 release, "Tequila".
+  The first patch release for 4.0.0
 
-  Differences from the previous major branch (3.2) are summarized below.
-  For details refer to release notes for preceding release candidates.
+  Problems fixed:
+
+  * A bug in Stax2 RI CharArrayBase64Decoder was skipping part of
+    input under certain conditions; did not occur in stax2 test
+    suite, but did happen for another Stax2 implementation.
+
+------------------------------------------------------------------------
+== History: ==
+------------------------------------------------------------------------
+
+4.0.0 [01-Jan-2009]
+
+  The first official release: no major changes over 3.9.9-3.
+  However, here is a summary of work since 3.2.
+  (For details refer to release notes for preceding release candidates)
 
   Major new functionality:
 
@@ -53,7 +66,7 @@ Description:
       defaulting to 'true')
     * Removed deprecated properties P_NORMALIZE_LFS and P_NORMALIZE_ATTR_VALUES
 
-== History: ==
+------------------------------------------------------------------------
 
 3.9.9-3 [26-Dec-2008]
 
@@ -174,6 +187,8 @@ Description:
     constraints of Stax 1.0 API specification): requesting value of
     an unknown property will now return null, instead of throwing an
     exception.
+
+------------------------------------------------------------------------
 
 3.2.8 [26-Dec-2008]
 

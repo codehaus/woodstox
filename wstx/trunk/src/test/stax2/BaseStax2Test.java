@@ -164,6 +164,12 @@ public class BaseStax2Test
         return (XMLStreamReader2) f.createXMLStreamReader(new StringReader(content));
     }
 
+    protected static XMLStreamReader2 constructStreamReader(XMLInputFactory f, byte[] data)
+        throws XMLStreamException
+    {
+        return (XMLStreamReader2) f.createXMLStreamReader(new ByteArrayInputStream(data));
+    }
+
     protected static XMLStreamReader2 constructStreamReaderForFile(XMLInputFactory f, String filename)
         throws IOException, XMLStreamException
     {
