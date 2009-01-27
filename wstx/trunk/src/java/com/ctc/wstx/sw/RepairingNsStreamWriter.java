@@ -129,16 +129,8 @@ public final class RepairingNsStreamWriter
     public void writeDefaultNamespace(String nsURI)
         throws XMLStreamException
     {
-        /* 21-Sep-2004, TSa: Should not call this in "namespace repairing"
-         *    mode? However, if it is called, what should be done? There
-         *    are multiple possibilities; like:
-         *   (a) Throw an exception
-         *   (b) Ignore the call
-         *   (c) Check potential validity; ignore if it matched a declaration,
-         *     throw an exception if it didn't.
-         */
-        /* 01-Sep-2006, TSa: Actually, there is one use case for calling
-         *   this method. Specifically, caller may want to 'suggest' that
+        /* 01-Sep-2006, TSa: The use case for calling this method is that
+         *   of caller may wanting to 'suggest' that
          *   such a namespace should indeed be bound at this level. This
          *   may be necessary for canonicalization, or for minimizing number
          *   of binding declarations (all children need the ns, but root
