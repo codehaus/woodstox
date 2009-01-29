@@ -1,9 +1,11 @@
 Version: 4.0.1
 
-Release date: 01-Feb-2009
+Release date: 29-Jan-2009
 
 Description:
-  The first patch release for 4.0.0
+  The first patch release for 4.0: released early because of problems
+  encountered with Maven, as well as a critical fix to Stax2 API reference
+  implementation that other packages depend on.
 
   Problems fixed:
 

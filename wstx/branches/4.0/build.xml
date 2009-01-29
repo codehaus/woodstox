@@ -28,6 +28,7 @@
     <property name="dir.classes.staxtest" location="${dir.test}/staxtest-classes" />
     <!-- Distribution -->
     <property name="dir.dist" location="${basedir}/dist" />
+    <property name="dir.dist.maven2" location="${basedir}/dist-maven2" />
 
     <!-- Version information -->
 
@@ -187,6 +188,7 @@
         <delete dir="${dir.doc}"/>
         <delete dir="${dir.test}"/>
         <delete dir="${dir.dist}"/>
+        <delete dir="${dir.dist.maven2}"/>
         <delete file="cobertura.ser" />
     </target>
 
@@ -404,6 +406,33 @@
             </filterset>
        </copy>
     </target>
+
+    <!-- And for Maven2 repo, we will construct set of different
+         directories to help with release/dist
+      --> 
+
+    <target name="dist.maven" depends="dist">
+      <mkdir dir="${dir.dist.maven2}"/>
+
+      <!-- First Woodstox core stuff  -->
+      <mkdir dir="${dir.dist.maven2}/woodstox-core-asl/${IMPL_VERSION}"/>
+      <copy todir="${dir.dist.maven2}/woodstox-core-asl/${IMPL_VERSION}">
+        <fileset dir="${dir.dist}" includes="woodstox-core-asl-*" />
+      </copy>
+
+      <mkdir dir="${dir.dist.maven2}/woodstox-core-lgpl/${IMPL_VERSION}"/>
+      <copy todir="${dir.dist.maven2}/woodstox-core-lgpl/${IMPL_VERSION}">
+        <fileset dir="${dir.dist}" includes="woodstox-core-lgpl-*" />
+      </copy>
+
+      <!-- Then Stax2 API -->
+      <mkdir dir="${dir.dist.maven2}/stax2-api/${IMPL_VERSION}"/>
+      <copy todir="${dir.dist.maven2}/stax2-api/${IMPL_VERSION}">
+        <fileset dir="${dir.dist}" includes="stax2-api-*" />
+      </copy>
+
+    </target>
+
 
     <target name="all" depends="clean,javadoc,test,dist">
         <!-- This target simply depends on others to do its job -->
