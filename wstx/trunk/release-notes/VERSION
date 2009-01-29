@@ -1,6 +1,6 @@
-Version: 4.0.0 "Tequila"
+Version: 4.0.1
 
-Release date: 01-Jan-2009
+Release date: 01-Feb-2009
 
 Description:
   The first patch release for 4.0.0
@@ -10,6 +10,10 @@ Description:
   * A bug in Stax2 RI CharArrayBase64Decoder was skipping part of
     input under certain conditions; did not occur in stax2 test
     suite, but did happen for another Stax2 implementation.
+  * There were many problems with Maven dependencies; specifically it looks
+    like support for version ranges is hard to make work with somewhat
+    manual release process in use now. Thus changed dependencies to use
+    exact versions for now (until 5.0?)
 
 ------------------------------------------------------------------------
 == History: ==
@@ -478,7 +482,7 @@ Description:
     OutputStreamWriter was dead slow for almost all use cases).
     Also, added simple buffer recycling, similar to reader side.
 
-  Newfunctionality:
+  New functionality:
 
   * [WSTX-25]: Added Stax2 interface ValidationProblemHandler, and associated
     methods to XMLStreamReader2 and XMLStreamWriter2: this allows for
@@ -487,241 +491,8 @@ Description:
     implementations: these allow for more efficient and accurate source/result
     identification, and possible later optimizations.
 
-2.9.3 [26-Apr-2006]
+------------------------------------------------------------------------
+End of History (as we know it)
+------------------------------------------------------------------------
 
-  Improvements:
-
-  * [WSTX-53]: Implemented a simple byte/char buffer recycling system,
-    using ThreadLocal and SoftReferences. Improves parsing speed of small
-    (<4kB or so) documents by 15-20%.
-  * Minor improvements to UTF-8 decoding speed (decoding part maybe 5%
-    faster).
-
-  Newfunctionality:
-
-  * javax.xml.transform.dom.DOMSource can now be used for constructing
-    stream and event readers, i.e. it is possible to traverse DOM
-    documents (and document fragments, sub-trees for given Element)
-    using Stax API.
-
-2.9.2 [31-Mar-2006]
-
-  Problems fixed:
-
-  * [WSTX-45]: WstxEventReader#peek() throwing EOF instead of returning null
-     (reported by Arjen P)
-  * [WSTX-46]: Trying to write another root element produced an incorrect
-      error message
-     (reported by John K)
-  * [WSTX-20], [WSTX-47]: XMLStreamWriter throwing IllegalStateExceptions
-     instead of XMLStreamExcpetions.
-     (reported by Dims, John K)
-
-  Improvements:
-
-  * Added some more necessary methods to Stax2 XMLStreamReader2, to
-    allow adding custom validators.
-
-  New functionality:
-
-  * Implemented (pluggable) XMLValidator for RelaxNG, based on
-    Sun Multi-Schema Validator!
-
-2.9.1 [22-Feb-2006]
-
-  Problems fixed:
-
-  * Numerous fixes to XML conformance; especially in areas of:
-     * Valid xml character (for xml 1.0 as well as 1.1) checks, including
-       checks for expanded character entities.
-     * XML 1.1 vs 1.0 handling (including proper cascading to the
-       external parsed entities)
-     * Distinction between Well-Formedness Constraints (WFC, fatal)
-       and Validation Constraints (VC); latter only thrown in validating
-       mode.
-     * Input nesting checks for Parameter and General Entity expansions
-       (elements and GE expansions have to nest properly; similarly
-       PE and DTD declarations have to properly nest).
-  * Woodstox now handles gracefully namespaces that are declared using
-    default attribute declarations (as well as basic namespace declaration
-    entries in DTDs -- while unnecessary, some legacy DTDs use these).
-
-  Improvements:
-
-  * Added UTF-32 reader since JDK does not come with one.
-
-2.9.0 [22-Jan-2006]
-
-  Problems fixed:
-
-  * [WSTX-18]: XMLOutputWriter should default to UTF-8 if no encoding
-    explictly passed (when constructing output writer).
-  * [WSTX-37]: Need to be return auto-detected character encoding for
-    input streams; not just encoding application passed in.
-  * [WSTX-39] (partial fix): If namespace declarations were declared in
-    DTD (to support legacy documents or processors), Woodstox would not
-    recognized their special status, and could add default values for
-    those as if they were regular attributes. Now such declarations will
-    basically be ignored, which usually should work acceptably.
-  * Fixed a problem with bootstrapping UTF-16 streams; if "UTF-16" explicitly
-    specified as encoding, underlying JDK reader did not always use correct
-    endianness.
-  * Root element name is now only check in validating mode (not if only
-    DTD aware but not validating), since this really is validation, not
-    just part of DTD awareness.
-
-  Improvements:
-
-  * [WSTX-30] Non-validating-but-DTD-aware mode now works better: attribute
-    type information as well as attribute default values will now work, so
-    validation only needs to be enabled for actual validation features.
-
-2.8.2 [31-Dec-2005]
-
-  Problems fixed:
-
-  * Changed behaviour of BasicStreamReader.isCharacters() to be identical
-    to the ref. impl, ie. only to return true if the current event is
-    CHARACTERS (but not if it's CDATA and SPACE).
-  * [WSTX-14]: Added property XMLInputFactory2.P_AUTO_CLOSE_INPUT that can
-    enable automatic closing for all input types (default is false).
-    Also, added explict XMLStreamReader2.closeCompletely() method to force
-    closing of all associated streams, indepent of auto-closing property.
-  * [WSTX-17]: Fixed the problem with new stream reader methods, so that
-    the underlying input stream does get properly closed independent
-    of value of XMLInputFactory2.P_AUTO_CLOSE_INPUT, if the source is
-    URL, File or javax.xml.transform.Source.
-  * Fixes that will go to 2.0.5 (WSTX-28, WSTX-29)
-
-  Improvements:
-
-  * Related to fixing [WSTX-29] (NamespaceContext problems with StartElement
-    event), added a simple reuse schema for NamespaceContext instances. For
-    typical namespace using documents, this can improve Event API parsing
-    performance by up to 15% based on throughput measurements.
-  * [WSTX-15] Added XMLStreamReader2.getNonTransientNamespaceContext()
-    method.
-
-2.8.1 [20-Dec-2005]
-
-  Problems fixed:
-
-  * Various fixes from 2.0.4 release.
-
-  Improvements:
-
-  * Improved performance of handling of elements that do not have any
-    attributes: results in up to 5% speed increase for documents that
-    are element-heavy but attribute poor.
-
-  New functionality:
-
-  * Full validator support on writer side: the existing Woodstox DTD
-    validator (constructed via XMLSchemaFactory() or gotten from
-    a XMLStreamReader2 instance) can be plugged in to validate output.
-  * Added initial code coverage testing support using Emma (right now,
-    test cover about 50% of Woodstox code).
-
-  Refactoring:
-
-  * DTD validation completely rewritten, to use the next StAX2 validation
-    interfaces; some minor problems fixed.
-
-2.8 [11-Oct-2005]
-
-  New functionality:
-
-  * [WSTX-6] Added new alternate input parsing modes ("fragment mode",
-    "multi-document mode"; existing one calle "single-document mode"):
-    these allow for parsing document fragments (which miss containing
-    root/parent elements), and parsing streams that have more than one
-    complete document.
-
-  Improvements:
-
-  * Configuration:
-     * [WSTX-13] Added setProperty() in reader/writer instances, to allow for
-       overriding some settings on per-instance basis (not just on per-factory
-       basis).
-  * Stream/Event readers:
-     * [WSTX-11] Event readers are now always constructed lazy parsing disabled
-       (no performance gain from lazy parsing; more accurate error reporting
-       when it is disabled), and with min. segment size set to maximum (ie.
-       text/cdata segments are never split).
-  * Stream/Event writers:
-     * [WSTX-16] Added P_PROBLEM_REPORT property for writers, to allow for
-       notification mechanisms for non-fatal (or potential) problems using
-       standard mechanism.
-  * Entity handling:
-     * [WSTX-4] It is possible to define a specific handler for undeclared
-       entities; this handler will get called in entity-replacing mode, and
-       if it returns a valid expansion, no exception will be thrown.
-     * [WSTX-5] Undeclared entities (missing DTD, or dtd-handling disabled) do
-       not throw an exception in the non-entity-replacing mode any more.
-       Calling app can figure out whether the entity reference refers to
-       a declared entity by checking if expansion value is null (via
-       Cursor API), or if the entity reference does not refer to a
-       declaration (via Event API, a null declarationn object returned).
-  * Validation:
-     * [WSTX-12] It is now ok for a document to not have a DOCTYPE declaration
-       in validating mode: if so, validation will essentially be skipped, and
-       a warning is sent via XMLReport interface (if any). Note that this does
-       not apply to empty DOCTYPE declaration (empty internal subset), just to
-       one completely missing.
-
-2.5 - 2.7 [19-Jul-2005 - 29-Sep-2005]
-
-  New functionality:
-
-  * Adding support for pluggable validation support; this is pre-requisite
-    for output side validation, as well dtd-based indentation.
-
-  Improvements:
-
-  * Now input stream factory tries to use Woodstox-specific (fast) readers
-    even when specific encoding is passed. This should improve UTF-8 document
-    handling when encoding is explicitly passed along with input stream.
-  * Improved handling of text parsing in IS_COALESCING mode: now parser
-    is more likely to be able to use the shared buffer, leading to
-    up to 10 - 15% faster parsing in this mode (depending on usage patterns
-    and length of segments), without change to non-coalescing mode.
-
-2.0.1 - 2.0.4: [10-Aug-2005 - 28-Dec-2005]
-
-  Problems fixed:
-
-  * Fixed a nasty encoding bug in (configurable) attribute writers: trying
-    to write entities failed with a NullPointerException
-    [reported by Ulrich C and Peter T]
-  * Fixed a problem with DTDs that had enumerated value "-" (or "--"), was
-    throwing an exception
-    [reported by Ulrich C]
-  * [WSTX-3] output of DTD event was missing a double quote.
-    [reported by Linus E]
-  * Fixed a problem with single-byte (ascii, ISO-Latin1) encoding writer;
-    char-array methods could omit characters after encoded entities.
-  * [WSTX-7] SimpleNsStreamWriter#writeStartElement(StartElement)
-    was stripping out attribute namespaces.
-    [reported by Linus E]
-  * [WSTX-8] nextTag() followed by peek() at the start of a document
-    won't work. Also, fixed associated NPEs in WstxEventReader class.
-    [reported by Patrick C]
-  * [WSTX-9] sr.getTextCharacters(int srcStart, ...) fixed; had a bug
-    that caused ArrayIndexOutOfBoundsException, and null chars in result
-    [reported by Dan D, Erik S and Kevin V]
-  * [WSTX-10] Handling of 3-byte UTF-8 Byte Order Marker did not work
-    properly when XMLStreamReader was constructed for a Reader
-    [reported by Heinz D]
-  * [WSTX-19]: Unnecessary default namespace declarations were written
-    by stream writers in repairing mode.
-    [reported by Heinz D]
-  * Fixed DTD/attribute value normalization problem with NMTOKEN; was not
-    catching a problem if the first non-space character of the value
-    was not valid a valid NMTOKEN character.
-  * [WSTX-24]: Predefined namespace with prefix 'xml' was not handled
-    properly for elements, only for attributes.
-  * [WSTX-27]: Attribute #FIXED default value was not added (just checked
-    for explicit attributes), now it is used properly.
-
-(changes for versions 1.0.x and before not included)
-
+(changes for versions prior to 3.0.0 are not included)

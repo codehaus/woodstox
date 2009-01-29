@@ -47,8 +47,13 @@
 
     <!-- And finally version dependency spec between Woodstox core
          and Stax API package.
+
+         29-Jan-2009, TSa: ranges won't work without additional
+            repository metadata. And that can only be properly
+            supported by a real Maven build, in woodstox 5. So,
+            for now we'll hard-code exact version dep.
       -->
-    <property name="REQ_STAX2_VERSION" value="[3.0.1,3.1.0)" />
+    <property name="REQ_STAX2_VERSION" value="${STAX2_VERSION}" />
 
     <!-- jars needed for compilation -->
     <path id="classpath.compile">

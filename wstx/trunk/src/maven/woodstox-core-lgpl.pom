@@ -22,7 +22,7 @@ implements Stax (JSR-173) and SAX2 APIs</description>
     <dependency>
       <groupId>stax</groupId>
       <artifactId>stax-api</artifactId>
-      <version>[1.0.1,)</version>
+      <version>1.0.1</version>
     </dependency>
     <!-- Stax2 API (and matching RI), too, is required, not included,
          We need version 3.x of it
