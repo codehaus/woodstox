@@ -1,5 +1,3 @@
-package test;
-
 import java.io.*;
 
 import javax.xml.stream.*;
@@ -12,12 +10,9 @@ import com.ctc.wstx.api.WstxInputProperties;
  * Simple non-automated unit test for running validating stream reader on
  * given document.
  */
-public class TestValidation
-    extends TestStreamReader
+public class RunValidation
+    extends RunStreamReader
 {
-    private TestValidation() {
-    }
-
     protected XMLInputFactory2 getFactory()
     {
         XMLInputFactory2 f = super.getFactory();
@@ -41,11 +36,11 @@ public class TestValidation
         throws Exception
     {
         if (args.length != 1) {
-            System.err.println("Usage: java ... "+TestValidation.class+" [file]");
+            System.err.println("Usage: java ... "+RunValidation.class+" [file]");
             System.exit(1);
         }
         try {
-            int total = new TestValidation().test(new File(args[0]));
+            int total = new RunValidation().test(new File(args[0]));
             System.out.println("Total: "+total);
         } catch (XMLStreamException sex) {
             System.err.println("XML Error: "+sex);

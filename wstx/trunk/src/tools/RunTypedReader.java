@@ -1,5 +1,3 @@
-package test;
-
 import java.io.*;
 
 import javax.xml.stream.*;
@@ -12,7 +10,7 @@ import com.ctc.wstx.stax.WstxInputFactory;
  * Simple helper test class for checking how stream reader handles xml
  * documents.
  */
-public class TestTypedReader
+public class RunTypedReader
     implements XMLStreamConstants
 {
     public void test()
@@ -68,6 +66,6 @@ public class TestTypedReader
     public static void main(String[] args)
         throws Exception
     {
-        new TestTypedReader().test();
+        new RunTypedReader().test();
     }
 }

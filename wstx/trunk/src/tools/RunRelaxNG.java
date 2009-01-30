@@ -1,5 +1,3 @@
-package test;
-
 import java.io.*;
 import java.util.List;
 
@@ -9,18 +7,18 @@ import org.codehaus.stax2.*;
 import org.codehaus.stax2.validation.*;
 
 /**
- * Simple non-automated testing class used for checking that W3C Schema
+ * Simple non-automated testing class used for checking that Relax NG
  * validation features work ok.
  */
-public class TestW3CSchema
+public class RunRelaxNG
     implements XMLStreamConstants
 {
-    private TestW3CSchema() { }
+    private RunRelaxNG() { }
 
     protected int test(File schemaFile, File xmlFile)
         throws Exception
     {
-        XMLValidationSchemaFactory schF = XMLValidationSchemaFactory.newInstance(XMLValidationSchema.SCHEMA_ID_W3C_SCHEMA);
+        XMLValidationSchemaFactory schF = XMLValidationSchemaFactory.newInstance(XMLValidationSchema.SCHEMA_ID_RELAXNG);
         XMLValidationSchema schema = schF.createSchema(schemaFile);
 
         System.err.println("Schema succesfully loaded, instance: "+schema);
@@ -31,6 +29,10 @@ public class TestW3CSchema
         //f.setProperty(XMLInputFactory.IS_COALESCING, Boolean.FALSE);
         f.setProperty(XMLInputFactory.IS_COALESCING, Boolean.TRUE);
         f.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.TRUE);
+        //f.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.FALSE);
+
+        // Can DTD validate... or not:
+        //f.setProperty(XMLInputFactory.IS_VALIDATING, Boolean.TRUE);
 
         f.setProperty(XMLInputFactory.REPORTER, new TestReporter());
 
@@ -106,10 +108,9 @@ public class TestW3CSchema
                 System.out.print(" Name: '"+streamReader.getName()+"' (prefix <"
                                    +streamReader.getPrefix()+">)");
             }
+
             System.out.println();
         }
-        streamReader.close();
-
         return total;
     }
 
@@ -117,11 +118,11 @@ public class TestW3CSchema
         throws Exception
     {
         if (args.length != 2) {
-            System.err.println("Usage: java ... "+TestW3CSchema.class+" [schema] [xmlfile]");
+            System.err.println("Usage: java ... "+RunRelaxNG.class+" [schema] [xmlfile]");
             System.exit(1);
         }
         try {
-            int total = new TestW3CSchema().test(new File(args[0]), new File(args[1]));
+            int total = new RunRelaxNG().test(new File(args[0]), new File(args[1]));
             System.out.println("Total: "+total);
         } catch (Throwable t) {
             System.err.println("Error: "+t);

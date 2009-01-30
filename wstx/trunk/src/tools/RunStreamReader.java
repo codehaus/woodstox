@@ -1,5 +1,3 @@
-package test;
-
 import java.io.*;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
@@ -17,11 +15,10 @@ import com.ctc.wstx.api.WstxInputProperties;
  * Simple helper test class for checking how stream reader handles xml
  * documents.
  */
-public class TestStreamReader
+public class RunStreamReader
     implements XMLStreamConstants
 {
-    protected TestStreamReader() {
-    }
+    protected RunStreamReader() { }
 
     protected XMLInputFactory2 getFactory()
     {
@@ -327,12 +324,12 @@ public class TestStreamReader
         throws Exception
     {
         if (args.length != 1) {
-            System.err.println("Usage: java ... "+TestStreamReader.class+" [file]");
+            System.err.println("Usage: java ... "+RunStreamReader.class+" [file]");
             System.exit(1);
         }
 
         try {
-            int total = new TestStreamReader().test(new File(args[0]));
+            int total = new RunStreamReader().test(new File(args[0]));
             System.out.println();
             System.out.println("Total: "+total);
         } catch (Throwable t) {

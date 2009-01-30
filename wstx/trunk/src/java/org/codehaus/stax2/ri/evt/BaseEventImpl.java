@@ -160,7 +160,7 @@ public abstract class BaseEventImpl
         return (s2 != null) && s1.equals(s2);
     }
 
-    protected static boolean iteratedEquals(Iterator it1, Iterator it2)
+    protected static boolean iteratedEquals(Iterator<String> it1, Iterator<String> it2)
     {
         if (it1 == null || it2 == null) { // if one is null, both have to be
             return (it1 == it2);
@@ -180,7 +180,7 @@ public abstract class BaseEventImpl
         return true;
     }
 
-    protected static int addHash(Iterator it, int baseHash)
+    protected static int addHash(Iterator<String> it, int baseHash)
     {
         int hash = baseHash;
         if (it != null) {

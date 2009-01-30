@@ -1,14 +1,12 @@
-package test;
-
 import java.io.*;
 
 import javax.xml.stream.*;
 
-public class TestEventCopier
+public class RunEventCopier
 {
     final XMLInputFactory mFactory;
 
-    private TestEventCopier()
+    private RunEventCopier()
     {
         super();
         System.setProperty("javax.xml.stream.XMLInputFactory",
@@ -51,6 +49,6 @@ public class TestEventCopier
 
     public static void main(String[] args) throws Exception
     {
-        new TestEventCopier().test(args);
+        new RunEventCopier().test(args);
     }
 }

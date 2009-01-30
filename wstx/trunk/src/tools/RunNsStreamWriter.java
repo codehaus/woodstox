@@ -1,5 +1,3 @@
-package test;
-
 import java.io.*;
 
 import javax.xml.stream.*;
@@ -14,11 +12,8 @@ import com.ctc.wstx.api.WstxOutputProperties;
  * Simple non-automated unit test for outputting namespace-aware XML
  * documents.
  */
-public class TestNsStreamWriter
+public class RunNsStreamWriter
 {
-    private TestNsStreamWriter() {
-    }
-
     protected XMLOutputFactory getFactory()
     {
         System.setProperty("javax.xml.stream.XMLOutputFactory",
@@ -111,7 +106,7 @@ public class TestNsStreamWriter
         throws Throwable
     {
         try {
-            new TestNsStreamWriter().test();
+            new RunNsStreamWriter().test();
         } catch (XMLStreamException ex) {
             if (ex.getCause() != null) {
                 throw ex.getCause();

@@ -1,5 +1,3 @@
-package test;
-
 import java.io.*;
 
 import javax.xml.namespace.QName;
@@ -12,7 +10,7 @@ import org.codehaus.stax2.ri.Stax2WriterAdapter;
  * Simple test class used for manual verification of Stax2WriterAdapter
  * features.
  */
-public class TestWriterAdapter
+public class RunWriterAdapter
 {
     // Need a dummy base class to access protected constructor for testing
     final static class MyAdapter
@@ -24,10 +22,8 @@ public class TestWriterAdapter
         }
     }
 
-    TestWriterAdapter() { }
-
     void test()
-	throws XMLStreamException
+	    throws XMLStreamException
     {
 	XMLOutputFactory f = new com.ctc.wstx.stax.WstxOutputFactory();
 	f.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES, Boolean.valueOf(true));
@@ -49,7 +45,7 @@ public class TestWriterAdapter
     public static void main(String[] args)
 	throws XMLStreamException
     {
-	new TestWriterAdapter().test();
+	new RunWriterAdapter().test();
     }
 }
 

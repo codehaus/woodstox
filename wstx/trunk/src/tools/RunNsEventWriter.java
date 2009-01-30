@@ -1,5 +1,3 @@
-package test;
-
 import java.io.*;
 import java.util.*;
 
@@ -15,10 +13,9 @@ import com.ctc.wstx.stax.WstxEventFactory;
  * Simple non-automated unit test for outputting namespace-aware XML
  * documents.
  */
-public class TestNsEventWriter
+public class RunNsEventWriter
 {
-    private TestNsEventWriter() {
-    }
+    private RunNsEventWriter() { }
 
     protected XMLOutputFactory getFactory()
     {
@@ -93,6 +90,6 @@ public class TestNsEventWriter
     public static void main(String[] args)
         throws Exception
     {
-        new TestNsEventWriter().test();
+        new RunNsEventWriter().test();
     }
 }

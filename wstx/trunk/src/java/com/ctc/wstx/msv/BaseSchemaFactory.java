@@ -110,7 +110,8 @@ public abstract class BaseSchemaFactory
         }
     }
 
-    public XMLValidationSchema createSchema(File f)
+    @SuppressWarnings("deprecation")
+	public XMLValidationSchema createSchema(File f)
         throws XMLStreamException
     {
         try {

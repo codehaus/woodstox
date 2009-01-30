@@ -1,5 +1,3 @@
-package test;
-
 import java.io.*;
 
 import javax.xml.stream.*;
@@ -23,7 +21,7 @@ import com.ctc.wstx.stax.WstxInputFactory;
  * be in canonical format to be properly recognized (non-first values
  * can be non-canonical).
  */
-public class TestTypedSpeed
+public class RunTypedSpeed
     implements XMLStreamConstants
 {
     /**
@@ -60,7 +58,7 @@ public class TestTypedSpeed
 
     int mType;
 
-    private TestTypedSpeed(byte[] data)
+    private RunTypedSpeed(byte[] data)
     {
         mInputFactory = new WstxInputFactory();
         mInputFactory.setProperty(XMLInputFactory.IS_COALESCING, Boolean.FALSE);
@@ -359,6 +357,6 @@ public class TestTypedSpeed
         }
         byte[] data = readData(new File(args[0]));
         System.out.println(" -> "+data.length+" bytes read.");
-        new TestTypedSpeed(data).test();
+        new RunTypedSpeed(data).test();
     }
 }

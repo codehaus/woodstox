@@ -1,66 +1,40 @@
-package test;
-
 import java.io.*;
 import java.util.List;
 
 import javax.xml.stream.*;
 
-import org.codehaus.stax2.XMLInputFactory2;
-
-import com.ctc.wstx.api.WstxInputProperties;
+import org.codehaus.stax2.*;
+import org.codehaus.stax2.validation.*;
 
 /**
- * Simple non-automated testing class used for checking that validating
- * stream readers work ok.
+ * Simple non-automated testing class used for checking that W3C Schema
+ * validation features work ok.
  */
-public class TestValidatingReader
+public class RunW3CSchema
     implements XMLStreamConstants
 {
-    private TestValidatingReader() {
-    }
-
-    protected XMLInputFactory getFactory()
-    {
-        System.setProperty("javax.xml.stream.XMLInputFactory",
-                           "com.ctc.wstx.stax.WstxInputFactory");
-        return XMLInputFactory.newInstance();
-    }
-
-    protected int test(File file)
+    protected int test(File schemaFile, File xmlFile)
         throws Exception
     {
-        XMLInputFactory f = getFactory();
+        XMLValidationSchemaFactory schF = XMLValidationSchemaFactory.newInstance(XMLValidationSchema.SCHEMA_ID_W3C_SCHEMA);
+        XMLValidationSchema schema = schF.createSchema(schemaFile);
+
+        System.err.println("Schema succesfully loaded, instance: "+schema);
+
+        XMLInputFactory2 f = (XMLInputFactory2) XMLInputFactory.newInstance();
         System.out.println("Factory instance: "+f.getClass());
 
         //f.setProperty(XMLInputFactory.IS_COALESCING, Boolean.FALSE);
         f.setProperty(XMLInputFactory.IS_COALESCING, Boolean.TRUE);
         f.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.TRUE);
-        //f.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.FALSE);
-        f.setProperty(XMLInputFactory.IS_VALIDATING, Boolean.TRUE);
+
         f.setProperty(XMLInputFactory.REPORTER, new TestReporter());
 
-        f.setProperty(XMLInputFactory.RESOLVER, new TestResolver1());
+        InputStream in = new FileInputStream(xmlFile);
+        XMLStreamReader2 streamReader = (XMLStreamReader2) f.createXMLStreamReader(xmlFile.toURL().toString(), in);
 
-        if (f.isPropertySupported(XMLInputFactory2.P_REPORT_PROLOG_WHITESPACE)) {
-            f.setProperty(XMLInputFactory2.P_REPORT_PROLOG_WHITESPACE, Boolean.FALSE);
-        }
-        if (f.isPropertySupported(XMLInputFactory.IS_REPLACING_ENTITY_REFERENCES)) {
-            f.setProperty(XMLInputFactory.IS_REPLACING_ENTITY_REFERENCES,
-                          //Boolean.FALSE
-                          Boolean.TRUE
-                          );
-        }
+        streamReader.validateAgainst(schema);
 
-        if (f.isPropertySupported(WstxInputProperties.P_MIN_TEXT_SEGMENT)) {
-            f.setProperty(WstxInputProperties.P_MIN_TEXT_SEGMENT,
-                          new Integer(16));
-        }
-
-        System.out.println("Coalesce: "+f.getProperty(XMLInputFactory.IS_COALESCING));
-        System.out.println("Namespace-aware: "+f.getProperty(XMLInputFactory.IS_NAMESPACE_AWARE));
-
-        Reader r = new FileReader(file);
-        XMLStreamReader streamReader = f.createXMLStreamReader(file.toURL().toString(), r);
         int total = 0;
         while (streamReader.hasNext()) {
             int type = streamReader.next();
@@ -128,31 +102,26 @@ public class TestValidatingReader
                 System.out.print(" Name: '"+streamReader.getName()+"' (prefix <"
                                    +streamReader.getPrefix()+">)");
             }
-
             System.out.println();
         }
+        streamReader.close();
+
         return total;
     }
 
     public static void main(String[] args)
         throws Exception
     {
-        if (args.length != 1) {
-            System.err.println("Usage: java ... "+TestStreamReader.class+" [file]");
+        if (args.length != 2) {
+            System.err.println("Usage: java ... "+RunW3CSchema.class+" [schema] [xmlfile]");
             System.exit(1);
         }
         try {
-          int total = new TestValidatingReader().test(new File(args[0]));
-          System.out.println("Total: "+total);
+            int total = new RunW3CSchema().test(new File(args[0]), new File(args[1]));
+            System.out.println("Total: "+total);
         } catch (Throwable t) {
-          System.err.println("Error: "+t);
-          t.printStackTrace();
+            System.err.println("Error: "+t);
+            t.printStackTrace();
         }
     }
-
-    /*
-    /////////////////////////////////////////////////////
-    // Helper classes
-    /////////////////////////////////////////////////////
-     */
 }

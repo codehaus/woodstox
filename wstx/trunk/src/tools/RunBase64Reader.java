@@ -1,5 +1,3 @@
-package test;
-
 import java.io.*;
 
 import javax.xml.stream.*;
@@ -10,7 +8,7 @@ import org.codehaus.stax2.typed.*;
  * Simple helper test class for checking how stream reader handles xml
  * documents.
  */
-public class TestBase64Reader
+public class RunBase64Reader
     implements XMLStreamConstants
 {
     public void test() throws XMLStreamException
@@ -78,7 +76,7 @@ public class TestBase64Reader
     public static void main(String[] args)
         throws Exception
     {
-        new TestBase64Reader().test();
+        new RunBase64Reader().test();
     }
 
     // Need a sub-class, as base class constructor is not public

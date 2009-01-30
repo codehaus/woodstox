@@ -1,5 +1,3 @@
-package test;
-
 import java.io.*;
 
 import javax.xml.stream.*;
@@ -9,7 +7,7 @@ import org.codehaus.stax2.typed.*;
 /**
  * Simple manually run helper class for verifying typed output.
  */
-public class TestTypedWriter
+public class RunTypedWriter
 {
     protected XMLOutputFactory getFactory()
     {
@@ -63,6 +61,6 @@ public class TestTypedWriter
     public static void main(String[] args)
         throws Exception
     {
-        new TestTypedWriter().test();
+        new RunTypedWriter().test();
     }
 }

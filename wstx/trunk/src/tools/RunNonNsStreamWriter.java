@@ -1,4 +1,3 @@
-package test;
 
 import java.io.*;
 
@@ -16,10 +15,9 @@ import com.ctc.wstx.api.WstxOutputProperties;
  * Simple non-automated unit test for outputting non-namespace-aware XML
  * documents.
  */
-public class TestNonNsStreamWriter
+public class RunNonNsStreamWriter
 {
-    private TestNonNsStreamWriter() {
-    }
+    private RunNonNsStreamWriter() { }
 
     protected XMLOutputFactory getFactory()
     {
@@ -97,6 +95,6 @@ public class TestNonNsStreamWriter
     public static void main(String[] args)
         throws Exception
     {
-        new TestNonNsStreamWriter().test();
+        new RunNonNsStreamWriter().test();
     }
 }

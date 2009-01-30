@@ -1,5 +1,3 @@
-package test;
-
 import java.io.*;
 import java.util.zip.GZIPInputStream;
 
@@ -12,12 +10,12 @@ import org.codehaus.stax2.validation.*;
  * Simple test driver for testing pass-through copying using new StAX2
  * methods.
  */
-public class TestStreamCopier
+public class RunStreamCopier
 {
     final static boolean ENABLE_DTD_VALIDATION = false;
     //final static boolean ENABLE_DTD_VALIDATION = true;
 
-    protected TestStreamCopier() { }
+    protected RunStreamCopier() { }
 
     protected XMLInputFactory2 getFactory()
     {
@@ -150,12 +148,12 @@ public class TestStreamCopier
         throws Exception
     {
         if (args.length != 1) {
-            System.err.println("Usage: java ... "+TestStreamCopier.class+" [file]");
+            System.err.println("Usage: java ... "+RunStreamCopier.class+" [file]");
             System.exit(1);
         }
 
         try {
-            new TestStreamCopier().test(args[0], System.out);
+            new RunStreamCopier().test(args[0], System.out);
             System.out.flush();
         } catch (Throwable t) {
           System.err.println("Error: "+t);

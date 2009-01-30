@@ -1,5 +1,3 @@
-package test;
-
 import java.io.*;
 
 import javax.xml.parsers.SAXParser;
@@ -15,10 +13,9 @@ import com.ctc.wstx.sax.*;
  * Simple helper test class for checking how the parser works when
  * used via SAX interface.
  */
-public class TestSaxReader
+public class RunSaxReader
 {
-    protected TestSaxReader() {
-    }
+    protected RunSaxReader() { }
 
     protected void test(File file)
         throws Exception
@@ -219,12 +216,12 @@ public class TestSaxReader
         throws Exception
     {
         if (args.length != 1) {
-            System.err.println("Usage: java ... "+TestSaxReader.class+" [file]");
+            System.err.println("Usage: java ... "+RunSaxReader.class+" [file]");
             System.exit(1);
         }
 
         try {
-            new TestSaxReader().test(new File(args[0]));
+            new RunSaxReader().test(new File(args[0]));
             System.out.println("\nDone!");
         } catch (Throwable t) {
             System.err.println("Error: "+t);

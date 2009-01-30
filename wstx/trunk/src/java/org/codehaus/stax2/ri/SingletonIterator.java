@@ -6,14 +6,14 @@ import java.util.Iterator;
  * Simple read-only iterator that iterators over one specific item, passed
  * in as constructor argument.
  */
-public class SingletonIterator
-    implements Iterator
+public class SingletonIterator<T>
+    implements Iterator<T>
 {
-    private final Object mValue;
+    private final T mValue;
     
     private boolean mDone = false;
     
-    public SingletonIterator(Object value) {
+    public SingletonIterator(T value) {
         mValue = value;
     }
     
@@ -21,7 +21,7 @@ public class SingletonIterator
         return !mDone;
     }
     
-    public Object next() {
+    public T next() {
         if (mDone) {
             throw new java.util.NoSuchElementException();
         }

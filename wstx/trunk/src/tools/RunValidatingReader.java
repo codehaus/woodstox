@@ -1,48 +1,61 @@
-package test;
-
 import java.io.*;
 import java.util.List;
 
 import javax.xml.stream.*;
 
-import org.codehaus.stax2.*;
-import org.codehaus.stax2.validation.*;
+import org.codehaus.stax2.XMLInputFactory2;
+
+import com.ctc.wstx.api.WstxInputProperties;
 
 /**
- * Simple non-automated testing class used for checking that Relax NG
- * validation features work ok.
+ * Simple non-automated testing class used for checking that validating
+ * stream readers work ok.
  */
-public class TestRelaxNG
+public class RunValidatingReader
     implements XMLStreamConstants
 {
-    private TestRelaxNG() { }
+    protected XMLInputFactory getFactory()
+    {
+        System.setProperty("javax.xml.stream.XMLInputFactory",
+                           "com.ctc.wstx.stax.WstxInputFactory");
+        return XMLInputFactory.newInstance();
+    }
 
-    protected int test(File schemaFile, File xmlFile)
+    protected int test(File file)
         throws Exception
     {
-        XMLValidationSchemaFactory schF = XMLValidationSchemaFactory.newInstance(XMLValidationSchema.SCHEMA_ID_RELAXNG);
-        XMLValidationSchema schema = schF.createSchema(schemaFile);
-
-        System.err.println("Schema succesfully loaded, instance: "+schema);
-
-        XMLInputFactory2 f = (XMLInputFactory2) XMLInputFactory.newInstance();
+        XMLInputFactory f = getFactory();
         System.out.println("Factory instance: "+f.getClass());
 
         //f.setProperty(XMLInputFactory.IS_COALESCING, Boolean.FALSE);
         f.setProperty(XMLInputFactory.IS_COALESCING, Boolean.TRUE);
         f.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.TRUE);
         //f.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.FALSE);
-
-        // Can DTD validate... or not:
-        //f.setProperty(XMLInputFactory.IS_VALIDATING, Boolean.TRUE);
-
+        f.setProperty(XMLInputFactory.IS_VALIDATING, Boolean.TRUE);
         f.setProperty(XMLInputFactory.REPORTER, new TestReporter());
 
-        InputStream in = new FileInputStream(xmlFile);
-        XMLStreamReader2 streamReader = (XMLStreamReader2) f.createXMLStreamReader(xmlFile.toURL().toString(), in);
+        f.setProperty(XMLInputFactory.RESOLVER, new TestResolver1());
 
-        streamReader.validateAgainst(schema);
+        if (f.isPropertySupported(XMLInputFactory2.P_REPORT_PROLOG_WHITESPACE)) {
+            f.setProperty(XMLInputFactory2.P_REPORT_PROLOG_WHITESPACE, Boolean.FALSE);
+        }
+        if (f.isPropertySupported(XMLInputFactory.IS_REPLACING_ENTITY_REFERENCES)) {
+            f.setProperty(XMLInputFactory.IS_REPLACING_ENTITY_REFERENCES,
+                          //Boolean.FALSE
+                          Boolean.TRUE
+                          );
+        }
 
+        if (f.isPropertySupported(WstxInputProperties.P_MIN_TEXT_SEGMENT)) {
+            f.setProperty(WstxInputProperties.P_MIN_TEXT_SEGMENT,
+                          new Integer(16));
+        }
+
+        System.out.println("Coalesce: "+f.getProperty(XMLInputFactory.IS_COALESCING));
+        System.out.println("Namespace-aware: "+f.getProperty(XMLInputFactory.IS_NAMESPACE_AWARE));
+
+        Reader r = new FileReader(file);
+        XMLStreamReader streamReader = f.createXMLStreamReader(file.toURL().toString(), r);
         int total = 0;
         while (streamReader.hasNext()) {
             int type = streamReader.next();
@@ -119,16 +132,22 @@ public class TestRelaxNG
     public static void main(String[] args)
         throws Exception
     {
-        if (args.length != 2) {
-            System.err.println("Usage: java ... "+TestRelaxNG.class+" [schema] [xmlfile]");
+        if (args.length != 1) {
+            System.err.println("Usage: java ... "+RunValidatingReader.class+" [file]");
             System.exit(1);
         }
         try {
-            int total = new TestRelaxNG().test(new File(args[0]), new File(args[1]));
-            System.out.println("Total: "+total);
+          int total = new RunValidatingReader().test(new File(args[0]));
+          System.out.println("Total: "+total);
         } catch (Throwable t) {
-            System.err.println("Error: "+t);
-            t.printStackTrace();
+          System.err.println("Error: "+t);
+          t.printStackTrace();
         }
     }
+
+    /*
+    /////////////////////////////////////////////////////
+    // Helper classes
+    /////////////////////////////////////////////////////
+     */
 }

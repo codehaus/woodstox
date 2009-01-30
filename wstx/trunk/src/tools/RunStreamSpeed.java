@@ -1,5 +1,3 @@
-package test;
-
 import java.io.*;
 import java.util.zip.GZIPInputStream;
 
@@ -17,18 +15,17 @@ import org.codehaus.stax2.XMLStreamReader2;
  * Note that this can be used to test both Reader and InputStream-based
  * stream readers.
  */
-public class TestStreamSpeed
+public class RunStreamSpeed
     implements XMLStreamConstants
 {
     final int COUNT = 150;
 
     final XMLInputFactory mInputFactory;
 
-    private TestStreamSpeed() {
-        System.setProperty("javax.xml.stream.XMLInputFactory",
-                           "com.ctc.wstx.stax.WstxInputFactory");
+    private RunStreamSpeed() {                   
+    	
 
-        XMLInputFactory f = XMLInputFactory.newInstance();
+        XMLInputFactory f = new com.ctc.wstx.stax.WstxInputFactory();
         System.out.println("Factory instance: "+f.getClass());
 
         f.setProperty(XMLInputFactory.IS_COALESCING, Boolean.FALSE);
@@ -168,12 +165,12 @@ public class TestStreamSpeed
         throws Exception
     {
         if (args.length != 1) {
-            System.err.println("Usage: java ... "+TestStreamSpeed.class+" [file]");
+            System.err.println("Usage: java ... "+RunStreamSpeed.class+" [file]");
             System.exit(1);
         }
 
         try {
-            int total = new TestStreamSpeed().test(new File(args[0]));
+            int total = new RunStreamSpeed().test(new File(args[0]));
             System.out.println("Total: "+total);
         } catch (Throwable t) {
           System.err.println("Error: "+t);
