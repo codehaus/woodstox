@@ -426,8 +426,8 @@
       </copy>
 
       <!-- Then Stax2 API -->
-      <mkdir dir="${dir.dist.maven2}/stax2-api/${IMPL_VERSION}"/>
-      <copy todir="${dir.dist.maven2}/stax2-api/${IMPL_VERSION}">
+      <mkdir dir="${dir.dist.maven2}/stax2-api/${STAX2_VERSION}"/>
+      <copy todir="${dir.dist.maven2}/stax2-api/${STAX2_VERSION}">
         <fileset dir="${dir.dist}" includes="stax2-api-*" />
       </copy>
 

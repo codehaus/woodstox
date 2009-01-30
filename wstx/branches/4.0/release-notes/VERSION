@@ -11,7 +11,7 @@ Description:
 
   * A bug in Stax2 RI CharArrayBase64Decoder was skipping part of
     input under certain conditions; did not occur in stax2 test
-    suite, but did happen for another Stax2 implementation.
+    suite, but did happen with another Stax2 implementation.
   * There were many problems with Maven dependencies; specifically it looks
     like support for version ranges is hard to make work with somewhat
     manual release process in use now. Thus changed dependencies to use
