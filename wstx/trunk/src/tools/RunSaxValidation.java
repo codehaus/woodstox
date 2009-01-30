@@ -9,11 +9,11 @@ import org.xml.sax.*;
  * Simple test class used to check how other validation xml parsers (like
  * Xerces) deal with dtd (etc) validation issues
  */
-public class TestSaxValidation
+public class RunSaxValidation
 {
-    private TestSaxValidation() { }
+    private RunSaxValidation() { }
 
-    protected int test(File f)
+    protected int execute(File f)
         throws Exception
     {
         /*
@@ -37,11 +37,11 @@ public class TestSaxValidation
         throws Exception
     {
         if (args.length != 1) {
-            System.err.println("Usage: java ... "+TestSaxValidation.class+" [file]");
+            System.err.println("Usage: java ... "+RunSaxValidation.class+" [file]");
             System.exit(1);
         }
         try {
-          int total = new TestSaxValidation().test(new File(args[0]));
+          int total = new RunSaxValidation().execute(new File(args[0]));
           System.out.println("Total: "+total);
         } catch (Throwable t) {
           System.err.println("Error: "+t);

@@ -5,6 +5,7 @@
     <property name="dir.src.java" location="${dir.src}/java" />
     <property name="dir.src.samples" location="${dir.src}/samples" />
     <property name="dir.src.test" location="${dir.src}/test" />
+    <property name="dir.src.tool" location="${dir.src}/tools" />
     <property name="dir.resource" location="${dir.src}/resources" />
     <property name="dir.releasenotes" location="${basedir}/release-notes" />
 
@@ -16,6 +17,7 @@
     <property name="dir.build.classes.stax2" location="${dir.build.classes}/stax2" />
     <property name="dir.build.classes.woodstox" location="${dir.build.classes}/woodstox" />
     <property name="dir.build.classes.samples" location="${dir.build.classes}/samples" />
+    <property name="dir.build.classes.tool" location="${dir.build.classes}/tool" />
 
     <!-- Documentation -->
     <property name="dir.doc" location="${basedir}/doc" />
@@ -76,6 +78,7 @@
     <patternset id="woodstox-dist-src-files">
           <include name="src/java/com/**/*.java" />
           <include name="src/samples/**/*.java" />
+          <include name="src/tool/**/*.java" />
           <include name="src/resources/*" />
           <include name="build.xml" />
           <include name="project.xml" />
@@ -136,6 +139,7 @@
         <mkdir dir="${dir.build.classes.stax2}" />
         <mkdir dir="${dir.build.classes.woodstox}" />
         <mkdir dir="${dir.build.classes.samples}" />
+        <mkdir dir="${dir.build.classes.tool}" />
 
         <!-- make docs directories -->
         <mkdir dir="${dir.doc}" />
@@ -190,7 +194,7 @@
         <delete file="cobertura.ser" />
     </target>
 
-    <target name="compile" depends="compile.woodstox, compile.samples, compile.test" />
+    <target name="compile" depends="compile.woodstox, compile.tool, compile.samples, compile.test" />
 
     <target name="compile.stax2" depends="prepare">
         <javac srcdir="${dir.src.java}" destdir="${dir.build.classes.stax2}"
@@ -214,7 +218,6 @@
             <compilerarg value="-Xlint:deprecation" />
 -->
             <include name="com/ctc/**/*.java" />
-            <include name="test/**/*.java" />
             <classpath refid="classpath.compile" />
             <classpath>
               <pathelement path="${dir.build.classes.stax2}" />
@@ -236,12 +239,27 @@
         </javac>
     </target>
 
+    <target name="compile.tool" depends="compile.woodstox">
+        <javac srcdir="${dir.src.tool}" destdir="${dir.build.classes.tool}"
+            source="1.4" target="1.4"
+            debug="true"
+        >
+<!-- Uncomment to see warnings: too verbose for default, due to deprecation warns
+            <compilerarg value="-Xlint:deprecation" />
+-->
+            <include name="**/*.java" />
+            <classpath refid="classpath.compile" />
+            <classpath>
+              <pathelement path="${dir.build.classes.stax2}" />
+              <pathelement path="${dir.build.classes.woodstox}" />
+            </classpath>
+        </javac>
+    </target>
+
     <target name="copy-resources" depends="prepare">
-        <mkdir dir="${dir.build.classes.woodstox}/META-INF/services" />
-        <copy toDir="${dir.build.classes.woodstox}/META-INF/services">
+        <copy toDir="${dir.build.classes.woodstox}">
             <fileset dir="${dir.resource}">
-                <include name="javax.xml.stream.*" />
-                <include name="org.codehaus.stax2.*" />
+                <include name="**/*.*" />
             </fileset>           	
         </copy>
     </target>

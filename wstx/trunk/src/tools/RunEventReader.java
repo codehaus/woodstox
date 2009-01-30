@@ -10,16 +10,15 @@ import org.codehaus.stax2.XMLInputFactory2;
 
 import com.ctc.wstx.api.WstxInputProperties;
 
-public class TestEventReader
+public class RunEventReader
 {
     final XMLInputFactory mFactory;
 
-    public TestEventReader()
+    public RunEventReader()
     {
         super();
-        System.setProperty("javax.xml.stream.XMLInputFactory",
-                           "com.ctc.wstx.stax.WstxInputFactory");
-        XMLInputFactory f = XMLInputFactory.newInstance();
+
+        XMLInputFactory f = new com.ctc.wstx.stax.WstxInputFactory();
         mFactory = f;
         //f.setProperty(XMLInputFactory.IS_COALESCING, Boolean.FALSE);
         f.setProperty(XMLInputFactory.IS_COALESCING, Boolean.TRUE);
@@ -46,8 +45,7 @@ public class TestEventReader
         System.out.println("  coalescing: "+f.getProperty(XMLInputFactory.IS_COALESCING));
     }
 
-    public void test(String[] args)
-        throws Exception
+    public void execute(String[] args) throws Exception
     {
         if (args.length != 1) {
             System.err.println("Usage: java ... "+getClass().getName()+" [file]");
@@ -120,7 +118,7 @@ public class TestEventReader
             ++count;
             System.err.println("#"+count);
         */
-            new TestEventReader().test(args);
+            new RunEventReader().execute(args);
             /*
         }
             */

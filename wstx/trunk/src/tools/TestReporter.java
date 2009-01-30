@@ -1,5 +1,3 @@
-package test;
-
 import javax.xml.stream.*;
 
 /**

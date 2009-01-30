@@ -1,5 +1,3 @@
-package test;
-
 import java.io.*;
 
 import javax.xml.parsers.*;
@@ -12,7 +10,7 @@ import org.xml.sax.InputSource;
 
 import org.codehaus.stax2.*;
 
-public class TestDomReader
+public class RunDomReader
 {
     public static void main(String[] args)
         throws Exception
@@ -31,10 +29,8 @@ public class TestDomReader
         */
 
         Source source = new DOMSource(doc);
-        System.setProperty("javax.xml.stream.XMLInputFactory",
-                           "com.ctc.wstx.stax.WstxInputFactory");
 
-        XMLInputFactory f = XMLInputFactory.newInstance();
+        XMLInputFactory f = new com.ctc.wstx.stax.WstxInputFactory();
         //f.setProperty(XMLInputFactory2.P_INTERN_NAMES, Boolean.TRUE);
         System.out.println("DEBUG: factory, intern names = "+f.getProperty(XMLInputFactory2.P_INTERN_NAMES));
 
