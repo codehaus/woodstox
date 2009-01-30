@@ -13,6 +13,7 @@ import org.codehaus.stax2.evt.*;
 import com.ctc.wstx.api.WstxInputProperties;
 import com.ctc.wstx.api.WstxOutputProperties;
 import com.ctc.wstx.cfg.XmlConsts;
+import com.ctc.wstx.stax.WstxEventFactory;
 import com.ctc.wstx.stax.WstxInputFactory;
 import com.ctc.wstx.stax.WstxOutputFactory;
 
@@ -89,11 +90,6 @@ public class BaseWstxTest
     protected XMLInputFactory2 getInputFactory()
     {
         if (mInputFactory == null) {
-            /* 29-Nov-2004, TSa: Better ensure we get the right
-             *   implementation...
-             */
-            System.setProperty("javax.xml.stream.XMLInputFactory",
-                               "com.ctc.wstx.stax.WstxInputFactory");
             mInputFactory = getNewInputFactory();
         }
         return mInputFactory;
@@ -102,9 +98,7 @@ public class BaseWstxTest
     protected XMLEventFactory2 getEventFactory()
     {
         if (mEventFactory == null) {
-            System.setProperty("javax.xml.stream.XMLEventFactory",
-                               "com.ctc.wstx.stax.WstxEventFactory");
-            mEventFactory = (XMLEventFactory2) XMLEventFactory.newInstance();
+            mEventFactory = new WstxEventFactory();
         }
         return mEventFactory;
     }
@@ -115,14 +109,12 @@ public class BaseWstxTest
 
     protected static XMLInputFactory2 getNewInputFactory()
     {
-        return (XMLInputFactory2) XMLInputFactory.newInstance();
+        return new WstxInputFactory();
     }
 
     protected XMLOutputFactory2 getOutputFactory()
     {
         if (mOutputFactory == null) {
-            System.setProperty("javax.xml.stream.XMLOutputFactory",
-                               "com.ctc.wstx.stax.WstxOutputFactory");
             mOutputFactory = getNewOutputFactory();
         }
         return mOutputFactory;
@@ -134,7 +126,7 @@ public class BaseWstxTest
 
     protected static XMLOutputFactory2 getNewOutputFactory()
     {
-        return (XMLOutputFactory2) XMLOutputFactory.newInstance();
+        return new WstxOutputFactory();
     }
 
     protected static XMLStreamReader2 constructStreamReader(XMLInputFactory f, String content)
