@@ -1,6 +1,7 @@
 package stax2.stream;
 
-import javax.xml.stream.XMLStreamException;
+import java.io.*;
+import javax.xml.stream.*;
 
 import org.codehaus.stax2.*;
 
@@ -36,6 +37,39 @@ public class TestXMLStreamReader2
         doTestGetPrefixedName(false);
         doTestGetPrefixedName(true);
     }
+
+    public void testReportCData() throws XMLStreamException
+    {
+        _testCData(false, false);
+        _testCData(false, true);
+        _testCData(true, false);
+        _testCData(true, true);
+    }
+
+    public void _testCData(boolean wrapped, boolean report) throws XMLStreamException
+    {
+        final String XML = "<root><![CDATA[test]]></root>";
+
+        XMLInputFactory2 f = getInputFactory();
+        // important: don't force coalescing, that'll convert CDATA to CHARACTERS
+        setCoalescing(f, false);
+        f.setProperty(XMLInputFactory2.P_REPORT_CDATA, new Boolean(report));
+        XMLStreamReader sr = f.createXMLStreamReader(new StringReader(XML));
+        if (wrapped) {
+            sr = wrapWithAdapter(sr);
+        }
+        assertTokenType(START_ELEMENT, sr.next());
+        int t = sr.next();
+        assertEquals("test", getAndVerifyText(sr));
+        if (report) {
+            assertTokenType(CDATA, t);
+        } else {
+            assertTokenType(CHARACTERS, t);
+        }
+        assertTokenType(END_ELEMENT, sr.next());
+        sr.close();
+    }
+
 
     /*
     ////////////////////////////////////////
