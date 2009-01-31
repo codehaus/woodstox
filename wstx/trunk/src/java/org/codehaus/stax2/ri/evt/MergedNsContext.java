@@ -19,16 +19,19 @@ public class MergedNsContext
     /**
      * List of {@link Namespace} instances.
      */
-    final List mNamespaces;
+    final List<Namespace> mNamespaces;
 
-    protected MergedNsContext(NamespaceContext parentCtxt, List localNs)
+    protected MergedNsContext(NamespaceContext parentCtxt, List<Namespace> localNs)
     {
         mParentCtxt = parentCtxt;
-        mNamespaces = (localNs == null) ? Collections.EMPTY_LIST : localNs;
+        if (localNs == null) {
+        	mNamespaces = Collections.emptyList();
+        } else {
+        	mNamespaces = localNs;
+        }
     }
 
-    public static MergedNsContext construct(NamespaceContext parentCtxt,
-                                            List localNs)
+    public static MergedNsContext construct(NamespaceContext parentCtxt, List<Namespace> localNs)
     {
         return new MergedNsContext(parentCtxt, localNs);
     }
@@ -45,7 +48,7 @@ public class MergedNsContext
             throw new IllegalArgumentException("Illegal to pass null prefix");
         }
         for (int i = 0, len = mNamespaces.size(); i < len; ++i) {
-            Namespace ns = (Namespace) mNamespaces.get(i);
+            Namespace ns = mNamespaces.get(i);
             if (prefix.equals(ns.getPrefix())) {
                 return ns.getNamespaceURI();
             }
@@ -75,7 +78,7 @@ public class MergedNsContext
          * we are golden:
          */
         for (int i = 0, len = mNamespaces.size(); i < len; ++i) {
-            Namespace ns = (Namespace) mNamespaces.get(i);
+            Namespace ns = mNamespaces.get(i);
             if (nsURI.equals(ns.getNamespaceURI())) {
                 return ns.getPrefix();
             }
@@ -93,7 +96,7 @@ public class MergedNsContext
             }
 
             // Otherwise, must check other candidates
-            Iterator it = mParentCtxt.getPrefixes(nsURI);
+            Iterator<?> it = mParentCtxt.getPrefixes(nsURI);
             while (it.hasNext()) {
                 String p2 = (String) it.next();
                 if (!p2.equals(prefix)) { // no point re-checking first prefix
@@ -119,16 +122,16 @@ public class MergedNsContext
         return null;
     }
 
-    public Iterator getPrefixes(String nsURI)
+    public Iterator<String> getPrefixes(String nsURI)
     {
         if (nsURI == null || nsURI.length() == 0) {
             throw new IllegalArgumentException("Illegal to pass null/empty prefix as argument.");
         }
 
         // Any local bindings?
-        ArrayList l = null;
+        ArrayList<String> l = null;
         for (int i = 0, len = mNamespaces.size(); i < len; ++i) {
-            Namespace ns = (Namespace) mNamespaces.get(i);
+            Namespace ns = mNamespaces.get(i);
             if (nsURI.equals(ns.getNamespaceURI())) {
                 l = addToList(l, ns.getPrefix());
             }
@@ -136,7 +139,7 @@ public class MergedNsContext
 
         // How about parent?
         if (mParentCtxt != null) {
-            Iterator it = mParentCtxt.getPrefixes(nsURI);
+            Iterator<?> it = mParentCtxt.getPrefixes(nsURI);
             while (it.hasNext()) {
                 String p2 = (String) it.next();
                 // But is it masked?
@@ -165,10 +168,10 @@ public class MergedNsContext
     /////////////////////////////////////////////
      */
 
-    protected ArrayList addToList(ArrayList l, String value)
+    protected ArrayList<String> addToList(ArrayList<String> l, String value)
     {
         if (l == null) {
-            l = new ArrayList();
+            l = new ArrayList<String>();
         }
         l.add(value);
         return l;

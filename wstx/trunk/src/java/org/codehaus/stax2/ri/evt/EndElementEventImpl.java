@@ -36,7 +36,7 @@ public class EndElementEventImpl
         if (nsCount == 0) {
             mNamespaces = null;
         } else {
-            ArrayList l = new ArrayList(nsCount);
+            ArrayList<Namespace> l = new ArrayList<Namespace>(nsCount);
             for (int i = 0; i < nsCount; ++i) {
                 l.add(NamespaceEventImpl.constructNamespace
                       (loc, r.getNamespacePrefix(i), r.getNamespaceURI(i)));
@@ -48,20 +48,20 @@ public class EndElementEventImpl
     /**
      * Constructor used by the event factory.
      */
-    public EndElementEventImpl(Location loc, QName name, Iterator namespaces)
+    public EndElementEventImpl(Location loc, QName name, Iterator<Namespace> namespaces)
     {
         super(loc);
         mName = name;
         if (namespaces == null || !namespaces.hasNext()) {
             mNamespaces = null;
         } else {
-            ArrayList l = new ArrayList();
+            ArrayList<Namespace> l = new ArrayList<Namespace>();
             while (namespaces.hasNext()) {
                 /* Let's do typecast here, to catch any cast errors early;
                  * not strictly required, but helps in preventing later
                  * problems
                  */
-                l.add((Namespace) namespaces.next());
+                l.add(namespaces.next());
             }
             mNamespaces = l;
         }
@@ -77,10 +77,12 @@ public class EndElementEventImpl
         return mName;
     }
 
-    public Iterator getNamespaces() 
+    public Iterator<Namespace> getNamespaces() 
     {
-        return (mNamespaces == null) ? EmptyIterator.getInstance()
-            : mNamespaces.iterator();
+        if (mNamespaces == null) {
+        	return EmptyIterator.getInstance();
+        }
+        return mNamespaces.iterator();
     }
 
     /*

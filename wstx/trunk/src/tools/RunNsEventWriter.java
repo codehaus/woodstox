@@ -3,6 +3,7 @@ import java.util.*;
 
 import javax.xml.namespace.QName;
 import javax.xml.stream.*;
+import javax.xml.stream.events.*;
 
 import org.codehaus.stax2.XMLOutputFactory2;
 import org.codehaus.stax2.XMLStreamProperties;
@@ -45,14 +46,14 @@ public class RunNsEventWriter
                                        null, null));
 
         // Need to first create ns & attrs for next element:
-        ArrayList attrs = new ArrayList();
+        ArrayList<Attribute> attrs = new ArrayList<Attribute>();
         attrs.add(evtF.createAttribute(new QName("attr"), "value"));
         attrs.add(evtF.createAttribute(new QName("http://attr-prefix", "aptr", "attr"), "value"));
         attrs.add(evtF.createAttribute(new QName("http://attr-prefix", "attr3"), "value!"));
         attrs.add(evtF.createAttribute(new QName("another"), "this & that"));
         //attrs.add(evtF.createAttribute(new QName("attr"), "whatever"); // error
 
-        ArrayList ns = new ArrayList();
+        ArrayList<Namespace> ns = new ArrayList<Namespace>();
         ns.add(evtF.createNamespace("http://default")); // error if not output
         ns.add(evtF.createNamespace("myprefix", "http://mydotcom")); // - "" -
 

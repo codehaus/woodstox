@@ -35,7 +35,7 @@ import javax.xml.namespace.QName;
  * a Map key, and hash code is used a lot.
  */
 public final class PrefixedName
-    implements Comparable // to allow alphabetic ordering
+    implements Comparable<PrefixedName> // to allow alphabetic ordering
 {
     private String mPrefix, mLocalName;
 
@@ -159,10 +159,8 @@ public final class PrefixedName
         return hash;
     }
 
-    public int compareTo(Object o)
+    public int compareTo(PrefixedName other)
     {
-        PrefixedName other = (PrefixedName) o;
-
         // First, by prefix, then by local name:
         String op = other.mPrefix;
 

@@ -69,7 +69,7 @@ public final class GenericMsvValidator
     ////////////////////////////////////
     */
 
-    final ArrayList mAcceptors = new ArrayList();
+    final ArrayList<Object> mAcceptors = new ArrayList<Object>();
 
     Acceptor mCurrAcceptor = null;
 

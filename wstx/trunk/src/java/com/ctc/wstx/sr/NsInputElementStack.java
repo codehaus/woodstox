@@ -537,22 +537,22 @@ public final class NsInputElementStack
         return prefix;
     }
 
-    public final Iterator getPrefixes(String nsURI)
+    public final Iterator<String> getPrefixes(String nsURI)
     {
         if (nsURI == null || nsURI.length() == 0) {
             throw new IllegalArgumentException("Illegal to pass null/empty prefix as argument.");
         }
         if (nsURI.equals(XMLConstants.XML_NS_URI)) {
-            return new SingletonIterator(XMLConstants.XML_NS_PREFIX);
+            return new SingletonIterator<String>(XMLConstants.XML_NS_PREFIX);
         }
         if (nsURI.equals(XMLConstants.XMLNS_ATTRIBUTE_NS_URI)) {
-            return new SingletonIterator(XMLConstants.XMLNS_ATTRIBUTE);
+            return new SingletonIterator<String>(XMLConstants.XMLNS_ATTRIBUTE);
         }
 
         // 29-Sep-2004, TSa: Need to check for namespace masking, too...
         String[] strs = mNamespaces.getInternalArray();
         int len = mNamespaces.size();
-        ArrayList l = null;
+        ArrayList<String> l = null;
 
         main_loop:
         for (int index = len-1; index > 0; index -= 2) {
@@ -566,13 +566,16 @@ public final class NsInputElementStack
                 }
                 // nah, it's good!
                 if (l == null) {
-                    l = new ArrayList();
+                    l = new ArrayList<String>();
                 }
                 l.add(prefix);
             }
         }
 
-        return (l == null) ? EmptyIterator.getInstance() : l.iterator();
+        if (l == null) {
+        	return EmptyIterator.getInstance();
+        }
+        return l.iterator();
     }
 
     /*

@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.stream.Location;
+import javax.xml.stream.events.EntityDeclaration;
+import javax.xml.stream.events.NotationDeclaration;
 
 import org.codehaus.stax2.ri.evt.DTDEventImpl;
 
@@ -28,9 +30,9 @@ public class WDTD
     /////////////////////////////////////////////////////
      */
 
-    List mEntities = null;
+    List<EntityDeclaration> mEntities = null;
 
-    List mNotations = null;
+    List<NotationDeclaration> mNotations = null;
 
     /*
     /////////////////////////////////////////////////////
@@ -72,21 +74,21 @@ public class WDTD
     /////////////////////////////////////////////////////
      */
 
-    public List getEntities()
+    public List<EntityDeclaration> getEntities()
     {
         if (mEntities == null && (mSubset != null)) {
             /* Better make a copy, so that caller can not modify list
              * DTD has, which may be shared (since DTD subset instances
              * are cached and reused)
              */
-            mEntities = new ArrayList(mSubset.getGeneralEntityList());
+            mEntities = new ArrayList<EntityDeclaration>(mSubset.getGeneralEntityList());
         }
         return mEntities;
     }
 
-    public List getNotations() {
+    public List<NotationDeclaration> getNotations() {
         if (mNotations == null && (mSubset != null)) {
-            mNotations = new ArrayList(mSubset.getNotationList());
+            mNotations = new ArrayList<NotationDeclaration>(mSubset.getNotationList());
         }
         return mNotations;
     }

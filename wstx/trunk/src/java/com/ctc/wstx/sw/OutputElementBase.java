@@ -323,12 +323,12 @@ public abstract class OutputElementBase
             mRootNsContext.getPrefix(uri) : null;
     }
 
-    public final Iterator getPrefixes(String uri)
+    public final Iterator<String> getPrefixes(String uri)
     {
-        List l = null;
+        List<String> l = null;
 
         if (mDefaultNsURI.equals(uri)) {
-            l = new ArrayList();
+            l = new ArrayList<String>();
             l.add("");
         }
         if (mNsMapping != null) {
@@ -340,7 +340,7 @@ public abstract class OutputElementBase
          * let's do best effort without worrying about masking:
          */
         if (mRootNsContext != null) {
-            Iterator it = mRootNsContext.getPrefixes(uri);
+            Iterator<?> it = mRootNsContext.getPrefixes(uri);
             while (it.hasNext()) {
                 String prefix = (String) it.next();
                 if (prefix.length() == 0) { // default NS already checked
@@ -348,15 +348,17 @@ public abstract class OutputElementBase
                 }
                 // slow check... but what the heck
                 if (l == null) {
-                    l = new ArrayList();
+                    l = new ArrayList<String>();
                 } else if (l.contains(prefix)) { // double-defined...
                     continue;
                 }
                 l.add(prefix);
             }
         }
-        return (l == null) ? EmptyIterator.getInstance() :
-            l.iterator();
+        if (l == null) {
+        	return EmptyIterator.getInstance();
+        }
+        return l.iterator();
     }
 
     /*

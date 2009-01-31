@@ -216,7 +216,7 @@ public class FullDTDReader
      * Map used to shared PrefixedName instances, to reduce memory usage
      * of (qualified) element and attribute names
      */
-    HashMap<String,PrefixedName> mSharedNames = null;
+    HashMap<PrefixedName,PrefixedName> mSharedNames = null;
 
     /**
      * Contains definition of elements and matching content specifications.
@@ -385,7 +385,7 @@ public class FullDTDReader
         mGeneralEntities = null;
 
         // Did we get any existing parameter entities?
-        HashMap pes = (intSubset == null) ?
+        HashMap<String,EntityDecl> pes = (intSubset == null) ?
             null : intSubset.getParameterEntityMap();
         if (pes == null || pes.isEmpty()) {
             mPredefdPEs = null;
@@ -394,7 +394,7 @@ public class FullDTDReader
         }
 
         // How about general entities (needed only for attr. def. values)
-        HashMap ges = (intSubset == null) ?
+        HashMap<String,EntityDecl> ges = (intSubset == null) ?
             null : intSubset.getGeneralEntityMap();
         if (ges == null || ges.isEmpty()) {
             mPredefdGEs = null;
@@ -403,7 +403,7 @@ public class FullDTDReader
         }
 
         // And finally, notations
-        HashMap not = (intSubset == null) ?
+        HashMap<String,NotationDeclaration> not = (intSubset == null) ?
             null : intSubset.getNotationMap();
         if (not == null || not.isEmpty()) {
             mPredefdNotations = null;
@@ -2457,11 +2457,11 @@ public class FullDTDReader
         }
 
         // Ok, got it!
-        HashMap m;
+        HashMap<String,EntityDecl> m;
         if (isParam) {
             m = mParamEntities;
             if (m == null) {
-                mParamEntities = m = new HashMap();
+                mParamEntities = m = new HashMap<String,EntityDecl>();
             }
         } else {
             m = mGeneralEntities;
@@ -2470,7 +2470,7 @@ public class FullDTDReader
                  * report redefinition problems when validating subset
                  * compatibility
                  */
-                mGeneralEntities = m = new LinkedHashMap();
+                mGeneralEntities = m = new LinkedHashMap<String,EntityDecl>();
             }
         }
 
@@ -2563,21 +2563,21 @@ public class FullDTDReader
 
         // Any definitions from the internal subset?
         if (mPredefdNotations != null) {
-            NotationDeclaration oldDecl = (NotationDeclaration) mPredefdNotations.get(id);
+            NotationDeclaration oldDecl = mPredefdNotations.get(id);
             if (oldDecl != null) { // oops, a problem!
                 DTDSubsetImpl.throwNotationException(oldDecl, nd);
             }
         }
 
-        HashMap m = mNotations;
+        HashMap<String,NotationDeclaration> m = mNotations;
         if (m == null) {
             /* Let's try to get insert-ordered Map, to be able to
              * report redefinition problems in proper order when validating
              * subset compatibility
              */
-            mNotations = m = new LinkedHashMap();
+            mNotations = m = new LinkedHashMap<String,NotationDeclaration>();
         } else {
-            NotationDeclaration oldDecl = (NotationDeclaration) m.get(id);
+            NotationDeclaration oldDecl = m.get(id);
             if (oldDecl != null) { // oops, a problem!
                 DTDSubsetImpl.throwNotationException(oldDecl, nd);
             }
@@ -2640,7 +2640,7 @@ public class FullDTDReader
             mDefaultNsURI = uri;
         } else {
             if (mNamespaces == null) {
-                mNamespaces = new HashMap();
+                mNamespaces = new HashMap<String,String>();
             }
             mNamespaces.put(name, uri);
         }
@@ -2841,7 +2841,7 @@ public class FullDTDReader
         /* Need to use tree set to be able to construct the data
          * structs we need later on...
          */
-        TreeSet set = new TreeSet();
+        TreeSet<String> set = new TreeSet<String>();
 
         char c = skipDtdWs(true);
         if (c == ')') { // just to give more meaningful error msgs
@@ -2898,6 +2898,8 @@ public class FullDTDReader
      * of a minimal DTD in DTD-aware mode, which does no validation
      * but allows attribute defaulting and normalization, as well as
      * access to entity and notation declarations).
+     * 
+     * @param attrName Name of attribute in declaration that refers to this entity
      *
      * @param refLoc Starting location of the DTD component that contains
      *   the reference
@@ -2914,7 +2916,7 @@ public class FullDTDReader
          * not.
          */
         if (mPredefdNotations != null) {
-            NotationDeclaration decl = (NotationDeclaration) mPredefdNotations.get(id);
+            NotationDeclaration decl = mPredefdNotations.get(id);
             if (decl != null) {
                 mUsesPredefdNotations = true;
                 return decl.getName();
@@ -2927,7 +2929,7 @@ public class FullDTDReader
             // In validating mode, this may be a problem (otherwise not)
             if (mCfgFullyValidating) {
                 if (mNotationForwardRefs == null) {
-                    mNotationForwardRefs = new LinkedHashMap();
+                    mNotationForwardRefs = new LinkedHashMap<String,Location>();
                 }
                 mNotationForwardRefs.put(id, refLoc);
             }
@@ -2936,7 +2938,7 @@ public class FullDTDReader
         return decl.getName();
     }
 
-    private String readEnumEntry(char c, HashMap sharedEnums)
+    private String readEnumEntry(char c, HashMap<String,String> sharedEnums)
         throws XMLStreamException
     {
         String id = readDTDNmtoken(c);
@@ -2944,7 +2946,7 @@ public class FullDTDReader
         /* Let's make sure it's shared for this DTD subset; saves memory
          * both for DTDs and resulting docs. Could also intern Strings?
          */
-        String sid = (String) sharedEnums.get(id);
+        String sid = sharedEnums.get(id);
         if (sid == null) {
             sid = id;
             if (INTERN_SHARED_NAMES) {
@@ -2975,7 +2977,7 @@ public class FullDTDReader
             _reportWFCViolation("Unrecognized directive #"+keyw+"'; expected #PCDATA (or element name)");
         }
 
-        HashMap m = new LinkedHashMap();
+        HashMap<PrefixedName,ContentSpec> m = new LinkedHashMap<PrefixedName,ContentSpec>();
         while (true) {
             char c = skipDtdWs(true);
             if (c == ')') {
@@ -3033,11 +3035,14 @@ public class FullDTDReader
         return val;
     }
 
+    /**
+	 * @param mainLevel Whether this is the main-level content specification or nested 
+	 */
     private ContentSpec readContentSpec(PrefixedName elemName, boolean mainLevel,
                                         boolean construct)
         throws XMLStreamException
     {
-        ArrayList subSpecs = new ArrayList();
+        ArrayList<ContentSpec> subSpecs = new ArrayList<ContentSpec>();
         boolean isChoice = false; // default to sequence
         boolean choiceSet = false;
 
@@ -3100,7 +3105,7 @@ public class FullDTDReader
 
         // Just one entry? Can just return it as is, combining arities
         if (subSpecs.size() == 1) {
-            ContentSpec cs = (ContentSpec) subSpecs.get(0);
+            ContentSpec cs = subSpecs.get(0);
             char otherArity = cs.getArity();
             if (arity != otherArity) {
                 cs.setArity(combineArities(arity, otherArity));
@@ -3285,15 +3290,15 @@ public class FullDTDReader
      */
     private PrefixedName findSharedName(String prefix, String localName)
     {
-        HashMap m = mSharedNames;
+        HashMap<PrefixedName,PrefixedName> m = mSharedNames;
 
         if (mSharedNames == null) {
-            mSharedNames = m = new HashMap();
+            mSharedNames = m = new HashMap<PrefixedName,PrefixedName>();
         } else {
             // Maybe we already have a shared instance... ?
             PrefixedName key = mAccessKey;
             key.reset(prefix, localName);
-            key = (PrefixedName) m.get(key);
+            key = m.get(key);
             if (key != null) { // gotcha
                 return key;
             }

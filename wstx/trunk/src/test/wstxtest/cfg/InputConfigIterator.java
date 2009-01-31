@@ -14,7 +14,7 @@ import wstxtest.cfg.InputTestConfig;
  */
 public class InputConfigIterator
 {
-    final ArrayList mConfigs = new ArrayList();
+    final ArrayList<InputTestConfig> mConfigs = new ArrayList<InputTestConfig>();
 
     /*
     /////////////////////////////////////////////////
@@ -49,7 +49,7 @@ public class InputConfigIterator
         // First need to initialize the factory with first settings:
         final int len = mConfigs.size();
         for (int i = 0; i < len; ++i) {
-            ((InputTestConfig) mConfigs.get(i)).nextConfig(f);
+            mConfigs.get(i).nextConfig(f);
         }
 
         // And then the main iteration
@@ -60,7 +60,7 @@ public class InputConfigIterator
             // And then iterate to next configuration setting combo:
             int i = 0;
             for (; i < len; ++i) {
-                InputTestConfig cfg = (InputTestConfig) mConfigs.get(i);
+                InputTestConfig cfg = mConfigs.get(i);
                 // Still more settings for this config? Then let's break:
                 if (cfg.nextConfig(f)) {
                     break;
@@ -99,7 +99,7 @@ public class InputConfigIterator
             if (i > 0) {
                 sb.append(", ");
             }
-            sb.append(((InputTestConfig) mConfigs.get(i)).getDesc());
+            sb.append((mConfigs.get(i)).getDesc());
         }
         return sb.toString();
     }
