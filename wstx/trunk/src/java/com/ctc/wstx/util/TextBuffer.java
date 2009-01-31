@@ -682,7 +682,7 @@ public final class TextBuffer
         int totalAmount = 0;
         if (mSegments != null) {
             for (int i = 0, segc = mSegments.size(); i < segc; ++i) {
-                char[] segment = (char[]) mSegments.get(i);
+                char[] segment = mSegments.get(i);
                 int segLen = segment.length;
                 int amount = segLen - srcStart;
                 if (amount < 1) { // nothing from this segment?
@@ -745,7 +745,7 @@ public final class TextBuffer
         int rlen = 0;
         if (mSegments != null) {
             for (int i = 0, len = mSegments.size(); i < len; ++i) {
-                char[] ch = (char[]) mSegments.get(i);
+                char[] ch = mSegments.get(i);
                 w.write(ch);
                 rlen += ch.length;
             }
@@ -800,7 +800,7 @@ public final class TextBuffer
         // Nope, need to do full segmented output
         if (mSegments != null) {
             for (int i = 0, len = mSegments.size(); i < len; ++i) {
-                char[] buf = (char[]) mSegments.get(i);
+                char[] buf = mSegments.get(i);
                 for (int j = 0, len2 = buf.length; j < len2; ++j) {
                     if (buf[j] > INT_SPACE) {
                         return false;
@@ -851,7 +851,7 @@ public final class TextBuffer
                 if (--segIndex < 0) { // no more data?
                     return false;
                 }
-                buf = (char[]) mSegments.get(segIndex);
+                buf = mSegments.get(segIndex);
                 bufIndex = buf.length-1;
             }
         }
@@ -922,7 +922,7 @@ public final class TextBuffer
         } else {
             if (mSegments != null) {
                 for (int i = 0, len = mSegments.size(); i < len; ++i) {
-                    char[] ch = (char[]) mSegments.get(i);
+                    char[] ch = mSegments.get(i);
                     h.characters(ch, 0, ch.length);
                 }
             }
@@ -942,7 +942,7 @@ public final class TextBuffer
         } else {
             if (mSegments != null) {
                 for (int i = 0, len = mSegments.size(); i < len; ++i) {
-                    char[] ch = (char[]) mSegments.get(i);
+                    char[] ch = mSegments.get(i);
                     h.ignorableWhitespace(ch, 0, ch.length);
                 }
             }
@@ -1137,7 +1137,7 @@ public final class TextBuffer
     public char[] finishCurrentSegment()
     {
         if (mSegments == null) {
-            mSegments = new ArrayList();
+            mSegments = new ArrayList<char[]>();
         }
         mHasSegments = true;
         mSegments.add(mCurrentSegment);
@@ -1256,7 +1256,7 @@ public final class TextBuffer
             result = new char[size];
             if (mSegments != null) {
                 for (int i = 0, len = mSegments.size(); i < len; ++i) {
-                    char[] curr = (char[]) mSegments.get(i);
+                    char[] curr = mSegments.get(i);
                     int currLen = curr.length;
                     System.arraycopy(curr, 0, result, offset, currLen);
                     offset += currLen;
@@ -1373,7 +1373,7 @@ public final class TextBuffer
             long origAmount= amount;
             
             while (_segments != null) {
-                char[] curr = (char[]) _segments.get(_segmentIndex);
+                char[] curr = _segments.get(_segmentIndex);
                 int max = curr.length - _segmentOffset;
                 if (max >= amount) { // this is enough
                     _segmentOffset += (int) amount;

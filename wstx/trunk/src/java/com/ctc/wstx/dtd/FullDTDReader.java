@@ -541,12 +541,12 @@ public class FullDTDReader
     public EntityDecl findEntity(String entName)
     {
         if (mPredefdGEs != null) {
-            EntityDecl decl = (EntityDecl) mPredefdGEs.get(entName);
+            EntityDecl decl = mPredefdGEs.get(entName);
             if (decl != null) {
                 return decl;
             }
         }
-        return (EntityDecl) mGeneralEntities.get(entName);
+        return mGeneralEntities.get(entName);
     }
 
     /*

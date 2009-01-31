@@ -605,33 +605,30 @@ public final class ReaderConfig
 
     public int getShortestReportedTextSegment() { return mMinTextSegmentLen; }
 
-    public Map getCustomInternalEntities()
+	public Map<String,EntityDecl> getCustomInternalEntities()
     {
-        Map custEnt = (Map) _getSpecialProperty(SP_IX_CUSTOM_ENTITIES);
+	    @SuppressWarnings("unchecked")
+        Map<String,EntityDecl> custEnt = (Map<String,EntityDecl>) _getSpecialProperty(SP_IX_CUSTOM_ENTITIES);
         if (custEnt == null) {
-            return Collections.EMPTY_MAP;
+            return Collections.emptyMap();
         }
         // Better be defensive and just return a copy...
         int len = custEnt.size();
-        HashMap m = new HashMap(len + (len >> 2), 0.81f);
-        Iterator it = custEnt.entrySet().iterator();
-        while (it.hasNext()) {
-            Map.Entry me = (Map.Entry) it.next();
-            /* Cast is there just as a safe-guard (assertion), and to
-             * document the type...
-             */
-            m.put(me.getKey(), (EntityDecl) me.getValue());
+        HashMap<String,EntityDecl> m = new HashMap<String,EntityDecl>(len + (len >> 2), 0.81f);
+        for (Map.Entry<String,EntityDecl> me : custEnt.entrySet()) {
+            m.put(me.getKey(), me.getValue());
         }
         return m;
     }
 
-    public EntityDecl findCustomInternalEntity(String id)
+	public EntityDecl findCustomInternalEntity(String id)
     {
-        Map custEnt = (Map) _getSpecialProperty(SP_IX_CUSTOM_ENTITIES);
+	    @SuppressWarnings("unchecked")
+        Map<String,EntityDecl> custEnt = (Map<String,EntityDecl>) _getSpecialProperty(SP_IX_CUSTOM_ENTITIES);
         if (custEnt == null) {
             return null;
         }
-        return (EntityDecl) custEnt.get(id);
+        return custEnt.get(id);
     }
 
     public XMLReporter getXMLReporter() { return mReporter; }
@@ -795,17 +792,15 @@ public final class ReaderConfig
         mMinTextSegmentLen = value;
     }
 
-    public void setCustomInternalEntities(Map m)
+    public void setCustomInternalEntities(Map<String,?> m)
     {
-        Map entMap;
+        Map<String,EntityDecl> entMap;
         if (m == null || m.size() < 1) {
-            entMap = Collections.EMPTY_MAP;
+            entMap = Collections.emptyMap();
         } else {
             int len = m.size();
-            entMap = new HashMap(len + (len >> 1), 0.75f);
-            Iterator it = m.entrySet().iterator();
-            while (it.hasNext()) {
-                Map.Entry me = (Map.Entry) it.next();
+            entMap = new HashMap<String,EntityDecl>(len + (len >> 1), 0.75f);
+            for (Map.Entry<String,?> me : m.entrySet()) {
                 Object val = me.getValue();
                 char[] ch;
                 if (val == null) {
@@ -817,7 +812,7 @@ public final class ReaderConfig
                     String str = val.toString();
                     ch = str.toCharArray();
                 }
-                String name = (String) me.getKey();
+                String name = me.getKey();
                 entMap.put(name, IntEntity.create(name, ch));
             }
         }

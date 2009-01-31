@@ -28,9 +28,9 @@ public class StartElementEventImpl
 
     protected final QName mName;
 
-    protected final ArrayList mAttrs;
+    protected final ArrayList<Attribute> mAttrs;
 
-    protected final ArrayList mNsDecls;
+    protected final ArrayList<Namespace> mNsDecls;
 
     /**
      * Enclosing namespace context
@@ -48,7 +48,7 @@ public class StartElementEventImpl
      */
 
     protected StartElementEventImpl(Location loc, QName name,
-                                    ArrayList attrs, ArrayList nsDecls,
+                                    ArrayList<Attribute> attrs, ArrayList<Namespace> nsDecls,
                                     NamespaceContext parentNsCtxt)
     {
         super(loc);
@@ -60,27 +60,27 @@ public class StartElementEventImpl
     }
 
     public static StartElementEventImpl construct(Location loc, QName name,
-                                                  Iterator attrIt, Iterator nsDeclIt,
+                                                  Iterator<Attribute> attrIt, Iterator<Namespace> nsDeclIt,
                                                   NamespaceContext nsCtxt)
     {
-        ArrayList attrs;
+        ArrayList<Attribute> attrs;
         if (attrIt == null || !attrIt.hasNext()) {
             attrs = null;
         } else {
-            attrs = new ArrayList();
+            attrs = new ArrayList<Attribute>();
             do {
                 // Cast is only done for early catching of incorrect types
-                attrs.add((Attribute) attrIt.next());
+                attrs.add(attrIt.next());
             } while (attrIt.hasNext());
         }
 
-        ArrayList nsDecls;
+        ArrayList<Namespace> nsDecls;
         if (nsDeclIt == null || !nsDeclIt.hasNext()) {
             nsDecls = null;
         } else {
-            nsDecls = new ArrayList();
+            nsDecls = new ArrayList<Namespace>();
             do {
-                nsDecls.add((Namespace) nsDeclIt.next()); // cast to catch type problems early
+                nsDecls.add(nsDeclIt.next()); // cast to catch type problems early
             } while (nsDeclIt.hasNext());
         }
         return new StartElementEventImpl(loc, name, attrs, nsDecls, nsCtxt);
@@ -120,14 +120,14 @@ public class StartElementEventImpl
             if (mNsDecls != null) {
                 for (int i = 0, len = mNsDecls.size(); i < len; ++i) {
                     w.write(' ');
-                    ((Namespace) mNsDecls.get(i)).writeAsEncodedUnicode(w);
+                    (mNsDecls.get(i)).writeAsEncodedUnicode(w);
                 }
             }
 
             // How about attrs?
             if (mAttrs != null) {
                 for (int i = 0, len = mAttrs.size(); i < len; ++i) {
-                    Attribute attr = (Attribute) mAttrs.get(i);
+                    Attribute attr = mAttrs.get(i);
                     // No point in adding default attributes?
                     if (attr.isSpecified()) {
                         w.write(' ');
@@ -151,7 +151,7 @@ public class StartElementEventImpl
         // Any namespaces?
         if (mNsDecls != null) {
             for (int i = 0, len = mNsDecls.size(); i < len; ++i) {
-                Namespace ns = (Namespace) mNsDecls.get(i);
+                Namespace ns = mNsDecls.get(i);
                 String prefix = ns.getPrefix();
                 String uri = ns.getNamespaceURI();
                 if (prefix == null || prefix.length() == 0) {
@@ -185,10 +185,12 @@ public class StartElementEventImpl
         return mName;
     }
 
-    public Iterator getNamespaces() 
+    public Iterator<Namespace> getNamespaces() 
     {
-        return (mNsDecls == null) ?
-            EmptyIterator.getInstance() : mNsDecls.iterator();
+        if (mNsDecls == null) {
+            return EmptyIterator.getInstance();
+        }
+        return mNsDecls.iterator();
     }
 
     public NamespaceContext getNamespaceContext()
@@ -210,7 +212,7 @@ public class StartElementEventImpl
                 prefix = "";
             }
             for (int i = 0, len = mNsDecls.size(); i < len; ++i) {
-                Namespace ns = (Namespace) mNsDecls.get(i);
+                Namespace ns = mNsDecls.get(i);
                 String thisPrefix = ns.getPrefix();
                 if (thisPrefix == null) {
                     thisPrefix = "";
@@ -236,7 +238,7 @@ public class StartElementEventImpl
 
         boolean notInNs = (uri == null || uri.length() == 0);
         for (int i = 0; i < len; ++i) {
-            Attribute attr = (Attribute) mAttrs.get(i);
+            Attribute attr = mAttrs.get(i);
             QName name = attr.getName();
             if (name.getLocalPart().equals(ln)) {
                 String thisUri = name.getNamespaceURI();
@@ -254,7 +256,7 @@ public class StartElementEventImpl
         return null;
     }
 
-    public Iterator getAttributes()
+    public Iterator<Attribute> getAttributes()
     {
         if (mAttrs == null) {
             return EmptyIterator.getInstance();

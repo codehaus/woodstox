@@ -26,7 +26,7 @@ import com.ctc.wstx.util.BaseNsContext;
 public class SimpleStartElement
     extends BaseStartElement
 {
-    final Map mAttrs;
+    final Map<QName,Attribute> mAttrs;
 
     /*
     /////////////////////////////////////////////
@@ -35,7 +35,7 @@ public class SimpleStartElement
      */
 
     protected SimpleStartElement(Location loc, QName name, BaseNsContext nsCtxt,
-                                 Map attr)
+                                 Map<QName,Attribute> attr)
     {
         super(loc, name, nsCtxt);
         mAttrs = attr;
@@ -46,7 +46,7 @@ public class SimpleStartElement
      * from an external source (most likely, non-woodstox stream reader).
      */
     public static SimpleStartElement construct(Location loc, QName name,
-                                               Map attrs, List ns,
+                                               Map<QName,Attribute> attrs, List<Namespace> ns,
                                                NamespaceContext nsCtxt)
     {
         BaseNsContext myCtxt = MergedNsContext.construct(nsCtxt, ns);
@@ -54,25 +54,25 @@ public class SimpleStartElement
     }
 
     public static SimpleStartElement construct(Location loc, QName name,
-                                               Iterator attrs, Iterator ns,
+                                               Iterator<Attribute> attrs, Iterator<Namespace> ns,
                                                NamespaceContext nsCtxt)
     {
-        Map attrMap;
+        Map<QName,Attribute> attrMap;
         if (attrs == null || !attrs.hasNext()) {
             attrMap = null;
         } else {
-            attrMap = new LinkedHashMap();
+            attrMap = new LinkedHashMap<QName,Attribute>();
             do {
-                Attribute attr = (Attribute) attrs.next();
+                Attribute attr = attrs.next();
                 attrMap.put(attr.getName(), attr);
             } while (attrs.hasNext());
         }
 
         BaseNsContext myCtxt;
         if (ns != null && ns.hasNext()) {
-            ArrayList l = new ArrayList();
+            ArrayList<Namespace> l = new ArrayList<Namespace>();
             do {
-                l.add((Namespace) ns.next()); // cast to catch type problems early
+                l.add(ns.next()); // cast to catch type problems early
             } while (ns.hasNext());
             myCtxt = MergedNsContext.construct(nsCtxt, l);
         } else {
@@ -101,10 +101,10 @@ public class SimpleStartElement
         if (mAttrs == null) {
             return null;
         }
-        return (Attribute) mAttrs.get(name);
+        return mAttrs.get(name);
     }
 
-    public Iterator getAttributes()
+    public Iterator<Attribute> getAttributes()
     {
         if (mAttrs == null) {
             return EmptyIterator.getInstance();
@@ -120,9 +120,7 @@ public class SimpleStartElement
         }
         // Then attributes, if any:
         if (mAttrs != null && mAttrs.size() > 0) {
-            Iterator it = mAttrs.values().iterator();
-            while (it.hasNext()) {
-                Attribute attr = (Attribute) it.next();
+        	for (Attribute attr : mAttrs.values()) {
                 // Let's only output explicit attribute values:
                 if (!attr.isSpecified()) {
                     continue;
@@ -154,9 +152,7 @@ public class SimpleStartElement
         }
         // Then attributes, if any:
         if (mAttrs != null && mAttrs.size() > 0) {
-            Iterator it = mAttrs.values().iterator();
-            while (it.hasNext()) {
-                Attribute attr = (Attribute) it.next();
+            for (Attribute attr : mAttrs.values()) {
                 // Let's only output explicit attribute values:
                 if (!attr.isSpecified()) {
                     continue;

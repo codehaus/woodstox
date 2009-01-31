@@ -29,13 +29,13 @@ public final class StringUtil
         sb.append(getLF());
     }
 
-    public static String concatEntries(Collection coll, String sep, String lastSep) {
+    public static String concatEntries(Collection<?> coll, String sep, String lastSep) {
         if (lastSep == null) {
             lastSep = sep;
         }
         int len = coll.size();
         StringBuffer sb = new StringBuffer(16 + (len << 3));
-        Iterator it = coll.iterator();
+        Iterator<?> it = coll.iterator();
         int i = 0;
         while (it.hasNext()) {
             if (i == 0) {
