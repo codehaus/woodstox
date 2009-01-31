@@ -357,16 +357,18 @@ public final class ElementIdMap
      * @param len Length of String; has to be at least 1 (caller guarantees
      *   this pre-condition)
      */
-    public static int calcHash(char[] buffer, int start, int len)
+    @SuppressWarnings("cast")
+	public static int calcHash(char[] buffer, int start, int len)
     {
-        int hash = (int) buffer[0];
+        int hash = (int) buffer[start];
         for (int i = 1; i < len; ++i) {
-            hash = (hash * 31) + (int) buffer[i];
+            hash = (hash * 31) + (int) buffer[start+i];
         }
         return hash;
     }
 
-    public static int calcHash(String key)
+    @SuppressWarnings("cast")
+	public static int calcHash(String key)
     {
         int hash = (int) key.charAt(0);
         for (int i = 1, len = key.length(); i < len; ++i) {

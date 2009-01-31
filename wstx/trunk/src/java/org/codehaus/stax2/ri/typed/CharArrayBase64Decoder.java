@@ -255,7 +255,7 @@ public final class CharArrayBase64Decoder
     private boolean nextSegment()
     {
         if (_nextSegmentIndex < _nextSegments.size()) {
-            _currSegment = (char[]) _nextSegments.get(_nextSegmentIndex++);
+            _currSegment = _nextSegments.get(_nextSegmentIndex++);
             // last segment may have non-zero ptr, slack at end
             if (_nextSegmentIndex == _nextSegments.size()) {
                 _currSegmentPtr = _lastSegmentOffset;

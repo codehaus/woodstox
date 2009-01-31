@@ -108,7 +108,7 @@ public class FullDTDReader
      *<p>
      * Keys are entity name Strings; values are instances of EntityDecl
      */
-    HashMap mParamEntities;
+    HashMap<String,EntityDecl> mParamEntities;
 
     /**
      * Set of parameter entities already defined for the subset being
@@ -116,14 +116,14 @@ public class FullDTDReader
      * parsing matching external subset. Null when parsing internal
      * subset.
      */
-    final HashMap mPredefdPEs;
+    final HashMap<String,EntityDecl> mPredefdPEs;
 
     /**
      * Set of parameter entities (ids) that have been referenced by this
      * DTD; only maintained for external subsets, and only as long as
      * no pre-defined PE has been referenced.
      */
-    Set mRefdPEs;
+    Set<String> mRefdPEs;
 
     /*
     //////////////////////////////////////////////////
@@ -140,7 +140,7 @@ public class FullDTDReader
      * Note: this Map only contains entities declared and defined in the
      * subset being parsed; no previously defined values are passed.
      */
-    HashMap mGeneralEntities;
+    HashMap<String,EntityDecl> mGeneralEntities;
 
     /**
      * Set of general entities already defined for the subset being
@@ -149,14 +149,14 @@ public class FullDTDReader
      * subset. Such entities are only needed directly for one purpose;
      * to be expanded when reading attribute default value definitions.
      */
-    final HashMap mPredefdGEs;
+    final HashMap<String,EntityDecl> mPredefdGEs;
 
     /**
      * Set of general entities (ids) that have been referenced by this
      * DTD; only maintained for external subsets, and only as long as
      * no pre-defined GEs have been referenced.
      */
-    Set mRefdGEs;
+    Set<String> mRefdGEs;
 
     /*
     //////////////////////////////////////////////////
@@ -183,14 +183,14 @@ public class FullDTDReader
      * Keys are entity name Strings; values are instances of
      * NotationDecl objects
      */
-    HashMap/*<String,NotationDeclaration>*/ mNotations;
+    HashMap<String,NotationDeclaration> mNotations;
 
     /**
      * Notations already parsed before current subset; that is,
      * notations from the internal subset if we are currently
      * parsing matching external subset.
      */
-    final HashMap/*<String,NotationDeclaration>*/ mPredefdNotations;
+    final HashMap<String,NotationDeclaration> mPredefdNotations;
 
     /**
      * Flag used to keep track of whether current (external) subset
@@ -204,7 +204,7 @@ public class FullDTDReader
      * made prior to declaration. This is needed to ensure that all
      * references can be properly resolved.
      */
-    HashMap/*<String,Location>*/ mNotationForwardRefs;
+    HashMap<String,Location> mNotationForwardRefs;
 
     /*
     //////////////////////////////////////////////////
@@ -216,7 +216,7 @@ public class FullDTDReader
      * Map used to shared PrefixedName instances, to reduce memory usage
      * of (qualified) element and attribute names
      */
-    HashMap mSharedNames = null;
+    HashMap<String,PrefixedName> mSharedNames = null;
 
     /**
      * Contains definition of elements and matching content specifications.
@@ -224,13 +224,13 @@ public class FullDTDReader
      * "created" by ATTLIST declarations that precede actual declaration
      * for the ELEMENT referred to.
      */
-    HashMap mElements;
+    LinkedHashMap<PrefixedName,DTDElement> mElements;
 
     /**
      * Map used for sharing legal enumeration values; used since oftentimes
      * same enumeration values are used with multiple attributes
      */
-    HashMap mSharedEnumValues = null;
+    HashMap<String,String> mSharedEnumValues = null;
 
     /*
     //////////////////////////////////////////////////
@@ -311,7 +311,7 @@ public class FullDTDReader
      * Prefix-to-NsURI mappings for this DTD, if any: lazily
      * constructed when needed
      */
-    HashMap mNamespaces = null;
+    HashMap<String,String> mNamespaces = null;
 
     /*
     //////////////////////////////////////////////////
@@ -2200,8 +2200,8 @@ public class FullDTDReader
         Location loc = getStartLocation();
 
         // Ok, where's our element?
-        HashMap m = getElementMap();
-        DTDElement elem = (DTDElement) m.get(elemName);
+        HashMap<PrefixedName,DTDElement> m = getElementMap();
+        DTDElement elem = m.get(elemName);
 
         if (elem == null) { // ok, need a placeholder
             // Let's add ATTLIST location as the temporary location too
@@ -2312,8 +2312,8 @@ public class FullDTDReader
             throwDTDUnexpectedChar(c, "; expected '>' to finish the element declaration for <"+elemName+">");
         }
 
-        HashMap m = getElementMap();
-        DTDElement oldElem = (DTDElement) m.get(elemName);
+        LinkedHashMap<PrefixedName,DTDElement> m = getElementMap();
+        DTDElement oldElem = m.get(elemName);
         // Ok to have it if it's not 'really' declared
 
         if (oldElem != null) {
@@ -3258,14 +3258,14 @@ public class FullDTDReader
     ///////////////////////////////////////////////////////
      */
 
-    private HashMap getElementMap() {
-        HashMap m = mElements;
+    private LinkedHashMap<PrefixedName,DTDElement> getElementMap() {
+        LinkedHashMap<PrefixedName,DTDElement> m = mElements;
         if (m == null) {
             /* Let's try to get insert-ordered Map, to be able to
              * report redefinition problems in proper order when validating
              * subset compatibility
              */
-            mElements = m = new LinkedHashMap();
+            mElements = m = new LinkedHashMap<PrefixedName,DTDElement>();
         }
         return m;
     }
@@ -3401,7 +3401,6 @@ public class FullDTDReader
         }
     }
 
-    // @Override
     /**
      * Handling of PE matching problems is actually intricate; one type
      * will be a WFC ("PE Between Declarations", which refers to PEs that
@@ -3409,6 +3408,7 @@ public class FullDTDReader
      * ("Proper Declaration/PE Nesting", when PE is contained within
      * declaration)
      */
+    @Override
     protected void handleIncompleteEntityProblem(WstxInputSource closing)
         throws XMLStreamException
     {

@@ -75,6 +75,7 @@ public abstract class Stax2EventFactoryImpl
         return new EndDocumentEventImpl(mLocation);
     }
 
+    @SuppressWarnings("unchecked")
     public EndElement createEndElement(QName name, Iterator namespaces) {
         return new EndElementEventImpl(mLocation, name, namespaces);
     }
@@ -85,7 +86,8 @@ public abstract class Stax2EventFactoryImpl
         return createEndElement(createQName(nsURI, localName), null);
     }
 
-    public EndElement createEndElement(String prefix, String nsURI,
+    @SuppressWarnings("unchecked")
+	public EndElement createEndElement(String prefix, String nsURI,
                                        String localName, Iterator ns)
     {
         return createEndElement(createQName(nsURI, localName, prefix), ns);
@@ -134,7 +136,8 @@ public abstract class Stax2EventFactoryImpl
                                           true, standalone);
     }
 
-    public StartElement createStartElement(QName name, Iterator attr, Iterator ns)
+    @SuppressWarnings("unchecked")
+	public StartElement createStartElement(QName name, Iterator attr, Iterator ns)
     {
         return createStartElement(name, attr, ns, null);
     }
@@ -145,7 +148,8 @@ public abstract class Stax2EventFactoryImpl
                                   null, null, null);
     }
 
-    public StartElement createStartElement(String prefix, String nsURI,
+    @SuppressWarnings("unchecked")
+	public StartElement createStartElement(String prefix, String nsURI,
                                            String localName, Iterator attr,
                                            Iterator ns)
     {
@@ -153,7 +157,8 @@ public abstract class Stax2EventFactoryImpl
                                   null);
     }
 
-    public StartElement createStartElement(String prefix, String nsURI,
+    @SuppressWarnings("unchecked")
+	public StartElement createStartElement(String prefix, String nsURI,
                                            String localName, Iterator attr,
                                            Iterator ns, NamespaceContext nsCtxt)
     {
@@ -195,8 +200,8 @@ public abstract class Stax2EventFactoryImpl
 
     protected abstract QName createQName(String nsURI, String localName, String prefix);
 
-    protected StartElement createStartElement(QName name, Iterator attr,
-                                              Iterator ns, NamespaceContext ctxt)
+    protected StartElement createStartElement(QName name, Iterator<Attribute> attr,
+                                              Iterator<Namespace> ns, NamespaceContext ctxt)
     {
         return StartElementEventImpl.construct(mLocation, name, attr, ns, ctxt);
     }

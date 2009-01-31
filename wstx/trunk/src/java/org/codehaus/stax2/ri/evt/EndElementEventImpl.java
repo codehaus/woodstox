@@ -21,7 +21,7 @@ public class EndElementEventImpl
     implements EndElement
 {
     final QName mName;
-    final ArrayList mNamespaces;
+    final ArrayList<Namespace> mNamespaces;
 
     /**
      * Constructor usually used when reading events from a stream reader.

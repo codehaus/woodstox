@@ -105,7 +105,7 @@ public final class TextBuffer
     /**
      * List of segments prior to currently active segment.
      */
-    private ArrayList mSegments;
+    private ArrayList<char[]> mSegments;
 
 
     // // // Currently used segment; not (yet) contained in mSegments
@@ -571,7 +571,7 @@ public final class TextBuffer
                         // First stored segments
                         if (mSegments != null) {
                             for (int i = 0, len = mSegments.size(); i < len; ++i) {
-                                char[] curr = (char[]) mSegments.get(i);
+                                char[] curr = mSegments.get(i);
                                 sb.append(curr, 0, curr.length);
                             }
                         }
@@ -617,7 +617,7 @@ public final class TextBuffer
         // First stored segments
         if (mSegments != null) {
             for (int i = 0, len = mSegments.size(); i < len; ++i) {
-                char[] curr = (char[]) mSegments.get(i);
+                char[] curr = mSegments.get(i);
                 sb.append(curr, 0, curr.length);
             }
         }
@@ -640,7 +640,7 @@ public final class TextBuffer
             // First stored segments
             if (mSegments != null) {
                 for (int i = 0, len = mSegments.size(); i < len; ++i) {
-                    char[] curr = (char[]) mSegments.get(i);
+                    char[] curr = mSegments.get(i);
                     sb.append(curr, 0, curr.length);
                 }
             }
@@ -1270,27 +1270,27 @@ public final class TextBuffer
     private final static class BufferReader
         extends Reader
     {
-        ArrayList _Segments;
-        char[] _CurrentSegment;
-        final int _CurrentLength;
+        ArrayList<char[]> _segments;
+        char[] _currentSegment;
+        final int _currentLength;
         
-        int _SegmentIndex;
-        int _SegmentOffset;
-        int _CurrentOffset;
+        int _segmentIndex;
+        int _segmentOffset;
+        int _currentOffset;
         
-        public BufferReader(ArrayList segs, char[] currSeg, int currSegLen)
+        public BufferReader(ArrayList<char[]> segs, char[] currSeg, int currSegLen)
         {
-            _Segments = segs;
-            _CurrentSegment = currSeg;
-            _CurrentLength = currSegLen;
+            _segments = segs;
+            _currentSegment = currSeg;
+            _currentLength = currSegLen;
             
-            _SegmentIndex = 0;
-            _SegmentOffset = _CurrentOffset = 0;
+            _segmentIndex = 0;
+            _segmentOffset = _currentOffset = 0;
         }
         
         public void close() {
-            _Segments = null;
-            _CurrentSegment = null;
+            _segments = null;
+            _currentSegment = null;
         }
         
         public void mark(int x)
@@ -1311,39 +1311,39 @@ public final class TextBuffer
             
             int origOffset = offset;
             // First need to copy stuff from previous segments
-            while (_Segments != null) {
-                char[] curr = (char[]) _Segments.get(_SegmentIndex);
-                int max = curr.length - _SegmentOffset;
+            while (_segments != null) {
+                char[] curr = _segments.get(_segmentIndex);
+                int max = curr.length - _segmentOffset;
                 if (len <= max) { // this is enough
-                    System.arraycopy(curr, _SegmentOffset, cbuf, offset, len);
-                    _SegmentOffset += len;
+                    System.arraycopy(curr, _segmentOffset, cbuf, offset, len);
+                    _segmentOffset += len;
                     offset += len;
                     return (offset - origOffset);
                 }
                 // Not enough, but helps...
                 if (max > 0) {
-                    System.arraycopy(curr, _SegmentOffset, cbuf, offset, max);
+                    System.arraycopy(curr, _segmentOffset, cbuf, offset, max);
                     offset += max;
                 }
-                if (++_SegmentIndex >= _Segments.size()) { // last one
-                    _Segments = null;
+                if (++_segmentIndex >= _segments.size()) { // last one
+                    _segments = null;
                 } else {
-                    _SegmentOffset = 0;
+                    _segmentOffset = 0;
                 }
             }
             
             // ok, anything to copy from the active segment?
-            if (len > 0 && _CurrentSegment != null) {
-                int max = _CurrentLength - _CurrentOffset;
+            if (len > 0 && _currentSegment != null) {
+                int max = _currentLength - _currentOffset;
                 if (len >= max) { // reading it all
                     len = max;
-                    System.arraycopy(_CurrentSegment, _CurrentOffset,
+                    System.arraycopy(_currentSegment, _currentOffset,
                                      cbuf, offset, len);
-                    _CurrentSegment = null;
+                    _currentSegment = null;
                 } else {
-                    System.arraycopy(_CurrentSegment, _CurrentOffset,
+                    System.arraycopy(_currentSegment, _currentOffset,
                                      cbuf, offset, len);
-                    _CurrentOffset += len;
+                    _currentOffset += len;
                 }
                 offset += len;
             }
@@ -1372,31 +1372,31 @@ public final class TextBuffer
             
             long origAmount= amount;
             
-            while (_Segments != null) {
-                char[] curr = (char[]) _Segments.get(_SegmentIndex);
-                int max = curr.length - _SegmentOffset;
+            while (_segments != null) {
+                char[] curr = (char[]) _segments.get(_segmentIndex);
+                int max = curr.length - _segmentOffset;
                 if (max >= amount) { // this is enough
-                    _SegmentOffset += (int) amount;
+                    _segmentOffset += (int) amount;
                     return origAmount;
                 }
 		// Not enough, but helps...
                 amount -= max;
-                if (++_SegmentIndex >= _Segments.size()) { // last one
-                    _Segments = null;
+                if (++_segmentIndex >= _segments.size()) { // last one
+                    _segments = null;
                 } else {
-                    _SegmentOffset = 0;
+                    _segmentOffset = 0;
                 }
             }
             
             // ok, anything left in the active segment?
-            if (amount > 0 && _CurrentSegment != null) {
-                int max = _CurrentLength - _CurrentOffset;
+            if (amount > 0 && _currentSegment != null) {
+                int max = _currentLength - _currentOffset;
                 if (amount >= max) { // reading it all
                     amount -= max;
-                    _CurrentSegment = null;
+                    _currentSegment = null;
                 } else {
                     amount = 0L;
-                    _CurrentOffset += (int) amount;
+                    _currentOffset += (int) amount;
                 }
             }
             

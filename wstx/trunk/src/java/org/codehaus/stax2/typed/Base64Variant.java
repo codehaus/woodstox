@@ -117,7 +117,8 @@ public final class Base64Variant
     ////////////////////////////////////////////////////
      */
 
-    public Base64Variant(String name, String base64Alphabet, boolean usesPadding, char paddingChar, int maxLineLength)
+    @SuppressWarnings("cast")
+	public Base64Variant(String name, String base64Alphabet, boolean usesPadding, char paddingChar, int maxLineLength)
     {
         _name = name;
         _usesPadding = usesPadding;
@@ -201,13 +202,15 @@ public final class Base64Variant
     /**
      * @return 6-bit decoded value, if valid character; 
      */
-    public int decodeBase64Char(char c)
+    @SuppressWarnings("cast")
+	public int decodeBase64Char(char c)
     {
         int ch = (int) c;
         return (ch <= 127) ? _asciiToBase64[ch] : BASE64_VALUE_INVALID;
     }
 
-    public int decodeBase64Byte(byte b)
+    @SuppressWarnings("cast")
+	public int decodeBase64Byte(byte b)
     {
         int ch = (int) b;
         return (ch <= 127) ? _asciiToBase64[ch] : BASE64_VALUE_INVALID;

@@ -25,6 +25,7 @@ import com.ctc.wstx.util.StringUtil;
  * handling is necessary for setting the root cause in backwards compatible
  * way.
  */
+@SuppressWarnings("serial")
 public class WstxValidationException
     extends XMLValidationException
 {

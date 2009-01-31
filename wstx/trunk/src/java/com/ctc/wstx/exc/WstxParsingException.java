@@ -5,6 +5,7 @@ import javax.xml.stream.Location;
 /**
  * Intermediate base class for reporting actual Wstx parsing problems.
  */
+@SuppressWarnings("serial")
 public class WstxParsingException
     extends WstxException
 {

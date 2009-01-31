@@ -91,7 +91,6 @@ public final class DTDEntitiesAttr
             if (!WstxInputData.isNameStartChar(c, mCfgNsAware, mCfgXml11)) {
                 return reportInvalidChar(v, c, "not valid as the first ENTITIES character");
             }
-            int hash = (int) c;
             int i = start+1;
             for (; i <= end; ++i) {
                 c = cbuf[i];
@@ -101,10 +100,9 @@ public final class DTDEntitiesAttr
                 if (!WstxInputData.isNameChar(c, mCfgNsAware, mCfgXml11)) {
                     return reportInvalidChar(v, c, "not valid as an ENTITIES character");
                 }
-                hash = (hash * 31) + (int) c;
             }
 
-            EntityDecl ent = findEntityDecl(v, cbuf, start, (i - start), hash);
+            EntityDecl ent = findEntityDecl(v, cbuf, start, (i - start));
             // only returns if entity was found...
             
             // Can skip the trailing space char (if there was one)

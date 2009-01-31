@@ -446,7 +446,7 @@ public final class NsInputElementStack
         // Otherwise, we need to create a new non-empty context:
         int localCount = getCurrentNsCount() << 1;
         BaseNsContext nsCtxt = new CompactNsContext
-            (loc, getDefaultNsURI(),
+            (loc, /*getDefaultNsURI(),*/
              mNamespaces.asArray(), totalNsSize,
              totalNsSize - localCount);
         /* And it can be shared if there are no new ('local', ie. included

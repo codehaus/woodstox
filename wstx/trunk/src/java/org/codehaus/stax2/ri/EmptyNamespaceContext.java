@@ -61,7 +61,7 @@ public class EmptyNamespaceContext
         return null;
     }
 
-    public final Iterator getPrefixes(String nsURI)
+    public final Iterator<String> getPrefixes(String nsURI)
     {
         /* First the known offenders; invalid args, 2 predefined xml namespace
          * prefixes
@@ -70,10 +70,10 @@ public class EmptyNamespaceContext
             throw new IllegalArgumentException("Illegal to pass null/empty prefix as argument.");
         }
         if (nsURI.equals(XMLConstants.XML_NS_URI)) {
-            return new SingletonIterator(XMLConstants.XML_NS_PREFIX);
+            return new SingletonIterator<String>(XMLConstants.XML_NS_PREFIX);
         }
         if (nsURI.equals(XMLConstants.XMLNS_ATTRIBUTE_NS_URI)) {
-            return new SingletonIterator(XMLConstants.XMLNS_ATTRIBUTE);
+            return new SingletonIterator<String>(XMLConstants.XMLNS_ATTRIBUTE);
         }
 
         return EmptyIterator.getInstance();

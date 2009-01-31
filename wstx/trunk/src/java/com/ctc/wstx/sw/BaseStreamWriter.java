@@ -1687,7 +1687,7 @@ public abstract class BaseStreamWriter
     public void reportValidationProblem(Location loc, String msg)
         throws XMLStreamException
     {
-        reportProblem(new XMLValidationProblem(getValidationLocation(), msg));
+        reportProblem(new XMLValidationProblem(loc, msg));
     }
 
     public void reportValidationProblem(String format, Object arg)

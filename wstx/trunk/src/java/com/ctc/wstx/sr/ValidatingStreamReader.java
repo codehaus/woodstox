@@ -181,7 +181,7 @@ public class ValidatingStreamReader
             if (value != null && !(value instanceof DTDValidationSchema)) {
                 throw new IllegalArgumentException("Value to set for feature "+name+" not of type DTDValidationSchema");
             }
-            mConfig.setProperty(XMLInputFactory2.P_DTD_OVERRIDE, (DTDValidationSchema) value);
+            mConfig.setProperty(XMLInputFactory2.P_DTD_OVERRIDE, value);
         } else {
             super.setFeature(name, value);
         }

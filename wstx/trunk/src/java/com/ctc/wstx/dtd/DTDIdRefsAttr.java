@@ -52,7 +52,8 @@ public final class DTDIdRefsAttr
     ///////////////////////////////////////////////////
      */
 
-    public String validate(DTDValidatorBase v, char[] cbuf, int start, int end, boolean normalize)
+    @SuppressWarnings("cast")
+	public String validate(DTDValidatorBase v, char[] cbuf, int start, int end, boolean normalize)
         throws XMLStreamException
     {
         /* Let's skip leading/trailing white space, even if we are not

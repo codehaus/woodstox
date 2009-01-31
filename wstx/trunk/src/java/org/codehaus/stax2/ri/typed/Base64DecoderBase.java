@@ -270,7 +270,7 @@ abstract class Base64DecoderBase
             // Not sure if we can really get here... ? (most illegal xml chars are caught at lower level)
             base = "Illegal character (code 0x"+Integer.toHexString(ch)+") in base64 content";
         } else {
-            base = "Illegal character '"+((char)ch)+"' (code 0x"+Integer.toHexString(ch)+") in base64 content";
+            base = "Illegal character '"+(ch)+"' (code 0x"+Integer.toHexString(ch)+") in base64 content";
         }
         if (msg != null) {
             base = base + ": " + msg;

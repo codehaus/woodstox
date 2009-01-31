@@ -614,7 +614,7 @@ public abstract class DOMWrappingReader
             handleIllegalNsIndex(index);
         }
         // Note: _nsDeclList entries have been appropriately intern()ed if need be
-        return (String) _nsDeclList.get(index + index);
+        return _nsDeclList.get(index + index);
     }
 
     public String getNamespaceURI() {
@@ -638,7 +638,7 @@ public abstract class DOMWrappingReader
             handleIllegalNsIndex(index);
         }
         // Note: _nsDeclList entries have been appropriately intern()ed if need be
-        return (String) _nsDeclList.get(index + index + 1);
+        return _nsDeclList.get(index + index + 1);
     }
 
     // Note: implemented as part of NamespaceContext
@@ -1974,6 +1974,9 @@ public abstract class DOMWrappingReader
     ////////////////////////////////////////////
      */
 
+    /**
+	 * @param initialType  Type of the first textual event
+	 */
     protected void coalesceText(int initialType)
     {
         _textBuffer.reset();
@@ -2025,7 +2028,7 @@ public abstract class DOMWrappingReader
         if (!_cfgNsAware) {
             _attrList = new ArrayList<Node>(len);
             for (int i = 0; i < len; ++i) {
-                _attrList.add((Attr)attrsIn.item(i));
+                _attrList.add(attrsIn.item(i));
             }
             _nsDeclList = Collections.emptyList();
             return;

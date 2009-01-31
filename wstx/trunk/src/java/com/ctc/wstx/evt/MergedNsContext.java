@@ -35,20 +35,24 @@ public class MergedNsContext
     /**
      * List of {@link Namespace} instances.
      */
-    final List mNamespaces;
+    final List<Namespace> mNamespaces;
 
-    Map mNsByPrefix = null;
+    Map<String,Namespace> mNsByPrefix = null;
 
-    Map mNsByURI = null;
+    Map<String,Namespace> mNsByURI = null;
 
-    protected MergedNsContext(NamespaceContext parentCtxt, List localNs)
+    protected MergedNsContext(NamespaceContext parentCtxt, List<Namespace> localNs)
     {
         mParentCtxt = parentCtxt;
-        mNamespaces = (localNs == null) ? Collections.EMPTY_LIST : localNs;
+        if (localNs == null){
+            mNamespaces = Collections.emptyList();
+        } else {
+            mNamespaces = localNs;
+        }
     }
 
     public static BaseNsContext construct(NamespaceContext parentCtxt,
-                                          List localNs)
+                                          List<Namespace> localNs)
     {
         return new MergedNsContext(parentCtxt, localNs);
     }
@@ -65,7 +69,7 @@ public class MergedNsContext
         if (mNsByPrefix == null) {
             mNsByPrefix = buildByPrefixMap();
         }
-        Namespace ns = (Namespace) mNsByPrefix.get(prefix);
+        Namespace ns = mNsByPrefix.get(prefix);
         if (ns == null && mParentCtxt != null) {
             return mParentCtxt.getNamespaceURI(prefix);
         }
@@ -78,27 +82,27 @@ public class MergedNsContext
         if (mNsByURI == null) {
             mNsByURI = buildByNsURIMap();
         }
-        Namespace ns = (Namespace) mNsByURI.get(nsURI);
+        Namespace ns = mNsByURI.get(nsURI);
         if (ns == null && mParentCtxt != null) {
             return mParentCtxt.getPrefix(nsURI);
         }
         return (ns == null) ? null : ns.getPrefix();
     }
 
-    public Iterator doGetPrefixes(String nsURI)
+	public Iterator<String> doGetPrefixes(String nsURI)
     {
         // Note: base class checks for 'known' problems and prefixes:
-        ArrayList l = null;
+        ArrayList<String> l = null;
 
         for (int i = 0, len = mNamespaces.size(); i < len; ++i) {
-            Namespace ns = (Namespace) mNamespaces.get(i);
+            Namespace ns = mNamespaces.get(i);
             String uri = ns.getNamespaceURI();
             if (uri == null) {
                 uri = "";
             }
             if (uri.equals(nsURI)) {
                 if (l == null) {
-                    l = new ArrayList();
+                    l = new ArrayList<String>();
                 }
                 String prefix = ns.getPrefix();
                 l.add((prefix == null) ? "" : prefix);
@@ -106,7 +110,8 @@ public class MergedNsContext
         }
 
         if (mParentCtxt != null) {
-            Iterator it = mParentCtxt.getPrefixes(nsURI);
+            @SuppressWarnings("unchecked")
+            Iterator<String> it = /*(Iterator<String>)*/mParentCtxt.getPrefixes(nsURI);
             if (l == null) {
                 return it;
             }
@@ -115,7 +120,10 @@ public class MergedNsContext
             }
         }
 
-        return (l == null) ? EmptyIterator.getInstance() : l.iterator();
+        if (l == null) {
+        	return EmptyIterator.getInstance();
+        }
+    	return l.iterator();
     }
 
     /*
@@ -128,7 +136,7 @@ public class MergedNsContext
      * Method that returns information about namespace definition declared
      * in this scope; not including ones declared in outer scopes.
      */
-    public Iterator getNamespaces()
+    public Iterator<Namespace> getNamespaces()
     {
         return mNamespaces.iterator();
     }
@@ -136,7 +144,7 @@ public class MergedNsContext
     public void outputNamespaceDeclarations(Writer w) throws IOException
     {
         for (int i = 0, len = mNamespaces.size(); i < len; ++i) {
-            Namespace ns = (Namespace) mNamespaces.get(i);
+            Namespace ns = mNamespaces.get(i);
             w.write(' ');
             w.write(XMLConstants.XMLNS_ATTRIBUTE);
             if (!ns.isDefaultNamespaceDeclaration()) {
@@ -157,7 +165,7 @@ public class MergedNsContext
     public void outputNamespaceDeclarations(XMLStreamWriter w) throws XMLStreamException
     {
         for (int i = 0, len = mNamespaces.size(); i < len; ++i) {
-            Namespace ns = (Namespace) mNamespaces.get(i);
+            Namespace ns = mNamespaces.get(i);
             if (ns.isDefaultNamespaceDeclaration()) {
                 w.writeDefaultNamespace(ns.getNamespaceURI());
             } else {
@@ -172,16 +180,16 @@ public class MergedNsContext
     /////////////////////////////////////////////
      */
 
-    private Map buildByPrefixMap()
+    private Map<String,Namespace> buildByPrefixMap()
     {
         int len = mNamespaces.size();
         if (len == 0) {
-            return Collections.EMPTY_MAP;
+            return Collections.emptyMap();
         }
 
-        LinkedHashMap m = new LinkedHashMap(1 + len + (len>>1));
+        LinkedHashMap<String,Namespace> m = new LinkedHashMap<String,Namespace>(1 + len + (len>>1));
         for (int i = 0; i < len; ++i) {
-            Namespace ns = (Namespace) mNamespaces.get(i);
+            Namespace ns = mNamespaces.get(i);
             String prefix = ns.getPrefix();
             if (prefix == null) { // shouldn't happen but...
                 prefix = "";
@@ -191,16 +199,16 @@ public class MergedNsContext
         return m;
     }
 
-    private Map buildByNsURIMap()
+    private Map<String,Namespace> buildByNsURIMap()
     {
         int len = mNamespaces.size();
         if (len == 0) {
-            return Collections.EMPTY_MAP;
+            return Collections.emptyMap();
         }
 
-        LinkedHashMap m = new LinkedHashMap(1 + len + (len>>1));
+        LinkedHashMap<String,Namespace> m = new LinkedHashMap<String,Namespace>(1 + len + (len>>1));
         for (int i = 0; i < len; ++i) {
-            Namespace ns = (Namespace) mNamespaces.get(i);
+            Namespace ns = mNamespaces.get(i);
             String uri = ns.getNamespaceURI();
             if (uri == null) { // shouldn't happen but...
                 uri = "";

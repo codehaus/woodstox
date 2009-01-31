@@ -2103,6 +2103,7 @@ public abstract class BasicStreamReader
      * root element was closed. This is legal in multi-doc parsing
      * mode (and in fragment mode), but not in the default single-doc
      * mode. 
+     * @param c Character passed in (not currently used)
      *
      * @return Token to return
      */
@@ -3785,8 +3786,8 @@ public abstract class BasicStreamReader
         /* Output pointers; calls will also ensure that the buffer is
          * not shared, AND has room for at least one more char
          */
-        char[] outBuf = mTextBuffer.getCurrentSegment();
-        int outPtr = mTextBuffer.getCurrentSegmentSize();
+        char[] outBuf = tb.getCurrentSegment();
+        int outPtr = tb.getCurrentSegmentSize();
         int outLen = outBuf.length;
 
         while (true) {
@@ -4333,7 +4334,7 @@ public abstract class BasicStreamReader
                 // Perhaps we have now enough to return?
                 if (!mCfgCoalesceText) {
                     tb.setCurrentLength(outBuf.length);
-                    if (tb.size() >= mShortestTextSegment) {
+                    if (tb.size() >= shortestSegment) {
                         mInputPtr = inputPtr;
                         return false;
                     }
@@ -5357,7 +5358,7 @@ public abstract class BasicStreamReader
     protected EntityDecl findEntity(String id, Object arg)
         throws XMLStreamException
     {
-        EntityDecl ed = (EntityDecl) mConfig.findCustomInternalEntity(id);
+        EntityDecl ed = mConfig.findCustomInternalEntity(id);
         if (ed == null && mGeneralEntities != null) {
             ed = mGeneralEntities.get(id);
         }
@@ -5423,13 +5424,13 @@ public abstract class BasicStreamReader
     private void throwNotTextual(int type)
     {
         throw new IllegalStateException("Not a textual event ("
-                                        +tokenTypeDesc(mCurrToken)+")");
+                                        +tokenTypeDesc(type)+")");
     }
 
     private void throwNotTextXxx(int type)
     {
         throw new IllegalStateException("getTextXxx() methods can not be called on "
-                                        +tokenTypeDesc(mCurrToken));
+                                        +tokenTypeDesc(type));
     }
 
     protected void throwNotTextualOrElem(int type)
@@ -5477,6 +5478,8 @@ public abstract class BasicStreamReader
      * that's not valid for current element context. Defined at this
      * level since some such problems need to be caught at low-level;
      * however, details of error reports are not needed here.
+     * 
+     * @param evtType Type of event that contained unexpected content
      */
     protected void reportInvalidContent(int evtType)
         throws XMLStreamException

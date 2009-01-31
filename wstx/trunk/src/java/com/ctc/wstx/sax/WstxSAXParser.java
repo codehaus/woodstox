@@ -46,6 +46,7 @@ import com.ctc.wstx.util.URLUtil;
  * effectively offers an alternative to using Stax input factory /
  * stream reader combination.
  */
+@SuppressWarnings("deprecation")
 public class WstxSAXParser
     extends SAXParser
     implements Parser // SAX1
@@ -1091,7 +1092,7 @@ public class WstxSAXParser
     private void throwSaxException(Exception e)
         throws SAXException
     {
-        SAXParseException se = new SAXParseException(e.getMessage(), (Locator) this, e);
+        SAXParseException se = new SAXParseException(e.getMessage(), /*(Locator)*/ this, e);
         se.initCause(e);
         if (mErrorHandler != null) {
             mErrorHandler.fatalError(se);
@@ -1102,7 +1103,7 @@ public class WstxSAXParser
     private void throwSaxException(String msg)
         throws SAXException
     {
-        SAXParseException se = new SAXParseException(msg, (Locator) this);
+        SAXParseException se = new SAXParseException(msg, /*(Locator)*/ this);
         if (mErrorHandler != null) {
             mErrorHandler.fatalError(se);
         }
@@ -1184,8 +1185,7 @@ public class WstxSAXParser
             mDocHandler.characters(ch, start, length);
         }
 
-        public void endDocument()
-            throws SAXException
+        public void endDocument() throws SAXException
         {
             mDocHandler.endDocument();
         }

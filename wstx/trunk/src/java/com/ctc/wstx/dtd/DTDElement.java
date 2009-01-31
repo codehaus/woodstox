@@ -311,6 +311,10 @@ public final class DTDElement
      * Method called to add a definition of a namespace-declaration
      * pseudo-attribute with a default value.
      *
+     * @param rep Reporter to use to report non-fatal problems
+     * @param fullyValidate Whether this is being invoked for actual DTD validation,
+     *   or just the "typing non-validator"
+     *
      * @return Attribute that acts as the placeholder, if the declaration
      *   was added; null to indicate it
      *   was a dup (there was an earlier declaration)

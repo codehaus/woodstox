@@ -109,9 +109,9 @@ public final class WstxEventFactory
      * Must override this method to use a more efficient StartElement
      * implementation
      */
-    //@Override
-    protected StartElement createStartElement(QName name, Iterator attr,
-                                              Iterator ns, NamespaceContext ctxt)
+    @Override
+    protected StartElement createStartElement(QName name, Iterator<Attribute> attr,
+                                              Iterator<Namespace> ns, NamespaceContext ctxt)
     {
         return SimpleStartElement.construct(mLocation, name, attr, ns, ctxt);
     }

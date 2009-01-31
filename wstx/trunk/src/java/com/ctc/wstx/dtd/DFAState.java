@@ -72,7 +72,7 @@ public final class DFAState
         PrefixedName[] tokenNames = new PrefixedName[flen];
         for (int i = 0; i < flen; ++i) {
             followPos[i] = new BitSet(flen);
-            tokenNames[i] = ((TokenModel) tokens.get(i)).getName();
+            tokenNames[i] = tokens.get(i).getName();
         }
         dummyRoot.calcFollowPos(followPos);
 
@@ -90,7 +90,7 @@ public final class DFAState
 
         int i = 0;
         while (i < stateList.size()) {
-            DFAState curr = (DFAState) stateList.get(i++);
+            DFAState curr = stateList.get(i++);
             curr.calcNext(tokenNames, followPos, stateList, stateMap);
         }
 
@@ -120,7 +120,7 @@ public final class DFAState
     }
 
     public DFAState findNext(PrefixedName elemName) {
-        return (DFAState) mNext.get(elemName);
+        return mNext.get(elemName);
     }
 
     public TreeSet<PrefixedName> getNextNames() {
@@ -169,7 +169,7 @@ public final class DFAState
             }
 
             // Ok; is it a new group?
-            DFAState next = (DFAState) stateMap.get(nextGroup);
+            DFAState next = stateMap.get(nextGroup);
             if (next == null) { // yup!
                 next = new DFAState(stateList.size(), nextGroup);
                 stateList.add(next);

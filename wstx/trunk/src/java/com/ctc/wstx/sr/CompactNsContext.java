@@ -59,7 +59,7 @@ public final class CompactNsContext
      */
     transient ArrayList<Namespace> mNsList;
 
-    public CompactNsContext(Location loc, String defaultNsURI,
+    public CompactNsContext(Location loc,
                             String[] namespaces, int nsLen,
                             int firstLocal)
     {

@@ -369,7 +369,7 @@ public abstract class DTDValidatorBase
     public boolean mayHaveNsDefaults(String elemPrefix, String elemLN)
     {
         mTmpKey.reset(elemPrefix, elemLN);
-        DTDElement elem = (DTDElement) mElemSpecs.get(mTmpKey);
+        DTDElement elem = mElemSpecs.get(mTmpKey);
         mCurrElem = elem;
         return (elem != null) && elem.hasNsDefaults();
     }

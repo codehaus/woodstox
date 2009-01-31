@@ -5,6 +5,7 @@ import java.util.Iterator;
 
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.stream.XMLStreamWriter;
+import javax.xml.stream.events.Namespace;
 
 import org.codehaus.stax2.ri.EmptyIterator;
 
@@ -32,8 +33,8 @@ public final class EmptyNamespaceContext
     /////////////////////////////////////////////
      */
 
-    public Iterator getNamespaces() {
-        return EmptyIterator.getInstance();
+    public Iterator<Namespace> getNamespaces() {
+      	return EmptyIterator.getInstance();
     }
 
     /**
@@ -65,7 +66,7 @@ public final class EmptyNamespaceContext
         return null;
     }
 
-    public Iterator doGetPrefixes(String nsURI) {
+    public Iterator<String> doGetPrefixes(String nsURI) {
         return EmptyIterator.getInstance();
     }
 }

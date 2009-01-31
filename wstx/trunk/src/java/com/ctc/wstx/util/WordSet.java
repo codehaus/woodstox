@@ -86,7 +86,8 @@ public final class WordSet
         return contains(mData, buf, start, end);
     }
 
-    public static boolean contains(char[] data, char[] str, int start, int end)
+    @SuppressWarnings("cast")
+	public static boolean contains(char[] data, char[] str, int start, int end)
     {
         int ptr = 0; // pointer to compressed set data
 

@@ -118,7 +118,7 @@ public class DTDTypingNonValidator
     {
         // Ok, can we find the element definition?
         mTmpKey.reset(prefix, localName);
-        DTDElement elem = (DTDElement) mElemSpecs.get(mTmpKey);
+        DTDElement elem = mElemSpecs.get(mTmpKey);
         // whether it's found or not, let's add a stack frame:
         int elemCount = mElemCount++;
         if (elemCount >= mElems.length) {
@@ -220,7 +220,7 @@ public class DTDTypingNonValidator
         throws XMLStreamException
     {
         // note: cut'n pasted from above...
-        DTDAttribute attr = (DTDAttribute) mCurrAttrDefs.get(mTmpKey.reset(prefix, localName));
+        DTDAttribute attr = mCurrAttrDefs.get(mTmpKey.reset(prefix, localName));
         int index = mAttrCount++;
         if (index >= mAttrSpecs.length) {
             mAttrSpecs = (DTDAttribute[]) DataUtil.growArrayBy50Pct(mAttrSpecs);
@@ -254,7 +254,7 @@ public class DTDTypingNonValidator
             int ix = specBits.nextClearBit(0);
             while (ix < specCount) { // something amiss!
                 List<DTDAttribute> specAttrs = elem.getSpecialAttrs();
-                DTDAttribute attr = (DTDAttribute) specAttrs.get(ix);
+                DTDAttribute attr = specAttrs.get(ix);
                 if (attr.hasDefaultValue()) { // no default for #REQUIRED...
                     doAddDefaultValue(attr);
                 }

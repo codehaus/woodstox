@@ -23,7 +23,7 @@ import org.codehaus.stax2.validation.XMLValidator;
 
 import com.ctc.wstx.api.WriterConfig;
 import com.ctc.wstx.cfg.XmlConsts;
-import com.ctc.wstx.io.CompletelyCloseable;
+//import com.ctc.wstx.io.CompletelyCloseable;
 
 /**
  * Intermediate base class used when outputting to streams that use

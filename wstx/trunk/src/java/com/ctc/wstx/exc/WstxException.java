@@ -25,6 +25,7 @@ import com.ctc.wstx.util.StringUtil;
  * Base class for all implementatations of {@link XMLStreamException}
  * Wstx uses.
  */
+@SuppressWarnings("serial")
 public class WstxException
     extends XMLStreamException
 {

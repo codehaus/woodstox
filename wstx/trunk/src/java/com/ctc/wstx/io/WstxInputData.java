@@ -454,7 +454,8 @@ public class WstxInputData
         return (c <= CHAR_SPACE);
     }
 
-    public static String getCharDesc(char c)
+    @SuppressWarnings("cast")
+	public static String getCharDesc(char c)
     {
         int i = (int) c;
         if (Character.isISOControl(c)) {

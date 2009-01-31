@@ -131,7 +131,7 @@ public class DTDValidator
          */
         mTmpKey.reset(prefix, localName);
 
-        DTDElement elem = (DTDElement) mElemSpecs.get(mTmpKey);
+        DTDElement elem = mElemSpecs.get(mTmpKey);
 
         /* Let's add the entry in (even if it's a null); this is necessary
          * to keep things in-sync if allowing graceful handling of validity
@@ -200,7 +200,7 @@ public class DTDValidator
                                     String prefix, String value)
         throws XMLStreamException
     {
-        DTDAttribute attr = (DTDAttribute) mCurrAttrDefs.get(mTmpKey.reset(prefix, localName));
+        DTDAttribute attr = mCurrAttrDefs.get(mTmpKey.reset(prefix, localName));
         if (attr == null) {
             // Only report error if not already covering from an error:
             if (mCurrElem == null) {
@@ -237,7 +237,7 @@ public class DTDValidator
                                     int valueEnd)
         throws XMLStreamException
     {
-        DTDAttribute attr = (DTDAttribute) mCurrAttrDefs.get(mTmpKey.reset(prefix, localName));
+        DTDAttribute attr = mCurrAttrDefs.get(mTmpKey.reset(prefix, localName));
         if (attr == null) {
             // Only report error if not already covering from an error:
             if (mCurrElem == null) {
@@ -291,8 +291,8 @@ public class DTDValidator
             int specCount = elem.getSpecialCount();
             int ix = specBits.nextClearBit(0);
             while (ix < specCount) { // something amiss!
-                List specAttrs = elem.getSpecialAttrs();
-                DTDAttribute attr = (DTDAttribute) specAttrs.get(ix);
+                List<DTDAttribute> specAttrs = elem.getSpecialAttrs();
+                DTDAttribute attr = specAttrs.get(ix);
 
                 /* [WSTX-155]: Problems if reportValidationProblem returns
                  *   ok (which happens if a reporter handles it). So what

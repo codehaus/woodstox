@@ -65,13 +65,13 @@ public final class BufferingXmlWriter
      * Highest valued character that may need to be encoded (minus charset
      * encoding requirements) when writing attribute values.
      */
-    protected final static int HIGHEST_ENCODABLE_ATTR_CHAR = (int)'<';
+    protected final static int HIGHEST_ENCODABLE_ATTR_CHAR = '<';
 
     /**
      * Highest valued character that may need to be encoded (minus charset
      * encoding requirements) when writing attribute values.
      */
-    protected final static int HIGHEST_ENCODABLE_TEXT_CHAR = (int)'>';
+    protected final static int HIGHEST_ENCODABLE_TEXT_CHAR = '>';
 
     /*
     ////////////////////////////////////////////////

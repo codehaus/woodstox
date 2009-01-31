@@ -66,6 +66,7 @@ public final class UTF8Reader
     ////////////////////////////////////////
     */
 
+    @SuppressWarnings("cast")
     public int read(char[] cbuf, int start, int len)
         throws IOException
     {
@@ -344,7 +345,7 @@ public final class UTF8Reader
      * @return True, if enough bytes were read to allow decoding of at least
      *   one full character; false if EOF was encountered instead.
      */
-    private boolean loadMore(int available)
+	private boolean loadMore(int available)
         throws IOException
     {
         mByteCount += (mByteBufferEnd - available);
@@ -379,6 +380,7 @@ public final class UTF8Reader
         /* We now have at least one byte... and that allows us to
          * calculate exactly how many bytes we need!
          */
+        @SuppressWarnings("cast")
         int c = (int) mByteBuffer[mBytePtr];
         if (c >= 0) { // single byte (ascii) char... cool, can return
             return true;

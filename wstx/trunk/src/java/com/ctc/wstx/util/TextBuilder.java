@@ -148,7 +148,7 @@ public final class TextBuilder
 
     public char[] bufferFull(int needSpaceFor) {
         mBufferLen = mBuffer.length;
-        resize(1);
+        resize(needSpaceFor);
         return mBuffer;
     }
 

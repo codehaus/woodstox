@@ -254,6 +254,8 @@ public abstract class DTDAttribute
      * The only exception is that CDATA will not do any normalization. But
      * for now, let's implement basic functionality that CDTA instance will
      * override
+     * 
+     * @param v Validator that invoked normalization
      *
      * @return Normalized value as a String, if any changes were done; 
      *  null if input was normalized
@@ -440,7 +442,7 @@ public abstract class DTDAttribute
     }
 
     protected EntityDecl findEntityDecl(DTDValidatorBase v,
-                                        char[] ch, int start, int len, int hash)
+                                        char[] ch, int start, int len /*, int hash*/)
         throws XMLStreamException
     {
         Map<String,EntityDecl> entMap = v.getEntityMap();
@@ -448,7 +450,7 @@ public abstract class DTDAttribute
          *   could use/share a symbol table. Or at least reuse Strings...
          */
         String id = new String(ch, start, len);
-        EntityDecl ent = (EntityDecl) entMap.get(id);
+        EntityDecl ent = entMap.get(id);
 
         if (ent == null) {
             reportValidationProblem(v, "Referenced entity '"+id+"' not defined");

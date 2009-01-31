@@ -68,7 +68,8 @@ public final class DTDIdAttr
      * to let the attribute do necessary normalization and/or validation
      * for the value.
      */
-    public String validate(DTDValidatorBase v, char[] cbuf, int start, int end, boolean normalize)
+    @SuppressWarnings("cast")
+	public String validate(DTDValidatorBase v, char[] cbuf, int start, int end, boolean normalize)
         throws XMLStreamException
     {
         // Let's trim leading white space first...

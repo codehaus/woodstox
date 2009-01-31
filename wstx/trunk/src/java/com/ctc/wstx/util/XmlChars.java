@@ -354,7 +354,7 @@ public final class XmlChars
     
     private XmlChars() { }
 
-    public final static boolean is10NameStartChar(char c)
+	public final static boolean is10NameStartChar(char c)
     {
         // First, let's deal with outliers
         if (c > 0x312C) { // Most valid chars are below this..
@@ -371,6 +371,7 @@ public final class XmlChars
             return (c <= 0xDBFF && c >= 0xD800);
         }
         // but then we'll just need to use the table...
+        @SuppressWarnings("cast")
         int ix = (int) c;
         return (sXml10StartChars[ix >> 5] & (1 << (ix & 31))) != 0;
     }
@@ -392,6 +393,7 @@ public final class XmlChars
             return (c >= 0xD800 && c <= 0xDFFF);
         }
         // but then we'll just need to use the table...
+        @SuppressWarnings("cast")
         int ix = (int) c;
         return (sXml10Chars[ix >> 5] & (1 << (ix & 31))) != 0;
     }

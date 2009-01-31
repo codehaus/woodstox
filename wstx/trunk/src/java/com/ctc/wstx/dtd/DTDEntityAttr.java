@@ -77,17 +77,14 @@ public final class DTDEntityAttr
         if (!WstxInputData.isNameStartChar(c, mCfgNsAware, mCfgXml11) && c != ':') {
             return reportInvalidChar(v, c, "not valid as the first ID character");
         }
-        int hash = (int) c;
-
         for (int i = start+1; i <= end; ++i) {
             c = cbuf[i];
             if (!WstxInputData.isNameChar(c, mCfgNsAware, mCfgXml11)) {
                 return reportInvalidChar(v, c, "not valid as an ID character");
             }
-            hash = (hash * 31) + (int) c;
         }
 
-        EntityDecl ent = findEntityDecl(v, cbuf, start, (end - start + 1), hash);
+        EntityDecl ent = findEntityDecl(v, cbuf, start, (end - start + 1));
         // only returns if it succeeded...
 
         return normalize ? ent.getName() : null;
