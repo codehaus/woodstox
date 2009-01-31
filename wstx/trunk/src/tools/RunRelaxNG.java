@@ -75,8 +75,8 @@ public class RunRelaxNG
                         System.out.println();
                     }
                 } else if (type == DTD) {
-                    List entities = (List) streamReader.getProperty("javax.xml.stream.entities");
-                    List notations = (List) streamReader.getProperty("javax.xml.stream.notations");
+                    List<?> entities = (List<?>) streamReader.getProperty("javax.xml.stream.entities");
+                    List<?> notations = (List<?>) streamReader.getProperty("javax.xml.stream.notations");
                     int entCount = (entities == null) ? -1 : entities.size();
                     int notCount = (notations == null) ? -1 : notations.size();
                     System.out.println(" DTD ("+entCount+" entities, "+notCount

@@ -12,8 +12,9 @@ import java.util.HashMap;
  * Note: that this class extends {@link HashMap} is an implementation
  * detail -- no code should ever directly call Map methods.
  */
+@SuppressWarnings("serial")
 public final class InternCache
-    extends HashMap
+    extends HashMap<String,String>
 {
     /**
      * Let's create cache big enough to usually have enough space for
@@ -37,7 +38,7 @@ public final class InternCache
     }
 
     public synchronized String intern(String input) {
-        String result = (String) get(input);
+        String result = get(input);
         if (result == null) {
             result = input.intern();
             put(result, result);

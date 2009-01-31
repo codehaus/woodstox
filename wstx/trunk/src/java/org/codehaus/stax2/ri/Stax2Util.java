@@ -96,7 +96,8 @@ public final class Stax2Util
      * alternatives (linefeed for element content, regular space
      * for attributes)
      */
-    private final static boolean _isSpace(char c)
+    @SuppressWarnings("cast")
+	private final static boolean _isSpace(char c)
     {
         return ((int) c) <= 0x0020;
     }
@@ -240,6 +241,7 @@ public final class Stax2Util
              * wasted space.
              */
             int newSize = Math.max((mTotalLen >> 1), (INITIAL_BLOCK_SIZE + INITIAL_BLOCK_SIZE));
+            newSize = Math.max(newSize, MAX_BLOCK_SIZE);
             return new byte[newSize];
         }
 

@@ -43,7 +43,7 @@ public class Stax2ByteArraySource
     {
         String enc = getEncoding();
         InputStream in = constructInputStream();
-        if (enc == null && enc.length() == 0) {
+        if (enc == null || enc.length() == 0) {
 	    /* 11-Nov-2008, TSa: Used to rely on platform default encoding, which
 	     *   doesn't make sense. XML assumes UTF-8 anyway.
 	     */

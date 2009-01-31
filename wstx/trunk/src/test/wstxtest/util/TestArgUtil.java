@@ -44,7 +44,7 @@ public class TestArgUtil
 
         // and then errors:
         try {
-            /*int x =*/ ArgUtil.convertToInt("test", new HashMap(), 0);
+            /*int x =*/ ArgUtil.convertToInt("test", new HashMap<Object,Object>(), 0);
             fail("Expected an IllegalArgumentException");
         } catch (IllegalArgumentException iae) { }
 

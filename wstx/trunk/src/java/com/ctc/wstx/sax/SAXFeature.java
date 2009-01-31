@@ -28,7 +28,7 @@ public final class SAXFeature
      */
     public final static String STD_FEATURE_PREFIX = "http://xml.org/sax/features/";
 
-    final static HashMap sInstances = new HashMap();
+    final static HashMap <String,SAXFeature>sInstances = new HashMap<String,SAXFeature>();
 
     // // // "Enum" values:
 
@@ -66,7 +66,7 @@ public final class SAXFeature
 
     public static SAXFeature findBySuffix(String suffix)
     {
-        return (SAXFeature) sInstances.get(suffix);
+        return sInstances.get(suffix);
     }
 
     public String getSuffix() { return mSuffix; }

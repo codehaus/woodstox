@@ -21,6 +21,7 @@ import java.net.URL;
 import java.util.*;
 
 import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.events.NotationDeclaration;
 
 import org.codehaus.stax2.XMLInputFactory2;
 import org.codehaus.stax2.validation.*;
@@ -33,6 +34,7 @@ import com.ctc.wstx.dtd.DTDId;
 import com.ctc.wstx.dtd.DTDSubset;
 import com.ctc.wstx.dtd.DTDValidatorBase;
 import com.ctc.wstx.dtd.FullDTDReader;
+import com.ctc.wstx.ent.EntityDecl;
 import com.ctc.wstx.util.URLUtil;
 
 /**
@@ -138,11 +140,11 @@ public class ValidatingStreamReader
             if (mDTD == null || !(mDTD instanceof DTDSubset)) {
                 return null;
             }
-            List l = ((DTDSubset) mDTD).getGeneralEntityList();
+            List<EntityDecl> l = ((DTDSubset) mDTD).getGeneralEntityList();
             /* Let's make a copy, so that caller can not modify
              * DTD's internal list instance
              */
-            return new ArrayList(l);
+            return new ArrayList<EntityDecl>(l);
         }
         if (name.equals(STAX_PROP_NOTATIONS)) {
             safeEnsureFinishToken();
@@ -152,8 +154,8 @@ public class ValidatingStreamReader
             /* Let's make a copy, so that caller can not modify
              * DTD's internal list instance
              */
-            List l = ((DTDSubset) mDTD).getNotationList();
-            return new ArrayList(l);
+            List<NotationDeclaration> l = ((DTDSubset) mDTD).getNotationList();
+            return new ArrayList<NotationDeclaration>(l);
         }
         return super.getProperty(name);
     }

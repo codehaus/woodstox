@@ -22,10 +22,10 @@ public class TestDataUtil
     {
         // First, no match:
 
-        Collection c1 = new HashSet();
+        Collection<Object> c1 = new HashSet<Object>();
         c1.add("foo");
         c1.add(new String("bar"));
-        Collection c2 = new ArrayList();
+        Collection<Object> c2 = new ArrayList<Object>();
         c2.add("foobar");
         c2.add(new Integer(3));
 

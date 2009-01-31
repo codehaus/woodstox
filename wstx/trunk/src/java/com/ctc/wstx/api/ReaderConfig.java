@@ -213,7 +213,7 @@ public final class ReaderConfig
      * Map to use for converting from String property ids to ints
      * described above; useful to allow use of switch later on.
      */
-    final static HashMap sProperties = new HashMap(64); // we have about 40 entries
+    final static HashMap<String,Integer> sProperties = new HashMap<String,Integer>(64); // we have about 40 entries
     static {
         // Standard ones; support for features
         sProperties.put(XMLInputFactory.IS_COALESCING,

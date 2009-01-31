@@ -104,7 +104,7 @@ public class WstxDOMWrappingWriter
      * if there are conflicts, repairing writer can just use some other
      * prefix.
      */
-    HashMap mSuggestedPrefixes = null;
+    HashMap<String,String> mSuggestedPrefixes = null;
 
     /*
     ////////////////////////////////////////////////////

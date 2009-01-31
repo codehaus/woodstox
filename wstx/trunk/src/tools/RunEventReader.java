@@ -80,7 +80,7 @@ public class RunEventReader
 //System.err.println("["+evt.getEventType()+"]: '");
             if (evt.isStartElement()) {
                 StartElement elem = (StartElement) evt;
-                Iterator it = elem.getNamespaces();
+                Iterator<?> it = elem.getNamespaces();
                 int count = 0;
                 while (it.hasNext()) {
                     it.next();

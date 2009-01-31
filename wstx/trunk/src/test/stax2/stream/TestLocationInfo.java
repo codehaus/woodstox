@@ -218,11 +218,11 @@ public class TestLocationInfo
         XMLInputFactory f = getInputFactory();
         setCoalescing(f, false); // shouldn't really matter
         setNamespaceAware(f, true);
-        if (!setSupportDTD(f, true)) {
+        if (!setSupportDTD(f, needDTD)) {
             return null;
         }
         // No need to validate, just need entities
         setValidating(f, false);
-        return (XMLStreamReader2) constructStreamReader(f, contents);
+        return constructStreamReader(f, contents);
     }
 }

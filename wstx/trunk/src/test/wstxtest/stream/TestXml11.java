@@ -82,8 +82,8 @@ public class TestXml11
         assertTokenType(START_ELEMENT, sr.next());
         // This should result in an exception:
         try {
-            int type = sr.next(); // usually fails here
-            type = sr.next(); // but if not, at least here
+            sr.next(); // usually fails here
+            sr.next(); // but if not, at least here
             fail("Expected a stream exception due to a reference to an explicitly unbound prefix 'a'");
         } catch (XMLStreamException sex) {
             ; //good

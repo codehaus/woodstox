@@ -447,6 +447,7 @@ public final class NonNsAttributeCollector
     }
 
     /**
+     * @param attrCount 
      * @return Null, if attribute is a duplicate (to indicate error);
      *    map itself, or resized version, otherwise.
      */

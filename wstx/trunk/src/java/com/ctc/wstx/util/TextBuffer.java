@@ -1219,7 +1219,7 @@ public final class TextBuffer
     {
         // First, let's move current segment to segment list:
         if (mSegments == null) {
-            mSegments = new ArrayList();
+            mSegments = new ArrayList<char[]>();
         }
         char[] curr = mCurrentSegment;
         mHasSegments = true;

@@ -83,7 +83,7 @@ public final class SimpleOutputElement
      * Map used to check for duplicate attribute declarations, if
      * feature is enabled.
      */
-    protected HashSet mAttrSet = null;
+    protected HashSet<AttrName> mAttrSet = null;
 
     /*
     ////////////////////////////////////////////
@@ -262,7 +262,7 @@ public final class SimpleOutputElement
              *   for this in future -- specifically one that could use
              *   ns/local-name pairs without intermediate objects
              */
-            mAttrSet = new HashSet();
+            mAttrSet = new HashSet<AttrName>();
         }
         if (!mAttrSet.add(an)) {
             throw new XMLStreamException("Duplicate attribute write for attribute '"+an+"'");
@@ -308,7 +308,7 @@ public final class SimpleOutputElement
      * first part being optional (URI), and second non-optional (local name).
      */
     final static class AttrName
-        implements Comparable
+        implements Comparable<AttrName>
     {
         final String mNsURI;
         final String mLocalName;
@@ -354,8 +354,7 @@ public final class SimpleOutputElement
             return mHashCode;
         }
 
-        public int compareTo(Object o) {
-            AttrName other = (AttrName) o;
+        public int compareTo(AttrName other) {
             // Let's first order by namespace:
             int result = mNsURI.compareTo(other.mNsURI);
             if (result == 0) {

@@ -24,7 +24,7 @@ public final class SAXProperty
 {
     public final static String STD_PROPERTY_PREFIX = "http://xml.org/sax/properties/";
 
-    final static HashMap sInstances = new HashMap();
+    final static HashMap<String,SAXProperty> sInstances = new HashMap<String,SAXProperty>();
 
     // // // "Enum" values:
 

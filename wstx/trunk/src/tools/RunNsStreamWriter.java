@@ -5,7 +5,6 @@ import javax.xml.stream.*;
 import org.codehaus.stax2.XMLOutputFactory2;
 import org.codehaus.stax2.XMLStreamProperties;
 
-import com.ctc.wstx.api.InvalidCharHandler;
 import com.ctc.wstx.api.WstxOutputProperties;
 
 /**

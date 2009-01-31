@@ -119,7 +119,8 @@ public class TestEntityRead
      * This unit test verifies that it's possible to add a Map of
      * expansions from Entity names to 
      */
-    public void testUndeclaredUsingCustomMap()
+    @SuppressWarnings("deprecation")
+	public void testUndeclaredUsingCustomMap()
         throws XMLStreamException
     {
         // First, let's check actual usage:
@@ -127,7 +128,7 @@ public class TestEntityRead
         String XML = "<root>ok: &myent;&myent2;</root>";
         String EXP_TEXT = "ok: (simple)expand to ([text])";
         XMLInputFactory fact = getConfiguredFactory(true, true);
-        Map m = new HashMap();
+        Map<String,String> m = new HashMap<String,String>();
         m.put("myent", "(simple)");
         m.put("myent3", "[text]");
         m.put("myent2", "expand to (&myent3;)");

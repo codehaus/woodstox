@@ -1,6 +1,5 @@
 package org.codehaus.stax2.osgi;
 
-import org.codehaus.stax2.XMLOutputFactory2;
 import org.codehaus.stax2.XMLStreamProperties;
 import org.codehaus.stax2.validation.XMLValidationSchemaFactory;
 

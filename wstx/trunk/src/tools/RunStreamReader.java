@@ -199,8 +199,8 @@ public class RunStreamReader
                                        +", sysid "+getNullOrStr(info.getDTDSystemId())
                                        +", pubid "+getNullOrStr(info.getDTDPublicId())
                                        +");");
-                    List entities = (List) sr.getProperty("javax.xml.stream.entities");
-                    List notations = (List) sr.getProperty("javax.xml.stream.notations");
+                    List<?> entities = (List<?>) sr.getProperty("javax.xml.stream.entities");
+                    List<?> notations = (List<?>) sr.getProperty("javax.xml.stream.notations");
                     int entCount = (entities == null) ? -1 : entities.size();
                     int notCount = (notations == null) ? -1 : notations.size();
                     System.out.print("  ("+entCount+" entities, "+notCount

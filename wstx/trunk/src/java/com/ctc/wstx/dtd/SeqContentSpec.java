@@ -28,7 +28,7 @@ public class SeqContentSpec
         mContentSpecs = subSpecs;
     }
 
-    public static SeqContentSpec construct(boolean nsAware, char arity, Collection subSpecs)
+    public static SeqContentSpec construct(boolean nsAware, char arity, Collection<ContentSpec> subSpecs)
     {
         ContentSpec[] specs = new ContentSpec[subSpecs.size()];
         subSpecs.toArray(specs);

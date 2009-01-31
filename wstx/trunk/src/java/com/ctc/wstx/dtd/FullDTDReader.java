@@ -3334,13 +3334,13 @@ public class FullDTDReader
                  */
                 mRefdPEs = null;
             } else if (mParamEntities != null) {
-                ed = (EntityDecl) mParamEntities.get(id);
+                ed = mParamEntities.get(id);
                 if (ed != null) {
                     if (!mUsesPredefdEntities) {
                         // Let's also mark down the fact we referenced the entity:
-                        Set used = mRefdPEs;
+                        Set<String> used = mRefdPEs;
                         if (used == null) {
-                            mRefdPEs = used = new HashSet();
+                            mRefdPEs = used = new HashSet<String>();
                         }
                         used.add(id);
                     }
@@ -3364,13 +3364,13 @@ public class FullDTDReader
                  */
                 mRefdGEs = null;
             } else if (mGeneralEntities != null) {
-                ed = (EntityDecl) mGeneralEntities.get(id);
+                ed = mGeneralEntities.get(id);
                 if (ed != null) {
                     // Ok, just need to mark reference, if we still care:
                     if (!mUsesPredefdEntities) {
                         // Let's also mark down the fact we referenced the entity:
                         if (mRefdGEs == null) {
-                            mRefdGEs = new HashSet();
+                            mRefdGEs = new HashSet<String>();
                         }
                         mRefdGEs.add(id);
                     }

@@ -32,7 +32,7 @@ public class BaseStax2Test
      */
     final static String ATTR_NO_PREFIX = "";
 
-    final static HashMap mTokenTypes = new HashMap();
+    final static HashMap<Integer,String> mTokenTypes = new HashMap<Integer,String>();
     static {
         mTokenTypes.put(new Integer(START_ELEMENT), "START_ELEMENT");
         mTokenTypes.put(new Integer(END_ELEMENT), "END_ELEMENT");

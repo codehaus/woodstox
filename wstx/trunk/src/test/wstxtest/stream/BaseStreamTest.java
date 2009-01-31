@@ -280,13 +280,12 @@ public class BaseStreamTest
             default: throw new Error("Internal error");
             }
 
-            count += streamAndSkip(sr, it, input);
+            count += streamAndSkip(sr);
         }
         return count;
     }
 
-    protected int streamAndSkip(XMLStreamReader sr, InputConfigIterator it,
-                                String input)
+    protected int streamAndSkip(XMLStreamReader sr)
         throws XMLStreamException
     {
         int count = 0;
