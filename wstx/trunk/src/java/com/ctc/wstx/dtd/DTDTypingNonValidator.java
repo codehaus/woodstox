@@ -21,9 +21,11 @@ import javax.xml.stream.XMLStreamException;
 
 import org.codehaus.stax2.validation.*;
 
+import com.ctc.wstx.ent.EntityDecl;
 import com.ctc.wstx.util.DataUtil;
 import com.ctc.wstx.util.ElementIdMap;
 import com.ctc.wstx.util.ExceptionUtil;
+import com.ctc.wstx.util.PrefixedName;
 
 /**
  * This class is a "non-validating validator"; a validator-like object
@@ -35,7 +37,7 @@ import com.ctc.wstx.util.ExceptionUtil;
 public class DTDTypingNonValidator
     extends DTDValidatorBase
 {
-    /*
+	/*
     ///////////////////////////////////////////
     // Element def/spec/validator stack, state
     ///////////////////////////////////////////
@@ -79,7 +81,7 @@ public class DTDTypingNonValidator
     */
 
     public DTDTypingNonValidator(DTDSubset schema, ValidationContext ctxt, boolean hasNsDefaults,
-                                 Map elemSpecs, Map genEntities)
+                                 Map<PrefixedName,DTDElement> elemSpecs, Map<String,EntityDecl> genEntities)
     {
         super(schema, ctxt, hasNsDefaults, elemSpecs, genEntities);
     }
@@ -133,7 +135,7 @@ public class DTDTypingNonValidator
          * information is ok; can still have attributes!
          */
         if (elem == null) { // || !elem.isDefined())
-            mCurrAttrDefs = EMPTY_MAP;
+            mCurrAttrDefs = NO_ATTRS;
             mHasAttrDefaults = false;
             mCurrDefaultAttrs = null;
             mHasNormalizableAttrs = false;
@@ -143,7 +145,7 @@ public class DTDTypingNonValidator
         // If element found, does it have any attributes?
         mCurrAttrDefs = elem.getAttributes();
         if (mCurrAttrDefs == null) {
-            mCurrAttrDefs = EMPTY_MAP;
+            mCurrAttrDefs = NO_ATTRS;
             mHasAttrDefaults = false;
             mCurrDefaultAttrs = null;
             mHasNormalizableAttrs = false;
@@ -184,7 +186,7 @@ public class DTDTypingNonValidator
          *     to explicit definition
          *   (2) If attribute is normalizable, normalize it without validation
          */
-        DTDAttribute attr = (DTDAttribute) mCurrAttrDefs.get(mTmpKey.reset(prefix, localName));
+        DTDAttribute attr = mCurrAttrDefs.get(mTmpKey.reset(prefix, localName));
         int index = mAttrCount++;
         if (index >= mAttrSpecs.length) {
             mAttrSpecs = (DTDAttribute[]) DataUtil.growArrayBy50Pct(mAttrSpecs);
@@ -251,7 +253,7 @@ public class DTDTypingNonValidator
             int specCount = elem.getSpecialCount();
             int ix = specBits.nextClearBit(0);
             while (ix < specCount) { // something amiss!
-                List specAttrs = elem.getSpecialAttrs();
+                List<DTDAttribute> specAttrs = elem.getSpecialAttrs();
                 DTDAttribute attr = (DTDAttribute) specAttrs.get(ix);
                 if (attr.hasDefaultValue()) { // no default for #REQUIRED...
                     doAddDefaultValue(attr);

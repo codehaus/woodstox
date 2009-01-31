@@ -198,7 +198,7 @@
 
     <target name="compile.stax2" depends="prepare">
         <javac srcdir="${dir.src.java}" destdir="${dir.build.classes.stax2}"
-            source="1.4" target="1.4"
+            source="1.5" target="1.5"
             debug="true"
         >
 <!-- Uncomment to see warnings: too verbose for default, due to deprecation warns
@@ -211,7 +211,7 @@
 
     <target name="compile.woodstox" depends="prepare,copy-resources,compile.stax2">
         <javac srcdir="${dir.src.java}" destdir="${dir.build.classes.woodstox}"
-            source="1.4" target="1.4"
+            source="1.5" target="1.5"
             debug="true"
         >
 <!-- Uncomment to see warnings: too verbose for default, due to deprecation warns
@@ -230,7 +230,7 @@
                won't get obsolete with impl/api changes
           -->
         <javac srcdir="${dir.src.samples}" destdir="${dir.build.classes.samples}"
-            source="1.4" target="1.4">
+            source="1.5" target="1.5">
             <include name="*.java" />
             <classpath refid="classpath.compile" />
             <classpath>
@@ -241,7 +241,7 @@
 
     <target name="compile.tool" depends="compile.woodstox">
         <javac srcdir="${dir.src.tool}" destdir="${dir.build.classes.tool}"
-            source="1.4" target="1.4"
+            source="1.5" target="1.5"
             debug="true"
         >
 <!-- Uncomment to see warnings: too verbose for default, due to deprecation warns
@@ -504,7 +504,7 @@
 
     <target name="compile.test" depends="compile.woodstox">
         <javac srcdir="${dir.src.test}" destdir="${dir.classes.test}"
-            source="1.4" target="1.4"
+            source="1.5" target="1.5"
             debug="true"
         >
             <include name="**/*.java" />

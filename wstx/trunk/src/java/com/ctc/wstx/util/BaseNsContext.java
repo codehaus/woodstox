@@ -23,6 +23,7 @@ import javax.xml.XMLConstants;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
+import javax.xml.stream.events.Namespace;
 
 import org.codehaus.stax2.ri.SingletonIterator;
 
@@ -107,7 +108,7 @@ public abstract class BaseNsContext
     /////////////////////////////////////////////
      */
 
-    public abstract Iterator<String> getNamespaces();
+    public abstract Iterator<Namespace> getNamespaces();
 
     /**
      * Method called by the matching start element class to
@@ -128,5 +129,5 @@ public abstract class BaseNsContext
 
     public abstract String doGetPrefix(String nsURI);
 
-    public abstract Iterator doGetPrefixes(String nsURI);
+    public abstract Iterator<String> doGetPrefixes(String nsURI);
 }

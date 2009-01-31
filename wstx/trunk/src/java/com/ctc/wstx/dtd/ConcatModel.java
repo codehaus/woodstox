@@ -48,7 +48,7 @@ public class ConcatModel
         return mNullable;
     }
 
-    public void indexTokens(List tokens)
+    public void indexTokens(List<TokenModel> tokens)
     {
         mLeftModel.indexTokens(tokens);
         mRightModel.indexTokens(tokens);

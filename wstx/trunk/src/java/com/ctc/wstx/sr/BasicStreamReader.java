@@ -355,7 +355,7 @@ public abstract class BasicStreamReader
      * plus, to be able to share some of entity resolution code, instance
      * is left here even though it semantically belongs to the sub-class.
      */
-    protected Map mGeneralEntities = null;
+    protected Map<String, EntityDecl> mGeneralEntities = null;
 
     /**
      * Entity reference stream currently points to; only used when
@@ -5359,7 +5359,7 @@ public abstract class BasicStreamReader
     {
         EntityDecl ed = (EntityDecl) mConfig.findCustomInternalEntity(id);
         if (ed == null && mGeneralEntities != null) {
-            ed = (EntityDecl) mGeneralEntities.get(id);
+            ed = mGeneralEntities.get(id);
         }
         /* 05-Mar-2006, TSa: Externally declared entities are illegal
          *   if we were declared as "standalone='yes'"...
@@ -5437,14 +5437,15 @@ public abstract class BasicStreamReader
         throw new IllegalStateException(MessageFormat.format(ErrorConsts.ERR_STATE_NOT_ELEM_OR_TEXT, new Object[] { tokenTypeDesc(type) }));
     }
 
-    private void throwNotWS(char c)
-        throws WstxException
+    /*
+    private void throwNotWS(char c) throws WstxException
     {
         throwUnexpectedChar(c, "; element <"
                             +mElementStack.getTopElementDesc()
                             +"> does not allow mixed content");
         
     }
+    */
 
     /**
      * Method called when we get an EOF within content tree

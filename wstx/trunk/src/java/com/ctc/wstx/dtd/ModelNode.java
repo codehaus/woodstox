@@ -25,7 +25,7 @@ public abstract class ModelNode
 
     public abstract boolean isNullable();
 
-    public abstract void indexTokens(List tokens);
+    public abstract void indexTokens(List<TokenModel> tokens);
 
     public abstract void addFirstPos(BitSet firstPos);
 

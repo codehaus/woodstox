@@ -22,9 +22,11 @@ import javax.xml.stream.XMLStreamException;
 import org.codehaus.stax2.validation.*;
 
 import com.ctc.wstx.cfg.ErrorConsts;
+import com.ctc.wstx.ent.EntityDecl;
 import com.ctc.wstx.util.DataUtil;
 import com.ctc.wstx.util.ElementId;
 import com.ctc.wstx.util.ElementIdMap;
+import com.ctc.wstx.util.PrefixedName;
 import com.ctc.wstx.util.StringUtil;
 
 /**
@@ -99,7 +101,7 @@ public class DTDValidator
     */
 
     public DTDValidator(DTDSubset schema, ValidationContext ctxt, boolean hasNsDefaults,
-                        Map elemSpecs, Map genEntities)
+                        Map<PrefixedName,DTDElement> elemSpecs, Map<String,EntityDecl> genEntities)
     {
         super(schema, ctxt, hasNsDefaults, elemSpecs, genEntities);
         mValidators = new StructValidator[DEFAULT_STACK_SIZE];
@@ -169,14 +171,14 @@ public class DTDValidator
         // Ok, need to get the child validator, then:
         if (elem == null) {
             mValidators[elemCount] = null;
-            mCurrAttrDefs = EMPTY_MAP;
+            mCurrAttrDefs = NO_ATTRS;
             mCurrHasAnyFixed = false;
             mCurrSpecialAttrs = null;
         } else {
             mValidators[elemCount] = elem.getValidator();
             mCurrAttrDefs = elem.getAttributes();
             if (mCurrAttrDefs == null) {
-                mCurrAttrDefs = EMPTY_MAP;
+                mCurrAttrDefs = NO_ATTRS;
             }
             mCurrHasAnyFixed = elem.hasFixedAttrs();
             int specCount = elem.getSpecialCount();

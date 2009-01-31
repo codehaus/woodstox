@@ -72,7 +72,7 @@ public class ChoiceModel
         return mNullable;
     }
 
-    public void indexTokens(List tokens)
+    public void indexTokens(List<TokenModel> tokens)
     {
         // First, let's ask sub-models to calc their settings
         for (int i = 0, len = mSubModels.length; i < len; ++i) {

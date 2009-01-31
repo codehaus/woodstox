@@ -159,7 +159,7 @@ public final class BijectiveNsMap
         return null;
     }
 
-    public List getPrefixesBoundToUri(String uri, List l)
+    public List<String> getPrefixesBoundToUri(String uri, List<String> l)
     {
         /* Same problems (masking) apply here, as well as with
          * findPrefixByUri...
@@ -190,7 +190,7 @@ public final class BijectiveNsMap
                 }
                 // Ok, unmasked one, can add
                 if (l == null) {
-                    l = new ArrayList();
+                    l = new ArrayList<String>();
                 }
                 l.add(prefix);
             }

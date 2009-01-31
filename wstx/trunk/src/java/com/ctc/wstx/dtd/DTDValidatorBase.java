@@ -24,6 +24,7 @@ import javax.xml.stream.XMLStreamException;
 import org.codehaus.stax2.validation.*;
 
 import com.ctc.wstx.api.WstxInputProperties;
+import com.ctc.wstx.ent.EntityDecl;
 import com.ctc.wstx.sr.NsDefaultProvider;
 import com.ctc.wstx.sr.InputElementStack;
 import com.ctc.wstx.util.DataUtil;
@@ -43,7 +44,9 @@ public abstract class DTDValidatorBase
     extends XMLValidator
     implements NsDefaultProvider // for namespace attr defaults
 {
-    /*
+	protected final static HashMap<PrefixedName,DTDAttribute> NO_ATTRS = new HashMap<PrefixedName,DTDAttribute>();
+	 
+	/*
     /////////////////////////////////////////////////////
     // Constants
     /////////////////////////////////////////////////////
@@ -63,7 +66,7 @@ public abstract class DTDValidatorBase
     /**
      * Let's actually just reuse a local Map...
      */
-    protected final static HashMap EMPTY_MAP = new HashMap();
+    protected final static HashMap<String,EntityDecl> EMPTY_MAP = new HashMap<String,EntityDecl>();
 
     /*
     ///////////////////////////////////////
@@ -93,13 +96,13 @@ public abstract class DTDValidatorBase
      * Map that contains element specifications from DTD; null if no
      * DOCTYPE declaration found.
      */
-    final Map mElemSpecs;
+    final Map<PrefixedName,DTDElement> mElemSpecs;
 
     /**
      * General entities defined in DTD subsets; needed for validating
      * ENTITY/ENTITIES attributes.
      */
-    final Map mGeneralEntities;
+    final Map<String,EntityDecl> mGeneralEntities;
 
     /**
      * Flag that indicates whether parser wants the attribute values
@@ -137,7 +140,7 @@ public abstract class DTDValidatorBase
     /**
      * Attribute definitions for attributes the current element may have
      */
-    protected HashMap mCurrAttrDefs = null;
+    protected HashMap<PrefixedName,DTDAttribute> mCurrAttrDefs = null;
 
     /**
      * List of attribute declarations/specifications, one for each
@@ -182,13 +185,16 @@ public abstract class DTDValidatorBase
     */
 
     public DTDValidatorBase(DTDSubset schema, ValidationContext ctxt, boolean hasNsDefaults,
-                            Map elemSpecs, Map genEntities)
+                            Map<PrefixedName,DTDElement> elemSpecs, Map<String,EntityDecl> genEntities)
     {
         mSchema = schema;
         mContext = ctxt;
         mHasNsDefaults = hasNsDefaults;
-        mElemSpecs = (elemSpecs == null || elemSpecs.size() == 0) ?
-            Collections.EMPTY_MAP : elemSpecs;
+        if (elemSpecs == null || elemSpecs.size() == 0) {
+        	mElemSpecs = Collections.emptyMap();
+        } else {
+            mElemSpecs = elemSpecs;
+        }
         mGeneralEntities = genEntities;
         // By default, let's assume attrs are to be normalized (fully xml compliant)
         mNormAttrs = true;
@@ -372,14 +378,12 @@ public abstract class DTDValidatorBase
         throws XMLStreamException
     {
         // We only get called if mCurrElem != null, and has defaults
-        HashMap m = mCurrElem.getNsDefaults();
+        HashMap<String,DTDAttribute> m = mCurrElem.getNsDefaults();
         if (m != null) {
-            Iterator it = m.entrySet().iterator();
-            while (it.hasNext()) {
-                Map.Entry me = (Map.Entry) it.next();
-                String prefix = (String) me.getKey();
+        	for (Map.Entry<String,DTDAttribute> me : m.entrySet()) {
+                String prefix = me.getKey();
                 if (!nsStack.isPrefixLocallyDeclared(prefix)) {
-                    DTDAttribute attr = (DTDAttribute) me.getValue();
+                    DTDAttribute attr = me.getValue();
                     String uri = attr.getDefaultValue(mContext, this);
                     nsStack.addNsBinding(prefix, uri);
                 }
@@ -407,7 +411,7 @@ public abstract class DTDValidatorBase
 
     protected abstract ElementIdMap getIdMap();
 
-    Map getEntityMap() {
+    Map<String,EntityDecl> getEntityMap() {
         return mGeneralEntities;
     }
 

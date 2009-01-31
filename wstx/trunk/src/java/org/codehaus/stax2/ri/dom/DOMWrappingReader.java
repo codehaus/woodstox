@@ -201,7 +201,7 @@ public abstract class DOMWrappingReader
      * As such, elements are {@link org.w3c.dom.Attr} instances.
      *<p>
      */
-    protected List _attrList = null;
+    protected List<Node> _attrList = null;
 
     /**
      * Lazily instantiated String pairs of all namespace declarations for the
@@ -210,7 +210,7 @@ public abstract class DOMWrappingReader
      * (empty String for the default namespace declaration), and second
      * URI it is bound to.
      */
-    protected List _nsDeclList = null;
+    protected List<String> _nsDeclList = null;
 
     /**
      * Factory used for constructing decoders we need for typed access
@@ -1051,13 +1051,13 @@ public abstract class DOMWrappingReader
         return null;
     }
 
-    public Iterator getPrefixes(String namespaceURI) 
+    public Iterator<String> getPrefixes(String namespaceURI) 
     {
         String prefix = getPrefix(namespaceURI);
         if (prefix == null) {
             return EmptyIterator.getInstance();
         }
-        return new SingletonIterator(prefix);
+        return new SingletonIterator<String>(prefix);
     }
 
     /*
@@ -2017,22 +2017,23 @@ public abstract class DOMWrappingReader
         // A common case: neither attrs nor ns decls, can use short-cut
         int len = attrsIn.getLength();
         if (len == 0) {
-            _attrList = _nsDeclList = Collections.EMPTY_LIST;
+            _attrList = Collections.emptyList();
+            _nsDeclList = Collections.emptyList();
             return;
         }
 
         if (!_cfgNsAware) {
-            _attrList = new ArrayList(len);
+            _attrList = new ArrayList<Node>(len);
             for (int i = 0; i < len; ++i) {
-                _attrList.add(attrsIn.item(i));
+                _attrList.add((Attr)attrsIn.item(i));
             }
-            _nsDeclList = Collections.EMPTY_LIST;
+            _nsDeclList = Collections.emptyList();
             return;
         }
 
         // most should be attributes... and possibly no ns decls:
-        ArrayList attrsOut = null;
-        ArrayList nsOut = null;
+        ArrayList<Node> attrsOut = null;
+        ArrayList<String> nsOut = null;
 
         for (int i = 0; i < len; ++i) {
             Node attr = attrsIn.item(i);
@@ -2044,7 +2045,7 @@ public abstract class DOMWrappingReader
                 if (!"xmlns".equals(attr.getLocalName())) { // nope
                     if (attrsToo) {
                         if (attrsOut == null) {
-                            attrsOut = new ArrayList(len - i);
+                            attrsOut = new ArrayList<Node>(len - i);
                         }
                         attrsOut.add(attr);
                     }
@@ -2055,7 +2056,7 @@ public abstract class DOMWrappingReader
                 if (!"xmlns".equals(prefix)) { // nope
                     if (attrsToo) {
                         if (attrsOut == null) {
-                            attrsOut = new ArrayList(len - i);
+                            attrsOut = new ArrayList<Node>(len - i);
                         }
                         attrsOut.add(attr);
                     }
@@ -2064,14 +2065,22 @@ public abstract class DOMWrappingReader
                 prefix = attr.getLocalName();
             }
             if (nsOut == null) {
-                nsOut = new ArrayList((len - i) * 2);
+                nsOut = new ArrayList<String>((len - i) * 2);
             }
             nsOut.add(_internName(prefix));
             nsOut.add(_internNsURI(attr.getNodeValue()));
         }
 
-        _attrList = (attrsOut == null) ? Collections.EMPTY_LIST : attrsOut;
-        _nsDeclList = (nsOut == null) ? Collections.EMPTY_LIST : nsOut;
+        if (attrsOut == null) {
+        	_attrList = Collections.emptyList();
+        } else {
+        	_attrList = attrsOut;
+        }
+        if (nsOut == null) {
+        	_nsDeclList = Collections.emptyList();
+        } else {
+        	_nsDeclList= nsOut;
+        }
     }
 
     private void handleIllegalAttrIndex(int index)

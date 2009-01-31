@@ -54,7 +54,7 @@ abstract class CommonConfig
      * Map to use for converting from String property ids to enumeration
      * (ints). Used for faster dispatching.
      */
-    final static HashMap sStdProperties = new HashMap(16);
+    final static HashMap<String,Integer> sStdProperties = new HashMap<String,Integer>(16);
     static {
         // Basic information about the implementation:
         sStdProperties.put(XMLStreamProperties.XSP_IMPLEMENTATION_NAME,

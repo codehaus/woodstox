@@ -9,6 +9,7 @@ import javax.xml.XMLConstants;
 import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
+import javax.xml.stream.events.Namespace;
 
 import org.codehaus.stax2.ri.EmptyIterator;
 import org.codehaus.stax2.ri.SingletonIterator;
@@ -56,7 +57,7 @@ public final class CompactNsContext
      * List only needed to support List accessor from start-element event;
      * created lazily if/as needed.
      */
-    transient ArrayList mNsList;
+    transient ArrayList<Namespace> mNsList;
 
     public CompactNsContext(Location loc, String defaultNsURI,
                             String[] namespaces, int nsLen,
@@ -129,14 +130,14 @@ public final class CompactNsContext
         return null;
     }
 
-    public Iterator doGetPrefixes(String nsURI)
+    public Iterator<String> doGetPrefixes(String nsURI)
     {
         // Note: base class checks for 'known' problems and prefixes:
 
         String[] ns = mNamespaces;
         int len = mNsLength;
         String first = null;
-        ArrayList all = null;
+        ArrayList<String> all = null;
 
         main_loop:
         for (int i = len-1; i > 0; i -= 2) {
@@ -163,7 +164,7 @@ public final class CompactNsContext
                     first = prefix;
                 } else {
                     if (all == null) {
-                        all = new ArrayList();
+                        all = new ArrayList<String>();
                         all.add(first);
                     }
                     all.add(prefix);
@@ -174,7 +175,7 @@ public final class CompactNsContext
             return all.iterator();
         }
         if (first != null) {
-            return new SingletonIterator(first);
+            return new SingletonIterator<String>(first);
         }
         return EmptyIterator.getInstance();
     }
@@ -185,7 +186,7 @@ public final class CompactNsContext
     ///////////////////////////////////////////////////////
      */
 
-    public Iterator getNamespaces()
+    public Iterator<Namespace> getNamespaces()
     {
         if (mNsList == null) {
             int firstLocal = mFirstLocalNs;
@@ -194,12 +195,12 @@ public final class CompactNsContext
                 return EmptyIterator.getInstance();
             }
             if (len == 2) { // only one NS
-                return new SingletonIterator(NamespaceEventImpl.constructNamespace
+                return new SingletonIterator<Namespace>(NamespaceEventImpl.constructNamespace
                                              (mLocation,
                                               mNamespaces[firstLocal],
                                               mNamespaces[firstLocal+1]));
             }
-            ArrayList l = new ArrayList(len >> 1);
+            ArrayList<Namespace> l = new ArrayList<Namespace>(len >> 1);
             String[] ns = mNamespaces;
             for (len = mNsLength; firstLocal < len;
                  firstLocal += 2) {

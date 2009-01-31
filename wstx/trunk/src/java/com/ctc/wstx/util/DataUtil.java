@@ -57,15 +57,15 @@ public final class DataUtil
      * @return True if there is at least one element that's common
      *   to both Collections, ie. that is contained in both of them.
      */
-    public static boolean anyValuesInCommon(Collection c1, Collection c2)
+    public static <T> boolean anyValuesInCommon(Collection<T> c1, Collection<T> c2)
     {
         // Let's always iterate over smaller collection:
         if (c1.size() > c2.size()) {
-            Collection tmp = c1;
+            Collection<T> tmp = c1;
             c1 = c2;
             c2 = tmp;
         }
-        Iterator it = c1.iterator();
+        Iterator<T> it = c1.iterator();
         while (it.hasNext()) {
             if (c2.contains(it.next())) {
                 return true;

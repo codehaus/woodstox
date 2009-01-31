@@ -52,7 +52,7 @@ public class CompactStartElement
      * Lazily created List that contains Attribute instances contained
      * in this list. Created only if there are at least 2 attributes.
      */
-    private ArrayList mAttrList = null;
+    private ArrayList<Attribute> mAttrList = null;
 
 
     /*
@@ -87,7 +87,7 @@ public class CompactStartElement
         return constructAttr(mRawAttrs, ix, !mAttrs.isDefault(ix));
     }
 
-    public Iterator getAttributes()
+    public Iterator<Attribute> getAttributes()
     {
         if (mAttrList == null) { // List is lazily constructed as needed
             if (mAttrs == null) {
@@ -97,10 +97,10 @@ public class CompactStartElement
             int rawLen = rawAttrs.length;
             int defOffset = mAttrs.getFirstDefaultOffset();
             if (rawLen == 4) {
-                return new SingletonIterator
+                return new SingletonIterator<Attribute>
                     (constructAttr(rawAttrs, 0, (defOffset == 0)));
             }
-            ArrayList l = new ArrayList(rawLen >> 2);
+            ArrayList<Attribute> l = new ArrayList<Attribute>(rawLen >> 2);
             for (int i = 0; i < rawLen; i += 4) {
                 l.add(constructAttr(rawAttrs, i, (i >= defOffset)));
             }

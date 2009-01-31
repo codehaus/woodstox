@@ -48,7 +48,7 @@ public final class DFAValidator
 
         if (next == null) {
             // Nope; let's show what we'd have expected instead...
-            TreeSet names = mState.getNextNames();
+            TreeSet<PrefixedName> names = mState.getNextNames();
             if (names.size() == 0) { // expected end tag?
                 return "Expected $END";
             }
@@ -70,7 +70,7 @@ public final class DFAValidator
         if (mState.isAcceptingState()) {
             return null;
         }
-        TreeSet names = mState.getNextNames();
+        TreeSet<PrefixedName> names = mState.getNextNames();
         return "Expected <"+StringUtil.concatEntries(names,
                                                      ">, <", "> or <")+">";
     }

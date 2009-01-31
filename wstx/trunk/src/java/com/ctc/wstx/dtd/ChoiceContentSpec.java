@@ -37,7 +37,7 @@ public class ChoiceContentSpec
         mContentSpecs = specs;
     }
 
-    private ChoiceContentSpec(boolean nsAware, char arity, boolean mixed, Collection specs)
+    private ChoiceContentSpec(boolean nsAware, char arity, boolean mixed, Collection<ContentSpec> specs)
     {
         super(arity);
         mNsAware = nsAware;
@@ -47,12 +47,12 @@ public class ChoiceContentSpec
     }
 
     public static ChoiceContentSpec constructChoice(boolean nsAware, char arity,
-                                                    Collection specs)
+                                                    Collection<ContentSpec> specs)
     {
         return new ChoiceContentSpec(nsAware, arity, false, specs);
     }
 
-    public static ChoiceContentSpec constructMixed(boolean nsAware, Collection specs)
+    public static ChoiceContentSpec constructMixed(boolean nsAware, Collection<ContentSpec> specs)
     {
         return new ChoiceContentSpec(nsAware, '*', true, specs);
     }

@@ -443,7 +443,7 @@ public abstract class DTDAttribute
                                         char[] ch, int start, int len, int hash)
         throws XMLStreamException
     {
-        Map entMap = v.getEntityMap();
+        Map<String,EntityDecl> entMap = v.getEntityMap();
         /* !!! 13-Nov-2005, TSa: If this was to become a bottle-neck, we
          *   could use/share a symbol table. Or at least reuse Strings...
          */

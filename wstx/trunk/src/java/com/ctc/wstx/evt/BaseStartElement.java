@@ -23,6 +23,7 @@ import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
 import javax.xml.stream.*;
 import javax.xml.stream.events.Attribute;
+import javax.xml.stream.events.Namespace;
 import javax.xml.stream.events.StartElement;
 
 import org.codehaus.stax2.XMLStreamWriter2;
@@ -64,13 +65,13 @@ abstract class BaseStartElement
 
     public abstract Attribute getAttributeByName(QName name);
 
-    public abstract Iterator getAttributes();
+    public abstract Iterator<Attribute> getAttributes();
 
     public final QName getName() {
         return mName;
     }
 
-    public Iterator getNamespaces() 
+    public Iterator<Namespace> getNamespaces() 
     {
         if (mNsCtxt == null) {
             return EmptyIterator.getInstance();

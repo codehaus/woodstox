@@ -18,10 +18,13 @@ package com.ctc.wstx.dtd;
 import java.util.*;
 
 import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.events.NotationDeclaration;
 
 import org.codehaus.stax2.validation.*;
 
+import com.ctc.wstx.ent.EntityDecl;
 import com.ctc.wstx.sr.InputProblemReporter;
+import com.ctc.wstx.util.PrefixedName;
 
 /**
  * This is the abstract base class that implements the standard Stax2
@@ -101,15 +104,15 @@ public abstract class DTDSubset
     //////////////////////////////////////////////////////
      */
     
-    public abstract HashMap getGeneralEntityMap();
+    public abstract HashMap<String,EntityDecl> getGeneralEntityMap();
 
-    public abstract List getGeneralEntityList();
+    public abstract List<EntityDecl> getGeneralEntityList();
 
-    public abstract HashMap getParameterEntityMap();
+    public abstract HashMap<String,EntityDecl> getParameterEntityMap();
 
-    public abstract HashMap getNotationMap();
+    public abstract HashMap<String,NotationDeclaration> getNotationMap();
 
-    public abstract List getNotationList();
+    public abstract List<NotationDeclaration> getNotationList();
 
-    public abstract HashMap getElementMap();
+    public abstract HashMap<PrefixedName,DTDElement> getElementMap();
 }

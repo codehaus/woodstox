@@ -30,7 +30,7 @@ public final class DFAState
 
     BitSet mTokenSet;
 
-    HashMap mNext = new HashMap();
+    HashMap<PrefixedName,DFAState> mNext = new HashMap<PrefixedName,DFAState>();
 
     /*
     ///////////////////////////////////////////////
@@ -60,7 +60,7 @@ public final class DFAState
         /* then need to allocate index numbers for tokens 
          * (which will also calculate nullability)
          */
-        ArrayList tokens = new ArrayList();
+        ArrayList<TokenModel> tokens = new ArrayList<TokenModel>();
         tokens.add(eofToken); // has to be added first, explicitly
         dummyRoot.indexTokens(tokens);
 
@@ -83,9 +83,9 @@ public final class DFAState
         BitSet initial = new BitSet(flen);
         dummyRoot.addFirstPos(initial);
         DFAState firstState = new DFAState(0, initial);
-        ArrayList stateList = new ArrayList();
+        ArrayList<DFAState> stateList = new ArrayList<DFAState>();
         stateList.add(firstState);
-        HashMap stateMap = new HashMap();
+        HashMap<BitSet,DFAState> stateMap = new HashMap<BitSet,DFAState>();
         stateMap.put(initial, firstState);
 
         int i = 0;
@@ -123,19 +123,17 @@ public final class DFAState
         return (DFAState) mNext.get(elemName);
     }
 
-    public TreeSet getNextNames() {
+    public TreeSet<PrefixedName> getNextNames() {
         // Let's order them alphabetically
-        TreeSet names = new TreeSet();
-        Iterator it = mNext.keySet().iterator();
-        while (it.hasNext()) {
-            Object o = it.next();
-            names.add(o);
+        TreeSet<PrefixedName> names = new TreeSet<PrefixedName>();
+        for (PrefixedName n : mNext.keySet()) {
+            names.add(n);
         }
         return names;
     }
 
     public void calcNext(PrefixedName[] tokenNames, BitSet[] tokenFPs,
-                         List stateList, Map stateMap)
+                         List<DFAState> stateList, Map<BitSet,DFAState> stateMap)
     {
         /* Need to loop over all included tokens, and find groups
          * of said tokens
@@ -193,12 +191,10 @@ public final class DFAState
         sb.append("State #"+mIndex+":\n");
         sb.append("  Accepting: "+mAccepting);
         sb.append("\n  Next states:\n");
-        Iterator it = mNext.entrySet().iterator();
-        while (it.hasNext()) {
-            Map.Entry en = (Map.Entry) it.next();
+        for (Map.Entry<PrefixedName,DFAState> en : mNext.entrySet()) {
             sb.append(en.getKey());
             sb.append(" -> ");
-            DFAState next = (DFAState) en.getValue();
+            DFAState next = en.getValue();
             sb.append(next.getIndex());
             sb.append("\n");
         }

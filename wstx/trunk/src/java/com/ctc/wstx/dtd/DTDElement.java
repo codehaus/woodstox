@@ -82,14 +82,14 @@ public final class DTDElement
     ///////////////////////////////////////////////////
      */
 
-    HashMap mAttrMap = null;
+    HashMap<PrefixedName,DTDAttribute> mAttrMap = null;
 
     /**
      * Ordered list of attributes that have 'special' properties (attribute
      * is required, has a default value [regular or fixed]); these attributes
      * have to be specifically checked after actual values have been resolved.
      */
-    ArrayList mSpecAttrList = null;
+    ArrayList<DTDAttribute> mSpecAttrList = null;
 
     boolean mAnyFixed = false;
 
@@ -131,7 +131,7 @@ public final class DTDElement
      * Set of namespace declarations with default values, if any
      * (regular ns pseudo-attr declarations are just ignored)
      */
-    HashMap mNsDefaults = null; // [String : DTDAttribute]
+    HashMap<String,DTDAttribute> mNsDefaults = null;
 
     /*
     ///////////////////////////////////////////////////
@@ -241,12 +241,12 @@ public final class DTDElement
                                      boolean fullyValidate)
         throws XMLStreamException
     {
-        HashMap m = mAttrMap;
+        HashMap<PrefixedName,DTDAttribute> m = mAttrMap;
         if (m == null) {
-            mAttrMap = m = new HashMap();
+            mAttrMap = m = new HashMap<PrefixedName,DTDAttribute>();
         }
 
-        List specList = defValue.isSpecial() ? getSpecialList() : null;
+        List<DTDAttribute> specList = defValue.isSpecial() ? getSpecialList() : null;
 
         DTDAttribute attr;
         int specIndex = (specList == null) ? -1 : specList.size();
@@ -344,7 +344,7 @@ public final class DTDElement
         }
 
         if (mNsDefaults == null) {
-            mNsDefaults = new HashMap();
+            mNsDefaults = new HashMap<String,DTDAttribute>();
         } else {
             if (mNsDefaults.containsKey(prefix)) {
                 return null;
@@ -358,24 +358,22 @@ public final class DTDElement
                                            boolean fullyValidate)
         throws XMLStreamException
     {
-        Map otherMap = other.getAttributes();
-        HashMap m = mAttrMap;
+        Map<PrefixedName,DTDAttribute> otherMap = other.getAttributes();
+        HashMap<PrefixedName,DTDAttribute> m = mAttrMap;
         if (m == null) {
-            mAttrMap = m = new HashMap();
+            mAttrMap = m = new HashMap<PrefixedName,DTDAttribute>();
         }
 
         //boolean anyAdded = false;
         
         if (otherMap != null && otherMap.size() > 0) {
-            Iterator it = otherMap.entrySet().iterator();
-            while (it.hasNext()) {
-                Map.Entry me = (Map.Entry) it.next();
-                Object key = me.getKey();
+        	for (Map.Entry<PrefixedName,DTDAttribute> me : otherMap.entrySet()) {
+                PrefixedName key = me.getKey();
                 // Should only add if no such attribute exists...
                 if (!m.containsKey(key)) {
                     // can only use as is, if it's not a special attr
-                    DTDAttribute newAttr = (DTDAttribute) me.getValue();
-                    List specList;
+                    DTDAttribute newAttr = me.getValue();
+                    List<DTDAttribute> specList;
                     // otherwise need to clone
                     if (newAttr.isSpecial()) {
                         specList = getSpecialList();
@@ -388,18 +386,16 @@ public final class DTDElement
             }
         }
 
-        HashMap otherNs = other.mNsDefaults;
+        HashMap<String,DTDAttribute> otherNs = other.mNsDefaults;
         if (otherNs != null) {
             if (mNsDefaults == null) {
-                mNsDefaults = new HashMap();
+                mNsDefaults = new HashMap<String,DTDAttribute>();
             }
-            Iterator it = otherNs.entrySet().iterator();
-            while (it.hasNext()) {
-                Map.Entry me = (Map.Entry) it.next();
-                Object key = me.getKey();
+            for (Map.Entry<String, DTDAttribute> en : otherNs.entrySet()) {
+                String prefix = en.getKey();
                 // Should only add if no such attribute exists...
-                if (!mNsDefaults.containsKey(key)) {
-                    mNsDefaults.put(key, me.getValue());
+                if (!mNsDefaults.containsKey(prefix)) {
+                    mNsDefaults.put(prefix, en.getValue());
                 }
             }
         }
@@ -409,15 +405,15 @@ public final class DTDElement
      * @return Earlier declaration of the attribute, if any; null if
      *    this was a new attribute
      */
-    private DTDAttribute doAddAttribute(Map attrMap, InputProblemReporter rep,
-                                        DTDAttribute attr, List specList,
+    private DTDAttribute doAddAttribute(Map<PrefixedName,DTDAttribute> attrMap, InputProblemReporter rep,
+                                        DTDAttribute attr, List<DTDAttribute> specList,
                                         boolean fullyValidate)
         throws XMLStreamException
     {
         PrefixedName attrName = attr.getName();
 
         // Maybe we already have it? If so, need to ignore
-        DTDAttribute old = (DTDAttribute) attrMap.get(attrName);
+        DTDAttribute old = attrMap.get(attrName);
         if (old != null) {
             rep.reportProblem(null, ErrorConsts.WT_ATTR_DECL, ErrorConsts.W_DTD_DUP_ATTR,
                               attrName, mName);
@@ -504,7 +500,7 @@ public final class DTDElement
             XMLValidator.CONTENT_ALLOW_ANY_TEXT;
     }
 
-    public HashMap getAttributes() {
+    public HashMap<PrefixedName,DTDAttribute> getAttributes() {
         return mAttrMap;
     }
 
@@ -512,7 +508,7 @@ public final class DTDElement
         return (mSpecAttrList == null) ? 0 : mSpecAttrList.size();
     }
 
-    public List getSpecialAttrs() {
+    public List<DTDAttribute> getSpecialAttrs() {
         return mSpecAttrList;
     }
 
@@ -555,7 +551,7 @@ public final class DTDElement
         return (mValidator == null) ? null : mValidator.newInstance();
     }
 
-    protected HashMap getNsDefaults() {
+    protected HashMap<String,DTDAttribute> getNsDefaults() {
         return mNsDefaults;
     }
 
@@ -565,11 +561,11 @@ public final class DTDElement
     ///////////////////////////////////////////////////
      */
 
-    private List getSpecialList()
+    private List<DTDAttribute> getSpecialList()
     {
-        ArrayList l = mSpecAttrList;
+        ArrayList<DTDAttribute> l = mSpecAttrList;
         if (l == null) {
-            mSpecAttrList = l = new ArrayList();
+            mSpecAttrList = l = new ArrayList<DTDAttribute>();
         }
         return l;
     }

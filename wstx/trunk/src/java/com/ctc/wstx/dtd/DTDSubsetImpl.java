@@ -25,9 +25,11 @@ import javax.xml.stream.events.NotationDeclaration;
 import org.codehaus.stax2.validation.*;
 
 import com.ctc.wstx.cfg.ErrorConsts;
+import com.ctc.wstx.ent.EntityDecl;
 import com.ctc.wstx.exc.WstxParsingException;
 import com.ctc.wstx.sr.InputProblemReporter;
 import com.ctc.wstx.util.DataUtil;
+import com.ctc.wstx.util.PrefixedName;
 
 /**
  * The default implementation of {@link DTDSubset}
@@ -66,7 +68,7 @@ public final class DTDSubsetImpl
      * Map (name-to-EntityDecl) of general entity declarations (internal,
      * external) for this DTD subset.
      */
-    final HashMap mGeneralEntities;
+    final HashMap<String,EntityDecl> mGeneralEntities;
 
     /**
      * Lazily instantiated List that contains all notations from
@@ -74,7 +76,7 @@ public final class DTDSubsetImpl
      * on whether platform, ie. JDK version, has insertion-ordered
      * Maps available), used by DTD event Objects.
      */
-    volatile transient List mGeneralEntityList = null;
+    volatile transient List<EntityDecl> mGeneralEntityList = null;
 
     /**
      * Set of names of general entities references by this subset. Note that
@@ -89,7 +91,7 @@ public final class DTDSubsetImpl
      * This also
      * means that information is not stored for non-cachable instance.
      */
-    final Set mRefdGEs;
+    final Set<String> mRefdGEs;
 
     // // // Parameter entity info:
 
@@ -99,7 +101,7 @@ public final class DTDSubsetImpl
      * needed for use; for example, external subset's definitions are needed,
      * nor are combined DTD set's.
      */
-    final HashMap mDefinedPEs;
+    final HashMap<String,EntityDecl> mDefinedPEs;
 
     /**
      * Set of names of parameter entities references by this subset. Needed
@@ -113,7 +115,7 @@ public final class DTDSubsetImpl
      * This also
      * means that information is not stored for non-cachable instance.
      */
-    final Set mRefdPEs;
+    final Set<String> mRefdPEs;
 
     /*
     //////////////////////////////////////////////////////
@@ -124,7 +126,7 @@ public final class DTDSubsetImpl
     /**
      * Map (name-to-NotationDecl) that this subset has defined.
      */
-    final HashMap mNotations;
+    final HashMap<String,NotationDeclaration> mNotations;
 
     /**
      * Lazily instantiated List that contains all notations from
@@ -132,7 +134,7 @@ public final class DTDSubsetImpl
      * on whether platform, ie. JDK version, has insertion-ordered
      * Maps available), used by DTD event Objects.
      */
-    transient List mNotationList = null;
+    transient List<NotationDeclaration> mNotationList = null;
 
 
     /*
@@ -141,7 +143,7 @@ public final class DTDSubsetImpl
     //////////////////////////////////////////////////////
      */
 
-    final HashMap mElements;
+    final HashMap<PrefixedName,DTDElement> mElements;
 
     /*
     //////////////////////////////////////////////////////
@@ -150,9 +152,9 @@ public final class DTDSubsetImpl
      */
 
     private DTDSubsetImpl(boolean cachable,
-                          HashMap genEnt, Set refdGEs,
-                          HashMap paramEnt, Set peRefs,
-                          HashMap notations, HashMap elements,
+                          HashMap<String,EntityDecl> genEnt, Set<String> refdGEs,
+                          HashMap<String,EntityDecl> paramEnt, Set<String> peRefs,
+                          HashMap<String,NotationDeclaration> notations, HashMap<PrefixedName,DTDElement> elements,
                           boolean fullyValidating)
     {
         mIsCachable = cachable;
@@ -166,9 +168,7 @@ public final class DTDSubsetImpl
 
         boolean anyNsDefs = false;
         if (elements != null) {
-            Iterator it = elements.values().iterator();
-            while (it.hasNext()) {
-                DTDElement elem = (DTDElement) it.next();
+        	for (DTDElement elem : elements.values()) {
                 if (elem.hasNsDefaults()) {
                     anyNsDefs = true;
                     break;
@@ -179,9 +179,10 @@ public final class DTDSubsetImpl
     }
 
     public static DTDSubsetImpl constructInstance(boolean cachable,
-                                                  HashMap genEnt, Set refdGEs,
-                                                  HashMap paramEnt, Set refdPEs,
-                                                  HashMap notations, HashMap elements,
+                                                  HashMap<String,EntityDecl> genEnt, Set<String> refdGEs,
+                                                  HashMap<String,EntityDecl> paramEnt, Set<String> refdPEs,
+                                                  HashMap<String,NotationDeclaration> notations,
+                                                  HashMap<PrefixedName,DTDElement> elements,
                                                   boolean fullyValidating)
     {
         return new DTDSubsetImpl(cachable, genEnt, refdGEs,
@@ -200,8 +201,8 @@ public final class DTDSubsetImpl
         /* First let's see if we can just reuse GE Map used by int or ext
          * subset; (if only one has contents), or if not, combine them.
          */
-        HashMap ge1 = getGeneralEntityMap();
-        HashMap ge2 = extSubset.getGeneralEntityMap();
+        HashMap<String,EntityDecl> ge1 = getGeneralEntityMap();
+        HashMap<String,EntityDecl> ge2 = extSubset.getGeneralEntityMap();
         if (ge1 == null || ge1.isEmpty()) {
             ge1 = ge2;
         } else {
@@ -215,8 +216,8 @@ public final class DTDSubsetImpl
         }
 
         // Ok, then, let's combine notations similarly
-        HashMap n1 = getNotationMap();
-        HashMap n2 = extSubset.getNotationMap();
+        HashMap<String,NotationDeclaration> n1 = getNotationMap();
+        HashMap<String,NotationDeclaration> n2 = extSubset.getNotationMap();
         if (n1 == null || n1.isEmpty()) {
             n1 = n2;
         } else {
@@ -236,8 +237,8 @@ public final class DTDSubsetImpl
 
 
         // And finally elements, rather similarly:
-        HashMap e1 = getElementMap();
-        HashMap e2 = extSubset.getElementMap();
+        HashMap<PrefixedName,DTDElement> e1 = getElementMap();
+        HashMap<PrefixedName,DTDElement> e2 = extSubset.getElementMap();
         if (e1 == null || e1.isEmpty()) {
             e1 = e2;
         } else {
@@ -299,18 +300,18 @@ public final class DTDSubsetImpl
         return mIsCachable;
     }
     
-    public HashMap getGeneralEntityMap() {
+    public HashMap<String,EntityDecl> getGeneralEntityMap() {
         return mGeneralEntities;
     }
 
-    public List getGeneralEntityList()
+    public List<EntityDecl> getGeneralEntityList()
     {
-        List l = mGeneralEntityList;
+        List<EntityDecl> l = mGeneralEntityList;
         if (l == null) {
             if (mGeneralEntities == null || mGeneralEntities.size() == 0) {
-                l = Collections.EMPTY_LIST;
+                l = Collections.emptyList();
             } else {
-                l = Collections.unmodifiableList(new ArrayList(mGeneralEntities.values()));
+                l = Collections.unmodifiableList(new ArrayList<EntityDecl>(mGeneralEntities.values()));
             }
             mGeneralEntityList = l;
         }
@@ -318,22 +319,22 @@ public final class DTDSubsetImpl
         return l;
     }
 
-    public HashMap getParameterEntityMap() {
+    public HashMap<String,EntityDecl> getParameterEntityMap() {
         return mDefinedPEs;
     }
 
-    public HashMap getNotationMap() {
+    public HashMap<String,NotationDeclaration> getNotationMap() {
         return mNotations;
     }
 
-    public synchronized List getNotationList()
+    public synchronized List<NotationDeclaration> getNotationList()
     {
-        List l = mNotationList;
+        List<NotationDeclaration> l = mNotationList;
         if (l == null) {
             if (mNotations == null || mNotations.size() == 0) {
-                l = Collections.EMPTY_LIST;
+                l = Collections.emptyList();
             } else {
-                l = Collections.unmodifiableList(new ArrayList(mNotations.values()));
+                l = Collections.unmodifiableList(new ArrayList<NotationDeclaration>(mNotations.values()));
             }
             mNotationList = l;
         }
@@ -341,7 +342,7 @@ public final class DTDSubsetImpl
         return l;
     }
 
-    public HashMap getElementMap() {
+    public HashMap<PrefixedName,DTDElement> getElementMap() {
         return mElements;
     }
 
@@ -356,20 +357,20 @@ public final class DTDSubsetImpl
      */
     public boolean isReusableWith(DTDSubset intSubset)
     {
-        Set refdPEs = mRefdPEs;
+        Set<String> refdPEs = mRefdPEs;
 
         if (refdPEs != null && refdPEs.size() > 0) {
-            HashMap intPEs = intSubset.getParameterEntityMap();
+            HashMap<String,EntityDecl> intPEs = intSubset.getParameterEntityMap();
             if (intPEs != null && intPEs.size() > 0) {
                 if (DataUtil.anyValuesInCommon(refdPEs, intPEs.keySet())) {
                     return false;
                 }
             }
         }
-        Set refdGEs = mRefdGEs;
+        Set<String> refdGEs = mRefdGEs;
 
         if (refdGEs != null && refdGEs.size() > 0) {
-            HashMap intGEs = intSubset.getGeneralEntityMap();
+            HashMap<String,EntityDecl> intGEs = intSubset.getGeneralEntityMap();
             if (intGEs != null && intGEs.size() > 0) {
                 if (DataUtil.anyValuesInCommon(refdGEs, intGEs.keySet())) {
                     return false;
@@ -434,16 +435,14 @@ public final class DTDSubsetImpl
      * Note: The first Map argument WILL be modified; second one
      * not. Caller needs to ensure this is acceptable.
      */
-    private static void combineMaps(HashMap m1, HashMap m2)
+    private static <K,V> void combineMaps(Map<K,V> m1, Map<K,V> m2)
     {
-        Iterator it = m2.entrySet().iterator();
-        while (it.hasNext()) {
-            Map.Entry me = (Map.Entry) it.next();
-            Object key = me.getKey();
+    	for (Map.Entry<K,V> me : m2.entrySet()) {
+            K key = me.getKey();
             /* Int. subset has precedence, but let's guess most of
              * the time there are no collisions:
              */
-            Object old = m1.put(key, me.getValue());
+            V old = m1.put(key, me.getValue());
             // Oops, got value! Let's put it back
             if (old != null) {
                 m1.put(key, old);
@@ -458,24 +457,19 @@ public final class DTDSubsetImpl
      * be taken to only check actual redeclarations: placeholders should
      * not cause problems.
      */
-    private void combineElements(InputProblemReporter rep, HashMap intElems, HashMap extElems)
+    private void combineElements(InputProblemReporter rep, HashMap<PrefixedName,DTDElement> intElems, HashMap<PrefixedName,DTDElement> extElems)
         throws XMLStreamException
     {
-        Iterator it = extElems.entrySet().iterator();
-        while (it.hasNext()) {
-            Map.Entry me = (Map.Entry) it.next();
-            Object key = me.getKey();
-            Object extVal = me.getValue();
-            Object oldVal = intElems.get(key);
+    	for (Map.Entry<PrefixedName,DTDElement> me : extElems.entrySet()) {
+            PrefixedName key = me.getKey();
+            DTDElement extElem = me.getValue();
+            DTDElement intElem = intElems.get(key);
 
             // If there was no old value, can just merge new one in and continue
-            if (oldVal == null) {
-                intElems.put(key, extVal);
+            if (intElem == null) {
+                intElems.put(key, extElem);
                 continue;
             }
-
-            DTDElement extElem = (DTDElement) extVal;
-            DTDElement intElem = (DTDElement) oldVal;
 
             // Which one is defined (if either)?
             if (extElem.isDefined()) { // one from the ext subset
@@ -506,7 +500,7 @@ public final class DTDSubsetImpl
         }
     }
 
-    private static void checkNotations(HashMap fromInt, HashMap fromExt)
+    private static void checkNotations(HashMap<String,NotationDeclaration> fromInt, HashMap<String,NotationDeclaration> fromExt)
         throws XMLStreamException
     {
         /* Since it's external subset that would try to redefine things
@@ -515,12 +509,9 @@ public final class DTDSubsetImpl
          * way), so that we have a chance of catching the first problem
          * (As long as Maps iterate in insertion order).
          */
-        Iterator it = fromExt.entrySet().iterator();
-        while (it.hasNext()) {
-            Map.Entry en = (Map.Entry) it.next();
+    	for (Map.Entry<String, NotationDeclaration> en : fromExt.entrySet()) {
             if (fromInt.containsKey(en.getKey())) {
-                throwNotationException((NotationDeclaration) fromInt.get(en.getKey()),
-                                       (NotationDeclaration) en.getValue());
+                throwNotationException(fromInt.get(en.getKey()), en.getValue());
             }
         }
     }

@@ -36,7 +36,7 @@ public final class CharArrayBase64Decoder
     int _currSegmentPtr;
     int _currSegmentEnd;
 
-    final ArrayList _nextSegments = new ArrayList();
+    final ArrayList<char[]> _nextSegments = new ArrayList<char[]>();
 
     int _lastSegmentOffset;
     int _lastSegmentEnd;
@@ -51,7 +51,7 @@ public final class CharArrayBase64Decoder
 
     public void init(Base64Variant variant, boolean firstChunk,
                      char[] lastSegment, int lastOffset, int lastLen,
-                     List segments)
+                     List<char[]> segments)
     {
         _variant = variant;
         /* Leftovers only cleared if it is the first chunk (i.e.
@@ -70,8 +70,8 @@ public final class CharArrayBase64Decoder
                 throw new IllegalArgumentException();
             }
 
-            Iterator it = segments.iterator();
-            _currSegment = (char[]) it.next();
+            Iterator<char[]> it = segments.iterator();
+            _currSegment = it.next();
             _currSegmentPtr = 0;
             _currSegmentEnd = _currSegment.length;
 

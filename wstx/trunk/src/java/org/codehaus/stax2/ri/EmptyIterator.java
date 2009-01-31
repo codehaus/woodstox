@@ -6,18 +6,19 @@ import java.util.Iterator;
  * Simple implementation of "null iterator", iterator that has nothing to
  * iterate over.
  */
-public final class EmptyIterator
-    implements Iterator
+public final class EmptyIterator<T>
+    implements Iterator<T>
 {
-    final static EmptyIterator sInstance = new EmptyIterator();
+    final static EmptyIterator<Object> sInstance = new EmptyIterator<Object>();
     
     private EmptyIterator() { }
     
-    public static EmptyIterator getInstance() { return sInstance; }
+    @SuppressWarnings("unchecked")
+	public static <T> EmptyIterator<T> getInstance() { return (EmptyIterator<T>) sInstance; }
     
     public boolean hasNext() { return false; }
     
-    public Object next() {
+    public T next() {
         throw new java.util.NoSuchElementException();
     }
     
