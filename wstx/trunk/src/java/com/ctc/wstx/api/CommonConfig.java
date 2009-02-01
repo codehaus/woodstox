@@ -198,7 +198,8 @@ abstract class CommonConfig
         return (I == null) ? -1 : I.intValue();
     }
 
-    protected boolean setStdProperty(@SuppressWarnings("unused") String propName, @SuppressWarnings("unused") int id, @SuppressWarnings("unused") Object value)
+	//@SuppressWarnings("unused")
+    protected boolean setStdProperty(String propName, int id, Object value)
     {
         // None of the current shared properties are settable...
         return false;

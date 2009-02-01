@@ -24,7 +24,8 @@ public class TestReaderConstruction
         verifyXML(ifact.createXMLStreamReader(f), "file");
     }
 
-    public void testCreateWithURL()
+    @SuppressWarnings("deprecation")
+	public void testCreateWithURL()
         throws IOException, XMLStreamException
     {
         File f = writeToTempFile("URL");
@@ -44,7 +45,8 @@ public class TestReaderConstruction
                   "Filesource");
     }
 
-    public void testCreateWithURLSource()
+    @SuppressWarnings("deprecation")
+	public void testCreateWithURLSource()
         throws IOException, XMLStreamException
     {
         File f = writeToTempFile("URLSource");
@@ -81,7 +83,7 @@ public class TestReaderConstruction
         setCoalescing(ifact, true);
         String xml = generateXML("ByteArraySource");
         byte[] orig = xml.getBytes("UTF-8");
-	byte[] b = (byte[]) orig.clone();
+	    byte[] b = orig.clone();
         verifyXML(ifact.createXMLStreamReader(new Stax2ByteArraySource(b, 0, b.length)), "ByteArraySource");
 
 	// Also: let's check that non-0 offset works...

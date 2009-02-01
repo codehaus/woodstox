@@ -34,7 +34,7 @@ public class TestStreamWriter
 
                 if (isWriter > 0) {
                     StringWriter strw = new StringWriter();
-                    w = (XMLStreamWriter2)of.createXMLStreamWriter(strw, ENC);
+                    w = of.createXMLStreamWriter(strw, ENC);
                 } else {
                     ByteArrayOutputStream bos = new ByteArrayOutputStream();
                     w = (XMLStreamWriter2)of.createXMLStreamWriter(bos, ENC);

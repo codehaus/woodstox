@@ -82,7 +82,7 @@ public class TestRelaxNG
             assertEquals("dict", sr.getLocalName());
             
             while (sr.hasNext()) {
-                int type = sr.next();
+                sr.next();
             }
         } catch (XMLValidationException vex) {
             fail("Did not expect validation exception, got: "+vex);
@@ -182,7 +182,7 @@ public class TestRelaxNG
             assertEquals("root", sr.getLocalName());
             
             while (sr.hasNext()) {
-                int type = sr.next();
+                sr.next();
             }
         } catch (XMLValidationException vex) {
             fail("Did not expect validation exception, got: "+vex);
@@ -550,7 +550,7 @@ public class TestRelaxNG
         sr.validateAgainst(schema);
         try {
             while (sr.hasNext()) {
-                int type = sr.next();
+                sr.next();
             }
             fail("Expected validity exception for "+failMsg);
         } catch (XMLValidationException vex) {

@@ -21,7 +21,8 @@ public class RunValidatingReader
         return XMLInputFactory.newInstance();
     }
 
-    protected int test(File file)
+    @SuppressWarnings("deprecation")
+	protected int test(File file)
         throws Exception
     {
         XMLInputFactory f = getFactory();

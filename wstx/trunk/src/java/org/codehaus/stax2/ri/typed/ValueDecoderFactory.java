@@ -180,8 +180,10 @@ public final class ValueDecoderFactory
     {
         final static long L_BILLION = 1000000000;
 
+        @SuppressWarnings("cast")
         final static long L_MAX_INT = (long) Integer.MAX_VALUE;
 
+        @SuppressWarnings("cast")
         final static long L_MIN_INT = (long) Integer.MIN_VALUE;
 
         final static BigInteger BD_MIN_LONG = BigInteger.valueOf(Long.MIN_VALUE);
@@ -435,6 +437,7 @@ public final class ValueDecoderFactory
             return num;
         }
         
+        @SuppressWarnings("cast")
         protected final static long parseLong(char[] digitChars, int start, int end)
         {
             // Note: caller must ensure length is [10, 18]
@@ -443,6 +446,7 @@ public final class ValueDecoderFactory
             return val + (long) parseInt(digitChars, start2, end);
         }
         
+        @SuppressWarnings("cast")
         protected final static long parseLong(String digitChars, int start, int end)
         {
             // Note: caller must ensure length is [10, 18]
@@ -576,6 +580,7 @@ public final class ValueDecoderFactory
         }
     }
 
+    @SuppressWarnings("cast")
     public final static class IntDecoder
         extends DecoderBase
     {
@@ -695,6 +700,7 @@ public final class ValueDecoderFactory
         }
     }
 
+    @SuppressWarnings("cast")
     public final static class LongDecoder
         extends DecoderBase
     {

@@ -517,7 +517,7 @@ public final class ValueEncoderFactory
     ////////////////////////////////////////////////////////////////
      */
 
-    final static class Base64Encoder
+	final static class Base64Encoder
         extends AsciiValueEncoder
     {
         final static char PAD_CHAR = '=';
@@ -527,7 +527,8 @@ public final class ValueEncoderFactory
          * canonical one. Let's take xml's choice here, more compact too.
          */
         final static byte LF_CHAR = '\n';
-        final static byte LF_BYTE = (byte) LF_CHAR;
+
+        final static byte LF_BYTE = LF_CHAR;
 
         final Base64Variant _variant;
 

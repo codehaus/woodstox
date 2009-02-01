@@ -553,7 +553,7 @@ public abstract class ReaderBinaryTestBase
                 String doc = "<root attr='"+INVALID_PADDING[i]+"' />";
                 XMLStreamReader2 sr = getElemReader(doc);
                 try {
-                    /*byte[] data = */ sr.getAttributeAsBinary(0);
+                    /*byte[] data = */ sr.getAttributeAsBinary(0, b64variant);
                     fail("Should have received an exception for invalid padding");
                 } catch (TypedXMLStreamException ex) {
                     // any way to check that it's the excepted message? not right now

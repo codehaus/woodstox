@@ -69,10 +69,6 @@ public class StreamReader2Delegate
         return mDelegate2.getDepth();
     }
 
-    public Object getFeature(String name) {
-        return mDelegate2.getFeature(name);
-    }
-
     public LocationInfo getLocationInfo() {
         return mDelegate2.getLocationInfo();
     }
@@ -99,10 +95,6 @@ public class StreamReader2Delegate
 
     public boolean isPropertySupported(String name) {
         return mDelegate2.isPropertySupported(name);
-    }
-
-    public void setFeature(String name, Object value) {
-        mDelegate2.setFeature(name, value);
     }
 
     public boolean setProperty(String name, Object value) {

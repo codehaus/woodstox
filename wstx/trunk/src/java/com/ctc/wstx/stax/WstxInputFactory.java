@@ -658,7 +658,7 @@ public class WstxInputFactory
                     return createSR(cfg, src, URLUtil.inputStreamFromURL(src), forER, autoCloseInput);
                 }
             }
-            return createSR(cfg, f.toURL(), new FileInputStream(f), forER, autoCloseInput);
+            return createSR(cfg, URLUtil.toURL(f), new FileInputStream(f), forER, autoCloseInput);
         } catch (IOException ie) {
             throw new WstxIOException(ie);
         }

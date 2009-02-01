@@ -192,9 +192,10 @@ public final class SimpleNsStreamWriter
         }
 
         // And now we need to output namespaces (including default), if any:
-        it = elem.getNamespaces();
-        while (it.hasNext()) {
-            Namespace ns = (Namespace) it.next();
+        @SuppressWarnings("unchecked")
+        Iterator<Namespace> it2 = (Iterator<Namespace>) elem.getNamespaces();
+        while (it2.hasNext()) {
+            Namespace ns = it2.next();
             String prefix = ns.getPrefix();
             if (prefix == null || prefix.length() == 0) {
                 writeDefaultNamespace(ns.getNamespaceURI());
@@ -202,13 +203,12 @@ public final class SimpleNsStreamWriter
                 writeNamespace(prefix, ns.getNamespaceURI());
             }
         }
-    
 
         // And finally, need to output attributes as well:
-        
-        it = elem.getAttributes();
-        while (it.hasNext()) {
-            Attribute attr = (Attribute) it.next();
+        @SuppressWarnings("unchecked")
+        Iterator<Attribute> ait = elem.getAttributes();
+        while (ait.hasNext()) {
+            Attribute attr = ait.next();
             name = attr.getName();
             nsURI = name.getNamespaceURI();
             // In non-default/empty namespace?

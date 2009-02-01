@@ -94,7 +94,7 @@ public class RunStreamCopier
 
 //System.err.println("[XMLStreamWriter: "+sw.getClass()+"]");
 
-        int count = 0;
+        //int count = 0;
 
         for (int type = sr.getEventType(); type !=XMLStreamConstants.END_DOCUMENT; type = sr.next()) {
             if (type == XMLStreamConstants.DTD) {

@@ -29,12 +29,13 @@ public class Stax2FileSource
      */
     public URL getReference()
     {
-        /* !!! 13-May-2006, TSa: For Woodstox 4.0, consider converting
-         *   first to URI, then to URL, to ensure that characters in the
+        /* 01-Feb-2009, TSa: Changed between Stax2 v3 and v4
+         *   to first convert to URI, then to URL (needed JDK 1.5)
+         *   to ensure that characters in the
          *   filename are properly quoted
          */
         try {
-            return mFile.toURL();
+            return mFile.toURI().toURL();
         } catch (java.net.MalformedURLException e) {
             /* Hmmh. Signature doesn't allow IOException to be thrown. So,
              * let's use something close enough; this should not occur

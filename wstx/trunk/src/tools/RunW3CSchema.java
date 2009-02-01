@@ -13,7 +13,8 @@ import org.codehaus.stax2.validation.*;
 public class RunW3CSchema
     implements XMLStreamConstants
 {
-    protected int test(File schemaFile, File xmlFile)
+    @SuppressWarnings("deprecation")
+	protected int test(File schemaFile, File xmlFile)
         throws Exception
     {
         XMLValidationSchemaFactory schF = XMLValidationSchemaFactory.newInstance(XMLValidationSchema.SCHEMA_ID_W3C_SCHEMA);

@@ -15,7 +15,8 @@ public class RunRelaxNG
 {
     private RunRelaxNG() { }
 
-    protected int test(File schemaFile, File xmlFile)
+    @SuppressWarnings("deprecation")
+	protected int test(File schemaFile, File xmlFile)
         throws Exception
     {
         XMLValidationSchemaFactory schF = XMLValidationSchemaFactory.newInstance(XMLValidationSchema.SCHEMA_ID_RELAXNG);

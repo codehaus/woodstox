@@ -114,7 +114,7 @@ public class TestW3CSchema
             assertEquals("personnel", sr.getLocalName());
             
             while (sr.hasNext()) {
-                int type = sr.next();
+                /*int type =*/ sr.next();
             }
         } catch (XMLValidationException vex) {
             fail("Did not expect validation exception, got: "+vex);
@@ -255,7 +255,7 @@ public class TestW3CSchema
         sr.validateAgainst(schema);
         try {
             while (sr.hasNext()) {
-                int type = sr.next();
+                /*int type =*/ sr.next();
             }
             fail("Expected validity exception for "+failMsg);
         } catch (XMLValidationException vex) {

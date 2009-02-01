@@ -267,7 +267,7 @@ public final class WriterConfig
      * to a {@link BufferRecycler} used to provide a low-cost
      * buffer recycling between Reader instances.
      */
-    final static ThreadLocal mRecyclerRef = new ThreadLocal();
+    final static ThreadLocal<SoftReference<BufferRecycler>> mRecyclerRef = new ThreadLocal<SoftReference<BufferRecycler>>();
 
     /**
      * This is the actually container of the recyclable buffers. It
@@ -295,9 +295,9 @@ public final class WriterConfig
          * we can reconstruct one if and when we are to return one or more
          * buffers.
          */
-        SoftReference ref = (SoftReference) mRecyclerRef.get();
+        SoftReference<BufferRecycler> ref = mRecyclerRef.get();
         if (ref != null) {
-            mCurrRecycler = (BufferRecycler) ref.get();
+            mCurrRecycler = ref.get();
         }
     }
 
@@ -811,7 +811,7 @@ public boolean willAutoCloseOutput() {
     {
         BufferRecycler recycler = new BufferRecycler();
         // No way to reuse/reset SoftReference, have to create new always:
-        mRecyclerRef.set(new SoftReference(recycler));
+        mRecyclerRef.set(new SoftReference<BufferRecycler>(recycler));
         return recycler;
     }
 

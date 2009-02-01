@@ -2848,14 +2848,14 @@ public class FullDTDReader
             throwDTDUnexpectedChar(c, " (empty list; missing identifier(s))?");
         }
 
-        HashMap sharedEnums;
+        HashMap<String,String> sharedEnums;
 
         if (isNotation) {
             sharedEnums = null;
         } else {
             sharedEnums = mSharedEnumValues;
             if (sharedEnums == null && !isNotation) {
-                mSharedEnumValues = sharedEnums = new HashMap();
+                mSharedEnumValues = sharedEnums = new HashMap<String,String>();
             }
         }
 

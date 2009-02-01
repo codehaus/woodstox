@@ -140,7 +140,7 @@ public class DTDSchemaFactory
     {
         ReaderConfig rcfg = createPrivateReaderConfig();
         try {
-            URL url = f.toURL();
+            URL url = URLUtil.toURL(f);
             return doCreateSchema(rcfg, StreamBootstrapper.getInstance
                                   (null, null, new FileInputStream(f)),
                                   null, url.toExternalForm(), url);

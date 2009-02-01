@@ -152,7 +152,7 @@ public class TestStreaming
         f.getConfig().doCoalesceText(coalesce);
         f.getConfig().setInputBufferLength(16);
         f.getConfig().setShortestReportedTextSegment(4);
-        return (XMLStreamReader2) constructStreamReader(f, contents);
+        return constructStreamReader(f, contents);
     }
 
 }

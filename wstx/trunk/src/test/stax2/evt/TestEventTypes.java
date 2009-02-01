@@ -27,7 +27,7 @@ public class TestEventTypes
         XMLEventFactory2 evtf = getEventFactory();
         XMLOutputFactory2 f = getOutputFactory();
         StringWriter strw = new StringWriter();
-        XMLStreamWriter2 sw = (XMLStreamWriter2) f.createXMLStreamWriter(strw, "UTF-8");
+        XMLStreamWriter2 sw = f.createXMLStreamWriter(strw, "UTF-8");
 
         XMLEvent2 evt = (XMLEvent2) evtf.createStartDocument();
         evt.writeUsing(sw);
@@ -49,10 +49,4 @@ public class TestEventTypes
         assertTokenType(END_DOCUMENT, sr.next());
         sr.close();
     }
-
-    /*
-    ////////////////////////////////////////
-    // Non-test methods
-    ////////////////////////////////////////
-     */
 }

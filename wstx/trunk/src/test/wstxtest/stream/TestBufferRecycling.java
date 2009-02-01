@@ -63,12 +63,14 @@ public class TestBufferRecycling
      */
 
     char[] getCharBuffer(XMLStreamReader sr, boolean close)
-	throws XMLStreamException
+	    throws XMLStreamException
     {
-	assertTokenType(START_ELEMENT, sr.next());
-	assertTokenType(CHARACTERS, sr.next());
-	char[] buf = sr.getTextCharacters();
-	sr.close();
-	return buf;
+	    assertTokenType(START_ELEMENT, sr.next());
+	    assertTokenType(CHARACTERS, sr.next());
+	    char[] buf = sr.getTextCharacters();
+	    if (close) {
+	       sr.close();
+	    }
+	    return buf;
     }
 }

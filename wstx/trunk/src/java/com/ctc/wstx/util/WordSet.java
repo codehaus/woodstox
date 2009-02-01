@@ -338,7 +338,8 @@ public final class WordSet
          * @param end Index of the word after last word to be processed
          *   (so that number of words is <code>end - start - 1</code>
          */
-        private void constructBranch(int charIndex, int start, int end)
+        @SuppressWarnings("cast")
+		private void constructBranch(int charIndex, int start, int end)
         {
             // If more than one entry, need to divide into groups
 

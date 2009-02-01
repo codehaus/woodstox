@@ -24,7 +24,8 @@ public class RunEventCopier
         System.out.println("-->");
     }
 
-    private void test(String[] args)
+    @SuppressWarnings("deprecation")
+	private void test(String[] args)
         throws Exception
     {
         if (args.length != 1) {

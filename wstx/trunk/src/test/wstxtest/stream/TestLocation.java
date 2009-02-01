@@ -194,7 +194,7 @@ public class TestLocation
 
             if (readAll) { // read it, or just skip?
                 if (sr.hasText()) {
-                    String text = sr.getText();
+                    /*String text =*/ sr.getText();
                 }
             }
         }

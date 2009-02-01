@@ -20,7 +20,7 @@ public class TestNativeReader
         XMLInputFactory f = getInputFactory();
         setCoalescing(f, false); // shouldn't really matter
         setNamespaceAware(f, true);
-        return (XMLStreamReader2) constructStreamReader(f, contents);
+        return constructStreamReader(f, contents);
     }
 }
 

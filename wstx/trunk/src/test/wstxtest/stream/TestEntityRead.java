@@ -202,7 +202,7 @@ public class TestEntityRead
             if (i == 2) { // Should throw an exception, then:
                 try {
                     sr.next();
-                    String text = sr.getText(); // to force parsing
+                    /*String text =*/ sr.getText(); // to force parsing
                     fail("Expected an exception for undefined entity 'myent' that doesn't resolve via customer resolver");
                 } catch (XMLStreamException sex) {
                     ; // good;

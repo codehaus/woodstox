@@ -17,7 +17,8 @@ public class RunSaxReader
 {
     protected RunSaxReader() { }
 
-    protected void test(File file)
+    @SuppressWarnings("deprecation")
+	protected void test(File file)
         throws Exception
     {
         //SAXParserFactory spf = SAXParserFactory.newInstance();

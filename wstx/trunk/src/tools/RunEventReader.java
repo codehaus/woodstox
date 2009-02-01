@@ -43,7 +43,8 @@ public class RunEventReader
         System.out.println("  coalescing: "+f.getProperty(XMLInputFactory.IS_COALESCING));
     }
 
-    public void execute(String[] args) throws Exception
+    @SuppressWarnings("deprecation")
+	public void execute(String[] args) throws Exception
     {
         if (args.length != 1) {
             System.err.println("Usage: java ... "+getClass().getName()+" [file]");

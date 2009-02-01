@@ -23,10 +23,13 @@ public class RunTypedWriter
 
         sw.writeStartDocument();
 
+        /*
         final String STR =
             "Let's test this base64 thing with some arbitrary test data gotten out of this String as UTF-8 encoded: abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQSTUVWXYZ@@@@@@@@"
             //"1234567"
             ;
+            */
+        
         //byte[] data = STR.getBytes("UTF-8");
         byte[] data = new byte[64];
         java.util.Arrays.fill(data, (byte)-1);

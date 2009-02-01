@@ -78,12 +78,13 @@ public final class URLUtil
      * not explicitly passed.
      */
     public static URL urlFromCurrentDir()
-        throws java.net.MalformedURLException /* an IOException */
+        throws IOException /* MalformedURLException or such */
     {
         /* This seems to work; independent of whether there happens to
          * be such/file dir or not.
          */
-        return new File("a").getAbsoluteFile().getParentFile().toURL();
+        File parent = new File("a").getAbsoluteFile().getParentFile();
+        return toURL(parent);
     }
 
     /**
@@ -131,6 +132,17 @@ public final class URLUtil
             }
         }
         return url.openConnection().getOutputStream();
+    }
+
+    /**
+     * Helper method that will convert given file into equivalent URL.
+     * Encapsulated as a separate method to allow for working around
+     * problems with deprecation of {@link File#toURL} method.
+     */
+    public static URL toURL(File f)
+        throws IOException
+    {
+        return f.toURI().toURL();
     }
 
     /*

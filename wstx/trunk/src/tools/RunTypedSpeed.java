@@ -96,8 +96,8 @@ public class RunTypedSpeed
             try {
                 int nr = Integer.parseInt(firstValue);
                 // Ok, was a valid int
-                mType = TYPE_BOOLEAN;
-                System.out.println("Type detected as: INT");
+                mType = TYPE_INT;
+                System.out.println("Type detected as: INT ("+nr+")");
             } catch (NumberFormatException nex) { }
         }
 

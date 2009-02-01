@@ -65,7 +65,7 @@ public class NonNsStreamWriter
      * clearing up HashSet, and the only access is done by
      * adding entries and see if an value was already set.
      */
-    TreeSet mAttrNames;
+    TreeSet<String> mAttrNames;
 
     /*
     ////////////////////////////////////////////////////
@@ -122,7 +122,7 @@ public class NonNsStreamWriter
              *   for this in future.
              */
             if (mAttrNames == null) {
-                mAttrNames = new TreeSet();
+                mAttrNames = new TreeSet<String>();
             }
             if (!mAttrNames.add(localName)) {
                 reportNwfAttr("Trying to write attribute '"+localName+"' twice");
@@ -287,7 +287,7 @@ public class NonNsStreamWriter
         }
         if (mCheckAttrs) { // doh. Not good, need to construct non-transient value...
             if (mAttrNames == null) {
-                mAttrNames = new TreeSet();
+                mAttrNames = new TreeSet<String>();
             }
             if (!mAttrNames.add(localName)) {
                 reportNwfAttr("Trying to write attribute '"+localName+"' twice");

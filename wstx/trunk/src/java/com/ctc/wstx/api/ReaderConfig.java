@@ -272,8 +272,11 @@ public final class ReaderConfig
                         DataUtil.Integer(PROP_INPUT_BUFFER_LENGTH));
         sProperties.put(WstxInputProperties.P_MIN_TEXT_SEGMENT,
                         DataUtil.Integer(PROP_MIN_TEXT_SEGMENT));
-        sProperties.put(WstxInputProperties.P_CUSTOM_INTERNAL_ENTITIES,
-                        DataUtil.Integer(PROP_CUSTOM_INTERNAL_ENTITIES));
+        {
+            @SuppressWarnings("deprecation")
+        	String key = WstxInputProperties.P_CUSTOM_INTERNAL_ENTITIES;
+        	sProperties.put(key, Integer.valueOf(PROP_CUSTOM_INTERNAL_ENTITIES));
+        }
         sProperties.put(WstxInputProperties.P_DTD_RESOLVER,
                         DataUtil.Integer(PROP_DTD_RESOLVER));
         sProperties.put(WstxInputProperties.P_ENTITY_RESOLVER,
@@ -386,7 +389,7 @@ public final class ReaderConfig
      * to a {@link BufferRecycler} used to provide a low-cost
      * buffer recycling between Reader instances.
      */
-    final static ThreadLocal mRecyclerRef = new ThreadLocal();
+    final static ThreadLocal<SoftReference<BufferRecycler>> mRecyclerRef = new ThreadLocal<SoftReference<BufferRecycler>>();
 
     /**
      * This is the actually container of the recyclable buffers. It
@@ -422,9 +425,9 @@ public final class ReaderConfig
          * we can reconstruct one if and when we are to return one or more
          * buffers.
          */
-        SoftReference ref = (SoftReference) mRecyclerRef.get();
+        SoftReference<BufferRecycler> ref = mRecyclerRef.get();
         if (ref != null) {
-            mCurrRecycler = (BufferRecycler) ref.get();
+            mCurrRecycler = ref.get();
         }
     }
 
@@ -1173,7 +1176,7 @@ public final class ReaderConfig
         BufferRecycler recycler = new BufferRecycler();
         // No way to reuse/reset SoftReference, have to create new always:
 //System.err.println("DEBUG: RefCount: "+(++Counter));
-        mRecyclerRef.set(new SoftReference(recycler));
+        mRecyclerRef.set(new SoftReference<BufferRecycler>(recycler));
         return recycler;
     }
 

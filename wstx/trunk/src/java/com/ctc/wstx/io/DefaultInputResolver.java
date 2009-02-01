@@ -152,7 +152,7 @@ public final class DefaultInputResolver
             return sourceFromString(parent, cfg, refName, xmlVersion, (String) o);
         }
         if (o instanceof File) {
-            URL u = ((File) o).toURL();
+            URL u = URLUtil.toURL((File) o);
             return sourceFromURL(parent, cfg, refName, xmlVersion, u, null);
         }
 

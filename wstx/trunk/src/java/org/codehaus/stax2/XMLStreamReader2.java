@@ -32,20 +32,6 @@ import org.codehaus.stax2.validation.Validatable;
  * efficient pass-through processing (such as one needed when routing
  * SOAP-messages).
  *<p>
- * The features supported via {@link #setFeature} are:
- *<dt>
- * <dt>FEATURE_DTD_OVERRIDE: (write-only)</dt>
- * <dd>Feature used to specify the source for DTD external subset to use
- *    instead of DTD specified by the XML document itself (if any).
- *    Setting the feature for a reader that supports DTD validation
- *    essentially allows for injecting an alternate DOCTYPE declaration.
- *    Note that setting this value to null is both legal, and sometimes
- *    useful: it is equivalent of removing the DOCTYPE declaration.
- *   <br />Feature is write-only, since storing it after loading the DTD
- *    in question does not have much use.
- *  </dt>
- *</dt>
- *<p>
  * Since version 3.0, stream writer will also implement "Typed Access API"
  * on output side.
  *
@@ -56,13 +42,6 @@ public interface XMLStreamReader2
     extends TypedXMLStreamReader,
             Validatable
 {
-    /**
-     * Feature used to specify the source for DTD external subset to use
-     * instead of DTD specified by the XML document itself (if any).
-     *
-     * @deprecated Use {@link XMLInputFactory2#P_DTD_OVERRIDE} instead.
-     */
-    public final static String FEATURE_DTD_OVERRIDE = XMLInputFactory2.P_DTD_OVERRIDE;
 
     /*
     ///////////////////////////
@@ -98,41 +77,6 @@ public interface XMLStreamReader2
      *   (or recognized) by the stream reader implementation
      */
     public boolean setProperty(String name, Object value);
-
-    /**
-     * Method that can be used to get per-reader values; both generic
-     * ones (names for which are defined as constants in this class),
-     * and implementation dependant ones.
-     *<p>
-     * Note: although some feature names are shared with
-     * {@link #setFeature}, not all are: some features are read-only,
-     * some write-only
-     *
-     * @deprecated Should use {@link #getProperty} instead
-     *
-     * @param name Name of the feature of which value to get
-     *
-     * @return Value of the feature (possibly null), if supported; null
-     *     otherwise
-     */
-    public Object getFeature(String name);
-
-    /**
-     * Method that can be used to set per-reader features such as configuration
-     * settings; both generic
-     * ones (names for which are defined as constants in this class),
-     * and implementation dependant ones.
-     *<p>
-     * Note: although some feature names are shared with
-     * {@link #getFeature}, not all are: some features are read-only,
-     * some write-only
-     *
-     * @deprecated Should use {@link #setProperty} instead
-     *
-     * @param name Name of the feature to set
-     * @param value Value to set feature to.
-     */
-    public void setFeature(String name, Object value);
 
     /*
     /////////////////////////////////

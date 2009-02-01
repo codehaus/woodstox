@@ -168,27 +168,6 @@ public class ValidatingStreamReader
 
     // // // StAX2, per-reader configuration
 
-    // no additional readable features
-    //public Object getFeature(String name)
-
-    public void setFeature(String name, Object value)
-    {
-        // Referring to DTD-related features?
-        if (name.equals(FEATURE_DTD_OVERRIDE)) {
-            /* !!! 06-Feb-2007, TSa: Null with 4.0 will actually mean
-             *  'remove any overrides'; which is different from earlier
-             *  meaning (which was use a dummy/empty override). 
-             *  Should we throw an exception, or warn, or something...?
-             */
-            if (value != null && !(value instanceof DTDValidationSchema)) {
-                throw new IllegalArgumentException("Value to set for feature "+name+" not of type DTDValidationSchema");
-            }
-            mConfig.setProperty(XMLInputFactory2.P_DTD_OVERRIDE, value);
-        } else {
-            super.setFeature(name, value);
-        }
-    }
-
     /*
     ////////////////////////////////////////////////////
     // DTDInfo implementation (StAX 2)
@@ -358,7 +337,8 @@ public class ValidatingStreamReader
                  * since entities and notations can not be accessed
                  */
                 _reportProblem(mConfig.getXMLReporter(), ErrorConsts.WT_DT_DECL,
-                               "Value to set for feature "+FEATURE_DTD_OVERRIDE+" not a native Woodstox DTD implementation (but "+mDTD.getClass()+"): can not access full entity or notation information", null);
+                               "Value to set for property '"+XMLInputFactory2.P_DTD_OVERRIDE
+                               +"' not a native Woodstox DTD implementation (but "+mDTD.getClass()+"): can not access full entity or notation information", null);
             }
             /* 16-Jan-2006, TSa: Actually, we have both fully-validating mode,
              *   and non-validating-but-DTD-aware mode. In latter case, we'll

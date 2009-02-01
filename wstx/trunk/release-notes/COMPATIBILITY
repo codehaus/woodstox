@@ -1,4 +1,15 @@
-== Changes from 3.0.x to 4.0.x ==
+-------------------------------------------------------------------
+
+== Changes from 4.0 to 5.0 ==
+
+=== Properties ===
+
+* Removed deprecated 'setFeature' and 'getFeature' methods (and
+  related constants)
+
+-------------------------------------------------------------------
+
+== Changes from 3.0 to 4.0 ==
 
 === Stream reader ===
 
@@ -35,7 +46,9 @@
   problem reporting methods, and resulting exceptions must
   be let pass through call stack (see [WSTX-154] for details).
 
-== Changes from 2.0.x to 3.0.x ==
+-------------------------------------------------------------------
+
+== Changes from 2.0 to 3.0 ==
 
 === XML compatibility ===
 

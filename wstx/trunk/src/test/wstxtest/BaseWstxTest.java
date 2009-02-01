@@ -135,7 +135,8 @@ public class BaseWstxTest
         return (XMLStreamReader2) f.createXMLStreamReader(new StringReader(content));
     }
 
-    protected static XMLStreamReader2 constructStreamReaderForFile(XMLInputFactory f, String filename)
+    @SuppressWarnings("deprecation")
+	protected static XMLStreamReader2 constructStreamReaderForFile(XMLInputFactory f, String filename)
         throws IOException, XMLStreamException
     {
         File inf = new File(filename);

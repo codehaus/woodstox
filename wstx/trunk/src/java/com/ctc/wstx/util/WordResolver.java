@@ -75,7 +75,7 @@ public final class WordResolver
      *   the word set size is not too big; null to indicate "too big"
      *   instance.
      */
-    public static WordResolver constructInstance(TreeSet wordSet)
+    public static WordResolver constructInstance(TreeSet<String> wordSet)
     {
         if (wordSet.size() > MAX_WORDS) {
             return null;
@@ -112,7 +112,8 @@ public final class WordResolver
      * @return (Shared) string instance of the word, if it exists in
      *   the word set; null if not.
      */
-    public String find(char[] str, final int start, final int end)
+    @SuppressWarnings("cast")
+	public String find(char[] str, final int start, final int end)
     {
         char[] data = mData;
 
@@ -218,7 +219,8 @@ public final class WordResolver
      * @return (Shared) string instance of the word, if it exists in
      *   the word set; null if not.
      */
-    public String find(String str)
+    @SuppressWarnings("cast")
+	public String find(String str)
     {
         char[] data = mData;
 
@@ -347,7 +349,7 @@ public final class WordResolver
          */
         int mSize;
 
-        public Builder(TreeSet wordSet)
+        public Builder(TreeSet<String> wordSet)
         {
             int wordCount = wordSet.size();
 
@@ -416,7 +418,8 @@ public final class WordResolver
          * @param end Index of the word after last word to be processed
          *   (so that number of words is <code>end - start - 1</code>
          */
-        private void constructBranch(int charIndex, int start, int end)
+        @SuppressWarnings("cast")
+		private void constructBranch(int charIndex, int start, int end)
         {
             // If more than one entry, need to divide into groups
 

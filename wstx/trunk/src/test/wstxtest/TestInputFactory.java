@@ -43,9 +43,10 @@ public class TestInputFactory
          * So here we go, just to mark it off the list...
          */
         ErrorConsts ec = new ErrorConsts();
-        assertNotNull(ec.tokenTypeDesc(XMLStreamConstants.START_DOCUMENT));
-        assertNotNull(ec.tokenTypeDesc(XMLStreamConstants.END_DOCUMENT));
-        assertNotNull(ec.tokenTypeDesc(XMLStreamConstants.ATTRIBUTE));
+        assertNotNull(ec); // silly, but otherwise eclipse would about unused..
+        assertNotNull(ErrorConsts.tokenTypeDesc(XMLStreamConstants.START_DOCUMENT));
+        assertNotNull(ErrorConsts.tokenTypeDesc(XMLStreamConstants.END_DOCUMENT));
+        assertNotNull(ErrorConsts.tokenTypeDesc(XMLStreamConstants.ATTRIBUTE));
     }
 
     /*
