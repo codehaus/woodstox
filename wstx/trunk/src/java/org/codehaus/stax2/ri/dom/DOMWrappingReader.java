@@ -1615,19 +1615,6 @@ public abstract class DOMWrappingReader
     ////////////////////////////////////////////////////
      */
 
-    // // // StAX2, per-reader configuration
-
-    public Object getFeature(String name)
-    {
-        // No readable features supported yet
-        throw new IllegalArgumentException("Unrecognized feature \""+name+"\"");
-    }
-
-    public void setFeature(String name, Object value)
-    {
-        throw new IllegalArgumentException("Unrecognized feature \""+name+"\"");
-    }
-
     // // // StAX2, additional traversal methods
 
     public void skipElement() throws XMLStreamException

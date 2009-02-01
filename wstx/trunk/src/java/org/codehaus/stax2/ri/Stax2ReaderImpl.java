@@ -64,19 +64,6 @@ public abstract class Stax2ReaderImpl
     ////////////////////////////////////////////////////
      */
 
-    // // // StAX2, per-reader configuration
-
-    public Object getFeature(String name)
-    {
-        // No features defined
-        return null;
-    }
-
-    public void setFeature(String name, Object value)
-    {
-        // No features defined
-    }
-
     // NOTE: getProperty() defined in Stax 1.0 interface
 
     public boolean isPropertySupported(String name) {

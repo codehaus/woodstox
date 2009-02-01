@@ -114,7 +114,7 @@ public class MinimalDTDReader
         return getStartLocation();
     }
 
-    // @Override
+    @Override
     protected EntityDecl findEntity(String id, Object arg) {
         throwIllegalCall();
         return null; // never gets here but javac needs it

@@ -78,7 +78,7 @@ public class WstxDOMWrappingReader
     ///////////////////////////////////////////////////
      */
 
-    // @Override
+    @Override
     protected void throwStreamException(String msg, Location loc)
         throws XMLStreamException
     {

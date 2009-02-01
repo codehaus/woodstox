@@ -1,10 +1,10 @@
 ------------------------------------
-Planned stuff for 4.0
+Planned stuff for 5.0
 ------------------------------------
 
 * Change baseline to JDK 1.5, to:
-  - Use generics throughout (and eliminate Eclipse warnings...)
-  - Use StringBuilder instead of StringBuffer
+x - Use generics throughout (and eliminate Eclipse warnings...)
+x - Use StringBuilder instead of StringBuffer
   - Use DOM Level 3, which gives proper access to namespace info
 
 * XMLStreamReader: (etc)
@@ -12,5 +12,4 @@ Planned stuff for 4.0
     accurate (StreamInfoAccess?)
  
 * Misc:
-  - org.codehaus.stax.io.Stax2FileSource: use URI instead of URL,
-    as suggested.
+x - org.codehaus.stax.io.Stax2FileSource: use URI for URLs, as suggested.

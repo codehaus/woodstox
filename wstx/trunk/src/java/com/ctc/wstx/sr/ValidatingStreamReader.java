@@ -192,28 +192,28 @@ public class ValidatingStreamReader
     ////////////////////////////////////////////////////
      */
 
-    // @Override
+    @Override
     public XMLValidator validateAgainst(XMLValidationSchema schema)
         throws XMLStreamException
     {
         return mElementStack.validateAgainst(schema);
     }
 
-    // @Override
+    @Override
     public XMLValidator stopValidatingAgainst(XMLValidationSchema schema)
         throws XMLStreamException
     {
         return mElementStack.stopValidatingAgainst(schema);
     }
 
-    // @Override
+    @Override
     public XMLValidator stopValidatingAgainst(XMLValidator validator)
         throws XMLStreamException
     {
         return mElementStack.stopValidatingAgainst(validator);
     }
 
-    // @Override
+    @Override
     public ValidationProblemHandler setValidationProblemHandler(ValidationProblemHandler h)
     {
         ValidationProblemHandler oldH = mVldProbHandler;

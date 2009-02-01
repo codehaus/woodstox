@@ -3315,11 +3315,11 @@ public class FullDTDReader
     //////////////////////////////////////////////////////////
      */
 
-    // @Override
     /**
      * @param arg If Boolean.TRUE, we are expanding a general entity
      *   
      */
+    @Override
     protected EntityDecl findEntity(String id, Object arg)
     {
         // Expand a Parameter Entity?
@@ -3381,10 +3381,10 @@ public class FullDTDReader
         throw new IllegalStateException(ErrorConsts.ERR_INTERNAL);
     }
 
-    // @Override
     /**
      * Undeclared parameter entity is a VC, not WFC...
      */
+    @Override
     protected void handleUndeclaredEntity(String id)
         throws XMLStreamException
     {

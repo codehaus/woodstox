@@ -75,7 +75,7 @@ public class WstxEventReader
     //////////////////////////////////////////////////////
      */
 
-    // @Override
+    @Override
     protected void reportProblem(String msg, Location loc)
         throws XMLStreamException
     {

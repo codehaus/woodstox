@@ -317,7 +317,7 @@ public final class Base64Variant
     ////////////////////////////////////////////////////
      */
 
-    // @Override
+    @Override
     public String toString() { return _name; }
 }
 

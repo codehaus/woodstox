@@ -31,7 +31,7 @@ public final class DTDCdataAttr
     ///////////////////////////////////////////////////
      */
 
-    // @Override
+    @Override
     public String validate(DTDValidatorBase v, char[] cbuf, int start, int end, boolean normalize)
         throws XMLValidationException
     {
@@ -39,21 +39,21 @@ public final class DTDCdataAttr
         return null;
     }
 
-    // @Override
+    @Override
     public void validateDefault(InputProblemReporter rep, boolean normalize)
         throws javax.xml.stream.XMLStreamException
     {
         // Nothing to do for CDATA; all values are fine
     }
 
-    // @Override
+    @Override
     public String normalize(DTDValidatorBase v, char[] cbuf, int start, int end)
     {
         // Nothing to do for pure CDATA attributes...
         return null;
     }
 
-    // @Override
+    @Override
     public void normalizeDefault()
     {
         // Nothing to do for pure CDATA attributes...

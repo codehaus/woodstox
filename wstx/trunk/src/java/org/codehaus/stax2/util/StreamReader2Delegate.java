@@ -40,7 +40,7 @@ public class StreamReader2Delegate
         mDelegate2 = sr;
     }
 
-    // @Override
+    @Override
     public void setParent(XMLStreamReader pr)
     {
         super.setParent(pr);

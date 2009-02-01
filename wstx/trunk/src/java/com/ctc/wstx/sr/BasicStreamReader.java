@@ -1190,20 +1190,6 @@ public abstract class BasicStreamReader
     ////////////////////////////////////////////////////
      */
 
-    // // // StAX2, per-reader configuration
-
-    public Object getFeature(String name)
-    {
-        // No readable features defined yet...
-        throw new IllegalArgumentException(MessageFormat.format(ErrorConsts.ERR_UNKNOWN_FEATURE, new Object[] { name })); 
-    }
-
-    public void setFeature(String name, Object value)
-    {
-        // Base-class has no settable features at this point.
-        throw new IllegalArgumentException(MessageFormat.format(ErrorConsts.ERR_UNKNOWN_FEATURE, new Object[] { name })); 
-    }
-
     // NOTE: getProperty() defined in Stax 1.0 interface
 
     public boolean isPropertySupported(String name) {
@@ -5354,7 +5340,7 @@ public abstract class BasicStreamReader
     ////////////////////////////////////////////////////
      */
 
-    // @Override
+    @Override
     protected EntityDecl findEntity(String id, Object arg)
         throws XMLStreamException
     {
@@ -5373,6 +5359,7 @@ public abstract class BasicStreamReader
         return ed;
     }
 
+    @Override
     protected void handleUndeclaredEntity(String id)
         throws XMLStreamException
     {
@@ -5382,6 +5369,7 @@ public abstract class BasicStreamReader
                         id, null);
     }
 
+    @Override
     protected void handleIncompleteEntityProblem(WstxInputSource closing)
         throws XMLStreamException
     {
@@ -5390,6 +5378,7 @@ public abstract class BasicStreamReader
                         closing.getEntityId(), top);
     } 
 
+    @Override
     protected char handleExpandedSurrogate(char first, char second)
     {
         /* With normal XML textual content we should be safe by just
