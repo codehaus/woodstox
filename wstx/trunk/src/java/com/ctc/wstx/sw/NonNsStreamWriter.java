@@ -250,14 +250,15 @@ public class NonNsStreamWriter
     ////////////////////////////////////////////////////
      */
 
-    public void writeStartElement(StartElement elem)
+	public void writeStartElement(StartElement elem)
         throws XMLStreamException
     {
         QName name = elem.getName();
         writeStartElement(name.getLocalPart());
-        Iterator it = elem.getAttributes();
+        @SuppressWarnings("unchecked")
+        Iterator<Attribute> it = elem.getAttributes();
         while (it.hasNext()) {
-            Attribute attr = (Attribute) it.next();
+            Attribute attr = it.next();
             name = attr.getName();
             writeAttribute(name.getLocalPart(), attr.getValue());
         }

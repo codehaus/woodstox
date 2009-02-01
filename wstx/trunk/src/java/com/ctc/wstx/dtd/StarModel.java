@@ -40,7 +40,7 @@ public class StarModel
         return true;
     }
 
-    public void indexTokens(List tokens) {
+    public void indexTokens(List<TokenModel> tokens) {
         mModel.indexTokens(tokens);
     }
 

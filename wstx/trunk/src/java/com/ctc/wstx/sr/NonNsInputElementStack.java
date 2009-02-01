@@ -228,7 +228,7 @@ public final class NonNsInputElementStack
         return null;
     }
 
-    public final Iterator getPrefixes(String nsURI) {
+    public final Iterator<String> getPrefixes(String nsURI) {
         return EmptyIterator.getInstance();
     }
 

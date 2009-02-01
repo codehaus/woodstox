@@ -234,7 +234,7 @@ public class WstxDOMWrappingWriter
         }
 
         if (mSuggestedPrefixes == null) {
-            mSuggestedPrefixes = new HashMap(16);
+            mSuggestedPrefixes = new HashMap<String,String>(16);
         }
         mSuggestedPrefixes.put(uri, prefix);
 

@@ -305,7 +305,7 @@ public abstract class InputElementStack
 
     public abstract String getPrefix(String nsURI);
 
-    public abstract Iterator getPrefixes(String nsURI);
+    public abstract Iterator<String> getPrefixes(String nsURI);
 
     /*
     ///////////////////////////////////////////////////

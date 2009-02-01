@@ -21,7 +21,7 @@ public class BaseWstxTest
     extends TestCase
     implements XMLStreamConstants
 {
-    final static HashMap mTokenTypes = new HashMap();
+    final static HashMap<Integer,String> mTokenTypes = new HashMap<Integer,String>();
     static {
         mTokenTypes.put(new Integer(START_ELEMENT), "START_ELEMENT");
         mTokenTypes.put(new Integer(END_ELEMENT), "END_ELEMENT");
@@ -386,7 +386,7 @@ public class BaseWstxTest
 
     protected static String tokenTypeDesc(int tt)
     {
-	String desc = (String) mTokenTypes.get(new Integer(tt));
+	String desc = mTokenTypes.get(Integer.valueOf(tt));
 	return (desc == null) ? ("["+tt+"]") : desc;
     }
 
@@ -539,7 +539,8 @@ public class BaseWstxTest
 	System.err.println("WARN: "+msg);
     }
 
-    public static String printable(char ch)
+    @SuppressWarnings("cast")
+	public static String printable(char ch)
     {
         if (ch == '\n') {
             return "\\n";
@@ -554,7 +555,7 @@ public class BaseWstxTest
             return "_";
         }
         if (ch > 127 || ch < 32) {
-            StringBuffer sb = new StringBuffer(6);
+            StringBuilder sb = new StringBuilder(6);
             sb.append("\\u");
             String hex = Integer.toHexString((int)ch);
             for (int i = 0, len = 4 - hex.length(); i < len; i++) {
@@ -566,7 +567,8 @@ public class BaseWstxTest
         return null;
     }
 
-    public static String printableWithSpaces(char ch)
+    @SuppressWarnings("cast")
+	public static String printableWithSpaces(char ch)
     {
         if (ch == '\n') {
             return "\\n";

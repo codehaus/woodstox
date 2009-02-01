@@ -125,7 +125,7 @@ public final class LargePrefixedNameSet
     public void appendNames(StringBuffer sb, String sep)
     {
         // Let's first get the alphabetized list of all names from main hash
-        TreeSet ts = new TreeSet();
+        TreeSet<PrefixedName> ts = new TreeSet<PrefixedName>();
         for (int i = 0; i < mNames.length; ++i) {
             PrefixedName name = mNames[i];
             if (name != null) {
@@ -145,7 +145,7 @@ public final class LargePrefixedNameSet
         }
 
         // And then append them:
-        Iterator it = ts.iterator();
+        Iterator<PrefixedName> it = ts.iterator();
         boolean first = true;
         while (it.hasNext()) {
             if (first) {

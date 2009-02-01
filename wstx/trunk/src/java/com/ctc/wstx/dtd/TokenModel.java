@@ -54,7 +54,7 @@ public final class TokenModel
         return false;
     }
 
-    public void indexTokens(List tokens)
+    public void indexTokens(List<TokenModel> tokens)
     {
         /* Doh. This is not clean... but need to make sure the null
          * token never gets reindexed or explicitly added:

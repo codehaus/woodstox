@@ -106,7 +106,7 @@ public class WstxInputFactory
 
     // // // Other configuration objects:
 
-    protected SimpleCache mDTDCache = null;
+    protected SimpleCache<DTDId,DTDSubset> mDTDCache = null;
 
     /*
     /////////////////////////////////////////////////////
@@ -209,7 +209,7 @@ public class WstxInputFactory
     public synchronized void addCachedDTD(DTDId id, DTDSubset extSubset)
     {
         if (mDTDCache == null) {
-            mDTDCache = new SimpleCache(mConfig.getDtdCacheSize());
+            mDTDCache = new SimpleCache<DTDId,DTDSubset>(mConfig.getDtdCacheSize());
         }
         mDTDCache.add(id, extSubset);
     }

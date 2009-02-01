@@ -59,7 +59,7 @@ public class TestWordResolver
 
     private void checkResolver(String[] words, String[] missingWords)
     {
-        TreeSet set = new TreeSet();
+        TreeSet<String> set = new TreeSet<String>();
         for (int i = 0, len = words.length; i < len; ++i) {
             set.add(words[i]);
         }
@@ -68,11 +68,11 @@ public class TestWordResolver
 
         assertEquals(wr.size(), set.size());
 
-        Iterator it = set.iterator();
+        Iterator<String> it = set.iterator();
 
         // Let's first check if words that should be there, are:
         while (it.hasNext()) {
-            String str = (String) it.next();
+            String str = it.next();
 
             assertEquals(str, wr.find(str));
             // And then, let's make sure intern()ing isn't needed:

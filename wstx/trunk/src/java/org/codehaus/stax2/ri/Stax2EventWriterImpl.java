@@ -45,7 +45,7 @@ public class Stax2EventWriterImpl
      * through stream writer. This because it may want to do
      * different kinds of validation
      */
-    public void add(XMLEvent event)
+	public void add(XMLEvent event)
         throws XMLStreamException
     {
         switch (event.getEventType()) {
@@ -96,15 +96,15 @@ public class Stax2EventWriterImpl
                 QName n = se.getName();
                 mWriter.writeStartElement(n.getPrefix(), n.getLocalPart(),
                                           n.getNamespaceURI());
-                Iterator it = se.getNamespaces();
-                while (it.hasNext()) {
-                    Namespace ns = (Namespace) it.next();
-                    add(ns);
+            	@SuppressWarnings("unchecked")
+                Iterator<XMLEvent> nit = se.getNamespaces();
+                while (nit.hasNext()) {
+                    add(nit.next());
                 }
-                it = se.getAttributes();
-                while (it.hasNext()) {
-                    Attribute attr = (Attribute) it.next();
-                    add(attr);
+            	@SuppressWarnings("unchecked")
+                Iterator<XMLEvent> ait = se.getAttributes();
+                while (ait.hasNext()) {
+                    add(ait.next());
                 }
             }
             break;

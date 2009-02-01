@@ -12,23 +12,23 @@ import java.util.*;
  * refs, and secondary bigger one that uses soft references.
  */
 
-public final class SimpleCache
+public final class SimpleCache<K,V>
 {
-    final LimitMap mItems;
+    final LimitMap<K,V> mItems;
 
     final int mMaxSize;
 
     public SimpleCache(int maxSize)
     {
-        mItems = new LimitMap(maxSize);
+        mItems = new LimitMap<K,V>(maxSize);
         mMaxSize = maxSize;
     }
 
-    public Object find(Object key) {
+    public V find(K key) {
         return mItems.get(key);
     }
 
-    public void add(Object key, Object value)
+    public void add(K key, V value)
     {
         mItems.put(key, value);
     }
@@ -39,8 +39,9 @@ public final class SimpleCache
     /////////////////////////////////////////////
      */
 
-    final static class LimitMap
-        extends LinkedHashMap
+    @SuppressWarnings("serial")
+	final static class LimitMap<K,V>
+        extends LinkedHashMap<K,V>
     {
         final int mMaxSize;
 
@@ -51,7 +52,7 @@ public final class SimpleCache
             mMaxSize = size;
         }
         
-        public boolean removeEldestEntry(Map.Entry eldest) {
+        public boolean removeEldestEntry(Map.Entry<K,V> eldest) {
             return (size() >= mMaxSize);
         }
     }

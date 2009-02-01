@@ -155,14 +155,15 @@ public final class SimpleNsStreamWriter
         mCurrElem.addPrefix(prefix, uri);
     }
 
-    public void writeStartElement(StartElement elem)
+	public void writeStartElement(StartElement elem)
         throws XMLStreamException
     {
         QName name = elem.getName();
-        Iterator it = elem.getNamespaces();
+        @SuppressWarnings("unchecked")
+        Iterator<Namespace> it = elem.getNamespaces();
         
         while (it.hasNext()) {
-            Namespace ns = (Namespace) it.next();
+            Namespace ns = it.next();
             // First need to 'declare' namespace:
             String prefix = ns.getPrefix();
             if (prefix == null || prefix.length() == 0) {

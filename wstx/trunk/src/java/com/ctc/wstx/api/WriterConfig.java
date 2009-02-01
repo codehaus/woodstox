@@ -159,7 +159,7 @@ public final class WriterConfig
      * Map to use for converting from String property ids to ints
      * described above; useful to allow use of switch later on.
      */
-    final static HashMap sProperties = new HashMap(8);
+    final static HashMap<String,Integer> sProperties = new HashMap<String,Integer>(8);
     static {
         // // Stax (1.0) standard ones:
         sProperties.put(XMLOutputFactory.IS_REPAIRING_NAMESPACES,

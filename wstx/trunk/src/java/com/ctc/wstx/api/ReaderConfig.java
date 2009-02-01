@@ -1283,7 +1283,7 @@ public final class ReaderConfig
         }
     }
 
-    public boolean setProperty(String propName, int id, Object value)
+	public boolean setProperty(String propName, int id, Object value)
     {
         switch (id) {
             // First, standard (Stax 1.0) properties:
@@ -1408,7 +1408,11 @@ public final class ReaderConfig
             break;
 
         case PROP_CUSTOM_INTERNAL_ENTITIES:
-            setCustomInternalEntities((Map) value);
+        	{
+        		@SuppressWarnings("unchecked")
+        		Map<String,?> arg = (Map<String,?>) value;
+        		setCustomInternalEntities(arg);
+        	}
             break;
 
         case PROP_DTD_RESOLVER:

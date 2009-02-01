@@ -138,7 +138,7 @@ public class TestEventReader
         assertTokenType(DTD, evt.getEventType());
 
         DTD dtd = (DTD) evt;
-        List nots = dtd.getNotations();
+        List<?> nots = dtd.getNotations();
         assertEquals(1, nots.size());
         NotationDeclaration2 notDecl = (NotationDeclaration2) nots.get(0);
 

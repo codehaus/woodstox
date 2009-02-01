@@ -3,7 +3,6 @@ package stax2.typed;
 import javax.xml.stream.*;
 
 import org.codehaus.stax2.XMLStreamReader2;
-import org.codehaus.stax2.ri.Stax2ReaderAdapter;
 
 /**
  * Stax2 Typed Access API basic reader tests, using Stax2 adapter

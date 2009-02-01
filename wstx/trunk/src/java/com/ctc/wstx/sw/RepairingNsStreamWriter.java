@@ -74,7 +74,7 @@ public final class RepairingNsStreamWriter
      * if there are conflicts, repairing writer can just use some other
      * prefix.
      */
-    HashMap mSuggestedPrefixes = null;
+    HashMap<String,String> mSuggestedPrefixes = null;
 
     /*
     ////////////////////////////////////////////////////
@@ -204,10 +204,10 @@ public final class RepairingNsStreamWriter
          */
         if (uri == null || uri.length() == 0) {
             if (mSuggestedPrefixes != null) {
-                for (Iterator it = mSuggestedPrefixes.entrySet().iterator();
+                for (Iterator<Map.Entry<String,String>> it = mSuggestedPrefixes.entrySet().iterator();
                      it.hasNext(); ) {
-                    Map.Entry en = (Map.Entry) it.next();
-                    String thisP = (String) en.getValue();
+                    Map.Entry<String,String> en = it.next();
+                    String thisP = en.getValue();
                     if (thisP.equals(prefix)) {
                         it.remove();
                     }
@@ -215,13 +215,13 @@ public final class RepairingNsStreamWriter
             }
         } else {
             if (mSuggestedPrefixes == null) {
-                mSuggestedPrefixes = new HashMap(16);
+                mSuggestedPrefixes = new HashMap<String,String>(16);
             }
             mSuggestedPrefixes.put(uri, prefix);
         }
     }
 
-    public void writeStartElement(StartElement elem)
+	public void writeStartElement(StartElement elem)
         throws XMLStreamException
     {
         /* In repairing mode this is simple: let's just pass info
@@ -230,9 +230,10 @@ public final class RepairingNsStreamWriter
         QName name = elem.getName();
         writeStartElement(name.getPrefix(), name.getLocalPart(),
                           name.getNamespaceURI());
-        Iterator it = elem.getAttributes();
+        @SuppressWarnings("unchecked")
+        Iterator<Attribute> it = elem.getAttributes();
         while (it.hasNext()) {
-            Attribute attr = (Attribute) it.next();
+            Attribute attr = it.next();
             name = attr.getName();
             writeAttribute(name.getPrefix(), name.getNamespaceURI(),
                            name.getLocalPart(), attr.getValue());

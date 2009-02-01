@@ -165,7 +165,7 @@ public class StartElementEventImpl
         // How about attrs?
         if (mAttrs != null) {
             for (int i = 0, len = mAttrs.size(); i < len; ++i) {
-                Attribute attr = (Attribute) mAttrs.get(i);
+                Attribute attr = mAttrs.get(i);
                 // No point in adding default attributes?
                 if (attr.isSpecified()) {
                     QName name = attr.getName();

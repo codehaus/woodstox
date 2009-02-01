@@ -18,7 +18,7 @@ public class TestWordSet
 
     public void testNormal()
     {
-        TreeSet set = new TreeSet();
+        TreeSet<String> set = new TreeSet<String>();
 
         set.add("word");
         set.add("123");
@@ -29,12 +29,9 @@ public class TestWordSet
         set.add("foobar");
 
         WordSet ws = WordSet.constructSet(set);
-        Iterator it = set.iterator();
 
         // Let's first check if words that should be there, are:
-        while (it.hasNext()) {
-            String str = (String) it.next();
-
+        for (String str : set) {
             assertTrue(ws.contains(str));
             // And then, let's make sure intern()ing isn't needed:
             assertTrue(ws.contains(""+str));

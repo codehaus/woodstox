@@ -6,8 +6,6 @@ import javax.xml.transform.dom.DOMResult;
 
 import org.w3c.dom.*;
 
-import org.codehaus.stax2.typed.TypedXMLStreamWriter;
-
 /**
  * Unit tests initially written to verify [WSTX-183], problems with
  * using DOM Element for DOMResult (instead of DOM Document).

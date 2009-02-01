@@ -144,12 +144,11 @@ public class TestEntityRead
         /* And then see if we can query configured value and get expected
          * types of results
          */
-        m = (Map) fact.getProperty(WstxInputProperties.P_CUSTOM_INTERNAL_ENTITIES);
-        assertNotNull(m);
-        assertEquals(3, m.size());
-        Iterator it = m.entrySet().iterator();
-        while (it.hasNext()) {
-            Map.Entry entry = (Map.Entry) it.next();
+        @SuppressWarnings("unchecked")
+        Map<?,?> mr = (Map<Object,Object>) fact.getProperty(WstxInputProperties.P_CUSTOM_INTERNAL_ENTITIES);
+        assertNotNull(mr);
+        assertEquals(3, mr.size());
+        for (Map.Entry<?,?> entry : mr.entrySet()) {
             String name = entry.getKey().toString();
             if (name.equals("myent") || name.equals("myent2")
                 || name.equals("myent3")) {
