@@ -23,7 +23,7 @@ import com.ctc.wstx.sr.InputProblemReporter;
 import com.ctc.wstx.util.StringUtil;
 
 /**
- * TextBuffer is a class similar to {@link StringBuffer}, with
+ * TextBuffer is a class similar to {@link StringBuilder}, with
  * following differences:
  *<ul>
  *  <li>TextBuffer uses segments character arrays, to avoid having
@@ -567,7 +567,7 @@ public final class TextBuffer
                     if (segLen == 0) { // yup
                         mResultString = (currLen == 0) ? "" : new String(mCurrentSegment, 0, currLen);
                     } else { // no, need to combine
-                        StringBuffer sb = new StringBuffer(segLen + currLen);
+                        StringBuilder sb = new StringBuilder(segLen + currLen);
                         // First stored segments
                         if (mSegments != null) {
                             for (int i = 0, len = mSegments.size(); i < len; ++i) {
@@ -586,34 +586,34 @@ public final class TextBuffer
     }
 
     /**
-     * Similar to {@link #contentsAsString}, but constructs a StringBuffer
+     * Similar to {@link #contentsAsString}, but constructs a StringBuilder
      * for further appends.
      *
-     * @param extraSpace Number of extra characters to preserve in StringBuffer
+     * @param extraSpace Number of extra characters to preserve in StringBuilder
      *   beyond space immediately needed to hold the contents
      */
-    public StringBuffer contentsAsStringBuffer(int extraSpace)
+    public StringBuilder contentsAsStringBuilder(int extraSpace)
     {
         if (mResultString != null) {
-            return new StringBuffer(mResultString);
+            return new StringBuilder(mResultString);
         }
         if (mResultArray != null) {
-            StringBuffer sb = new StringBuffer(mResultArray.length + extraSpace);
+            StringBuilder sb = new StringBuilder(mResultArray.length + extraSpace);
             sb.append(mResultArray, 0, mResultArray.length);
             return sb;
         }
         if (mInputStart >= 0) { // shared array
             if (mInputLen < 1) {
-                return new StringBuffer();
+                return new StringBuilder();
             }
-            StringBuffer sb = new StringBuffer(mInputLen + extraSpace);
+            StringBuilder sb = new StringBuilder(mInputLen + extraSpace);
             sb.append(mInputBuffer, mInputStart, mInputLen);
             return sb;
         }
         int segLen = mSegmentSize;
         int currLen = mCurrentSize;
 
-        StringBuffer sb = new StringBuffer(segLen + currLen + extraSpace);
+        StringBuilder sb = new StringBuilder(segLen + currLen + extraSpace);
         // First stored segments
         if (mSegments != null) {
             for (int i = 0, len = mSegments.size(); i < len; ++i) {
@@ -626,7 +626,7 @@ public final class TextBuffer
         return sb;
     }
 
-    public void contentsToStringBuffer(StringBuffer sb)
+    public void contentsToStringBuilder(StringBuilder sb)
     {
         if (mResultString != null) {
             sb.append(mResultString);

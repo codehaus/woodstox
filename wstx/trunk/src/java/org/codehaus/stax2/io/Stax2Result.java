@@ -15,7 +15,7 @@ import javax.xml.transform.Result;
  * is that at least one of methods {@link #constructWriter} and
  * {@link #constructOutputStream} will succeed, but not necessarily both.
  * This generally depends on type of resource being represented: for example,
- * if the source is a StringBuffer, it is most naturally
+ * if the source is a StringBuilder, it is most naturally
  * represent via {@link Writer}. For File-backed results, on the other hand,
  * an {@link OutputStream} is the most natural access method.
  *<p>

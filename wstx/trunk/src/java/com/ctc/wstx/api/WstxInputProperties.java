@@ -95,8 +95,8 @@ public final class WstxInputProperties
      *  {@link XMLInputFactory2#P_LAZY_PARSING} instead (from
      *  Stax2 extension API, v3.0)
      */
+    @Deprecated
     public final static String P_LAZY_PARSING = XMLInputFactory2.P_LAZY_PARSING;
-
 
     // // // Enabling/disabling support for dtd++
 
@@ -155,6 +155,7 @@ public final class WstxInputProperties
      *   Woodstox, since the same functionality can be achieved by using
      *   custom entity resolvers.
      */
+    @Deprecated
     public final static String P_CUSTOM_INTERNAL_ENTITIES = "com.ctc.wstx.customInternalEntities";
 
     /**

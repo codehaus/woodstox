@@ -8,10 +8,7 @@ public final class TextAccumulator
 {
     private String mText = null;
 
-    /* !!! JDK 1.5: when we can upgrade to Java 5, can convert
-     *  to using <code>StringBuilder</code> instead.
-     */
-    private StringBuffer mBuilder = null;
+    private StringBuilder mBuilder = null;
 
     public TextAccumulator() { }
 
@@ -25,7 +22,7 @@ public final class TextAccumulator
         if (len > 0) {
             // Any prior text?
             if (mText != null) {
-                mBuilder = new StringBuffer(mText.length() + len);
+                mBuilder = new StringBuilder(mText.length() + len);
                 mBuilder.append(mText);
                 mText = null;
             }
@@ -43,7 +40,7 @@ public final class TextAccumulator
         if (len > 0) {
             // Any prior text?
             if (mText != null) {
-                mBuilder = new StringBuffer(mText.length() + len);
+                mBuilder = new StringBuilder(mText.length() + len);
                 mBuilder.append(buf, start, end-start);
                 mText = null;
             } else if (mBuilder == null) {
@@ -51,7 +48,7 @@ public final class TextAccumulator
                  * could use a char array, StringBuilder has the benefit of
                  * being able to share the array, eventually.
                  */
-                mBuilder = new StringBuffer(len);
+                mBuilder = new StringBuilder(len);
             }
             mBuilder.append(buf, start, end-start);
         }

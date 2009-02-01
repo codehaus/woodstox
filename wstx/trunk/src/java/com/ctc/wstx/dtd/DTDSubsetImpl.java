@@ -387,7 +387,7 @@ public final class DTDSubsetImpl
      */
 
     public String toString() {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append("[DTDSubset: ");
         int count = getEntityCount();
         sb.append(count);

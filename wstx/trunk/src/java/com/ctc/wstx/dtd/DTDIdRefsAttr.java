@@ -81,7 +81,7 @@ public final class DTDIdRefsAttr
         Location loc = v.getLocation();
 
         String idStr = null;
-        StringBuffer sb = null;
+        StringBuilder sb = null;
         while (start <= end) {
             // Ok, need to check char validity, and also calc hash code:
             char c = cbuf[start];
@@ -116,7 +116,7 @@ public final class DTDIdRefsAttr
                     idStr = id.getId();
                 } else {
                     if (sb == null) {
-                        sb = new StringBuffer(idStr);
+                        sb = new StringBuilder(idStr);
                     }
                     idStr = id.getId();
                     sb.append(' ');

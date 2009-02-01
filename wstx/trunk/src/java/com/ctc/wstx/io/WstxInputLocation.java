@@ -89,11 +89,11 @@ public class WstxInputLocation
     public String toString()
     {
         if (mDesc == null) {
-            StringBuffer sb;
+            StringBuilder sb;
             if (mContext != null) {
-                sb = new StringBuffer(200);
+                sb = new StringBuilder(200);
             } else {
-                sb = new StringBuffer(80);
+                sb = new StringBuilder(80);
             }
             appendDesc(sb);
             mDesc = sb.toString();
@@ -134,7 +134,7 @@ public class WstxInputLocation
     ////////////////////////////////////////////////////////
      */
 
-    private void appendDesc(StringBuffer sb)
+    private void appendDesc(StringBuilder sb)
     {
         String srcId;
 

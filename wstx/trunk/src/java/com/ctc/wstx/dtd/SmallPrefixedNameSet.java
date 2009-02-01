@@ -82,7 +82,7 @@ public final class SmallPrefixedNameSet
         return false;
     }
 
-    public void appendNames(StringBuffer sb, String sep)
+    public void appendNames(StringBuilder sb, String sep)
     {
         for (int i = 0; i < mStrings.length; ) {
             if (i > 0) {

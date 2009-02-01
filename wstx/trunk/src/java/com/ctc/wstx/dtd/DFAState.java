@@ -187,7 +187,7 @@ public final class DFAState
 
     public String toString()
     {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append("State #"+mIndex+":\n");
         sb.append("  Accepting: "+mAccepting);
         sb.append("\n  Next states:\n");

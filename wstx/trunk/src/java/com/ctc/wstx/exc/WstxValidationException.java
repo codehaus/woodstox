@@ -73,7 +73,7 @@ public class WstxValidationException
             return super.getMessage();
         }
         String msg = getValidationProblem().getMessage();
-        StringBuffer sb = new StringBuffer(msg.length() + locMsg.length() + 20);
+        StringBuilder sb = new StringBuilder(msg.length() + locMsg.length() + 20);
         sb.append(msg);
         StringUtil.appendLF(sb);
         sb.append(" at ");

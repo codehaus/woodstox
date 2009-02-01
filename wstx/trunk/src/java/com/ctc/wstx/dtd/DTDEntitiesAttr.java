@@ -83,7 +83,7 @@ public final class DTDEntitiesAttr
 
         // Ok; now start points to first, last to last char (both inclusive)
         String idStr = null;
-        StringBuffer sb = null;
+        StringBuilder sb = null;
 
         while (start <= end) {
             // Ok, need to check char validity, and also calc hash code:
@@ -116,7 +116,7 @@ public final class DTDEntitiesAttr
                     idStr = ent.getName();
                 } else {
                     if (sb == null) {
-                        sb = new StringBuffer(idStr);
+                        sb = new StringBuilder(idStr);
                     }
                     idStr = ent.getName();
                     sb.append(' ');

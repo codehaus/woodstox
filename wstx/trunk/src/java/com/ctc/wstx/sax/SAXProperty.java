@@ -52,7 +52,7 @@ public final class SAXProperty
 
     public static SAXProperty findBySuffix(String suffix)
     {
-        return (SAXProperty) sInstances.get(suffix);
+        return sInstances.get(suffix);
     }
 
     public String getSuffix() { return mSuffix; }

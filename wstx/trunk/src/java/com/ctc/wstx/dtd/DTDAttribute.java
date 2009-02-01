@@ -324,7 +324,7 @@ public abstract class DTDAttribute
         int len = defValue.length();
 
         // Then code similar to actual value validation:
-        StringBuffer sb = null;
+        StringBuilder sb = null;
         int count = 0;
         int start = 0;
 
@@ -369,7 +369,7 @@ public abstract class DTDAttribute
             ++count;
             if (normalize) {
                 if (sb == null) {
-                    sb = new StringBuffer(i - start + 32);
+                    sb = new StringBuilder(i - start + 32);
                 } else {
                     sb.append(' ');
                 }

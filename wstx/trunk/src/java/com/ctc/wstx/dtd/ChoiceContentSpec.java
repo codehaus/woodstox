@@ -120,7 +120,7 @@ public class ChoiceContentSpec
 
     public String toString()
     {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
 
         if (mHasMixed) {
             sb.append("(#PCDATA | ");

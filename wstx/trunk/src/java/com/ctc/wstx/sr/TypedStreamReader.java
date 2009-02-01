@@ -267,7 +267,7 @@ public class TypedStreamReader
 
         // Otherwise, we'll need to do slower processing
         int extra = 1 + (mTextBuffer.size() >> 1); // let's add 50% space
-        StringBuffer sb = mTextBuffer.contentsAsStringBuffer(extra);
+        StringBuilder sb = mTextBuffer.contentsAsStringBuilder(extra);
         int type;
         
         while ((type = next()) != END_ELEMENT) {
@@ -275,7 +275,7 @@ public class TypedStreamReader
                 if (mTokenState < TOKEN_FULL_SINGLE) {
                     readCoalescedText(type, false);
                 }
-                mTextBuffer.contentsToStringBuffer(sb);
+                mTextBuffer.contentsToStringBuilder(sb);
                 continue;
             }
             if (type != COMMENT && type != PROCESSING_INSTRUCTION) {

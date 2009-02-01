@@ -97,7 +97,7 @@ public final class DTDNmTokensAttr
         /* Ok, now, need to check we only have valid chars, and maybe
          * also coalesce multiple spaces, if any.
          */
-        StringBuffer sb = null;
+        StringBuilder sb = null;
 
         while (start <= end) {
             int i = start;
@@ -112,7 +112,7 @@ public final class DTDNmTokensAttr
             }
 
             if (sb == null) {
-                sb = new StringBuffer(end - start + 1);
+                sb = new StringBuilder(end - start + 1);
             } else {
                 sb.append(' ');
             }
@@ -126,7 +126,7 @@ public final class DTDNmTokensAttr
         }
 
         /* 27-Nov-2005, TSa: Could actually optimize trimming, and often
-         *   avoid using StringBuffer... but let's only do it if it turns
+         *   avoid using StringBuilder... but let's only do it if it turns
          *   out dealing with NMTOKENS normalization shows up on profiling...
          */
         return sb.toString();
@@ -144,7 +144,7 @@ public final class DTDNmTokensAttr
         int len = defValue.length();
 
         // Then code similar to actual value validation:
-        StringBuffer sb = null;
+        StringBuilder sb = null;
         int count = 0;
         int start = 0;
 
@@ -183,7 +183,7 @@ public final class DTDNmTokensAttr
 
             if (normalize) {
                 if (sb == null) {
-                    sb = new StringBuffer(i - start + 32);
+                    sb = new StringBuilder(i - start + 32);
                 } else {
                     sb.append(' ');
                 }

@@ -163,8 +163,7 @@ public class WstxInputFactory
      */
     public synchronized DTDSubset findCachedDTD(DTDId id)
     {
-        return (mDTDCache == null) ?
-            null : (DTDSubset) mDTDCache.find(id);
+        return (mDTDCache == null) ? null : mDTDCache.find(id);
     }
 
     // // // Callbacks for updating shared information

@@ -690,7 +690,7 @@ public abstract class BasicStreamReader
 
         // Otherwise, we'll need to do slower processing
         int extra = 1 + (mTextBuffer.size() >> 1); // let's add 50% space
-        StringBuffer sb = mTextBuffer.contentsAsStringBuffer(extra);
+        StringBuilder sb = mTextBuffer.contentsAsStringBuilder(extra);
         int type;
         
         while ((type = next()) != END_ELEMENT) {
@@ -698,7 +698,7 @@ public abstract class BasicStreamReader
                 if (mTokenState < mStTextThreshold) {
                     finishToken(false);
                 }
-                mTextBuffer.contentsToStringBuffer(sb);
+                mTextBuffer.contentsToStringBuilder(sb);
                 continue;
             }
             if (type != COMMENT && type != PROCESSING_INSTRUCTION) {
@@ -1428,7 +1428,7 @@ public abstract class BasicStreamReader
                 if (prefix == null) {
                     return ln;
                 }
-                StringBuffer sb = new StringBuffer(ln.length() + 1 + prefix.length());
+                StringBuilder sb = new StringBuilder(ln.length() + 1 + prefix.length());
                 sb.append(prefix);
                 sb.append(':');
                 sb.append(ln);
@@ -1798,7 +1798,7 @@ public abstract class BasicStreamReader
           // Nope, continues, need to find the rest:
       }
       
-      StringBuffer sb = new StringBuffer(expected.length() + 16);
+      StringBuilder sb = new StringBuilder(expected.length() + 16);
       sb.append(expected.substring(0, ptr));
       if (ptr < len) {
           sb.append(c);

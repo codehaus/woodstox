@@ -500,7 +500,7 @@ public final class ReaderConfig
 
     protected int findPropertyId(String propName)
     {
-        Integer I = (Integer) sProperties.get(propName);
+        Integer I = sProperties.get(propName);
         return (I == null) ? -1 : I.intValue();
     }
  

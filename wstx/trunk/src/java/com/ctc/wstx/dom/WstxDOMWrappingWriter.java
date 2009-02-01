@@ -506,7 +506,7 @@ public class WstxDOMWrappingWriter
                     if (nsURI == null) {
                         nsURI = "";
                     }
-                    prefix = (mSuggestedPrefixes == null) ? null : (String) mSuggestedPrefixes.get(nsURI);
+                    prefix = (mSuggestedPrefixes == null) ? null : mSuggestedPrefixes.get(nsURI);
                     if (prefix == null) {
                         throwOutputError("Can not find prefix for namespace \""+nsURI+"\"");
                     }
@@ -631,8 +631,7 @@ public class WstxDOMWrappingWriter
             if (mSuggestedDefNs != null && mSuggestedDefNs.equals(nsURI)) {
                 suggPrefix = "";
             } else {
-                suggPrefix = (mSuggestedPrefixes == null) ? null:
-                    (String) mSuggestedPrefixes.get(nsURI);
+                suggPrefix = (mSuggestedPrefixes == null) ? null: mSuggestedPrefixes.get(nsURI);
                 if (suggPrefix == null) {
                     /* 16-Oct-2005, TSa: We have 2 choices here, essentially;
                      *   could make elements always try to override the def

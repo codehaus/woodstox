@@ -316,7 +316,7 @@ public final class WordResolver
 
     public String toString()
     {
-        StringBuffer sb = new StringBuffer(16 + (mWords.length << 3));
+        StringBuilder sb = new StringBuilder(16 + (mWords.length << 3));
         for (int i = 0, len = mWords.length; i < len; ++i) {
             if (i > 0) {
                 sb.append(", ");

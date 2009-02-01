@@ -111,7 +111,7 @@ public class SeqContentSpec
 
     public String toString()
     {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append('(');
 
         for (int i = 0; i < mContentSpecs.length; ++i) {
@@ -220,7 +220,7 @@ public class SeqContentSpec
 
         final static String concatNames(PrefixedName[] names)
         {
-            StringBuffer sb = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
             for (int i = 0, len = names.length; i < len; ++i) {
                 if (i > 0) {
                     sb.append(", ");

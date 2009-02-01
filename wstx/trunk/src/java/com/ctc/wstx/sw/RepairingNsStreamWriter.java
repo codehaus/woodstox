@@ -507,7 +507,7 @@ public final class RepairingNsStreamWriter
                 suggPrefix = "";
             } else {
                 suggPrefix = (mSuggestedPrefixes == null) ? null:
-                    (String) mSuggestedPrefixes.get(nsURI);
+                    mSuggestedPrefixes.get(nsURI);
                 if (suggPrefix == null) {
                     /* 16-Oct-2005, TSa: We have 2 choices here, essentially;
                      *   could make elements always try to override the def
@@ -584,7 +584,7 @@ public final class RepairingNsStreamWriter
         if (suggPrefix != null) {
             prefix = suggPrefix;
         } else if (mSuggestedPrefixes != null) {
-            prefix = (String) mSuggestedPrefixes.get(nsURI);
+            prefix = mSuggestedPrefixes.get(nsURI);
 	    // note: def ns is never added to suggested prefix map
         }
 

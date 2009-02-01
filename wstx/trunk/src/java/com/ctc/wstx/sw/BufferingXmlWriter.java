@@ -1310,7 +1310,7 @@ public final class BufferingXmlWriter
         }
 
         // If not, must combine first
-        StringBuffer sb = new StringBuffer(mOutputBuffer.length << 1);
+        StringBuilder sb = new StringBuilder(mOutputBuffer.length << 1);
         sb.append(mOutputBuffer, start, mOutputPtr-start);
         while (true) {
             flush();

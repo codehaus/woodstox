@@ -6,7 +6,7 @@ import java.net.URL;
 /**
  * This is the mid-level abstract base class for {@link Stax2Source}s
  * that an be used to access fixed-length in-memory data sources, such
- * as byte and char arrays, Strings, StringBuffers and so forth.
+ * as byte and char arrays, Strings, StringBuilders and so forth.
  * The main reason for using such a source object (instead of constructing
  * wrapper Readers or InputStreams) is that concrete implementations
  * usually also allow more direct access to the underlying data, so

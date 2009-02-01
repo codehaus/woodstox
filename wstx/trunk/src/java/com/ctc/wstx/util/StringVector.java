@@ -245,7 +245,7 @@ public final class StringVector
      */
 
     public String toString() {
-        StringBuffer sb = new StringBuffer(mSize * 16);
+        StringBuilder sb = new StringBuilder(mSize * 16);
         sb.append("[(size = ");
         sb.append(mSize);
         sb.append(" ) ");

@@ -76,7 +76,7 @@ public class WstxException
         if (locMsg == null) {
             return super.getMessage();
         }
-        StringBuffer sb = new StringBuffer(mMsg.length() + locMsg.length() + 20);
+        StringBuilder sb = new StringBuilder(mMsg.length() + locMsg.length() + 20);
         sb.append(mMsg);
         StringUtil.appendLF(sb);
         sb.append(" at ");

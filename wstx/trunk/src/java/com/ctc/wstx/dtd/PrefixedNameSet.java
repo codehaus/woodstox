@@ -32,14 +32,14 @@ public abstract class PrefixedNameSet
      */
     public abstract boolean contains(PrefixedName name);
 
-    public abstract void appendNames(StringBuffer sb, String sep);
+    public abstract void appendNames(StringBuilder sb, String sep);
 
     public final String toString() {
         return toString(", ");
     }
 
     public final String toString(String sep) {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         appendNames(sb, sep);
         return sb.toString();
     }

@@ -58,9 +58,11 @@
     <property name="REQ_STAX2_VERSION" value="${STAX2_VERSION}" />
 
     <!-- jars needed for compilation -->
-    <path id="classpath.compile">
+    <path id="classpath.compile.stax2">
         <fileset dir="${dir.lib}" includes="stax-api*.jar" />
-        <fileset dir="${dir.lib}" includes="sax2.jar" />
+    </path>
+    <path id="classpath.compile.woodstox">
+        <fileset dir="${dir.lib}" includes="stax-api*.jar" />
         <!-- these are needed for optional MSV-based validators -->
         <fileset dir="${dir.lib}/msv" includes="*.jar" />
         <!-- 17-Dec-2008, tatu: adding OSGi bundle activation
@@ -201,11 +203,9 @@
             source="1.5" target="1.5"
             debug="true"
         >
-<!-- Uncomment to see warnings: too verbose for default, due to deprecation warns
-            <compilerarg value="-Xlint:deprecation" />
--->
+            <compilerarg value="-Xlint:all,-fallthrough" />
             <include name="org/codehaus/stax2/**/*.java" />
-            <classpath refid="classpath.compile" />
+            <classpath refid="classpath.compile.stax2" />
         </javac>
     </target>
 
@@ -215,10 +215,11 @@
             debug="true"
         >
 <!-- Uncomment to see warnings: too verbose for default, due to deprecation warns
-            <compilerarg value="-Xlint:deprecation" />
+  (which default JDK javac seems unable to suppress with annotations?!?!
 -->
+            <compilerarg value="-Xlint:all,-deprecation,-fallthrough,-path" />
             <include name="com/ctc/**/*.java" />
-            <classpath refid="classpath.compile" />
+            <classpath refid="classpath.compile.woodstox" />
             <classpath>
               <pathelement path="${dir.build.classes.stax2}" />
             </classpath>
@@ -232,7 +233,7 @@
         <javac srcdir="${dir.src.samples}" destdir="${dir.build.classes.samples}"
             source="1.5" target="1.5">
             <include name="*.java" />
-            <classpath refid="classpath.compile" />
+            <classpath refid="classpath.compile.woodstox" />
             <classpath>
               <pathelement path="${dir.build.classes.stax2}" />
             </classpath>
@@ -248,7 +249,7 @@
             <compilerarg value="-Xlint:deprecation" />
 -->
             <include name="**/*.java" />
-            <classpath refid="classpath.compile" />
+            <classpath refid="classpath.compile.woodstox" />
             <classpath>
               <pathelement path="${dir.build.classes.stax2}" />
               <pathelement path="${dir.build.classes.woodstox}" />
@@ -310,7 +311,7 @@
                 <include name="org/codehaus/stax2/**" />
                 <include name="com/ctc/**" />
             </packageset>
-            <classpath refid="classpath.compile" />
+            <classpath refid="classpath.compile.woodstox" />
         </javadoc>
     </target> 
  
@@ -445,7 +446,7 @@
                 </fileset>
             </batchtest>
             <formatter type="xml" />
-            <classpath refid="classpath.compile" />
+            <classpath refid="classpath.compile.woodstox" />
             <classpath path="${dir.classes.staxtest}" />
             <classpath>
               <pathelement path="${dir.build.classes.stax2}" />
@@ -488,7 +489,7 @@
         <junit fork="no" maxmemory="128M" showoutput="yes" printsummary="yes">
           <formatter type="plain" usefile="no" />
           <test name="${test}" />
-          <classpath refid="classpath.compile" />
+          <classpath refid="classpath.compile.woodstox" />
           <classpath>
                 <pathelement path="${dir.build.classes.stax2}" />
                 <pathelement path="${dir.build.classes.woodstox}" />
@@ -508,7 +509,7 @@
             debug="true"
         >
             <include name="**/*.java" />
-            <classpath refid="classpath.compile" />
+            <classpath refid="classpath.compile.woodstox" />
             <classpath>
                 <pathelement path="${dir.build.classes.stax2}"/>  
                 <pathelement path="${dir.build.classes.woodstox}"/>  
@@ -529,7 +530,7 @@
                 </fileset>
             </batchtest>
             <formatter type="xml" />
-            <classpath refid="classpath.compile" />
+            <classpath refid="classpath.compile.woodstox" />
             <classpath>
                 <pathelement path="${dir.build.classes.stax2}" />
                 <pathelement path="${dir.build.classes.woodstox}" />

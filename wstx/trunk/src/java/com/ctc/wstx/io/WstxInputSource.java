@@ -215,7 +215,7 @@ public abstract class WstxInputSource
      */
 
     public String toString() {
-        StringBuffer sb = new StringBuffer(80);
+        StringBuilder sb = new StringBuilder(80);
         sb.append("<WstxInputSource [class ");
         sb.append(getClass().toString());
         sb.append("]; systemId: ");

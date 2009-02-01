@@ -666,7 +666,7 @@ public abstract class EncodingXmlWriter
         }
 
         // If not, must combine first
-        StringBuffer sb = new StringBuffer(copyBufferLen << 1);
+        StringBuilder sb = new StringBuilder(copyBufferLen << 1);
         sb.append(copyBuffer, 0, last);
         do {
             last = enc.encodeMore(copyBuffer, 0, copyBufferLen);

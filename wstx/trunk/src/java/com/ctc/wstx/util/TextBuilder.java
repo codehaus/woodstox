@@ -1,7 +1,7 @@
 package com.ctc.wstx.util;
 
 /**
- * Class similar to {@link StringBuffer}, except that it can be used to
+ * Class similar to {@link StringBuilder}, except that it can be used to
  * construct multiple Strings, that will share same underlying character
  * buffer. This is generally useful for closely related value Strings,
  * such as attribute values of a single XML start element.

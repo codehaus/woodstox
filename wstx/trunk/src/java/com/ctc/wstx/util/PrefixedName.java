@@ -123,7 +123,7 @@ public final class PrefixedName
         if (mPrefix == null || mPrefix.length() == 0) {
             return mLocalName;
         }
-        StringBuffer sb = new StringBuffer(mPrefix.length() + 1 + mLocalName.length());
+        StringBuilder sb = new StringBuilder(mPrefix.length() + 1 + mLocalName.length());
         sb.append(mPrefix);
         sb.append(':');
         sb.append(mLocalName);

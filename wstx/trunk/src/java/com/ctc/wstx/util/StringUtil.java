@@ -15,7 +15,7 @@ public final class StringUtil
         String lf = sLF;
         if (lf == null) {
             try {
-                lf = (String) System.getProperty("line.separator");
+                lf = System.getProperty("line.separator");
                 sLF = (lf == null) ? "\n" : lf;
             } catch (Throwable t) {
                 // Doh.... whatever; most likely SecurityException
@@ -25,7 +25,7 @@ public final class StringUtil
         return lf;
     }
 
-    public static void appendLF(StringBuffer sb) {
+    public static void appendLF(StringBuilder sb) {
         sb.append(getLF());
     }
 
@@ -34,7 +34,7 @@ public final class StringUtil
             lastSep = sep;
         }
         int len = coll.size();
-        StringBuffer sb = new StringBuffer(16 + (len << 3));
+        StringBuilder sb = new StringBuilder(16 + (len << 3));
         Iterator<?> it = coll.iterator();
         int i = 0;
         while (it.hasNext()) {
@@ -122,9 +122,9 @@ public final class StringUtil
         }
 
         /* Nope, got a hole, need to constuct the damn thing. Shouldn't
-         * happen too often... so let's just use StringBuffer()
+         * happen too often... so let's just use StringBuilder()
          */
-        StringBuffer sb = new StringBuffer(end-start); // can't be longer
+        StringBuilder sb = new StringBuilder(end-start); // can't be longer
         sb.append(buf, start, i-start); // won't add the starting space
 
         while (i <= end) {
@@ -295,7 +295,7 @@ public final class StringUtil
         }
 
         // Nope: have to trim it
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         if (i > 0) {
             sb.append(str.substring(0, i));
         }

@@ -1939,7 +1939,7 @@ public abstract class StreamScanner
     protected String parseFNameForError()
         throws XMLStreamException
     {
-        StringBuffer sb = new StringBuffer(100);
+        StringBuilder sb = new StringBuilder(100);
         while (true) {
             char c;
 

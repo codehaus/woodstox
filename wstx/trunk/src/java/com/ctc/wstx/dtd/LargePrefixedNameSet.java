@@ -122,7 +122,7 @@ public final class LargePrefixedNameSet
      * Method called by debug/error handling code, to get a list of
      * all names contained.
      */
-    public void appendNames(StringBuffer sb, String sep)
+    public void appendNames(StringBuilder sb, String sep)
     {
         // Let's first get the alphabetized list of all names from main hash
         TreeSet<PrefixedName> ts = new TreeSet<PrefixedName>();

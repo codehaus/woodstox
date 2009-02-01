@@ -163,6 +163,7 @@ public class WstxSAXParser
         this(new WstxInputFactory(), FEAT_DEFAULT_NS_PREFIXES);
     }
 
+    @SuppressWarnings("deprecation")
     public final Parser getParser()
     {
         return this;
@@ -654,6 +655,7 @@ public class WstxSAXParser
     //public void setEntityResolver(EntityResolver resolver)
     //public void setErrorHandler(ErrorHandler handler)
 
+    @SuppressWarnings("deprecation")
     public void setDocumentHandler(DocumentHandler handler)
     {
         setContentHandler(new DocHandlerWrapper(handler));
@@ -1167,6 +1169,7 @@ public class WstxSAXParser
     /////////////////////////////////////////////////
      */
 
+    @SuppressWarnings("deprecation")
     final static class DocHandlerWrapper
         implements ContentHandler
     {
@@ -1250,6 +1253,7 @@ public class WstxSAXParser
         }
     }
 
+    @SuppressWarnings("deprecation")
     final static class AttributesWrapper
         implements AttributeList
     {

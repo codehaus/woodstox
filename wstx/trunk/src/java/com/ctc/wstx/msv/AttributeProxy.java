@@ -91,7 +91,7 @@ final class AttributeProxy
         if (prefix == null || prefix.length() == 0) {
             return ln;
         }
-        StringBuffer sb = new StringBuffer(prefix.length() + 1 + ln.length());
+        StringBuilder sb = new StringBuilder(prefix.length() + 1 + ln.length());
         sb.append(prefix);
         sb.append(':');
         sb.append(ln);

@@ -1186,7 +1186,7 @@ public class FullDTDReader
                 return null;
             }
         }
-        StringBuffer sb = new StringBuffer(exp.substring(0, i));
+        StringBuilder sb = new StringBuilder(exp.substring(0, i));
         sb.append(c);
         while (true) {
             c = dtdNextIfAvailable();
@@ -1213,7 +1213,7 @@ public class FullDTDReader
     protected String readDTDKeyword(String prefix)
         throws XMLStreamException
     {
-        StringBuffer sb = new StringBuffer(prefix);
+        StringBuilder sb = new StringBuilder(prefix);
 
         while (true) {
             char c;
@@ -1964,7 +1964,7 @@ public class FullDTDReader
     {
         int count = mNotationForwardRefs.size();
 
-        String id = (String) mNotationForwardRefs.keySet().iterator().next();
+        String id = mNotationForwardRefs.keySet().iterator().next();
         String msg = ""+count+" referenced notation"+((count == 1) ? "":"s")+" undefined: first one '"+id+"'";
         _reportVCViolation(msg);
     }
@@ -2923,8 +2923,7 @@ public class FullDTDReader
             }
         }
 
-        NotationDeclaration decl = (mNotations == null) ? null :
-            (NotationDeclaration) mNotations.get(id);
+        NotationDeclaration decl = (mNotations == null) ? null :mNotations.get(id);
         if (decl == null) {
             // In validating mode, this may be a problem (otherwise not)
             if (mCfgFullyValidating) {
@@ -3325,7 +3324,7 @@ public class FullDTDReader
     {
         // Expand a Parameter Entity?
         if (arg == ENTITY_EXP_PE) { // for attribute default
-            EntityDecl ed = (mPredefdPEs == null) ? null : (EntityDecl) mPredefdPEs.get(id);
+            EntityDecl ed = (mPredefdPEs == null) ? null : mPredefdPEs.get(id);
             if (ed != null) { // Entity from int. subset...
                 mUsesPredefdEntities = true;
                 /* No need to further keep track of internal references,
@@ -3355,7 +3354,7 @@ public class FullDTDReader
              * they may 'inherit' entity definitions from preceding
              * internal subset...
              */
-            EntityDecl ed = (mPredefdGEs == null) ? null : (EntityDecl) mPredefdGEs.get(id);
+            EntityDecl ed = (mPredefdGEs == null) ? null : mPredefdGEs.get(id);
             if (ed != null) {
                 mUsesPredefdEntities = true;
                 /* No need to further keep track of references,
