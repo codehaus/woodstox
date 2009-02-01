@@ -131,7 +131,7 @@ public class RunStreamReader
                 (new InputStreamReader(new GZIPInputStream
                                        (new FileInputStream(file)), "UTF-8"));
         } else {
-            sr = (XMLStreamReader2) f.createXMLStreamReader(file);
+            sr = f.createXMLStreamReader(file);
             //sr = (XMLStreamReader2) f.createXMLStreamReader(new InputStreamReader(new FileInputStream(file), "IBM500"));
             //sr = (XMLStreamReader2) f.createXMLStreamReader(new StreamSource(file));
         }
@@ -151,7 +151,8 @@ public class RunStreamReader
             type = sr.next();
             total += type; // so it won't be optimized out...
 
-            boolean hasName = sr.hasName();
+            @SuppressWarnings("unused")
+			boolean hasName = sr.hasName();
 
             System.out.print("["+type+"]");
 

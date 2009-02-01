@@ -720,6 +720,7 @@ public abstract class StreamScanner
         return mInputEnd - mInputPtr;
     }
 
+    @SuppressWarnings("cast")
     protected final int getNext()
         throws XMLStreamException
     {

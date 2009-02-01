@@ -66,12 +66,12 @@ public final class WordSet
         mData = data;
     }
 
-    public static WordSet constructSet(TreeSet wordSet)
+    public static WordSet constructSet(TreeSet<String> wordSet)
     {
         return new WordSet(new Builder(wordSet).construct());
     }
 
-    public static char[] constructRaw(TreeSet wordSet)
+    public static char[] constructRaw(TreeSet<String> wordSet)
     {
         return new Builder(wordSet).construct();
     }
@@ -177,7 +177,8 @@ public final class WordSet
         return contains(mData, str);
     }
 
-    public static boolean contains(char[] data, String str)
+    @SuppressWarnings("cast")
+	public static boolean contains(char[] data, String str)
     {
         // Let's use same vars as array-based code, to allow cut'n pasting
         int ptr = 0; // pointer to compressed set data
@@ -289,7 +290,7 @@ public final class WordSet
          */
         int mSize;
 
-        public Builder(TreeSet wordSet) {
+        public Builder(TreeSet<String> wordSet) {
             int wordCount = wordSet.size();
             mWords = new String[wordCount];
             wordSet.toArray(mWords);

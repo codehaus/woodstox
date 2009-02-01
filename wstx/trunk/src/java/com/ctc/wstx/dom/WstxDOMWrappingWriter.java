@@ -710,7 +710,7 @@ public class WstxDOMWrappingWriter
         if (suggPrefix != null) {
             prefix = suggPrefix;
         } else if (mSuggestedPrefixes != null) {
-            prefix = (String) mSuggestedPrefixes.get(nsURI);
+            prefix = mSuggestedPrefixes.get(nsURI);
             // note: def ns is never added to suggested prefix map
         }
 

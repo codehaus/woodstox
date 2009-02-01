@@ -248,7 +248,7 @@ public abstract class WriterTestBase
         throws XMLStreamException
     {
         double[] values = new double[] {
-            0.0f,  10.47f, (double) (1.0 / 3.0), -0.25f,
+            0.0f,  10.47f, (1.0 / 3.0), -0.25f,
             Double.MIN_VALUE, Double.MAX_VALUE,
             Double.NaN, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY
         };
@@ -262,7 +262,7 @@ public abstract class WriterTestBase
         throws XMLStreamException
     {
         double[] values = new double[] {
-            0.0f,  10.47f, (double) (1.0 / 3.0), -0.25f,
+            0.0f,  10.47f, (1.0 / 3.0), -0.25f,
             Double.MIN_VALUE, Double.MAX_VALUE,
             Double.NaN, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY
         };
@@ -430,7 +430,8 @@ public abstract class WriterTestBase
         doTestFloatArrays(true);
     }
 
-    private void doTestFloatArrays(boolean testAttr)
+    @SuppressWarnings("cast")
+	private void doTestFloatArrays(boolean testAttr)
         throws XMLStreamException
     {
         for (int i = 0; i <= ARRAY_TEST_LENGTHS.length; ++i) {
@@ -503,7 +504,7 @@ public abstract class WriterTestBase
                     // Need to scale: nextDouble is [0.0, 1.0[
                     double value = rnd.nextDouble();
                     if (rnd.nextBoolean()) {
-                        value = (double) (value * rnd.nextLong());
+                        value = (value * rnd.nextLong());
                     }
                     if (rnd.nextBoolean()) {
                         value = -value;

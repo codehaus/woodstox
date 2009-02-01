@@ -554,7 +554,8 @@ public final class ValueEncoderFactory
 
         public boolean isCompleted() { return (_inputPtr >= _inputEnd); }
 
-        public int encodeMore(char[] buffer, int outPtr, int outEnd)
+        @SuppressWarnings("cast")
+		public int encodeMore(char[] buffer, int outPtr, int outEnd)
         {
             // Encoding is by chunks of 3 input, 4 output chars, so:
             int inEnd = _inputEnd-3;
@@ -590,6 +591,7 @@ public final class ValueEncoderFactory
             return outPtr;
         }
 
+        @SuppressWarnings("cast")
         public int encodeMore(byte[] buffer, int outPtr, int outEnd)
         {
             int inEnd = _inputEnd-3;

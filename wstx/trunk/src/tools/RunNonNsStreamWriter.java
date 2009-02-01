@@ -7,7 +7,6 @@ import javax.xml.transform.stream.StreamResult;
 import org.codehaus.stax2.XMLOutputFactory2;
 import org.codehaus.stax2.XMLStreamProperties;
 import org.codehaus.stax2.XMLStreamWriter2;
-import org.codehaus.stax2.validation.*;
 
 import com.ctc.wstx.api.WstxOutputProperties;
 
@@ -50,6 +49,7 @@ public class RunNonNsStreamWriter
         //XMLStreamWriter2 sw = (XMLStreamWriter2) f.createXMLStreamWriter(w);
         XMLStreamWriter2 sw = (XMLStreamWriter2) f.createXMLStreamWriter(new StreamResult(w));
 
+        /*
         final String dtdStr =
             "<!ELEMENT root (elem, elem3)>\n"
             +"<!ATTLIST root attr CDATA #IMPLIED>\n"
@@ -57,11 +57,10 @@ public class RunNonNsStreamWriter
             +"<!ELEMENT elem ANY>\n"
             +"<!ELEMENT elem3 ANY>\n"
             ;
+            */
 
-        XMLValidationSchemaFactory vd = XMLValidationSchemaFactory.newInstance(XMLValidationSchema.SCHEMA_ID_DTD);
-
-        XMLValidationSchema schema = vd.createSchema(new StringReader(dtdStr));
-
+        //XMLValidationSchemaFactory vd = XMLValidationSchemaFactory.newInstance(XMLValidationSchema.SCHEMA_ID_DTD);
+        //XMLValidationSchema schema = vd.createSchema(new StringReader(dtdStr));
         //sw.validateAgainst(schema);
 
         sw.writeStartDocument();
