@@ -134,7 +134,7 @@ public class RunStreamSpeed
         return count;
     }
 
-    protected int test3(byte[] bdata, char[] cdata, File file)
+    protected int test3(byte[] bdata, char[] cdata, @SuppressWarnings("unused") File file)
         throws Exception
     {
         XMLInputFactory2 f = (XMLInputFactory2) mInputFactory;

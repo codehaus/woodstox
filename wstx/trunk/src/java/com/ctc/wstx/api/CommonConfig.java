@@ -198,7 +198,11 @@ abstract class CommonConfig
         return (I == null) ? -1 : I.intValue();
     }
 
-	//@SuppressWarnings("unused")
+    /**
+	 * @param propName Name of standard property to set
+     * @param id Internal id matching the name
+     * @param value Value to set the standard property to
+	 */
     protected boolean setStdProperty(String propName, int id, Object value)
     {
         // None of the current shared properties are settable...

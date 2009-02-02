@@ -82,7 +82,7 @@ public class RunStreamCopier
             InputStream in = new GZIPInputStream(new FileInputStream(new File(input)));
             sr = (XMLStreamReader2)ifact.createXMLStreamReader(in);
         } else {
-            sr = (XMLStreamReader2)ifact.createXMLStreamReader(new File(input));
+            sr = ifact.createXMLStreamReader(new File(input));
         }
         //URL url = new URL("http://www.isb-sib.ch/~ejain/uniprot-rdf/data/taxonomy.rdf.gz");
         //sr = (XMLStreamReader2)ifact.createXMLStreamReader(in);

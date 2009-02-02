@@ -26,7 +26,7 @@ public class RunSaxReader
         spf.setFeature("http://xml.org/sax/features/namespace-prefixes", true);
         SAXParser sp = spf.newSAXParser();
         MyContentHandler h = new MyContentHandler();
-        sp.setProperty(SAXProperty.LEXICAL_HANDLER.toString(), (DeclHandler) h);
+        sp.setProperty(SAXProperty.LEXICAL_HANDLER.toString(), /*DeclHandler*/h);
         // This shouldn't be needed -- nor seems to work for Xerces?
         //sp.getXMLReader().setEntityResolver(h);
         InputStream in = new FileInputStream(file);

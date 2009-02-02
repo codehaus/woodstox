@@ -193,7 +193,7 @@ public final class SimpleNsStreamWriter
 
         // And now we need to output namespaces (including default), if any:
         @SuppressWarnings("unchecked")
-        Iterator<Namespace> it2 = (Iterator<Namespace>) elem.getNamespaces();
+        Iterator<Namespace> it2 = elem.getNamespaces();
         while (it2.hasNext()) {
             Namespace ns = it2.next();
             String prefix = ns.getPrefix();

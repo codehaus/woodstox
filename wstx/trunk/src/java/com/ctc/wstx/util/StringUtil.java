@@ -332,7 +332,8 @@ public final class StringUtil
      * alternatives (linefeed for element content, regular space
      * for attributes)
      */
-    public final static boolean isSpace(char c)
+    @SuppressWarnings("cast")
+	public final static boolean isSpace(char c)
     {
         return ((int) c) <= 0x0020;
     }

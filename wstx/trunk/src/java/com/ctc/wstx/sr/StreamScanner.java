@@ -741,7 +741,8 @@ public abstract class StreamScanner
      * This is necessary when checking keywords, since they can never
      * cross input block boundary.
      */
-    protected final int peekNext()
+    @SuppressWarnings("cast")
+	protected final int peekNext()
         throws XMLStreamException
     {
         if (mInputPtr >= mInputEnd) {
@@ -1086,6 +1087,9 @@ public abstract class StreamScanner
         }
     }
 
+    /**
+	 * @param curr Input source currently in use 
+	 */
     protected void throwNullParent(WstxInputSource curr)
     {
         throw new IllegalStateException(ErrorConsts.ERR_INTERNAL);

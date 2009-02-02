@@ -92,7 +92,7 @@ com.ctc.wstx.stax;version=${IMPL_VERSION}
 !com.ctc.wstx.osgi,
 !com.ctc.wstx.sax,
 !com.ctc.wstx.stax,
-!test,*"
+*"
          includeResource="META-INF/services=src/resources, META-INF=release-notes/asl"
          includeIncludeResourceHeader="false"
          bundleActivator="com.ctc.wstx.osgi.WstxBundleActivator"
@@ -137,7 +137,7 @@ com.ctc.wstx.sax;version=${IMPL_VERSION},
 com.ctc.wstx.stax;version=${IMPL_VERSION}
 "
          privatePackage="!com.ctc.wstx.api, !com.ctc.wstx.msv, !com.ctc.wstx.sax
-,!com.ctc.wstx.stax, !test,*"
+,!com.ctc.wstx.stax, *"
          includeResource="META-INF/services=src/resources, META-INF=release-notes/lgpl"
          includeIncludeResourceHeader="false"
          bundleActivator="com.ctc.wstx.osgi.WstxBundleActivator"

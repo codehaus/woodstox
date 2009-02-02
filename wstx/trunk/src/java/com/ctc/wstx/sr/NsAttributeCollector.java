@@ -671,6 +671,7 @@ public final class NsAttributeCollector
      */
 
     /**
+     * @param attrCount Number of attributes in map
      * @return Null, if attribute is a duplicate (to indicate error);
      *    map itself, or resized version, otherwise.
      */

@@ -64,9 +64,9 @@ public final class NumberUtil
      * actually be output using simple int-serialization mechanism
      * (since its negation does not fit in 32-bit signed int range)
      */
-    private static long MIN_INT_AS_LONG = (long) (Integer.MIN_VALUE+1);
+    private static long MIN_INT_AS_LONG = (Integer.MIN_VALUE+1);
 
-    private static long MAX_INT_AS_LONG = (long) Integer.MAX_VALUE;
+    private static long MAX_INT_AS_LONG = Integer.MAX_VALUE;
 
     final static char[] LEADING_TRIPLETS = new char[4000];
     final static char[] FULL_TRIPLETS = new char[4000];
@@ -109,7 +109,8 @@ public final class NumberUtil
      *
      * @return Offset within buffer after outputting int
      */
-    public static int writeInt(int value, char[] buffer, int offset)
+    @SuppressWarnings("cast")
+	public static int writeInt(int value, char[] buffer, int offset)
     {
         if (value < 0) {
             // In general, can just output sign, negate, handle as positives
