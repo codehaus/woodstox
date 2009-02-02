@@ -53,9 +53,10 @@ public class TestStartElementEvent
         assertTokenType(END_ELEMENT, er.nextEvent());
         er.close();
 
-        /* Ok, got 3 start elements, and accessing the SECOND one triggers the problem
+        /* Ok, got 3 start elements, and accessing the SECOND one triggers
+         * the problem
          */
-        _verifyAttrCount((StartElement) elemEvents.get(1), 5, true);
+        _verifyAttrCount((StartElement) elemEvents.get(1), 4, true);
     }
 
     /*
