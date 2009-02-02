@@ -1,25 +1,31 @@
-Version: 4.0.1
+Version: 4.0.2
 
-Release date: 29-Jan-2009
+Release date: 
 
 Description:
-  The first patch release for 4.0: released early because of problems
-  encountered with Maven, as well as a critical fix to Stax2 API reference
-  implementation that other packages depend on.
+  The second patch release for 4.0.
+
+  Problems fixed:
+
+  * [WSTX-188] Could get an ArrayIndexOutOfBounds exception for
+    StartElement.getAttributeByName() under specific conditions
+   (reported by Roger W)
+
+------------------------------------------------------------------------
+== History: ==
+------------------------------------------------------------------------
+
+4.0.1 [29-Jan-2009]
 
   Problems fixed:
 
   * A bug in Stax2 RI CharArrayBase64Decoder was skipping part of
     input under certain conditions; did not occur in stax2 test
-    suite, but did happen with another Stax2 implementation.
+    suite, but did happen for another Stax2 implementation.
   * There were many problems with Maven dependencies; specifically it looks
     like support for version ranges is hard to make work with somewhat
     manual release process in use now. Thus changed dependencies to use
     exact versions for now (until 5.0?)
-
-------------------------------------------------------------------------
-== History: ==
-------------------------------------------------------------------------
 
 4.0.0 [01-Jan-2009]
 

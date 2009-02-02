@@ -391,3 +391,8 @@ Christopher Paul Simmons:
   * Reported [WSTX-183], problem with creating stream/event writer
     with a DOM Element (instead of document), contributed unit tests.
     [4.0.0]
+
+Roger Wegmann:
+  * [WSTX-188] Could get an ArrayIndexOutOfBounds exception for
+    StartElement.getAttributeByName() under specific conditions
+    [3.2.9, 4.0.2]

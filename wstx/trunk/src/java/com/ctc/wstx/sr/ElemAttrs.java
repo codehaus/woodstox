@@ -90,7 +90,6 @@ public final class ElemAttrs
     {
         mRawAttrs = rawAttrs;
         mDefaultOffset = (defOffset << 2);
-
         mAttrMap = attrMap;
         mAttrHashSize = hashSize;
         mAttrSpillEnd = spillEnd;
@@ -108,34 +107,34 @@ public final class ElemAttrs
 
     public int findIndex(QName name)
     {
-        // Can/need to use linear search?
-        if (mAttrMap == null) {
-            String ln = name.getLocalPart();
-            String uri = name.getNamespaceURI();
-            boolean defaultNs = (uri == null || uri.length() == 0);
-            String[] raw = mRawAttrs;
-
-            for (int i = 0, len = raw.length; i < len; i += 4) {
-                if (!ln.equals(raw[i])) {
-                    continue;
-                }
-                String thisUri = raw[i+OFFSET_NS_URI];
-                if (defaultNs) {
-                    if (thisUri == null || thisUri.length() == 0) {
-                        return i;
-                    }
-                } else { // non-default NS
-                    if (thisUri != null &&
-                        (thisUri == uri || thisUri.equals(uri))) {
-                        return i;
-                    }
-                }
-            }
-            return -1;
+        // Do we have a Map to do lookup against?
+        if (mAttrMap != null) { // yup
+            return findMapIndex(name.getNamespaceURI(), name.getLocalPart());
         }
 
-        // Ok, better use the Map...
-        return findMapIndex(name.getNamespaceURI(), name.getLocalPart());
+        // Nope, linear search:
+        String ln = name.getLocalPart();
+        String uri = name.getNamespaceURI();
+        boolean defaultNs = (uri == null || uri.length() == 0);
+        String[] raw = mRawAttrs;
+        
+        for (int i = 0, len = raw.length; i < len; i += 4) {
+            if (!ln.equals(raw[i])) {
+                continue;
+            }
+            String thisUri = raw[i+OFFSET_NS_URI];
+            if (defaultNs) {
+                if (thisUri == null || thisUri.length() == 0) {
+                        return i;
+                }
+            } else { // non-default NS
+                if (thisUri != null &&
+                    (thisUri == uri || thisUri.equals(uri))) {
+                    return i;
+                }
+            }
+        }
+        return -1;
     }
 
     public int getFirstDefaultOffset() {

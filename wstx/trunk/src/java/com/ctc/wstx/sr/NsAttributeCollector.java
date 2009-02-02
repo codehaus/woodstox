@@ -1,6 +1,7 @@
 package com.ctc.wstx.sr;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
@@ -215,9 +216,7 @@ public final class NsAttributeCollector
                  * spilled entries we can leave alone -- they are just ints,
                  * and get overwritten if and as needed
                  */
-                for (int i = 0; i < hashCount; ++i) {
-                    map[i] = 0;
-                }
+                Arrays.fill(map, 0, hashCount, 0);
             }
         }
 
@@ -569,8 +568,15 @@ public final class NsAttributeCollector
         }
 
         // Ok, nope; we need to also pass the Map information...
+        /* 02-Feb-2009, TSa: [WSTX-188] Must make a copy of the Map array now,
+         *   otherwise could get overwritten.
+         */
+        int amapLen = mAttrMap.length;
+        int[] amap = new int[amapLen];
+        // TODO: JDK 1.6 has Arrays.copyOf(), should use with Woodstox 6
+        System.arraycopy(mAttrMap, 0, amap, 0, amapLen);
         return new ElemAttrs(raw, mNonDefCount,
-                             mAttrMap, mAttrHashSize, mAttrSpillEnd);
+                             amap, mAttrHashSize, mAttrSpillEnd);
     }
 
     /*

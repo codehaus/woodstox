@@ -1,9 +1,18 @@
-Version: 3.2.8
+Version: 3.2.9
 
-Release date: 26-Dec-2008
+Release date: ?
 
 Description:
-  One more patch release for 3.2.
+
+  Problems fixed:
+
+  * [WSTX-188] Could get an ArrayIndexOutOfBounds exception for
+    StartElement.getAttributeByName() under specific conditions
+   (reported by Roger W)
+
+== History: ==
+
+3.2.8 [26-Dec-2008]
 
   Problems fixed:
 
@@ -18,8 +27,6 @@ Description:
     to allow enabling/disabling automatic addition of end elements
     when closing stream writer 
     (requested by Ian B)
-
-== History: ==
 
 3.2.7 [02-Sep-2008]
 
