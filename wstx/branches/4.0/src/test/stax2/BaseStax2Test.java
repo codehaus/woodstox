@@ -6,6 +6,7 @@ import java.util.HashMap;
 import junit.framework.TestCase;
 
 import javax.xml.stream.*;
+import javax.xml.stream.events.XMLEvent;
 
 import org.codehaus.stax2.*;
 import org.codehaus.stax2.evt.*;
@@ -425,6 +426,11 @@ public class BaseStax2Test
     {
 	String desc = (String) mTokenTypes.get(new Integer(tt));
 	return (desc == null) ? ("["+tt+"]") : desc;
+    }
+
+    protected static void assertTokenType(int expType, XMLEvent evt)
+    {
+        assertTokenType(expType, evt.getEventType());
     }
 
     protected static void assertTokenType(int expType, int actType)

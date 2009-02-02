@@ -31,7 +31,7 @@ public class WNotationDeclaration
         _baseURL = baseURL;
     }
 
-    // @Override
+    //@Override
     public String getBaseURI()
     {
         if (_baseURL == null) {
