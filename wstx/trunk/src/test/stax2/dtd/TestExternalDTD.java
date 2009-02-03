@@ -8,8 +8,6 @@ import javax.xml.transform.stream.StreamSource;
 
 import org.codehaus.stax2.*;
 
-import com.ctc.wstx.util.URLUtil;
-
 import stax2.BaseStax2Test;
 
 /**
@@ -167,7 +165,7 @@ public class TestExternalDTD
     {
         for (int i = 0; i < 2; ++i) {
             String filename = (i == 0) ? EXTERNAL_FILENAME1 : EXTERNAL_FILENAME2;
-            URL src = URLUtil.toURL(resolveFile(filename));
+            URL src = resolveFile(filename).toURI().toURL();
             XMLInputFactory2 f = getFactory();
             XMLStreamReader sr;
 
