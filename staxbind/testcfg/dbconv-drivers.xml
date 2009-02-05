@@ -6,34 +6,8 @@
 <driverGroup name="xmlDrivers"
  xmlns="http://www.sun.com/japex/testSuite">
 
-      <driver name="Xml/text/wstx3">
-        <description><div xmlns=""><p>Test driver for XML(text) that uses Woodstox 3.2.x</p></div></description>
-        <param name="japex.driverClass" value="org.codehaus.staxbind.dbconv.Wstx3Driver" />
-        <param name="japex.classPath" value="build/classes"/>
-        <param name="japex.classPath" value="lib/*.jar"/>
-        <param name="japex.classPath" value="lib/wstx3/*.jar"/>
-      </driver>
-
-      <driver name="Xml/text/ibm">
-        <description><div xmlns=""><p>Test driver for XML(text) that uses IBM Stax parser (Xlxp?)</p></div></description>
-        <param name="japex.driverClass" value="org.codehaus.staxbind.dbconv.IbmStaxDriver" />
-        <param name="japex.classPath" value="build/classes"/>
-        <param name="japex.classPath" value="lib/*.jar"/>
-        <param name="japex.classPath" value="lib/wstx3/*.jar"/>
-        <param name="japex.classPath" value="lib/ibm/*.jar"/>
-      </driver>
-
-      <driver name="Xml/text/sun">
-        <description><div xmlns=""><p>Test driver for XML(text) that uses Sun Stax parser (SJSXP)</p></div></description>
-        <param name="japex.driverClass" value="org.codehaus.staxbind.dbconv.SunStaxDriver" />
-        <param name="japex.classPath" value="build/classes"/>
-        <param name="japex.classPath" value="lib/*.jar"/>
-        <param name="japex.classPath" value="lib/wstx3/*.jar"/>
-        <param name="japex.classPath" value="lib/sun/*.jar"/>
-      </driver>
-
-
       <!-- Jackson json processor (0.9.6); manual, automatic -->
+<!--
       <driver name="Json/jackson/automatic">
         <description><div xmlns=""><p>Test driver for JSON (text) that uses Jackson json processor (AUTO)</p></div></description>
         <param name="japex.driverClass" value="org.codehaus.staxbind.dbconv.JacksonDriverAutomatic" />
@@ -51,8 +25,10 @@
         <param name="japex.classPath" value="lib/jackson/*.jar"/>
         <param name="japex.classPath" value="lib/wstx3/*.jar"/>
       </driver>
+-->
 
       <!-- Caucho/Hessian (3.2.0, format v2) -->
+<!--
       <driver name="Hessian/caucho">
         <description><div xmlns=""><p>Test driver for Hessian format (binary)
 using implementation by Caucho
@@ -63,14 +39,123 @@ using implementation by Caucho
         <param name="japex.classPath" value="lib/hessian/*.jar"/>
         <param name="japex.classPath" value="lib/wstx3/*.jar"/>
       </driver>
+-->
 
       <!-- JDK Serialization -->
+<!--
       <driver name="Binary/JDK-serialize">
         <description><div xmlns=""><p>Test driver that uses default JDK (binary) serialization</p></div></description>
         <param name="japex.driverClass" value="org.codehaus.staxbind.dbconv.JdkDriver" />
         <param name="japex.classPath" value="build/classes"/>
         <param name="japex.classPath" value="lib/*.jar"/>
         <param name="japex.classPath" value="lib/wstx3/*.jar"/>
+      </driver>
+-->
+
+      <!-- "Raw" Stax drivers -->
+
+      <driver name="Xml/text/sun">
+        <description><div xmlns=""><p>Test driver for XML(text) that uses Sun Stax parser (SJSXP)</p></div></description>
+        <param name="japex.driverClass" value="org.codehaus.staxbind.dbconv.Stax1Driver" />
+        <param name="japex.classPath" value="build/classes"/>
+        <param name="japex.classPath" value="lib/*.jar"/>
+        <param name="japex.classPath" value="lib/wstx3/*.jar"/>
+
+        <!-- Stand-alone version from http://sjsxp.dev.java.net:
+"com.sun.xml.stream.ZephyrParserFactory"
+"com.sun.xml.stream.ZephyrWriterFactory"
+       -->
+        <!-- JDK-bundled version:
+"com.sun.xml.internal.stream.XMLInputFactoryImpl"
+"com.sun.xml.internal.stream.XMLOutputFactoryImpl"
+       -->
+
+        <param name="javax.xml.stream.XMLInputFactory" value=
+"com.sun.xml.internal.stream.XMLInputFactoryImpl"
+       />
+        <param name="javax.xml.stream.XMLOutputFactory" value= 
+"com.sun.xml.internal.stream.XMLOutputFactoryImpl"
+       />
+     </driver>
+
+      <driver name="Xml/text/ibm">
+        <description><div xmlns=""><p>Test driver for XML(text) that uses IBM Stax parser (Xlxp?)</p></div></description>
+        <param name="japex.driverClass" value="org.codehaus.staxbind.dbconv.Stax1Driver" />
+        <param name="japex.classPath" value="build/classes"/>
+        <param name="japex.classPath" value="lib/*.jar"/>
+        <param name="japex.classPath" value="lib/wstx3/*.jar"/>
+        <param name="japex.classPath" value="lib/ibm/*.jar"/>
+
+        <param name="javax.xml.stream.XMLInputFactory" value=
+         "com.ibm.xml.xlxp.api.stax.XMLInputFactoryImpl" />
+        />
+        <param name="javax.xml.stream.XMLOutputFactory" value=
+         "com.ibm.xml.xlxp.api.stax.XMLOutputFactoryImpl"
+        />
+      </driver>
+
+      <driver name="Xml/text/wstx3">
+        <description><div xmlns=""><p>Test driver for XML(text) that uses Woodstox 3.2.x</p></div></description>
+        <param name="japex.driverClass" value="org.codehaus.staxbind.dbconv.Stax1Driver" />
+        <param name="japex.classPath" value="build/classes"/>
+        <param name="japex.classPath" value="lib/*.jar"/>
+        <param name="japex.classPath" value="lib/wstx3/*.jar"/>
+
+        <param name="javax.xml.stream.XMLInputFactory" value=
+"com.ctc.wstx.stax.WstxInputFactory"
+       />
+        <param name="javax.xml.stream.XMLOutputFactory" value=
+"com.ctc.wstx.stax.WstxOutputFactory"
+       />
+      </driver>
+
+      <driver name="Xml/text/aalto">
+        <description><div xmlns=""><p>Test driver for XML(text) that uses Aalto via stax1</p></div></description>
+        <param name="japex.driverClass" value="org.codehaus.staxbind.dbconv.Stax1Driver" />
+        <param name="japex.classPath" value="build/classes"/>
+        <param name="japex.classPath" value="lib/*.jar"/>
+        <param name="japex.classPath" value="lib/wstx3/*.jar"/>
+        <param name="japex.classPath" value="lib/aalto/*.jar"/>
+        <param name="japex.classPath" value="lib/stax2/*.jar"/>
+
+        <param name="javax.xml.stream.XMLInputFactory" value=
+         "org.codehaus.wool.stax.InputFactoryImpl" />
+        <param name="javax.xml.stream.XMLOutputFactory" value=
+         "org.codehaus.wool.stax.OutputFactoryImpl" />
+
+      </driver>
+
+      <!-- "Typed" Stax drivers -->
+
+      <driver name="Xml/text/wstx4-typed">
+        <description><div xmlns=""><p>Test driver for XML(text) that uses Woodstox 4.0, stax2</p></div></description>
+        <param name="japex.driverClass" value="org.codehaus.staxbind.dbconv.Stax2Driver" />
+        <param name="japex.classPath" value="build/classes"/>
+        <param name="japex.classPath" value="lib/*.jar"/>
+        <param name="japex.classPath" value="lib/stax2/*.jar"/>
+        <param name="japex.classPath" value="lib/wstx4/*.jar"/>
+
+        <param name="javax.xml.stream.XMLInputFactory" value=
+"com.ctc.wstx.stax.WstxInputFactory"
+       />
+        <param name="javax.xml.stream.XMLOutputFactory" value=
+"com.ctc.wstx.stax.WstxOutputFactory"
+       />
+      </driver>
+
+      <driver name="Xml/text/aalto-typed">
+        <description><div xmlns=""><p>Test driver for XML(text) that uses Aalto via Stax2</p></div></description>
+        <param name="japex.driverClass" value="org.codehaus.staxbind.dbconv.Stax2Driver" />
+        <param name="japex.classPath" value="build/classes"/>
+        <param name="japex.classPath" value="lib/*.jar"/>
+        <param name="japex.classPath" value="lib/stax2/*.jar"/>
+        <param name="japex.classPath" value="lib/aalto/*.jar"/>
+
+        <param name="javax.xml.stream.XMLInputFactory" value=
+         "org.codehaus.wool.stax.InputFactoryImpl" />
+        <param name="javax.xml.stream.XMLOutputFactory" value=
+         "org.codehaus.wool.stax.OutputFactoryImpl" />
+
       </driver>
 
       <!-- JAXB 2.0 -->
@@ -118,14 +203,4 @@ using implementation by Caucho
       </driver>
 -->
 
-      <!-- "Raw" Stax drivers -->
-
-      <driver name="Xml/text/wstx4-typed">
-        <description><div xmlns=""><p>Test driver for XML(text) that uses Woodstox 4.0</p></div></description>
-        <param name="japex.driverClass" value="org.codehaus.staxbind.dbconv.Wstx4Driver" />
-        <param name="japex.classPath" value="build/classes"/>
-        <param name="japex.classPath" value="lib/*.jar"/>
-        <param name="japex.classPath" value="lib/stax2/*.jar"/>
-        <param name="japex.classPath" value="lib/wstx4/*.jar"/>
-      </driver>
 </driverGroup>

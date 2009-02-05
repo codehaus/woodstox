@@ -1,6 +1,8 @@
 package org.codehaus.staxbind.dbconv;
 
 import java.io.*;
+// stax needed to get in baseline data
+import javax.xml.stream.*;
 
 import com.sun.japex.TestCase;
 
@@ -129,7 +131,14 @@ public abstract class DbconvDriver
 
     protected StdConverter getStdConverter()
     {
-        // Let's use Woodstox 3 driver as the trusted one...
-        return Wstx3Driver.getConverter();
+        /* Hmmh. For now, let's actually rely on JDK-bundled Stax
+         * parser (Sun sjsxp). Should work ok.
+         */
+        try {
+            return new StaxXmlConverter(XMLInputFactory.newInstance(),
+                                        XMLOutputFactory.newInstance());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }

@@ -18,14 +18,16 @@ import org.codehaus.stax2.XMLStreamWriter2;
 public class Stax2XmlConverter
     extends DbConverter
 {
-    final XMLInputFactory2 _staxInFactory;
-    final XMLOutputFactory2 _staxOutFactory;
+    XMLInputFactory2 _staxInFactory;
+    XMLOutputFactory2 _staxOutFactory;
 
-    public Stax2XmlConverter(String infClass, String outfClass)
+    public Stax2XmlConverter() { }
+
+    public void initStax2(String infName, String outfName)
     {
         try {
-            _staxInFactory = (XMLInputFactory2) Class.forName(infClass).newInstance();
-            _staxOutFactory = (XMLOutputFactory2) Class.forName(outfClass).newInstance();
+            _staxInFactory = (XMLInputFactory2) Class.forName(infName).newInstance();
+            _staxOutFactory = (XMLOutputFactory2) Class.forName(outfName).newInstance();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

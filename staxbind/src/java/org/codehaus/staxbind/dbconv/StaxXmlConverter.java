@@ -11,17 +11,31 @@ import javax.xml.stream.*;
 public class StaxXmlConverter
     extends DbConverter
 {
-    final XMLInputFactory _staxInFactory;
-    final XMLOutputFactory _staxOutFactory;
+    XMLInputFactory _staxInFactory;
+    XMLOutputFactory _staxOutFactory;
 
-    public StaxXmlConverter(String infClass, String outfClass)
+    public StaxXmlConverter() { this(null, null); }
+
+    public StaxXmlConverter(XMLInputFactory inf, XMLOutputFactory outf)
+    {
+        _staxInFactory = inf;
+        _staxOutFactory = outf; 
+    }
+
+    public void initStax(String infName, String outfName)
     {
         try {
-            _staxInFactory = (XMLInputFactory) Class.forName(infClass).newInstance();
-            _staxOutFactory = (XMLOutputFactory) Class.forName(outfClass).newInstance();
+            initStax((XMLInputFactory) Class.forName(infName).newInstance(),
+                     (XMLOutputFactory) Class.forName(outfName).newInstance());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public void initStax(XMLInputFactory inf, XMLOutputFactory outf)
+    {
+        _staxInFactory = inf;
+        _staxOutFactory = outf; 
     }
 
     /*
