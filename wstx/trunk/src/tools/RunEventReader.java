@@ -81,13 +81,24 @@ public class RunEventReader
 //System.err.println("["+evt.getEventType()+"]: '");
             if (evt.isStartElement()) {
                 StartElement elem = (StartElement) evt;
+                /*
                 Iterator<?> it = elem.getNamespaces();
                 int count = 0;
                 while (it.hasNext()) {
                     it.next();
                     ++count;
                 }
-//System.err.println("[Ns count: "+count+"]");
+                System.err.println("[Ns count: "+count+"]");
+                */
+
+                Iterator<?> it = elem.getAttributes();
+                int count = 0;
+                while (it.hasNext()) {
+                    it.next();
+                    ++count;
+                }
+                System.err.println("[Attr count: "+count+"]");
+
             } else if (evt.isCharacters()) {
                 Characters chars = evt.asCharacters();
                 int len = chars.getData().length();
