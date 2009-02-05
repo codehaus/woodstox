@@ -18,6 +18,7 @@ public class StdJaxbConverter<T extends StdItem>
     final JAXBContext _jaxbContext;
 
     public StdJaxbConverter(Class<T> itemClass)
+        throws Exception
     {
         this(itemClass, null, null);
     }
@@ -25,6 +26,7 @@ public class StdJaxbConverter<T extends StdItem>
     public StdJaxbConverter(Class<T> itemClass,
                             String staxInputFactory,
                             String staxOutputFactory)
+        throws Exception // from trying to instantiate jaxb context
     {
         _jaxbContext = JAXBContext.newInstance(itemClass);
         initStaxFactories(staxInputFactory, staxOutputFactory);

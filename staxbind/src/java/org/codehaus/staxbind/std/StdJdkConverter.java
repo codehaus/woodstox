@@ -20,7 +20,9 @@ public class StdJdkConverter<T extends StdItem>
             oi.close();
             return (T) result;
         } catch (ClassNotFoundException cnfe) {
-            throw new IOException(cnfe);
+            IOException e = new IOException();
+            e.initCause(cnfe);
+            throw e;
         }
     }
     
