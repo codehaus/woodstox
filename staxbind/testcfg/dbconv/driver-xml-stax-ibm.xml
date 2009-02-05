@@ -1,0 +1,18 @@
+<driver name="Xml/text/ibm"
+  xmlns="http://www.sun.com/japex/testSuite"
+>
+        <description><div xmlns=""><p>Test driver for XML(text) that uses IBM Stax parser (Xlxp?)</p></div></description>
+        <param name="japex.driverClass" value="org.codehaus.staxbind.dbconv.Stax1Driver" />
+        <param name="japex.classPath" value="build/classes"/>
+        <param name="japex.classPath" value="lib/*.jar"/>
+        <param name="japex.classPath" value="lib/wstx3/*.jar"/>
+        <param name="japex.classPath" value="lib/ibm/*.jar"/>
+
+        <param name="javax.xml.stream.XMLInputFactory" value=
+         "com.ibm.xml.xlxp.api.stax.XMLInputFactoryImpl" />
+        />
+        <param name="javax.xml.stream.XMLOutputFactory" value=
+         "com.ibm.xml.xlxp.api.stax.XMLOutputFactoryImpl"
+        />
+</driver>
+

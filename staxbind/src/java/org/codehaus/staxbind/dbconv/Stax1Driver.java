@@ -10,6 +10,7 @@ public final class Stax1Driver
         super(new StaxXmlConverter());
     }
 
+    @Override
     public void initializeDriver() {
         ((StaxXmlConverter) _converter).initStax
             (getParam("javax.xml.stream.XMLInputFactory"),

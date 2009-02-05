@@ -1,0 +1,17 @@
+ <driver name="Xml/text/aalto-typed"
+  xmlns="http://www.sun.com/japex/testSuite"
+>
+        <description><div xmlns=""><p>Test driver for XML(text) that uses Aalto via Stax2</p></div></description>
+        <param name="japex.driverClass" value="org.codehaus.staxbind.dbconv.Stax2Driver" />
+        <param name="japex.classPath" value="build/classes"/>
+        <param name="japex.classPath" value="lib/*.jar"/>
+        <param name="japex.classPath" value="lib/stax2/*.jar"/>
+        <param name="japex.classPath" value="lib/aalto/*.jar"/>
+
+        <param name="javax.xml.stream.XMLInputFactory" value=
+         "org.codehaus.wool.stax.InputFactoryImpl" />
+        <param name="javax.xml.stream.XMLOutputFactory" value=
+         "org.codehaus.wool.stax.OutputFactoryImpl" />
+      
+</driver>
+

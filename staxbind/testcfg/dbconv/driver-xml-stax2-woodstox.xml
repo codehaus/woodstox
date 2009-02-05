@@ -1,0 +1,17 @@
+<driver name="Xml/text/wstx4-typed"
+  xmlns="http://www.sun.com/japex/testSuite"
+>
+        <description><div xmlns=""><p>Test driver for XML(text) that uses Woodstox 4.0, stax2</p></div></description>
+        <param name="japex.driverClass" value="org.codehaus.staxbind.dbconv.Stax2Driver" />
+        <param name="japex.classPath" value="build/classes"/>
+        <param name="japex.classPath" value="lib/*.jar"/>
+        <param name="japex.classPath" value="lib/stax2/*.jar"/>
+        <param name="japex.classPath" value="lib/wstx4/*.jar"/>
+
+        <param name="javax.xml.stream.XMLInputFactory" value=
+"com.ctc.wstx.stax.WstxInputFactory"
+       />
+        <param name="javax.xml.stream.XMLOutputFactory" value=
+"com.ctc.wstx.stax.WstxOutputFactory"
+       />
+</driver>
