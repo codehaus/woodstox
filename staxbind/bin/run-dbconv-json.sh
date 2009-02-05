@@ -1,6 +1,6 @@
 #!/bin/sh
  
-echo "About to run full Japex test suite over 'dbconv' test (input dir: $1)"
+echo "About to run full 'dbconv' test on Json drivers (input dir: $1)"
 
 # Nothing big stored in memory, heap can remain modest 
 # -Djapex.runTime=30 \
@@ -14,7 +14,6 @@ $JAVA_HOME/bin/java -server -cp lib/\* \
  -Djapex.reportsDirectory=japex-reports \
  -Djapex.inputDir="$1" \
  com.sun.japex.Japex \
- testcfg/dbconv-full.xml
-
+ testcfg/dbconv-json.xml
 
 echo "Done!";

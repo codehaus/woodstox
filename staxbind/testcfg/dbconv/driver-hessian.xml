@@ -1,0 +1,14 @@
+<!-- Caucho/Hessian (3.2.0, format v2) -->
+<driver name="Hessian/caucho"
+ xmlns="http://www.sun.com/japex/testSuite"
+>
+        <description><div xmlns=""><p>Test driver for Hessian format (binary)
+using implementation by Caucho
+</p></div></description>
+        <param name="japex.driverClass" value="org.codehaus.staxbind.dbconv.HessianDriver" />
+        <param name="japex.classPath" value="build/classes"/>
+        <param name="japex.classPath" value="lib/*.jar"/>
+        <param name="japex.classPath" value="lib/hessian/*.jar"/>
+        <param name="japex.classPath" value="lib/wstx3/*.jar"/>
+</driver>
+

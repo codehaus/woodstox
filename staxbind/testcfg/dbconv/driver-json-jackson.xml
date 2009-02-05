@@ -1,0 +1,24 @@
+<driverGroup name="jsonDriversJackson"
+  xmlns="http://www.sun.com/japex/testSuite"
+>
+      <!-- Jackson json processor (0.9.6); streaming (data-binding) -->
+      <driver name="Json/jackson/automatic">
+        <description><div xmlns=""><p>Test driver for JSON (text) that uses Jackson json processor (AUTO)</p></div></description>
+        <param name="japex.driverClass" value="org.codehaus.staxbind.dbconv.JacksonDriverAutomatic" />
+        <param name="japex.classPath" value="build/classes"/>
+        <param name="japex.classPath" value="lib/*.jar"/>
+        <param name="japex.classPath" value="lib/jackson/*.jar"/>
+        <param name="japex.classPath" value="lib/wstx3/*.jar"/>
+      </driver>
+
+      <!-- Jackson json processor (0.9.6); streaming (manual) -->
+      <driver name="Json/jackson/manual">
+        <description><div xmlns=""><p>Test driver for JSON (text) that uses Jackson json processor (MANUAL)</p></div></description>
+        <param name="japex.driverClass" value="org.codehaus.staxbind.dbconv.JacksonDriverManual" />
+        <param name="japex.classPath" value="build/classes"/>
+        <param name="japex.classPath" value="lib/*.jar"/>
+        <param name="japex.classPath" value="lib/jackson/*.jar"/>
+        <param name="japex.classPath" value="lib/wstx3/*.jar"/>
+      </driver>
+</driverGroup>
+

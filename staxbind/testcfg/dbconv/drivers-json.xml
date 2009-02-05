@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Definition of all Json-backed test drivers
+  -->
+
+<driverGroup name="jsonDrivers"
+  xmlns="http://www.sun.com/japex/testSuite"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+>
+    <!-- Jackson drivers -->
+    <xi:include href="driver-json-jackson.xml" />
+
+</driverGroup>
+

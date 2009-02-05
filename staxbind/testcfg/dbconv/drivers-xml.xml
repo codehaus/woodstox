@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- Definition of all testable data format drivers
+<!-- Definition of all xml-backed test drivers
   -->
 
 <driverGroup name="xmlDrivers"

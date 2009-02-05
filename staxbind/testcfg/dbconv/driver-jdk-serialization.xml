@@ -1,0 +1,10 @@
+<!-- Plain vanilla JDK Serialization -->
+<driver name="Binary/JDK-serialize"
+ xmlns="http://www.sun.com/japex/testSuite"
+>
+        <description><div xmlns=""><p>Test driver that uses default JDK (binary) serialization</p></div></description>
+        <param name="japex.driverClass" value="org.codehaus.staxbind.dbconv.JdkDriver" />
+        <param name="japex.classPath" value="build/classes"/>
+        <param name="japex.classPath" value="lib/*.jar"/>
+        <param name="japex.classPath" value="lib/wstx3/*.jar"/>
+</driver>
