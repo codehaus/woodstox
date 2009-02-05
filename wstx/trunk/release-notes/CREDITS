@@ -396,3 +396,7 @@ Roger Wegmann:
   * [WSTX-188] Could get an ArrayIndexOutOfBounds exception for
     StartElement.getAttributeByName() under specific conditions
     [3.2.9, 4.0.2]
+
+Konstantin Priblouda:
+  * [WSTX-186] Convert Woodstox build from Ant to Maven.
+    [5.0]

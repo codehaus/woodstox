@@ -24,7 +24,7 @@
     </organization>
     <description>
         Woodstox is a high-performance XML processor that
-        implements Stax (JSR-173) and SAX2 APIs
+        implements Stax (JSR-173), SAX2 and Stax2 APIs
     </description>
     <url>http://woodstox.codehaus.org</url>
     <issueManagement>
@@ -36,7 +36,7 @@
     </scm>
     <licenses>
         <license>
-            <name>The Apache Software License, Version 2.0</name>
+            <name>The Apache License, Version 2.0</name>
             <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
             <distribution>repo</distribution>
         </license>
@@ -280,6 +280,20 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <distributionManagement>
+       <repository>
+           <id>codehaus.org</id>
+           <name>Codehaus Repository</name>
+           <url>dav:https://dav.codehaus.org/repository/woodstox</url>
+       </repository>
+       <snapshotRepository>
+           <id>codehaus.org</id>
+           <name>Codehaus Snapshot Repository</name>
+           <url>dav:https://dav.codehaus.org/snapshots.repository/woodstox</url>
+       </snapshotRepository>
+    </distributionManagement>
+
     <reporting>
         <plugins> 
             <plugin>
