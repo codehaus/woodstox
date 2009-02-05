@@ -20,28 +20,15 @@ public class StdJaxbConverter<T extends StdItem>
     public StdJaxbConverter(Class<T> itemClass)
         throws Exception
     {
-        this(itemClass, null, null);
-    }
-
-    public StdJaxbConverter(Class<T> itemClass,
-                            String staxInputFactory,
-                            String staxOutputFactory)
-        throws Exception // from trying to instantiate jaxb context
-    {
         _jaxbContext = JAXBContext.newInstance(itemClass);
-        initStaxFactories(staxInputFactory, staxOutputFactory);
     }
 
     public void initStaxFactories(String staxInputFactory,
                                   String staxOutputFactory)
     {
         try {
-            if (staxInputFactory != null) {
-                _staxInFactory = (XMLInputFactory) Class.forName(staxInputFactory).newInstance();
-            }
-            if (_staxOutFactory != null) {
-                _staxOutFactory = (XMLOutputFactory) Class.forName(staxOutputFactory).newInstance();
-            }
+            _staxInFactory = (XMLInputFactory) Class.forName(staxInputFactory).newInstance();
+            _staxOutFactory = (XMLOutputFactory) Class.forName(staxOutputFactory).newInstance();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
