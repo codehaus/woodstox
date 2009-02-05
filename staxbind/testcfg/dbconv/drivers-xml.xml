@@ -1,12 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!-- Definition of all xml-backed test drivers
+
+     Drivers are sorted in approximate order of
+     increasing performance; mostly to create more
+     visually pleasing graphs.
   -->
 
 <driverGroup name="xmlDrivers"
   xmlns="http://www.sun.com/japex/testSuite"
   xmlns:xi="http://www.w3.org/2001/XInclude"
 >
+    <!-- XStream -->
+    <xi:include href="driver-xml-xstream.xml" />
+
+    <!-- JAXB2 -->
+    <xi:include href="driver-xml-jaxb-sun.xml" />
+    <xi:include href="driver-xml-jaxb-woodstox.xml" />
+    <xi:include href="driver-xml-jaxb-aalto.xml" />
+
     <!-- "raw" stax 1.0 drivers -->
     <xi:include href="driver-xml-stax-sun.xml" />
     <xi:include href="driver-xml-stax-ibm.xml" />
@@ -16,14 +28,6 @@
     <!-- Stax2 "typed" drivers -->
     <xi:include href="driver-xml-stax2-woodstox.xml" />
     <xi:include href="driver-xml-stax2-aalto.xml" />
-
-    <!-- JAXB2 -->
-    <xi:include href="driver-xml-jaxb-sun.xml" />
-    <xi:include href="driver-xml-jaxb-woodstox.xml" />
-    <xi:include href="driver-xml-jaxb-aalto.xml" />
-
-    <!-- XStream -->
-    <xi:include href="driver-xml-xstream.xml" />
 
 </driverGroup>
 

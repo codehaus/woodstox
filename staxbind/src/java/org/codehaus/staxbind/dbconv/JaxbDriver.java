@@ -12,7 +12,7 @@ public final class JaxbDriver
 
     @Override
     public void initializeDriver() {
-        ((StaxXmlConverter) _converter).initStax
+        ((StdJaxbConverter) _converter).initStaxFactories
             (getParam("javax.xml.stream.XMLInputFactory"),
              getParam("javax.xml.stream.XMLOutputFactory")
              );
