@@ -23,7 +23,7 @@
     <xi:include href="driver-xml-jaxb-aalto.xml" />
 
     <!-- XStream -->
-    <xi:include href="driver-xml-xstream-woodstox.xml" />
+    <xi:include href="driver-xml-xstream.xml" />
 
 </driverGroup>
 
