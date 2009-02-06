@@ -8,10 +8,11 @@ $JAVA_HOME/bin/java -server -cp lib/\* \
  -Xmx128M \
  -Djava.awt.headless=true \
  -Djapex.runsPerDriver=1 \
- -Djapex.warmupTime=3 \
- -Djapex.runTime=10 \
+ -Djapex.warmupTime=4 \
+ -Djapex.runTime=16 \
  -Djapex.numberOfThreads=1 \
  -Djapex.reportsDirectory=japex-reports \
+ -Djapex.plotGroupSize=10 \
  -Djapex.inputDir="$1" \
  com.sun.japex.Japex \
  testcfg/xslt-all.xml

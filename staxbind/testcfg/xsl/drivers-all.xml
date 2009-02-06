@@ -11,10 +11,10 @@
   xmlns="http://www.sun.com/japex/testSuite"
   xmlns:xi="http://www.w3.org/2001/XInclude"
 >
-    <!-- Saxon -->
-    <xi:include href="drivers-saxon.xml" />
-
     <!-- Xalan -->
     <xi:include href="drivers-xalan.xml" />
+
+    <!-- Saxon -->
+    <xi:include href="drivers-saxon.xml" />
 
 </driverGroup>

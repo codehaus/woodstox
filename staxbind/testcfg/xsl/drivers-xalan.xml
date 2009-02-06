@@ -2,18 +2,40 @@
   xmlns="http://www.sun.com/japex/testSuite"
 >
   <driver name="Xsl/Xalan+xerces-sax">
-
-        <description><div xmlns=""><p>Test driver for XML(text) that uses Woodstox 3.2.x</p></div></description>
+        <description><div xmlns=""><p>Test driver for Xalan w/ Xerces-sax</p></div></description>
         <param name="japex.classPath" value="build/classes"/>
         <param name="japex.classPath" value="lib/*.jar"/>
-        <param name="japex.classPath" value="lib/wstx3/*.jar"/>
         <param name="japex.classPath" value="lib/xalan/*.jar"/>
+        <param name="japex.classPath" value="lib/xerces/*.jar"/>
 
         <param name="japex.driverClass" value="org.codehaus.staxbind.xslt.SaxXslDriver" />
 
         <param name="javax.xml.transform.TransformerFactory" value=
 "org.apache.xalan.xsltc.trax.TransformerFactoryImpl"
         />
-        <param name="javax.xml.parsers.SAXParserFactory" value="" />
+        <param name="javax.xml.parsers.SAXParserFactory" value=
+        "org.apache.xerces.jaxp.SAXParserFactoryImpl"
+      />
   </driver>
+
+  <driver name="Xsl/Xalan+woodstox-sax">
+        <description><div xmlns=""><p>Test driver for Xalan w/ Xerces-sax</p></div></description>
+        <param name="japex.classPath" value="build/classes"/>
+        <param name="japex.classPath" value="lib/*.jar"/>
+        <param name="japex.classPath" value="lib/xalan/*.jar"/>
+        <!-- Xalan still needs Xerces for writing out content -->
+        <param name="japex.classPath" value="lib/xerces/*.jar"/>
+        <param name="japex.classPath" value="lib/wstx4/*.jar"/>
+        <param name="japex.classPath" value="lib/stax2/*.jar"/>
+
+        <param name="japex.driverClass" value="org.codehaus.staxbind.xslt.SaxXslDriver" />
+
+        <param name="javax.xml.transform.TransformerFactory" value=
+"org.apache.xalan.xsltc.trax.TransformerFactoryImpl"
+        />
+        <param name="javax.xml.parsers.SAXParserFactory" value=
+"com.ctc.wstx.sax.WstxSAXParserFactory"
+      />
+  </driver>
+
 </driverGroup>

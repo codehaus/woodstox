@@ -6,13 +6,16 @@
         <param name="japex.classPath" value="build/classes"/>
         <param name="japex.classPath" value="lib/*.jar"/>
         <param name="japex.classPath" value="lib/saxon/*.jar"/>
+        <param name="japex.classPath" value="lib/xerces/*.jar"/>
 
         <param name="japex.driverClass" value="org.codehaus.staxbind.xslt.SaxXslDriver" />
         <param name="javax.xml.transform.TransformerFactory" value=
 "net.sf.saxon.TransformerFactoryImpl" />
 
-        <!-- "" == default SAX -->
-        <param name="javax.xml.parsers.SAXParserFactory" value="" />
+        <!-- Xerces -->
+        <param name="javax.xml.parsers.SAXParserFactory" value=
+        "org.apache.xerces.jaxp.SAXParserFactoryImpl"
+       />
   </driver>
 
   <driver name="Xsl/Saxon+woodstox-sax">
