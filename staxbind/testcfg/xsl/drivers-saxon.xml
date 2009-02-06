@@ -6,6 +6,7 @@
         <param name="japex.classPath" value="build/classes"/>
         <param name="japex.classPath" value="lib/*.jar"/>
         <param name="japex.classPath" value="lib/wstx3/*.jar"/>
+        <param name="japex.classPath" value="lib/saxon/*.jar"/>
 
         <param name="japex.driverClass" value="org.codehaus.staxbind.xslt.XslDriver" />
 

@@ -16,10 +16,24 @@ combinations.
      -->
 
 <testCase name='axis' />
+<testCase name='bottles' />
+<testCase name='brutal' />
+<testCase name='chart' />
+
+<testCase name='alphabetize_db100' />
+<testCase name='attsets_chart' />
 <testCase name='avts_db100' />
+<testCase name='backwards_game' />
+<testCase name='creation_db100' />
+<testCase name='dbonerow_db10000' />
+<testCase name='dbtail_db100' />
+
 <testCase name='identity_db1000' />
-<testCase name='number' />
 <testCase name='total_chart' />
-<testCase name='trend' />
+
+
+<!-- Broken with Saxon:
+<testCase name='number' />
+-->
 
 </testSuite>

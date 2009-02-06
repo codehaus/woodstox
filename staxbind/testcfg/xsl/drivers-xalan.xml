@@ -7,12 +7,12 @@
         <param name="japex.classPath" value="build/classes"/>
         <param name="japex.classPath" value="lib/*.jar"/>
         <param name="japex.classPath" value="lib/wstx3/*.jar"/>
-        <param name="japex.classPath" value="lib/saxon/*.jar"/>
+        <param name="japex.classPath" value="lib/xalan/*.jar"/>
 
         <param name="japex.driverClass" value="org.codehaus.staxbind.xslt.XslDriver" />
 
         <param name="javax.xml.transform.TransformerFactory" value=
-"net.sf.saxon.TransformerFactoryImpl"
+"org.apache.xalan.xsltc.trax.TransformerFactoryImpl"
       />
 
         <param name="javax.xml.stream.XMLInputFactory" value=
@@ -21,4 +21,5 @@
         <param name="javax.xml.stream.XMLOutputFactory" value=
 "com.ctc.wstx.stax.WstxOutputFactory"
        />
-</driver>
+  </driver>
+</driverGroup>

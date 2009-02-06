@@ -34,6 +34,8 @@ public final class XslDriver
 
     protected Templates _stylesheet;
 
+    protected int _docLen;
+
     protected ByteArrayInputStream _in;
 
     protected ByteArrayOutputStream _out;
@@ -112,16 +114,17 @@ public final class XslDriver
             xmlName = name.substring(ix+1);
         }
 
-        File xslFile = new File(_xslDir, xslName);
+        File xslFile = new File(_xslDir, xslName+".xsl");
         if (!xslFile.exists()) {
             throw new IllegalArgumentException("No input file '"+xslFile.getAbsolutePath()+"'");
         }
-        File xmlFile = new File(_xmlDir, xmlName);
+        File xmlFile = new File(_xmlDir, xmlName+".xml");
         if (!xmlFile.exists()) {
             throw new IllegalArgumentException("No input file '"+xmlFile.getAbsolutePath()+"'");
         }
         try {
             byte[] data = readAll(xmlFile);
+            _docLen = data.length;
             _in = new ByteArrayInputStream(data);
             _out = new ByteArrayOutputStream(4000); // will get resized
 
@@ -154,7 +157,8 @@ public final class XslDriver
             throw wrapException(e);
         }
 
-        _bogusResult = _out.size();
+        _totalLength = _out.size();
+        _bogusResult = _totalLength;
     }
     
     @Override
