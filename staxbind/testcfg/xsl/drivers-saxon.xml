@@ -3,10 +3,15 @@
 >
   <driver name="Xsl/Saxon+woodstox">
         <description><div xmlns=""><p>Test driver for XML(text) that uses Woodstox 3.2.x</p></div></description>
-        <param name="japex.driverClass" value="org.codehaus.staxbind.dbconv.Stax1Driver" />
         <param name="japex.classPath" value="build/classes"/>
         <param name="japex.classPath" value="lib/*.jar"/>
         <param name="japex.classPath" value="lib/wstx3/*.jar"/>
+
+        <param name="japex.driverClass" value="org.codehaus.staxbind.xslt.XslDriver" />
+
+        <param name="javax.xml.transform.TransformerFactory" value=
+"net.sf.saxon.TransformerFactoryImpl"
+      />
 
         <param name="javax.xml.stream.XMLInputFactory" value=
 "com.ctc.wstx.stax.WstxInputFactory"

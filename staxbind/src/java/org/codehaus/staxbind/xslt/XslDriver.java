@@ -1,7 +1,9 @@
-package org.codehaus.staxbind.dbconv;
+package org.codehaus.staxbind.xslt;
 
 import java.io.*;
 import javax.xml.stream.*;
+import javax.xml.transform.*;
+import javax.xml.transform.stream.*;
 
 import com.sun.japex.JapexDriverBase;
 import com.sun.japex.TestCase;
@@ -14,6 +16,34 @@ import com.sun.japex.TestCase;
 public final class XslDriver
     extends JapexDriverBase
 {
+    /*
+    //////////////////////////////////////////
+    // Configuration, driver
+    //////////////////////////////////////////
+     */
+
+    protected File _xmlDir, _xslDir;
+
+    protected TransformerFactory _xslFactory;
+
+    /*
+    //////////////////////////////////////////
+    // Configuration, test case
+    //////////////////////////////////////////
+     */
+
+    protected Templates _stylesheet;
+
+    protected ByteArrayInputStream _in;
+
+    protected ByteArrayOutputStream _out;
+
+    /*
+    //////////////////////////////////////////
+    // Test state, results
+    //////////////////////////////////////////
+     */
+
     /**
      * We will keep track of fake result, just in case JIT might
      * sneakily try to eliminate unnecessary code.
@@ -27,6 +57,47 @@ public final class XslDriver
 
     public XslDriver() { }
 
+    /*
+    //////////////////////////////////////////
+    // Actual Japex API impl
+    //////////////////////////////////////////
+     */
+
+    @Override
+    public void initializeDriver()
+    {
+        // Where are the docs?
+        File basedir = new File(getParam("japex.inputDir"));
+        _xmlDir = new File(basedir, "xml");
+        if (!_xmlDir.exists()) {
+            throw new IllegalArgumentException("No input dir '"+_xmlDir.getAbsolutePath()+"'");
+        }
+        _xslDir = new File(basedir, "xsl");
+        if (!_xslDir.exists()) {
+            throw new IllegalArgumentException("No input dir '"+_xslDir.getAbsolutePath()+"'");
+        }
+
+        // First: which transformer factory should we use?
+        String key = "javax.xml.transform.TransformerFactory";
+        String xslf = getParam(key);
+        if (xslf == null) {
+            throw new IllegalArgumentException("Missing setting for parameter '"+key+"'");
+        }
+        try {
+            _xslFactory = (TransformerFactory) Class.forName(xslf).newInstance();
+        } catch (Exception e) {
+            throw wrapException(e);
+        }
+
+        /*
+        (getParam("javax.xml.stream.XMLInputFactory"),
+        ((StaxXmlConverter) _converter).initStax
+            (getParam("javax.xml.stream.XMLInputFactory"),
+             getParam("javax.xml.stream.XMLOutputFactory")
+             );
+        */
+    }
+    
     @Override
     public void prepare(TestCase testCase)
     {
@@ -41,27 +112,26 @@ public final class XslDriver
             xmlName = name.substring(ix+1);
         }
 
+        File xslFile = new File(_xslDir, xslName);
+        if (!xslFile.exists()) {
+            throw new IllegalArgumentException("No input file '"+xslFile.getAbsolutePath()+"'");
+        }
+        File xmlFile = new File(_xmlDir, xmlName);
+        if (!xmlFile.exists()) {
+            throw new IllegalArgumentException("No input file '"+xmlFile.getAbsolutePath()+"'");
+        }
         try {
-            //loadTestData(testCase, getOperation(testCase));
+            byte[] data = readAll(xmlFile);
+            _in = new ByteArrayInputStream(data);
+            _out = new ByteArrayOutputStream(4000); // will get resized
+
+            _stylesheet = null; // clear old one
+            _stylesheet = _xslFactory.newTemplates(new StreamSource(xslFile));
         } catch (Exception e) {
-            RuntimeException re = (e instanceof RuntimeException) ?
-                (RuntimeException) e : new RuntimeException(e);
-            throw re;
+            throw wrapException(e);
         }
     }
 
-    @Override
-    public void initializeDriver() {
-        // nothing to do, for now?
-        /*
-        (getParam("javax.xml.stream.XMLInputFactory"),
-        ((StaxXmlConverter) _converter).initStax
-            (getParam("javax.xml.stream.XMLInputFactory"),
-             getParam("javax.xml.stream.XMLOutputFactory")
-             );
-        */
-    }
-    
     @Override
     public void warmup(TestCase testCase)
     {
@@ -73,16 +143,18 @@ public final class XslDriver
     public void run(TestCase testCase)
     {
         _bogusResult = -1;
-        _totalLength = 0;
+
+        _in.reset();
+        _out.reset();
 
         try {
-            //_bogusResult = runTest(oper);
+            Transformer tx = _stylesheet.newTransformer();
+            tx.transform(new StreamSource(_in), new StreamResult(_out));
         } catch (Exception e) {
-            if (e instanceof RuntimeException) {
-                throw (RuntimeException) e;
-            }
-            throw new RuntimeException(e);
+            throw wrapException(e);
         }
+
+        _bogusResult = _out.size();
     }
     
     @Override
@@ -104,6 +176,37 @@ public final class XslDriver
          */
         getTestSuite().setParam("japex.resultUnit", "tps");
         //getTestSuite().setParam("japex.resultUnit", "mbps");
+    }
+
+    /*
+    /////////////////////////////////////////////////
+    // Internal helper methods
+    /////////////////////////////////////////////////
+     */
+
+    private RuntimeException wrapException(Exception e)
+    {
+        if (e instanceof RuntimeException) {
+            return (RuntimeException) e;
+        }
+        return new RuntimeException(e);
+    }
+
+    protected byte[] readAll(File f)
+        throws IOException
+    {
+        int len = (int) f.length();
+        byte[] result = new byte[len];
+        FileInputStream fis = new FileInputStream(f);
+        int offset = 0;
+
+        while (offset < len) {
+            int count = fis.read(result, offset, result.length-offset);
+            offset += count;
+        }
+        fis.close();
+
+        return result;
     }
 }
 

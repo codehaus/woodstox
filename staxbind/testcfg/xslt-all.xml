@@ -9,7 +9,7 @@ combinations.
 </p></div></description>
 
     <!-- Drivers -->
-    <xi:include href="xslt/drivers-all.xml" />
+    <xi:include href="xsl/drivers-all.xml" />
 
     <!-- Test cases: name is used to indicate both stylesheet
         and xml
