@@ -13,7 +13,7 @@ import com.sun.japex.TestCase;
  * Note: unlike most other test drivers, xsl driver doesn't extend
  * standard base classes.
  */
-public final class XslDriver
+public abstract class XslDriver
     extends JapexDriverBase
 {
     /*
@@ -57,7 +57,7 @@ public final class XslDriver
      */
     protected int _totalLength;
 
-    public XslDriver() { }
+    protected XslDriver() { }
 
     /*
     //////////////////////////////////////////
@@ -124,7 +124,7 @@ public final class XslDriver
         }
         try {
             byte[] data = readAll(xmlFile);
-            _docLen = data.length;
+            _docLen = data.length;http://www.nanostring.com/jobs.html
             _in = new ByteArrayInputStream(data);
             _out = new ByteArrayOutputStream(4000); // will get resized
 
@@ -152,7 +152,7 @@ public final class XslDriver
 
         try {
             Transformer tx = _stylesheet.newTransformer();
-            tx.transform(new StreamSource(_in), new StreamResult(_out));
+            _transform(tx, _in, _out);
         } catch (Exception e) {
             throw wrapException(e);
         }
@@ -160,6 +160,10 @@ public final class XslDriver
         _totalLength = _out.size();
         _bogusResult = _totalLength;
     }
+
+    protected abstract void _transform(Transformer tx, ByteArrayInputStream in,
+                                       ByteArrayOutputStream out)
+        throws Exception;
     
     @Override
     public void finish(TestCase testCase)
@@ -188,7 +192,7 @@ public final class XslDriver
     /////////////////////////////////////////////////
      */
 
-    private RuntimeException wrapException(Exception e)
+    protected RuntimeException wrapException(Exception e)
     {
         if (e instanceof RuntimeException) {
             return (RuntimeException) e;

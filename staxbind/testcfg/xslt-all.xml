@@ -20,6 +20,7 @@ combinations.
 <testCase name='brutal' />
 <testCase name='chart' />
 
+<!--
 <testCase name='alphabetize_db100' />
 <testCase name='attsets_chart' />
 <testCase name='avts_db100' />
@@ -30,6 +31,7 @@ combinations.
 
 <testCase name='identity_db1000' />
 <testCase name='total_chart' />
+-->
 
 
 <!-- Broken with Saxon:
