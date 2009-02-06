@@ -28,7 +28,7 @@
 "net.sf.saxon.TransformerFactoryImpl"
         />
         <param name="javax.xml.parsers.SAXParserFactory" value=
-"org.codehaus.wool.sax.SAXParserFactoryImpl"
+"com.ctc.wstx.sax.WstxSAXParserFactory"
        />
   </driver>
 
@@ -46,7 +46,9 @@
 "net.sf.saxon.TransformerFactoryImpl"
         />
         <param name="javax.xml.parsers.SAXParserFactory" value=
-"org.codehaus.wool.sax.SAXParserImpl"
+"org.codehaus.wool.sax.SAXParserFactoryImpl"
        />
   </driver>
+
+
 </driverGroup>
