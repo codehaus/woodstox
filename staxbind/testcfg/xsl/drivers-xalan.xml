@@ -1,0 +1,18 @@
+<driverGroup name="xercesDrivers"
+  xmlns="http://www.sun.com/japex/testSuite"
+>
+  <driver name="Xsl/Xalan+xerces-sax">
+
+        <description><div xmlns=""><p>Test driver for XML(text) that uses Woodstox 3.2.x</p></div></description>
+        <param name="japex.driverClass" value="org.codehaus.staxbind.dbconv.Stax1Driver" />
+        <param name="japex.classPath" value="build/classes"/>
+        <param name="japex.classPath" value="lib/*.jar"/>
+        <param name="japex.classPath" value="lib/wstx3/*.jar"/>
+
+        <param name="javax.xml.stream.XMLInputFactory" value=
+"com.ctc.wstx.stax.WstxInputFactory"
+       />
+        <param name="javax.xml.stream.XMLOutputFactory" value=
+"com.ctc.wstx.stax.WstxOutputFactory"
+       />
+</driver>

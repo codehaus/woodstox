@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Definition of all xml-backed test drivers
+
+     Drivers are sorted in approximate order of
+     increasing performance; mostly to create more
+     visually pleasing graphs.
+  -->
+
+<driverGroup name="xmlDrivers"
+  xmlns="http://www.sun.com/japex/testSuite"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+>
+    <!-- Xerces -->
+    <xi:include href="drivers-xerces.xml" />
+
+    <!-- Saxon -->
+    <xi:include href="drivers-saxon.xml" />
+
+</driverGroup>
