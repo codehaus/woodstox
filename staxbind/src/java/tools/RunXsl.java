@@ -44,6 +44,7 @@ public class RunXsl
         }
 
         SAXParserFactory xmlF = (SAXParserFactory) Class.forName(parserClass).newInstance();
+        xmlF.setNamespaceAware(true);
         XMLReader xr = xmlF.newSAXParser().getXMLReader();
 
         File xslFile = new File(args[2]);

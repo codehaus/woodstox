@@ -23,9 +23,6 @@ combinations.
 <testCase name='html' />
 <testCase name='identity' />
 <testCase name='inventory' />
-
-<!--
-
 <testCase name='metric' />
 <testCase name='oddtemplate' />
 <testCase name='priority' />
@@ -36,7 +33,6 @@ combinations.
 <testCase name='union' />
 <testCase name='xpath' />
 <testCase name='xslbench1' />
--->
 
 <!-- Broken with Xalan w/ Xerces: inf recursion
 <testCase name='bottles' />
@@ -46,7 +42,6 @@ combinations.
 -->
 
 <!-- Then mix'n match tests -->
-<!--
 <testCase name='alphabetize_db100' />
 <testCase name='attsets_chart' />
 <testCase name='avts_db100' />
@@ -68,6 +63,5 @@ combinations.
 <testCase name='total_chart' />
 <testCase name='xslbench2_xslbenchdream' />
 <testCase name='xslbench3_xslbenchdream' />
--->
 
 </testSuite>

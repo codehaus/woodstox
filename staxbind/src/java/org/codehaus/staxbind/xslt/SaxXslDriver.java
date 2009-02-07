@@ -32,6 +32,7 @@ public final class SaxXslDriver
         } else {
             try {
                 SAXParserFactory f = (SAXParserFactory) Class.forName(fc).newInstance();
+                f.setNamespaceAware(true);
                 _xmlReader = f.newSAXParser().getXMLReader();
             } catch (Exception e) {
                 throw wrapException(e);
