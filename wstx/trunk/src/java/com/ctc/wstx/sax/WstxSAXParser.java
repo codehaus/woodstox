@@ -527,7 +527,7 @@ public class WstxSAXParser
                 fireStartTag();
                 ++depth;
             } else if (type == XMLStreamConstants.END_ELEMENT) {
-                fireEndTag();
+                mScanner.fireSaxEndElement(mContentHandler);
                 if (--depth < 1) {
                     break;
                 }
@@ -634,12 +634,6 @@ public class WstxSAXParser
             mNsCount = mElemStack.getCurrentNsCount();
         }
         mScanner.fireSaxStartElement(mContentHandler, this);
-    }
-
-    private final void fireEndTag()
-        throws SAXException
-    {
-        mScanner.fireSaxEndElement(mContentHandler);
     }
 
     /*
