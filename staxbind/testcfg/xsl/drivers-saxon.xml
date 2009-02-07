@@ -1,5 +1,6 @@
 <driverGroup name="saxonDrivers"
   xmlns="http://www.sun.com/japex/testSuite"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
 >
   <driver name="Xsl/Saxon+xerces">
         <description><div xmlns=""><p>Test driver using Saxon, JDK default SAX</p></div></description>
@@ -18,40 +19,7 @@
        />
   </driver>
 
-  <driver name="Xsl/Saxon+woodstox-sax">
-        <description><div xmlns=""><p>Test driver using Saxon, Woodstox/SAX</p></div></description>
-        <param name="japex.classPath" value="build/classes"/>
-        <param name="japex.classPath" value="lib/*.jar"/>
-        <param name="japex.classPath" value="lib/wstx4/*.jar"/>
-        <param name="japex.classPath" value="lib/stax2/*.jar"/>
-        <param name="japex.classPath" value="lib/saxon/*.jar"/>
-
-        <param name="japex.driverClass" value="org.codehaus.staxbind.xslt.SaxXslDriver" />
-        <param name="javax.xml.transform.TransformerFactory" value=
-"net.sf.saxon.TransformerFactoryImpl"
-        />
-        <param name="javax.xml.parsers.SAXParserFactory" value=
-"com.ctc.wstx.sax.WstxSAXParserFactory"
-       />
-  </driver>
-
-  <driver name="Xsl/Saxon+aalto-sax">
-        <description><div xmlns=""><p>Test driver using Saxon, Aalto/SAX</p></div></description>
-        <param name="japex.classPath" value="build/classes"/>
-        <param name="japex.classPath" value="lib/*.jar"/>
-        <param name="japex.classPath" value="lib/aalto/*.jar"/>
-        <param name="japex.classPath" value="lib/stax2/*.jar"/>
-        <param name="japex.classPath" value="lib/saxon/*.jar"/>
-
-        <param name="japex.driverClass" value="org.codehaus.staxbind.xslt.SaxXslDriver" />
-
-        <param name="javax.xml.transform.TransformerFactory" value=
-"net.sf.saxon.TransformerFactoryImpl"
-        />
-        <param name="javax.xml.parsers.SAXParserFactory" value=
-"org.codehaus.wool.sax.SAXParserFactoryImpl"
-       />
-  </driver>
-
+  <xi:include href="driver-saxon-woodstox.xml" />
+  <xi:include href="driver-saxon-aalto.xml" />
 
 </driverGroup>

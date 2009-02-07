@@ -1,0 +1,20 @@
+<driver name="Xsl/Saxon+aalto-sax"
+  xmlns="http://www.sun.com/japex/testSuite"
+>
+        <description><div xmlns=""><p>Test driver using Saxon, Aalto/SAX</p></div></description>
+        <param name="japex.classPath" value="build/classes"/>
+        <param name="japex.classPath" value="lib/*.jar"/>
+        <param name="japex.classPath" value="lib/aalto/*.jar"/>
+        <param name="japex.classPath" value="lib/stax2/*.jar"/>
+        <param name="japex.classPath" value="lib/saxon/*.jar"/>
+
+        <param name="japex.driverClass" value="org.codehaus.staxbind.xslt.SaxXslDriver" />
+
+        <param name="javax.xml.transform.TransformerFactory" value=
+"net.sf.saxon.TransformerFactoryImpl"
+        />
+        <param name="javax.xml.parsers.SAXParserFactory" value=
+"org.codehaus.wool.sax.SAXParserFactoryImpl"
+       />
+</driver>
+

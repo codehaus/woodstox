@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<testSuite name="Test suite for XSL transformations" xmlns="http://www.sun.com/japex/testSuite"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+>
+    <description><div xmlns=""><p>
+Micro-benchmark for profiling performance of a
+xml-parser/xsl-processor combination.
+</p></div></description>
+
+    <!-- Driver to test -->
+
+<!--
+  <xi:include href="xsl/driver-saxon-aalto.xml" />
+-->
+  <xi:include href="xsl/driver-saxon-woodstox.xml" />
+
+    <!-- Stylesheet to test -->
+
+<!--
+<testCase name='brutal' />
+<testCase name='identity' />
+<testCase name='summarize_queensXsl' />
+-->
+
+<testCase name='reverser_gettysburg' />
+
+</testSuite>
