@@ -36,6 +36,7 @@
         <fileset dir="${dir.lib}/json-org" includes="*.jar" />
         <fileset dir="${dir.lib}/json-lib" includes="*.jar" />
         <fileset dir="${dir.lib}/json-simple" includes="*.jar" />
+        <fileset dir="${dir.lib}/json-stringtree" includes="*.jar" />
         <fileset dir="${dir.lib}/json-tools" includes="*.jar" />
        </classpath>
     </javac>

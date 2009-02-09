@@ -53,6 +53,17 @@
         <param name="japex.driverClass" value="org.codehaus.staxbind.jsoncount.JsonSimpleDriver" />
   </driver>
 
+  <!-- StringTree -->
+  <driver name="StringTree/object(list/map)">
+        <description><div xmlns=""><p>Test driver using StringTree parser/mapper</p></div></description>
+        <param name="japex.classPath" value="build/classes"/>
+        <param name="japex.classPath" value="lib/*.jar"/>
+        <param name="japex.classPath" value="lib/json-org/*.jar"/>
+        <param name="japex.classPath" value="lib/json-stringtree/*.jar"/>
+
+        <param name="japex.driverClass" value="org.codehaus.staxbind.jsoncount.StringTreeDriver" />
+  </driver>
+
   <!-- Jackson; tree-based -->
   <driver name="Jackson/tree">
         <description><div xmlns=""><p>Test driver using Jackson via Tree model</p></div></description>
