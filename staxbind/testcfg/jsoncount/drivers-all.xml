@@ -10,9 +10,26 @@
   xmlns="http://www.sun.com/japex/testSuite"
   xmlns:xi="http://www.w3.org/2001/XInclude"
 >
-  <!-- Json.org, "the standard" -->
-
   <!-- Json-lib -->
+  <driver name="Json-lib/tree">
+        <description><div xmlns=""><p>Test driver using Json-libs tree/object model</p></div></description>
+        <param name="japex.classPath" value="build/classes"/>
+        <param name="japex.classPath" value="lib/*.jar"/>
+        <param name="japex.classPath" value="lib/json-lib/*.jar"/>
+
+        <param name="japex.driverClass" value="org.codehaus.staxbind.jsoncount.JsonLibDriver" />
+  </driver>
+
+  <!-- Json.org, "the standard" -->
+  <driver name="Json.org/tree">
+        <description><div xmlns=""><p>Test driver using Json.org's tree model</p></div></description>
+        <param name="japex.classPath" value="build/classes"/>
+        <param name="japex.classPath" value="lib/*.jar"/>
+        <param name="japex.classPath" value="lib/json-org/*.jar"/>
+
+        <param name="japex.driverClass" value="org.codehaus.staxbind.jsoncount.JsonOrgDriver" />
+  </driver>
+
   <!-- Json-tools -->
   <!-- Flex-json -->
   <!-- Json.simple -->
