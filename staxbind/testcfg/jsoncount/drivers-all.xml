@@ -10,14 +10,14 @@
   xmlns="http://www.sun.com/japex/testSuite"
   xmlns:xi="http://www.w3.org/2001/XInclude"
 >
-  <!-- Json-lib -->
-  <driver name="Json-lib/tree">
-        <description><div xmlns=""><p>Test driver using Json-libs tree/object model</p></div></description>
+  <!-- Json-tools -->
+  <driver name="Json-tools/tree">
+        <description><div xmlns=""><p>Test driver using Json Tools tree/object model</p></div></description>
         <param name="japex.classPath" value="build/classes"/>
         <param name="japex.classPath" value="lib/*.jar"/>
-        <param name="japex.classPath" value="lib/json-lib/*.jar"/>
+        <param name="japex.classPath" value="lib/json-tools/*.jar"/>
 
-        <param name="japex.driverClass" value="org.codehaus.staxbind.jsoncount.JsonLibDriver" />
+        <param name="japex.driverClass" value="org.codehaus.staxbind.jsoncount.JsonToolsDriver" />
   </driver>
 
   <!-- Json.org, "the standard" -->
@@ -30,7 +30,17 @@
         <param name="japex.driverClass" value="org.codehaus.staxbind.jsoncount.JsonOrgDriver" />
   </driver>
 
-  <!-- Json-tools -->
+  <!-- Json-lib -->
+  <driver name="Json-lib/tree">
+        <description><div xmlns=""><p>Test driver using Json-libs tree/object model</p></div></description>
+        <param name="japex.classPath" value="build/classes"/>
+        <param name="japex.classPath" value="lib/*.jar"/>
+        <param name="japex.classPath" value="lib/json-lib/*.jar"/>
+
+        <param name="japex.driverClass" value="org.codehaus.staxbind.jsoncount.JsonLibDriver" />
+  </driver>
+
+
   <!-- Flex-json -->
   <!-- Json.simple -->
 
