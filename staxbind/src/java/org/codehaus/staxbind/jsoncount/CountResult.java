@@ -22,5 +22,30 @@ public final class CountResult
         }
         ++counts[0];
     }
+
+    public int size() { return _countByName.size(); }
+
+    @Override
+        public String toString()
+    {
+        return _countByName.toString();
+    }
+
+    public TreeMap<String,int[]> getCounts() {
+        return new TreeMap<String,int[]>(_countByName);
+    }
+
+    /*
+    @Override
+        public boolean equals(Object o)
+    {
+        if (o == this) return true;
+        if (o == null) return false;
+        if (o.getClass() != getClass()) return false;
+
+        CountResult other = (CountResult) o;
+        return other._countByName.equals(_countByName);
+    }
+    */
 }
 

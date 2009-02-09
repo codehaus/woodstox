@@ -61,8 +61,6 @@ public abstract class JsonCountDriver
         String filename = testCase.getName()+".json";
         File jsonFile = new File(_docDir, filename);
 
-        _results = new CountResult();
-
         if (!jsonFile.exists()) {
             throw new IllegalArgumentException("No input file '"+jsonFile.getAbsolutePath()+"'");
         }
@@ -72,6 +70,15 @@ public abstract class JsonCountDriver
         } catch (Exception e) {
             throw wrapException(e);
         }
+
+        /* And then, let's verify that this driver produces expected
+         * results!
+         */
+        _results = new CountResult();
+        run(testCase);
+        ResultVerifier.checkResults(getClass(), _docData, _results);
+
+        // should we now clear the results?
     }
 
     @Override
