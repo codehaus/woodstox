@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<testSuite name="Test suite for XSL transformations" xmlns="http://www.sun.com/japex/testSuite"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+>
+    <description><div xmlns=""><p>
+Micro-benchmark for testing performance of various xml-parser/xsl-processor
+combinations.
+</p></div></description>
+
+    <!-- Drivers -->
+    <xi:include href="xsl/drivers-saxon.xml" />
+
+    <!-- Test cases: name is used to indicate both stylesheet
+        and xml
+     -->
+
+<!-- First 'symmetric' ones, same name for xml, xsl -->
+<testCase name='axis' />
+<testCase name='brutal' />
+<testCase name='chart' />
+<testCase name='game' />
+<testCase name='html' />
+<testCase name='identity' />
+<testCase name='inventory' />
+<testCase name='metric' />
+<testCase name='oddtemplate' />
+<testCase name='priority' />
+<testCase name='products' />
+<testCase name='queens' />
+<testCase name='tower' />
+<testCase name='trend' />
+<testCase name='union' />
+<testCase name='xpath' />
+<testCase name='xslbench1' />
+
+<!-- Broken with Xalan w/ Xerces: inf recursion
+<testCase name='bottles' />
+-->
+<!-- Broken with Saxon:
+<testCase name='number' />
+-->
+
+<!-- Then mix'n match tests -->
+<testCase name='alphabetize_db100' />
+<testCase name='attsets_chart' />
+<testCase name='avts_db100' />
+<testCase name='backwards_game' />
+<testCase name='creation_db100' />
+<testCase name='dbonerow_db10000' />
+<testCase name='dbtail_db100' />
+<testCase name='decoy_db100' />
+<testCase name='encrypt_db100' />
+<testCase name='find_breadth' />
+<testCase name='find_depth' />
+<testCase name='functions_db100' />
+<testCase name='identity_db1000' />
+<testCase name='patterns_db100' />
+<testCase name='prettyprint_db100' />
+<testCase name='reverser_gettysburg' />
+<testCase name='stringsort_db1000' />
+<testCase name='summarize_queensXsl' />
+<testCase name='total_chart' />
+<testCase name='xslbench2_xslbenchdream' />
+<testCase name='xslbench3_xslbenchdream' />
+
+</testSuite>
