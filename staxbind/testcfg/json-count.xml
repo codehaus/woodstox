@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<testSuite name="Test suite for Json field count test" xmlns="http://www.sun.com/japex/testSuite"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+>
+    <description><div xmlns=""><p>
+Micro-benchmark for testing performance of various Json parsers,
+on a simple count-field-names task.
+</p></div></description>
+
+    <!-- Drivers -->
+    <xi:include href="jsoncount/drivers-all.xml" />
+
+    <!-- Test cases: name has to match with input file
+        name, except for trailing ".json" suffix.
+     -->
+
+<testCase name='json-org-sample4' />
+<testCase name='json-org-sample5' />
+<testCase name='twitter-search' />
+<testCase name='db100' />
+
+</testSuite>

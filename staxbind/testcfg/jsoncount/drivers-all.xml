@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Definition of all drivers for Jsoncount test
+
+     Drivers are sorted in presentation order, which
+     roughly mimicks reverse popularity sorting
+  -->
+
+<driverGroup name="jsonDrivers"
+  xmlns="http://www.sun.com/japex/testSuite"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+>
+  <!-- Json.org, "the standard" -->
+
+  <!-- Json-lib -->
+  <!-- Json-tools -->
+  <!-- Flex-json -->
+  <!-- Json.simple -->
+
+  <!-- Jackson; tree-based -->
+  <driver name="Jackson/tree">
+        <description><div xmlns=""><p>Test driver using Jackson via Tree model</p></div></description>
+        <param name="japex.classPath" value="build/classes"/>
+        <param name="japex.classPath" value="lib/*.jar"/>
+        <param name="japex.classPath" value="lib/jackson/*.jar"/>
+
+        <param name="japex.driverClass" value="org.codehaus.staxbind.jsoncount.JacksonDriverTree" />
+  </driver>
+
+  <!-- Jackson; streaming -->
+  <driver name="Jackson/streaming">
+        <description><div xmlns=""><p>Test driver using streaming parser of Jackson</p></div></description>
+        <param name="japex.classPath" value="build/classes"/>
+        <param name="japex.classPath" value="lib/*.jar"/>
+        <param name="japex.classPath" value="lib/jackson/*.jar"/>
+
+        <param name="japex.driverClass" value="org.codehaus.staxbind.jsoncount.JacksonDriverStreaming" />
+  </driver>
+
+</driverGroup>
