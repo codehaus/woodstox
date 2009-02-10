@@ -17,12 +17,13 @@ xml-parser/xsl-processor combination.
 
     <!-- Stylesheet to test -->
 
+<testCase name='brutal' />
+
 <!--
 <testCase name='brutal' />
 <testCase name='identity' />
 <testCase name='summarize_queensXsl' />
--->
-
 <testCase name='reverser_gettysburg' />
+-->
 
 </testSuite>

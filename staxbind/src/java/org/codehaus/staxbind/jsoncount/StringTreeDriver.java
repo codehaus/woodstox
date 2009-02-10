@@ -12,8 +12,7 @@ import org.stringtree.json.JSONReader;
 public final class StringTreeDriver
     extends JsonCountDriver
 {
-    public JsonSimpleDriver() {
-        _parser = new JSONParser();
+    public StringTreeDriver() {
     }
 
     protected void read(byte[] docData, CountResult results)
@@ -21,7 +20,7 @@ public final class StringTreeDriver
     {
         // Ugh. Yet another toy parser that requires a String...
         String doc = new String(docData, "UTF-8");        
-        Object ob = new JSONReader(doc);
+        Object ob = new JSONReader().read(doc);
         // but at least we get Maps, Lists etc
         _processNode(ob, results);
     }
