@@ -8,13 +8,31 @@
   <property name="dir.src.java" value="${dir.src}/java"/>
   <property name="dir.build" value="build" />
   <property name="dir.build.classes" value="${dir.build}/classes"/>
+  <!-- Distribution -->
+  <property name="dir.dist" location="${basedir}/dist" />
+
+  <property name="IMPL_TITLE" value="StaxBind Data Bind performance benchmark" />
+  <property name="IMPL_VERSION" value="0.1" />
+  <property name="IMPL_VENDOR" value="http://fasterxml.com" />
+
+  <patternset id="dist-all-source-files">
+          <include name="README.txt" />
+          <include name="build.xml" />
+          <include name="bin/*.sh" />
+          <include name="data/**" />
+          <include name="src/**/*.java" />
+          <include name="src/**/*.html" />
+          <include name="testcfg/**" />
+  </patternset>
 
   <target name="init">
     <mkdir dir="${dir.build.classes}" />
+    <mkdir dir="${dir.dist}" />
   </target>
 
   <target name="clean">
     <delete dir="${dir.build}"/>
+    <delete dir="${dir.dist}"/>
   </target>
 
   <target name="compile" depends="init">
@@ -42,9 +60,53 @@
     </javac>
   </target>
 
+  <target name="dist" depends="compile">
+       <!-- hmmh. tons of jars, let's skip for now -->
+<!--
+       <copy todir="${dir.dist}">
+          <fileset dir="${dir.build}" includes="*.jar" />
+       </copy>
+-->
+
+       <!-- Then let's create the source distribution tar packages
+          -->
+       <!-- Need to first copy to a tmp dir, to get the additional
+          directory (so tar/zip contents won't explode directly
+          in current dir)
+        -->
+       <property name="DIST_FILENAME" value="staxbind-src-${IMPL_VERSION}" />
+       <property name="DIST_DIR" value="${DIST_FILENAME}" />
+
+       <!-- better always clean it up, if it exists... -->
+       <delete dir="${dir.build}/${DIST_DIR}" />
+       <mkdir dir="${dir.build}/${DIST_DIR}" />
+
+       <copy todir="${dir.build}/${DIST_DIR}">
+         <fileset dir="${basedir}">
+           <patternset refid="dist-all-source-files" />
+         </fileset>
+       </copy>
+       <chmod dir="${dir.build}/${DIST_DIR}/bin" perm="ugo+rx"
+       includes="*.sh" />
+
+       <!-- then create tarball, zip -->
+       <tar basedir="${dir.build}"
+        includes="${DIST_DIR}/**"
+        destfile="${dir.dist}/${DIST_FILENAME}.tar.gz"
+        compression="gzip"
+      />
+       <zip basedir="${dir.build}"
+        includes="${DIST_DIR}/**"
+        destfile="${dir.dist}/${DIST_FILENAME}.zip"
+      />
+  </target>
+
   <!-- Running Japex performance tests: configurable to
        run different kinds of tests, as well as over 
        different data sets
+
+       NOTE: usually tests are NOT run via these tasks; instead,
+       scripts under bin/ are used.
     -->
 
   <!-- First, generic global settings common to all cases -->
