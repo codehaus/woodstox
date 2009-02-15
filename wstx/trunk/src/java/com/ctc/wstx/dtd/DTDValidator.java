@@ -150,7 +150,7 @@ public class DTDValidator
         // Is this element legal under the parent element?
         StructValidator pv = (elemCount > 0) ? mValidators[elemCount-1] : null;
 
-        if (pv != null) {
+        if (pv != null && elem != null) {
             String msg = pv.tryToValidate(elem.getName());
             if (msg != null) {
                 int ix = msg.indexOf("$END");
@@ -203,11 +203,14 @@ public class DTDValidator
         DTDAttribute attr = mCurrAttrDefs.get(mTmpKey.reset(prefix, localName));
         if (attr == null) {
             // Only report error if not already recovering from an error:
-            if (mCurrElem == null) {
-                return null;
+            if (mCurrElem != null) {
+                reportValidationProblem(ErrorConsts.ERR_VLD_UNKNOWN_ATTR,
+                                        mCurrElem.toString(), mTmpKey.toString());
             }
-            reportValidationProblem(ErrorConsts.ERR_VLD_UNKNOWN_ATTR,
-                                    mCurrElem.toString(), mTmpKey.toString());
+            /* [WSTX-190] NPE if we continued (after reported didn't
+             *   throw an exception); nothing more to do, let's leave
+             */
+            return value;
         }
         int index = mAttrCount++;
         if (index >= mAttrSpecs.length) {
@@ -240,11 +243,14 @@ public class DTDValidator
         DTDAttribute attr = mCurrAttrDefs.get(mTmpKey.reset(prefix, localName));
         if (attr == null) {
             // Only report error if not already covering from an error:
-            if (mCurrElem == null) {
-                return null;
+            if (mCurrElem != null) {
+                reportValidationProblem(ErrorConsts.ERR_VLD_UNKNOWN_ATTR,
+                                        mCurrElem.toString(), mTmpKey.toString());
             }
-            reportValidationProblem(ErrorConsts.ERR_VLD_UNKNOWN_ATTR,
-                                    mCurrElem.toString(), mTmpKey.toString());
+            /* [WSTX-190] NPE if we continued (after reported didn't
+             *   throw an exception); nothing more to do, let's leave
+             */
+            return new String(valueChars, valueStart, valueEnd);
         }
         int index = mAttrCount++;
         if (index >= mAttrSpecs.length) {

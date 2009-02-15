@@ -400,3 +400,6 @@ Roger Wegmann:
 Konstantin Priblouda:
   * [WSTX-186] Convert Woodstox build from Ant to Maven.
     [5.0]
+
+Andreas Veithen:
+  * Reported [WSTX-190], NPE with DTD validator, missing attribute.
