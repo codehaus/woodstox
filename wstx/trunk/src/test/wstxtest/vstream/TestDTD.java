@@ -33,7 +33,7 @@ public class TestDTD
     {
         String XML = "<!DOCTYPE root [\n"
             +"<!ELEMENT root EMPTY>\n"
-            +"]>\n<root attr='123' />";
+            +"]><root attr='123' />";
         MyReporter rep = new MyReporter();
         XMLStreamReader sr = getValidatingReader(XML, rep);
         assertTokenType(DTD, sr.next());

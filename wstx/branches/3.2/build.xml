@@ -521,17 +521,16 @@
     </target>
 
     <!-- Running a single Unit Test -->
-    <target name="test.single" depends="compile.test">
+    <target name="test.single" depends="test.compile">
          <fail unless="test" message="Must define -Dtest" />
        <!-- showoutput 'yes' to allow outputting debug msgs... -->
         <junit fork="no" maxmemory="128M" showoutput="yes" printsummary="yes">
           <formatter type="plain" usefile="no" />
           <test name="${test}" />
-          <classpath refid="classpath.compile.woodstox" />
           <classpath>
-                <pathelement path="${dir.build.classes.stax2}" />
-                <pathelement path="${dir.build.classes.woodstox}" />
-                <pathelement location="${dir.classes.test}" /> 
+                <pathelement path="${BuildClassesDir}" />
+                <pathelement path="${StaxTestClassesDir}" />
+                <pathelement location="${TestClassesDir}" /> 
                 <path refid="junit-libs"/>
           </classpath>     
         </junit>
