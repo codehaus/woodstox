@@ -403,3 +403,4 @@ Konstantin Priblouda:
 
 Andreas Veithen:
   * Reported [WSTX-190], NPE with DTD validator, missing attribute.
+    [3.2.9, 4.0.2]

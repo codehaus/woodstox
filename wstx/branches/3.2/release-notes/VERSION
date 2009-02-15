@@ -1,6 +1,6 @@
 Version: 3.2.9
 
-Release date: ?
+Release date: xx-Feb-2009
 
 Description:
 
@@ -9,6 +9,8 @@ Description:
   * [WSTX-188] Could get an ArrayIndexOutOfBounds exception for
     StartElement.getAttributeByName() under specific conditions
    (reported by Roger W)
+  * [WSTX-190]:  NPE with DTD validator, missing attribute.
+   (reported by Andreas V)
 
 == History: ==
 

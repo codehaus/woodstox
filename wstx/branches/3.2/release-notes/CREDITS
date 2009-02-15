@@ -370,3 +370,7 @@ Roger Wegmann:
   * [WSTX-188] Could get an ArrayIndexOutOfBounds exception for
     StartElement.getAttributeByName() under specific conditions
     [3.2.9]
+
+Andreas Veithen:
+  * Reported [WSTX-190], NPE with DTD validator, missing attribute.
+    [3.2.9]
