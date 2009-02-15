@@ -191,7 +191,7 @@ public abstract class DTDValidatorBase
         mContext = ctxt;
         mHasNsDefaults = hasNsDefaults;
         if (elemSpecs == null || elemSpecs.size() == 0) {
-        	mElemSpecs = Collections.emptyMap();
+            mElemSpecs = Collections.emptyMap();
         } else {
             mElemSpecs = elemSpecs;
         }

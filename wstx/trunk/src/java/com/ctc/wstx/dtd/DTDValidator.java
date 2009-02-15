@@ -202,7 +202,7 @@ public class DTDValidator
     {
         DTDAttribute attr = mCurrAttrDefs.get(mTmpKey.reset(prefix, localName));
         if (attr == null) {
-            // Only report error if not already covering from an error:
+            // Only report error if not already recovering from an error:
             if (mCurrElem == null) {
                 return null;
             }

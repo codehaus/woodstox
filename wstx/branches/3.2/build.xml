@@ -520,6 +520,23 @@
         </unzip>
     </target>
 
+    <!-- Running a single Unit Test -->
+    <target name="test.single" depends="compile.test">
+         <fail unless="test" message="Must define -Dtest" />
+       <!-- showoutput 'yes' to allow outputting debug msgs... -->
+        <junit fork="no" maxmemory="128M" showoutput="yes" printsummary="yes">
+          <formatter type="plain" usefile="no" />
+          <test name="${test}" />
+          <classpath refid="classpath.compile.woodstox" />
+          <classpath>
+                <pathelement path="${dir.build.classes.stax2}" />
+                <pathelement path="${dir.build.classes.woodstox}" />
+                <pathelement location="${dir.classes.test}" /> 
+                <path refid="junit-libs"/>
+          </classpath>     
+        </junit>
+    </target>
+
     <!-- Compiling and running Woodstox-specific tests
        - (including, for now, StAX2 tests)
       -->
