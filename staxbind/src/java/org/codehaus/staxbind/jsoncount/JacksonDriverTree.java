@@ -4,6 +4,7 @@ import java.util.*;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.node.ObjectNode;
 
 public final class JacksonDriverTree
     extends JsonCountDriver
@@ -24,23 +25,19 @@ public final class JacksonDriverTree
     private void _processNode(JsonNode node, CountResult results)
     {
         if (node.isObject()) {
-            _countObjectFields(node, results);
+            _countObjectFields((ObjectNode) node, results);
         } else if (node.isArray()) {
             _iterateArrayElements(node, results);
         }
     }
 
-    private void  _countObjectFields(JsonNode objNode, CountResult results)
+    private void  _countObjectFields(ObjectNode objNode, CountResult results)
     {
-        // First: denote field names
-        Iterator<String> it = objNode.getFieldNames();
+        Iterator<Map.Entry<String,JsonNode>> it = objNode.getFields();
         while (it.hasNext()) {
-            results.addReference(it.next());
-        }
-        // Then descent on values, to find sub-maps
-        Iterator<JsonNode> nodeIt = objNode.getFieldValues();
-        while (nodeIt.hasNext()) {
-            _processNode(nodeIt.next(), results);
+            Map.Entry<String,JsonNode> en = it.next();
+            results.addReference(en.getKey());
+            _processNode(en.getValue(), results);
         }
     }
 

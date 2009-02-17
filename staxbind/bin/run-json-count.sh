@@ -7,7 +7,7 @@ echo "About to run full Json counter test suite (input dir: $1)"
 $JAVA_HOME/bin/java -server -cp lib/\* \
  -Xmx128M \
  -Djava.awt.headless=true \
- -Djapex.runsPerDriver=1 \
+ -Djapex.runsPerDriver=3 \
  -Djapex.warmupTime=5 \
  -Djapex.runTime=30 \
  -Djapex.numberOfThreads=1 \

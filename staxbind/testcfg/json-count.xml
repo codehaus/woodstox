@@ -15,9 +15,9 @@ on a simple count-field-names task.
         name, except for trailing ".json" suffix.
      -->
 
-<testCase name='json-org-sample4' />
-<testCase name='twitter-search' />
 <testCase name='db100' />
+<testCase name='twitter-search' />
+<testCase name='json-org-sample4' />
 
 <!-- this seems to be "too fast", skews result graphs...
 <testCase name='json-org-sample5' />

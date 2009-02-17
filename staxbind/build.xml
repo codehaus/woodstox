@@ -60,6 +60,18 @@
     </javac>
   </target>
 
+  <!-- alternative target, if only xslt tests are needed -->
+  <target name="compile-xslt" depends="init">
+    <javac srcdir="${dir.src.java}" destdir="${dir.build.classes}"
+           source="1.5" target="1.5" debug="on">
+      <classpath>
+        <path path="${build.classpath}"/>
+        <fileset dir="${dir.lib}" includes="*.jar" />
+      </classpath>
+      <include name="org/codehaus/staxbind/xslt/**/*.java" />
+    </javac>
+  </target>
+
   <target name="dist" depends="compile">
        <!-- hmmh. tons of jars, let's skip for now -->
 <!--
