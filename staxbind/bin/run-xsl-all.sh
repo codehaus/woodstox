@@ -12,7 +12,7 @@ $JAVA_HOME/bin/java -server -cp lib/\* \
  -Djapex.runTime=16 \
  -Djapex.numberOfThreads=1 \
  -Djapex.reportsDirectory=japex-reports \
- -Djapex.plotGroupSize=10 \
+ -Djapex.plotGroupSize=8 \
  -Djapex.inputDir="$1" \
  com.sun.japex.Japex \
  testcfg/xslt-all.xml
