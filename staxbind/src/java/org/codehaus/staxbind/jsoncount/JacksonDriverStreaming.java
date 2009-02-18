@@ -28,5 +28,6 @@ public final class JacksonDriverStreaming
              * numeric values.
              */
         }
+        jp.close();
     }
 }
