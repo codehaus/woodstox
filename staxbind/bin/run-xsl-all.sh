@@ -8,8 +8,8 @@ $JAVA_HOME/bin/java -server -cp lib/\* \
  -Xmx128M \
  -Djava.awt.headless=true \
  -Djapex.runsPerDriver=1 \
- -Djapex.warmupTime=4 \
- -Djapex.runTime=16 \
+ -Djapex.warmupTime=5 \
+ -Djapex.runTime=25 \
  -Djapex.numberOfThreads=1 \
  -Djapex.reportsDirectory=japex-reports \
  -Djapex.plotGroupSize=8 \

@@ -42,15 +42,25 @@
         <param name="japex.driverClass" value="org.codehaus.staxbind.jsoncount.JsonToolsDriver" />
   </driver>
 
-  <!-- Json.simple -->
+  <!-- Json.simple, 2 variants -->
   <driver name="Json-simple/tree">
-        <description><div xmlns=""><p>Test driver using Json-simple Object (List/Map) model</p></div></description>
+        <description><div xmlns=""><p>Test driver using Json-simple w/ Object (List/Map) model</p></div></description>
         <param name="japex.classPath" value="build/classes"/>
         <param name="japex.classPath" value="lib/*.jar"/>
         <param name="japex.classPath" value="lib/json-org/*.jar"/>
         <param name="japex.classPath" value="lib/json-simple/*.jar"/>
 
         <param name="japex.driverClass" value="org.codehaus.staxbind.jsoncount.JsonSimpleDriver" />
+  </driver>
+
+  <driver name="Json-simple/SAXlike">
+        <description><div xmlns=""><p>Test driver using Json-simple via SAX-like API</p></div></description>
+        <param name="japex.classPath" value="build/classes"/>
+        <param name="japex.classPath" value="lib/*.jar"/>
+        <param name="japex.classPath" value="lib/json-org/*.jar"/>
+        <param name="japex.classPath" value="lib/json-simple/*.jar"/>
+
+        <param name="japex.driverClass" value="org.codehaus.staxbind.jsoncount.JsonSimpleSAXDriver" />
   </driver>
 
   <!-- StringTree -->

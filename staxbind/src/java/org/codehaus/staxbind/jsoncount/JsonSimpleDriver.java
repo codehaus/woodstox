@@ -8,7 +8,8 @@ import org.json.simple.parser.*;
 
 /**
  * Test driver that uses the "Json-simple" parser, from
- * [http://code.google.com/p/json-simple/]
+ * [http://code.google.com/p/json-simple/] using the
+ * tree model.
  */
 public final class JsonSimpleDriver
     extends JsonCountDriver
