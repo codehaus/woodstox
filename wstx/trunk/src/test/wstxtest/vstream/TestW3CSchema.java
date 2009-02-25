@@ -218,6 +218,36 @@ public class TestW3CSchema
         sr.close();
     }
 
+    public void testSimpleText()
+        throws XMLStreamException
+    {
+        String SCHEMA = "<?xml version='1.0' encoding='utf-8' ?>\n"
+            +"<xs:schema elementFormDefault='qualified' xmlns:xs='http://www.w3.org/2001/XMLSchema'>\n"
+            +"<xs:element name='root' type='xs:string' />"
+            +"</xs:schema>";
+        XMLValidationSchema schema = parseSchema(SCHEMA);
+
+        // First, 2 valid docs:
+        String XML = "<root>xyz</root>";
+        XMLStreamReader2 sr = getReader(XML);
+        sr.validateAgainst(schema);
+        streamThrough(sr);
+        sr.close();
+
+        XML = "<root />";
+        sr = getReader(XML);
+        sr.validateAgainst(schema);
+        streamThrough(sr);
+        sr.close();
+
+        // Then invalid?
+        XML = "<foobar />";
+        sr = getReader(XML);
+        sr.validateAgainst(schema);
+        verifyFailure(XML, schema, "should warn about wrong root element",
+                      "tag name \"foobar\" is not allowed", false);
+    }
+
     /*
     //////////////////////////////////////////////////////////////
     // Helper methods
