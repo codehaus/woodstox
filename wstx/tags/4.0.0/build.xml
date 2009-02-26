@@ -101,6 +101,7 @@
 
     <import file="build-osgi.xml" />
     <import file="build-coverage.xml" />
+    <import file="build-maven-deploy.xml" />
     <import file="repackage-msv.xml" />
 
     <!--*********************************************************************-->

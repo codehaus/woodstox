@@ -34,7 +34,7 @@
 
     <!-- Woodstox version info: -->
     <property name="IMPL_TITLE" value="Woodstox XML-processor" />
-    <property name="IMPL_VERSION" value="4.0.1" />
+    <property name="IMPL_VERSION" value="4.0.2" />
     <property name="IMPL_VENDOR" value="http://woodstox.codehaus.org" />
     <property name="API_TITLE" value="Stax 1.0 API" />
     <property name="API_VERSION" value="1.0.0" />
@@ -104,6 +104,7 @@
 
     <import file="build-osgi.xml" />
     <import file="build-coverage.xml" />
+    <import file="build-maven-deploy.xml" />
     <import file="repackage-msv.xml" />
 
     <!--*********************************************************************-->
