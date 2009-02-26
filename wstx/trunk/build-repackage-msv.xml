@@ -35,7 +35,10 @@
 
   <target name="repackage-xsdlib">
       <property name="XSD_TITLE" value="XML Schema datatypes library" />
-      <property name="XSD_VERSION" value="2.0.0" />
+      <!-- 26-Feb-2009, TSa: not sure what would be the best
+         versioning convention: for now, will append timestamp
+       -->
+      <property name="XSD_VERSION" value="2.0.0-20081113" />
       <property name="XSD_VENDOR" value="http://msv.dev.java.net" />
       <!-- Note on packages: Xerces classes are fully optional; could
            even decline linking...
@@ -72,12 +75,12 @@ org.relaxng.datatype.helpers;version="[1.0,1.1)"
 
   <target name="repackage-msv-core">
       <property name="MSV_TITLE" value="Sun Multi-Schema Validator core" />
-      <property name="MSV_VERSION" value="2.0.0" />
+      <property name="MSV_VERSION" value="1.0.0-20081113" />
       <property name="MSV_VENDOR" value="http://msv.dev.java.net" />
       <!-- Note on packages: Xerces classes are fully optional; could
            even decline linking.
-           "org.iso_relax" would be provided by "isorelax.jar", but
-           doesn't seem to be needed for our use cases.
+           "org.iso_relax" would be provided by "isorelax.jar",
+           but doesn't seem to be needed for our use cases.
         -->
       <osgify
          outputdir="build"

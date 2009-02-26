@@ -108,7 +108,7 @@
 
     <import file="build-osgi.xml" />
     <import file="build-coverage.xml" />
-    <import file="repackage-msv.xml" />
+    <import file="build-repackage-msv.xml" />
 
     <!--*********************************************************************-->
     <!-- The readme target shows a brief description of all targets          -->
