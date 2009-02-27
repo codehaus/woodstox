@@ -3,7 +3,18 @@ Version: 4.0.2
 Release date: 25-Feb-2009
 
 Description:
-  The second patch release for 4.0.
+  A maintence release for 4.0.
+
+  Problems fixed:
+
+  * [WSTX-191] Validation failure with W3C Schema, empty text
+    (reported by Yves M)
+
+------------------------------------------------------------------------
+== History: ==
+------------------------------------------------------------------------
+
+4.0.2 [25-Feb-2009]
 
   Problems fixed:
 
@@ -12,10 +23,6 @@ Description:
    (reported by Roger W)
   * [WSTX-190]:  NPE with DTD validator, missing attribute.
    (reported by Andreas V)
-
-------------------------------------------------------------------------
-== History: ==
-------------------------------------------------------------------------
 
 4.0.1 [29-Jan-2009]
 

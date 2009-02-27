@@ -114,7 +114,7 @@ public class TestW3CSchema
             assertEquals("personnel", sr.getLocalName());
             
             while (sr.hasNext()) {
-                int type = sr.next();
+                /*int type =*/ sr.next();
             }
         } catch (XMLValidationException vex) {
             fail("Did not expect validation exception, got: "+vex);
@@ -218,6 +218,94 @@ public class TestW3CSchema
         sr.close();
     }
 
+    public void testSimpleText()
+        throws XMLStreamException
+    {
+        String SCHEMA = "<?xml version='1.0' encoding='utf-8' ?>\n"
+            +"<xs:schema elementFormDefault='qualified' xmlns:xs='http://www.w3.org/2001/XMLSchema'>\n"
+            +"<xs:element name='root' type='xs:string' />"
+            +"</xs:schema>";
+        XMLValidationSchema schema = parseSchema(SCHEMA);
+
+        // First, 3 valid docs:
+        String XML = "<root>xyz</root>";
+        XMLStreamReader2 sr = getReader(XML);
+        sr.validateAgainst(schema);
+        streamThrough(sr);
+        sr.close();
+
+        XML = "<root />";
+        sr = getReader(XML);
+        sr.validateAgainst(schema);
+        streamThrough(sr);
+        sr.close();
+
+        XML = "<root></root>";
+        sr = getReader(XML);
+        sr.validateAgainst(schema);
+        streamThrough(sr);
+        sr.close();
+
+        // Then invalid?
+        XML = "<foobar />";
+        sr = getReader(XML);
+        sr.validateAgainst(schema);
+        verifyFailure(XML, schema, "should warn about wrong root element",
+                      "tag name \"foobar\" is not allowed", false);
+    }
+
+    /**
+     * Test for reproducing [WSTX-191]
+     */
+    public void testConstrainedText()
+        throws XMLStreamException
+    {
+        String SCHEMA = "<?xml version='1.0' encoding='UTF-8'?>\n"
++"<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema' xmlns='http://www.mondomaine.fr/framework'\n"
++"  targetNamespace='http://www.mondomaine.fr/framework' elementFormDefault='qualified' version='1.2'>\n"
++" <xs:element name='catalog'>\n"
++"  <xs:complexType>\n"
++"   <xs:sequence>\n"
++"    <xs:element ref='description' minOccurs='1' maxOccurs='5'/>\n"
++"   </xs:sequence>\n"
++"  </xs:complexType>\n"
++" </xs:element>\n"
++" <xs:element name='description' nillable='true'>\n"
++"  <xs:simpleType>\n"
++"   <xs:restriction base='xs:string'>\n"
++"    <xs:maxLength value='255'/>\n"
++"   </xs:restriction>\n"
++"  </xs:simpleType>\n"
++" </xs:element>\n"
++"</xs:schema>\n"
+            ;
+
+        XMLValidationSchema schema = parseSchema(SCHEMA);
+
+        // first cases where there is text, and 1 to 5 descs
+        _testValidDesc(schema, "<description>Du Texte</description>");
+        _testValidDesc(schema, "<description>1</description><description>2</description><description>3</description>");
+        _testValidDesc(schema, "<description><![CDATA[Du Texte]]></description>");
+        _testValidDesc(schema, "<description>??</description><description><![CDATA[...]]></description>");
+        _testValidDesc(schema, "<description></description>");
+        _testValidDesc(schema, "<description />");
+        _testValidDesc(schema, "<description><![CDATA[]]></description>");
+    }
+
+    private void _testValidDesc(XMLValidationSchema schema, String descSnippet)
+        throws XMLStreamException
+    {
+        // These should all be valid according to the schema
+        String XML = "<catalog xmlns='http://www.mondomaine.fr/framework'>"
++descSnippet
++"</catalog>"
+            ;
+        XMLStreamReader2 sr = getReader(XML);
+        sr.validateAgainst(schema);
+        streamThrough(sr);
+        sr.close();
+    }
+
     /*
     //////////////////////////////////////////////////////////////
     // Helper methods
@@ -255,7 +343,7 @@ public class TestW3CSchema
         sr.validateAgainst(schema);
         try {
             while (sr.hasNext()) {
-                int type = sr.next();
+                /*int type =*/ sr.next();
             }
             fail("Expected validity exception for "+failMsg);
         } catch (XMLValidationException vex) {

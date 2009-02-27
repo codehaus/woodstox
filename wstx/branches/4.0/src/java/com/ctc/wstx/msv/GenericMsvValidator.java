@@ -355,9 +355,11 @@ public final class GenericMsvValidator
         throws XMLStreamException
     {
         // Very first thing: do we have text collected?
-        if (mTextAccumulator.hasText()) {
-            doValidateText(mTextAccumulator);
-        }
+        /* 27-Feb-2009, TSa: [WSTX-191]: Actually MSV expects us to call
+         *   validation anyway, in case there might be restriction(s) on
+         *   textual content. Otherwise we'll get an error.
+         */
+        doValidateText(mTextAccumulator);
 
         Acceptor acc = (Acceptor)mAcceptors.remove(mAcceptors.size()-1);
         if (acc != null) { // may be null during error recovery? or not?

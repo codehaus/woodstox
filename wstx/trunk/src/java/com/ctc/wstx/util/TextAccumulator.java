@@ -56,17 +56,16 @@ public final class TextAccumulator
 
     public String getAndClear()
     {
-        String result;
-
         if (mText != null) {
-            result = mText;
+            String result = mText;
             mText = null;
-        } else if (mBuilder != null) {
-            result = mBuilder.toString();
-            mBuilder = null;
-        } else {
-            result = "";
+            return result;
         }
-        return result;
+        if (mBuilder != null) {
+            String result = mBuilder.toString();
+            mBuilder = null;
+            return result;
+        }
+        return "";
     }
 }

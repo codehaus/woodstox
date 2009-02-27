@@ -287,9 +287,9 @@ public class TestW3CSchema
         _testValidDesc(schema, "<description>1</description><description>2</description><description>3</description>");
         _testValidDesc(schema, "<description><![CDATA[Du Texte]]></description>");
         _testValidDesc(schema, "<description>??</description><description><![CDATA[...]]></description>");
-        _testValidDesc(schema, "<description><![CDATA[]]></description>");
         _testValidDesc(schema, "<description></description>");
         _testValidDesc(schema, "<description />");
+        _testValidDesc(schema, "<description><![CDATA[]]></description>");
     }
 
     private void _testValidDesc(XMLValidationSchema schema, String descSnippet)

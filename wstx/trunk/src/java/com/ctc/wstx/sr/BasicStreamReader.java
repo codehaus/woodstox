@@ -2580,6 +2580,12 @@ public abstract class BasicStreamReader
                     // and if so, we'll then get 'virtual' close tag:
                     mStEmptyElem = false;
                     // ... and location info is correct already
+                    /* 27-Feb-2009, TSa: but we do have to handle validation
+                     *    of the end tag now
+                     */
+                    int vld = mElementStack.validateEndElement();
+                    mVldContent = vld;
+                    mValidateText = (vld == XMLValidator.CONTENT_ALLOW_VALIDATABLE_TEXT);
                     return END_ELEMENT;
                 }
             } else if (mCurrToken == END_ELEMENT) {
@@ -2900,13 +2906,11 @@ public abstract class BasicStreamReader
         }
         mStEmptyElem = empty;
 
-        /* Validation aspects differ depending on whether we have an
-         * empty tag or not
+        /* 27-Feb-2009, TSa: [WSTX-191]: We used to validate virtual
+         *   end element here for empty elements, but it really should
+         *   occur later on when actually returning that end element.
          */
         int vld = mElementStack.resolveAndValidateElement();
-        if (empty) {
-            vld = mElementStack.validateEndElement();
-        }
         mVldContent = vld;
         mValidateText = (vld == XMLValidator.CONTENT_ALLOW_VALIDATABLE_TEXT);
     }

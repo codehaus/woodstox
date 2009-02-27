@@ -404,3 +404,7 @@ Konstantin Priblouda:
 Andreas Veithen:
   * Reported [WSTX-190], NPE with DTD validator, missing attribute.
     [3.2.9, 4.0.2]
+
+Yves Ménard:
+  * Reported [WSTX-191] Validation failure with W3C Schema, empty text.
+    [4.0.3]

@@ -9,6 +9,16 @@ Description:
 == History: ==
 ------------------------------------------------------------------------
 
+4.0.2 [25-Feb-2009]
+
+  Problems fixed:
+
+  * [WSTX-188] Could get an ArrayIndexOutOfBounds exception for
+    StartElement.getAttributeByName() under specific conditions
+   (reported by Roger W)
+  * [WSTX-190]:  NPE with DTD validator, missing attribute.
+   (reported by Andreas V)
+
 4.0.1 [29-Jan-2009]
 
   Problems fixed:
