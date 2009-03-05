@@ -94,28 +94,6 @@ public final class StringVector
         mSize += 2;
     }
 
-    // 12-Jan-2006, TSa: Not used at this point... can be removed maybe?
-    /*
-    public void addStrings(StringVector v)
-    {
-        int addSize = v.size();
-        if ((mSize + addSize) > mStrings.length) {
-            String[] old = mStrings;
-            int newSize = old.length;
-            newSize += (newSize >> 1);
-            if (newSize < (mSize + addSize)) {
-                newSize = mSize + addSize;
-            }
-            mStrings = new String[newSize];
-            System.arraycopy(old, 0, mStrings, 0, mSize);
-        }
-        for (int i = 0; i < addSize; ++i) {
-            mStrings[mSize + i] = v.getString(i);
-        }
-        mSize += addSize;
-    }
-    */
-
     public void setString(int index, String str) {
         mStrings[index] = str;
     }
