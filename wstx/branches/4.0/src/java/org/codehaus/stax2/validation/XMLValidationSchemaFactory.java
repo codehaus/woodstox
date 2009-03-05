@@ -43,6 +43,9 @@ public abstract class XMLValidationSchemaFactory
 
     // // // Properties for locating implementations
 
+    /**
+     * Name of resource file that contains JAXP properties.
+     */
     final static String JAXP_PROP_FILENAME = "jaxp.properties";
 
     /**
@@ -53,6 +56,9 @@ public abstract class XMLValidationSchemaFactory
      */
     public final static String SYSTEM_PROPERTY_FOR_IMPL = "org.codehaus.stax2.validation.XMLValidationSchemaFactory.";
 
+    /**
+     * Path to resource that should contain implementation class definition.
+     */
     public final static String SERVICE_DEFINITION_PATH = "META-INF/services/" + SYSTEM_PROPERTY_FOR_IMPL;
 
     // // // Names of standard configuration properties
