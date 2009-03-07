@@ -1,9 +1,11 @@
-Version: 4.0.2
+Version: 4.0.3
 
-Release date: 25-Feb-2009
+Release date: 04-Mar-2009
 
 Description:
-  A maintence release for 4.0.
+  A minor maintenance release for 4.0: released to create 4.1 branch
+  from which to address issues that don't need to wait for 5.0, but
+  that can not be handled via patch releases.
 
   Problems fixed:
 
