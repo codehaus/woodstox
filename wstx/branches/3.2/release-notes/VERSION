@@ -11,6 +11,9 @@ Description:
    (reported by Roger W)
   * [WSTX-190]:  NPE with DTD validator, missing attribute.
    (reported by Andreas V)
+  * [WSTX-202]: BijectiveNsMap#findPrefixByUri doesn't handle masked
+    namespace declarations correctly 
+   (reported by Andreas V)
 
 == History: ==
 

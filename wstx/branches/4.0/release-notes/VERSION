@@ -11,6 +11,9 @@ Description:
 
   * [WSTX-191] Validation failure with W3C Schema, empty text
     (reported by Yves M)
+  * [WSTX-202]: BijectiveNsMap#findPrefixByUri doesn't handle masked
+    namespace declarations correctly 
+   (reported by Andreas V)
 
 ------------------------------------------------------------------------
 == History: ==

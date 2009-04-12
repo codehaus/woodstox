@@ -374,3 +374,6 @@ Roger Wegmann:
 Andreas Veithen:
   * Reported [WSTX-190], NPE with DTD validator, missing attribute.
     [3.2.9]
+  * Reported [WSTX-202], suggested fix for it: BijectiveNsMap#findPrefixByUri
+    doesn't handle masked namespace declarations correctly 
+    [3.2.9]
