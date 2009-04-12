@@ -1,18 +1,22 @@
-Version: 4.0.2
+Version: 4.1.0
 
-Release date: 25-Feb-2009
+Release date: xx-xxx-2009
 
 Description:
-  A maintence release for 4.0.
+  Initial 4.1 release.
+
+  Problems fixed:
+
+------------------------------------------------------------------------
+== History: ==
+------------------------------------------------------------------------
+
+4.0.3 [04-Mar-2009]
 
   Problems fixed:
 
   * [WSTX-191] Validation failure with W3C Schema, empty text
     (reported by Yves M)
-
-------------------------------------------------------------------------
-== History: ==
-------------------------------------------------------------------------
 
 4.0.2 [25-Feb-2009]
 
