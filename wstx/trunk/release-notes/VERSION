@@ -9,6 +9,13 @@ Description:
 == History: ==
 ------------------------------------------------------------------------
 
+4.0.3 [04-Mar-2009]
+
+  Problems fixed:
+
+  * [WSTX-191] Validation failure with W3C Schema, empty text
+    (reported by Yves M)
+
 4.0.2 [25-Feb-2009]
 
   Problems fixed:

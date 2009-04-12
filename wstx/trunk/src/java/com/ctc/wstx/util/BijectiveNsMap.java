@@ -144,7 +144,7 @@ public final class BijectiveNsMap
                 if (ix < mScopeStart) {
                     int phash = prefix.hashCode();
                     for (int j = ix-1, end = mScopeEnd; j < end; j += 2) {
-                        String thisP = strs[ix];
+                        String thisP = strs[j];
                         if (thisP == prefix ||
                             (thisP.hashCode() == phash && thisP.equals(prefix))) {
                             // Masking... got to continue the main loop:
@@ -180,7 +180,7 @@ public final class BijectiveNsMap
                 if (ix < mScopeStart) {
                     int phash = prefix.hashCode();
                     for (int j = ix-1, end = mScopeEnd; j < end; j += 2) {
-                        String thisP = strs[ix];
+                        String thisP = strs[j];
                         if (thisP == prefix ||
                             (thisP.hashCode() == phash && thisP.equals(prefix))) {
                             // Masking... got to continue the main loop:
