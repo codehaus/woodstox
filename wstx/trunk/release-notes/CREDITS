@@ -391,6 +391,9 @@ Christopher Paul Simmons:
   * Reported [WSTX-183], problem with creating stream/event writer
     with a DOM Element (instead of document), contributed unit tests.
     [4.0.0]
+  * Contributed [WSTX-193], unit test for verifying that namespace bindings
+    are properly passed through in namespace-repairing mode
+    [4.1.0, 5.0.0]
 
 Roger Wegmann:
   * [WSTX-188] Could get an ArrayIndexOutOfBounds exception for
