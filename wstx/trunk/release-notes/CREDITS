@@ -404,6 +404,9 @@ Konstantin Priblouda:
 Andreas Veithen:
   * Reported [WSTX-190], NPE with DTD validator, missing attribute.
     [3.2.9, 4.0.2]
+  * Reported [WSTX-201]: XMLStreamReader.isCharacters() can return
+    inconsistent value compared to XMLStreamReader.getEventType()
+    [4.1.0, 5.0.0]
   * Reported [WSTX-202], suggested fix for it: BijectiveNsMap#findPrefixByUri
     doesn't handle masked namespace declarations correctly 
     [3.2.9, 4.0.4]

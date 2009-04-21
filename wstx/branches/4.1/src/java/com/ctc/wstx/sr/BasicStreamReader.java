@@ -939,7 +939,12 @@ public abstract class BasicStreamReader
          *    ref impl.
          */
         //return (mCurrToken == CHARACTERS || mCurrToken == CDATA || mCurrToken == SPACE);
-        return (mCurrToken == CHARACTERS);
+        /* 21-Apr-2009, TSa: As per [WSTX-201], should be consistent with
+         *   what getEventType() returns (affects CDATA, SPACE, in
+         *   coalescing mode or when explicitly asked to return CDATA
+         *   as CHARACTERS)
+         */
+        return (getEventType() == CHARACTERS);
     }
 
     public boolean isEndElement() {

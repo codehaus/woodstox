@@ -5,6 +5,12 @@ Release date: ?
 Description:
   Snapshot from 5.0 development trunk
 
+  Problems fixed:
+
+  * [WSTX-201]: XMLStreamReader.isCharacters() can return inconsistent
+    value compared to XMLStreamReader.getEventType()
+    (reported by Andreas V)
+
 ------------------------------------------------------------------------
 == History: ==
 ------------------------------------------------------------------------
