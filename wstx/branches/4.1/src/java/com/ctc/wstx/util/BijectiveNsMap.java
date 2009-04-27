@@ -121,6 +121,7 @@ public final class BijectiveNsMap
 
     public String findPrefixByUri(String uri)
     {
+
         /* Finding a valid binding for the given URI is trickier, since
          * mappings can be masked by others... so, we need to first find
          * most recent binding, from the freshest one, and then verify
@@ -143,7 +144,7 @@ public final class BijectiveNsMap
                  */
                 if (ix < mScopeStart) {
                     int phash = prefix.hashCode();
-                    for (int j = ix-1, end = mScopeEnd; j < end; j += 2) {
+                    for (int j = ix+1, end = mScopeEnd; j < end; j += 2) {
                         String thisP = strs[j];
                         if (thisP == prefix ||
                             (thisP.hashCode() == phash && thisP.equals(prefix))) {
@@ -179,7 +180,7 @@ public final class BijectiveNsMap
                  */
                 if (ix < mScopeStart) {
                     int phash = prefix.hashCode();
-                    for (int j = ix-1, end = mScopeEnd; j < end; j += 2) {
+                    for (int j = ix+1, end = mScopeEnd; j < end; j += 2) {
                         String thisP = strs[j];
                         if (thisP == prefix ||
                             (thisP.hashCode() == phash && thisP.equals(prefix))) {

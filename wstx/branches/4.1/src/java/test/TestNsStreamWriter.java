@@ -79,7 +79,6 @@ public class TestNsStreamWriter
         w.writeEndElement(); // root elem
         w.writeEndDocument();
 
-
         w.flush();
         w.close();
 
