@@ -1841,7 +1841,7 @@ public abstract class BasicStreamReader
      *   this attribute value
      * @param tb TextBuilder into which attribute value will be added
      */
-    private final void parseNormalizedAttrValue(char openingQuote, TextBuilder tb)
+    private final void parseAttrValue(char openingQuote, TextBuilder tb)
         throws XMLStreamException
     {
         char[] outBuf = tb.getCharBuffer();
@@ -3001,8 +3001,7 @@ public abstract class BasicStreamReader
             } else {
                 tb = ac.getAttrBuilder(prefix, localName);
             }
-            tb.startNewEntry();
-            parseNormalizedAttrValue(c, tb);
+            parseAttrValue(c, tb);
 
             /* 19-Jul-2004, TSa: Need to check that non-default namespace
              *     URI is NOT empty, as per XML namespace specs, #2,
@@ -3076,8 +3075,7 @@ public abstract class BasicStreamReader
             }
 
             // And then the actual value
-            tb.startNewEntry();
-            parseNormalizedAttrValue(c, tb);
+            parseAttrValue(c, tb);
             // and then we need to iterate some more
             c = (mInputPtr < mInputEnd) ?
                 mInputBuffer[mInputPtr++] : getNextCharFromCurrent(SUFFIX_IN_ELEMENT);

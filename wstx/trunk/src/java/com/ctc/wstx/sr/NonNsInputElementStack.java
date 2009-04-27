@@ -26,14 +26,6 @@ public final class NonNsInputElementStack
 
     /*
     //////////////////////////////////////////////////
-    // Configuration
-    //////////////////////////////////////////////////
-     */
-
-    protected final NonNsAttributeCollector mAttrCollector;
-
-    /*
-    //////////////////////////////////////////////////
     // Element stack state information
     //////////////////////////////////////////////////
      */
@@ -69,13 +61,12 @@ public final class NonNsInputElementStack
 
     public NonNsInputElementStack(int initialSize, ReaderConfig cfg)
     {
-        super(cfg);
+        super(cfg, false);
         mSize = 0;
         if (initialSize < 4) {
             initialSize = 4;
         }
         mElements = new String[initialSize];
-        mAttrCollector = new NonNsAttributeCollector(cfg);
     }
 
     protected void setAutomaticDTDValidator(XMLValidator validator, NsDefaultProvider nsDefs)
@@ -127,18 +118,18 @@ public final class NonNsInputElementStack
     public int resolveAndValidateElement()
         throws XMLStreamException
     {
-        NonNsAttributeCollector ac = mAttrCollector;
+        AttributeCollector ac = mAttrCollector;
 
         /* Attribute collector can now build its accessor data structs
          * as necessary
          */
-        int xmlidIx = ac.resolveValues(mReporter);
+        int xmlidIx = ac.resolveNamespaces(mReporter, null);
         mIdAttrIndex = xmlidIx;
 
         // Any validator(s)? If not, we are done (except for xml:id check)
         if (mValidator == null) {
             if (xmlidIx >= 0) { // need to normalize xml:id, still?
-                normalizeXmlIdAttr(ac, xmlidIx);
+                ac.normalizeSpacesInValue(xmlidIx);
             }
             return XMLValidator.CONTENT_ALLOW_ANY_TEXT;
         }
@@ -153,18 +144,8 @@ public final class NonNsInputElementStack
         // Then attributes, if any:
         int attrLen = ac.getCount();
         if (attrLen > 0) {
-            StringVector attrNames = ac.getNameList();
-            String[] nameData = attrNames.getInternalArray();
-            TextBuilder attrBuilder = ac.getAttrBuilder();
-            char[] attrCB = attrBuilder.getCharBuffer();
             for (int i = 0; i < attrLen; ++i) {
-                String normValue = mValidator.validateAttribute
-                    (nameData[i], null, null, attrCB,
-                     attrBuilder.getOffset(i),
-                     attrBuilder.getOffset(i+1));
-                if (normValue != null) {
-                    ac.setNormalizedValue(i, normValue);
-                }
+                ac.validateAttribute(i, mValidator);
             }
         }
 
@@ -286,7 +267,7 @@ public final class NonNsInputElementStack
                                    String value)
     {
         // No real namespace info passed...
-        return mAttrCollector.addDefaultAttribute(localName, value);
+        return mAttrCollector.addDefaultAttribute(localName, null, null, value);
     }
 
     /*

@@ -59,6 +59,8 @@ public abstract class InputElementStack
     //////////////////////////////////////////////////
     */
 
+    protected final AttributeCollector mAttrCollector;
+
     protected final ReaderConfig mConfig;
 
     protected InputProblemReporter mReporter = null;
@@ -90,9 +92,10 @@ public abstract class InputElementStack
     //////////////////////////////////////////////////
      */
 
-    protected InputElementStack(ReaderConfig cfg)
+    protected InputElementStack(ReaderConfig cfg, boolean nsAware)
     {
         mConfig = cfg;
+        mAttrCollector = new AttributeCollector(cfg, nsAware);
     }
 
     protected void connectReporter(InputProblemReporter rep)
@@ -483,28 +486,5 @@ public abstract class InputElementStack
         }
         return (mValidator == null) ? WstxInputProperties.UNKNOWN_ATTR_TYPE : 
             mValidator.getAttributeType(index);
-    }
-
-    /*
-    ///////////////////////////////////////////////////
-    // Internal methods:
-    ///////////////////////////////////////////////////
-     */
-
-    /**
-     * Method called to normalize value of an ID attribute, specified
-     * using name xml:id, when support for Xml:id specification enabled.
-     */
-    protected final void normalizeXmlIdAttr(AttributeCollector ac, int ix)
-    {
-        // StringUtil has a method, but it works on char arrays...
-        TextBuilder attrBuilder = ac.getAttrBuilder();
-        char[] attrCB = attrBuilder.getCharBuffer();
-        String normValue = StringUtil.normalizeSpaces
-            (attrCB, attrBuilder.getOffset(ix),
-             attrBuilder.getOffset(ix+1));
-        if (normValue != null) {
-            ac.setNormalizedValue(ix, normValue);
-        }
     }
 }
