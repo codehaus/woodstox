@@ -43,66 +43,45 @@ public class TestNsStreamWriter
                       //Boolean.TRUE);
                       Boolean.FALSE);
 
-        f.setProperty(WstxOutputProperties.P_OUTPUT_VALIDATE_CONTENT,
-                      Boolean.TRUE);
-        f.setProperty(WstxOutputProperties.P_OUTPUT_FIX_CONTENT,
-                      Boolean.TRUE);
-                      //Boolean.FALSE);
-
-        /* 11-Nov-2008, TSa: Let's try out this new property, created
-         *   for [WSTX-167]:
-         */
-        //f.setProperty(WstxOutputProperties.P_OUTPUT_INVALID_CHAR_HANDLER, new InvalidCharHandler.ReplacingHandler('X'));
-
-        //Writer w = new PrintWriter(System.out);
-        //XMLStreamWriter sw = f.createXMLStreamWriter(w);
-
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        XMLStreamWriter sw = f.createXMLStreamWriter(bos, ENCODING);
-        //XMLStreamWriter sw = f.createXMLStreamWriter(bos);
+        XMLStreamWriter w = f.createXMLStreamWriter(bos, ENCODING);
 
-        sw.writeStartDocument();
+        final String URL_P1 = "http://p1.org";
+        final String URL_P2 = "http://ns.p2.net/yeehaw.html";
+        final String URL_DEF = "urn:default";
 
-        {
-            final String TEXT =
-                "Comment, invalid: \u0003"
-                ;
-            sw.writeComment(TEXT);
-        }
+        final String TEXT = "  some text\n";
 
-        sw.writeCharacters("\n");
-        sw.writeStartElement("root");
+        w.writeStartDocument();
+ 
+        w.setPrefix("p1", URL_P1);
+        w.writeStartElement("test");
+        w.writeNamespace("p1", URL_P1);
 
-        sw.setPrefix("ns", "http://foo");
+        w.setDefaultNamespace(URL_DEF);
+        w.setPrefix("p2", URL_P2);
+        w.writeStartElement("", "branch", URL_DEF);
+        w.writeDefaultNamespace(URL_DEF);
+        w.writeNamespace("p2", URL_P2);
 
-        System.out.println("Prefix 'ns' -> ["+sw.getPrefix("ns")+"]");
+        // Ok, let's see that we can also clear out the def ns:
+        w.setDefaultNamespace("");
+        w.writeStartElement("", "leaf", "");
+        w.writeDefaultNamespace("");
 
-        //sw.writeAttribute("attr", "Invalid also: \0");
+        w.writeCharacters(TEXT);
 
-        sw.writeCharacters("Need to quote this too: ]]> plus invalid... {\u0012}");
+        w.writeEndElement(); // first leaf
 
-        /*
-        sw.writeEmptyElement("alpha");
-        sw.writeNamespace("ns", "uri:foo");
-        sw.writeAttribute("atpr", "http://attr-prefix", "attr", "a<b");
+        w.writeEmptyElement(URL_P1, "leaf"); // second leaf
 
-        sw.writeStartElement("bravo");
+        w.writeEndElement(); // branch
+        w.writeEndElement(); // root elem
+        w.writeEndDocument();
 
-        sw.writeCharacters("Text: & \n");
-        */
 
-        sw.writeCData("Test: ]]>x");
-        sw.writeProcessingInstruction("p", "i");
-
-        sw.writeEndElement(); // exception here
-
-        sw.writeCharacters("\n"); // to get linefeed
-        sw.writeEndDocument();
-
-        sw.flush();
-        sw.close();
-
-        //w.close();
+        w.flush();
+        w.close();
 
         System.err.println("DOC -> '"+new String(bos.toByteArray(), ENCODING)+"'");
     }
