@@ -57,15 +57,11 @@ public final class NsInputElementStack
 
     final static int ENTRY_SIZE = 4;
 
-    protected final static InternCache sInternCache = InternCache.getInstance();
-
     /*
     //////////////////////////////////////////////////
     // Configuration
     //////////////////////////////////////////////////
      */
-
-    protected final NsAttributeCollector mAttrCollector;
 
     /**
      * Object that will need to be consulted about namespace bindings,
@@ -146,14 +142,13 @@ public final class NsInputElementStack
 
     public NsInputElementStack(int initialSize, ReaderConfig cfg)
     {
-        super(cfg);
+        super(cfg, true);
         mSize = 0;
         if (initialSize < 4) {
             initialSize = 4;
         }
         mElements = new String[initialSize << 2];
         mNsCounts = new int[initialSize];
-        mAttrCollector = new NsAttributeCollector(cfg);
     }
 
     protected void setAutomaticDTDValidator(XMLValidator validator, NsDefaultProvider nsDefs)
@@ -243,7 +238,7 @@ public final class NsInputElementStack
         if (mSize == 0) { // just a simple sanity check
             throw new IllegalStateException("Calling validate() on empty stack.");
         }
-        NsAttributeCollector ac = mAttrCollector;
+        AttributeCollector ac = mAttrCollector;
 
         // Any namespace declarations?
         {
@@ -254,16 +249,13 @@ public final class NsInputElementStack
                  */
                 mLastNsContext = null;
 
-                String [] nsPrefixes = ac.getNsPrefixes();
-                TextBuilder nsURIs = ac.getNsURIs();
                 boolean internNsUris = mConfig.willInternNsURIs();
                 for (int i = 0; i < nsCount; ++i) {
-                    String nsUri = nsURIs.getEntry(i);
-                    if (internNsUris && nsUri.length() > 0) {
-                        nsUri = sInternCache.intern(nsUri);
-                    }
-                    // will have default ns's too; have null prefix
-                    String prefix = nsPrefixes[i];
+                    Attribute ns = ac.resolveNamespaceDecl(i, internNsUris);
+                    String nsUri = ns.mNamespaceURI;
+                    // note: for namespaces, prefix is stored as local name
+                    String prefix = ns.mLocalName;
+
                     /* 18-Jul-2004, TSa: Need to check that 'xml' and 'xmlns'
                      *   prefixes are not re-defined (and 'xmlns' not even
                      *   defined to its correct ns).
@@ -357,7 +349,7 @@ public final class NsInputElementStack
          */
         if (vld == null) { // no validator in use
             if (xmlidIx >= 0) { // need to normalize xml:id, still?
-                normalizeXmlIdAttr(ac, xmlidIx);
+                ac.normalizeSpacesInValue(xmlidIx);
             }
             return XMLValidator.CONTENT_ALLOW_ANY_TEXT;
         }
@@ -373,24 +365,10 @@ public final class NsInputElementStack
              prefix);
 
         // Then attributes, if any:
-        StringVector attrNames = ac.getNameList();
         int attrLen = ac.getCount();
         if (attrLen > 0) {
-            attrLen += attrLen; // 2 entries per name (prefix + ln)
-            String[] attrURIs = ac.getAttrURIs();
-            String[] nameData = attrNames.getInternalArray();
-            TextBuilder attrBuilder = ac.getAttrBuilder();
-            char[] attrCB = attrBuilder.getCharBuffer();
-            for (int i = 0, nr = 0; i < attrLen; i += 2, ++nr) {
-                prefix = nameData[i];
-                String ln = nameData[i+1];
-                String normValue = mValidator.validateAttribute
-                    (ln, attrURIs[nr], prefix,
-                     attrCB, attrBuilder.getOffset(nr),
-                     attrBuilder.getOffset(nr+1));
-                if (normValue != null) {
-                    ac.setNormalizedValue(nr, normValue);
-                }
+            for (int i = 0; i < attrLen; ++i) {
+                ac.validateAttribute(i, mValidator);
             }
         }
 

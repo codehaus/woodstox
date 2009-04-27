@@ -13,17 +13,9 @@ public final class TextBuilder
 
     private char[] mBuffer;
 
-    private int[] mBufferOffsets;
-
     private int mBufferLen;
 
     private String mResultString;
-
-    /**
-     * Number of complete entries in buffer, not including one currently
-     * being worked on.
-     */
-    private int mEntryCount;
 
     /*
     ///////////////////////////////////////////////
@@ -33,7 +25,6 @@ public final class TextBuilder
 
     public TextBuilder(int initialSize)
     {
-        mBufferOffsets = new int[initialSize];
         int charSize = (initialSize << 4); // multiply by 16 (-> def. 192 chars)
         if (charSize < MIN_LEN) {
             charSize = MIN_LEN;
@@ -49,7 +40,6 @@ public final class TextBuilder
      */
     public void reset() {
         mBufferLen = 0;
-        mEntryCount = 0;
         mResultString = null;
     }
 
@@ -60,43 +50,15 @@ public final class TextBuilder
      */
 
     public boolean isEmpty() {
-        return mEntryCount == 0;
+        return mBufferLen == 0;
     }
 
-    public int size() {
-        return mEntryCount;
-    }
-
-    public String getEntry(int index)
+    public String getAllValues()
     {
-        int len = mEntryCount;
-        /* Note: no checks, caller is to ensure index is ok. Acceptable
-         * since it's not externally exposed (only used by woodstox core)
-         */
-        /*
-        if (index < 0 || index >= len) {
-            throw new IllegalArgumentException("Invalid index, "+index+"; current size: "+len+".");
-        }
-        */
         if (mResultString == null) {
             mResultString = new String(mBuffer, 0, mBufferLen);
         }
-        // Degenerate case; only one substring:
-        if (index == 0 && len == 1) {
-            return mResultString;
-        }
-        if (index == (len-1)) {
-            return mResultString.substring(mBufferOffsets[index]);
-        }
-        return mResultString.substring(mBufferOffsets[index],
-                                       mBufferOffsets[index+1]);
-    }
-
-    public int getOffset(int index) {
-        if (index >= mEntryCount) { // last entry
-            return mBufferLen;
-        }
-        return mBufferOffsets[index];
+        return mResultString;
     }
 
     /**
@@ -115,17 +77,6 @@ public final class TextBuilder
     // Mutators:
     ///////////////////////////////////////////////
      */
-
-    public void startNewEntry() {
-        // Not enough room for a new entry?
-        if (mEntryCount >= mBufferOffsets.length) {
-            int[] old = mBufferOffsets;
-            mBufferOffsets = new int[old.length << 1];
-            System.arraycopy(old, 0, mBufferOffsets, 0, old.length);
-        }
-        mBufferOffsets[mEntryCount] = mBufferLen;
-        ++mEntryCount;
-    }
 
     public void append(char c) {
         if (mBuffer.length == mBufferLen) {

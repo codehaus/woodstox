@@ -34,8 +34,8 @@ public class TestStreamReader
         //f.setProperty(XMLInputFactory.IS_COALESCING, Boolean.FALSE);
         f.setProperty(XMLInputFactory.IS_COALESCING, Boolean.TRUE);
 
-        //f.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.TRUE);
-        f.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.FALSE);
+        f.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.TRUE);
+        //f.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.FALSE);
 
         f.setProperty(XMLInputFactory.IS_REPLACING_ENTITY_REFERENCES,
                       Boolean.FALSE
@@ -293,7 +293,7 @@ public class TestStreamReader
                     System.out.println(sr.isAttributeSpecified(i) ?
                                        "[specified]" : "[Default]");
                 }
-                System.out.print(" [Loc -> "+sr.getLocation()+"]");
+                System.out.println(" [Loc -> "+sr.getLocation()+"]");
             } else if (type == END_ELEMENT) {
                 System.out.print("</");
                 String prefix = sr.getPrefix();
@@ -310,7 +310,7 @@ public class TestStreamReader
                 System.out.print(" [Loc -> "+sr.getLocation()+"]");
                 System.out.println();
             } else if (type == START_DOCUMENT) { // only for multi-doc mode
-                System.out.print("XML-DECL: version = '"+sr.getVersion()
+                System.out.println("XML-DECL: version = '"+sr.getVersion()
                                  +"', xml-decl-encoding = '"+sr.getCharacterEncodingScheme()
                                  +"', app-encoding = '"+sr.getEncoding()
                                  +"', stand-alone set: "+sr.standaloneSet());
