@@ -60,11 +60,11 @@ public class WstxSAXParser
     /**
      * We will need the factory reference mostly for 
      */
-    final WstxInputFactory mStaxFactory;
+    protected final WstxInputFactory mStaxFactory;
 
-    final ReaderConfig mConfig;
+    protected final ReaderConfig mConfig;
 
-    boolean mFeatNsPrefixes;
+    protected boolean mFeatNsPrefixes;
 
     /**
      * Since the stream reader would mostly be just a wrapper around
@@ -73,17 +73,17 @@ public class WstxSAXParser
      * this class is then a replacement of BasicStreamReader, when
      * using SAX interfaces.
      */
-    BasicStreamReader mScanner;
+    protected BasicStreamReader mScanner;
 
-    AttributeCollector mAttrCollector;
+    protected AttributeCollector mAttrCollector;
 
-    InputElementStack mElemStack;
+    protected InputElementStack mElemStack;
 
     // // // Info from xml declaration
 
-    String mEncoding;
-    String mXmlVersion;
-    boolean mStandalone;
+    protected String mEncoding;
+    protected String mXmlVersion;
+    protected boolean mStandalone;
 
     // // // Listeners attached:
 
@@ -104,14 +104,14 @@ public class WstxSAXParser
      * Note: does not include namespace declarations, even they are to
      * be reported as attributes.
      */
-    private int mAttrCount;
+    protected int mAttrCount;
 
     /**
      * Need to keep track of number of namespaces, if namespace declarations
      * are to be reported along with attributes (see
      * {@link #mFeatNsPrefixes}).
      */
-    private int mNsCount = 0;
+    protected int mNsCount = 0;
 
     /*
     /////////////////////////////////////////////////
