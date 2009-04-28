@@ -34,13 +34,13 @@ import com.ctc.wstx.stax.WstxInputFactory;
 public class WstxSAXParserFactory
     extends SAXParserFactory
 {
-    final WstxInputFactory mStaxFactory;
+    protected final WstxInputFactory mStaxFactory;
 
     /**
      * Sax feature that determines whether namespace declarations need
      * to be also reported as attributes or not.
      */
-    boolean mFeatNsPrefixes = false;
+    protected boolean mFeatNsPrefixes = false;
 
     public WstxSAXParserFactory()
     {
