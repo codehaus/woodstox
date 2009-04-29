@@ -14,7 +14,7 @@ import wstxtest.stream.BaseStreamTest;
  * validation works at least minimally.
  */
 public class TestRelaxNG
-    extends BaseStreamTest
+    extends BaseValidationTest
 {
     final static String SIMPLE_RNG_SCHEMA =
         "<element name='dict' xmlns='http://relaxng.org/ns/structure/1.0'>\n"
@@ -514,18 +514,41 @@ public class TestRelaxNG
                          "does not satisfy the \"boolean\" type");
     }
 
+    /**
+     * And then a test for validating starting when stream points
+     * to START_ELEMENT
+     */
+    public void testPartialValidationOk()
+        throws XMLStreamException
+    {
+        /* Hmmh... RelaxNG does define expected root. So need to
+         * wrap the doc...
+         */
+        String XML =
+            "<dummy>\n"
+            +"<dict>\n"
+            +"<term type='name'>\n"
+            +"  <word>foobar</word>\n"
+            +"  <description>Foo Bar</description>\n"
+            +"</term></dict>\n"
+            // note: outside validation scope, shouldn't matter
+            +"<dict2></dict2>\n"
+            //+"</dummy>"
+            ;
+        XMLValidationSchema schema = parseRngSchema(SIMPLE_RNG_SCHEMA);
+        XMLStreamReader2 sr = getReader(XML);
+        assertTokenType(START_ELEMENT, sr.next());
+        sr.validateAgainst(schema);
+        while (sr.next() != END_DOCUMENT) { }
+        sr.close();
+    }
+
+
     /*
     //////////////////////////////////////////////////////////////
     // Helper methods
     //////////////////////////////////////////////////////////////
      */
-
-    XMLValidationSchema parseRngSchema(String contents)
-        throws XMLStreamException
-    {
-        XMLValidationSchemaFactory schF = XMLValidationSchemaFactory.newInstance(XMLValidationSchema.SCHEMA_ID_RELAXNG);
-        return schF.createSchema(new StringReader(contents));
-    }
 
     XMLStreamReader2 getReader(String contents)
         throws XMLStreamException

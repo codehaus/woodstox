@@ -4,6 +4,9 @@ import java.io.*;
 
 import javax.xml.stream.*;
 
+import org.codehaus.stax2.XMLStreamReader2;
+import org.codehaus.stax2.validation.*;
+
 import wstxtest.stream.BaseStreamTest;
 
 /**
@@ -13,7 +16,7 @@ import wstxtest.stream.BaseStreamTest;
  * broken by low-level changes.
  */
 public class TestDTD
-    extends BaseStreamTest
+    extends BaseValidationTest
 {
     final static class MyReporter implements XMLReporter
     {
@@ -24,6 +27,12 @@ public class TestDTD
             ++count;
         }
     }
+
+    final static String SIMPLE_DTD =
+        "<!ELEMENT root (leaf+)>\n"
+        +"<!ATTLIST root attr CDATA #REQUIRED>\n"
+        +"<!ELEMENT leaf EMPTY>\n"
+        ;
 
     /**
      * Test to show how [WSTX-190] occurs.
@@ -44,11 +53,46 @@ public class TestDTD
         assertEquals(1, rep.count);
     }
 
+    public void testFullValidationOk()
+        throws XMLStreamException
+    {
+        String XML = "<root attr='123'><leaf /></root>";
+        XMLValidationSchema schema = parseDTDSchema(SIMPLE_DTD);
+        XMLStreamReader2 sr = getReader(XML);
+        sr.validateAgainst(schema);
+        while (sr.next() != END_DOCUMENT) { }
+        sr.close();
+    }
+
+    /**
+     * And then a test for validating starting when stream points
+     * to START_ELEMENT
+     */
+    public void testPartialValidationOk()
+        throws XMLStreamException
+    {
+        String XML = "<root attr='123'><leaf /></root>";
+        XMLValidationSchema schema = parseDTDSchema(SIMPLE_DTD);
+        XMLStreamReader2 sr = getReader(XML);
+        assertTokenType(START_ELEMENT, sr.next());
+        sr.validateAgainst(schema);
+        while (sr.next() != END_DOCUMENT) { }
+        sr.close();
+    }
+
     /*
     //////////////////////////////////////////////////////
     // Helper methods
     //////////////////////////////////////////////////////
      */
+
+    private XMLStreamReader2 getReader(String contents)
+        throws XMLStreamException
+    {
+        XMLInputFactory f = getInputFactory();
+        setValidating(f, false);
+        return constructStreamReader(f, contents);
+    }
 
     private XMLStreamReader getValidatingReader(String contents, XMLReporter rep)
         throws XMLStreamException

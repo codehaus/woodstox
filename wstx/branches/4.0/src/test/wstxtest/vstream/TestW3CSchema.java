@@ -82,16 +82,9 @@ public class TestW3CSchema
 +"</xs:schema>\n"
         ;
 
-    /**
-     * Test validation against a simple document valid according
-     * to a very simple W3C schema.
-     */
-    public void testSimpleNonNs()
-        throws XMLStreamException
-    {
-        String XML =
-"<personnel>\n"
-+"  <person id='a123' contr='true'>"
+    final static String SIMPLE_XML =
+"<personnel>"
++"<person id='a123' contr='true'>"
 +"    <name>"
 +"<family>Family</family><given>Fred</given>"
 +"    </name>"
@@ -105,8 +98,16 @@ public class TestW3CSchema
 +"</personnel>"
             ;
 
+
+    /**
+     * Test validation against a simple document valid according
+     * to a very simple W3C schema.
+     */
+    public void testSimpleNonNs()
+        throws XMLStreamException
+    {
         XMLValidationSchema schema = parseSchema(SIMPLE_NON_NS_SCHEMA);
-        XMLStreamReader2 sr = getReader(XML);
+        XMLStreamReader2 sr = getReader(SIMPLE_XML);
         sr.validateAgainst(schema);
 
         try {
@@ -120,6 +121,27 @@ public class TestW3CSchema
             fail("Did not expect validation exception, got: "+vex);
         }
 
+        assertTokenType(END_DOCUMENT, sr.getEventType());
+    }
+
+    public void testSimplePartialNonNs()
+        throws XMLStreamException
+    {
+        XMLValidationSchema schema = parseSchema(SIMPLE_NON_NS_SCHEMA);
+        XMLStreamReader2 sr = getReader(SIMPLE_XML);
+
+        assertTokenType(START_ELEMENT, sr.next());
+        assertEquals("personnel", sr.getLocalName());
+        sr.validateAgainst(schema);
+        try {
+            assertTokenType(START_ELEMENT, sr.next());
+            assertEquals("person", sr.getLocalName());
+            while (sr.hasNext()) {
+                /*int type =*/ sr.next();
+            }
+        } catch (XMLValidationException vex) {
+            fail("Did not expect validation exception, got: "+vex);
+        }
         assertTokenType(END_DOCUMENT, sr.getEventType());
     }
 
