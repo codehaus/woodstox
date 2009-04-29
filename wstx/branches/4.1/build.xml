@@ -474,6 +474,7 @@
           <classpath refid="classpath.compile" />
           <classpath>
                 <pathelement path="${dir.build.classes.woodstox}" />
+                <pathelement path="${dir.build.classes.stax2}" />
                 <pathelement location="${dir.classes.test}" /> 
                 <path refid="junit-libs"/>
           </classpath>     
