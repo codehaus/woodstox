@@ -80,10 +80,15 @@ public class TestDTD
         sr.close();
     }
 
-    /**
+    /*
      * Another test for checking that validation does end when
      * sub-tree ends...
      */
+    /* 29-Apr-2009, TSa: Actually: not a valid test; as per
+     *    Stax2 v3.0 javadocs, validation does NOT end with
+     *   sub-tree...
+     */
+    /*
     public void testPartialValidationFollowedBy()
         throws XMLStreamException
     {
@@ -98,6 +103,7 @@ public class TestDTD
         while (sr.next() != END_DOCUMENT) { }
         sr.close();
     }
+    */
 
     /*
     //////////////////////////////////////////////////////

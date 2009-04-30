@@ -479,10 +479,7 @@ public abstract class BasicStreamReader
 
     protected static InputElementStack createElementStack(ReaderConfig cfg)
     {
-        if (cfg.willSupportNamespaces()) {
-            return new NsInputElementStack(16, cfg);
-        }
-        return new NonNsInputElementStack(16, cfg);
+        return new InputElementStack(cfg, cfg.willSupportNamespaces());
     }
 
     /*
@@ -2914,7 +2911,7 @@ public abstract class BasicStreamReader
               */
             empty = (c == '>') ? false : handleNsAttrs(c);
         } else { // Namespace handling not enabled:
-            mElementStack.push(parseFullName(c));
+            mElementStack.push(null, parseFullName(c));
             c = (mInputPtr < mInputEnd) ?
                 mInputBuffer[mInputPtr++] : getNextCharFromCurrent(SUFFIX_IN_ELEMENT);
             empty = (c == '>') ? false : handleNonNsAttrs(c);
