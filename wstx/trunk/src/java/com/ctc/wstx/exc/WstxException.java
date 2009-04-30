@@ -18,7 +18,6 @@ package com.ctc.wstx.exc;
 import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
 
-import com.ctc.wstx.util.ExceptionUtil;
 import com.ctc.wstx.util.StringUtil;
 
 /**
@@ -42,9 +41,6 @@ public class WstxException
     public WstxException(Throwable th) {
         super(th.getMessage(), th);
         mMsg = th.getMessage();
-
-        // 13-Aug-2004, TSa: Better make sure root cause is set...
-        ExceptionUtil.setInitCause(this, th);
     }
 
     public WstxException(String msg, Location loc) {
@@ -55,9 +51,6 @@ public class WstxException
     public WstxException(String msg, Location loc, Throwable th) {
         super(msg, loc, th);
         mMsg = msg;
-
-        // 13-Aug-2004, TSa: Better make sure root cause is set...
-        ExceptionUtil.setInitCause(this, th);
     }
 
     /**

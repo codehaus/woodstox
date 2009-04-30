@@ -160,9 +160,7 @@ public final class URLUtil
     private static void throwIOException(MalformedURLException mex, String sysId)
         throws IOException
     {
-        IOException ie = new IOException("[resolving systemId '"+sysId
-                                         +"']: "+mex.toString());
-        ExceptionUtil.setInitCause(ie, mex);
-        throw ie;
+        String msg = "[resolving systemId '"+sysId+"']: "+mex.toString();
+        throw ExceptionUtil.constructIOException(msg, mex);
     }
 }

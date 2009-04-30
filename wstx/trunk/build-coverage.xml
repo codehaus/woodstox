@@ -52,7 +52,7 @@
             <classpath location="${cobertura.instr.dir}" />
 
             <!-- Stax API: -->
-            <classpath refid="classpath.compile" />
+            <classpath refid="classpath.compile.woodstox" />
             <!-- Actual tests: -->
             <classpath path="${dir.classes.test}" />
             <classpath path="${dir.classes.staxtest}" />

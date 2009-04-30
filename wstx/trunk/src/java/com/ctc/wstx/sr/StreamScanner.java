@@ -678,9 +678,7 @@ public abstract class StreamScanner
         if (strex instanceof WstxException) {
             throw (WstxException) strex;
         }
-        WstxException newEx = new WstxException(strex);
-        ExceptionUtil.setInitCause(newEx, strex);
-        throw newEx;
+        throw new WstxException(strex);
     }
 
     /**
@@ -784,7 +782,8 @@ public abstract class StreamScanner
      * and return either the character following white space, or -1 to
      * indicate EOF (end of the outermost input source)/
      */
-    protected final int getNextAfterWS()
+    @SuppressWarnings("cast")
+	protected final int getNextAfterWS()
         throws XMLStreamException
     {
         if (mInputPtr >= mInputEnd) {
@@ -1886,7 +1885,8 @@ public abstract class StreamScanner
         return mSymbols.findSymbol(mInputBuffer, startPtr, ptr - startPtr, hash);
     }
 
-    protected String parseFullName2(int start, int hash)
+    @SuppressWarnings("cast")
+	protected String parseFullName2(int start, int hash)
         throws XMLStreamException
     {
         int ptr = mInputEnd - start;

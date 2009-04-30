@@ -807,7 +807,7 @@ public final class AttributeCollector
             int currIndex = map[index]-1; // Index of primary collision entry
             int spillIndex = mAttrSpillEnd;
             map = spillAttr(uri, localName, map, currIndex, spillIndex,
-                            attrIndex, hash, mAttrHashSize);
+                            hash, mAttrHashSize);
             if (map == null) { // dup!
                 return -1; // could return negation (-(index+1)) of the prev index?
             }
@@ -992,7 +992,7 @@ public final class AttributeCollector
                      * easier to inline by JVM too)
                      */
                     map = spillAttr(uri, name, map, currIndex, spillIndex,
-                                    attrCount, hash, hashCount);
+                                    hash, hashCount);
                     if (map == null) {
                         throwDupAttr(rep, currIndex);
                         // never returns here...
@@ -1064,7 +1064,7 @@ public final class AttributeCollector
      *    map itself, or resized version, otherwise.
      */
     private int[] spillAttr(String uri, String name,
-                            int[] map, int currIndex, int spillIndex, int attrCount,
+                            int[] map, int currIndex, int spillIndex,
                             int hash, int hashCount)
     {
         // Do we have a dup with primary entry?

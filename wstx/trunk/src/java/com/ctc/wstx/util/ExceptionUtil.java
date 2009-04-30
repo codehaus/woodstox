@@ -1,5 +1,7 @@
 package com.ctc.wstx.util;
 
+import java.io.IOException;
+
 public final class ExceptionUtil
 {
     private ExceptionUtil() { }
@@ -13,10 +15,18 @@ public final class ExceptionUtil
         // Unchecked? Can re-throw as is
         throwIfUnchecked(t);
         // Otherwise, let's just change its type:
-        RuntimeException rex = new RuntimeException("[was "+t.getClass()+"] "+t.getMessage());
-        // And indicate the root cause
-        setInitCause(rex, t);
-        throw rex;
+        throw new RuntimeException("[was "+t.getClass()+"] "+t.getMessage(), t);
+    }
+
+    public static IOException constructIOException(String msg, Throwable src)
+    {
+        /* Stupid IOException constructors... only 1.6 has 
+         * what we need. Hence must set root cause explicitly
+         * as we have to support JDK 1.5.
+         */
+        IOException e = new IOException(msg);
+        setInitCause(e, src);
+        return e;
     }
 
     public static void throwAsIllegalArgument(Throwable t)
@@ -68,11 +78,5 @@ public final class ExceptionUtil
             newT.initCause(rootT);
         }
     }
-
-    /*
-    ///////////////////////////////////////////////////////////
-    // Internal methods
-    ///////////////////////////////////////////////////////////
-     */
 }
 

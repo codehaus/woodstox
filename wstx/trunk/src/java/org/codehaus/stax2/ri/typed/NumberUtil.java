@@ -173,7 +173,8 @@ public final class NumberUtil
     }
 
     // Cut'n pasted from above
-    public static int writeInt(int value, byte[] buffer, int offset)
+    @SuppressWarnings("cast")
+	public static int writeInt(int value, byte[] buffer, int offset)
     {
         if (value < 0) {
             if (value == Integer.MIN_VALUE) {

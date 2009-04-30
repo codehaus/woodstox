@@ -15,9 +15,6 @@
 
 package com.ctc.wstx.sr;
 
-import java.io.IOException;
-
-import javax.xml.stream.Location;
 import javax.xml.namespace.QName;
 
 import com.ctc.wstx.compat.QNameCreator;
