@@ -39,6 +39,7 @@ import com.ctc.wstx.io.ReaderBootstrapper;
 import com.ctc.wstx.io.StreamBootstrapper;
 import com.ctc.wstx.sr.*;
 import com.ctc.wstx.stax.WstxInputFactory;
+import com.ctc.wstx.util.ExceptionUtil;
 import com.ctc.wstx.util.URLUtil;
 
 /**
@@ -1087,7 +1088,7 @@ public class WstxSAXParser
     private void throwSaxException(Exception src)
         throws SAXException
     {
-        SAXParseException se = new SAXParseException(e.getMessage(), /*(Locator)*/ this, e);
+        SAXParseException se = new SAXParseException(src.getMessage(), /*(Locator)*/ this, src);
         ExceptionUtil.setInitCause(se, src);
         if (mErrorHandler != null) {
             mErrorHandler.fatalError(se);
