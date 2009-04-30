@@ -80,6 +80,25 @@ public class TestDTD
         sr.close();
     }
 
+    /**
+     * Another test for checking that validation does end when
+     * sub-tree ends...
+     */
+    public void testPartialValidationFollowedBy()
+        throws XMLStreamException
+    {
+        String XML = "<x><root><leaf /></root><foobar /></x>";
+        XMLValidationSchema schema = parseDTDSchema(SIMPLE_DTD);
+        XMLStreamReader2 sr = getReader(XML);
+        assertTokenType(START_ELEMENT, sr.next());
+        assertEquals("x", sr.getLocalName());
+        assertTokenType(START_ELEMENT, sr.next());
+        assertEquals("root", sr.getLocalName());
+        sr.validateAgainst(schema);
+        while (sr.next() != END_DOCUMENT) { }
+        sr.close();
+    }
+
     /*
     //////////////////////////////////////////////////////
     // Helper methods

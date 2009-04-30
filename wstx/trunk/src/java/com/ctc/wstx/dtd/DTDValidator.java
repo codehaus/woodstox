@@ -325,7 +325,15 @@ public class DTDValidator
         throws XMLStreamException
     {
         // First, let's remove the top:
-        int ix = --mElemCount;
+        int ix = mElemCount-1;
+        /* [WSTX-200]: need to avoid problems when doing sub-tree
+         *   validation...
+         */
+        if (ix < 0) {
+            return XMLValidator.CONTENT_ALLOW_WS;
+        }
+        mElemCount = ix;
+
         DTDElement closingElem = mElems[ix];
         mElems[ix] = null;
         StructValidator v = mValidators[ix];
