@@ -16,8 +16,10 @@ import com.ctc.wstx.cfg.XmlConsts;
 import com.ctc.wstx.stax.WstxInputFactory;
 import com.ctc.wstx.stax.WstxOutputFactory;
 
+import stax2.BaseStax2Test;
+
 public class BaseWstxTest
-    extends TestCase
+    extends BaseStax2Test
     implements XMLStreamConstants
 {
     final static HashMap mTokenTypes = new HashMap();
@@ -192,45 +194,6 @@ public class BaseWstxTest
     //////////////////////////////////////////////////
      */
 
-    protected static void setNamespaceAware(XMLInputFactory f, boolean state)
-        throws XMLStreamException
-    {
-        // will always succeed for woodstox factories...
-        f.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.valueOf(state));
-    }
-
-    protected static void setCoalescing(XMLInputFactory f, boolean state)
-        throws XMLStreamException
-    {
-        f.setProperty(XMLInputFactory.IS_COALESCING, Boolean.valueOf(state));
-    }
-
-    protected static void setValidating(XMLInputFactory f, boolean state)
-        throws XMLStreamException
-    {
-        f.setProperty(XMLInputFactory.IS_VALIDATING, Boolean.valueOf(state));
-    }
-
-    protected static void setSupportDTD(XMLInputFactory f, boolean state)
-        throws XMLStreamException
-    {
-        f.setProperty(XMLInputFactory.SUPPORT_DTD, Boolean.valueOf(state));
-    }
-
-    protected static void setReplaceEntities(XMLInputFactory f, boolean state)
-        throws XMLStreamException
-    {
-        f.setProperty(XMLInputFactory.IS_REPLACING_ENTITY_REFERENCES,
-                      state ? Boolean.TRUE : Boolean.FALSE);
-    }
-
-    protected static void setSupportExternalEntities(XMLInputFactory f, boolean state)
-        throws XMLStreamException
-    {
-        f.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES,
-                      state ? Boolean.TRUE : Boolean.FALSE);
-    }
-
     protected static void setLazyParsing(XMLInputFactory f, boolean state)
         throws XMLStreamException
     {
@@ -254,11 +217,6 @@ public class BaseWstxTest
     {
         f.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES,
                       Boolean.valueOf(state));
-    }
-
-    protected static void setNamespaceAware(XMLOutputFactory f, boolean state)
-    {
-        f.setProperty(XMLStreamProperties.XSP_NAMESPACE_AWARE, Boolean.valueOf(state));
     }
 
     protected static void setValidateStructure(XMLOutputFactory f, boolean state)

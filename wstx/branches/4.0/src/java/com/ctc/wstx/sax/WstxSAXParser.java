@@ -39,6 +39,7 @@ import com.ctc.wstx.io.ReaderBootstrapper;
 import com.ctc.wstx.io.StreamBootstrapper;
 import com.ctc.wstx.sr.*;
 import com.ctc.wstx.stax.WstxInputFactory;
+import com.ctc.wstx.util.ExceptionUtil;
 import com.ctc.wstx.util.URLUtil;
 
 /**
@@ -57,7 +58,8 @@ public class WstxSAXParser
     final static boolean FEAT_DEFAULT_NS_PREFIXES = false;
 
     /**
-     * We will need the factory reference mostly for 
+     * We will need the factory reference mostly for constructing
+     * underlying stream reader we use.
      */
     protected final WstxInputFactory mStaxFactory;
 
@@ -118,7 +120,7 @@ public class WstxSAXParser
     /////////////////////////////////////////////////
      */
 
-    WstxSAXParser(WstxInputFactory sf, boolean nsPrefixes)
+    protected WstxSAXParser(WstxInputFactory sf, boolean nsPrefixes)
     {
         mStaxFactory = sf;
         mFeatNsPrefixes = nsPrefixes;
@@ -410,7 +412,7 @@ public class WstxSAXParser
                     is = URLUtil.inputStreamFromURL(srcUrl);
                 } catch (IOException ioe) {
                     SAXException saxe = new SAXException(ioe);
-                    saxe.initCause(ioe);
+                    ExceptionUtil.setInitCause(saxe, ioe);
                     throw saxe;
                 }
             }
@@ -1088,11 +1090,11 @@ public class WstxSAXParser
     /////////////////////////////////////////////////
      */
 
-    private void throwSaxException(Exception e)
+    private void throwSaxException(Exception src)
         throws SAXException
     {
-        SAXParseException se = new SAXParseException(e.getMessage(), (Locator) this, e);
-        se.initCause(e);
+        SAXParseException se = new SAXParseException(src.getMessage(), /*(Locator)*/ this, src);
+        ExceptionUtil.setInitCause(se, src);
         if (mErrorHandler != null) {
             mErrorHandler.fatalError(se);
         }

@@ -422,6 +422,7 @@ public class TestNameValidation
      */
 
     private XMLOutputFactory getFactory(boolean validateNames, boolean ns)
+        throws XMLStreamException
     {
         XMLOutputFactory f = getOutputFactory();
         setValidateNames(f, validateNames);
