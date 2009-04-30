@@ -232,6 +232,15 @@ public final class GenericMsvValidator
     public void validateElementStart(String localName, String uri, String prefix)
         throws XMLStreamException
     {
+
+        /* [WSTX-200]: If sub-tree we were to validate has ended, we
+         *   have no current acceptor, and must quite. Ideally we would
+         *   really handle this more cleanly but...
+         */
+        if (mCurrAcceptor == null) {
+            return;
+        }
+
         // Very first thing: do we have text collected?
         if (mTextAccumulator.hasText()) {
             doValidateText(mTextAccumulator);
@@ -361,17 +370,25 @@ public final class GenericMsvValidator
          */
         doValidateText(mTextAccumulator);
 
-        Acceptor acc = (Acceptor)mAcceptors.remove(mAcceptors.size()-1);
+        /* [WSTX-200]: need to avoid problems when doing sub-tree
+         *   validation... not a proper solution, but has to do for
+         *   now
+         */
+        int lastIx = mAcceptors.size()-1;
+        if (lastIx < 0) {
+            return XMLValidator.CONTENT_ALLOW_WS;
+        }
+
+        Acceptor acc = (Acceptor)mAcceptors.remove(lastIx);
         if (acc != null) { // may be null during error recovery? or not?
             if (!acc.isAcceptState(mErrorRef) || mErrorRef.str != null) {
                 reportError(mErrorRef);
             }
         }
-        int len = mAcceptors.size();
-        if (len == 0) { // root closed
+        if (lastIx == 0) { // root closed
             mCurrAcceptor = null;
         } else {
-            mCurrAcceptor = (Acceptor) mAcceptors.get(len-1);
+            mCurrAcceptor = (Acceptor) mAcceptors.get(lastIx-1);
         }
         if (mCurrAcceptor != null && acc != null) {
             if (!mCurrAcceptor.stepForward(acc, mErrorRef)

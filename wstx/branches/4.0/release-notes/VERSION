@@ -9,6 +9,8 @@ Description:
 
   Problems fixed:
 
+  * [WSTX-200]: NPE when validating partial documents (sub-trees)
+   (reported by Benson M)  
   * [WSTX-202]: BijectiveNsMap#findPrefixByUri doesn't handle masked
     namespace declarations correctly 
    (reported by Andreas V)

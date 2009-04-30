@@ -531,9 +531,7 @@ public class TestRelaxNG
             +"  <word>foobar</word>\n"
             +"  <description>Foo Bar</description>\n"
             +"</term></dict>\n"
-            // note: outside validation scope, shouldn't matter
-            +"<dict2></dict2>\n"
-            //+"</dummy>"
+            +"</dummy>"
             ;
         XMLValidationSchema schema = parseRngSchema(SIMPLE_RNG_SCHEMA);
         XMLStreamReader2 sr = getReader(XML);

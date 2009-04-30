@@ -407,3 +407,7 @@ Andreas Veithen:
 Yves Ménard:
   * Reported [WSTX-191] Validation failure with W3C Schema, empty text.
     [4.0.3]
+
+Benson Margulies:
+  * Reported [WSTX-200] Problems with sub-tree validation (NPE etc)
+    [4.0.4]
