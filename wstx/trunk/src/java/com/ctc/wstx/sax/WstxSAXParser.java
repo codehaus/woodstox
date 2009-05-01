@@ -132,7 +132,7 @@ public class WstxSAXParser
          * to properly model internal DTD subsets, for example. So,
          * we can not really easily determine defaults.
          */
-        MyResolver r = new MyResolver();
+        ResolverProxy r = new ResolverProxy();
         /* SAX doesn't distinguish between DTD (ext. subset, PEs) and
          * entity (external general entities) resolvers, so let's
          * assign them both:
@@ -1117,14 +1117,19 @@ public class WstxSAXParser
     /////////////////////////////////////////////////
      */
 
-    final class MyResolver
+    /**
+     * Simple helper class that converts from Stax API into SAX
+     * EntityResolver call(s)
+     */
+    final class ResolverProxy
         implements XMLResolver
     {
-        public MyResolver() { }
+        public ResolverProxy() { }
 
         public Object resolveEntity(String publicID, String systemID, String baseURI, String namespace)
             throws XMLStreamException
         {
+System.err.println("Resolve called, -> "+mEntityResolver);
             if (mEntityResolver != null) {
                 try {
                     /* Hmmh. SAX expects system id to have been mangled prior
