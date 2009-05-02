@@ -24,6 +24,7 @@ import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 
 import org.xml.sax.*;
+import org.xml.sax.helpers.DefaultHandler;
 import org.xml.sax.ext.Attributes2;
 import org.xml.sax.ext.DeclHandler;
 import org.xml.sax.ext.LexicalHandler;
@@ -132,7 +133,7 @@ public class WstxSAXParser
          * to properly model internal DTD subsets, for example. So,
          * we can not really easily determine defaults.
          */
-        MyResolver r = new MyResolver();
+        ResolverProxy r = new ResolverProxy();
         /* SAX doesn't distinguish between DTD (ext. subset, PEs) and
          * entity (external general entities) resolvers, so let's
          * assign them both:
@@ -220,6 +221,65 @@ public class WstxSAXParser
 
         // Trying to modify read-only properties?
         throw new SAXNotSupportedException("Property '"+name+"' is read-only, can not be modified");
+    }
+
+    /*
+    /////////////////////////////////////////////////
+    // Overrides, SAXParser
+    /////////////////////////////////////////////////
+     */
+
+    /* Have to override some methods from SAXParser; JDK
+     * implementation is sucky, as it tries to override
+     * many things it really should not...
+     */
+
+    public void parse(InputSource is, HandlerBase hb)
+        throws SAXException, IOException
+    {
+        if (hb != null) {
+            /* Ok: let's ONLY set if there are no explicit sets... not
+             * extremely clear, but JDK tries to set them always so
+             * let's at least do damage control.
+             */
+            if (mContentHandler == null) {
+                setDocumentHandler(hb);
+            }
+            if (mEntityResolver == null) {
+                setEntityResolver(hb);
+            }
+            if (mErrorHandler == null) {
+                setErrorHandler(hb);
+            }
+            if (mDTDHandler == null) {
+                setDTDHandler(hb);
+            }
+        }
+        parse(is);
+    }
+
+    public void parse(InputSource is, DefaultHandler dh)
+        throws SAXException, IOException
+    {
+        if (dh != null) {
+            /* Ok: let's ONLY set if there are no explicit sets... not
+             * extremely clear, but JDK tries to set them always so
+             * let's at least do damage control.
+             */
+            if (mContentHandler == null) {
+                setContentHandler(dh);
+            }
+            if (mEntityResolver == null) {
+                setEntityResolver(dh);
+            }
+            if (mErrorHandler == null) {
+                setErrorHandler(dh);
+            }
+            if (mDTDHandler == null) {
+                setDTDHandler(dh);
+            }
+        }
+        parse(is);
     }
 
     /*
@@ -519,7 +579,7 @@ public class WstxSAXParser
                 fireStartTag();
                 ++depth;
             } else if (type == XMLStreamConstants.END_ELEMENT) {
-                fireEndTag();
+                mScanner.fireSaxEndElement(mContentHandler);
                 if (--depth < 1) {
                     break;
                 }
@@ -618,12 +678,6 @@ public class WstxSAXParser
             mNsCount = mElemStack.getCurrentNsCount();
         }
         mScanner.fireSaxStartElement(mContentHandler, this);
-    }
-
-    private final void fireEndTag()
-        throws SAXException
-    {
-        mScanner.fireSaxEndElement(mContentHandler);
     }
 
     /*
@@ -1087,7 +1141,7 @@ public class WstxSAXParser
     private void throwSaxException(String msg)
         throws SAXException
     {
-        SAXParseException se = new SAXParseException(msg, (Locator) this);
+        SAXParseException se = new SAXParseException(msg, /*(Locator)*/ this);
         if (mErrorHandler != null) {
             mErrorHandler.fatalError(se);
         }
@@ -1105,14 +1159,19 @@ public class WstxSAXParser
     /////////////////////////////////////////////////
      */
 
-    final class MyResolver
+    /**
+     * Simple helper class that converts from Stax API into SAX
+     * EntityResolver call(s)
+     */
+    final class ResolverProxy
         implements XMLResolver
     {
-        public MyResolver() { }
+        public ResolverProxy() { }
 
         public Object resolveEntity(String publicID, String systemID, String baseURI, String namespace)
             throws XMLStreamException
         {
+System.err.println("Resolve called, -> "+mEntityResolver);
             if (mEntityResolver != null) {
                 try {
                     /* Hmmh. SAX expects system id to have been mangled prior
@@ -1167,8 +1226,7 @@ public class WstxSAXParser
             mDocHandler.characters(ch, start, length);
         }
 
-        public void endDocument()
-            throws SAXException
+        public void endDocument() throws SAXException
         {
             mDocHandler.endDocument();
         }
