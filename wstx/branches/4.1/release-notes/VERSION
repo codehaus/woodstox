@@ -9,7 +9,7 @@ Description:
 
   * [WSTX-201]: XMLStreamReader.isCharacters() can return inconsistent
     value compared to XMLStreamReader.getEventType()
-    (reported by Andreas V)
+   (reported by Andreas V)
 
 ------------------------------------------------------------------------
 == History: ==

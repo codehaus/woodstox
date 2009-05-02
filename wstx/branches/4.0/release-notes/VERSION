@@ -3,9 +3,7 @@ Version: 4.0.4
 Release date: xxx
 
 Description:
-  A minor maintenance release for 4.0: released to create 4.1 branch
-  from which to address issues that don't need to wait for 5.0, but
-  that can not be handled via patch releases.
+  A maintenance release for 4.0.
 
   Problems fixed:
 
@@ -14,6 +12,9 @@ Description:
   * [WSTX-202]: BijectiveNsMap#findPrefixByUri doesn't handle masked
     namespace declarations correctly 
    (reported by Andreas V)
+  * [WSTX-204] Custom entity resolver setting was not working with
+    SAX API (due to JDK impl idiocy)
+   (reported by Stéphane Claret)
 
 ------------------------------------------------------------------------
 == History: ==

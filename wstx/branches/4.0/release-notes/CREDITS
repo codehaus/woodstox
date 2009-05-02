@@ -382,32 +382,38 @@ Ian Brandt:
 Romain Deltour:
   * Requested [WTSX-152], suggested a way to solve it: Add OSGi headers to
     the jar manifest.
-    [4.0.0]
+   [4.0.0]
 
 Christopher Paul Simmons:
   * Reported [WSTX-182], inability to use StreamResult that only has
     SystemId set.
-    [4.0.0]
+   [4.0.0]
   * Reported [WSTX-183], problem with creating stream/event writer
     with a DOM Element (instead of document), contributed unit tests.
-    [4.0.0]
+   [4.0.0]
 
 Roger Wegmann:
   * [WSTX-188] Could get an ArrayIndexOutOfBounds exception for
     StartElement.getAttributeByName() under specific conditions
-    [3.2.9, 4.0.2]
+   [3.2.9, 4.0.2]
 
 Andreas Veithen:
   * Reported [WSTX-190], NPE with DTD validator, missing attribute.
-    [3.2.9, 4.0.2]
+   [3.2.9, 4.0.2]
   * Reported [WSTX-202], suggested fix for it: BijectiveNsMap#findPrefixByUri
     doesn't handle masked namespace declarations correctly 
-    [3.2.9, 4.0.4]
+   [3.2.9, 4.0.4]
 
 Yves Ménard:
   * Reported [WSTX-191] Validation failure with W3C Schema, empty text.
-    [4.0.3]
+   [4.0.3]
 
 Benson Margulies:
   * Reported [WSTX-200] Problems with sub-tree validation (NPE etc)
-    [4.0.4]
+   [4.0.4]
+
+Stéphane Claret:
+  * Reported [WSTX-204] Custom entity resolver setting was not working with
+    SAX API (due to JDK impl idiocy)
+   [4.0.4]
+ 

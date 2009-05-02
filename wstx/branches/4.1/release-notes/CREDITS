@@ -371,49 +371,55 @@ Pawel Lipka:
 Arash Amiri:
   * [WSTX-174] Some old App servers have broken QName impl, are missing
     3-arg constructor.
-    [3.2.8 / 4.0.0]
+   [3.2.8 / 4.0.0]
 
 Ian Brandt:
   * [WSTX-165] Add property (WstxOutputProperties.P_AUTOMATIC_END_ELEMENTS)
     to allow enabling/disabling automatic addition of end elements
     when closing stream writer.
-    [3.2.8 / 4.0.0]
+   [3.2.8 / 4.0.0]
 
 Romain Deltour:
   * Requested [WTSX-152], suggested a way to solve it: Add OSGi headers to
     the jar manifest.
-    [4.0.0]
+   [4.0.0]
 
 Christopher Paul Simmons:
   * Reported [WSTX-182], inability to use StreamResult that only has
     SystemId set.
-    [4.0.0]
+   [4.0.0]
   * Reported [WSTX-183], problem with creating stream/event writer
     with a DOM Element (instead of document), contributed unit tests.
-    [4.0.0]
+   [4.0.0]
   * Contributed [WSTX-193], unit test for verifying that namespace bindings
     are properly passed through in namespace-repairing mode
-    [4.1.0]
+   [4.1.0]
 
 Roger Wegmann:
   * [WSTX-188] Could get an ArrayIndexOutOfBounds exception for
     StartElement.getAttributeByName() under specific conditions
-    [3.2.9, 4.0.2]
+   [3.2.9, 4.0.2]
 
 Andreas Veithen:
   * Reported [WSTX-190], NPE with DTD validator, missing attribute.
-    [3.2.9, 4.0.2]
+   [3.2.9, 4.0.2]
   * Reported [WSTX-201]: XMLStreamReader.isCharacters() can return
     inconsistent value compared to XMLStreamReader.getEventType()
-    [4.1.0, 5.0.0]
+   [4.1.0, 5.0.0]
   * Reported [WSTX-202], suggested fix for it: BijectiveNsMap#findPrefixByUri
     doesn't handle masked namespace declarations correctly 
-    [3.2.9, 4.0.4]
+   [3.2.9, 4.0.4]
 
 Yves Ménard:
   * Reported [WSTX-191] Validation failure with W3C Schema, empty text.
-    [4.0.3]
+   [4.0.3]
 
 Benson Margulies:
   * Reported [WSTX-200] Problems with sub-tree validation (NPE etc)
-    [4.0.4]
+   [4.0.4]
+
+Stéphane Claret:
+  * Reported [WSTX-204] Custom entity resolver setting was not working with
+    SAX API (due to JDK impl idiocy)
+   [4.0.4]
+ 
