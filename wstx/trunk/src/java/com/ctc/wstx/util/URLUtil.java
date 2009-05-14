@@ -2,6 +2,7 @@ package com.ctc.wstx.util;
 
 import java.io.*;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.net.MalformedURLException;
 
 public final class URLUtil
@@ -106,7 +107,14 @@ public final class URLUtil
              */
             String host = url.getHost();
             if (host == null || host.length() == 0) {
-                return new FileInputStream(url.getPath());
+                /* One more test: if there are quoted characters, need
+                 * to decoded [WSTX-207]:
+                 */
+                String path = url.getPath();
+                if (path.indexOf('%') >= 0) {
+                    path = URLDecoder.decode(path, "UTF-8");
+                }
+                return new FileInputStream(path);
             }
         }
         return url.openStream();
