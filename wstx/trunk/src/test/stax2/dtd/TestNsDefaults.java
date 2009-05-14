@@ -17,7 +17,7 @@ public class TestNsDefaults
         throws XMLStreamException
     {
         final String XML =
-            "<!DOCTYPE root [\n"
+            "<!DOCTYPE node [\n"
             +"<!ELEMENT node ANY>\n"
             +"<!ATTLIST node xmlns:ns CDATA 'http://default'>\n"
             +"]><node xmlns:ns='http://expl' ns:attr='123'>"
