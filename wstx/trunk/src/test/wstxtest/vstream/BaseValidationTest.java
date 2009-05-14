@@ -1,6 +1,7 @@
 package wstxtest.vstream;
 
 import java.io.StringReader;
+import java.net.URL;
 
 import javax.xml.stream.XMLStreamException;
 
@@ -16,6 +17,13 @@ abstract class BaseValidationTest
     {
         XMLValidationSchemaFactory schF = XMLValidationSchemaFactory.newInstance(schemaType);
         return schF.createSchema(new StringReader(contents));
+    }
+
+    XMLValidationSchema parseSchema(URL ref, String schemaType)
+        throws XMLStreamException
+    {
+        XMLValidationSchemaFactory schF = XMLValidationSchemaFactory.newInstance(schemaType);
+        return schF.createSchema(ref);
     }
 
     XMLValidationSchema parseRngSchema(String contents)
