@@ -1,6 +1,7 @@
 package wstxtest.vstream;
 
 import java.io.*;
+import java.net.*;
 
 import javax.xml.stream.*;
 
@@ -104,6 +105,25 @@ public class TestDTD
         sr.close();
     }
     */
+
+    /**
+     * Test to verify [WSTX-207]
+     */
+    public void testSchemaWithFunnyFilename()
+        throws Exception
+    {
+        // assuming CWD is the svn root
+        File f = new File("").getAbsoluteFile();
+        f = new File(f, "src");
+        f = new File(f, "test");
+        f = new File(f, "wstxtest");
+        f = new File(f, "empty and spaces.dtd");
+
+        URL url = f.toURI().toURL();
+
+        XMLValidationSchema sch = parseSchema(url, XMLValidationSchema.SCHEMA_ID_DTD);
+        assertNotNull(sch);
+    }
 
     /*
     //////////////////////////////////////////////////////
