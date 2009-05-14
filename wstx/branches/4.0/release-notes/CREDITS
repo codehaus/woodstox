@@ -417,3 +417,7 @@ Stéphane Claret:
     SAX API (due to JDK impl idiocy)
    [3.2.9, 4.0.4]
  
+Jack S. Rugh:
+  * Reported [WSTX-208] Value of default attributes not found using
+    XMLStreamReader.getAttributeValue(String,String)
+   [4.0.5]

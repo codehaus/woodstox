@@ -351,7 +351,7 @@ public final class NsAttributeCollector
                     return getValue(ix);
                 }
             } else {
-                if (thisURI == null) {
+                if (thisURI == null || thisURI.length() == 0) {
                     return getValue(ix);
                 }
             }
