@@ -22,7 +22,7 @@
          importPackage=""
       >
         <classpath>
-          <fileset dir="${dir.lib}/msv" includes="woodstox-msv-rng-datatype*.jar" />
+          <fileset dir="${dir.lib}/msv2009" includes="woodstox-msv-rng-datatype*.jar" />
         </classpath>
         <manifest>
             <attribute name="Built-By" value="${user.name}"/>
@@ -59,7 +59,7 @@ org.relaxng.datatype.helpers;version="[1.0,1.1)"
          dynamicImportPackage="org.apache.xerces.impl.xpath.regex"
       >
         <classpath>
-          <fileset dir="${dir.lib}/msv" includes="woodstox-msv-xsdlib*.jar" />
+          <fileset dir="${dir.lib}/msv2009" includes="woodstox-msv-xsdlib*.jar" />
         </classpath>
         <manifest>
             <attribute name="Built-By" value="${user.name}"/>
@@ -124,11 +124,13 @@ com.sun.msv.verifier.util,
 '
          dynamicImportPackage='
 org.apache.xml.resolver, org.apache.xml.resolver.tools,
-org.iso_relax, org.iso_relax.*
+org.iso_relax, org.iso_relax.*,
+javax.xml.namespace, javax.xml.transform, javax.xml.transform.dom, 
+javax.xml.transform.sax, javax.xml.xpath, org.w3c.dom.ls
 '
       >
         <classpath>
-          <fileset dir="${dir.lib}/msv" includes="woodstox-msv-core*.jar" />
+          <fileset dir="${dir.lib}/msv2009" includes="woodstox-msv-core*.jar" />
         </classpath>
         <manifest>
             <attribute name="Built-By" value="${user.name}"/>

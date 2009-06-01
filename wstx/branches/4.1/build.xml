@@ -60,7 +60,7 @@
         <fileset dir="${dir.lib}" includes="stax-api*.jar" />
         <fileset dir="${dir.lib}" includes="sax2.jar" />
         <!-- these are needed for optional MSV-based validators -->
-        <fileset dir="${dir.lib}/msv" includes="*.jar" />
+        <fileset dir="${dir.lib}/msv2009" includes="*.jar" />
         <!-- 17-Dec-2008, tatu: adding OSGi bundle activation
          support, to register providers as services
         -->
@@ -98,7 +98,7 @@
                too. This way src packages are proper subsets of binary ones
             -->
           <include name="lib/*.jar" />
-          <include name="lib/msv/*.jar" />
+          <include name="lib/msv2009/*.jar" />
     </patternset>
 
     <import file="build-osgi.xml" />
