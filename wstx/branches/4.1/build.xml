@@ -498,6 +498,13 @@
                 <path refid="junit-libs"/>
             </classpath>
         </javac>
+        <!-- 08-Jun-2009, tatu: need to copy some test files too -->
+        <copy todir="${dir.classes.test}">
+            <fileset dir="${dir.src.test}">
+                <include name="**/*.wsdl" />
+                <include name="**/*.xml" />
+            </fileset>           	
+        </copy>
     </target>
 
     <target name="test" depends="compile.test">
