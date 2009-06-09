@@ -379,6 +379,18 @@ public class ValidatingStreamReader
     }
 
     /**
+     * If there is an error handler established, call it.
+     */
+	public void reportValidationProblem(XMLValidationProblem prob)
+			throws XMLStreamException {
+    	if (mVldProbHandler != null) {
+    		mVldProbHandler.reportProblem(prob);
+    	} else {
+    		super.reportValidationProblem(prob);
+    	}
+	}
+
+	/**
      * Method called right before handling the root element, by the base
      * class. This allows for some initialization and checks to be done
      * (not including ones that need access to actual element name)
