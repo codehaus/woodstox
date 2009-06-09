@@ -103,8 +103,7 @@ public class TestW3CSchema
      * Test validation against a simple document valid according
      * to a very simple W3C schema.
      */
-    public void testSimpleNonNs()
-        throws XMLStreamException
+    public void testSimpleNonNs() throws XMLStreamException
     {
         XMLValidationSchema schema = parseSchema(SIMPLE_NON_NS_SCHEMA);
         XMLStreamReader2 sr = getReader(SIMPLE_XML);
@@ -120,12 +119,10 @@ public class TestW3CSchema
         } catch (XMLValidationException vex) {
             fail("Did not expect validation exception, got: "+vex);
         }
-
         assertTokenType(END_DOCUMENT, sr.getEventType());
     }
 
-    public void testSimplePartialNonNs()
-        throws XMLStreamException
+    public void testSimplePartialNonNs() throws XMLStreamException
     {
         XMLValidationSchema schema = parseSchema(SIMPLE_NON_NS_SCHEMA);
         XMLStreamReader2 sr = getReader(SIMPLE_XML);
@@ -149,8 +146,7 @@ public class TestW3CSchema
      * Test validation of a simple document that is invalid according
      * to the simple test schema.
      */
-    public void testSimpleNonNsMissingId()
-        throws XMLStreamException
+    public void testSimpleNonNsMissingId() throws XMLStreamException
     {
         XMLValidationSchema schema = parseSchema(SIMPLE_NON_NS_SCHEMA);
         String XML = "<personnel><person>"
@@ -160,8 +156,7 @@ public class TestW3CSchema
                       "is missing \"id\" attribute");
     }
 
-    public void testSimpleNonNsUndefinedId()
-        throws XMLStreamException
+    public void testSimpleNonNsUndefinedId() throws XMLStreamException
     {
         XMLValidationSchema schema = parseSchema(SIMPLE_NON_NS_SCHEMA);
         String XML = "<personnel><person id='a1'>"
@@ -171,8 +166,7 @@ public class TestW3CSchema
                       "Undefined ID 'm3'");
     }
 
-    public void testSimpleDataTypes()
-        throws XMLStreamException
+    public void testSimpleDataTypes() throws XMLStreamException
     {
         // Another sample schema, from 
         String SCHEMA = 
@@ -240,8 +234,7 @@ public class TestW3CSchema
         sr.close();
     }
 
-    public void testSimpleText()
-        throws XMLStreamException
+    public void testSimpleText() throws XMLStreamException
     {
         String SCHEMA = "<?xml version='1.0' encoding='utf-8' ?>\n"
             +"<xs:schema elementFormDefault='qualified' xmlns:xs='http://www.w3.org/2001/XMLSchema'>\n"
@@ -279,8 +272,7 @@ public class TestW3CSchema
     /**
      * Test for reproducing [WSTX-191]
      */
-    public void testConstrainedText()
-        throws XMLStreamException
+    public void testConstrainedText() throws XMLStreamException
     {
         String SCHEMA = "<?xml version='1.0' encoding='UTF-8'?>\n"
 +"<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema' xmlns='http://www.mondomaine.fr/framework'\n"
@@ -326,6 +318,37 @@ public class TestW3CSchema
         sr.validateAgainst(schema);
         streamThrough(sr);
         sr.close();
+    }
+
+    public void testValidationHandler() throws XMLStreamException
+    {
+        String SCHEMA = "<?xml version='1.0' encoding='utf-8' ?>\n"
+            + "<xs:schema elementFormDefault='qualified' xmlns:xs='http://www.w3.org/2001/XMLSchema'>\n"
+            + "<xs:element name='root' type='xs:string' />"
+            + "</xs:schema>";
+        XMLValidationSchema schema = parseSchema(SCHEMA);
+        
+        // Then invalid?
+        String XML = "<foobar />";
+        XMLStreamReader2 sr = getReader(XML);
+        sr.setValidationProblemHandler(new ValidationProblemHandler() {
+                
+                public void reportProblem(XMLValidationProblem problem)
+                    throws XMLValidationException {
+                    throw new LocalValidationError(problem);
+                    
+                }
+            });
+        sr.validateAgainst(schema);
+        boolean threw = false;
+        try {
+            while (sr.hasNext()) {
+                /* int type = */sr.next();
+            }
+        } catch (LocalValidationError lve) {
+            threw = true;
+        }
+        assertTrue(threw);
     }
 
     /*
@@ -381,6 +404,25 @@ public class TestW3CSchema
             // should get this specific type; not basic stream exception
         } catch (XMLStreamException sex) {
             fail("Expected XMLValidationException for "+failMsg+"; instead got "+sex.getMessage());
+        }
+    }
+
+    /*
+    //////////////////////////////////////////////////////////////
+    // Helper classes
+    //////////////////////////////////////////////////////////////
+    */
+
+    private static class LocalValidationError extends RuntimeException
+    {
+        private XMLValidationProblem problem;
+        
+        LocalValidationError(XMLValidationProblem problem) {
+            this.problem = problem;
+        }
+        
+        public XMLValidationProblem getProblem() {
+            return problem;
         }
     }
 }
