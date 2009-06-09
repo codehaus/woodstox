@@ -39,6 +39,9 @@ import com.ctc.wstx.util.URLUtil;
  * Implementation of {@link org.codehaus.stax2.XMLStreamReader2}
  * that builds on {@link TypedStreamReader} and adds full DTD-handling
  * including DTD validation
+ *
+ * @author Tatu Saloranta
+ * @author Benson Margulies
  */
 public class ValidatingStreamReader
     extends TypedStreamReader
@@ -381,16 +384,19 @@ public class ValidatingStreamReader
     /**
      * If there is an error handler established, call it.
      */
-	public void reportValidationProblem(XMLValidationProblem prob)
-			throws XMLStreamException {
+    // @Override
+    public void reportValidationProblem(XMLValidationProblem prob)
+        throws XMLStreamException
+    {
     	if (mVldProbHandler != null) {
-    		mVldProbHandler.reportProblem(prob);
+            // Fix for [WSTX-209]
+            mVldProbHandler.reportProblem(prob);
     	} else {
-    		super.reportValidationProblem(prob);
+            super.reportValidationProblem(prob);
     	}
-	}
+    }
 
-	/**
+    /**
      * Method called right before handling the root element, by the base
      * class. This allows for some initialization and checks to be done
      * (not including ones that need access to actual element name)

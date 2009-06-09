@@ -38,7 +38,9 @@ public class TestWsdlValidation extends BaseStax2Test {
 
 	        public void error(Locator[] locs, String errorMessage, Exception nestedException) {
 	            StringBuffer errors = new StringBuffer();
-	            for (Locator loc : locs) {
+                    // need to use 1.4 loops, for now
+                    for (int i = 0; i < locs.length; ++i) {
+                        Locator loc = locs[i];
 	                errors.append("in " + loc.getSystemId() + " " + loc.getLineNumber() + ":"
 	                              + loc.getColumnNumber());
 	            }
@@ -47,7 +49,9 @@ public class TestWsdlValidation extends BaseStax2Test {
 
 	        public void warning(Locator[] locs, String errorMessage) {
 	            StringBuffer errors = new StringBuffer();
-	            for (Locator loc : locs) {
+                    // need to use 1.4 loops, for now
+                    for (int i = 0; i < locs.length; ++i) {
+                        Locator loc = locs[i];
 	                errors.append("in " + loc.getSystemId() + " " + loc.getLineNumber() + ":"
 	                              + loc.getColumnNumber());
 	            }
