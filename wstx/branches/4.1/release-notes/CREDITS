@@ -414,12 +414,17 @@ Yves Ménard:
   * Reported [WSTX-191] Validation failure with W3C Schema, empty text.
    [4.0.3]
 
-Benson Margulies:
-  * Reported [WSTX-200] Problems with sub-tree validation (NPE etc)
-   [4.0.4]
-
 Stéphane Claret:
   * Reported [WSTX-204] Custom entity resolver setting was not working with
     SAX API (due to JDK impl idiocy)
    [4.0.4]
  
+Jack S. Rugh:
+  * Reported [WSTX-208] Value of default attributes not found using
+    XMLStreamReader.getAttributeValue(String,String)
+   [4.0.5]
+
+Arun Kumar:
+  * Reported [WSTX-207] Schema factory failing to load schema if filename has
+    characters that need to be escaped when converted to URL
+   [4.0.5]

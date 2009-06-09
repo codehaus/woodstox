@@ -15,6 +15,19 @@ Description:
 == History: ==
 ------------------------------------------------------------------------
 
+4.0.5 [09-Jun-2009]
+
+  Problems fixed:
+
+  * [WSTX-207]: Schema factory failing to load schema if filename has
+    characters that need to be escaped when converted to URL
+   (reported by Arun K)
+  * [WSTX-208]: Value of default attributes not found using
+    XMLStreamReader.getAttributeValue(String,String)
+   (reported by Jack R)
+  * [WSTX-209]: Validation issues not reported to validation problem reporter
+   (reported and fixed by Benson M)  
+
 4.0.4 [07-May-2009]
 
   Problems fixed:

@@ -1,6 +1,6 @@
 Version: 4.0.5
 
-Release date: xx-Jun-2009
+Release date: 09-Jun-2009
 
 Description:
   A maintenance release for 4.0.
@@ -13,6 +13,8 @@ Description:
   * [WSTX-208]: Value of default attributes not found using
     XMLStreamReader.getAttributeValue(String,String)
    (reported by Jack R)
+  * [WSTX-209]: Validation issues not reported to validation problem reporter
+   (reported and fixed by Benson M)  
 
 ------------------------------------------------------------------------
 == History: ==

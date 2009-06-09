@@ -2,6 +2,7 @@ Here are people who have contributed to Woodstox development:
 (version numbers in brackets indicate release in which the contribution was applied)
 
 Tatu Saloranta, tatu.saloranta@iki.fi: Author
+Benson Margulies : Co-author
 
 Christian Niles:
   * Pointed out an improvement to the woodstox.jar to add service
@@ -407,10 +408,6 @@ Andreas Veithen:
 Yves Ménard:
   * Reported [WSTX-191] Validation failure with W3C Schema, empty text.
    [4.0.3]
-
-Benson Margulies:
-  * Reported [WSTX-200] Problems with sub-tree validation (NPE etc)
-   [4.0.4]
 
 Stéphane Claret:
   * Reported [WSTX-204] Custom entity resolver setting was not working with
