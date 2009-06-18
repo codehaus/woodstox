@@ -28,12 +28,13 @@
     <property name="dir.classes.staxtest" location="${dir.test}/staxtest-classes" />
     <!-- Distribution -->
     <property name="dir.dist" location="${basedir}/dist" />
+    <property name="dir.snapshot" location="${basedir}/build/snapshot" />
 
     <!-- Version information -->
 
     <!-- Woodstox version info: -->
     <property name="IMPL_TITLE" value="Woodstox XML-processor" />
-    <property name="IMPL_VERSION" value="4.1.0-SNAPSHOT" />
+    <property name="IMPL_VERSION" value="4.1.0" />
     <property name="IMPL_VENDOR" value="http://woodstox.codehaus.org" />
     <property name="API_TITLE" value="Stax 1.0 API" />
     <property name="API_VERSION" value="1.0.0" />
@@ -150,6 +151,7 @@
 
         <!-- and finally distribution dir -->
         <mkdir dir="${dir.dist}" />
+        <mkdir dir="${dir.snapshot}" />
     </target>
 
     <!-- ***********************************************
@@ -404,6 +406,32 @@
               <filter token="REQ_STAX2_VERSION" value="${REQ_STAX2_VERSION}" />
             </filterset>
        </copy>
+
+        <!-- 17-Jun-2009, tatu: Trying to make Maven snapshots work...
+          -->
+       <copy todir="${dir.snapshot}">
+            <fileset dir="${dir.src}/maven" includes="w*.pom" />
+            <globmapper from="*.pom" to="*-${IMPL_VERSION}-SNAPSHOT.pom" />
+            <filterset>
+              <filter token="VERSION" value="${IMPL_VERSION}-SNAPSHOT" />
+              <filter token="REQ_STAX2_VERSION" value="${REQ_STAX2_VERSION}-SNAPSHOT" />
+            </filterset>
+       </copy>
+       <copy todir="${dir.snapshot}">
+            <fileset dir="${dir.src}/maven" includes="stax2*.pom" />
+            <globmapper from="*.pom" to="*-${STAX2_VERSION}-SNAPSHOT.pom" />
+            <filterset>
+              <filter token="VERSION" value="${STAX2_VERSION}-SNAPSHOT" />
+              <filter token="REQ_STAX2_VERSION" value="${REQ_STAX2_VERSION}-SNAPSHOT" />
+            </filterset>
+       </copy>
+        <!-- Let's also validate well-formedness of resulting POM files -->
+        <xmlvalidate lenient="true">
+        <!-- lenient: check only well-formedness, no dtd/schema (yet?) -->
+            <fileset dir="${dir.dist}" includes="*.pom" />
+            <fileset dir="${dir.snapshot}" includes="*.pom" />
+        </xmlvalidate>
+
     </target>
 
     <target name="all" depends="clean,javadoc,test,dist">

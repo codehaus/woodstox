@@ -11,6 +11,12 @@ Description:
     value compared to XMLStreamReader.getEventType()
    (reported by Andreas V)
 
+  Improvements:
+
+  * Rewrote attribute parsing/collection part to use separate wrapper
+    classes (instead of primitive arrays); to support easier modifications
+    and custom additions to collected attribute information.
+
 ------------------------------------------------------------------------
 == History: ==
 ------------------------------------------------------------------------

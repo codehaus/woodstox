@@ -18,11 +18,17 @@
   </typedef>
 
   <target name="maven.init">
+    <!-- First regular release poms -->
     <artifact:pom id="pom.stax2" file="${dir.dist}/stax2-api-${STAX2_VERSION}.pom" />
     <artifact:pom id="pom.asl.core" file="${dir.dist}/woodstox-core-asl-${IMPL_VERSION}.pom" />
     <artifact:pom id="pom.lgpl.core" file="${dir.dist}/woodstox-core-lgpl-${IMPL_VERSION}.pom" />
-
     <!-- 25-Feb-2009, tatu: Ideally we would also add deps to MSV... -->
+
+    <!-- And then snapshots (no separate ASL/LGPL)  -->
+    <artifact:pom id="pom.snapshot.stax2" file="${dir.snapshot}/stax2-api-${STAX2_VERSION}-SNAPSHOT.pom" />
+    <artifact:pom id="pom.snapshot.asl.core" file="${dir.snapshot}/woodstox-core-asl-${IMPL_VERSION}-SNAPSHOT.pom" />
+    <artifact:pom id="pom.snapshot.lgpl.core" file="${dir.snapshot}/woodstox-core-lgpl-${IMPL_VERSION}-SNAPSHOT.pom" />
+
   </target>
 
   <target name="maven.repos" depends="maven.init">
@@ -38,12 +44,16 @@
       url="dav:https://dav.codehaus.org/repository/woodstox"
    >
       <authentication username="${user}" password="${password}" />
+      <releases enabled="true"/> 
+      <snapshots enabled="false"/> 
     </artifact:remoteRepository>
 
     <artifact:remoteRepository id="repo.snapshot"
       url="dav:https://dav.codehaus.org/snapshots.repository/woodstox"
    >
       <authentication username="${user}" password="${password}" />
+      <releases enabled="false"/> 
+      <snapshots enabled="true"/> 
     </artifact:remoteRepository>
   </target>
 
@@ -72,21 +82,21 @@
     -->
   <target name="maven.remote.snapshot" depends="maven.repos">
 
-    <artifact:deploy pomRefId="pom.asl.core" uniqueVersion="true"
+    <artifact:deploy pomRefId="pom.snapshot.asl.core" uniqueVersion="true"
      file="${dir.dist}/woodstox-core-asl-${IMPL_VERSION}.jar"
    >
       <remoteRepository refid="repo.snapshot" />
       <attach file="${dir.dist}/woodstox-core-asl-${IMPL_VERSION}-sources.jar" type="jar" classifier="sources" />
     </artifact:deploy>
 
-    <artifact:deploy pomRefId="pom.lgpl.core" uniqueVersion="true"
+    <artifact:deploy pomRefId="pom.snapshot.lgpl.core" uniqueVersion="true"
      file="${dir.dist}/woodstox-core-lgpl-${IMPL_VERSION}.jar"
     >
       <remoteRepository refid="repo.snapshot" />
       <attach file="${dir.dist}/woodstox-core-lgpl-${IMPL_VERSION}-sources.jar" type="jar" classifier="sources" />
     </artifact:deploy>
 
-    <artifact:deploy pomRefId="pom.stax2" uniqueVersion="true"
+    <artifact:deploy pomRefId="pom.snapshot.stax2" uniqueVersion="true"
      file="${dir.dist}/stax2-api-${STAX2_VERSION}.jar"
     >
       <remoteRepository refid="repo.snapshot" />
