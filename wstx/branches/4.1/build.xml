@@ -296,6 +296,15 @@
                 <include name="com/ctc/**" />
             </packageset>
             <classpath refid="classpath.compile" />
+
+            <!-- Need to link Stax API and regular JDK 5 classes  -->
+            <link href="http://java.sun.com/j2se/1.5.0/docs/api/" />
+            <link href="http://woodstox.codehaus.org/javadoc/stax-api/1.0" />
+            <group title="Woodstox" packages="com.ctc.wstx*" />
+            <group title="Stax2"
+               packages="org.codehaus.stax2*"
+            />
+
         </javadoc>
     </target> 
  
