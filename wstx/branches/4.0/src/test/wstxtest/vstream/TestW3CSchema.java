@@ -7,17 +7,17 @@ import javax.xml.stream.*;
 import org.codehaus.stax2.*;
 import org.codehaus.stax2.validation.*;
 
-import wstxtest.stream.BaseStreamTest;
-
 /**
  * This is a simple base-line "smoke test" that checks that W3C Schema
  * validation works at least minimally.
  */
-public class TestW3CSchema extends BaseStreamTest {
+public class TestW3CSchema extends BaseValidationTest
+{
 	/**
 	 * Sample schema, using sample 'personal.xsd' found from the web
 	 */
-	final static String SIMPLE_NON_NS_SCHEMA = "<?xml version='1.0' encoding='UTF-8'?>\n"
+	final static String SIMPLE_NON_NS_SCHEMA =
+            "<?xml version='1.0' encoding='UTF-8'?>\n"
 			+ "<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>\n"
 			+ "<xs:element name='personnel'>\n"
 			+ "<xs:complexType>\n"
@@ -88,7 +88,7 @@ public class TestW3CSchema extends BaseStreamTest {
 	 * simple W3C schema.
 	 */
 	public void testSimpleNonNs() throws XMLStreamException {
-		XMLValidationSchema schema = parseSchema(SIMPLE_NON_NS_SCHEMA);
+		XMLValidationSchema schema = parseW3CSchema(SIMPLE_NON_NS_SCHEMA);
 		XMLStreamReader2 sr = getReader(SIMPLE_XML);
 		sr.validateAgainst(schema);
 
@@ -107,7 +107,7 @@ public class TestW3CSchema extends BaseStreamTest {
 	}
 
 	public void testSimplePartialNonNs() throws XMLStreamException {
-		XMLValidationSchema schema = parseSchema(SIMPLE_NON_NS_SCHEMA);
+		XMLValidationSchema schema = parseW3CSchema(SIMPLE_NON_NS_SCHEMA);
 		XMLStreamReader2 sr = getReader(SIMPLE_XML);
 
 		assertTokenType(START_ELEMENT, sr.next());
@@ -130,7 +130,7 @@ public class TestW3CSchema extends BaseStreamTest {
 	 * simple test schema.
 	 */
 	public void testSimpleNonNsMissingId() throws XMLStreamException {
-		XMLValidationSchema schema = parseSchema(SIMPLE_NON_NS_SCHEMA);
+		XMLValidationSchema schema = parseW3CSchema(SIMPLE_NON_NS_SCHEMA);
 		String XML = "<personnel><person>"
 				+ "<name><family>F</family><given>G</given>"
 				+ "</name></person></personnel>";
@@ -139,7 +139,7 @@ public class TestW3CSchema extends BaseStreamTest {
 	}
 
 	public void testSimpleNonNsUndefinedId() throws XMLStreamException {
-		XMLValidationSchema schema = parseSchema(SIMPLE_NON_NS_SCHEMA);
+		XMLValidationSchema schema = parseW3CSchema(SIMPLE_NON_NS_SCHEMA);
 		String XML = "<personnel><person id='a1'>"
 				+ "<name><family>F</family><given>G</given>"
 				+ "</name><link manager='m3' /></person></personnel>";
@@ -160,7 +160,7 @@ public class TestW3CSchema extends BaseStreamTest {
 				+ "</xs:element>"
 				+ "</xs:schema>";
 
-		XMLValidationSchema schema = parseSchema(SCHEMA);
+		XMLValidationSchema schema = parseW3CSchema(SCHEMA);
 
 		// First, valid doc:
 		String XML = "<item><quantity>3  </quantity><price>\r\n4.05</price></item>";
@@ -217,7 +217,7 @@ public class TestW3CSchema extends BaseStreamTest {
 				+ "<xs:schema elementFormDefault='qualified' xmlns:xs='http://www.w3.org/2001/XMLSchema'>\n"
 				+ "<xs:element name='root' type='xs:string' />"
 				+ "</xs:schema>";
-		XMLValidationSchema schema = parseSchema(SCHEMA);
+		XMLValidationSchema schema = parseW3CSchema(SCHEMA);
 
 		// First, 3 valid docs:
 		String XML = "<root>xyz</root>";
@@ -263,7 +263,7 @@ public class TestW3CSchema extends BaseStreamTest {
 				+ "<xs:schema elementFormDefault='qualified' xmlns:xs='http://www.w3.org/2001/XMLSchema'>\n"
 				+ "<xs:element name='root' type='xs:string' />"
 				+ "</xs:schema>";
-		XMLValidationSchema schema = parseSchema(SCHEMA);
+		XMLValidationSchema schema = parseW3CSchema(SCHEMA);
 
 		// Then invalid?
 		String XML = "<foobar />";
@@ -308,7 +308,7 @@ public class TestW3CSchema extends BaseStreamTest {
 				+ "   </xs:restriction>\n" + "  </xs:simpleType>\n"
 				+ " </xs:element>\n" + "</xs:schema>\n";
 
-		XMLValidationSchema schema = parseSchema(SCHEMA);
+		XMLValidationSchema schema = parseW3CSchema(SCHEMA);
 
 		// first cases where there is text, and 1 to 5 descs
 		_testValidDesc(schema, "<description>Du Texte</description>");
@@ -336,54 +336,15 @@ public class TestW3CSchema extends BaseStreamTest {
 	}
 
 	/*
-	 * ////////////////////////////////////////////////////////////// // Helper
-	 * methods //////////////////////////////////////////////////////////////
+	 //////////////////////////////////////////////////////////////
+         // Helper
+	 //////////////////////////////////////////////////////////////
 	 */
 
-	XMLValidationSchema parseSchema(String contents) throws XMLStreamException {
-		XMLValidationSchemaFactory schF = XMLValidationSchemaFactory
-				.newInstance(XMLValidationSchema.SCHEMA_ID_W3C_SCHEMA);
-		return schF.createSchema(new StringReader(contents));
-	}
-
-	XMLStreamReader2 getReader(String contents) throws XMLStreamException {
-		XMLInputFactory2 f = getInputFactory();
-		setValidating(f, false);
-		return constructStreamReader(f, contents);
-	}
-
-	void verifyFailure(String xml, XMLValidationSchema schema, String failMsg,
-			String failPhrase) throws XMLStreamException {
-		// default to strict handling:
-		verifyFailure(xml, schema, failMsg, failPhrase, true);
-	}
-
-	void verifyFailure(String xml, XMLValidationSchema schema, String failMsg,
-			String failPhrase, boolean strict) throws XMLStreamException {
-		XMLStreamReader2 sr = getReader(xml);
-		sr.validateAgainst(schema);
-		try {
-			while (sr.hasNext()) {
-				/* int type = */sr.next();
-			}
-			fail("Expected validity exception for " + failMsg);
-		} catch (XMLValidationException vex) {
-			String origMsg = vex.getMessage();
-			String msg = (origMsg == null) ? "" : origMsg.toLowerCase();
-			if (msg.indexOf(failPhrase.toLowerCase()) < 0) {
-				String actualMsg = "Expected validation exception for "
-						+ failMsg + ", containing phrase '" + failPhrase
-						+ "': got '" + origMsg + "'";
-				if (strict) {
-					fail(actualMsg);
-				}
-				warn("suppressing failure due to MSV bug, failure: '"
-						+ actualMsg + "'");
-			}
-			// should get this specific type; not basic stream exception
-		} catch (XMLStreamException sex) {
-			fail("Expected XMLValidationException for " + failMsg
-					+ "; instead got " + sex.getMessage());
-		}
-	}
+    XMLStreamReader2 getReader(String contents) throws XMLStreamException
+    {
+        XMLInputFactory2 f = getInputFactory();
+        setValidating(f, false);
+        return constructStreamReader(f, contents);
+    }
 }
