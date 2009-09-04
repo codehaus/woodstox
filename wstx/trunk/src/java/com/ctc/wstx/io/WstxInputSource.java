@@ -18,6 +18,8 @@ package com.ctc.wstx.io;
 import java.io.IOException;
 import java.net.URL;
 
+import javax.xml.stream.XMLStreamException;
+
 /**
  * Interface that defines API actual parsers (stream readers)
  * can use to read input from various input sources.
@@ -163,7 +165,7 @@ public abstract class WstxInputSource
      *   if it had any input; -1 if input source has no more input.
      */
     public abstract int readInto(WstxInputData reader)
-        throws IOException;
+        throws IOException, XMLStreamException;
     
     /**
      * Method called by reader when it has to have at least specified number
@@ -177,7 +179,7 @@ public abstract class WstxInputSource
      *   to return zero or more characters any way.
      */
     public abstract boolean readMore(WstxInputData reader, int minAmount)
-        throws IOException;
+        throws IOException, XMLStreamException;
 
     /**
      * Method Reader calls when this input source is being stored, when

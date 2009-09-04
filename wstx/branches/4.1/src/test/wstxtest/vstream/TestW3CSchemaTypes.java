@@ -49,7 +49,7 @@ public class TestW3CSchemaTypes
     {
         XMLValidationSchema schema = parseW3CSchema(SCHEMA_INT);
         verifyFailure("<price></price>", schema, "missing 'int' value",
-                      "Undefined ID 'm3'");
+                      "does not satisfy the \"int\" type");
     }
 
     // // // Then 'float' datatype

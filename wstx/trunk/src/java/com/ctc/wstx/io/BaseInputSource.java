@@ -3,6 +3,8 @@ package com.ctc.wstx.io;
 import java.io.IOException;
 import java.net.URL;
 
+import javax.xml.stream.XMLStreamException;
+
 /**
  * Abstract base class that implements shared functionality that all current
  * {@link WstxInputSource} implementations Woodstox includes need.
@@ -97,10 +99,10 @@ public abstract class BaseInputSource
     protected abstract void doInitInputLocation(WstxInputData reader);
 
     public abstract int readInto(WstxInputData reader)
-        throws IOException;
+        throws IOException, XMLStreamException;
     
     public abstract boolean readMore(WstxInputData reader, int minAmount)
-        throws IOException;
+        throws IOException, XMLStreamException;
 
     public void saveContext(WstxInputData reader)
     {
