@@ -4,7 +4,10 @@ import java.io.IOException;
 import java.io.Reader;
 import java.net.URL;
 
+import javax.xml.stream.XMLStreamException;
+
 import com.ctc.wstx.api.ReaderConfig;
+import com.ctc.wstx.exc.WstxException;
 
 /**
  * Input source that reads input via a Reader.
@@ -73,7 +76,7 @@ public class ReaderSource
     }
 
     public int readInto(WstxInputData reader)
-        throws IOException
+        throws IOException, XMLStreamException
     {
         /* Shouldn't really try to read after closing, but it may be easier
          * for caller not to have to keep track of closure...
@@ -93,7 +96,7 @@ public class ReaderSource
                 /* Sanity check; should never happen with correctly written
                  * Readers:
                  */
-                throw new IOException("Reader returned 0 characters, even when asked to read up to "+mBuffer.length);
+                throw new WstxException("Reader (of type "+mReader.getClass().getName()+") returned 0 characters, even when asked to read up to "+mBuffer.length, getLocation());
             }
             return -1;
         }
@@ -106,7 +109,7 @@ public class ReaderSource
     }
 
     public boolean readMore(WstxInputData reader, int minAmount)
-        throws IOException
+        throws IOException, XMLStreamException
     {
         /* Shouldn't really try to read after closing, but it may be easier
          * for caller not to have to keep track of closure...
@@ -141,7 +144,7 @@ public class ReaderSource
             int actual = mReader.read(mBuffer, currAmount, amount);
             if (actual < 1) {
                 if (actual == 0) { // sanity check:
-                    throw new IOException("Reader returned 0 characters, even when asked to read up to "+amount);
+		    throw new WstxException("Reader (of type "+mReader.getClass().getName()+") returned 0 characters, even when asked to read up to "+amount, getLocation());
                 }
                 reader.mInputEnd = mInputLast = currAmount;
                 return false;

@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.Reader;
 import java.net.URL;
 
+import javax.xml.stream.XMLStreamException;
+
 import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.util.TextBuffer;
 
@@ -43,7 +45,7 @@ public final class BranchingReaderSource
     }
 
     public int readInto(WstxInputData reader)
-        throws IOException
+        throws IOException, XMLStreamException
     {
         // Need to flush out branched content?
         if (mBranchBuffer != null) {
@@ -56,7 +58,7 @@ public final class BranchingReaderSource
     }
 
     public boolean readMore(WstxInputData reader, int minAmount)
-        throws IOException
+        throws IOException, XMLStreamException
     {
         // Existing data to output to branch?
         if (mBranchBuffer != null) {
