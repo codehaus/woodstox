@@ -1,9 +1,17 @@
-Version: 4.0.5
+Version: 4.0.6
 
-Release date: 09-Jun-2009
+Release date: xx-Sep-2009
 
 Description:
   A maintenance release for 4.0.
+
+  Problems fixed:
+
+------------------------------------------------------------------------
+== History: ==
+------------------------------------------------------------------------
+
+4.0.5 [09-Jun-2009]
 
   Problems fixed:
 
@@ -15,10 +23,6 @@ Description:
    (reported by Jack R)
   * [WSTX-209]: Validation issues not reported to validation problem reporter
    (reported and fixed by Benson M)  
-
-------------------------------------------------------------------------
-== History: ==
-------------------------------------------------------------------------
 
 4.0.4 [07-May-2009]
 

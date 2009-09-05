@@ -46,6 +46,47 @@ public class TestXMLStreamReader2
         _testCData(true, true);
     }
 
+    /**
+     * Test inspired by [WSTX-211]
+     */
+    public void testLongerCData() throws Exception
+    {
+	String SRC_TEXT =
+"\r\n123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678\r\n"
++"<embededElement>Woodstox 4.0.5 does not like this embedded element.  However, if you take\r\n"
++"out one or more characters from the really long line (so that less than 500 characters come between\r\n"
++"'CDATA[' and the opening of the embeddedElement tag (including LF), then Woodstox will instead\r\n"
+	    +"complain that the CDATA section wasn't ended.";
+	String DST_TEXT = SRC_TEXT.replace("\r\n", "\n");
+	String XML = "<?xml version='1.0' encoding='utf-8'?>\r\n"
++"<test><![CDATA["+SRC_TEXT+"]]></test>";
+	// Hmmh. Seems like we need the BOM...	
+	ByteArrayOutputStream bos = new ByteArrayOutputStream();
+	bos.write(0xEF);
+	bos.write(0xBB);
+	bos.write(0xBF);
+	bos.write(XML.getBytes("UTF-8"));
+	byte[] bytes = bos.toByteArray();
+        XMLInputFactory2 f = getInputFactory();
+        // important: don't force coalescing, that'll convert CDATA to CHARACTERS
+        setCoalescing(f, false);
+	
+	XMLStreamReader sr = f.createXMLStreamReader(new ByteArrayInputStream(bytes));
+        assertTokenType(START_DOCUMENT, sr.getEventType());
+        assertTokenType(START_ELEMENT, sr.next());
+	assertEquals("test", sr.getLocalName());
+	// This should still work, although with linefeed replacements
+	assertEquals(DST_TEXT, sr.getElementText());
+        assertTokenType(END_ELEMENT, sr.getEventType());
+	sr.close();
+    }
+
+    /*
+    ////////////////////////////////////////
+    // Private methods, shared test code
+    ////////////////////////////////////////
+     */
+
     public void _testCData(boolean wrapped, boolean report) throws XMLStreamException
     {
         final String XML = "<root><![CDATA[test]]></root>";
@@ -69,13 +110,6 @@ public class TestXMLStreamReader2
         assertTokenType(END_ELEMENT, sr.next());
         sr.close();
     }
-
-
-    /*
-    ////////////////////////////////////////
-    // Private methods, shared test code
-    ////////////////////////////////////////
-     */
 
     /**
      * @param wrapped If true, will use Stax2ReaderAdapter to

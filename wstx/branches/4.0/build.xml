@@ -33,7 +33,7 @@
 
     <!-- Woodstox version info: -->
     <property name="IMPL_TITLE" value="Woodstox XML-processor" />
-    <property name="IMPL_VERSION" value="4.0.5" />
+    <property name="IMPL_VERSION" value="4.0.6" />
     <property name="IMPL_VENDOR" value="http://woodstox.codehaus.org" />
     <property name="API_TITLE" value="Stax 1.0 API" />
     <property name="API_VERSION" value="1.0.0" />
@@ -209,9 +209,10 @@
     <target name="compile.woodstox" depends="prepare,copy-resources,compile.stax2">
         <javac srcdir="${dir.src.java}" destdir="${dir.build.classes.woodstox}"
             source="1.4" target="1.4"
-            debug="true"
+            debug="false"
         >
 <!-- Uncomment to see warnings: too verbose for default, due to deprecation warns
+            debug="true"
             <compilerarg value="-Xlint:deprecation" />
 -->
             <include name="com/ctc/**/*.java" />
