@@ -1,8 +1,18 @@
-Version: 3.2.9
+Version: 3.2.9.2
 
-Release date: 07-May-2009
+Release date: xx-xxx-2009
 
 Description:
+
+  Problems fixed:
+
+  * [WSTX-211]: Failure to parse long CDATA section properly when
+    using XMLStreamReader.getElementText(), non-coalescing
+   (reported by Kevin B)
+
+== History: ==
+
+3.2.9 [07-May-2009]
 
   Problems fixed:
 
@@ -17,8 +27,6 @@ Description:
   * [WSTX-204] Custom entity resolver setting was not working with
     SAX API (due to JDK impl idiocy)
    (reported by Stéphane Claret)
-
-== History: ==
 
 3.2.8 [26-Dec-2008]
 

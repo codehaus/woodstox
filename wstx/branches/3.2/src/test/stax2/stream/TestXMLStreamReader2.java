@@ -45,7 +45,7 @@ public class TestXMLStreamReader2
 +"'CDATA[' and the opening of the embeddedElement tag (including LF), then Woodstox will instead\r\n"
 	    +"complain that the CDATA section wasn't ended.";
 	String DST_TEXT = SRC_TEXT.replace("\r\n", "\n");
-	String XML = "<?xml version='1.0' encoding='utf-8'?>\r\n"
+	String XML = "<?xml version='1.0' encoding='utf-8'  ?>"
 +"<test><![CDATA["+SRC_TEXT+"]]></test>";
 	// Hmmh. Seems like we need the BOM...	
 	ByteArrayOutputStream bos = new ByteArrayOutputStream();

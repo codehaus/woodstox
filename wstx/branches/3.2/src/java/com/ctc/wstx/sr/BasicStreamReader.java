@@ -4380,7 +4380,7 @@ public class BasicStreamReader
                 // Perhaps we have now enough to return?
                 if (!mCfgCoalesceText) {
                     tb.setCurrentLength(outBuf.length);
-                    if (tb.size() >= mShortestTextSegment) {
+                    if (tb.size() >= shortestSegment) {
                         mInputPtr = inputPtr;
                         return false;
                     }

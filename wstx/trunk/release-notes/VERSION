@@ -15,6 +15,32 @@ Description:
 == History: ==
 ------------------------------------------------------------------------
 
+4.0.5 [09-Jun-2009]
+
+  Problems fixed:
+
+  * [WSTX-207]: Schema factory failing to load schema if filename has
+    characters that need to be escaped when converted to URL
+   (reported by Arun K)
+  * [WSTX-208]: Value of default attributes not found using
+    XMLStreamReader.getAttributeValue(String,String)
+   (reported by Jack R)
+  * [WSTX-209]: Validation issues not reported to validation problem reporter
+   (reported and fixed by Benson M)  
+
+4.0.4 [07-May-2009]
+
+  Problems fixed:
+
+  * [WSTX-200]: NPE when validating partial documents (sub-trees)
+   (reported by Benson M)  
+  * [WSTX-202]: BijectiveNsMap#findPrefixByUri doesn't handle masked
+    namespace declarations correctly 
+   (reported by Andreas V)
+  * [WSTX-204] Custom entity resolver setting was not working with
+    SAX API (due to JDK impl idiocy)
+   (reported by Stéphane Claret)
+
 4.0.3 [04-Mar-2009]
 
   Problems fixed:
