@@ -209,10 +209,9 @@
     <target name="compile.woodstox" depends="prepare,copy-resources,compile.stax2">
         <javac srcdir="${dir.src.java}" destdir="${dir.build.classes.woodstox}"
             source="1.4" target="1.4"
-            debug="false"
+            debug="true"
         >
 <!-- Uncomment to see warnings: too verbose for default, due to deprecation warns
-            debug="true"
             <compilerarg value="-Xlint:deprecation" />
 -->
             <include name="com/ctc/**/*.java" />
