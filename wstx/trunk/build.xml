@@ -236,6 +236,7 @@
             <classpath refid="classpath.compile.woodstox" />
             <classpath>
               <pathelement path="${dir.build.classes.stax2}" />
+              <fileset dir="${dir.lib}/samples" includes="*.jar" />
             </classpath>
         </javac>
     </target>
