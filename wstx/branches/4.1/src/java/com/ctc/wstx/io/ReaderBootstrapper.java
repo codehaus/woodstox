@@ -71,7 +71,7 @@ public final class ReaderBootstrapper
 
     private int mInputPtr;
 
-    private int mInputLen;
+    private int mInputEnd;
 
     /*
     ////////////////////////////////////////
@@ -137,7 +137,7 @@ public final class ReaderBootstrapper
          * than 7 chars anyway (although, granted, shortest valid xml docl
          * is just 4 chars... "<a/>")
          */
-        if (mInputLen >= 7) {
+        if (mInputEnd >= 7) {
             char c = mCharBuffer[mInputPtr];
             
             // BOM to skip?
@@ -179,8 +179,8 @@ public final class ReaderBootstrapper
         /* Ok, now; do we have unused chars we have read that need to
          * be merged in?
          */
-        if (mInputPtr < mInputLen) {
-            return new MergedReader(cfg, mIn, mCharBuffer, mInputPtr, mInputLen);
+        if (mInputPtr < mInputEnd) {
+            return new MergedReader(cfg, mIn, mCharBuffer, mInputPtr, mInputEnd);
         }
 
         return mIn;
@@ -244,15 +244,15 @@ public final class ReaderBootstrapper
         throws IOException
     {
         mInputPtr = 0;
-        mInputLen = 0;
+        mInputEnd = 0;
 
-        while (mInputLen < minimum) {
-            int count = mIn.read(mCharBuffer, mInputLen,
-                                 mCharBuffer.length - mInputLen);
+        while (mInputEnd < minimum) {
+            int count = mIn.read(mCharBuffer, mInputEnd,
+                                 mCharBuffer.length - mInputEnd);
             if (count < 1) {
                 return false;
             }
-            mInputLen += count;
+            mInputEnd += count;
         }
         return true;
     }
@@ -264,12 +264,12 @@ public final class ReaderBootstrapper
          * reporting purposes, and do this now while previous amounts
          * are still known.
          */
-        mInputProcessed += mInputLen;
-        mInputRowStart -= mInputLen;
+        mInputProcessed += mInputEnd;
+        mInputRowStart -= mInputEnd;
 
         mInputPtr = 0;
-        mInputLen = mIn.read(mCharBuffer, 0, mCharBuffer.length);
-        if (mInputLen < 1) {
+        mInputEnd = mIn.read(mCharBuffer, 0, mCharBuffer.length);
+        if (mInputEnd < 1) {
             throw new WstxEOFException(ParsingErrorMsgs.SUFFIX_IN_XML_DECL,
                                        getLocation());
         }
@@ -288,7 +288,7 @@ public final class ReaderBootstrapper
     protected int getNext()
         throws IOException, WstxException
     {
-        return (mInputPtr < mInputLen) ?
+        return (mInputPtr < mInputEnd) ?
             mCharBuffer[mInputPtr++] : nextChar();
     }
 
@@ -299,7 +299,7 @@ public final class ReaderBootstrapper
         int count = 0;
 
         while (true) {
-            char c = (mInputPtr < mInputLen) ?
+            char c = (mInputPtr < mInputEnd) ?
                 mCharBuffer[mInputPtr++] : nextChar();
 
             if (c > CHAR_SPACE) {
@@ -327,7 +327,7 @@ public final class ReaderBootstrapper
         int len = exp.length();
         
         for (int ptr = 1; ptr < len; ++ptr) {
-            char c = (mInputPtr < mInputLen) ?
+            char c = (mInputPtr < mInputEnd) ?
                 mCharBuffer[mInputPtr++] : nextChar();
             
             if (c != exp.charAt(ptr)) {
@@ -348,7 +348,7 @@ public final class ReaderBootstrapper
         int len = kw.length;
 
         while (true) {
-            char c = (mInputPtr < mInputLen) ?
+            char c = (mInputPtr < mInputEnd) ?
                 mCharBuffer[mInputPtr++] : nextChar();
             if (c == CHAR_CR || c == CHAR_LF) {
                 skipCRLF(c);
@@ -381,7 +381,7 @@ public final class ReaderBootstrapper
     protected char nextChar()
         throws IOException, WstxException
     {
-        if (mInputPtr >= mInputLen) {
+        if (mInputPtr >= mInputEnd) {
             loadMore();
         }
         return mCharBuffer[mInputPtr++];
@@ -391,7 +391,7 @@ public final class ReaderBootstrapper
         throws IOException, WstxException
     {
         if (lf == CHAR_CR) {
-            char c = (mInputPtr < mInputLen) ?
+            char c = (mInputPtr < mInputEnd) ?
                 mCharBuffer[mInputPtr++] : nextChar();
             if (c != BYTE_LF) {
                 --mInputPtr; // pushback if not 2-char/byte lf

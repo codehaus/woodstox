@@ -39,6 +39,10 @@ public final class MergedReader
         mData = buf;
         mPtr = start;
         mEnd = end;
+        // sanity check: should not pass empty buffer
+        if (buf != null && start >= end) {
+            throw new IllegalArgumentException("Trying to construct MergedReader with empty contents (start "+start+", end "+end+")");
+        }
     }
 
     public void close()
