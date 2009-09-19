@@ -12,8 +12,8 @@ import org.codehaus.stax2.XMLStreamReader2;
  * Simple example of a client that downloads a set of files from
  * a server.
  *<p>
- * Here is a sample document that shows expected structure:<
- *&lt;pre>
+ * Here is a sample document that shows expected structure:
+ * <pre>
  *  &lt;files>
  *    &lt;file name="test.jpg" checksumType="SHA">... base64 content ...
  *    &lt;/file>
