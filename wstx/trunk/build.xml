@@ -231,7 +231,7 @@
                won't get obsolete with impl/api changes
           -->
         <javac srcdir="${dir.src.samples}" destdir="${dir.build.classes.samples}"
-            source="1.5" target="1.5">
+            source="1.5" target="1.5" debug="true">
             <include name="*.java" />
             <classpath refid="classpath.compile.woodstox" />
             <classpath>
@@ -271,6 +271,9 @@
       --> 
     <target name="jars" depends="jars.osgi, jar.stax2test, repackage-msv" />
 
+    <!-- 18-Sep-2009, tatu: Let's also package some web apps... -->
+    <target name="wars" depends="war.samples" />
+
     <!-- This jar is only needed for testing purposes, to specify 
        - which Stax implementation to use
       -->
@@ -302,6 +305,21 @@
         </jar>
     </target> 
 
+    <!-- 18-Sep-2009, tatu: Let's also package applicable sample
+          classes as WAR file, for deploying in a servlet container.
+         For convenience, will bundle Woodstox jars in too (and stax2),
+         but not stax 1.0 (bundled with JDK 1.6), nor MSV jars
+      -->
+    <target name="war.samples" depends="compile.samples, jars">
+      <war destfile="${dir.build}/sample.war" webxml="${dir.src.samples}/web.xml">
+         <classes dir="${dir.build.classes.samples}" />
+        <lib dir="${dir.build}/">
+          <include name="woodstox-core-asl*.jar"/>
+          <include name="stax2-api*.jar"/>
+        </lib>
+      </war>
+    </target> 
+
     <target name="javadoc" depends="prepare">
         <!-- Build a dirpath that contains just the "source" tree -->
         <javadoc windowtitle="${ant.project.name}"
@@ -325,7 +343,7 @@
         </javadoc>
     </target> 
  
-    <target name="dist" depends="compile,jars,javadoc">
+    <target name="dist" depends="compile,jars,wars,javadoc">
        <!-- First, let's copy the binary jars to dist -->
        <copy todir="${dir.dist}">
           <fileset dir="${dir.build}" includes="woodstox*.jar" />

@@ -127,7 +127,9 @@ com.sun.msv.verifier.util,
 '
          dynamicImportPackage='
 org.apache.xml.resolver, org.apache.xml.resolver.tools,
-org.iso_relax, org.iso_relax.*
+org.iso_relax, org.iso_relax.*,
+javax.xml.namespace, javax.xml.transform, javax.xml.transform.dom, 
+javax.xml.transform.sax, javax.xml.xpath, org.w3c.dom.ls
 '
       >
         <classpath>

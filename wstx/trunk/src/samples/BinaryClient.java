@@ -1,3 +1,5 @@
+package sample;
+
 import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
@@ -34,8 +36,9 @@ public class BinaryClient
     /**
      * @param urlStr Full URL (including query parameters if any)
      *   used to access web service for downloading files.
+     * @param toDir Directory under which to save downloaded files
      */
-    public List<File> fetchFiles(URL serviceURL) throws Exception
+    public List<File> fetchFiles(URL serviceURL, File toDir) throws Exception
     {
         List<File> files = new ArrayList<File>();
         URLConnection conn = serviceURL.openConnection();
@@ -47,13 +50,12 @@ public class BinaryClient
         InputStream in = conn.getInputStream();
         XMLStreamReader2 sr = (XMLStreamReader2) _xmlInputFactory.createXMLStreamReader(in);
         sr.nextTag(); // to "files"
-        File dir = new File("/tmp"); // for linux...
         byte[] buffer = new byte[4000];
         
         while (sr.nextTag() != XMLStreamConstants.END_ELEMENT) { // one more 'file'
             String filename = sr.getAttributeValue("", "name");
             String csumType = sr.getAttributeValue("", "checksumType");
-            File outputFile = new File(dir, filename);
+            File outputFile = new File(toDir, filename);
             FileOutputStream out = new FileOutputStream(outputFile);
             files.add(outputFile);
             MessageDigest md = MessageDigest.getInstance(csumType);
@@ -85,8 +87,10 @@ public class BinaryClient
             System.exit(1);
         }
         URL serviceURL = new URL(args[0]);
-        System.out.println("Fetching files from '"+serviceURL.toExternalForm()+"'...");
-        List<File> files = new BinaryClient().fetchFiles(serviceURL);
+        // Will just save in current dir
+        File dir = new File("").getAbsoluteFile();
+        System.out.println("Fetching files from '"+serviceURL.toExternalForm()+"': saving in directory '"+dir+"'");
+        List<File> files = new BinaryClient().fetchFiles(serviceURL, dir);
         System.out.println("OK: Fetched "+files.size()+" files with correct checksums:");
         for (File f : files) {
             System.out.println(" File '"+f.getAbsolutePath()+"'");

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!-- NOTE: simple web.xml descriptor for hosting "binary service" -->
+<web-app 
+   xmlns="http://java.sun.com/xml/ns/javaee" 
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" 
+   version="2.5"> 
+
+  <display-name>Test Binary Service</display-name>
+  <servlet>
+    <servlet-name>Binary Service</servlet-name>
+    <servlet-class>sample.BinaryService</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>BinaryService</servlet-name>
+    <url-pattern>/files/*</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>BinaryService</servlet-name>
+    <url-pattern>/files</url-pattern>
+  </servlet-mapping>
+  
+  <servlet>
+    <servlet-name>BinaryService</servlet-name>
+    <servlet-class>sample.BinaryService</servlet-class>
+    <load-on-startup>1</load-on-startup>
+    <run-as><role-name>admin</role-name></run-as>
+  </servlet>
+
+</web-app>
+
+

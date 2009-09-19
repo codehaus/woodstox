@@ -1,3 +1,5 @@
+package sample;
+
 import java.io.*;
 import java.security.MessageDigest;
 
@@ -33,6 +35,9 @@ public class BinaryService
         _xmlOutputFactory = XMLOutputFactory.newInstance();
         // NOTE: Should configure from something; init-params or such
         _downloadableFiles = new File("/tmp/testfiles");
+        if (!_downloadableFiles.isDirectory()) {
+            throw new IllegalArgumentException("No directory '"+_downloadableFiles+"'");
+        }
     }
 
     @Override
