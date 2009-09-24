@@ -87,7 +87,7 @@ public abstract class DbconvDriver
                 }
             });
 
-        StdConverter<?> stdConverter = getStdConverter();
+        StdConverter<DbData> stdConverter = getStdConverter();
         _readableData = (oper == StdConverter.Operation.WRITE) ?
             null : new byte[files.length][];
         _writableData = (oper == StdConverter.Operation.WRITE) ?
@@ -111,6 +111,9 @@ public abstract class DbconvDriver
             tmpStream.reset();
             _converter.writeData(tmpStream, origData);
             byte[] convData = tmpStream.toByteArray();
+            if (convData.length == 0) { // sanity check
+                throw new IllegalStateException("Converter "+_converter.getClass().getName()+" produced empty result");
+            }
             
             if (_readableData != null) {
                 _readableData[i] = convData;

@@ -56,6 +56,7 @@
         <fileset dir="${dir.lib}/json-simple" includes="*.jar" />
         <fileset dir="${dir.lib}/json-stringtree" includes="*.jar" />
         <fileset dir="${dir.lib}/json-tools" includes="*.jar" />
+        <fileset dir="${dir.lib}/gson" includes="*.jar" />
        </classpath>
     </javac>
   </target>

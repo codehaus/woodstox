@@ -31,6 +31,7 @@ public class StdGsonConverter<T extends StdItem<T>>
     {
         OutputStreamWriter w = new OutputStreamWriter(out, "UTF-8");
         this._gson.toJson(data, w);
+        w.flush();
         return -1;
     }
 }
