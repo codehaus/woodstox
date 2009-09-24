@@ -19,6 +19,7 @@ import org.codehaus.staxbind.std.StdItem;
  *  </li>
  *</ul>
  */
+@SuppressWarnings("serial")
 @XmlRootElement(name="table") // needed by JAXB
 public final class DbData
     extends StdItem<DbData>
@@ -67,7 +68,7 @@ public final class DbData
      */
 
     @Override
-        public boolean _equals(DbData other)
+    public boolean _equals(DbData other)
     {
         List<DbRow> rows1 = this.getRow();
         List<DbRow> rows2 = other.getRow();

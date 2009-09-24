@@ -4,16 +4,13 @@ import java.io.*;
 // stax needed to get in baseline data
 import javax.xml.stream.*;
 
-import com.sun.japex.TestCase;
-
 import org.codehaus.staxbind.japex.BaseJapexDriver;
 import org.codehaus.staxbind.std.StdConverter;
-import org.codehaus.staxbind.std.StdItem;
 
 public abstract class DbconvDriver
     extends BaseJapexDriver<DbConverter.Operation>
 {
-    final StdConverter _converter;
+    final StdConverter<DbData> _converter;
 
     /**
      * For write tests, we hold serializable objects here
@@ -25,7 +22,7 @@ public abstract class DbconvDriver
      */
     byte[][] _readableData;
 
-    protected DbconvDriver(StdConverter conv)
+    protected DbconvDriver(StdConverter<DbData> conv)
     {
         super(StdConverter.Operation.READ);
         if (conv == null) {
@@ -90,7 +87,7 @@ public abstract class DbconvDriver
                 }
             });
 
-        StdConverter stdConverter = getStdConverter();
+        StdConverter<?> stdConverter = getStdConverter();
         _readableData = (oper == StdConverter.Operation.WRITE) ?
             null : new byte[files.length][];
         _writableData = (oper == StdConverter.Operation.WRITE) ?
@@ -129,7 +126,7 @@ public abstract class DbconvDriver
         }
     }
 
-    protected StdConverter getStdConverter()
+    protected StdConverter<DbData> getStdConverter()
     {
         /* Hmmh. For now, let's actually rely on JDK-bundled Stax
          * parser (Sun sjsxp). Should work ok.

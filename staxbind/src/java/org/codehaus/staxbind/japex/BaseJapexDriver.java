@@ -9,7 +9,7 @@ import com.sun.japex.TestCase;
  * Common base class for all StaxBind test drivers needed to run
  * tests on Japex.
  */
-public abstract class BaseJapexDriver<E extends Enum>
+public abstract class BaseJapexDriver<E extends Enum<E>>
     extends JapexDriverBase
 {
     protected final static int DEFAULT_BUF_SIZE = 4000;
@@ -119,8 +119,7 @@ public abstract class BaseJapexDriver<E extends Enum>
     /////////////////////////////////////////////////
     */
 
-    @SuppressWarnings("unchecked")
-	protected E getOperation(TestCase testCase)
+    protected E getOperation(TestCase testCase)
     {
         String operStr = testCase.getParam("japex.operation");
         E op = null;

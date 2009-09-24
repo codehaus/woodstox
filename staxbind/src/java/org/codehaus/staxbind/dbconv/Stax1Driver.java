@@ -1,7 +1,5 @@
 package org.codehaus.staxbind.dbconv;
 
-import javax.xml.stream.*;
-
 public final class Stax1Driver
     extends DbconvDriver
 {

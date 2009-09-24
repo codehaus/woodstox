@@ -1,6 +1,5 @@
 package org.codehaus.staxbind.jsoncount;
 
-import java.io.*;
 import java.util.*;
 
 /**

@@ -1,7 +1,5 @@
 package org.codehaus.staxbind.dbconv;
 
-import java.io.*;
-
 import com.sun.japex.Params;
 
 import org.codehaus.staxbind.std.StdXstreamConverter;

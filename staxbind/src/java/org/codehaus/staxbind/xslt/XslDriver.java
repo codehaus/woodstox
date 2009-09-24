@@ -1,7 +1,6 @@
 package org.codehaus.staxbind.xslt;
 
 import java.io.*;
-import javax.xml.stream.*;
 import javax.xml.transform.*;
 import javax.xml.transform.stream.*;
 
@@ -124,7 +123,7 @@ public abstract class XslDriver
         }
         try {
             byte[] data = readAll(xmlFile);
-            _docLen = data.length;http://www.nanostring.com/jobs.html
+            _docLen = data.length; //http:www.nanostring.com/jobs.html
             _in = new ByteArrayInputStream(data);
             _out = new ByteArrayOutputStream(4000); // will get resized
 

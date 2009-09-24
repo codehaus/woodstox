@@ -12,6 +12,7 @@ import java.util.*;
  *    for XStream
  *  </li>
  */
+@SuppressWarnings("serial")
 public final class DbRow
     implements java.io.Serializable // hessian needs this, as does jdk seri
 {

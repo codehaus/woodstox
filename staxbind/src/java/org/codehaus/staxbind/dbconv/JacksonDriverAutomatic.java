@@ -11,6 +11,6 @@ public final class JacksonDriverAutomatic
 {
     public JacksonDriverAutomatic() throws Exception
     {
-        super(new StdJacksonConverter(DbData.class));
+        super(new StdJacksonConverter<DbData>(DbData.class));
     }
 }

@@ -2,39 +2,35 @@ package org.codehaus.staxbind.std;
 
 import java.io.*;
 
-import org.codehaus.jackson.*;
-import org.codehaus.jackson.map.ObjectMapper;
+import com.google.gson.*;
 
 /**
  * Converter that uses Google-gson package for JSON data binding,
  * using automatic bindings for serialization and deserialization.
  */
-public class StdGsonConverter<T extends StdItem>
+public class StdGsonConverter<T extends StdItem<T>>
     extends StdConverter<T>
 {
-    final JsonFactory _jsonFactory;
-
-    final ObjectMapper _mapper;
+    final Gson _gson;
 
     final Class<T> _itemClass;
 
-    public StdJacksonConverter(Class<T> itemClass)
+    public StdGsonConverter(Class<T> itemClass)
     {
-        _jsonFactory = new JsonFactory();
-        _mapper = new ObjectMapper();
         _itemClass = itemClass;
+        _gson = new Gson();
     }
 
     public T readData(InputStream in) throws IOException
     {
-        return _mapper.readValue(in, _itemClass);
+        // Alas, Gson can't eat InputStreams...
+        return _gson.fromJson(new InputStreamReader(in, "UTF-8"), _itemClass);
     }
     
     public int writeData(OutputStream out, T data) throws Exception
     {
-        JsonGenerator jg = _jsonFactory.createJsonGenerator(out, JsonEncoding.UTF8);
-        _mapper.writeValue(jg, data);
-        jg.close();
+        OutputStreamWriter w = new OutputStreamWriter(out, "UTF-8");
+        this._gson.toJson(data, w);
         return -1;
     }
 }

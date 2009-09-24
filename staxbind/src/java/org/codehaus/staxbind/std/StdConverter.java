@@ -6,7 +6,7 @@ import java.io.*;
  * Base class for "standard" converters used for data binding
  * tests that read/write a single object.
  */
-public abstract class StdConverter<T extends StdItem>
+public abstract class StdConverter<T extends StdItem<T>>
 {
     public enum Operation {
         READ, WRITE, READ_WRITE

@@ -1,18 +1,18 @@
 package org.codehaus.staxbind.std;
 
 import java.io.*;
-import java.util.*;
 
 import com.caucho.hessian.io.*;
 
 /**
  * Converter that uses Hessian protocol (and Caucho impl) for binding.
  */
-public class StdHessianConverter<T extends StdItem>
+public class StdHessianConverter<T extends StdItem<T>>
     extends StdConverter<T>
 {
     public StdHessianConverter() { }
 
+    @SuppressWarnings("unchecked")
     public T readData(InputStream in) throws IOException
     {
         Hessian2StreamingInput hin = new Hessian2StreamingInput(in);

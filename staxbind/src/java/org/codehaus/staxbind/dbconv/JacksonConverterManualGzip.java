@@ -1,10 +1,7 @@
 package org.codehaus.staxbind.dbconv;
 
 import java.io.*;
-import java.util.*;
 import java.util.zip.*;
-
-import org.codehaus.jackson.*;
 
 /**
  * Converter that uses Jackson JSON processor for data binding,
@@ -47,7 +44,7 @@ public class JacksonConverterManualGzip
         /*
          * File header flags.
          */
-        private final static int FTEXT	= 1;	// Extra text
+        //private final static int FTEXT	= 1;	// Extra text
         private final static int FHCRC	= 2;	// Header CRC
         private final static int FEXTRA	= 4;	// Extra field
         private final static int FNAME	= 8;	// File name

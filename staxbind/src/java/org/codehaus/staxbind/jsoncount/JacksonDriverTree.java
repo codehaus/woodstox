@@ -9,16 +9,16 @@ import org.codehaus.jackson.node.ObjectNode;
 public final class JacksonDriverTree
     extends JsonCountDriver
 {
-    final TreeMapper _mapper;
+    final ObjectMapper _mapper;
 
     public JacksonDriverTree() {
-        _mapper = new TreeMapper();
+        _mapper = new ObjectMapper();
     }
 
     protected void read(byte[] docData, CountResult results)
         throws Exception
     {
-        JsonNode root = _mapper.readTree(docData);
+        JsonNode root = _mapper.readValue(docData, 0, docData.length, JsonNode.class);
         _processNode(root, results);
     }
 

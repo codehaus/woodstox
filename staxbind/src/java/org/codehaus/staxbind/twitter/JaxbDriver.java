@@ -7,6 +7,6 @@ public final class JaxbDriver
 {
     public JaxbDriver() throws Exception
     {
-        super(new StdJaxbConverter(TwitterSearch.class));
+        super(new StdJaxbConverter<TwitterSearch>(TwitterSearch.class));
     }
 }

@@ -11,10 +11,10 @@ public final class JacksonDriverAutomatic
 {
     public JacksonDriverAutomatic() throws Exception
     {
-        super(new StdJacksonConverter(TwitterSearch.class));
+        super(new StdJacksonConverter<TwitterSearch>(TwitterSearch.class));
     }
 
-    public static StdJacksonConverter getConverter() {
-        return new StdJacksonConverter(TwitterSearch.class);
+    public static StdJacksonConverter<TwitterSearch> getConverter() {
+        return new StdJacksonConverter<TwitterSearch>(TwitterSearch.class);
     }
 }

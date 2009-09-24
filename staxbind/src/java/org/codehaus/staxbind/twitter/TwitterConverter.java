@@ -3,7 +3,6 @@ package org.codehaus.staxbind.twitter;
 import java.io.*;
 
 import org.codehaus.staxbind.std.StdConverter;
-import org.codehaus.staxbind.std.StdItem;
 
 /**
  * Base class for per-format converters used for "DB Converter" performance

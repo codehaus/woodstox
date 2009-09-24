@@ -15,7 +15,6 @@ public final class JacksonDriverStreaming
         throws Exception
     {
         JsonParser jp = _factory.createJsonParser(docData);
-        JsonToken t;
 
         while (jp.nextValue() != null) {
             String fieldName = jp.getCurrentName();

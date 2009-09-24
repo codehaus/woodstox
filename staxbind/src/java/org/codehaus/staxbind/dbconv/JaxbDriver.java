@@ -7,12 +7,12 @@ public final class JaxbDriver
 {
     public JaxbDriver() throws Exception
     {
-        super(new StdJaxbConverter(DbData.class));
+        super(new StdJaxbConverter<DbData>(DbData.class));
     }
 
     @Override
     public void initializeDriver() {
-        ((StdJaxbConverter) _converter).initStaxFactories
+        ((StdJaxbConverter<DbData>) _converter).initStaxFactories
             (getParam("javax.xml.stream.XMLInputFactory"),
              getParam("javax.xml.stream.XMLOutputFactory")
              );

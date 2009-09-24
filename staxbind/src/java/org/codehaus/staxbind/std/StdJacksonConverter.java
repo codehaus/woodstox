@@ -9,7 +9,7 @@ import org.codehaus.jackson.map.ObjectMapper;
  * Converter that uses Jackson JSON processor for data binding,
  * using automatic bindings for serialization and deserialization.
  */
-public class StdJacksonConverter<T extends StdItem>
+public class StdJacksonConverter<T extends StdItem<T>>
     extends StdConverter<T>
 {
     final JsonFactory _jsonFactory;

@@ -5,11 +5,12 @@ import java.io.*;
 /**
  * Templatized version of the JDK Serialization based converter.
  */
-public class StdJdkConverter<T extends StdItem>
+public class StdJdkConverter<T extends StdItem<T>>
     extends StdConverter<T>
 {
     public StdJdkConverter() { }
 
+    @SuppressWarnings("unchecked")
     @Override
     public T readData(InputStream in)
         throws IOException

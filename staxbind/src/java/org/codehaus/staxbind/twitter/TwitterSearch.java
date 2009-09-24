@@ -6,6 +6,7 @@ import javax.xml.bind.annotation.*;
 
 import org.codehaus.staxbind.std.StdItem;
 
+@SuppressWarnings("serial")
 @XmlRootElement(name="searchResult") // needed by JAXB
 public class TwitterSearch
     extends StdItem<TwitterSearch>

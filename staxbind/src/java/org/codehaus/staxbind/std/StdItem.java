@@ -1,14 +1,13 @@
 package org.codehaus.staxbind.std;
 
-import java.io.*;
-
 /**
  * Base class for serializable objects used for data binding tests.
  *<p>
  * Note: we mark it as Serializable since many converters require
  * this; and this way sub-classes need not add marker.
  */
-public abstract class StdItem<T extends StdItem>
+@SuppressWarnings("serial")
+public abstract class StdItem<T extends StdItem<?>>
     implements java.io.Serializable // hessian needs this, as does jdk serializer (if we use it)
 {
     protected StdItem() { }
@@ -19,6 +18,7 @@ public abstract class StdItem<T extends StdItem>
     ///////////////////////////////////////////////////
      */
 
+    @SuppressWarnings("unchecked")
     @Override
         public final boolean equals(Object o)
     {

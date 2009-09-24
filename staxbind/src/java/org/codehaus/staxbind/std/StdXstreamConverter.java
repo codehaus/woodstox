@@ -14,7 +14,7 @@ import com.thoughtworks.xstream.mapper.MapperWrapper;
  * Converter that uses XStream on top of regular Stax 1
  * implementation (such as Woodstox).
  */
-public class StdXstreamConverter<T extends StdItem>
+public class StdXstreamConverter<T extends StdItem<T>>
     extends StdConverter<T>
 {
     /**
@@ -50,6 +50,7 @@ public class StdXstreamConverter<T extends StdItem>
         _xstream.setMode(XStream.NO_REFERENCES);
     }
 
+    @SuppressWarnings("unchecked")
     public T readData(InputStream in) throws Exception
     {
         return (T) _xstream.fromXML(in);

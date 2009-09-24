@@ -9,7 +9,7 @@ import javax.xml.stream.*;
  * Converter that uses JAXB2 on top of regular Stax 1
  * implementation (such as Woodstox).
  */
-public class StdJaxbConverter<T extends StdItem>
+public class StdJaxbConverter<T extends StdItem<T>>
     extends StdConverter<T>
 {
     XMLInputFactory _staxInFactory;
@@ -34,6 +34,7 @@ public class StdJaxbConverter<T extends StdItem>
         }
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public T readData(InputStream in) throws Exception
     {

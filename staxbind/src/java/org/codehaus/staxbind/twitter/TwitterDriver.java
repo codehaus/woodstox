@@ -2,16 +2,13 @@ package org.codehaus.staxbind.twitter;
 
 import java.io.*;
 
-import com.sun.japex.TestCase;
-
 import org.codehaus.staxbind.japex.BaseJapexDriver;
 import org.codehaus.staxbind.std.StdConverter;
-import org.codehaus.staxbind.std.StdItem;
 
 public abstract class TwitterDriver
     extends BaseJapexDriver<TwitterConverter.Operation>
 {
-    final StdConverter _converter;
+    final StdConverter<TwitterSearch> _converter;
 
     /**
      * For write tests, we hold serializable objects here
@@ -23,7 +20,7 @@ public abstract class TwitterDriver
      */
     byte[][] _readableData;
 
-    protected TwitterDriver(StdConverter conv)
+    protected TwitterDriver(StdConverter<TwitterSearch> conv)
     {
         super(StdConverter.Operation.READ);
         if (conv == null) {
@@ -88,7 +85,7 @@ public abstract class TwitterDriver
                 }
             });
 
-        StdConverter stdConverter = getStdConverter();
+        StdConverter<TwitterSearch> stdConverter = getStdConverter();
         _readableData = (oper == StdConverter.Operation.WRITE) ?
             null : new byte[files.length][];
         _writableData = (oper == StdConverter.Operation.WRITE) ?
@@ -127,7 +124,7 @@ public abstract class TwitterDriver
         }
     }
 
-    protected StdConverter getStdConverter()
+    protected StdConverter<TwitterSearch> getStdConverter()
     {
         // data is in json, let's use Jackson as the base
         return JacksonDriverAutomatic.getConverter();

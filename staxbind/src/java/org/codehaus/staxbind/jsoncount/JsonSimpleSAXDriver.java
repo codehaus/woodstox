@@ -1,9 +1,7 @@
 package org.codehaus.staxbind.jsoncount;
 
 import java.io.*;
-import java.util.*;
 
-import org.json.simple.*;
 import org.json.simple.parser.*;
 
 /**

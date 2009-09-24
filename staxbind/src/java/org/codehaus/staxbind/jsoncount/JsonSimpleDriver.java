@@ -3,7 +3,6 @@ package org.codehaus.staxbind.jsoncount;
 import java.io.*;
 import java.util.*;
 
-import org.json.simple.*;
 import org.json.simple.parser.*;
 
 /**
@@ -36,11 +35,11 @@ public final class JsonSimpleDriver
         if (node instanceof Map) {
             _processObject((Map<?,?>) node, results);
         } else if (node instanceof List) {
-            _processArray((List) node, results);
+            _processArray((List<?>) node, results);
         }
     }
 
-    private void _processArray(List array, CountResult results)
+    private void _processArray(List<?> array, CountResult results)
         throws Exception
     {
         for (Object ob : array) {
