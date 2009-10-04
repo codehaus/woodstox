@@ -72,7 +72,8 @@
     -->
   <target name="maven.remote.snapshot" depends="maven.repos">
 
-    <artifact:deploy pomRefId="pom.asl.core" uniqueVersion="true"
+    <artifact:deploy pomRefId="pom.asl.core"
+     uniqueVersion="true"
      file="${dir.dist}/woodstox-core-asl-${IMPL_VERSION}.jar"
    >
       <remoteRepository refid="repo.snapshot" />

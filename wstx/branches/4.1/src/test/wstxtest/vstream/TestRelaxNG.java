@@ -463,18 +463,18 @@ public class TestRelaxNG
 	// 12-Nov-2008, TSa: still having MSV bug here, need to suppress failure
         verifyRngFailure("<root><leaf>   </leaf></root>",
                          schema, "missing boolean element value",
-                         "does not satisfy the \"boolean\" type", false);
+                         "does not satisfy the \"boolean\" type", true);
 
         // And then 2 variations of completely missing value
 	// 12-Nov-2008, TSa: still having MSV bug here, need to suppress failure
         verifyRngFailure("<root><leaf></leaf></root>",
                          schema, "missing boolean element value",
-                         "does not satisfy the \"boolean\" type", false);
+                         "does not satisfy the \"boolean\" type", true);
 
 	// 12-Nov-2008, TSa: still having MSV bug here, need to suppress failure
         verifyRngFailure("<root><leaf /></root>",
                          schema, "missing boolean element value",
-                         "does not satisfy the \"boolean\" type", false);
+                         "does not satisfy the \"boolean\" type", true);
     }
 
     /**

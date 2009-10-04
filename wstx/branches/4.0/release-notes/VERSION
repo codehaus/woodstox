@@ -1,9 +1,10 @@
 Version: 4.0.6
 
-Release date: xx-Sep-2009
+Release date: 01-Oct-2009
 
 Description:
-  A maintenance release for 4.0.
+  4.0 maintenance release that fixes a critical issue with handling
+  of longer CDATA sections.
 
   Problems fixed:
 
