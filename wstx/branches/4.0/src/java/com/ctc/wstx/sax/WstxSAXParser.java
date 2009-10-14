@@ -1188,7 +1188,6 @@ public class WstxSAXParser
         public Object resolveEntity(String publicID, String systemID, String baseURI, String namespace)
             throws XMLStreamException
         {
-System.err.println("Resolve called, -> "+mEntityResolver);
             if (mEntityResolver != null) {
                 try {
                     /* Hmmh. SAX expects system id to have been mangled prior
