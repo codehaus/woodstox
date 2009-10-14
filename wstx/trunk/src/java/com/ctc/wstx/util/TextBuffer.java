@@ -1095,7 +1095,7 @@ public final class TextBuffer
              * have enough room in segment.
              */
             expand(len);
-            str.getChars(max, len, mCurrentSegment, 0);
+            str.getChars(max, max+len, mCurrentSegment, 0);
             mCurrentSize = len;
         }
     }
