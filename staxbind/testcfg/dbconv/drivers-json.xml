@@ -7,13 +7,13 @@
   xmlns="http://www.sun.com/japex/testSuite"
   xmlns:xi="http://www.w3.org/2001/XInclude"
 >
+    <!-- Jackson drivers -->
+    <xi:include href="driver-json-jackson.xml" />
+
     <!-- Google-gson -->
     <xi:include href="driver-json-gson.xml" />
 
     <!-- Json-tools from BerliOS -->
     <xi:include href="driver-json-jsontools.xml" />
-
-    <!-- Jackson drivers -->
-    <xi:include href="driver-json-jackson.xml" />
 </driverGroup>
 
