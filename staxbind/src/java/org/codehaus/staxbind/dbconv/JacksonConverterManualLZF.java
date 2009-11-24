@@ -15,6 +15,9 @@ public class JacksonConverterManualLZF
 {
     final LZFCodec _codec = new LZFCodec();
 
+    final byte[] _outputBuffer = new byte[LZFOutputStream.IO_BUFFER_SIZE_COMPRESS];
+    final byte[] _outputBuffer2 = new byte[_outputBuffer.length + (_outputBuffer.length >> 3)];
+
     @Override
     public DbData readData(InputStream in)
         throws IOException
@@ -26,7 +29,7 @@ public class JacksonConverterManualLZF
     @Override
     public int writeData(OutputStream out, DbData data) throws Exception
     {
-        LZFOutputStream comp = new LZFOutputStream(out, _codec);
+        LZFOutputStream comp = new LZFOutputStream(out, _codec, _outputBuffer, _outputBuffer2);
         return super.writeData(comp, data);
     }
 
@@ -41,24 +44,29 @@ public class JacksonConverterManualLZF
          */
         static final int MAGIC = ('H' << 24) | ('2' << 16) | ('I' << 8) | 'S';
 
-        private static final int HASH_SIZE = 1 << 14;
-        private static final int MAX_LITERAL = 1 << 5;
-        private static final int MAX_OFF = 1 << 13;
-        private static final int MAX_REF = (1 << 8) + (1 << 3);
+        /**
+         * Should probably dynamically choose hash size; big ones are wasteful for
+         * small blocks.
+         */
+        //private static final int HASH_SIZE = 1 << 14; // 16k
+        private static final int HASH_SIZE = 1 << 12; // 4k
+        private static final int MAX_LITERAL = 1 << 5; // 32
+        private static final int MAX_OFF = 1 << 13; // 8k
+        private static final int MAX_REF = (1 << 8) + (1 << 3); // 264
 
         private int[] cachedHashTable;
 
         public LZFCodec() { }
         
-        private int first(byte[] in, int inPos) {
+        private final int first(byte[] in, int inPos) {
             return (in[inPos] << 8) + (in[inPos + 1] & 255);
         }
 
-        private int next(int v, byte[] in, int inPos) {
+        private final int next(int v, byte[] in, int inPos) {
             return (v << 8) + (in[inPos + 2] & 255);
         }
 
-        private int hash(int h) {
+        private final int hash(int h) {
             // or 57321
             return ((h * 184117) >> 9) & (HASH_SIZE - 1);
         }
@@ -289,29 +297,53 @@ public class JacksonConverterManualLZF
      * LZF Output Stream
      */
     final static class LZFOutputStream extends OutputStream {
-        final static int IO_BUFFER_SIZE_COMPRESS = 1000;
+        final static int IO_BUFFER_SIZE_COMPRESS = 4000;
 
-        private final OutputStream out;
+        private final OutputStream _out;
         private final LZFCodec compress;
+
+        /**
+         * Buffer in which content to write is first buffered, before trying
+         * to compress it.
+         */
         private final byte[] buffer;
         private int pos;
-        private byte[] outBuffer;
 
-        public LZFOutputStream(OutputStream out, LZFCodec codec) throws IOException {
+        /**
+         * Buffer in which content is compressed (from {@link #buffer}),
+         * before being written to the underlying stream.
+         */
+        private byte[] compressedBuffer;
+
+        public LZFOutputStream(OutputStream out, LZFCodec codec,
+                               byte[] recycledBuffer, byte[] recycledCompBuffer)
+            throws IOException
+        {
             compress = codec;
-            this.out = out;
-            int len = IO_BUFFER_SIZE_COMPRESS;
-            buffer = new byte[len];
-            ensureOutput(len);
-            writeInt(LZFCodec.MAGIC);
+            _out = out;
+            buffer = recycledBuffer;
+            compressedBuffer = recycledCompBuffer;
+            writeInt(LZFCodec.MAGIC, buffer);
+        }
+
+        /**
+         * Method that will give upper bound estimate of size of block after
+         * compression.
+         */
+        public static int maxSizeForInput(int inputSize) {
+            if (inputSize < 256) {
+                return inputSize + 16;
+            }
+            // Let's estimate growth of at most 1/16 (~= 6%)
+            return inputSize + (inputSize >> 4);
         }
 
         private void ensureOutput(int len) {
-            // TODO calculate the maximum overhead (worst case) for the output
-            // buffer
-            int outputLen = (len < 100 ? len + 100 : len) * 2;
-            if (outBuffer == null || outBuffer.length < outputLen) {
-                outBuffer = new byte[outputLen];
+            // Not sure if this is safe estimation of largest chunk we'd need, but:
+            int outputLen = (len < 100) ? (len + 100) : len;
+            outputLen += outputLen;
+            if (compressedBuffer == null || compressedBuffer.length < outputLen) {
+                compressedBuffer = new byte[outputLen];
             }
         }
 
@@ -325,23 +357,31 @@ public class JacksonConverterManualLZF
         private void compressAndWrite(byte[] buff, int len) throws IOException {
             if (len > 0) {
                 ensureOutput(len);
-                int compressed = compress.compress(buff, len, outBuffer, 0);
+                int compressed = compress.compress(buff, len, compressedBuffer, 0);
+                // If size actually increased (instead of compressing), output uncompressed
                 if (compressed > len) {
-                    writeInt(-len);
-                    out.write(buff, 0, len);
-                } else {
-                    writeInt(compressed);
-                    writeInt(len);
-                    out.write(outBuffer, 0, compressed);
+                    writeInt(-len, compressedBuffer);
+                    _out.write(buff, 0, len);
+                } else { // compressed, good:
+                    writeInt(compressed, buffer);
+                    writeInt(len, buffer);
+                    _out.write(compressedBuffer, 0, compressed);
                 }
             }
         }
 
-        private void writeInt(int x) throws IOException {
-            out.write((byte) (x >> 24));
-            out.write((byte) (x >> 16));
-            out.write((byte) (x >> 8));
-            out.write((byte) x);
+        private void writeInt(int x, byte[] buffer) throws IOException {
+            /*
+            _out.write((byte) (x >> 24));
+            _out.write((byte) (x >> 16));
+            _out.write((byte) (x >> 8));
+            _out.write((byte) x);
+            */
+            buffer[0] = (byte) (x >> 24);
+            buffer[1] = (byte) (x >> 16);
+            buffer[2] = (byte) (x >> 8);
+            buffer[3] = (byte) x;
+            _out.write(buffer, 0, 4);
         }
 
         public void write(byte[] buff, int off, int len) throws IOException {
@@ -364,7 +404,7 @@ public class JacksonConverterManualLZF
 
         public void close() throws IOException {
             flush();
-            out.close();
+            _out.close();
         }
 
     }
