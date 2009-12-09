@@ -25,7 +25,7 @@ public abstract class WriterTestBase
     extends BaseStax2Test
 {
     final static int[] ARRAY_TEST_LENGTHS = new int[] {
-        3, 8, 25, 120, 16, 99, 253, 1099, 37242
+        3, 8, 25, 120, 16, 99, 253, 1099, 2866, 37242
     };
 
     /*

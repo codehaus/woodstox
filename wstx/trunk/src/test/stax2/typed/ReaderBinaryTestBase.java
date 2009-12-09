@@ -43,7 +43,7 @@ public abstract class ReaderBinaryTestBase
 
     // Let's test variable length arrays
     final static int[] LEN_ELEM = new int[] {
-        1, 2, 3, 4, 7, 39, 116, 400, 900, 5003, 17045, 125000, 499999
+        1, 2, 3, 4, 7, 39, 116, 400, 900, 2890, 5003, 17045, 125000, 499999
     };
     final static int[] LEN_ATTR = new int[] {
         1, 2, 3, 5, 17, 59, 357, 1920, 9000, 63000, 257010
