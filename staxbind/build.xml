@@ -50,6 +50,7 @@
         <fileset dir="${dir.lib}/hessian" includes="*.jar" />
 
         <!-- json driver jars... -->
+        <fileset dir="${dir.lib}/flexjson" includes="*.jar" />
         <fileset dir="${dir.lib}/jackson" includes="*.jar" />
         <fileset dir="${dir.lib}/json-org" includes="*.jar" />
         <fileset dir="${dir.lib}/json-lib" includes="*.jar" />

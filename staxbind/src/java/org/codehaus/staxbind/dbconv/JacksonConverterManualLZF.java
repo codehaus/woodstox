@@ -371,12 +371,6 @@ public class JacksonConverterManualLZF
         }
 
         private void writeInt(int x, byte[] buffer) throws IOException {
-            /*
-            _out.write((byte) (x >> 24));
-            _out.write((byte) (x >> 16));
-            _out.write((byte) (x >> 8));
-            _out.write((byte) x);
-            */
             buffer[0] = (byte) (x >> 24);
             buffer[1] = (byte) (x >> 16);
             buffer[2] = (byte) (x >> 8);

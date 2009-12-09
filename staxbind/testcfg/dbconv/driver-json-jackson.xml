@@ -2,6 +2,7 @@
   xmlns="http://www.sun.com/japex/testSuite"
 >
       <!-- Jackson json processor; streaming (manual) + LZF -->
+<!--
       <driver name="Json/jackson/LZH+manual">
         <description><div xmlns=""><p>Test driver for JSON (text) that uses Jackson json processor, LZF (MANUAL)</p></div></description>
         <param name="japex.driverClass" value="org.codehaus.staxbind.dbconv.JacksonDriverManualLZF" />
@@ -10,8 +11,10 @@
         <param name="japex.classPath" value="lib/jackson/*.jar"/>
         <param name="japex.classPath" value="lib/wstx3/*.jar"/>
       </driver>
+-->
 
       <!-- Jackson json processor; streaming (manual) + GZIP -->
+<!--
       <driver name="Json/jackson/GZIP+manual">
         <description><div xmlns=""><p>Test driver for JSON (text) that uses Jackson json processor, GZIP (MANUAL)</p></div></description>
         <param name="japex.driverClass" value="org.codehaus.staxbind.dbconv.JacksonDriverManualGzip" />
@@ -20,6 +23,7 @@
         <param name="japex.classPath" value="lib/jackson/*.jar"/>
         <param name="japex.classPath" value="lib/wstx3/*.jar"/>
       </driver>
+-->
 
       <!-- Jackson json processor; streaming (manual) -->
       <driver name="Json/jackson/manual">
