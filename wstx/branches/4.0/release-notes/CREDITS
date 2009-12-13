@@ -428,3 +428,8 @@ Kevin Braun:
   * Reported [WSTX-211]: Failure to parse long CDATA section properly when
     using XMLStreamReader.getElementText(), non-coalescing
    [4.0.6]
+
+Alexander Rydén:
+  * Reported [WSTX-224]: getElementAsBinary() fails when reading large
+    amounts of data (in coalescing mode)
+   [4.0.7]

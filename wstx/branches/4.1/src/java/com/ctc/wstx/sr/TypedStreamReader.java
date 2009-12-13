@@ -453,6 +453,12 @@ public class TypedStreamReader
                 if (type == COMMENT || type == PROCESSING_INSTRUCTION) {
                     continue;
                 }
+                /* 12-Dec-2009, tatu: Important: in coalescing mode we may
+                 *   have incomplete segment that needs to be completed
+                 */
+                if (mTokenState < mStTextThreshold) {
+                    finishToken(false);
+                }
                 _initBinaryChunks(v, dec, type, true);
                 break;
             }
@@ -502,6 +508,12 @@ public class TypedStreamReader
                     }
                     // Otherwise, no more data, we are done
                     break main_loop;
+                }
+                /* 12-Dec-2009, tatu: Important: in coalescing mode we may
+                 *   have incomplete segment that needs to be completed
+                 */
+                if (mTokenState < mStTextThreshold) {
+                    finishToken(false);
                 }
                 _initBinaryChunks(v, dec, type, false);
                 break;

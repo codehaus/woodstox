@@ -14,6 +14,10 @@ import stax2.BaseStax2Test;
 public class TestBinaryRoundTrip
     extends BaseStax2Test
 {
+    /**
+     * Test to verify [WSTX-224]. Note that problems occur only when
+     * in coalescing mode.
+     */
     public void testWstx224() throws Exception
     {
         Base64Variant bv = Base64Variants.MIME;
@@ -35,11 +39,20 @@ public class TestBinaryRoundTrip
         writer.close();
 
         byte[] xml = bos.toByteArray();
+
+        // First: using explicit reads
+        _doTest224(data, xml, bv, false);
+        _doTest224(data, xml, bv, true);
+    }
+
+    private void _doTest224(byte[] data, byte[] xml, Base64Variant bv, boolean useConvAccessor)
+        throws XMLStreamException
+    {
         XMLStreamReader2 reader = getReader(xml);
         byte[] result = null;
         while (reader.hasNext()) {
             if (reader.next() == XMLStreamConstants.START_ELEMENT && "data".equals(reader.getLocalName())) {
-                result = reader.getElementAsBinary(bv);
+                result = _readBinary(reader, bv, xml.length, useConvAccessor);
                 break;
             }
         }
@@ -50,6 +63,31 @@ public class TestBinaryRoundTrip
                 fail("Data differs at offset #"+i+"; expected "+data[i]+", got "+result[i]);
             }
         }
+    }
+
+    private byte[] _readBinary(XMLStreamReader2 sr, Base64Variant bv,
+                               int expSize,
+                               boolean useConvenienceMethod)
+        throws XMLStreamException
+    {
+        // Simplest: just use aggregating...
+        if (useConvenienceMethod) {
+            return sr.getElementAsBinary(bv);
+        }
+
+        byte[] buffer = new byte[expSize+100];
+        int offset = 0;
+
+        while (offset < buffer.length) {
+            int count = sr.readElementAsBinary(buffer, offset, buffer.length-offset, bv);
+            if (count < 0) {
+                break;
+             }
+            offset += count;
+        }
+        byte[] result = new byte[offset];
+        System.arraycopy(buffer, 0, result, 0, offset);
+        return result;
     }
 
     private XMLStreamReader2 getReader(byte[] data)
