@@ -60,4 +60,13 @@ public class TestUtil
         return data;
     }
 
+    public static String calcSpeed(double msecs, long dataAmount)
+    {
+        // we'll calculate kB/s
+        double speed = (double)dataAmount / msecs / 1000.0;
+        // and truncat to "23.1"
+        long l = (long) (speed * 10.0);
+        double trunc = l / 10.0;
+        return trunc+" kB/s";
+    }
 }
