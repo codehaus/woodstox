@@ -88,9 +88,10 @@ public final class WriterConfig
     /**
      * 09-Aug-2007, TSa: Space has always been added after empty
      *   element (before closing "/>"), but now it is configurable.
-     *   Default left as true for backwards compatibility.
+     * 31-Dec-2009, TSa: Intention was to leave it enabled for backwards
+     *   compatibility: but due to a bug this was NOT the case... ugh.
      */
-    final static boolean DEFAULT_ADD_SPACE_AFTER_EMPTY_ELEM = true;
+    final static boolean DEFAULT_ADD_SPACE_AFTER_EMPTY_ELEM = false;
 
     /* How about validation? Let's turn them mostly off by default, since
      * there are some performance hits when enabling them.
@@ -101,7 +102,7 @@ public final class WriterConfig
 
     /* 17-May-2006, TSa: Since content validation is now much cheaper
      *   (due to integrated transcoders) than it used to be, let's
-     *   just enabled content validation too.
+     *   just enable content validation too.
      */
     final static boolean DEFAULT_VALIDATE_CONTENT = true;
     final static boolean DEFAULT_VALIDATE_ATTR = false;
@@ -135,7 +136,7 @@ public final class WriterConfig
         | (DEFAULT_OUTPUT_CDATA_AS_TEXT ? CFG_OUTPUT_CDATA_AS_TEXT : 0)
         | (DEFAULT_COPY_DEFAULT_ATTRS ? CFG_COPY_DEFAULT_ATTRS : 0)
         | (DEFAULT_ESCAPE_CR ? CFG_ESCAPE_CR : 0)
-        | (DEFAULT_ADD_SPACE_AFTER_EMPTY_ELEM ? CFG_ESCAPE_CR : 0)
+        | (DEFAULT_ADD_SPACE_AFTER_EMPTY_ELEM ? CFG_ADD_SPACE_AFTER_EMPTY_ELEM : 0)
         | CFG_AUTOMATIC_END_ELEMENTS
 
         | (DEFAULT_VALIDATE_STRUCTURE ? CFG_VALIDATE_STRUCTURE : 0)

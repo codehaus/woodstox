@@ -36,6 +36,10 @@
   JDK6 default Stax implementation.
   As a result, *WstxOutputProperties.P_OUTPUT_FIX_CONTENT* was
   default settings was *changed to false*.
+* Default setting for WstxOutputProperties.P_ADD_SPACE_AFTER_EMPTY was set
+  to 'false', meaning that no space is added in empty element: that is,
+  output will look like "<empty/>" instead of "<empty />" (as was the case
+  for 3.2 and prior)
 
 === Validation ===
 

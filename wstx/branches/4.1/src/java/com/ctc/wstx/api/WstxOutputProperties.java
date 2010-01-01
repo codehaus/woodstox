@@ -44,7 +44,10 @@ public final class WstxOutputProperties
      * increase compatibility with HTML browsers, or to increase
      * readability.
      *<p>
-     * The default value is 'true', up to Woodstox 4.x.
+     * The default value is 'false', up to Woodstox 4.x.
+     *<p>
+     * <b>NOTE</b>: JavaDocs for versions 4.0.0 - 4.0.7 incorrectly state that
+     * default is 'true': this is NOT the case.
      *<p>
      * Note: added to resolve Jira entry 
      * <a href="http://jira.codehaus.org/browse/WSTX-125">WSTX-125</a>.

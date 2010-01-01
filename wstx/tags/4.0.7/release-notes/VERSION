@@ -1,12 +1,12 @@
 Version: 4.0.7
 
-Release date: xx-Dec-2009
+Release date: 16-Dec-2009
 
 Description:
   4.0 maintenance release that fixes a critical issue with accessing
   base64 encoded binary element data, in coalescing mode.
 
-  Problems fixed:
+  Problem fixed:
 
   * [WSTX-224]: getElementAsBinary() fails when reading large amounts of
     data (in coalescing mode)
