@@ -38,11 +38,39 @@ public class TestBasicSax
         doTestSimple(false, true);
     }
 
+    /**
+     * Test for [WSTX-226]: ensure that given encoding is used
+     * as specified
+     */
+    public void testEncoding() throws Exception
+    {
+        SAXParser parser = new WstxSAXParser();
+        String encoding = "ISO-8859-1";
+        String text = "mit hei\u00DFem Bem\u00FCh'n";
+        byte[] content = ("<root>" + text + "</root>").getBytes(encoding);
+        InputSource is = new InputSource(new ByteArrayInputStream(content));
+        is.setEncoding(encoding);
+        TextExtractor handler = new TextExtractor();
+        parser.parse(is, handler);
+        assertEquals(text, handler.getText());
+    }
+
     /*
     ////////////////////////////////////////////////////
     // Helper methods
     ////////////////////////////////////////////////////
      */
+
+    static class TextExtractor extends DefaultHandler {
+        private final StringBuffer buffer = new StringBuffer();
+        public void characters(char[] ch, int start, int length) throws SAXException {
+            buffer.append(ch, start, length);
+        }
+        
+        public String getText() {
+            return buffer.toString();
+        }
+    }
 
     public void doTestSimple(boolean ns, boolean useReader)
         throws Exception
