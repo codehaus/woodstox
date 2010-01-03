@@ -404,6 +404,8 @@ Andreas Veithen:
   * Reported [WSTX-202], suggested fix for it: BijectiveNsMap#findPrefixByUri
     doesn't handle masked namespace declarations correctly 
    [3.2.9, 4.0.4]
+  * Reported [WSTX-226], SAX parser implementation ignoring passed-in encoding
+   [4.0.8]
 
 Yves Ménard:
   * Reported [WSTX-191] Validation failure with W3C Schema, empty text.

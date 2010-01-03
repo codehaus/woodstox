@@ -1,20 +1,25 @@
-Version: 4.0.7
+Version: 4.0.8
 
-Release date: xx-Dec-2009
+Release date: xx-Jan-2010
 
 Description:
-  4.0 maintenance release that fixes a critical issue with accessing
-  base64 encoded binary element data, in coalescing mode.
+  4.0 maintenance release that fixes issues related to Woodstox
+  SAX parser implementation
 
   Problems fixed:
 
-  * [WSTX-224]: getElementAsBinary() fails when reading large amounts of
-    data (in coalescing mode)
-   (reported by Alexander R)
+  * [WSTX-226]: SAX parser was ignoring passed encoding.
+   (reported by Andreas V)
 
 ------------------------------------------------------------------------
 == History: ==
 ------------------------------------------------------------------------
+
+4.0.7 [16-Dec-2009]
+
+  * [WSTX-224]: getElementAsBinary() fails when reading large amounts of
+    data (in coalescing mode)
+   (reported by Alexander R)
 
 4.0.6 [01-Oct-2009]
 
