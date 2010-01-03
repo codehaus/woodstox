@@ -35,6 +35,7 @@ import org.xml.sax.ext.Locator2;
 import com.ctc.wstx.api.ReaderConfig;
 import com.ctc.wstx.dtd.DTDEventListener;
 import com.ctc.wstx.exc.WstxIOException;
+import com.ctc.wstx.io.DefaultInputResolver;
 import com.ctc.wstx.io.InputBootstrapper;
 import com.ctc.wstx.io.ReaderBootstrapper;
 import com.ctc.wstx.io.StreamBootstrapper;
@@ -486,21 +487,28 @@ public class WstxSAXParser
             mContentHandler.startDocument();
         }
 
+        /* Note: since we are reusing the same config instance, need to
+         * make sure state is not carried forward. Thus:
+         */
+        cfg.resetState();
+
         try {
-            InputBootstrapper bs;
             String inputEnc = input.getEncoding();
             String publicId = input.getPublicId();
+
+            // Got an InputStream and encoding? Can create a Reader:
+            if (r == null && (inputEnc != null && inputEnc.length() > 0)) {
+                r = DefaultInputResolver.constructOptimizedReader(cfg, is, false, inputEnc);
+            }
+            InputBootstrapper bs;
             if (r != null) {
                 bs = ReaderBootstrapper.getInstance(publicId, systemId, r, inputEnc);
+                // false -> not for event reader; false -> no auto-closing
+                mScanner = (BasicStreamReader) mStaxFactory.createSR(cfg, systemId, bs, false, false);
             } else {
                 bs = StreamBootstrapper.getInstance(publicId, systemId, is);
+                mScanner = (BasicStreamReader) mStaxFactory.createSR(cfg, systemId, bs, false, false);
             }
-            /* Note: since we are reusing the same config instance, need to
-             * make sure state is not carried forward. Thus:
-             */
-            cfg.resetState();
-            // false -> not for event reader; false -> no auto-closing
-            mScanner = (BasicStreamReader) mStaxFactory.createSR(cfg, systemId, bs, false, false);
 
             // Need to get xml declaration stuff out now:
             {
