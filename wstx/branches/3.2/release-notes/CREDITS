@@ -383,3 +383,7 @@ Stéphane Claret:
     SAX API (due to JDK impl idiocy)
    [3.2.9]
  
+Brian Sterner:
+  * Reported [WSTX-228]: Property WstxOutputProperties.P_OUTPUT_ESCAPE_CR
+   not used for attribute content
+   [3.2.9.2]

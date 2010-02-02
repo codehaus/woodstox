@@ -1028,7 +1028,11 @@ public final class BufferingXmlWriter
                 char c = value.charAt(inPtr++);
                 if (c <= HIGHEST_ENCODABLE_ATTR_CHAR) { // special char?
                     if (c < 0x0020) { // tab, cr/lf need encoding too
-                        if (c != '\n' && c != '\r' && c != '\t'
+                        if (c == '\r') {
+                            if (mEscapeCR) {
+                                break inner_loop; // quoting
+                            }
+                        } else if (c != '\n' && c != '\t'
                             && (!mXml11 || c == 0)) {
                             c = handleInvalidChar(c);
                         } else {
@@ -1079,7 +1083,11 @@ public final class BufferingXmlWriter
                 char c = value[offset++];
                 if (c <= HIGHEST_ENCODABLE_ATTR_CHAR) { // special char?
                     if (c < 0x0020) { // tab, cr/lf need encoding too
-                        if (c != '\n' && c != '\r' && c != '\t'
+                        if (c == '\r') {
+                            if (mEscapeCR) {
+                                break inner_loop; // quoting
+                            }
+                        } else if (c != '\n' && c != '\t'
                             && (!mXml11 || c == 0)) {
                             c = handleInvalidChar(c);
                         } else {

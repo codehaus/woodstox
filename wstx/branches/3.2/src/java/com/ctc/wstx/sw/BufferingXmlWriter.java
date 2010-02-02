@@ -1002,12 +1002,16 @@ public final class BufferingXmlWriter
                 char c = value.charAt(inPtr++);
                 if (c <= HIGHEST_ENCODABLE_ATTR_CHAR) { // special char?
                     if (c < 0x0020) { // tab, cr/lf need encoding too
-                        if (c != '\n' && c != '\r' && c != '\t') {
-                            if (!mXml11 || c == 0) {
-                                throwInvalidChar(c);
+                        if (c == '\r') {
+                            if (mEscapeCR) {
+                                break inner_loop; // quoting
                             }
+                        } else if (c != '\n' && c != '\t'
+                            && (!mXml11 || c == 0)) {
+                            throwInvalidChar(c);
+                        } else {
+                            break inner_loop; // need quoting
                         }
-                        break inner_loop; // need quoting ok
                     } else if (c == qchar) {
                         ent = mEncQuoteEntity;
                         break inner_loop;
@@ -1053,12 +1057,16 @@ public final class BufferingXmlWriter
                 char c = value[offset++];
                 if (c <= HIGHEST_ENCODABLE_ATTR_CHAR) { // special char?
                     if (c < 0x0020) { // tab, cr/lf need encoding too
-                        if (c != '\n' && c != '\r' && c != '\t') {
-                            if (!mXml11 || c == 0) {
-                                throwInvalidChar(c);
+                        if (c == '\r') {
+                            if (mEscapeCR) {
+                                break inner_loop; // quoting
                             }
+                        } else if (c != '\n' && c != '\t'
+                            && (!mXml11 || c == 0)) {
+                            throwInvalidChar(c);
+                        } else {
+                            break inner_loop; // need quoting
                         }
-                        break inner_loop; // need quoting ok
                     } else if (c == qchar) {
                         ent = mEncQuoteEntity;
                         break inner_loop;

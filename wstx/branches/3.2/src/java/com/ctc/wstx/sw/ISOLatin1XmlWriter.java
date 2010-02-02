@@ -182,11 +182,16 @@ public final class ISOLatin1XmlWriter
                     /* Need to quote all white space except for regular
                      * space chars, to preserve them (round-tripping)
                      */
-                    // !!! TODO: line counting
-                    if (mCheckContent) {
-                        if (c != '\n' && c != '\r' && c != '\t'
-                            && (!mXml11 || c == 0)) {
-                            throwInvalidChar(c);
+                    if (c == '\r') {
+                        if (!mEscapeCR) {
+                            mOutputBuffer[ptr++] = (byte) c;
+                            continue;
+                        }
+                    } else if (c != '\n' && c != '\t') {
+                        if (mCheckContent) {
+                            if (!mXml11 || c == 0) {
+                                throwInvalidChar(c);
+                            }
                         }
                     }
                     // fall-through to char entity output
@@ -258,11 +263,16 @@ public final class ISOLatin1XmlWriter
                     /* Need to quote all white space except for regular
                      * space chars, to preserve them (round-tripping)
                      */
-                    // !!! TODO: line counting
-                    if (mCheckContent) {
-                        if (c != '\n' && c != '\r' && c != '\t'
-                            && (!mXml11 || c == 0)) {
-                            throwInvalidChar(c);
+                    if (c == '\r') {
+                        if (!mEscapeCR) {
+                            mOutputBuffer[ptr++] = (byte) c;
+                            continue;
+                        }
+                    } else if (c != '\n' && c != '\t') {
+                        if (mCheckContent) {
+                            if (!mXml11 || c == 0) {
+                                throwInvalidChar(c);
+                            }
                         }
                     }
                     // fall-through to char entity output

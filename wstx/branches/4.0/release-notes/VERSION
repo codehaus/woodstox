@@ -10,6 +10,9 @@ Description:
 
   * [WSTX-226]: SAX parser was ignoring passed encoding.
    (reported by Andreas V)
+  * [WSTX-228]: Property WstxOutputProperties.P_OUTPUT_ESCAPE_CR
+    not used for attribute content
+   (reported by Brian S)
 
 ------------------------------------------------------------------------
 == History: ==
