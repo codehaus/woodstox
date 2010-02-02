@@ -6,6 +6,7 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 import org.xml.sax.*;
+import org.xml.sax.ext.DefaultHandler2;
 import org.xml.sax.helpers.DefaultHandler;
 
 import com.ctc.wstx.sax.*;
@@ -53,6 +54,39 @@ public class TestBasicSax
         TextExtractor handler = new TextExtractor();
         parser.parse(is, handler);
         assertEquals(text, handler.getText());
+
+        // And second time around, with declaration
+        /* 02-Jan-2010, tatu: Looks like we can NOT reuse parser... why?
+         *   Is that a bug or unsupported way to use it. Hmmh. Need to check.
+         */
+        parser = new WstxSAXParser();
+        content = ("<?xml version='1.0' encoding='"+encoding+"' ?><root>" + text + "</root>").getBytes(encoding);
+        is = new InputSource(new ByteArrayInputStream(content));
+        is.setEncoding(encoding);
+        handler = new TextExtractor();
+        parser.parse(is, handler);
+        assertEquals(text, handler.getText());
+    }
+
+    /**
+     * Test for [WSTX_227]
+     */
+    public void testCData() throws Exception
+    {
+        SAXParser parser = new WstxSAXParser();
+        StringBuffer buffer = new StringBuffer("<root><![CDATA[");
+        for (int i=0; i<100000; i++) {
+            buffer.append('a');
+        }
+        buffer.append("]]></root>");
+        CDATASectionCounter handler = new CDATASectionCounter();
+        parser.setProperty("http://xml.org/sax/properties/lexical-handler", handler);
+        parser.parse(new InputSource(new StringReader(buffer.toString())), handler);
+        // Should get as many cdata sections as text segments
+        int cdatas = handler.getCDATASectionCount();
+        int segments = handler.getSegmentCount();
+
+        assertEquals("Should only get a single CDATA segments, got "+cdatas+" (for "+segments+" text segments)", 1, cdatas);
     }
 
     /*
@@ -60,17 +94,6 @@ public class TestBasicSax
     // Helper methods
     ////////////////////////////////////////////////////
      */
-
-    static class TextExtractor extends DefaultHandler {
-        private final StringBuffer buffer = new StringBuffer();
-        public void characters(char[] ch, int start, int length) throws SAXException {
-            buffer.append(ch, start, length);
-        }
-        
-        public String getText() {
-            return buffer.toString();
-        }
-    }
 
     public void doTestSimple(boolean ns, boolean useReader)
         throws Exception
@@ -93,6 +116,17 @@ public class TestBasicSax
         assertEquals(2, h._elems);
         assertEquals(1, h._attrs);
         assertEquals(11, h._charCount);
+    }
+
+    static class TextExtractor extends DefaultHandler {
+        private final StringBuffer buffer = new StringBuffer();
+        public void characters(char[] ch, int start, int length) throws SAXException {
+            buffer.append(ch, start, length);
+        }
+        
+        public String getText() {
+            return buffer.toString();
+        }
     }
 
     final static class MyHandler
@@ -120,6 +154,27 @@ public class TestBasicSax
                 a.getValue(i);
                 a.getType(i);
             }
+        }
+    }
+
+    static class CDATASectionCounter extends DefaultHandler2 {
+        private int cdataSectionCount;
+        private int segmentCount;
+        
+        public void startCDATA() throws SAXException {
+            cdataSectionCount++;
+        }
+        
+        public void characters(char[] ch, int start, int length) throws SAXException {
+            segmentCount++;
+        }
+        
+        public int getCDATASectionCount() {
+            return cdataSectionCount;
+        }
+        
+        public int getSegmentCount() {
+            return segmentCount;
         }
     }
 }

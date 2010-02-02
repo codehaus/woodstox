@@ -18,15 +18,16 @@ public class TestEscaping
     public void testCrHandlingEscaping()
         throws XMLStreamException
     {
-        doTestCrHandling(true, "Cr: \r.", "Cr: \r.");
-        doTestCrHandling(true, "CrLF: \r\n.", "CrLF: \r\n.");
+        doTestCrHandling(true, "Cr: \r.", "Cr: \r.", "Cr: \r.");
+        doTestCrHandling(true, "CrLF: \r\n.", "CrLF: \r\n.", "CrLF: \r\n.");
     }
 
     public void testCrHandlingNonEscaping()
         throws XMLStreamException
     {
-        doTestCrHandling(false, "Cr: \r.", "Cr: \n.");
-        doTestCrHandling(false, "CrLF: \r\n.", "CrLF: \n.");
+        doTestCrHandling(false, "Cr: \r.", "Cr: \n.", "Cr:  .");
+        // attribute output is same, but parser handling differs, so:
+        doTestCrHandling(false, "CrLF: \r\n.", "CrLF: \n.", "CrLF:  \n.");
     }
 
     /*
@@ -35,11 +36,12 @@ public class TestEscaping
     ////////////////////////////////////////////////////
      */
 
-    private void doTestCrHandling(boolean escaping, String input, String output)
+    private void doTestCrHandling(boolean escaping, String input,
+                                  String elemOutput, String attrOutput)
         throws XMLStreamException
     {
         // Let's try out 2 main encoding types:
-        String[] ENC = new String[] { "UTF-8", "US-ASCII", "ISO-8859-1" };
+        String[] ENC = new String[] { "UTF-8", "ISO-8859-1", "US-ASCII" };
         for (int encIx = 0; encIx < ENC.length; ++encIx) {
             // And 3 writer types:
             for (int type = 0; type < 3; ++type) {
@@ -51,7 +53,8 @@ public class TestEscaping
                 sw.close();
 
                 // Ok, do we get what we should?
-                verifyDoc(escaping, enc, out.toByteArray(), output);
+                verifyDoc(escaping, enc, out.toByteArray(),
+                          elemOutput, attrOutput, sw);
             }
         }
     }
@@ -61,30 +64,31 @@ public class TestEscaping
     {
         sw.writeStartDocument();
         sw.writeStartElement("root");
-        //sw.writeAttribute("attr", text);
+        sw.writeAttribute("attr", text);
         sw.writeCharacters(text);
         sw.writeEndElement();
         sw.writeEndDocument();
     }
 
-    private void verifyDoc(boolean escaping, String encoding, byte[] data, String expText)
+    private void verifyDoc(boolean escaping, String encoding, byte[] data,
+                           String expElem, String expAttr, XMLStreamWriter sw)
         throws XMLStreamException
     {
         XMLStreamReader2 sr = constructNsStreamReader(new ByteArrayInputStream(data), true);
         String actualText;
         assertTokenType(START_ELEMENT, sr.next());
         assertEquals("root", sr.getLocalName());
-        /*
+
         assertEquals(1, sr.getAttributeCount());
         actualText = sr.getAttributeValue(0);
-        if (!expText.equals(actualText)) {
-            failStrings("Attribute value incorrect (CR-escaping: "+escaping+", encoding: "+encoding+")", expText, actualText);
+        if (!expAttr.equals(actualText)) {
+            failStrings("Attribute value incorrect (CR-escaping: "+escaping+", encoding: "+encoding+"; writer: "+sw+")", expAttr, actualText);
         }
-        */
+
         assertTokenType(CHARACTERS, sr.next());
         actualText = getAndVerifyText(sr);
-        if (!expText.equals(actualText)) {
-            failStrings("Attribute value incorrect (CR-escaping: "+escaping+", encoding: "+encoding+")", expText, actualText);
+        if (!expElem.equals(actualText)) {
+            failStrings("Element value incorrect (CR-escaping: "+escaping+", encoding: "+encoding+", writer "+sw+")", expElem, actualText);
         }
         assertTokenType(END_ELEMENT, sr.next());
         assertEquals("root", sr.getLocalName());
