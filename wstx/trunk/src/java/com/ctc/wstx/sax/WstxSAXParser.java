@@ -143,7 +143,7 @@ public class WstxSAXParser
         mConfig.setEntityResolver(r);
         mConfig.setDTDEventListener(this);
 
-        /* These settings do not make sense as generic defaults, but
+        /* These settings do NOT make sense as generic defaults, but
          * are helpful when using some test frameworks. Specifically,
          * - DTD caching may remove calls to resolvers, changing
          *   observed behavior
@@ -152,7 +152,7 @@ public class WstxSAXParser
          *   completely serialize entity resolution calls wrt.
          *   CHARACTERS events.
          */
-        // !!! TEST
+        // !!! ONLY for testing; never remove for prod use
         //mConfig.setShortestReportedTextSegment(1);
         //mConfig.doCacheDTDs(false);
     }

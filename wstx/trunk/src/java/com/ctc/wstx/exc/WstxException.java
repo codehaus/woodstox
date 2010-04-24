@@ -31,7 +31,7 @@ public class WstxException
     /**
      * D'oh. Super-class munges and hides the message, have to duplicate here
      */
-    final String mMsg;
+    final protected String mMsg;
 
     public WstxException(String msg) {
         super(msg);

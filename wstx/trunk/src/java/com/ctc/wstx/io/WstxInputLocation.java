@@ -15,6 +15,7 @@
 
 package com.ctc.wstx.io;
 
+import java.io.Serializable;
 import javax.xml.stream.Location;
 
 import org.codehaus.stax2.XMLStreamLocation2;
@@ -25,7 +26,7 @@ import com.ctc.wstx.util.StringUtil;
  * Basic implementation of {@link Location}, used by Wstx readers.
  */
 public class WstxInputLocation
-    implements XMLStreamLocation2
+    implements Serializable, XMLStreamLocation2
 {
     private final static WstxInputLocation sEmptyLocation
         = new WstxInputLocation(null, "", "", -1, -1, -1);
@@ -34,14 +35,14 @@ public class WstxInputLocation
      * Enclosing (parent) input location; location from which current
      * location is derived.
      */
-    final WstxInputLocation mContext;
+    final protected WstxInputLocation mContext;
 
-    final String mPublicId, mSystemId;
+    final protected String mPublicId, mSystemId;
     
-    final int mCharOffset;
-    final int mCol, mRow;
+    final protected int mCharOffset;
+    final protected int mCol, mRow;
 
-    transient String mDesc = null;
+    transient protected String mDesc = null;
 
     /**
      * @param ctxt Enclosing input location, if any

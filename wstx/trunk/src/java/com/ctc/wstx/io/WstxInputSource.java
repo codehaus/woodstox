@@ -40,7 +40,7 @@ public abstract class WstxInputSource
      * null if not entity-originated. Used for catching recursive expansions
      * of entities.
      */
-    final String mFromEntity;
+    protected final String mFromEntity;
 
     /**
      * Scope of the reader when this entity was initially expanded. Snapshot
@@ -48,7 +48,7 @@ public abstract class WstxInputSource
      * limitations, such as proper nesting entity expansion with respect
      * to element and declaration nesting.
      */
-    int mScopeId = 0;
+    protected int mScopeId = 0;
 
     /*
     //////////////////////////////////////////////////////////
