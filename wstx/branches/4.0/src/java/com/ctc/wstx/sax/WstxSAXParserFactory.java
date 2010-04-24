@@ -44,8 +44,15 @@ public class WstxSAXParserFactory
 
     public WstxSAXParserFactory()
     {
-        mStaxFactory = new WstxInputFactory();
+        this(new WstxInputFactory());
+    }
 
+    /**
+     * @since 4.0.8
+     */
+    public WstxSAXParserFactory(WstxInputFactory f)
+    {
+        mStaxFactory = f;
         /* defaults should be fine... except that for some weird
          * reason, by default namespace support is defined to be off
          */
