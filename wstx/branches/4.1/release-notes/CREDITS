@@ -440,3 +440,12 @@ Alexander Rydén:
   * Reported [WSTX-224]: getElementAsBinary() fails when reading large
     amounts of data (in coalescing mode)
    [4.0.7]
+
+Brian Sterner:
+  * Reported [WSTX-228]: Property WstxOutputProperties.P_OUTPUT_ESCAPE_CR
+   not used for attribute content
+   [4.0.8]
+
+Myles Bunbury:
+  * Suggested [WSTX-236]: Make WstxInputLocation Serializable
+   [4.0.8]

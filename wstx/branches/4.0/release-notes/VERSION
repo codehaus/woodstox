@@ -13,6 +13,8 @@ Description:
   * [WSTX-228]: Property WstxOutputProperties.P_OUTPUT_ESCAPE_CR
     not used for attribute content
    (reported by Brian S)
+  * [WSTX-236]: Make WstxInputLocation Serializable
+   (suggested by Myles B)
 
 ------------------------------------------------------------------------
 == History: ==

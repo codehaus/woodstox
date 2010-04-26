@@ -21,6 +21,12 @@ Description:
 == History: ==
 ------------------------------------------------------------------------
 
+4.0.7 [16-Dec-2009]
+
+  * [WSTX-224]: getElementAsBinary() fails when reading large amounts of
+    data (in coalescing mode)
+   (reported by Alexander R)
+
 4.0.6 [01-Oct-2009]
 
   Problems fixed:
