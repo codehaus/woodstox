@@ -176,6 +176,16 @@ public class WstxSAXParser
         return this;
     }
 
+    /**
+     * Accessor used to allow configuring all standard Stax configuration
+     * settings that the underlying reader uses.
+     *
+     * @since 4.0.8
+     */
+    public final ReaderConfig getStaxConfig() {
+        return mConfig;
+    }
+
     /*
     /////////////////////////////////////////////////
     // Configuration, SAXParser

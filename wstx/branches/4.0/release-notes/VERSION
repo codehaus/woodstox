@@ -6,6 +6,12 @@ Description:
   4.0 maintenance release that fixes issues related to Woodstox
   SAX parser implementation
 
+  Improvements:
+
+  * [WSTX-206] Provide a way to configure SAX parser with all config
+    settings available to Stax readers (add WstxSAXParser.getStaxConfig())
+   (suggested by Stéphane C)
+
   Problems fixed:
 
   * [WSTX-220]: Issues in cases where excessive intern()ing causes

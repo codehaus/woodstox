@@ -423,6 +423,8 @@ Stéphane Claret:
   * Reported [WSTX-204] Custom entity resolver setting was not working with
     SAX API (due to JDK impl idiocy)
    [3.2.9, 4.0.4]
+  * Suggested [WSTX-206] Allow more configurability for SAX parser impl
+   [4.0.8]
  
 Jack S. Rugh:
   * Reported [WSTX-208] Value of default attributes not found using
@@ -438,3 +440,17 @@ Kevin Braun:
   * Reported [WSTX-211]: Failure to parse long CDATA section properly when
     using XMLStreamReader.getElementText(), non-coalescing
    [4.0.6]
+
+Alexander Rydén:
+  * Reported [WSTX-224]: getElementAsBinary() fails when reading large
+    amounts of data (in coalescing mode)
+   [4.0.7]
+
+Brian Sterner:
+  * Reported [WSTX-228]: Property WstxOutputProperties.P_OUTPUT_ESCAPE_CR
+   not used for attribute content
+   [4.0.8]
+
+Myles Bunbury:
+  * Suggested [WSTX-236]: Make WstxInputLocation Serializable
+   [4.0.8]

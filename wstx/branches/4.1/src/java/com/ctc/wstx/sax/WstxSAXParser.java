@@ -122,7 +122,12 @@ public class WstxSAXParser
     /////////////////////////////////////////////////
      */
 
-    protected WstxSAXParser(WstxInputFactory sf, boolean nsPrefixes)
+    /**
+     *<p>
+     * NOTE: this was a protected constructor for versions 4.0
+     * and 3.2; changed to public in 4.1
+     */
+    public WstxSAXParser(WstxInputFactory sf, boolean nsPrefixes)
     {
         mStaxFactory = sf;
         mFeatNsPrefixes = nsPrefixes;
@@ -174,6 +179,16 @@ public class WstxSAXParser
     public final XMLReader getXMLReader()
     {
         return this;
+    }
+
+    /**
+     * Accessor used to allow configuring all standard Stax configuration
+     * settings that the underlying reader uses.
+     *
+     * @since 4.0.8
+     */
+    public final ReaderConfig getStaxConfig() {
+        return mConfig;
     }
 
     /*
