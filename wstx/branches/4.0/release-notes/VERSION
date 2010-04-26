@@ -8,6 +8,9 @@ Description:
 
   Problems fixed:
 
+  * [WSTX-220]: Issues in cases where excessive intern()ing causes
+    synchronization problems; reduce contention by splitting sync block
+   (reported by Rajeswar R)
   * [WSTX-226]: SAX parser was ignoring passed encoding.
    (reported by Andreas V)
   * [WSTX-228]: Property WstxOutputProperties.P_OUTPUT_ESCAPE_CR

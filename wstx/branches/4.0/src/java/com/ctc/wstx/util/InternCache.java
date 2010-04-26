@@ -36,11 +36,21 @@ public final class InternCache
         return sInstance;
     }
 
-    public synchronized String intern(String input) {
-        String result = (String) get(input);
+    public String intern(String input)
+    {
+        String result;
+
+        /* Let's split sync block to help in edge cases like
+         * [WSTX-220]
+         */
+        synchronized (this) {
+            result = (String) get(input);
+        }
         if (result == null) {
             result = input.intern();
-            put(result, result);
+            synchronized (this) {
+                put(result, result);
+            }
         }
         return result;
     }
