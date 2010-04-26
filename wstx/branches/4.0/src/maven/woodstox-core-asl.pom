@@ -16,13 +16,13 @@ implements Stax (JSR-173) and SAX2 APIs</description>
 
   <!-- Dependency information -->
   <dependencies>
-    <!-- Stax API jar is needed; 1.0.1 preferable over vanilla 1.0, since
-         it contains one critical bug fix to implementation auto-detection
+    <!-- Stax API jar is needed; 1.0-2 seems to be the last "official"
+         version prior to JDK 6 that bundles API
       -->
     <dependency>
-      <groupId>stax</groupId>
+      <groupId>javax.xml.stream</groupId>
       <artifactId>stax-api</artifactId>
-      <version>1.0.1</version>
+      <version>1.0-2</version>
     </dependency>
     <!-- Stax2 API (and matching RI), too, is required, not included,
          We need version 3.x of it
