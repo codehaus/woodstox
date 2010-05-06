@@ -228,6 +228,6 @@ public class TestAttrInfo
          * type info processed and accessible?
          */
         setValidating(f, true);
-        return (XMLStreamReader2) constructStreamReader(f, contents);
+        return constructStreamReader(f, contents);
     }
 }

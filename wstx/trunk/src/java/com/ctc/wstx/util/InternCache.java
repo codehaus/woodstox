@@ -44,7 +44,7 @@ public final class InternCache
          * [WSTX-220]
          */
         synchronized (this) {
-            result = (String) get(input);
+            result = get(input);
         }
         if (result == null) {
             result = input.intern();

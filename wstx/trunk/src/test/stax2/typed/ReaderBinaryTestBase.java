@@ -739,6 +739,6 @@ public abstract class ReaderBinaryTestBase
     }
 
     final static String displayByte(byte b) {
-        return "0x"+Integer.toHexString((int) b & 0xFF);
+        return "0x"+Integer.toHexString(b & 0xFF);
     }
 }

@@ -5,7 +5,6 @@ import javax.xml.stream.*;
 import javax.xml.transform.stream.StreamSource;
 
 import org.codehaus.stax2.*;
-import org.codehaus.stax2.io.Stax2Source;
 import org.codehaus.stax2.io.Stax2StringSource;
 
 import stax2.BaseStax2Test;
@@ -166,7 +165,7 @@ public class TestClosing
          * We can test this by using any Stax2Source impl.
          */
         MyStringSource src = new MyStringSource(XML);
-        sr = (XMLStreamReader2) f.createXMLStreamReader((Stax2Source) src);
+        sr = (XMLStreamReader2) f.createXMLStreamReader(src);
 
         assertFalse(src.isClosed());
         assertTokenType(START_ELEMENT, sr.next());

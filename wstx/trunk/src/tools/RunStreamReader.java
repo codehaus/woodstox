@@ -170,6 +170,7 @@ public class RunStreamReader
                 // Choose normal or streaming
                 if (true) {
                     text = sr.getText();
+                    /*
                 } else {
                     StringWriter swr = new StringWriter();
                     int gotLen = sr.getText(swr, false);
@@ -177,6 +178,7 @@ public class RunStreamReader
                     if (gotLen != text.length()) {
                         throw new Error("Error: lengths didn't match: getText() returned "+gotLen+", but String has "+text.length()+" chars.");
                     }
+                    */
                 }
 
                 if (text != null) { // Ref. impl. returns nulls sometimes

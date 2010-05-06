@@ -1,4 +1,4 @@
-package sample;
+package samples;
 
 import java.io.*;
 import java.security.MessageDigest;
@@ -17,6 +17,7 @@ import org.codehaus.stax2.XMLStreamWriter2;
  * how base64 encoded binary can be used with attributes as well
  * as regular character data).
  */
+@SuppressWarnings("serial")
 public class BinaryService
     extends HttpServlet
 {

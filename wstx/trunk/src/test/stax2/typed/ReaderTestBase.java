@@ -22,8 +22,8 @@ import stax2.BaseStax2Test;
 public abstract class ReaderTestBase
     extends BaseStax2Test
 {
-    final static long TOO_BIG_FOR_INT = ((long) Integer.MAX_VALUE)+1L;
-    final static long TOO_SMALL_FOR_INT = ((long) Integer.MIN_VALUE)-1L;
+    final static long TOO_BIG_FOR_INT = Integer.MAX_VALUE+1L;
+    final static long TOO_SMALL_FOR_INT = Integer.MIN_VALUE-1L;
 
     final static BigInteger TOO_BIG_FOR_LONG = BigInteger.valueOf(Long.MAX_VALUE).add(BigInteger.valueOf(123));
     final static BigInteger TOO_SMALL_FOR_LONG = BigInteger.valueOf(Long.MIN_VALUE).subtract(BigInteger.valueOf(123));

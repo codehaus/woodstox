@@ -13,6 +13,8 @@ import org.codehaus.stax2.evt.*;
 
 import org.codehaus.stax2.ri.Stax2ReaderAdapter;
 
+import com.ctc.wstx.api.WstxInputProperties;
+
 /**
  * Base unit test class to be inherited by all unit tests that test
  * StAX2 API compatibility.
@@ -273,6 +275,13 @@ public class BaseStax2Test
         f.setProperty(XMLInputFactory.IS_REPLACING_ENTITY_REFERENCES,
                       state ? Boolean.TRUE : Boolean.FALSE);
     }
+    
+    protected static void setTreatCharRefsAsEnts(XMLInputFactory f, boolean state) 
+        throws XMLStreamException
+    {
+        f.setProperty(WstxInputProperties.P_TREAT_CHAR_REFS_AS_ENTS, 
+                      state ? Boolean.TRUE : Boolean.FALSE);
+    }
 
     protected static void setSupportExternalEntities(XMLInputFactory f, boolean state)
         throws XMLStreamException
@@ -425,7 +434,7 @@ public class BaseStax2Test
 
     protected static String tokenTypeDesc(int tt)
     {
-	String desc = (String) mTokenTypes.get(new Integer(tt));
+	String desc = mTokenTypes.get(new Integer(tt));
 	return (desc == null) ? ("["+tt+"]") : desc;
     }
 
@@ -610,7 +619,7 @@ public class BaseStax2Test
         if (ch > 127 || ch < 32) {
             StringBuffer sb = new StringBuffer(6);
             sb.append("\\u");
-            String hex = Integer.toHexString((int)ch);
+            String hex = Integer.toHexString(ch);
             for (int i = 0, len = 4 - hex.length(); i < len; i++) {
                 sb.append('0');
             }
@@ -634,7 +643,7 @@ public class BaseStax2Test
         if (ch > 127 || ch < 32) {
             StringBuffer sb = new StringBuffer(6);
             sb.append("\\u");
-            String hex = Integer.toHexString((int)ch);
+            String hex = Integer.toHexString(ch);
             for (int i = 0, len = 4 - hex.length(); i < len; i++) {
                 sb.append('0');
             }

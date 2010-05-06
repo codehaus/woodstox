@@ -28,6 +28,8 @@ import com.ctc.wstx.util.StringUtil;
 public class WstxInputLocation
     implements Serializable, XMLStreamLocation2
 {
+    private static final long serialVersionUID = 1L;
+
     private final static WstxInputLocation sEmptyLocation
         = new WstxInputLocation(null, "", "", -1, -1, -1);
 

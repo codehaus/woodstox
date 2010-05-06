@@ -3,7 +3,6 @@ package stax2.typed;
 import java.io.*;
 import java.util.Arrays;
 
-import javax.xml.namespace.QName;
 import javax.xml.stream.*;
 
 import org.codehaus.stax2.*;

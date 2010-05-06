@@ -34,7 +34,7 @@ public class BaseWriterTest
         f.setProperty(XMLStreamProperties.XSP_NAMESPACE_AWARE, Boolean.TRUE);
         f.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES,
                       Boolean.TRUE);
-        return (XMLStreamWriter2) f.createXMLStreamWriter(w, enc);
+        return f.createXMLStreamWriter(w, enc);
     }
 
     public XMLStreamWriter2 getNonRepairingWriter(Writer w, boolean nsAware)
@@ -56,7 +56,7 @@ public class BaseWriterTest
                       Boolean.FALSE);
         f.setProperty(XMLStreamProperties.XSP_NAMESPACE_AWARE,
                       Boolean.valueOf(nsAware));
-        return (XMLStreamWriter2) f.createXMLStreamWriter(w, enc);
+        return f.createXMLStreamWriter(w, enc);
     }
 
     public XMLStreamWriter2 getNonRepairingWriter(OutputStream os, String enc, boolean nsAware)

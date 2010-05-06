@@ -30,14 +30,14 @@ public class TestBijectiveNsMap
     {
         BijectiveNsMap nsMap = BijectiveNsMap.createEmpty();
         nsMap.addMapping("ns", "abc");
-        List l = nsMap.getPrefixesBoundToUri("abc", null);
+        List<?> l = nsMap.getPrefixesBoundToUri("abc", null);
         assertEquals(1, l.size());
         assertEquals("ns", l.iterator().next());
 
         // and then let's mask it
         nsMap = nsMap.createChild();
         nsMap.addMapping("ns", "xyz");
-        assertEquals(0, nsMap.getPrefixesBoundToUri("abc", new ArrayList()).size());
+        assertEquals(0, nsMap.getPrefixesBoundToUri("abc", new ArrayList<String>()).size());
 
         // and finally, let's re-bind it
         nsMap = nsMap.createChild();

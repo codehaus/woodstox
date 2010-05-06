@@ -46,7 +46,7 @@ public class TestDTDEvent
          * this works:
          */
         setSupportDTD(f2, false);
-        XMLEventReader2 er = (XMLEventReader2) constructEventReader(f2, xmlContent);
+        XMLEventReader2 er = constructEventReader(f2, xmlContent);
 
         assertTokenType(START_DOCUMENT, er.nextEvent().getEventType());
         XMLEvent evt = er.nextEvent();

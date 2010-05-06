@@ -159,7 +159,7 @@ public class TestEventReader
         setCoalescing(f, coalescing);
         setLazyParsing(f, true); // shouldn't have effect for event readers!
         setMinTextSegment(f, 8); // likewise
-        return(XMLEventReader2) constructEventReader(f, contents);
+        return constructEventReader(f, contents);
     }
 }
 

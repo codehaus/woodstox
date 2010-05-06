@@ -98,6 +98,6 @@ public class TestNamespaces
         setNamespaceAware(f, true);
         setCoalescing(f, coalesce);
         setValidating(f, false);
-        return (XMLStreamReader2) constructStreamReader(f, contents);
+        return constructStreamReader(f, contents);
     }
 }

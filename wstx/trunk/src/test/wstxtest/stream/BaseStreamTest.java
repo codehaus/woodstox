@@ -248,7 +248,7 @@ public class BaseStreamTest
         return count;
     }
 
-    protected int streamAndSkip(XMLInputFactory f, InputConfigIterator it,
+    protected int streamAndSkip(XMLInputFactory f, @SuppressWarnings("unused") InputConfigIterator it,
                                 String input)
         throws XMLStreamException, UnsupportedEncodingException
     {

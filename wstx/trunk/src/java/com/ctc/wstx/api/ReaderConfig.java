@@ -75,14 +75,23 @@ public final class ReaderConfig
 
     // Simple flags:
 
-    // Note: these were included pre-4.0, are deprecated in 4.0
-    //final static int PROP_NORMALIZE_LFS = 40;
+    /**
+     * Note: this entry was deprecated for 4.0 versions up until
+     * and including 4.0.7; was brought back for 4.0.8 (and will
+     * be retained for 4.1)
+     */
+    final static int PROP_NORMALIZE_LFS = 40;
+
+    /* This entry was deprecated for 3.2 and removed in 4.0
+     * version. There are no plans to bring it back.
+     */
     //final static int PROP_NORMALIZE_ATTR_VALUES = 41;
 
     final static int PROP_CACHE_DTDS = 42;
     final static int PROP_CACHE_DTDS_BY_PUBLIC_ID = 43;
     final static int PROP_LAZY_PARSING = 44;
     final static int PROP_SUPPORT_DTDPP = 45;
+    final static int PROP_TREAT_CHAR_REFS_AS_ENTS = 46;
 
     // Object type properties:
 
@@ -191,6 +200,11 @@ public final class ReaderConfig
          */
 
         | CFG_SUPPORT_DTDPP
+        
+        /*
+         * Set this as a default, as this is required in xml;
+         */
+        | CFG_NORMALIZE_LFS
 
         /* Regarding Xml:id, let's enabled typing by default, but not
          * uniqueness validity checks: latter will be taken care of
@@ -265,6 +279,11 @@ public final class ReaderConfig
                         DataUtil.Integer(PROP_LAZY_PARSING));
         sProperties.put(WstxInputProperties.P_SUPPORT_DTDPP,
                         DataUtil.Integer(PROP_SUPPORT_DTDPP));
+        sProperties.put(WstxInputProperties.P_TREAT_CHAR_REFS_AS_ENTS,
+                DataUtil.Integer(PROP_TREAT_CHAR_REFS_AS_ENTS));
+        sProperties.put(WstxInputProperties.P_NORMALIZE_LFS,
+                DataUtil.Integer(PROP_NORMALIZE_LFS));
+        
 
         // Non-standard ones, non-flags:
 
@@ -603,6 +622,14 @@ public final class ReaderConfig
     public boolean willSupportDTDPP() {
         return _hasConfigFlag(CFG_SUPPORT_DTDPP);
     }
+    
+    public boolean willNormalizeLFs() {
+        return _hasConfigFlag(CFG_NORMALIZE_LFS);
+    }
+    
+    public boolean willTreatCharRefsAsEnts() {
+        return _hasConfigFlag(CFG_TREAT_CHAR_REFS_AS_ENTS);
+    }
 
     public int getInputBufferLength() { return mInputBufferLen; }
 
@@ -778,6 +805,14 @@ public final class ReaderConfig
 
     public void doSupportDTDPP(boolean state) {
         setConfigFlag(CFG_SUPPORT_DTDPP, state);
+    }
+    
+    public void doTreatCharRefsAsEnts(final boolean state) {
+        setConfigFlag(CFG_TREAT_CHAR_REFS_AS_ENTS, state);
+    }
+    
+    public void doNormalizeLFs(final boolean state) {
+        setConfigFlag(CFG_NORMALIZE_LFS, state);
     }
 
     public void setInputBufferLength(int value)
@@ -1057,6 +1092,10 @@ public final class ReaderConfig
      *    that all original text segment chunks are reported without
      *    segmentation (but without coalescing with adjacent CDATA segments)
      *  <li>
+     *  <li>Sets <code>P_TREAT_CHAR_REFS_AS_ENTS</code> to true, so the all the 
+     *   original character references are reported with their position, 
+     *   original text, and the replacement text.
+     *   </li>
      *</ul>
      */
     public void configureForRoundTripping()
@@ -1070,6 +1109,8 @@ public final class ReaderConfig
         doReportPrologWhitespace(true);
         
         // Woodstox specific settings
+        doTreatCharRefsAsEnts(true);
+        doNormalizeLFs(false);
 
         // effectively prevents from reporting partial segments:
         setShortestReportedTextSegment(Integer.MAX_VALUE);
@@ -1262,6 +1303,12 @@ public final class ReaderConfig
                     XMLStreamProperties.XSP_V_XMLID_FULL :
                     XMLStreamProperties.XSP_V_XMLID_TYPING;
             }
+            
+        case PROP_TREAT_CHAR_REFS_AS_ENTS:
+            return willTreatCharRefsAsEnts() ? Boolean.TRUE : Boolean.FALSE;
+            
+        case PROP_NORMALIZE_LFS:
+            return willNormalizeLFs() ? Boolean.TRUE : Boolean.FALSE;
 
             // then object values:
         case PROP_INPUT_BUFFER_LENGTH:
@@ -1399,7 +1446,15 @@ public final class ReaderConfig
         case PROP_LAZY_PARSING:
             doParseLazily(ArgUtil.convertToBoolean(propName, value));
             break;
+            
+        case PROP_TREAT_CHAR_REFS_AS_ENTS:
+            doTreatCharRefsAsEnts(ArgUtil.convertToBoolean(propName, value));
+            break;
 
+        case PROP_NORMALIZE_LFS:
+            doTreatCharRefsAsEnts(ArgUtil.convertToBoolean(propName, value));
+            break;
+            
         // // // And then Woodstox specific, enum/object:
 
         case PROP_INPUT_BUFFER_LENGTH:

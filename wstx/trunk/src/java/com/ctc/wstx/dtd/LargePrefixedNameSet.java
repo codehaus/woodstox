@@ -177,8 +177,10 @@ public final class LargePrefixedNameSet
         public PrefixedName getName() { return mName; }
         public Bucket getNext() { return mNext; }
 
+        /*
         public boolean contains(PrefixedName n) {
             return mName.equals(n);
         }
+        */
     }
 }

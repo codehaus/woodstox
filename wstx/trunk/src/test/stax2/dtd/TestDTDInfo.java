@@ -63,6 +63,6 @@ public class TestDTDInfo
         // Need dtd support, may need validation...
         setSupportDTD(f, true);
         setValidating(f, true);
-        return (XMLStreamReader2) constructStreamReader(f, contents);
+        return constructStreamReader(f, contents);
     }
 }

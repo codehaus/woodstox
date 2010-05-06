@@ -15,6 +15,30 @@ Description:
 == History: ==
 ------------------------------------------------------------------------
 
+4.0.8 [05-May-2010]
+
+  Improvements:
+
+  * [WSTX-206] Provide a way to configure SAX parser with all config
+    settings available to Stax readers (add WstxSAXParser.getStaxConfig())
+   (suggested by Stéphane C)
+  * [WSTX-234] Restore feature WstxInputProperties.NORMALIZE_LFS; add
+    WstxInputProperties.TREAT_CHAR_REFS_AS_ENTS
+   (requested by Peter S)
+
+  Problems fixed:
+
+  * [WSTX-220]: Issues in cases where excessive intern()ing causes
+    synchronization problems; reduce contention by splitting sync block
+   (reported by Rajeswar R)
+  * [WSTX-226]: SAX parser was ignoring passed encoding.
+   (reported by Andreas V)
+  * [WSTX-228]: Property WstxOutputProperties.P_OUTPUT_ESCAPE_CR
+    not used for attribute content
+   (reported by Brian S)
+  * [WSTX-236]: Make WstxInputLocation Serializable
+   (suggested by Myles B)
+
 4.0.7 [16-Dec-2009]
 
   Problem fixed:

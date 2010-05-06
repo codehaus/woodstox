@@ -7,9 +7,6 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.*;
 import javax.xml.stream.events.*;
 
-import org.codehaus.stax2.*;
-import org.codehaus.stax2.evt.*;
-
 import stax2.BaseStax2Test;
 
 /**
@@ -32,7 +29,7 @@ public class TestStartElementEvent
         XMLInputFactory f = getNewInputFactory();
         XMLEventReader er = f.createXMLEventReader(new StringReader(DOC));
 
-        ArrayList/*<StartElement>*/ elemEvents = new ArrayList/*<StartElement>*/();
+        ArrayList<StartElement> elemEvents = new ArrayList<StartElement>();
 
         assertTokenType(START_DOCUMENT, er.nextEvent());
         XMLEvent evt = er.nextEvent();
@@ -56,7 +53,7 @@ public class TestStartElementEvent
         /* Ok, got 3 start elements, and accessing the SECOND one triggers
          * the problem
          */
-        _verifyAttrCount((StartElement) elemEvents.get(1), 4, true);
+        _verifyAttrCount(elemEvents.get(1), 4, true);
     }
 
     /*
@@ -75,9 +72,9 @@ public class TestStartElementEvent
             assertNull(probAttr);
         }
 
-        Iterator it = start.getAttributes();
+        Iterator<?> it = start.getAttributes();
         int count = 0;
-        Map/*<QName,String>*/ attrs = new HashMap/*<QName,String>*/();
+        Map<QName,String> attrs = new HashMap<QName,String>();
 
         // First, collect the attributes
         while (it.hasNext()) {
@@ -91,11 +88,11 @@ public class TestStartElementEvent
         // Then verify we can access them ok
         //for (Map.Entry<QName,String> en : attrs) {
 
-        Iterator it2 = attrs.entrySet().iterator();
+        Iterator<Map.Entry<QName,String>> it2 = attrs.entrySet().iterator();
         while (it2.hasNext()) {
-            Map.Entry en = (Map.Entry) it2.next();
-            QName key = (QName) en.getKey();
-            String value = (String) en.getValue();
+            Map.Entry<QName,String> en = it2.next();
+            QName key = en.getKey();
+            String value = en.getValue();
 
             // should find it via StartElement too
             Attribute attr = start.getAttributeByName(key);

@@ -1,13 +1,9 @@
 package wstxtest.vstream;
 
-import java.io.*;
-
 import javax.xml.stream.*;
 
 import org.codehaus.stax2.*;
 import org.codehaus.stax2.validation.*;
-
-import wstxtest.stream.BaseStreamTest;
 
 /**
  * This is a simple base-line "smoke test" that checks that RelaxNG
