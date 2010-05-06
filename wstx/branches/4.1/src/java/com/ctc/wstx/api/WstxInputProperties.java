@@ -30,13 +30,20 @@ public final class WstxInputProperties
 
     // // // Normalization:
 
-
-    /* As of Woodstox 4.0, xml specification mandated normalization is
-     * always done, and can not be disabled. Removing this feature simplifies
-     * parsing code significantly; and feature itself was seldom if ever
-     * used.
+    /**
+     * Feature that controls whether linefeeds are normalized into
+     * canonical linefeed as mandated by xml specification.
+     *<p>
+     * Note that disabling this property (from its default enabled
+     * state) will result in non-conforming XML processing. It may
+     * be useful for use cases where changes to input content should
+     * be minimized.
+     *<p>
+     * Note: this property was initially removed from Woodstox 4.0,
+     * but was reintroduced in 4.0.8 due to user request.
      */
-    //public final static String P_NORMALIZE_LFS = "com.ctc.wstx.normalizeLFs";
+    public final static String P_NORMALIZE_LFS = "com.ctc.wstx.normalizeLFs";
+
     //public final static String P_NORMALIZE_ATTR_VALUES = "com.ctc.wstx.normalizeAttrValues";
 
     // // // XML character validation:
@@ -107,6 +114,13 @@ public final class WstxInputProperties
      * Note: not implemented as of 2.0.x
      */
     public final static String P_SUPPORT_DTDPP = "com.ctc.wstx.supportDTDPP";
+    
+    
+    /**
+     * Whether the Reader will treat character references as entities while parsing 
+     * XML documents. 
+     */
+    public static final String P_TREAT_CHAR_REFS_AS_ENTS = "com.ctc.wstx.treatCharRefsAsEnts";
 
     // // // Enabling alternate mode for parsing XML fragments instead
     // // // of full documents

@@ -19,6 +19,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
 import java.text.MessageFormat;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.xml.stream.Location;
 import javax.xml.stream.XMLInputFactory;
@@ -35,9 +38,20 @@ import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.cfg.InputConfigFlags;
 import com.ctc.wstx.cfg.ParsingErrorMsgs;
 import com.ctc.wstx.cfg.XmlConsts;
+import com.ctc.wstx.dtd.MinimalDTDReader;
 import com.ctc.wstx.ent.EntityDecl;
-import com.ctc.wstx.exc.*;
-import com.ctc.wstx.io.*;
+import com.ctc.wstx.ent.IntEntity;
+import com.ctc.wstx.exc.WstxEOFException;
+import com.ctc.wstx.exc.WstxException;
+import com.ctc.wstx.exc.WstxIOException;
+import com.ctc.wstx.exc.WstxLazyException;
+import com.ctc.wstx.exc.WstxParsingException;
+import com.ctc.wstx.exc.WstxUnexpectedCharException;
+import com.ctc.wstx.exc.WstxValidationException;
+import com.ctc.wstx.io.DefaultInputResolver;
+import com.ctc.wstx.io.WstxInputData;
+import com.ctc.wstx.io.WstxInputLocation;
+import com.ctc.wstx.io.WstxInputSource;
 import com.ctc.wstx.util.ExceptionUtil;
 import com.ctc.wstx.util.SymbolTable;
 import com.ctc.wstx.util.TextBuffer;
@@ -332,6 +346,21 @@ public abstract class StreamScanner
      * from {@link XmlConsts} (like {@link XmlConsts#XML_V_10}).
      */
     protected int mDocXmlVersion = XmlConsts.XML_V_UNKNOWN;
+    
+    /**
+     * Cache of internal character entities;
+     */
+    protected Map mCachedEntities;
+    
+    /**
+     * Flag for whether or not character references should be treated as entities
+     */
+    protected boolean mCfgTreatCharRefsAsEntities;
+    
+    /**
+     * The current entity in processing.
+     */
+    protected EntityDecl mCurrEntity;
 
     /*
     ////////////////////////////////////////////////////
@@ -357,10 +386,13 @@ public abstract class StreamScanner
         mCfgNsEnabled = (cf & CFG_NAMESPACE_AWARE) != 0;
         mCfgReplaceEntities = (cf & CFG_REPLACE_ENTITY_REFS) != 0;
 
-        mNormalizeLFs = true;
+        mNormalizeLFs = mConfig.willNormalizeLFs();
         mInputBuffer = null;
         mInputPtr = mInputEnd = 0;
         mEntityResolver = res;
+        
+        mCfgTreatCharRefsAsEntities = mConfig.willTreatCharRefsAsEnts();
+        mCachedEntities = mCfgTreatCharRefsAsEntities ? new HashMap() : Collections.EMPTY_MAP;
     }
 
     /*
@@ -1302,7 +1334,7 @@ public abstract class StreamScanner
         // A char reference?
         if (c == '#') { // yup
             ++mInputPtr;
-            return resolveCharEnt();
+            return resolveCharEnt(null);
         }
 
         // nope... except may be a pre-def?
@@ -1467,42 +1499,81 @@ public abstract class StreamScanner
         throws XMLStreamException
     {
         char c = getNextCharFromCurrent(SUFFIX_IN_ENTITY_REF);
-
+        char d = CHAR_NULL;
         // Do we have a (numeric) character entity reference?
         if (c == '#') { // numeric
-            return resolveCharEnt();
+            final StringBuffer originalSurface = new StringBuffer("#");
+            d = resolveCharEnt(originalSurface);
+            if (mCfgTreatCharRefsAsEntities) {
+                final char[] originalChars = new char[originalSurface.length()];
+                originalSurface.getChars(0, originalSurface.length(), originalChars, 0);
+                mCurrEntity = getIntEntity(d, originalChars);
+                return CHAR_NULL;
+            }
+            return d;
         }
 
         String id = parseEntityName(c);
-            
+ 
         // Perhaps we have a pre-defined char reference?
         c = id.charAt(0);
-        /* 16-May-2004, TSa: Should custom entities (or ones defined in
-         *   int/ext subset) override pre-defined settings for these?
+        /*
+         * 16-May-2004, TSa: Should custom entities (or ones defined in int/ext subset) override
+         * pre-defined settings for these?
          */
         if (c == 'a') { // amp or apos?
             if (id.equals("amp")) {
-                return '&';
-            }
-            if (id.equals("apos")) {
-                return '\'';
+                d = '&';
+            } else if (id.equals("apos")) {
+                d = '\'';
             }
         } else if (c == 'g') { // gt?
             if (id.length() == 2 && id.charAt(1) == 't') {
-                return '>';
+                d = '>';
             }
         } else if (c == 'l') { // lt?
             if (id.length() == 2 && id.charAt(1) == 't') {
-                return '<';
+                d = '<';
             }
         } else if (c == 'q') { // quot?
             if (id.equals("quot")) {
-                return '"';
+                d = '"';
             }
         }
-        expandEntity(id, allowExt, null);
+
+        if (d != CHAR_NULL) {
+            if (mCfgTreatCharRefsAsEntities) {
+                final char[] originalChars = new char[id.length()];
+                id.getChars(0, id.length(), originalChars, 0);
+                mCurrEntity = getIntEntity(d, originalChars);
+                return CHAR_NULL;
+            }
+            return d;
+        }
+
+        final EntityDecl e = expandEntity(id, allowExt, null);
+        if (mCfgTreatCharRefsAsEntities) {
+            mCurrEntity = e;
+        }
         return CHAR_NULL;
     }
+    
+    /**
+     * Returns an entity (possibly from cache) for the argument character using the encoded
+     * representation in mInputBuffer[entityStartPos ... mInputPtr-1].
+     */
+    protected EntityDecl getIntEntity(final char c, final char[] originalChars)
+    {
+        String cacheKey = new String(originalChars);
+
+        IntEntity entity = (IntEntity) mCachedEntities.get(cacheKey);
+        if (entity == null) {
+            entity = IntEntity.create(new String(originalChars), Character.toString(c));
+            mCachedEntities.put(cacheKey, entity);
+        }
+        return entity;
+    }
+
 
     /**
      * Helper method that will try to expand a parsed entity (parameter or
@@ -1532,11 +1603,15 @@ public abstract class StreamScanner
              *    resolver"
              */
             if (mCfgReplaceEntities) {
-                expandUnresolvedEntity(id);
+                mCurrEntity = expandUnresolvedEntity(id);
             }
             return null;
         }
-        expandEntity(ed, allowExt);
+        
+        if (!mCfgTreatCharRefsAsEntities || this instanceof MinimalDTDReader) {
+            expandEntity(ed, allowExt);
+        }
+        
         return ed;
     }
 
@@ -1606,7 +1681,7 @@ public abstract class StreamScanner
      *<p>
      * note: only called from the local expandEntity() method
      */
-    private void expandUnresolvedEntity(String id)
+    private EntityDecl expandUnresolvedEntity(String id)
         throws XMLStreamException
     {
         XMLResolver resolver = mConfig.getUndeclaredEntityResolver();
@@ -1632,16 +1707,21 @@ public abstract class StreamScanner
             try {
                 newInput = DefaultInputResolver.resolveEntityUsing
                     (oldInput, id, null, null, resolver, mConfig, xmlVersion);
+                if (mCfgTreatCharRefsAsEntities) {
+                    return new IntEntity(WstxInputLocation.getEmptyLocation(), newInput.getEntityId(),
+                            newInput.getSource(), new char[]{}, WstxInputLocation.getEmptyLocation());
+                }
             } catch (IOException ioe) {
                 throw constructFromIOE(ioe);
             }
             if (newInput != null) {
                 // true -> is external
                 initInputSource(newInput, true, id);
-                return;
+                return null;
             }
         }
         handleUndeclaredEntity(id);
+        return null;
     }
 
     /*
@@ -2219,17 +2299,26 @@ public abstract class StreamScanner
     //////////////////////////////////////////
      */
 
-    private char resolveCharEnt()
+    private char resolveCharEnt(StringBuffer originalCharacters)
         throws XMLStreamException
     {
         int value = 0;
         char c = getNextChar(SUFFIX_IN_ENTITY_REF);
+        
+        if (originalCharacters != null) {
+            originalCharacters.append(c);
+        }
+        
         if (c == 'x') { // hex
             while (true) {
                 c = (mInputPtr < mInputEnd) ? mInputBuffer[mInputPtr++]
                     : getNextCharFromCurrent(SUFFIX_IN_ENTITY_REF);
                 if (c == ';') {
                     break;
+                }
+                
+                if (originalCharacters != null) {
+                    originalCharacters.append(c);
                 }
                 value = value << 4;
                 if (c <= '9' && c >= '0') {
@@ -2259,6 +2348,10 @@ public abstract class StreamScanner
                 }
                 c = (mInputPtr < mInputEnd) ? mInputBuffer[mInputPtr++]
                     : getNextCharFromCurrent(SUFFIX_IN_ENTITY_REF);
+                
+                if (originalCharacters != null && c != ';') {
+                    originalCharacters.append(c);
+                }
             }
         }
         return checkAndExpandChar(value);

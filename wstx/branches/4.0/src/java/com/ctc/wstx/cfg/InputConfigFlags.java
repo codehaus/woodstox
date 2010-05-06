@@ -134,7 +134,7 @@ public interface InputConfigFlags
     // // // Content normalization
 
     // 20-Jan-2007, TSa: These properties removed from 4.0, deprecated:
-    //final static int CFG_NORMALIZE_LFS  =   0x2000;
+    final static int CFG_NORMALIZE_LFS  =   0x2000;
     //final static int CFG_NORMALIZE_ATTR_VALUES = 0x4000;
 
     // // // Caching
@@ -194,5 +194,11 @@ public interface InputConfigFlags
      * if not validating against DTD otherwise.
      */
     final static int CFG_XMLID_UNIQ_CHECKS = 0x00400000;
+    
+    /**
+     * If true, the XML parser will treat character references as entities. 
+     * 
+     */
+    final static int CFG_TREAT_CHAR_REFS_AS_ENTS = 0x00800000;
 }
 

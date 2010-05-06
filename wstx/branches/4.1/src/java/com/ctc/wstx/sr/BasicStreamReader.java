@@ -358,12 +358,6 @@ public abstract class BasicStreamReader
     protected Map mGeneralEntities = null;
 
     /**
-     * Entity reference stream currently points to; only used when
-     * in non-automatically expanding mode.
-     */
-    protected EntityDecl mCurrEntity;
-
-    /**
      * Mode information needed at this level; mostly to check what kind
      * of textual content (if any) is allowed in current element
      * context. Constants come from
@@ -2737,11 +2731,14 @@ public abstract class BasicStreamReader
             /* Nope; was a general entity... in auto-mode, it's now been
              * expanded; in non-auto, need to figure out entity itself.
              */
-            if (!mCfgReplaceEntities) {
-                EntityDecl ed = resolveNonCharEntity();
+            if (!mCfgReplaceEntities|| mCfgTreatCharRefsAsEntities) {
+                if (!mCfgTreatCharRefsAsEntities) {
+                    final EntityDecl ed = resolveNonCharEntity();
+                    // Note: ed may still be null at this point
+                    mCurrEntity = ed;
+                }
                 // Note: ed may still be null at this point
                 mTokenState = TOKEN_FULL_COALESCED;
-                mCurrEntity = ed;
                 /*
                 // let's not worry about non-parsed entities, since this is unexpanded mode
                 // ... although it'd be an error either way? Should we report it?
@@ -4915,14 +4912,6 @@ public abstract class BasicStreamReader
             }
             char c = mInputBuffer[mInputPtr];
             if (c > CHAR_SPACE) { // end of WS?
-                /* 30-Aug-2006, TSa: Let's not indicate an error quite yet:
-                 *    it'll be reported in due time, later on, if necessary.
-                 *    Here we can just return whatever we have collected
-                 *    so far.
-                 */
-                //if (!prologWS && c != '<') {
-                //    throwNotWS(c);
-                //}
                 break;
             }
             ++mInputPtr;
@@ -5441,14 +5430,6 @@ public abstract class BasicStreamReader
         throw new IllegalStateException(MessageFormat.format(ErrorConsts.ERR_STATE_NOT_ELEM_OR_TEXT, new Object[] { tokenTypeDesc(type) }));
     }
 
-    private void throwNotWS(char c)
-        throws WstxException
-    {
-        throwUnexpectedChar(c, "; element <"
-                            +mElementStack.getTopElementDesc()
-                            +"> does not allow mixed content");
-        
-    }
 
     /**
      * Method called when we get an EOF within content tree

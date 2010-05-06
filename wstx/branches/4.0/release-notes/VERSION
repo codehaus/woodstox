@@ -1,16 +1,19 @@
 Version: 4.0.8
 
-Release date: xx-Jan-2010
+Release date: 05-May-2010
 
 Description:
-  4.0 maintenance release that fixes issues related to Woodstox
-  SAX parser implementation
+  4.0 maintenance release; also updates stax2-api version to 3.0.2 to
+  work around Maven issues.
 
   Improvements:
 
   * [WSTX-206] Provide a way to configure SAX parser with all config
     settings available to Stax readers (add WstxSAXParser.getStaxConfig())
    (suggested by Stéphane C)
+  * [WSTX-234] Restore feature WstxInputProperties.NORMALIZE_LFS; add
+    WstxInputProperties.TREAT_CHAR_REFS_AS_ENTS
+   (requested by Peter S)
 
   Problems fixed:
 

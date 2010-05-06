@@ -13,6 +13,8 @@ import org.codehaus.stax2.evt.*;
 
 import org.codehaus.stax2.ri.Stax2ReaderAdapter;
 
+import com.ctc.wstx.api.WstxInputProperties;
+
 /**
  * Base unit test class to be inherited by all unit tests that test
  * StAX2 API compatibility.
@@ -270,6 +272,13 @@ public class BaseStax2Test
         throws XMLStreamException
     {
         f.setProperty(XMLInputFactory.IS_REPLACING_ENTITY_REFERENCES,
+                      state ? Boolean.TRUE : Boolean.FALSE);
+    }
+    
+    protected static void setTreatCharRefsAsEnts(XMLInputFactory f, boolean state) 
+        throws XMLStreamException
+    {
+        f.setProperty(WstxInputProperties.P_TREAT_CHAR_REFS_AS_ENTS, 
                       state ? Boolean.TRUE : Boolean.FALSE);
     }
 
