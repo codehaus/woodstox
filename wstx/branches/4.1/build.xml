@@ -43,7 +43,7 @@
     <!-- Extended API, working title "Stax2" (not version 2.0, but 2/squared)
       -->
     <property name="STAX2_TITLE" value="Stax2 API" />
-    <property name="STAX2_VERSION" value="3.0.1" />
+    <property name="STAX2_VERSION" value="3.0.2" />
     <property name="STAX2_VENDOR" value="http://woodstox.codehaus.org" />
 
     <!-- And finally version dependency spec between Woodstox core
