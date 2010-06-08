@@ -45,6 +45,7 @@
          bundleRequiredExecutionEnvironment="${REQ_JDK_VERSION}"
          filename="${OSGI_STAX2_BASENAME}-${STAX2_VERSION}"
          exportpackage="org.codehaus.stax2*;version=${STAX2_VERSION}"
+         includeResource="META-INF=release-notes/bsd"
       >
         <classpath>
               <pathelement path="${dir.build.classes.stax2}" />

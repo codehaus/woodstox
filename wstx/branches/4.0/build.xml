@@ -42,7 +42,8 @@
     <!-- Extended API, working title "Stax2" (not version 2.0, but 2/squared)
       -->
     <property name="STAX2_TITLE" value="Stax2 API" />
-    <property name="STAX2_VERSION" value="3.0.2" />
+    <!-- 3.0.3: same as 3.0.2, but includes BSD license file in jar -->
+    <property name="STAX2_VERSION" value="3.0.3" />
     <property name="STAX2_VENDOR" value="http://woodstox.codehaus.org" />
 
     <!-- And finally version dependency spec between Woodstox core
@@ -92,6 +93,7 @@
           <include name="src/maven/*.pom" />
           <include name="release-notes/*" />
           <include name="release-notes/asl/*" />
+          <include name="release-notes/bsd/*" />
           <include name="release-notes/lgpl/*" />
           <!-- need jars too; at least the api jar, but let's copy
                all for now... it's nice to have the unit tests in there
@@ -394,6 +396,7 @@
        <copy todir="${dir.dist}" >
             <fileset dir="." includes="release-notes/*" />
             <fileset dir="." includes="release-notes/asl/*" />
+            <fileset dir="." includes="release-notes/bsd/*" />
             <fileset dir="." includes="release-notes/lgpl/*" />
        </copy>
        <!-- And also additional Maven stuff -->
