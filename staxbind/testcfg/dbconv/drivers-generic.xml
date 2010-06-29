@@ -19,7 +19,9 @@
 
     <!-- leading Json candidates -->
     <xi:include href="driver-json-jackson.xml" />
+    <!--  too slow, skip
     <xi:include href="driver-json-gson.xml" />
+     -->
 
     <!-- Binary alternatives -->
     <xi:include href="driver-hessian.xml" />

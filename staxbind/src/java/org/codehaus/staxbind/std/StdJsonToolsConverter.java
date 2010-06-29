@@ -23,17 +23,18 @@ public class StdJsonToolsConverter<T extends StdItem<T>>
         _mapper = new JSONMapper();
     }
 
+    @SuppressWarnings("unchecked")
     public T readData(InputStream in) throws Exception
     {
         // two-step process: parse to JSON value, bind to POJO
         JSONParser jp = new JSONParser(in);
         JSONValue v = jp.nextValue();
-        return (T) _mapper.toJava(v, _itemClass);
+        return (T) JSONMapper.toJava(v, _itemClass);
     }
     
     public int writeData(OutputStream out, T data) throws Exception
     {
-        JSONValue v = _mapper.toJSON(data);
+        JSONValue v = JSONMapper.toJSON(data);
         // this is stupid; no way to output to a stream (or even reader)?!?
         String jsonStr = v.render(false);
         OutputStreamWriter w = new OutputStreamWriter(out, "UTF-8");

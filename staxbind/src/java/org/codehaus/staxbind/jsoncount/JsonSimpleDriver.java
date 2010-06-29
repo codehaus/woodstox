@@ -32,9 +32,9 @@ public final class JsonSimpleDriver
     private void _processNode(Object node, CountResult results)
         throws Exception
     {
-        if (node instanceof Map) {
+        if (node instanceof Map<?,?>) {
             _processObject((Map<?,?>) node, results);
-        } else if (node instanceof List) {
+        } else if (node instanceof List<?>) {
             _processArray((List<?>) node, results);
         }
     }
