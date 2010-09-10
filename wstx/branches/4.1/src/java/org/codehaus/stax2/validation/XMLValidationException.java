@@ -15,6 +15,7 @@ import javax.xml.stream.XMLStreamException;
  * choose appropriate constructors to call, to make sure super-class does
  * not barf (NPE or such).
  */
+@SuppressWarnings("serial")
 public class XMLValidationException
     extends XMLStreamException
 {

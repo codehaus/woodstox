@@ -96,6 +96,7 @@ public class TestStreamCopier
 
 //System.err.println("[XMLStreamWriter: "+sw.getClass()+"]");
 
+        @SuppressWarnings("unused")
         int count = 0;
 
         for (int type = sr.getEventType(); type !=XMLStreamConstants.END_DOCUMENT; type = sr.next()) {

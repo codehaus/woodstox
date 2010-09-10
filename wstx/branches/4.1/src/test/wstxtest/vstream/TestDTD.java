@@ -8,8 +8,6 @@ import javax.xml.stream.*;
 import org.codehaus.stax2.XMLStreamReader2;
 import org.codehaus.stax2.validation.*;
 
-import wstxtest.stream.BaseStreamTest;
-
 /**
  * This test suite should really be part of wstx-tools package, but since
  * there is some supporting code within core Woodstox, it was added here.

@@ -39,6 +39,7 @@ public final class SimpleCache
     /////////////////////////////////////////////
      */
 
+    @SuppressWarnings("serial")
     final static class LimitMap
         extends LinkedHashMap
     {

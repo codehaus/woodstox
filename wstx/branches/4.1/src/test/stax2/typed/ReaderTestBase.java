@@ -559,10 +559,9 @@ public abstract class ReaderTestBase
         throws Exception
     {
         XMLStreamReader2 sr = getRootReader("<root>ns:name  </root>");
-        QName n;
         // First, unbound namespace prefix
         try {
-            n = sr.getElementAsQName();
+            /*QName n =*/ sr.getElementAsQName();
             fail("Expected an exception for unbound QName prefix");
         } catch (TypedXMLStreamException tex) { }
         sr.close();
@@ -572,9 +571,8 @@ public abstract class ReaderTestBase
         throws Exception
     {
         XMLStreamReader2 sr = getRootReader("<root xmlns:ns='http://foo'>ns:na?me</root>");
-        QName n;
         try {
-            n = sr.getElementAsQName();
+            /*QName n =*/ sr.getElementAsQName();
             fail("Expected an exception for invalid QName (non-xml-name char in the middle)");
         } catch (TypedXMLStreamException tex) { }
         sr.close();
@@ -598,10 +596,9 @@ public abstract class ReaderTestBase
         throws Exception
     {
         XMLStreamReader2 sr = getRootReader("<root attr='ns:name  ' />");
-        QName n;
         // First, unbound namespace prefix
         try {
-            n = sr.getAttributeAsQName(0);
+            /*QName n =*/ sr.getAttributeAsQName(0);
             fail("Expected an exception for unbound QName prefix");
         } catch (TypedXMLStreamException tex) { }
         sr.close();
@@ -611,9 +608,8 @@ public abstract class ReaderTestBase
         throws Exception
     {
         XMLStreamReader2 sr = getRootReader("<root xmlns:ns='http://foo' attr='ns:name:too' />");
-        QName n;
         try {
-            n = sr.getAttributeAsQName(0);
+            /*QName n =*/ sr.getAttributeAsQName(0);
             fail("Expected an exception for invalid QName (non-xml-name char in the middle)");
         } catch (TypedXMLStreamException tex) { }
         sr.close();

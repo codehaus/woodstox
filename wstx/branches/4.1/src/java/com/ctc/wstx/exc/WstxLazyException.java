@@ -24,6 +24,7 @@ import com.ctc.wstx.util.ExceptionUtil;
  * to throw an instance of {@link XMLStreamException}; this generally
  * happens when doing lazy parsing.
  */
+@SuppressWarnings("serial")
 public class WstxLazyException
     extends RuntimeException
 {

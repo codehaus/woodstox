@@ -15,13 +15,6 @@
 
 package com.ctc.wstx.sr;
 
-import java.io.IOException;
-
-import javax.xml.stream.Location;
-import javax.xml.namespace.QName;
-
-import com.ctc.wstx.compat.QNameCreator;
-
 /**
  * Container for information collected regarding a single
  * (start) element instance.

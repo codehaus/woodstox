@@ -25,6 +25,7 @@ import javax.xml.stream.XMLStreamException;
  * @author Santiago.PericasGeertsen@sun.com
  * @author Tatu Saloranta
  */
+@SuppressWarnings("serial")
 public class TypedXMLStreamException
     extends XMLStreamException
 {

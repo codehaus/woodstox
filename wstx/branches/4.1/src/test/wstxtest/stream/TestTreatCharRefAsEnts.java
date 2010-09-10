@@ -15,8 +15,6 @@ import javax.xml.stream.Location;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 
-import org.codehaus.stax2.DTDInfo;
-
 import com.ctc.wstx.ent.EntityDecl;
 import com.ctc.wstx.sr.BasicStreamReader;
 

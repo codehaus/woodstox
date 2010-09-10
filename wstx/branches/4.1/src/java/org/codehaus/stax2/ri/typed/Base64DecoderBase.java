@@ -15,8 +15,6 @@
 
 package org.codehaus.stax2.ri.typed;
 
-import java.util.Arrays;
-
 import org.codehaus.stax2.typed.Base64Variant;
 import org.codehaus.stax2.ri.Stax2Util;
 

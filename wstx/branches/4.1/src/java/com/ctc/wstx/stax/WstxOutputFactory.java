@@ -16,7 +16,6 @@
 package com.ctc.wstx.stax;
 
 import java.io.*;
-import java.net.URL;
 
 import javax.xml.transform.Result;
 import javax.xml.transform.dom.DOMResult;

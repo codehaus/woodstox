@@ -171,7 +171,7 @@ public final class Stax2Util
          * Maximum block size we will use for individual non-aggregated
          * blocks. Let's limit to using 256k chunks.
          */
-        private final static int MAX_BLOCK_SIZE = (1 << 18);
+        //private final static int MAX_BLOCK_SIZE = (1 << 18);
 
         final static int DEFAULT_BLOCK_ARRAY_SIZE = 100;
 

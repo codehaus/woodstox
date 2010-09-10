@@ -96,7 +96,7 @@ public class TestTypedSpeed
             System.out.println("Type detected as: BOOLEAN");
         } else {
             try {
-                int nr = Integer.parseInt(firstValue);
+                /*int nr =*/ Integer.parseInt(firstValue);
                 // Ok, was a valid int
                 mType = TYPE_BOOLEAN;
                 System.out.println("Type detected as: INT");

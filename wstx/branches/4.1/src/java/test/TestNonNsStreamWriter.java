@@ -64,7 +64,7 @@ public class TestNonNsStreamWriter
 
         XMLValidationSchema schema = vd.createSchema(new StringReader(dtdStr));
 
-        //sw.validateAgainst(schema);
+        sw.validateAgainst(schema);
 
         sw.writeStartDocument();
         sw.writeComment("Comment!");

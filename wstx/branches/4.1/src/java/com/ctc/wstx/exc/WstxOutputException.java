@@ -5,6 +5,7 @@ package com.ctc.wstx.exc;
  * writers would create. Such exceptions are thrown when strict output
  * validation is enabled.
  */
+@SuppressWarnings("serial")
 public class WstxOutputException
     extends WstxException
 {

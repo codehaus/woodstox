@@ -1,13 +1,9 @@
 package wstxtest.vstream;
 
-import java.io.*;
-
 import javax.xml.stream.*;
 
 import org.codehaus.stax2.*;
 import org.codehaus.stax2.validation.*;
-
-import wstxtest.stream.BaseStreamTest;
 
 /**
  * This is a simple base-line "smoke test" that checks that W3C Schema
@@ -351,16 +347,20 @@ public class TestW3CSchema
     //////////////////////////////////////////////////////////////
     */
 
+    @SuppressWarnings("serial")
     private static class LocalValidationError extends RuntimeException
     {
-        private XMLValidationProblem problem;
+        @SuppressWarnings("unused")
+        protected XMLValidationProblem problem;
         
         LocalValidationError(XMLValidationProblem problem) {
             this.problem = problem;
         }
-        
+
+        /*
         public XMLValidationProblem getProblem() {
             return problem;
         }
+        */
     }
 }

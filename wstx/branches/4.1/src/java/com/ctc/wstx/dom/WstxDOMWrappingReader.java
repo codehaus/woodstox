@@ -5,7 +5,7 @@ import java.util.Collections;
 import javax.xml.stream.*;
 import javax.xml.transform.dom.DOMSource;
 
-import org.codehaus.stax2.XMLInputFactory2;
+//import org.codehaus.stax2.XMLInputFactory2;
 import org.codehaus.stax2.ri.dom.DOMWrappingReader;
 
 import com.ctc.wstx.api.ReaderConfig;

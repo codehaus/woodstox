@@ -1,13 +1,9 @@
 package wstxtest.vstream;
 
-import java.io.*;
-
 import javax.xml.stream.*;
 
 import org.codehaus.stax2.*;
 import org.codehaus.stax2.validation.*;
-
-import wstxtest.stream.BaseStreamTest;
 
 /**
  * This is a simple base-line "smoke test" that checks that RelaxNG
@@ -82,7 +78,7 @@ public class TestRelaxNG
             assertEquals("dict", sr.getLocalName());
             
             while (sr.hasNext()) {
-                int type = sr.next();
+                sr.next();
             }
         } catch (XMLValidationException vex) {
             fail("Did not expect validation exception, got: "+vex);
@@ -182,7 +178,7 @@ public class TestRelaxNG
             assertEquals("root", sr.getLocalName());
             
             while (sr.hasNext()) {
-                int type = sr.next();
+                sr.next();
             }
         } catch (XMLValidationException vex) {
             fail("Did not expect validation exception, got: "+vex);

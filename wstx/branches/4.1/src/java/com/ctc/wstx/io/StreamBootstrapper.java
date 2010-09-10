@@ -1000,10 +1000,12 @@ public final class StreamBootstrapper
         throw new CharConversionException("Unsupported UCS-4 endianness ("+type+") detected");
     }
 
+    /*
     private void reportMissingBOM(String enc)
         throws WstxException
     {
         throw new WstxException("Missing BOM for encoding '"+enc+"'; can not be omitted",
                                 getLocation());
     }
+    */
 }

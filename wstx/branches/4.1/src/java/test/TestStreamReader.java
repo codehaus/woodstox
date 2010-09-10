@@ -154,6 +154,7 @@ public class TestStreamReader
             type = sr.next();
             total += type; // so it won't be optimized out...
 
+            @SuppressWarnings("unused")
             boolean hasName = sr.hasName();
 
             System.out.print("["+type+"]");
@@ -172,7 +173,9 @@ public class TestStreamReader
                 // Choose normal or streaming
                 if (true) {
                     text = sr.getText();
-                } else {
+                } 
+                /*
+                else {
                     StringWriter swr = new StringWriter();
                     int gotLen = sr.getText(swr, false);
                     text = swr.toString();
@@ -180,6 +183,7 @@ public class TestStreamReader
                         throw new Error("Error: lengths didn't match: getText() returned "+gotLen+", but String has "+text.length()+" chars.");
                     }
                 }
+                */
 
                 if (text != null) { // Ref. impl. returns nulls sometimes
                     total += text.length(); // to prevent dead code elimination

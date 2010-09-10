@@ -21,6 +21,7 @@ import org.xml.sax.SAXException;
  * through interfaces that do not allow them to be thrown. This
  * is done by extending {@link RuntimeException}.
  */
+@SuppressWarnings("serial")
 public final class WrappedSaxException
     extends RuntimeException
 {
