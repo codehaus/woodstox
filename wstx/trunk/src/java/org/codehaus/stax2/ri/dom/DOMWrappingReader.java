@@ -80,7 +80,7 @@ public abstract class DOMWrappingReader
                NamespaceContext,
                XMLStreamConstants
 {
-    final static int INT_SPACE = 0x0020;
+    protected final static int INT_SPACE = 0x0020;
 
     // // // Bit masks used for quick type comparisons
 
@@ -1905,21 +1905,18 @@ public abstract class DOMWrappingReader
 
     public XMLStreamLocation2 getStartLocation()
     {
-        // !!! TBI
-        return null;
+	return XMLStreamLocation2.NOT_AVAILABLE;
     }
 
     public XMLStreamLocation2 getCurrentLocation()
     {
-        // !!! TBI
-        return null;
+	return XMLStreamLocation2.NOT_AVAILABLE;
     }
 
     public final XMLStreamLocation2 getEndLocation()
         throws XMLStreamException
     {
-        // !!! TBI
-        return null;
+	return XMLStreamLocation2.NOT_AVAILABLE;
     }
 
     /*
