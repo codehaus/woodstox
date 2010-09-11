@@ -10,6 +10,36 @@ public interface XMLStreamLocation2
     extends Location
 {
     /**
+     * "Dummy" Location implementation and instance that can be return
+     * instead of null, when no location information is available.
+     */
+    public final static XMLStreamLocation2 NOT_AVAILABLE = new XMLStreamLocation2() {
+        public XMLStreamLocation2 getContext() {
+            return null;
+        }
+
+        public int getCharacterOffset() {
+            return -1;
+        }
+
+        public int getColumnNumber() {
+            return -1;
+        }
+
+        public int getLineNumber() {
+            return -1;
+        }
+
+        public String getPublicId() {
+            return null;
+        }
+
+        public String getSystemId() {
+            return null;
+        }
+    };
+    
+    /**
      * Method that can be used to traverse nested locations, like ones
      * created when expanding entities (especially external entities).
      * If so, single location object only contains information about

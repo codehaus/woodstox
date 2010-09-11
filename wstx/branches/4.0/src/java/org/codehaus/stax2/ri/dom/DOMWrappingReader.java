@@ -80,6 +80,36 @@ public abstract class DOMWrappingReader
                NamespaceContext,
                XMLStreamConstants
 {
+    /**
+     * "Dummy" Location implementation and instance that can be return
+     * instead of null, when no location information is available.
+     */
+    public final static XMLStreamLocation2 NO_LOCATION = new XMLStreamLocation2() {
+        public XMLStreamLocation2 getContext() {
+            return null;
+        }
+
+        public int getCharacterOffset() {
+            return -1;
+        }
+
+        public int getColumnNumber() {
+            return -1;
+        }
+
+        public int getLineNumber() {
+            return -1;
+        }
+
+        public String getPublicId() {
+            return null;
+        }
+
+        public String getSystemId() {
+            return null;
+        }
+    };
+
     final static int INT_SPACE = 0x0020;
 
     // // // Bit masks used for quick type comparisons
@@ -1918,21 +1948,18 @@ public abstract class DOMWrappingReader
 
     public XMLStreamLocation2 getStartLocation()
     {
-        // !!! TBI
-        return null;
+	return NO_LOCATION;
     }
 
     public XMLStreamLocation2 getCurrentLocation()
     {
-        // !!! TBI
-        return null;
+	return NO_LOCATION;
     }
 
     public final XMLStreamLocation2 getEndLocation()
         throws XMLStreamException
     {
-        // !!! TBI
-        return null;
+	return NO_LOCATION;
     }
 
     /*

@@ -1,10 +1,20 @@
-Version: 4.0.8
+Version: 4.0.9
 
-Release date: 05-May-2010
+Release date: xx-Xxx-2010
 
 Description:
   4.0 maintenance release; also updates stax2-api version to 3.0.2 to
   work around Maven issues.
+
+Problems fixed:
+
+* [WSTX-246] DOMWrappingReader returns null Location
+
+------------------------------------------------------------------------
+== History: ==
+------------------------------------------------------------------------
+
+4.0.8 [05-May-2010]
 
   Improvements:
 
@@ -27,10 +37,6 @@ Description:
    (reported by Brian S)
   * [WSTX-236]: Make WstxInputLocation Serializable
    (suggested by Myles B)
-
-------------------------------------------------------------------------
-== History: ==
-------------------------------------------------------------------------
 
 4.0.7 [16-Dec-2009]
 
