@@ -154,7 +154,6 @@ public class TestStreamReader
             type = sr.next();
             total += type; // so it won't be optimized out...
 
-            @SuppressWarnings("unused")
             boolean hasName = sr.hasName();
 
             System.out.print("["+type+"]");

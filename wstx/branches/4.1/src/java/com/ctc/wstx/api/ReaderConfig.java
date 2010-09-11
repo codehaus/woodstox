@@ -32,7 +32,6 @@ import com.ctc.wstx.util.SymbolTable;
  * (that is: conceptually this is not right, but from pragmatic viewpoint
  * it just makes sense)
  */
-@SuppressWarnings("deprecation")
 public final class ReaderConfig
     extends CommonConfig
     implements InputConfigFlags

@@ -12,10 +12,11 @@ import java.util.HashMap;
  * Note: that this class extends {@link HashMap} is an implementation
  * detail -- no code should ever directly call Map methods.
  */
-@SuppressWarnings("serial")
 public final class InternCache
     extends HashMap
 {
+    private static final long serialVersionUID = 1L;
+
     /**
      * Let's create cache big enough to usually have enough space for
      * all entries... (assuming NS URIs only)

@@ -24,10 +24,11 @@ import com.ctc.wstx.util.ExceptionUtil;
  * to throw an instance of {@link XMLStreamException}; this generally
  * happens when doing lazy parsing.
  */
-@SuppressWarnings("serial")
 public class WstxLazyException
     extends RuntimeException
 {
+    private static final long serialVersionUID = 1L;
+
     final XMLStreamException mOrig;
 
     public WstxLazyException(XMLStreamException origEx)

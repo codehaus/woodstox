@@ -6,10 +6,11 @@ import java.io.IOException;
  * Simple wrapper for {@link IOException}s; needed when StAX does not expose
  * underlying I/O exceptions via its methods.
  */
-@SuppressWarnings("serial")
 public class WstxIOException
     extends WstxException
 {
+    private static final long serialVersionUID = 1L;
+
     public WstxIOException(IOException ie) {
         super(ie);
     }

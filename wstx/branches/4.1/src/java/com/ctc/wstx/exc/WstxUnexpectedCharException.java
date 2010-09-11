@@ -8,10 +8,11 @@ import javax.xml.stream.Location;
  * is not legal in current context. Could happen, for example, if white space
  * was missing between attribute value and name of next attribute.
  */
-@SuppressWarnings("serial")
 public class WstxUnexpectedCharException
     extends WstxParsingException
 {
+    private static final long serialVersionUID = 1L;
+
     final char mChar;
 
     public WstxUnexpectedCharException(String msg, Location loc, char c) {

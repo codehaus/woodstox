@@ -44,6 +44,9 @@ public class TestDomCompat
         assertTokenType(COMMENT, sr.next());
         assertEquals("prolog", getAndVerifyText(sr));
 
+        // 10-Sep-2010, tatu: Verify [WSTX-246]
+        assertNotNull(sr.getLocation());
+        
         assertTokenType(START_ELEMENT, sr.next());
         assertEquals("root", sr.getLocalName());
         assertEquals("ns", sr.getPrefix());
@@ -68,7 +71,7 @@ public class TestDomCompat
         NamespaceContext nsCtxt = sr.getNamespaceContext();
         assertNotNull(nsCtxt);
         /* 28-Apr-2006, TSa: Alas, namespace access is only fully
-         *   implemented in DOM Level 3... thus, can't check:
+         *   implemented in DOM Level 3 (JDK 1.5+)... thus, can't check:
          */
         /*
         assertEquals("ns", nsCtxt.getPrefix("http://foo"));

@@ -50,7 +50,8 @@ public class TestReaderConstruction
         File f = writeToTempFile("URLSource");
         XMLInputFactory2 ifact = getInputFactory();
         setCoalescing(ifact, true);
-        verifyXML(ifact.createXMLStreamReader(new Stax2URLSource(f.toURL())),
+        URL url = f.toURL();
+        verifyXML(ifact.createXMLStreamReader(new Stax2URLSource(url)),
                   "URLSource");
     }
 

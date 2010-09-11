@@ -11,12 +11,11 @@ import java.util.*;
  * ways, perhaps by using two areas: first, smaller one, with strong
  * refs, and secondary bigger one that uses soft references.
  */
-
 public final class SimpleCache
 {
-    final LimitMap mItems;
+    protected final LimitMap mItems;
 
-    final int mMaxSize;
+    protected final int mMaxSize;
 
     public SimpleCache(int maxSize)
     {
@@ -34,16 +33,17 @@ public final class SimpleCache
     }
 
     /*
-    /////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////
     // Helper classes
-    /////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////
      */
 
-    @SuppressWarnings("serial")
     final static class LimitMap
         extends LinkedHashMap
     {
-        final int mMaxSize;
+        private static final long serialVersionUID = 1L;
+
+        protected final int mMaxSize;
 
         public LimitMap(int size)
         {

@@ -15,10 +15,11 @@ import javax.xml.stream.XMLStreamException;
  * choose appropriate constructors to call, to make sure super-class does
  * not barf (NPE or such).
  */
-@SuppressWarnings("serial")
 public class XMLValidationException
     extends XMLStreamException
 {
+    private static final long serialVersionUID = 1L;
+
     protected XMLValidationProblem mCause;
 
     // // Constructors are protected; sub-classes need to know what

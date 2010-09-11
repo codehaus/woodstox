@@ -25,10 +25,11 @@ import com.ctc.wstx.util.StringUtil;
  * Base class for all implementatations of {@link XMLStreamException}
  * Wstx uses.
  */
-@SuppressWarnings("serial")
 public class WstxException
     extends XMLStreamException
 {
+    private static final long serialVersionUID = 1L;
+
     /**
      * D'oh. Super-class munges and hides the message, have to duplicate here
      */

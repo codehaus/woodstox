@@ -49,7 +49,6 @@ import com.ctc.wstx.util.URLUtil;
  * effectively offers an alternative to using Stax input factory /
  * stream reader combination.
  */
-@SuppressWarnings("deprecation")
 public class WstxSAXParser
     extends SAXParser
     implements Parser // SAX1

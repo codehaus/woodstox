@@ -5,10 +5,11 @@ import javax.xml.stream.Location;
 /**
  * Intermediate base class for reporting actual Wstx parsing problems.
  */
-@SuppressWarnings("serial")
 public class WstxParsingException
     extends WstxException
 {
+    private static final long serialVersionUID = 1L;
+
     public WstxParsingException(String msg, Location loc) {
         super(msg, loc);
     }

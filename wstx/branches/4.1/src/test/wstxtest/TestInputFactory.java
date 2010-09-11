@@ -42,7 +42,6 @@ public class TestInputFactory
          * error-constant-defining class is never constructed.
          * So here we go, just to mark it off the list...
          */
-        @SuppressWarnings("unused")
         ErrorConsts ec = new ErrorConsts();
         assertNotNull(ErrorConsts.tokenTypeDesc(XMLStreamConstants.START_DOCUMENT));
         assertNotNull(ErrorConsts.tokenTypeDesc(XMLStreamConstants.END_DOCUMENT));

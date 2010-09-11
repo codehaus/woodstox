@@ -25,10 +25,11 @@ import javax.xml.stream.XMLStreamException;
  * @author Santiago.PericasGeertsen@sun.com
  * @author Tatu Saloranta
  */
-@SuppressWarnings("serial")
 public class TypedXMLStreamException
     extends XMLStreamException
 {
+    private static final long serialVersionUID = 1L;
+
     /**
      * Lexical representation of the content that could not be 
      * converted to the requested type. May be <code>null</code> 

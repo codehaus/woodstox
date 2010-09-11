@@ -25,10 +25,11 @@ import com.ctc.wstx.util.StringUtil;
  * handling is necessary for setting the root cause in backwards compatible
  * way.
  */
-@SuppressWarnings("serial")
 public class WstxValidationException
     extends XMLValidationException
 {
+    private static final long serialVersionUID = 1L;
+
     protected WstxValidationException(XMLValidationProblem cause, String msg)
     {
         super(cause, msg);

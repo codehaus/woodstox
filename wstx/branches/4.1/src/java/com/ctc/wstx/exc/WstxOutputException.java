@@ -5,10 +5,11 @@ package com.ctc.wstx.exc;
  * writers would create. Such exceptions are thrown when strict output
  * validation is enabled.
  */
-@SuppressWarnings("serial")
 public class WstxOutputException
     extends WstxException
 {
+    private static final long serialVersionUID = 1L;
+
     public WstxOutputException(String msg) {
         super(msg);
     }

@@ -347,20 +347,18 @@ public class TestW3CSchema
     //////////////////////////////////////////////////////////////
     */
 
-    @SuppressWarnings("serial")
     private static class LocalValidationError extends RuntimeException
     {
-        @SuppressWarnings("unused")
+        private static final long serialVersionUID = 1L;
+
         protected XMLValidationProblem problem;
         
         LocalValidationError(XMLValidationProblem problem) {
             this.problem = problem;
         }
 
-        /*
         public XMLValidationProblem getProblem() {
             return problem;
         }
-        */
     }
 }
