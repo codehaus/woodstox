@@ -1,9 +1,11 @@
-package wstxtest.vstream;
+package wstxtest.msv;
 
 import javax.xml.stream.*;
 
 import org.codehaus.stax2.*;
 import org.codehaus.stax2.validation.*;
+
+import wstxtest.vstream.BaseValidationTest;
 
 /**
  * Simple testing of W3C Schema datatypes.

@@ -1,4 +1,4 @@
-package wstxtest.vstream;
+package wstxtest.msv;
 
 import javax.xml.stream.XMLStreamException;
 
@@ -6,6 +6,8 @@ import org.codehaus.stax2.XMLInputFactory2;
 import org.codehaus.stax2.XMLStreamReader2;
 import org.codehaus.stax2.validation.XMLValidationException;
 import org.codehaus.stax2.validation.XMLValidationSchema;
+
+import wstxtest.vstream.BaseValidationTest;
 
 public class TestW3CSchemaComplexTypes 
     extends BaseValidationTest

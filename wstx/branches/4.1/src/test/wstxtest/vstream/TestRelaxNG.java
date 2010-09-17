@@ -567,7 +567,7 @@ public class TestRelaxNG
         sr.validateAgainst(schema);
         try {
             while (sr.hasNext()) {
-                int type = sr.next();
+                /*int type =*/ sr.next();
             }
             fail("Expected validity exception for "+failMsg);
         } catch (XMLValidationException vex) {

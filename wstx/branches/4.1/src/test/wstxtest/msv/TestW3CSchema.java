@@ -1,9 +1,11 @@
-package wstxtest.vstream;
+package wstxtest.msv;
 
 import javax.xml.stream.*;
 
 import org.codehaus.stax2.*;
 import org.codehaus.stax2.validation.*;
+
+import wstxtest.vstream.BaseValidationTest;
 
 /**
  * This is a simple base-line "smoke test" that checks that W3C Schema
@@ -347,7 +349,7 @@ public class TestW3CSchema
     ///////////////////////////////////////////////////////////////////////
     */
 
-    private static class LocalValidationError extends RuntimeException
+    public static class LocalValidationError extends RuntimeException
     {
         private static final long serialVersionUID = 1L;
 
