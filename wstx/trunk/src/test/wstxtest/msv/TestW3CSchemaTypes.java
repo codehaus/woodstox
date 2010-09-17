@@ -1,9 +1,11 @@
-package wstxtest.vstream;
+package wstxtest.msv;
 
 import javax.xml.stream.*;
 
 import org.codehaus.stax2.*;
 import org.codehaus.stax2.validation.*;
+
+import wstxtest.vstream.BaseValidationTest;
 
 /**
  * Simple testing of W3C Schema datatypes.
@@ -71,13 +73,13 @@ public class TestW3CSchemaTypes
     {
         XMLValidationSchema schema = parseW3CSchema(SCHEMA_FLOAT);
         verifyFailure("<price></price>", schema, "missing 'float' value",
-                      "does not satisfy the \"float\" type");
+                      "Undefined ID 'm3'");
     }
 
     /*
-    //////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////
     // Helper
-    //////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////
     */
 
     XMLStreamReader2 getReader(String contents) throws XMLStreamException

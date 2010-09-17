@@ -160,7 +160,7 @@ public class MinimalDTDReader
      * able to pass the information some other way. But for now it
      * works and is necessary.
      */
-    public EntityDecl findEntity(@SuppressWarnings("unused") String entName) {
+    public EntityDecl findEntity(String entName) {
         return null;
     }
 

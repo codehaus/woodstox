@@ -44,6 +44,7 @@
     <!-- Extended API, working title "Stax2" (not version 2.0, but 2/squared)
       -->
     <property name="STAX2_TITLE" value="Stax2 API" />
+    <property name="STAX2_VERSION" value="4.0.0" />
     <property name="STAX2_VENDOR" value="http://woodstox.codehaus.org" />
 
     <!-- And finally version dependency spec between Woodstox core
@@ -200,6 +201,7 @@
 
     <target name="compile.stax2" depends="prepare">
         <javac srcdir="${dir.src.java}" destdir="${dir.build.classes.stax2}"
+        	includeantruntime="false"
             source="1.5" target="1.5"
             debug="true"
         >
@@ -211,6 +213,7 @@
 
     <target name="compile.woodstox" depends="prepare,copy-resources,compile.stax2">
         <javac srcdir="${dir.src.java}" destdir="${dir.build.classes.woodstox}"
+        	includeantruntime="false"
             source="1.5" target="1.5"
             debug="true"
         >
@@ -231,6 +234,7 @@
                won't get obsolete with impl/api changes
           -->
         <javac srcdir="${dir.src.samples}" destdir="${dir.build.classes.samples}"
+        	includeantruntime="false"
             source="1.5" target="1.5" debug="true">
             <include name="*.java" />
             <classpath refid="classpath.compile.woodstox" />
@@ -243,6 +247,7 @@
 
     <target name="compile.tool" depends="compile.woodstox">
         <javac srcdir="${dir.src.tool}" destdir="${dir.build.classes.tool}"
+        	includeantruntime="false"
             source="1.5" target="1.5"
             debug="true"
         >
@@ -349,9 +354,11 @@
           <fileset dir="${dir.build}" includes="woodstox*.jar" />
           <fileset dir="${dir.build}" includes="stax2*.jar" />
        </copy>
-       <!-- Including MSV jars (note: ones we have repackaged)
+       <!-- Including MSV jars
          -->
        <copy todir="${dir.dist}">
+            <fileset dir="${dir.lib}/msv" includes="msv-core*.jar" />
+            <fileset dir="${dir.lib}/msv" includes="xsdlib*.jar" />
           <fileset dir="${dir.build}" includes="woodstox-msv-*.jar" />
        </copy>
 
@@ -535,6 +542,7 @@
 
     <target name="compile.test" depends="compile.woodstox">
         <javac srcdir="${dir.src.test}" destdir="${dir.classes.test}"
+        	includeantruntime="false"
             source="1.5" target="1.5"
             debug="true"
         >

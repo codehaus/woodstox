@@ -8,7 +8,7 @@ import javax.xml.stream.XMLStreamException;
 import org.codehaus.stax2.XMLStreamReader2;
 import org.codehaus.stax2.validation.*;
 
-abstract class BaseValidationTest
+public abstract class BaseValidationTest
     extends wstxtest.stream.BaseStreamTest
 {
     protected XMLValidationSchema parseSchema(String contents, String schemaType)
