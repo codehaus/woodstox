@@ -51,15 +51,15 @@ public class W3CSchemaFactory
     }
 
     /*
-    ////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////
     // Non-public methods
-    ////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////
      */
 
     protected XMLValidationSchema loadSchema(InputSource src, Object sysRef)
         throws XMLStreamException
     {
-        /* 26-Oct-2007, TSa: Are sax parser factories safe to share?
+        /* 26-Oct-2007, TSa: Are SAX parser factories safe to share?
          *   If not, should just create new instances for each
          *   parsed schema.
          */

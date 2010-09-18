@@ -199,6 +199,7 @@
 
     <target name="compile.stax2" depends="prepare">
         <javac srcdir="${dir.src.java}" destdir="${dir.build.classes.stax2}"
+        	includeantruntime="false"
             source="1.4" target="1.4"
             debug="true"
         >
@@ -212,6 +213,7 @@
 
     <target name="compile.woodstox" depends="prepare,copy-resources,compile.stax2">
         <javac srcdir="${dir.src.java}" destdir="${dir.build.classes.woodstox}"
+        	includeantruntime="false"
             source="1.4" target="1.4"
             debug="true"
         >
@@ -232,6 +234,7 @@
                won't get obsolete with impl/api changes
           -->
         <javac srcdir="${dir.src.samples}" destdir="${dir.build.classes.samples}"
+        	includeantruntime="false"
             source="1.4" target="1.4">
             <include name="*.java" />
             <classpath refid="classpath.compile" />
@@ -529,6 +532,7 @@
 
     <target name="compile.test" depends="compile.woodstox">
         <javac srcdir="${dir.src.test}" destdir="${dir.classes.test}"
+        	includeantruntime="false"
             source="1.4" target="1.4"
             debug="true"
         >
