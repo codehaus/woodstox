@@ -24,7 +24,6 @@ public class TestReaderConstruction
         verifyXML(ifact.createXMLStreamReader(f), "file");
     }
 
-    @SuppressWarnings("deprecation")
     public void testCreateWithURL()
         throws IOException, XMLStreamException
     {
@@ -45,7 +44,6 @@ public class TestReaderConstruction
                   "Filesource");
     }
 
-    @SuppressWarnings("deprecation")
     public void testCreateWithURLSource()
         throws IOException, XMLStreamException
     {
