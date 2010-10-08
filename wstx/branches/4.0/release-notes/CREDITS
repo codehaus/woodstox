@@ -446,3 +446,7 @@ Brian Sterner:
 Myles Bunbury:
   * Suggested [WSTX-236]: Make WstxInputLocation Serializable
    [4.0.8]
+
+Habib Chehade:
+  * Reported [WSTX-249]: TextAccumulator had a bug in one code path
+   [4.0.9]

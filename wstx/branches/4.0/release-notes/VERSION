@@ -9,6 +9,8 @@ Description:
 Problems fixed:
 
 * [WSTX-246] DOMWrappingReader returns null Location
+* [WSTX-249] TextAccumulator had a bug corrupting text
+  (reported by Habib C)
 
 ------------------------------------------------------------------------
 == History: ==
