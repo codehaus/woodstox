@@ -524,8 +524,30 @@ public abstract class DOMWrappingReader
              */
             reportParseProblem(ERR_STATE_NOT_START_ELEM);
         }
+        // As per [WSTX-244], handling of coalescing, regular differ a lot, so:
+        if (_coalescing) {
+            String text = null;
+            // Need to loop to get rid of PIs, comments
+            while (true) {
+                int type = next();
+                if (type == END_ELEMENT) {
+                    break;
+                }
+                if (type == COMMENT || type == PROCESSING_INSTRUCTION) {
+                    continue;
+                }
+                if (((1 << type) & MASK_GET_ELEMENT_TEXT) == 0) {
+                    reportParseProblem(ERR_STATE_NOT_TEXTUAL);
+                }
+                if (text == null) {
+                    text = getText();
+                } else { // uncommon but possible (with comments, PIs):
+                    text = text + getText();
+                }
+            }
+            return (text == null) ? "" : text;
+        }
         _textBuffer.reset();
-
         // Need to loop to get rid of PIs, comments
         while (true) {
             int type = next();
