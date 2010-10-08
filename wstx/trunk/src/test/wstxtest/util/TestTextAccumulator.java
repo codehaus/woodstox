@@ -24,4 +24,22 @@ public class TestTextAccumulator
         acc.addText("bar");
         assertEquals("foobar", acc.getAndClear());
     }
+
+    // as per [WSTX-349]
+    public void testBasicWithCharArray()
+    {
+        TextAccumulator acc = new TextAccumulator();
+
+        acc.addText("foobar".toCharArray(), 3, 5);
+        assertEquals("ba", acc.getAndClear());
+
+        acc.addText("xxfoo".toCharArray(), 2, 5);
+        acc.addText("bar".toCharArray(), 2, 3);
+        acc.addText(new char[] { '1', '2', '3' }, 2, 3);
+        assertEquals("foor3", acc.getAndClear());
+
+        acc.addText("a");
+        acc.addText(new char[] { '1', '2', '3' }, 2, 3);
+        assertEquals("a3", acc.getAndClear());
+    }
 }
