@@ -27,8 +27,7 @@ import stax2.BaseStax2Test;
 public class TestDomCompat
     extends BaseStax2Test
 {
-    public void testSimpleDomInput()
-        throws Exception
+    public void testSimpleDomInput() throws Exception
     {
         final String XML =
             "<?xml version='1.0' ?><!--prolog-->"
@@ -321,6 +320,35 @@ public class TestDomCompat
         sr.close();
     }
 
+    // [WSTX-244]
+    public void testGetElementTExt() throws Exception
+    {
+        final String XML =
+            "<root>Some<![CDATA[ ]]>text</root>";
+            ;
+
+        XMLInputFactory2 ifact = getInputFactory();
+        XMLStreamReader sr;
+
+        // First, non-coalescing:
+        setCoalescing(ifact, false);
+        sr = ifact.createXMLStreamReader(new DOMSource(parseDomDoc(XML, true)));
+        assertTokenType(START_ELEMENT, sr.next());
+        assertEquals("Some text", sr.getElementText());
+        assertTokenType(END_ELEMENT, sr.getEventType());
+        assertTokenType(END_DOCUMENT, sr.next());
+        sr.close();
+
+        // then coalescing
+        setCoalescing(ifact, true);
+        sr = ifact.createXMLStreamReader(new DOMSource(parseDomDoc(XML, true)));
+        assertTokenType(START_ELEMENT, sr.next());
+        assertEquals("Some text", sr.getElementText());
+        assertTokenType(END_ELEMENT, sr.getEventType());
+        assertTokenType(END_DOCUMENT, sr.next());
+        sr.close();
+    }
+    
     /*
     ///////////////////////////////////////////////////
     // Helper methods

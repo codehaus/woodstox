@@ -8,6 +8,8 @@ Description:
 
 Problems fixed:
 
+* [WSTX-244] DOMWrappingReader sometimes duplicates text content
+  (reported by Laszlo V)
 * [WSTX-246] DOMWrappingReader returns null Location
 * [WSTX-249] TextAccumulator had a bug corrupting text
   (reported by Habib C)
