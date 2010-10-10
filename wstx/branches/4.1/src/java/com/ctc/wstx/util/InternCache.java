@@ -1,6 +1,7 @@
 package com.ctc.wstx.util;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * Singleton class that implements "fast intern" functionality, essentially
@@ -9,11 +10,10 @@ import java.util.HashMap;
  * This is usually used by improving intern()ing of things like namespace
  * URIs.
  *<p>
- * Note: that this class extends {@link HashMap} is an implementation
+ * Note: that this class extends {@link LinkedHashMap} is an implementation
  * detail -- no code should ever directly call Map methods.
  */
-public final class InternCache
-    extends HashMap
+public final class InternCache extends LinkedHashMap //<String,String>
 {
     private static final long serialVersionUID = 1L;
 
@@ -23,6 +23,11 @@ public final class InternCache
      */
     private final static int DEFAULT_SIZE = 64;
 
+    /**
+     * Let's limit to hash area size of 1024.
+     */
+    private final static int MAX_SIZE = 660;
+
     private final static InternCache sInstance = new InternCache();
 
     private InternCache() {
@@ -31,7 +36,7 @@ public final class InternCache
          * Strings; so let's use 2/3 ratio (67%) instead of default
          * (75%)
          */
-        super(DEFAULT_SIZE, 0.6666f);
+        super(DEFAULT_SIZE, 0.6666f, false);
     }
 
     public static InternCache getInstance() {
@@ -55,6 +60,13 @@ public final class InternCache
             }
         }
         return result;
+    }
+
+    // We will force maximum size here (for [WSTX-237])
+    //@Override protected boolean removeEldestEntry(Map.Entry<K,V> eldest)
+    protected boolean removeEldestEntry(Map.Entry eldest)
+    {
+        return size() > MAX_SIZE;
     }
 }
 
