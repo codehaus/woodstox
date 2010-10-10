@@ -1,9 +1,11 @@
 package com.ctc.wstx.util;
 
 import java.io.*;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 
 public final class URLUtil
 {
@@ -59,8 +61,33 @@ public final class URLUtil
         }
     }
 
-    public static URL urlFromSystemId(String sysId, URL ctxt)
-        throws IOException
+    /**
+     * @since 4.1
+     */
+    public static URI uriFromSystemId(String sysId) throws IOException
+    {
+        // note: mostly a copy of matching method above, but with URI instead of URL
+        try {
+            int ix = sysId.indexOf(':', 0);
+            if (ix >= 3 && ix <= 8) {
+                return new URI(sysId);
+            }
+            String absPath = new java.io.File(sysId).getAbsolutePath();
+            char sep = File.separatorChar;
+            if (sep != '/') {
+                absPath = absPath.replace(sep, '/');
+            }
+            if (absPath.length() > 0 && absPath.charAt(0) != '/') {
+                absPath = "/" + absPath;
+            }
+            return new URI("file", absPath, null);
+        } catch (URISyntaxException e) {
+            throwIOException(e, sysId);
+            return null; // never gets here
+        }
+    }
+
+    public static URL urlFromSystemId(String sysId, URL ctxt) throws IOException
     {
         if (ctxt == null) {
             return urlFromSystemId(sysId);
@@ -72,7 +99,7 @@ public final class URLUtil
             return null; // never gets here
         }
     }
-
+    
     /**
      * Method that tries to create and return URL that denotes current
      * working directory. Usually used to create a context, when one is
@@ -142,9 +169,9 @@ public final class URLUtil
     }
 
     /*
-    ///////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////
     // Private helper methods
-    ///////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////
     */
 
     /**
@@ -153,11 +180,10 @@ public final class URLUtil
      * creating requirement, uses reflection to try to set the root cause, if
      * we are running on JDK1.4
      */
-    private static void throwIOException(MalformedURLException mex, String sysId)
+    private static void throwIOException(Exception mex, String sysId)
         throws IOException
     {
-        IOException ie = new IOException("[resolving systemId '"+sysId
-                                         +"']: "+mex.toString());
+        IOException ie = new IOException("[resolving systemId '"+sysId+"']: "+mex.toString());
         ExceptionUtil.setInitCause(ie, mex);
         throw ie;
     }

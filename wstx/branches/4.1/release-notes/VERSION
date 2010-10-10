@@ -1,6 +1,6 @@
 Version: 4.1.0
 
-Release date: xx-xxx-2009
+Release date: xx-Oct-2009
 
 Description:
   Initial 4.1 release.
@@ -13,6 +13,8 @@ Description:
 
   Improvements:
 
+  * [WSTX-248] Java URL.hashCode() cause issues with DTD caching
+   (reported by Christophe C)
   * Rewrote attribute parsing/collection part to use separate wrapper
     classes (instead of primitive arrays); to support easier modifications
     and custom additions to collected attribute information.
@@ -20,6 +22,16 @@ Description:
 ------------------------------------------------------------------------
 == History: ==
 ------------------------------------------------------------------------
+
+4.0.9 [08-Oct-2010]
+
+Problems fixed:
+
+* [WSTX-244] DOMWrappingReader sometimes duplicates text content
+  (reported by Laszlo V)
+* [WSTX-246] DOMWrappingReader returns null Location
+* [WSTX-249] TextAccumulator had a bug corrupting text
+  (reported by Habib C)
 
 4.0.8 [05-May-2010]
 

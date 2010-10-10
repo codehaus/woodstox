@@ -17,6 +17,8 @@ package com.ctc.wstx.sr;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.*;
 
@@ -516,8 +518,7 @@ public class ValidatingStreamReader
      * Method called to resolve path to external DTD subset, given
      * system identifier.
      */
-    private URL resolveExtSubsetPath(String systemId)
-        throws IOException
+    private URI resolveExtSubsetPath(String systemId) throws IOException
     {
         // Do we have a context to use for resolving?
         URL ctxt = (mInput == null) ? null : mInput.getSource();
@@ -530,9 +531,14 @@ public class ValidatingStreamReader
              * in it; if not, create a relative file, if it does, try to
              * resolve it.
              */
-            return URLUtil.urlFromSystemId(systemId);
+            return URLUtil.uriFromSystemId(systemId);
         }
-        return URLUtil.urlFromSystemId(systemId, ctxt);
+        URL url = URLUtil.urlFromSystemId(systemId, ctxt);
+        try {
+            return new URI(url.toExternalForm());
+        } catch (URISyntaxException e) { // should never occur...
+            throw new IOException("Failed to construct URI for external subset, URL = "+url.toExternalForm()+": "+e.getMessage());
+        }
     }
 
     protected DTDId constructDtdId(String pubId, String sysId)
@@ -557,7 +563,7 @@ public class ValidatingStreamReader
               */
              | CFG_XMLID_TYPING
              );
-        URL sysRef = (sysId == null || sysId.length() == 0) ? null :
+        URI sysRef = (sysId == null || sysId.length() == 0) ? null :
             resolveExtSubsetPath(sysId);
 
         /* 29-Mar-2006, TSa: Apparently public ids are not always very
@@ -575,7 +581,7 @@ public class ValidatingStreamReader
         return DTDId.constructFromSystemId(sysRef, significantFlags, mXml11);
     }
 
-    protected DTDId constructDtdId(URL sysId)
+    protected DTDId constructDtdId(URI sysId)
         throws IOException
     {
         int significantFlags = mConfigFlags &
