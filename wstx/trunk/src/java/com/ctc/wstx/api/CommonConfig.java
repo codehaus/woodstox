@@ -36,7 +36,7 @@ abstract class CommonConfig
      * prepared to take additional levels, however, just not depend
      * on those being available.
      */
-    protected final static String IMPL_VERSION = "4.0";
+    protected final static String IMPL_VERSION = "5.0";
 
     /*
     ////////////////////////////////////////////////
