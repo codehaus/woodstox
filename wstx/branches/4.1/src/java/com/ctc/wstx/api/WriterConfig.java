@@ -69,6 +69,7 @@ public final class WriterConfig
     // Other:
 
     final static int PROP_OUTPUT_INVALID_CHAR_HANDLER = 21;
+    final static int PROP_OUTPUT_EMPTY_ELEMENT_HANDLER = 22;
 
     // Per-writer instance information
 
@@ -205,6 +206,8 @@ public final class WriterConfig
                         DataUtil.Integer(PROP_AUTOMATIC_END_ELEMENTS));
         sProperties.put(WstxOutputProperties.P_OUTPUT_INVALID_CHAR_HANDLER,
                         DataUtil.Integer(PROP_OUTPUT_INVALID_CHAR_HANDLER));
+        sProperties.put(WstxOutputProperties.P_OUTPUT_EMPTY_ELEMENT_HANDLER,
+                        DataUtil.Integer(PROP_OUTPUT_EMPTY_ELEMENT_HANDLER));
 
         // Validation settings:
         sProperties.put(WstxOutputProperties.P_OUTPUT_VALIDATE_STRUCTURE,
@@ -249,13 +252,14 @@ public final class WriterConfig
 
     Object[] mSpecialProperties = null;
 
-    private final static int SPEC_PROC_COUNT = 5;
+    private final static int SPEC_PROC_COUNT = 6;
 
     private final static int SP_IX_AUTO_NS_PREFIX = 0;
     private final static int SP_IX_TEXT_ESCAPER_FACTORY = 1;
     private final static int SP_IX_ATTR_VALUE_ESCAPER_FACTORY = 2;
     private final static int SP_IX_PROBLEM_REPORTER = 3;
     private final static int SP_IX_INVALID_CHAR_HANDLER = 4;
+    private final static int SP_IX_EMPTY_ELEMENT_HANDLER = 5;
 
     /*
     //////////////////////////////////////////////////////////
@@ -399,6 +403,8 @@ public final class WriterConfig
             return willFixContent() ? Boolean.TRUE : Boolean.FALSE;
         case PROP_OUTPUT_INVALID_CHAR_HANDLER:
             return getInvalidCharHandler();
+        case PROP_OUTPUT_EMPTY_ELEMENT_HANDLER:
+            return getEmptyElementHandler();
 
             // And then per-instance properties: not valid via config object
         case PROP_UNDERLYING_STREAM:
@@ -486,6 +492,9 @@ public final class WriterConfig
             break;
         case PROP_OUTPUT_INVALID_CHAR_HANDLER:
             setInvalidCharHandler((InvalidCharHandler) value);
+            break;
+        case PROP_OUTPUT_EMPTY_ELEMENT_HANDLER:
+            setEmptyElementHandler((EmptyElementHandler) value);
             break;
 
         case PROP_UNDERLYING_STREAM:
@@ -598,6 +607,10 @@ public boolean willAutoCloseOutput() {
     public InvalidCharHandler getInvalidCharHandler() {
         return (InvalidCharHandler) getSpecialProperty(SP_IX_INVALID_CHAR_HANDLER);
     }
+    
+    public EmptyElementHandler getEmptyElementHandler() {
+        return (EmptyElementHandler) getSpecialProperty(SP_IX_EMPTY_ELEMENT_HANDLER);
+    }
 
     // // // Mutators:
 
@@ -683,6 +696,10 @@ public boolean willAutoCloseOutput() {
 
     public void setInvalidCharHandler(InvalidCharHandler h) {
         setSpecialProperty(SP_IX_INVALID_CHAR_HANDLER, h);
+    }
+    
+    public void setEmptyElementHandler(EmptyElementHandler h) {
+        setSpecialProperty(SP_IX_EMPTY_ELEMENT_HANDLER, h);
     }
 
     /*

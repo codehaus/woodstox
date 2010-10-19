@@ -134,6 +134,14 @@ public final class WstxOutputProperties
      * exist for both behaviors.
      */
     public final static String P_OUTPUT_INVALID_CHAR_HANDLER = "com.ctc.wstx.outputInvalidCharHandler";
+    
+    /**
+     * Property that defines an {@link EmptyElementHandler} used to determine
+     * if the end tag for an empty element should be written or not.
+     * 
+     * If specified {@link org.codehaus.stax2.XMLOutputFactory2#P_AUTOMATIC_EMPTY_ELEMENTS} is ignored.
+     */
+    public final static String P_OUTPUT_EMPTY_ELEMENT_HANDLER = "com.ctc.wstx.outputEmptyElementHandler";
 
     // // // Per-instance access to underlying output objects
 

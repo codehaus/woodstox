@@ -25,6 +25,7 @@ import javax.xml.stream.events.StartElement;
 
 import org.codehaus.stax2.ri.typed.AsciiValueEncoder;
 
+import com.ctc.wstx.api.EmptyElementHandler;
 import com.ctc.wstx.api.WriterConfig;
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.cfg.XmlConsts;
@@ -65,6 +66,8 @@ public abstract class BaseNsStreamWriter
      * (we are in repairing mode)
      */
     final protected boolean mAutomaticNS;
+    
+    final protected EmptyElementHandler mEmptyElementHandler;
 
     /*
     ////////////////////////////////////////////////////
@@ -115,6 +118,7 @@ public abstract class BaseNsStreamWriter
     {
         super(xw, enc, cfg);
         mAutomaticNS = repairing;
+        mEmptyElementHandler = cfg.getEmptyElementHandler();
     }
 
     /*
@@ -685,6 +689,10 @@ public abstract class BaseNsStreamWriter
             }
             mStartElementOpen = false;
             try {
+                //If an EmptyElementHandler is provided use it to determine if allowEmpty is set
+                if (mEmptyElementHandler != null) {
+                    allowEmpty = mEmptyElementHandler.allowEmptyElement(prefix, localName, nsURI, allowEmpty);
+                }
                 // We could write an empty element, implicitly?
                 if (allowEmpty) {
                     mWriter.writeStartTagEmptyEnd();
