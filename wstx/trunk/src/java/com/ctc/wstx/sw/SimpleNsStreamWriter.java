@@ -37,7 +37,7 @@ import com.ctc.wstx.sr.InputElementStack;
  * conflicts between prefixes and namespace URIs, or automatically
  * create namespace bindings.
  */
-public final class SimpleNsStreamWriter
+public class SimpleNsStreamWriter
     extends BaseNsStreamWriter
 {
     /*

@@ -459,4 +459,7 @@ Habib Chehade:
 Stefan Vladov:
   * Suggested [WSTX-243] Don't throw IllegalArgumentException for CommonConfig.getProperty/setProperty()
    [4.1.0]
-   
+
+Eric Dalquist:
+  * Improve extensibility of XMLOutputFactory by relaxing access restrictions
+   [4.1.0]

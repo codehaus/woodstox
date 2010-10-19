@@ -18,6 +18,8 @@ Description:
    (suggested by Stefan V)
   * [WSTX-248] Java URL.hashCode() cause issues with DTD caching
    (reported by Christophe C)
+  * [WSTX-251] Improve extensibility of XMLStreamWriter construction
+   (suggested by Eric D)
   * Rewrote attribute parsing/collection part to use separate wrapper
     classes (instead of primitive arrays); to support easier modifications
     and custom additions to collected attribute information.
@@ -42,7 +44,7 @@ Problems fixed:
 
   * [WSTX-206] Provide a way to configure SAX parser with all config
     settings available to Stax readers (add WstxSAXParser.getStaxConfig())
-   (suggested by StŽphane C)
+   (suggested by StÂŽphane C)
   * [WSTX-234] Restore feature WstxInputProperties.NORMALIZE_LFS; add
     WstxInputProperties.TREAT_CHAR_REFS_AS_ENTS
    (requested by Peter S)

@@ -15,14 +15,19 @@
 
 package com.ctc.wstx.stax;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 
+import javax.xml.stream.XMLEventWriter;
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 import javax.xml.transform.Result;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.sax.SAXResult;
 import javax.xml.transform.stream.StreamResult;
-
-import javax.xml.stream.*;
 
 import org.codehaus.stax2.XMLOutputFactory2;
 import org.codehaus.stax2.XMLStreamWriter2;
@@ -37,7 +42,13 @@ import com.ctc.wstx.dom.WstxDOMWrappingWriter;
 import com.ctc.wstx.exc.WstxIOException;
 import com.ctc.wstx.io.CharsetNames;
 import com.ctc.wstx.io.UTF8Writer;
-import com.ctc.wstx.sw.*;
+import com.ctc.wstx.sw.AsciiXmlWriter;
+import com.ctc.wstx.sw.BufferingXmlWriter;
+import com.ctc.wstx.sw.ISOLatin1XmlWriter;
+import com.ctc.wstx.sw.NonNsStreamWriter;
+import com.ctc.wstx.sw.RepairingNsStreamWriter;
+import com.ctc.wstx.sw.SimpleNsStreamWriter;
+import com.ctc.wstx.sw.XmlWriter;
 import com.ctc.wstx.util.URLUtil;
 
 /**
@@ -274,6 +285,14 @@ public class WstxOutputFactory
             }
         }
 
+        return createSW(enc, cfg, xw);
+    }
+
+    /**
+     * Called by {@link #createSW(OutputStream, Writer, String, boolean)} after all of the nessesary configuration
+     * logic is complete.
+     */
+    protected XMLStreamWriter2 createSW(String enc, WriterConfig cfg, XmlWriter xw) {
         if (cfg.willSupportNamespaces()) {
             if (cfg.automaticNamespacesEnabled()) {
                 return new RepairingNsStreamWriter(xw, enc, cfg);
