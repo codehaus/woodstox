@@ -135,6 +135,22 @@ public class Stax2ReaderAdapter
         return type;
     }
 
+    /**
+     * As per [WSTX-254], must override and add handling for depth calculation here.
+     */
+    public String getElementText() throws XMLStreamException
+    {
+        /* Should not succeed (as per specs) if not pointing to START_ELEMENT, but just in
+         * case some impls are more lenient, let's verify...
+         */
+        boolean hadStart = (getEventType() == XMLStreamConstants.START_ELEMENT);
+        String text = super.getElementText();
+        if (hadStart) {
+            --_depth;
+        }
+        return text;
+    }
+    
     /*
     ///////////////////////////////////////////////////////////////////////
     // TypedXMLStreamReader, element access
