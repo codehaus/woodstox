@@ -43,8 +43,8 @@
     <!-- Extended API, working title "Stax2" (not version 2.0, but 2/squared)
       -->
     <property name="STAX2_TITLE" value="Stax2 API" />
-    <!-- 3.0.3: same as 3.0.2, but includes BSD license file in jar -->
-    <property name="STAX2_VERSION" value="3.0.3" />
+    <!-- 3.0.4: first version 4.0 builds (with some fixes over 3.0.3) -->
+    <property name="STAX2_VERSION" value="3.0.4" />
     <property name="STAX2_VENDOR" value="http://woodstox.codehaus.org" />
 
     <!-- And finally version dependency spec between Woodstox core
