@@ -10,6 +10,8 @@ Description:
   * [WSTX-201]: XMLStreamReader.isCharacters() can return inconsistent
     value compared to XMLStreamReader.getEventType()
    (reported by Andreas V)
+  * [WSTX-254]: Stax2ReaderAdapter2.getDepth() incorrect after calling
+    getElementAs (from StaxMate bug)
 
   Improvements:
 
