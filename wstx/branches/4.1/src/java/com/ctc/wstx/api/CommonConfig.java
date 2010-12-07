@@ -87,13 +87,25 @@ abstract class CommonConfig
     ///////////////////////////////////////////////////////////////////////
      */
 
-    public final Object getProperty(String propName)
+    public Object getProperty(String propName)
     {
-        // as per [WSTX-243], should not throw IAE any more
-        return safeGetProperty(propName);
+        /* Related to [WSTX-243]; would be nice to not to have to throw an
+         * exception; but Stax spec suggests that we do need to indicate
+         * unrecognized property by exception.
+         */
+        int id = findPropertyId(propName);
+        if (id >= 0) {
+            return getProperty(id);
+        }
+        id = findStdPropertyId(propName);
+        if (id < 0) {
+            reportUnknownProperty(propName);
+            return null;
+        }
+        return getStdProperty(id);
     }
 
-    public final boolean isPropertySupported(String propName)
+    public boolean isPropertySupported(String propName)
     {
         return (findPropertyId(propName) >= 0)
             || (findStdPropertyId(propName) >= 0);
@@ -103,7 +115,7 @@ abstract class CommonConfig
      * @return True, if the specified property was <b>succesfully</b>
      *    set to specified value; false if its value was not changed
      */
-    public final boolean setProperty(String propName, Object value)
+    public boolean setProperty(String propName, Object value)
     {
         int id = findPropertyId(propName);
         if (id >= 0) {
@@ -111,13 +123,18 @@ abstract class CommonConfig
         }
         id = findStdPropertyId(propName);
         if (id < 0) {
-            // as per [WSTX-243], should not throw IAE any more
-            //throw new IllegalArgumentException("Unrecognized property '"+propName+"'");
+            reportUnknownProperty(propName);
             return false;
         }
         return setStdProperty(propName, id, value);
     }
 
+    protected void reportUnknownProperty(String propName)
+    {
+        // see [WSTX-243] for discussion on whether to throw...
+        throw new IllegalArgumentException("Unrecognized property '"+propName+"'");
+    }
+    
     /*
     ///////////////////////////////////////////////////////////////////////
     // Additional methods used by Woodstox core
