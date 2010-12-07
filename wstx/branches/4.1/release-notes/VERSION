@@ -14,8 +14,6 @@ Description:
   Improvements:
 
   * [WSTX-237] Add size limit to InternCache
-  * [WSTX-243] Don't throw IllegalArgumentException for CommonConfig.getProperty/setProperty()
-   (suggested by Stefan V)
   * [WSTX-248] Java URL.hashCode() cause issues with DTD caching
    (reported by Christophe C)
   * [WSTX-251] Improve extensibility of XMLStreamWriter construction
