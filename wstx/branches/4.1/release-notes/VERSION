@@ -1,9 +1,10 @@
 Version: 4.1.0
 
-Release date: xx-Oct-2009
+Release date: 13-Dec-2009
 
 Description:
-  Initial 4.1 release.
+  Initial 4.1 release. Limited amount of new functionality; MSV
+  dependency changed to use the new maintained version.
 
   Problems fixed:
 

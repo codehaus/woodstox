@@ -25,7 +25,6 @@
     <property name="dir.classes.test" location="${dir.test}/classes" />
     <property name="dir.test.results" location="${dir.test}/results" />
     <property name="dir.test.xmlresults" location="${dir.test.results}/xml" />
-    <property name="dir.classes.staxtest" location="${dir.test}/staxtest-classes" />
     <!-- Distribution -->
     <property name="dir.dist" location="${basedir}/dist" />
     <property name="dir.snapshot" location="${basedir}/build/snapshot" />
@@ -121,8 +120,7 @@
         <echo message = "4)  jars - Compile and create all jars for non-test ${ant.project.name} code (see build.xml for specific ones)." />
         <echo message = "5)  javadoc - Generate ${ant.project.name} code documentation." />
         <echo message = "       for JUnit tests." />
-        <echo message = "6a)  test - Run Woodstox-specific JUnit tests." />
-        <echo message = "6b)  staxtest - Run generic Stax JUnit tests." />
+        <echo message = "6)  test - Run JUnit tests." />
         <echo message = "7)  dist - Create distribution directory and copy necessary files there" />
         <echo message = "8) all - Run the clean, compile, javadoc," />
         <echo message = "         test and dist targets." />  
@@ -284,6 +282,7 @@
             <attribute name="Implementation-Vendor"  value="${STAX2_VENDOR}"/>
           </manifest>
           <fileset dir="${dir.classes.test}">
+             <include name="org/codehaus/stax/test/**/*.class" />
              <include name="stax2/**/*.class" />
           </fileset>
         </jar>
@@ -457,56 +456,7 @@
     <!--*********************************************************************-->
     <!-- Tasks from here down are in support of junit tests.                 -->
     <!--*********************************************************************-->
-    <target name="all-tests" depends="test,staxtest" />
-
-    <!-- Running generic Stax tests -->
-    <target name="staxtest" depends="prepare-staxtest">
-       <!-- showoutput 'yes' to allow outputting debug msgs... -->
-        <junit fork="yes" forkmode="once" maxmemory="128M"
-          printsummary="yes" haltonfailure="no" showoutput="yes">
-            <batchtest fork="yes" todir="${dir.test.xmlresults}">
-                <fileset dir="${dir.classes.staxtest}">
-                    <!-- Need to exclude inner classes... -->
-                    <exclude name="**/*$*.class"/>
-                    <include name="org/codehaus/**/Test*.class"/>
-                </fileset>
-            </batchtest>
-            <formatter type="xml" />
-            <classpath refid="classpath.compile" />
-            <classpath path="${dir.classes.staxtest}" />
-            <classpath>
-              <pathelement path="${dir.build.classes.stax2}" />
-              <pathelement path="${dir.build.classes.woodstox}" />
-             <!-- Note: need to add the dummy wstx.jar, since it has properties
-                -  to point Stax to use correct implementation classes!
-               -->
-              <fileset dir="${dir.build}">
-                <include name="service-def-*.jar" />
-              </fileset> 
-              <path refid="junit-libs"/>
-           </classpath>  
-        </junit>
-
-        <junitreport todir="${dir.test.results}">
-            <fileset dir="${dir.test.xmlresults}">
-                <include name="TEST-*.xml" />
-            </fileset>
-            <report todir="${dir.test.results}" />
-        </junitreport>
-    </target>
-
-    <target name="prepare-staxtest" depends="jar.resources">
-        <mkdir dir="${dir.classes.staxtest}" />
-        <!-- and unpack test classes... unfortunately needed so JUnit
-             can find classes (maybe there's a way to refer to a jar too,
-             have not found one so far)
-          -->
-        <unzip dest="${dir.classes.staxtest}" overwrite="false">
-           <fileset dir="${dir.lib}/test">
-              <include name="staxtest_*.jar" />
-           </fileset>
-        </unzip>
-    </target>
+    <target name="all-tests" depends="test" />
 
     <!-- Running a single Unit Test -->
     <target name="test.single" depends="compile.test">
