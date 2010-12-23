@@ -11,9 +11,6 @@ import javax.xml.transform.dom.DOMResult;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import com.ctc.wstx.stax.WstxInputFactory;
-import com.ctc.wstx.stax.WstxEventFactory;
-
 /**
  * Tests that namespaces are written to the output stream in namespace
  * repairing mode. See [WSTX-193] for details.
@@ -31,8 +28,8 @@ public class TestNamespaceCopying
   protected void setUp() throws Exception {
       _outputFactory = getOutputFactory();
       setRepairing(_outputFactory, true);
-      _eventFactory = new WstxEventFactory();
-      _inputFactory = new WstxInputFactory();
+      _eventFactory = getEventFactory();
+      _inputFactory = getInputFactory();
   }
 
   public void testStreamXMLNSDeclaration() throws Exception {

@@ -15,6 +15,7 @@ import javax.xml.stream.Location;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 
+import com.ctc.wstx.api.WstxInputProperties;
 import com.ctc.wstx.ent.EntityDecl;
 import com.ctc.wstx.sr.BasicStreamReader;
 
@@ -25,6 +26,12 @@ import com.ctc.wstx.sr.BasicStreamReader;
 public class TestTreatCharRefAsEnts 
     extends BaseStreamTest
 {
+    protected static void setTreatCharRefsAsEnts(XMLInputFactory f, boolean state) 
+        throws XMLStreamException
+    {
+        f.setProperty(WstxInputProperties.P_TREAT_CHAR_REFS_AS_ENTS, 
+                      state ? Boolean.TRUE : Boolean.FALSE);
+    }
 
     public void testReturnEntityForCharReference() throws Exception
     {

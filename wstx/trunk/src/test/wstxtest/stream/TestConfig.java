@@ -18,7 +18,7 @@ public class TestConfig
     /* !!! 18-Dec-2006, TSa: This needs to be resolved some other way,
      *   shouldn't have repeat it here (against DRY principle)
      */
-    final static String WSTX_VERSION = "4.0";
+    final static String WSTX_VERSION = "5.0";
 
     public void testSettingResolvers()
         throws XMLStreamException
