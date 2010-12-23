@@ -18,7 +18,7 @@
         (used to use Emma, but had problems)
       -->
 
-    <target name="build.coverage.cobertura" depends="compile.test, prepare-staxtest">
+    <target name="build.coverage.cobertura" depends="compile.test">
       <!-- First, need to instrument classes -->
       <property name="cobertura.instr.dir" value="${dir.build}/cobertura-instr" />
       <mkdir dir="${cobertura.coverage.dir}" />
