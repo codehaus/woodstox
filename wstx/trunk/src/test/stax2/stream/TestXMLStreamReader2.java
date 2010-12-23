@@ -205,12 +205,8 @@ public class TestXMLStreamReader2
         throws XMLStreamException
     {
         final String XML =
-            "<!DOCTYPE root [\n"
-            +"<!ENTITY intEnt '<leaf />'>\n"
-            +"]>"
-            +"<root>"
-            +"<xy:elem xmlns:xy='http://foo' xmlns:another='http://x'>"
-            +"<?proc instr?>&intEnt;<another:x /></xy:elem>"
+            "<xy:elem xmlns:xy='http://foo' xmlns:another='http://x'>"
+            +"<?proc instr?>...<another:x /></xy:elem>"
             +"</root>"
             ;
         XMLStreamReader2 sr = getReader(XML, ns);
@@ -223,11 +219,7 @@ public class TestXMLStreamReader2
             assertEquals("xy:elem", sr.getPrefixedName());
             assertTokenType(PROCESSING_INSTRUCTION, sr.next());
             assertEquals("proc", sr.getPrefixedName());
-            assertTokenType(START_ELEMENT, sr.next());
-            assertEquals("leaf", sr.getPrefixedName());
-            assertTokenType(END_ELEMENT, sr.next());
-            assertEquals("leaf", sr.getPrefixedName());
-            assertTokenType(START_ELEMENT, sr.next());
+            assertTokenType(CHARACTERS, sr.next());
             assertEquals("another:x", sr.getPrefixedName());
             assertTokenType(END_ELEMENT, sr.next());
             assertEquals("another:x", sr.getPrefixedName());
