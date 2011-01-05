@@ -5,7 +5,7 @@ import java.io.*;
 import com.google.gson.*;
 
 /**
- * Converter that uses Google-gson package for JSON data binding,
+ * Converter that uses Gson package for JSON data binding,
  * using automatic bindings for serialization and deserialization.
  */
 public class StdGsonConverter<T extends StdItem<T>>
