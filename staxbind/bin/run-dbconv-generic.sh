@@ -4,7 +4,7 @@ echo "About to run full 'dbconv' test on various Data Format drivers (input dir:
 
 # Nothing big stored in memory, heap can remain modest 
 # -Djapex.runTime=30 \
-$JAVA_HOME/bin/java -server -cp lib/\* \
+java -server -cp lib/\* \
  -Xmx128M \
  -Djava.awt.headless=true \
  -Djapex.runsPerDriver=1 \
