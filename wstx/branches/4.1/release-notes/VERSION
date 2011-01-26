@@ -1,36 +1,42 @@
-Version: 4.1.0
+Version: 4.1.1
 
 Release date: 13-Dec-2009
 
-Description:
-  Initial 4.1 release. Limited amount of new functionality; MSV
-  dependency changed to use the new maintained version.
+Description: First patch release for 4.1
 
-  Problems fixed:
+Problems fixed:
 
-  * [WSTX-201]: XMLStreamReader.isCharacters() can return inconsistent
-    value compared to XMLStreamReader.getEventType()
-   (reported by Andreas V)
-  * [WSTX-254]: Stax2ReaderAdapter2.getDepth() incorrect after calling
-    getElementAs (from StaxMate bug)
-
-  Improvements:
-
-  * [WSTX-237] Add size limit to InternCache
-  * [WSTX-248] Java URL.hashCode() cause issues with DTD caching
-   (reported by Christophe C)
-  * [WSTX-251] Improve extensibility of XMLStreamWriter construction
-   (suggested by Eric D)
-  * [WSTX-252] Add EmptyElementHandler to allow customizing whether
-    empty elements can be written, on per-tag basis
-   (suggested by Eric D)
-  * Rewrote attribute parsing/collection part to use separate wrapper
-    classes (instead of primitive arrays); to support easier modifications
-    and custom additions to collected attribute information.
+* [WSTX-255] XMLStreamWriter2.copyEventFromReader() implementation
+  not working with sources other than Woodstox reader
+ (reported by Benson M)
 
 ------------------------------------------------------------------------
 == History: ==
 ------------------------------------------------------------------------
+
+4.1.0 [13-Dec-2010]
+
+Problems fixed:
+
+* [WSTX-201]: XMLStreamReader.isCharacters() can return inconsistent
+   value compared to XMLStreamReader.getEventType()
+  (reported by Andreas V)
+* [WSTX-254]: Stax2ReaderAdapter2.getDepth() incorrect after calling
+   getElementAs (from StaxMate bug)
+
+Improvements:
+
+* [WSTX-237] Add size limit to InternCache
+* [WSTX-248] Java URL.hashCode() cause issues with DTD caching
+  (reported by Christophe C)
+* [WSTX-251] Improve extensibility of XMLStreamWriter construction
+  (suggested by Eric D)
+* [WSTX-252] Add EmptyElementHandler to allow customizing whether
+  empty elements can be written, on per-tag basis
+  (suggested by Eric D)
+* Rewrote attribute parsing/collection part to use separate wrapper
+  classes (instead of primitive arrays); to support easier modifications
+  and custom additions to collected attribute information.
 
 4.0.9 [08-Oct-2010]
 
