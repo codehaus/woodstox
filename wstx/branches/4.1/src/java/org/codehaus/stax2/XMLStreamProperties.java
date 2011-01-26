@@ -118,6 +118,4 @@ public interface XMLStreamProperties
      * if they know that full xml:id support is enabled).
      */
     public final static String XSP_V_XMLID_FULL = "xmlidFull";
-
 }
-
