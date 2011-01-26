@@ -23,7 +23,6 @@ import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
 import javax.xml.stream.Location;
 import javax.xml.stream.XMLReporter;
-import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
@@ -34,7 +33,7 @@ import javax.xml.stream.events.StartElement;
 import org.codehaus.stax2.DTDInfo;
 import org.codehaus.stax2.XMLStreamLocation2;
 import org.codehaus.stax2.XMLStreamReader2;
-import org.codehaus.stax2.XMLStreamWriter2;
+import org.codehaus.stax2.ri.Stax2WriterImpl;
 import org.codehaus.stax2.validation.*;
 
 import com.ctc.wstx.api.WriterConfig;
@@ -58,8 +57,8 @@ import com.ctc.wstx.util.StringUtil;
  * to any of stream writer implementations in general way.
  */
 public abstract class BaseStreamWriter
-    implements XMLStreamWriter2, ValidationContext,
-               XMLStreamConstants, OutputConfigFlags
+    extends Stax2WriterImpl
+    implements ValidationContext, OutputConfigFlags
 {
     protected final static int STATE_PROLOG = 1;
     protected final static int STATE_TREE = 2;
@@ -204,26 +203,6 @@ public abstract class BaseStreamWriter
      * errors that validators might have trouble dealing with).
      */
     protected String mDtdRootElem = null;
-
-    /*
-    ///////////////////////////////////////////////////////////
-    // State needed for efficient copy-through output
-    // (copyEventFromReader)
-    ///////////////////////////////////////////////////////////
-     */
-
-    /**
-     * Reader that was last used for copy-through operation;
-     * used in conjunction with the other copy-through state
-     * variables.
-     */
-    protected XMLStreamReader2 mLastReader = null;
-
-    protected StreamReaderImpl mLastReaderImpl = null;
-
-    protected AttributeCollector mAttrCollector = null;
-
-    protected InputElementStack mInputElemStack = null;
 
     /*
     ////////////////////////////////////////////////////
@@ -772,19 +751,11 @@ public abstract class BaseStreamWriter
                 
                 // Element start/end events:
             case START_ELEMENT:
-                {
-                    if (sr != mLastReader) {
-                        mLastReader = sr;
-                        // Should probably work with non-Woodstox stream
-                        // readers too... but that's not implemented yet
-                        if (!(sr instanceof StreamReaderImpl)) {
-                            throw new XMLStreamException("Can not yet copy START_ELEMENT events from non-Woodstox stream readers (class "+sr.getClass()+")");
-                        }
-                        mLastReaderImpl = (StreamReaderImpl) sr;
-                        mAttrCollector = mLastReaderImpl.getAttributeCollector();
-                        mInputElemStack = mLastReaderImpl.getInputElementStack();
-                    }
-                    copyStartElement(mInputElemStack, mAttrCollector);
+                if (sr instanceof StreamReaderImpl) {
+                    StreamReaderImpl impl = (StreamReaderImpl) sr;
+                    copyStartElement(impl.getInputElementStack(), impl.getAttributeCollector());
+                } else { // otherwise impl from Stax ref. impl (Stax2WriterImpl) has to do:
+                    super.copyStartElement(sr);
                 }
                 return;
 

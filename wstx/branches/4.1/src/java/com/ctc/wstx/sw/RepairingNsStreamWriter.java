@@ -43,19 +43,19 @@ public final class RepairingNsStreamWriter
     extends BaseNsStreamWriter
 {
     /*
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Configuration (options, features)
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     // // // Additional specific config flags base class doesn't have
 
-    final String mAutomaticNsPrefix;
+    protected final String mAutomaticNsPrefix;
 
     /*
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Additional state
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     /**
@@ -63,9 +63,9 @@ public final class RepairingNsStreamWriter
      * Array used as a wrapper to allow for easy sharing of the sequence
      * number.
      */
-    int[] mAutoNsSeq = null;
+    protected int[] mAutoNsSeq = null;
 
-    String mSuggestedDefNs = null;
+    protected String mSuggestedDefNs = null;
 
     /**
      * Map that contains URI-to-prefix entries that point out suggested
@@ -74,12 +74,12 @@ public final class RepairingNsStreamWriter
      * if there are conflicts, repairing writer can just use some other
      * prefix.
      */
-    HashMap mSuggestedPrefixes = null;
+    protected HashMap mSuggestedPrefixes = null;
 
     /*
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Life-cycle (ctors)
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     public RepairingNsStreamWriter(XmlWriter xw, String enc, WriterConfig cfg)
@@ -89,9 +89,9 @@ public final class RepairingNsStreamWriter
     }
 
     /*
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // XMLStreamWriter API
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     //public NamespaceContext getNamespaceContext()
@@ -180,9 +180,9 @@ public final class RepairingNsStreamWriter
     }
     
     /*
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Package methods:
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     /**
@@ -353,8 +353,7 @@ public final class RepairingNsStreamWriter
      * bit different from the order in which element information is
      * passed in.
      */
-    public final void copyStartElement(InputElementStack elemStack,
-                                       AttributeCollector attrCollector)
+    public final void copyStartElement(InputElementStack elemStack, AttributeCollector ac)
         throws IOException, XMLStreamException
     {
         /* In case of repairing stream writer, we can actually just
@@ -383,9 +382,7 @@ public final class RepairingNsStreamWriter
         /* And then let's just output attributes, if any (whether to copy
          * implicit, aka "default" attributes, is configurable)
          */
-        AttributeCollector ac = mAttrCollector;
-        int attrCount = mCfgCopyDefaultAttrs ? ac.getCount() : 
-            ac.getSpecifiedCount();
+        int attrCount = mCfgCopyDefaultAttrs ? ac.getCount() :  ac.getSpecifiedCount();
 
         /* Unlike in non-ns and simple-ns modes, we can not simply literally
          * copy the attributes here. It is possible that some namespace
@@ -397,8 +394,8 @@ public final class RepairingNsStreamWriter
                 // attribute has is valid... and can not output anything
                 // before that's done (since remapping will output a namespace
                 // declaration!)
-                uri = attrCollector.getURI(i);
-                prefix = attrCollector.getPrefix(i);
+                uri = ac.getURI(i);
+                prefix = ac.getPrefix(i);
                 
                 // With attributes, missing/empty prefix always means 'no
                 // namespace', can take a shortcut:
@@ -414,9 +411,9 @@ public final class RepairingNsStreamWriter
                  * the collector, but need to call XmlWriter directly:
                  */
                 if (prefix == null || prefix.length() == 0) {
-                    mWriter.writeAttribute(attrCollector.getLocalName(i), attrCollector.getValue(i));
+                    mWriter.writeAttribute(ac.getLocalName(i), ac.getValue(i));
                 } else {
-                    mWriter.writeAttribute(prefix, attrCollector.getLocalName(i), attrCollector.getValue(i));
+                    mWriter.writeAttribute(prefix, ac.getLocalName(i), ac.getValue(i));
                 }
             }
         }
@@ -450,9 +447,9 @@ public final class RepairingNsStreamWriter
     }
 
     /*
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Internal methods
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     /**
@@ -647,4 +644,3 @@ public final class RepairingNsStreamWriter
         return null;
     }
 }
-

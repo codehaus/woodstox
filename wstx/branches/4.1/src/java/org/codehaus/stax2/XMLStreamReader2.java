@@ -265,7 +265,7 @@ public interface XMLStreamReader2
     public int getDepth();
 
     /**
-     * This method returns a namespace contenxt object that contains
+     * This method returns a namespace context object that contains
      * information identical to that returned by
      * {@link javax.xml.stream.XMLStreamReader#getNamespaceContext()},
      * but one that is
