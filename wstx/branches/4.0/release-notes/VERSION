@@ -10,6 +10,8 @@ Problems fixed:
 * [WSTX-255] XMLStreamWriter2.copyEventFromReader() implementation
   not working with sources other than Woodstox reader
  (reported by Benson M)
+* [WSTX-256] Incorrect handling of surrogate pairs in general entities.
+ (reported by Andrey S)
 
 ------------------------------------------------------------------------
 == History: ==
