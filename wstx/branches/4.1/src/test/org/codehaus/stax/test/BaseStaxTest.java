@@ -22,7 +22,7 @@ import javax.xml.stream.events.XMLEvent;
  *
  * @author Tatu Saloranta
  */
-public class BaseStaxTest
+public abstract class BaseStaxTest
     extends TestCase
     implements XMLStreamConstants
 {

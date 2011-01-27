@@ -17,7 +17,7 @@ import org.codehaus.stax2.ri.Stax2ReaderAdapter;
  * Base unit test class to be inherited by all unit tests that test
  * StAX2 API compatibility.
  */
-public class BaseStax2Test
+public abstract class BaseStax2Test
     extends TestCase
     implements XMLStreamConstants
 {
@@ -74,15 +74,6 @@ public class BaseStax2Test
     XMLInputFactory2 mInputFactory = null;
     XMLOutputFactory2 mOutputFactory = null;
     XMLEventFactory2 mEventFactory = null;
-
-    /*
-    ///////////////////////////////////////////////////////////
-    // Life-cycle
-    ///////////////////////////////////////////////////////////
-     */
-
-    protected BaseStax2Test() { super(); }
-    protected BaseStax2Test(String name) { super(name); }
 
     /*
     ///////////////////////////////////////////////////////////

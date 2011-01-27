@@ -19,8 +19,8 @@ public class TestRandomStream
 {
     InputConfigIterator mConfigs;
 
-    public TestRandomStream(String name) {
-        super(name);
+    public TestRandomStream() {
+        super();
         mConfigs = new InputConfigIterator();
         mConfigs.addConfig(Configs.getLazyParsingConfig())
             .addConfig(Configs.getInputBufferSizeConfig())

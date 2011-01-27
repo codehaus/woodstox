@@ -14,15 +14,15 @@ import org.codehaus.stax.test.BaseStaxTest;
  *
  * @author Tatu Saloranta
  */
-public class BaseEventTest
+abstract class BaseEventTest
     extends BaseStaxTest
 {
     protected BaseEventTest() { super(); }
 
     /*
-    ///////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Utility methods
-    ///////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     protected XMLEventFactory getEventFactory()
