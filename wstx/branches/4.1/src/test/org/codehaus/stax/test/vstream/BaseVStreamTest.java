@@ -12,7 +12,7 @@ import org.codehaus.stax.test.stream.BaseStreamTest;
  *
  * @author Tatu Saloranta
  */
-public class BaseVStreamTest
+abstract class BaseVStreamTest
     extends BaseStreamTest
 {
     protected BaseVStreamTest() { super(); }
