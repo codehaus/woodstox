@@ -19,7 +19,7 @@ import com.ctc.wstx.api.WstxInputProperties;
  * Base unit test class to be inherited by all unit tests that test
  * StAX2 API compatibility.
  */
-public class BaseStax2Test
+public abstract class BaseStax2Test
     extends TestCase
     implements XMLStreamConstants
 {
@@ -85,17 +85,8 @@ public class BaseStax2Test
 
     /*
     ///////////////////////////////////////////////////
-    // Life-cycle
-    ///////////////////////////////////////////////////
-     */
-
-    protected BaseStax2Test() { super(); }
-    protected BaseStax2Test(String name) { super(name); }
-
-    /*
-    //////////////////////////////////////////////////
     // Factory methods
-    //////////////////////////////////////////////////
+    ///////////////////////////////////////////////////
      */
 
     protected XMLInputFactory2 getInputFactory()

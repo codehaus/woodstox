@@ -12,11 +12,9 @@ import org.codehaus.stax2.*;
  *
  * @author Tatu Saloranta
  */
-public class BaseWriterTest
+public abstract class BaseWriterTest
     extends stax2.BaseStax2Test
 {
-    protected BaseWriterTest() { super(); }
-
     public XMLStreamWriter2 getRepairingWriter(Writer w)
         throws XMLStreamException
     {

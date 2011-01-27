@@ -18,7 +18,7 @@ import com.ctc.wstx.stax.WstxOutputFactory;
 
 import stax2.BaseStax2Test;
 
-public class BaseWstxTest
+public abstract class BaseWstxTest
     extends BaseStax2Test
     implements XMLStreamConstants
 {
@@ -56,12 +56,6 @@ public class BaseWstxTest
 
     /*
     ///////////////////////////////////////////////////
-    // Consts for expected values
-    ///////////////////////////////////////////////////
-     */
-
-    /*
-    ///////////////////////////////////////////////////
     // Lazy-loaded thingies
     ///////////////////////////////////////////////////
      */
@@ -69,18 +63,6 @@ public class BaseWstxTest
     XMLInputFactory2 mInputFactory = null;
     XMLOutputFactory2 mOutputFactory = null;
     XMLEventFactory2 mEventFactory = null;
-
-    /*
-    ///////////////////////////////////////////////////
-    // Life-cycle
-    ///////////////////////////////////////////////////
-     */
-
-    protected BaseWstxTest() { super(); }
-
-    protected BaseWstxTest(String name) {
-        super(name);
-    }
 
     /*
     //////////////////////////////////////////////////

@@ -10,8 +10,8 @@ public class TestComments
 {
     InputConfigIterator mConfigs;
 
-    public TestComments(String name) {
-        super(name);
+    public TestComments() {
+        super();
         mConfigs = new InputConfigIterator();
         Configs.addAll(mConfigs);
     }
