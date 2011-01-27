@@ -8,20 +8,10 @@ import org.codehaus.stax2.XMLStreamReader2;
 
 import wstxtest.BaseWstxTest;
 
-public class BaseWriterTest
+abstract class BaseWriterTest
     extends BaseWstxTest
 {
     protected BaseWriterTest() { }
-
-    protected BaseWriterTest(String name) {
-        super(name);
-    }
-
-    /*
-    //////////////////////////////////////////////////
-    // Factory methods
-    //////////////////////////////////////////////////
-     */
 
     protected XMLStreamReader2 constructNsStreamReader(String content, boolean coal)
         throws XMLStreamException

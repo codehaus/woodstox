@@ -8,13 +8,9 @@ import org.codehaus.stax2.validation.*;
 
 import stax2.BaseStax2Test;
 
-public class BaseOutputTest
+abstract class BaseOutputTest
     extends BaseStax2Test
 {
-    public BaseOutputTest() { super(); }
-
-    public BaseOutputTest(String name) { super(name); }
-
     public XMLStreamWriter2 getDTDValidatingWriter(Writer w, String dtdSrc,
                                                    boolean nsAware, boolean repairing)
         throws XMLStreamException

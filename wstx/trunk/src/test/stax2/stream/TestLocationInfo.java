@@ -40,10 +40,6 @@ public class TestLocationInfo
         +"</root>"; // row6
         ;
 
-    public TestLocationInfo(String name) {
-        super(name);
-    }
-
     public void testInitialLocationNoDecl()
         throws XMLStreamException
     {

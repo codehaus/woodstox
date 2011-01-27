@@ -10,14 +10,10 @@ import org.codehaus.stax2.XMLStreamReader2;
 import wstxtest.BaseWstxTest;
 import wstxtest.cfg.*;
 
-public class BaseStreamTest
+public abstract class BaseStreamTest
     extends BaseWstxTest
 {
     protected BaseStreamTest() { super(); } 
-
-    protected BaseStreamTest(String name) {
-        super(name);
-    }
 
     /*
     //////////////////////////////////////////////////
