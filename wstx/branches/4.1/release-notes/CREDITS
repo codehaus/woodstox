@@ -462,7 +462,11 @@ Stefan Vladov:
 
 Eric Dalquist:
   * [WSTX-251] Improve extensibility of XMLOutputFactory by relaxing access restrictions
-   [4.1.0]
+  [4.1.0]
   * [WSTX-252] Add EmptyElementHandler callback support to allow determining whether
     empty elements are written in compressed form or not
    [4.1.0]
+
+Andrey Shaposnikov
+  *[WSTX-256] Incorrect handling of surrogate pairs in general entities.
+   [4.1.1]

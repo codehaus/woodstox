@@ -126,8 +126,7 @@ public class TestRandomStream
         cfg.doCoalesceText(coalescing);
         cfg.doReplaceEntityRefs(autoEntity);
 
-        /* How many random permutations do we want to try?
-         */
+        // How many random permutations do we want to try?
         final int ROUNDS = 5;
 
         for (int round = 0; round < ROUNDS; ++round) {
@@ -159,10 +158,4 @@ public class TestRandomStream
         // and then the 'real' test:
         streamAndCheck(f, it, mInput, exp, mReallyStreaming);
     }
-
-    /*
-    ////////////////////////////////////////
-    // Private methods, other
-    ////////////////////////////////////////
-     */
 }
