@@ -1,6 +1,6 @@
 Version: 4.0.10
 
-Release date: 
+Release date: 27-Jan-2011
 
 Description:
   4.0 maintenance release.
@@ -12,6 +12,8 @@ Problems fixed:
  (reported by Benson M)
 * [WSTX-256] Incorrect handling of surrogate pairs in general entities.
  (reported by Andrey S)
+* [WSTX-259] DOMWrappingReader fails with NPE for empty DocumentFragment
+  (reported by Eric S)
 
 ------------------------------------------------------------------------
 == History: ==
