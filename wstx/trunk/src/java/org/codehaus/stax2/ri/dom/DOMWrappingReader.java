@@ -869,6 +869,10 @@ public abstract class DOMWrappingReader
             case Node.DOCUMENT_FRAGMENT_NODE:
                 // For doc, fragment, need to find first child
                 _currNode = _currNode.getFirstChild();
+                // as per [WSTX-259], need to handle degenerate case of empty fragment, too
+                if (_currNode == null) {
+                    return (_currEvent = END_DOCUMENT);
+                }
                 break;
 
             case Node.ELEMENT_NODE:

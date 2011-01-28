@@ -30,9 +30,9 @@ public interface EmptyElementHandler
     public static class SetEmptyElementHandler
         implements EmptyElementHandler
     {
-        final protected Set mEmptyElements;
+        final protected Set<String> mEmptyElements;
 
-        public SetEmptyElementHandler(Set emptyElements)
+        public SetEmptyElementHandler(Set<String> emptyElements)
         {
             mEmptyElements = emptyElements;
         }
@@ -61,7 +61,7 @@ public interface EmptyElementHandler
         
         protected HtmlEmptyElementHandler()
         {
-            super(new TreeSet(String.CASE_INSENSITIVE_ORDER));
+            super(new TreeSet<String>(String.CASE_INSENSITIVE_ORDER));
             mEmptyElements.add("area");
             mEmptyElements.add("base");
             mEmptyElements.add("basefont");

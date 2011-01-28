@@ -468,5 +468,9 @@ Eric Dalquist:
    [4.1.0]
 
 Andrey Shaposnikov
-  *[WSTX-256] Incorrect handling of surrogate pairs in general entities.
+  * [WSTX-256] Incorrect handling of surrogate pairs in general entities.
+   [4.1.1]
+
+Eric Sirianni
+  * [WSTX-259]: DOMWrappingReader fails with NPE for empty DocumentFragment
    [4.1.1]
