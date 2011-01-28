@@ -351,14 +351,14 @@ public class TestDomCompat
     }
 
     // [WSTX-259]
-    public void testEventReader() throws Exception
+    public void testEmptyFragment() throws Exception
     {
         DocumentFragment fragment = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument().createDocumentFragment();
     
-        XMLEventReader xmlEventReader = XMLInputFactory.newInstance().createXMLEventReader(new DOMSource(fragment));
-        while (xmlEventReader.hasNext()) {
-            System.out.println(xmlEventReader.next());
-        }
+        XMLStreamReader sr = XMLInputFactory.newInstance().createXMLStreamReader(new DOMSource(fragment));
+        assertTokenType(START_DOCUMENT, sr.getEventType());
+        assertTokenType(END_DOCUMENT, sr.next());
+        assertFalse(sr.hasNext());
     }
     
     /*
