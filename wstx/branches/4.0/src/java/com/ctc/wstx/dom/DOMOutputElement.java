@@ -25,6 +25,15 @@ public final class DOMOutputElement
      * (on per-writer basis, to keep these short-lived).
      */
     private DOMOutputElement mParent;
+
+    /**
+     * DOM node that is the root under which content is written, in case
+     * where there is no parent (mParent == null). If mParent is not null,
+     * this will be null.
+     * Value is of type
+     * {@link Document}, {@link DocumentFragment} or {@link Element}
+     */
+    private final Node mRootNode;
     
     /**
      * Actual DOM element for which this element object acts as a proxy.
@@ -36,9 +45,10 @@ public final class DOMOutputElement
     /**
      * Constructor for the virtual root element
      */
-    private DOMOutputElement()
+    private DOMOutputElement(Node rootNode)
     {
         super();
+        mRootNode = rootNode;
         mParent = null;
         mElement = null;
         mNsMapping = null;
@@ -48,11 +58,10 @@ public final class DOMOutputElement
         mDefaultNsSet = false;
     }
 
-    private DOMOutputElement(DOMOutputElement parent,
-                             Element element,
-                             BijectiveNsMap ns)
+    private DOMOutputElement(DOMOutputElement parent, Element element, BijectiveNsMap ns)
     {
         super(parent, ns);
+        mRootNode = null;
         mParent = parent;
         mElement = element;
         mNsMapping = ns;
@@ -77,9 +86,9 @@ public final class DOMOutputElement
         mDefaultNsSet = false;
     }
 
-    public static DOMOutputElement createRoot()
+    public static DOMOutputElement createRoot(Node rootNode)
     {
-        return new DOMOutputElement();
+        return new DOMOutputElement(rootNode);
     }
     
     /**
@@ -91,8 +100,8 @@ public final class DOMOutputElement
      */
     protected DOMOutputElement createAndAttachChild(Element element)
     {
-        if(isRoot()) {
-            element.getOwnerDocument().appendChild(element);
+        if (mRootNode != null) {
+            mRootNode.appendChild(element);
         } else {
             mElement.appendChild(element);
         }
@@ -107,8 +116,7 @@ public final class DOMOutputElement
     /**
      * @return New head of the recycle pool
      */
-    protected DOMOutputElement reuseAsChild(DOMOutputElement parent,
-                                               Element element)
+    protected DOMOutputElement reuseAsChild(DOMOutputElement parent, Element element)
     {
         DOMOutputElement poolHead = mParent;
         relink(parent, element);
@@ -125,9 +133,9 @@ public final class DOMOutputElement
     }
     
     /*
-    ////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Public API, accessors
-    ////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     public DOMOutputElement getParent() {
@@ -152,9 +160,9 @@ public final class DOMOutputElement
     }
     
     /*
-    ////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Public API, mutators
-    ////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     public void setDefaultNsUri(String uri) {
@@ -177,15 +185,15 @@ public final class DOMOutputElement
     }
 
     /*
-    ////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Public API, DOM manipulation
-    ////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
     
     protected void appendNode(Node n)
     {
-        if (isRoot()) {
-            mElement.getOwnerDocument().appendChild(n);
+        if (mRootNode != null) {
+            mRootNode.appendChild(n);
         } else {
             mElement.appendChild(n);
         }

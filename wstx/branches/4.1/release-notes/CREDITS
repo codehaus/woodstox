@@ -472,5 +472,8 @@ Andrey Shaposnikov
    [4.1.1]
 
 Eric Sirianni
+  * [WSTX-257] DOMWrappingWriter problem with fragments, multiple root-level
+    elements
+   [4.1.1]
   * [WSTX-259]: DOMWrappingReader fails with NPE for empty DocumentFragment
    [4.1.1]

@@ -11,6 +11,9 @@ Problems fixed:
  (reported by Benson M)
 * [WSTX-256] Incorrect handling of surrogate pairs in general entities.
   (reported by Andrey S)
+* [WSTX-257] DOMWrappingWriter problem with fragments, multiple root-level
+  elements
+  (reported by Eric S)
 * [WSTX-259] DOMWrappingReader fails with NPE for empty DocumentFragment
   (reported by Eric S)
 
