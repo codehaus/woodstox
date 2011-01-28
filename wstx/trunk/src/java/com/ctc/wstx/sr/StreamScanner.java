@@ -88,9 +88,9 @@ public abstract class StreamScanner
     protected final static char CHAR_LOWEST_LEGAL_LOCALNAME_CHAR = '-';
 
     /*
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Character validity constants, structs
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     /**
@@ -176,9 +176,9 @@ public abstract class StreamScanner
     }
 
     /*
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Basic configuration
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     /**
@@ -205,9 +205,9 @@ public abstract class StreamScanner
     protected boolean mCfgReplaceEntities;
 
     /*
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Symbol handling, if applicable
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     final SymbolTable mSymbols;
@@ -226,9 +226,9 @@ public abstract class StreamScanner
     protected String mCurrName;
 
     /*
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Input handling
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     /**
@@ -277,9 +277,9 @@ public abstract class StreamScanner
     protected boolean mNormalizeLFs;
 
     /*
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Buffer(s) for local name(s) and text content
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     /**
@@ -289,10 +289,10 @@ public abstract class StreamScanner
     protected char[] mNameBuffer = null;
 
     /*
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Information about starting location of event
     // Reader is pointing to; updated on-demand
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     // // // Location info at point when current token was started
@@ -316,11 +316,11 @@ public abstract class StreamScanner
     protected int mTokenInputCol = 0;
 
     /*
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // XML document information (from doc decl if one
     // was found) common to all entities (main xml
     // document, external DTD subset)
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     /**
@@ -357,9 +357,9 @@ public abstract class StreamScanner
     protected EntityDecl mCurrEntity;
 
     /*
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Life-cycle
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     /**
@@ -394,9 +394,9 @@ public abstract class StreamScanner
     }
 
     /*
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Package API
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     /**
@@ -420,10 +420,10 @@ public abstract class StreamScanner
     }
 
     /*
-    ///////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Partial LocationInfo implementation (not implemented
     // by this base class, but is by some sub-classes)
-    ///////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     /**
@@ -448,9 +448,9 @@ public abstract class StreamScanner
     }
 
     /*
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // InputProblemReporter implementation
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     public WstxException throwWfcException(String msg, boolean deferErrors)
@@ -600,9 +600,9 @@ public abstract class StreamScanner
     }
 
     /*
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Other error reporting methods
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     protected WstxException constructWfcException(String msg)
@@ -631,7 +631,8 @@ public abstract class StreamScanner
 
     protected WstxException constructNullCharException()
     {
-        return new WstxUnexpectedCharException("Illegal character (NULL, unicode 0) encountered: not valid in any content", getLastCharLocation(), CHAR_NULL);
+        return new WstxUnexpectedCharException("Illegal character (NULL, unicode 0) encountered: not valid in any content",
+                getLastCharLocation(), CHAR_NULL);
     }
 
     protected void throwUnexpectedChar(int i, String msg)
@@ -729,9 +730,9 @@ public abstract class StreamScanner
     }
 
     /*
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Input buffer handling
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     /**
@@ -933,9 +934,9 @@ public abstract class StreamScanner
     protected final void pushback() { --mInputPtr; }
 
     /*
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Sub-class overridable input handling methods
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     /**
@@ -1126,9 +1127,9 @@ public abstract class StreamScanner
     }
 
     /*
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Entity resolution
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     /**
@@ -1157,7 +1158,7 @@ public abstract class StreamScanner
      *   buffer boundary); null char (code 0) if not (either non-char
      *   entity, or spans input buffer boundary).
      */
-    protected char resolveSimpleEntity(boolean checkStd)
+    protected int resolveSimpleEntity(boolean checkStd)
         throws XMLStreamException
     {
         char[] buf = mInputBuffer;
@@ -1216,7 +1217,8 @@ public abstract class StreamScanner
              */
             if (c == ';') { // got the full thing
                 mInputPtr = ptr;
-                return checkAndExpandChar(value);
+                validateChar(value);
+                return value;
             }
 
             /* If we ran out of input, need to just fall back, gets
@@ -1269,7 +1271,7 @@ public abstract class StreamScanner
                 }
             }
         }
-        return CHAR_NULL;
+        return 0;
     }
 
     /**
@@ -1302,7 +1304,7 @@ public abstract class StreamScanner
      *   buffer boundary); null char (code 0) if not (either non-char
      *   entity, or spans input buffer boundary).
      */
-    protected char resolveCharOnlyEntity(boolean checkStd)
+    protected int resolveCharOnlyEntity(boolean checkStd)
         throws XMLStreamException
     {
         //int avail = inputInBuffer();
@@ -1384,7 +1386,7 @@ public abstract class StreamScanner
                 }
             }
         }
-        return CHAR_NULL;
+        return 0;
     }
 
     /**
@@ -1497,22 +1499,21 @@ public abstract class StreamScanner
      *    reparsed), or null char (0) to indicate expansion is done via
      *    input source.
      */
-    protected char fullyResolveEntity(boolean allowExt)
+    protected int fullyResolveEntity(boolean allowExt)
         throws XMLStreamException
     {
         char c = getNextCharFromCurrent(SUFFIX_IN_ENTITY_REF);
-        char d = CHAR_NULL;
         // Do we have a (numeric) character entity reference?
         if (c == '#') { // numeric
             final StringBuffer originalSurface = new StringBuffer("#");
-            d = resolveCharEnt(originalSurface);
+            int ch = resolveCharEnt(originalSurface);
             if (mCfgTreatCharRefsAsEntities) {
                 final char[] originalChars = new char[originalSurface.length()];
                 originalSurface.getChars(0, originalSurface.length(), originalChars, 0);
-                mCurrEntity = getIntEntity(d, originalChars);
-                return CHAR_NULL;
+                mCurrEntity = getIntEntity(ch, originalChars);
+                return 0;
             }
-            return d;
+            return ch;
         }
 
         String id = parseEntityName(c);
@@ -1523,6 +1524,7 @@ public abstract class StreamScanner
          * 16-May-2004, TSa: Should custom entities (or ones defined in int/ext subset) override
          * pre-defined settings for these?
          */
+        char d = CHAR_NULL;
         if (c == 'a') { // amp or apos?
             if (id.equals("amp")) {
                 d = '&';
@@ -1548,7 +1550,7 @@ public abstract class StreamScanner
                 final char[] originalChars = new char[id.length()];
                 id.getChars(0, id.length(), originalChars, 0);
                 mCurrEntity = getIntEntity(d, originalChars);
-                return CHAR_NULL;
+                return 0;
             }
             return d;
         }
@@ -1557,20 +1559,30 @@ public abstract class StreamScanner
         if (mCfgTreatCharRefsAsEntities) {
             mCurrEntity = e;
         }
-        return CHAR_NULL;
+        return 0;
     }
-    
+
     /**
      * Returns an entity (possibly from cache) for the argument character using the encoded
      * representation in mInputBuffer[entityStartPos ... mInputPtr-1].
      */
-    protected EntityDecl getIntEntity(final char c, final char[] originalChars)
+    protected EntityDecl getIntEntity(int ch, final char[] originalChars)
     {
         String cacheKey = new String(originalChars);
 
         IntEntity entity = mCachedEntities.get(cacheKey);
         if (entity == null) {
-            entity = IntEntity.create(new String(originalChars), Character.toString(c));
+            String repl;
+            if (ch <= 0xFFFF) {
+                repl = Character.toString((char) ch);
+            } else {
+                StringBuffer sb = new StringBuffer(2);
+                ch -= 0x10000;
+                sb.append((char) ((ch >> 10)  + 0xD800));
+                sb.append((char) ((ch & 0x3FF)  + 0xDC00));
+                repl = sb.toString();
+            }
+            entity = IntEntity.create(new String(originalChars), repl);
             mCachedEntities.put(cacheKey, entity);
         }
         return entity;
@@ -1727,9 +1739,9 @@ public abstract class StreamScanner
     }
 
     /*
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Abstract methods for sub-classes to implement
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     /**
@@ -1754,18 +1766,10 @@ public abstract class StreamScanner
     protected abstract void handleIncompleteEntityProblem(WstxInputSource closing)
         throws XMLStreamException;
 
-    /**
-     * Method called when a character entity needs to expand to a pair
-     * of 16-bit surrogate characters. The exact mechanism to relay
-     * this information back is different for some use cases (specifically,
-     * when dealing with internal entity expansion).
-     */
-    protected abstract char handleExpandedSurrogate(char first, char second);
-
     /*
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Basic tokenization
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     /**
@@ -2297,12 +2301,12 @@ public abstract class StreamScanner
     }
 
     /*
-    //////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Internal methods
-    //////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
-    private char resolveCharEnt(StringBuffer originalCharacters)
+    private int resolveCharEnt(StringBuffer originalCharacters)
         throws XMLStreamException
     {
         int value = 0;
@@ -2357,17 +2361,15 @@ public abstract class StreamScanner
                 }
             }
         }
-        return checkAndExpandChar(value);
+        validateChar(value);
+        return value;
     }
 
     /**
-     * Method that will handle expansion of a single character entity.
-     * It will first check the general validity of the character (checking
-     * characters that are never valid in any context); and if that succeeds,
-     * will deal with splitting high-order characters (> 0xFFFF) into
-     * surrogate pair as necessary.
+     * Method that will verify that expanded Unicode codepoint is a valid
+     * XML content character.
      */
-    private final char checkAndExpandChar(int value)
+    private final void validateChar(int value)
         throws XMLStreamException
     {
         /* 24-Jan-2006, TSa: Ok, "high" Unicode chars are problematic,
@@ -2382,14 +2384,6 @@ public abstract class StreamScanner
                 if (value > MAX_UNICODE_CHAR) {
                     reportUnicodeOverflow();
                 }
-                /* Ok, have overwrite one char with second surrogate,
-                 * push back input pointer, and return the first surrogate
-                 */
-                value -= 0x10000;
-                char first = (char) ((value >> 10)  + 0xD800);
-                char second = (char) ((value & 0x3FF)  + 0xDC00);
-
-                return handleExpandedSurrogate(first, second);
             } else if (value >= 0xFFFE) { // 0xFFFE and 0xFFFF are illegal too
                 reportIllegalChar(value);
             }
@@ -2404,7 +2398,6 @@ public abstract class StreamScanner
                 reportIllegalChar(value);
             }
         }
-        return (char) value;
     }
 
     protected final char[] getNameBuffer(int minSize)

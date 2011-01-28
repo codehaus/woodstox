@@ -259,12 +259,6 @@ public class FullDTDReader
      */
     TextBuffer mValueBuffer = null;
 
-    /**
-     * Second character of a surrogate pair returned, if any; CHAR_NULL
-     * to indicate none.
-     */
-    char mSurrogateSecond = CHAR_NULL;
-
     /*
     //////////////////////////////////////////////////
     // Reader state
@@ -1442,19 +1436,20 @@ public class FullDTDReader
                  *   And expanding them would cause problems with entities
                  *   that have such entities.
                  */
-                char d = resolveCharOnlyEntity(false);
+                int d = resolveCharOnlyEntity(false);
                 // Did we get a real char entity?
-                if (d != CHAR_NULL) {
-                    c = d;
-                    if (mSurrogateSecond != CHAR_NULL) { // surrogate pair?
+                if (d != 0) {
+                    if (d <= 0xFFFF) {
+                        c = (char) d;
+                    } else {
                         // Need more room?
                         if (outPtr >= outBuf.length) {
                             outBuf = tb.finishCurrentSegment();
                             outPtr = 0;
                         }
-                        outBuf[outPtr++] = c;
-                        c = mSurrogateSecond;
-                        mSurrogateSecond = CHAR_NULL;
+                        d -= 0x10000;
+                        outBuf[outPtr++] = (char) ((d >> 10)  + 0xD800);;
+                        c = (char) ((d & 0x3FF)  + 0xDC00);
                     }
                 } else {
                     /* 11-Feb-2006, TSa: Even so, must verify that the
@@ -1647,13 +1642,14 @@ public class FullDTDReader
                      * int. entities (amp, lt, apos, gt): first method
                      * is just more optimized than the second
                      */
+                    int d;
                     if (inputInBuffer() >= 3) {
-                        c = resolveSimpleEntity(true);
+                        d = resolveSimpleEntity(true);
                     } else {
-                        c = resolveCharOnlyEntity(true);
+                        d = resolveCharOnlyEntity(true);
                     }
                     // Only get null if it's a 'real' general entity...
-                    if (c == CHAR_NULL) {
+                    if (d == 0) {
                         c = getNextChar(SUFFIX_IN_ENTITY_REF);
                         String id = parseEntityName(c);
                         try {
@@ -1666,15 +1662,22 @@ public class FullDTDReader
                         // Ok, should have updated the input source by now
                         continue main_loop;
                     }
-                    if (mSurrogateSecond != CHAR_NULL) { // surrogate pair?
-                        if (outPtr >= outLen) { // need more room?
-                            outBuf = tb.finishCurrentSegment();
-                            outPtr = 0;
-                            outLen = outBuf.length;
+                    
+                    if (c <= 0xFFFF) {
+                        
+                    } else{
+                        if (d <= 0xFFFF) {
+                            c = (char) d;
+                        } else {
+                            // Need more room?
+                            if (outPtr >= outBuf.length) {
+                                outBuf = tb.finishCurrentSegment();
+                                outPtr = 0;
+                            }
+                            d -= 0x10000;
+                            outBuf[outPtr++] = (char) ((d >> 10)  + 0xD800);;
+                            c = (char) ((d & 0x3FF)  + 0xDC00);
                         }
-                        outBuf[outPtr++] = c;
-                        c = mSurrogateSecond;
-                        mSurrogateSecond = CHAR_NULL;
                     }
                 } else if (c == '<') {
                     throwDTDUnexpectedChar(c, SUFFIX_IN_DEF_ATTR_VALUE);
@@ -3438,24 +3441,6 @@ public class FullDTDReader
             _reportWFCViolation(entityDesc(input) + ": " + 
                               "Unbalanced PE: has to be fully contained in a declaration (as per xml 1.0.3, section 2.8, VC 'Proper Declaration/PE Nesting')");
         }
-    }
-
-    /**
-     * In most cases, surrogate pair can be expanded in-situ (like done
-     * with regular xml reader), but there are cases where this can not
-     * be done. Specifically, when expanding internal entities from the
-     * internal subset (or when flattening DTDs) this would lead to
-     * problems.
-     */
-    protected char handleExpandedSurrogate(char first, char second)
-    {
-        /* With normal XML textual content we should be safe by just
-         * directly modifying input buffer, essentially injecting
-         * second character back into input buffer (which is known
-         * to have room for at least one char at this point).
-         */
-        mSurrogateSecond = second;
-        return first;
     }
 
     /*

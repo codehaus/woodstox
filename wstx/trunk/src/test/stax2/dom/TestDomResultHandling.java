@@ -1,10 +1,12 @@
-package stax2.wstream;
+package stax2.dom;
 
 import javax.xml.parsers.*;
 import javax.xml.stream.*;
 import javax.xml.transform.dom.DOMResult;
 
 import org.w3c.dom.*;
+
+import stax2.wstream.BaseWriterTest;
 
 /**
  * Unit tests initially written to verify [WSTX-183], problems with

@@ -1,4 +1,4 @@
-package stax2.wstream;
+package stax2.dom;
 
 import javax.xml.parsers.*;
 import javax.xml.stream.*;
@@ -7,6 +7,8 @@ import javax.xml.transform.dom.DOMResult;
 import org.w3c.dom.*;
 
 import org.codehaus.stax2.typed.TypedXMLStreamWriter;
+
+import stax2.wstream.BaseWriterTest;
 
 /**
  * Unit test suite that checks that output-side DOM-compatibility

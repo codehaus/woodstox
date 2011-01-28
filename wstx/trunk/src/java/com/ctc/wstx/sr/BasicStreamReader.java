@@ -1879,16 +1879,28 @@ public abstract class BasicStreamReader
                         break;
                     }
                 } else if (c == '&') { // an entity of some sort...
+                    int ch;
                     if (inputInBuffer() >= 3
-                        && (c = resolveSimpleEntity(true)) != CHAR_NULL) {
+                        && (ch = resolveSimpleEntity(true)) != 0) {
                         // Ok, fine, c is whatever it is
                         ;
                     } else { // full entity just changes buffer...
-                        c = fullyResolveEntity(false);
-                        if (c == CHAR_NULL) {
+                        ch = fullyResolveEntity(false);
+                        if (ch == 0) {
                             // need to skip output, thusly (expanded to new input source)
                             continue;
                         }
+                    }
+                    if (ch <= 0xFFFF) {
+                        c = (char) ch;
+                    } else {
+                        ch -= 0x10000;
+                        if (outPtr >= outLen) {
+                            outBuf = tb.bufferFull(1);
+                            outLen = outBuf.length;
+                        }
+                        outBuf[outPtr++] = (char) ((ch >> 10)  + 0xD800);
+                        c = (char) ((ch & 0x3FF)  + 0xDC00);
                     }
                 }
             } else if (c == '<') {
@@ -2683,10 +2695,10 @@ public abstract class BasicStreamReader
             /* Need to call different methods based on whether we can do
              * automatic entity expansion or not:
              */
-            char c = mCfgReplaceEntities ?
+            int ch = mCfgReplaceEntities ?
                 fullyResolveEntity(true) : resolveCharOnlyEntity(true);
 
-            if (c != CHAR_NULL) {
+            if (ch != 0) {
                 /* Char-entity... need to initialize text output buffer, then;
                  * independent of whether it'll be needed or not.
                  */
@@ -2695,7 +2707,7 @@ public abstract class BasicStreamReader
                  */
                 if (mVldContent <= XMLValidator.CONTENT_ALLOW_WS) {
                     // As per xml specs, only straight white space is legal
-                    if (c > CHAR_SPACE) {
+                    if (ch > CHAR_SPACE) {
                         /* 21-Sep-2008, TSa: Used to also require a call to
                          *   'mElementStack.reallyValidating', if only ws
                          *   allowed, to cover the case where non-typing-dtd
@@ -2707,10 +2719,15 @@ public abstract class BasicStreamReader
                         reportInvalidContent(CHARACTERS);
                     }
                 }
-
                 TextBuffer tb = mTextBuffer;
                 tb.resetInitialized();
-                tb.append(c);
+                if (ch <= 0xFFFF) {
+                    tb.append((char) ch);
+                } else {
+                    ch -= 0x10000;
+                    tb.append((char) ((ch >> 10)  + 0xD800));
+                    tb.append((char) ((ch & 0x3FF)  + 0xDC00));
+                }
                 mTokenState = TOKEN_STARTED;
                 return CHARACTERS;
             }
@@ -3522,7 +3539,7 @@ public abstract class BasicStreamReader
                 if (mCfgReplaceEntities) {
                     // Let's first try quick resolution:
                     if ((mInputEnd - mInputPtr) >= 3
-                        && resolveSimpleEntity(true) != CHAR_NULL) {
+                        && resolveSimpleEntity(true) != 0) {
                         ;
                     } else {
                         i = fullyResolveEntity(true);
@@ -3534,7 +3551,7 @@ public abstract class BasicStreamReader
                     /* Can only skip character entities; others need to
                      * be returned separately.
                      */
-                    if (resolveCharOnlyEntity(true) == CHAR_NULL) {
+                    if (resolveCharOnlyEntity(true) == 0) {
                         /* Now points to the char after ampersand, and we need
                          * to return the ampersand itself
                          */
@@ -4613,13 +4630,14 @@ public abstract class BasicStreamReader
                     break;
                 } else if (c == '&') {
                     mInputPtr = inputPtr;
+                    int ch;
                     if (mCfgReplaceEntities) { // can we expand all entities?
                         if ((inputLen - inputPtr) >= 3
-                            && (c = resolveSimpleEntity(true)) != CHAR_NULL) {
-                            // Ok, it's fine, c will get output
+                            && (ch = resolveSimpleEntity(true)) != 0) {
+                            // Ok, it's fine then
                         } else {
-                            c = fullyResolveEntity(true);
-                            if (c == CHAR_NULL) {
+                            ch = fullyResolveEntity(true);
+                            if (ch == 0) {
                                 // Input buffer changed, nothing to output quite yet:
                                 inputBuffer = mInputBuffer;
                                 inputLen = mInputEnd;
@@ -4632,8 +4650,8 @@ public abstract class BasicStreamReader
                         /* Nope, can only expand char entities; others need
                          * to be separately handled.
                          */
-                        c = resolveCharOnlyEntity(true);
-                        if (c == CHAR_NULL) { // some other entity...
+                        ch = resolveCharOnlyEntity(true);
+                        if (ch == 0) { // some other entity...
                             /* can't expand; underlying pointer now points to
                              * char after ampersand, need to rewind
                              */
@@ -4641,6 +4659,18 @@ public abstract class BasicStreamReader
                             break;
                         }
                         // .. otherwise we got char we needed
+                    }
+                    if (ch <= 0xFFFF) {
+                        c = (char) ch;
+                    } else {
+                        ch -= 0x10000;
+                        // need more room?
+                        if (outPtr >= outBuf.length) {
+                            outBuf = mTextBuffer.finishCurrentSegment();
+                            outPtr = 0;
+                        }
+                        outBuf[outPtr++] = (char) ((ch >> 10)  + 0xD800);
+                        c = (char) ((ch & 0x3FF)  + 0xDC00);
                     }
                     inputPtr = mInputPtr;
                     // not quite sure why this is needed... but it is:
@@ -5030,14 +5060,15 @@ public abstract class BasicStreamReader
                         w.write(mInputBuffer, start, len);
                         count += len;
                     }
+                    int ch;
                     if (mCfgReplaceEntities) { // can we expand all entities?
                         if ((mInputEnd - mInputPtr) < 3
-                            || (c = resolveSimpleEntity(true)) == CHAR_NULL) {
-                            c = fullyResolveEntity(true);
+                            || (ch = resolveSimpleEntity(true)) == 0) {
+                            ch = fullyResolveEntity(true);
                         }
                     } else {
-                        c = resolveCharOnlyEntity(true);
-                        if (c == CHAR_NULL) { // some other entity...
+                        ch = resolveCharOnlyEntity(true);
+                        if (ch == 0) { // some other entity...
                             /* can't expand, so, let's just bail out... but
                              * let's also ensure no text is added twice, as
                              * all prev text was just flushed, but resolve
@@ -5047,7 +5078,14 @@ public abstract class BasicStreamReader
                             break main_loop;
                         }
                     }
-                    if (c != CHAR_NULL) {
+                    if (ch != 0) {
+                        if (ch <= 0xFFFF) {
+                            c = (char) ch;
+                        } else {
+                            ch -= 0x10000;
+                            w.write((char) ((ch >> 10)  + 0xD800));
+                            c = (char) ((ch & 0x3FF)  + 0xDC00);
+                        }
                         w.write(c);
                         ++count;
                     }
@@ -5369,18 +5407,6 @@ public abstract class BasicStreamReader
         String top = mElementStack.isEmpty() ? "[ROOT]" : mElementStack.getTopElementDesc();
         throwParseError("Unexpected end of entity expansion for entity &{0}; was expecting a close tag for element <{1}>",
                         closing.getEntityId(), top);
-    } 
-
-    @Override
-    protected char handleExpandedSurrogate(char first, char second)
-    {
-        /* With normal XML textual content we should be safe by just
-         * directly modifying input buffer, essentially injecting
-         * second character back into input buffer (which is known
-         * to have room for at least one char at this point).
-         */
-        mInputBuffer[--mInputPtr] = second;
-        return first;
     }
 
     /*
