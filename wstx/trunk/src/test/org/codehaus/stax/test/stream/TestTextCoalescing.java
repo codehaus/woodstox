@@ -12,10 +12,6 @@ public class TestTextCoalescing
     final static String VALID_XML = "<root>Text <![CDATA[cdata\n"
         +"in two lines]]><![CDATA[!]]>/that's all!</root>";
 
-    public TestTextCoalescing(String name) {
-        super(name);
-    }
-
     public void testCoalescing()
         throws XMLStreamException
     {

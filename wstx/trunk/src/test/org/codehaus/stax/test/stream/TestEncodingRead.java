@@ -11,10 +11,6 @@ import javax.xml.stream.*;
 public class TestEncodingRead
     extends BaseStreamTest
 {
-    public TestEncodingRead(String name) {
-        super(name);
-    }
-
     final String UTF_1 = String.valueOf((char) 0x41); // 'A'
     final String UTF_2 = String.valueOf((char) 0xA0); // nbsp
     final String UTF_3 = String.valueOf((char) 0xB61); // some char that needs 3-byte encoding

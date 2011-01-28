@@ -9,10 +9,6 @@ import javax.xml.stream.*;
 public class TestEpilog
     extends BaseStreamTest
 {
-    public TestEpilog(String name) {
-        super(name);
-    }
-
     public void testValidEpilog()
         throws XMLStreamException
     {

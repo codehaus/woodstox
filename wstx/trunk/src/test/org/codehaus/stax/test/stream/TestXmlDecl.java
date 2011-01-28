@@ -10,10 +10,6 @@ import javax.xml.stream.*;
 public class TestXmlDecl
     extends BaseStreamTest
 {
-    public TestXmlDecl(String name) {
-        super(name);
-    }
-
     final String VALID_XML1
         = "<?xml version='1.0'?><root />";
 

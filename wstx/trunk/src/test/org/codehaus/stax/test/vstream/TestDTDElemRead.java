@@ -8,14 +8,10 @@ import javax.xml.stream.*;
 public class TestDTDElemRead
     extends BaseVStreamTest
 {
-    public TestDTDElemRead(String name) {
-        super(name);
-    }
-
     /*
-    ///////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Element declaration tests:
-    ///////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     public void testValidElementDecl()

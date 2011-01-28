@@ -1,7 +1,5 @@
 package org.codehaus.stax.test.evt;
 
-import java.util.NoSuchElementException;
-
 import javax.xml.stream.*;
 import javax.xml.stream.events.*;
 
@@ -149,9 +147,9 @@ public class TestEventDTD
     }
 
     /*
-    /////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Internal methods:
-    /////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     private XMLEventReader getReader(String contents, boolean nsAware,
@@ -175,9 +173,9 @@ public class TestEventDTD
         return constructEventReader(f, contents);
     }
 
-    private void testListElems(List l, Class expType)
+    private void testListElems(List<?> l, Class<?> expType)
     {
-        Iterator it = l.iterator();
+        Iterator<?> it = l.iterator();
         while (it.hasNext()) {
             Object o = it.next();
             assertNotNull(o);

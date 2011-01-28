@@ -11,16 +11,6 @@ import javax.xml.stream.*;
 public class TestAttrTypes
     extends BaseVStreamTest
 {
-    public TestAttrTypes(String name) {
-        super(name);
-    }
-
-    /*
-    ///////////////////////////////////////
-    // Test cases
-    ///////////////////////////////////////
-     */
-
     public void testAttrTypes()
         throws XMLStreamException
     {

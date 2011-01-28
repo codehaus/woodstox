@@ -15,12 +15,6 @@ import org.codehaus.stax.test.stream.BaseStreamTest;
 abstract class BaseVStreamTest
     extends BaseStreamTest
 {
-    protected BaseVStreamTest() { super(); }
-
-    protected BaseVStreamTest(String name) {
-        super(name);
-    }
-
     protected XMLStreamReader getValidatingReader(String contents)
         throws XMLStreamException
     {

@@ -9,16 +9,6 @@ import javax.xml.stream.*;
 public class TestEnumAttrRead
     extends BaseVStreamTest
 {
-    public TestEnumAttrRead(String name) {
-        super(name);
-    }
-
-    /*
-    ///////////////////////////////////////
-    // Test cases
-    ///////////////////////////////////////
-     */
-
     public void testValidAttrDecl()
         throws XMLStreamException
     {

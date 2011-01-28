@@ -13,10 +13,6 @@ import javax.xml.stream.*;
 public class TestRandomStream
     extends BaseStreamTest
 {
-    public TestRandomStream(String name) {
-        super(name);
-    }
-
     public void testCoalescingAutoEntity()
         throws Exception
     {

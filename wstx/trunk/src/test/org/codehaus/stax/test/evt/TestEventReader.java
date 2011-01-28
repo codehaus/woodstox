@@ -5,8 +5,6 @@ import java.util.NoSuchElementException;
 import javax.xml.stream.*;
 import javax.xml.stream.events.*;
 
-import java.util.*;
-
 /**
  * Class that contains simple tests for making sure that event objects
  * created by the {@link XMLEventFactory} have expected properties.
@@ -55,7 +53,7 @@ public class TestEventReader
             boolean coal = (i & 2) != 0;
             XMLEventReader er = getReader(XML, ns, coal);
 
-            XMLEvent evt = er.nextEvent();
+            XMLEvent evt = (XMLEvent) er.nextEvent();
 
             // Let's try removal:
             String msg = null;
@@ -158,7 +156,7 @@ public class TestEventReader
             assertTokenType(START_ELEMENT, er.nextEvent().getEventType());
             String msg = null;
             try {
-                XMLEvent evt = er.nextTag();
+                /*XMLEvent evt =*/ er.nextTag();
                 msg = "Expected a XMLStreamException when trying to call XMLEventReader.nextTag() on non-empty CHARACTERS";
             } catch (XMLStreamException sex) {
                 // fine!
@@ -205,7 +203,6 @@ public class TestEventReader
             boolean ns = (i & 1) != 0;
             boolean coal = (i & 2) != 0;
             XMLEventReader er = getReader(XML, ns, coal);
-            XMLEvent ev;
 
             assertTokenType(START_DOCUMENT, er.peek().getEventType());
             assertTokenType(START_DOCUMENT, er.nextEvent().getEventType());

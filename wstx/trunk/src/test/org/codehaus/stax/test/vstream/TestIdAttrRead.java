@@ -10,16 +10,6 @@ import javax.xml.stream.*;
 public class TestIdAttrRead
     extends BaseVStreamTest
 {
-    public TestIdAttrRead(String name) {
-        super(name);
-    }
-
-    /*
-    ///////////////////////////////////////
-    // Test cases
-    ///////////////////////////////////////
-     */
-
     /**
      * Test case that verifies behaviour of valid ID/IDREF/IDREF
      * attribute declarations.

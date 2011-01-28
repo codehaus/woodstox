@@ -10,10 +10,6 @@ import org.codehaus.stax.test.SimpleResolver;
 public class TestEntityRead
     extends BaseStreamTest
 {
-    public TestEntityRead(String name) {
-        super(name);
-    }
-
     /**
      * Method that tests properties of unresolved DTD event.
      */

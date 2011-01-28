@@ -10,10 +10,6 @@ import javax.xml.stream.*;
 public class TestProcInstrRead
     extends BaseStreamTest
 {
-    public TestProcInstrRead(String name) {
-        super(name);
-    }
-
     /**
      * Method that checks properties of PROCESSING_INSTRUCTION
      * returned by the stream reader are correct according to StAX specs.

@@ -1,6 +1,5 @@
 package org.codehaus.stax.test.evt;
 
-import java.io.StringWriter;
 import java.util.*;
 
 import javax.xml.namespace.QName;
@@ -158,7 +157,7 @@ public class TestEventFactory
     public void testEntityReference()
         throws XMLStreamException
     {
-        XMLEventFactory f = getEventFactory();
+//        XMLEventFactory f = getEventFactory();
 
         /* 22-Dec-2005, TSa: ... but how can we create the entity declaration
          *   that is needed? Should null be ok? For now, can't really test...
@@ -295,7 +294,7 @@ public class TestEventFactory
         final String NS_URI = "http://foo";
 
         XMLEventFactory f = getEventFactory();
-        ArrayList attrs = new ArrayList();
+        ArrayList<Attribute> attrs = new ArrayList<Attribute>();
         Attribute attr1 = f.createAttribute(new QName("attr1"), "value");
         testEventWritability(attr1);
         attrs.add(attr1);
@@ -329,21 +328,15 @@ public class TestEventFactory
         assertNull(se.getAttributeByName(new QName("attr2")));
 
         // and finally raw count
-        Iterator it = se.getAttributes();
+        Iterator<?> it = se.getAttributes();
         assertNotNull(it);
         int count = 0;
 
         while (it.hasNext()) {
-            Attribute a = (Attribute) it.next();
+            it.next();
             ++count;
         }
         assertEquals(2, count);
     }
-
-    /*
-    ////////////////////////////////////////
-    // Private methods, tests
-    ////////////////////////////////////////
-     */
 }
 

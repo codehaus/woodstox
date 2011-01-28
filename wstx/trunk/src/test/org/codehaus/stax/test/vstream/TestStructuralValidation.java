@@ -8,8 +8,8 @@ import javax.xml.stream.*;
 public class TestStructuralValidation
     extends BaseVStreamTest
 {
-    public TestStructuralValidation(String name) {
-        super(name);
+    public TestStructuralValidation() {
+        super();
         // Uncomment to see if we get exceptions we should be getting:
         //PRINT_EXP_EXCEPTION = true;
     }

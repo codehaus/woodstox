@@ -21,10 +21,6 @@ import javax.xml.stream.*;
 public class TestStreaming
     extends BaseStreamTest
 {
-    public TestStreaming(String name) {
-        super(name);
-    }
-
     public void testAscii()
         throws XMLStreamException, UnsupportedEncodingException
     {

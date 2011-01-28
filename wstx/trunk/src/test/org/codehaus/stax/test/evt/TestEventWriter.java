@@ -24,14 +24,12 @@ public class TestEventWriter
 
         XMLEventFactory evtf = getEventFactory();
 
-        ArrayList attrs = new ArrayList();
+        ArrayList<Attribute> attrs = new ArrayList<Attribute>();
         attrs.add(evtf.createAttribute("attr", "value"));
         attrs.add(evtf.createAttribute("ns", "uri", "attr2", "value2"));
-        ArrayList ns = new ArrayList();
+        ArrayList<Namespace> ns = new ArrayList<Namespace>();
         ns.add(evtf.createNamespace("ns", "uri"));
-        StartElement elem = evtf.createStartElement("", "", "root",
-                                                    attrs.iterator(),
-                                                    ns.iterator());
+        StartElement elem = evtf.createStartElement("", "", "root", attrs.iterator(), ns.iterator());
         
         w.add(elem);
         w.add(evtf.createEndElement("", "", "root"));
@@ -71,6 +69,7 @@ public class TestEventWriter
      * time around still get the same events (at least by type, and maybe
      * doing some simple sanity checks).
      */
+    @SuppressWarnings("unchecked")
     public void testPassThrough()
         throws XMLStreamException
     {
@@ -88,30 +87,30 @@ public class TestEventWriter
             +"</root>";
             ;
         XMLEventReader er = getEventReader(INPUT, true, true);
-        List list1 = collectEvents(er);
+        List<XMLEvent> list1 = collectEvents(er);
 
         StringWriter strw = new StringWriter();
         XMLOutputFactory f = getOutputFactory();
         XMLEventWriter ew = f.createXMLEventWriter(strw);
-        Iterator it = list1.iterator();
+        Iterator<XMLEvent> it = list1.iterator();
         while (it.hasNext()) {
-            ew.add((XMLEvent) it.next());
+            ew.add(it.next());
         }
 
         // And re-parse...
         er = getEventReader(INPUT, true, true);
-        List list2 = collectEvents(er);
+        List<XMLEvent> list2 = collectEvents(er);
 
         assertEquals("Should have gotten same number of events",
                      list1.size(), list2.size());
 
         // And finally, let's at least compare types we have:
         it = list1.iterator();
-        Iterator it2 = list2.iterator();
+        Iterator<XMLEvent> it2 = list2.iterator();
 
         for (int ix = 0; it.hasNext(); ++ix) {
-            XMLEvent evt1 = (XMLEvent) it.next();
-            XMLEvent evt2 = (XMLEvent) it2.next();
+            XMLEvent evt1 = it.next();
+            XMLEvent evt2 = it2.next();
 
             if (evt1.getEventType() != evt2.getEventType()) {
                 fail("Event #"+ix+"; first time got event "+evt1.getEventType()
@@ -125,20 +124,20 @@ public class TestEventWriter
                  */
                 StartElement se1 = evt1.asStartElement();
                 StartElement se2 = evt2.asStartElement();
-                List attrs1 = fetchElems(se1.getAttributes());
-                List attrs2 = fetchElems(se2.getAttributes());
+                List<Attribute> attrs1 = fetchElems((Iterator<Attribute>)se1.getAttributes());
+                List<Attribute> attrs2 = fetchElems((Iterator<Attribute>)se2.getAttributes());
                 assertEquals(attrs1.size(), attrs2.size());
 
-                List ns1 = fetchElems(se1.getNamespaces());
-                List ns2 = fetchElems(se2.getNamespaces());
+                List<Namespace> ns1 = fetchElems((Iterator<Namespace>)se1.getNamespaces());
+                List<Namespace> ns2 = fetchElems((Iterator<Namespace>)se2.getNamespaces());
                 assertEquals(ns1.size(), ns2.size());
             }
         }
     }
 
-    private List fetchElems(Iterator it)
+    private <T> List<T> fetchElems(Iterator<T> it)
     {
-        ArrayList l = new ArrayList();
+        ArrayList<T> l = new ArrayList<T>();
         while (it.hasNext()) {
             l.add(it.next());
         }
@@ -146,9 +145,9 @@ public class TestEventWriter
     }
 
     /*
-    ////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Private methods, other
-    ////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     private XMLStreamReader getReader(String contents, boolean nsAware,
@@ -176,10 +175,10 @@ public class TestEventWriter
         return f.createXMLEventReader(sr);
     }
 
-    private List collectEvents(XMLEventReader er)
+    private List<XMLEvent> collectEvents(XMLEventReader er)
         throws XMLStreamException
     {
-        ArrayList events = new ArrayList();
+        ArrayList<XMLEvent> events = new ArrayList<XMLEvent>();
         while (er.hasNext()) {
             events.add(er.nextEvent());
         }

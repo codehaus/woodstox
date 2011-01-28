@@ -10,6 +10,7 @@ import javax.xml.transform.dom.DOMSource;
 
 import org.xml.sax.InputSource;
 import org.w3c.dom.Document;
+import org.w3c.dom.DocumentFragment;
 
 import org.codehaus.stax2.*;
 
@@ -348,11 +349,22 @@ public class TestDomCompat
         assertTokenType(END_DOCUMENT, sr.next());
         sr.close();
     }
+
+    // [WSTX-259]
+    public void testEventReader() throws Exception
+    {
+        DocumentFragment fragment = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument().createDocumentFragment();
+    
+        XMLEventReader xmlEventReader = XMLInputFactory.newInstance().createXMLEventReader(new DOMSource(fragment));
+        while (xmlEventReader.hasNext()) {
+            System.out.println(xmlEventReader.next());
+        }
+    }
     
     /*
-    ///////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Helper methods
-    ///////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     */
 
     private XMLStreamReader2 createDomBasedReader(String content, boolean nsAware)

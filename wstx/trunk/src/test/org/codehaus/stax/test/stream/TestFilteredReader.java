@@ -1,7 +1,5 @@
 package org.codehaus.stax.test.stream;
 
-import java.io.*;
-
 import javax.xml.stream.*;
 
 /**

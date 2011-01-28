@@ -20,10 +20,6 @@ public class TestLinefeeds
     final String IN_MIXED1  = "Something\nwonderful (?)\rhas...\r\r\n happened ";
     final String OUT_MIXED1 = "Something\nwonderful (?)\nhas...\n\n happened ";
 
-    public TestLinefeeds(String name) {
-        super(name);
-    }
-
     /**
      * Test that checks that if ignorable whitespace is reported from
      * epilog and/or prolog, it will be properly normalized.
