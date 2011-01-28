@@ -1,4 +1,4 @@
-/* Stax2 API extension for Streaming Api for Xml processing (StAX).
+/* Stax2 API extension for Streaming API for XML processing (StAX).
  *
  * Copyright (c) 2006- Tatu Saloranta, tatu.saloranta@iki.fi
  *
