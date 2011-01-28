@@ -1,4 +1,4 @@
-package stax2.stream;
+package stax2.dom;
 
 import java.io.*;
 
