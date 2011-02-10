@@ -11,9 +11,6 @@ import com.ctc.wstx.util.BijectiveNsMap;
 /**
  * Context object that holds information about an open element
  * (one for which START_ELEMENT has been sent, but no END_ELEMENT)
- *
- * @author Tatu Saloranta
- * @author Yoon-Je Choi
  */
 public final class DOMOutputElement
     extends OutputElementBase
