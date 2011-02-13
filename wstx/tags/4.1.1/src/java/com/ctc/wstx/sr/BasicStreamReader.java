@@ -673,7 +673,6 @@ public abstract class BasicStreamReader
             mCurrToken = END_ELEMENT;
             // must first get text, as call to readEndElem may break it:
             String result = mTextBuffer.contentsAsString();
-System.err.println("getElem(simple) -> '"+result+"'");            
             // Can by-pass next(), nextFromTree(), in this case:
             readEndElem();
             // and then return results
