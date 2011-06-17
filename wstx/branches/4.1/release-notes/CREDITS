@@ -477,3 +477,7 @@ Eric Sirianni
    [4.1.1]
   * [WSTX-259]: DOMWrappingReader fails with NPE for empty DocumentFragment
    [4.1.1]
+
+Mike Sokolov:
+  * [WSTX-267] P_NORMALIZE_LFS mis-mapped
+   [4.1.2]

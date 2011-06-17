@@ -1452,7 +1452,7 @@ public final class ReaderConfig
             break;
 
         case PROP_NORMALIZE_LFS:
-            doTreatCharRefsAsEnts(ArgUtil.convertToBoolean(propName, value));
+            doNormalizeLFs(ArgUtil.convertToBoolean(propName, value));
             break;
             
         // // // And then Woodstox specific, enum/object:

@@ -1,4 +1,4 @@
-Version: 4.1.1
+Version: 4.1.2
 
 Release date: 27-Jan-2011
 
@@ -6,20 +6,18 @@ Description: First patch release for 4.1
 
 Problems fixed:
 
-* [WSTX-255] XMLStreamWriter2.copyEventFromReader() implementation
-   not working with sources other than Woodstox reader
- (reported by Benson M)
-* [WSTX-256] Incorrect handling of surrogate pairs in general entities.
-  (reported by Andrey S)
-* [WSTX-257] DOMWrappingWriter problem with fragments, multiple root-level
-  elements
-  (reported by Eric S)
-* [WSTX-259] DOMWrappingReader fails with NPE for empty DocumentFragment
-  (reported by Eric S)
+* [WSTX-267] P_NORMALIZE_LFS mis-mapped
+  (reported by Mike S)
 
 ------------------------------------------------------------------------
 == History: ==
 ------------------------------------------------------------------------
+
+4.1.1 [27-Jan-2011]
+
+Problems fixed:
+
+- All fixes from 4.0.x up to 4.0.10
 
 4.1.0 [13-Dec-2010]
 
@@ -61,7 +59,7 @@ Problems fixed:
 
   * [WSTX-206] Provide a way to configure SAX parser with all config
     settings available to Stax readers (add WstxSAXParser.getStaxConfig())
-   (suggested by StÂŽphane C)
+   (suggested by StŽphane C)
   * [WSTX-234] Restore feature WstxInputProperties.NORMALIZE_LFS; add
     WstxInputProperties.TREAT_CHAR_REFS_AS_ENTS
    (requested by Peter S)
