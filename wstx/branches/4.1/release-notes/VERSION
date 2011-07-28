@@ -2,12 +2,16 @@ Version: 4.1.2
 
 Release date: 27-Jan-2011
 
-Description: First patch release for 4.1
+Description:
+
+Second patch release for 4.1
 
 Problems fixed:
 
 * [WSTX-267] P_NORMALIZE_LFS mis-mapped
   (reported by Mike S)
+* [WSTX-268] Missing namespace information when unmarshalling from DOMSource
+  (reported by Blaise D)
 
 ------------------------------------------------------------------------
 == History: ==

@@ -1086,6 +1086,29 @@ public abstract class DOMWrappingReader
         }
         return _currNode.lookupNamespaceURI(prefix);
         */
+
+        Node n = _currNode;
+        boolean defaultNs = (prefix == null) || (prefix.length() == 0);
+        
+        while (n != null) {
+            NamedNodeMap attrs = n.getAttributes();
+            if (attrs != null){
+                for (int i = 0, len = attrs.getLength(); i < len; ++i) {
+                    Node attr = attrs.item(i);
+                    String thisPrefix = attr.getPrefix();
+                    if (thisPrefix == null || thisPrefix.length() == 0) { // nope
+                        if (defaultNs && "xmlns".equals(attr.getLocalName())) {
+                            return attr.getNodeValue();
+                        }
+                    } else if (!defaultNs && "xmlns".equals(thisPrefix)) {
+                        if (prefix.equals(attr.getLocalName())) {
+                            return attr.getNodeValue();
+                        }
+                    }
+                }
+            }
+            n = n.getParentNode();
+        }
         return null;
     }
 
@@ -1104,6 +1127,29 @@ public abstract class DOMWrappingReader
         }
         return prefix;
         */
+
+        Node n = _currNode;
+        if (namespaceURI == null) { // not sure if this is even legal but...
+            namespaceURI = "";
+        }
+        
+        while (n != null) {
+            NamedNodeMap attrs = n.getAttributes();
+            for (int i = 0, len = attrs.getLength(); i < len; ++i) {
+                Node attr = attrs.item(i);
+                String thisPrefix = attr.getPrefix();
+                if (thisPrefix == null || thisPrefix.length() == 0) {
+                    if ("xmlns".equals(attr.getLocalName()) && namespaceURI.equals(attr.getNodeValue())) {
+                        return "";
+                    }
+                } else if ("xmlns".equals(thisPrefix)) {
+                    if (namespaceURI.equals(attr.getNodeValue())) {
+                        return attr.getLocalName();
+                    }
+                }
+            }
+            n = n.getParentNode();
+        }
         return null;
     }
 

@@ -1,4 +1,4 @@
-Version: 4.0.10
+Version: 4.0.11
 
 Release date: 27-Jan-2011
 
@@ -9,6 +9,8 @@ Problems fixed:
 
 * [WSTX-267] P_NORMALIZE_LFS mis-mapped
   (reported by Mike S)
+* [WSTX-268] Missing namespace information when unmarshalling from DOMSource
+  (reported by Blaise D)
 
 ------------------------------------------------------------------------
 == History: ==
