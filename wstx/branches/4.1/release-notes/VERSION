@@ -12,6 +12,10 @@ Problems fixed:
   (reported by Mike S)
 * [WSTX-268] Missing namespace information when unmarshalling from DOMSource
   (reported by Blaise D)
+* [WSTX-270] Allow changing whether prefix for default namespace
+  is returned as "" (4.x default) or null (which apparently is what
+  latest Stax spec says) using WstxInputProperties.
+  (requested by Ivan)
 
 ------------------------------------------------------------------------
 == History: ==
