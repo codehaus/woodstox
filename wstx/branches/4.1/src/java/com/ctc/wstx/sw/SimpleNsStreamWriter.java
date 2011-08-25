@@ -72,8 +72,8 @@ public class SimpleNsStreamWriter
             throwOutputError(ErrorConsts.WERR_ATTR_NO_ELEM);
         }
         String prefix = mCurrElem.getExplicitPrefix(nsURI);
-        if (prefix == null) {
-            throwOutputError("Unbound namespace URI '"+nsURI+"'");
+        if (!mReturnNullForDefaultNamespace && prefix == null) {
+            throwOutputError("Unbound namespace URI '" + nsURI + "'");
         }
         doWriteAttr(localName, nsURI, prefix, value);
     }
@@ -160,7 +160,7 @@ public class SimpleNsStreamWriter
     {
         QName name = elem.getName();
         Iterator it = elem.getNamespaces();
-        
+
         while (it.hasNext()) {
             Namespace ns = (Namespace) it.next();
             // First need to 'declare' namespace:
@@ -201,10 +201,10 @@ public class SimpleNsStreamWriter
                 writeNamespace(prefix, ns.getNamespaceURI());
             }
         }
-    
+
 
         // And finally, need to output attributes as well:
-        
+
         it = elem.getAttributes();
         while (it.hasNext()) {
             Attribute attr = (Attribute) it.next();
@@ -228,7 +228,7 @@ public class SimpleNsStreamWriter
         // Need a prefix...
         String prefix = mCurrElem.getPrefix(nsURI);
         if (prefix == null) {
-            throw new XMLStreamException("Unbound namespace URI '"+nsURI+"'");
+            throw new XMLStreamException("ivanivanivan00002 Unbound namespace URI '"+nsURI+"'");
         }
         checkStartElement(localName, prefix);
         if (mValidator != null) {
@@ -295,17 +295,17 @@ public class SimpleNsStreamWriter
                 }
             }
         }
-        
+
         writeStartElement(elemStack.getPrefix(),
                           elemStack.getLocalName(),
                           elemStack.getNsURI());
-        
+
         if (nsCount > 0) {
             // And then output actual namespace declarations:
             for (int i = 0; i < nsCount; ++i) {
                 String prefix = elemStack.getLocalNsPrefix(i);
                 String uri = elemStack.getLocalNsURI(i);
-                
+
                 if (prefix == null || prefix.length() == 0) { // default NS
                     writeDefaultNamespace(uri);
                 } else {
@@ -313,12 +313,12 @@ public class SimpleNsStreamWriter
                 }
             }
         }
-        
+
         /* And then let's just output attributes, if any (whether to copy
          * implicit, aka "default" attributes, is configurable)
          */
         int attrCount = mCfgCopyDefaultAttrs ?
-            attrCollector.getCount() : 
+            attrCollector.getCount() :
             attrCollector.getSpecifiedCount();
 
         if (attrCount > 0) {

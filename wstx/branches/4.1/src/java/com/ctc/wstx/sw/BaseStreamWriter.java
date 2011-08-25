@@ -37,6 +37,7 @@ import org.codehaus.stax2.ri.Stax2WriterImpl;
 import org.codehaus.stax2.validation.*;
 
 import com.ctc.wstx.api.WriterConfig;
+import com.ctc.wstx.api.WstxInputProperties;
 import com.ctc.wstx.api.WstxOutputProperties;
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.cfg.OutputConfigFlags;
@@ -203,6 +204,8 @@ public abstract class BaseStreamWriter
      * errors that validators might have trouble dealing with).
      */
     protected String mDtdRootElem = null;
+    
+    protected boolean mReturnNullForDefaultNamespace;
 
     /*
     ////////////////////////////////////////////////////
@@ -224,6 +227,9 @@ public abstract class BaseStreamWriter
         mCfgAutomaticEmptyElems = (flags & OutputConfigFlags.CFG_AUTOMATIC_EMPTY_ELEMENTS) != 0;
         mCfgCDataAsText = (flags & OutputConfigFlags.CFG_OUTPUT_CDATA_AS_TEXT) != 0;
         mCfgCopyDefaultAttrs = (flags & OutputConfigFlags.CFG_COPY_DEFAULT_ATTRS) != 0;
+        
+        Object value = getProperty(WstxInputProperties.P_RETURN_NULL_FOR_DEFAULT_NAMESPACE);
+        mReturnNullForDefaultNamespace = (value instanceof Boolean) && ((Boolean) value).booleanValue();
     }
 
     /*
