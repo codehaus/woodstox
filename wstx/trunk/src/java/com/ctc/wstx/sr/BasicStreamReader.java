@@ -33,6 +33,7 @@ import org.codehaus.stax2.AttributeInfo;
 import org.codehaus.stax2.DTDInfo;
 import org.codehaus.stax2.LocationInfo;
 import org.codehaus.stax2.XMLStreamLocation2;
+import org.codehaus.stax2.XMLStreamProperties;
 import org.codehaus.stax2.XMLStreamReader2;
 import org.codehaus.stax2.typed.TypedXMLStreamException;
 import org.codehaus.stax2.validation.*;
@@ -62,6 +63,7 @@ public abstract class BasicStreamReader
     extends StreamScanner
     implements StreamReaderImpl, DTDInfo, LocationInfo
 {
+
     /*
     ///////////////////////////////////////////////////////////////////////
     // Constants
@@ -367,6 +369,13 @@ public abstract class BasicStreamReader
      * have straight-forward static rules).
      */
     protected int mVldContent = XMLValidator.CONTENT_ALLOW_ANY_TEXT;
+    
+    /**
+     * Configuration from {@link XMLStreamProperties.RETURN_NULL_FOR_DEFAULT_NAMESPACE}
+     * 
+     * @since 4.1.2
+     */
+    protected boolean mReturnNullForDefaultNamespace;
 
     /*
     ///////////////////////////////////////////////////////////////////////
@@ -469,6 +478,9 @@ public abstract class BasicStreamReader
         input.initInputLocation(this, mCurrDepth);
 
         elemStack.connectReporter(this);
+        
+        Object value = getProperty(WstxInputProperties.P_RETURN_NULL_FOR_DEFAULT_NAMESPACE);
+        mReturnNullForDefaultNamespace = (value instanceof Boolean) && ((Boolean) value).booleanValue();
     }
 
     protected static InputElementStack createElementStack(ReaderConfig cfg)
@@ -765,9 +777,12 @@ public abstract class BasicStreamReader
         if (mCurrToken != START_ELEMENT && mCurrToken != END_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_ELEM);
         }
-        // Internally it's marked as null, externally need to see ""
+        // Internally it's marked as null, externally need to see "" or null, depending
         String p = mElementStack.getLocalNsPrefix(index);
-        return (p == null) ? XmlConsts.ATTR_NO_PREFIX : p;
+        if (p == null) {
+            return mReturnNullForDefaultNamespace ? null : XmlConsts.ATTR_NO_PREFIX;
+        }
+        return p;
     }
 
     public String getNamespaceURI() {

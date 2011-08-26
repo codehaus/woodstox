@@ -49,6 +49,8 @@ abstract class CommonConfig
 
     final static int PROP_SUPPORTS_XML11 = 3;
     final static int PROP_SUPPORT_XMLID = 4;
+    
+    final static int PROP_RETURN_NULL_FOR_DEFAULT_NAMESPACE = 5; 
 
     /**
      * Map to use for converting from String property ids to enumeration
@@ -70,6 +72,8 @@ abstract class CommonConfig
         sStdProperties.put(XMLStreamProperties.XSP_SUPPORT_XMLID,
                            DataUtil.Integer(PROP_SUPPORT_XMLID));
 
+        sStdProperties.put(WstxInputProperties.P_RETURN_NULL_FOR_DEFAULT_NAMESPACE,
+                DataUtil.Integer(PROP_RETURN_NULL_FOR_DEFAULT_NAMESPACE));
 
         /* 23-Apr-2008, tatus: Additional interoperability property,
          *    one that Sun implementation uses. Can map tor Stax2
@@ -77,6 +81,7 @@ abstract class CommonConfig
          */
         sStdProperties.put("http://java.sun.com/xml/stream/properties/implementation-name",
                            DataUtil.Integer(PROP_IMPL_NAME));
+                
     }
 
     protected CommonConfig() { }
@@ -194,6 +199,10 @@ abstract class CommonConfig
         return true;
     }
 
+    protected boolean returnNullForDefaultNamespace() {
+        return Boolean.getBoolean(WstxInputProperties.P_RETURN_NULL_FOR_DEFAULT_NAMESPACE);
+    }
+    
     protected abstract Object getProperty(int id);
 
     protected abstract boolean setProperty(String propName, int id, Object value);
@@ -232,6 +241,8 @@ abstract class CommonConfig
             return doesSupportXml11() ? Boolean.TRUE : Boolean.FALSE;
         case PROP_SUPPORT_XMLID:
             return doesSupportXmlId() ? Boolean.TRUE : Boolean.FALSE;
+        case PROP_RETURN_NULL_FOR_DEFAULT_NAMESPACE:
+            return returnNullForDefaultNamespace() ? Boolean.TRUE : Boolean.FALSE;
         default: // sanity check, should never happen
             throw new IllegalStateException("Internal error: no handler for property with internal id "+id+".");
         }

@@ -105,6 +105,19 @@ public final class WstxInputProperties
     @Deprecated
     public final static String P_LAZY_PARSING = XMLInputFactory2.P_LAZY_PARSING;
 
+    // // // API behavior (for backwards compatibility)
+
+    /**
+     * This read-only property indicates whether null is returned for default name space prefix;
+     * Boolean.TRUE indicates it does, Boolean.FALSE that it does not.
+     *<p>
+     * Default value for 4.1 is 'false'; this will most likely change for 5.0 since
+     * Stax API actually specifies null to be used.
+     * 
+     * @since 4.1.2
+     */
+    public final static String P_RETURN_NULL_FOR_DEFAULT_NAMESPACE = "com.ctc.wstx.returnNullForDefaultNamespace";
+    
     // // // Enabling/disabling support for dtd++
 
     /**

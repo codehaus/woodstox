@@ -72,8 +72,8 @@ public class SimpleNsStreamWriter
             throwOutputError(ErrorConsts.WERR_ATTR_NO_ELEM);
         }
         String prefix = mCurrElem.getExplicitPrefix(nsURI);
-        if (prefix == null) {
-            throwOutputError("Unbound namespace URI '"+nsURI+"'");
+        if (!mReturnNullForDefaultNamespace && prefix == null) {
+            throwOutputError("Unbound namespace URI '" + nsURI + "'");
         }
         doWriteAttr(localName, nsURI, prefix, value);
     }
@@ -155,13 +155,13 @@ public class SimpleNsStreamWriter
         mCurrElem.addPrefix(prefix, uri);
     }
 
-	public void writeStartElement(StartElement elem)
+    public void writeStartElement(StartElement elem)
         throws XMLStreamException
     {
         QName name = elem.getName();
         @SuppressWarnings("unchecked")
         Iterator<Namespace> it = elem.getNamespaces();
-        
+
         while (it.hasNext()) {
             Namespace ns = it.next();
             // First need to 'declare' namespace:
@@ -203,6 +203,7 @@ public class SimpleNsStreamWriter
                 writeNamespace(prefix, ns.getNamespaceURI());
             }
         }
+
 
         // And finally, need to output attributes as well:
         @SuppressWarnings("unchecked")
@@ -296,17 +297,17 @@ public class SimpleNsStreamWriter
                 }
             }
         }
-        
+
         writeStartElement(elemStack.getPrefix(),
                           elemStack.getLocalName(),
                           elemStack.getNsURI());
-        
+
         if (nsCount > 0) {
             // And then output actual namespace declarations:
             for (int i = 0; i < nsCount; ++i) {
                 String prefix = elemStack.getLocalNsPrefix(i);
                 String uri = elemStack.getLocalNsURI(i);
-                
+
                 if (prefix == null || prefix.length() == 0) { // default NS
                     writeDefaultNamespace(uri);
                 } else {
@@ -314,12 +315,12 @@ public class SimpleNsStreamWriter
                 }
             }
         }
-        
+
         /* And then let's just output attributes, if any (whether to copy
          * implicit, aka "default" attributes, is configurable)
          */
         int attrCount = mCfgCopyDefaultAttrs ?
-            attrCollector.getCount() : 
+            attrCollector.getCount() :
             attrCollector.getSpecifiedCount();
 
         if (attrCount > 0) {
