@@ -16,7 +16,7 @@ public class TestDefaultNamespacePrefix extends BaseWstxTest
 {
     public void testDefaultNamespacePrefix() throws Exception {
         String XML = "<blah xmlns=\"http://blah.org\"><foo>foo</foo></blah>";
-        System.setProperty("org.codehaus.stax2.default_namespace.return_null", "true");
+        System.setProperty("com.ctc.wstx.returnNullForDefaultNamespace", "true");
         XMLInputFactory factory = getInputFactory();
         XMLStreamReader r = factory.createXMLStreamReader(new StringReader(XML));
         while (r.hasNext()) {

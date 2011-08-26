@@ -115,7 +115,7 @@ public final class WstxInputProperties
      * 
      * @since 4.1.2
      */
-    public final static String P_RETURN_NULL_FOR_DEFAULT_NAMESPACE = "com.ctc.wstx.nullForDefaultNamespace";
+    public final static String P_RETURN_NULL_FOR_DEFAULT_NAMESPACE = "com.ctc.wstx.returnNullForDefaultNamespace";
     
     // // // Enabling/disabling support for dtd++
 
