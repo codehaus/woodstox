@@ -344,6 +344,8 @@ Martin Vanek:
   * Reported [WSTX-144]: Problem when trying to output namespace declaration
     using a DOMResult-backed writer.
    [3.2.6 / 4.0.0]
+  * Reported  [WSTX-271] DOMWrappingWriter.writeComment() creating CDATASection
+   [4.1.2]
 
 Sylvain Loiseau:
   * Requested [WSTX-148]: Implement XMLEvent.equals(), .hashCode(), to allow

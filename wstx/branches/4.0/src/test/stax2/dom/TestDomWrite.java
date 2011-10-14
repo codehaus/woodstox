@@ -21,8 +21,7 @@ public class TestDomWrite
     final static int TYPE_NS = 1;
     final static int TYPE_NS_REPAIRING = 2;
     
-    public void testNonNsOutput()
-        throws Exception
+    public void testNonNsOutput() throws Exception
     {
         /* 23-Dec-2008, TSa: Not all Stax2 impls support non-namespace-aware
          *  modes: need to first ensure one tested does...
@@ -72,6 +71,41 @@ public class TestDomWrite
         assertEquals("text?<ok>", child.getNodeValue());
     }
 
+    public void testMiscOutput() throws Exception
+    {
+        XMLOutputFactory of = getFactory(TYPE_NON_NS);
+        if (of == null) {
+            System.err.println("Skipping "+getClass().getName()+"#testNonNsOutput: non-namespace-aware mode not supported");
+            return;
+        }
+        Document doc = createDomDoc(false);
+        XMLStreamWriter sw = of.createXMLStreamWriter(new DOMResult(doc));
+
+        sw.writeStartDocument();
+        sw.writeStartElement("root");
+        sw.writeComment("comment!");
+        sw.writeCData("cdata!");
+        sw.writeEndElement();
+        sw.writeEndDocument();
+        sw.close();
+
+        Element root = doc.getDocumentElement();
+
+        assertNotNull(root);
+        assertEquals("root", root.getTagName());
+
+        Node child = root.getFirstChild();
+        assertNotNull(child);
+        assertEquals(Node.COMMENT_NODE, child.getNodeType());
+        assertEquals("comment!", child.getNodeValue());
+
+        child = child.getNextSibling();
+        assertNotNull(child);
+        assertEquals(Node.CDATA_SECTION_NODE, child.getNodeType());
+        assertEquals("cdata!", child.getNodeValue());
+        assertNull(child.getNextSibling());
+    }
+    
     public void testNsOutput()
         throws Exception
     {

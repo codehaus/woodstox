@@ -207,7 +207,7 @@ public abstract class DOMWrappingWriter
     public void writeComment(String data)
         throws XMLStreamException
     {
-        appendLeaf(mDocument.createCDATASection(data));
+        appendLeaf(mDocument.createComment(data));
     }
 
     public abstract void writeDefaultNamespace(String nsURI)

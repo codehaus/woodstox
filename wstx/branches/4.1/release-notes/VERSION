@@ -16,6 +16,8 @@ Problems fixed:
   is returned as "" (4.x default) or null (which apparently is what
   latest Stax spec says) using WstxInputProperties.
   (requested by Ivan)
+* [WSTX-271] DOMWrappingWriter.writeComment() creating CDATASection, not Comment
+  (reported by Martin V)
 
 ------------------------------------------------------------------------
 == History: ==
@@ -67,7 +69,7 @@ Problems fixed:
 
   * [WSTX-206] Provide a way to configure SAX parser with all config
     settings available to Stax readers (add WstxSAXParser.getStaxConfig())
-   (suggested by StÂŽphane C)
+   (suggested by StŽphane C)
   * [WSTX-234] Restore feature WstxInputProperties.NORMALIZE_LFS; add
     WstxInputProperties.TREAT_CHAR_REFS_AS_ENTS
    (requested by Peter S)
