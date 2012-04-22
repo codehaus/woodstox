@@ -10,6 +10,8 @@ Problems fixed:
 
 * [WSTX-271] DOMWrappingWriter.writeComment() creating CDATASection, not Comment
   (reported by Martin V)
+* [WSTX-276] 'InputConfigFlags.CFG_NORMALIZE_LFS' flag conflicts with 'CFG_AUTO_CLOSE_INPUT'
+  (reported by Andreas V)
 
 ------------------------------------------------------------------------
 == History: ==
