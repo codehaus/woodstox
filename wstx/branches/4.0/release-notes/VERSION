@@ -1,6 +1,6 @@
 Version: 4.0.11
 
-Release date: 27-Jan-2011
+Release date: 
 
 Description:
   4.0 maintenance release.
@@ -11,6 +11,9 @@ Problems fixed:
   (reported by Mike S)
 * [WSTX-268] Missing namespace information when unmarshalling from DOMSource
   (reported by Blaise D)
+* [WSTX-276] 'InputConfigFlags.CFG_NORMALIZE_LFS' flag conflicts
+   with 'CFG_AUTO_CLOSE_INPUT'
+  (reported by Andreas V)
 
 ------------------------------------------------------------------------
 == History: ==
