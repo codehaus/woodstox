@@ -413,6 +413,10 @@ Andreas Veithen:
    [3.2.9, 4.0.4]
   * Reported [WSTX-226], SAX parser implementation ignoring passed-in encoding
    [4.0.8]
+  * Reported [WSTX-276]: Conflict between InputConfigFlags 'CFG_AUTO_CLOSE_INPUT'
+    and 'CFG_NORMALIZE_LFS', which accidentally lead to 'auto-close-input' being
+    enabled by default, which is NOT what Stax specification mandatates
+    [4.1.3]
 
 Yves Ménard:
   * Reported [WSTX-191] Validation failure with W3C Schema, empty text.
