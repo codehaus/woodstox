@@ -134,8 +134,8 @@ public interface InputConfigFlags
     // // // Content normalization
 
     // 20-Jan-2007, TSa: These properties removed from 4.0, deprecated:
-    final static int CFG_NORMALIZE_LFS  =   0x2000;
-    //final static int CFG_NORMALIZE_ATTR_VALUES = 0x4000;
+    final static int CFG_NORMALIZE_LFS  =   0x4000;
+    //final static int CFG_NORMALIZE_ATTR_VALUES = 0x8000;
 
     // // // Caching
 
