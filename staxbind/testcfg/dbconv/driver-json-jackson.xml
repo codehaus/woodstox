@@ -3,8 +3,8 @@
 >
       <!-- Jackson json processor; streaming (manual) + LZF -->
 <!--
-      <driver name="Json/jackson/LZH+manual">
-        <description><div xmlns=""><p>Test driver for JSON (text) that uses Jackson json processor, LZF (MANUAL)</p></div></description>
+      <driver name="Json/jackson1/LZH+manual">
+        <description><div xmlns=""><p>Test driver for JSON (text) that uses Jackson 1x, LZF (MANUAL)</p></div></description>
         <param name="japex.driverClass" value="org.codehaus.staxbind.dbconv.JacksonDriverManualLZF" />
         <param name="japex.classPath" value="build/classes"/>
         <param name="japex.classPath" value="lib/*.jar"/>
@@ -15,8 +15,8 @@
 
       <!-- Jackson json processor; streaming (manual) + GZIP -->
 <!--
-      <driver name="Json/jackson/GZIP+manual">
-        <description><div xmlns=""><p>Test driver for JSON (text) that uses Jackson json processor, GZIP (MANUAL)</p></div></description>
+      <driver name="Json/jackson1/GZIP+manual">
+        <description><div xmlns=""><p>Test driver for JSON (text) that uses Jackson 1x, GZIP (MANUAL)</p></div></description>
         <param name="japex.driverClass" value="org.codehaus.staxbind.dbconv.JacksonDriverManualGzip" />
         <param name="japex.classPath" value="build/classes"/>
         <param name="japex.classPath" value="lib/*.jar"/>
@@ -26,8 +26,8 @@
 -->
 
       <!-- Jackson json processor; streaming (manual) -->
-      <driver name="Json/jackson/manual">
-        <description><div xmlns=""><p>Test driver for JSON (text) that uses Jackson json processor (MANUAL)</p></div></description>
+      <driver name="Json/jackson1/manual">
+        <description><div xmlns=""><p>Test driver for JSON (text) that uses Jackson 1x (MANUAL)</p></div></description>
         <param name="japex.driverClass" value="org.codehaus.staxbind.dbconv.JacksonDriverManual" />
         <param name="japex.classPath" value="build/classes"/>
         <param name="japex.classPath" value="lib/*.jar"/>
@@ -37,7 +37,7 @@
 
       <!-- Jackson json processor; streaming (data-binding) -->
       <driver name="Json/jackson1/auto">
-        <description><div xmlns=""><p>Test driver for JSON (text) that uses Jackson json processor (AUTO)</p></div></description>
+        <description><div xmlns=""><p>Test driver for JSON (text) that uses Jackson 1x (AUTO)</p></div></description>
         <param name="japex.driverClass" value="org.codehaus.staxbind.dbconv.JacksonDriverAutomatic" />
         <param name="japex.classPath" value="build/classes"/>
         <param name="japex.classPath" value="lib/*.jar"/>
@@ -47,7 +47,7 @@
 
       <!-- Jackson 2.x; streaming (data-binding) -->
       <driver name="Json/jackson2/auto">
-        <description><div xmlns=""><p>Test driver for JSON (text) that uses Jackson2 JSON processor (AUTO)</p></div></description>
+        <description><div xmlns=""><p>Test driver for JSON (text) that uses Jackson2 (AUTO)</p></div></description>
         <param name="japex.driverClass" value="org.codehaus.staxbind.dbconv.Jackson2DriverAutomatic" />
         <param name="japex.classPath" value="build/classes"/>
         <param name="japex.classPath" value="lib/*.jar"/>
