@@ -36,7 +36,7 @@
       </driver>
 
       <!-- Jackson json processor; streaming (data-binding) -->
-      <driver name="Json/jackson/auto">
+      <driver name="Json/jackson1/auto">
         <description><div xmlns=""><p>Test driver for JSON (text) that uses Jackson json processor (AUTO)</p></div></description>
         <param name="japex.driverClass" value="org.codehaus.staxbind.dbconv.JacksonDriverAutomatic" />
         <param name="japex.classPath" value="build/classes"/>
@@ -45,9 +45,19 @@
         <param name="japex.classPath" value="lib/wstx3/*.jar"/>
       </driver>
 
+      <!-- Jackson 2.x; streaming (data-binding) -->
+      <driver name="Json/jackson2/auto">
+        <description><div xmlns=""><p>Test driver for JSON (text) that uses Jackson2 JSON processor (AUTO)</p></div></description>
+        <param name="japex.driverClass" value="org.codehaus.staxbind.dbconv.Jackson2DriverAutomatic" />
+        <param name="japex.classPath" value="build/classes"/>
+        <param name="japex.classPath" value="lib/*.jar"/>
+        <param name="japex.classPath" value="lib/jackson2.1/*.jar"/>
+        <param name="japex.classPath" value="lib/wstx3/*.jar"/>
+      </driver>
+
       <!-- Jackson json processor; data-binding w/ Smile format -->
-      <driver name="Smile/jackson-smile/auto">
-        <description><div xmlns=""><p>Test driver for Smile~=JSON that uses Jackson json processor (AUTO)</p></div></description>
+      <driver name="Smile/jackson1-smile/auto">
+        <description><div xmlns=""><p>Test driver for Smile that uses Jackson 1.x (AUTO)</p></div></description>
         <param name="japex.driverClass" value="org.codehaus.staxbind.dbconv.JacksonDriverSmileAutomatic" />
         <param name="japex.classPath" value="build/classes"/>
         <param name="japex.classPath" value="lib/*.jar"/>

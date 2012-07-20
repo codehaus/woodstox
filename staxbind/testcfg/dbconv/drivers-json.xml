@@ -14,10 +14,14 @@
     <xi:include href="driver-json-gson.xml" />
 
     <!-- Json-tools from BerliOS -->
+<!--
     <xi:include href="driver-json-jsontools.xml" />
+-->
 
     <!-- Flex-json driver -->
+<!--
     <xi:include href="driver-json-flexjson.xml" />
+-->
 
 </driverGroup>
 
