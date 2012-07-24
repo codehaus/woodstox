@@ -288,8 +288,10 @@ public final class WriterConfig
     //////////////////////////////////////////////////////////
      */
 
-    private WriterConfig(boolean j2meSubset, int flags, Object[] specProps)
+    private WriterConfig(WriterConfig base,
+            boolean j2meSubset, int flags, Object[] specProps)
     {
+        super(base);
         mIsJ2MESubset = j2meSubset;
         mConfigFlags = flags;
         mSpecialProperties = specProps;
@@ -308,12 +310,12 @@ public final class WriterConfig
 
     public static WriterConfig createJ2MEDefaults()
     {
-        return new WriterConfig(true, DEFAULT_FLAGS_J2ME, null);
+        return new WriterConfig(null, true, DEFAULT_FLAGS_J2ME, null);
     }
 
     public static WriterConfig createFullDefaults()
     {
-        return new WriterConfig(true, DEFAULT_FLAGS_FULL, null);
+        return new WriterConfig(null, false, DEFAULT_FLAGS_FULL, null);
     }
 
     public WriterConfig createNonShared()
@@ -327,7 +329,7 @@ public final class WriterConfig
         } else {
             specProps = null;
         }
-        return new WriterConfig(mIsJ2MESubset, mConfigFlags, specProps);
+        return new WriterConfig(this, mIsJ2MESubset, mConfigFlags, specProps);
     }
 
     /*

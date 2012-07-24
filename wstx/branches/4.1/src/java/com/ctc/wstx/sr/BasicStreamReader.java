@@ -63,7 +63,6 @@ public abstract class BasicStreamReader
     extends StreamScanner
     implements StreamReaderImpl, DTDInfo, LocationInfo
 {
-
     /*
     ///////////////////////////////////////////////////////////////////////
     // Constants
@@ -478,9 +477,7 @@ public abstract class BasicStreamReader
         input.initInputLocation(this, mCurrDepth);
 
         elemStack.connectReporter(this);
-        
-        Object value = getProperty(WstxInputProperties.P_RETURN_NULL_FOR_DEFAULT_NAMESPACE);
-        mReturnNullForDefaultNamespace = (value instanceof Boolean) && ((Boolean) value).booleanValue();
+        mReturnNullForDefaultNamespace = mConfig.returnNullForDefaultNamespace();
     }
 
     protected static InputElementStack createElementStack(ReaderConfig cfg)

@@ -7,10 +7,10 @@ public final class ValidatorConfig
      * For now, since there are no mutable properties, we can share
      * a singleton instance.
      */
-    final static ValidatorConfig sInstance = new ValidatorConfig();
+    final static ValidatorConfig sInstance = new ValidatorConfig(null);
 
-    private ValidatorConfig() 
-    {
+    private ValidatorConfig(ValidatorConfig base) {
+        super(base);
     }
 
     public static ValidatorConfig createDefaults()

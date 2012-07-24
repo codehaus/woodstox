@@ -1,9 +1,21 @@
-Version: 4.1.3
+Version: 4.1.4
 
-Release date: 23-Apr-2012
+Release date: xx-Jul-2012
 
 Description:
-  Third patch release for 4.1
+  Another patch release for 4.1
+
+Problems fixed:
+
+* [WSTX-277] Performance problem introduced by [WSTX-270], due to
+  its access of System property (which requires global lock) for
+  each instantiated parser, generator.
+
+------------------------------------------------------------------------
+== History: ==
+------------------------------------------------------------------------
+
+4.1.3 [23-Apr-2012]
 
 Problems fixed:
 
@@ -11,10 +23,6 @@ Problems fixed:
   (reported by Martin V)
 * [WSTX-276] 'InputConfigFlags.CFG_NORMALIZE_LFS' flag conflicts with 'CFG_AUTO_CLOSE_INPUT'
   (reported by Andreas V)
-
-------------------------------------------------------------------------
-== History: ==
-------------------------------------------------------------------------
 
 4.1.2 [27-Aug-2011]
 
