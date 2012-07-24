@@ -5,8 +5,6 @@ import java.util.NoSuchElementException;
 import javax.xml.stream.*;
 import javax.xml.stream.events.*;
 
-import java.util.*;
-
 /**
  * Class that contains simple tests for making sure that event objects
  * created by the {@link XMLEventFactory} have expected properties.

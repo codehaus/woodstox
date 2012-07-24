@@ -1,6 +1,5 @@
 package org.codehaus.stax.test.stream;
 
-import javax.xml.namespace.QName;
 import javax.xml.stream.*;
 
 /**

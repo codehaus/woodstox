@@ -1,7 +1,5 @@
 package org.codehaus.stax.test.evt;
 
-import java.util.NoSuchElementException;
-
 import javax.xml.stream.*;
 import javax.xml.stream.events.*;
 

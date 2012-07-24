@@ -1,12 +1,8 @@
 package org.codehaus.stax.test.evt;
 
-import java.util.NoSuchElementException;
-
 import javax.xml.namespace.QName;
 import javax.xml.stream.*;
 import javax.xml.stream.events.*;
-
-import java.util.*;
 
 /**
  * Class that tests basic dealing of the StartDocument event (skipping,

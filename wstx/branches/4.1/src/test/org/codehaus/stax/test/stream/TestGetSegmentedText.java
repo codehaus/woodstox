@@ -1,7 +1,6 @@
 package org.codehaus.stax.test.stream;
 
 import java.io.*;
-import java.util.Random;
 
 import javax.xml.stream.*;
 

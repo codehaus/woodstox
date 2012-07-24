@@ -5,8 +5,6 @@ import java.util.*;
 
 import javax.xml.stream.*;
 
-import org.codehaus.stax.test.SimpleResolver;
-
 /**
  * Unit test suite that tests various aspects of parameter entity resolution
  * in the external DTD subset.
@@ -33,7 +31,7 @@ public class TestParamEntities
 
         XMLInputFactory f = getValidatingFactory(true);
         setResolver(f, new MyResolver(m));
-        XMLStreamReader sr = f.createXMLStreamReader(new StringReader(XML));
+        /*XMLStreamReader sr =*/ f.createXMLStreamReader(new StringReader(XML));
 
         streamThrough(getValidatingReader(XML));
     }

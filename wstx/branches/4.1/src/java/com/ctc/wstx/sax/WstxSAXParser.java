@@ -1249,6 +1249,7 @@ public class WstxSAXParser
     ///////////////////////////////////////////////////////////////////////
      */
 
+    @SuppressWarnings("deprecation")
     final static class DocHandlerWrapper
         implements ContentHandler
     {

@@ -1,6 +1,5 @@
 package org.codehaus.stax.test.evt;
 
-import java.io.StringWriter;
 import java.util.*;
 
 import javax.xml.namespace.QName;

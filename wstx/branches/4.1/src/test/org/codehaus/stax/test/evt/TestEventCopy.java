@@ -1,13 +1,10 @@
 package org.codehaus.stax.test.evt;
 
-import java.util.NoSuchElementException;
-
 import javax.xml.namespace.QName;
 import javax.xml.stream.*;
 import javax.xml.stream.events.*;
 
 import java.io.*;
-import java.util.*;
 
 /**
  * This test tries to verify that events can be copied from event reader
