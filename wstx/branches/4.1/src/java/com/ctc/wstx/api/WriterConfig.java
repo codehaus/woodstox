@@ -825,8 +825,6 @@ public boolean willAutoCloseOutput() {
         mCurrRecycler.returnFullBBuffer(buffer);
     }
 
-    static int Counter = 0;
-
     private BufferRecycler createRecycler()
     {
         BufferRecycler recycler = new BufferRecycler();

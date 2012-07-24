@@ -37,7 +37,6 @@ import org.codehaus.stax2.ri.Stax2WriterImpl;
 import org.codehaus.stax2.validation.*;
 
 import com.ctc.wstx.api.WriterConfig;
-import com.ctc.wstx.api.WstxInputProperties;
 import com.ctc.wstx.api.WstxOutputProperties;
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.cfg.OutputConfigFlags;

@@ -26,7 +26,7 @@ package com.ctc.wstx.util;
  * parsers; especially when number of symbols (keywords) is limited.
  *<p>
  * For optimal performance, usage pattern should be one where matches
- * should be very common (esp. after "warm-up"), and as with most hash-based
+ * should be very common (especially after "warm-up"), and as with most hash-based
  * maps/sets, that hash codes are uniformly distributed. Also, collisions
  * are slightly more expensive than with HashMap or HashSet, since hash codes
  * are not used in resolving collisions; that is, equals() comparison is
@@ -50,7 +50,6 @@ package com.ctc.wstx.util;
  * master table concurrently with child instances can only be done if
  * access to master instance is read-only (ie. no modifications done).
  */
-
 public class SymbolTable {
 
     /**
