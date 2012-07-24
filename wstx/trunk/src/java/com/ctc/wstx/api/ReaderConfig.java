@@ -424,11 +424,13 @@ public final class ReaderConfig
     ///////////////////////////////////////////////////////////////////////
      */
 
-    private ReaderConfig(boolean j2meSubset, SymbolTable symbols,
-                         int configFlags, int configFlagMods,
-                         int inputBufLen,
-                         int minTextSegmentLen)
+    private ReaderConfig(ReaderConfig base,
+            boolean j2meSubset, SymbolTable symbols,
+            int configFlags, int configFlagMods,
+            int inputBufLen,
+            int minTextSegmentLen)
     {
+        super(base);
         mIsJ2MESubset = j2meSubset;
         mSymbols = symbols;
 
@@ -455,11 +457,11 @@ public final class ReaderConfig
         /* For J2ME we'll use slightly smaller buffer sizes by
          * default, on assumption lower memory usage is desireable:
          */
-        ReaderConfig rc = new ReaderConfig
-            (true, null, DEFAULT_FLAGS_J2ME, 0,
-             // 4k input buffer (2000 chars):
-             2000,
-             DEFAULT_SHORTEST_TEXT_SEGMENT);
+        ReaderConfig rc = new ReaderConfig(null,
+                true, null, DEFAULT_FLAGS_J2ME, 0,
+                // 4k input buffer (2000 chars):
+                2000,
+                DEFAULT_SHORTEST_TEXT_SEGMENT);
         return rc;
     }
 
@@ -468,11 +470,11 @@ public final class ReaderConfig
         /* For full version, can use bit larger buffers to achieve better
          * overall performance.
          */
-        ReaderConfig rc = new ReaderConfig
-            (false, null, DEFAULT_FLAGS_FULL, 0,
-             // 8k input buffer (4000 chars):
-             4000,
-             DEFAULT_SHORTEST_TEXT_SEGMENT);
+        ReaderConfig rc = new ReaderConfig(null,
+                false, null, DEFAULT_FLAGS_FULL, 0,
+                // 8k input buffer (4000 chars):
+                4000,
+                DEFAULT_SHORTEST_TEXT_SEGMENT);
         return rc;
     }
 
@@ -480,10 +482,11 @@ public final class ReaderConfig
     {
         // should we throw an exception?
         //if (sym == null) { }
-        ReaderConfig rc = new ReaderConfig(mIsJ2MESubset, sym,
-                                           mConfigFlags, mConfigFlagMods,
-                                           mInputBufferLen,
-                                           mMinTextSegmentLen);
+        ReaderConfig rc = new ReaderConfig(this,
+                mIsJ2MESubset, sym,
+                mConfigFlags, mConfigFlagMods,
+                mInputBufferLen,
+                mMinTextSegmentLen);
         rc.mReporter = mReporter;
         rc.mDtdResolver = mDtdResolver;
         rc.mEntityResolver = mEntityResolver;
@@ -495,7 +498,6 @@ public final class ReaderConfig
             System.arraycopy(mSpecialProperties, 0, specProps, 0, len);
             rc.mSpecialProperties = specProps;
         }
-
         return rc;
     }
 
@@ -1209,8 +1211,6 @@ public final class ReaderConfig
         }
         mCurrRecycler.returnFullBBuffer(buffer);
     }
-
-    static int Counter = 0;
 
     private BufferRecycler createRecycler()
     {

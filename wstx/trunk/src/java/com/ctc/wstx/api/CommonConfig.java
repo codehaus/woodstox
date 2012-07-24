@@ -4,6 +4,7 @@ import java.util.*;
 
 import org.codehaus.stax2.XMLStreamProperties;
 
+import com.ctc.wstx.util.ArgUtil;
 import com.ctc.wstx.util.DataUtil;
 
 /**
@@ -76,16 +77,43 @@ abstract class CommonConfig
                 DataUtil.Integer(PROP_RETURN_NULL_FOR_DEFAULT_NAMESPACE));
 
         /* 23-Apr-2008, tatus: Additional interoperability property,
-         *    one that Sun implementation uses. Can map tor Stax2
+         *    one that Sun implementation uses. Can map to Stax2
          *    property quite easily.
          */
         sStdProperties.put("http://java.sun.com/xml/stream/properties/implementation-name",
                            DataUtil.Integer(PROP_IMPL_NAME));
-                
     }
 
-    protected CommonConfig() { }
+    /*
+    ///////////////////////////////////////////////////////////////////////
+    // Shared config
+    ///////////////////////////////////////////////////////////////////////
+    */
 
+    /**
+     * As per [WSTX-277], can specify whether prefix for the
+     * "default namespace" is return as null (true) or empty String (false)
+     */
+    protected boolean mReturnNullForDefaultNamespace;
+    
+    /*
+    ///////////////////////////////////////////////////////////////////////
+    // Construction
+    ///////////////////////////////////////////////////////////////////////
+    */
+    
+    /**
+     * Constructor used by sub-classes
+     * 
+     * @param base Base instance to copy settings from, if any; null for
+     *   'root' configuration objects.
+     */
+    protected CommonConfig(CommonConfig base) {
+        mReturnNullForDefaultNamespace = (base == null)
+                ? Boolean.getBoolean(WstxInputProperties.P_RETURN_NULL_FOR_DEFAULT_NAMESPACE)
+                : base.mReturnNullForDefaultNamespace;
+    }
+    
     /*
     ///////////////////////////////////////////////////////////////////////
     // Public API, generic StAX config methods
@@ -117,7 +145,7 @@ abstract class CommonConfig
     }
 
     /**
-     * @return True, if the specified property was <b>succesfully</b>
+     * @return True, if the specified property was <b>successfully</b>
      *    set to specified value; false if its value was not changed
      */
     public boolean setProperty(String propName, Object value)
@@ -184,7 +212,7 @@ abstract class CommonConfig
      */
     protected abstract int findPropertyId(String propName);
 
-    protected boolean doesSupportXml11() {
+    public boolean doesSupportXml11() {
         /* Woodstox does support xml 1.1 ... but sub-classes can
          * override it if/as necessary (validator factories might not
          * support it?)
@@ -192,15 +220,15 @@ abstract class CommonConfig
         return true;
     }
 
-    protected boolean doesSupportXmlId() {
+    public boolean doesSupportXmlId() {
         /* Woodstox does support Xml:id ... but sub-classes can
          * override it if/as necessary.
          */
         return true;
     }
 
-    protected boolean returnNullForDefaultNamespace() {
-        return Boolean.getBoolean(WstxInputProperties.P_RETURN_NULL_FOR_DEFAULT_NAMESPACE);
+    public boolean returnNullForDefaultNamespace() {
+        return mReturnNullForDefaultNamespace;
     }
     
     protected abstract Object getProperty(int id);
@@ -220,13 +248,18 @@ abstract class CommonConfig
     }
 
     /**
-	 * @param propName Name of standard property to set
+     * @param propName Name of standard property to set
      * @param id Internal id matching the name
      * @param value Value to set the standard property to
-	 */
+     */
     protected boolean setStdProperty(String propName, int id, Object value)
     {
-        // None of the current shared properties are settable...
+        // Only one settable property...
+        switch (id) {
+        case PROP_RETURN_NULL_FOR_DEFAULT_NAMESPACE:
+            mReturnNullForDefaultNamespace = ArgUtil.convertToBoolean(propName, value);
+            return true;
+        }
         return false;
     }
 

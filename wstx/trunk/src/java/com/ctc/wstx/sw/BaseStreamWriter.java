@@ -228,8 +228,7 @@ public abstract class BaseStreamWriter
         mCfgCDataAsText = (flags & OutputConfigFlags.CFG_OUTPUT_CDATA_AS_TEXT) != 0;
         mCfgCopyDefaultAttrs = (flags & OutputConfigFlags.CFG_COPY_DEFAULT_ATTRS) != 0;
         
-        Object value = getProperty(WstxInputProperties.P_RETURN_NULL_FOR_DEFAULT_NAMESPACE);
-        mReturnNullForDefaultNamespace = (value instanceof Boolean) && ((Boolean) value).booleanValue();
+        mReturnNullForDefaultNamespace = mConfig.returnNullForDefaultNamespace();
     }
 
     /*

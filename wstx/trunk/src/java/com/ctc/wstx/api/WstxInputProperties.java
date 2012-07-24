@@ -124,7 +124,7 @@ public final class WstxInputProperties
      * Whether the Reader will recognized DTD++ extensions when parsing
      * DTD subsets.
      *<p>
-     * Note: not implemented as of 2.0.x
+     * Note: not implemented by Woodstox.
      */
     public final static String P_SUPPORT_DTDPP = "com.ctc.wstx.supportDTDPP";
     
