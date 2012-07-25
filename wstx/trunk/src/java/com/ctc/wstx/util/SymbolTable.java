@@ -250,16 +250,33 @@ public class SymbolTable {
      * read-only copy of parent's data, but when changes are needed, a
      * copy will be created.
      *<p>
-     * Note: while this method is synchronized, it is generally not
-     * safe to both use makeChild/mergeChild, AND to use instance
+     * Note: while data access part of this method is synchronized, it is
+     * generally not safe to both use makeChild/mergeChild, AND to use instance
      * actively. Instead, a separate 'root' instance should be used
      * on which only makeChild/mergeChild are called, but instance itself
      * is not used as a symbol table.
      */
-    public synchronized SymbolTable makeChild() {
-        return new SymbolTable(mInternStrings, mSymbols, mBuckets,
-                               mSize, mSizeThreshold, mIndexMask,
-                               mThisVersion+1);
+    public SymbolTable makeChild()
+    {
+        final boolean internStrings;
+        final String[] symbols;
+        final Bucket[] buckets;
+        final int size;
+        final int sizeThreshold;
+        final int indexMask;
+        final int version;
+
+        synchronized (this) {      
+            internStrings = mInternStrings;
+            symbols = mSymbols;
+            buckets = mBuckets;
+            size = mSize;
+            sizeThreshold = mSizeThreshold;
+            indexMask = mIndexMask;
+            version = mThisVersion+1;
+        }
+        return new SymbolTable(internStrings, symbols, buckets,
+                size, sizeThreshold, indexMask, version);
     }
 
     /**
