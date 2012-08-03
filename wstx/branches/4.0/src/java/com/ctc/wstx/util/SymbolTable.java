@@ -26,7 +26,7 @@ package com.ctc.wstx.util;
  * parsers; especially when number of symbols (keywords) is limited.
  *<p>
  * For optimal performance, usage pattern should be one where matches
- * should be very common (esp. after "warm-up"), and as with most hash-based
+ * should be very common (especially after "warm-up"), and as with most hash-based
  * maps/sets, that hash codes are uniformly distributed. Also, collisions
  * are slightly more expensive than with HashMap or HashSet, since hash codes
  * are not used in resolving collisions; that is, equals() comparison is
@@ -50,7 +50,6 @@ package com.ctc.wstx.util;
  * master table concurrently with child instances can only be done if
  * access to master instance is read-only (ie. no modifications done).
  */
-
 public class SymbolTable {
 
     /**
@@ -250,16 +249,33 @@ public class SymbolTable {
      * read-only copy of parent's data, but when changes are needed, a
      * copy will be created.
      *<p>
-     * Note: while this method is synchronized, it is generally not
-     * safe to both use makeChild/mergeChild, AND to use instance
+     * Note: while data access part of this method is synchronized, it is
+     * generally not safe to both use makeChild/mergeChild, AND to use instance
      * actively. Instead, a separate 'root' instance should be used
      * on which only makeChild/mergeChild are called, but instance itself
      * is not used as a symbol table.
      */
-    public synchronized SymbolTable makeChild() {
-        return new SymbolTable(mInternStrings, mSymbols, mBuckets,
-                               mSize, mSizeThreshold, mIndexMask,
-                               mThisVersion+1);
+    public SymbolTable makeChild()
+    {
+        final boolean internStrings;
+        final String[] symbols;
+        final Bucket[] buckets;
+        final int size;
+        final int sizeThreshold;
+        final int indexMask;
+        final int version;
+
+        synchronized (this) {      
+            internStrings = mInternStrings;
+            symbols = mSymbols;
+            buckets = mBuckets;
+            size = mSize;
+            sizeThreshold = mSizeThreshold;
+            indexMask = mIndexMask;
+            version = mThisVersion+1;
+        }
+        return new SymbolTable(internStrings, symbols, buckets,
+                size, sizeThreshold, indexMask, version);
     }
 
     /**
