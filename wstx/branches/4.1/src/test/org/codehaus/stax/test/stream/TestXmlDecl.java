@@ -110,7 +110,7 @@ public class TestXmlDecl
             String method = "";
 
             try {
-                @SuppressWarnings("unused")
+//                @SuppressWarnings("unused")
                 Object result = null;
                 switch (i) {
                 case 0:
