@@ -1,12 +1,14 @@
 Version: 4.1.4
 
-Release date: xx-Jul-2012
+Release date: 02-Aug-2012
 
 Description:
   Another patch release for 4.1
 
 Problems fixed:
 
+* [WSTX-263] Improve sharing of	SymbolTable's by WstxInputFactory
+ (requested by Marcin K)
 * [WSTX-277] Performance problem introduced by [WSTX-270], due to
   its access of System property (which requires global lock) for
   each instantiated parser, generator.
@@ -83,7 +85,7 @@ Problems fixed:
 
   * [WSTX-206] Provide a way to configure SAX parser with all config
     settings available to Stax readers (add WstxSAXParser.getStaxConfig())
-   (suggested by StŽphane C)
+   (suggested by StÂŽphane C)
   * [WSTX-234] Restore feature WstxInputProperties.NORMALIZE_LFS; add
     WstxInputProperties.TREAT_CHAR_REFS_AS_ENTS
    (requested by Peter S)
