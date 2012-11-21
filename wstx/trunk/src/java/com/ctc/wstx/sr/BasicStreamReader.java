@@ -4682,6 +4682,12 @@ public abstract class BasicStreamReader
                             outPtr = 0;
                         }
                         outBuf[outPtr++] = (char) ((ch >> 10)  + 0xD800);
+                        if (outPtr >= outBuf.length) {
+                            if ((outBuf = _expandOutputForText(inputPtr, outBuf, Integer.MAX_VALUE)) == null) { // got enough, leave
+                                return false;
+                            }
+                            outPtr = 0;
+                        }
                         c = (char) ((ch & 0x3FF)  + 0xDC00);
                     }
                     inputPtr = mInputPtr;
@@ -4722,15 +4728,9 @@ public abstract class BasicStreamReader
 
             // Need more room?
             if (outPtr >= outBuf.length) {
-                TextBuffer tb = mTextBuffer;
-                // Perhaps we have now enough to return?
-                tb.setCurrentLength(outBuf.length);
-                if (tb.size() >= shortestSegment) {
-                    mInputPtr = inputPtr;
+                if ((outBuf = _expandOutputForText(inputPtr, outBuf, shortestSegment)) == null) { // got enough, leave
                     return false;
                 }
-                // If not, need more buffer space:
-                outBuf = tb.finishCurrentSegment();
                 outPtr = 0;
             }
         }
@@ -4739,6 +4739,20 @@ public abstract class BasicStreamReader
         return true;
     }
 
+    private final char[] _expandOutputForText(int inputPtr, char[] outBuf,
+            int shortestSegment)
+    {
+        TextBuffer tb = mTextBuffer;
+        // Perhaps we have now enough to return?
+        tb.setCurrentLength(outBuf.length);
+        if (tb.size() >= shortestSegment) {
+            mInputPtr = inputPtr;
+            return null;
+        }
+        // If not, need more buffer space:
+        return tb.finishCurrentSegment();
+    }
+    
     /**
      * Method called to try to parse and canonicalize white space that
      * has a good chance of being white space with somewhat regular
