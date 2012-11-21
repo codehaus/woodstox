@@ -6,9 +6,16 @@ import java.net.URL;
 import java.net.URLDecoder;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
+import java.util.regex.Pattern;
 
 public final class URLUtil
 {
+    /**
+     * While URIs that contain pipe are wrong, we'll work around that
+     * for [WSTX-275].
+     */
+    private final static Pattern URI_WINDOWS_FILE_PATTERN = Pattern.compile("^file:///\\p{Alpha}|.*$");
+    
     private URLUtil() { }
 
     /**
@@ -60,20 +67,27 @@ public final class URLUtil
             return null; // never gets here
         }
     }
-
+    
     /**
      * @since 4.1
      */
-    public static URI uriFromSystemId(String sysId) throws IOException
+    public static URI uriFromSystemId(final String sysId) throws IOException
     {
+        // as per [WSTX-275]
         // note: mostly a copy of matching method above, but with URI instead of URL
         try {
-            int ix = sysId.indexOf(':', 0);
+            if (sysId.indexOf('|', 0) > 0) {
+                if (URI_WINDOWS_FILE_PATTERN.matcher(sysId).matches()) {
+                    return new URI(sysId.replace('|', ':'));
+                }
+            }
+
+            final int ix = sysId.indexOf(':', 0);
             if (ix >= 3 && ix <= 8) {
                 return new URI(sysId);
             }
             String absPath = new java.io.File(sysId).getAbsolutePath();
-            char sep = File.separatorChar;
+            final char sep = File.separatorChar;
             if (sep != '/') {
                 absPath = absPath.replace(sep, '/');
             }
@@ -81,7 +95,7 @@ public final class URLUtil
                 absPath = "/" + absPath;
             }
             return new URI("file", absPath, null);
-        } catch (URISyntaxException e) {
+        } catch (final URISyntaxException e) {
             throwIOException(e, sysId);
             return null; // never gets here
         }
