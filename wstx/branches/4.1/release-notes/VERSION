@@ -5,6 +5,7 @@ Description:
 
 Problems fixed:
 
+* [WSTX-275] Improved handling of certain Windows URIs (with illegal pipe symbol)
 * [WSTX-280] Problem with surrogate pair handling
 
 ------------------------------------------------------------------------
@@ -89,7 +90,7 @@ Problems fixed:
 
   * [WSTX-206] Provide a way to configure SAX parser with all config
     settings available to Stax readers (add WstxSAXParser.getStaxConfig())
-   (suggested by StŽphane C)
+   (suggested by StÂŽphane C)
   * [WSTX-234] Restore feature WstxInputProperties.NORMALIZE_LFS; add
     WstxInputProperties.TREAT_CHAR_REFS_AS_ENTS
    (requested by Peter S)
