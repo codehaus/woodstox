@@ -71,12 +71,8 @@ public abstract class BaseWstxTest
     protected XMLInputFactory2 getInputFactory()
     {
         if (mInputFactory == null) {
-            /* 29-Nov-2004, TSa: Better ensure we get the right
-             *   implementation...
-             */
-            System.setProperty("javax.xml.stream.XMLInputFactory",
-                               "com.ctc.wstx.stax.WstxInputFactory");
-            mInputFactory = getNewInputFactory();
+            // 29-Nov-2004, TSa: Better ensure we get the right implementation
+            mInputFactory = new WstxInputFactory();
         }
         return mInputFactory;
     }
@@ -84,9 +80,7 @@ public abstract class BaseWstxTest
     protected XMLEventFactory2 getEventFactory()
     {
         if (mEventFactory == null) {
-            System.setProperty("javax.xml.stream.XMLEventFactory",
-                               "com.ctc.wstx.stax.WstxEventFactory");
-            mEventFactory = (XMLEventFactory2) XMLEventFactory.newInstance();
+            mEventFactory = (XMLEventFactory2) new com.ctc.wstx.stax.WstxEventFactory();
         }
         return mEventFactory;
     }
@@ -103,9 +97,7 @@ public abstract class BaseWstxTest
     protected XMLOutputFactory2 getOutputFactory()
     {
         if (mOutputFactory == null) {
-            System.setProperty("javax.xml.stream.XMLOutputFactory",
-                               "com.ctc.wstx.stax.WstxOutputFactory");
-            mOutputFactory = getNewOutputFactory();
+            mOutputFactory = new WstxOutputFactory();
         }
         return mOutputFactory;
     }
