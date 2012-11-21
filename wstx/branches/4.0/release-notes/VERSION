@@ -1,9 +1,17 @@
-Version: 4.0.11
-
-Release date: 02-Aug-2012
+Version: 4.0.12 (xx-Xxx-xxxx)
 
 Description:
   4.0 maintenance release.
+
+Problems fixed:
+
+* [WSTX-280] Problem with surrogate pair handling
+
+------------------------------------------------------------------------
+== History: ==
+------------------------------------------------------------------------
+
+4.0.11 [02-Aug-2012]
 
 Problems fixed:
 
@@ -16,10 +24,6 @@ Problems fixed:
 * [WSTX-276] 'InputConfigFlags.CFG_NORMALIZE_LFS' flag conflicts
    with 'CFG_AUTO_CLOSE_INPUT'
  (reported by Andreas V)
-
-------------------------------------------------------------------------
-== History: ==
-------------------------------------------------------------------------
 
 4.0.10 [27-Jan-2011]
 
