@@ -4,9 +4,16 @@ import java.io.*;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.net.MalformedURLException;
+import java.util.regex.Pattern;
 
 public final class URLUtil
 {
+    /**
+     * While URIs that contain pipe are wrong, we'll work around that
+     * for [WSTX-275].
+     */
+    private final static Pattern URI_WINDOWS_FILE_PATTERN = Pattern.compile("^file:///\\p{Alpha}|.*$");
+
     private URLUtil() { }
 
     /**
@@ -19,6 +26,7 @@ public final class URLUtil
         throws IOException
     {
         try {
+	    sysId = cleanSystemId(sysId);
             /* Ok, does it look like a full URL? For one, you need a colon. Also,
              * to reduce likelihood of collision with Windows paths, let's only
              * accept it if there are 3 preceding other chars...
@@ -66,6 +74,7 @@ public final class URLUtil
             return urlFromSystemId(sysId);
         }
         try {
+	    sysId = cleanSystemId(sysId);
             return new URL(ctxt, sysId);
         } catch (MalformedURLException e) {
             throwIOException(e, sysId);
@@ -158,6 +167,17 @@ public final class URLUtil
     // Private helper methods
     ///////////////////////////////////////////
     */
+
+    private static String cleanSystemId(final String sysId)
+    {
+	int ix = sysId.indexOf('|');
+	if (ix > 0 && URI_WINDOWS_FILE_PATTERN.matcher(sysId).matches()) {
+	    StringBuilder sb = new StringBuilder(sysId);
+	    sb.setCharAt(ix, ':');
+	    return sb.toString();
+	}
+	return sysId;
+    }
 
     /**
      * Helper method that tries to fully convert strange URL-specific exception
