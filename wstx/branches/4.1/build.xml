@@ -77,7 +77,7 @@
           <include name="src/java/com/**/*.java" />
           <include name="src/samples/**/*.java" />
           <include name="src/resources/*" />
-          <include name="build.xml" />
+          <include name="build*.xml" />
           <include name="project.xml" />
     </patternset>
     <patternset id="stax2-dist-src-files">
@@ -99,7 +99,7 @@
                too. This way src packages are proper subsets of binary ones
             -->
           <include name="lib/*.jar" />
-          <include name="lib/msv/*.jar" />
+          <include name="lib/*/*.jar" />
     </patternset>
 
     <import file="build-osgi.xml" />
