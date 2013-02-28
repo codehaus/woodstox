@@ -1,19 +1,22 @@
-Version: 4.1.5 (27-Feb-2013)
+Project: Woodstox XML processor
+Version: 4.1.6 (xx-xxx-xxxx)
 
-Description:
-  Another patch release for 4.1
+Another patch release for 4.1
 
-Problems fixed:
-
-* [WSTX-275] Improved handling of certain Windows URIs (with illegal pipe symbol)
-* [WSTX-280] Problem with surrogate pair handling
-* [WSTX-284] Missing Export packages in OSGi headers
+Fixes:
 
 ------------------------------------------------------------------------
 == History: ==
 ------------------------------------------------------------------------
 
-4.1.4 [02-Aug-2012]
+4.1.5 (27-Feb-2013)
+
+* [WSTX-275] Improved handling of certain Windows URIs (with illegal pipe symbol)
+* [WSTX-280] Problem with surrogate pair handling
+* [WSTX-284] Missing Export packages in OSGi headers
+
+
+4.1.4 (02-Aug-2012)
 
 Problems fixed:
 
@@ -91,7 +94,7 @@ Problems fixed:
 
   * [WSTX-206] Provide a way to configure SAX parser with all config
     settings available to Stax readers (add WstxSAXParser.getStaxConfig())
-   (suggested by StÂŽphane C)
+   (suggested by StŽphane C)
   * [WSTX-234] Restore feature WstxInputProperties.NORMALIZE_LFS; add
     WstxInputProperties.TREAT_CHAR_REFS_AS_ENTS
    (requested by Peter S)
