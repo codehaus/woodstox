@@ -1,4 +1,4 @@
-Version: 4.1.5 (xx-Xxx-xxxx)
+Version: 4.1.5 (27-Feb-2013)
 
 Description:
   Another patch release for 4.1
@@ -91,7 +91,7 @@ Problems fixed:
 
   * [WSTX-206] Provide a way to configure SAX parser with all config
     settings available to Stax readers (add WstxSAXParser.getStaxConfig())
-   (suggested by StŽphane C)
+   (suggested by StÂŽphane C)
   * [WSTX-234] Restore feature WstxInputProperties.NORMALIZE_LFS; add
     WstxInputProperties.TREAT_CHAR_REFS_AS_ENTS
    (requested by Peter S)
