@@ -401,7 +401,7 @@
        <jar destfile="${dir.dist}/woodstox-core-asl-${IMPL_VERSION}-javadoc.jar"
          filesonly="true" compress="true" basedir="${dir.javadoc}" includes="**/*.*"
        />
-       <jar destfile="${dir.dist}/woodstox-core-lpgl-${IMPL_VERSION}-javadoc.jar"
+       <jar destfile="${dir.dist}/woodstox-core-lgpl-${IMPL_VERSION}-javadoc.jar"
          filesonly="true" compress="true" basedir="${dir.javadoc}" includes="**/*.*"
        />
        <jar destfile="${dir.dist}/stax2-api-${STAX2_VERSION}-javadoc.jar"
