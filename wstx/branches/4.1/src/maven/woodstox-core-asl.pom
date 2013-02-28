@@ -13,6 +13,13 @@ implements Stax (JSR-173) and SAX2 APIs</description>
   <!-- Contact information -->
   <url>http://woodstox.codehaus.org</url>
   <issueManagement><url>http://jira.codehaus.org/browse/WSTX</url></issueManagement>
+  <developers>
+    <developer>
+      <id>cowtowncoder</id>
+      <name>Tatu Saloranta</name>
+      <email>tatu@fasterxml.com</email>
+    </developer>
+  </developers>
 
   <!-- Dependency information -->
   <dependencies>
