@@ -12,6 +12,9 @@ implements Stax (JSR-173) and SAX2 APIs</description>
 
   <!-- Contact information -->
   <url>http://woodstox.codehaus.org</url>
+  <scm>
+    <url>http://xircles.codehaus.org/projects/woodstox/repos/primary/repo</url>
+  </scm>
   <issueManagement><url>http://jira.codehaus.org/browse/WSTX</url></issueManagement>
   <developers>
     <developer>
