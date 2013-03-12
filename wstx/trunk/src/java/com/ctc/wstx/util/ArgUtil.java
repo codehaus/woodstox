@@ -55,4 +55,29 @@ public final class ArgUtil
         }
         return i;
     }
+    public static long convertToLong(String prop, Object value, long minValue)
+    {
+        long i;
+
+        if (value == null) {
+            i = 0;
+        } else if (value instanceof Number) {
+            i = ((Number) value).longValue();
+        } else if (value instanceof String) {
+            try {
+                i = Long.parseLong((String) value);
+            } catch (NumberFormatException nex) {
+                throw new IllegalArgumentException("Invalid String value for property '"+prop+"': expected a number (Long).");
+            }
+        } else {
+            throw new IllegalArgumentException("Invalid value type ("+value.getClass()+") for property '"+prop+"': expected Long value.");
+        }
+
+        if (i < minValue) {
+            throw new IllegalArgumentException("Invalid numeric value ("+i
+                                               +") for property '"+prop
+                                               +"': minimum is "+minValue+".");
+        }
+        return i;
+    }
 }

@@ -60,6 +60,11 @@ final class Element
      */
     protected Element mParent;
 
+    /**
+     * Count of child elements
+     */
+    protected int mChildCount;
+
     /*
     /////////////////////////////////////////////////////////
     // Life-cycle
@@ -80,6 +85,7 @@ final class Element
         mNsOffset = nsOffset;
         mPrefix = prefix;
         mLocalName = ln;
+        mChildCount = 0;
     }
 
     /**

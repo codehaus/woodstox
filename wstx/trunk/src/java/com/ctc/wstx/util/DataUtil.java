@@ -19,6 +19,7 @@ public final class DataUtil
             INTS[i] = new Integer(i);
         }
     }
+    final static Long MAX_LONG = new Long(Long.MAX_VALUE);
 
     private DataUtil() { }
 
@@ -42,7 +43,15 @@ public final class DataUtil
             return new Integer(i);
         }
         return INTS[i];
-    }    
+    }
+    
+    public static Long Long(long l)
+    {
+        if (l == Long.MAX_VALUE) {
+            return MAX_LONG;
+        }
+        return new Long(l);
+    }  
 
     /*
     ////////////////////////////////////////////////////////////

@@ -1,5 +1,9 @@
 package org.codehaus.stax.test.stream;
 
+import java.io.IOException;
+import java.io.Reader;
+import java.io.StringReader;
+
 import javax.xml.namespace.QName;
 import javax.xml.stream.*;
 
@@ -434,6 +438,41 @@ public class TestAttributeRead
 
         sr.close();
     }
+    
+    public void testManyAttributes() throws Exception 
+    {
+        final int max = 100;
+        Reader reader = new Reader() {
+            StringReader sreader = new StringReader("<ns:element xmlns:ns=\"http://foo.com\"");
+            int count;
+            boolean done;
+            public int read(char[] cbuf, int off, int len) throws IOException {
+                int i = sreader.read(cbuf, off, len);
+                if (i == -1) {
+                    if (count < max) {
+                        sreader = new StringReader(" attribute" + count++ + "=\"foo\"");
+                    } else if (!done) {
+                        sreader = new StringReader("/>");
+                        done = true;
+                    }
+                    i = sreader.read(cbuf, off, len);
+                }
+                return i;
+            }
+            public void close() throws IOException {
+            }
+        };
+        try {
+            XMLInputFactory factory = getNewInputFactory();
+            factory.setProperty("com.ctc.wstx.maxAttributesPerElement", Integer.valueOf(max / 2));
+            XMLStreamReader xmlreader = factory.createXMLStreamReader(reader);
+            xmlreader.getProperty("com.ctc.wstx.maxAttributesPerElement");
+            xmlreader.nextTag();
+            fail("Should have failed");
+        } catch (XMLStreamException ex) {
+            //expected
+        }
+    }    
 
 
     /*

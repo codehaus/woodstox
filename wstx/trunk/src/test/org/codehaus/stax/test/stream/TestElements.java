@@ -1,7 +1,13 @@
 package org.codehaus.stax.test.stream;
 
+import java.io.IOException;
+import java.io.Reader;
+import java.io.StringReader;
+
 import javax.xml.namespace.*;
 import javax.xml.stream.*;
+
+import com.ctc.wstx.sr.BasicStreamReader;
 
 /**
  * Unit test suite that tests handling of XML elements, both in namespace
@@ -346,6 +352,144 @@ public class TestElements
                              "more than one root element");
     }
 
+    
+    public void testSuperDeep() throws Exception 
+    {
+        final int max = Integer.MAX_VALUE;
+        Reader reader = new Reader() {
+            StringReader sreader = new StringReader("<ns:element xmlns:ns=\"http://foo.com\">");
+            int count;
+            boolean done;
+            public int read(char[] cbuf, int off, int len) throws IOException {
+                int i = sreader.read(cbuf, off, len);
+                if (i == -1) {
+                    if (count < max) {
+                        sreader = new StringReader("<ns:element>");
+                        count++;
+                    } else if (!done) {
+                        sreader = new StringReader("</ns:element>");
+                        done = true;
+                    }
+                    i = sreader.read(cbuf, off, len);
+                }
+                return i;
+            }
+            public void close() throws IOException {
+            }
+        };
+        try {
+            XMLInputFactory factory = getNewInputFactory();
+            factory.setProperty("com.ctc.wstx.maxElementDepth", Integer.valueOf(25));
+            XMLStreamReader xmlreader = factory.createXMLStreamReader(reader);
+            while (xmlreader.next() != XMLStreamReader.END_ELEMENT) {
+            }
+           
+            fail("Should have failed");
+        } catch (XMLStreamException ex) {
+            //expected
+        }
+    }      
+    public void testManyChildren() throws Exception 
+    {
+        final int max = Integer.MAX_VALUE;
+        Reader reader = new Reader() {
+            StringReader sreader = new StringReader("<ns:element xmlns:ns=\"http://foo.com\">");
+            int count;
+            boolean done;
+            public int read(char[] cbuf, int off, int len) throws IOException {
+                int i = sreader.read(cbuf, off, len);
+                if (i == -1) {
+                    if (count < max) {
+                        sreader = new StringReader("<ns:element/>");
+                        count++;
+                    } else if (!done) {
+                        sreader = new StringReader("</ns:element>");
+                        done = true;
+                    }
+                    i = sreader.read(cbuf, off, len);
+                }
+                return i;
+            }
+            public void close() throws IOException {
+            }
+        };
+        try {
+            XMLInputFactory factory = getNewInputFactory();
+            factory.setProperty("com.ctc.wstx.maxChildrenPerElement", Integer.valueOf(100));
+            XMLStreamReader xmlreader = factory.createXMLStreamReader(reader);
+            while (xmlreader.next() != XMLStreamReader.END_DOCUMENT) {
+            }
+            fail("Should have failed");
+        } catch (XMLStreamException ex) {
+            //expected
+        }
+    }  
+     
+    static Reader createManyElementReader() {
+        final int max = Integer.MAX_VALUE;
+        Reader reader = new Reader() {
+            StringReader sreader = new StringReader("<ns:element xmlns:ns=\"http://foo.com\"><ns:child0>");
+            int count;
+            int count2;
+            public int read(char[] cbuf, int off, int len) throws IOException {
+                int i = sreader.read(cbuf, off, len);
+                if (i == -1) {
+                    if ((count % 5000) == 1) {
+                        String close = "</ns:child" + count2 + ">";
+                        count2++;
+                        sreader = new StringReader(close + "<ns:child" + count2 + "><ns:element/>");
+                    } else if (count < max) {
+                        sreader = new StringReader("<ns:element/>");
+                        count++;
+                    }
+                    
+                    i = sreader.read(cbuf, off, len);
+                }
+                return i;
+            }
+            public void close() throws IOException {
+            }
+        };
+        return reader;
+    }
+    public void testManyElements() throws Exception 
+    {
+        
+        try {
+            XMLInputFactory factory = getNewInputFactory();
+            factory.setProperty("com.ctc.wstx.maxElementCount", Integer.valueOf(100));
+            XMLStreamReader xmlreader = factory.createXMLStreamReader(createManyElementReader());
+            while (xmlreader.next() != XMLStreamReader.END_DOCUMENT) {
+            }
+            fail("Should have failed");
+        } catch (XMLStreamException ex) {
+            //expected
+        }
+        try {
+            XMLInputFactory factory = getNewInputFactory();
+            XMLStreamReader xmlreader = factory.createXMLStreamReader(createManyElementReader());
+            ((BasicStreamReader)xmlreader).setProperty("com.ctc.wstx.maxElementCount", Integer.valueOf(100));
+            while (xmlreader.next() != XMLStreamReader.END_DOCUMENT) {
+            }
+            fail("Should have failed");
+        } catch (XMLStreamException ex) {
+            //expected
+        }
+    }
+    
+    public void testCharacterLimit() throws Exception {
+        try {
+            XMLInputFactory factory = getNewInputFactory();
+            factory.setProperty("com.ctc.wstx.maxCharacters", Integer.valueOf(100));
+            XMLStreamReader xmlreader = factory.createXMLStreamReader(createManyElementReader());
+            while (xmlreader.next() != XMLStreamReader.END_DOCUMENT) {
+            }
+            fail("Should have failed");
+        } catch (XMLStreamException ex) {
+            //expected
+        }        
+    }
+    
     /*
     ////////////////////////////////////////
     // Private methods, other

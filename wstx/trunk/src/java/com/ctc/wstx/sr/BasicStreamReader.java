@@ -1958,6 +1958,9 @@ public abstract class BasicStreamReader
         } else {
             // Need to update the start location...
             mTokenInputTotal = mCurrInputProcessed + mInputPtr;
+            if (mTokenInputTotal > mConfig.getMaxCharacters()) {
+                throw new XMLStreamException("Character limit exceeded");
+            }
             mTokenInputRow = mCurrInputRow;
             mTokenInputCol = mInputPtr - mCurrInputRowStart;
             i = getNext();
@@ -1998,6 +2001,9 @@ public abstract class BasicStreamReader
                  *   since it's non-WS, and thus non-lf/cr char)
                  */
                 mTokenInputTotal = mCurrInputProcessed + mInputPtr - 1;
+                if (mTokenInputTotal > mConfig.getMaxCharacters()) {
+                    throw new XMLStreamException("Character limit exceeded");
+                }
                 mTokenInputRow = mCurrInputRow;
                 mTokenInputCol = mInputPtr - mCurrInputRowStart - 1;
             }
@@ -2629,6 +2635,9 @@ public abstract class BasicStreamReader
                  */
                 // First, need to update the start location...
                 mTokenInputTotal = mCurrInputProcessed + mInputPtr;
+                if (mTokenInputTotal > mConfig.getMaxCharacters()) {
+                    throw new XMLStreamException("Character limit exceeded");
+                }
                 mTokenInputRow = mCurrInputRow;
                 mTokenInputCol = mInputPtr - mCurrInputRowStart;
                 char c = (mInputPtr < mInputEnd) ? mInputBuffer[mInputPtr++]
@@ -2670,6 +2679,9 @@ public abstract class BasicStreamReader
             }
             // Once again, need to update the start location info:
             mTokenInputTotal = mCurrInputProcessed + mInputPtr;
+            if (mTokenInputTotal > mConfig.getMaxCharacters()) {
+                throw new XMLStreamException("Character limit exceeded");
+            }
             mTokenInputRow = mCurrInputRow;
             mTokenInputCol = mInputPtr - mCurrInputRowStart;
             i = getNext();
@@ -3423,6 +3435,9 @@ public abstract class BasicStreamReader
         if (result < 1) {
             mTokenInputRow = mCurrInputRow;
             mTokenInputTotal = mCurrInputProcessed + mInputPtr;
+            if (mTokenInputTotal > mConfig.getMaxCharacters()) {
+                throw new XMLStreamException("Character limit exceeded");
+            }
             mTokenInputCol = mInputPtr - mCurrInputRowStart;
             return (result < 0) ? result : getNext();
         }
@@ -3430,6 +3445,9 @@ public abstract class BasicStreamReader
         // Ok, need to offset location, and return whatever we got:
         mTokenInputRow = mCurrInputRow;
         mTokenInputTotal = mCurrInputProcessed + mInputPtr - 1;
+        if (mTokenInputTotal > mConfig.getMaxCharacters()) {
+            throw new XMLStreamException("Character limit exceeded");
+        }
         mTokenInputCol = mInputPtr - mCurrInputRowStart - 1;
         return result;
     }

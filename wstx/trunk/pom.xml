@@ -118,21 +118,21 @@
           dependencies...
         -->
         <dependency>
-            <groupId>msv</groupId>
-            <artifactId>msv</artifactId>
-            <version>20050913</version>
+            <groupId>net.java.dev.msv</groupId>
+            <artifactId>msv-core</artifactId>
+            <version>2013.2.2</version>
             <optional>true</optional>
         </dependency>
         <dependency>
-            <groupId>msv</groupId>
-            <artifactId>relaxngDatatype</artifactId>
-            <version>20050913</version>
+            <groupId>net.java.dev.msv</groupId>
+            <artifactId>msv-rngconverter</artifactId>
+            <version>2013.2.2</version>
             <optional>true</optional>
         </dependency>
         <dependency>
-            <groupId>msv</groupId>
+            <groupId>net.java.dev.msv</groupId>
             <artifactId>xsdlib</artifactId>
-            <version>20050913</version>
+            <version>2013.2.2</version>
             <optional>true</optional>
         </dependency>
 
