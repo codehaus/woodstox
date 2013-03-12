@@ -1064,8 +1064,8 @@ public final class AttributeCollector
      *    map itself, or resized version, otherwise.
      */
     private int[] spillAttr(String uri, String name,
-                            int[] map, int currIndex, int spillIndex, int attrCount,
-                            int hash, int hashCount)
+            int[] map, int currIndex, int spillIndex, int attrCount,
+            int hash, int hashCount)
     {
         // Do we have a dup with primary entry?
         /* Can do equality comp for local name, as they
@@ -1092,7 +1092,7 @@ public final class AttributeCollector
             if (map[j] == hash) {
                 currIndex = map[j+1];
                 Attribute attr = mAttributes[currIndex];
-                if (oldAttr.mLocalName == name) {
+                if (attr.mLocalName == name) {
                     String currURI = attr.mNamespaceURI;
                     if (currURI == uri || (currURI != null && currURI.equals(uri))) {
                         return null;
