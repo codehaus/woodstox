@@ -5,6 +5,9 @@ Another patch release for 4.1
 
 Fixes:
 
+* [WSTX-286]: Fail to detect duplicate attributes in some cases
+ (reported by Eric M)
+
 ------------------------------------------------------------------------
 == History: ==
 ------------------------------------------------------------------------

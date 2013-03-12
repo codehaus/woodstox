@@ -486,9 +486,12 @@ Eric Sirianni
 
 Mike Sokolov:
   * [WSTX-267] P_NORMALIZE_LFS mis-mapped
-   [4.1.2]
+   (4.1.2)
 
 Blaise Doughan:
   * [WSTX-268] Missing namespace information when unmarshalling from DOMSource
-    [4.1.2]
+   (4.1.2)
 
+Eric Meyer:
+  * [WSTX-286]: Fail to detect duplicate attributes in some cases
+   (4.1.5)
