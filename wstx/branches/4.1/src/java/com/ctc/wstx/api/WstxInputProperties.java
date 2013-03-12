@@ -167,6 +167,14 @@ public final class WstxInputProperties
      * if not required to coalesce text.
      */
     public final static String P_MIN_TEXT_SEGMENT = "com.ctc.wstx.minTextSegment";
+    
+    // // // Other size constraints
+    public final static String P_MAX_ATTRIBUTES_PER_ELEMENT = "com.ctc.wstx.maxAttributesPerElement";
+    public final static String P_MAX_CHILDREN_PER_ELEMENT = "com.ctc.wstx.maxChildrenPerElement";
+    public final static String P_MAX_ELEMENT_COUNT = "com.ctc.wstx.maxElementCount";
+    public final static String P_MAX_ELEMENT_DEPTH = "com.ctc.wstx.maxElementDepth";
+    public final static String P_MAX_CHARACTERS = "com.ctc.wstx.maxCharacters";
+
 
     // // // Entity handling
 

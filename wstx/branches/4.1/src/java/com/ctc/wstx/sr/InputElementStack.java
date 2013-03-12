@@ -86,6 +86,7 @@ public final class InputElementStack
     */
 
     protected int mDepth = 0;
+    protected long mTotalElements = 0;
 
     /**
      * Vector that contains all currently active namespaces; one String for
@@ -320,12 +321,26 @@ public final class InputElementStack
      * Method called by the stream reader to add new (start) element
      * into the stack in namespace-aware mode; called when a start element
      * is encountered during parsing, but only in ns-aware mode.
+     * @throws XMLStreamException 
      */
-    public final void push(String prefix, String localName)
+    public final void push(String prefix, String localName) throws XMLStreamException
     {
         ++mDepth;
+        ++mTotalElements;
+        if (mDepth > mConfig.getMaxElementDepth()) {
+            throw new XMLStreamException("Maximum Element Depth Exceeded");
+        }
+        if (mTotalElements > mConfig.getMaxElementCount()) {
+            throw new XMLStreamException("Maximum Element Count Exceeded");
+        }
         String defaultNs = (mCurrElement == null) ?
             XmlConsts.DEFAULT_NAMESPACE_URI : mCurrElement.mDefaultNsURI;
+        if (mCurrElement != null) {
+            mCurrElement.mChildCount++;
+            if (mConfig.getMaxChildrenPerElement() > 0 && mCurrElement.mChildCount > mConfig.getMaxChildrenPerElement()) {
+                throw new XMLStreamException("Maximum Number of Children Elements Exceeded");
+            }
+        }
 
         if (mFreeElement == null) {
             mCurrElement = new Element(mCurrElement, mNamespaces.size(), prefix, localName);
@@ -828,7 +843,7 @@ public final class InputElementStack
      * element.
      */
     public int addDefaultAttribute(String localName, String uri, String prefix,
-                                   String value)
+                                   String value) throws XMLStreamException
     {
         return mAttrCollector.addDefaultAttribute(localName, uri, prefix, value);
     }

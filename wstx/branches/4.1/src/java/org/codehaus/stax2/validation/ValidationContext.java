@@ -184,7 +184,8 @@ public interface ValidationContext
      *
      * @return Index of the newly added attribute, if operation was
      *    succesful; -1 if not.
+     * @throws XMLStreamException 
      */
     public int addDefaultAttribute(String localName, String uri, String prefix,
-                                   String value);
+                                   String value) throws XMLStreamException;
 }

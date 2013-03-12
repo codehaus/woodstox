@@ -190,6 +190,8 @@ public final class AttributeCollector
      * <code>mAttrMap</code> array.
      */
     protected int mAttrSpillEnd;
+    
+    protected int mMaxAttributesPerElement;
 
     /*
     ///////////////////////////////////////////////
@@ -207,6 +209,7 @@ public final class AttributeCollector
             mXmlIdPrefix = null;
             mXmlIdLocalName = "xml:id";
         }
+        mMaxAttributesPerElement = cfg.getMaxAttributesPerElement();
     }
 
     /**
@@ -408,6 +411,14 @@ public final class AttributeCollector
         }
 
         return null;
+    }
+
+    public int getMaxAttributesPerElement() {
+        return mMaxAttributesPerElement;
+    }
+
+    public void setMaxAttributesPerElement(int maxAttributesPerElement) {
+        this.mMaxAttributesPerElement = maxAttributesPerElement;
     }
 
     public int findIndex(String localName) {
@@ -736,7 +747,7 @@ public final class AttributeCollector
      * attributes. It returns the underlying 'raw' attribute value buffer
      * for direct access.
      */
-    public final TextBuilder getAttrBuilder(String attrPrefix, String attrLocalName)
+    public final TextBuilder getAttrBuilder(String attrPrefix, String attrLocalName) throws XMLStreamException
     {
         /* Ok: we have parsed prefixed-name of a regular
          * attribute. So let's initialize the instance...
@@ -749,6 +760,9 @@ public final class AttributeCollector
         } else {
             int valueStart = mValueBuilder.getCharSize();
             if (mAttrCount >= mAttributes.length) {
+                if ((mAttrCount + mNsCount) >= mMaxAttributesPerElement) {
+                    throw new XMLStreamException("Attribute limit exceeded");
+                }
                 mAttributes = (Attribute[]) DataUtil.growArrayBy50Pct(mAttributes);
             }
             Attribute curr = mAttributes[mAttrCount];
@@ -781,7 +795,7 @@ public final class AttributeCollector
      *    this was a duplicate
      */
     public int addDefaultAttribute(String localName, String uri, String prefix,
-                                   String value)
+                                   String value) throws XMLStreamException
     {
         int attrIndex = mAttrCount;
         if (attrIndex < 1) {
@@ -843,7 +857,7 @@ public final class AttributeCollector
      * @return null if the default namespace URI has been already declared
      *   for the current element; TextBuilder to add URI to if not.
      */
-    public TextBuilder getDefaultNsBuilder()
+    public TextBuilder getDefaultNsBuilder() throws XMLStreamException
     {
         if (mDefaultNsDeclared) {
             return null;
@@ -856,7 +870,7 @@ public final class AttributeCollector
      * @return null if prefix has been already declared; TextBuilder to
      *   add value to if not.
      */
-    public TextBuilder getNsBuilder(String prefix)
+    public TextBuilder getNsBuilder(String prefix) throws XMLStreamException
     {
         // first: must verify that it's not a dup
         if (mNsCount == 0) {
@@ -878,6 +892,9 @@ public final class AttributeCollector
                 }
             }
             if (len >= mNamespaces.length) {
+                if ((mAttrCount + mNsCount) >= mMaxAttributesPerElement) {
+                    throw new XMLStreamException("Attribute limit exceeded");
+                }
                 mNamespaces = (Attribute[]) DataUtil.growArrayBy50Pct(mNamespaces);
             }
             int uriStart = mNamespaceBuilder.getCharSize();
