@@ -1092,7 +1092,7 @@ public final class AttributeCollector
             if (map[j] == hash) {
                 currIndex = map[j+1];
                 Attribute attr = mAttributes[currIndex];
-                if (oldAttr.mLocalName == name) {
+                if (attr.mLocalName == name) {
                     String currURI = attr.mNamespaceURI;
                     if (currURI == uri || (currURI != null && currURI.equals(uri))) {
                         return null;
