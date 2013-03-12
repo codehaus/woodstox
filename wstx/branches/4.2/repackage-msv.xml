@@ -1,0 +1,46 @@
+<?xml version="1.0" standalone='yes'?>
+
+<!-- This Ant build file fragment contains targets needed to augment
+     MSV jars to have OSGi headers needed.
+  -->
+
+<project name="OSGi augment tasks for MSV as used by Woodstox" basedir=".">
+
+  <!-- 16-Sep-2010, tatu: now that msv-core and xsdlib are packaged as OSGi
+      bundles, only need to repackage third library...
+    -->
+  <property name="MSV_VERSION" value="2009.2" />
+  <property name="RNG_DATATYPE_VERSION" value="20020414" />
+
+  <property name="CORE_TITLE" value="Sun Multi-Schema Validator core" />
+  <property name="CORE_VENDOR" value="http://msv.dev.java.net" />
+  <property name="RNG_DATATYPE_TITLE" value="RNG Datatype Library" />
+  <property name="RNG_DATATYPE_VENDOR" value="http://sourceforge.net/projects/relaxng" />
+  <property name="XSD_TITLE" value="XML Schema datatypes library" />
+  <property name="XSD_VENDOR" value="http://msv.dev.java.net" />
+
+  <target name="repackage-msv" depends="repackage-rng-datatype" />
+
+  <target name="repackage-rng-datatype">
+      <osgify
+         outputdir="build"
+         bundleSymbolicName="woodstox-msv-rng-datatype"
+         bundleName="${RNG_DATATYPE_TITLE}" bundleVendor="${RNG_DATATYPE_VENDOR}" bundleVersion="${RNG_DATATYPE_VERSION}"
+         bundleLicense="http://www.opensource.org/licenses/bsd-license.php"
+         bundleRequiredExecutionEnvironment="J2SE-1.4"
+         exportPackage="*;version=${RNG_DATATYPE_VERSION}"
+         importPackage=""
+      >
+        <classpath>
+          <fileset dir="${dir.lib}/msv" includes="relaxngDatatype*.jar" />
+        </classpath>
+        <manifest>
+            <attribute name="Built-By" value="${user.name}"/>
+            <attribute name="Implementation-Title"   value="${RNG_DATATYPE_TITLE}"/>
+            <attribute name="Implementation-Version" value="${RNG_DATATYPE_VERSION}"/>
+            <attribute name="Implementation-Vendor"  value="${RNG_DATATYPE_VENDOR}"/>
+        </manifest>
+      </osgify>
+  </target>
+
+</project>
