@@ -983,7 +983,7 @@ public abstract class StreamScanner
              */
             mCurrInputProcessed += mInputEnd;
             if (mCurrInputProcessed > mConfig.getMaxCharacters()) {
-                throw new XMLStreamException("Character limit exceeded");
+                throw new XMLStreamException("Character limit ("+mConfig.getMaxCharacters()+") exceeded");
             }
             mCurrInputRowStart -= mInputEnd;
             int count;
@@ -1046,7 +1046,7 @@ public abstract class StreamScanner
         mCurrInputProcessed += mInputEnd;
         mCurrInputRowStart -= mInputEnd;
         if (mCurrInputProcessed > mConfig.getMaxCharacters()) {
-            throw new XMLStreamException("Character limit exceeded");
+            throw new XMLStreamException("Character limit ("+mConfig.getMaxCharacters()+") exceeded");
         }
         try {
             int count = mInput.readInto(this);

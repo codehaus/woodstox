@@ -763,7 +763,7 @@ public final class AttributeCollector
             int valueStart = mValueBuilder.getCharSize();
             if (mAttrCount >= mAttributes.length) {
                 if ((mAttrCount + mNsCount) >= mMaxAttributesPerElement) {
-                    throw new XMLStreamException("Attribute limit exceeded");
+                    throw new XMLStreamException("Attribute limit ("+mMaxAttributesPerElement+") exceeded");
                 }
                 mAttributes = (Attribute[]) DataUtil.growArrayBy50Pct(mAttributes);
             }
@@ -895,7 +895,7 @@ public final class AttributeCollector
             }
             if (len >= mNamespaces.length) {
                 if ((mAttrCount + mNsCount) >= mMaxAttributesPerElement) {
-                    throw new XMLStreamException("Attribute limit exceeded");
+                    throw new XMLStreamException("Attribute limit ("+mMaxAttributesPerElement+") exceeded");
                 }
                 mNamespaces = (Attribute[]) DataUtil.growArrayBy50Pct(mNamespaces);
             }
