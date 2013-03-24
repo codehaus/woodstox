@@ -192,6 +192,7 @@ public final class AttributeCollector
     protected int mAttrSpillEnd;
     
     protected int mMaxAttributesPerElement;
+    protected int mMaxAttributeSize;
 
     /*
     ///////////////////////////////////////////////
@@ -210,6 +211,7 @@ public final class AttributeCollector
             mXmlIdLocalName = "xml:id";
         }
         mMaxAttributesPerElement = cfg.getMaxAttributesPerElement();
+        mMaxAttributeSize = cfg.getMaxAttributeSize();
     }
 
     /**
