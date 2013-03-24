@@ -111,6 +111,8 @@ public final class ReaderConfig
     final static int PROP_MAX_ELEMENT_COUNT = 62;
     final static int PROP_MAX_ELEMENT_DEPTH = 63;
     final static int PROP_MAX_CHARACTERS = 64;
+    final static int PROP_MAX_ATTRIBUTE_SIZE = 65;
+    final static int PROP_MAX_TEXT_LENGTH = 66;
     
     /*
     ////////////////////////////////////////////////
@@ -301,8 +303,12 @@ public final class ReaderConfig
 
         sProperties.put(WstxInputProperties.P_MAX_ATTRIBUTES_PER_ELEMENT,
                 DataUtil.Integer(PROP_MAX_ATTRIBUTES_PER_ELEMENT));
+        sProperties.put(WstxInputProperties.P_MAX_ATTRIBUTE_SIZE,
+                        DataUtil.Integer(PROP_MAX_ATTRIBUTE_SIZE));
         sProperties.put(WstxInputProperties.P_MAX_CHILDREN_PER_ELEMENT,
                 DataUtil.Integer(PROP_MAX_CHILDREN_PER_ELEMENT));
+        sProperties.put(WstxInputProperties.P_MAX_TEXT_LENGTH,
+                        DataUtil.Integer(PROP_MAX_TEXT_LENGTH));
         sProperties.put(WstxInputProperties.P_MAX_ELEMENT_COUNT,
                 DataUtil.Integer(PROP_MAX_ELEMENT_COUNT));
         sProperties.put(WstxInputProperties.P_MAX_ELEMENT_DEPTH,
@@ -360,10 +366,12 @@ public final class ReaderConfig
     int mInputBufferLen;
     int mMinTextSegmentLen;
     int mMaxAttributesPerElement = 1000;
+    int mMaxAttributeSize = 65536 * 8;
     int mMaxChildrenPerElement = Integer.MAX_VALUE;
     int mMaxElementDepth = 1000;
     long mMaxElementCount = Long.MAX_VALUE;
     long mMaxCharacters = Long.MAX_VALUE;
+    int mMaxTextLength = Integer.MAX_VALUE;
 
     /**
      * Base URL to use as the resolution context for relative entity
@@ -462,10 +470,12 @@ public final class ReaderConfig
         mMinTextSegmentLen = minTextSegmentLen;
         if (base != null) {
             mMaxAttributesPerElement = base.mMaxAttributesPerElement;
+            mMaxAttributeSize = base.mMaxAttributeSize;
             mMaxChildrenPerElement = base.mMaxChildrenPerElement;
             mMaxElementCount = base.mMaxElementCount;
             mMaxElementDepth = base.mMaxElementDepth;
             mMaxCharacters = base.mMaxCharacters;
+            mMaxTextLength = base.mMaxTextLength;
         }
 
         /* Ok, let's then see if we can find a buffer recycler. Since they
@@ -521,9 +531,11 @@ public final class ReaderConfig
         rc.mBaseURL = mBaseURL;
         rc.mParsingMode = mParsingMode;
         rc.mMaxAttributesPerElement = mMaxAttributesPerElement;
+        rc.mMaxAttributeSize = mMaxAttributeSize;
         rc.mMaxChildrenPerElement = mMaxChildrenPerElement;
         rc.mMaxElementCount = mMaxElementCount;
         rc.mMaxCharacters = mMaxCharacters;
+        rc.mMaxTextLength = mMaxTextLength;
         rc.mMaxElementDepth = mMaxElementDepth;
         if (mSpecialProperties != null) {
             int len = mSpecialProperties.length;
@@ -671,11 +683,13 @@ public final class ReaderConfig
     public int getShortestReportedTextSegment() { return mMinTextSegmentLen; }
 
     public int getMaxAttributesPerElement() { return mMaxAttributesPerElement; }
+    public int getMaxAttributeSize() { return mMaxAttributeSize; }
     public int getMaxChildrenPerElement() { return mMaxChildrenPerElement; }
     public int getMaxElementDepth() { return mMaxElementDepth; }
 
     public long getMaxElementCount() { return mMaxElementCount; }
     public long getMaxCharacters() { return mMaxCharacters; }    
+    public long getMaxTextLength() { return mMaxTextLength; }
 
     public Map getCustomInternalEntities()
     {
@@ -873,6 +887,9 @@ public final class ReaderConfig
     public void setMaxAttributesPerElement(int value) {
         mMaxAttributesPerElement = value;
     }
+    public void setMaxAttributeSize(int value) {
+        mMaxAttributeSize = value;
+    }
     public void setMaxChildrenPerElement(int value) {
         mMaxChildrenPerElement = value;
     }
@@ -884,6 +901,9 @@ public final class ReaderConfig
     }
     public void setMaxCharacters(long value) {
         mMaxCharacters = value;
+    }
+    public void setMaxTextLength(int value) {
+        mMaxTextLength = value;
     }
 
     public void setShortestReportedTextSegment(int value) {
@@ -1375,6 +1395,8 @@ public final class ReaderConfig
             return DataUtil.Integer(getInputBufferLength());
         case PROP_MAX_ATTRIBUTES_PER_ELEMENT:
             return DataUtil.Integer(getMaxAttributesPerElement());
+        case PROP_MAX_ATTRIBUTE_SIZE:
+            return DataUtil.Integer(getMaxAttributeSize());
         case PROP_MAX_CHILDREN_PER_ELEMENT:
             return DataUtil.Integer(getMaxChildrenPerElement());
         case PROP_MAX_ELEMENT_DEPTH:
@@ -1383,6 +1405,8 @@ public final class ReaderConfig
             return DataUtil.Long(getMaxElementCount());
         case PROP_MAX_CHARACTERS:
             return DataUtil.Long(getMaxCharacters());
+        case PROP_MAX_TEXT_LENGTH:
+            return DataUtil.Long(getMaxTextLength());
         case PROP_MIN_TEXT_SEGMENT:
             return DataUtil.Integer(getShortestReportedTextSegment());
         case PROP_CUSTOM_INTERNAL_ENTITIES:
@@ -1534,6 +1558,9 @@ public final class ReaderConfig
         case PROP_MAX_ATTRIBUTES_PER_ELEMENT:
             setMaxAttributesPerElement(ArgUtil.convertToInt(propName, value, 1));
             break;
+        case PROP_MAX_ATTRIBUTE_SIZE:
+            setMaxAttributeSize(ArgUtil.convertToInt(propName, value, 1));
+            break;
         case PROP_MAX_CHILDREN_PER_ELEMENT:
             setMaxChildrenPerElement(ArgUtil.convertToInt(propName, value, 1));
             break;
@@ -1542,6 +1569,9 @@ public final class ReaderConfig
             break;
         case PROP_MAX_CHARACTERS:
             setMaxCharacters(ArgUtil.convertToLong(propName, value, 1));
+            break;
+        case PROP_MAX_TEXT_LENGTH:
+            setMaxTextLength(ArgUtil.convertToInt(propName, value, 1));
             break;
         case PROP_MAX_ELEMENT_COUNT:
             setMaxElementCount(ArgUtil.convertToLong(propName, value, 1));

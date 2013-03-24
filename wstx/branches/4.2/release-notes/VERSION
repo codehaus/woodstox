@@ -5,7 +5,7 @@ New minor version.
 
 New features:
 
-* [WSTX-285]: Add ability to restrict certain size limits of parsed XML
+* [WSTX-285], [WSTX-287]: Add ability to restrict certain size limits of parsed XML
  (updated using properties, see `ReaderConfig`)
 
 Fixes:
@@ -102,7 +102,7 @@ Problems fixed:
 
   * [WSTX-206] Provide a way to configure SAX parser with all config
     settings available to Stax readers (add WstxSAXParser.getStaxConfig())
-   (suggested by StŽphane C)
+   (suggested by StÂŽphane C)
   * [WSTX-234] Restore feature WstxInputProperties.NORMALIZE_LFS; add
     WstxInputProperties.TREAT_CHAR_REFS_AS_ENTS
    (requested by Peter S)

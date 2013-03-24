@@ -170,10 +170,12 @@ public final class WstxInputProperties
     
     // // // Other size constraints
     public final static String P_MAX_ATTRIBUTES_PER_ELEMENT = "com.ctc.wstx.maxAttributesPerElement";
+    public final static String P_MAX_ATTRIBUTE_SIZE = "com.ctc.wstx.maxAttributeSize";
     public final static String P_MAX_CHILDREN_PER_ELEMENT = "com.ctc.wstx.maxChildrenPerElement";
     public final static String P_MAX_ELEMENT_COUNT = "com.ctc.wstx.maxElementCount";
     public final static String P_MAX_ELEMENT_DEPTH = "com.ctc.wstx.maxElementDepth";
     public final static String P_MAX_CHARACTERS = "com.ctc.wstx.maxCharacters";
+    public final static String P_MAX_TEXT_LENGTH = "com.ctc.wstx.maxTextLength";
 
 
     // // // Entity handling
