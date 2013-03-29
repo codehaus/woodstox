@@ -148,6 +148,21 @@ public class WstxInputFactory
         mConfig = ReaderConfig.createFullDefaults();
     }
 
+    /**
+     * Method that can be used to ensure that specified symbol is
+     * contained in the shared symbol table. This may occasionally
+     * be useful in pre-populating symbols; although it is unlikely
+     * to be commonly useful.
+     * 
+     * @since 4.2.1
+     */
+    public void addSymbol(String symbol)
+    {
+        synchronized (mSymbols) {
+            mSymbols.findSymbol(symbol);
+        }
+    }
+    
     /*
     ///////////////////////////////////////////////////////////
     // ReaderCreator implementation
