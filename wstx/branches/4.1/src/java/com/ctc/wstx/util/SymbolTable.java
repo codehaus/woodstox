@@ -555,7 +555,7 @@ public class SymbolTable {
      *   this pre-condition)
      */
     public static int calcHash(char[] buffer, int start, int len) {
-        int hash = (int) buffer[0];
+        int hash = (int) buffer[start];
         for (int i = 1; i < len; ++i) {
             hash = (hash * 31) + (int) buffer[i];
         }

@@ -7,6 +7,8 @@ Fixes:
 
 * [WSTX-286]: Fail to detect duplicate attributes in some cases
  (reported by Eric M)
+* [WSTX-288]: Error in one calcHash() methods.
+ (reported by GuoHui Chen)
 
 ------------------------------------------------------------------------
 == History: ==
@@ -97,7 +99,7 @@ Problems fixed:
 
   * [WSTX-206] Provide a way to configure SAX parser with all config
     settings available to Stax readers (add WstxSAXParser.getStaxConfig())
-   (suggested by StŽphane C)
+   (suggested by StÂŽphane C)
   * [WSTX-234] Restore feature WstxInputProperties.NORMALIZE_LFS; add
     WstxInputProperties.TREAT_CHAR_REFS_AS_ENTS
    (requested by Peter S)
