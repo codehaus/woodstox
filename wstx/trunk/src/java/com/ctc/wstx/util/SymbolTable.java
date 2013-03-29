@@ -556,7 +556,7 @@ public class SymbolTable {
      *   this pre-condition)
      */
     @SuppressWarnings("cast")
-	public static int calcHash(char[] buffer, int start, int len) {
+    public static int calcHash(char[] buffer, int start, int len) {
         int hash = (int) buffer[start];
         for (int i = 1; i < len; ++i) {
             hash = (hash * 31) + (int) buffer[start+i];
@@ -565,7 +565,7 @@ public class SymbolTable {
     }
 
     @SuppressWarnings("cast")
-	public static int calcHash(String key) {
+    public static int calcHash(String key) {
         int hash = (int) key.charAt(0);
         for (int i = 1, len = key.length(); i < len; ++i) {
             hash = (hash * 31) + (int) key.charAt(i);
