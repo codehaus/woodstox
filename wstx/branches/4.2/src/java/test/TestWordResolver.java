@@ -130,10 +130,12 @@ public class TestWordResolver
         int ROUNDS = this.Rounds;
         for (int i = 0; i < ROUNDS; ++i) {
             for (int j = 0, len = keyA.length; j < len; ++j) {
-                char[] key = keyA[j];
-                int keyLen = key.length;
-                int hash = SymbolTable.calcHash(key, 0, keyLen);
-                String symbol = st.findSymbolIfExists(key, 0, keyLen, hash);
+                char[] key0 = keyA[j];
+                int keyLen = key0.length;
+                char[] key = new char[keyLen + 2];
+                System.arraycopy(key0, 0, key, 1, keyLen);
+                int hash = SymbolTable.calcHash(key, 1, keyLen);
+                String symbol = st.findSymbolIfExists(key, 1, keyLen, hash);
                 if (symbol != null) {
                     ++count;
                 }
