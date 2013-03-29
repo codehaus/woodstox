@@ -3,7 +3,10 @@ Version: 4.2.0 (23-Mar-2013)
 
 Fixes:
 
-* [WSTX-288] Incorrect calculation in one of calcHash() methods
+* [WSTX-288]: Incorrect calculation in one of calcHash() methods
+ (reported by GuoHui Chen)
+* [WSTX-289]: Add 'WstxInputFactory.addSymbol()'
+ (requested by GuoHui Chen)
 
 ------------------------------------------------------------------------
 == History: ==
