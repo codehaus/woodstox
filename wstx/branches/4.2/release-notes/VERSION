@@ -1,19 +1,6 @@
 Project: Woodstox XML processor
 Version: 4.2.0 (23-Mar-2013)
 
-Fixes:
-
-* [WSTX-288]: Incorrect calculation in one of calcHash() methods
- (reported by GuoHui Chen)
-* [WSTX-289]: Add 'WstxInputFactory.addSymbol()'
- (requested by GuoHui Chen)
-
-------------------------------------------------------------------------
-== History: ==
-------------------------------------------------------------------------
-
-4.2.0 (23-Mar-2013)
-
 New minor version, focused on adding size limitations to help prevent
 denial-of-service attacks.
 
@@ -26,6 +13,14 @@ Fixes:
 
 * [WSTX-286]: Fail to detect duplicate attributes in some cases
  (reported by Eric M)
+* [WSTX-288]: Incorrect calculation in one of calcHash() methods
+ (reported by GuoHui Chen)
+* [WSTX-289]: Add 'WstxInputFactory.addSymbol()'
+ (requested by GuoHui Chen)
+
+------------------------------------------------------------------------
+== History: ==
+------------------------------------------------------------------------
 
 4.1.5 (27-Feb-2013)
 
