@@ -3,6 +3,11 @@ Version: 4.2.1 (xx-xxx-2013)
 
 Changes:
 
+* [WSTX-288]: Incorrect calculation in one of calcHash() methods
+ (reported by GuoHui Chen)
+* [WSTX-289]: Add 'WstxInputFactory.addSymbol()'
+ (requested by GuoHui Chen)
+
 ------------------------------------------------------------------------
 == History: ==
 ------------------------------------------------------------------------
@@ -18,10 +23,6 @@ Fixes:
 
 * [WSTX-286]: Fail to detect duplicate attributes in some cases
  (reported by Eric M)
-* [WSTX-288]: Incorrect calculation in one of calcHash() methods
- (reported by GuoHui Chen)
-* [WSTX-289]: Add 'WstxInputFactory.addSymbol()'
- (requested by GuoHui Chen)
 
 4.1.5 (27-Feb-2013)
 
@@ -108,7 +109,7 @@ Problems fixed:
 
   * [WSTX-206] Provide a way to configure SAX parser with all config
     settings available to Stax readers (add WstxSAXParser.getStaxConfig())
-   (suggested by StÂŽphane C)
+   (suggested by StŽphane C)
   * [WSTX-234] Restore feature WstxInputProperties.NORMALIZE_LFS; add
     WstxInputProperties.TREAT_CHAR_REFS_AS_ENTS
    (requested by Peter S)
