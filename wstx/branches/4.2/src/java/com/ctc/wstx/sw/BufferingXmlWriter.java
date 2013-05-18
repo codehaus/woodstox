@@ -15,7 +15,9 @@
 
 package com.ctc.wstx.sw;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.Writer;
 
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
@@ -658,22 +660,27 @@ public final class BufferingXmlWriter
     public void writeXmlDeclaration(String version, String encoding, String standalone)
         throws IOException
     {
-        fastWriteRaw("<?xml version='");
+        final char chQuote = (mUseDoubleQuotesInXmlDecl ? '"' : '\'');
+
+        fastWriteRaw("<?xml version=");
+        fastWriteRaw(chQuote);
         fastWriteRaw(version);
-        fastWriteRaw('\'');
-        
+        fastWriteRaw(chQuote);
+
         if (encoding != null && encoding.length() > 0) {
-            fastWriteRaw(" encoding='");
+            fastWriteRaw(" encoding=");
+            fastWriteRaw(chQuote);
             fastWriteRaw(encoding);
-            fastWriteRaw('\'');
+            fastWriteRaw(chQuote);
         }
         if (standalone != null) {
-            fastWriteRaw(" standalone='");
+            fastWriteRaw(" standalone=");
+            fastWriteRaw(chQuote);
             fastWriteRaw(standalone);
-            fastWriteRaw('\'');
+            fastWriteRaw(chQuote);
         }
         fastWriteRaw('?', '>');
-    }    
+    }
 
     public int writePI(String target, String data)
         throws IOException, XMLStreamException

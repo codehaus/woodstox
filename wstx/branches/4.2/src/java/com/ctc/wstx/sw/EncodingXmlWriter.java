@@ -15,7 +15,10 @@
 
 package com.ctc.wstx.sw;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.Writer;
+
 import javax.xml.stream.XMLStreamException;
 
 import org.codehaus.stax2.ri.typed.AsciiValueEncoder;
@@ -346,23 +349,28 @@ public abstract class EncodingXmlWriter
     public void writeXmlDeclaration(String version, String encoding, String standalone)
         throws IOException
     {
-        writeAscii("<?xml version='");
+        final byte byQuote = (mUseDoubleQuotesInXmlDecl ? BYTE_QUOT : BYTE_APOS);
+
+        writeAscii("<?xml version=");
+        writeAscii(byQuote);
         writeAscii(version);
-        writeAscii(BYTE_APOS);
-        
+        writeAscii(byQuote);
+
         if (encoding != null && encoding.length() > 0) {
-            writeAscii(" encoding='");
+            writeAscii(" encoding=");
+            writeAscii(byQuote);
             // Should be ascii, but let's play it safe:
             writeRaw(encoding, 0, encoding.length());
-            writeAscii(BYTE_APOS);
+            writeAscii(byQuote);
         }
         if (standalone != null) {
-            writeAscii(" standalone='");
+            writeAscii(" standalone=");
+            writeAscii(byQuote);
             writeAscii(standalone);
-            writeAscii(BYTE_APOS);
+            writeAscii(byQuote);
         }
         writeAscii(BYTE_QMARK, BYTE_GT);
-    }    
+    }
 
     public int writePI(String target, String data)
         throws IOException, XMLStreamException
