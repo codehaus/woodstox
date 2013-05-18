@@ -3,20 +3,21 @@ package com.ctc.wstx.api;
 import java.lang.ref.SoftReference;
 import java.util.HashMap;
 
-import javax.xml.stream.*;
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLReporter;
 
-import org.codehaus.stax2.XMLOutputFactory2; // for property consts
+import org.codehaus.stax2.XMLOutputFactory2;
 import org.codehaus.stax2.XMLStreamProperties;
 import org.codehaus.stax2.io.EscapingWriterFactory;
 
-import com.ctc.wstx.api.WstxOutputProperties;
 import com.ctc.wstx.cfg.OutputConfigFlags;
 import com.ctc.wstx.io.BufferRecycler;
 import com.ctc.wstx.util.ArgUtil;
 import com.ctc.wstx.util.DataUtil;
+// for property consts
 
 /**
- * Simple configuration container class; passed by reader factory to reader
+ * Simple configuration container class; passed by writer factory to writer
  * instance created.
  */
 public final class WriterConfig
@@ -48,6 +49,8 @@ public final class WriterConfig
     // // // And then custom Wstx properties:
 
     // Output settings:
+    final static int PROP_USE_DOUBLE_QUOTES_IN_XML_DECL = 10;
+
     final static int PROP_OUTPUT_CDATA_AS_TEXT = 11;
 
     final static int PROP_COPY_DEFAULT_ATTRS = 12;
@@ -60,7 +63,7 @@ public final class WriterConfig
 
     // Validation flags:
 
-    final static int PROP_VALIDATE_STRUCTURE = 16; 
+    final static int PROP_VALIDATE_STRUCTURE = 16;
     final static int PROP_VALIDATE_CONTENT = 17;
     final static int PROP_VALIDATE_ATTR = 18;
     final static int PROP_VALIDATE_NAMES = 19;
@@ -77,6 +80,10 @@ public final class WriterConfig
     final static int PROP_UNDERLYING_WRITER = 31;
 
     // // // Default settings for additional properties:
+
+    /* 18-May-2013, feature request WSTX-291
+     */
+    final static boolean DEFAULT_USE_DOUBLE_QUOTES_IN_XML_DECL = false;
 
     final static boolean DEFAULT_OUTPUT_CDATA_AS_TEXT = false;
     final static boolean DEFAULT_COPY_DEFAULT_ATTRS = false;
@@ -134,6 +141,7 @@ public final class WriterConfig
         // (note: default for woodstox 1.x was false)
         | CFG_AUTOMATIC_EMPTY_ELEMENTS
 
+        | (DEFAULT_USE_DOUBLE_QUOTES_IN_XML_DECL ? CFG_USE_DOUBLE_QUOTES_IN_XML_DECL : 0)
         | (DEFAULT_OUTPUT_CDATA_AS_TEXT ? CFG_OUTPUT_CDATA_AS_TEXT : 0)
         | (DEFAULT_COPY_DEFAULT_ATTRS ? CFG_COPY_DEFAULT_ATTRS : 0)
         | (DEFAULT_ESCAPE_CR ? CFG_ESCAPE_CR : 0)
@@ -155,7 +163,7 @@ public final class WriterConfig
      */
     final static int DEFAULT_FLAGS_FULL = DEFAULT_FLAGS_J2ME;
 
-    // // // 
+    // // //
 
     /**
      * Map to use for converting from String property ids to ints
@@ -193,14 +201,15 @@ public final class WriterConfig
         // // Woodstox-specifics:
 
         // Output conversions
+        sProperties.put(WstxOutputProperties.P_USE_DOUBLE_QUOTES_IN_XML_DECL,
+                        DataUtil.Integer(PROP_USE_DOUBLE_QUOTES_IN_XML_DECL));
         sProperties.put(WstxOutputProperties.P_OUTPUT_CDATA_AS_TEXT,
                         DataUtil.Integer(PROP_OUTPUT_CDATA_AS_TEXT));
         sProperties.put(WstxOutputProperties.P_COPY_DEFAULT_ATTRS,
                         DataUtil.Integer(PROP_COPY_DEFAULT_ATTRS));
         sProperties.put(WstxOutputProperties.P_OUTPUT_ESCAPE_CR,
                         DataUtil.Integer(PROP_ESCAPE_CR));
-        sProperties.put(WstxOutputProperties.P_ADD_SPACE_AFTER_EMPTY_ELEM
-,
+        sProperties.put(WstxOutputProperties.P_ADD_SPACE_AFTER_EMPTY_ELEM,
                         DataUtil.Integer(PROP_ADD_SPACE_AFTER_EMPTY_ELEM));
         sProperties.put(WstxOutputProperties.P_AUTOMATIC_END_ELEMENTS,
                         DataUtil.Integer(PROP_AUTOMATIC_END_ELEMENTS));
@@ -382,6 +391,8 @@ public final class WriterConfig
 
         // // // Then Woodstox-specific properties:
 
+        case PROP_USE_DOUBLE_QUOTES_IN_XML_DECL:
+            return willUseDoubleQuotesInXmlDecl() ? Boolean.TRUE : Boolean.FALSE;
         case PROP_OUTPUT_CDATA_AS_TEXT:
             return willOutputCDataAsText() ? Boolean.TRUE : Boolean.FALSE;
         case PROP_COPY_DEFAULT_ATTRS:
@@ -462,6 +473,9 @@ public final class WriterConfig
 
             // // // Then Woodstox-specific ones:
 
+        case PROP_USE_DOUBLE_QUOTES_IN_XML_DECL:
+            doUseDoubleQuotesInXmlDecl(ArgUtil.convertToBoolean(name, value));
+            break;
         case PROP_OUTPUT_CDATA_AS_TEXT:
             doOutputCDataAsText(ArgUtil.convertToBoolean(name, value));
             break;
@@ -533,12 +547,16 @@ public final class WriterConfig
         return hasConfigFlag(CFG_AUTOMATIC_EMPTY_ELEMENTS);
     }
 
-public boolean willAutoCloseOutput() {
-    return hasConfigFlag(CFG_AUTO_CLOSE_OUTPUT);
+    public boolean willAutoCloseOutput() {
+        return hasConfigFlag(CFG_AUTO_CLOSE_OUTPUT);
     }
 
     public boolean willSupportNamespaces() {
         return hasConfigFlag(CFG_ENABLE_NS);
+    }
+
+    public boolean willUseDoubleQuotesInXmlDecl() {
+        return hasConfigFlag(CFG_USE_DOUBLE_QUOTES_IN_XML_DECL);
     }
 
     public boolean willOutputCDataAsText() {
@@ -609,7 +627,7 @@ public boolean willAutoCloseOutput() {
     public InvalidCharHandler getInvalidCharHandler() {
         return (InvalidCharHandler) getSpecialProperty(SP_IX_INVALID_CHAR_HANDLER);
     }
-    
+
     public EmptyElementHandler getEmptyElementHandler() {
         return (EmptyElementHandler) getSpecialProperty(SP_IX_EMPTY_ELEMENT_HANDLER);
     }
@@ -634,6 +652,10 @@ public boolean willAutoCloseOutput() {
 
     public void doSupportNamespaces(boolean state) {
         setConfigFlag(CFG_ENABLE_NS, state);
+    }
+
+    public void doUseDoubleQuotesInXmlDecl(boolean state) {
+        setConfigFlag(CFG_USE_DOUBLE_QUOTES_IN_XML_DECL, state);
     }
 
     public void doOutputCDataAsText(boolean state) {
@@ -699,7 +721,7 @@ public boolean willAutoCloseOutput() {
     public void setInvalidCharHandler(InvalidCharHandler h) {
         setSpecialProperty(SP_IX_INVALID_CHAR_HANDLER, h);
     }
-    
+
     public void setEmptyElementHandler(EmptyElementHandler h) {
         setSpecialProperty(SP_IX_EMPTY_ELEMENT_HANDLER, h);
     }
@@ -744,7 +766,7 @@ public boolean willAutoCloseOutput() {
     /**
      * For Woodstox, setting this profile disables most checks for validity;
      * specifically anything that can have measurable performance impact.
-     * 
+     *
      */
     public void configureForSpeed()
     {
@@ -849,7 +871,7 @@ public boolean willAutoCloseOutput() {
 
     private final boolean hasConfigFlag(int flag) {
         return ((mConfigFlags & flag) == flag);
-    } 
+    }
 
     private final Object getSpecialProperty(int ix)
     {

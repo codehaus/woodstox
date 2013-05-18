@@ -97,6 +97,11 @@ public abstract class XmlWriter
     final boolean mAddSpaceAfterEmptyElem;
 
     /**
+     * Whether to use double quotes in XML declaration or not.
+     */
+    final boolean mUseDoubleQuotesInXmlDecl;
+
+    /**
      * Flag that defines whether close() on this writer should call
      * close on the underlying output object (stream, writer)
      */
@@ -179,6 +184,7 @@ public abstract class XmlWriter
         mFixContent = (flags & OutputConfigFlags.CFG_FIX_CONTENT) != 0;
         mEscapeCR = (flags & OutputConfigFlags.CFG_ESCAPE_CR) != 0;
         mAddSpaceAfterEmptyElem = (flags & OutputConfigFlags.CFG_ADD_SPACE_AFTER_EMPTY_ELEM) != 0;
+        mUseDoubleQuotesInXmlDecl = (flags & OutputConfigFlags.CFG_USE_DOUBLE_QUOTES_IN_XML_DECL) != 0;
 
         // Has caller requested any custom text or attr value escaping?
 
@@ -300,7 +306,7 @@ public abstract class XmlWriter
     /**
      * @param data Contents of the CDATA section to write out
 
-     * @return offset of the (first) illegal content segment ("]]>") in 
+     * @return offset of the (first) illegal content segment ("]]>") in
      *   passed content and not in repairing mode; or -1 if none or is
      *   repairing
      */
@@ -369,7 +375,7 @@ public abstract class XmlWriter
      */
     public abstract void writeStartTagStart(String localName)
         throws IOException, XMLStreamException;
-               
+
     /**
      *<p>
      * Note: can throw XMLStreamException, if name checking is enabled,
@@ -491,7 +497,7 @@ public abstract class XmlWriter
      */
 
     protected abstract int getOutputPtr();
-    
+
     public int getRow() {
         return mLocRowNr;
     }

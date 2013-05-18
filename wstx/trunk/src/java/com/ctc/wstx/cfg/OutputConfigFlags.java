@@ -48,7 +48,7 @@ public interface OutputConfigFlags
     final static int CFG_ADD_SPACE_AFTER_EMPTY_ELEM =  0x0040;
 
     /**
-     * Flag that indicates we can output 'automatic' empty elements; 
+     * Flag that indicates we can output 'automatic' empty elements;
      * end elements needed to close the logical output tree when
      * stream writer is closed (by closing it explicitly, or by writing
      * end-document event)
@@ -102,4 +102,11 @@ public interface OutputConfigFlags
      * when factory created it)
      */
     final static int CFG_AUTO_CLOSE_OUTPUT = 0x2000;
+
+    /**
+     * Property that indicates if singe quotes or double quotes should be
+     * used in the XML declaration.
+     * The default is to use single quotes.
+     */
+    final static int CFG_USE_DOUBLE_QUOTES_IN_XML_DECL = 0x4000;
 }

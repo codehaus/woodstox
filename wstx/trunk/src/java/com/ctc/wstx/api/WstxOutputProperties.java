@@ -27,6 +27,12 @@ public final class WstxOutputProperties
     // // // Output options, simple on/off settings:
 
     /**
+     * Whether writer should use double quotes in the XML declaration.
+     * The default is to use single quotes.
+     */
+    public final static String P_USE_DOUBLE_QUOTES_IN_XML_DECL = "com.ctc.wstx.useDoubleQuotesInXmlDecl";
+
+    /**
      * Whether writer should just automatically convert all calls that
      * would normally produce CDATA to produce (quoted) text.
      */
