@@ -29,6 +29,8 @@ public final class WstxOutputProperties
     /**
      * Whether writer should use double quotes in the XML declaration.
      * The default is to use single quotes.
+     *
+     * @since 4.2.2
      */
     public final static String P_USE_DOUBLE_QUOTES_IN_XML_DECL = "com.ctc.wstx.useDoubleQuotesInXmlDecl";
 

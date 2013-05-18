@@ -555,6 +555,9 @@ public final class WriterConfig
         return hasConfigFlag(CFG_ENABLE_NS);
     }
 
+    /**
+     * @since 4.2.2
+     */
     public boolean willUseDoubleQuotesInXmlDecl() {
         return hasConfigFlag(CFG_USE_DOUBLE_QUOTES_IN_XML_DECL);
     }
@@ -654,6 +657,9 @@ public final class WriterConfig
         setConfigFlag(CFG_ENABLE_NS, state);
     }
 
+    /**
+     * @since 4.2.2
+     */
     public void doUseDoubleQuotesInXmlDecl(boolean state) {
         setConfigFlag(CFG_USE_DOUBLE_QUOTES_IN_XML_DECL, state);
     }
