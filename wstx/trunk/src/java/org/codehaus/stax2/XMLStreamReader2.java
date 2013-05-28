@@ -251,7 +251,7 @@ public interface XMLStreamReader2
 
     /**
      * Method similar to
-     * {@link javax.xml.stream.XMLStreamReader#getNamespaceContext()},
+     * {@link javax.xml.stream.XMLStreamReader#close},
      * except that this method also does close the underlying input
      * source if it has not yet been closed. It is generally preferable
      * to call this method if the parsing ends in an exception;
