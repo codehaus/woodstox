@@ -236,7 +236,7 @@
          test suite, for other stax2 impls to use
       -->
     <target name="jar.stax2test" depends="compile.test">
-        <jar jarfile="${dir.build}/stax2test-${STAX2_VERSION}.jar" filesonly="true" compress="true">
+        <jar jarfile="${dir.build}/stax2test-${REQ_STAX2_VERSION}.jar" filesonly="true" compress="true">
           <manifest>
             <attribute name="Built-By" value="${user.name}"/>
           </manifest>
