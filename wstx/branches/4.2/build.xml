@@ -46,6 +46,7 @@
     <!-- jars needed for compilation -->
     <path id="classpath.compile">
         <fileset dir="${dir.lib}" includes="stax-api*.jar" />
+        <fileset dir="${dir.lib}" includes="stax2-api*.jar" />
         <fileset dir="${dir.lib}" includes="sax2.jar" />
         <!-- these are needed for optional MSV-based validators -->
         <fileset dir="${dir.lib}/msv" includes="*.jar" />
