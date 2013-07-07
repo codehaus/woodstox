@@ -10,7 +10,7 @@
     <classpath>
      <fileset dir="${dir.lib}/ant" includes="bndtask*.jar" />
     </classpath>
-  </taskdef>
+  </taskdef> 
     <!-- 18-Nov-2008, TSa: although recommended naming would
       use reversed domain name (essentially, Maven groupId + artifactId),
       let's for now only use artifactId to keep shorter and more
@@ -19,7 +19,7 @@
     <!--
     <property name="OSGI_STAX2_BASENAME" value="org.codehaus.woodstox.stax2-api" />
     <property name="OSGI_WSTX_BASENAME" value="org.codehaus.woodstox.woodstox-core" />
-    -->
+   -->
 
     <property name="OSGI_STAX2_BASENAME" value="stax2-api" />
     <property name="OSGI_WSTX_BASENAME" value="woodstox-core" />
@@ -28,39 +28,7 @@
      -->
     <property name="REQ_JDK_VERSION" value="J2SE-1.4" />
 
-    <target name="jars.osgi" depends="osgi-stax2, osgi-woodstox-lgpl, osgi-woodstox-asl" />
-
-    <target name="osgi-stax2" depends="compile.stax2">
-      <!-- Open questions:
-           * is there any problem from using "non-standard" filename for bundle?
-           * for core (woodstox): OSGi-activate to set system props?
-        -->
-      <osgify
-         outputdir="${dir.build}"
-         bundleName="${STAX2_TITLE}"
-         bundleVendor="${STAX2_VENDOR}"
-         bundleSymbolicName="${OSGI_STAX2_BASENAME}"
-         bundleVersion="${STAX2_VERSION}"
-         bundleLicense="http://www.opensource.org/licenses/bsd-license.php"
-         bundleRequiredExecutionEnvironment="${REQ_JDK_VERSION}"
-         filename="${OSGI_STAX2_BASENAME}-${STAX2_VERSION}"
-         exportpackage="org.codehaus.stax2*;version=${STAX2_VERSION}"
-         includeResource="META-INF=release-notes/bsd"
-      >
-        <classpath>
-              <pathelement path="${dir.build.classes.stax2}" />
-        </classpath>
-        <manifest>
-            <attribute name="Built-By" value="${user.name}"/>
-            <attribute name="Implementation-Title"   value="${STAX2_TITLE}"/>
-            <attribute name="Implementation-Version" value="${STAX2_VERSION}"/>
-            <attribute name="Implementation-Vendor"  value="${STAX2_VENDOR}"/>
-            <attribute name="Specification-Title"   value="${STAX2_TITLE}"/>
-            <attribute name="Specification-Version" value="${STAX2_VERSION}"/>
-            <attribute name="Specification-Vendor"  value="${STAX2_VENDOR}"/>
-        </manifest>
-      </osgify>
-    </target>
+    <target name="jars.osgi" depends="osgi-woodstox-lgpl, osgi-woodstox-asl" />
 
     <target name="osgi-woodstox-asl" depends="compile.woodstox,copy-resources">
       <osgify outputDir="${dir.build}"

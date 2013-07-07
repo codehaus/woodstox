@@ -13,7 +13,6 @@
     <!-- Build-related -->
     <property name="dir.build" location="${basedir}/build" />
     <property name="dir.build.classes" location="${dir.build}/classes" />
-    <property name="dir.build.classes.stax2" location="${dir.build.classes}/stax2" />
     <property name="dir.build.classes.woodstox" location="${dir.build.classes}/woodstox" />
     <property name="dir.build.classes.samples" location="${dir.build.classes}/samples" />
 
@@ -39,21 +38,10 @@
     <property name="API_VERSION" value="1.0.0" />
     <property name="API_VENDOR" value="http://jcp.org/en/jsr/detail?id=173" />
 
-    <!-- Extended API, working title "Stax2" (not version 2.0, but 2/squared)
-      -->
-    <property name="STAX2_TITLE" value="Stax2 API" />
-    <property name="STAX2_VERSION" value="3.1.1" />
-    <property name="STAX2_VENDOR" value="http://woodstox.codehaus.org" />
-
     <!-- And finally version dependency spec between Woodstox core
          and Stax API package.
-
-         29-Jan-2009, TSa: ranges won't work without additional
-            repository metadata. And that can only be properly
-            supported by a real Maven build, in woodstox 5. So,
-            for now we'll hard-code exact version dep.
       -->
-    <property name="REQ_STAX2_VERSION" value="${STAX2_VERSION}" />
+    <property name="REQ_STAX2_VERSION" value="3.1.2" />
 
     <!-- jars needed for compilation -->
     <path id="classpath.compile">
@@ -79,9 +67,6 @@
           <include name="src/resources/*" />
           <include name="build*.xml" />
           <include name="project.xml" />
-    </patternset>
-    <patternset id="stax2-dist-src-files">
-          <include name="src/java/org/codehaus/**/*.java" />
     </patternset>
 
     <patternset id="wstx-dist-misc-files">
@@ -134,7 +119,6 @@
         <!-- make build directories -->
         <mkdir dir="${dir.build}" />
         <mkdir dir="${dir.build.classes}" />
-        <mkdir dir="${dir.build.classes.stax2}" />
         <mkdir dir="${dir.build.classes.woodstox}" />
         <mkdir dir="${dir.build.classes.samples}" />
 
@@ -194,21 +178,7 @@
 
     <target name="compile" depends="compile.woodstox, compile.samples, compile.test" />
 
-    <target name="compile.stax2" depends="prepare">
-        <javac srcdir="${dir.src.java}" destdir="${dir.build.classes.stax2}"
-        	includeantruntime="false"
-            source="1.4" target="1.4"
-            debug="true"
-        >
-<!-- Uncomment to see warnings: too verbose for default, due to deprecation warns
-            <compilerarg value="-Xlint:deprecation" />
--->
-            <include name="org/codehaus/stax2/**/*.java" />
-            <classpath refid="classpath.compile" />
-        </javac>
-    </target>
-
-    <target name="compile.woodstox" depends="prepare,copy-resources,compile.stax2">
+    <target name="compile.woodstox" depends="prepare,copy-resources">
         <javac srcdir="${dir.src.java}" destdir="${dir.build.classes.woodstox}"
         	includeantruntime="false"
             source="1.4" target="1.4"
@@ -220,9 +190,6 @@
             <include name="com/ctc/**/*.java" />
             <include name="test/**/*.java" />
             <classpath refid="classpath.compile" />
-            <classpath>
-              <pathelement path="${dir.build.classes.stax2}" />
-            </classpath>
         </javac>
     </target>
 
@@ -235,9 +202,6 @@
             source="1.4" target="1.4">
             <include name="*.java" />
             <classpath refid="classpath.compile" />
-            <classpath>
-              <pathelement path="${dir.build.classes.stax2}" />
-            </classpath>
         </javac>
     </target>
 
@@ -274,12 +238,6 @@
         <jar jarfile="${dir.build}/stax2test-${STAX2_VERSION}.jar" filesonly="true" compress="true">
           <manifest>
             <attribute name="Built-By" value="${user.name}"/>
-            <attribute name="Specification-Title"   value="${STAX2_TITLE}"/>
-            <attribute name="Specification-Version" value="${STAX2_VERSION}"/>
-            <attribute name="Specification-Vendor"  value="${STAX2_VENDOR}"/>
-            <attribute name="Implementation-Title"   value="${STAX2_TITLE}"/>
-            <attribute name="Implementation-Version" value="${STAX2_VERSION}"/>
-            <attribute name="Implementation-Vendor"  value="${STAX2_VENDOR}"/>
           </manifest>
           <fileset dir="${dir.classes.test}">
              <include name="org/codehaus/stax/test/**/*.class" />
@@ -295,7 +253,6 @@
             author="true" 
             version="true">
             <packageset dir="${dir.src.java}" defaultexcludes="yes">
-                <include name="org/codehaus/stax2/**" />
                 <include name="com/ctc/**" />
             </packageset>
             <classpath refid="classpath.compile" />
@@ -304,9 +261,6 @@
             <link href="http://java.sun.com/j2se/1.5.0/docs/api/" />
             <link href="http://woodstox.codehaus.org/javadoc/stax-api/1.0" />
             <group title="Woodstox" packages="com.ctc.wstx*" />
-            <group title="Stax2"
-               packages="org.codehaus.stax2*"
-            />
 
         </javadoc>
     </target> 
@@ -315,7 +269,6 @@
        <!-- First, let's copy the binary jars to dist -->
        <copy todir="${dir.dist}">
           <fileset dir="${dir.build}" includes="woodstox*.jar" />
-          <fileset dir="${dir.build}" includes="stax2*.jar" />
           <fileset dir="${dir.lib}/msv" includes="msv-core*.jar" />
           <fileset dir="${dir.lib}/msv" includes="xsdlib*.jar" />
        </copy>
@@ -328,28 +281,19 @@
        <!-- Then let's create the source distribution tar packages
           -->
        <property name="SRC_CORE" value="woodstox-core-src-${IMPL_VERSION}" />
-       <property name="SRC_STAX2" value="stax2-api-src-${STAX2_VERSION}" />
 
        <!-- Need to first copy to a tmp dir, to get the additional
           directory (so tar/zip contents won't explode directly
           in current dir)
         -->
        <property name="DIR_CORE" value="woodstox-${IMPL_VERSION}" />
-       <property name="DIR_STAX2" value="stax2-${STAX2_VERSION}" />
        <delete dir="${dir.build}/${DIR_CORE}" />
        <mkdir dir="${dir.build}/${DIR_CORE}" />
-       <delete dir="${dir.build}/${DIR_STAX2}" />
-       <mkdir dir="${dir.build}/${DIR_STAX2}" />
 
        <copy todir="${dir.build}/${DIR_CORE}">
           <fileset dir="${basedir}">
             <patternset refid="woodstox-dist-src-files" />
             <patternset refid="wstx-dist-misc-files" />
-          </fileset>
-       </copy>
-       <copy todir="${dir.build}/${DIR_STAX2}">
-          <fileset dir="${basedir}">
-            <patternset refid="stax2-dist-src-files" />
           </fileset>
        </copy>
 
@@ -359,21 +303,11 @@
         destfile="${dir.dist}/${SRC_CORE}.tar.gz"
         compression="gzip"
       />
-       <delete file="${dir.dist}/${SRC_STAX2}.tar.gz" />
-       <tar basedir="${dir.build}"
-        includes="${DIR_STAX2}/**"
-        destfile="${dir.dist}/${SRC_STAX2}.tar.gz"
-        compression="gzip"
-      />
 
        <!-- as well as zip -->
        <zip basedir="${dir.build}"
         includes="${DIR_CORE}/**"
         destfile="${dir.dist}/${SRC_CORE}.zip"
-      />
-       <zip basedir="${dir.build}"
-        includes="${DIR_STAX2}/**"
-        destfile="${dir.dist}/${SRC_STAX2}.zip"
       />
 
        <!-- And create source jars for IDE support -->
@@ -385,10 +319,6 @@
        <jar basedir="${dir.src.java}" filesonly="true" compress="true"
          destfile="${dir.dist}/woodstox-core-lgpl-${IMPL_VERSION}-sources.jar"
          includes="com/ctc/wstx/**/*.java"
-      />
-       <jar basedir="${dir.src.java}" filesonly="true" compress="true"
-         destfile="${dir.dist}/stax2-api-${STAX2_VERSION}-sources.jar"
-         includes="org/codehaus/stax2/**/*.java"
       />
 
        <!-- Then copy javadocs -->
@@ -402,9 +332,6 @@
          filesonly="true" compress="true" basedir="${dir.javadoc}" includes="**/*.*"
        />
        <jar destfile="${dir.dist}/woodstox-core-lgpl-${IMPL_VERSION}-javadoc.jar"
-         filesonly="true" compress="true" basedir="${dir.javadoc}" includes="**/*.*"
-       />
-       <jar destfile="${dir.dist}/stax2-api-${STAX2_VERSION}-javadoc.jar"
          filesonly="true" compress="true" basedir="${dir.javadoc}" includes="**/*.*"
        />
 
@@ -426,30 +353,12 @@
               <filter token="REQ_STAX2_VERSION" value="${REQ_STAX2_VERSION}" />
             </filterset>
        </copy>
-       <copy todir="${dir.dist}">
-            <fileset dir="${dir.src}/maven" includes="stax2*.pom" />
-            <globmapper from="*.pom" to="*-${STAX2_VERSION}.pom" />
-            <filterset>
-              <filter token="VERSION" value="${STAX2_VERSION}" />
-              <filter token="REQ_STAX2_VERSION" value="${REQ_STAX2_VERSION}" />
-            </filterset>
-       </copy>
 
-        <!-- 17-Jun-2009, tatu: Trying to make Maven snapshots work...
-          -->
        <copy todir="${dir.snapshot}">
             <fileset dir="${dir.src}/maven" includes="w*.pom" />
             <globmapper from="*.pom" to="*-${IMPL_VERSION}-SNAPSHOT.pom" />
             <filterset>
               <filter token="VERSION" value="${IMPL_VERSION}-SNAPSHOT" />
-              <filter token="REQ_STAX2_VERSION" value="${REQ_STAX2_VERSION}-SNAPSHOT" />
-            </filterset>
-       </copy>
-       <copy todir="${dir.snapshot}">
-            <fileset dir="${dir.src}/maven" includes="stax2*.pom" />
-            <globmapper from="*.pom" to="*-${STAX2_VERSION}-SNAPSHOT.pom" />
-            <filterset>
-              <filter token="VERSION" value="${STAX2_VERSION}-SNAPSHOT" />
               <filter token="REQ_STAX2_VERSION" value="${REQ_STAX2_VERSION}-SNAPSHOT" />
             </filterset>
        </copy>
@@ -481,7 +390,6 @@
           <classpath refid="classpath.compile" />
           <classpath>
                 <pathelement path="${dir.build.classes.woodstox}" />
-                <pathelement path="${dir.build.classes.stax2}" />
                 <pathelement location="${dir.classes.test}" /> 
                 <path refid="junit-libs"/>
           </classpath>     
@@ -501,7 +409,6 @@
             <include name="**/*.java" />
             <classpath refid="classpath.compile" />
             <classpath>
-                <pathelement path="${dir.build.classes.stax2}"/>  
                 <pathelement path="${dir.build.classes.woodstox}"/>  
                 <path refid="junit-libs"/>
             </classpath>
@@ -529,7 +436,6 @@
             <formatter type="xml" />
             <classpath refid="classpath.compile" />
             <classpath>
-                <pathelement path="${dir.build.classes.stax2}" />
                 <pathelement path="${dir.build.classes.woodstox}" />
                 <pathelement location="${dir.classes.test}" /> 
                 <path refid="junit-libs"/>
