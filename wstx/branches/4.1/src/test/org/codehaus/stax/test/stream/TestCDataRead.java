@@ -1,5 +1,7 @@
 package org.codehaus.stax.test.stream;
 
+import java.io.*;
+
 import javax.xml.stream.*;
 
 /**
@@ -174,6 +176,58 @@ public class TestCDataRead
         }
     }
 
+    // [WSTX-294]: Incorrect coalescing in some cases
+    public void testIssue294() throws Exception
+    {
+        XMLInputFactory f = getInputFactory();
+        setCoalescing(f, true);
+
+        InputStream in = getClass().getResource("issue294.xml").openStream();
+
+        // Important: only occurs when we construct a Reader -- not with InputStream
+        // (different offsets, perhaps?)
+        XMLStreamReader sr = f.createXMLStreamReader(new InputStreamReader(in, "UTF-8"));
+
+        assertTokenType(START_ELEMENT, sr.next());
+        assertEquals("Envelope", sr.getLocalName());
+        assertTokenType(CHARACTERS, sr.next()); // white space
+        assertTokenType(START_ELEMENT, sr.next());
+        assertEquals("Body", sr.getLocalName());
+        assertTokenType(CHARACTERS, sr.next()); // white space
+        assertTokenType(START_ELEMENT, sr.next());
+        assertEquals("helloResponse", sr.getLocalName());
+        assertTokenType(CHARACTERS, sr.next()); // white space
+        assertTokenType(START_ELEMENT, sr.next());
+        assertEquals("return", sr.getLocalName());
+
+        assertTokenType(CHARACTERS, sr.next());
+
+        String text = getAndVerifyText(sr);
+
+        // Should start with "abcde"
+        if (!text.startsWith("abcde")) {
+            if (text.length() > 5) {
+                text = text.substring(0, 5);
+            }
+            fail("Expected cdata in 'return' element to start with 'abcde': instead got: '"+text+"'");
+        }
+        
+        assertTokenType(END_ELEMENT, sr.next());
+        assertEquals("return", sr.getLocalName());
+        assertTokenType(CHARACTERS, sr.next());
+        assertTokenType(END_ELEMENT, sr.next());
+        assertEquals("helloResponse", sr.getLocalName());
+        assertTokenType(CHARACTERS, sr.next());
+        assertTokenType(END_ELEMENT, sr.next());
+        assertEquals("Body", sr.getLocalName());
+        assertTokenType(CHARACTERS, sr.next());
+        assertTokenType(END_ELEMENT, sr.next());
+        assertEquals("Envelope", sr.getLocalName());
+
+        sr.close();
+        in.close();
+    }
+    
     /*
     ////////////////////////////////////////
     // Private methods, other

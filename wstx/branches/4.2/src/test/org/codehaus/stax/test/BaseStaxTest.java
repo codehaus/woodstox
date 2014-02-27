@@ -338,7 +338,7 @@ public abstract class BaseStaxTest
              */
             if (sr.getEventType() == CHARACTERS) {
                 if (expLen == 0) {
-                    fail("Stream reader should never return empty Strings.");
+                    fail("Stream reader should never return empty Strings (type: "+sr.getClass().getName()+")");
                 }
             }
             assertEquals("Expected text length of "+expLen+", got "+text.length(),
