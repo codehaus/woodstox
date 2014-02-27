@@ -1833,8 +1833,7 @@ public abstract class BasicStreamReader
       return sb.toString();
     }
 
-    protected void checkCData()
-        throws XMLStreamException
+    protected void checkCData() throws XMLStreamException
     {
         String wrong = checkKeyword(getNextCharFromCurrent(SUFFIX_IN_CDATA), "CDATA");
         if (wrong != null) {
@@ -4152,7 +4151,9 @@ public abstract class BasicStreamReader
             char c = mInputBuffer[mInputPtr];
             if (c == '<') { // CDATA, maybe?
                 // Need to distinguish "<![" from other tags/directives
-                if ((mInputEnd - mInputPtr) < 3) {
+                // 26-Feb-2014, tatu: Wrt [WSTX-294], need to unshare buffer
+                //   unless whole leading CDATA marker fits in buffer
+                if ((mInputEnd - mInputPtr) < 9) { // 3 for "<![" and 6 more for "CDATA["
                     mTextBuffer.ensureNotShared();
                     if (!ensureInput(3)) {
                         break;
