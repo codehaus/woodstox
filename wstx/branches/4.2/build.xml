@@ -41,7 +41,7 @@
     <!-- And finally version dependency spec between Woodstox core
          and Stax API package.
       -->
-    <property name="REQ_STAX2_VERSION" value="3.1.2" />
+    <property name="REQ_STAX2_VERSION" value="3.1.4" />
 
     <!-- jars needed for compilation -->
     <path id="classpath.compile">
