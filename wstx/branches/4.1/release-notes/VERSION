@@ -1,9 +1,11 @@
 Project: Woodstox XML processor
 Version: 4.1.6 (27-Feb-2014)
 
-Another patch release for 4.1
+Possibly the last patch release for 4.1
 
 Fixes:
+
+4.1.6 (27-Feb-2014)
 
 * [WSTX-272]: BufferingXmlWriter does not escape characters 0x80-0x9F
  (reported by  Przemek Bruski)
@@ -103,7 +105,7 @@ Problems fixed:
 
   * [WSTX-206] Provide a way to configure SAX parser with all config
     settings available to Stax readers (add WstxSAXParser.getStaxConfig())
-   (suggested by StÂŽphane C)
+   (suggested by StŽphane C)
   * [WSTX-234] Restore feature WstxInputProperties.NORMALIZE_LFS; add
     WstxInputProperties.TREAT_CHAR_REFS_AS_ENTS
    (requested by Peter S)
