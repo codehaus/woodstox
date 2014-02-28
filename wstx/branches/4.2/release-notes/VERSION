@@ -3,6 +3,8 @@ Version: 4.2.1 (xx-Feb-2014)
 
 Changes:
 
+* [WSTX-272]: BufferingXmlWriter does not escape characters 0x80-0x9F
+ (reported by  Przemek Bruski)
 * [WSTX-288]: Incorrect calculation in one of calcHash() methods
  (reported by GuoHui Chen)
 * [WSTX-289]: Add 'WstxInputFactory.addSymbol()'
@@ -114,7 +116,7 @@ Problems fixed:
 
   * [WSTX-206] Provide a way to configure SAX parser with all config
     settings available to Stax readers (add WstxSAXParser.getStaxConfig())
-   (suggested by StÂŽphane C)
+   (suggested by StŽphane C)
   * [WSTX-234] Restore feature WstxInputProperties.NORMALIZE_LFS; add
     WstxInputProperties.TREAT_CHAR_REFS_AS_ENTS
    (requested by Peter S)

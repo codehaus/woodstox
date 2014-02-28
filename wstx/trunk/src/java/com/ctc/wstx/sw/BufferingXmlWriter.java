@@ -18,6 +18,7 @@ package com.ctc.wstx.sw;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Writer;
+import java.util.Arrays;
 
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
@@ -75,6 +76,19 @@ public final class BufferingXmlWriter
      */
     protected final static int HIGHEST_ENCODABLE_TEXT_CHAR = '>';
 
+    protected final static int[] QUOTABLE_TEXT_CHARS;
+    static {
+        int[] q = new int[4096];
+        Arrays.fill(q, 0, 32, 1);
+        Arrays.fill(q, 127, 160, 1);
+        q['\t'] = 0;
+        q['\n'] = 0;
+        q['<'] = 1;
+        q['>'] = 1;
+        q['&'] = 1;
+        QUOTABLE_TEXT_CHARS = q;
+    }
+    
     /*
     ////////////////////////////////////////////////
     // Output state, buffering
@@ -453,8 +467,12 @@ public final class BufferingXmlWriter
         }
         int inPtr = 0;
         final int len = text.length();
-        int highChar = mEncHighChar;
 
+        // nope, default:
+        final int[] QC = QUOTABLE_TEXT_CHARS;
+        final int highChar = mEncHighChar;
+        final int MAXQC = Math.min(QC.length, highChar);
+        
         main_loop:
         while (true) {
             String ent = null;
@@ -465,33 +483,39 @@ public final class BufferingXmlWriter
                     break main_loop;
                 }
                 char c = text.charAt(inPtr++);
-                if (c <= HIGHEST_ENCODABLE_TEXT_CHAR) {
-                    if (c <= 0x0020) {
-                        if (c != ' ' && c != '\n' && c != '\t') { // fine as is
-                            if (c == '\r') {
-                                if (mEscapeCR) {
-                                    break inner_loop;
-                                }
-                            } else {
-                                if (!mXml11 || c == 0) {
-                                    c = handleInvalidChar(c); // throws an error usually
+
+                if (c < MAXQC) {
+                    if (QC[c] != 0) {
+                        if (c < 0x0020) {
+                            if (c != ' ' && c != '\n' && c != '\t') { // fine as is
+                                if (c == '\r') {
+                                    if (mEscapeCR) {
+                                        break inner_loop;
+                                    }
                                 } else {
-                                    break inner_loop; // need quoting
+                                    if (!mXml11 || c == 0) {
+                                        c = handleInvalidChar(c); // throws an error usually
+                                        ent = String.valueOf((char) c);
+                                    } else {
+                                        break inner_loop; // need quoting
+                                    }
                                 }
                             }
-                        }
-                    } else if (c == '<') {
-                        ent = "&lt;";
-                        break inner_loop;
-                    } else if (c == '&') {
-                        ent = "&amp;";
-                        break inner_loop;
-                    } else if (c == '>') {
-                        // Let's be conservative; and if there's any
-                        // change it might be part of "]]>" quote it
-                        if (inPtr < 2 || text.charAt(inPtr-2) == ']') {
-                            ent = "&gt;";
+                        } else if (c == '<') {
+                            ent = "&lt;";
                             break inner_loop;
+                        } else if (c == '&') {
+                            ent = "&amp;";
+                            break inner_loop;
+                        } else if (c == '>') {
+                            // Let's be conservative; and if there's any
+                            // change it might be part of "]]>" quote it
+                            if (inPtr < 2 || text.charAt(inPtr-2) == ']') {
+                                ent = "&gt;";
+                                break inner_loop;
+                            }
+                        } else if (c >= 0x7F) {
+                            break;
                         }
                     }
                 } else if (c >= highChar) {
@@ -509,27 +533,33 @@ public final class BufferingXmlWriter
             }
         }
     }
-
+    
     public void writeCharacters(char[] cbuf, int offset, int len)
         throws IOException
     {
         if (mOut == null) {
             return;
         }
-
         if (mTextWriter != null) { // custom escaping?
             mTextWriter.write(cbuf, offset, len);
-        } else { // nope, default:
-            len += offset;
-            do {
-                int c = 0;
-                int highChar = mEncHighChar;
-                int start = offset;
-                String ent = null;
+            return;
+        }
+        // nope, default:
+        final int[] QC = QUOTABLE_TEXT_CHARS;
+        final int highChar = mEncHighChar;
+        final int MAXQC = Math.min(QC.length, highChar);
+        len += offset;
+        do {
+            int c = 0;
+            int start = offset;
+            String ent = null;
+            
+            for (; offset < len; ++offset) {
+                c = cbuf[offset];
                 
-                for (; offset < len; ++offset) {
-                    c = cbuf[offset];
-                    if (c <= HIGHEST_ENCODABLE_TEXT_CHAR) {
+                if (c < MAXQC) {
+                    if (QC[c] != 0) {
+                        // Ok, possibly needs quoting... further checks needed
                         if (c == '<') {
                             ent = "&lt;";
                             break;
@@ -559,24 +589,26 @@ public final class BufferingXmlWriter
                                 }
                                 break; // need quoting
                             }
+                        } else if (c >= 0x7F) {
+                            break;
                         }
-                    } else if (c >= highChar) {
-                        break;
                     }
-                    // otherwise ok
+                } else if (c >= highChar) {
+                    break;
                 }
-                int outLen = offset - start;
-                if (outLen > 0) {
-                    writeRaw(cbuf, start, outLen);
-                } 
-                if (ent != null) {
-                    writeRaw(ent);
-                    ent = null;
-                } else if (offset < len) {
-                    writeAsEntity(c);
-                }
-            } while (++offset < len);
-        }
+                // otherwise fine
+            }
+            int outLen = offset - start;
+            if (outLen > 0) {
+                writeRaw(cbuf, start, outLen);
+            } 
+            if (ent != null) {
+                writeRaw(ent);
+                ent = null;
+            } else if (offset < len) {
+                writeAsEntity(c);
+            }
+        } while (++offset < len);
     }    
 
     /**

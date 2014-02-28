@@ -5,6 +5,8 @@ Another patch release for 4.1
 
 Fixes:
 
+* [WSTX-272]: BufferingXmlWriter does not escape characters 0x80-0x9F
+ (reported by  Przemek Bruski)
 * [WSTX-286]: Fail to detect duplicate attributes in some cases
  (reported by Eric M)
 * [WSTX-288]: Error in one calcHash() methods.
@@ -101,7 +103,7 @@ Problems fixed:
 
   * [WSTX-206] Provide a way to configure SAX parser with all config
     settings available to Stax readers (add WstxSAXParser.getStaxConfig())
-   (suggested by StÂŽphane C)
+   (suggested by StŽphane C)
   * [WSTX-234] Restore feature WstxInputProperties.NORMALIZE_LFS; add
     WstxInputProperties.TREAT_CHAR_REFS_AS_ENTS
    (requested by Peter S)

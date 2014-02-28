@@ -21,16 +21,16 @@ public class TestOutputEncoding
         throws IOException, XMLStreamException
     {
         String TEXT = "<tag>&amp;";
-        doTestSimpleQuoting(ISO_LATIN_ENCODING, TEXT);
-        doTestSimpleQuoting(UTF8_ENCODING, TEXT);
+        _testSimpleQuoting(ISO_LATIN_ENCODING, TEXT);
+        _testSimpleQuoting(UTF8_ENCODING, TEXT);
 
         TEXT = "Need to quote this too: ]]>";
-        doTestSimpleQuoting(ISO_LATIN_ENCODING, TEXT);
-        doTestSimpleQuoting(UTF8_ENCODING, TEXT);
+        _testSimpleQuoting(ISO_LATIN_ENCODING, TEXT);
+        _testSimpleQuoting(UTF8_ENCODING, TEXT);
 
         TEXT = "And nbsp: \u00A0.";
-        doTestSimpleQuoting(ISO_LATIN_ENCODING, TEXT);
-        doTestSimpleQuoting(UTF8_ENCODING, TEXT);
+        _testSimpleQuoting(ISO_LATIN_ENCODING, TEXT);
+        _testSimpleQuoting(UTF8_ENCODING, TEXT);
     }
 
     public void testSimpleAttrQuoting()
@@ -51,13 +51,29 @@ public class TestOutputEncoding
         doTestSimpleAttr(UTF8_ENCODING, TEXT);
     }
 
-    /*
-    /////////////////////////////////////////////////////
-    // Helper methods
-    /////////////////////////////////////////////////////
-     */
+    public void testXml11CharQuoting()
+        throws IOException, XMLStreamException
+    {
+        String TEXT = "First: (\u0007)";
+        _testXml11CharQuoting(ISO_LATIN_ENCODING, TEXT);
+        _testXml11CharQuoting(UTF8_ENCODING, TEXT);
 
-    private void doTestSimpleQuoting(String encoding, String content)
+        TEXT = "Second: (\u009F)";
+        _testXml11CharQuoting(ISO_LATIN_ENCODING, TEXT);
+        _testXml11CharQuoting(UTF8_ENCODING, TEXT);
+
+        TEXT = "Third: (\u007F)";
+        _testXml11CharQuoting(ISO_LATIN_ENCODING, TEXT);
+        _testXml11CharQuoting(UTF8_ENCODING, TEXT);
+    }
+    
+    /*
+    ///////////////////////////////////////////////////////////
+    // Helper methods
+    ///////////////////////////////////////////////////////////
+     */
+    
+    private void _testSimpleQuoting(String encoding, String content)
         throws IOException, XMLStreamException
     {
         StringWriter strw = new StringWriter();
@@ -69,7 +85,7 @@ public class TestOutputEncoding
         w.writeEndElement();
         w.writeEndDocument();
         w.close();
-        
+
         // And then let's parse and verify it all:
         XMLStreamReader sr = constructNsStreamReader(strw.toString(), true);
         assertTokenType(START_DOCUMENT, sr.getEventType());
@@ -104,6 +120,32 @@ public class TestOutputEncoding
         assertEquals(1, sr.getAttributeCount());
         assertEquals(attrValue, sr.getAttributeValue(0));
         assertTokenType(END_ELEMENT, sr.next());
+        assertTokenType(END_DOCUMENT, sr.next());
+    }
+
+    private void _testXml11CharQuoting(String encoding, String content)
+        throws IOException, XMLStreamException
+    {
+        StringWriter strw = new StringWriter();
+        XMLStreamWriter w = getNonRepairingWriter(strw);
+
+        w.writeStartDocument(encoding, "1.1");
+        w.writeStartElement("root");
+        w.writeCharacters(content);
+        w.writeEndElement();
+        w.writeEndDocument();
+        w.close();
+        
+        // And then let's parse and verify it all:
+        XMLStreamReader sr = constructUtf8StreamReader(getInputFactory(), strw.toString());
+        assertTokenType(START_DOCUMENT, sr.getEventType());
+        assertEquals(encoding, sr.getCharacterEncodingScheme());
+        assertTokenType(START_ELEMENT, sr.next());
+
+        // May get multiple segments..
+        assertTokenType(CHARACTERS, sr.next());
+        assertEquals(content, getAllText(sr));
+        assertTokenType(END_ELEMENT, sr.getEventType());
         assertTokenType(END_DOCUMENT, sr.next());
     }
 }
