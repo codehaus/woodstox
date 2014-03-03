@@ -59,9 +59,9 @@ public final class InputElementStack
     final static int ID_ATTR_NONE = -1;
 
     /*
-    //////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Configuration
-    //////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     */
 
     protected final boolean mNsAware;
@@ -80,9 +80,9 @@ public final class InputElementStack
     protected NsDefaultProvider mNsDefaultProvider;
 
     /*
-    //////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Element, namespace information
-    //////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     */
 
     protected int mDepth = 0;
@@ -103,9 +103,9 @@ public final class InputElementStack
     protected boolean mMayHaveNsDefaults = false;
 
     /*
-    //////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Element validation (optional), attribute typing
-    //////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     */
 
     /**
@@ -124,11 +124,11 @@ public final class InputElementStack
     protected int mIdAttrIndex = ID_ATTR_NONE;
 
     /*
-    //////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Simple 1-slot QName cache; used for improving
     // efficiency of code that uses QNames extensively
     // (like StAX Event API implementation)
-    //////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     protected String mLastLocalName = null;
@@ -138,9 +138,9 @@ public final class InputElementStack
     protected QName mLastName = null;
 
     /*
-    /////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Other simple caching
-    /////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     // Non-transient NamespaceContext caching; mostly for event API
@@ -158,9 +158,9 @@ public final class InputElementStack
     protected Element mFreeElement = null;
 
     /*
-    //////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Life-cycle (create, update state)
-    //////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     protected InputElementStack(ReaderConfig cfg, boolean nsAware)
@@ -199,9 +199,9 @@ public final class InputElementStack
     }
 
     /*
-    //////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Start/stop validation
-    //////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     public XMLValidator validateAgainst(XMLValidationSchema schema)
@@ -242,9 +242,9 @@ public final class InputElementStack
     }
 
     /*
-    //////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Accessors:
-    //////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     /**
@@ -325,20 +325,19 @@ public final class InputElementStack
      */
     public final void push(String prefix, String localName) throws XMLStreamException
     {
-        ++mDepth;
-        ++mTotalElements;
-        if (mDepth > mConfig.getMaxElementDepth()) {
-            throw new XMLStreamException("Maximum Element Depth Exceeded");
+        if (++mDepth > mConfig.getMaxElementDepth()) {
+            throw new XMLStreamException("Maximum Element Depth ("+mConfig.getMaxElementDepth()+") Exceeded");
         }
-        if (mTotalElements > mConfig.getMaxElementCount()) {
-            throw new XMLStreamException("Maximum Element Count Exceeded");
+        if (++mTotalElements > mConfig.getMaxElementCount()) {
+            throw new XMLStreamException("Maximum Element Count ("+mConfig.getMaxElementCount()+") Exceeded");
         }
         String defaultNs = (mCurrElement == null) ?
             XmlConsts.DEFAULT_NAMESPACE_URI : mCurrElement.mDefaultNsURI;
         if (mCurrElement != null) {
-            mCurrElement.mChildCount++;
-            if (mConfig.getMaxChildrenPerElement() > 0 && mCurrElement.mChildCount > mConfig.getMaxChildrenPerElement()) {
-                throw new XMLStreamException("Maximum Number of Children Elements Exceeded");
+            ++mCurrElement.mChildCount;
+            final int max = mConfig.getMaxChildrenPerElement();
+            if (max > 0 && mCurrElement.mChildCount > max) {
+                throw new XMLStreamException("Maximum Number of Children Elements ("+max+") Exceeded");
             }
         }
 
@@ -369,8 +368,7 @@ public final class InputElementStack
      * @return True if stack has more elements; false if not (that is,
      *    root element closed)
      */
-    public final boolean pop()
-        throws XMLStreamException
+    public final boolean pop() throws XMLStreamException
     {
         if (mCurrElement == null) {
             throw new IllegalStateException("Popping from empty stack");
@@ -569,9 +567,9 @@ public final class InputElementStack
     }
 
     /*
-    ///////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // AttributeInfo methods (StAX2)
-    ///////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     public final int getAttributeCount()
@@ -609,9 +607,9 @@ public final class InputElementStack
     }
 
     /*
-    ///////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Implementation of NamespaceContext:
-    ///////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     public final String getNamespaceURI(String prefix)
@@ -725,9 +723,9 @@ public final class InputElementStack
     }
 
     /*
-    ///////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // ValidationContext
-    ///////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     public final String getXmlVersion()
@@ -849,9 +847,9 @@ public final class InputElementStack
     }
 
     /*
-    ///////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Support for NsDefaultProvider
-    ///////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     public boolean isPrefixLocallyDeclared(String internedPrefix)
@@ -892,9 +890,9 @@ public final class InputElementStack
     }
 
     /*
-    ///////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Support for validation:
-    ///////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     public final void validateText(TextBuffer tb, boolean lastTextSegment)
@@ -910,9 +908,9 @@ public final class InputElementStack
     }
 
     /*
-    ///////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Accessors:
-    ///////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     // // // Generic stack information:

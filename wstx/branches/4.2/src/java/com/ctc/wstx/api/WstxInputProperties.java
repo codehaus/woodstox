@@ -124,6 +124,8 @@ public final class WstxInputProperties
      * DTD subsets.
      *<p>
      * Note: not implemented by Woodstox.
+     * 
+     * @deprecated Never implement, let's phase this out
      */
     public final static String P_SUPPORT_DTDPP = "com.ctc.wstx.supportDTDPP";
     
@@ -146,7 +148,7 @@ public final class WstxInputProperties
 
     /*
     ///////////////////////////////////////////////////////
-    // More complex settings:
+    // More complex settings
     ///////////////////////////////////////////////////////
      */
 
@@ -169,6 +171,7 @@ public final class WstxInputProperties
     public final static String P_MIN_TEXT_SEGMENT = "com.ctc.wstx.minTextSegment";
     
     // // // Other size constraints
+
     public final static String P_MAX_ATTRIBUTES_PER_ELEMENT = "com.ctc.wstx.maxAttributesPerElement";
     public final static String P_MAX_ATTRIBUTE_SIZE = "com.ctc.wstx.maxAttributeSize";
     public final static String P_MAX_CHILDREN_PER_ELEMENT = "com.ctc.wstx.maxChildrenPerElement";
