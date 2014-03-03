@@ -1628,7 +1628,6 @@ public abstract class StreamScanner
     }
 
     /**
-     *
      *<p>
      * note: defined as private for documentation, ie. it's just called
      * from within this class (not sub-classes), from one specific method

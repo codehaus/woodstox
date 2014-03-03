@@ -36,6 +36,16 @@ public final class ReaderConfig
     extends CommonConfig
     implements InputConfigFlags
 {
+    // Default limit values
+    
+    public final static int DEFAULT_MAX_ATTRIBUTES_PER_ELEMENT = 1000;
+    public final static int DEFAULT_MAX_ATTRIBUTE_LENGTH = 65536 * 8;
+
+    public final static int DEFAULT_MAX_ELEMENT_DEPTH = 1000;
+
+    public final static int DEFAULT_MAX_ENTITY_DEPTH = 500;
+    public final static int DEFAULT_MAX_ENTITY_COUNT = 100 * 1000;
+
     /*
     ///////////////////////////////////////////////////////////////////////
     // Constants for reader properties:
@@ -113,6 +123,8 @@ public final class ReaderConfig
     final static int PROP_MAX_CHARACTERS = 64;
     final static int PROP_MAX_ATTRIBUTE_SIZE = 65;
     final static int PROP_MAX_TEXT_LENGTH = 66;
+    final static int PROP_MAX_ENTITY_COUNT = 67;
+    final static int PROP_MAX_ENTITY_DEPTH = 68;
     
     /*
     ////////////////////////////////////////////////
@@ -311,11 +323,17 @@ public final class ReaderConfig
                         DataUtil.Integer(PROP_MAX_TEXT_LENGTH));
         sProperties.put(WstxInputProperties.P_MAX_ELEMENT_COUNT,
                 DataUtil.Integer(PROP_MAX_ELEMENT_COUNT));
+ 
         sProperties.put(WstxInputProperties.P_MAX_ELEMENT_DEPTH,
                 DataUtil.Integer(PROP_MAX_ELEMENT_DEPTH));
         sProperties.put(WstxInputProperties.P_MAX_CHARACTERS,
                          DataUtil.Integer(PROP_MAX_CHARACTERS));
 
+        sProperties.put(WstxInputProperties.P_MAX_ENTITY_DEPTH,
+                DataUtil.Integer(PROP_MAX_ENTITY_DEPTH));
+        sProperties.put(WstxInputProperties.P_MAX_ENTITY_COUNT,
+                DataUtil.Integer(PROP_MAX_ENTITY_COUNT));
+        
         sProperties.put(WstxInputProperties.P_CUSTOM_INTERNAL_ENTITIES,
                         DataUtil.Integer(PROP_CUSTOM_INTERNAL_ENTITIES));
         sProperties.put(WstxInputProperties.P_DTD_RESOLVER,
@@ -336,15 +354,15 @@ public final class ReaderConfig
     ///////////////////////////////////////////////////////////////////////
      */
 
-    final boolean mIsJ2MESubset;
+    final protected boolean mIsJ2MESubset;
 
-    final SymbolTable mSymbols;
+    final protected SymbolTable mSymbols;
 
     /**
      * Bitset that contains state of on/off properties; initialized
      * to defaults, but can be set/cleared.
      */
-    int mConfigFlags;
+    protected int mConfigFlags;
 
     /**
      * Bitset that indicates explicit changes to {@link #mConfigFlags}
@@ -352,7 +370,7 @@ public final class ReaderConfig
      * has its default value, set bit that an explicit call has been
      * made.
      */
-    int mConfigFlagMods;
+    protected int mConfigFlagMods;
 
     /**
      * 13-Nov-2008, tatus: Need to be able to keep track of whether
@@ -362,29 +380,31 @@ public final class ReaderConfig
     final static int PROP_INTERN_NAMES_EXPLICIT = 26;
     final static int PROP_INTERN_NS_URIS_EXPLICIT = 27;
 
+    protected int mInputBufferLen;
+    protected int mMinTextSegmentLen;
+    protected int mMaxAttributesPerElement = DEFAULT_MAX_ATTRIBUTES_PER_ELEMENT;
+    protected int mMaxAttributeSize = DEFAULT_MAX_ATTRIBUTE_LENGTH;
+    protected int mMaxChildrenPerElement = Integer.MAX_VALUE;
+    protected int mMaxElementDepth = DEFAULT_MAX_ELEMENT_DEPTH;
+    protected long mMaxElementCount = Long.MAX_VALUE; // unlimited
+    protected long mMaxCharacters = Long.MAX_VALUE; // unlimited
+    protected int mMaxTextLength = Integer.MAX_VALUE; // unlimited
 
-    int mInputBufferLen;
-    int mMinTextSegmentLen;
-    int mMaxAttributesPerElement = 1000;
-    int mMaxAttributeSize = 65536 * 8;
-    int mMaxChildrenPerElement = Integer.MAX_VALUE;
-    int mMaxElementDepth = 1000;
-    long mMaxElementCount = Long.MAX_VALUE;
-    long mMaxCharacters = Long.MAX_VALUE;
-    int mMaxTextLength = Integer.MAX_VALUE;
-
+    protected int mMaxEntityDepth = DEFAULT_MAX_ENTITY_DEPTH;
+    protected long mMaxEntityCount = DEFAULT_MAX_ENTITY_COUNT;
+    
     /**
      * Base URL to use as the resolution context for relative entity
      * references
      */
-    URL mBaseURL = null;
+    protected URL mBaseURL;
 
     /**
      * Parsing mode can be changed from the default xml compliant
      * behavior to one of alternate modes (fragment processing,
      * multiple document processing).
      */
-    WstxInputProperties.ParsingMode mParsingMode =
+    protected WstxInputProperties.ParsingMode mParsingMode =
         WstxInputProperties.PARSING_MODE_DOCUMENT;
 
     /**
@@ -394,7 +414,7 @@ public final class ReaderConfig
      * does not come from configuration settings, but from processed
      * document itself.
      */
-    boolean mXml11 = false;
+    protected boolean mXml11 = false;
 
     /*
     ///////////////////////////////////////////////////////////////////////
@@ -685,12 +705,16 @@ public final class ReaderConfig
     public int getMaxAttributesPerElement() { return mMaxAttributesPerElement; }
     public int getMaxAttributeSize() { return mMaxAttributeSize; }
     public int getMaxChildrenPerElement() { return mMaxChildrenPerElement; }
-    public int getMaxElementDepth() { return mMaxElementDepth; }
 
+    public int getMaxElementDepth() { return mMaxElementDepth; }
     public long getMaxElementCount() { return mMaxElementCount; }
+
     public long getMaxCharacters() { return mMaxCharacters; }    
     public long getMaxTextLength() { return mMaxTextLength; }
 
+    public int getMaxEntityDepth() { return mMaxEntityDepth; }
+    public long getMaxEntityCount() { return mMaxEntityCount; }
+    
     public Map getCustomInternalEntities()
     {
         Map custEnt = (Map) _getSpecialProperty(SP_IX_CUSTOM_ENTITIES);
@@ -904,6 +928,12 @@ public final class ReaderConfig
     }
     public void setMaxTextLength(int value) {
         mMaxTextLength = value;
+    }
+    public void setMaxEntityDepth(int value) {
+        mMaxEntityDepth = value;
+    }
+    public void setMaxEntityCount(long value) {
+        mMaxEntityCount = value;
     }
 
     public void setShortestReportedTextSegment(int value) {
@@ -1407,6 +1437,11 @@ public final class ReaderConfig
             return DataUtil.Long(getMaxCharacters());
         case PROP_MAX_TEXT_LENGTH:
             return DataUtil.Long(getMaxTextLength());
+        case PROP_MAX_ENTITY_DEPTH:
+            return DataUtil.Integer(getMaxEntityDepth());
+        case PROP_MAX_ENTITY_COUNT:
+            return DataUtil.Long(getMaxEntityCount());
+
         case PROP_MIN_TEXT_SEGMENT:
             return DataUtil.Integer(getShortestReportedTextSegment());
         case PROP_CUSTOM_INTERNAL_ENTITIES:
@@ -1567,14 +1602,20 @@ public final class ReaderConfig
         case PROP_MAX_ELEMENT_DEPTH:
             setMaxElementDepth(ArgUtil.convertToInt(propName, value, 1));
             break;
+        case PROP_MAX_ELEMENT_COUNT:
+            setMaxElementCount(ArgUtil.convertToLong(propName, value, 1));
+            break;
         case PROP_MAX_CHARACTERS:
             setMaxCharacters(ArgUtil.convertToLong(propName, value, 1));
             break;
         case PROP_MAX_TEXT_LENGTH:
             setMaxTextLength(ArgUtil.convertToInt(propName, value, 1));
             break;
-        case PROP_MAX_ELEMENT_COUNT:
-            setMaxElementCount(ArgUtil.convertToLong(propName, value, 1));
+        case PROP_MAX_ENTITY_DEPTH:
+            setMaxEntityDepth(ArgUtil.convertToInt(propName, value, 1));
+            break;
+        case PROP_MAX_ENTITY_COUNT:
+            setMaxEntityCount(ArgUtil.convertToLong(propName, value, 1));
             break;
             
         case PROP_MIN_TEXT_SEGMENT:

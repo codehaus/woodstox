@@ -181,6 +181,17 @@ public final class WstxInputProperties
     public final static String P_MAX_CHARACTERS = "com.ctc.wstx.maxCharacters";
     public final static String P_MAX_TEXT_LENGTH = "com.ctc.wstx.maxTextLength";
 
+    // and with 4.2.1, these too
+
+    /**
+     * Maximum number of total (general parsed) entity expansions within input.
+     */
+    public final static String P_MAX_ENTITY_COUNT = "com.ctc.wstx.maxEntityCount";
+
+    /**
+     * Maximum depth of nested (general parsed) entity expansions.
+     */
+    public final static String P_MAX_ENTITY_DEPTH = "com.ctc.wstx.maxEntityDepth";
 
     // // // Entity handling
 
