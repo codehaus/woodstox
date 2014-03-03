@@ -1039,10 +1039,8 @@ public final class InputElementStack
     private void throwIllegalIndex(int index, int localCount)
     {
         throw new IllegalArgumentException("Illegal namespace index "
-                                           +(index >> 1)
-                                           +"; current scope only has "
-                                           +(localCount >> 1)
-                                           +" namespace declarations.");
+                +(index >> 1)+"; current scope only has "
+                +(localCount >> 1)+" namespace declarations.");
     }
 
     // // // DTD-derived attribute information:

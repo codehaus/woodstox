@@ -64,9 +64,9 @@ public abstract class BasicStreamReader
     implements StreamReaderImpl, DTDInfo, LocationInfo
 {
     /*
-    ///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Constants
-    ///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     // // // Standalone values:
@@ -164,9 +164,9 @@ public abstract class BasicStreamReader
     final protected static String sPrefixXmlns = DefaultXmlSymbolTable.getXmlnsSymbol();
 
     /*
-    ///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Configuration
-    ///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     // note: mConfig defined in base class
@@ -191,9 +191,9 @@ public abstract class BasicStreamReader
     protected final int mShortestTextSegment;
 
     /*
-    ///////////////////////////////////////////////////////////////////////
-    // Symbol handling:
-    ///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
+    // Symbol handling
+    ///////////////////////////////////////////////////////////
      */
 
     /**
@@ -203,10 +203,10 @@ public abstract class BasicStreamReader
     final protected ReaderCreator mOwner;
 
     /*
-    ///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Additional XML document information, in addition
     // to what StreamScanner has
-    ///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     /**
@@ -217,23 +217,23 @@ public abstract class BasicStreamReader
     protected int mDocStandalone = DOC_STANDALONE_UNKNOWN;
 
     /*
-    ///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // DOCTYPE information from document type declaration
     // (if any found)
-    ///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     /**
      * Prefix of root element, as dictated by DOCTYPE declaration; null
      * if no DOCTYPE declaration, or no root prefix
      */
-    String mRootPrefix;
+    protected String mRootPrefix;
 
     /**
      * Local name of root element, as dictated by DOCTYPE declaration; null
      * if no DOCTYPE declaration.
      */
-    String mRootLName;
+    protected String mRootLName;
 
     /**
      * Public id of the DTD, if one exists and has been parsed.
@@ -246,9 +246,9 @@ public abstract class BasicStreamReader
     protected String mDtdSystemId;
 
     /*
-    ///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Information about currently open subtree, content
-    ///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     /**
@@ -268,9 +268,9 @@ public abstract class BasicStreamReader
     final protected AttributeCollector mAttrCollector;
 
     /*
-    ///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Tokenization state
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     /// Flag set when DOCTYPE declaration has been parsed
@@ -352,9 +352,9 @@ public abstract class BasicStreamReader
     protected XMLStreamException mPendingException = null;
 
     /*
-    ///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // DTD information (entities, content spec stub)
-    ///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     /**
@@ -384,9 +384,9 @@ public abstract class BasicStreamReader
     protected boolean mReturnNullForDefaultNamespace;
 
     /*
-    ///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Instance construction, initialization
-    ///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     /**
@@ -493,9 +493,9 @@ public abstract class BasicStreamReader
     }
 
     /*
-    ///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // XMLStreamReader, document info
-    ///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     /**
@@ -538,9 +538,9 @@ public abstract class BasicStreamReader
     }
 
     /*
-    ///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Public API, configuration
-    ///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     public Object getProperty(String name)
@@ -562,9 +562,9 @@ public abstract class BasicStreamReader
     }
 
     /*
-    ///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // XMLStreamReader, current state
-    ///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     // // // Attribute access:
@@ -1047,13 +1047,12 @@ public abstract class BasicStreamReader
     }
 
     /*
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // XMLStreamReader, iterating
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
-    public final int next()
-        throws XMLStreamException
+    public final int next() throws XMLStreamException
     {
         /* 24-Sep-2006, TSa: We may have deferred an exception that occurred
          *   during parsing of the previous event. If so, now it needs to
@@ -1213,9 +1212,9 @@ public abstract class BasicStreamReader
     }
 
     /*
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // XMLStreamReader2 (StAX2) implementation
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     // // // StAX2, per-reader configuration
@@ -1479,9 +1478,9 @@ public abstract class BasicStreamReader
     }
 
     /*
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // DTDInfo implementation (StAX 2)
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     /**
@@ -1539,9 +1538,9 @@ public abstract class BasicStreamReader
     }
 
     /*
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // LocationInfo implementation (StAX 2)
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     // // // First, the "raw" offset accessors:
@@ -1597,9 +1596,9 @@ public abstract class BasicStreamReader
     }
 
     /*
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Stax2 validation
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     public XMLValidator validateAgainst(XMLValidationSchema schema)
@@ -1630,9 +1629,9 @@ public abstract class BasicStreamReader
     }
 
     /*
-    //////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // StreamReaderImpl implementation
-    //////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     public EntityDecl getCurrentEntityDecl() {
@@ -1681,9 +1680,9 @@ public abstract class BasicStreamReader
     }
 
     /*
-    //////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Support for SAX XMLReader implementation
-    //////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     public void fireSaxStartElement(ContentHandler h, Attributes attrs)
@@ -1780,9 +1779,9 @@ public abstract class BasicStreamReader
     }
 
     /*
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Internal methods, config access
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     protected final boolean hasConfigFlags(int flags) {
@@ -1790,9 +1789,9 @@ public abstract class BasicStreamReader
     }
 
     /*
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Internal methods, parsing helper methods
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     /**
@@ -1968,10 +1967,10 @@ public abstract class BasicStreamReader
     }
     
     /*
-    /////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Internal methods, parsing prolog (before root) and
     // epilog
-    /////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
     
     /**
@@ -2597,9 +2596,9 @@ public abstract class BasicStreamReader
     }
 
     /*
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Internal methods, main parsing (inside root)
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     /**
@@ -3313,9 +3312,9 @@ public abstract class BasicStreamReader
     }
 
     /*
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Internal methods, skipping
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     /**
@@ -3642,13 +3641,12 @@ public abstract class BasicStreamReader
     }
 
     /*
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Internal methods, parsing
-    ////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
-    protected void ensureFinishToken()
-        throws XMLStreamException
+    protected void ensureFinishToken() throws XMLStreamException
     {
         if (mTokenState < mStTextThreshold) {
             finishToken(false);
@@ -4473,8 +4471,7 @@ public abstract class BasicStreamReader
      *   happens only if lt-char is hit; false if it's possible that
      *   it wasn't read (ie. end-of-buffer or entity encountered).
      */
-    private final boolean readTextPrimary(char c)
-        throws XMLStreamException
+    private final boolean readTextPrimary(char c) throws XMLStreamException
     {
         int ptr = mInputPtr;
         int start = ptr-1;
@@ -5407,9 +5404,9 @@ public abstract class BasicStreamReader
     }
 
     /*
-    ///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Internal methods, low-level input access
-    ///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
     
     /**
@@ -5446,14 +5443,13 @@ public abstract class BasicStreamReader
     }
 
     /*
-    ///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Abstract method implementations
-    ///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     // @Override
-    protected EntityDecl findEntity(String id, Object arg)
-        throws XMLStreamException
+    protected EntityDecl findEntity(String id, Object arg) throws XMLStreamException
     {
         EntityDecl ed = (EntityDecl) mConfig.findCustomInternalEntity(id);
         if (ed == null && mGeneralEntities != null) {
@@ -5470,8 +5466,7 @@ public abstract class BasicStreamReader
         return ed;
     }
 
-    protected void handleUndeclaredEntity(String id)
-        throws XMLStreamException
+    protected void handleUndeclaredEntity(String id) throws XMLStreamException
     {
         throwParseError(((mDocStandalone == DOC_STANDALONE_YES) ?
                         ErrorConsts.ERR_WF_GE_UNDECLARED_SA :
@@ -5479,8 +5474,8 @@ public abstract class BasicStreamReader
                         id, null);
     }
 
-    protected void handleIncompleteEntityProblem(WstxInputSource closing)
-        throws XMLStreamException
+    // @Override
+    protected void handleIncompleteEntityProblem(WstxInputSource closing) throws XMLStreamException
     {
         String top = mElementStack.isEmpty() ? "[ROOT]" : mElementStack.getTopElementDesc();
         throwParseError("Unexpected end of entity expansion for entity &{0}; was expecting a close tag for element <{1}>",
@@ -5488,9 +5483,9 @@ public abstract class BasicStreamReader
     }
 
     /*
-    ///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Internal methods, validation, error handling and reporting
-    ///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     /**
@@ -5498,28 +5493,22 @@ public abstract class BasicStreamReader
      * a close tag matching start tag that did not came from the same
      * entity (but from parent).
      */
-    protected void handleGreedyEntityProblem(WstxInputSource input)
-        throws XMLStreamException
+    protected void handleGreedyEntityProblem(WstxInputSource input) throws XMLStreamException
     {
         String top = mElementStack.isEmpty() ? "[ROOT]" : mElementStack.getTopElementDesc();
         throwParseError("Improper GE/element nesting: entity &"
                         +input.getEntityId()+" contains closing tag for <"+top+">");
     }
 
-    private void throwNotTextual(int type)
-    {
-        throw new IllegalStateException("Not a textual event ("
-                                        +tokenTypeDesc(mCurrToken)+")");
+    private void throwNotTextual(int type) {
+        throw new IllegalStateException("Not a textual event ("+tokenTypeDesc(mCurrToken)+")");
     }
 
-    private void throwNotTextXxx(int type)
-    {
-        throw new IllegalStateException("getTextXxx() methods can not be called on "
-                                        +tokenTypeDesc(mCurrToken));
+    private void throwNotTextXxx(int type) {
+        throw new IllegalStateException("getTextXxx() methods can not be called on "+tokenTypeDesc(mCurrToken));
     }
 
-    protected void throwNotTextualOrElem(int type)
-    {
+    protected void throwNotTextualOrElem(int type) {
         throw new IllegalStateException(MessageFormat.format(ErrorConsts.ERR_STATE_NOT_ELEM_OR_TEXT, new Object[] { tokenTypeDesc(type) }));
     }
 
@@ -5527,25 +5516,21 @@ public abstract class BasicStreamReader
     /**
      * Method called when we get an EOF within content tree
      */
-    protected void throwUnexpectedEOF()
-        throws WstxException
-    {
+    protected void throwUnexpectedEOF() throws WstxException {
         throwUnexpectedEOF("; was expecting a close tag for element <"+mElementStack.getTopElementDesc()+">");
     }
 
     /**
      * Method called to report a problem with 
      */
-    protected XMLStreamException _constructUnexpectedInTyped(int nextToken)
-    {
+    protected XMLStreamException _constructUnexpectedInTyped(int nextToken) {
         if (nextToken == START_ELEMENT) {
             return _constructTypeException("Element content can not contain child START_ELEMENT when using Typed Access methods", null);
         }
         return _constructTypeException("Expected a text token, got "+tokenTypeDesc(nextToken), null);
     }
 
-    protected TypedXMLStreamException _constructTypeException(String msg, String lexicalValue)
-    {
+    protected TypedXMLStreamException _constructTypeException(String msg, String lexicalValue) {
         return new TypedXMLStreamException(lexicalValue, msg, getStartLocation());
     }
 
@@ -5555,9 +5540,7 @@ public abstract class BasicStreamReader
      * level since some such problems need to be caught at low-level;
      * however, details of error reports are not needed here.
      */
-    protected void reportInvalidContent(int evtType)
-        throws XMLStreamException
-    {
+    protected void reportInvalidContent(int evtType) throws XMLStreamException {
         // should never happen; sub-class has to override:
         throwParseError("Internal error: sub-class should override method");
     }
