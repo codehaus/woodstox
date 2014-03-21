@@ -89,8 +89,7 @@ public abstract class BaseWstxTest
         return (WstxInputFactory) getInputFactory();
     }
 
-    protected static XMLInputFactory2 getNewInputFactory()
-    {
+    protected static XMLInputFactory2 getNewInputFactory() {
         return new WstxInputFactory();
     }
 
@@ -106,8 +105,7 @@ public abstract class BaseWstxTest
         return (WstxOutputFactory) getOutputFactory();
     }
 
-    protected static XMLOutputFactory2 getNewOutputFactory()
-    {
+    protected static XMLOutputFactory2 getNewOutputFactory() {
         return new WstxOutputFactory();
     }
 

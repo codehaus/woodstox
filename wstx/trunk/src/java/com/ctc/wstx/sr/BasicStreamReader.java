@@ -481,7 +481,7 @@ public abstract class BasicStreamReader
         mAttrCollector = elemStack.getAttrCollector();
 
         // And finally, location information may have offsets:
-        input.initInputLocation(this, mCurrDepth);
+        input.initInputLocation(this, mCurrDepth, 0);
 
         elemStack.connectReporter(this);
         mReturnNullForDefaultNamespace = mConfig.returnNullForDefaultNamespace();
@@ -705,9 +705,7 @@ public abstract class BasicStreamReader
                 if (mTokenState < mStTextThreshold) {
                     finishToken(false);
                 }
-                if (sb.length() > mConfig.getMaxTextLength()) {
-                    mPendingException = throwWfcException("Text size limit ("+mConfig.getMaxTextLength()+") exceeded", false);
-                }
+                verifyLimit("Text size", mConfig.getMaxTextLength(), sb.length());
                 mTextBuffer.contentsToStringBuilder(sb);
                 continue;
             }
@@ -1097,10 +1095,8 @@ public abstract class BasicStreamReader
                   } else if (type == SPACE) {
                   //if (mValidateText) { throw new IllegalStateException("Internal error: trying to validate SPACE event"); }
                   */
-                this.mCurrTextLength += mTextBuffer.size();
-                if (mCurrTextLength > mConfig.getMaxTextLength()) {
-                    mPendingException = throwWfcException("Text size limit ("+mConfig.getMaxTextLength()+") exceeded", false);
-                }
+                mCurrTextLength += mTextBuffer.size();
+                verifyLimit("Text size", mConfig.getMaxTextLength(), mCurrTextLength);
             } else if (type == CHARACTERS) {
                 if (mValidateText) {
                     /* We may be able to determine that there will be
@@ -1119,10 +1115,8 @@ public abstract class BasicStreamReader
                         mElementStack.validateText(mTextBuffer, false);
                     }
                 }
-                this.mCurrTextLength += mTextBuffer.size();
-                if (mCurrTextLength > mConfig.getMaxTextLength()) {
-                    mPendingException = throwWfcException("Text size limit ("+mConfig.getMaxTextLength()+") exceeded", false);
-                }
+                mCurrTextLength += mTextBuffer.size();
+                verifyLimit("Text size", mConfig.getMaxTextLength(), mCurrTextLength);
             } else if (type == START_ELEMENT || type == END_ELEMENT) {
                 this.mCurrTextLength = 0;
             }
@@ -1162,7 +1156,15 @@ public abstract class BasicStreamReader
                 continue;
             case CDATA:
             case CHARACTERS:
-                if (isWhiteSpace()) {
+                // inlined version of "isWhiteSpace()", so that exceptions can be passed as-is
+                // without suppression
+                if (mTokenState < mStTextThreshold) {
+                    finishToken(false);
+                }
+                if (mWsStatus == ALL_WS_UNKNOWN) {
+                    mWsStatus = mTextBuffer.isAllWhitespace() ? ALL_WS_YES : ALL_WS_NO;
+                }
+                if (mWsStatus == ALL_WS_YES) {
                     continue;
                 }
                 throwParseError("Received non-all-whitespace CHARACTERS or CDATA event in nextTag().");
@@ -1939,9 +1941,7 @@ public abstract class BasicStreamReader
 
             // Ok, let's just add char in, whatever it was
             if (outPtr >= outLen) {
-                if (tb.getCharSize() >= mConfig.getMaxAttributeSize()) {
-                    throwParseError("Maximum attribute size ("+mConfig.getMaxAttributeSize()+") exceeded");
-                }
+                verifyLimit("Maximum attribute size", mConfig.getMaxAttributeSize(), tb.getCharSize());
                 outBuf = tb.bufferFull(1);
                 outLen = outBuf.length;
             }
@@ -3464,21 +3464,24 @@ public abstract class BasicStreamReader
         int count = 0;
         while (true) {
             char c;
-            do {
-                c = (mInputPtr < mInputEnd)
-                    ? mInputBuffer[mInputPtr++] : getNextCharFromCurrent(errorMsg);
+            while (true) {
+                if (mInputPtr >= mInputEnd) {
+                    verifyLimit("Text size", mConfig.getMaxTextLength(), count);
+                    c = getNextCharFromCurrent(errorMsg);
+                } else {
+                    c =  mInputBuffer[mInputPtr++];
+                }
                 if (c < CHAR_SPACE) {
                     if (c == '\n' || c == '\r') {
                         skipCRLF(c);
                     } else if (c != '\t') {
                         throwInvalidSpace(c);
                     }
+                } else if (c == endChar) {
+                    break;
                 }
                 ++count;
-                if (count > mConfig.getMaxTextLength()) {
-                    mPendingException = throwWfcException("Text size limit ("+mConfig.getMaxTextLength()+") exceeded", false);
-                }
-            } while (c != endChar);
+            }
 
             // Now, we may be getting end mark; first need second marker char:.
             c = getNextChar(errorMsg);
@@ -3509,7 +3512,6 @@ public abstract class BasicStreamReader
                     throwInvalidSpace(c);
                 }
             }
-
             // Let's continue from beginning, then
         }
     }
@@ -3609,9 +3611,7 @@ public abstract class BasicStreamReader
 
             }
             ++count;
-            if (count > mConfig.getMaxTextLength()) {
-                mPendingException = throwWfcException("Text size limit ("+mConfig.getMaxTextLength()+") exceeded", false);
-            }
+            verifyLimit("Text size", mConfig.getMaxTextLength(), count);
 
             // Hmmh... let's do quick looping here:
             while (mInputPtr < mInputEnd) {
@@ -3886,9 +3886,7 @@ public abstract class BasicStreamReader
                 outBuf = mTextBuffer.finishCurrentSegment();
                 outLen = outBuf.length;
                 outPtr = 0;
-                if (mTextBuffer.size() > mConfig.getMaxTextLength()) {
-                    mPendingException = throwWfcException("Text size limit ("+mConfig.getMaxTextLength()+") exceeded", false);
-                }
+                verifyLimit("Text size", mConfig.getMaxTextLength(), mTextBuffer.size());
             }
             // Ok, let's add char to output:
             outBuf[outPtr++] = c;
@@ -4765,14 +4763,11 @@ public abstract class BasicStreamReader
             if (outPtr >= outBuf.length) {
                 if ((outBuf = _expandOutputForText(inputPtr, outBuf, shortestSegment)) == null) { // got enough, leave
                     return false;
-                } else if (mTextBuffer.size() > mConfig.getMaxTextLength()) {
-                    mPendingException = throwWfcException("Text size limit ("+mConfig.getMaxTextLength()+") exceeded", deferErrors);
-                    return false;
                 }
+                verifyLimit("Text size", mConfig.getMaxTextLength(), mTextBuffer.size());
                 outPtr = 0;
             }
         }
-
         mTextBuffer.setCurrentLength(outPtr);
         return true;
     }
