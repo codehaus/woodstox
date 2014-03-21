@@ -261,10 +261,19 @@ public abstract class StreamScanner
      * indicates what was the depth at the point where the currently active
      * input scope/block was started.
      */
-    protected int mCurrDepth = 0;
+    protected int mCurrDepth;
 
-    protected int mInputTopDepth = 0;
+    protected int mInputTopDepth;
 
+    /**
+     * Number of times a parsed general entity has been expanded; used for
+     * (optionally) limiting number of expansion to guard against
+     * denial-of-service attacks like "Billion Laughs".
+     * 
+     * @since 4.3
+     */
+    protected int mEntityExpansionCount;
+    
     /**
      * Flag that indicates whether linefeeds in the input data are to
      * be normalized or not.
@@ -1674,7 +1683,7 @@ public abstract class StreamScanner
                                 id, XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES);
             }
         }
-
+        verifyLimit("Maximum entity expansion count", mConfig.getMaxEntityCount(), ++mEntityExpansionCount);
         // First, let's give current context chance to save its stuff
         WstxInputSource oldInput = mInput;
         oldInput.saveContext(this);

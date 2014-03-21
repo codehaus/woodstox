@@ -56,4 +56,54 @@ public class TestEntityLimits
         }
         sr.close();
     }
+
+    public void testMaxEntityExpansionCount() throws XMLStreamException
+    {
+        String XML = "<!DOCTYPE root [\n"
+                +" <!ENTITY top '&middle; &middle; &middle; &middle;'>\n"
+                +" <!ENTITY middle '&bottom; &bottom; &bottom; &bottom;'>\n"
+                +" <!ENTITY bottom 'yay!'>\n"
+                +"]><root>&top;</root>"
+               ;
+        
+        // expands to 16 segments, via 21 expansions (1 -> 4 -> 16)
+
+        // fine with default settings
+        XMLInputFactory f = getNewInputFactory();
+        setCoalescing(f, true);
+        XMLStreamReader sr = f.createXMLStreamReader(new StringReader(XML));
+        assertTokenType(DTD, sr.next());
+        assertTokenType(START_ELEMENT, sr.next());
+        assertTokenType(CHARACTERS, sr.next());
+        assertTokenType(END_ELEMENT, sr.next());
+        sr.close();
+
+        // and with max set to 21 expansions
+        f.setProperty(WstxInputProperties.P_MAX_ENTITY_COUNT, Integer.valueOf(21));
+        sr = f.createXMLStreamReader(new StringReader(XML));
+        assertTokenType(DTD, sr.next());
+        assertTokenType(START_ELEMENT, sr.next());
+        assertTokenType(CHARACTERS, sr.next());
+        sr.getText();
+        assertTokenType(END_ELEMENT, sr.next());
+        sr.close();
+
+        // but not with one less
+        f.setProperty(WstxInputProperties.P_MAX_ENTITY_COUNT, Integer.valueOf(20));
+        sr = f.createXMLStreamReader(new StringReader(XML));
+        assertTokenType(DTD, sr.next());
+        assertTokenType(START_ELEMENT, sr.next());
+        try {
+            sr.next();
+            assertTokenType(CHARACTERS, sr.getEventType());
+            // may require either reading of content (getText()) or advancing to next;
+            // in former case, will get lazily thrown exception unfortunately so:
+            sr.next();
+            fail("Should have failed with entity count limit extension");
+        } catch (XMLStreamException e) {
+            verifyException(e, "Maximum entity expansion count");
+        }
+        sr.close();
+    }
+
 }
