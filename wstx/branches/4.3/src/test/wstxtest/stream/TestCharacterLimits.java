@@ -30,9 +30,10 @@ public class TestCharacterLimits
             System.out.println(xmlreader.getElementText());
             fail("Should have failed");
         } catch (XMLStreamException ex) {
-            //expected
+            _verifyTextLimitException(ex);
         }
     }
+    
     public void testLongElementText() throws Exception {
         try {
             Reader reader = createLongReader("", "", false);
@@ -46,7 +47,7 @@ public class TestCharacterLimits
             }
             fail("Should have failed");
         } catch (XMLStreamException ex) {
-            //expected
+            _verifyTextLimitException(ex);
         }
     }    
     public void testLongWhitespaceNextTag() throws Exception {
@@ -60,7 +61,7 @@ public class TestCharacterLimits
             xmlreader.nextTag();
             fail("Should have failed");
         } catch (XMLStreamException ex) {
-            //expected
+            _verifyTextLimitException(ex);
         }
     }
         
@@ -77,10 +78,9 @@ public class TestCharacterLimits
             }
             fail("Should have failed");
         } catch (XMLStreamException ex) {
-            //expected
+            _verifyTextLimitException(ex);
         }
     }
-    
     
     public void testLongCDATA() throws Exception {
         try {
@@ -95,7 +95,7 @@ public class TestCharacterLimits
             }
             fail("Should have failed");
         } catch (XMLStreamException ex) {
-            //expected
+            _verifyTextLimitException(ex);
         }
     }
     public void testLongCDATANextTag() throws Exception {
@@ -109,7 +109,7 @@ public class TestCharacterLimits
             xmlreader.nextTag();
             fail("Should have failed");
         } catch (XMLStreamException ex) {
-            //expected
+            _verifyTextLimitException(ex);
         }
     }
     public void testLongComment() throws Exception {
@@ -122,8 +122,8 @@ public class TestCharacterLimits
             }
             System.out.println(xmlreader.getText());
             fail("Should have failed");
-        } catch (WstxLazyException ex) {
-            //expected
+        } catch (Exception ex) {
+            _verifyTextLimitException(ex);
         }
     }
     public void testLongComment2() throws Exception {
@@ -136,8 +136,8 @@ public class TestCharacterLimits
             }
             System.out.println(new String(xmlreader.getTextCharacters()));
             fail("Should have failed");
-        } catch (WstxLazyException ex) {
-            //expected
+        } catch (Exception ex) {
+            _verifyTextLimitException(ex);
         }
     }
     public void testLongCommentNextTag() throws Exception {
@@ -151,7 +151,7 @@ public class TestCharacterLimits
             xmlreader.nextTag();
             fail("Should have failed");
         } catch (XMLStreamException ex) {
-            //expected
+            _verifyTextLimitException(ex);
         }
     }
     
@@ -167,7 +167,7 @@ public class TestCharacterLimits
             xmlreader.nextTag();
             fail("Should have failed");
         } catch (XMLStreamException ex) {
-            //expected
+            _verifyTextLimitException(ex);
         }
     }
 
@@ -183,41 +183,7 @@ public class TestCharacterLimits
             xmlreader.nextTag();
             fail("Should have failed");
         } catch (XMLStreamException ex) {
-            //expected
-        }
-    }
-
-    public void testLongAttribute() throws Exception {
-        final int max = 500;
-        Reader reader = new Reader() {
-            StringReader sreader = new StringReader("<ns:element xmlns:ns=\"http://foo.com\" blah=\"");
-            int count;
-            boolean done;
-            public int read(char[] cbuf, int off, int len) throws IOException {
-                int i = sreader.read(cbuf, off, len);
-                if (i == -1) {
-                    if (count < max) {
-                        sreader = new StringReader("          ");
-                        count++;
-                    } else if (!done) {
-                        sreader = new StringReader("\"/>");
-                        done = true;
-                    }
-                    i = sreader.read(cbuf, off, len);
-                }
-                return i;
-            }
-            public void close() throws IOException { }
-        };
-        try {
-            XMLInputFactory factory = getNewInputFactory();
-            factory.setProperty("com.ctc.wstx.maxAttributeSize", Integer.valueOf(100));
-            XMLStreamReader xmlreader = factory.createXMLStreamReader(reader);
-            while (xmlreader.next() != XMLStreamReader.END_DOCUMENT) {
-            }
-            fail("Should have failed");
-        } catch (XMLStreamException ex) {
-            //expected
+            _verifyTextLimitException(ex);
         }
     }
     
@@ -255,4 +221,8 @@ public class TestCharacterLimits
         };
     }
 
+    private void _verifyTextLimitException(Exception ex) {
+        verifyException(ex, "Text size limit");
+        verifyException(ex, "exceeded");
+    }
 }

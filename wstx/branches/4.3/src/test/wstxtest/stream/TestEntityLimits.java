@@ -4,10 +4,7 @@ import java.io.StringReader;
 
 import javax.xml.stream.*;
 
-import org.codehaus.stax2.DTDInfo;
-
 import com.ctc.wstx.api.WstxInputProperties;
-import com.ctc.wstx.sr.BasicStreamReader;
 
 /**
  * Tests that verify that it is possible to limit aspects of general parsed
