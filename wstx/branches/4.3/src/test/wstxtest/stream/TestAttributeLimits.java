@@ -8,13 +8,15 @@ import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
+import com.ctc.wstx.api.WstxInputProperties;
+
 public class TestAttributeLimits extends BaseStreamTest
 {
     public void testMaxAttributesLimit() throws Exception
     {
         final int max = 100;
         XMLInputFactory factory = getNewInputFactory();
-        factory.setProperty("com.ctc.wstx.maxAttributesPerElement", Integer.valueOf(50));
+        factory.setProperty(WstxInputProperties.P_MAX_ATTRIBUTES_PER_ELEMENT, Integer.valueOf(50));
         Reader reader = new Reader() {
             StringReader sreader = new StringReader("<ns:element xmlns:ns=\"http://foo.com\"");
             int count;
@@ -68,7 +70,7 @@ public class TestAttributeLimits extends BaseStreamTest
         };
         try {
             XMLInputFactory factory = getNewInputFactory();
-            factory.setProperty("com.ctc.wstx.maxAttributeSize", Integer.valueOf(100));
+            factory.setProperty(WstxInputProperties.P_MAX_ATTRIBUTE_SIZE, Integer.valueOf(100));
             XMLStreamReader xmlreader = factory.createXMLStreamReader(reader);
             while (xmlreader.next() != XMLStreamReader.END_DOCUMENT) {
             }
