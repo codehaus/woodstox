@@ -125,7 +125,7 @@ public final class WstxInputProperties
      *<p>
      * Note: not implemented by Woodstox.
      * 
-     * @deprecated Never implement, let's phase this out
+     * @deprecated Never implement, let's phase this out (deprecated in 4.2)
      */
     public final static String P_SUPPORT_DTDPP = "com.ctc.wstx.supportDTDPP";
     
@@ -170,25 +170,63 @@ public final class WstxInputProperties
      */
     public final static String P_MIN_TEXT_SEGMENT = "com.ctc.wstx.minTextSegment";
     
-    // // // Other size constraints
+    // // // Other size constraints (4.2+)
 
+    /**
+     * Maximum number of attributes allowed for single XML element.
+     * @since 4.2
+     */
     public final static String P_MAX_ATTRIBUTES_PER_ELEMENT = "com.ctc.wstx.maxAttributesPerElement";
+
+    /**
+     * Maximum length of of individual attribute values (in characters)
+     * @since 4.2
+     */
     public final static String P_MAX_ATTRIBUTE_SIZE = "com.ctc.wstx.maxAttributeSize";
+
+    /**
+     * Maximum number of child elements for any given element.
+     * @since 4.2
+     */
     public final static String P_MAX_CHILDREN_PER_ELEMENT = "com.ctc.wstx.maxChildrenPerElement";
+
+    /**
+     * Maximum number of all elements in a single document.
+     * @since 4.2
+     */
     public final static String P_MAX_ELEMENT_COUNT = "com.ctc.wstx.maxElementCount";
+
+    /**
+     * Maximum level of nesting of XML elements, starting with root element.
+     * @since 4.2
+     */
     public final static String P_MAX_ELEMENT_DEPTH = "com.ctc.wstx.maxElementDepth";
+
+    /**
+     * Maximum length of input document, in characters.
+     * @since 4.2
+     */
     public final static String P_MAX_CHARACTERS = "com.ctc.wstx.maxCharacters";
+
+    /**
+     * Maximum length of individual text (cdata) segments in input, in characters.
+     * @since 4.2
+     */
     public final static String P_MAX_TEXT_LENGTH = "com.ctc.wstx.maxTextLength";
 
-    // and with 4.2.1, these too
+    // and more size constraints (4.3+)
 
     /**
      * Maximum number of total (general parsed) entity expansions within input.
+     * 
+     * @since 4.3
      */
     public final static String P_MAX_ENTITY_COUNT = "com.ctc.wstx.maxEntityCount";
 
     /**
      * Maximum depth of nested (general parsed) entity expansions.
+     * 
+     * @since 4.3
      */
     public final static String P_MAX_ENTITY_DEPTH = "com.ctc.wstx.maxEntityDepth";
 

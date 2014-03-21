@@ -16,9 +16,9 @@ public abstract class BaseStreamTest
     protected BaseStreamTest() { super(); } 
 
     /*
-    //////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // "Special" accessors
-    //////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
 
     /**
@@ -53,42 +53,10 @@ public abstract class BaseStreamTest
     }
 
     /*
-    //////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
     // Higher-level test methods
-    //////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
      */
-
-    /**
-     * Method that will iterate through contents of an XML document
-     * using specified stream reader; will also access some of data
-     * to make sure reader reads most of lazy-loadable data.
-     * Method is usually called to try to get an exception for invalid
-     * content.
-     *
-     * @return Dummy value calculated on contents; used to make sure
-     *   no dead code is eliminated
-     */
-    protected int streamThrough(XMLStreamReader sr)
-        throws XMLStreamException
-    {
-        int result = 0;
-
-        while (sr.hasNext()) {
-            int type = sr.next();
-            result += type;
-            if (sr.hasText()) {
-                /* will also do basic verification for text content, to 
-                 * see that all text accessor methods return same content
-                 */
-                result += sr.getText().hashCode();
-            }
-            if (sr.hasName()) {
-                result += sr.getName().hashCode();
-            }
-        }
-
-        return result;
-    }
 
     protected int streamAndCheck(XMLInputFactory f, InputConfigIterator it,
                                  String input, String expOutput,

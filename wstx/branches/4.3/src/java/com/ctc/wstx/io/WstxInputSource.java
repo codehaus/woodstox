@@ -50,6 +50,13 @@ public abstract class WstxInputSource
      */
     protected int mScopeId = 0;
 
+    /**
+     * Number of parent entities that have been expanded to get to this
+     * input source; 0 for root-level input that is not generated via
+     * entity expansion.
+     */
+    protected int mEntityDepth;
+    
     /*
     //////////////////////////////////////////////////////////
     // Life-cycle:
@@ -135,6 +142,8 @@ public abstract class WstxInputSource
 
     public int getScopeId() { return mScopeId; }
 
+    public int getEntityDepth() { return mEntityDepth; }
+    
     /*
     //////////////////////////////////////////////////////////
     // Actual input handling
@@ -150,8 +159,10 @@ public abstract class WstxInputSource
      *   returning data read
      * @param currScopeId
      */
-    public final void initInputLocation(WstxInputData reader, int currScopeId) {
+    public final void initInputLocation(WstxInputData reader, int currScopeId,
+            int entityDepth) {
         mScopeId = currScopeId;
+        mEntityDepth = entityDepth;
         doInitInputLocation(reader);
     }
 

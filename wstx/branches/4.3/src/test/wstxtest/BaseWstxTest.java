@@ -89,9 +89,8 @@ public abstract class BaseWstxTest
         return (WstxInputFactory) getInputFactory();
     }
 
-    protected static XMLInputFactory2 getNewInputFactory()
-    {
-        return (XMLInputFactory2) XMLInputFactory.newInstance();
+    protected static XMLInputFactory2 getNewInputFactory() {
+        return new WstxInputFactory();
     }
 
     protected XMLOutputFactory2 getOutputFactory()
@@ -106,9 +105,8 @@ public abstract class BaseWstxTest
         return (WstxOutputFactory) getOutputFactory();
     }
 
-    protected static XMLOutputFactory2 getNewOutputFactory()
-    {
-        return (XMLOutputFactory2) XMLOutputFactory.newInstance();
+    protected static XMLOutputFactory2 getNewOutputFactory() {
+        return new WstxOutputFactory();
     }
 
     protected static XMLStreamReader2 constructStreamReader(XMLInputFactory f, String content)

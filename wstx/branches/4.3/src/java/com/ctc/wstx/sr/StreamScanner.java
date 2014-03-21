@@ -54,7 +54,6 @@ import com.ctc.wstx.util.TextBuffer;
  * Abstract base class that defines some basic functionality that all
  * Woodstox reader classes (main XML reader, DTD reader) extend from.
  */
-
 public abstract class StreamScanner
     extends WstxInputData
     implements InputProblemReporter,
@@ -945,7 +944,6 @@ public abstract class StreamScanner
                                    String entityId)
         throws XMLStreamException
     {
-        mInput = newInput;
         // Let's make sure new input will be read next time input is needed:
         mInputPtr = 0;
         mInputEnd = 0;
@@ -953,7 +951,12 @@ public abstract class StreamScanner
          * error reporting etc.
          */
         mInputTopDepth = mCurrDepth;
-        mInput.initInputLocation(this, mCurrDepth);
+
+        // [WSTX-296]: Check for entity expansion depth against configurable limit
+        int entityDepth = mInput.getEntityDepth() + 1;
+        verifyLimit("Maximum entity expansion depth", mConfig.getMaxEntityDepth(), entityDepth);
+        mInput = newInput;
+        mInput.initInputLocation(this, mCurrDepth, entityDepth);
 
         /* 21-Feb-2006, TSa: Linefeeds are NOT normalized when expanding
          *   internal entities (XML, 2.11)
@@ -982,9 +985,7 @@ public abstract class StreamScanner
              * are still known.
              */
             mCurrInputProcessed += mInputEnd;
-            if (mCurrInputProcessed > mConfig.getMaxCharacters()) {
-                throw new XMLStreamException("Character limit ("+mConfig.getMaxCharacters()+") exceeded");
-            }
+            verifyLimit("Maximum document characters", mConfig.getMaxCharacters(), mCurrInputProcessed);
             mCurrInputRowStart -= mInputEnd;
             int count;
             try {
@@ -1045,9 +1046,7 @@ public abstract class StreamScanner
         // Need to update offsets properly
         mCurrInputProcessed += mInputEnd;
         mCurrInputRowStart -= mInputEnd;
-        if (mCurrInputProcessed > mConfig.getMaxCharacters()) {
-            throw new XMLStreamException("Character limit ("+mConfig.getMaxCharacters()+") exceeded");
-        }
+        verifyLimit("Maximum document characters", mConfig.getMaxCharacters(), mCurrInputProcessed);
         try {
             int count = mInput.readInto(this);
             return (count > 0);
@@ -2445,5 +2444,19 @@ public abstract class StreamScanner
         throws XMLStreamException
     {
         throwParseError("Illegal character entity: expansion character (code 0x{0}", Integer.toHexString(value), null);
+    }
+
+    protected void verifyLimit(String type, long maxValue, long currentValue)
+        throws XMLStreamException
+    {
+        if (currentValue > maxValue) {
+            throw constructLimitViolation(type, maxValue);
+        }
+    }
+
+    protected XMLStreamException constructLimitViolation(String type, long limit)
+        throws XMLStreamException
+    {
+        return new XMLStreamException(type+" limit ("+limit+") exceeded");
     }
 }
