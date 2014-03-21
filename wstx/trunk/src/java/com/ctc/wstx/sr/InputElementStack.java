@@ -326,10 +326,10 @@ public final class InputElementStack
     public final void push(String prefix, String localName) throws XMLStreamException
     {
         if (++mDepth > mConfig.getMaxElementDepth()) {
-            throw new XMLStreamException("Maximum Element Depth ("+mConfig.getMaxElementDepth()+") Exceeded");
+            throw new XMLStreamException("Maximum Element Depth limit ("+mConfig.getMaxElementDepth()+") Exceeded");
         }
         if (++mTotalElements > mConfig.getMaxElementCount()) {
-            throw new XMLStreamException("Maximum Element Count ("+mConfig.getMaxElementCount()+") Exceeded");
+            throw new XMLStreamException("Maximum Element Count limit ("+mConfig.getMaxElementCount()+") Exceeded");
         }
         String defaultNs = (mCurrElement == null) ?
             XmlConsts.DEFAULT_NAMESPACE_URI : mCurrElement.mDefaultNsURI;
@@ -337,7 +337,7 @@ public final class InputElementStack
             ++mCurrElement.mChildCount;
             final int max = mConfig.getMaxChildrenPerElement();
             if (max > 0 && mCurrElement.mChildCount > max) {
-                throw new XMLStreamException("Maximum Number of Children Elements ("+max+") Exceeded");
+                throw new XMLStreamException("Maximum Number of Child Elements limit ("+max+") Exceeded");
             }
         }
 
