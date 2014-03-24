@@ -1,5 +1,7 @@
 Project: Woodstox XML processor
-Version: 4.3.0 (xx-xxx-2014)
+Version: 4.3.0 (23-Mar-2014)
+
+New features:
 
 * [WSTX-296]: Add settings to limit count/depth of parsed entity expansion
 
@@ -121,7 +123,7 @@ Problems fixed:
 
   * [WSTX-206] Provide a way to configure SAX parser with all config
     settings available to Stax readers (add WstxSAXParser.getStaxConfig())
-   (suggested by StŽphane C)
+   (suggested by StÂŽphane C)
   * [WSTX-234] Restore feature WstxInputProperties.NORMALIZE_LFS; add
     WstxInputProperties.TREAT_CHAR_REFS_AS_ENTS
    (requested by Peter S)
