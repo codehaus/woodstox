@@ -162,7 +162,6 @@ public final class WstxInputProperties
 
     // // // Constraints on sizes of text segments parsed:
 
-
     /**
      * Property to specify shortest non-complete text segment (part of
      * CDATA section or text content) that parser is allowed to return,
