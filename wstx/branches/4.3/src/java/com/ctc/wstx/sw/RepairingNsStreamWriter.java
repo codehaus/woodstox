@@ -382,7 +382,7 @@ public final class RepairingNsStreamWriter
         /* And then let's just output attributes, if any (whether to copy
          * implicit, aka "default" attributes, is configurable)
          */
-        int attrCount = mCfgCopyDefaultAttrs ? ac.getCount() :  ac.getSpecifiedCount();
+        int attrCount = mConfig.willCopyDefaultAttrs() ? ac.getCount() :  ac.getSpecifiedCount();
 
         /* Unlike in non-ns and simple-ns modes, we can not simply literally
          * copy the attributes here. It is possible that some namespace

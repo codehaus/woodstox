@@ -189,12 +189,16 @@ public abstract class BaseWstxTest
                       Boolean.valueOf(state));
     }
 
-    protected static void setValidateStructure(XMLOutputFactory f, boolean state)
-    {
+    protected static void setValidateStructure(XMLOutputFactory f, boolean state) {
         f.setProperty(WstxOutputProperties.P_OUTPUT_VALIDATE_STRUCTURE,
                       Boolean.valueOf(state));
     }
 
+    protected static void setValidateStructure(XMLStreamWriter2 w, boolean state) {
+        w.setProperty(WstxOutputProperties.P_OUTPUT_VALIDATE_STRUCTURE,
+                      Boolean.valueOf(state));
+    }
+    
     protected static void setValidateContent(XMLOutputFactory f, boolean state)
     {
         f.setProperty(WstxOutputProperties.P_OUTPUT_VALIDATE_CONTENT,

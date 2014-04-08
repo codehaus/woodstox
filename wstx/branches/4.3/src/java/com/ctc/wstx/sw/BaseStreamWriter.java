@@ -109,14 +109,11 @@ public abstract class BaseStreamWriter
 
     protected final WriterConfig mConfig;
 
-    // // // Specialized configuration flags, extracted from config flags:
+    // // // Specialized configuration flags, extracted from config.
+    // NOTE: can not be final, may be enabled when schema (etc) validation enabled,
+    // or when 'setProperty()' is called
 
-    protected final boolean mCfgCDataAsText;
-    protected final boolean mCfgCopyDefaultAttrs;
-    protected final boolean mCfgAutomaticEmptyElems;
-
-    // NOTE: can not be final, may be enabled when schema (etc) validation enabled
-
+    protected boolean mCfgAutomaticEmptyElems;
     protected boolean mCheckStructure;
     protected boolean mCheckAttrs;
 
@@ -222,10 +219,7 @@ public abstract class BaseStreamWriter
 
         mCheckStructure = (flags & OutputConfigFlags.CFG_VALIDATE_STRUCTURE) != 0;
         mCheckAttrs = (flags & OutputConfigFlags.CFG_VALIDATE_ATTR) != 0;
-
         mCfgAutomaticEmptyElems = (flags & OutputConfigFlags.CFG_AUTOMATIC_EMPTY_ELEMENTS) != 0;
-        mCfgCDataAsText = (flags & OutputConfigFlags.CFG_OUTPUT_CDATA_AS_TEXT) != 0;
-        mCfgCopyDefaultAttrs = (flags & OutputConfigFlags.CFG_COPY_DEFAULT_ATTRS) != 0;
         
         mReturnNullForDefaultNamespace = mConfig.returnNullForDefaultNamespace();
     }
@@ -308,7 +302,9 @@ public abstract class BaseStreamWriter
          *   writes as normal text? (sometimes useful to deal with broken
          *   XML parsers, for example)
          */
-        if (mCfgCDataAsText) {
+        //        mCfgCDataAsText = (flags & OutputConfigFlags.CFG_OUTPUT_CDATA_AS_TEXT) != 0;
+
+        if (mConfig.willOutputCDataAsText()) {
             writeCharacters(data);
             return;
         }
@@ -785,7 +781,7 @@ public abstract class BaseStreamWriter
             case CDATA:
 
                 // First; is this to be changed to 'normal' text output?
-                if (!mCfgCDataAsText) {
+                if (!mConfig.willOutputCDataAsText()) {
                     mAnyOutput = true;
                     // Need to finish an open start element?
                     if (mStartElementOpen) {
@@ -917,7 +913,26 @@ public abstract class BaseStreamWriter
         /* Note: can not call local method, since it'll return false for
          * recognized but non-mutable properties
          */
-        return mConfig.setProperty(name, value);
+        /* 08-Apr-2014, tatu: Need to be able to explicitly enable/disable
+         *   various config flags.
+         */
+        int oldFlags = mConfig.getConfigFlags();
+        boolean wasChanged = mConfig.setProperty(name, value);
+        int newFlags = mConfig.getConfigFlags();
+
+        int changes = oldFlags ^ newFlags;
+        if (changes != 0) {
+            if ((changes & OutputConfigFlags.CFG_VALIDATE_STRUCTURE) != 0) {    
+                mCheckStructure = (newFlags & OutputConfigFlags.CFG_VALIDATE_STRUCTURE) != 0;
+            }
+            if ((changes & OutputConfigFlags.CFG_VALIDATE_ATTR) != 0) {    
+                mCheckAttrs = (newFlags & OutputConfigFlags.CFG_VALIDATE_ATTR) != 0;
+            }
+            if ((changes & OutputConfigFlags.CFG_AUTOMATIC_EMPTY_ELEMENTS) != 0) {    
+                mCfgAutomaticEmptyElems = (newFlags & OutputConfigFlags.CFG_AUTOMATIC_EMPTY_ELEMENTS) != 0;
+            }
+        }
+        return wasChanged;
     }
 
     public XMLValidator validateAgainst(XMLValidationSchema schema)
@@ -1016,7 +1031,7 @@ public abstract class BaseStreamWriter
          *   writes as normal text? (sometimes useful to deal with broken
          *   XML parsers, for example)
          */
-        if (mCfgCDataAsText) {
+        if (mConfig.willOutputCDataAsText()) {
             writeCharacters(cbuf, start, len);
             return;
         }

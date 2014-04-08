@@ -6,6 +6,8 @@ import javax.xml.stream.*;
 
 import org.codehaus.stax2.*;
 
+import com.ctc.wstx.api.WstxOutputProperties;
+
 /**
  * This unit test suite verifies that output-side content validation
  * works as expected, when enabled.
@@ -63,7 +65,7 @@ public class TestStructuralValidation
                             failMsg = "when calling writeEntityRef()";
                             sw.writeEntityRef("entity");
                         default:
-                            throw new Error("Internal error: illegal test index "+op);
+                            fail("Internal error: illegal test index "+op);
                         }
                     } catch (XMLStreamException sex) {
                         // good
@@ -126,22 +128,33 @@ public class TestStructuralValidation
     // @since 4.3
     public void testRelaxedRootElementChecksNoRoot() throws XMLStreamException
     {
+        // First, with factory that is configured:
         XMLOutputFactory2 f = getFactory(0, false);
         StringWriter strw = new StringWriter();
         XMLStreamWriter2 sw = (XMLStreamWriter2) f.createXMLStreamWriter(strw);
         sw.writeStartDocument();
         sw.writeEndDocument();
         sw.close();
-
-        String xml = strw.toString();
-        assertNotNull(xml);
-
         // what to check? Writing of XML declaration is sort of optional...
+        assertNotNull(strw.toString());
+
+        // and then dynamically via stream writer
+        f = getFactory(0, true);
+        assertEquals(Boolean.TRUE, f.getProperty(WstxOutputProperties.P_OUTPUT_VALIDATE_STRUCTURE));
+        strw = new StringWriter();
+        sw = (XMLStreamWriter2) f.createXMLStreamWriter(strw);
+        setValidateStructure(sw, false);        
+        
+        sw.writeStartDocument();
+        sw.writeEndDocument();
+        sw.close();
+        assertNotNull(strw.toString());
     }
 
     // @since 4.3
     public void testRelaxedRootElementChecksTwoRoots() throws XMLStreamException
     {
+        // First, verify with factory default changed:
         XMLOutputFactory2 f = getFactory(0, false);
         StringWriter strw = new StringWriter();
         XMLStreamWriter2 sw = (XMLStreamWriter2) f.createXMLStreamWriter(strw);
@@ -153,6 +166,27 @@ public class TestStructuralValidation
         sw.writeEndDocument();
 
         String xml = strw.toString();
+        assertNotNull(xml);
+
+        if (xml.indexOf("<root1") < 0 || xml.indexOf("<root2") < 0) {
+            fail("Expected to see <root1> and <root2>, didn't: "+xml);
+        }
+
+        // and then dynamically via stream writer
+        f = getFactory(0, true);
+        assertEquals(Boolean.TRUE, f.getProperty(WstxOutputProperties.P_OUTPUT_VALIDATE_STRUCTURE));
+        strw = new StringWriter();
+        sw = (XMLStreamWriter2) f.createXMLStreamWriter(strw);
+        setValidateStructure(sw, false);        
+    
+        sw.writeStartDocument();
+        sw.writeStartElement("root1");
+        sw.writeEndElement();
+        sw.writeStartElement("root2");
+        sw.writeEndElement();
+        sw.writeEndDocument();
+
+        xml = strw.toString();
         assertNotNull(xml);
 
         if (xml.indexOf("<root1") < 0 || xml.indexOf("<root2") < 0) {
@@ -207,7 +241,7 @@ public class TestStructuralValidation
         XMLOutputFactory2 f = getOutputFactory();
         // type 0 -> non-ns, 1 -> ns, non-repairing, 2 -> ns, repairing
         setNamespaceAware(f, type > 0); 
-        setRepairing(f, type > 1); 
+        setRepairing(f, type > 1);
         setValidateStructure(f, checkStruct);
         return f;
     }

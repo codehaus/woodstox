@@ -389,7 +389,7 @@ public class NonNsStreamWriter
         /* And then let's just output attributes, if any (whether to copy
          * implicit, aka "default" attributes, is configurable)
          */
-        int attrCount = mCfgCopyDefaultAttrs ?
+        int attrCount = mConfig.willCopyDefaultAttrs() ?
             attrCollector.getCount() : 
             attrCollector.getSpecifiedCount();
 

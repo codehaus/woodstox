@@ -1,10 +1,11 @@
 Project: Woodstox XML processor
 Version: 4.3.1 (xx-Apr-2014)
 
-New features:
+Fixes:
 
 * Should not fail for missing root element if structural validation
   disabled
+* XMLStreamWriter2.setProperty() not taking effect for all values
 
 ------------------------------------------------------------------------
 == History: ==
@@ -12,11 +13,11 @@ New features:
 
 4.3.0 (23-Mar-2014)
 
+New features:
+
 * [WSTX-296]: Add settings to limit count/depth of parsed entity expansion
 
 4.2.1 (20-Mar-2014)
-
-Fixes:
 
 * [WSTX-272]: BufferingXmlWriter does not escape characters 0x80-0x9F
  (reported by  Przemek Bruski)
