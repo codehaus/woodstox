@@ -481,7 +481,10 @@ public class NonNsStreamWriter
         // Better have something to close... (to figure out what to close)
         if (mState != STATE_TREE) {
             // Have to throw an exception always, don't know elem name
-            reportNwfStructure("No open start element, when trying to write end element");
+            if (mCheckStructure) {
+                reportNwfStructure("No open start element, when trying to write end element");
+            }
+            return;
         }
 
         /* Now, do we have an unfinished start element (created via

@@ -123,6 +123,43 @@ public class TestStructuralValidation
         }
     }
 
+    // @since 4.3
+    public void testRelaxedRootElementChecksNoRoot() throws XMLStreamException
+    {
+        XMLOutputFactory2 f = getFactory(0, false);
+        StringWriter strw = new StringWriter();
+        XMLStreamWriter2 sw = (XMLStreamWriter2) f.createXMLStreamWriter(strw);
+        sw.writeStartDocument();
+        sw.writeEndDocument();
+        sw.close();
+
+        String xml = strw.toString();
+        assertNotNull(xml);
+
+        // what to check? Writing of XML declaration is sort of optional...
+    }
+
+    // @since 4.3
+    public void testRelaxedRootElementChecksTwoRoots() throws XMLStreamException
+    {
+        XMLOutputFactory2 f = getFactory(0, false);
+        StringWriter strw = new StringWriter();
+        XMLStreamWriter2 sw = (XMLStreamWriter2) f.createXMLStreamWriter(strw);
+        sw.writeStartDocument();
+        sw.writeStartElement("root1");
+        sw.writeEndElement();
+        sw.writeStartElement("root2");
+        sw.writeEndElement();
+        sw.writeEndDocument();
+
+        String xml = strw.toString();
+        assertNotNull(xml);
+
+        if (xml.indexOf("<root1") < 0 || xml.indexOf("<root2") < 0) {
+            fail("Expected to see <root1> and <root2>, didn't: "+xml);
+        }
+    }
+    
     public void testWriteElementChecks()
         throws XMLStreamException
     {

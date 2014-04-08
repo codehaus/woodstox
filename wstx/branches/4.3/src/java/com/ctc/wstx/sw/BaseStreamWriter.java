@@ -1385,10 +1385,10 @@ public abstract class BaseStreamWriter
             /* 17-Nov-2008, TSa: that is, if we are allowed to do it
              *   (see [WSTX-165])
              */
-            if (mState != STATE_EPILOG && mConfig.automaticEndElementsEnabled()) {
+            if (mState == STATE_TREE && mConfig.automaticEndElementsEnabled()) {
                 do {
                     writeEndElement();
-                } while (mState != STATE_EPILOG);
+                } while (mState == STATE_TREE);
             }
         }
 
