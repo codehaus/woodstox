@@ -1,4 +1,4 @@
-package wstxtest.msv;
+package failing;
 
 import javax.xml.stream.XMLStreamException;
 
@@ -12,6 +12,10 @@ import wstxtest.vstream.BaseValidationTest;
 public class TestW3CSchemaComplexTypes 
     extends BaseValidationTest
 {
+	/**
+	 * For problem with MSV: https://github.com/kohsuke/msv/issues/2
+	 * 
+	 */
     public void testGithubIssue2() throws Exception
     {
         XMLValidationSchema schema = parseW3CSchema(
