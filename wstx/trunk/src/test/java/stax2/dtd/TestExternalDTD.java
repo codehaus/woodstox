@@ -237,8 +237,10 @@ public class TestExternalDTD
     private File resolveFile(String relName)
         throws IOException
     {
+    	// not good -- fragile... but has to do for now
         File f = new File("src");
         f = new File(f, "test");
+        f = new File(f, "java");
         f = new File(f, "stax2");
         f = new File(f, "stream");
         f = new File(f, relName);

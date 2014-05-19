@@ -111,9 +111,11 @@ public class TestDTD
         throws Exception
     {
         // assuming CWD is the svn root
+    	// 2014-05-19, tatu: Very fragile, should read via resource. But:
         File f = new File("").getAbsoluteFile();
         f = new File(f, "src");
         f = new File(f, "test");
+        f = new File(f, "java");
         f = new File(f, "wstxtest");
         f = new File(f, "empty and spaces.dtd");
 

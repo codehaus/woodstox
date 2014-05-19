@@ -58,16 +58,6 @@
         </license>
     </licenses>
     <build>
-        <sourceDirectory>${basedir}/src/java</sourceDirectory>
-        <testSourceDirectory>${basedir}/src/test</testSourceDirectory>
-        <resources>
-            <resource>
-                <directory>${basedir}/src/resources</directory>
-                <includes>
-                    <include>**/*</include>
-                </includes>
-            </resource>
-        </resources>
         <plugins>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
