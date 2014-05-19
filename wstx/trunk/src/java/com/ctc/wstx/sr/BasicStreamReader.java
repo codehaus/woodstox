@@ -551,7 +551,11 @@ public abstract class BasicStreamReader
          *   of content being parsed.
          */
         if (WstxInputProperties.P_BASE_URL.equals(name)) {
-            return mInput.getSource();
+        	try {
+        		return mInput.getSource();
+        	} catch (IOException e) { // not optimal but...
+        		throw new IllegalStateException(e);
+        	}
         }
         /* 23-Apr-2008, TSa: Let's NOT throw IllegalArgumentException
          *   for unknown property; JavaDocs do not suggest it needs

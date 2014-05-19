@@ -79,7 +79,7 @@ public final class ReaderBootstrapper
     ////////////////////////////////////////
     */
 
-    private ReaderBootstrapper(String pubId, String sysId, Reader r, String appEncoding)
+    private ReaderBootstrapper(String pubId, SystemId sysId, Reader r, String appEncoding)
     {
         super(pubId, sysId);
         mIn = r;
@@ -105,8 +105,8 @@ public final class ReaderBootstrapper
      *   incompatibility reported as a potential (but not necessarily fatal)
      *   problem.
      */
-    public static ReaderBootstrapper getInstance(String pubId, String sysId,
-                                                 Reader r, String appEncoding)
+    public static ReaderBootstrapper getInstance(String pubId, SystemId sysId,
+    		Reader r, String appEncoding)
     {
         return new ReaderBootstrapper(pubId, sysId, r, appEncoding);
     }
@@ -368,8 +368,8 @@ public final class ReaderBootstrapper
     protected Location getLocation()
     {
         return new WstxInputLocation(null, mPublicId, mSystemId,
-                                     mInputProcessed + mInputPtr - 1,
-                                     mInputRow, mInputPtr - mInputRowStart);
+        		mInputProcessed + mInputPtr - 1,
+        		mInputRow, mInputPtr - mInputRowStart);
     }
 
     /*

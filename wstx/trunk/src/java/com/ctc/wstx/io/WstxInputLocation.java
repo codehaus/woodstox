@@ -50,8 +50,8 @@ public class WstxInputLocation
      * @param ctxt Enclosing input location, if any
      */
     public WstxInputLocation(WstxInputLocation ctxt,
-                             String pubId, String sysId,
-                             int charOffset, int row, int col)
+    		String pubId, String sysId,
+    		int charOffset, int row, int col)
     {
         mContext = ctxt;
         mPublicId = pubId;
@@ -64,6 +64,17 @@ public class WstxInputLocation
         mRow = row;
     }
 
+    public WstxInputLocation(WstxInputLocation ctxt,
+    		String pubId, SystemId sysId, int charOffset, int row, int col)
+    {
+        mContext = ctxt;
+        mPublicId = pubId;
+        mSystemId = (sysId == null) ? "N/A" : sysId.toString();
+        mCharOffset = (charOffset < 0) ? Integer.MAX_VALUE : charOffset;
+        mCol = col;
+        mRow = row;
+    }
+    
     public static WstxInputLocation getEmptyLocation() {
         return sEmptyLocation;
     }

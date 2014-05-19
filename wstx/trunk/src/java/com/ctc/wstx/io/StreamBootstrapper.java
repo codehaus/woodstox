@@ -101,26 +101,26 @@ public final class StreamBootstrapper
     ////////////////////////////////////////
     */
 
-    private StreamBootstrapper(String pubId, String sysId, InputStream in)
+    private StreamBootstrapper(String pubId, SystemId sysId, InputStream in)
     {
         super(pubId, sysId);
         mIn = in;
         mInputPtr = mInputEnd = 0;
-	mRecycleBuffer = true;
+        mRecycleBuffer = true;
     }
 
     /**
      * @param start Pointer to the first valid byte in the buffer
      * @param end Pointer to the offset <b>after</b> last valid byte in the buffer
      */
-    private StreamBootstrapper(String pubId, String sysId, byte[] data, int start, int end)
+    private StreamBootstrapper(String pubId, SystemId sysId, byte[] data, int start, int end)
     {
         super(pubId, sysId);
         mIn = null;
-	mRecycleBuffer = false;
-	mByteBuffer = data;
-	mInputPtr = start;
-	mInputEnd = end;
+        mRecycleBuffer = false;
+        mByteBuffer = data;
+        mInputPtr = start;
+        mInputEnd = end;
     }
 
     /*
@@ -133,7 +133,7 @@ public final class StreamBootstrapper
      * Factory method used when the underlying data provider is an 
      * actual stream.
      */
-    public static StreamBootstrapper getInstance(String pubId, String sysId, InputStream in)
+    public static StreamBootstrapper getInstance(String pubId, SystemId sysId, InputStream in)
     {
         return new StreamBootstrapper(pubId, sysId, in);
     }
@@ -144,7 +144,7 @@ public final class StreamBootstrapper
      * Additionally the buffer passed is not owned by the bootstrapper
      * or Reader that is created, so it is not to be recycled.
      */
-    public static StreamBootstrapper getInstance(String pubId, String sysId, byte[] data, int start, int end)
+    public static StreamBootstrapper getInstance(String pubId, SystemId sysId, byte[] data, int start, int end)
     {
         return new StreamBootstrapper(pubId, sysId, data, start, end);
     }

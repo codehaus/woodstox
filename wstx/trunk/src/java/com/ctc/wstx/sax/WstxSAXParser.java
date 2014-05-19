@@ -39,6 +39,7 @@ import com.ctc.wstx.io.DefaultInputResolver;
 import com.ctc.wstx.io.InputBootstrapper;
 import com.ctc.wstx.io.ReaderBootstrapper;
 import com.ctc.wstx.io.StreamBootstrapper;
+import com.ctc.wstx.io.SystemId;
 import com.ctc.wstx.sr.*;
 import com.ctc.wstx.stax.WstxInputFactory;
 import com.ctc.wstx.util.ExceptionUtil;
@@ -473,7 +474,7 @@ public class WstxSAXParser
         throws SAXException
     {
         mScanner = null;
-        String systemId = input.getSystemId();
+        String sysIdStr = input.getSystemId();
         ReaderConfig cfg = mConfig;
         URL srcUrl = null;
 
@@ -483,11 +484,11 @@ public class WstxSAXParser
         if (r == null) {
             is = input.getByteStream();
             if (is == null) {
-                if (systemId == null) {
+                if (sysIdStr == null) {
                     throw new SAXException("Invalid InputSource passed: neither character or byte stream passed, nor system id specified");
                 }
                 try {
-                    srcUrl = URLUtil.urlFromSystemId(systemId);
+                    srcUrl = URLUtil.urlFromSystemId(sysIdStr);
                     is = URLUtil.inputStreamFromURL(srcUrl);
                 } catch (IOException ioe) {
                     SAXException saxe = new SAXException(ioe);
@@ -516,6 +517,7 @@ public class WstxSAXParser
                 r = DefaultInputResolver.constructOptimizedReader(cfg, is, false, inputEnc);
             }
             InputBootstrapper bs;
+            SystemId systemId = SystemId.construct(sysIdStr, srcUrl);
             if (r != null) {
                 bs = ReaderBootstrapper.getInstance(publicId, systemId, r, inputEnc);
                 // false -> not for event reader; false -> no auto-closing

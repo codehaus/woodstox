@@ -995,9 +995,9 @@ public abstract class BaseStreamWriter
     public XMLStreamLocation2 getLocation()
     {
         return new WstxInputLocation(null, // no parent
-                                     null, null, // pub/sys ids not yet known
-                                     mWriter.getAbsOffset(),
-                                     mWriter.getRow(), mWriter.getColumn());
+        		null, (String) null, // pub/sys ids not yet known
+        		mWriter.getAbsOffset(),
+        		mWriter.getRow(), mWriter.getColumn());
     }
 
     public String getEncoding() {

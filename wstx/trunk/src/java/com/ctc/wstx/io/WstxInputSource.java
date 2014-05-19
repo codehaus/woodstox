@@ -123,7 +123,7 @@ public abstract class WstxInputSource
     //////////////////////////////////////////////////////////
      */
 
-    public abstract URL getSource();
+    public abstract URL getSource() throws IOException;
 
     public abstract String getPublicId();
 
@@ -234,7 +234,13 @@ public abstract class WstxInputSource
         sb.append("]; systemId: ");
         sb.append(getSystemId());
         sb.append(", source: ");
-        sb.append(getSource());
+        try {
+        	URL url = getSource();
+        	sb.append(url.toString());
+        } catch (IOException e) {
+        	sb.append("[ERROR: "+e.getMessage()+"]");
+        }
+        
         sb.append('>');
         return sb.toString();
     }

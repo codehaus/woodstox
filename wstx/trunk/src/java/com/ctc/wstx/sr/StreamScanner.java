@@ -419,7 +419,7 @@ public abstract class StreamScanner
                                   mInputPtr - mCurrInputRowStart);
     }
 
-    protected URL getSource() {
+    protected URL getSource() throws IOException {
         return mInput.getSource();
     }
 

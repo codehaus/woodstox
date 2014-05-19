@@ -2,8 +2,6 @@ package com.ctc.wstx.io;
 
 import javax.xml.stream.Location;
 
-import java.net.URL;
-
 /**
  * Input source that reads input from a static char array, usually used
  * when expanding internal entities. It can also be used if the input
@@ -18,11 +16,12 @@ public final class CharArraySource
 
     final Location mContentStart;
         
-    CharArraySource(WstxInputSource parent, String fromEntity,
+    protected CharArraySource(WstxInputSource parent, String fromEntity,
                     char[] chars, int offset, int len,
-                    Location loc, URL src)
+                    Location loc, SystemId sysId)
     {
-        super(parent, fromEntity, loc.getPublicId(), loc.getSystemId(), src);
+        super(parent, fromEntity, loc.getPublicId(), sysId);
+        //loc.getSystemId());
         mBuffer = chars;
         mOffset = offset;
         mInputLast = offset + len;
