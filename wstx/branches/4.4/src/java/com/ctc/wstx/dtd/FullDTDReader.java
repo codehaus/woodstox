@@ -34,6 +34,7 @@ import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.cfg.XmlConsts;
 import com.ctc.wstx.ent.*;
 import com.ctc.wstx.evt.WNotationDeclaration;
+import com.ctc.wstx.exc.WstxIOException;
 import com.ctc.wstx.io.WstxInputData;
 import com.ctc.wstx.io.WstxInputSource;
 import com.ctc.wstx.util.*;
@@ -2433,8 +2434,11 @@ public class FullDTDReader
                 Location contentLoc = getLastCharLocation();
                 --mInputPtr; // pushback
                 char[] contents = parseEntityValue(id, contentLoc, c);
-                ent = new IntEntity(evtLoc, id, getSource(), contents,
-                                    contentLoc);
+                try {
+                	ent = new IntEntity(evtLoc, id, getSource(), contents, contentLoc);
+                } catch (IOException e) {
+                	throw new WstxIOException(e);
+                }
             } else {
                 if (!isNameStartChar(c)) {
                     throwDTDUnexpectedChar(c, "; expected either quoted value, or keyword 'PUBLIC' or 'SYSTEM'");
@@ -2500,7 +2504,13 @@ public class FullDTDReader
         if (mEventListener != null) {
             if (ent.isParsed()) { // Parsed GE or PE
             } else { // unparsed GE
-                mEventListener.dtdUnparsedEntityDecl(id, ent.getPublicId(), ent.getSystemId(), ent.getNotationName(), mInput.getSource());
+            	final URL src;
+            	try {
+            		src = mInput.getSource();
+                } catch (IOException e) {
+                	throw new WstxIOException(e);
+                }
+                mEventListener.dtdUnparsedEntityDecl(id, ent.getPublicId(), ent.getSystemId(), ent.getNotationName(), src);
             }
         }
     }
@@ -2549,7 +2559,12 @@ public class FullDTDReader
         if (c != '>') {
             throwDTDUnexpectedChar(c, "; expected closing '>' after NOTATION declaration");
         }
-        URL baseURL = mInput.getSource();
+        URL baseURL;
+        try {
+        	baseURL = mInput.getSource();
+        } catch (IOException e) {
+        	throw new WstxIOException(e);
+        }
 
         // Any external listeners?
         if (mEventListener != null) {
@@ -3247,7 +3262,12 @@ public class FullDTDReader
             throwDTDUnexpectedChar(c, "; expected closing '>'");
         }
 
-        URL ctxt = inputSource.getSource();
+        URL ctxt;
+        try {
+        	ctxt = inputSource.getSource();
+        } catch (IOException e) {
+        	throw new WstxIOException(e);
+        }
         if (notationId == null) { // parsed entity:
             return new ParsedExtEntity(evtLoc, id, ctxt, pubId, sysId);
         }

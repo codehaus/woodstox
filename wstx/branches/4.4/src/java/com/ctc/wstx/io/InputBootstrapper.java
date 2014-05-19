@@ -61,7 +61,7 @@ public abstract class InputBootstrapper
 
     protected final String mPublicId;
 
-    protected final String mSystemId;
+    protected final SystemId mSystemId;
 
     /*
     ////////////////////////////////////////////////////////////
@@ -138,7 +138,7 @@ public abstract class InputBootstrapper
     ////////////////////////////////////////
     */
 
-    protected InputBootstrapper(String pubId, String sysId)
+    protected InputBootstrapper(String pubId, SystemId sysId)
     {
         mPublicId = pubId;
         mSystemId = sysId;
@@ -176,7 +176,8 @@ public abstract class InputBootstrapper
     // // // Source information:
 
     public String getPublicId() { return mPublicId; }
-    public String getSystemId() { return mSystemId; }
+
+    public SystemId getSystemId() { return mSystemId; }
 
     // // // XML declaration data:
 

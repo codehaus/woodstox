@@ -2,7 +2,6 @@ package com.ctc.wstx.io;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.net.URL;
 
 import javax.xml.stream.XMLStreamException;
 
@@ -20,7 +19,7 @@ public class ReaderSource
     /**
      * Underlying Reader to read character data from
      */
-    Reader mReader;
+    protected Reader mReader;
 
     /**
      * If true, will close the underlying Reader when this source is closed;
@@ -33,10 +32,10 @@ public class ReaderSource
     int mInputRowStart = 0;
 
     public ReaderSource(ReaderConfig cfg, WstxInputSource parent, String fromEntity,
-                        String pubId, String sysId, URL src,
+                        String pubId, SystemId sysId,
                         Reader r, boolean realClose)
     {
-        super(parent, fromEntity, pubId, sysId, src);
+        super(parent, fromEntity, pubId, sysId);
         mConfig = cfg;
         mReader = r;
         mDoRealClose = realClose;

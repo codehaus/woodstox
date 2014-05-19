@@ -27,12 +27,11 @@ public final class InputSourceFactory
      */
     public static ReaderSource constructEntitySource
         (ReaderConfig cfg, WstxInputSource parent, String entityName, InputBootstrapper bs,
-         String pubId, String sysId, int xmlVersion,
-         URL src, Reader r)
+         String pubId, SystemId sysId, int xmlVersion, Reader r)
     {
         // true -> do close the underlying Reader at EOF
         ReaderSource rs = new ReaderSource
-            (cfg, parent, entityName, pubId, sysId, src, r, true);
+            (cfg, parent, entityName, pubId, sysId, r, true);
         if (bs != null) {
             rs.setInputOffsets(bs.getInputTotal(), bs.getInputRow(),
                                -bs.getInputColumn());
@@ -45,7 +44,7 @@ public final class InputSourceFactory
      * source.
      */
     public static BranchingReaderSource constructDocumentSource
-        (ReaderConfig cfg, InputBootstrapper bs, String pubId, String sysId, URL src,
+        (ReaderConfig cfg, InputBootstrapper bs, String pubId, SystemId sysId,
          Reader r, boolean realClose) 
     {
         /* To resolve [WSTX-50] need to ensure that P_BASE_URL overrides
@@ -53,9 +52,9 @@ public final class InputSourceFactory
          */
         URL url = cfg.getBaseURL();
         if (url != null) {
-            src = url;
+        	sysId = SystemId.construct(url);
         }
-        BranchingReaderSource rs = new BranchingReaderSource(cfg, pubId, sysId, src, r, realClose);
+        BranchingReaderSource rs = new BranchingReaderSource(cfg, pubId, sysId, r, realClose);
         if (bs != null) {
             rs.setInputOffsets(bs.getInputTotal(), bs.getInputRow(),
                                -bs.getInputColumn());
@@ -71,7 +70,7 @@ public final class InputSourceFactory
         (WstxInputSource parent, String fromEntity,
          char[] text, int offset, int len, Location loc, URL src)
     {
-        return new CharArraySource(parent, fromEntity, text, offset, len,
-                                   loc, src);
+    	SystemId sysId = SystemId.construct(loc.getSystemId(), src);
+        return new CharArraySource(parent, fromEntity, text, offset, len, loc, sysId);
     }
 }

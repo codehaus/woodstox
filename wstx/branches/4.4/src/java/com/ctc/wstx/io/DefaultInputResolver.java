@@ -125,9 +125,8 @@ public final class DefaultInputResolver
      * @param o Object that should provide the new input source; non-type safe
      */
     protected static WstxInputSource sourceFrom(WstxInputSource parent,
-                                                ReaderConfig cfg, String refName,
-                                                int xmlVersion,
-                                                Object o)
+    		ReaderConfig cfg, String refName,
+    		int xmlVersion, Object o)
         throws IllegalArgumentException, IOException, XMLStreamException
     {
         if (o instanceof Source) {
@@ -208,18 +207,19 @@ public final class DefaultInputResolver
     */
 
     private static WstxInputSource sourceFromSS(WstxInputSource parent, ReaderConfig cfg,
-                                                String refName, int xmlVersion,
-                                                StreamSource ssrc)
+    		String refName, int xmlVersion, StreamSource ssrc)
         throws IOException, XMLStreamException
     {
         InputBootstrapper bs;
         Reader r = ssrc.getReader();
         String pubId = ssrc.getPublicId();
-        String sysId = ssrc.getSystemId();
+        String sysId0 = ssrc.getSystemId();
         URL ctxt = (parent == null) ? null : parent.getSource();
-        URL url = (sysId == null || sysId.length() == 0) ? null
-            : URLUtil.urlFromSystemId(sysId, ctxt);
+        URL url = (sysId0 == null || sysId0.length() == 0) ? null
+            : URLUtil.urlFromSystemId(sysId0, ctxt);
 
+        final SystemId systemId = SystemId.construct(sysId0, (url == null) ? ctxt : url);
+        
         if (r == null) {
             InputStream in = ssrc.getInputStream();
             if (in == null) { // Need to try just resolving the system id then
@@ -228,15 +228,14 @@ public final class DefaultInputResolver
                 }
                 in = URLUtil.inputStreamFromURL(url);
             }
-            bs = StreamBootstrapper.getInstance(pubId, sysId, in);
+            bs = StreamBootstrapper.getInstance(pubId, systemId, in);
         } else {
-            bs = ReaderBootstrapper.getInstance(pubId, sysId, r, null);
+            bs = ReaderBootstrapper.getInstance(pubId, systemId, r, null);
         }
         
         Reader r2 = bs.bootstrapInput(cfg, false, xmlVersion);
         return InputSourceFactory.constructEntitySource
-            (cfg, parent, refName, bs, pubId, sysId, xmlVersion,
-             ((url == null) ? ctxt : url), r2);
+            (cfg, parent, refName, bs, pubId, systemId, xmlVersion, r2);
     }
 
     private static WstxInputSource sourceFromURL(WstxInputSource parent, ReaderConfig cfg,
@@ -252,11 +251,11 @@ public final class DefaultInputResolver
          * let's avoid it.
          */
         InputStream in = URLUtil.inputStreamFromURL(url);
-        String sysId = url.toExternalForm();
+        SystemId sysId = SystemId.construct(url);
         StreamBootstrapper bs = StreamBootstrapper.getInstance(pubId, sysId, in);
         Reader r = bs.bootstrapInput(cfg, false, xmlVersion);
         return InputSourceFactory.constructEntitySource
-            (cfg, parent, refName, bs, pubId, sysId, xmlVersion, url, r);
+            (cfg, parent, refName, bs, pubId, sysId, xmlVersion, r);
     }
 
     /**
@@ -278,18 +277,15 @@ public final class DefaultInputResolver
          * main-level handling)
          */
         return sourceFromR(parent, cfg, refName, xmlVersion,
-                           new StringReader(refContent),
-                           null, refName);
+        		new StringReader(refContent), null, refName);
     }
 
     private static WstxInputSource sourceFromIS(WstxInputSource parent,
-                                                ReaderConfig cfg,
-                                                String refName, int xmlVersion,
-                                                InputStream is,
-                                                String pubId, String sysId)
+    		ReaderConfig cfg, String refName, int xmlVersion,
+    		InputStream is, String pubId, String sysId)
         throws IOException, XMLStreamException
     {
-        StreamBootstrapper bs = StreamBootstrapper.getInstance(pubId, sysId, is);
+        StreamBootstrapper bs = StreamBootstrapper.getInstance(pubId, SystemId.construct(sysId), is);
         Reader r = bs.bootstrapInput(cfg, false, xmlVersion);
         URL ctxt = parent.getSource();
 
@@ -298,19 +294,19 @@ public final class DefaultInputResolver
             ctxt = URLUtil.urlFromSystemId(sysId, ctxt);
         }
         return InputSourceFactory.constructEntitySource
-            (cfg, parent, refName, bs, pubId, sysId, xmlVersion, ctxt, r);
+            (cfg, parent, refName, bs, pubId, SystemId.construct(sysId, ctxt),
+            		xmlVersion, r);
     }
 
     private static WstxInputSource sourceFromR(WstxInputSource parent, ReaderConfig cfg,
-                                               String refName, int xmlVersion,
-                                               Reader r,
-                                               String pubId, String sysId)
+    		String refName, int xmlVersion,
+    		Reader r, String pubId, String sysId)
         throws IOException, XMLStreamException
     {
         /* Last null -> no app-provided encoding (doesn't matter for non-
          * main-level handling)
          */
-        ReaderBootstrapper rbs = ReaderBootstrapper.getInstance(pubId, sysId, r, null);
+        ReaderBootstrapper rbs = ReaderBootstrapper.getInstance(pubId, SystemId.construct(sysId), r, null);
         // null -> no xml reporter... should have one?
         Reader r2 = rbs.bootstrapInput(cfg, false, xmlVersion);
         URL ctxt = (parent == null) ? null : parent.getSource();
@@ -318,6 +314,6 @@ public final class DefaultInputResolver
             ctxt = URLUtil.urlFromSystemId(sysId, ctxt);
         }
         return InputSourceFactory.constructEntitySource
-            (cfg, parent, refName, rbs, pubId, sysId, xmlVersion, ctxt, r2);
+            (cfg, parent, refName, rbs, pubId, SystemId.construct(sysId, ctxt), xmlVersion, r2);
     }
 }

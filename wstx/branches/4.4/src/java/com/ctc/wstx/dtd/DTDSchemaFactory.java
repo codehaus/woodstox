@@ -104,21 +104,21 @@ public class DTDSchemaFactory
      */
 
     public XMLValidationSchema createSchema(InputStream in, String encoding,
-                                           String publicId, String systemId)
+    		String publicId, String systemId)
         throws XMLStreamException
     {
         ReaderConfig rcfg = createPrivateReaderConfig();
         return doCreateSchema(rcfg, StreamBootstrapper.getInstance
-                              (publicId, systemId, in), publicId, systemId, null);
+        		(publicId, SystemId.construct(systemId), in), publicId, systemId, null);
     }
 
-    public XMLValidationSchema createSchema(Reader r, String publicId,
-                                           String systemId)
+    public XMLValidationSchema createSchema(Reader r,
+    		String publicId, String systemId)
         throws XMLStreamException
     {
         ReaderConfig rcfg = createPrivateReaderConfig();
         return doCreateSchema(rcfg, ReaderBootstrapper.getInstance
-                              (publicId, systemId, r, null), publicId, systemId, null);
+        		(publicId, SystemId.construct(systemId), r, null), publicId, systemId, null);
     }
 
     public XMLValidationSchema createSchema(URL url)
@@ -151,12 +151,6 @@ public class DTDSchemaFactory
 
     /*
     ////////////////////////////////////////////////////////////
-    // Woodstox-specific API
-    ////////////////////////////////////////////////////////////
-     */
-
-    /*
-    ////////////////////////////////////////////////////////////
     // Internal methods
     ////////////////////////////////////////////////////////////
      */
@@ -166,7 +160,7 @@ public class DTDSchemaFactory
      * visible methods.
      */
     protected XMLValidationSchema doCreateSchema
-        (ReaderConfig rcfg, InputBootstrapper bs, String publicId, String systemId, URL ctxt)
+        (ReaderConfig rcfg, InputBootstrapper bs, String publicId, String systemIdStr, URL ctxt)
         throws XMLStreamException
     {
         try {
@@ -182,8 +176,9 @@ public class DTDSchemaFactory
              * level parsed document and no xml version compatibility checks
              * should be done.
              */
+            SystemId systemId = SystemId.construct(systemIdStr, ctxt);
             WstxInputSource src = InputSourceFactory.constructEntitySource
-                (rcfg, null, null, bs, publicId, systemId, XmlConsts.XML_V_UNKNOWN, ctxt, r);
+                (rcfg, null, null, bs, publicId, systemId, XmlConsts.XML_V_UNKNOWN, r);
 
             /* true -> yes, fully construct for validation
              * (does not mean it has to be used for validation, but required

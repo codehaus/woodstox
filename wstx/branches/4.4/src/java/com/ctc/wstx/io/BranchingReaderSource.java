@@ -2,7 +2,6 @@ package com.ctc.wstx.io;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.net.URL;
 
 import javax.xml.stream.XMLStreamException;
 
@@ -35,13 +34,13 @@ public final class BranchingReaderSource
      */
     boolean mGotCR = false;
 
-    public BranchingReaderSource(ReaderConfig cfg, String pubId, String sysId, URL src,
-                                 Reader r, boolean realClose)
+    public BranchingReaderSource(ReaderConfig cfg, String pubId, SystemId sysId,
+    		Reader r, boolean realClose)
     {
         /* null -> no parent,
          * null -> not from explicit entity (no id/name)
          */
-        super(cfg, null, null, pubId, sysId, src, r, realClose);
+        super(cfg, null, null, pubId, sysId, r, realClose);
     }
 
     public int readInto(WstxInputData reader)
