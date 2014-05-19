@@ -1,4 +1,4 @@
-package wstxtest.msv;
+package failing;
 
 import javax.xml.stream.*;
 

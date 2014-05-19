@@ -430,49 +430,6 @@ public class TestRelaxNG
                          "does not satisfy the \"integer\" type");
     }
 
-    public void testSimpleBooleanElem()
-        throws XMLStreamException
-    {
-        final String schemaDef =
-            "<element xmlns='http://relaxng.org/ns/structure/1.0'"
-            +"  datatypeLibrary='http://www.w3.org/2001/XMLSchema-datatypes' name='root'>\n"
-            +"  <element name='leaf'>\n"
-            +"   <data type='boolean' />\n"
-            +"  </element>\n"
-            +"</element>"
-        ;
-
-        XMLValidationSchema schema = parseRngSchema(schemaDef);
-
-        // First, a simple valid document
-        XMLStreamReader2 sr = getReader("<root><leaf>true</leaf></root>");
-        sr.validateAgainst(schema);
-        while (sr.next() != END_DOCUMENT) { }
-        sr.close();
-
-        // Then one with invalid element value
-        verifyRngFailure("<root><leaf>foobar</leaf></root>",
-                         schema, "invalid boolean element value",
-                         "does not satisfy the \"boolean\" type");
-
-        // And one with empty value
-	// 12-Nov-2008, TSa: still having MSV bug here, need to suppress failure
-        verifyRngFailure("<root><leaf>   </leaf></root>",
-                         schema, "missing boolean element value",
-                         "does not satisfy the \"boolean\" type", true);
-
-        // And then 2 variations of completely missing value
-	// 12-Nov-2008, TSa: still having MSV bug here, need to suppress failure
-        verifyRngFailure("<root><leaf></leaf></root>",
-                         schema, "missing boolean element value",
-                         "does not satisfy the \"boolean\" type", true);
-
-	// 12-Nov-2008, TSa: still having MSV bug here, need to suppress failure
-        verifyRngFailure("<root><leaf /></root>",
-                         schema, "missing boolean element value",
-                         "does not satisfy the \"boolean\" type", true);
-    }
-
     /**
      * Another test, but one that verifies that empty tags do not
      * cause problems with validation
@@ -544,22 +501,21 @@ public class TestRelaxNG
     //////////////////////////////////////////////////////////////
      */
 
-    XMLStreamReader2 getReader(String contents)
-        throws XMLStreamException
+    private XMLStreamReader2 getReader(String contents) throws XMLStreamException
     {
         XMLInputFactory2 f = getInputFactory();
         setValidating(f, false);
         return constructStreamReader(f, contents);
     }
 
-    void verifyRngFailure(String xml, XMLValidationSchema schema, String failMsg, String failPhrase)
+    private void verifyRngFailure(String xml, XMLValidationSchema schema, String failMsg, String failPhrase)
         throws XMLStreamException
     {
-	// By default, yes we are strict...
-	verifyRngFailure(xml, schema, failMsg, failPhrase, true);
+    	// By default, yes we are strict...
+    	verifyRngFailure(xml, schema, failMsg, failPhrase, true);
     }
 
-    void verifyRngFailure(String xml, XMLValidationSchema schema, String failMsg, String failPhrase,
+    private void verifyRngFailure(String xml, XMLValidationSchema schema, String failMsg, String failPhrase,
 			  boolean strict)
         throws XMLStreamException
     {

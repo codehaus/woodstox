@@ -13,7 +13,7 @@ import org.codehaus.stax.test.BaseStaxTest;
  *
  * @author Tatu Saloranta
  */
-public class BaseStreamTest
+public abstract class BaseStreamTest
     extends BaseStaxTest
 {
     /**

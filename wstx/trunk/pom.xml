@@ -8,6 +8,11 @@
     <name>Woodstox</name>
     <version>5.0.0-SNAPSHOT</version>
     <developers>
+    <developer>
+      <id>cowtowncoder</id>
+      <name>Tatu Saloranta</name>
+      <email>tatu@fasterxml.com</email>
+    </developer>
     </developers>
     <contributors>
         <contributor>

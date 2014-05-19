@@ -14,7 +14,7 @@ import org.codehaus.stax.test.BaseStaxTest;
  *
  * @author Tatu Saloranta
  */
-public class BaseEventTest
+public abstract class BaseEventTest
     extends BaseStaxTest
 {
     protected BaseEventTest() { super(); }

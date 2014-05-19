@@ -12,7 +12,7 @@ import org.codehaus.stax.test.BaseStaxTest;
  *
  * @author Tatu Saloranta
  */
-public class BaseWriterTest
+public abstract class BaseWriterTest
     extends BaseStaxTest
 {
     public XMLStreamWriter getRepairingWriter(Writer w)
