@@ -2,6 +2,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
+    <parent>
+      <groupId>com.fasterxml</groupId>
+      <artifactId>oss-parent</artifactId>
+      <version>16</version>
+    </parent>
+
     <groupId>org.codehaus.woodstox</groupId>
     <artifactId>woodstox-core</artifactId>
     <packaging>jar</packaging>
@@ -65,25 +71,29 @@
         <plugins>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.5.1</version>
                 <configuration>
                     <source>1.5</source>
                     <target>1.5</target>
+<!--
                     <excludes>
                         <exclude>test/**</exclude>
                     </excludes>
+-->
                 </configuration>
             </plugin>
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.12</version>
                 <configuration>
                     <excludes>
+                        <exclude>failing/*.java</exclude>
                         <exclude>**/Abstract*.java</exclude>
                         <exclude>**/Base*.java</exclude>
                         <exclude>**/*$*.java</exclude>
                     </excludes>
                     <includes>
                         <include>**/*Test.java</include>
-                        <include>**/*TestCase.java</include>
                         <include>**/Test*.java</include>
                     </includes>
                 </configuration>
