@@ -10,7 +10,6 @@ public class SingletonIterator<T>
     implements Iterator<T>
 {
     private final T mValue;
-    
     private boolean mDone = false;
     
     public SingletonIterator(T value) {
@@ -29,8 +28,7 @@ public class SingletonIterator<T>
         return mValue;
     }
     
-    public void remove()
-    {
-        throw new UnsupportedOperationException("Can not remove item from SingletonIterator.");
+    public void remove() {
+        throw new UnsupportedOperationException();
     }
 }
