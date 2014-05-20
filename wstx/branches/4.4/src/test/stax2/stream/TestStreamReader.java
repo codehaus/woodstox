@@ -7,6 +7,8 @@ import javax.xml.stream.*;
 
 import org.codehaus.stax2.*;
 
+import com.ctc.wstx.api.WstxInputProperties;
+
 import stax2.BaseStax2Test;
 
 public class TestStreamReader
@@ -71,10 +73,10 @@ public class TestStreamReader
         XMLStreamReader2 reader = (XMLStreamReader2) f.createXMLStreamReader(new StringReader(DOC));
         assertTokenType(DTD, reader.next());
 
-		DTDInfo dtd = reader.getDTDInfo();
-		assertNotNull(dtd);
-		assertEquals(sysId, dtd.getDTDSystemId());
-		
+        DTDInfo dtd = reader.getDTDInfo();
+        assertNotNull(dtd);
+        assertEquals(sysId, dtd.getDTDSystemId());
+
         assertTokenType(START_ELEMENT, reader.next());
         assertEquals("root", reader.getLocalName());
         assertTokenType(CHARACTERS, reader.next());
@@ -82,5 +84,57 @@ public class TestStreamReader
         assertTokenType(END_ELEMENT, reader.next());
         assertEquals("root", reader.getLocalName());
         reader.close();
+    }
+
+    // Another test for [WSTX-299]
+    public void testCustomSystemIdWithResolver() throws Exception
+    {
+        XMLInputFactory2 f = getNewInputFactory();
+        setCoalescing(f, true);
+        setSupportDTD(f, true);
+        final String sysId = "foobar:slartibartfast";
+        final String EXTERNAL_DTD = "<!ENTITY foo 'bar'>";
+        f.setProperty(XMLInputFactory.RESOLVER,
+                new ExoticResolver(sysId, EXTERNAL_DTD));
+
+        String DOC = "<!DOCTYPE root SYSTEM '"+sysId+"'><root>&foo;</root>";
+        XMLStreamReader2 reader = (XMLStreamReader2) f.createXMLStreamReader(new StringReader(DOC));
+        assertTokenType(DTD, reader.next());
+
+        DTDInfo dtd = reader.getDTDInfo();
+        assertNotNull(dtd);
+        assertEquals(sysId, dtd.getDTDSystemId());
+
+        assertTokenType(START_ELEMENT, reader.next());
+        assertEquals("root", reader.getLocalName());
+        assertTokenType(CHARACTERS, reader.next());
+        assertEquals("bar", reader.getText());
+        assertTokenType(END_ELEMENT, reader.next());
+        assertEquals("root", reader.getLocalName());
+        reader.close();
+    }
+
+    /*
+    ///////////////////////////////////////////////////////////
+    // Helper classes
+    ///////////////////////////////////////////////////////////
+     */
+
+    final static class ExoticResolver implements XMLResolver
+    {
+        protected final String sysId, dtd;
+
+        public ExoticResolver(String sysId, String dtd) {
+            this.sysId = sysId;
+            this.dtd = dtd;
+        }
+
+        public Object resolveEntity(String publicID, String systemID, String baseURI, String namespace)
+        {
+            if (sysId.equals(systemID)) {
+                return dtd;
+            }
+            return null;
+        }
     }
 }
