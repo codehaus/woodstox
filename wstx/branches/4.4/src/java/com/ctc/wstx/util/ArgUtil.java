@@ -37,7 +37,14 @@ public final class ArgUtil
         if (value == null) {
             i = 0;
         } else if (value instanceof Number) {
-            i = ((Number) value).intValue();
+            long l = ((Number) value).longValue();
+            if (l > Integer.MAX_VALUE) {
+                i = Integer.MAX_VALUE;
+            } else if (l < Integer.MIN_VALUE) {
+                i = Integer.MIN_VALUE;
+            } else {
+                i = (int) l;
+            }
         } else if (value instanceof String) {
             try {
                 i = Integer.parseInt((String) value);
