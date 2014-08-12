@@ -56,6 +56,7 @@ public final class WstxEventFactory
      * internal presentation of actual DTD; no parsing is implied by
      * construction.
      */
+    @Override
     public DTD createDTD(String dtd) {
         return new WDTD(mLocation, dtd);
     }
@@ -96,10 +97,12 @@ public final class WstxEventFactory
     /////////////////////////////////////////////////////////////
      */
 
+    @Override
     protected QName createQName(String nsURI, String localName) {
         return new QName(nsURI, localName);
     }
 
+    @Override
     protected QName createQName(String nsURI, String localName, String prefix) {
         // [WSTX-174]: some old app servers missing 3-arg QName ctor
         return QNameCreator.create(nsURI, localName, prefix);
@@ -109,10 +112,13 @@ public final class WstxEventFactory
      * Must override this method to use a more efficient StartElement
      * implementation
      */
+    @SuppressWarnings("unchecked")
     @Override
-    protected StartElement createStartElement(QName name, Iterator<Attribute> attr,
-                                              Iterator<Namespace> ns, NamespaceContext ctxt)
+    protected StartElement createStartElement(QName name, Iterator<?> attr,
+            Iterator<?> ns, NamespaceContext ctxt)
     {
-        return SimpleStartElement.construct(mLocation, name, attr, ns, ctxt);
+        return SimpleStartElement.construct(mLocation, name,
+                (Iterator<Attribute>) attr,
+                (Iterator<Namespace>) ns, ctxt);
     }
 }

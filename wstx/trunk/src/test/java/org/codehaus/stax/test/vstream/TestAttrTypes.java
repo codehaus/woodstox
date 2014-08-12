@@ -44,7 +44,7 @@ public class TestAttrTypes
         int count = sr.getAttributeCount();
         assertEquals(7, count);
 
-        HashMap seen = new HashMap();
+        HashMap<String,String> seen = new HashMap<String,String>();
         for (int i = 0; i < count; ++i) {
             String name = sr.getAttributeLocalName(i);
             String value = sr.getAttributeValue(i);
@@ -74,23 +74,5 @@ public class TestAttrTypes
                 fail("Unexpected attribute '"+name+"'");
             }
         }
-    }
-
-    /*
-    ////////////////////////////////////////
-    // Private methods
-    ////////////////////////////////////////
-     */
-
-    private XMLStreamReader getReader(String contents)
-        throws XMLStreamException
-    {
-        XMLInputFactory f = getInputFactory();
-        setCoalescing(f, false); // shouldn't really matter
-        //setNamespaceAware(f, nsAware);
-        setSupportDTD(f, true);
-        // Let's make sure DTD is really parsed?
-        setValidating(f, true);
-        return constructStreamReader(f, contents);
     }
 }

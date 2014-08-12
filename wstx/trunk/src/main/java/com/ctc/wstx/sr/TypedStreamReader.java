@@ -121,6 +121,7 @@ public class TypedStreamReader
     ////////////////////////////////////////////////////////
      */
 
+    @Override
     public boolean getElementAsBoolean() throws XMLStreamException
     {
         ValueDecoderFactory.BooleanDecoder dec = _decoderFactory().getBooleanDecoder();
@@ -128,6 +129,7 @@ public class TypedStreamReader
         return dec.getValue();
     }
 
+    @Override
     public int getElementAsInt() throws XMLStreamException
     {
         ValueDecoderFactory.IntDecoder dec = _decoderFactory().getIntDecoder();
@@ -135,6 +137,7 @@ public class TypedStreamReader
         return dec.getValue();
     }
 
+    @Override
     public long getElementAsLong() throws XMLStreamException
     {
         ValueDecoderFactory.LongDecoder dec = _decoderFactory().getLongDecoder();
@@ -142,6 +145,7 @@ public class TypedStreamReader
         return dec.getValue();
     }
 
+    @Override
     public float getElementAsFloat() throws XMLStreamException
     {
         ValueDecoderFactory.FloatDecoder dec = _decoderFactory().getFloatDecoder();
@@ -149,6 +153,7 @@ public class TypedStreamReader
         return dec.getValue();
     }
 
+    @Override
     public double getElementAsDouble() throws XMLStreamException
     {
         ValueDecoderFactory.DoubleDecoder dec = _decoderFactory().getDoubleDecoder();
@@ -156,6 +161,7 @@ public class TypedStreamReader
         return dec.getValue();
     }
 
+    @Override
     public BigInteger getElementAsInteger() throws XMLStreamException
     {
         ValueDecoderFactory.IntegerDecoder dec = _decoderFactory().getIntegerDecoder();
@@ -163,6 +169,7 @@ public class TypedStreamReader
         return dec.getValue();
     }
 
+    @Override
     public BigDecimal getElementAsDecimal() throws XMLStreamException
     {
         ValueDecoderFactory.DecimalDecoder dec = _decoderFactory().getDecimalDecoder();
@@ -170,6 +177,7 @@ public class TypedStreamReader
         return dec.getValue();
     }
 
+    @Override
     public QName getElementAsQName() throws XMLStreamException
     {
         ValueDecoderFactory.QNameDecoder dec = _decoderFactory().getQNameDecoder(getNamespaceContext());
@@ -177,11 +185,13 @@ public class TypedStreamReader
         return _verifyQName(dec.getValue());
     }
 
+    @Override
     public final byte[] getElementAsBinary() throws XMLStreamException
     {
         return getElementAsBinary(Base64Variants.getDefaultVariant());
     }
 
+    @Override
     public byte[] getElementAsBinary(Base64Variant v) throws XMLStreamException
     {
         // note: code here is similar to Base64DecoderBase.aggregateAll(), see comments there
@@ -203,6 +213,7 @@ public class TypedStreamReader
         }
     }
 
+    @Override
     public void getElementAs(TypedValueDecoder tvd) throws XMLStreamException
     {
         if (mCurrToken != START_ELEMENT) {
@@ -302,21 +313,25 @@ public class TypedStreamReader
     ////////////////////////////////////////////////////////
      */
 
+    @Override
     public int readElementAsIntArray(int[] value, int from, int length) throws XMLStreamException
     {
         return readElementAsArray(_decoderFactory().getIntArrayDecoder(value, from, length));
     }
 
+    @Override
     public int readElementAsLongArray(long[] value, int from, int length) throws XMLStreamException
     {
         return readElementAsArray(_decoderFactory().getLongArrayDecoder(value, from, length));
     }
 
+    @Override
     public int readElementAsFloatArray(float[] value, int from, int length) throws XMLStreamException
     {
         return readElementAsArray(_decoderFactory().getFloatArrayDecoder(value, from, length));
     }
 
+    @Override
     public int readElementAsDoubleArray(double[] value, int from, int length) throws XMLStreamException
     {
         return readElementAsArray(_decoderFactory().getDoubleArrayDecoder(value, from, length));
@@ -334,6 +349,7 @@ public class TypedStreamReader
      * @return Number of elements decoded (if any were decoded), or
      *   -1 to indicate that no more values can be decoded.
      */
+    @Override
     public final int readElementAsArray(TypedArrayDecoder dec)
         throws XMLStreamException
     {
@@ -403,12 +419,14 @@ public class TypedStreamReader
     ////////////////////////////////////////////////////////
      */
 
+    @Override
     public final int readElementAsBinary(byte[] resultBuffer, int offset, int maxLength)
         throws XMLStreamException
     {
         return readElementAsBinary(resultBuffer, offset, maxLength, Base64Variants.getDefaultVariant());
     }
 
+    @Override
     public int readElementAsBinary(byte[] resultBuffer, int offset, int maxLength, Base64Variant v)
         throws XMLStreamException
     {

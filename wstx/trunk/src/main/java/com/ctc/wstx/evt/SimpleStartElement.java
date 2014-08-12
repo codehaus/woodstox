@@ -46,16 +46,16 @@ public class SimpleStartElement
      * from an external source (most likely, non-woodstox stream reader).
      */
     public static SimpleStartElement construct(Location loc, QName name,
-                                               Map<QName,Attribute> attrs, List<Namespace> ns,
-                                               NamespaceContext nsCtxt)
+            Map<QName,Attribute> attrs, List<Namespace> ns,
+            NamespaceContext nsCtxt)
     {
         BaseNsContext myCtxt = MergedNsContext.construct(nsCtxt, ns);
         return new SimpleStartElement(loc, name, myCtxt, attrs);
     }
 
     public static SimpleStartElement construct(Location loc, QName name,
-                                               Iterator<Attribute> attrs, Iterator<Namespace> ns,
-                                               NamespaceContext nsCtxt)
+            Iterator<Attribute> attrs, Iterator<Namespace> ns,
+            NamespaceContext nsCtxt)
     {
         Map<QName,Attribute> attrMap;
         if (attrs == null || !attrs.hasNext()) {

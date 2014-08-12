@@ -25,8 +25,6 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import javax.xml.stream.events.Namespace;
 
-import org.codehaus.stax2.ri.SingletonIterator;
-
 import com.ctc.wstx.cfg.ErrorConsts;
 
 /**
@@ -48,6 +46,7 @@ public abstract class BaseNsContext
     /////////////////////////////////////////////
      */
 
+    @Override
     public final String getNamespaceURI(String prefix)
     {
         /* First the known offenders; invalid args, 2 predefined xml namespace
@@ -67,6 +66,7 @@ public abstract class BaseNsContext
         return doGetNamespaceURI(prefix);
     }
 
+    @Override
     public final String getPrefix(String nsURI)
     {
         /* First the known offenders; invalid args, 2 predefined xml namespace
@@ -84,6 +84,7 @@ public abstract class BaseNsContext
         return doGetPrefix(nsURI);
     }
 
+    @Override
     public final Iterator<String> getPrefixes(String nsURI)
     {
         /* First the known offenders; invalid args, 2 predefined xml namespace
@@ -93,10 +94,10 @@ public abstract class BaseNsContext
             throw new IllegalArgumentException("Illegal to pass null/empty prefix as argument.");
         }
         if (nsURI.equals(XMLConstants.XML_NS_URI)) {
-            return new SingletonIterator<String>(XMLConstants.XML_NS_PREFIX);
+            return DataUtil.singletonIterator(XMLConstants.XML_NS_PREFIX);
         }
         if (nsURI.equals(XMLConstants.XMLNS_ATTRIBUTE_NS_URI)) {
-            return new SingletonIterator<String>(XMLConstants.XMLNS_ATTRIBUTE);
+            return DataUtil.singletonIterator(XMLConstants.XMLNS_ATTRIBUTE);
         }
 
         return doGetPrefixes(nsURI);

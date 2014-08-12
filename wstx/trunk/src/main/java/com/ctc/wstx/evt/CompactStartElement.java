@@ -10,13 +10,12 @@ import javax.xml.stream.*;
 import javax.xml.stream.events.Attribute;
 import javax.xml.stream.events.StartElement;
 
-import org.codehaus.stax2.ri.EmptyIterator;
-import org.codehaus.stax2.ri.SingletonIterator;
 import org.codehaus.stax2.ri.evt.AttributeEventImpl;
 
 import com.ctc.wstx.io.TextEscaper;
 import com.ctc.wstx.sr.ElemAttrs;
 import com.ctc.wstx.util.BaseNsContext;
+import com.ctc.wstx.util.DataUtil;
 
 /**
  * Wstx {@link StartElement} implementation used when directly creating
@@ -75,6 +74,7 @@ public class CompactStartElement
     /////////////////////////////////////////////
      */
 
+    @Override
     public Attribute getAttributeByName(QName name)
     {
         if (mAttrs == null) {
@@ -87,18 +87,18 @@ public class CompactStartElement
         return constructAttr(mRawAttrs, ix, !mAttrs.isDefault(ix));
     }
 
+    @Override
     public Iterator<Attribute> getAttributes()
     {
         if (mAttrList == null) { // List is lazily constructed as needed
             if (mAttrs == null) {
-                return EmptyIterator.getInstance();
+                return DataUtil.emptyIterator();
             }
             String[] rawAttrs = mRawAttrs;
             int rawLen = rawAttrs.length;
             int defOffset = mAttrs.getFirstDefaultOffset();
             if (rawLen == 4) {
-                return new SingletonIterator<Attribute>
-                    (constructAttr(rawAttrs, 0, (defOffset == 0)));
+                return DataUtil.singletonIterator(constructAttr(rawAttrs, 0, (defOffset == 0)));
             }
             ArrayList<Attribute> l = new ArrayList<Attribute>(rawLen >> 2);
             for (int i = 0; i < rawLen; i += 4) {
@@ -109,6 +109,7 @@ public class CompactStartElement
         return mAttrList.iterator();
     }
 
+    @Override
     protected void outputNsAndAttr(Writer w) throws IOException
     {
         if (mNsCtxt != null) {
@@ -132,6 +133,7 @@ public class CompactStartElement
         }
     }
 
+    @Override
     protected void outputNsAndAttr(XMLStreamWriter w) throws XMLStreamException
     {
         if (mNsCtxt != null) {

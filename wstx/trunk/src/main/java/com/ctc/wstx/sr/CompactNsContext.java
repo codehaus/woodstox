@@ -11,12 +11,11 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import javax.xml.stream.events.Namespace;
 
-import org.codehaus.stax2.ri.EmptyIterator;
-import org.codehaus.stax2.ri.SingletonIterator;
 // This is unfortunate dependency, but...
 import org.codehaus.stax2.ri.evt.NamespaceEventImpl;
 
 import com.ctc.wstx.util.BaseNsContext;
+import com.ctc.wstx.util.DataUtil;
 
 /**
  * Simple implementation of separate non-transient namespace context
@@ -73,6 +72,7 @@ public final class CompactNsContext
      * @param prefix Non-null, non-empty prefix (base-class verifies these
      *  constraints) to find namespace URI for.
      */
+    @Override
     public String doGetNamespaceURI(String prefix)
     {
         /* Let's search from beginning towards end; this way we'll first
@@ -97,6 +97,7 @@ public final class CompactNsContext
         return null;
     }
 
+    @Override
     public String doGetPrefix(String nsURI)
     {
         // Note: base class checks for 'known' problems and prefixes:
@@ -130,6 +131,7 @@ public final class CompactNsContext
         return null;
     }
 
+    @Override
     public Iterator<String> doGetPrefixes(String nsURI)
     {
         // Note: base class checks for 'known' problems and prefixes:
@@ -175,9 +177,9 @@ public final class CompactNsContext
             return all.iterator();
         }
         if (first != null) {
-            return new SingletonIterator<String>(first);
+            return DataUtil.singletonIterator(first);
         }
-        return EmptyIterator.getInstance();
+        return DataUtil.emptyIterator();
     }
 
     /*
@@ -186,19 +188,20 @@ public final class CompactNsContext
     ///////////////////////////////////////////////////////
      */
 
+    @Override
     public Iterator<Namespace> getNamespaces()
     {
         if (mNsList == null) {
             int firstLocal = mFirstLocalNs;
             int len = mNsLength - firstLocal;
             if (len == 0) { // can this happen?
-                return EmptyIterator.getInstance();
+                return DataUtil.emptyIterator();
             }
             if (len == 2) { // only one NS
-                return new SingletonIterator<Namespace>(NamespaceEventImpl.constructNamespace
-                                             (mLocation,
-                                              mNamespaces[firstLocal],
-                                              mNamespaces[firstLocal+1]));
+                return DataUtil.<Namespace>singletonIterator(NamespaceEventImpl.constructNamespace
+                        (mLocation,
+                                mNamespaces[firstLocal],
+                                mNamespaces[firstLocal+1]));
             }
             ArrayList<Namespace> l = new ArrayList<Namespace>(len >> 1);
             String[] ns = mNamespaces;
@@ -218,6 +221,7 @@ public final class CompactNsContext
      * namespace scope, if any. Local means that declaration was done in
      * scope of current element, not in a parent element.
      */
+    @Override
     public void outputNamespaceDeclarations(Writer w) throws IOException
     {
         String[] ns = mNamespaces;
@@ -235,6 +239,7 @@ public final class CompactNsContext
         }
     }
 
+    @Override
     public void outputNamespaceDeclarations(XMLStreamWriter w) throws XMLStreamException
     {
         String[] ns = mNamespaces;

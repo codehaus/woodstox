@@ -504,6 +504,7 @@ public abstract class BasicStreamReader
      *<p>
      * Note: method name is rather confusing (compare to {@link #getEncoding}).
      */
+    @Override
     public String getCharacterEncodingScheme() {
         return mDocXmlEncoding;
     }
@@ -514,10 +515,12 @@ public abstract class BasicStreamReader
      * cases where this can not be found; specifically when being passed a
      * {@link Reader}), it should return null.
      */
+    @Override
     public String getEncoding() {
         return mDocInputEncoding;
     }
 
+    @Override
     public String getVersion()
     {
         if (mDocXmlVersion == XmlConsts.XML_V_10) {
@@ -529,10 +532,12 @@ public abstract class BasicStreamReader
         return null; // unknown
     }
 
+    @Override
     public boolean isStandalone() {
         return mDocStandalone == DOC_STANDALONE_YES;
     }
 
+    @Override
     public boolean standaloneSet() {
         return mDocStandalone != DOC_STANDALONE_UNKNOWN;
     }
@@ -543,6 +548,7 @@ public abstract class BasicStreamReader
     ///////////////////////////////////////////////////////////
      */
 
+    @Override
     public Object getProperty(String name)
     {
         /* 18-Nov-2008, TSa: As per [WSTX-50], should report the
@@ -573,6 +579,7 @@ public abstract class BasicStreamReader
 
     // // // Attribute access:
 
+    @Override
     public int getAttributeCount() {
         if (mCurrToken != START_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
@@ -580,6 +587,7 @@ public abstract class BasicStreamReader
         return mAttrCollector.getCount();
     }
 
+    @Override
     public String getAttributeLocalName(int index) {
         if (mCurrToken != START_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
@@ -587,6 +595,7 @@ public abstract class BasicStreamReader
         return mAttrCollector.getLocalName(index);
     }
 
+    @Override
     public QName getAttributeName(int index) {
         if (mCurrToken != START_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
@@ -594,6 +603,7 @@ public abstract class BasicStreamReader
         return mAttrCollector.getQName(index);
     }
 
+    @Override
     public String getAttributeNamespace(int index) {
         if (mCurrToken != START_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
@@ -603,6 +613,7 @@ public abstract class BasicStreamReader
         return (uri == null) ? XmlConsts.ATTR_NO_NS_URI : uri;
     }
 
+    @Override
     public String getAttributePrefix(int index) {
         if (mCurrToken != START_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
@@ -612,6 +623,7 @@ public abstract class BasicStreamReader
         return (p == null) ? XmlConsts.ATTR_NO_PREFIX : p;
     }
 
+    @Override
     public String getAttributeType(int index) {
         if (mCurrToken != START_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
@@ -620,6 +632,7 @@ public abstract class BasicStreamReader
         return mElementStack.getAttributeType(index);
     }
 
+    @Override
     public String getAttributeValue(int index) {
         if (mCurrToken != START_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
@@ -627,6 +640,7 @@ public abstract class BasicStreamReader
         return mAttrCollector.getValue(index);
     }
 
+    @Override
     public String getAttributeValue(String nsURI, String localName) {
         if (mCurrToken != START_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_STELEM);
@@ -645,6 +659,7 @@ public abstract class BasicStreamReader
      *<br/>Postcondition: the current event is the corresponding END_ELEMENT. 
      *</blockquote>
      */
+    @Override
     public String getElementText()
         throws XMLStreamException
     {
@@ -725,6 +740,7 @@ public abstract class BasicStreamReader
      * Returns type of the last event returned; or START_DOCUMENT before
      * any events has been explicitly returned.
      */
+    @Override
     public int getEventType()
     {
         /* Only complication -- multi-part coalesced text is to be reported
@@ -737,7 +753,8 @@ public abstract class BasicStreamReader
         }
         return mCurrToken;
     }
-    
+
+    @Override
     public String getLocalName()
     {
         // Note: for this we need not (yet) finish reading element
@@ -755,6 +772,7 @@ public abstract class BasicStreamReader
 
     // // // getLocation() defined in StreamScanner
 
+    @Override
     public QName getName()
     {
         if (mCurrToken != START_ELEMENT && mCurrToken != END_ELEMENT) {
@@ -765,6 +783,7 @@ public abstract class BasicStreamReader
 
     // // // Namespace access
 
+    @Override
     public NamespaceContext getNamespaceContext() {
         /* Unlike other getNamespaceXxx methods, this is available
          * for all events.
@@ -775,6 +794,7 @@ public abstract class BasicStreamReader
         return mElementStack;
     }
 
+    @Override
     public int getNamespaceCount() {
         if (mCurrToken != START_ELEMENT && mCurrToken != END_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_ELEM);
@@ -782,6 +802,7 @@ public abstract class BasicStreamReader
         return mElementStack.getCurrentNsCount();
     }
 
+    @Override
     public String getNamespacePrefix(int index) {
         if (mCurrToken != START_ELEMENT && mCurrToken != END_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_ELEM);
@@ -794,6 +815,7 @@ public abstract class BasicStreamReader
         return p;
     }
 
+    @Override
     public String getNamespaceURI() {
         if (mCurrToken != START_ELEMENT && mCurrToken != END_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_ELEM);
@@ -803,6 +825,7 @@ public abstract class BasicStreamReader
         return (uri == null) ? XmlConsts.ELEM_NO_NS_URI : uri;
     }
 
+    @Override
     public String getNamespaceURI(int index)
     {
         if (mCurrToken != START_ELEMENT && mCurrToken != END_ELEMENT) {
@@ -813,6 +836,7 @@ public abstract class BasicStreamReader
         return (uri == null) ? XmlConsts.ATTR_NO_NS_URI : uri;
     }
 
+    @Override
     public String getNamespaceURI(String prefix)
     {
         if (mCurrToken != START_ELEMENT && mCurrToken != END_ELEMENT) {
@@ -824,6 +848,7 @@ public abstract class BasicStreamReader
         return mElementStack.getNamespaceURI(prefix);
     }
 
+    @Override
     public String getPIData() {
         if (mCurrToken != PROCESSING_INSTRUCTION) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_PI);
@@ -834,6 +859,7 @@ public abstract class BasicStreamReader
         return mTextBuffer.contentsAsString();
     }
 
+    @Override
     public String getPITarget() {
         if (mCurrToken != PROCESSING_INSTRUCTION) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_PI);
@@ -842,6 +868,7 @@ public abstract class BasicStreamReader
         return mCurrName;
     }
 
+    @Override
     public String getPrefix() {
         if (mCurrToken != START_ELEMENT && mCurrToken != END_ELEMENT) {
             throw new IllegalStateException(ErrorConsts.ERR_STATE_NOT_ELEM);
@@ -851,6 +878,7 @@ public abstract class BasicStreamReader
         return (p == null) ? XmlConsts.ELEM_NO_PREFIX : p;
     }
 
+    @Override
     public String getText()
     {
         if (((1 << mCurrToken) & MASK_GET_TEXT) == 0) {
@@ -872,6 +900,7 @@ public abstract class BasicStreamReader
         return mTextBuffer.contentsAsString();
     }
 
+    @Override
     public char[] getTextCharacters()
     {
         if (((1 << mCurrToken) & MASK_GET_TEXT_XXX) == 0) {
@@ -889,6 +918,7 @@ public abstract class BasicStreamReader
         return mTextBuffer.getTextBuffer();
     }
 
+    @Override
     public int getTextCharacters(int sourceStart, char[] target, int targetStart, int len)
     {
         if (((1 << mCurrToken) & MASK_GET_TEXT_XXX) == 0) {
@@ -900,6 +930,7 @@ public abstract class BasicStreamReader
         return mTextBuffer.contentsToArray(sourceStart, target, targetStart, len);
     }
 
+    @Override
     public int getTextLength()
     {
         if (((1 << mCurrToken) & MASK_GET_TEXT_XXX) == 0) {
@@ -911,6 +942,7 @@ public abstract class BasicStreamReader
         return mTextBuffer.size();
     }
 
+    @Override
     public int getTextStart()
     {
         if (((1 << mCurrToken) & MASK_GET_TEXT_XXX) == 0) {
@@ -922,10 +954,12 @@ public abstract class BasicStreamReader
         return mTextBuffer.getTextStart();
     }
 
+    @Override
     public boolean hasName() {
         return (mCurrToken == START_ELEMENT) || (mCurrToken == END_ELEMENT);
     }
 
+    @Override
     public boolean hasNext() {
         /* 08-Oct-2005, TSa: In multi-doc mode, we have different
          *   criteria...
@@ -934,10 +968,12 @@ public abstract class BasicStreamReader
             || (mParseState == STATE_MULTIDOC_HACK);
     }
 
+    @Override
     public boolean hasText() {
         return (((1 << mCurrToken) & MASK_GET_TEXT) != 0);
     }
 
+    @Override
     public boolean isAttributeSpecified(int index)
     {
         /* No need to check for ATTRIBUTE since we never return that...
@@ -948,6 +984,7 @@ public abstract class BasicStreamReader
         return mAttrCollector.isSpecified(index);
     }
 
+    @Override
     public boolean isCharacters()
     {
         /* 21-Dec-2005, TSa: Changed for 3.0 to work the same way as stax
@@ -962,10 +999,12 @@ public abstract class BasicStreamReader
         return (CHARACTERS == getEventType());
     }
 
+    @Override
     public boolean isEndElement() {
         return (mCurrToken == END_ELEMENT);
     }
 
+    @Override
     public boolean isStartElement() {
         return (mCurrToken == START_ELEMENT);
     }
@@ -976,6 +1015,7 @@ public abstract class BasicStreamReader
      *   read. That'd prevent double reads... but would it slow down that
      *   one reading so that net effect would be negative?
      */
+    @Override
     public boolean isWhiteSpace()
     {
         if (mCurrToken == CHARACTERS || mCurrToken == CDATA) {
@@ -990,7 +1030,8 @@ public abstract class BasicStreamReader
         }
         return (mCurrToken == SPACE);
     }
-    
+
+    @Override
     public void require(int type, String nsUri, String localName)
         throws XMLStreamException
     {
@@ -1054,6 +1095,7 @@ public abstract class BasicStreamReader
     ///////////////////////////////////////////////////////////
      */
 
+    @Override
     public final int next() throws XMLStreamException
     {
         /* 24-Sep-2006, TSa: We may have deferred an exception that occurred
@@ -1147,6 +1189,7 @@ public abstract class BasicStreamReader
         return mCurrToken;
     }
 
+    @Override
     public int nextTag()
         throws XMLStreamException
     {
@@ -1189,6 +1232,7 @@ public abstract class BasicStreamReader
      * {@link org.codehaus.stax2.XMLInputFactory2#P_AUTO_CLOSE_INPUT} is
      * set to true.
      */
+    @Override
     public void close()
         throws XMLStreamException
     {
@@ -1223,8 +1267,21 @@ public abstract class BasicStreamReader
     ///////////////////////////////////////////////////////////
      */
 
+    @Override
+    @Deprecated
+    public Object getFeature(String name)  {
+        throw new IllegalArgumentException(MessageFormat.format(ErrorConsts.ERR_UNKNOWN_FEATURE, new Object[] { name })); 
+    }
+
+    @Override
+    @Deprecated
+    public void setFeature(String name, Object value) {
+        throw new IllegalArgumentException(MessageFormat.format(ErrorConsts.ERR_UNKNOWN_FEATURE, new Object[] { name })); 
+    }
+
     // NOTE: getProperty() defined in Stax 1.0 interface
 
+    @Override
     public boolean isPropertySupported(String name) {
         // !!! TBI: not all these properties are really supported
         return mConfig.isPropertySupported(name);
@@ -1237,6 +1294,7 @@ public abstract class BasicStreamReader
      * @return True, if the specified property was <b>succesfully</b>
      *    set to specified value; false if its value was not changed
      */
+    @Override
     public boolean setProperty(String name, Object value)
     {
         boolean ok = mConfig.setProperty(name, value);
@@ -1253,6 +1311,7 @@ public abstract class BasicStreamReader
 
     // // // StAX2, additional traversal methods
 
+    @Override
     public void skipElement() throws XMLStreamException
     {
         if (mCurrToken != START_ELEMENT) {
@@ -1274,6 +1333,7 @@ public abstract class BasicStreamReader
 
     // // // StAX2, additional attribute access
 
+    @Override
     public AttributeInfo getAttributeInfo() throws XMLStreamException
     {
         if (mCurrToken != START_ELEMENT) {
@@ -1292,6 +1352,7 @@ public abstract class BasicStreamReader
      * Since this class implements {@link DTDInfo}, method can just
      * return <code>this</code>.
      */
+    @Override
     public DTDInfo getDTDInfo() throws XMLStreamException
     {
         /* Let's not allow it to be accessed during other events -- that
@@ -1311,6 +1372,7 @@ public abstract class BasicStreamReader
     /**
      * Location information is always accessible, for this reader.
      */
+    @Override
     public final LocationInfo getLocationInfo() {
         return this;
     }
@@ -1339,6 +1401,7 @@ public abstract class BasicStreamReader
      *
      * @return Number of characters written to the reader
      */
+    @Override
     public int getText(Writer w, boolean preserveContents)
         throws IOException, XMLStreamException
     {
@@ -1410,6 +1473,7 @@ public abstract class BasicStreamReader
      * @return Number of open elements in the stack; 0 when parser is in
      *  prolog/epilog, 1 inside root element and so on.
      */
+    @Override
     public int getDepth() {
         /* Note: we can not necessarily use mCurrDepth, since it is
          * directly synchronized to the input (to catch unbalanced entity
@@ -1424,17 +1488,18 @@ public abstract class BasicStreamReader
      *    constructed from 'empty' element (ends with '/>');
      *    false otherwise.
      */
-    public boolean isEmptyElement() throws XMLStreamException
-    {
+    @Override
+    public boolean isEmptyElement() throws XMLStreamException {
         return (mCurrToken == START_ELEMENT) ? mStEmptyElem : false;
     }
 
-    public NamespaceContext getNonTransientNamespaceContext()
-    {
+    @Override
+    public NamespaceContext getNonTransientNamespaceContext() {
         // null -> no Location info, not needed with basic API
         return mElementStack.createNonTransientNsContext(null);
     }
 
+    @Override
     public String getPrefixedName()
     {
         switch (mCurrToken) {
@@ -1464,8 +1529,8 @@ public abstract class BasicStreamReader
         throw new IllegalStateException("Current state not START_ELEMENT, END_ELEMENT, ENTITY_REFERENCE, PROCESSING_INSTRUCTION or DTD");
     }
 
-    public void closeCompletely() throws XMLStreamException
-    {
+    @Override
+    public void closeCompletely() throws XMLStreamException {
         closeAllInput(true);
     }
 
@@ -1479,10 +1544,12 @@ public abstract class BasicStreamReader
      *<p>
      * Note: DTD-handling sub-classes need to override this method.
      */
+    @Override
     public Object getProcessedDTD() {
         return null;
     }
 
+    @Override
     public String getDTDRootName() {
         if (mRootPrefix == null) {
             return mRootLName;
@@ -1490,10 +1557,12 @@ public abstract class BasicStreamReader
         return mRootPrefix + ":" + mRootLName;
     }
 
+    @Override
     public String getDTDPublicId() {
         return mDtdPublicId;
     }
 
+    @Override
     public String getDTDSystemId() {
         return mDtdSystemId;
     }
@@ -1502,6 +1571,7 @@ public abstract class BasicStreamReader
      * @return Internal subset portion of the DOCTYPE declaration, if any;
      *   empty String if none
      */
+    @Override
     public String getDTDInternalSubset() {
         if (mCurrToken != DTD) {
             return null;
@@ -1525,6 +1595,7 @@ public abstract class BasicStreamReader
     /**
      * Sub-class will override this method
      */
+    @Override
     public DTDValidationSchema getProcessedDTDSchema() {
         return null;
     }
@@ -1537,6 +1608,7 @@ public abstract class BasicStreamReader
 
     // // // First, the "raw" offset accessors:
 
+    @Override
     public long getStartingByteOffset() {
         /* 15-Apr-2005, TSa: No way to reliably keep track of byte offsets,
          *   at least for variable-length encodings... so let's just
@@ -1545,10 +1617,12 @@ public abstract class BasicStreamReader
         return -1L;
     }
 
+    @Override
     public long getStartingCharOffset() {
         return mTokenInputTotal;
     }
 
+    @Override
     public long getEndingByteOffset() throws XMLStreamException
     {
         /* 15-Apr-2005, TSa: No way to reliably keep track of byte offsets,
@@ -1558,6 +1632,7 @@ public abstract class BasicStreamReader
         return -1;
     }
 
+    @Override
     public long getEndingCharOffset() throws XMLStreamException
     {
         // Need to get to the end of the token, if not there yet
@@ -1569,6 +1644,7 @@ public abstract class BasicStreamReader
 
     // // // and then the object-based access methods:
 
+    @Override
     public final Location getLocation() {
         return getStartLocation();
     }
@@ -1576,6 +1652,7 @@ public abstract class BasicStreamReader
     // public XMLStreamLocation2 getStartLocation() // from base class
     // public XMLStreamLocation2 getCurrentLocation() // - "" -
 
+    @Override
     public final XMLStreamLocation2 getEndLocation()
         throws XMLStreamException
     {
@@ -1593,6 +1670,7 @@ public abstract class BasicStreamReader
     ///////////////////////////////////////////////////////////
      */
 
+    @Override
     public XMLValidator validateAgainst(XMLValidationSchema schema)
         throws XMLStreamException
     {
@@ -1600,6 +1678,7 @@ public abstract class BasicStreamReader
         return null;
     }
 
+    @Override
     public XMLValidator stopValidatingAgainst(XMLValidationSchema schema)
         throws XMLStreamException
     {
@@ -1607,6 +1686,7 @@ public abstract class BasicStreamReader
         return null;
     }
 
+    @Override
     public XMLValidator stopValidatingAgainst(XMLValidator validator)
         throws XMLStreamException
     {
@@ -1614,6 +1694,7 @@ public abstract class BasicStreamReader
         return null;
     }
 
+    @Override
     public ValidationProblemHandler setValidationProblemHandler(ValidationProblemHandler h)
     {
         // Not implemented by the basic reader:
@@ -1626,6 +1707,7 @@ public abstract class BasicStreamReader
     ///////////////////////////////////////////////////////////
      */
 
+    @Override
     public EntityDecl getCurrentEntityDecl() {
         return mCurrEntity;
     }
@@ -1638,6 +1720,7 @@ public abstract class BasicStreamReader
      * @return Null, if stream does not point to start element; whatever
      *    callback returns otherwise.
      */
+    @Override
     public Object withStartElement(ElemCallback cb, Location loc)
     {
         if (mCurrToken != START_ELEMENT) {
@@ -1649,6 +1732,7 @@ public abstract class BasicStreamReader
                                    mStEmptyElem);
     }
 
+    @Override
     public boolean isNamespaceAware() {
         return mCfgNsEnabled;
     }
@@ -1658,6 +1742,7 @@ public abstract class BasicStreamReader
      * that want to have efficient direct access to element stack
      * implementation
      */
+    @Override
     public InputElementStack getInputElementStack() {
         return mElementStack;
     }
@@ -1667,6 +1752,7 @@ public abstract class BasicStreamReader
      * that want to have efficient direct access to attribute collector
      * Object, for optimal attribute name and value access.
      */
+    @Override
     public AttributeCollector getAttributeCollector() {
         return mAttrCollector;
     }

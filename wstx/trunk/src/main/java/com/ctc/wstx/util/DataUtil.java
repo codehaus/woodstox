@@ -3,6 +3,9 @@ package com.ctc.wstx.util;
 import java.lang.reflect.Array;
 import java.util.*;
 
+import org.codehaus.stax2.ri.EmptyIterator;
+import org.codehaus.stax2.ri.SingletonIterator;
+
 public final class DataUtil
 {
     final static char[] EMPTY_CHAR_ARRAY = new char[0];
@@ -53,6 +56,22 @@ public final class DataUtil
         return new Long(l);
     }  
 
+    /*
+    ////////////////////////////////////////////////////////////
+    // Empty/singleton thingies
+    ////////////////////////////////////////////////////////////
+    */
+
+    @SuppressWarnings("unchecked")
+    public static <T> Iterator<T> singletonIterator(T item) {
+        return (Iterator<T>) new SingletonIterator(item);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> Iterator<T> emptyIterator() {
+        return (Iterator<T>) EmptyIterator.getInstance();
+    }
+    
     /*
     ////////////////////////////////////////////////////////////
     // Methods for common operations on std data structs

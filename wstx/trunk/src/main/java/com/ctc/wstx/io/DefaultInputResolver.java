@@ -206,6 +206,7 @@ public final class DefaultInputResolver
     ////////////////////////////
     */
 
+    @SuppressWarnings("resource")
     private static WstxInputSource sourceFromSS(WstxInputSource parent, ReaderConfig cfg,
     		String refName, int xmlVersion, StreamSource ssrc)
         throws IOException, XMLStreamException
@@ -238,10 +239,11 @@ public final class DefaultInputResolver
             (cfg, parent, refName, bs, pubId, systemId, xmlVersion, r2);
     }
 
+    @SuppressWarnings("resource")
     private static WstxInputSource sourceFromURL(WstxInputSource parent, ReaderConfig cfg,
-                                                 String refName, int xmlVersion,
-                                                 URL url,
-                                                 String pubId)
+            String refName, int xmlVersion,
+            URL url,
+            String pubId)
         throws IOException, XMLStreamException
     {
         /* And then create the input source. Note that by default URL's
@@ -280,6 +282,7 @@ public final class DefaultInputResolver
         		new StringReader(refContent), null, refName);
     }
 
+    @SuppressWarnings("resource")
     private static WstxInputSource sourceFromIS(WstxInputSource parent,
     		ReaderConfig cfg, String refName, int xmlVersion,
     		InputStream is, String pubId, String sysId)
@@ -298,6 +301,7 @@ public final class DefaultInputResolver
             		xmlVersion, r);
     }
 
+    @SuppressWarnings("resource")
     private static WstxInputSource sourceFromR(WstxInputSource parent, ReaderConfig cfg,
     		String refName, int xmlVersion,
     		Reader r, String pubId, String sysId)

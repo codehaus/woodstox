@@ -36,9 +36,7 @@ import org.codehaus.stax2.XMLStreamReader2;
 import org.codehaus.stax2.ri.Stax2WriterImpl;
 import org.codehaus.stax2.validation.*;
 
-import com.ctc.wstx.api.WriterConfig;
-import com.ctc.wstx.api.WstxInputProperties;
-import com.ctc.wstx.api.WstxOutputProperties;
+import com.ctc.wstx.api.*;
 import com.ctc.wstx.cfg.ErrorConsts;
 import com.ctc.wstx.cfg.OutputConfigFlags;
 import com.ctc.wstx.cfg.XmlConsts;
@@ -237,6 +235,7 @@ public abstract class BaseStreamWriter
     ///////////////////////////////////////////////////////////
      */
 
+    @Override
     public void close()
         throws XMLStreamException
     {
@@ -248,6 +247,7 @@ public abstract class BaseStreamWriter
         _finishDocument(false);
     }
 
+    @Override
     public void flush()
         throws XMLStreamException
     {
@@ -263,10 +263,13 @@ public abstract class BaseStreamWriter
         }
     }
 
+    @Override
     public abstract NamespaceContext getNamespaceContext();
 
+    @Override
     public abstract String getPrefix(String uri);
 
+    @Override
     public Object getProperty(String name)
     {
         /* These properties just exist for interoperability with
@@ -282,26 +285,33 @@ public abstract class BaseStreamWriter
         return mConfig.getProperty(name);
     }
 
+    @Override
     public abstract void setDefaultNamespace(String uri)
         throws XMLStreamException;
 
+    @Override
     public abstract void setNamespaceContext(NamespaceContext context)
         throws XMLStreamException;
 
+    @Override
     public abstract void setPrefix(String prefix, String uri)
         throws XMLStreamException;
 
+    @Override
     public abstract void writeAttribute(String localName, String value)
         throws XMLStreamException;
     
+    @Override
     public abstract void writeAttribute(String nsURI, String localName,
                                         String value)
         throws XMLStreamException;
 
+    @Override
     public abstract void writeAttribute(String prefix, String nsURI,
                                         String localName, String value)
         throws XMLStreamException;
 
+    @Override
     public void writeCData(String data)
         throws XMLStreamException
     {
@@ -338,6 +348,7 @@ public abstract class BaseStreamWriter
         }
     }
 
+    @Override
     public void writeCharacters(char[] text, int start, int len)
         throws XMLStreamException
     {
@@ -391,6 +402,7 @@ public abstract class BaseStreamWriter
         }
     }
 
+    @Override
     public void writeCharacters(String text)
         throws XMLStreamException
     {
@@ -474,6 +486,7 @@ public abstract class BaseStreamWriter
         }
     }
 
+    @Override
     public void writeComment(String data)
         throws XMLStreamException
     {
@@ -504,9 +517,11 @@ public abstract class BaseStreamWriter
         }
     }
 
+    @Override
     public abstract void writeDefaultNamespace(String nsURI)
         throws XMLStreamException;
 
+    @Override
     public void writeDTD(String dtd)
         throws XMLStreamException
     {
@@ -523,22 +538,28 @@ public abstract class BaseStreamWriter
          */
     }
 
+    @Override
     public abstract void writeEmptyElement(String localName)
         throws XMLStreamException;
 
+    @Override
     public abstract void writeEmptyElement(String nsURI, String localName)
         throws XMLStreamException;
 
+    @Override
     public abstract void writeEmptyElement(String prefix, String localName, String nsURI)
         throws XMLStreamException;
 
+    @Override
     public void writeEndDocument() throws XMLStreamException
     {
         _finishDocument(false);
     }
 
+    @Override
     public abstract void writeEndElement() throws XMLStreamException;
 
+    @Override
     public void writeEntityRef(String name)
         throws XMLStreamException
     {
@@ -575,15 +596,18 @@ public abstract class BaseStreamWriter
         }
     }
 
+    @Override
     public abstract void writeNamespace(String prefix, String nsURI)
         throws XMLStreamException;
 
+    @Override
     public void writeProcessingInstruction(String target)
         throws XMLStreamException
     {
         writeProcessingInstruction(target, null);
     }
 
+    @Override
     public void writeProcessingInstruction(String target, String data)
         throws XMLStreamException
     {
@@ -609,6 +633,7 @@ public abstract class BaseStreamWriter
         }
     }
 
+    @Override
     public void writeStartDocument()
         throws XMLStreamException
     {
@@ -627,12 +652,14 @@ public abstract class BaseStreamWriter
         writeStartDocument(mEncoding, WstxOutputProperties.DEFAULT_XML_VERSION);
     }
 
+    @Override
     public void writeStartDocument(String version)
         throws XMLStreamException
     {
         writeStartDocument(mEncoding, version);
     }
 
+    @Override
     public void writeStartDocument(String encoding, String version)
         throws XMLStreamException
     {
@@ -695,12 +722,15 @@ public abstract class BaseStreamWriter
         }
     }
 
+    @Override
     public abstract void writeStartElement(String localName)
         throws XMLStreamException;
 
+    @Override
     public abstract void writeStartElement(String nsURI, String localName)
         throws XMLStreamException;
 
+    @Override
     public abstract void writeStartElement(String prefix, String localName,
                                            String nsURI)
         throws XMLStreamException;
@@ -723,6 +753,7 @@ public abstract class BaseStreamWriter
      *   this to false may improve the performance, since it may allow
      *   full no-copy streaming of data, especially textual contents.
      */
+    @Override
     public void copyEventFromReader(XMLStreamReader2 sr, boolean preserveEventData)
         throws XMLStreamException
     {
@@ -1198,6 +1229,7 @@ public abstract class BaseStreamWriter
      * Adding default attribute values does not usually make sense on
      * output side, so the implementation is a NOP for now.
      */
+    @Override
     public int addDefaultAttribute(String localName, String uri, String prefix,
                                    String value)
     {
@@ -1207,10 +1239,11 @@ public abstract class BaseStreamWriter
 
     // // // Notation/entity access: not (yet?) implemented
 
+    @Override
     public boolean isNotationDeclared(String name) { return false; }
 
+    @Override
     public boolean isUnparsedEntityDeclared(String name) { return false; }
-
 
     // // // Attribute access: not yet implemented:
 
@@ -1218,24 +1251,32 @@ public abstract class BaseStreamWriter
      *   enabled?
      */
 
+    @Override
     public int getAttributeCount() { return 0; }
 
+    @Override
     public String getAttributeLocalName(int index) { return null; }
 
+    @Override
     public String getAttributeNamespace(int index) { return null; }
 
+    @Override
     public String getAttributePrefix(int index) { return null; }
 
+    @Override
     public String getAttributeValue(int index) { return null; }
 
+    @Override
     public String getAttributeValue(String nsURI, String localName) {
         return null;
     }
 
+    @Override
     public String getAttributeType(int index) {
         return "";
     }
 
+    @Override
     public int findAttributeIndex(String nsURI, String localName) {
         return -1;
     }
@@ -1737,6 +1778,7 @@ public abstract class BaseStreamWriter
         return buf;
     }
 
+    @Override
     public String toString()
     {
         return "[StreamWriter: "+getClass()+", underlying outputter: "

@@ -24,8 +24,6 @@ import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
 
 import org.codehaus.stax2.AttributeInfo;
-import org.codehaus.stax2.ri.EmptyIterator;
-import org.codehaus.stax2.ri.SingletonIterator;
 import org.codehaus.stax2.validation.ValidationContext;
 import org.codehaus.stax2.validation.XMLValidator;
 import org.codehaus.stax2.validation.XMLValidationProblem;
@@ -572,13 +570,13 @@ public final class InputElementStack
     ///////////////////////////////////////////////////////////
      */
 
-    public final int getAttributeCount()
-    {
+    @Override
+    public final int getAttributeCount() {
         return mAttrCollector.getCount();
     }
 
-    public final int findAttributeIndex(String nsURI, String localName)
-    {
+    @Override
+    public final int findAttributeIndex(String nsURI, String localName) {
         return mAttrCollector.findIndex(nsURI, localName);
     }
 
@@ -587,6 +585,7 @@ public final class InputElementStack
      * attributes; this because that requires DTD information that only
      * some implementations have.
      */
+    @Override
     public final int getIdAttributeIndex()
     {
         if (mIdAttrIndex >= 0) {
@@ -600,6 +599,7 @@ public final class InputElementStack
      * attributes; this because that requires DTD information that only
      * some implementations have.
      */
+    @Override
     public final int getNotationAttributeIndex()
     {
         return (mValidator == null) ? -1 :
@@ -612,6 +612,7 @@ public final class InputElementStack
     ///////////////////////////////////////////////////////////
      */
 
+    @Override
     public final String getNamespaceURI(String prefix)
     {
         if (prefix == null) {
@@ -639,6 +640,7 @@ public final class InputElementStack
         return mNamespaces.findLastNonInterned(prefix);
     }
 
+    @Override
     public final String getPrefix(String nsURI)
     {
         if (nsURI == null || nsURI.length() == 0) {
@@ -683,16 +685,17 @@ public final class InputElementStack
         return prefix;
     }
 
+    @Override
     public final Iterator<String> getPrefixes(String nsURI)
     {
         if (nsURI == null || nsURI.length() == 0) {
             throw new IllegalArgumentException("Illegal to pass null/empty prefix as argument.");
         }
         if (nsURI.equals(XMLConstants.XML_NS_URI)) {
-            return new SingletonIterator<String>(XMLConstants.XML_NS_PREFIX);
+            return DataUtil.singletonIterator(XMLConstants.XML_NS_PREFIX);
         }
         if (nsURI.equals(XMLConstants.XMLNS_ATTRIBUTE_NS_URI)) {
-            return new SingletonIterator<String>(XMLConstants.XMLNS_ATTRIBUTE);
+            return DataUtil.singletonIterator(XMLConstants.XMLNS_ATTRIBUTE);
         }
 
         // 29-Sep-2004, TSa: Need to check for namespace masking, too...
@@ -719,7 +722,7 @@ public final class InputElementStack
         }
 
         if (l == null) {
-            return EmptyIterator.getInstance();
+            return DataUtil.emptyIterator();
         }
         return l.iterator();
     }
@@ -730,6 +733,7 @@ public final class InputElementStack
     ///////////////////////////////////////////////////////////
      */
 
+    @Override
     public final String getXmlVersion()
     {
         return mConfig.isXml11() ? XmlConsts.XML_V_11_STR : XmlConsts.XML_V_10_STR;
@@ -738,22 +742,27 @@ public final class InputElementStack
     // Part of Stax2, see above:
     //public int getAttributeCount();
 
+    @Override
     public String getAttributeLocalName(int index) {
         return getAttrCollector().getLocalName(index);
     }
 
+    @Override
     public String getAttributeNamespace(int index) {
         return getAttrCollector().getURI(index);
     }
 
+    @Override
     public String getAttributePrefix(int index) {
         return getAttrCollector().getPrefix(index);
     }
 
+    @Override
     public String getAttributeValue(int index) {
         return getAttrCollector().getValue(index);
     }
 
+    @Override
     public String getAttributeValue(String nsURI, String localName)
     {
         int ix = findAttributeIndex(nsURI, localName);
@@ -763,24 +772,28 @@ public final class InputElementStack
     // Part of Stax2, see above:
     //public int findAttributeIndex(String nsURI, String localName);
 
+    @Override
     public boolean isNotationDeclared(String name)
     {
         // !!! TBI
         return false;
     }
 
+    @Override
     public boolean isUnparsedEntityDeclared(String name)
     {
         // !!! TBI
         return false;
     }
 
+    @Override
     public String getBaseUri()
     {
         // !!! TBI
         return null;
     }
 
+    @Override
     public final QName getCurrentElementName()
     {
         if (mDepth == 0) {
@@ -825,11 +838,12 @@ public final class InputElementStack
     // This was defined above for NamespaceContext
     //public String getNamespaceURI(String prefix);
 
-    public Location getValidationLocation()
-    {
+    @Override
+    public Location getValidationLocation() {
         return mReporter.getLocation();
     }
 
+    @Override
     public void reportProblem(XMLValidationProblem problem)
         throws XMLStreamException
     {
@@ -842,6 +856,7 @@ public final class InputElementStack
      * default value needs to be added as if it was parsed from the
      * element.
      */
+    @Override
     public int addDefaultAttribute(String localName, String uri, String prefix,
                                    String value) throws XMLStreamException
     {
@@ -1051,6 +1066,7 @@ public final class InputElementStack
      * @return Schema (DTD, RNG, W3C Schema) based type of the attribute
      *   in specified index
      */
+    @Override
     public final String getAttributeType(int index)
     {
         if (index == mIdAttrIndex && index >= 0) { // second check to ensure -1 is not passed

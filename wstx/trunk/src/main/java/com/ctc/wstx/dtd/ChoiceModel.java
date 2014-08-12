@@ -41,6 +41,7 @@ public class ChoiceModel
     ///////////////////////////////////////////////////
      */
 
+    @Override
     public String toString()
     {
         StringBuilder sb = new StringBuilder();
@@ -58,6 +59,7 @@ public class ChoiceModel
      * Method that has to create a deep copy of the model, without
      * sharing any of existing Objects.
      */
+    @Override
     public ModelNode cloneModel()
     {
         int len = mSubModels.length;
@@ -68,10 +70,12 @@ public class ChoiceModel
         return new ChoiceModel(newModels);
     }
 
+    @Override
     public boolean isNullable() {
         return mNullable;
     }
 
+    @Override
     public void indexTokens(List<TokenModel> tokens)
     {
         // First, let's ask sub-models to calc their settings
@@ -80,6 +84,7 @@ public class ChoiceModel
         }
     }
 
+    @Override
     public void addFirstPos(BitSet firstPos) {
         if (mFirstPos == null) {
             mFirstPos = new BitSet();
@@ -90,6 +95,7 @@ public class ChoiceModel
         firstPos.or(mFirstPos);
     }
 
+    @Override
     public void addLastPos(BitSet lastPos) {
         if (mLastPos == null) {
             mLastPos = new BitSet();
@@ -100,6 +106,7 @@ public class ChoiceModel
         lastPos.or(mLastPos);
     }
 
+    @Override
     public void calcFollowPos(BitSet[] followPosSets)
     {
         // need to let child models do their stuff:

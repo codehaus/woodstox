@@ -1,8 +1,5 @@
 package failing;
 
-import javax.xml.stream.*;
-
-import org.codehaus.stax2.*;
 import org.codehaus.stax2.validation.*;
 
 import wstxtest.vstream.BaseValidationTest;

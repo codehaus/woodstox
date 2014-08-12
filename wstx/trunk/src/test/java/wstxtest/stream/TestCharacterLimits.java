@@ -9,11 +9,8 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
 import com.ctc.wstx.api.WstxInputProperties;
-import com.ctc.wstx.exc.WstxLazyException;
 
-/**
- *
- */
+@SuppressWarnings("resource")
 public class TestCharacterLimits
     extends BaseStreamTest
 {
@@ -194,6 +191,8 @@ public class TestCharacterLimits
             StringReader sreader = new StringReader(start.toString());
             int count;
             boolean done;
+            
+            @Override
             public int read(char[] cbuf, int off, int len) throws IOException {
                 int i = sreader.read(cbuf, off, len);
                 if (i == -1) {
@@ -216,6 +215,8 @@ public class TestCharacterLimits
                 }
                 return i;
             }
+
+            @Override
             public void close() throws IOException {
             }
         };
