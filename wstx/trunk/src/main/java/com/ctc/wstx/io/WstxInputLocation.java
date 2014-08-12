@@ -41,7 +41,7 @@ public class WstxInputLocation
 
     final protected String mPublicId, mSystemId;
     
-    final protected int mCharOffset;
+    final protected long mCharOffset;
     final protected int mCol, mRow;
 
     transient protected String mDesc = null;
@@ -51,7 +51,7 @@ public class WstxInputLocation
      */
     public WstxInputLocation(WstxInputLocation ctxt,
     		String pubId, String sysId,
-    		int charOffset, int row, int col)
+    		long charOffset, int row, int col)
     {
         mContext = ctxt;
         mPublicId = pubId;
@@ -59,18 +59,18 @@ public class WstxInputLocation
         /* Overflow? Can obviously only handle limited range of overflows,
          * but let's do that at least?
          */
-        mCharOffset = (charOffset < 0) ? Integer.MAX_VALUE : charOffset;
+        mCharOffset = charOffset;
         mCol = col;
         mRow = row;
     }
 
     public WstxInputLocation(WstxInputLocation ctxt,
-    		String pubId, SystemId sysId, int charOffset, int row, int col)
+    		String pubId, SystemId sysId, long charOffset, int row, int col)
     {
         mContext = ctxt;
         mPublicId = pubId;
         mSystemId = (sysId == null) ? "N/A" : sysId.toString();
-        mCharOffset = (charOffset < 0) ? Integer.MAX_VALUE : charOffset;
+        mCharOffset = charOffset;
         mCol = col;
         mRow = row;
     }
@@ -79,7 +79,9 @@ public class WstxInputLocation
         return sEmptyLocation;
     }
     
-    public int getCharacterOffset() { return mCharOffset; }
+    public long getCharacterOffsetLong() { return mCharOffset; }
+
+    public int getCharacterOffset() { return (int)mCharOffset; }
     public int getColumnNumber() { return mCol; }
     public int getLineNumber() { return mRow; }
     
@@ -116,16 +118,16 @@ public class WstxInputLocation
     }
     
     public int hashCode() {
-        return mCharOffset ^ mRow ^ mCol + (mCol << 3);
+        return ((int)mCharOffset) ^ (int)(0xffffffff & mCharOffset >> 32) ^ mRow ^ mCol + (mCol << 3);
     }
     
     public boolean equals(Object o) {
-        if (!(o instanceof Location)) {
+        if (!(o instanceof WstxInputLocation)) {
             return false;
         }
-        Location other = (Location) o;
+        WstxInputLocation other = (WstxInputLocation) o;
         // char offset should be good enough, without row/col:
-        if (other.getCharacterOffset() != getCharacterOffset()) {
+        if (other.getCharacterOffsetLong() != getCharacterOffsetLong()) {
             return false;
         }
         String otherPub = other.getPublicId();
