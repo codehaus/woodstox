@@ -166,6 +166,6 @@ public abstract class BaseInputSource
          *   let's just let that be...
          */
         return new WstxInputLocation(pl, getPublicId(), getSystemId(),
-                                     (int) total, row, col);
+                                     total, row, col);
     }
 }
