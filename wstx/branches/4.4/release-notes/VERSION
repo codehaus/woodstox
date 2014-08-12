@@ -1,12 +1,17 @@
 Project: Woodstox XML processor
-Version: 4.4.0 (19-May-2014)
+Version: 4.4.1 (xx-xxx-2014)
 
-[WSTX-299]: Allow use of systemIds that do not necessarily resolve to
- JDK-recognized URLs (i.e. unknown protocol)
+[WSTX-302]: XMLStreamReader's offset value should not get stuck at Integer.MAX_VALUE for a large file
+ (suggested by Akitoshi Y)
 
 ------------------------------------------------------------------------
 == History: ==
 ------------------------------------------------------------------------
+
+4.4.0 (19-May-2014)
+
+[WSTX-299]: Allow use of systemIds that do not necessarily resolve to
+ JDK-recognized URLs (i.e. unknown protocol)
 
 4.3.0 (23-Mar-2014)
 
@@ -126,7 +131,7 @@ Problems fixed:
 
   * [WSTX-206] Provide a way to configure SAX parser with all config
     settings available to Stax readers (add WstxSAXParser.getStaxConfig())
-   (suggested by StŽphane C)
+   (suggested by StÂŽphane C)
   * [WSTX-234] Restore feature WstxInputProperties.NORMALIZE_LFS; add
     WstxInputProperties.TREAT_CHAR_REFS_AS_ENTS
    (requested by Peter S)
