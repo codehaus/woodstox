@@ -63,8 +63,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>2.5.1</version>
                 <configuration>
-                    <source>1.5</source>
-                    <target>1.5</target>
+                    <source>1.6</source>
+                    <target>1.6</target>
 <!--
                     <excludes>
                         <exclude>test/**</exclude>
@@ -100,12 +100,7 @@
     </build>
     <dependencies>
         <!-- First mandatory (and transitive) dependencies -->
-
-        <dependency>
-            <groupId>stax</groupId>
-            <artifactId>stax-api</artifactId>
-            <version>[1.0.1,)</version>
-        </dependency>
+        <!-- Stax API part of JDK 1.6 and above, no need to include -->
 
         <!-- Then optional ones (need for build, possibly
            for runtime but not always)
