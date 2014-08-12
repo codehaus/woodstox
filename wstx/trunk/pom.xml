@@ -102,6 +102,12 @@
         <!-- First mandatory (and transitive) dependencies -->
         <!-- Stax API part of JDK 1.6 and above, no need to include -->
 
+        <dependency>
+          <groupId>org.codehaus.woodstox</groupId>
+          <artifactId>stax2-api</artifactId>
+          <version>3.1.4</version>
+        </dependency>
+
         <!-- Then optional ones (need for build, possibly
            for runtime but not always)
         -->
