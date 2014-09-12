@@ -1,5 +1,5 @@
 Project: Woodstox XML processor
-Version: 4.4.1 (xx-xxx-2014)
+Version: 4.4.1 (11-Sep-2014)
 
 [WSTX-302]: XMLStreamReader's offset value should not get stuck at Integer.MAX_VALUE for a large file
  (suggested by Akitoshi Y)
@@ -131,7 +131,7 @@ Problems fixed:
 
   * [WSTX-206] Provide a way to configure SAX parser with all config
     settings available to Stax readers (add WstxSAXParser.getStaxConfig())
-   (suggested by StÂŽphane C)
+   (suggested by StŽphane C)
   * [WSTX-234] Restore feature WstxInputProperties.NORMALIZE_LFS; add
     WstxInputProperties.TREAT_CHAR_REFS_AS_ENTS
    (requested by Peter S)
