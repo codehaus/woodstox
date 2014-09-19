@@ -31,8 +31,7 @@ public class TestAttributeDTD
         setSupportDTD(ifact, true); 
         setReplaceEntities(ifact, true); 
 
-        XMLStreamReader sr = constructStreamReader(ifact,
-                                                   VALID_ATTRS_WITH_QUOTES);
+        XMLStreamReader sr = constructStreamReader(ifact, VALID_ATTRS_WITH_QUOTES);
         // Shouldn't get exceptions...
 
         try {
